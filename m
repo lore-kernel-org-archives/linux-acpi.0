@@ -1,36 +1,37 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] [PATCH] ACPI: thinkpad-acpi: allow hotkey to input event map to be modified
-Date: Tue, 29 May 2007 10:06:28 -0300
-Message-ID: <20070529130628.GC12935@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <200705262338.19137.dtor@insightbb.com> <20070527120319.GB19562@khazad-dum.debian.net> <200705282308.45828.dtor@insightbb.com> <20070529124639.GA12935@khazad-dum.debian.net> <d120d5000705290555p1f99c42cieb3d6feb4a0f0e05@mail.gmail.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [1/4] 2.6.22-rc3: known regressions
+Date: Tue, 29 May 2007 16:34:59 +0200
+Message-ID: <20070529143459.GE25278@duck.suse.cz>
+References: <465C2225.2000100@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:54033 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752512AbXE2NGd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 May 2007 09:06:33 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761840AbXE2OX3@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <d120d5000705290555p1f99c42cieb3d6feb4a0f0e05@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <465C2225.2000100@googlemail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, Florin Iucha <florin@iucha.net>, Sam Ravnborg <sam@ravnborg.org>, Andrey Borzenkov <arvidjaar@mail.ru>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tue, 29 May 2007, Dmitry Torokhov wrote:
-> On 5/29/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> > On Mon, 28 May 2007, Dmitry Torokhov wrote:
-> > > Documentation/input/input-programming.txt gives some pointers.
-> >
-> > It is outdated,
+  Hi,
+
+On Tue 29-05-07 14:52:53, Michal Piotrowski wrote:
+> Here is a list of some known regressions in 2.6.22-rc3.
 > 
-> Hm, I just recently updated it so it is pretty fresh.
+> Feel free to add new regressions/remove fixed etc.
+> http://kernelnewbies.org/known_regressions
+> 
+  <snip>
+> File systems
+> 
+> Subject    : Oops in dentry_iput with 2.6.22-rc2 on AMD64
+> References : http://lkml.org/lkml/2007/5/22/4
+> Submitter  : Florin Iucha <florin@iucha.net>
+> Status     : Unknown
+  Actually, the bug seems to be unreproducible and it has probably been a
+1-bit flip. So I'd be reluctant to call it a regression...
 
-Ah, thanks, I will fetch it from linus tree, then.
-
+								Honza
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Jan Kara <jack@suse.cz>
+SuSE CR Labs
