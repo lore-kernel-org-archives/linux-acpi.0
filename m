@@ -1,56 +1,50 @@
-From: florin@iucha.net (Florin Iucha)
-Subject: Re: [1/4] 2.6.22-rc3: known regressions
-Date: Tue, 29 May 2007 09:41:20 -0500
-Message-ID: <20070529144120.GC17474@iucha.net>
-References: <465C2225.2000100@googlemail.com> <20070529143459.GE25278@duck.suse.cz>
+From: Phil <philtickle200@yahoo.com>
+Subject: Looking for acpi assistance for R&D proiject
+Date: Tue, 29 May 2007 12:52:09 -0700 (PDT)
+Message-ID: <226194.96681.qm@web54007.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Md/poaVZ8hnGTzuv"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757959AbXE2Olc@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070529143459.GE25278@duck.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, linux-fsdevel@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Andrey Borzenkov <arvidjaar@mail.ru>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from web54007.mail.re2.yahoo.com ([206.190.36.231]:38151 "HELO
+	web54007.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752659AbXE2TwK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 May 2007 15:52:10 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+
+Hi
+ 
+ I hope this isn't an inappropriate use of the list -
+please accept my 
+apologies if it is.
+ 
+ I'm involved in a linux-based R&D project and we are
+in urgent need of 
+expert input concerning acpi and suspend to disk.  I
+thought this might 
+be a good place to get some hints about where to start
+looking.
+ 
+ If you know of a consultant hacker or firm having a
+very detailed 
+engagement with acpi and suspend to disk, I'd be
+really grateful for an 
+email in the first instance to:
+ 
+ philtickle200@yahoo.co.uk
+ 
+ I am not a recruiter etc and this is a bona fide
+project.
+ 
+ Many thanks in advance,
+ 
+ Phil
 
 
---Md/poaVZ8hnGTzuv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, May 29, 2007 at 04:34:59PM +0200, Jan Kara wrote:
-> On Tue 29-05-07 14:52:53, Michal Piotrowski wrote:
-> > Here is a list of some known regressions in 2.6.22-rc3.
-> >=20
-> > Subject    : Oops in dentry_iput with 2.6.22-rc2 on AMD64
-> > References : http://lkml.org/lkml/2007/5/22/4
-> > Submitter  : Florin Iucha <florin@iucha.net>
-> > Status     : Unknown
->   Actually, the bug seems to be unreproducible and it has probably been a
-> 1-bit flip. So I'd be reluctant to call it a regression...
-
-I agree with this statement.  I'll ping Michal and Jan if the oops
-resurfaces.
-
-florin
-
---=20
-Bruce Schneier expects the Spanish Inquisition.
-      http://geekz.co.uk/schneierfacts/fact/163
-
---Md/poaVZ8hnGTzuv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGXDuQND0rFCN2b1sRAqIhAJ4s/oxJ8GixFXZuJ7FuFLWhuPoelACfYby5
-hBfO3k4IafmLhzKeXGBluZI=
-=799Z
------END PGP SIGNATURE-----
-
---Md/poaVZ8hnGTzuv--
+       
+____________________________________________________________________________________
+Moody friends. Drama queens. Your life? Nope! - their life, your story. Play Sims Stories at Yahoo! Games.
+http://sims.yahoo.com/  
