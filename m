@@ -1,19 +1,19 @@
 From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: [PATCH 1/3] ACPI EC: Re-factor EC space handler to avoid using
-	label/goto for cycle.
-Date: Tue, 29 May 2007 16:42:52 +0400
-Message-ID: <20070529124252.20303.89820.stgit@z61m>
+Subject: [PATCH 2/3] ACPI EC: drop usage of ACPI_DEBUG_PRINT as too heavy
+	weight
+Date: Tue, 29 May 2007 16:42:57 +0400
+Message-ID: <20070529124257.20303.5108.stgit@z61m>
 References: <20070529123823.20303.55101.stgit@z61m>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:25118 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.168]:24896 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbXE2Mmy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 May 2007 08:42:54 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so1849494ugf
-        for <linux-acpi@vger.kernel.org>; Tue, 29 May 2007 05:42:53 -0700 (PDT)
+	with ESMTP id S1751919AbXE2Mm6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 May 2007 08:42:58 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so1849490ugf
+        for <linux-acpi@vger.kernel.org>; Tue, 29 May 2007 05:42:57 -0700 (PDT)
 In-Reply-To: <20070529123823.20303.55101.stgit@z61m>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,86 +23,84 @@ Cc: Alexey Starikovskiy <aystarik@gmail.com>
 Signed-off-by: Alexey Starikovskiy <aystarik@gmail.com>
 ---
 
- drivers/acpi/ec.c |   56 ++++++++++++++++-------------------------------------
- 1 files changed, 17 insertions(+), 39 deletions(-)
+ drivers/acpi/ec.c |   20 ++++++--------------
+ 1 files changed, 6 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 82f496c..5534b23 100644
+index 5534b23..ffb8361 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -454,57 +454,35 @@ acpi_ec_space_setup(acpi_handle region_handle,
+@@ -39,20 +39,19 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/actypes.h>
+ 
+-#define _COMPONENT		ACPI_EC_COMPONENT
+-ACPI_MODULE_NAME("ec");
+-#define ACPI_EC_COMPONENT		0x00100000
+ #define ACPI_EC_CLASS			"embedded_controller"
+ #define ACPI_EC_HID			"PNP0C09"
+ #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
+ #define ACPI_EC_FILE_INFO		"info"
+ #undef PREFIX
+ #define PREFIX				"ACPI: EC: "
++
+ /* EC status register */
+ #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
+ #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
+ #define ACPI_EC_FLAG_BURST	0x10	/* burst mode */
+ #define ACPI_EC_FLAG_SCI	0x20	/* EC-SCI occurred */
++
+ /* EC commands */
+ enum ec_command {
+ 	ACPI_EC_COMMAND_READ = 0x80,
+@@ -245,7 +244,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
+ 
+ 	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0, 0);
+ 	if (status) {
+-		printk(KERN_DEBUG PREFIX
++		printk(KERN_ERR PREFIX
+ 		       "input buffer is not empty, aborting transaction\n");
+ 		goto end;
+ 	}
+@@ -630,10 +629,6 @@ static int acpi_ec_add(struct acpi_device *device)
+ 
+ 	acpi_ec_add_fs(device);
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "%s [%s] (gpe %d) interrupt mode.",
+-			  acpi_device_name(device), acpi_device_bid(device),
+-			  (u32) ec->gpe));
+-
+ 	return 0;
  }
  
- static acpi_status
--acpi_ec_space_handler(u32 function,
--		      acpi_physical_address address,
--		      u32 bit_width,
--		      acpi_integer * value,
-+acpi_ec_space_handler(u32 function, acpi_physical_address address,
-+		      u32 bits, acpi_integer *value,
- 		      void *handler_context, void *region_context)
- {
--	int result = 0;
- 	struct acpi_ec *ec = handler_context;
--	u64 temp = *value;
--	acpi_integer f_v = 0;
--	int i = 0;
-+	int result = 0, i = 0;
-+	u8 temp = 0;
+@@ -718,9 +713,6 @@ static int acpi_ec_start(struct acpi_device *device)
+ 	if (!ec)
+ 		return -EINVAL;
  
- 	if ((address > 0xFF) || !value || !handler_context)
- 		return AE_BAD_PARAMETER;
- 
--	if (bit_width != 8 && acpi_strict) {
-+	if (function != ACPI_READ && function != ACPI_WRITE)
- 		return AE_BAD_PARAMETER;
--	}
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "gpe=0x%02lx, ports=0x%2lx,0x%2lx",
+-			  ec->gpe, ec->command_addr, ec->data_addr));
 -
--      next_byte:
--	switch (function) {
--	case ACPI_READ:
--		temp = 0;
--		result = acpi_ec_read(ec, (u8) address, (u8 *) & temp);
--		break;
--	case ACPI_WRITE:
--		result = acpi_ec_write(ec, (u8) address, (u8) temp);
--		break;
--	default:
--		result = -EINVAL;
--		goto out;
--		break;
--	}
+ 	/* Boot EC is already working */
+ 	if (ec == boot_ec)
+ 		return 0;
+@@ -779,8 +771,8 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
  
--	bit_width -= 8;
--	if (bit_width) {
--		if (function == ACPI_READ)
--			f_v |= temp << 8 * i;
--		if (function == ACPI_WRITE)
--			temp >>= 8;
--		i++;
--		address++;
--		goto next_byte;
--	}
-+	if (bits != 8 && acpi_strict)
-+		return AE_BAD_PARAMETER;
+ 	ec->handle = handle;
  
--	if (function == ACPI_READ) {
--		f_v |= temp << 8 * i;
--		*value = f_v;
-+	while (bits - i > 0) {
-+		if (function == ACPI_READ) {
-+			result = acpi_ec_read(ec, address, &temp);
-+			(*value) |= ((acpi_integer)temp) << i;
-+		} else {
-+			temp = 0xff & ((*value) >> i);
-+			result = acpi_ec_write(ec, address, temp);
-+		}
-+		i += 8;
-+		++address;
- 	}
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "GPE=0x%02lx, ports=0x%2lx, 0x%2lx",
+-			  ec->gpe, ec->command_addr, ec->data_addr));
++	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx",
++			  ec->gpe, ec->command_addr, ec->data_addr);
  
--      out:
- 	switch (result) {
- 	case -EINVAL:
- 		return AE_BAD_PARAMETER;
+ 	return AE_CTRL_TERMINATE;
+ }
+@@ -803,7 +795,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 	if (ACPI_FAILURE(status))
+ 		goto error;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found ECDT"));
++	printk(KERN_INFO PREFIX "EC description table is found, configuring boot EC\n");
+ 
+ 	boot_ec->command_addr = ecdt_ptr->control.address;
+ 	boot_ec->data_addr = ecdt_ptr->data.address;
 
