@@ -1,66 +1,101 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: allow hotkey to input event map to be modified
-Date: Mon, 28 May 2007 23:08:44 -0400
-Message-ID: <200705282308.45828.dtor@insightbb.com>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <200705262338.19137.dtor@insightbb.com> <20070527120319.GB19562@khazad-dum.debian.net>
+From: Dmitry Torokhov <dtor-xOqKmqBdiMhF6kxbq+BtvQ@public.gmane.org>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys
+	to input.h
+Date: Mon, 28 May 2007 23:16:30 -0400
+Message-ID: <200705282316.32173.dtor@insightbb.com>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br>
+	<200705262340.28219.dtor@insightbb.com>
+	<20070527121513.GC19562@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:4007 "EHLO
-	asav05.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755317AbXE2DId (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 May 2007 23:08:33 -0400
-In-Reply-To: <20070527120319.GB19562@khazad-dum.debian.net>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070527121513.GC19562-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-input-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi,
-
-On Sunday 27 May 2007 08:03, Henrique de Moraes Holschuh wrote:
+On Sunday 27 May 2007 08:15, Henrique de Moraes Holschuh wrote:
 > On Sat, 26 May 2007, Dmitry Torokhov wrote:
 > > On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> > > Add a sysfs interface to allow userspace to modify the mapping between
-> > > ThinkPad hotkeys and the keycode input events they generate.
+> > > Add hotkeys available in almost all ThinkPads manufactured in the last five
+> > > years (more than one million machines given the ammount of batteries
+> > > recalled) to input.h, and make thinkpad-acpi use those instead of issuing
+> > > KEY_UNKNOWN.
+> > > 
+> > > KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
+> > > bogon-induced stupidity at IBM some years ago, but it is provided because
+> > > it doesn't make sense to define KEY_FN_PAGEUP and not define
+> > > KEY_FN_PAGEDOWN at the same time.
+> > > 
 > > 
-> > No, please do not do that. We have a standard way to adjust keymap for
-> > an input device via EVIOCGKEYCODE/EVIOCSKEYCODE ioctls on corresponding
-> > event device; there is no need to invent another interface. Just define
-> > getkeycodes() and setkeycode() methods for your input device and be done
-> > with it.
+> > I am unconvinced that we need new keycodes. Isn't there a better default
+> > keycodes for these keys? You mentioned that fn+f5 controls radio on many
+> > thinkpads, why don't you use KEY_WLAN in your keymap?
 > 
-> Sure, I will change to the IOCTLs.  Such stuff is exactly why I sent out a
-> partway-done "don't merge it yet" patch set: I had a hunch that the code
-> would need some changes as the documentation on how to use the input device
-> in-kernel API is worth very little.
-> 
-> IMO if there is an API that is dedicated to drivers (and not, say, kernel
-> core), full documentation and keeping it up-to-date should be non-negotiable
-> requirements for the initial merge in mainline, and any subsequent patches
-> that touch it.  Oh well.   I am reading the corgikbd driver now, it looks
-> sane enough to use as documentation.
+> No can do the KEY-WLAN thing, sorry.  I *don't* have a way to know, unless I
+> add a model-specific map table to the kernel, and I have been told by
+> numerous people to don't even try, unless it is for quirks, etc.
 > 
 
-Documentation/input/input-programming.txt gives some pointers.
+Why not? It thinkpad-acpi is a box-specific driver and you could try to
+setup proper keymap depending on models. We do that in wistron_btns and
+it doers not even need alot of memory (keymaps and dmi data is marked
+__initdata and is discarded).
 
-> On that topic, am I to send SYNC events between key-press and key-release
-> events? 
+> Really, what are we to do with that input.h scancode map?  It *IS* supposed
+> to be absolute, i.e. one is not supposed to reuse keys in there if the
+> functionality *or* the generic description is not an exact match.
 
-Yes. The application is allowed to "accumulate" input events until it gets
-EV_SYN/SYN_REPORT so if you don't send sync in-between some applications
-may not see a button press.
+Are there any markings on those keys?
 
-> Just after a key-press+key release event?  Or not at all for a 
-> EV_KEY ? And exactly what should go in the hardware port descriptor? I used
-> module name/input device number relative to the module.
+> This is 
+> extremely clear, and it makes complete sense from the point of view of
+> userland: HAL and others can properly assign functions to all scan codes and
+> it will be always correct.
+>
 
-Are you talking about "phys"? Then it is supposed to have an unique path
-to the input device. For devices on BUS_HOST module name + relative input
-device numbers seems to be the best choice.
+Are you arguing for KEY_THINKPAD_FN_F1, etc? And it being different from
+KEY_ACER_FN_F1? I don't think it is a good idea... 
+ 
+> But then, it is expensive memory-wise, so it is near the current KEY_MAX,
+> and people are very, very relutant to add another bit to it.
+>
+
+Not really expensive. Right now keys cost 128 bytes per input device,
+absolute axis data cost much more. If we really need it we could increase
+KEY_MAX.
+ 
+> This is definately a ridiculous and aggravating situation, that deserves a
+> proper fix.  If increasing the scancode table cannot be done (why?), it is
+> time to stop denying reality, and remove everything after KEY_FN (0x1d0),
+> and instead give us a block of KEY_HOSTSPECIFIC_* scancodes, from 0x1d0 to
+> at least 0x1ef.
+> 
+> Given the way that scancode table is being used, it is one way or the other.
+> Either increase it to KEY_MAX=0x3ff, or do exactly what UNICODE did, give us
+> a decently sized block of host-specific scancodes, and shunt the problem to
+> userspace to clean up after.
+>
+
+In this case I better do nothing and leave everything as KEY_RESERVED and
+let userspace load proper keymap for the device.  
 
 -- 
 Dmitry
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
