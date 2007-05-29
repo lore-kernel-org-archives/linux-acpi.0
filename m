@@ -1,50 +1,48 @@
-From: Phil <philtickle200@yahoo.com>
-Subject: Looking for acpi assistance for R&D proiject
-Date: Tue, 29 May 2007 12:52:09 -0700 (PDT)
-Message-ID: <226194.96681.qm@web54007.mail.re2.yahoo.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: AML method concurrency
+Date: Tue, 29 May 2007 14:54:27 -0600
+Message-ID: <200705291454.27905.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web54007.mail.re2.yahoo.com ([206.190.36.231]:38151 "HELO
-	web54007.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752659AbXE2TwK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 May 2007 15:52:10 -0400
+Received: from atlrel9.hp.com ([156.153.255.214]:55057 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751333AbXE2Uyh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 May 2007 16:54:37 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi
- 
- I hope this isn't an inappropriate use of the list -
-please accept my 
-apologies if it is.
- 
- I'm involved in a linux-based R&D project and we are
-in urgent need of 
-expert input concerning acpi and suspend to disk.  I
-thought this might 
-be a good place to get some hints about where to start
-looking.
- 
- If you know of a consultant hacker or firm having a
-very detailed 
-engagement with acpi and suspend to disk, I'd be
-really grateful for an 
-email in the first instance to:
- 
- philtickle200@yahoo.co.uk
- 
- I am not a recruiter etc and this is a bona fide
-project.
- 
- Many thanks in advance,
- 
- Phil
+Can AML methods be executed concurrently?
 
+The existence of mutexes, serialized methods, and the Linux
+"acpi_serialize" parameter makes me think that in general, we
+should be able to execute multiple AML methods concurrently.
 
-       
-____________________________________________________________________________________
-Moody friends. Drama queens. Your life? Nope! - their life, your story. Play Sims Stories at Yahoo! Games.
-http://sims.yahoo.com/  
+However, the ACPI CA Programmer Reference, rev 1.16, section 2.2.5,
+says:
+
+  The specification states that at most one control method can be
+  actually executing AML code at any given time.  ...  it can be
+  said that the specification precludes the concurrent execution
+  of control methods.
+
+It is referring to the ACPI specification, but I don't see any
+explicit statement there.  I've been pointed to this text from
+ACPI 3.0, section 5.5.2:
+
+  Interpretation of a Control Method is not preemptive, but it can
+  block.  When a control method does block, the operating software
+  can initiate or continue the execution of a different control
+  method.
+
+But this doesn't actually say anything about concurrency.
+
+If ACPI does in fact preclude concurrent method execution, can you
+point me to discussion of this in the ACPI spec?
+
+Bjorn
