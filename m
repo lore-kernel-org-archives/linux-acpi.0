@@ -1,85 +1,49 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: [1/4] 2.6.22-rc3: known regressions
-Date: Tue, 29 May 2007 14:52:53 +0200
-Message-ID: <465C2225.2000100@googlemail.com>
+From: "Dmitry Torokhov" <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: allow hotkey to
+	input event map to be modified
+Date: Tue, 29 May 2007 08:55:41 -0400
+Message-ID: <d120d5000705290555p1f99c42cieb3d6feb4a0f0e05@mail.gmail.com>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br>
+	<200705262338.19137.dtor@insightbb.com>
+	<20070527120319.GB19562@khazad-dum.debian.net>
+	<200705282308.45828.dtor@insightbb.com>
+	<20070529124639.GA12935@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:37005 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbXE2MxE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 May 2007 08:53:04 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so1851384ugf
-        for <linux-acpi@vger.kernel.org>; Tue, 29 May 2007 05:53:03 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070529124639.GA12935-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, Florin Iucha <florin@iucha.net>, Sam Ravnborg <sam@ravnborg.org>, Andrey Borzenkov <arvidjaar@mail.ru>
 
-Hi all,
+On 5/29/07, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org> wrote:
+> On Mon, 28 May 2007, Dmitry Torokhov wrote:
+> > Documentation/input/input-programming.txt gives some pointers.
+>
+> It is outdated,
 
-Here is a list of some known regressions in 2.6.22-rc3.
+Hm, I just recently updated it so it is pretty fresh.
 
-=46eel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+> and incomplete.
 
+Here I agree.
 
+-- 
+Dmitry
 
-Unclassified
-
-Subject    : long freezes on thinkpad t60
-References : http://lkml.org/lkml/2007/5/24/100
-Submitter  : Miklos Szeredi <miklos@szeredi.hu>
-Handled-By : Ingo Molnar <mingo@elte.hu>
-Status     : problem is being debugged
-
-
-
-ACPI
-
-Subject    : unable to shutdown on kernel 2.6.22-rc2
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8516
-Submitter  : Thierry Volpiatto <tvolpiatt@neuf.fr>
-Status     : Unknown
-
-
-
-ALSA
-
-Subject    : snd-aoa causes badness in lib/kref.c:33
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8513
-Submitter  : Ben Collins <bcollins@ubuntu.com>
-Status     : Unknown
-
-
-
-=46ile systems
-
-Subject    : Oops in dentry_iput with 2.6.22-rc2 on AMD64
-References : http://lkml.org/lkml/2007/5/22/4
-Submitter  : Florin Iucha <florin@iucha.net>
-Status     : Unknown
-
-
-
-Kbuild
-
-Subject    : make M=3D$PWD modules_install does nothing
-References : http://lkml.org/lkml/2007/5/27/190
-Submitter  : Andrey Borzenkov <arvidjaar@mail.ru>
-Status     : Unknown
-
-
-
-Regards,
-Michal
-
---
-"Najbardziej brakowa=B3o mi twojego milczenia."
--- Andrzej Sapkowski "Co=B6 wi=EAcej"
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
