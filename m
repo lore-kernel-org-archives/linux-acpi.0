@@ -1,63 +1,79 @@
 From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: AML method concurrency
-Date: Wed, 30 May 2007 11:37:40 +0400
-Message-ID: <465D29C4.20707@gmail.com>
-References: <200705291454.27905.bjorn.helgaas@hp.com>
+Subject: Re: ACPICA vs. Linux status
+Date: Wed, 30 May 2007 11:43:52 +0400
+Message-ID: <465D2B38.6000407@gmail.com>
+References: <200705291815.09493.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:4402 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.173]:9113 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375AbXE3HkI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 May 2007 03:40:08 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so122529ugf
-        for <linux-acpi@vger.kernel.org>; Wed, 30 May 2007 00:40:06 -0700 (PDT)
-In-Reply-To: <200705291454.27905.bjorn.helgaas@hp.com>
+	with ESMTP id S1750744AbXE3HoA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 May 2007 03:44:00 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so123129ugf
+        for <linux-acpi@vger.kernel.org>; Wed, 30 May 2007 00:43:59 -0700 (PDT)
+In-Reply-To: <200705291815.09493.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: robert.moore@intel.com, linux-acpi@vger.kernel.org
 
-There is a "limited concurrency" in interpreter.
-There is a "executor" semaphore(acpi_ex_{enter/exit}_interpreter), which
-prevents generic concurrent execution of methods, but in the case of the
-method blocking (mutex or sleep) it will be released and reacquired
-after, thus allowing some other method to run during block.
+Len,
 
-Hope that helps,
+Do you still plan to do "git cvsimport" of ACPICA and put it somethere
+visible?
+
+Regards,
 Alex.
 
-Bjorn Helgaas ?????:
-> Can AML methods be executed concurrently?
+Len Brown ?????:
+>> Subject: [Patch 1/8] ACPICA: Update _OSI string list
 > 
-> The existence of mutexes, serialized methods, and the Linux
-> "acpi_serialize" parameter makes me think that in general, we
-> should be able to execute multiple AML methods concurrently.
+> applied
 > 
-> However, the ACPI CA Programmer Reference, rev 1.16, section 2.2.5,
-> says:
+>> Subject: [Patch 2/8] ACPICA: Changes for Cygwin compatibility
 > 
->   The specification states that at most one control method can be
->   actually executing AML code at any given time.  ...  it can be
->   said that the specification precludes the concurrent execution
->   of control methods.
+> applied
 > 
-> It is referring to the ACPI specification, but I don't see any
-> explicit statement there.  I've been pointed to this text from
-> ACPI 3.0, section 5.5.2:
+>> Subject: [Patch 3/8] ACPICA: Support for external package objects as method arguments
 > 
->   Interpretation of a Control Method is not preemptive, but it can
->   block.  When a control method does block, the operating software
->   can initiate or continue the execution of a different control
->   method.
+> applied after hand editing.
+> Unclear why hand-ending was necessary, as there were no Linux specific
+> changes to this file beneath this delta.
+> Must be either Lindent weirdness or 0x20070320, mentioned below.
 > 
-> But this doesn't actually say anything about concurrency.
+>> Subject: [Patch 4/8] ACPICA: Fixed possible corruption of global GPE list
 > 
-> If ACPI does in fact preclude concurrent method execution, can you
-> point me to discussion of this in the ACPI spec?
+> applied
 > 
-> Bjorn
+>> Subject: [Patch 5/8] ACPICA: Fix for update of the Global Lock Handle
+> 
+> did not apply, as it conflicts with the pre-existing Linux fix here,
+> which I decided to keep for the time being.
+> 
+>> Subject: [Patch 6/8] ACPICA: Change to make Notify() operator completely synchronous
+> 
+> While the patch applied, it did not work, and is thus rejected.
+> It caused "cat temperature" on my nx6325 to deadlock someplace
+> in the region of a trip point.
+> 
+>> Subject: [Patch 7/8] ACPICA: Clear reserved fields for incoming ACPI 1.0 FADTs
+> 
+> applied.
+> 
+>> Subject: [Patch 8/8] ACPICA: Update version to 20070508
+> 
+> did not apply, and didn't hand-apply it for two reasons:
+> 1. we don't yet include all the changes from 20070508.
+> 
+> 2. It expects ACPICA version 0x20070320 underneath,
+> but Linux doesn't have that version, it is at 0x20070126.
+> 
+> Bob, Please send the patch series for 0x20070320.
+> 
+> thanks,
+> -Len
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
