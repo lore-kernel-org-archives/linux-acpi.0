@@ -1,89 +1,34 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: (Intel Core 2 Duo 2.4gig 4meg cache + Intel S3000AH + Linux) -
-	ACPI kernel option = 1 core?
-Date: Wed, 30 May 2007 09:10:28 +0800
-Message-ID: <1180487428.3311.1.camel@sli10-conroe.sh.intel.com>
-References: <FC1D1B23302A22499C60C967336B2AE0014B6159@pdsmsx411.ccr.corp.intel.com>
-	 <465BFEA4.1010307@netwaynetworks.com.au>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [1/4] 2.6.22-rc3: known regressions
+Date: Wed, 30 May 2007 06:35:22 +0200
+Message-ID: <20070530043522.GA11512@uranus.ravnborg.org>
+References: <465C2225.2000100@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5774 "EHLO mga01.intel.com"
+Received: from pasmtpa.tele.dk ([80.160.77.114]:47778 "EHLO pasmtpA.tele.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751356AbXE3BOd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 May 2007 21:14:33 -0400
-In-Reply-To: <465BFEA4.1010307@netwaynetworks.com.au>
+	id S1749667AbXE3EeZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 May 2007 00:34:25 -0400
+Content-Disposition: inline
+In-Reply-To: <465C2225.2000100@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Evans <steve@netwaynetworks.com.au>
-Cc: linux-acpi@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, Florin Iucha <florin@iucha.net>, Andrey Borzenkov <arvidjaar@mail.ru>
 
-On Tue, 2007-05-29 at 20:21 +1000, Steven Evans wrote:
-> Li, Shaohua wrote: 
-> >   
-> > > -----Original Message-----
-> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > owner@vger.kernel.org] On Behalf Of Steve Evans
-> > > Sent: Tuesday, May 29, 2007 9:16 AM
-> > > To: linux-acpi@vger.kernel.org
-> > > Subject: (Intel Core 2 Duo 2.4gig 4meg cache + Intel S3000AH + Linux) -
-> > > ACPI kernel option = 1 core?
-> > > 
-> > > Hey guys
-> > > 
-> > > I've been configuring up a Linux 2.6.21.1 kernel from Linus' trusty
-> > > kernel.org.
-> > > 
-> > > I configured it up and built it and noticed that the dual core CPU I
-> > >     
-> > was
-> >   
-> > > using is now a single core chip.
-> > > 
-> > > I've spent alittle time on this problem and think I found out how to
-> > > enable or disable the single core.  My base config is:
-> > > - Processor - SMP On
-> > > - Processor - SMT/Hyperthreading scheduler On
-> > > - Processor - Multicore scheduler On
-> > > - Processor - Optimize for any CPU type (ie P4, Core2, i586) or base
-> > > system (ie BigSMB/summit or PC-compatible)
-> > > - Power management support On
-> > > - All other power management pieces turned off
-> > > - All other options are set standard by 'make mrproper'
-> > > 
-> > > I compile the kernel with ACPI off and I get 1 cpu/cpu-core.
-> > > 
-> > > I then recompile with just the ACPI turned on (ie havn't turned on
-> > > Processor, Fan or any other modules there) and I get to see my second
-> > >     
-> > core.
-> >   
-> > > This server will be well ventilated and will be running multiple VM's.
-> > > To guarantee performance I'd like to have ACPI turned off.
-> > > 
-> > > I can also say that this bug seems to be present in 2.6.18 as well.
-> > > 
-> > > So I guess my question is, has this issue been fixed?  Or how can I
-> > >     
-> > help
-> >   
-> > > to fix it?
-> > > 
-> > >     
-> > Boot option 'acpi=ht'
-> > 
-> >   
-> Hi,
+On Tue, May 29, 2007 at 02:52:53PM +0200, Michal Piotrowski wrote:
+> Hi all,
 > 
-> Thanks for that.  I found that I needed the "irqpoll" option there as
-> well to get the SATA working.
+> Here is a list of some known regressions in 2.6.22-rc3.
 > 
-> Is there anything else I need to know to ensure it will remain fast
-> and stable?
-Looks no option just use ACPI as MP detect and irq routing. But why do
-you want to disable ACPI? Just cpufreq governor 'performance', which
-should not harm performance.
+> 
+> Kbuild
+> 
+> Subject    : make M=$PWD modules_install does nothing
+> References : http://lkml.org/lkml/2007/5/27/190
+> Submitter  : Andrey Borzenkov <arvidjaar@mail.ru>
+> Status     : Unknown
+Closed - see http://lkml.org/lkml/2007/5/29/497
 
-Thanks,
-Shaohua
+	Sam
