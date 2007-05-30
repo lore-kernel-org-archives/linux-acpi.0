@@ -1,34 +1,68 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [1/4] 2.6.22-rc3: known regressions
-Date: Wed, 30 May 2007 06:35:22 +0200
-Message-ID: <20070530043522.GA11512@uranus.ravnborg.org>
-References: <465C2225.2000100@googlemail.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: Looking for acpi assistance for R&D proiject
+Date: Wed, 30 May 2007 11:23:49 +0400
+Message-ID: <465D2685.3090704@gmail.com>
+References: <226194.96681.qm@web54007.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pasmtpa.tele.dk ([80.160.77.114]:47778 "EHLO pasmtpA.tele.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1749667AbXE3EeZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 May 2007 00:34:25 -0400
-Content-Disposition: inline
-In-Reply-To: <465C2225.2000100@googlemail.com>
+Received: from ug-out-1314.google.com ([66.249.92.175]:50163 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbXE3HYB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 May 2007 03:24:01 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so120093ugf
+        for <linux-acpi@vger.kernel.org>; Wed, 30 May 2007 00:24:00 -0700 (PDT)
+In-Reply-To: <226194.96681.qm@web54007.mail.re2.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, Florin Iucha <florin@iucha.net>, Andrey Borzenkov <arvidjaar@mail.ru>
+To: Phil <philtickle200@yahoo.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, May 29, 2007 at 02:52:53PM +0200, Michal Piotrowski wrote:
-> Hi all,
-> 
-> Here is a list of some known regressions in 2.6.22-rc3.
-> 
-> 
-> Kbuild
-> 
-> Subject    : make M=$PWD modules_install does nothing
-> References : http://lkml.org/lkml/2007/5/27/190
-> Submitter  : Andrey Borzenkov <arvidjaar@mail.ru>
-> Status     : Unknown
-Closed - see http://lkml.org/lkml/2007/5/29/497
+Hi Phil,
+suspend-to-disk in Linux and ACPI do not have much in common,
+ACPI is trying to not stay on the way of suspend...
 
-	Sam
+Regards,
+Alex.
+
+Phil ?????:
+> Hi
+>  
+>  I hope this isn't an inappropriate use of the list -
+> please accept my 
+> apologies if it is.
+>  
+>  I'm involved in a linux-based R&D project and we are
+> in urgent need of 
+> expert input concerning acpi and suspend to disk.  I
+> thought this might 
+> be a good place to get some hints about where to start
+> looking.
+>  
+>  If you know of a consultant hacker or firm having a
+> very detailed 
+> engagement with acpi and suspend to disk, I'd be
+> really grateful for an 
+> email in the first instance to:
+>  
+>  philtickle200@yahoo.co.uk
+>  
+>  I am not a recruiter etc and this is a bona fide
+> project.
+>  
+>  Many thanks in advance,
+>  
+>  Phil
+> 
+> 
+>        
+> ____________________________________________________________________________________
+> Moody friends. Drama queens. Your life? Nope! - their life, your story. Play Sims Stories at Yahoo! Games.
+> http://sims.yahoo.com/  
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
