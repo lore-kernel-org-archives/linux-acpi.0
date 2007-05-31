@@ -1,60 +1,361 @@
-From: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Making KEY_UNKNOWN really useful to userland
-Date: Thu, 31 May 2007 11:37:05 +0100
-Message-ID: <1180607825.2693.17.camel@localhost.localdomain>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br>
-	<200705262340.28219.dtor@insightbb.com>
-	<20070527121513.GC19562@khazad-dum.debian.net>
-	<200705282316.32173.dtor@insightbb.com>
-	<20070529130528.GB12935@khazad-dum.debian.net>
-	<d120d5000705300657s3a50a93el6c0771288ac80ebb@mail.gmail.com>
-	<20070530152444.GD17530@khazad-dum.debian.net>
-	<d120d5000705300904j54eaa18al4cf1db8f7f13b97b@mail.gmail.com>
-	<20070530172420.GA6883@khazad-dum.debian.net>
-	<d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com>
-	<20070531005305.GC6883@khazad-dum.debian.net>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Add INPUT support to toshiba_acpi
+Date: Thu, 31 May 2007 13:36:19 +0100
+Message-ID: <1180614979.2693.26.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20070531005305.GC6883-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: linux-input-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="=-x0uxPW/hbAQPW5Ztn7sb"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hu-out-0506.google.com ([72.14.214.237]:59122 "EHLO
+	hu-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760442AbXEaMgg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 08:36:36 -0400
+Received: by hu-out-0506.google.com with SMTP id 19so424077hue
+        for <linux-acpi@vger.kernel.org>; Thu, 31 May 2007 05:36:33 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Wed, 2007-05-30 at 21:53 -0300, Henrique de Moraes Holschuh wrote:
-> Maybe we can add that requirement and driver changes (if any, for all
-> I know most drivers might already be generating such events) for
-> 2.6.23?  I bet Richard would like that one a lot.  Richard?
-
-To be honest, I've got lost in all the discussion about hotkeys. What is
-the plan for a typical acpi driver?
-
-i.e. what do you want a driver to emit given two scenarios:
-
-* A acpi event that is always the same on all models?
-   KEY_BRIGHTNESSUP?
-
-* an acpi event that is different on every laptop model?
-   KEY_PROG1? KEY_UNKNOWN?
-
-Tell me what do to, and I'll resync my trees and resubmit patches.
-
-Thanks.
+To: John Belmonte <john@neggie.net>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>
 
 
+--=-x0uxPW/hbAQPW5Ztn7sb
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+Attached patch adds a kernel thread to do polling on Toshiba hardware.
+
+Toshiba hardware is a little oddball, and does not provide ACPI events
+on some key presses, typically Fn hotkey buttons. The key interface is
+now polled, and events now matched to a list of toshiba specific
+scancodes, and are squirted to userspace using the INPUT subsystem.
+
+This means that toshiba laptops buttons "just work" without any
+userspace daemon (using uinput) such as fnfx or bodges such as using a
+userspace hal addon. Doing the polling in kernel is more efficient, and
+makes stuff just work out of the box. You can assign the keys using
+standard X keymaps, or using tools such as gnome-keybinding-properties.
+
+This is similar to other patches sent for the thinkpad_acpi driver, and
+is part of the "Unf*ck my keyboard" initiative to make multimedia keys
+just work.
+
+Changes from the first patch involve switching to a workqueue for the
+polling, not breaking the spaces in "hotkeys_via_input" and also masking
+out the fn key button up.
+
+ toshiba_acpi.c |  228 +++++++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 206 insertions(+), 22 deletions(-)
+
+Signed-off-by: Richard Hughes <richard@hughsie.com>
+
+
+--=-x0uxPW/hbAQPW5Ztn7sb
+Content-Disposition: attachment; filename=toshiba_acpi_input_02.patch
+Content-Type: text/x-patch; name=toshiba_acpi_input_02.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- origin/toshiba_acpi.c	2007-05-18 09:56:03.000000000 +0100
++++ toshiba_acpi.c	2007-05-31 13:24:02.000000000 +0100
+@@ -27,13 +27,13 @@
+  *		engineering the Windows drivers
+  *	Yasushi Nagato - changes for linux kernel 2.4 -> 2.5
+  *	Rob Miller - TV out and hotkeys help
+- *
++ *	Richard Hughes - emit INPUT events, based on a patch from Daniel Silverstone
+  *
+  *  TODO
+  *
+  */
+ 
+-#define TOSHIBA_ACPI_VERSION	"0.18"
++#define TOSHIBA_ACPI_VERSION	"0.19"
+ #define PROC_INTERFACE_VERSION	1
+ 
+ #include <linux/kernel.h>
+@@ -42,6 +42,7 @@
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
+ #include <linux/backlight.h>
++#include <linux/input.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -213,9 +214,15 @@ static acpi_status hci_read1(u32 reg, u3
+ 
+ static struct proc_dir_entry *toshiba_proc_dir /*= 0*/ ;
+ static struct backlight_device *toshiba_backlight_device;
++static struct input_dev *toshiba_input;
+ static int force_fan;
+ static int last_key_event;
+ static int key_event_valid;
++static int hotkeys_over_input = 1;
++static int hotkeys_check_per_sec = 2;
++
++module_param(hotkeys_over_input, uint, 0400);
++module_param(hotkeys_check_per_sec, uint, 0400);
+ 
+ typedef struct _ProcItem {
+ 	const char *name;
+@@ -443,27 +450,33 @@ static char *read_keys(char *p)
+ 	u32 hci_result;
+ 	u32 value;
+ 
+-	if (!key_event_valid) {
+-		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
+-		if (hci_result == HCI_SUCCESS) {
+-			key_event_valid = 1;
+-			last_key_event = value;
+-		} else if (hci_result == HCI_EMPTY) {
+-			/* better luck next time */
+-		} else if (hci_result == HCI_NOT_SUPPORTED) {
+-			/* This is a workaround for an unresolved issue on
+-			 * some machines where system events sporadically
+-			 * become disabled. */
+-			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
+-			printk(MY_NOTICE "Re-enabled hotkeys\n");
+-		} else {
+-			printk(MY_ERR "Error reading hotkey status\n");
+-			goto end;
++	if (!hotkeys_over_input) {
++		if (!key_event_valid) {
++			hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++			if (hci_result == HCI_SUCCESS) {
++				key_event_valid = 1;
++				last_key_event = value;
++			} else if (hci_result == HCI_EMPTY) {
++				/* better luck next time */
++			} else if (hci_result == HCI_NOT_SUPPORTED) {
++				/* This is a workaround for an unresolved issue on
++				 * some machines where system events sporadically
++				 * become disabled. */
++				hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++				printk(MY_NOTICE "Re-enabled hotkeys\n");
++			} else {
++				printk(MY_ERR "Error reading hotkey status\n");
++				goto end;
++			}
+ 		}
++	} else {
++		key_event_valid = 0;
++		last_key_event = 0;
+ 	}
+ 
+ 	p += sprintf(p, "hotkey_ready:            %d\n", key_event_valid);
+ 	p += sprintf(p, "hotkey:                  0x%04x\n", last_key_event);
++	p += sprintf(p, "hotkeys_via_input:       %d\n", hotkeys_over_input);
+ 
+       end:
+ 	return p;
+@@ -534,15 +547,121 @@ static acpi_status __exit remove_device(
+ }
+ 
+ static struct backlight_ops toshiba_backlight_data = {
+-        .get_brightness = get_lcd,
+-        .update_status  = set_lcd_status,
++	.get_brightness = get_lcd,
++	.update_status  = set_lcd_status,
+ };
+ 
++static void toshiba_keys_fire(struct work_struct *work);
++static struct workqueue_struct *toshiba_keys_wq;
++static DECLARE_DELAYED_WORK(toshiba_keys_work, toshiba_keys_fire);
++
++static void toshiba_deliver_button_event(u32 value)
++{
++	int keycode = KEY_UNKNOWN;
++	int key_down = 1;
++
++	if (!toshiba_input)
++		return;
++
++	/* translate MSB to key up */
++	if (value & 0x80) {
++		value &= ~0x80;
++		key_down = 0;
++	}
++
++	/* ignore FN on its own */
++	if (value == 0x0100)
++		return;
++
++	/* translate keys to keycodes */
++	if (value == 0x101)
++		keycode = KEY_MUTE;
++	else if (value == 0x13b)
++		keycode = KEY_BREAK;
++	else if (value == 0x13c)
++		keycode = KEY_SEARCH;
++	else if (value == 0x13d)
++		keycode = KEY_SLEEP;
++	else if (value == 0x13e)
++		keycode = KEY_SUSPEND;
++	else if (value == 0x140)
++		keycode = KEY_BRIGHTNESSDOWN;
++	else if (value == 0x141)
++		keycode = KEY_BRIGHTNESSUP;
++	else if (value == 0x142)
++		keycode = KEY_WLAN;
++
++	if (keycode != KEY_UNKNOWN) {
++		printk(MY_INFO "mapped hkey %i to keycode %i [%i]\n", value, keycode, key_down);
++		input_report_key(toshiba_input, keycode, key_down);
++		input_sync(toshiba_input);
++	}
++}
++
++static void toshiba_keys_clear(void)
++{
++	int dropped = 0;
++	int clear_queue = 0;
++	u32 hci_result, value;
++
++	do {
++		/* We don't want to get stuck here; older toshibas such as the
++		 * A60 may load and then return junk during the hci_read */
++		if (clear_queue++ > 16)
++			break;
++
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			dropped++;
++		} else if (hci_result == HCI_EMPTY) {
++			/* better luck next time */
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result != HCI_EMPTY);
++
++	printk(MY_INFO "Dropped %d keys from the queue on startup\n", dropped);
++}
++
++static void toshiba_keys_fire(struct work_struct *work)
++{
++	u32 hci_result, value;
++
++	do {
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			/* we got a button event */
++			toshiba_deliver_button_event(value);
++		} else if (hci_result == HCI_EMPTY) {
++			/* better luck next time */
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an
++			 * unresolved issue on some machines
++			 * where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result == HCI_SUCCESS);
++
++	/* reschedule another check */
++	queue_delayed_work(toshiba_keys_wq, &toshiba_keys_work, HZ / hotkeys_check_per_sec);
++}
++
+ static void __exit toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
+ 
++	if (toshiba_keys_wq) {
++		cancel_delayed_work(&toshiba_keys_work);
++		destroy_workqueue(toshiba_keys_wq);
++	}
++
+ 	remove_device();
+ 
+ 	if (toshiba_proc_dir)
+@@ -551,6 +670,45 @@ static void __exit toshiba_acpi_exit(voi
+ 	return;
+ }
+ 
++static int __init toshiba_input_init(void)
++{
++	int error;
++
++	/* use INPUT for key events */
++	toshiba_input = input_allocate_device();
++	if (!toshiba_input) {
++		error = -ENOMEM;
++		goto err_no_mem;
++	}
++
++	toshiba_keys_clear();
++
++	/* create one 'keyboard' virtual input device for all the acpi events */
++	toshiba_input->name = "Toshiba Extra Buttons";
++	toshiba_input->phys = "toshiba/input0";
++	toshiba_input->id.bustype = BUS_HOST;
++	toshiba_input->id.product = 0x0001;
++	toshiba_input->evbit[0] = BIT(EV_KEY);
++	set_bit(KEY_MUTE, toshiba_input->keybit);
++	set_bit(KEY_BREAK, toshiba_input->keybit); /* probably should be KEY_LOCK */
++	set_bit(KEY_SEARCH, toshiba_input->keybit);
++	set_bit(KEY_SUSPEND, toshiba_input->keybit);
++	set_bit(KEY_SLEEP, toshiba_input->keybit);
++	set_bit(KEY_BRIGHTNESSDOWN, toshiba_input->keybit);
++	set_bit(KEY_BRIGHTNESSUP, toshiba_input->keybit);
++	set_bit(KEY_WLAN, toshiba_input->keybit);
++
++	error = input_register_device(toshiba_input);
++	if (error)
++		goto err_free_input;
++	return 0;
++
++err_free_input:
++	input_free_device(toshiba_input);
++err_no_mem:
++	return error;
++}
++
+ static int __init toshiba_acpi_init(void)
+ {
+ 	acpi_status status = AE_OK;
+@@ -590,12 +748,38 @@ static int __init toshiba_acpi_init(void
+ 	toshiba_backlight_device = backlight_device_register("toshiba",NULL,
+ 						NULL,
+ 						&toshiba_backlight_data);
+-        if (IS_ERR(toshiba_backlight_device)) {
++	if (IS_ERR(toshiba_backlight_device)) {
+ 		printk(KERN_ERR "Could not register toshiba backlight device\n");
+ 		toshiba_backlight_device = NULL;
+ 		toshiba_acpi_exit();
+ 	}
+-        toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
++	toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
++
++	/* we have to poll the device as we do not get events */
++	if (hotkeys_over_input && hotkeys_check_per_sec > 0) {
++
++		toshiba_input_init ();
++		/* just abort */
++		if (!toshiba_input) {
++			printk(KERN_ERR "could not allocate input device\n");
++			toshiba_acpi_exit();
++		}
++
++		/* setup workqueue */
++		toshiba_keys_wq = create_singlethread_workqueue("ktoshkeyd");
++		if (!toshiba_keys_wq) {
++			printk(KERN_ERR "failed to create workqueue\n");
++			toshiba_acpi_exit();
++		}
++
++		/* sanitise to something sane */
++		if (hotkeys_check_per_sec > 10)
++			hotkeys_check_per_sec = 10;
++		printk(KERN_INFO "ktoshkeyd checks per second : %d\n", hotkeys_check_per_sec);
++
++		/* start polling after delay */
++		queue_delayed_work(toshiba_keys_wq, &toshiba_keys_work, HZ / hotkeys_check_per_sec);
++	}
+ 
+ 	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
+ }
+
+--=-x0uxPW/hbAQPW5Ztn7sb--
+
