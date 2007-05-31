@@ -1,279 +1,275 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI Debug - for test, devel and possibly even for production kernels
-Date: Thu, 31 May 2007 12:49:12 -0400
-Message-ID: <200705311249.12762.lenb@kernel.org>
-References: <1180624839.10908.71.camel@queen.suse.de>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: do not use named sysfs groups
+Date: Thu, 31 May 2007 13:01:35 -0400
+Message-ID: <200705311301.36027.lenb@kernel.org>
+References: <1180137201942-git-send-email-hmh@hmh.eng.br> <118013720199-git-send-email-hmh@hmh.eng.br> <20070530235014.GA27491@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57146 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:47943 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752737AbXEaQt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 12:49:56 -0400
-In-Reply-To: <1180624839.10908.71.camel@queen.suse.de>
+	id S1754104AbXEaRBr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 May 2007 13:01:47 -0400
+In-Reply-To: <20070530235014.GA27491@khazad-dum.debian.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-kernel <linux-kernel@vger.kernel.org>, penberg@cs.helsinki.fi
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-The name of this patch is really "split ACPI function tracing
-out of CONFIG_ACPI_DEBUG to a new Kconfig build option"
+Applied.
 
-I agree that tracing should be its own build option.
+thanks,
+-Len
 
-I don't agree that enabling CONFIG_ACPI_DEBUG by default
-is what you want to do in a production kernel, but that
-isn't what this patch does, and I'm not going to stand
-in your way if you want to ship debug kernels by default.
-
-> we only make use of a small subset of current ACPI tables.
-> ACPI spreads more and more over different parts of the kernel and it's
-> likely that this will hold on.
-
-There are two types of "ACPI tables", those with contents defined by
-the ACPI spec, and those where ACPI is just acting as the "envelope"
-to deliver a table from another spec to the OS.
-
-We already use all the tables defined by the ACPI spec.
-It is unlikely that this patch will have any effect on the "envelope" tables.
-
-So I don't think you're going to see growing utility of CONFIG_ACPI_DEBUG
-over time, you're going to see what it does immediately.
-
-> ACPI_DEBUG=y is a powerful debug facility, that can ease up bug
-> communication with less (ACPI) experienced bug submitters and can shed
-> some light behind ACPI magic.
+On Wednesday 30 May 2007 19:50, Henrique de Moraes Holschuh wrote:
+> The initial version of the thinkpad-acpi sysfs interface (not yet released
+> in any stable mainline kernel) made liberal use of named sysfs groups, in
+> order to get the attributes more organized.
 > 
-> I've done some measurements and found out that most of the performance
-> costs are due the function tracing support in the ACPICA debug
-> subsystem.
+> This proved to be a really bad design decision.  Maybe if attribute groups
+> were as flexible as a real directory, and if binary attributes were not
+> second-class citizens, the idea of subdirs and named groups would not have
+> been so bad.
 > 
-> This patch offers the possibility to compile out ACPI function tracing
-> support which is of none use for ordinary kernel debugging (is only used
-> for Intel internal debugging AFAIK), but takes most of the performance
-> costs.
-
-I agree that function tracing is never used by people who can't build a kernel --
-and so it is fine to make it an additional build option.
-
-> (This should efficiently be the same as the proposed big patch a year
-> ago from Pekka Enberg, just a bit smaller and should make ACPICA and
-> kernel/linux people happy:
-> http://marc.info/?l=linux-kernel&m=113699535303722&w=2
-> )
+> This patch makes all the thinkpad-acpi sysfs groups anonymous (thus
+> removing the subdirs), adds the former group names as a prefix (so that
+> hotkey/enable becomes hotkey_enable for example), and updates the
+> documentation.
 > 
+> These changes will make the thinkpad-acpi sysfs ABI a lot easier to
+> maintain.
 > 
-> Kernel image size (compiled on x86_64):
-> Full acpi debug:
-> 1618277 bytes (+3.1%, +48k)
-> acpi debug function trace compiled out:
-> 1605359 bytes (+2.3%, +35k)
-> acpi debug not compiled in at all
-> 1569803 bytes (100%)
-> 
-> 
-> Speed measures on one specific machine (x86_64, laptop):
-> 
-> A) ACPI_DEBUG compiled in
-> B) ACPI_DEBUG compiled in, but Function trace compiled out
-> C) ACPI_DEBUG compiled out
-> D) ACPI_DEBUG compiled out (control run)
-> 
-> The time has been taken at following functions:
-> 
-> 1) drivers/acpi/bus.c:acpi_early_init (load tables and initialize
->                                        ACPI namespace)
-> 2) drivers/acpi/bus.c:acpi_init (some more initialisation
->                                  -> enable ACPI HW mode
->                                  -> read PIC/APIC table, ...)
-> 3) drivers/acpi/scan.c:scan_init (Enumerate devices in the
->                                   ACPI namespace)
-> 
-> register driver for acpi drivers:
-> 4)  ec
-> 5)  pci_root
-> 6)  pci_link
-> 
-> -----------------------------------------------------------------------
->   |      A         |       B        |       C        |     D          | 
-> -----------------------------------------------------------------------
-> 1 | 434711 (+1.0%) | 432652 (+0.4%) |  430522 (100%) |  430512 (-0.00%)
-> -----------------------------------------------------------------------
-> 2 |  69156 (+3.7%) |  67007 (+0.4%) |   66696 (100%) |   66703 (+0.01%)
-> -----------------------------------------------------------------------
-> 3 |   8769(+63.3%) |   7363(+37.1%) |    5369 (100%) |    5369 ( 0.00%)
-> -----------------------------------------------------------------------
-
-37% sounds like a lot.
-
-The ACPI interpreter is not supposed to be in performace critical sections,
-but at the same time, it isn't supposed to be a pig either.
-
-> 4 |  15999 (+0.7%) |  15950 (+0.4%) |   15879 (100%) |   15878 (-0.01%)
-> -----------------------------------------------------------------------
-> 5 |   9492(+75.4%) |   7657(+41.5%) |    5411 (100%) |    5405 (-0.11%)
-> -----------------------------------------------------------------------
-> 6 |   1717(+64.0%) |   1494(+42.6%) |    1047 (100%) |    1046 (-0.10%)
-> -----------------------------------------------------------------------
-> All measured values are in us. TSC was used to obtain the values.
-> do_gettimeofday did only provide valid values after hpet got setup
-> (after pci_link).
-> 
-> I wonder why only the short time taking measures show that extreme
-> performance loss, maybe someone has an idea. However if you summarize
-> all additional time with ACPI_DEBUG without function trace, you get
-> about +5 ms boot time (which may vary from machine to machine...).
-> This should be acceptable for test and develop kernels.
-> If nothing bad happens in Beta phase I'd like to include this one into
-> the final OpenSUSE kernel to get detailed bug reports.
-> It would be great if others with their latest test/devel kernels follow,
-> so that even ordinary users can easily provide essential, detailed debug
-> information easily(e.g. Linus' Compaq and Andrew's Vaio are well known
-> on the acpi list, others do not have the luck to get that much of
-> support and they do not have the knowledge to compile kernel and so
-> on...).
-> 
-> I can also add a file "Documentation/acpi_debug" and add some debug
-> hints if this one gets accepted...
-> 
-> This one should not be really dangerous. If the patch is ok, can Len
-> still merge this in .22 time?
-
-.22 after -rc3?  No.  I don't see a problem with a final version
-shipping in .23, however.
-
-> If not, can you take it for some testing, Andrew?
-
-It would be better for andrew to get it through acpi-test.
-
-I'll be happy to include an updated version of this patch there.
-
-Note that the testing that it is going to get will be small:
-
-1. people who don't enable CONFIG_ACPI_DEBUG
-	no change
-2. people who enable CONFIG_ACPI_DEBUG
-	will lose function tracing if they don't ask for it
-	will lose AML Debug-object messages unless they
-		set the flag to get them back.
-
-> Thanks,
-> 
->    Thomas
-> 
-> 
-> 
-> Split ACPI_DEBUG into function trace enabled and not enabled.
-> 
-> Function trace is most of the ACPI_DEBUG costs, but is
-> not much of use for kernel ACPI debugging.
-> 
-> Size of kernel image increased on test compile:
-> + 48k  (Full ACPI_DEBUG)
-> + 35k  (ACPI_DEBUG with function trace compiled out)
-> 
-> Performance without function trace is also much better.
-> 
-> Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
-> a lot vendors let Store (value, debug) in their code and this
-> might confuse users when it pops up in syslog.
-
-This, is an incompatible change, as one of the benefits of
-CONFIG_ACPI_DEBUG is to get the AML debug-object messages.
-After this patch, those will silently go away.
-
-The patch needs to document the boot-time flag to make
-those messages come back.
-
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 > ---
->  drivers/acpi/Kconfig    |    8 ++++++++
->  include/acpi/acmacros.h |   23 +++++++++++++++++++++++
->  include/acpi/acoutput.h |    4 ++--
->  3 files changed, 33 insertions(+), 2 deletions(-)
 > 
-> Index: linux-2.6.22-rc3/drivers/acpi/Kconfig
-> ===================================================================
-> --- linux-2.6.22-rc3.orig/drivers/acpi/Kconfig
-> +++ linux-2.6.22-rc3/drivers/acpi/Kconfig
-> @@ -280,6 +280,14 @@ config ACPI_DEBUG
->  	  of verbosity. Saying Y enables these statements. This will increase
->  	  your kernel size by around 50K.
->  
-> +config ACPI_DEBUG_FUNC_TRACE
-> +	bool "Additionally enable ACPI function tracing"
-> +	default n
-> +	depends on ACPI_DEBUG
-> +	help
-> +	  ACPI Debug Statements slow down ACPI processing. Function trace
-> +	  is about half of the penalty and is rarely useful.
-
-help text needs update -- it should say what tracing does,
-not if SuSE customers frequently use it or not...
-
->  config ACPI_EC
->  	bool
->  	default y
-> Index: linux-2.6.22-rc3/include/acpi/acmacros.h
-> ===================================================================
-> --- linux-2.6.22-rc3.orig/include/acpi/acmacros.h
-> +++ linux-2.6.22-rc3/include/acpi/acmacros.h
-> @@ -486,6 +486,8 @@
->  #define ACPI_FUNCTION_NAME(name)
->  #endif
->  
-> +#ifdef DEBUG_FUNC_TRACE
-> +
->  #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
->  			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
->  #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
-> @@ -563,6 +565,27 @@
->  
->  #endif				/* ACPI_SIMPLE_RETURN_MACROS */
->  
-> +#else /* !DEBUG_FUNC_TRACE */
-> +
-> +#define ACPI_FUNCTION_TRACE(a)
-> +#define ACPI_FUNCTION_TRACE_PTR(a,b)
-> +#define ACPI_FUNCTION_TRACE_U32(a,b)
-> +#define ACPI_FUNCTION_TRACE_STR(a,b)
-> +#define ACPI_FUNCTION_EXIT
-> +#define ACPI_FUNCTION_STATUS_EXIT(s)
-> +#define ACPI_FUNCTION_VALUE_EXIT(s)
-> +#define ACPI_FUNCTION_TRACE(a)
-> +#define ACPI_FUNCTION_ENTRY()
-> +
-> +#define return_VOID                     return
-> +#define return_ACPI_STATUS(s)           return(s)
-> +#define return_VALUE(s)                 return(s)
-> +#define return_UINT8(s)                 return(s)
-> +#define return_UINT32(s)                return(s)
-> +#define return_PTR(s)                   return(s)
-> +
-> +#endif /* DEBUG_FUNC_TRACE */
-
-These non-defines already appear later in the file.
-Perhaps you can use an expression to make them appear just once instead of twice?
-
->  /* Conditional execution */
->  
->  #define ACPI_DEBUG_EXEC(a)              a
-> Index: linux-2.6.22-rc3/include/acpi/acoutput.h
-> ===================================================================
-> --- linux-2.6.22-rc3.orig/include/acpi/acoutput.h
-> +++ linux-2.6.22-rc3/include/acpi/acoutput.h
-> @@ -178,8 +178,8 @@
->  
->  /* Defaults for debug_level, debug and normal */
->  
-> -#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
-> -#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
-> +#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
-> +#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
->  #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
->  
->  #endif				/* __ACOUTPUT_H__ */
+>  It gets easier to apply if I actually get git to include the patch :)
+>  Sorry about that!
 > 
+>  Documentation/thinkpad-acpi.txt |   25 +++++++++++--------------
+>  drivers/misc/thinkpad_acpi.c    |   17 +++++++----------
+>  drivers/misc/thinkpad_acpi.h    |    6 ------
+>  3 files changed, 18 insertions(+), 30 deletions(-)
+> 
+> diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+> index 2d48033..9e6b94f 100644
+> --- a/Documentation/thinkpad-acpi.txt
+> +++ b/Documentation/thinkpad-acpi.txt
+> @@ -138,7 +138,7 @@ Hot keys
+>  --------
+>  
+>  procfs: /proc/acpi/ibm/hotkey
+> -sysfs device attribute: hotkey/*
+> +sysfs device attribute: hotkey_*
+>  
+>  Without this driver, only the Fn-F4 key (sleep button) generates an
+>  ACPI event. With the driver loaded, the hotkey feature enabled and the
+> @@ -196,10 +196,7 @@ The following commands can be written to the /proc/acpi/ibm/hotkey file:
+>  
+>  sysfs notes:
+>  
+> -	The hot keys attributes are in a hotkey/ subdirectory off the
+> -	thinkpad device.
+> -
+> -	bios_enabled:
+> +	hotkey_bios_enabled:
+>  		Returns the status of the hot keys feature when
+>  		thinkpad-acpi was loaded.  Upon module unload, the hot
+>  		key feature status will be restored to this value.
+> @@ -207,19 +204,19 @@ sysfs notes:
+>  		0: hot keys were disabled
+>  		1: hot keys were enabled
+>  
+> -	bios_mask:
+> +	hotkey_bios_mask:
+>  		Returns the hot keys mask when thinkpad-acpi was loaded.
+>  		Upon module unload, the hot keys mask will be restored
+>  		to this value.
+>  
+> -	enable:
+> +	hotkey_enable:
+>  		Enables/disables the hot keys feature, and reports
+>  		current status of the hot keys feature.
+>  
+>  		0: disables the hot keys feature / feature disabled
+>  		1: enables the hot keys feature / feature enabled
+>  
+> -	mask:
+> +	hotkey_mask:
+>  		bit mask to enable ACPI event generation for each hot
+>  		key (see above).  Returns the current status of the hot
+>  		keys mask, and allows one to modify it.
+> @@ -229,7 +226,7 @@ Bluetooth
+>  ---------
+>  
+>  procfs: /proc/acpi/ibm/bluetooth
+> -sysfs device attribute: bluetooth/enable
+> +sysfs device attribute: bluetooth_enable
+>  
+>  This feature shows the presence and current state of a ThinkPad
+>  Bluetooth device in the internal ThinkPad CDC slot.
+> @@ -244,7 +241,7 @@ If Bluetooth is installed, the following commands can be used:
+>  Sysfs notes:
+>  
+>  	If the Bluetooth CDC card is installed, it can be enabled /
+> -	disabled through the "bluetooth/enable" thinkpad-acpi device
+> +	disabled through the "bluetooth_enable" thinkpad-acpi device
+>  	attribute, and its current status can also be queried.
+>  
+>  	enable:
+> @@ -252,7 +249,7 @@ Sysfs notes:
+>  		1: enables Bluetooth / Bluetooth is enabled.
+>  
+>  	Note: this interface will be probably be superseeded by the
+> -	generic rfkill class.
+> +	generic rfkill class, so it is NOT to be considered stable yet.
+>  
+>  Video output control -- /proc/acpi/ibm/video
+>  --------------------------------------------
+> @@ -898,7 +895,7 @@ EXPERIMENTAL: WAN
+>  -----------------
+>  
+>  procfs: /proc/acpi/ibm/wan
+> -sysfs device attribute: wwan/enable
+> +sysfs device attribute: wwan_enable
+>  
+>  This feature is marked EXPERIMENTAL because the implementation
+>  directly accesses hardware registers and may not work as expected. USE
+> @@ -921,7 +918,7 @@ If the W-WAN card is installed, the following commands can be used:
+>  Sysfs notes:
+>  
+>  	If the W-WAN card is installed, it can be enabled /
+> -	disabled through the "wwan/enable" thinkpad-acpi device
+> +	disabled through the "wwan_enable" thinkpad-acpi device
+>  	attribute, and its current status can also be queried.
+>  
+>  	enable:
+> @@ -929,7 +926,7 @@ Sysfs notes:
+>  		1: enables WWAN card / WWAN card is enabled.
+>  
+>  	Note: this interface will be probably be superseeded by the
+> -	generic rfkill class.
+> +	generic rfkill class, so it is NOT to be considered stable yet.
+>  
+>  Multiple Commands, Module Parameters
+>  ------------------------------------
+> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> index 6c36a55..95c0b96 100644
+> --- a/drivers/misc/thinkpad_acpi.c
+> +++ b/drivers/misc/thinkpad_acpi.c
+> @@ -740,7 +740,7 @@ static ssize_t hotkey_enable_store(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_hotkey_enable =
+> -	__ATTR(enable, S_IWUSR | S_IRUGO,
+> +	__ATTR(hotkey_enable, S_IWUSR | S_IRUGO,
+>  		hotkey_enable_show, hotkey_enable_store);
+>  
+>  /* sysfs hotkey mask --------------------------------------------------- */
+> @@ -775,7 +775,7 @@ static ssize_t hotkey_mask_store(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_hotkey_mask =
+> -	__ATTR(mask, S_IWUSR | S_IRUGO,
+> +	__ATTR(hotkey_mask, S_IWUSR | S_IRUGO,
+>  		hotkey_mask_show, hotkey_mask_store);
+>  
+>  /* sysfs hotkey bios_enabled ------------------------------------------- */
+> @@ -787,7 +787,7 @@ static ssize_t hotkey_bios_enabled_show(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_hotkey_bios_enabled =
+> -	__ATTR(bios_enabled, S_IRUGO, hotkey_bios_enabled_show, NULL);
+> +	__ATTR(hotkey_bios_enabled, S_IRUGO, hotkey_bios_enabled_show, NULL);
+>  
+>  /* sysfs hotkey bios_mask ---------------------------------------------- */
+>  static ssize_t hotkey_bios_mask_show(struct device *dev,
+> @@ -798,7 +798,7 @@ static ssize_t hotkey_bios_mask_show(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_hotkey_bios_mask =
+> -	__ATTR(bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
+> +	__ATTR(hotkey_bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
+>  
+>  /* --------------------------------------------------------------------- */
+>  
+> @@ -824,8 +824,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+>  		str_supported(tp_features.hotkey));
+>  
+>  	if (tp_features.hotkey) {
+> -		hotkey_dev_attributes = create_attr_set(4,
+> -						TPACPI_HOTKEY_SYSFS_GROUP);
+> +		hotkey_dev_attributes = create_attr_set(4, NULL);
+>  		if (!hotkey_dev_attributes)
+>  			return -ENOMEM;
+>  		res = add_to_attr_set(hotkey_dev_attributes,
+> @@ -1050,7 +1049,7 @@ static ssize_t bluetooth_enable_store(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_bluetooth_enable =
+> -	__ATTR(enable, S_IWUSR | S_IRUGO,
+> +	__ATTR(bluetooth_enable, S_IWUSR | S_IRUGO,
+>  		bluetooth_enable_show, bluetooth_enable_store);
+>  
+>  /* --------------------------------------------------------------------- */
+> @@ -1061,7 +1060,6 @@ static struct attribute *bluetooth_attributes[] = {
+>  };
+>  
+>  static const struct attribute_group bluetooth_attr_group = {
+> -	.name = TPACPI_BLUETH_SYSFS_GROUP,
+>  	.attrs = bluetooth_attributes,
+>  };
+>  
+> @@ -1215,7 +1213,7 @@ static ssize_t wan_enable_store(struct device *dev,
+>  }
+>  
+>  static struct device_attribute dev_attr_wan_enable =
+> -	__ATTR(enable, S_IWUSR | S_IRUGO,
+> +	__ATTR(wwan_enable, S_IWUSR | S_IRUGO,
+>  		wan_enable_show, wan_enable_store);
+>  
+>  /* --------------------------------------------------------------------- */
+> @@ -1226,7 +1224,6 @@ static struct attribute *wan_attributes[] = {
+>  };
+>  
+>  static const struct attribute_group wan_attr_group = {
+> -	.name = TPACPI_WAN_SYSFS_GROUP,
+>  	.attrs = wan_attributes,
+>  };
+>  
+> diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+> index 440145a..72d62f2 100644
+> --- a/drivers/misc/thinkpad_acpi.h
+> +++ b/drivers/misc/thinkpad_acpi.h
+> @@ -278,8 +278,6 @@ static int beep_write(char *buf);
+>   * Bluetooth subdriver
+>   */
+>  
+> -#define TPACPI_BLUETH_SYSFS_GROUP "bluetooth"
+> -
+>  enum {
+>  	/* ACPI GBDC/SBDC bits */
+>  	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
+> @@ -416,8 +414,6 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
+>   * Hotkey subdriver
+>   */
+>  
+> -#define TPACPI_HOTKEY_SYSFS_GROUP "hotkey"
+> -
+>  static int hotkey_orig_status;
+>  static int hotkey_orig_mask;
+>  
+> @@ -553,8 +549,6 @@ static int volume_write(char *buf);
+>   * Wan subdriver
+>   */
+>  
+> -#define TPACPI_WAN_SYSFS_GROUP "wwan"
+> -
+>  enum {
+>  	/* ACPI GWAN/SWAN bits */
+>  	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
+> -- 
+> 1.5.1.6
 > 
