@@ -1,327 +1,397 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] ACPI Debug - for test, devel and possibly even for
-	production kernels
-Date: Thu, 31 May 2007 17:20:39 +0200
-Message-ID: <1180624839.10908.71.camel@queen.suse.de>
-Reply-To: trenn@suse.de
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Thu, 31 May 2007 16:46:56 +0100
+Message-ID: <1180626416.3469.7.camel@localhost.localdomain>
+References: <1180614979.2693.26.camel@localhost.localdomain>
+	 <1180615994.3030.166.camel@cookie.hadess.net>
+	 <1180619002.2693.35.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-xyvU1g5qwTRQNL2OS8Wi"
+Content-Type: multipart/mixed; boundary="=-iWd3CNRZWogU02e6x+Xv"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:41068 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751970AbXEaPUl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 11:20:41 -0400
+Received: from wr-out-0506.google.com ([64.233.184.239]:55074 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753375AbXEaQA0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 12:00:26 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so193487wra
+        for <linux-acpi@vger.kernel.org>; Thu, 31 May 2007 09:00:26 -0700 (PDT)
+In-Reply-To: <1180619002.2693.35.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, linux-kernel <linux-kernel@vger.kernel.org>, penberg@cs.helsinki.fi
+To: Bastien Nocera <hadess@hadess.net>
+Cc: John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
 
---=-xyvU1g5qwTRQNL2OS8Wi
+--=-iWd3CNRZWogU02e6x+Xv
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hi,
+On Thu, 2007-05-31 at 14:44 +0100, Richard Hughes wrote:
+> Nope, impossible AFAICS. The hardware is just broken. Windows XP has an
+> toshiba supplied daemon that polls, so I think we have to just bite the
+> bullet.
 
-we only make use of a small subset of current ACPI tables.
-ACPI spreads more and more over different parts of the kernel and it's
-likely that this will hold on.
+... adding in reply in different thread...
 
-ACPI_DEBUG=y is a powerful debug facility, that can ease up bug
-communication with less (ACPI) experienced bug submitters and can shed
-some light behind ACPI magic.
+On Thu, 2007-05-31 at 10:37 -0400, Dmitry Torokhov wrote:
+> Please use input-polldev to set up polled devices. It
+> will create work queue for you and will make sure that polling is
+> stopped when device is closed. 
 
-I've done some measurements and found out that most of the performance
-costs are due the function tracing support in the ACPICA debug
-subsystem.
+Okay, I had never heard of this. I've done the suggested changes in the
+attached patch. Please can you have a look and make sure I'm being sane.
 
-This patch offers the possibility to compile out ACPI function tracing
-support which is of none use for ordinary kernel debugging (is only used
-for Intel internal debugging AFAIK), but takes most of the performance
-costs.
-(This should efficiently be the same as the proposed big patch a year
-ago from Pekka Enberg, just a bit smaller and should make ACPICA and
-kernel/linux people happy:
-http://marc.info/?l=linux-kernel&m=113699535303722&w=2
-)
+> Also I don't think you want to use
+> KEY_BREAK. What is the expected function of that key?
 
+It's a "lock" key, I really want KEY_LOCK added to input.h, but that
+might prove difficult. For now I've used KEY_CLEAR, yell if you think
+there's a better one to substitute or if you guys want me to add get a
+constant added to input.h.
 
-Kernel image size (compiled on x86_64):
-Full acpi debug:
-1618277 bytes (+3.1%, +48k)
-acpi debug function trace compiled out:
-1605359 bytes (+2.3%, +35k)
-acpi debug not compiled in at all
-1569803 bytes (100%)
+Thanks for the review.
+
+Richard.
 
 
-Speed measures on one specific machine (x86_64, laptop):
-
-A) ACPI_DEBUG compiled in
-B) ACPI_DEBUG compiled in, but Function trace compiled out
-C) ACPI_DEBUG compiled out
-D) ACPI_DEBUG compiled out (control run)
-
-The time has been taken at following functions:
-
-1) drivers/acpi/bus.c:acpi_early_init (load tables and initialize
-                                       ACPI namespace)
-2) drivers/acpi/bus.c:acpi_init (some more initialisation
-                                 -> enable ACPI HW mode
-                                 -> read PIC/APIC table, ...)
-3) drivers/acpi/scan.c:scan_init (Enumerate devices in the
-                                  ACPI namespace)
-
-register driver for acpi drivers:
-4)  ec
-5)  pci_root
-6)  pci_link
-
------------------------------------------------------------------------
-  |      A         |       B        |       C        |     D          | 
------------------------------------------------------------------------
-1 | 434711 (+1.0%) | 432652 (+0.4%) |  430522 (100%) |  430512 (-0.00%)
------------------------------------------------------------------------
-2 |  69156 (+3.7%) |  67007 (+0.4%) |   66696 (100%) |   66703 (+0.01%)
------------------------------------------------------------------------
-3 |   8769(+63.3%) |   7363(+37.1%) |    5369 (100%) |    5369 ( 0.00%)
------------------------------------------------------------------------
-4 |  15999 (+0.7%) |  15950 (+0.4%) |   15879 (100%) |   15878 (-0.01%)
------------------------------------------------------------------------
-5 |   9492(+75.4%) |   7657(+41.5%) |    5411 (100%) |    5405 (-0.11%)
------------------------------------------------------------------------
-6 |   1717(+64.0%) |   1494(+42.6%) |    1047 (100%) |    1046 (-0.10%)
------------------------------------------------------------------------
-All measured values are in us. TSC was used to obtain the values.
-do_gettimeofday did only provide valid values after hpet got setup
-(after pci_link).
-
-I wonder why only the short time taking measures show that extreme
-performance loss, maybe someone has an idea. However if you summarize
-all additional time with ACPI_DEBUG without function trace, you get
-about +5 ms boot time (which may vary from machine to machine...).
-This should be acceptable for test and develop kernels.
-If nothing bad happens in Beta phase I'd like to include this one into
-the final OpenSUSE kernel to get detailed bug reports.
-It would be great if others with their latest test/devel kernels follow,
-so that even ordinary users can easily provide essential, detailed debug
-information easily(e.g. Linus' Compaq and Andrew's Vaio are well known
-on the acpi list, others do not have the luck to get that much of
-support and they do not have the knowledge to compile kernel and so
-on...).
-
-I can also add a file "Documentation/acpi_debug" and add some debug
-hints if this one gets accepted...
-
-This one should not be really dangerous. If the patch is ok, can Len
-still merge this in .22 time?
-If not, can you take it for some testing, Andrew?
-
-Thanks,
-
-   Thomas
-
-
-
-Split ACPI_DEBUG into function trace enabled and not enabled.
-
-Function trace is most of the ACPI_DEBUG costs, but is
-not much of use for kernel ACPI debugging.
-
-Size of kernel image increased on test compile:
-+ 48k  (Full ACPI_DEBUG)
-+ 35k  (ACPI_DEBUG with function trace compiled out)
-
-Performance without function trace is also much better.
-
-Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
-a lot vendors let Store (value, debug) in their code and this
-might confuse users when it pops up in syslog.
-
----
- drivers/acpi/Kconfig    |    8 ++++++++
- include/acpi/acmacros.h |   23 +++++++++++++++++++++++
- include/acpi/acoutput.h |    4 ++--
- 3 files changed, 33 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.22-rc3/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.22-rc3.orig/drivers/acpi/Kconfig
-+++ linux-2.6.22-rc3/drivers/acpi/Kconfig
-@@ -280,6 +280,14 @@ config ACPI_DEBUG
- 	  of verbosity. Saying Y enables these statements. This will increase
- 	  your kernel size by around 50K.
- 
-+config ACPI_DEBUG_FUNC_TRACE
-+	bool "Additionally enable ACPI function tracing"
-+	default n
-+	depends on ACPI_DEBUG
-+	help
-+	  ACPI Debug Statements slow down ACPI processing. Function trace
-+	  is about half of the penalty and is rarely useful.
-+
- config ACPI_EC
- 	bool
- 	default y
-Index: linux-2.6.22-rc3/include/acpi/acmacros.h
-===================================================================
---- linux-2.6.22-rc3.orig/include/acpi/acmacros.h
-+++ linux-2.6.22-rc3/include/acpi/acmacros.h
-@@ -486,6 +486,8 @@
- #define ACPI_FUNCTION_NAME(name)
- #endif
- 
-+#ifdef DEBUG_FUNC_TRACE
-+
- #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
- 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
- #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
-@@ -563,6 +565,27 @@
- 
- #endif				/* ACPI_SIMPLE_RETURN_MACROS */
- 
-+#else /* !DEBUG_FUNC_TRACE */
-+
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_TRACE_PTR(a,b)
-+#define ACPI_FUNCTION_TRACE_U32(a,b)
-+#define ACPI_FUNCTION_TRACE_STR(a,b)
-+#define ACPI_FUNCTION_EXIT
-+#define ACPI_FUNCTION_STATUS_EXIT(s)
-+#define ACPI_FUNCTION_VALUE_EXIT(s)
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_ENTRY()
-+
-+#define return_VOID                     return
-+#define return_ACPI_STATUS(s)           return(s)
-+#define return_VALUE(s)                 return(s)
-+#define return_UINT8(s)                 return(s)
-+#define return_UINT32(s)                return(s)
-+#define return_PTR(s)                   return(s)
-+
-+#endif /* DEBUG_FUNC_TRACE */
-+
- /* Conditional execution */
- 
- #define ACPI_DEBUG_EXEC(a)              a
-Index: linux-2.6.22-rc3/include/acpi/acoutput.h
-===================================================================
---- linux-2.6.22-rc3.orig/include/acpi/acoutput.h
-+++ linux-2.6.22-rc3/include/acpi/acoutput.h
-@@ -178,8 +178,8 @@
- 
- /* Defaults for debug_level, debug and normal */
- 
--#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
--#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
-+#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
-+#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
- #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
- 
- #endif				/* __ACOUTPUT_H__ */
-
-
---=-xyvU1g5qwTRQNL2OS8Wi
-Content-Disposition: attachment; filename=acpi_differ_function_trace_in_debug.patch
-Content-Type: text/x-patch; name=acpi_differ_function_trace_in_debug.patch; charset=UTF-8
+--=-iWd3CNRZWogU02e6x+Xv
+Content-Disposition: attachment; filename=toshiba_acpi_add_buttons_04.patch
+Content-Type: text/x-patch; name=toshiba_acpi_add_buttons_04.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Split ACPI_DEBUG into function trace enabled and not enabled.
-
-Function trace is most of the ACPI_DEBUG costs, but is
-not much of use for kernel ACPI debugging.
-
-Size of kernel image increased on test compile:
-+ 48k  (Full ACPI_DEBUG)
-+ 35k  (ACPI_DEBUG with function trace compiled out)
-
-Performance without function trace is also much better.
-
-Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
-a lot vendors let Store (value, debug) in their code and this
-might confuse users when it pops up in syslog.
-
----
- drivers/acpi/Kconfig    |    8 ++++++++
- include/acpi/acmacros.h |   23 +++++++++++++++++++++++
- include/acpi/acoutput.h |    4 ++--
- 3 files changed, 33 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.22-rc3/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.22-rc3.orig/drivers/acpi/Kconfig
-+++ linux-2.6.22-rc3/drivers/acpi/Kconfig
-@@ -280,6 +280,14 @@ config ACPI_DEBUG
- 	  of verbosity. Saying Y enables these statements. This will increase
- 	  your kernel size by around 50K.
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 139f41f..38835b6 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -222,6 +222,7 @@ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on X86
+ 	select BACKLIGHT_CLASS_DEVICE
++	select INPUT_POLLDEV
+ 	---help---
+ 	  This driver adds support for access to certain system settings
+ 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
+index 3906d47..2b1a3d9 100644
+--- a/drivers/acpi/toshiba_acpi.c
++++ b/drivers/acpi/toshiba_acpi.c
+@@ -27,13 +27,13 @@
+  *		engineering the Windows drivers
+  *	Yasushi Nagato - changes for linux kernel 2.4 -> 2.5
+  *	Rob Miller - TV out and hotkeys help
+- *
++ *	Richard Hughes - emit INPUT events for hotkeys
+  *
+  *  TODO
+  *
+  */
  
-+config ACPI_DEBUG_FUNC_TRACE
-+	bool "Additionally enable ACPI function tracing"
-+	default n
-+	depends on ACPI_DEBUG
-+	help
-+	  ACPI Debug Statements slow down ACPI processing. Function trace
-+	  is about half of the penalty and is rarely useful.
+-#define TOSHIBA_ACPI_VERSION	"0.18"
++#define TOSHIBA_ACPI_VERSION	"0.19"
+ #define PROC_INTERFACE_VERSION	1
+ 
+ #include <linux/kernel.h>
+@@ -42,6 +42,7 @@
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
+ #include <linux/backlight.h>
++#include <linux/input-polldev.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -99,6 +100,16 @@ MODULE_LICENSE("GPL");
+ #define HCI_VIDEO_OUT_CRT		0x2
+ #define HCI_VIDEO_OUT_TV		0x4
+ 
++/* key definitions */
++#define HCI_HKEY_MUTE			0x0101
++#define HCI_HKEY_BREAK			0x013b
++#define HCI_HKEY_SEARCH			0x013c
++#define HCI_HKEY_SUSPEND		0x013d
++#define HCI_HKEY_HIBERNATE		0x013e
++#define HCI_HKEY_BRIGHTNESSDOWN		0x0140
++#define HCI_HKEY_BRIGHTNESSUP		0x0141
++#define HCI_HKEY_WLAN			0x0142
 +
- config ACPI_EC
- 	bool
- 	default y
-Index: linux-2.6.22-rc3/include/acpi/acmacros.h
-===================================================================
---- linux-2.6.22-rc3.orig/include/acpi/acmacros.h
-+++ linux-2.6.22-rc3/include/acpi/acmacros.h
-@@ -486,6 +486,8 @@
- #define ACPI_FUNCTION_NAME(name)
- #endif
+ /* utility
+  */
  
-+#ifdef DEBUG_FUNC_TRACE
+@@ -213,9 +224,15 @@ static acpi_status hci_read1(u32 reg, u32 * out1, u32 * result)
+ 
+ static struct proc_dir_entry *toshiba_proc_dir /*= 0*/ ;
+ static struct backlight_device *toshiba_backlight_device;
++static struct input_polled_dev *toshiba_poll_dev;
+ static int force_fan;
+ static int last_key_event;
+ static int key_event_valid;
++static int hotkeys_over_input = 1;
++static int hotkeys_check_per_sec = 2;
 +
- #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
- 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
- #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
-@@ -563,6 +565,27 @@
++module_param(hotkeys_over_input, uint, 0400);
++module_param(hotkeys_check_per_sec, uint, 0400);
  
- #endif				/* ACPI_SIMPLE_RETURN_MACROS */
+ typedef struct _ProcItem {
+ 	const char *name;
+@@ -443,27 +460,33 @@ static char *read_keys(char *p)
+ 	u32 hci_result;
+ 	u32 value;
  
-+#else /* !DEBUG_FUNC_TRACE */
+-	if (!key_event_valid) {
+-		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
+-		if (hci_result == HCI_SUCCESS) {
+-			key_event_valid = 1;
+-			last_key_event = value;
+-		} else if (hci_result == HCI_EMPTY) {
+-			/* better luck next time */
+-		} else if (hci_result == HCI_NOT_SUPPORTED) {
+-			/* This is a workaround for an unresolved issue on
+-			 * some machines where system events sporadically
+-			 * become disabled. */
+-			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
+-			printk(MY_NOTICE "Re-enabled hotkeys\n");
+-		} else {
+-			printk(MY_ERR "Error reading hotkey status\n");
+-			goto end;
++	if (!hotkeys_over_input) {
++		if (!key_event_valid) {
++			hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++			if (hci_result == HCI_SUCCESS) {
++				key_event_valid = 1;
++				last_key_event = value;
++			} else if (hci_result == HCI_EMPTY) {
++				/* better luck next time */
++			} else if (hci_result == HCI_NOT_SUPPORTED) {
++				/* This is a workaround for an unresolved issue on
++				 * some machines where system events sporadically
++				 * become disabled. */
++				hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++				printk(MY_NOTICE "Re-enabled hotkeys\n");
++			} else {
++				printk(MY_ERR "Error reading hotkey status\n");
++				goto end;
++			}
+ 		}
++	} else {
++		key_event_valid = 0;
++		last_key_event = 0;
+ 	}
+ 
+ 	p += sprintf(p, "hotkey_ready:            %d\n", key_event_valid);
+ 	p += sprintf(p, "hotkey:                  0x%04x\n", last_key_event);
++	p += sprintf(p, "hotkeys_via_input:       %d\n", hotkeys_over_input);
+ 
+       end:
+ 	return p;
+@@ -534,15 +557,127 @@ static acpi_status __exit remove_device(void)
+ }
+ 
+ static struct backlight_ops toshiba_backlight_data = {
+-        .get_brightness = get_lcd,
+-        .update_status  = set_lcd_status,
++	.get_brightness = get_lcd,
++	.update_status  = set_lcd_status,
+ };
+ 
++static void toshiba_deliver_button_event(struct input_dev *input, u32 value)
++{
++	int keycode = KEY_UNKNOWN;
++	int key_down = 1;
 +
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_TRACE_PTR(a,b)
-+#define ACPI_FUNCTION_TRACE_U32(a,b)
-+#define ACPI_FUNCTION_TRACE_STR(a,b)
-+#define ACPI_FUNCTION_EXIT
-+#define ACPI_FUNCTION_STATUS_EXIT(s)
-+#define ACPI_FUNCTION_VALUE_EXIT(s)
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_ENTRY()
++	if (!input)
++		return;
 +
-+#define return_VOID                     return
-+#define return_ACPI_STATUS(s)           return(s)
-+#define return_VALUE(s)                 return(s)
-+#define return_UINT8(s)                 return(s)
-+#define return_UINT32(s)                return(s)
-+#define return_PTR(s)                   return(s)
++	/* translate MSB to key up */
++	if (value & 0x80) {
++		value &= ~0x80;
++		key_down = 0;
++	}
 +
-+#endif /* DEBUG_FUNC_TRACE */
++	/* ignore FN on its own */
++	if (value == 0x0100)
++		return;
 +
- /* Conditional execution */
++	/* translate keys to keycodes */
++	switch (value) {
++	case HCI_HKEY_MUTE:
++		keycode = KEY_MUTE;
++		break;
++	case HCI_HKEY_BREAK:
++		keycode = KEY_BREAK;
++		break;
++	case HCI_HKEY_SEARCH:
++		keycode = KEY_SEARCH;
++		break;
++	case HCI_HKEY_SUSPEND:
++		keycode = KEY_SLEEP;
++		break;
++	case HCI_HKEY_HIBERNATE:
++		keycode = KEY_SUSPEND;
++		break;
++	case HCI_HKEY_BRIGHTNESSDOWN:
++		keycode = KEY_BRIGHTNESSDOWN;
++		break;
++	case HCI_HKEY_BRIGHTNESSUP:
++		keycode = KEY_BRIGHTNESSUP;
++		break;
++	case HCI_HKEY_WLAN:
++		keycode = KEY_WLAN;
++		break;
++	default:
++		keycode = KEY_UNKNOWN;
++	}
++
++	if (keycode != KEY_UNKNOWN) {
++		printk(MY_INFO "mapped hkey %i to keycode %i [%i]\n", value, keycode, key_down);
++		input_report_key(input, keycode, key_down);
++		input_sync(input);
++	}
++}
++
++static void toshiba_keys_clear(void)
++{
++	int dropped = 0;
++	int clear_queue = 0;
++	u32 hci_result, value;
++
++	do {
++		/* We don't want to get stuck here; older toshibas such as the
++		 * A60 may load and then return junk during the hci_read */
++		if (clear_queue++ > 16)
++			break;
++
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			dropped++;
++		} else if (hci_result == HCI_EMPTY) {
++			/* better luck next time */
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result != HCI_EMPTY);
++
++	printk(MY_INFO "Dropped %d keys from the queue on startup\n", dropped);
++}
++
++static void handle_buttons(struct input_polled_dev *dev)
++{
++	u32 hci_result, value;
++	struct input_dev *input = dev->input;
++
++	do {
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			/* we got a button event */
++			toshiba_deliver_button_event(input, value);
++		} else if (hci_result == HCI_EMPTY) {
++			/* better luck next time */
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an
++			 * unresolved issue on some machines
++			 * where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result == HCI_SUCCESS);
++}
++
+ static void __exit toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
  
- #define ACPI_DEBUG_EXEC(a)              a
-Index: linux-2.6.22-rc3/include/acpi/acoutput.h
-===================================================================
---- linux-2.6.22-rc3.orig/include/acpi/acoutput.h
-+++ linux-2.6.22-rc3/include/acpi/acoutput.h
-@@ -178,8 +178,8 @@
++	if (toshiba_poll_dev) {
++		input_unregister_polled_device(toshiba_poll_dev);
++		input_free_polled_device(toshiba_poll_dev);
++	}
++
+ 	remove_device();
  
- /* Defaults for debug_level, debug and normal */
+ 	if (toshiba_proc_dir)
+@@ -551,6 +686,49 @@ static void __exit toshiba_acpi_exit(void)
+ 	return;
+ }
  
--#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
--#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
-+#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
-+#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
- #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
++static int __init toshiba_input_polldev_init(void)
++{
++	int error;
++	struct input_dev *input;
++
++	/* use INPUT for key events */
++	toshiba_poll_dev = input_allocate_polled_device();;
++	if (!toshiba_poll_dev) {
++		error = -ENOMEM;
++		goto err_no_mem;
++	}
++	toshiba_poll_dev->poll = handle_buttons;
++	toshiba_poll_dev->poll_interval = HZ / hotkeys_check_per_sec;
++	input = toshiba_poll_dev->input;
++
++	/* create one 'keyboard' virtual input device for all the acpi events */
++	input->name = "Toshiba Extra Buttons";
++	input->phys = "toshiba/input0";
++	input->id.bustype = BUS_HOST;
++	input->id.product = 0x0001;
++	input->evbit[0] = BIT(EV_KEY);
++	set_bit(KEY_MUTE, input->keybit);
++	set_bit(KEY_BREAK, input->keybit); /* probably should be KEY_LOCK */
++	set_bit(KEY_SEARCH, input->keybit);
++	set_bit(KEY_SUSPEND, input->keybit);
++	set_bit(KEY_SLEEP, input->keybit);
++	set_bit(KEY_BRIGHTNESSDOWN, input->keybit);
++	set_bit(KEY_BRIGHTNESSUP, input->keybit);
++	set_bit(KEY_WLAN, input->keybit);
++
++	toshiba_keys_clear();
++
++	error = input_register_polled_device(toshiba_poll_dev);
++	if (error)
++		goto err_free_input;
++	return 0;
++
++err_free_input:
++	input_free_polled_device(toshiba_poll_dev);
++err_no_mem:
++	return error;
++}
++
+ static int __init toshiba_acpi_init(void)
+ {
+ 	acpi_status status = AE_OK;
+@@ -590,12 +768,28 @@ static int __init toshiba_acpi_init(void)
+ 	toshiba_backlight_device = backlight_device_register("toshiba",NULL,
+ 						NULL,
+ 						&toshiba_backlight_data);
+-        if (IS_ERR(toshiba_backlight_device)) {
++	if (IS_ERR(toshiba_backlight_device)) {
+ 		printk(KERN_ERR "Could not register toshiba backlight device\n");
+ 		toshiba_backlight_device = NULL;
+ 		toshiba_acpi_exit();
+ 	}
+-        toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
++	toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
++
++	/* we have to poll the device as we do not get events */
++	if (hotkeys_over_input && hotkeys_check_per_sec > 0) {
++
++		/* sanitise to something sane */
++		if (hotkeys_check_per_sec > 10)
++			hotkeys_check_per_sec = 10;
++		printk(KERN_INFO "ktoshkeyd checks per second : %d\n", hotkeys_check_per_sec);
++
++		toshiba_input_polldev_init ();
++		/* just abort */
++		if (!toshiba_poll_dev) {
++			printk(KERN_ERR "could not allocate input device\n");
++			toshiba_acpi_exit();
++		}
++	}
  
- #endif				/* __ACOUTPUT_H__ */
+ 	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
+ }
 
---=-xyvU1g5qwTRQNL2OS8Wi--
+--=-iWd3CNRZWogU02e6x+Xv--
 
