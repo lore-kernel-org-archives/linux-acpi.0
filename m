@@ -1,85 +1,40 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: smartbattery status on Laptop
-Date: Thu, 31 May 2007 12:20:15 +0400
-Message-ID: <465E853F.6090406@gmail.com>
-References: <200705311711.09397.jfloyd@bigpond.net.au>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [KJ] [PATCH] drivers/acpi: sizeof/sizeof array size calculations replaced with ARRAY_SIZE
+Date: Thu, 31 May 2007 10:56:03 +0100
+Message-ID: <20070531095603.GA24654@infradead.org>
+References: <200705261239.27485.lists-receive@programmierforen.de> <46581C06.7000005@student.ltu.se> <200705261558.24912.lists-receive@programmierforen.de> <200705301525.05905.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.176]:47118 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755238AbXEaIUS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 04:20:18 -0400
-Received: by py-out-1112.google.com with SMTP id a29so149406pyi
-        for <linux-acpi@vger.kernel.org>; Thu, 31 May 2007 01:20:17 -0700 (PDT)
-In-Reply-To: <200705311711.09397.jfloyd@bigpond.net.au>
+Received: from pentafluge.infradead.org ([213.146.154.40]:52049 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757368AbXEaJ4K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 05:56:10 -0400
+Content-Disposition: inline
+In-Reply-To: <200705301525.05905.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Floyd <jfloyd@bigpond.net.au>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andi Drebes <lists-receive@programmierforen.de>, kernel-janitors@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Please open bug at bugzilla.kernel.org and attach acpidump output.
+On Wed, May 30, 2007 at 03:25:05PM -0400, Len Brown wrote:
+>  
+> > > Any reason to not just replace ACPI_RSD_TABLE_SIZE with ARRAY_SIZE?
+> 
+> Probably because ARRAY_SIZE doesn't exist in ACPICA, which is
+> where this code comes from...
+> 
+> When we change syntax in ACPICA files in Linux to make it more "beautiful",
+> then it creates more work for me -- as forever on, that syntax difference
+> must be manually compared to upstream ACPICA and Linux -- and that syntax
+> difference causes upstream patches to no longer apply and require
+> hand merging.
 
-Thanks,
-Alex.
+Or we could stop that ACPCICA crap ASAP.  The acpi code not only looks
+like crap because of that but it's buggy as hell now.
 
-John Floyd =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> Hi,
->=20
-> Have a specialised weatherproof laptop with a smartbattery running FC=
-6
->  latest kernel. I cannot get battey monitoring going. Have loaded
->  modules i2c_ec and sbs with out any errors.
->=20
-> log/messages indicate that the EC driver loads with
-> ACPI: EC HC smbus [SMB1]
->=20
-> There is nothing from the sbs module though it is loaded and
-> the /proc/acpi/battery directory is empty.
->=20
-> The smartbattery can be recognized. If I run the following command ..=
-=2E
->=20
-> smartbattery 1             (1 is to specify the i2c dev,
->                             needs i2c-dev module loaded)
->=20
-> then I get battery status, which behaves properly (changes if I unplu=
-g
->  AC etc). It shows Battery name, status , charge or discharge current=
-,
->  time to full/left, temperature etc.  The smartbattery command came
->  with the initial code exploring the ec-smbus interface a couple of
->  years ago by Bruno Ducrot.
->=20
-> However nothing shows up in the proc/acpi/battery directory under the
->  sbs module, and therefore the gui battery indicators do not work
->=20
-> Any suggestions?
->=20
->=20
-> Love to get this working in the gui.
->=20
->=20
-> John
-> --
-> John Floyd
-> Senior Natural Resource Officer
-> Department of Environment and Climate Change
-> Phone +61-2-9895-5956
-> Fax   +61-2-9895-7263
-> john.floyd@dnr.nsw.gov.au
->=20
-> -------------------------------------------------------
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+Intel is claiming how great linux is and how supportive is to it, but
+can't even write proper code for their abomination of a firmware standard.
+This is really more than dishonest.  Please take patches to get acpi into
+shape and stop this complaining.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
