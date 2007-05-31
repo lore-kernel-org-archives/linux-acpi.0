@@ -1,54 +1,327 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: Making KEY_UNKNOWN really useful to userland
-Date: Thu, 31 May 2007 10:37:22 -0400
-Message-ID: <d120d5000705310737qc62504duac4a1a1494852c42@mail.gmail.com>
-References: <20070527121513.GC19562@khazad-dum.debian.net>
-	 <20070529130528.GB12935@khazad-dum.debian.net>
-	 <d120d5000705300657s3a50a93el6c0771288ac80ebb@mail.gmail.com>
-	 <20070530152444.GD17530@khazad-dum.debian.net>
-	 <d120d5000705300904j54eaa18al4cf1db8f7f13b97b@mail.gmail.com>
-	 <20070530172420.GA6883@khazad-dum.debian.net>
-	 <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com>
-	 <20070531005305.GC6883@khazad-dum.debian.net>
-	 <1180607825.2693.17.camel@localhost.localdomain>
-	 <20070531124842.GC6299@khazad-dum.debian.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] ACPI Debug - for test, devel and possibly even for
+	production kernels
+Date: Thu, 31 May 2007 17:20:39 +0200
+Message-ID: <1180624839.10908.71.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-xyvU1g5qwTRQNL2OS8Wi"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:45174 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751117AbXEaOhY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 10:37:24 -0400
-Received: by wa-out-1112.google.com with SMTP id j4so19338wah
-        for <linux-acpi@vger.kernel.org>; Thu, 31 May 2007 07:37:24 -0700 (PDT)
-In-Reply-To: <20070531124842.GC6299@khazad-dum.debian.net>
-Content-Disposition: inline
+Received: from mx2.suse.de ([195.135.220.15]:41068 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751970AbXEaPUl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 May 2007 11:20:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Richard Hughes <hughsient@gmail.com>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, linux-kernel <linux-kernel@vger.kernel.org>, penberg@cs.helsinki.fi
 
-On 5/31/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> On Thu, 31 May 2007, Richard Hughes wrote:
->
-> I am on it on the thinkpad-acpi side, so at least for that, you don't have
-> to worry.  I am still waiting an answer about which event is the correct one
-> to output scancodes, but the thinkpad-acpi GIT tree is already updated with
-> the above, tentively using MSC_SCAN to report scan codes.
->
 
-I thought I sent out email saying MSC_SCAN is what you want to use,
-MSC_RAW is raw data from device, potentially having make/break codes
-included/encoded. Apparently my mail broke even more than I thought.
+--=-xyvU1g5qwTRQNL2OS8Wi
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Highjacking the thread somewhat - Richard, I saw your patch for
-toshiba_acpi. Please use input-polldev to set up polled devices. It
-will create work queue for you and will make sure that polling is
-stopped when device is closed. Also I don't think you want to use
-KEY_BREAK. What is the expected function of that key?
+Hi,
 
-Please copy me on input-related changes in the tree. Thank you.
+we only make use of a small subset of current ACPI tables.
+ACPI spreads more and more over different parts of the kernel and it's
+likely that this will hold on.
 
--- 
-Dmitry
+ACPI_DEBUG=y is a powerful debug facility, that can ease up bug
+communication with less (ACPI) experienced bug submitters and can shed
+some light behind ACPI magic.
+
+I've done some measurements and found out that most of the performance
+costs are due the function tracing support in the ACPICA debug
+subsystem.
+
+This patch offers the possibility to compile out ACPI function tracing
+support which is of none use for ordinary kernel debugging (is only used
+for Intel internal debugging AFAIK), but takes most of the performance
+costs.
+(This should efficiently be the same as the proposed big patch a year
+ago from Pekka Enberg, just a bit smaller and should make ACPICA and
+kernel/linux people happy:
+http://marc.info/?l=linux-kernel&m=113699535303722&w=2
+)
+
+
+Kernel image size (compiled on x86_64):
+Full acpi debug:
+1618277 bytes (+3.1%, +48k)
+acpi debug function trace compiled out:
+1605359 bytes (+2.3%, +35k)
+acpi debug not compiled in at all
+1569803 bytes (100%)
+
+
+Speed measures on one specific machine (x86_64, laptop):
+
+A) ACPI_DEBUG compiled in
+B) ACPI_DEBUG compiled in, but Function trace compiled out
+C) ACPI_DEBUG compiled out
+D) ACPI_DEBUG compiled out (control run)
+
+The time has been taken at following functions:
+
+1) drivers/acpi/bus.c:acpi_early_init (load tables and initialize
+                                       ACPI namespace)
+2) drivers/acpi/bus.c:acpi_init (some more initialisation
+                                 -> enable ACPI HW mode
+                                 -> read PIC/APIC table, ...)
+3) drivers/acpi/scan.c:scan_init (Enumerate devices in the
+                                  ACPI namespace)
+
+register driver for acpi drivers:
+4)  ec
+5)  pci_root
+6)  pci_link
+
+-----------------------------------------------------------------------
+  |      A         |       B        |       C        |     D          | 
+-----------------------------------------------------------------------
+1 | 434711 (+1.0%) | 432652 (+0.4%) |  430522 (100%) |  430512 (-0.00%)
+-----------------------------------------------------------------------
+2 |  69156 (+3.7%) |  67007 (+0.4%) |   66696 (100%) |   66703 (+0.01%)
+-----------------------------------------------------------------------
+3 |   8769(+63.3%) |   7363(+37.1%) |    5369 (100%) |    5369 ( 0.00%)
+-----------------------------------------------------------------------
+4 |  15999 (+0.7%) |  15950 (+0.4%) |   15879 (100%) |   15878 (-0.01%)
+-----------------------------------------------------------------------
+5 |   9492(+75.4%) |   7657(+41.5%) |    5411 (100%) |    5405 (-0.11%)
+-----------------------------------------------------------------------
+6 |   1717(+64.0%) |   1494(+42.6%) |    1047 (100%) |    1046 (-0.10%)
+-----------------------------------------------------------------------
+All measured values are in us. TSC was used to obtain the values.
+do_gettimeofday did only provide valid values after hpet got setup
+(after pci_link).
+
+I wonder why only the short time taking measures show that extreme
+performance loss, maybe someone has an idea. However if you summarize
+all additional time with ACPI_DEBUG without function trace, you get
+about +5 ms boot time (which may vary from machine to machine...).
+This should be acceptable for test and develop kernels.
+If nothing bad happens in Beta phase I'd like to include this one into
+the final OpenSUSE kernel to get detailed bug reports.
+It would be great if others with their latest test/devel kernels follow,
+so that even ordinary users can easily provide essential, detailed debug
+information easily(e.g. Linus' Compaq and Andrew's Vaio are well known
+on the acpi list, others do not have the luck to get that much of
+support and they do not have the knowledge to compile kernel and so
+on...).
+
+I can also add a file "Documentation/acpi_debug" and add some debug
+hints if this one gets accepted...
+
+This one should not be really dangerous. If the patch is ok, can Len
+still merge this in .22 time?
+If not, can you take it for some testing, Andrew?
+
+Thanks,
+
+   Thomas
+
+
+
+Split ACPI_DEBUG into function trace enabled and not enabled.
+
+Function trace is most of the ACPI_DEBUG costs, but is
+not much of use for kernel ACPI debugging.
+
+Size of kernel image increased on test compile:
++ 48k  (Full ACPI_DEBUG)
++ 35k  (ACPI_DEBUG with function trace compiled out)
+
+Performance without function trace is also much better.
+
+Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
+a lot vendors let Store (value, debug) in their code and this
+might confuse users when it pops up in syslog.
+
+---
+ drivers/acpi/Kconfig    |    8 ++++++++
+ include/acpi/acmacros.h |   23 +++++++++++++++++++++++
+ include/acpi/acoutput.h |    4 ++--
+ 3 files changed, 33 insertions(+), 2 deletions(-)
+
+Index: linux-2.6.22-rc3/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.22-rc3.orig/drivers/acpi/Kconfig
++++ linux-2.6.22-rc3/drivers/acpi/Kconfig
+@@ -280,6 +280,14 @@ config ACPI_DEBUG
+ 	  of verbosity. Saying Y enables these statements. This will increase
+ 	  your kernel size by around 50K.
+ 
++config ACPI_DEBUG_FUNC_TRACE
++	bool "Additionally enable ACPI function tracing"
++	default n
++	depends on ACPI_DEBUG
++	help
++	  ACPI Debug Statements slow down ACPI processing. Function trace
++	  is about half of the penalty and is rarely useful.
++
+ config ACPI_EC
+ 	bool
+ 	default y
+Index: linux-2.6.22-rc3/include/acpi/acmacros.h
+===================================================================
+--- linux-2.6.22-rc3.orig/include/acpi/acmacros.h
++++ linux-2.6.22-rc3/include/acpi/acmacros.h
+@@ -486,6 +486,8 @@
+ #define ACPI_FUNCTION_NAME(name)
+ #endif
+ 
++#ifdef DEBUG_FUNC_TRACE
++
+ #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
+ 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
+ #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
+@@ -563,6 +565,27 @@
+ 
+ #endif				/* ACPI_SIMPLE_RETURN_MACROS */
+ 
++#else /* !DEBUG_FUNC_TRACE */
++
++#define ACPI_FUNCTION_TRACE(a)
++#define ACPI_FUNCTION_TRACE_PTR(a,b)
++#define ACPI_FUNCTION_TRACE_U32(a,b)
++#define ACPI_FUNCTION_TRACE_STR(a,b)
++#define ACPI_FUNCTION_EXIT
++#define ACPI_FUNCTION_STATUS_EXIT(s)
++#define ACPI_FUNCTION_VALUE_EXIT(s)
++#define ACPI_FUNCTION_TRACE(a)
++#define ACPI_FUNCTION_ENTRY()
++
++#define return_VOID                     return
++#define return_ACPI_STATUS(s)           return(s)
++#define return_VALUE(s)                 return(s)
++#define return_UINT8(s)                 return(s)
++#define return_UINT32(s)                return(s)
++#define return_PTR(s)                   return(s)
++
++#endif /* DEBUG_FUNC_TRACE */
++
+ /* Conditional execution */
+ 
+ #define ACPI_DEBUG_EXEC(a)              a
+Index: linux-2.6.22-rc3/include/acpi/acoutput.h
+===================================================================
+--- linux-2.6.22-rc3.orig/include/acpi/acoutput.h
++++ linux-2.6.22-rc3/include/acpi/acoutput.h
+@@ -178,8 +178,8 @@
+ 
+ /* Defaults for debug_level, debug and normal */
+ 
+-#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
+-#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
++#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
++#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
+ #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
+ 
+ #endif				/* __ACOUTPUT_H__ */
+
+
+--=-xyvU1g5qwTRQNL2OS8Wi
+Content-Disposition: attachment; filename=acpi_differ_function_trace_in_debug.patch
+Content-Type: text/x-patch; name=acpi_differ_function_trace_in_debug.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Split ACPI_DEBUG into function trace enabled and not enabled.
+
+Function trace is most of the ACPI_DEBUG costs, but is
+not much of use for kernel ACPI debugging.
+
+Size of kernel image increased on test compile:
++ 48k  (Full ACPI_DEBUG)
++ 35k  (ACPI_DEBUG with function trace compiled out)
+
+Performance without function trace is also much better.
+
+Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
+a lot vendors let Store (value, debug) in their code and this
+might confuse users when it pops up in syslog.
+
+---
+ drivers/acpi/Kconfig    |    8 ++++++++
+ include/acpi/acmacros.h |   23 +++++++++++++++++++++++
+ include/acpi/acoutput.h |    4 ++--
+ 3 files changed, 33 insertions(+), 2 deletions(-)
+
+Index: linux-2.6.22-rc3/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.22-rc3.orig/drivers/acpi/Kconfig
++++ linux-2.6.22-rc3/drivers/acpi/Kconfig
+@@ -280,6 +280,14 @@ config ACPI_DEBUG
+ 	  of verbosity. Saying Y enables these statements. This will increase
+ 	  your kernel size by around 50K.
+ 
++config ACPI_DEBUG_FUNC_TRACE
++	bool "Additionally enable ACPI function tracing"
++	default n
++	depends on ACPI_DEBUG
++	help
++	  ACPI Debug Statements slow down ACPI processing. Function trace
++	  is about half of the penalty and is rarely useful.
++
+ config ACPI_EC
+ 	bool
+ 	default y
+Index: linux-2.6.22-rc3/include/acpi/acmacros.h
+===================================================================
+--- linux-2.6.22-rc3.orig/include/acpi/acmacros.h
++++ linux-2.6.22-rc3/include/acpi/acmacros.h
+@@ -486,6 +486,8 @@
+ #define ACPI_FUNCTION_NAME(name)
+ #endif
+ 
++#ifdef DEBUG_FUNC_TRACE
++
+ #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
+ 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
+ #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
+@@ -563,6 +565,27 @@
+ 
+ #endif				/* ACPI_SIMPLE_RETURN_MACROS */
+ 
++#else /* !DEBUG_FUNC_TRACE */
++
++#define ACPI_FUNCTION_TRACE(a)
++#define ACPI_FUNCTION_TRACE_PTR(a,b)
++#define ACPI_FUNCTION_TRACE_U32(a,b)
++#define ACPI_FUNCTION_TRACE_STR(a,b)
++#define ACPI_FUNCTION_EXIT
++#define ACPI_FUNCTION_STATUS_EXIT(s)
++#define ACPI_FUNCTION_VALUE_EXIT(s)
++#define ACPI_FUNCTION_TRACE(a)
++#define ACPI_FUNCTION_ENTRY()
++
++#define return_VOID                     return
++#define return_ACPI_STATUS(s)           return(s)
++#define return_VALUE(s)                 return(s)
++#define return_UINT8(s)                 return(s)
++#define return_UINT32(s)                return(s)
++#define return_PTR(s)                   return(s)
++
++#endif /* DEBUG_FUNC_TRACE */
++
+ /* Conditional execution */
+ 
+ #define ACPI_DEBUG_EXEC(a)              a
+Index: linux-2.6.22-rc3/include/acpi/acoutput.h
+===================================================================
+--- linux-2.6.22-rc3.orig/include/acpi/acoutput.h
++++ linux-2.6.22-rc3/include/acpi/acoutput.h
+@@ -178,8 +178,8 @@
+ 
+ /* Defaults for debug_level, debug and normal */
+ 
+-#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
+-#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
++#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
++#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
+ #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
+ 
+ #endif				/* __ACOUTPUT_H__ */
+
+--=-xyvU1g5qwTRQNL2OS8Wi--
+
