@@ -1,117 +1,61 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Making KEY_UNKNOWN really useful to userland
-Date: Wed, 30 May 2007 21:53:05 -0300
-Message-ID: <20070531005305.GC6883@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <200705262340.28219.dtor@insightbb.com> <20070527121513.GC19562@khazad-dum.debian.net> <200705282316.32173.dtor@insightbb.com> <20070529130528.GB12935@khazad-dum.debian.net> <d120d5000705300657s3a50a93el6c0771288ac80ebb@mail.gmail.com> <20070530152444.GD17530@khazad-dum.debian.net> <d120d5000705300904j54eaa18al4cf1db8f7f13b97b@mail.gmail.com> <20070530172420.GA6883@khazad-dum.debian.net> <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi exception with current -mm lineup
+Date: Wed, 30 May 2007 21:17:59 -0700
+Message-ID: <20070530211759.aa083623.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:58135 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754103AbXEaAxM (ORCPT
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37034 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751042AbXEaESB (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 May 2007 20:53:12 -0400
-Content-Disposition: inline
-In-Reply-To: <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com>
+	Thu, 31 May 2007 00:18:01 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4V4Hwt0019039
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 30 May 2007 21:18:00 -0700
+Received: from box (shell0.pdx.osdl.net [10.9.0.31])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id l4V4HwgV012174
+	for <linux-acpi@vger.kernel.org>; Wed, 30 May 2007 21:17:58 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: linux-acpi@vger.kernel.org
 
-On Wed, 30 May 2007, Dmitry Torokhov wrote:
-> On 5/30/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> >It is trivial to guarantee that KEY_PROG is unique for a single input
-> >device (keyboard), but it certainly won't work across multiple devices.
-> >Userspace has to know what kind of input device it is talking to to map
-> >them to something, but since the input layer already provides this
-> >information, I was not going to raise a fuss about it.  I figure it is
-> >the price of not increasing even more the keycode table.
-> 
-> Actually I try to discourage people from using input_id during device
-> discovery but rather tell them to analyze capability bits and then decide
-> if their application is interested in that particular input device. I
-> think input_id should pretty much only used by udev & co. to adjust
-> default kernel setup for the needs of local installation (fix keymap,
-> adjust absmax, etc).
+initcall 0xffffffff8066281b: rtc_init+0x0/0x1aa() returned 0.
+initcall 0xffffffff8066281b ran for 0 msecs: rtc_init+0x0/0x1aa()
+Calling initcall 0xffffffff806629c5: hpet_init+0x0/0x69()
+hpet_resources: 0xfed00000 is busy
+ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFF0 [20070126]
 
-It is likely going to be used by something like udev, or an init script, or
-a thinkpad-configurator helper, or whatever.  Sounds like the sort of stuff
-that should be paying attention to input_id anyway.
+Call Trace:
+ [<ffffffff80384004>] acpi_format_exception+0x38/0x43
+ [<ffffffff80380ac9>] acpi_ut_status_exit+0x43/0x85
+ [<ffffffff803ad958>] hpet_resources+0x0/0x138
+ [<ffffffff8037e341>] acpi_walk_resources+0x13c/0x14e
+ [<ffffffff803ad907>] hpet_acpi_add+0x40/0x91
+ [<ffffffff80387a27>] acpi_device_probe+0x51/0x109
+ [<ffffffff803bca00>] driver_probe_device+0xdd/0x164
+ [<ffffffff803bcbc7>] __driver_attach+0x89/0xc9
+ [<ffffffff803bcb3e>] __driver_attach+0x0/0xc9
+ [<ffffffff803bbaaa>] bus_for_each_dev+0x49/0x7a
+ [<ffffffff803bc76b>] driver_attach+0x1c/0x1e
+ [<ffffffff803bc0b2>] bus_add_driver+0x7f/0x184
+ [<ffffffff803bcf94>] driver_register+0x73/0x77
+ [<ffffffff80387bbd>] acpi_bus_register_driver+0x3e/0x40
+ [<ffffffff80662a00>] hpet_init+0x3b/0x69
+ [<ffffffff8064f8fb>] kernel_init+0x171/0x2e1
+ [<ffffffff804ed953>] _spin_unlock_irq+0x14/0x30
+ [<ffffffff8020a618>] child_rip+0xa/0x12
+ [<ffffffff8064f78a>] kernel_init+0x0/0x2e1
+ [<ffffffff8020a60e>] child_rip+0x0/0x12
 
-We don't appear to have deployed a good kernel-userland interface that
-allows us to have generic "press an unknown key and tell me what you want it
-to do" application in userland, but if we do please correct me.  If
-KEY_UNKNOWN was always required to send a EV_MSC MSC_RAW/MSC_SCAN, then we
-would have one.
+initcall 0xffffffff806629c5: hpet_init+0x0/0x69() returned 0.
 
-Maybe we can add that requirement and driver changes (if any, for all I know
-most drivers might already be generating such events) for 2.6.23?  I bet
-Richard would like that one a lot.  Richard?
+This is with a git pull from this morning.  The machine is one
+of those Intel Noncna boxen.  I'm not sure how it identifies itself.
 
-Such functionality makes most of my requests for new keycodes irrelevant, so
-I will just trim that down.
+I put a copy of /proc/acpi/dsdt at http://userweb.kernel.org/~akpm/dsdt
+if that's any help.
 
-> >That said, how is one to know which hardware key was translated to
-> >KEY_UNKNOWN, so that he can inform the user to remap that key?  Should I
-> >send another event together with KEY_UNKNOWN that has the raw keycode?
-> >Which one?
-> 
-> You may try using EV_MSC/MSC_SCAN. You can even send it all the time, not
-> only for KEY_UNKNOWN.
-
-Will do, thanks.  And I will send it all the time, that will force people to
-properly implement code that can deal with them in userland.
-
-What is the exact difference between MSC_RAW and MSC_SCAN?  Which one can be
-used as an index to reprogram the keymap using the IOCTLs?
-
-> I guess we have different opinions. For me KEY_UNKNOWN is better because
-> it encourages user to adjust keymap table in the kernel at startup (or at
-> hotplug time) and then rest of userspace does not need to be aware at all
-
-If we add a requirement and fix all EV_KEY drivers to always report the scan
-code (or raw code, I still don't know which is which) that allows an
-userspace application to know what keymap position to change to fix that
-key, so that we can have an app that:
-
-1. gets a EV_KEY KEY_UNKNOWN and its related EV_MSC MSC_? event
-2. offers the user to map it, now that it knows how to do so.
-
-(note that, for the above to work right, the application must really tap
-into all input devices so that it knows exactly which one is reporting the
-event, etc).
-
-I will readly agree with you, KEY_UNKNOWN will definately be the right
-choice for anything that is not a functional key and which doesn't have
-something like FN_foo already in input.h (and maybe even if does have a
-FN_foo keycode already in input.h).
-
-> Consider ejecting a CD tray. You have a laptop with a key that maked eject
-> CD. Because it is a new laptop there are no proper mapping yet so some
-> adjustments are needed. With your scenario the kernel emits KEY_PROG26.
-> User has first to adjust X keymap to map KEY_PROG26 to EjectCD event
-> (simplifying). Then he goes into text console only to find out that his
-> curses-based CD player does not recognize that key and also needs to be
-> adjusted. And so on. Finally all applications are made aware of KEY_PROG26
-> amd user is happy. Couple of weeks later he goes and buys an external
-> keyboard and it turns out that eject CD there is actually KEY_PROG21 so he
-> need to go through second round of mapping for all applications. Not only
-> that but button with volume increase happens to generate KEY_PROG26. Now
-> what?
-
-Yes, that is the problem with non-functional keys if we don't have a
-position-specific keycode for all of them (like FN_F1).
-
-> Now consider in-kernel remapping to functional scancdes that I propose:
-> user says that that key should generate KEY_EJECTCD and it starts working
-> in all appliations recognizing that event. Adding the second keyboard into
-> mix does not mess up the first one.
-
-I got your point.  So, we should have PROG* free for the user to assign to
-keys, but never use it by default.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Full dmesg at http://userweb.kernel.org/~akpm/dmesg-x.txt
