@@ -1,40 +1,60 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [KJ] [PATCH] drivers/acpi: sizeof/sizeof array size calculations replaced with ARRAY_SIZE
-Date: Thu, 31 May 2007 10:56:03 +0100
-Message-ID: <20070531095603.GA24654@infradead.org>
-References: <200705261239.27485.lists-receive@programmierforen.de> <46581C06.7000005@student.ltu.se> <200705261558.24912.lists-receive@programmierforen.de> <200705301525.05905.lenb@kernel.org>
+From: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Making KEY_UNKNOWN really useful to userland
+Date: Thu, 31 May 2007 11:37:05 +0100
+Message-ID: <1180607825.2693.17.camel@localhost.localdomain>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br>
+	<200705262340.28219.dtor@insightbb.com>
+	<20070527121513.GC19562@khazad-dum.debian.net>
+	<200705282316.32173.dtor@insightbb.com>
+	<20070529130528.GB12935@khazad-dum.debian.net>
+	<d120d5000705300657s3a50a93el6c0771288ac80ebb@mail.gmail.com>
+	<20070530152444.GD17530@khazad-dum.debian.net>
+	<d120d5000705300904j54eaa18al4cf1db8f7f13b97b@mail.gmail.com>
+	<20070530172420.GA6883@khazad-dum.debian.net>
+	<d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com>
+	<20070531005305.GC6883@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:52049 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757368AbXEaJ4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 05:56:10 -0400
-Content-Disposition: inline
-In-Reply-To: <200705301525.05905.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070531005305.GC6883-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-input-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Drebes <lists-receive@programmierforen.de>, kernel-janitors@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, May 30, 2007 at 03:25:05PM -0400, Len Brown wrote:
->  
-> > > Any reason to not just replace ACPI_RSD_TABLE_SIZE with ARRAY_SIZE?
-> 
-> Probably because ARRAY_SIZE doesn't exist in ACPICA, which is
-> where this code comes from...
-> 
-> When we change syntax in ACPICA files in Linux to make it more "beautiful",
-> then it creates more work for me -- as forever on, that syntax difference
-> must be manually compared to upstream ACPICA and Linux -- and that syntax
-> difference causes upstream patches to no longer apply and require
-> hand merging.
+On Wed, 2007-05-30 at 21:53 -0300, Henrique de Moraes Holschuh wrote:
+> Maybe we can add that requirement and driver changes (if any, for all
+> I know most drivers might already be generating such events) for
+> 2.6.23?  I bet Richard would like that one a lot.  Richard?
 
-Or we could stop that ACPCICA crap ASAP.  The acpi code not only looks
-like crap because of that but it's buggy as hell now.
+To be honest, I've got lost in all the discussion about hotkeys. What is
+the plan for a typical acpi driver?
 
-Intel is claiming how great linux is and how supportive is to it, but
-can't even write proper code for their abomination of a firmware standard.
-This is really more than dishonest.  Please take patches to get acpi into
-shape and stop this complaining.
+i.e. what do you want a driver to emit given two scenarios:
 
+* A acpi event that is always the same on all models?
+   KEY_BRIGHTNESSUP?
+
+* an acpi event that is different on every laptop model?
+   KEY_PROG1? KEY_UNKNOWN?
+
+Tell me what do to, and I'll resync my trees and resubmit patches.
+
+Thanks.
+
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
