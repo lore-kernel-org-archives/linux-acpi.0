@@ -1,134 +1,89 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Ottawa Linux Power Management Summit, June 25-26, 2007
-Date: Thu, 31 May 2007 00:37:06 -0400
-Message-ID: <200705310037.07367.lenb@kernel.org>
+Subject: Re: acpi exception with current -mm lineup (HPET)
+Date: Thu, 31 May 2007 02:02:17 -0400
+Message-ID: <200705310202.18124.lenb@kernel.org>
+References: <20070530211759.aa083623.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42254 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:45220 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755415AbXEaEhx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 00:37:53 -0400
+	id S1758329AbXEaGC3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 May 2007 02:02:29 -0400
+In-Reply-To: <20070530211759.aa083623.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, Dave Jones <davej@redhat.com>, Mark Gross <mgross@linux.intel.com>, Tariq Shureih <tariq.shureih@intel.com>, "Pedersen Klaus.K (Nokia-M/Helsinki)" <klaus.k.pedersen@nokia.com>, Igor Stoppa <igor.stoppa@nokia.com>, Poussa Sakari <sakari.poussa@nokia.com>, Matthew Locke <matt@nomadgs.com>, "Eugeny S. Mints" <eugeny.mints@gmail.com>, "Scott E. Preece" <preece@motorola.com>, Vivek Kashyap <kashyapv@us.ibm.com>, Kenneth <kenroz@us.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Logistics: 
+On Thursday 31 May 2007 00:17, Andrew Morton wrote:
+> initcall 0xffffffff8066281b: rtc_init+0x0/0x1aa() returned 0.
+> initcall 0xffffffff8066281b ran for 0 msecs: rtc_init+0x0/0x1aa()
+> Calling initcall 0xffffffff806629c5: hpet_init+0x0/0x69()
+> hpet_resources: 0xfed00000 is busy
+> ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFF0 [20070126]
+> 
+> Call Trace:
+>  [<ffffffff80384004>] acpi_format_exception+0x38/0x43
+>  [<ffffffff80380ac9>] acpi_ut_status_exit+0x43/0x85
+>  [<ffffffff803ad958>] hpet_resources+0x0/0x138
 
-Monday, June 25th
-Tuesday, June 26th
+This stack track is actually triggered in acpi_walk_resources(),
+by return_ACPI_STATUS(status);
 
-We have the "Garden Suite" in Les Suites Ottawa at our disposal 9AM - 6PM (thanks Intel).
-The room has 20 seats.  It also has natural light:-)
+because the return type here
+static acpi_status hpet_resources(struct acpi_resource *res, void *data)
 
-Format:
+is not consistent with the return value here:
+                        return -EBUSY;
 
-Hopefully small enough that we can hold single threaded round-table discussions.
+>  [<ffffffff8037e341>] acpi_walk_resources+0x13c/0x14e
+>  [<ffffffff803ad907>] hpet_acpi_add+0x40/0x91
+>  [<ffffffff80387a27>] acpi_device_probe+0x51/0x109
+>  [<ffffffff803bca00>] driver_probe_device+0xdd/0x164
+>  [<ffffffff803bcbc7>] __driver_attach+0x89/0xc9
+>  [<ffffffff803bcb3e>] __driver_attach+0x0/0xc9
+>  [<ffffffff803bbaaa>] bus_for_each_dev+0x49/0x7a
+>  [<ffffffff803bc76b>] driver_attach+0x1c/0x1e
+>  [<ffffffff803bc0b2>] bus_add_driver+0x7f/0x184
+>  [<ffffffff803bcf94>] driver_register+0x73/0x77
+>  [<ffffffff80387bbd>] acpi_bus_register_driver+0x3e/0x40
+>  [<ffffffff80662a00>] hpet_init+0x3b/0x69
+>  [<ffffffff8064f8fb>] kernel_init+0x171/0x2e1
+>  [<ffffffff804ed953>] _spin_unlock_irq+0x14/0x30
+>  [<ffffffff8020a618>] child_rip+0xa/0x12
+>  [<ffffffff8064f78a>] kernel_init+0x0/0x2e1
+>  [<ffffffff8020a60e>] child_rip+0x0/0x12
+> initcall 0xffffffff806629c5: hpet_init+0x0/0x69() returned 0.
+> 
+> This is with a git pull from this morning.  The machine is one
+> of those Intel Noncna boxen.  I'm not sure how it identifies itself.
 
-We'll also have a projector so folks can make some short presentations to get people
-in the room on the same page.
+Nocona
 
-Record:
+> I put a copy of /proc/acpi/dsdt at http://userweb.kernel.org/~akpm/dsdt
+> if that's any help.
+> 
+> Full dmesg at http://userweb.kernel.org/~akpm/dmesg-x.txt
 
-I volunteer to take notes.
-After the meetings I'll send them to the attendees for review.
-With Mark, I also volunteer to present them at the OLS PM BOF,
-and send them to linux-pm, and LWN.
+Okay, this BIOS actually has a real HPET table:
 
-Attendees:
+ACPI: HPET 7FFD7460, 0038 (r1 A M I  OEMHPET   5000427 MSFT       97)
 
-I believe the 12 below will attend -- please correct me if I'm mistaken.
-I didn't include folks who said "maybe," or folks who "might drop-in."
-(order is arbitrary here, based on copy/paste from my mailbox)
-If you want a better "personal summary" for the notes than
-I conjured up here, please sent it to me and I'll get it right next time.
+and the hpet is actually found:
 
-Len Brown <len.brown@intel.com>
-	Linux Kernel ACPI Maintainer
-	Willing to give a 30-min ACPI PM presentation,
-	though if attendees are mostly focused on non-ACPI embedded,
-	happy to skip doing so.
+Calling initcall 0xffffffff80652488: late_hpet_init+0x0/0xd1()
+hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+hpet0: 3 64-bit timers, 14318180 Hz
+initcall 0xffffffff80652488: late_hpet_init+0x0/0xd1() returned 0.
+initcall 0xffffffff80652488 ran for 0 msecs: late_hpet_init+0x0/0xd1()
+...
 
-Dave Jones <davej@redhat.com>
-	Fedora Maintainer, Linux Kernel Cpufreq Maintainer
-	Len wants Dave to lead a candid discussion on
-	the lessons learned from cpufreq.
+Perhaps Venki can comment on if the resource conflict is expected
+to be fatal or not.
 
-Mark Gross <mgross@linux.intel.com>
-	Intel OTC embedded Linux team
-
-Tariq Shureih <tariq.shureih@intel.com>
-	Intel OTC MID power policy manager
-
-"Pedersen Klaus.K (Nokia-M/Helsinki)" <klaus.k.pedersen@nokia.com>
-Igor Stoppa <igor.stoppa@nokia.com>
-Poussa Sakari <sakari.poussa@nokia.com>
-	Will make a short presentation about latest developments
-	in Nokia N800 power management area.
-
-Matthew Locke <matt@nomadgs.com>
-"Eugeny S. Mints" <eugeny.mints@gmail.com>
-
-	Our primary interest is unified 
-	cross platforms pm API to control pm hardware (covering both x86 and embedded), 
-	constraints (including  latencies) engine, pm subsystem/drivers interface, API 
-	for use case driven pm.
-
-"Scott E. Preece" <preece@motorola.com>
-
-	I would love to see agreement on a way to structure PM so that different
-	kinds of systems could better meet their different goals...
-
-Vivek Kashyap <kashyapv@us.ibm.com>
-Kenneth <kenroz@us.ibm.com>
-	We are interested in cross 
-	platform (PowerPC, x86) power management, pm controls and policies, 
-	pm based scheduling, pm in presence of hypervisors, and power scaled 
-	cpu utilization statistics.
-
-
-Agenda Suggestions:
-
-With 3+ weeks to go, it is time to firm up the agenda.
-To seed the discussion, here are some notes from my mailbox:
-
-From: Poussa Sakari <sakari.poussa@nokia.com>
-we in this context mean people involved in Nokia Internet Tablet
-power management development (Igor, Klaus and myself).
-
-- Presentation of DVFS in Nokia N800 including
-  - integration with clock framework and needed enhancements
-  - role of the voltage and other frameworks
-
-- Future power management challenges in Nokia Internet Tablets
-  - next omap and new requirements 
-  - power aware applications and policies
-  - pm interface between kernel and pm aware applications
-
-- Current budgeting in embedded USB host
-  - how to balance the current flow from battery to usb peripheral
+-Len
  
-- How to use the clk fw to express constraints
-  - between clocks
-  - between clocks and voltages
-
-- How to address power domains with timeouts
-  - simple bitfields management example
-
-
-From: Amit Kucheria
-1. Unified interface to dynamic/runtime PM for laptop/server and
-embedded platforms - Does it make sense?
-2. Enhancements to Linux driver model to handle dynamic PM
-3. Where should policy be located? Drivers or userspace or a mix of both?
-4. Interfaces to userspace policy manager
-5. Can x86 device drivers and bus drivers do more runtime PM? Similar
-to some of the USB work being carried on by Alan/David.
-6. What can be done to ensure Suspend To RAM _always_ works? Video
-drivers are the big problem now, anything else?
-7. Using wakeup latency as a parameter to decide how deep we want to sleep
-
