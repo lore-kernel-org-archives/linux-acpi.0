@@ -1,73 +1,70 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH]: ACPI: preserve the ebx value in acpi_copy_wakeup_routine
-Date: Fri, 1 Jun 2007 18:27:00 +0800
-Message-ID: <823A93EED437D048963A3697DB0E35DE16B6CB@pdsmsx414.ccr.corp.intel.com>
-References: <20070601101707.GC31453@elf.ucw.cz>
+From: Michal Piotrowski <michal.k.k.piotrowski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [1/3] 2.6.22-rc3: known regressions v2
+Date: Fri, 01 Jun 2007 14:20:44 +0200
+Message-ID: <46600F1C.5000302@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54360 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757619AbXFAK1P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2007 06:27:15 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20070601101707.GC31453@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, =?ISO-8859-2?Q?Toralf_F=F6rster?= <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Volpiatto <tvolpiatt-8puV8OjpVw0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Jaroslav Kysela <perex-AlSwsSmVLrQ@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>, Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, "Tian, Kevin" <kevin.tian@intel.com>
 
-According to the SYSTEM V APPLICATION BINARY INTERFACE,
-Intel386 Architecture:
-"ecx and edx: Scratch registers have no specified role in the standard =
-calling
-sequence. Functions do not have to preserve their values for the
-caller."
+Hi all,
 
-Best regards,
-Zhang.Rui(Ray)
+Here is a list of some known regressions in 2.6.22-rc3.
 
-=20
------Original Message-----
-=46rom: Pavel Machek [mailto:pavel@ucw.cz]=20
-Sent: 2007=C4=EA6=D4=C21=C8=D5 18:17
-To: Zhang, Rui
-Cc: linux-acpi@vger.kernel.org; lenb@kernel.org; Tian, Kevin
-Subject: Re: [PATCH]: ACPI: preserve the ebx value in acpi_copy_wakeup_=
-routine
+=46eel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-Hi!
 
-> From: Tian Kevin <kevin.tian@intel.com>
->=20
-> Register %ebx serves as the "global offset table base register"
-> for position-independent code. For absolute code, %ebx serves
-> as a local register and has no specified role in the function
-> calling sequence. In either case, a function must preserve the
-> register value for the caller.
->=20
-> acpi_copy_wakeup_routine overrides %ebx without saving it,
-> this may corrupt the called data.
->=20
-> Kevin found that most time the value of Sx is saved in %esi,
-> however sometimes compiler also uses %ebx. When this happens,
-> suspends fails since sleep value in ebx is changed by
-> acpi_copy_wakeup_routine.
->=20
-> The same funtion in X86_64 doesn't have this problem.
->=20
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Looks okay to me. That routine also corrupts ecx and edx, hopefully
-that's okay?
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unclassified
+
+Subject    : build failed in function `vic_sys_interrupt'
+References : http://lkml.org/lkml/2007/5/31/227
+Submitter  : Toralf F=F6rster <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>
+Status     : Unknown
+
+Subject    : long freezes on thinkpad t60
+References : http://lkml.org/lkml/2007/5/24/100
+Submitter  : Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
+Handled-By : Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
+Status     : problem is being debugged
+
+
+
+ACPI
+
+Subject    : unable to shutdown on kernel 2.6.22-rc2
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8516
+Submitter  : Thierry Volpiatto <tvolpiatt-8puV8OjpVw0@public.gmane.org>
+Status     : Unknown
+
+
+
+ALSA
+
+Subject    : snd-aoa causes badness in lib/kref.c:33
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8513
+Submitter  : Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
+Status     : Unknown
+
+
+
+Networking
+
+Subject    : b44: regression in 2.6.22
+References : http://lkml.org/lkml/2007/5/27/108
+Submitter  : Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>
+Handled-By : Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
+Status     : problem is being debugged
+
+
+
+Regards,
+Michal
+
+--
+"Najbardziej brakowa=B3o mi twojego milczenia."
+-- Andrzej Sapkowski "Co=B6 wi=EAcej"
