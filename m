@@ -1,59 +1,182 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN
-Date: Thu, 31 May 2007 21:13:04 -0300
-Message-ID: <20070601001304.GB5407@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com> <20070531005305.GC6883@khazad-dum.debian.net> <200705310033.51230.dtor@insightbb.com> <20070531222814.GB4076@khazad-dum.debian.net> <20070531233326.GA1947@srcf.ucam.org>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: scary warnings
+Date: Fri, 01 Jun 2007 01:11:28 +0100
+Message-ID: <1180656688.3779.6.camel@monteirov>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-qB2gZnof1slSiUDtfpif"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41934 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754178AbXFAANQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 20:13:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20070531233326.GA1947@srcf.ucam.org>
+Received: from smtp4.netcabo.pt ([212.113.174.31]:1237 "EHLO
+	exch01smtp12.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751019AbXFAAUr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 20:20:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Dmitry Torokhov <dtor@insightbb.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
+To: acpi devel <linux-acpi@vger.kernel.org>
 
-On Fri, 01 Jun 2007, Matthew Garrett wrote:
-> On Thu, May 31, 2007 at 07:28:14PM -0300, Henrique de Moraes Holschuh wrote:
-> > We have all the pieces needed to have sane, generic userland keyboard handling
-> > in place for a while now, but it was not sufficiently documented (or used!).
-> > 
-> > If EV_KEY input drivers always generate scan codes that can be used to
-> > reprogram their keycode maps, and always generate EV_MSC MSC_SCAN events when
-> > they output an EV_KEY KEY_UNKNOWN event, userspace can trap those and feed it
-> > to a generic helper that can ask the user to assign a key code and function to
-> > that key.
-> 
-> I still disagree that this is the best approach. Userspace already has 
-> the functionality to map keys if they produce a keycode. Producing 
-> KEY_UNKNOWN would require the implementation of a stack of extra code.
 
-Well, we already produce KEY_UNKNOWN anyway, and the stuff you quoted above
-just makes KEY_UNKNOWN useful for something instead of keeping it as an
-useless notice to the user that some key (which one? who knows!) was
-pressed.
+--=-qB2gZnof1slSiUDtfpif
+Content-Type: multipart/mixed; boundary="=-aZv7XiFMErnuejydzUWI"
 
-Drivers already have KEY_RESERVED to mark positions in the keycode map for
-keys that should generate no events, so we are not forcing anyone to always
-generate useless events, either.
 
-Perhaps what you dislike re. KEY_UNKNOWN is the part where KEY_UNKNOWN+scan
-code is declared to be the prefered way to report keys that do not have a
-specific function?  Your reply seems to indicate this, but I am not sure I
-really understood what you meant.
+--=-aZv7XiFMErnuejydzUWI
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-I am not exactly in love with the idea of using KEY_UNKNOWN in place of
-stuff like KEY_FN_F1 either (I'd prefer to just bump up KEY_MAX and have
-more posicional keycodes), but Dmitry is being quite clear that he does not
-want to increase KEY_MAX to add more positional keycodes.
+I got this messages warnings, I just found it, after had other problems
+not related with ACPI, I am been running with this kernels one or two
+months ago, and I don't had problems, just reporting the situation,
+could be useful anyway.=20
+Thanks,
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+ACPI Warning (tbfadt-0360): Ignoring BIOS FADT r2 C-state control [20070126=
+]
+(...)
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+ACPI Warning (tbutils-0158): Incorrect checksum in table [  =F0] -  00, sho=
+uld be E7 [20070126]
+ACPI Error (tbinstal-0134): Table has invalid signature [  =F0], must be SS=
+DT or PSDT [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU1._PDC] =
+(Node ffff810037cc3b50), AE_BAD_SIGNATURE
+ACPI Warning (tbutils-0158): Incorrect checksum in table [  =F0] -  00, sho=
+uld be E7 [20070126]
+ACPI Error (tbinstal-0134): Table has invalid signature [  =F0], must be SS=
+DT or PSDT [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU2._PDC] =
+(Node ffff810037cc3a50), AE_BAD_SIGNATURE
+ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device is not=
+ present [20070126]
+ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device is not=
+ present [20070126]
+
+--=20
+S=E9rgio M.B.
+
+--=-aZv7XiFMErnuejydzUWI
+Content-Disposition: attachment; filename=dmesg.txt
+Content-Type: text/plain; name=dmesg.txt; charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+IEJJT1MtZTgyMDogMDAwMDAwMDAzZmZiMDAwMCAtIDAwMDAwMDAwM2ZmYzAwMDAgKEFDUEkgZGF0
+YSkNCiBCSU9TLWU4MjA6IDAwMDAwMDAwM2ZmYzAwMDAgLSAwMDAwMDAwMDNmZmYwMDAwIChBQ1BJ
+IE5WUykNCkFDUEk6IFJTRFAgMDAwRjdDQTAsIDAwMTQgKHIwIEFDUElBTSkNCkFDUEk6IFJTRFQg
+M0ZGQjAwMDAsIDAwMzQgKHIxIEEgTSBJICBPRU1SU0RUICAgNjAwMDYxNiBNU0ZUICAgICAgIDk3
+KQ0KQUNQSTogRkFDUCAzRkZCMDIwMCwgMDA4NCAocjIgQSBNIEkgIE9FTUZBQ1AgICA2MDAwNjE2
+IE1TRlQgICAgICAgOTcpDQpBQ1BJIFdhcm5pbmcgKHRiZmFkdC0wMzYwKTogSWdub3JpbmcgQklP
+UyBGQURUIHIyIEMtc3RhdGUgY29udHJvbCBbMjAwNzAxMjZdDQpBQ1BJOiBEU0RUIDNGRkIwNDUw
+LCAzQ0Q3IChyMSAgNzVEOFAgNzVEOFAwMDQgICAgICAgIDQgSU5UTCAgMjAwMjAyNikNCkFDUEk6
+IEZBQ1MgM0ZGQzAwMDAsIDAwNDANCkFDUEk6IEFQSUMgM0ZGQjAzOTAsIDAwNzggKHIxIEEgTSBJ
+ICBPRU1BUElDICAgNjAwMDYxNiBNU0ZUICAgICAgIDk3KQ0KQUNQSTogTUNGRyAzRkZCMDQxMCwg
+MDAzQyAocjEgQSBNIEkgIE9FTU1DRkcgICA2MDAwNjE2IE1TRlQgICAgICAgOTcpDQpBQ1BJOiBP
+RU1CIDNGRkMwMDQwLCAwMDQ2IChyMSBBIE0gSSAgQU1JX09FTSAgIDYwMDA2MTYgTVNGVCAgICAg
+ICA5NykNCkFDUEk6IFBNLVRpbWVyIElPIFBvcnQ6IDB4ODA4DQpBQ1BJOiBMb2NhbCBBUElDIGFk
+ZHJlc3MgMHhmZWUwMDAwMA0KQUNQSTogTEFQSUMgKGFjcGlfaWRbMHgwMV0gbGFwaWNfaWRbMHgw
+MF0gZW5hYmxlZCkNCkFDUEk6IExBUElDIChhY3BpX2lkWzB4MDJdIGxhcGljX2lkWzB4MDFdIGVu
+YWJsZWQpDQpBQ1BJOiBMQVBJQyAoYWNwaV9pZFsweDAzXSBsYXBpY19pZFsweDgyXSBkaXNhYmxl
+ZCkNCkFDUEk6IExBUElDIChhY3BpX2lkWzB4MDRdIGxhcGljX2lkWzB4ODNdIGRpc2FibGVkKQ0K
+QUNQSTogSU9BUElDIChpZFsweDAyXSBhZGRyZXNzWzB4ZmVjMDAwMDBdIGdzaV9iYXNlWzBdKQ0K
+QUNQSTogSU9BUElDIChpZFsweDAzXSBhZGRyZXNzWzB4ZmVjYzAwMDBdIGdzaV9iYXNlWzI0XSkN
+CkFDUEk6IElOVF9TUkNfT1ZSIChidXMgMCBidXNfaXJxIDAgZ2xvYmFsX2lycSAyIGRmbCBkZmwp
+DQpBQ1BJOiBJTlRfU1JDX09WUiAoYnVzIDAgYnVzX2lycSA5IGdsb2JhbF9pcnEgOSBsb3cgbGV2
+ZWwpDQpBQ1BJOiBJUlEwIHVzZWQgYnkgb3ZlcnJpZGUuDQpBQ1BJOiBJUlEyIHVzZWQgYnkgb3Zl
+cnJpZGUuDQpBQ1BJOiBJUlE5IHVzZWQgYnkgb3ZlcnJpZGUuDQpVc2luZyBBQ1BJIChNQURUKSBm
+b3IgU01QIGNvbmZpZ3VyYXRpb24gaW5mb3JtYXRpb24NCkFDUEk6IENvcmUgcmV2aXNpb24gMjAw
+NzAxMjYNCkFDUEk6IGJ1cyB0eXBlIHBjaSByZWdpc3RlcmVkDQpBQ1BJOiBJbnRlcnByZXRlciBl
+bmFibGVkDQpBQ1BJOiAoc3VwcG9ydHMgUzAgUzEgUzMgUzQgUzUpDQpBQ1BJOiBVc2luZyBJT0FQ
+SUMgZm9yIGludGVycnVwdCByb3V0aW5nDQpBQ1BJOiBQQ0kgUm9vdCBCcmlkZ2UgW1BDSTBdICgw
+MDAwOjAwKQ0KQUNQSTogUENJIEludGVycnVwdCBSb3V0aW5nIFRhYmxlIFtcX1NCXy5QQ0kwLl9Q
+UlRdDQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xfU0JfLlBDSTAuTkJQRy5f
+UFJUXQ0KQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktBXSAoSVJRcyAzIDQgNSA2IDcgMTAg
+KjExIDEyIDE0IDE1KQ0KQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktCXSAoSVJRcyAqMyA0
+IDUgNiA3IDEwIDExIDEyIDE0IDE1KQ0KQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktDXSAo
+SVJRcyAzIDQgKjUgNiA3IDEwIDExIDEyIDE0IDE1KQ0KQUNQSTogUENJIEludGVycnVwdCBMaW5r
+IFtMTktEXSAoSVJRcyAzIDQgKjUgNiA3IDEwIDExIDEyIDE0IDE1KQ0KQUNQSTogUENJIEludGVy
+cnVwdCBMaW5rIFtMTktFXSAoSVJRcyAzIDQgNSA2IDcgMTAgMTEgMTIgMTQgMTUpICowLCBkaXNh
+YmxlZC4NCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRl0gKElSUXMgMyA0IDUgNiA3IDEw
+IDExIDEyIDE0IDE1KSAqMCwgZGlzYWJsZWQuDQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xO
+S0ddIChJUlFzIDMgNCA1IDYgNyAxMCAxMSAxMiAxNCAxNSkgKjAsIGRpc2FibGVkLg0KQUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktIXSAoSVJRcyAzIDQgNSA2IDcgKjEwIDExIDEyIDE0IDE1
+KQ0KcG5wOiBQblAgQUNQSSBpbml0DQpwbnA6IFBuUCBBQ1BJOiBmb3VuZCAxNSBkZXZpY2VzDQpQ
+Q0k6IFVzaW5nIEFDUEkgZm9yIElSUSByb3V0aW5nDQpUaW1lOiBhY3BpX3BtIGNsb2Nrc291cmNl
+IGhhcyBiZWVuIGluc3RhbGxlZC4NCkFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMDowMi4wW0Fd
+IC0+IEdTSSAyNyAobGV2ZWwsIGxvdykgLT4gSVJRIDI3DQpBQ1BJIFdhcm5pbmcgKHRidXRpbHMt
+MDE1OCk6IEluY29ycmVjdCBjaGVja3N1bSBpbiB0YWJsZSBbICAF8F0gLSAgMDAsIHNob3VsZCBi
+ZSBFNyBbMjAwNzAxMjZdDQpBQ1BJIEVycm9yICh0Ymluc3RhbC0wMTM0KTogVGFibGUgaGFzIGlu
+dmFsaWQgc2lnbmF0dXJlIFsgIAXwXSwgbXVzdCBiZSBTU0RUIG9yIFBTRFQgWzIwMDcwMTI2XQ0K
+QUNQSSBFcnJvciAocHNwYXJzZS0wNTM3KTogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQg
+W1xfUFJfLkNQVTEuX1BEQ10gKE5vZGUgZmZmZjgxMDAzN2NjM2I1MCksIEFFX0JBRF9TSUdOQVRV
+UkUNCkFDUEkgV2FybmluZyAodGJ1dGlscy0wMTU4KTogSW5jb3JyZWN0IGNoZWNrc3VtIGluIHRh
+YmxlIFsgIAXwXSAtICAwMCwgc2hvdWxkIGJlIEU3IFsyMDA3MDEyNl0NCkFDUEkgRXJyb3IgKHRi
+aW5zdGFsLTAxMzQpOiBUYWJsZSBoYXMgaW52YWxpZCBzaWduYXR1cmUgWyAgBfBdLCBtdXN0IGJl
+IFNTRFQgb3IgUFNEVCBbMjAwNzAxMjZdDQpBQ1BJIEVycm9yIChwc3BhcnNlLTA1MzcpOiBNZXRo
+b2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9QUl8uQ1BVMi5fUERDXSAoTm9kZSBmZmZmODEw
+MDM3Y2MzYTUwKSwgQUVfQkFEX1NJR05BVFVSRQ0KQUNQSSBFeGNlcHRpb24gKHByb2Nlc3Nvcl9j
+b3JlLTA3ODMpOiBBRV9OT1RfRk9VTkQsIFByb2Nlc3NvciBEZXZpY2UgaXMgbm90IHByZXNlbnQg
+WzIwMDcwMTI2XQ0KQUNQSSBFeGNlcHRpb24gKHByb2Nlc3Nvcl9jb3JlLTA3ODMpOiBBRV9OT1Rf
+Rk9VTkQsIFByb2Nlc3NvciBEZXZpY2UgaXMgbm90IHByZXNlbnQgWzIwMDcwMTI2XQ0KQUNQSTog
+UENJIEludGVycnVwdCAwMDAwOjAwOjEwLjBbQV0gLT4gR1NJIDIxIChsZXZlbCwgbG93KSAtPiBJ
+UlEgMjENCkFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMDoxMC4xW0FdIC0+IEdTSSAyMSAobGV2
+ZWwsIGxvdykgLT4gSVJRIDIxDQpBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6MTAuMltCXSAt
+PiBHU0kgMjEgKGxldmVsLCBsb3cpIC0+IElSUSAyMQ0KQUNQSTogUENJIEludGVycnVwdCAwMDAw
+OjAwOjEwLjNbQl0gLT4gR1NJIDIxIChsZXZlbCwgbG93KSAtPiBJUlEgMjENCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgMDAwMDowMDoxMC40W0NdIC0+IEdTSSAyMSAobGV2ZWwsIGxvdykgLT4gSVJRIDIx
+DQpBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6MGYuMFtCXSAtPiBHU0kgMjAgKGxldmVsLCBs
+b3cpIC0+IElSUSAyMA0KQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAwOjBmLjFbQV0gLT4gR1NJ
+IDIwIChsZXZlbCwgbG93KSAtPiBJUlEgMjANCkFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMDox
+Mi4wW0FdIC0+IEdTSSAyMyAobGV2ZWwsIGxvdykgLT4gSVJRIDIzDQpBQ1BJOiBQQ0kgSW50ZXJy
+dXB0IDAwMDA6MDA6MGIuMFtBXSAtPiBHU0kgMTkgKGxldmVsLCBsb3cpIC0+IElSUSAxOQ0KQUNQ
+STogUENJIEludGVycnVwdCAwMDAwOjAwOjExLjVbQ10gLT4gR1NJIDIyIChsZXZlbCwgbG93KSAt
+PiBJUlEgMjINCkFDUEk6IFBvd2VyIEJ1dHRvbiAoRkYpIFtQV1JGXQ0KQUNQSTogUG93ZXIgQnV0
+dG9uIChDTSkgW1BXUkJdDQppYm1fYWNwaTogZWMgb2JqZWN0IG5vdCBmb3VuZA0K
+
+
+--=-aZv7XiFMErnuejydzUWI--
+
+--=-qB2gZnof1slSiUDtfpif
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
+OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
+ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
+5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
+NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
+YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
+npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
+16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
+illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDYwMTAwMTEyNFowIwYJKoZI
+hvcNAQkEMRYEFDwSO8K8QcIwgb57wQ47ELyOvrDBMA0GCSqGSIb3DQEBAQUABIIBAEyh8N1ZL8Ru
+SdpjUPHWIcEYTDONRb7HyWtlH1GVc2B3Il5d5HYsMYngWwQI3VO0VhRbAgSd5bVjeowd8Hk+9oin
+GoKjFYxpCOIXmql11F5+vk3uTgEzlszJumKK8qWvlg4QWIBlk46QcL+cKQbQukrVp2IVdo5LaDDQ
+C7uUUygVupeg8p8OSQ0raZQAB380apHvuxL8sdiW5/JC+eBPfuMTc3Mj/FAtkt4VxB8Q5Y0ARats
+i12Qo5otEDaL8QeMza6fGpmAl3ShGwj14WWvij+dt/PiaoODlfybVsD9j3lHgmSuHmrbbHLRnf1S
+nkI514wicA6Iq/HJ1OxLC0pEHU4AAAAAAAA=
+
+
+--=-qB2gZnof1slSiUDtfpif--
