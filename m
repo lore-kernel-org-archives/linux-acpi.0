@@ -1,70 +1,82 @@
-From: Michal Piotrowski <michal.k.k.piotrowski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [1/3] 2.6.22-rc3: known regressions v2
-Date: Fri, 01 Jun 2007 14:20:44 +0200
-Message-ID: <46600F1C.5000302@googlemail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN
+Date: Fri, 1 Jun 2007 14:13:24 +0100
+Message-ID: <20070601131324.GB12204@srcf.ucam.org>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <200705312333.11477.dtor@insightbb.com> <20070601040824.GA5042@srcf.ucam.org> <200706010037.59496.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, =?ISO-8859-2?Q?Toralf_F=F6rster?= <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Volpiatto <tvolpiatt-8puV8OjpVw0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Jaroslav Kysela <perex-AlSwsSmVLrQ@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>, Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:38027 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756066AbXFANNf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2007 09:13:35 -0400
+Content-Disposition: inline
+In-Reply-To: <200706010037.59496.dtor@insightbb.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dtor@insightbb.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
 
-Hi all,
+On Fri, Jun 01, 2007 at 12:37:58AM -0400, Dmitry Torokhov wrote:
+> On Friday 01 June 2007 00:08, Matthew Garrett wrote:
+> > If you let users alter the kernel keymap, then you need to implement 
+> > support for resetting the kernel keymap on exit. Otherwise it's a 
+> > trivial DoS.
+> > 
+> 
+> You already do - do you let your users play games with force-feedback
+> joysticks? To load force feedback effect you need write permissions for
+> corresponding event device.
 
-Here is a list of some known regressions in 2.6.22-rc3.
+That's much less of a problem, especially since (realistically) any 
+force feedback-aware application will reset the values on first use. 
+That's not the case for the keymap.
 
-=46eel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+> > The standard setup in an office environment is likely to be  
+> > multiuser.
+> 
+> Huh? In my limited experience everyone in the office gets its own box.
+> And I am not talking about software shop.
 
+Standard is that everyone gets their own machine, but usually everyone 
+has an account on all of them.
 
+> > No, but it makes it significantly more confusing. User 1 chooses a 
+> > setup. This gets saved. User 2 remaps keys based on User 1's settings 
+> > (which have been restored at bootup). User 1 alters key mapping. User 2 
+> > suddenly becomes hugely confused.
+> 
+> One user is an administrator. He can alter the global keymap. If there
+> are multiple users he may need to be cautious.
 
-Unclassified
+Or we could just leave the mapping up to individual users, which avoids 
+the problem.
 
-Subject    : build failed in function `vic_sys_interrupt'
-References : http://lkml.org/lkml/2007/5/31/227
-Submitter  : Toralf F=F6rster <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>
-Status     : Unknown
+> > How many users plug external keyboards with unlabelled keys into a 
+> > laptop? No, I really don't think that's a common case at all.
+> 
+> I think quite a few people use external keyboards. I know that in my office
+> everyone with a laptop has a docking station and uses full keyboard with
+> it. I use external AT keyboard at home...
+> 
+> As far as unlabeled goes - they may be labeled but we may not know their
+> labels.
 
-Subject    : long freezes on thinkpad t60
-References : http://lkml.org/lkml/2007/5/24/100
-Submitter  : Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Handled-By : Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Status     : problem is being debugged
+If a key is labelled in a non-generic way then it shouldn't generate 
+KEY_PROGwhatever. That's a separate problem.
 
+> > The solution that satisfies the largest number of users with the 
+> > smallest amount of work is the one where pressing a key on the keyboard 
+> > results in X events being generated. Right now, that requires that the 
+> > key generate a real keycode.
+> > 
+> 
+> Again, it is not only about X. What if X is not running (or running but
+> nobody is logged in)? There are number of events (SUSPEND, WLAN switch,
+> undock request, etc) that should be handled by daemons not depending
+> on X.
 
-
-ACPI
-
-Subject    : unable to shutdown on kernel 2.6.22-rc2
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8516
-Submitter  : Thierry Volpiatto <tvolpiatt-8puV8OjpVw0@public.gmane.org>
-Status     : Unknown
-
-
-
-ALSA
-
-Subject    : snd-aoa causes badness in lib/kref.c:33
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8513
-Submitter  : Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
-Status     : Unknown
-
-
-
-Networking
-
-Subject    : b44: regression in 2.6.22
-References : http://lkml.org/lkml/2007/5/27/108
-Submitter  : Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>
-Handled-By : Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
-Status     : problem is being debugged
-
-
-
-Regards,
-Michal
-
---
-"Najbardziej brakowa=B3o mi twojego milczenia."
--- Andrzej Sapkowski "Co=B6 wi=EAcej"
+The existing implementations use X. I don't think any of the desktop 
+distributions really care about the non-X case for this sort of thing.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
