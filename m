@@ -1,48 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN
-Date: Fri, 1 Jun 2007 01:24:35 +0100
-Message-ID: <20070601002435.GA2621@srcf.ucam.org>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com> <20070531005305.GC6883@khazad-dum.debian.net> <200705310033.51230.dtor@insightbb.com> <20070531222814.GB4076@khazad-dum.debian.net> <20070531233326.GA1947@srcf.ucam.org> <20070601001304.GB5407@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: scary warnings
+Date: Thu, 31 May 2007 20:55:04 -0400
+Message-ID: <200705312055.05142.lenb@kernel.org>
+References: <1180656688.3779.6.camel@monteirov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:42572 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754152AbXFAAzS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 20:55:18 -0400
+In-Reply-To: <1180656688.3779.6.camel@monteirov>
 Content-Disposition: inline
-In-Reply-To: <20070601001304.GB5407@khazad-dum.debian.net>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Dmitry Torokhov <dtor@insightbb.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: sergio@sergiomb.no-ip.org
+Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-On Thu, May 31, 2007 at 09:13:04PM -0300, Henrique de Moraes Holschuh wrote:
+Please open a sighting at bugzilla.kernel.org against ACPI/tables
+and attach the output from acpidump
 
-> Well, we already produce KEY_UNKNOWN anyway, and the stuff you quoted above
-> just makes KEY_UNKNOWN useful for something instead of keeping it as an
-> useless notice to the user that some key (which one? who knows!) was
-> pressed.
+thanks,
+-Len
 
-Given existing userspace, it's never useful to generate KEY_UNKNOWN. 
-Adding extra information to the event doesn't alter that.
-
-> Perhaps what you dislike re. KEY_UNKNOWN is the part where KEY_UNKNOWN+scan
-> code is declared to be the prefered way to report keys that do not have a
-> specific function?  Your reply seems to indicate this, but I am not sure I
-> really understood what you meant.
-
-Yes.
-
-> I am not exactly in love with the idea of using KEY_UNKNOWN in place of
-> stuff like KEY_FN_F1 either (I'd prefer to just bump up KEY_MAX and have
-> more posicional keycodes), but Dmitry is being quite clear that he does not
-> want to increase KEY_MAX to add more positional keycodes.
-
-I think using positional keycodes would also be a mistake. We just need 
-a slightly larger set of keycodes representing user-definable keys. 
-There's 4 of them already - I really can't imagine there being many 
-keyboards with a significantly larger set of unlabelled keys.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+On Thursday 31 May 2007 20:11, Sergio Monteiro Basto wrote:
+> I got this messages warnings, I just found it, after had other proble=
+ms
+> not related with ACPI, I am been running with this kernels one or two
+> months ago, and I don't had problems, just reporting the situation,
+> could be useful anyway.=20
+> Thanks,
+>=20
+> ACPI Warning (tbfadt-0360): Ignoring BIOS FADT r2 C-state control [20=
+070126]
+> (...)
+> pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+> ACPI Warning (tbutils-0158): Incorrect checksum in table [  =C3=B0] -=
+  00, should be E7 [20070126]
+> ACPI Error (tbinstal-0134): Table has invalid signature [  =C3=B0], m=
+ust be SSDT or PSDT [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU1.=
+_PDC] (Node ffff810037cc3b50), AE_BAD_SIGNATURE
+> ACPI Warning (tbutils-0158): Incorrect checksum in table [  =C3=B0] -=
+  00, should be E7 [20070126]
+> ACPI Error (tbinstal-0134): Table has invalid signature [  =C3=B0], m=
+ust be SSDT or PSDT [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU2.=
+_PDC] (Node ffff810037cc3a50), AE_BAD_SIGNATURE
+> ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device =
+is not present [20070126]
+> ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device =
+is not present [20070126]
+>=20
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
