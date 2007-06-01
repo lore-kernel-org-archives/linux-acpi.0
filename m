@@ -1,170 +1,85 @@
-From: Daniel Drake <dsd@gentoo.org>
-Subject: [PATCH] ACPI: poke display on lid open
-Date: Fri,  1 Jun 2007 04:06:56 +0100 (BST)
-Message-ID: <20070601030657.2E9F37B409F@zog.reactivated.net>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN
+Date: Thu, 31 May 2007 23:33:10 -0400
+Message-ID: <200705312333.11477.dtor@insightbb.com>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <20070601012928.GD5407@khazad-dum.debian.net> <20070601014453.GA3711@srcf.ucam.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from queue04-winn.ispmail.ntl.com ([81.103.221.58]:54171 "EHLO
-	queue04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752742AbXFADZf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 23:25:35 -0400
-Received: from aamtaout01-winn.ispmail.ntl.com ([81.103.221.35])
-          by mtaout02-winn.ispmail.ntl.com with ESMTP
-          id <20070601030658.OSCO4.mtaout02-winn.ispmail.ntl.com@aamtaout01-winn.ispmail.ntl.com>
-          for <linux-acpi@vger.kernel.org>; Fri, 1 Jun 2007 04:06:58 +0100
-Received: from zog.reactivated.net ([86.14.211.88])
-          by aamtaout01-winn.ispmail.ntl.com with ESMTP
-          id <20070601030658.BCFG219.aamtaout01-winn.ispmail.ntl.com@zog.reactivated.net>
-          for <linux-acpi@vger.kernel.org>; Fri, 1 Jun 2007 04:06:58 +0100
+Received: from gateway.insightbb.com ([74.128.0.19]:46543 "EHLO
+	asav04.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752908AbXFADdM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2007 23:33:12 -0400
+In-Reply-To: <20070601014453.GA3711@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
 
-Many Dell laptops have the DSDT coded to power down the display when the lid
-is closed, and leave it off when it is opened.
+On Thursday 31 May 2007 21:44, Matthew Garrett wrote:
+> On Thu, May 31, 2007 at 10:29:28PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Fri, 01 Jun 2007, Matthew Garrett wrote:
+> > > Given existing userspace, it's never useful to generate KEY_UNKNOWN. 
+> > > Adding extra information to the event doesn't alter that.
+> > 
+> > It will not break anything, and it is trivial to write an application to
+> > intelligently handle KEY_UNKNOWN+scancode events.  This really is not a
+> > reason to not do it, at all.
+> 
+> It's not trivial at all. You need to introduce a mechanism for noting a 
+> KEY_UNKNOWN keypress. It then needs to signal the user (dbus is probably 
+> the best layer for this), but you need to ensure that you only signal 
+> the user who is currently at the keyboard. This needs to be presented to 
+> the user via some sort of UI, which will then need to signal some sort 
+> of privileged process to actually change the keymap.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=5155
+Not necessarily priveleged - you most likely already change ownership
+of event devices to user who is logged at console (so your force feedback
+joysticks work).
 
-Based on ideas from Len Brown, this patch creates an internal event so
-that the button driver can notify the video driver when the lid has been
-opened. The video driver then reactivates the LCD.
+> When the user logs  
+> out, you'll then need to unmap the key again and repeat as necessary for 
+> any new user who logs in.
 
-Signed-off-by: Daniel Drake <dsd@gentoo.org>
+I think we should aim at the most common case - when there are no multiple
+users on the box. Then the utility that detects KEY_UNKNOWN just saves the
+mapping user chose and automatically reload keymap upon next reboot.
 
----
+Note that KEY_UNKNOWN solution does not preculde futher customization on
+per-user base once default action is established.
 
-After all 3 of these patches, my Dell laptop display is correctly powered back
-up when I open the lid, without any userspace or DSDT hacks. Is the ievent
-idea acceptable or does it clutter things too much?
+> 
+> Alternatively, we could generate a keycode and then let the user map 
+> that to an X keysym. We've even already got code to do this.
+>
 
-Index: linux/drivers/acpi/button.c
-===================================================================
---- linux.orig/drivers/acpi/button.c
-+++ linux/drivers/acpi/button.c
-@@ -259,10 +259,15 @@ static void acpi_button_notify(acpi_hand
- 		if (button->type == ACPI_BUTTON_TYPE_LID) {
- 			struct acpi_handle *handle = button->device->handle;
- 			unsigned long state;
-+			acpi_status status;
+There is world outside of X.
  
--			if (!ACPI_FAILURE(acpi_evaluate_integer(handle, "_LID",
--								NULL, &state)))
-+			status = acpi_evaluate_integer(handle, "_LID", NULL,
-+						       &state);
-+
-+			if (!ACPI_FAILURE(status)) {
-+				acpi_ievent_notify(ACPI_IEVENT_LID, &state);
- 				input_report_switch(input, SW_LID, !state);
-+			}
- 
- 		} else {
- 			int keycode = test_bit(KEY_SLEEP, input->keybit) ?
-Index: linux/drivers/acpi/video.c
-===================================================================
---- linux.orig/drivers/acpi/video.c
-+++ linux/drivers/acpi/video.c
-@@ -131,6 +131,7 @@ struct acpi_video_bus {
- 	struct semaphore sem;
- 	struct list_head video_device_list;
- 	struct proc_dir_entry *dir;
-+	struct acpi_ievent_handle *lid_event;
- };
- 
- struct acpi_video_device_flags {
-@@ -1730,6 +1731,29 @@ static int acpi_video_bus_stop_devices(s
- 	return acpi_video_bus_DOS(video, 0, 1);
- }
- 
-+/* Upon lid open event, poke DSS to wake up display. Needed for many Dell
-+ * laptops. */
-+static void acpi_video_lid_event(enum acpi_ievent_code event, void *event_data,
-+				 void *user_data)
-+{
-+	struct acpi_video_bus *video = user_data;
-+	struct acpi_video_device *dev, *tmp;
-+	unsigned long state = *((unsigned long *) event_data);
-+
-+	if (!state)
-+		return;
-+
-+	list_for_each_entry_safe(dev, tmp, &video->video_device_list, entry) {
-+		if (!dev->flags.lcd)
-+			continue;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Waking up %s.%s on lid event\n",
-+				  acpi_device_bid(video->device),
-+				  acpi_device_bid(dev->dev)));
-+		acpi_video_device_set_state(dev, 0x80000001);
-+	}
-+}
-+
- static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct acpi_video_bus *video = data;
-@@ -1825,11 +1849,11 @@ static int acpi_video_bus_add(struct acp
- 	acpi_video_bus_find_cap(video);
- 	result = acpi_video_bus_check(video);
- 	if (result)
--		goto end;
-+		goto out;
- 
- 	result = acpi_video_bus_add_fs(device);
- 	if (result)
--		goto end;
-+		goto out;
- 
- 	init_MUTEX(&video->sem);
- 	INIT_LIST_HEAD(&video->video_device_list);
-@@ -1843,12 +1867,17 @@ static int acpi_video_bus_add(struct acp
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
- 				  "Error installing notify handler\n"));
--		acpi_video_bus_stop_devices(video);
--		acpi_video_bus_put_devices(video);
--		kfree(video->attached_array);
--		acpi_video_bus_remove_fs(device);
- 		result = -ENODEV;
--		goto end;
-+		goto out_stop;
-+	}
-+
-+	video->lid_event = acpi_install_ievent_handler(ACPI_IEVENT_LID,
-+		acpi_video_lid_event, video);
-+	if (!video->lid_event) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "Error installing lid handler\n"));
-+		result = -ENODEV;
-+		goto out_remove_notify;
- 	}
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (multi-head: %s  rom: %s  post: %s)\n",
-@@ -1856,11 +1885,19 @@ static int acpi_video_bus_add(struct acp
- 	       video->flags.multihead ? "yes" : "no",
- 	       video->flags.rom ? "yes" : "no",
- 	       video->flags.post ? "yes" : "no");
-+	return result;
- 
--      end:
-+out_remove_notify:
-+	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+				   acpi_video_bus_notify);
-+out_stop:
-+	acpi_video_bus_stop_devices(video);
-+	acpi_video_bus_put_devices(video);
-+	kfree(video->attached_array);
-+	acpi_video_bus_remove_fs(device);
-+out:
- 	if (result)
- 		kfree(video);
--
- 	return result;
- }
- 
-@@ -1877,6 +1914,7 @@ static int acpi_video_bus_remove(struct 
- 
- 	acpi_video_bus_stop_devices(video);
- 
-+	acpi_remove_ievent_handler(video->lid_event);
- 	status = acpi_remove_notify_handler(video->device->handle,
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_bus_notify);
+> > > I think using positional keycodes would also be a mistake. We just need 
+> > > a slightly larger set of keycodes representing user-definable keys. 
+> > > There's 4 of them already - I really can't imagine there being many 
+> > > keyboards with a significantly larger set of unlabelled keys.
+> > 
+> > I had this exact PoV, too, until Dmitry reminded me that keycodes are
+> > *global* to the system in practice, and that different keys (as in keys that
+> > have no correlation between their position, labels or lack thereof, and
+> > function) in different input devices would end up mapped to KEY_PROGx by
+> > default.
+> 
+> That's a ridiculously niche case, and can be handled in userspace. Just 
+> have udev do remapping when it detects multiple keyboards that both have 
+> KEY_PROG* layers, or let X have different keymaps for different input 
+> devices. We shouldn't make the (by far) common case significantly more 
+> difficult to deal with this one.
+> 
+
+No, it is not a niche case. I think it is much more common than the case where
+you have multiple users for the same box using different keymaps. Even if box
+is shared there most likely will be one person setting it up in the beginning
+and the rest will follow his/her setup.
+
+-- 
+Dmitry
