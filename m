@@ -1,78 +1,67 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC][PATCH 0/3] A Dynticks Aware Processor Idle PM Governor
-Date: Thu, 31 May 2007 21:17:48 -0400
-Message-ID: <200705312117.48690.lenb@kernel.org>
-References: <1174722412.32554.81.camel@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN
+Date: Thu, 31 May 2007 22:29:28 -0300
+Message-ID: <20070601012928.GD5407@khazad-dum.debian.net>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com> <20070531005305.GC6883@khazad-dum.debian.net> <200705310033.51230.dtor@insightbb.com> <20070531222814.GB4076@khazad-dum.debian.net> <20070531233326.GA1947@srcf.ucam.org> <20070601001304.GB5407@khazad-dum.debian.net> <20070601002435.GA2621@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50299 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758332AbXFABSl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 May 2007 21:18:41 -0400
-In-Reply-To: <1174722412.32554.81.camel@localhost.localdomain>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070601002435.GA2621@srcf.ucam.org>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Dmitry Torokhov <dtor@insightbb.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Belay <abelay@novell.com>
-Cc: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Shaohua Li <shaohua.li@intel.com>, Pallipadi@vger.kernel.org, Venkatesh <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-Applied this series to acpi-test
-in anticipation that Venki is about to send some incremental
-patches to address the feedback on it.
+On Fri, 01 Jun 2007, Matthew Garrett wrote:
+> On Thu, May 31, 2007 at 09:13:04PM -0300, Henrique de Moraes Holschuh wrote:
+> > Well, we already produce KEY_UNKNOWN anyway, and the stuff you quoted above
+> > just makes KEY_UNKNOWN useful for something instead of keeping it as an
+> > useless notice to the user that some key (which one? who knows!) was
+> > pressed.
+> 
+> Given existing userspace, it's never useful to generate KEY_UNKNOWN. 
+> Adding extra information to the event doesn't alter that.
 
-thanks,
--Len
+It will not break anything, and it is trivial to write an application to
+intelligently handle KEY_UNKNOWN+scancode events.  This really is not a
+reason to not do it, at all.
 
-On Saturday 24 March 2007 03:46, Adam Belay wrote:
-> Hi All,
+> > Perhaps what you dislike re. KEY_UNKNOWN is the part where KEY_UNKNOWN+scan
+> > code is declared to be the prefered way to report keys that do not have a
+> > specific function?  Your reply seems to indicate this, but I am not sure I
+> > really understood what you meant.
 > 
-> Here is my first take at implementing an idle PM governor that takes
-> full advantage of NO_HZ.  I call it the 'menu' governor because it
-> considers the full list of idle states before each entry.
+> Yes.
+
+That could easily be removed or switched around but...
+
+> > I am not exactly in love with the idea of using KEY_UNKNOWN in place of
+> > stuff like KEY_FN_F1 either (I'd prefer to just bump up KEY_MAX and have
+> > more posicional keycodes), but Dmitry is being quite clear that he does not
+> > want to increase KEY_MAX to add more positional keycodes.
 > 
-> I've kept the implementation fairly simple.  It attempts to guess the
-> next residency time and then chooses a state that would meet at least
-> the break-even point between power savings and entry cost.  To this end,
-> it selects the deepest idle state that satisfies the following
-> constraints:
->      1. If the idle time elapsed since bus master activity was detected
->         is below a threshold (currently 20 ms), then limit the selection
->         to C2-type or above.
->      2. Do not choose a state with a break-even residency that exceeds
->         the expected time remaining until the next timer interrupt.
->      3. Do not choose a state with a break-even residency that exceeds
->         the elapsed time between the last pair of break events,
->         excluding timer interrupts.
-> 
-> This governor has an advantage over "ladder" governor because it
-> proactively checks how much time remains until the next timer interrupt
-> using the tick infrastructure.  Also, it handles device interrupt
-> activity more intelligently by not including timer interrupts in break
-> event calculations.  Finally, it doesn't make policy decisions using the
-> number of state entries, which can have variable residency times (NO_HZ
-> makes these potentially very large), and instead only considers sleep
-> time deltas.
-> 
-> The menu governor can be selected during runtime using the cpuidle sysfs
-> interface like so:
-> "echo "menu" > /sys/devices/system/cpu/cpuidle/current_governor"
-> 
-> This patchset applies against 2.6.21-rc4 plus the latest from the acpi
-> testing tree, which is available here:
-> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.21/acpi-test-20070126-2.6.21-rc4.diff.bz2
-> 
-> I'd really appreciate any comments, benchmarks, or suggestions.
-> 
-> Cheers,
-> Adam
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> I think using positional keycodes would also be a mistake. We just need 
+> a slightly larger set of keycodes representing user-definable keys. 
+> There's 4 of them already - I really can't imagine there being many 
+> keyboards with a significantly larger set of unlabelled keys.
+
+I had this exact PoV, too, until Dmitry reminded me that keycodes are
+*global* to the system in practice, and that different keys (as in keys that
+have no correlation between their position, labels or lack thereof, and
+function) in different input devices would end up mapped to KEY_PROGx by
+default.
+
+And in that scenario, KEY_UNKNOWN (i.e. "please remap me to what you want
+this key to do for real") makes a lot more sense, given that we don't have
+all the positional keycodes we need, and more are not being added.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
