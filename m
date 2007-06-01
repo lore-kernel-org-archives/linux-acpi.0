@@ -1,39 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Fri, 1 Jun 2007 22:37:16 +0200
-Message-ID: <200706012237.17375.rjw@sisk.pl>
-References: <878xb35sje.fsf@goat.bogus.local>
+From: Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [1/3] 2.6.22-rc3: known regressions v2
+Date: Fri, 1 Jun 2007 22:48:53 +0200
+Message-ID: <200706012248.53971.mb@bu3sch.de>
+References: <46600F1C.5000302@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57475 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762200AbXFAUbV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Jun 2007 16:31:21 -0400
-In-Reply-To: <878xb35sje.fsf@goat.bogus.local>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <46600F1C.5000302-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Piotrowski <michal.k.k.piotrowski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Toralf =?iso-8859-2?q?F=F6rster?= <toralf.foerster-Mmb7MZpHnFY@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Volpiatto <tvolpiatt-8puV8OjpVw0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Jaroslav Kysela <perex-AlSwsSmVLrQ@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>, Gary Zambrano <zambrano-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Friday, 1 June 2007 22:27, Olaf Dietsche wrote:
-> Hi,
+On Friday 01 June 2007 14:20:44 Michal Piotrowski wrote:
+> Networking
 > 
-> resume from suspend to ram doesn't work for my laptop and never
-> has. So, this is not a regression.
-> 
-> Hibernate (aka suspend to disk) works, however.
-> 
-> When I resume, everything seems to come up (fan becomes busy, disk and
-> dvd spin up for a short time),
+> Subject    : b44: regression in 2.6.22
+> References : http://lkml.org/lkml/2007/5/27/108
+> Submitter  : Maximilian Engelhardt <maxi-OwNUvPV92VfddJNmlsFzeA@public.gmane.org>
+> Handled-By : Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
 
-Hmm, what about the screen?
+Well, it looks like a highres-timers problem or something
+like that. So I can't really be handling that, as I have no
+clue about this.
+I suggest you also add Gary Zambrano <zambrano-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+here, as he is actually the maintainer of b44. Not me.
+My role was just helping in debugging the issue, as I know
+some details of b44.
 
-Rafael
+> Status     : problem is being debugged
+
 
 
 -- 
-"Premature optimization is the root of all evil." - Donald Knuth
+Greetings Michael.
