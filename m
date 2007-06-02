@@ -1,53 +1,174 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 1/8] ACPICA: allow Load(OEMx) tables
-Date: Sat,  2 Jun 2007 01:15:37 -0400
-Message-ID: <11807613453368-git-send-email-len.brown@intel.com>
+Subject: [PATCH 3/8] ACPI: extend "acpi_osi=" boot option
+Date: Sat,  2 Jun 2007 01:15:39 -0400
+Message-ID: <1180761346136-git-send-email-len.brown@intel.com>
 References: <1180761344795-git-send-email-len.brown@intel.com>
+ <11807613453368-git-send-email-len.brown@intel.com>
+ <11807613463371-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga03.intel.com ([143.182.124.21]:48596 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754317AbXFBFPq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Jun 2007 01:15:46 -0400
-In-Reply-To: <1180761344795-git-send-email-len.brown@intel.com>
-Message-Id: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
+	id S1754467AbXFBFPr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Jun 2007 01:15:47 -0400
+In-Reply-To: <11807613463371-git-send-email-len.brown@intel.com>
+Message-Id: <ae00d812436dc968f4a5dea7757b6a94910b6dc4.1180761191.git.len.brown@intel.com>
+In-Reply-To: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
+References: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Len Brown <len.brown@intel.com>
 
-HP and Hitachi machines have been implemented with SSDT's
-that use the "OEMx" signatures.  But upon Load, ACPICA is rejecting
-these tables because they are not using the "SSDT" signature.
+The boot option "acpi_osi=" has always disabled Linux _OSI support,
+thus disabling all OS Interface strings which are advertised
+by Linux to the BIOS.
 
-ACPI Error (tbinstal-0134): Table has invalid signature [OEMx], must be SSDT...
+Now...
+acpi_osi="string" adds the interface string, and
+acpi_osi="!string" invalidates the pre-defined interface string
+
+eg. acpi_osi="!Windows 2006"
+would disable Linux's claim of Vista compatibility.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/tables/tbinstal.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    5 ++++-
+ drivers/acpi/osl.c                  |   25 ++++++++++++++++---------
+ drivers/acpi/utilities/uteval.c     |   27 ++++++++++++++++++++++++++-
+ include/acpi/acpiosxf.h             |    1 +
+ 4 files changed, 47 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
-index 0e7b121..3bc0c67 100644
---- a/drivers/acpi/tables/tbinstal.c
-+++ b/drivers/acpi/tables/tbinstal.c
-@@ -123,14 +123,14 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc,
- 		}
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index aae2282..7915014 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -170,7 +170,10 @@ and is between 256 and 4096 characters. It is defined in the file
+ 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+ 			Format: To spoof as Windows 98: ="Microsoft Windows"
+ 
+-	acpi_osi=	[HW,ACPI] empty param disables _OSI
++	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
++			acpi_osi="string1"	# add string1 -- only one string
++			acpi_osi="!string2"	# remove built-in string2
++			acpi_osi=		# disable all strings
+ 
+ 	acpi_serialize	[HW,ACPI] force serialization of AML methods
+ 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index b998340..f4760cf 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -73,6 +73,9 @@ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+ 
++#define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
++static char osi_additional_string[OSI_STRING_LENGTH_MAX];
++
+ static void __init acpi_request_region (struct acpi_generic_address *addr,
+ 	unsigned int length, char *desc)
+ {
+@@ -961,19 +964,23 @@ static int __init acpi_os_name_setup(char *str)
+ __setup("acpi_os_name=", acpi_os_name_setup);
+ 
+ /*
+- * _OSI control
++ * Modify the list of "OS Interfaces" reported to BIOS via _OSI
++ *
+  * empty string disables _OSI
+- * TBD additional string adds to _OSI
++ * string starting with '!' disables that string
++ * otherwise string is added to list, augmenting built-in strings
+  */
+ static int __init acpi_osi_setup(char *str)
+ {
+ 	if (str == NULL || *str == '\0') {
+ 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
+ 		acpi_gbl_create_osi_method = FALSE;
+-	} else {
+-		/* TBD */
+-		printk(KERN_ERR PREFIX "_OSI additional string ignored -- %s\n",
+-		       str);
++	} else if (*str == '!') {
++		if (acpi_osi_invalidate(++str) == AE_OK)
++			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
++	} else if (*osi_additional_string == '\0') {
++		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
++		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
  	}
  
--	/* The table must be either an SSDT or a PSDT */
-+	/* The table must be either an SSDT or a PSDT or an OEMx */
+ 	return 1;
+@@ -1143,11 +1150,11 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+ acpi_status
+ acpi_os_validate_interface (char *interface)
+ {
+-
+-    return AE_SUPPORT;
++	if (!strncmp(osi_additional_string, interface, OSI_STRING_LENGTH_MAX))
++		return AE_OK;
++	return AE_SUPPORT;
+ }
  
- 	if ((!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_PSDT))
- 	    &&
--	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT)))
--	{
-+	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT))
-+	    && (strncmp(table_desc->pointer->signature, "OEM", 3))) {
- 		ACPI_ERROR((AE_INFO,
--			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
-+			    "Table has invalid signature [%4.4s], must be SSDT, PSDT or OEMx",
- 			    table_desc->pointer->signature));
- 		return_ACPI_STATUS(AE_BAD_SIGNATURE);
- 	}
+-
+ /******************************************************************************
+  *
+  * FUNCTION:    acpi_os_validate_address
+diff --git a/drivers/acpi/utilities/uteval.c b/drivers/acpi/utilities/uteval.c
+index 13d5879..a10120a 100644
+--- a/drivers/acpi/utilities/uteval.c
++++ b/drivers/acpi/utilities/uteval.c
+@@ -59,7 +59,7 @@ acpi_ut_translate_one_cid(union acpi_operand_object *obj_desc,
+ /*
+  * Strings supported by the _OSI predefined (internal) method.
+  */
+-static const char *acpi_interfaces_supported[] = {
++static char *acpi_interfaces_supported[] = {
+ 	/* Operating System Vendor Strings */
+ 
+ 	"Linux",
+@@ -158,6 +158,31 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_osi_invalidate
++ *
++ * PARAMETERS:  interface_string
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: invalidate string in pre-defiend _OSI string list
++ *
++ ******************************************************************************/
++
++acpi_status acpi_osi_invalidate(char *interface)
++{
++	int i;
++
++	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i])) {
++			*acpi_interfaces_supported[i] = '\0';
++			return AE_OK;
++		}
++	}
++	return AE_NOT_FOUND;
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ut_evaluate_object
+  *
+  * PARAMETERS:  prefix_node         - Starting node
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 5e07db0..de26ee1 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -236,6 +236,7 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
+  * Miscellaneous
+  */
+ acpi_status acpi_os_validate_interface(char *interface);
++acpi_status acpi_osi_invalidate(char* interface);
+ 
+ acpi_status
+ acpi_os_validate_address(u8 space_id,
 -- 
 1.5.2.146.gb75c6
