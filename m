@@ -1,119 +1,70 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 5/8] ACPI: add __init to acpi_initialize_subsystem()
-Date: Sat,  2 Jun 2007 01:15:41 -0400
-Message-ID: <11807613483187-git-send-email-len.brown@intel.com>
+Subject: [PATCH 7/8] ACPI: Section mismatch ... acpi_map_pxm_to_node
+Date: Sat,  2 Jun 2007 01:15:43 -0400
+Message-ID: <11807613492873-git-send-email-len.brown@intel.com>
 References: <1180761344795-git-send-email-len.brown@intel.com>
  <11807613453368-git-send-email-len.brown@intel.com>
  <11807613463371-git-send-email-len.brown@intel.com>
  <1180761346136-git-send-email-len.brown@intel.com>
  <11807613471928-git-send-email-len.brown@intel.com>
+ <11807613483187-git-send-email-len.brown@intel.com>
+ <1180761348487-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48596 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:2142 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754406AbXFBFPs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Jun 2007 01:15:48 -0400
-In-Reply-To: <11807613471928-git-send-email-len.brown@intel.com>
-Message-Id: <dd272b5716a54afa33a69f2241284d8ec60b7892.1180761191.git.len.brown@intel.com>
+	id S1754519AbXFBFPv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Jun 2007 01:15:51 -0400
+In-Reply-To: <1180761348487-git-send-email-len.brown@intel.com>
+Message-Id: <8ff6f48d99a0351bcc9ceab422042ef9d3bad9aa.1180761191.git.len.brown@intel.com>
 In-Reply-To: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
 References: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Luck@vger.kernel.org, Tony <tony.luck@intel.com>, Len Brown <len.brown@intel.com>
 
-Add __init to:
-acpi_initialize_subsystem() (and un-export it)
-acpi_os_initialize()
+From: Luck, Tony <tony.luck@intel.com>
 
-Add __initdata to:
-acpi_osl_dmi_table[]
+Last of the "Section mismatch" errors from ia64 builds! acpi_map_pxm_to_node()
+is defined with attribute __cpuinit, but is called by "normal" kernel functions
+acpi_getnode() and acpi_map_cpu2node().
 
+Commit f363d16fbb9374c0bd7f2757d412c287169094c9 moved the data structures on
+which this routine operates from __cpuinitdata to regular memory, so this
+routine can also move out of init space.
+
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/osl.c               |    6 +++---
- drivers/acpi/utilities/utxface.c |    4 +---
- include/acpi/acpiosxf.h          |    2 +-
- include/acpi/acpixf.h            |    2 +-
- 4 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/acpi/numa.c      |    2 +-
+ include/acpi/acpi_numa.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index e349879..58ceb18 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -86,7 +86,7 @@ int osi_linux;		/* disable _OSI(Linux) by default */
- 
- 
- #ifdef CONFIG_DMI
--static struct dmi_system_id acpi_osl_dmi_table[];
-+static struct __initdata dmi_system_id acpi_osl_dmi_table[];
- #endif
- 
- static void __init acpi_request_region (struct acpi_generic_address *addr,
-@@ -137,7 +137,7 @@ static int __init acpi_reserve_resources(void)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index a2efae8..0c9f15c 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -59,7 +59,7 @@ int node_to_pxm(int node)
+ 	return node_to_pxm_map[node];
  }
- device_initcall(acpi_reserve_resources);
  
--acpi_status acpi_os_initialize(void)
-+acpi_status __init acpi_os_initialize(void)
+-int __cpuinit acpi_map_pxm_to_node(int pxm)
++int acpi_map_pxm_to_node(int pxm)
  {
- 	dmi_check_system(acpi_osl_dmi_table);
- 	return AE_OK;
-@@ -1243,7 +1243,7 @@ static int dmi_osi_linux(struct dmi_system_id *d)
- }
- #endif
+ 	int node = pxm_to_node_map[pxm];
  
--static struct dmi_system_id acpi_osl_dmi_table[] = {
-+static struct dmi_system_id acpi_osl_dmi_table[] __initdata = {
- #ifdef	OSI_LINUX_ENABLED
- 	/*
- 	 * Boxes that need NOT _OSI(Linux)
-diff --git a/drivers/acpi/utilities/utxface.c b/drivers/acpi/utilities/utxface.c
-index e9a5780..2d49691 100644
---- a/drivers/acpi/utilities/utxface.c
-+++ b/drivers/acpi/utilities/utxface.c
-@@ -61,7 +61,7 @@ ACPI_MODULE_NAME("utxface")
-  *              called, so any early initialization belongs here.
-  *
-  ******************************************************************************/
--acpi_status acpi_initialize_subsystem(void)
-+acpi_status __init acpi_initialize_subsystem(void)
- {
- 	acpi_status status;
+diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
+index b62cd36..e2fcee2 100644
+--- a/include/acpi/acpi_numa.h
++++ b/include/acpi/acpi_numa.h
+@@ -13,7 +13,7 @@
  
-@@ -108,8 +108,6 @@ acpi_status acpi_initialize_subsystem(void)
- 	return_ACPI_STATUS(status);
- }
+ extern int pxm_to_node(int);
+ extern int node_to_pxm(int);
+-extern int __cpuinit acpi_map_pxm_to_node(int);
++extern int acpi_map_pxm_to_node(int);
+ extern void __cpuinit acpi_unmap_pxm_to_node(int);
  
--ACPI_EXPORT_SYMBOL(acpi_initialize_subsystem)
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_enable_subsystem
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index de26ee1..ca882b8 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -78,7 +78,7 @@ struct acpi_signal_fatal_info {
- /*
-  * OSL Initialization and shutdown primitives
-  */
--acpi_status acpi_os_initialize(void);
-+acpi_status __initdata acpi_os_initialize(void);
- 
- acpi_status acpi_os_terminate(void);
- 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index e08f7df..b5cca5d 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -55,7 +55,7 @@ acpi_status
- acpi_initialize_tables(struct acpi_table_desc *initial_storage,
- 		       u32 initial_table_count, u8 allow_resize);
- 
--acpi_status acpi_initialize_subsystem(void);
-+acpi_status __init acpi_initialize_subsystem(void);
- 
- acpi_status acpi_enable_subsystem(u32 flags);
- 
+ #endif				/* CONFIG_ACPI_NUMA */
 -- 
 1.5.2.146.gb75c6
