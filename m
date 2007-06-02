@@ -1,63 +1,45 @@
-From: "Mitch Davis" <mjd-kernel@afork.com>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Sat, 2 Jun 2007 21:08:18 +1000
-Message-ID: <8956d4ca0706020408y4ddcea6ap35c8b7dee3fcbe32@mail.gmail.com>
-References: <878xb35sje.fsf@goat.bogus.local> <200706012340.54394.rjw@sisk.pl>
-	 <87hcpr2ubl.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Tobias Neumann <tobias.neumann@gmail.com>
+Subject: cpufreq support still broken on some laptops
+Date: Sat, 2 Jun 2007 13:35:16 +0200
+Message-ID: <A2B2EBD3-64AE-457A-92C3-4E0462A35E2B@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v752.2)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:2278 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308AbXFBLIT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2007 07:08:19 -0400
-Received: by wa-out-1112.google.com with SMTP id j4so859061wah
-        for <linux-acpi@vger.kernel.org>; Sat, 02 Jun 2007 04:08:19 -0700 (PDT)
-In-Reply-To: <200706020037.16615.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.170]:18124 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbXFBLfj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2007 07:35:39 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so397210ugf
+        for <linux-acpi@vger.kernel.org>; Sat, 02 Jun 2007 04:35:37 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Olaf,
+Hi,
+on my Thinkpad T60 (2007-FUG), with kernel 2.6.21.1 I have the same  
+problem Ingo Molnar had in January and successfully fixed for his model:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/ 
+linux-2.6.git;a=commit;h=e4233dec749a3519069d9390561b5636a75c7579
 
-I'm also having troubles with the resume part of STR, although since
-your hardware is significantly different to mine, the cause is likely
-to be different.
+"Recently cpufreq support on my laptop (Lenovo T60) broke completely:  
+when
+it's plugged into AC it would never go higher than 1 GHz - neither  
+1.3 GHz
+nor 1.83 GHz is possible - no matter which governor (userspace, speed or
+ondemand) is used."
 
-On 6/2/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > >>
-> > >> > On Friday, 1 June 2007 22:27, Olaf Dietsche wrote:
-> > >> >> When I resume, everything seems to come up (fan becomes busy, disk and
-> > >> >> dvd spin up for a short time),
->
-> First, you can check if the patch
->
-> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc3/patches/20-ACPI-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
->
-> helps, by chance.
+2.6.21 and 2.6.20 include this patch and should not have this problem  
+anymore.
 
-(Rafael's suggestion may help you but it didn't help me)
+Is there any way I can see when ACPI calls for _PPC happen (via  
+ACPI_DEBUG) and which _PPC values get returned? Which debug_level do  
+I need?
 
-> Second, you can use PM_TRACE (Documentation/power/s2ram.txt) to find the
-> place where it really fails.
+Here are some more people with the same problem on 2.6.20 and 2.6.21 
+(which includes that patch too):
+https://bugs.beta.launchpad.net/ubuntu/+source/linux-source-2.6.20/ 
++bug/88899
 
-I modified my kernel source so it uses PM_TRACE to trace both the
-suspend, and whether the BIOS ever jumps back into the kernel on
-resume.  (In my case, I don't think the BIOS is doing the jump).
-
-I also compiled with only the bare minimum of options turned on, and
-use an initramfs to rule out device interactions.
-
-If what I did is useful to you, you can find it here:
-
-  http://bugzilla.kernel.org/show_bug.cgi?id=7988
-
-And if you haven't already (and your problem occurs with a stock
-kernel), you might want to log this as a bug like I did.
-
-Hope this helps.
-
-Mitch.
+Thanks,
+   Tobias
