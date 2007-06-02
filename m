@@ -1,270 +1,298 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 6/8] ACPI: thinkpad-acpi: do not use named sysfs groups
-Date: Sat,  2 Jun 2007 01:15:42 -0400
-Message-ID: <1180761348487-git-send-email-len.brown@intel.com>
+Subject: [PATCH 8/8] ACPICA: Support for external package objects as method arguments
+Date: Sat,  2 Jun 2007 01:15:44 -0400
+Message-ID: <1180761350860-git-send-email-len.brown@intel.com>
 References: <1180761344795-git-send-email-len.brown@intel.com>
  <11807613453368-git-send-email-len.brown@intel.com>
  <11807613463371-git-send-email-len.brown@intel.com>
  <1180761346136-git-send-email-len.brown@intel.com>
  <11807613471928-git-send-email-len.brown@intel.com>
  <11807613483187-git-send-email-len.brown@intel.com>
+ <1180761348487-git-send-email-len.brown@intel.com>
+ <11807613492873-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga03.intel.com ([143.182.124.21]:2142 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754467AbXFBFPt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Jun 2007 01:15:49 -0400
-In-Reply-To: <11807613483187-git-send-email-len.brown@intel.com>
-Message-Id: <cc4c24e115ca7bc2e4ec74d70bcb8fda1d1a8df8.1180761191.git.len.brown@intel.com>
+	id S1754337AbXFBFPv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Jun 2007 01:15:51 -0400
+In-Reply-To: <11807613492873-git-send-email-len.brown@intel.com>
+Message-Id: <6287ee32952b502c23d54f12895c3895ddbe5013.1180761191.git.len.brown@intel.com>
 In-Reply-To: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
 References: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Bob Moore <robert.moore@intel.com>
 
-The initial version of the thinkpad-acpi sysfs interface (not yet released
-in any stable mainline kernel) made liberal use of named sysfs groups, in
-order to get the attributes more organized.
+Implemented support to allow Package objects to be passed as
+method arguments to the acpi_evaluate_object interface. Previously,
+this would return an AE_NOT_IMPLEMENTED exception.
 
-This proved to be a really bad design decision.  Maybe if attribute groups
-were as flexible as a real directory, and if binary attributes were not
-second-class citizens, the idea of subdirs and named groups would not have
-been so bad.
-
-This patch makes all the thinkpad-acpi sysfs groups anonymous (thus
-removing the subdirs), adds the former group names as a prefix (so that
-hotkey/enable becomes hotkey_enable for example), and updates the
-documentation.
-
-These changes will make the thinkpad-acpi sysfs ABI a lot easier to
-maintain.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   25 +++++++++++--------------
- drivers/misc/thinkpad_acpi.c    |   17 +++++++----------
- drivers/misc/thinkpad_acpi.h    |    6 ------
- 3 files changed, 18 insertions(+), 30 deletions(-)
+ drivers/acpi/utilities/utcopy.c   |  120 +++++++++++++++---------------------
+ drivers/acpi/utilities/utobject.c |   42 +++++++++++++
+ include/acpi/acutils.h            |    2 +
+ 3 files changed, 94 insertions(+), 70 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 2d48033..9e6b94f 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -138,7 +138,7 @@ Hot keys
- --------
+diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
+index 4c1e008..879eaa1 100644
+--- a/drivers/acpi/utilities/utcopy.c
++++ b/drivers/acpi/utilities/utcopy.c
+@@ -68,6 +68,10 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *user_obj,
+ 				union acpi_operand_object **return_obj);
  
- procfs: /proc/acpi/ibm/hotkey
--sysfs device attribute: hotkey/*
-+sysfs device attribute: hotkey_*
+ static acpi_status
++acpi_ut_copy_epackage_to_ipackage(union acpi_object *external_object,
++				  union acpi_operand_object **internal_object);
++
++static acpi_status
+ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
+ 			   union acpi_operand_object *dest_desc);
  
- Without this driver, only the Fn-F4 key (sleep button) generates an
- ACPI event. With the driver loaded, the hotkey feature enabled and the
-@@ -196,10 +196,7 @@ The following commands can be written to the /proc/acpi/ibm/hotkey file:
+@@ -518,77 +522,73 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+ 	return_ACPI_STATUS(AE_NO_MEMORY);
+ }
  
- sysfs notes:
- 
--	The hot keys attributes are in a hotkey/ subdirectory off the
--	thinkpad device.
+-#ifdef ACPI_FUTURE_IMPLEMENTATION
+-/* Code to convert packages that are parameters to control methods */
 -
--	bios_enabled:
-+	hotkey_bios_enabled:
- 		Returns the status of the hot keys feature when
- 		thinkpad-acpi was loaded.  Upon module unload, the hot
- 		key feature status will be restored to this value.
-@@ -207,19 +204,19 @@ sysfs notes:
- 		0: hot keys were disabled
- 		1: hot keys were enabled
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_copy_epackage_to_ipackage
+  *
+- * PARAMETERS:  *internal_object   - Pointer to the object we are returning
+- *              *Buffer            - Where the object is returned
+- *              *space_used        - Where the length of the object is returned
++ * PARAMETERS:  external_object     - The external object to be converted
++ *              internal_object     - Where the internal object is returned
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: This function is called to place a package object in a user
+- *              buffer.  A package object by definition contains other objects.
+- *
+- *              The buffer is assumed to have sufficient space for the object.
+- *              The caller must have verified the buffer length needed using the
+- *              acpi_ut_get_object_size function before calling this function.
++ * DESCRIPTION: Copy an external package object to an internal package.
++ *              Handles nested packages.
+  *
+  ******************************************************************************/
  
--	bios_mask:
-+	hotkey_bios_mask:
- 		Returns the hot keys mask when thinkpad-acpi was loaded.
- 		Upon module unload, the hot keys mask will be restored
- 		to this value.
+ static acpi_status
+-acpi_ut_copy_epackage_to_ipackage(union acpi_operand_object *internal_object,
+-				  u8 * buffer, u32 * space_used)
++acpi_ut_copy_epackage_to_ipackage(union acpi_object *external_object,
++				  union acpi_operand_object **internal_object)
+ {
+-	u8 *free_space;
+-	union acpi_object *external_object;
+-	u32 length = 0;
+-	u32 this_index;
+-	u32 object_space = 0;
+-	union acpi_operand_object *this_internal_obj;
+-	union acpi_object *this_external_obj;
++	acpi_status status = AE_OK;
++	union acpi_operand_object *package_object;
++	union acpi_operand_object **package_elements;
++	acpi_native_uint i;
  
--	enable:
-+	hotkey_enable:
- 		Enables/disables the hot keys feature, and reports
- 		current status of the hot keys feature.
+ 	ACPI_FUNCTION_TRACE(ut_copy_epackage_to_ipackage);
  
- 		0: disables the hot keys feature / feature disabled
- 		1: enables the hot keys feature / feature enabled
+-	/*
+-	 * First package at head of the buffer
+-	 */
+-	external_object = (union acpi_object *)buffer;
++	/* Create the package object */
  
--	mask:
-+	hotkey_mask:
- 		bit mask to enable ACPI event generation for each hot
- 		key (see above).  Returns the current status of the hot
- 		keys mask, and allows one to modify it.
-@@ -229,7 +226,7 @@ Bluetooth
- ---------
+-	/*
+-	 * Free space begins right after the first package
+-	 */
+-	free_space = buffer + sizeof(union acpi_object);
++	package_object =
++	    acpi_ut_create_package_object(external_object->package.count);
++	if (!package_object) {
++		return_ACPI_STATUS(AE_NO_MEMORY);
++	}
  
- procfs: /proc/acpi/ibm/bluetooth
--sysfs device attribute: bluetooth/enable
-+sysfs device attribute: bluetooth_enable
+-	external_object->type = ACPI_GET_OBJECT_TYPE(internal_object);
+-	external_object->package.count = internal_object->package.count;
+-	external_object->package.elements = (union acpi_object *)free_space;
++	package_elements = package_object->package.elements;
  
- This feature shows the presence and current state of a ThinkPad
- Bluetooth device in the internal ThinkPad CDC slot.
-@@ -244,7 +241,7 @@ If Bluetooth is installed, the following commands can be used:
- Sysfs notes:
+ 	/*
+-	 * Build an array of ACPI_OBJECTS in the buffer
+-	 * and move the free space past it
++	 * Recursive implementation. Probably ok, since nested external packages
++	 * as parameters should be very rare.
+ 	 */
+-	free_space +=
+-	    external_object->package.count * sizeof(union acpi_object);
++	for (i = 0; i < external_object->package.count; i++) {
++		status =
++		    acpi_ut_copy_eobject_to_iobject(&external_object->package.
++						    elements[i],
++						    &package_elements[i]);
++		if (ACPI_FAILURE(status)) {
  
- 	If the Bluetooth CDC card is installed, it can be enabled /
--	disabled through the "bluetooth/enable" thinkpad-acpi device
-+	disabled through the "bluetooth_enable" thinkpad-acpi device
- 	attribute, and its current status can also be queried.
+-	/* Call walk_package */
++			/* Truncate package and delete it */
  
- 	enable:
-@@ -252,7 +249,7 @@ Sysfs notes:
- 		1: enables Bluetooth / Bluetooth is enabled.
+-}
++			package_object->package.count = i;
++			package_elements[i] = NULL;
++			acpi_ut_remove_reference(package_object);
++			return_ACPI_STATUS(status);
++		}
++	}
  
- 	Note: this interface will be probably be superseeded by the
--	generic rfkill class.
-+	generic rfkill class, so it is NOT to be considered stable yet.
+-#endif				/* Future implementation */
++	*internal_object = package_object;
++	return_ACPI_STATUS(status);
++}
  
- Video output control -- /proc/acpi/ibm/video
- --------------------------------------------
-@@ -898,7 +895,7 @@ EXPERIMENTAL: WAN
- -----------------
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_copy_eobject_to_iobject
+  *
+- * PARAMETERS:  *internal_object   - The external object to be converted
+- *              *buffer_ptr     - Where the internal object is returned
++ * PARAMETERS:  external_object     - The external object to be converted
++ *              internal_object     - Where the internal object is returned
+  *
+- * RETURN:      Status          - the status of the call
++ * RETURN:      Status              - the status of the call
+  *
+  * DESCRIPTION: Converts an external object to an internal object.
+  *
+@@ -603,16 +603,10 @@ acpi_ut_copy_eobject_to_iobject(union acpi_object *external_object,
+ 	ACPI_FUNCTION_TRACE(ut_copy_eobject_to_iobject);
  
- procfs: /proc/acpi/ibm/wan
--sysfs device attribute: wwan/enable
-+sysfs device attribute: wwan_enable
- 
- This feature is marked EXPERIMENTAL because the implementation
- directly accesses hardware registers and may not work as expected. USE
-@@ -921,7 +918,7 @@ If the W-WAN card is installed, the following commands can be used:
- Sysfs notes:
- 
- 	If the W-WAN card is installed, it can be enabled /
--	disabled through the "wwan/enable" thinkpad-acpi device
-+	disabled through the "wwan_enable" thinkpad-acpi device
- 	attribute, and its current status can also be queried.
- 
- 	enable:
-@@ -929,7 +926,7 @@ Sysfs notes:
- 		1: enables WWAN card / WWAN card is enabled.
- 
- 	Note: this interface will be probably be superseeded by the
--	generic rfkill class.
-+	generic rfkill class, so it is NOT to be considered stable yet.
- 
- Multiple Commands, Module Parameters
- ------------------------------------
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 6c36a55..95c0b96 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -740,7 +740,7 @@ static ssize_t hotkey_enable_store(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_hotkey_enable =
--	__ATTR(enable, S_IWUSR | S_IRUGO,
-+	__ATTR(hotkey_enable, S_IWUSR | S_IRUGO,
- 		hotkey_enable_show, hotkey_enable_store);
- 
- /* sysfs hotkey mask --------------------------------------------------- */
-@@ -775,7 +775,7 @@ static ssize_t hotkey_mask_store(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_hotkey_mask =
--	__ATTR(mask, S_IWUSR | S_IRUGO,
-+	__ATTR(hotkey_mask, S_IWUSR | S_IRUGO,
- 		hotkey_mask_show, hotkey_mask_store);
- 
- /* sysfs hotkey bios_enabled ------------------------------------------- */
-@@ -787,7 +787,7 @@ static ssize_t hotkey_bios_enabled_show(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_hotkey_bios_enabled =
--	__ATTR(bios_enabled, S_IRUGO, hotkey_bios_enabled_show, NULL);
-+	__ATTR(hotkey_bios_enabled, S_IRUGO, hotkey_bios_enabled_show, NULL);
- 
- /* sysfs hotkey bios_mask ---------------------------------------------- */
- static ssize_t hotkey_bios_mask_show(struct device *dev,
-@@ -798,7 +798,7 @@ static ssize_t hotkey_bios_mask_show(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_hotkey_bios_mask =
--	__ATTR(bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
-+	__ATTR(hotkey_bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
- 
- /* --------------------------------------------------------------------- */
- 
-@@ -824,8 +824,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.hotkey));
- 
- 	if (tp_features.hotkey) {
--		hotkey_dev_attributes = create_attr_set(4,
--						TPACPI_HOTKEY_SYSFS_GROUP);
-+		hotkey_dev_attributes = create_attr_set(4, NULL);
- 		if (!hotkey_dev_attributes)
- 			return -ENOMEM;
- 		res = add_to_attr_set(hotkey_dev_attributes,
-@@ -1050,7 +1049,7 @@ static ssize_t bluetooth_enable_store(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_bluetooth_enable =
--	__ATTR(enable, S_IWUSR | S_IRUGO,
-+	__ATTR(bluetooth_enable, S_IWUSR | S_IRUGO,
- 		bluetooth_enable_show, bluetooth_enable_store);
- 
- /* --------------------------------------------------------------------- */
-@@ -1061,7 +1060,6 @@ static struct attribute *bluetooth_attributes[] = {
- };
- 
- static const struct attribute_group bluetooth_attr_group = {
--	.name = TPACPI_BLUETH_SYSFS_GROUP,
- 	.attrs = bluetooth_attributes,
- };
- 
-@@ -1215,7 +1213,7 @@ static ssize_t wan_enable_store(struct device *dev,
- }
- 
- static struct device_attribute dev_attr_wan_enable =
--	__ATTR(enable, S_IWUSR | S_IRUGO,
-+	__ATTR(wwan_enable, S_IWUSR | S_IRUGO,
- 		wan_enable_show, wan_enable_store);
- 
- /* --------------------------------------------------------------------- */
-@@ -1226,7 +1224,6 @@ static struct attribute *wan_attributes[] = {
- };
- 
- static const struct attribute_group wan_attr_group = {
--	.name = TPACPI_WAN_SYSFS_GROUP,
- 	.attrs = wan_attributes,
- };
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 440145a..72d62f2 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -278,8 +278,6 @@ static int beep_write(char *buf);
-  * Bluetooth subdriver
-  */
- 
--#define TPACPI_BLUETH_SYSFS_GROUP "bluetooth"
+ 	if (external_object->type == ACPI_TYPE_PACKAGE) {
+-		/*
+-		 * Packages as external input to control methods are not supported,
+-		 */
+-		ACPI_ERROR((AE_INFO,
+-			    "Packages as parameters not implemented!"));
 -
- enum {
- 	/* ACPI GBDC/SBDC bits */
- 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
-@@ -416,8 +414,6 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
-  * Hotkey subdriver
-  */
- 
--#define TPACPI_HOTKEY_SYSFS_GROUP "hotkey"
+-		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
+-	}
 -
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
+-	else {
++		status =
++		    acpi_ut_copy_epackage_to_ipackage(external_object,
++						      internal_object);
++	} else {
+ 		/*
+ 		 * Build a simple object (no nested objects)
+ 		 */
+@@ -803,33 +797,19 @@ acpi_ut_copy_ielement_to_ielement(u8 object_type,
+ 		 * Create and build the package object
+ 		 */
+ 		target_object =
+-		    acpi_ut_create_internal_object(ACPI_TYPE_PACKAGE);
++		    acpi_ut_create_package_object(source_object->package.count);
+ 		if (!target_object) {
+ 			return (AE_NO_MEMORY);
+ 		}
  
-@@ -553,8 +549,6 @@ static int volume_write(char *buf);
-  * Wan subdriver
-  */
+-		target_object->package.count = source_object->package.count;
+ 		target_object->common.flags = source_object->common.flags;
  
--#define TPACPI_WAN_SYSFS_GROUP "wwan"
--
- enum {
- 	/* ACPI GWAN/SWAN bits */
- 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
+-		/*
+-		 * Create the object array
+-		 */
+-		target_object->package.elements =
+-		    ACPI_ALLOCATE_ZEROED(((acpi_size) source_object->package.
+-					  count + 1) * sizeof(void *));
+-		if (!target_object->package.elements) {
+-			status = AE_NO_MEMORY;
+-			goto error_exit;
+-		}
++		/* Pass the new package object back to the package walk routine */
+ 
+-		/*
+-		 * Pass the new package object back to the package walk routine
+-		 */
+ 		state->pkg.this_target_obj = target_object;
+ 
+-		/*
+-		 * Store the object pointer in the parent package object
+-		 */
++		/* Store the object pointer in the parent package object */
++
+ 		*this_target_ptr = target_object;
+ 		break;
+ 
+diff --git a/drivers/acpi/utilities/utobject.c b/drivers/acpi/utilities/utobject.c
+index 4696124..db0b9ba 100644
+--- a/drivers/acpi/utilities/utobject.c
++++ b/drivers/acpi/utilities/utobject.c
+@@ -146,6 +146,48 @@ union acpi_operand_object *acpi_ut_create_internal_object_dbg(char *module_name,
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ut_create_package_object
++ *
++ * PARAMETERS:  Count               - Number of package elements
++ *
++ * RETURN:      Pointer to a new Package object, null on failure
++ *
++ * DESCRIPTION: Create a fully initialized package object
++ *
++ ******************************************************************************/
++
++union acpi_operand_object *acpi_ut_create_package_object(u32 count)
++{
++	union acpi_operand_object *package_desc;
++	union acpi_operand_object **package_elements;
++
++	ACPI_FUNCTION_TRACE_U32(ut_create_package_object, count);
++
++	/* Create a new Package object */
++
++	package_desc = acpi_ut_create_internal_object(ACPI_TYPE_PACKAGE);
++	if (!package_desc) {
++		return_PTR(NULL);
++	}
++
++	/*
++	 * Create the element array. Count+1 allows the array to be null
++	 * terminated.
++	 */
++	package_elements = ACPI_ALLOCATE_ZEROED((acpi_size)
++						(count + 1) * sizeof(void *));
++	if (!package_elements) {
++		ACPI_FREE(package_desc);
++		return_PTR(NULL);
++	}
++
++	package_desc->package.count = count;
++	package_desc->package.elements = package_elements;
++	return_PTR(package_desc);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ut_create_buffer_object
+  *
+  * PARAMETERS:  buffer_size            - Size of buffer to be created
+diff --git a/include/acpi/acutils.h b/include/acpi/acutils.h
+index 15a8388..a87ef1c 100644
+--- a/include/acpi/acutils.h
++++ b/include/acpi/acutils.h
+@@ -390,6 +390,8 @@ void acpi_ut_delete_object_desc(union acpi_operand_object *object);
+ 
+ u8 acpi_ut_valid_internal_object(void *object);
+ 
++union acpi_operand_object *acpi_ut_create_package_object(u32 count);
++
+ union acpi_operand_object *acpi_ut_create_buffer_object(acpi_size buffer_size);
+ 
+ union acpi_operand_object *acpi_ut_create_string_object(acpi_size string_size);
 -- 
 1.5.2.146.gb75c6
