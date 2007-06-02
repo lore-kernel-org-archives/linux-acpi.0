@@ -1,298 +1,250 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 8/8] ACPICA: Support for external package objects as method arguments
-Date: Sat,  2 Jun 2007 01:15:44 -0400
-Message-ID: <1180761350860-git-send-email-len.brown@intel.com>
-References: <1180761344795-git-send-email-len.brown@intel.com>
- <11807613453368-git-send-email-len.brown@intel.com>
- <11807613463371-git-send-email-len.brown@intel.com>
- <1180761346136-git-send-email-len.brown@intel.com>
- <11807613471928-git-send-email-len.brown@intel.com>
- <11807613483187-git-send-email-len.brown@intel.com>
- <1180761348487-git-send-email-len.brown@intel.com>
- <11807613492873-git-send-email-len.brown@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.22 - part 3
+Date: Sat, 2 Jun 2007 01:20:23 -0400
+Message-ID: <200706020120.23255.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:2142 "EHLO mga03.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:36994 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754337AbXFBFPv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Jun 2007 01:15:51 -0400
-In-Reply-To: <11807613492873-git-send-email-len.brown@intel.com>
-Message-Id: <6287ee32952b502c23d54f12895c3895ddbe5013.1180761191.git.len.brown@intel.com>
-In-Reply-To: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
-References: <0efabac9b7c8535eeb199d2f16d3eb44dc4761b2.1180761191.git.len.brown@intel.com>
+	id S1754624AbXFBFUl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Jun 2007 01:20:41 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Hi Linus,
 
-Implemented support to allow Package objects to be passed as
-method arguments to the acpi_evaluate_object interface. Previously,
-this would return an AE_NOT_IMPLEMENTED exception.
+please pull from: 
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/utilities/utcopy.c   |  120 +++++++++++++++---------------------
- drivers/acpi/utilities/utobject.c |   42 +++++++++++++
- include/acpi/acutils.h            |    2 +
- 3 files changed, 94 insertions(+), 70 deletions(-)
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
-index 4c1e008..879eaa1 100644
---- a/drivers/acpi/utilities/utcopy.c
-+++ b/drivers/acpi/utilities/utcopy.c
-@@ -68,6 +68,10 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *user_obj,
- 				union acpi_operand_object **return_obj);
- 
- static acpi_status
-+acpi_ut_copy_epackage_to_ipackage(union acpi_object *external_object,
-+				  union acpi_operand_object **internal_object);
-+
-+static acpi_status
- acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
- 			   union acpi_operand_object *dest_desc);
- 
-@@ -518,77 +522,73 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
- 	return_ACPI_STATUS(AE_NO_MEMORY);
- }
- 
--#ifdef ACPI_FUTURE_IMPLEMENTATION
--/* Code to convert packages that are parameters to control methods */
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_copy_epackage_to_ipackage
-  *
-- * PARAMETERS:  *internal_object   - Pointer to the object we are returning
-- *              *Buffer            - Where the object is returned
-- *              *space_used        - Where the length of the object is returned
-+ * PARAMETERS:  external_object     - The external object to be converted
-+ *              internal_object     - Where the internal object is returned
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: This function is called to place a package object in a user
-- *              buffer.  A package object by definition contains other objects.
-- *
-- *              The buffer is assumed to have sufficient space for the object.
-- *              The caller must have verified the buffer length needed using the
-- *              acpi_ut_get_object_size function before calling this function.
-+ * DESCRIPTION: Copy an external package object to an internal package.
-+ *              Handles nested packages.
-  *
-  ******************************************************************************/
- 
- static acpi_status
--acpi_ut_copy_epackage_to_ipackage(union acpi_operand_object *internal_object,
--				  u8 * buffer, u32 * space_used)
-+acpi_ut_copy_epackage_to_ipackage(union acpi_object *external_object,
-+				  union acpi_operand_object **internal_object)
- {
--	u8 *free_space;
--	union acpi_object *external_object;
--	u32 length = 0;
--	u32 this_index;
--	u32 object_space = 0;
--	union acpi_operand_object *this_internal_obj;
--	union acpi_object *this_external_obj;
-+	acpi_status status = AE_OK;
-+	union acpi_operand_object *package_object;
-+	union acpi_operand_object **package_elements;
-+	acpi_native_uint i;
- 
- 	ACPI_FUNCTION_TRACE(ut_copy_epackage_to_ipackage);
- 
--	/*
--	 * First package at head of the buffer
--	 */
--	external_object = (union acpi_object *)buffer;
-+	/* Create the package object */
- 
--	/*
--	 * Free space begins right after the first package
--	 */
--	free_space = buffer + sizeof(union acpi_object);
-+	package_object =
-+	    acpi_ut_create_package_object(external_object->package.count);
-+	if (!package_object) {
-+		return_ACPI_STATUS(AE_NO_MEMORY);
-+	}
- 
--	external_object->type = ACPI_GET_OBJECT_TYPE(internal_object);
--	external_object->package.count = internal_object->package.count;
--	external_object->package.elements = (union acpi_object *)free_space;
-+	package_elements = package_object->package.elements;
- 
- 	/*
--	 * Build an array of ACPI_OBJECTS in the buffer
--	 * and move the free space past it
-+	 * Recursive implementation. Probably ok, since nested external packages
-+	 * as parameters should be very rare.
- 	 */
--	free_space +=
--	    external_object->package.count * sizeof(union acpi_object);
-+	for (i = 0; i < external_object->package.count; i++) {
-+		status =
-+		    acpi_ut_copy_eobject_to_iobject(&external_object->package.
-+						    elements[i],
-+						    &package_elements[i]);
-+		if (ACPI_FAILURE(status)) {
- 
--	/* Call walk_package */
-+			/* Truncate package and delete it */
- 
--}
-+			package_object->package.count = i;
-+			package_elements[i] = NULL;
-+			acpi_ut_remove_reference(package_object);
-+			return_ACPI_STATUS(status);
-+		}
-+	}
- 
--#endif				/* Future implementation */
-+	*internal_object = package_object;
-+	return_ACPI_STATUS(status);
-+}
- 
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_copy_eobject_to_iobject
-  *
-- * PARAMETERS:  *internal_object   - The external object to be converted
-- *              *buffer_ptr     - Where the internal object is returned
-+ * PARAMETERS:  external_object     - The external object to be converted
-+ *              internal_object     - Where the internal object is returned
-  *
-- * RETURN:      Status          - the status of the call
-+ * RETURN:      Status              - the status of the call
-  *
-  * DESCRIPTION: Converts an external object to an internal object.
-  *
-@@ -603,16 +603,10 @@ acpi_ut_copy_eobject_to_iobject(union acpi_object *external_object,
- 	ACPI_FUNCTION_TRACE(ut_copy_eobject_to_iobject);
- 
- 	if (external_object->type == ACPI_TYPE_PACKAGE) {
--		/*
--		 * Packages as external input to control methods are not supported,
--		 */
--		ACPI_ERROR((AE_INFO,
--			    "Packages as parameters not implemented!"));
--
--		return_ACPI_STATUS(AE_NOT_IMPLEMENTED);
--	}
--
--	else {
-+		status =
-+		    acpi_ut_copy_epackage_to_ipackage(external_object,
-+						      internal_object);
-+	} else {
- 		/*
- 		 * Build a simple object (no nested objects)
- 		 */
-@@ -803,33 +797,19 @@ acpi_ut_copy_ielement_to_ielement(u8 object_type,
- 		 * Create and build the package object
- 		 */
- 		target_object =
--		    acpi_ut_create_internal_object(ACPI_TYPE_PACKAGE);
-+		    acpi_ut_create_package_object(source_object->package.count);
- 		if (!target_object) {
- 			return (AE_NO_MEMORY);
- 		}
- 
--		target_object->package.count = source_object->package.count;
- 		target_object->common.flags = source_object->common.flags;
- 
--		/*
--		 * Create the object array
--		 */
--		target_object->package.elements =
--		    ACPI_ALLOCATE_ZEROED(((acpi_size) source_object->package.
--					  count + 1) * sizeof(void *));
--		if (!target_object->package.elements) {
--			status = AE_NO_MEMORY;
--			goto error_exit;
--		}
-+		/* Pass the new package object back to the package walk routine */
- 
--		/*
--		 * Pass the new package object back to the package walk routine
--		 */
- 		state->pkg.this_target_obj = target_object;
- 
--		/*
--		 * Store the object pointer in the parent package object
--		 */
-+		/* Store the object pointer in the parent package object */
-+
- 		*this_target_ptr = target_object;
- 		break;
- 
-diff --git a/drivers/acpi/utilities/utobject.c b/drivers/acpi/utilities/utobject.c
-index 4696124..db0b9ba 100644
---- a/drivers/acpi/utilities/utobject.c
-+++ b/drivers/acpi/utilities/utobject.c
-@@ -146,6 +146,48 @@ union acpi_operand_object *acpi_ut_create_internal_object_dbg(char *module_name,
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_ut_create_package_object
-+ *
-+ * PARAMETERS:  Count               - Number of package elements
-+ *
-+ * RETURN:      Pointer to a new Package object, null on failure
-+ *
-+ * DESCRIPTION: Create a fully initialized package object
-+ *
-+ ******************************************************************************/
-+
-+union acpi_operand_object *acpi_ut_create_package_object(u32 count)
-+{
-+	union acpi_operand_object *package_desc;
-+	union acpi_operand_object **package_elements;
-+
-+	ACPI_FUNCTION_TRACE_U32(ut_create_package_object, count);
-+
-+	/* Create a new Package object */
-+
-+	package_desc = acpi_ut_create_internal_object(ACPI_TYPE_PACKAGE);
-+	if (!package_desc) {
-+		return_PTR(NULL);
-+	}
-+
-+	/*
-+	 * Create the element array. Count+1 allows the array to be null
-+	 * terminated.
-+	 */
-+	package_elements = ACPI_ALLOCATE_ZEROED((acpi_size)
-+						(count + 1) * sizeof(void *));
-+	if (!package_elements) {
-+		ACPI_FREE(package_desc);
-+		return_PTR(NULL);
-+	}
-+
-+	package_desc->package.count = count;
-+	package_desc->package.elements = package_elements;
-+	return_PTR(package_desc);
-+}
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_ut_create_buffer_object
-  *
-  * PARAMETERS:  buffer_size            - Size of buffer to be created
-diff --git a/include/acpi/acutils.h b/include/acpi/acutils.h
-index 15a8388..a87ef1c 100644
---- a/include/acpi/acutils.h
-+++ b/include/acpi/acutils.h
-@@ -390,6 +390,8 @@ void acpi_ut_delete_object_desc(union acpi_operand_object *object);
- 
- u8 acpi_ut_valid_internal_object(void *object);
- 
-+union acpi_operand_object *acpi_ut_create_package_object(u32 count);
-+
- union acpi_operand_object *acpi_ut_create_buffer_object(acpi_size buffer_size);
- 
- union acpi_operand_object *acpi_ut_create_string_object(acpi_size string_size);
--- 
-1.5.2.146.gb75c6
+This batch fixes two places where Linux currently fails to load tables
+of the format that we expect OEM's to soon ship -- OEMx and
+packages-as-method-arguments for _DSM.  In both cases the changed
+code has no effect on systems without those needs.
+
+The acpi_osi= boot parameter is expanded and invoked automatically
+via DMI for some systems that need it.  We stop short here of changing
+the default to acpi_osi=Linux -- that waits for 2.6.23.
+The Thinkpad commit is for a 2.6.22 regression,
+as is the section mis-match build fix.
+
+This will update the files shown below.
+
+thanks!
+
+-Len
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.22/acpi-release-20070126-2.6.22-rc3.diff.gz
+
+ Documentation/kernel-parameters.txt |    5 -
+ Documentation/thinkpad-acpi.txt     |   25 ++---
+ drivers/acpi/numa.c                 |    2 
+ drivers/acpi/osl.c                  |  118 +++++++++++++++++++++--
+ drivers/acpi/tables/tbinstal.c      |    8 -
+ drivers/acpi/thermal.c              |   13 +-
+ drivers/acpi/utilities/utcopy.c     |  120 ++++++++++--------------
+ drivers/acpi/utilities/uteval.c     |   28 +++++
+ drivers/acpi/utilities/utobject.c   |   42 ++++++++
+ drivers/acpi/utilities/utxface.c    |    4 
+ drivers/misc/thinkpad_acpi.c        |   17 +--
+ drivers/misc/thinkpad_acpi.h        |    6 -
+ include/acpi/acpi_numa.h            |    2 
+ include/acpi/acpiosxf.h             |    3 
+ include/acpi/acpixf.h               |    2 
+ include/acpi/acutils.h              |    2 
+ 16 files changed, 267 insertions(+), 130 deletions(-)
+
+through these commits:
+
+Bob Moore (1):
+      ACPICA: Support for external package objects as method arguments
+
+Henrique de Moraes Holschuh (1):
+      ACPI: thinkpad-acpi: do not use named sysfs groups
+
+Len Brown (4):
+      ACPICA: allow Load(OEMx) tables
+      ACPI: extend "acpi_osi=" boot option
+      ACPI: Make _OSI(Linux) a special case
+      ACPI: add __init to acpi_initialize_subsystem()
+
+Thomas Renninger (1):
+      ACPI: thermal: Replace pointer with name in trip_points
+
+Tony Luck (1):
+      ACPI: Section mismatch ... acpi_map_pxm_to_node
+
+with this log:
+
+commit c4d36a822e7c51cd6ffcf9133854d5e32489d269
+Merge: fcf7535... dd272b5...
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Jun 2 01:02:09 2007 -0400
+
+    Pull osi-now into release branch
+
+commit fcf75356e9cf0460ef47a5b756bc3b0951ecab59
+Merge: f285e3d... 6287ee3...
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Jun 2 00:48:48 2007 -0400
+
+    Pull now into release branch
+
+commit 6287ee32952b502c23d54f12895c3895ddbe5013
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Tue Apr 3 19:59:37 2007 -0400
+
+    ACPICA: Support for external package objects as method arguments
+    
+    Implemented support to allow Package objects to be passed as
+    method arguments to the acpi_evaluate_object interface. Previously,
+    this would return an AE_NOT_IMPLEMENTED exception.
+    
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8ff6f48d99a0351bcc9ceab422042ef9d3bad9aa
+Author: Luck, Tony <tony.luck@intel.com>
+Date:   Thu May 24 13:57:40 2007 -0700
+
+    ACPI: Section mismatch ... acpi_map_pxm_to_node
+    
+    Last of the "Section mismatch" errors from ia64 builds! acpi_map_pxm_to_node()
+    is defined with attribute __cpuinit, but is called by "normal" kernel functions
+    acpi_getnode() and acpi_map_cpu2node().
+    
+    Commit f363d16fbb9374c0bd7f2757d412c287169094c9 moved the data structures on
+    which this routine operates from __cpuinitdata to regular memory, so this
+    routine can also move out of init space.
+    
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit cc4c24e115ca7bc2e4ec74d70bcb8fda1d1a8df8
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Wed May 30 20:50:14 2007 -0300
+
+    ACPI: thinkpad-acpi: do not use named sysfs groups
+    
+    The initial version of the thinkpad-acpi sysfs interface (not yet released
+    in any stable mainline kernel) made liberal use of named sysfs groups, in
+    order to get the attributes more organized.
+    
+    This proved to be a really bad design decision.  Maybe if attribute groups
+    were as flexible as a real directory, and if binary attributes were not
+    second-class citizens, the idea of subdirs and named groups would not have
+    been so bad.
+    
+    This patch makes all the thinkpad-acpi sysfs groups anonymous (thus
+    removing the subdirs), adds the former group names as a prefix (so that
+    hotkey/enable becomes hotkey_enable for example), and updates the
+    documentation.
+    
+    These changes will make the thinkpad-acpi sysfs ABI a lot easier to
+    maintain.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit dd272b5716a54afa33a69f2241284d8ec60b7892
+Author: Len Brown <len.brown@intel.com>
+Date:   Wed May 30 00:26:11 2007 -0400
+
+    ACPI: add __init to acpi_initialize_subsystem()
+    
+    Add __init to:
+    acpi_initialize_subsystem() (and un-export it)
+    acpi_os_initialize()
+    
+    Add __initdata to:
+    acpi_osl_dmi_table[]
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit f507654d450d329c81a70eec0096d5dfe67802ec
+Author: Len Brown <len.brown@intel.com>
+Date:   Wed May 30 00:10:38 2007 -0400
+
+    ACPI: Make _OSI(Linux) a special case
+    
+    _OSI("Linux") is like _OS("Linux"), it is ill-defined and
+    virtually no BIOS vendors test interaction with it.
+    As a result, it can do more damage than good because
+    it causes the BIOS to follow un-tested paths.
+    
+    Recently, several machines have turned up that erroneously
+    test this string in a way which causes them to _not_ test other
+    compatibility strings, including the ZI9 and Toshiba.
+    So it appears that this bad code has made it into
+    a BIOS vendor's reference BIOS.
+    
+    Linux has no choice but to stop advertising compatibility
+    with _OSI string "Linux" - as there are an unbounded
+    number of possible incompatibilities going forward.
+    
+    But some BIOSes have already shipped which do use it
+    for things like conditionally re-enabling video on resume
+    from S3.  (Too bad they didn't do that unconditionally)
+    
+    Add special case code for _OSI(Linux)
+    Squawk to dmesg if _OSI(Linux) is requested
+    Add DMI list both to enable and disable _OSI(Linux)
+    But for now, keep the default enabled via
+    #define OSI_LINUX_ENABLED.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=7787
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit ae00d812436dc968f4a5dea7757b6a94910b6dc4
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue May 29 18:43:33 2007 -0400
+
+    ACPI: extend "acpi_osi=" boot option
+    
+    The boot option "acpi_osi=" has always disabled Linux _OSI support,
+    thus disabling all OS Interface strings which are advertised
+    by Linux to the BIOS.
+    
+    Now...
+    acpi_osi="string" adds the interface string, and
+    acpi_osi="!string" invalidates the pre-defined interface string
+    
+    eg. acpi_osi="!Windows 2006"
+    would disable Linux's claim of Vista compatibility.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 68ccfaa8222f2a26f0689fad9e8c0c3f4c19f599
+Author: Thomas Renninger <trenn@suse.de>
+Date:   Sun Nov 19 23:01:40 2006 +0100
+
+    ACPI: thermal: Replace pointer with name in trip_points
+    
+    For users with active thermal trip points, they need
+    the fan's name, rather than its address, to understand
+    where to look to observe and control fan state.
+    
+    Signed-off-by: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 0efabac9b7c8535eeb199d2f16d3eb44dc4761b2
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu May 24 02:25:00 2007 -0400
+
+    ACPICA: allow Load(OEMx) tables
+    
+    HP and Hitachi machines have been implemented with SSDT's
+    that use the "OEMx" signatures.  But upon Load, ACPICA is rejecting
+    these tables because they are not using the "SSDT" signature.
+    
+    ACPI Error (tbinstal-0134): Table has invalid signature [OEMx], must be SSDT...
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
