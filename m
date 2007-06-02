@@ -1,45 +1,67 @@
-From: Tobias Neumann <tobias.neumann@gmail.com>
-Subject: cpufreq support still broken on some laptops
-Date: Sat, 2 Jun 2007 13:35:16 +0200
-Message-ID: <A2B2EBD3-64AE-457A-92C3-4E0462A35E2B@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Sat, 02 Jun 2007 13:50:52 +0100
+Message-ID: <1180788652.2355.27.camel@localhost.localdomain>
+References: <1180614979.2693.26.camel@localhost.localdomain>
+	 <1180615994.3030.166.camel@cookie.hadess.net>
+	 <1180619002.2693.35.camel@localhost.localdomain>
+	 <1180626416.3469.7.camel@localhost.localdomain>
+	 <d120d5000706010945w4de3e8d9i4d43d2ae686e4d0a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:18124 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166AbXFBLfj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2007 07:35:39 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so397210ugf
-        for <linux-acpi@vger.kernel.org>; Sat, 02 Jun 2007 04:35:37 -0700 (PDT)
+Received: from wx-out-0506.google.com ([66.249.82.231]:52464 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755143AbXFBMu5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2007 08:50:57 -0400
+Received: by wx-out-0506.google.com with SMTP id t15so752866wxc
+        for <linux-acpi@vger.kernel.org>; Sat, 02 Jun 2007 05:50:57 -0700 (PDT)
+In-Reply-To: <d120d5000706010945w4de3e8d9i4d43d2ae686e4d0a@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Bastien Nocera <hadess@hadess.net>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi,
-on my Thinkpad T60 (2007-FUG), with kernel 2.6.21.1 I have the same  
-problem Ingo Molnar had in January and successfully fixed for his model:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/ 
-linux-2.6.git;a=commit;h=e4233dec749a3519069d9390561b5636a75c7579
+On Fri, 2007-06-01 at 12:45 -0400, Dmitry Torokhov wrote:
+> The patch was pretty good, I did not quite like the driver
+> registration code so I tried to clean it up.
 
-"Recently cpufreq support on my laptop (Lenovo T60) broke completely:  
-when
-it's plugged into AC it would never go higher than 1 GHz - neither  
-1.3 GHz
-nor 1.83 GHz is possible - no matter which governor (userspace, speed or
-ondemand) is used."
+Cool, cheers.
 
-2.6.21 and 2.6.20 include this patch and should not have this problem  
-anymore.
+> What do you think about
+> the attached patch (not tested due to the lack of hardware). If you
+> are OK with it please add your signed-off-by because version of the
+> patch I grabbed did not have it.
 
-Is there any way I can see when ACPI calls for _PPC happen (via  
-ACPI_DEBUG) and which _PPC values get returned? Which debug_level do  
-I need?
+Attached patch looks good - I can't test it until next week, but looks
+logically correct to me. I would also like to add the oddball proc event
+notification system to the removal-schedule document, but this can be a
+fight for another day.
 
-Here are some more people with the same problem on 2.6.20 and 2.6.21 
-(which includes that patch too):
-https://bugs.beta.launchpad.net/ubuntu/+source/linux-source-2.6.20/ 
-+bug/88899
+> > > Also I don't think you want to use
+> > > KEY_BREAK. What is the expected function of that key?
 
-Thanks,
-   Tobias
+To lock the screen. We probably want to replace HCI_HKEY_BREAK with
+HCI_HKEY_LOCK, as the picture on the keys is a little padlock.
+
+> > It's a "lock" key, I really want KEY_LOCK added to input.h, but that
+> > might prove difficult. For now I've used KEY_CLEAR, yell if you think
+> > there's a better one to substitute or if you guys want me to add get a
+> > constant added to input.h.
+> 
+> Iam still struggling with the purpose of the key. What would you
+> extect to happen when youser presses this key? Screen gets locked?
+> KEY_SCREENLOCK? KEY_SCREENSAVER?
+
+Either of these keys would be good to add.
+
+So yes, patch looks good, cheers for the improvements.
+
+Signed-off-by: Richard Hughes <richard@hughsie.com>
+
+Thanks again,
+
+Richard.
+
+
