@@ -1,70 +1,91 @@
-From: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Sun, 03 Jun 2007 23:20:41 +0200
-Message-ID: <87wsykpweu.fsf@goat.bogus.local>
-References: <878xb35sje.fsf@goat.bogus.local> <200706012340.54394.rjw@sisk.pl>
-	<87hcpr2ubl.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI Debug - for test, devel and possibly even for production kernels
+Date: Sun, 3 Jun 2007 18:30:32 -0400
+Message-ID: <200706031830.33115.lenb@kernel.org>
+References: <1180624839.10908.71.camel@queen.suse.de> <200705311249.12762.lenb@kernel.org> <1180705944.10908.184.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.174]:52714 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbXFCVUO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jun 2007 17:20:14 -0400
+Received: from hera.kernel.org ([140.211.167.34]:48602 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751095AbXFCWat (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Jun 2007 18:30:49 -0400
+In-Reply-To: <1180705944.10908.184.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: trenn@suse.de
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-kernel <linux-kernel@vger.kernel.org>, penberg@cs.helsinki.fi
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Hello Thomas,
 
-> Second, you can use PM_TRACE (Documentation/power/s2ram.txt) to find the
-> place where it really fails.
+I'm delighted that you feel that the ACPI debug code is worthy
+of being enabled by default in SuSE Linux.  While that certainly
+wasn't the intent of the code, I'm open to your suggestions should
+you find any issues with it where it doesn't suite your needs.
 
-First I augmented my minimal config kernel with some TRACE_RESUME()s:
+However, I have no plans to enable CONFIG_ACPI_DEBUG upstream by default.
+For I don't expect it to increase the quality of bug reports we receive,
+or to foster more participation and support in the community for debugging Linux/ACPI.
+Indeed, I believe that end-users want fewer ACPI messages, not more.
 
---- a/kernel/power/main.c	2007-05-27 23:48:05.000000000 +0200
-+++ b/kernel/power/main.c	2007-06-03 22:28:46.000000000 +0200
-@@ -223,6 +223,7 @@
- 	pr_debug("PM: Finishing wakeup.\n");
- 	suspend_finish(state);
-  Unlock:
-+	TRACE_RESUME(error);
- 	mutex_unlock(&pm_mutex);
- 	return error;
- }
-@@ -303,6 +304,7 @@
- 		error = enter_state(state);
- 	else
- 		error = -EINVAL;
-+	TRACE_RESUME(error);
- 	return error ? error : n;
- }
- 
-With this test script:
+I believe that there is a small group of people who are simultaneously
+capable and willing to debug the Linux Kernel and AML.
+These people already run custom built kernels and can enable CONFIG_ACPI_DEBUG
+at will.  I don't believe that enabling it by default in a distribution
+kernel has measurable utility for the users and customers outside this
+(already served) small group.
 
-#! /bin/sh
+Re: bugzilla 7122 and 5534
+I do not believe that these are valid examples of where enabling
+CONFIG_ACPI_DEBUG by default would have resulted in solution sooner.
+While it is true that my team has more ready access to Intel hardware,
+I became so alarmed at these failures that I purchased an HP nx2125
+and an HP nx6325 to figure out what the HP BIOS developers were thinking.
 
-sync
-echo 1 >/sys/power/pm_trace
-echo mem >/sys/power/state
-shutdown -rn now
+The nx6325 is now working perfectly -- I test kernels on it almost every day.
+The nx6125 is for Alexy, but unfortunately, it seems to be mired
+in Russian red tape at the moment.
 
-I got alternating
-  hash matches drivers/base/power/resume.c:58
-and
-  hash matches kernel/power/main.c:307
+Regarding the % of AML that Linux is currently taking advantage of.
+With a few notable exceptions, Linux is actually ahead of Microsoft
+in support for the very latest version of the ACPI specification.
+This, of course, is a hollow victory, as vendors don't ship features
+that can't be handled by Windows.  But the point is that Linux is leading
+here, not following, in support of AML.
 
-> First, you can check if the patch
->
-> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc3/patches/20-ACPI-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+Regarding platform specific drivers that use AML.
+Everybody appreciates the efforts of the guys that are doing
+these drivers -- they make our Linux laptops more useful.
+But without vendor support, this requires a heroic effort.
 
-Then I applied this patch, but it doesn't change anything.
+The strategy of SuSE as a Linux distributor should not be
+to escalate this heroic effort -- but to make it unnecessary.
+Ie. If Brand-X wants to be certified on SuSE, then Brand-X
+should provide the appropriate platform specific driver for
+Linux  - or support the community with documentation so we can
+do it methodically and reliably.
 
-But either way the script never reaches "shutdown -rn now". So, it
-seems, that my laptop does a full resume every other reboot, but it
-never returns to userspace.
+BTW, you mentioned WMI..
+I've prototyped a Linux WMI driver, and will release it as soon as
+it is in a form where people in addition to just me will find it useful --
+probably in July. 
 
-> Also, please read Documentation/power/basic-pm-debugging.txt .
+Re: timing
+I'd love to be able to check stuff in upstream at any point in the release cycle,
+but the reality is that Linus has ACPI on a pretty short leash.
+He makes the rules, and I do my best to follow them.
+After -rc1 closes, the focus is really on fixing regressions,
+and patches which are worthy enough that they'd qualify
+for the .stable criteria.  So in this case, we are firmly
+past 2.6.22 and into 2.6.23.  Like you, I hope that happens
+sooner rather than later.
 
-Regards, Olaf.
+Note that your earlier version of this patch is already in acpi-test.
+I'll try out your update as soon as I return from watching the
+Boston Red Sox clobber the New York Yankees at Fenway Park tonight.
+
+thanks,
+-Len
