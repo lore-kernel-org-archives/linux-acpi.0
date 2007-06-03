@@ -1,91 +1,61 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI Debug - for test, devel and possibly even for production kernels
-Date: Sun, 3 Jun 2007 18:30:32 -0400
-Message-ID: <200706031830.33115.lenb@kernel.org>
-References: <1180624839.10908.71.camel@queen.suse.de> <200705311249.12762.lenb@kernel.org> <1180705944.10908.184.camel@queen.suse.de>
+From: Jerome Benoit <jerome.benoit@grenouille.com>
+Subject: Re: New A7T dsdt for A7T-7S004H laptop
+Date: Mon, 4 Jun 2007 00:40:30 +0200
+Message-ID: <20070604004030.c7ab429f.jerome.benoit@grenouille.com>
+References: <20070603185017.4ea80c6a.jerome.benoit@grenouille.com>
+	<200706032041.58727.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__4_Jun_2007_00_40_30_+0200_YpsS2V3bDlUZR5w+"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:48602 "EHLO hera.kernel.org"
+Received: from smtp8-g19.free.fr ([212.27.42.65]:52743 "EHLO smtp8-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751095AbXFCWat (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Jun 2007 18:30:49 -0400
-In-Reply-To: <1180705944.10908.184.camel@queen.suse.de>
-Content-Disposition: inline
+	id S1750720AbXFCWkh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Jun 2007 18:40:37 -0400
+Received: from morphee.grenouille.com (bea13-2-82-239-143-199.fbx.proxad.net [82.239.143.199])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 784991AADF
+	for <linux-acpi@vger.kernel.org>; Mon,  4 Jun 2007 00:40:36 +0200 (CEST)
+In-Reply-To: <200706032041.58727.corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-kernel <linux-kernel@vger.kernel.org>, penberg@cs.helsinki.fi
+To: corentincj@iksaif.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hello Thomas,
+--Signature=_Mon__4_Jun_2007_00_40_30_+0200_YpsS2V3bDlUZR5w+
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm delighted that you feel that the ACPI debug code is worthy
-of being enabled by default in SuSE Linux.  While that certainly
-wasn't the intent of the code, I'm open to your suggestions should
-you find any issues with it where it doesn't suite your needs.
+Le Sun, 3 Jun 2007 20:41:58 +0200,
+Corentin CHARY <corentincj@iksaif.net> a =E9crit :
 
-However, I have no plans to enable CONFIG_ACPI_DEBUG upstream by default.
-For I don't expect it to increase the quality of bug reports we receive,
-or to foster more participation and support in the community for debugging Linux/ACPI.
-Indeed, I believe that end-users want fewer ACPI messages, not more.
 
-I believe that there is a small group of people who are simultaneously
-capable and willing to debug the Linux Kernel and AML.
-These people already run custom built kernels and can enable CONFIG_ACPI_DEBUG
-at will.  I don't believe that enabling it by default in a distribution
-kernel has measurable utility for the users and customers outside this
-(already served) small group.
+> > By dmesg resquet, i'm just sending out the dsdt file to ACPI list
+> > et main developer. This is with the latest BIOS version from ASUS
+=20
+> Take a look at http://acpi4asus.sourceforge.net and use the new
+> asus-laptop driver (use a 2.6.21 kernel or download acpi4asus).
 
-Re: bugzilla 7122 and 5534
-I do not believe that these are valid examples of where enabling
-CONFIG_ACPI_DEBUG by default would have resulted in solution sooner.
-While it is true that my team has more ready access to Intel hardware,
-I became so alarmed at these failures that I purchased an HP nx2125
-and an HP nx6325 to figure out what the HP BIOS developers were thinking.
+I will try that out when i find some free time ..=20
 
-The nx6325 is now working perfectly -- I test kernels on it almost every day.
-The nx6125 is for Alexy, but unfortunately, it seems to be mired
-in Russian red tape at the moment.
+Thks for the reply anyway.
 
-Regarding the % of AML that Linux is currently taking advantage of.
-With a few notable exceptions, Linux is actually ahead of Microsoft
-in support for the very latest version of the ACPI specification.
-This, of course, is a hollow victory, as vendors don't ship features
-that can't be handled by Windows.  But the point is that Linux is leading
-here, not following, in support of AML.
+--=20
+J=E9r=F4me Benoit aka fraggle
+La M=E9t=E9o du Net - http://grenouille.com
+OpenPGP Key ID : 9FE9161D
+Key fingerprint : 9CA4 0249 AF57 A35B 34B3 AC15 FAA0 CB50 9FE9 161D
 
-Regarding platform specific drivers that use AML.
-Everybody appreciates the efforts of the guys that are doing
-these drivers -- they make our Linux laptops more useful.
-But without vendor support, this requires a heroic effort.
+--Signature=_Mon__4_Jun_2007_00_40_30_+0200_YpsS2V3bDlUZR5w+
+Content-Type: application/pgp-signature
 
-The strategy of SuSE as a Linux distributor should not be
-to escalate this heroic effort -- but to make it unnecessary.
-Ie. If Brand-X wants to be certified on SuSE, then Brand-X
-should provide the appropriate platform specific driver for
-Linux  - or support the community with documentation so we can
-do it methodically and reliably.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
-BTW, you mentioned WMI..
-I've prototyped a Linux WMI driver, and will release it as soon as
-it is in a form where people in addition to just me will find it useful --
-probably in July. 
+iD8DBQFGY0Ne+qDLUJ/pFh0RAq/NAKDj2rLw68hboT++h9YtbrFK7Df/fACfTD/6
+T9WCkMvSN1owehh+T4FQ7Lg=
+=Zlk/
+-----END PGP SIGNATURE-----
 
-Re: timing
-I'd love to be able to check stuff in upstream at any point in the release cycle,
-but the reality is that Linus has ACPI on a pretty short leash.
-He makes the rules, and I do my best to follow them.
-After -rc1 closes, the focus is really on fixing regressions,
-and patches which are worthy enough that they'd qualify
-for the .stable criteria.  So in this case, we are firmly
-past 2.6.22 and into 2.6.23.  Like you, I hope that happens
-sooner rather than later.
-
-Note that your earlier version of this patch is already in acpi-test.
-I'll try out your update as soon as I return from watching the
-Boston Red Sox clobber the New York Yankees at Fenway Park tonight.
-
-thanks,
--Len
+--Signature=_Mon__4_Jun_2007_00_40_30_+0200_YpsS2V3bDlUZR5w+--
