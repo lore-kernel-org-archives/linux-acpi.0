@@ -1,105 +1,65 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [2.6 patch] remove sonypi_camera_command()
-Date: Sun, 3 Jun 2007 12:55:18 +0900
-Message-ID: <20070603035517.GA4541@inferi.kami.home>
-References: <20070602190942.GM5500@stusta.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Laptop overheating problem
+Date: Sun, 3 Jun 2007 00:29:21 -0400
+Message-ID: <200706030029.22130.lenb@kernel.org>
+References: <519554c10706021144p1206ca76u58de14068dddfbbb@mail.gmail.com> <8f8ff01d0706021257n1216a981m81beca6135986fde@mail.gmail.com> <466214F4.5060008@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi11.ns.itscom.net ([219.110.2.181]:49084 "EHLO
-	mtoichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761670AbXFCD4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2007 23:56:10 -0400
+Received: from hera.kernel.org ([140.211.167.34]:51630 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751690AbXFCE3d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jun 2007 00:29:33 -0400
+In-Reply-To: <466214F4.5060008@free.fr>
 Content-Disposition: inline
-In-Reply-To: <20070602190942.GM5500@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: lecotegougdelaforce@free.fr
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Tolga Onbay <tolgaonbay@gmail.com>, linux-acpi@vger.kernel.org
 
-On Sat, Jun 02, 2007 at 09:09:42PM +0200, Adrian Bunk wrote:
-> This patch removes the no longer used sonypi_camera_command().
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+On Saturday 02 June 2007 21:10, Goulven Guillard wrote:
+> Alexey Starikovskiy a =E9crit :
+> > Please take a look at bugzilla.kernel.org #5534, 2.6.21 or later
+> > kernels should not have this problem.
+> >>
+> >> I installed Ubuntu 7.04 to my hp nc6120 laptop. After working with=
+ the
+> >> laptop for a while  (changing with the load on the system)  for
+> >> example archiving an ~700MB directory, the system is overheating (=
+i
+> >> mean really hot) and shutting down automatically.
+> >>
+> >> I searched the problem on the Ubuntu forums, Linux kernel mailing
+> >> list, Linux acpi mailing list, ... There have been so many questio=
+ns
+> >> and bug entries for this problem since 2005. But i can't find the
+> >> solution yet. Is there any solution to solve the overheating probl=
+em?
+>=20
+> Didn't try 2.6.21 kernel (2.6.20 only). Don't know if you've read thi=
+s :
+> https://launchpad.net/ubuntu/+bug/22336 =3D> Ubuntu's overheating is =
+a=20
+> known problem since at least 09/2005, but doesn't seem important enou=
+gh=20
+> so Ubuntu's developpers accord much interest on it... (Must be
+> disparaging... ;-) )
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+I've read it, and commented:
+https://launchpad.net/ubuntu/+bug/22336/comments/162
+7 of the submitters had the problem go away when they cleaned
+the dust out of their fan.
 
-> 
-> ---
-> 
->  drivers/char/sonypi.c  |   47 -----------------------------------------
->  include/linux/sonypi.h |    2 -
->  2 files changed, 49 deletions(-)
-> 
-> --- linux-2.6.22-rc3-mm1/include/linux/sonypi.h.old	2007-06-02 20:35:45.000000000 +0200
-> +++ linux-2.6.22-rc3-mm1/include/linux/sonypi.h	2007-06-02 20:35:51.000000000 +0200
-> @@ -153,8 +153,6 @@
->  #define SONYPI_COMMAND_GETCAMERAROMVERSION	18	/* obsolete */
->  #define SONYPI_COMMAND_GETCAMERAREVISION	19	/* obsolete */
->  
-> -int sonypi_camera_command(int command, u8 value);
-> -
->  #endif				/* __KERNEL__ */
->  
->  #endif				/* _SONYPI_H_ */
-> --- linux-2.6.22-rc3-mm1/drivers/char/sonypi.c.old	2007-06-02 20:35:58.000000000 +0200
-> +++ linux-2.6.22-rc3-mm1/drivers/char/sonypi.c	2007-06-02 20:36:16.000000000 +0200
-> @@ -885,53 +885,6 @@
->  	return IRQ_HANDLED;
->  }
->  
-> -/* External camera command (exported to the motion eye v4l driver) */
-> -int sonypi_camera_command(int command, u8 value)
-> -{
-> -	if (!camera)
-> -		return -EIO;
-> -
-> -	mutex_lock(&sonypi_device.lock);
-> -
-> -	switch (command) {
-> -	case SONYPI_COMMAND_SETCAMERA:
-> -		if (value)
-> -			sonypi_camera_on();
-> -		else
-> -			sonypi_camera_off();
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERABRIGHTNESS:
-> -		sonypi_set(SONYPI_CAMERA_BRIGHTNESS, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERACONTRAST:
-> -		sonypi_set(SONYPI_CAMERA_CONTRAST, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERAHUE:
-> -		sonypi_set(SONYPI_CAMERA_HUE, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERACOLOR:
-> -		sonypi_set(SONYPI_CAMERA_COLOR, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERASHARPNESS:
-> -		sonypi_set(SONYPI_CAMERA_SHARPNESS, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERAPICTURE:
-> -		sonypi_set(SONYPI_CAMERA_PICTURE, value);
-> -		break;
-> -	case SONYPI_COMMAND_SETCAMERAAGC:
-> -		sonypi_set(SONYPI_CAMERA_AGC, value);
-> -		break;
-> -	default:
-> -		printk(KERN_ERR "sonypi: sonypi_camera_command invalid: %d\n",
-> -		       command);
-> -		break;
-> -	}
-> -	mutex_unlock(&sonypi_device.lock);
-> -	return 0;
-> -}
-> -
-> -EXPORT_SYMBOL(sonypi_camera_command);
-> -
->  static int sonypi_misc_fasync(int fd, struct file *filp, int on)
->  {
->  	int retval;
-> 
-> 
--- 
-mattia
-:wq!
+However, it seems clear that Linux isn't dealing with
+a clogged fan as well as Windows does.
+
+BTW, the Ubuntu developers are on record as thinking it is important,
+they just didn't know how to address it.
+
+-Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
