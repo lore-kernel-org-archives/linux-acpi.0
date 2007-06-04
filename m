@@ -1,33 +1,31 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH]: ACPI: preserve the ebx value in acpi_copy_wakeup_routine
-Date: Mon, 4 Jun 2007 12:37:06 +0200
-Message-ID: <20070604103706.GA4405@elf.ucw.cz>
-References: <20070601101707.GC31453@elf.ucw.cz> <823A93EED437D048963A3697DB0E35DE16B6CB@pdsmsx414.ccr.corp.intel.com>
+Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
+Date: Mon, 4 Jun 2007 13:06:20 +0200
+Message-ID: <20070604110620.GM4363@elf.ucw.cz>
+References: <20070515201914.16944e04.akpm@linux-foundation.org> <200705171517.14087.lenb@kernel.org> <20070517215203.GB7336@elf.ucw.cz> <200705171835.49176.lenb@kernel.org> <20070604090201.GA4802@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:40683 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752214AbXFDKhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Jun 2007 06:37:13 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754500AbXFDLGi@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <823A93EED437D048963A3697DB0E35DE16B6CB@pdsmsx414.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070604090201.GA4802@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stefan Seyfried <seife@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, "Tian, Kevin" <kevin.tian@intel.com>
 
-Hi!
+On Mon 2007-06-04 11:02:01, Stefan Seyfried wrote:
+> On Thu, May 17, 2007 at 06:35:48PM -0400, Len Brown wrote:
+>  
+> > Yes, SuSE enables polling mode by default, but that is just
+> > distro specific "value add" that should eventually be fixed.
+> 
+> I will do that for openSUSE FACTORY.
 
-> According to the SYSTEM V APPLICATION BINARY INTERFACE,
-> Intel386 Architecture:
-> "ecx and edx: Scratch registers have no specified role in the standard calling
-> sequence. Functions do not have to preserve their values for the
-> caller."
+Well, I still believe right solution is to enable polling mode as soon
+as trip points are written (and ignoring bios updates from then
+on). That gets trip point writing into functional state.
 
-Thanks for confirming.
-								Pavel
-
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
