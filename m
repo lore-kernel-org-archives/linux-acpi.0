@@ -1,80 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Mon, 4 Jun 2007 10:13:48 +0200
-Message-ID: <200706041013.49428.rjw@sisk.pl>
-References: <878xb35sje.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl> <87wsykpweu.fsf@goat.bogus.local>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
+Date: Mon, 4 Jun 2007 11:02:01 +0200
+Message-ID: <20070604090201.GA4802@suse.de>
+References: <20070515201914.16944e04.akpm@linux-foundation.org> <200705171517.14087.lenb@kernel.org> <20070517215203.GB7336@elf.ucw.cz> <200705171835.49176.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37757 "EHLO ogre.sisk.pl"
+Received: from ns.suse.de ([195.135.220.2]:50348 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752339AbXFDIIF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Jun 2007 04:08:05 -0400
-In-Reply-To: <87wsykpweu.fsf@goat.bogus.local>
+	id S1751554AbXFDJXg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jun 2007 05:23:36 -0400
 Content-Disposition: inline
+In-Reply-To: <200705171835.49176.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
 
-On Sunday, 3 June 2007 23:20, Olaf Dietsche wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > Second, you can use PM_TRACE (Documentation/power/s2ram.txt) to find the
-> > place where it really fails.
-> 
-> First I augmented my minimal config kernel with some TRACE_RESUME()s:
-> 
-> --- a/kernel/power/main.c	2007-05-27 23:48:05.000000000 +0200
-> +++ b/kernel/power/main.c	2007-06-03 22:28:46.000000000 +0200
-> @@ -223,6 +223,7 @@
->  	pr_debug("PM: Finishing wakeup.\n");
->  	suspend_finish(state);
->   Unlock:
-> +	TRACE_RESUME(error);
->  	mutex_unlock(&pm_mutex);
->  	return error;
->  }
-> @@ -303,6 +304,7 @@
->  		error = enter_state(state);
->  	else
->  		error = -EINVAL;
-> +	TRACE_RESUME(error);
->  	return error ? error : n;
->  }
->  
-> With this test script:
-> 
-> #! /bin/sh
-> 
-> sync
-> echo 1 >/sys/power/pm_trace
-> echo mem >/sys/power/state
-> shutdown -rn now
-> 
-> I got alternating
->   hash matches drivers/base/power/resume.c:58
-> and
->   hash matches kernel/power/main.c:307
-> 
-> > First, you can check if the patch
-> >
-> > http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc3/patches/20-ACPI-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-> 
-> Then I applied this patch, but it doesn't change anything.
-> 
-> But either way the script never reaches "shutdown -rn now". So, it
-> seems, that my laptop does a full resume every other reboot, but it
-> never returns to userspace.
+On Thu, May 17, 2007 at 06:35:48PM -0400, Len Brown wrote:
+=20
+> Yes, SuSE enables polling mode by default, but that is just
+> distro specific "value add" that should eventually be fixed.
 
-I'm still suspecting that the problem is related to your graphics adapter.
+I will do that for openSUSE FACTORY.
+--=20
+Stefan Seyfried
+QA / R&D Team Mobile Devices        |              "Any ideas, John?"
+SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
+=20
 
-What graphics adapter do you have in the box?
-
-Rafael
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+This footer brought to you by insane German lawmakers:
+SUSE Linux Products GmbH, GF: Markus Rex, HRB 16746 (AG N=FCrnberg)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
