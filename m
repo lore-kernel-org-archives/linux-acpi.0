@@ -1,69 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Mon, 4 Jun 2007 23:02:45 +0200
-Message-ID: <200706042302.45628.rjw@sisk.pl>
-References: <878xb35sje.fsf@goat.bogus.local> <200706041013.49428.rjw@sisk.pl> <87hcpnpt4k.fsf@goat.bogus.local>
+From: Myron Stowe <myron.stowe@hp.com>
+Subject: Re: [PATCH 8/8] ACPICA: Support for external package objects as
+	method arguments
+Date: Mon, 04 Jun 2007 16:25:37 -0600
+Message-ID: <1180995938.5466.3.camel@localhost>
+References: <1180761344795-git-send-email-len.brown@intel.com>
+	 <11807613453368-git-send-email-len.brown@intel.com>
+	 <11807613463371-git-send-email-len.brown@intel.com>
+	 <1180761346136-git-send-email-len.brown@intel.com>
+	 <11807613471928-git-send-email-len.brown@intel.com>
+	 <11807613483187-git-send-email-len.brown@intel.com>
+	 <1180761348487-git-send-email-len.brown@intel.com>
+	 <11807613492873-git-send-email-len.brown@intel.com>
+	 <6287ee32952b502c23d54f12895c3895ddbe5013.1180761191.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40684 "EHLO ogre.sisk.pl"
+Received: from atlrel6.hp.com ([156.153.255.205]:59468 "EHLO atlrel6.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753882AbXFDU5E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Jun 2007 16:57:04 -0400
-In-Reply-To: <87hcpnpt4k.fsf@goat.bogus.local>
-Content-Disposition: inline
+	id S1753007AbXFDWZj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jun 2007 18:25:39 -0400
+In-Reply-To: <6287ee32952b502c23d54f12895c3895ddbe5013.1180761191.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf.dietsche@olafdietsche.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-On Monday, 4 June 2007 18:43, Olaf Dietsche wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > On Sunday, 3 June 2007 23:20, Olaf Dietsche wrote:
-> >
-> >> But either way the script never reaches "shutdown -rn now". So, it
-> >> seems, that my laptop does a full resume every other reboot, but it
-> >> never returns to userspace.
-> >
-> > I'm still suspecting that the problem is related to your graphics adapter.
-> 
-> Maybe it's the most common problem, but why do you think so? Even with
-> a black screen the kernel should return to userspace.
+>From : Myron Stowe <myron.stowe@hp.com>
 
-Not necessarily.  I have a test box that just crashes if the graphics card is
-not posted.
- 
-> > What graphics adapter do you have in the box?
-> 
-> 0000:01:00.0 VGA compatible controller: nVidia Corporation: Unknown device 0148 (rev a2) (prog-if 00 [VGA])
-> 	Subsystem: QUANTA Computer Inc: Unknown device 0729
-> 	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-> 	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-> 	Latency: 0, Cache Line Size: 0x08 (32 bytes)
-> 	Interrupt: pin A routed to IRQ 10
-> 	Region 0: Memory at c4000000 (32-bit, non-prefetchable) [size=64M]
-> 	Region 1: Memory at d0000000 (64-bit, prefetchable) [size=128M]
-> 	Region 3: Memory at c1000000 (64-bit, non-prefetchable) [size=16M]
-> 	Expansion ROM at c2000000 [disabled] [size=128K]
-> 	Capabilities: [60] Power Management version 2
-> 		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-> 	Capabilities: [68] Message Signalled Interrupts: 64bit+ Queue=0/0 Enable-
-> 		Address: 0000000000000000  Data: 0000
-> 	Capabilities: [78] #10 [0001]
+I believe there is an issue with the new 'package' argument type support
+just submitted upstream.
 
-You may try to use 's2ram --force --vbe_post --vbe_mode', if you haven't tried
-that already.
+In the routine acpi_ut_create_package_object(), if the
+ACPI_ALLOCATE_ZEROED() fails then ACPI_FREE(package_desc) is called as
+part of the cleanup.  This should instead be
+acpi_ut_remove_reference(package_desc) in order to remove the reference
+acquired from acpi_ut_create_internal_object() [see the routine
+acpi_ut_create_buffer_object() as an example of proper functionality].
 
-Still, if the card is a 7300 or higher, that need not work (at present we don't
-know what magic is required to make these cards work).
+This patch is against the Linux-ized ACPI CA, since I don't have a good
+way to modify or test the original Intel version.  I hope it's small
+enough that you can easily make the corresponding change to the Intel
+version.
 
-Greetings,
-Rafael
+This modification may be used under either the GPL or the BSD-style
+license used for the Intel ACPI CA.
 
+Signed-off-by: Myron Stowe < myron.stowe@hp.com>
+
+--- a/drivers/acpi/utilities/utobject.c    2007-06-04 15:49:19.000000000 -0600
++++ b/drivers/acpi/utilities/utobject.c    2007-06-04 15:52:17.000000000 -0600
+@@ -177,7 +177,7 @@
+        package_elements = ACPI_ALLOCATE_ZEROED((acpi_size)
+                                                (count + 1) * sizeof(void *));
+        if (!package_elements) {
+-               ACPI_FREE(package_desc);
++               acpi_ut_remove_reference(package_desc);
+                return_PTR(NULL);
+        }
 
 -- 
-"Premature optimization is the root of all evil." - Donald Knuth
+Myron Stowe                             HP Open Source & Linux Org
+
