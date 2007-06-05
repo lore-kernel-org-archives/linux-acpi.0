@@ -1,75 +1,48 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [2/5] 2.6.22-rc4: known regressions
-Date: Tue, 05 Jun 2007 16:43:48 +0200
-Message-ID: <466576A4.30701@googlemail.com>
-References: <46657407.1000108@googlemail.com>
+From: Maxime Austruy <maxime@tralhalla.org>
+Subject: [PATCH] asus_acpi: fix oops on non-asus machines
+Date: Tue, 5 Jun 2007 08:31:32 -0700
+Message-ID: <20070605153132.GA7184@tralhalla.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:32503 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765194AbXFEOoE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jun 2007 10:44:04 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so192423ugf
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Jun 2007 07:44:03 -0700 (PDT)
-In-Reply-To: <46657407.1000108@googlemail.com>
+Received: from rwcrmhc12.comcast.net ([216.148.227.152]:59799 "EHLO
+	rwcrmhc12.comcast.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764929AbXFEPgf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jun 2007 11:36:35 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Thierry Volpiatto <tvolpiatt@neuf.fr>, Marc Tuerschmann <marc@tuerschmann.de>, Denis Sadykov <denis.m.sadykov@intel.com>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Ben Collins <bcollins@ubuntu.com>, linux-fsdevel@vger.kernel.org, Alex Riesen <raa.lkml@gmail.com>
-
-Hi all,
-
-Here is a list of some known regressions in 2.6.22-rc4.
-
-=46eel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+To: linux-acpi@vger.kernel.org
+Cc: corentincj@iksaif.net, sziwan@users.sourceforge.net
 
 
+This change fixes an oops when rmmod'ing the asus_acpi module on
+non-asus machine.  Inspection of the code nearby also unveiled a problem
+in the error path of backlight_device_register, so this fixes it too. 
 
-ACPI
-
-Subject    : ACPI_CPUFREQ fails to load - HP ML110 G4 Xeon 3040
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8570
-Submitter  : Marc Tuerschmann <marc@tuerschmann.de>
-Status     : Unknown
-             (possible hardware issues)
-
-Subject    : unable to shutdown on kernel 2.6.22-rc2
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8516
-Submitter  : Thierry Volpiatto <tvolpiatt@neuf.fr>
-Status     : Unknown
-
-
-
-ALSA
-
-Subject    : snd-aoa causes badness in lib/kref.c:33
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8513
-Submitter  : Ben Collins <bcollins@ubuntu.com>
-Status     : Unknown
-
-
-=46ile systems
-
-Subject    : OOPS (NULL pointer dereference) in v2.6.22-rc3
-References : http://lkml.org/lkml/2007/6/1/389
-Submitter  : Alex Riesen <raa.lkml@gmail.com>
-Status     : Unknown
-
-
-
-Regards,
-Michal
-
+Signed-off-by: Maxime Austruy <maxime@tralhalla.org>
 --
-"Najbardziej brakowa=B3o mi twojego milczenia."
--- Andrzej Sapkowski "Co=B6 wi=EAcej"
+ drivers/acpi/asus_acpi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+index 6d7d415..3cd79ca 100644
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -1398,7 +1398,7 @@ static int __init asus_acpi_init(void)
+ 	if (!asus_hotk_found) {
+ 		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return result;
++		return -ENODEV;
+ 	}
+ 
+ 	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
+@@ -1407,6 +1407,7 @@ static int __init asus_acpi_init(void)
+ 		printk(KERN_ERR "Could not register asus backlight device\n");
+ 		asus_backlight_device = NULL;
+ 		asus_acpi_exit();
++		return -ENODEV;
+ 	}
+         asus_backlight_device->props.max_brightness = 15;
+ 
