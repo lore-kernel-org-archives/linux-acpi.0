@@ -1,104 +1,90 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN (v2)
-Date: Wed, 6 Jun 2007 13:55:09 -0300
-Message-ID: <20070606165509.GB18984@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <d120d5000705301325yf76d062vefbc79873d23e602@mail.gmail.com> <20070531005305.GC6883@khazad-dum.debian.net> <200705310033.51230.dtor@insightbb.com> <20070531222814.GB4076@khazad-dum.debian.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.22-rc4-mm1 -- x86_64 ACPI panic
+Date: Wed, 6 Jun 2007 10:52:23 -0700
+Message-ID: <20070606105223.c8dece17.akpm@linux-foundation.org>
+References: <20070606020737.4663d686.akpm@linux-foundation.org>
+	<4666BDF1.6080801@shadowen.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33641 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750961AbXFFQzN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jun 2007 12:55:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20070531222814.GB4076@khazad-dum.debian.net>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60562 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751272AbXFFRxF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jun 2007 13:53:05 -0400
+In-Reply-To: <4666BDF1.6080801@shadowen.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
+To: Andy Whitcroft <apw@shadowen.org>
+Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
 
-We have most of the pieces needed to have sane, generic userland keyboard
-handling in place for a while now, but it is not sufficiently documented.
+On Wed, 06 Jun 2007 15:00:17 +0100 Andy Whitcroft <apw@shadowen.org> wrote:
 
-This patch documents the requirements and best practices for EV_KEY input
-drivers.
+> Getting this on a bigger x86_64 (bl6-13):
+> 
+> Unable to handle kernel NULL pointer dereference at 0000000000000000 RIP:
+>  [<ffffffff8037898b>] acpi_processor_throttling_seq_show+0xa7/0xd6
+> PGD 2d77067 PUD 34c3067 PMD 0
+> Oops: 0000 [1] SMP
+> CPU 3
+> Modules linked in: video output button battery asus_acpi ac lp
+> parport_pc parport floppy nvram amd_rng rng_core i2c_amd756 i2c_core
+> Pid: 1634, comm: head Not tainted 2.6.22-rc4-mm1-autokern1 #1
+> RIP: 0010:[<ffffffff8037898b>]  [<ffffffff8037898b>]
+> acpi_processor_throttling_seq_show+0xa7/0xd6
+> RSP: 0018:ffff810003c9de48  EFLAGS: 00010246
+> RAX: 0000000000000020 RBX: ffff8100029e7800 RCX: 0000000000000000
+> RDX: 000000000000002a RSI: ffffffff805993e4 RDI: ffff810002d714c0
+> RBP: ffff810002d714c0 R08: ffff810003f82051 R09: ffff810002d714c0
+> R10: ffffffffffffffff R11: 0000000000000000 R12: 0000000000000000
+> R13: 0000000000000000 R14: 0000000000000000 R15: 00007fff64fd2b90
+> FS:  00002b3545aec6f0(0000) GS:ffff810001683a40(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> CR2: 0000000000000000 CR3: 0000000003966000 CR4: 00000000000006e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process head (pid: 1634, threadinfo ffff810003c9c000, task ffff810001c8c810)
+> Stack:  00000000000000d0 ffff810002d714c0 0000000000000001 0000000000000001
+>  0000000000002000 ffffffff802ab6eb ffff810003c9df50 ffff810002915d00
+>  ffff810002d714f0 ffff810002fa2000 0000000000000000 fffffffffffffffb
+> Call Trace:
+>  [<ffffffff802ab6eb>] seq_read+0x105/0x28e
+>  [<ffffffff802ab5e6>] seq_read+0x0/0x28e
+>  [<ffffffff802cd085>] proc_reg_read+0x80/0x9a
+>  [<ffffffff802925a7>] vfs_read+0xcb/0x153
+>  [<ffffffff80292943>] sys_read+0x45/0x6e
+>  [<ffffffff8020bc5e>] system_call+0x7e/0x83
+> 
+> 
+> Code: 45 8b 44 0d 00 44 89 e1 0f 45 d0 31 c0 49 ff c4 49 83 c5 28
+> RIP  [<ffffffff8037898b>] acpi_processor_throttling_seq_show+0xa7/0xd6
+>  RSP <ffff810003c9de48>
+> CR2: 0000000000000000
+> FATAL: Error inserting acpi_cpufreq
+> (/lib/modules/2.6.22-rc4-mm1-autokern1/kernel/arch/x86_64/kernel/cpufreq/acpi-cpufreq.ko):
+> No such device
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Richard Hughes <hughsient@gmail.com>
----
+Was the oops at modprobe time?  If so, it seems weird that
+acpi_processor_throttling_seq_show() would be getting run at that stage.
 
- I have changed the KEY_UNKNOWN preference over positional keycodes around,
- and also added a small paragraph on the expected behaviour of userland
- applications re. EV_MSC MSC_SCAN events.
+(The oops trace is supposed to show the oopsing process's
+task_struct.comm[], but it isn't shown here?)
 
- Comments?
+Anyway, there are extensive changes in there added by git-acpi.patch.  I
+suppose we can try to limp along with the below, but it'll probably just
+oops later on.
 
- Documentation/input/input-programming.txt |   45 ++++++++++++++++++++++++++++-
- 1 files changed, 44 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/input/input-programming.txt b/Documentation/input/input-programming.txt
-index d9d5230..30fd051 100644
---- a/Documentation/input/input-programming.txt
-+++ b/Documentation/input/input-programming.txt
-@@ -272,7 +272,50 @@ present, it is broken sometimes (at keyboards: Toshiba notebooks). To enable
- autorepeat for your device, just set EV_REP in dev->evbit. All will be
- handled by the input system.
+--- a/drivers/acpi/processor_throttling.c~git-acpi-disable-acpi_processor_throttling_seq_show
++++ a/drivers/acpi/processor_throttling.c
+@@ -648,6 +648,9 @@ static int acpi_processor_throttling_seq
+ 		goto end;
+ 	}
  
--1.9 Other event types, handling output events
-+1.9 Being friendly to userspace when implementing EV_KEY drivers
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++	seq_puts(seq, "acpi_processor_throttling_seq_show() is busted\n");
++	goto end;
 +
-+Input drivers that generate EV_KEY events should always support either
-+dev->getkeycode()/dev->setkeycode(), or keycode, keycodemax and keycodesize,
-+so as to allow userspace to reprogram the keycodes as needed.  They should
-+also either always generate EV_MSC MSC_SCAN events along with every EV_KEY
-+event, or special case EV_KEY KEY_UNKNOWN as described below.
-+
-+Userspace applications, on the other hand, should never try to remap keys by
-+default based solely on EV_MSC MSC_SCAN if that event is part of an event
-+block that contains an EV_KEY event other than EV_KEY KEY_UNKNOWN.
-+
-+If the input driver doesn't support any of the generic methods to manipulate
-+the keycode map, it must never issue a EV_KEY KEY_UNKNOWN event.  If you
-+need to issue EV_KEY KEY_UNKNOWN events, please implement the code in your
-+driver to manipulate its keycode map.  KEY_UNKNOWN is meant to be something
-+that can be replaced by the user with a functional keycode.
-+
-+If the input driver generates an EV_KEY KEY_UNKNOWN event, it should also
-+generate *in the same event block* (i.e. before it issues an EV_SYN) an
-+EV_MSC MSC_SCAN event, with the scan code for the "unknown key".  This
-+should be done both in "press" and "release" EV_KEY events.  The EV_MSC
-+MSC_SCAN event allows a generic userspace keyboard helper daemon to ask the
-+user if he would like to map a key in a input device to a valid keycode, and
-+assign a function to it.
-+
-+The scan code of a key (as informed in a EV_MSC MSC_SCAN event) must be its
-+index in the keycode map, as implemented by dev->getkeycode() /
-+dev->setkeycode(), or keycode, keycodemax and keycodesize for the device.
-+
-+If a key has a specific function that is known to the driver, it should
-+generate the appropriate keycode for that function by default.  E.g., in a
-+laptop where the FN+F1 key combination is always marked "HELP" in the
-+keyboard, the driver is to generate KEY_HELP and not KEY_FN_F1.
-+
-+If a positional keycode for a key already exists in input.h (e.g. KEY_FN_F1
-+for FN+F1), it should be used instead of KEY_UNKNOWN.  When such a code
-+doesn't exist or doesn't make any sense for a key, EV_KEY KEY_UNKNOWN is to
-+be used.
-+
-+Non-positional keycodes like KEY_PROG1 should never be used by default.
-+
-+1.10 Other event types, handling output events
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
- The other event types up to now are:
--- 
-1.5.1.6
+ 	seq_printf(seq, "state count:             %d\n"
+ 		   "active state:            T%d\n"
+ 		   "state available: T%d to T%d\n",
+_
 
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
