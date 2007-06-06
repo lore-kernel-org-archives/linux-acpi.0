@@ -1,49 +1,59 @@
-From: Dave Jones <davej@redhat.com>
-Subject: remove P2B-S from blacklist.
-Date: Wed, 6 Jun 2007 03:34:07 -0400
-Message-ID: <20070606073407.GA1010@redhat.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [1/3] 2.6.22-rc3: known regressions v2
+Date: Wed, 06 Jun 2007 14:12:37 +0200
+Message-ID: <1181131957.28514.242.camel@queen.suse.de>
+References: <46600F1C.5000302@googlemail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:48708 "EHLO mx1.redhat.com"
+Received: from mail.suse.de ([195.135.220.2]:41883 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751725AbXFFHeU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jun 2007 03:34:20 -0400
-Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
-	by mx1.redhat.com (8.13.1/8.13.1) with ESMTP id l567YJUc012647
-	for <linux-acpi@vger.kernel.org>; Wed, 6 Jun 2007 03:34:19 -0400
-Received: from gelk.kernelslacker.org (vpn-248-11.boston.redhat.com [10.13.248.11])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id l567YEIv009871
-	for <linux-acpi@vger.kernel.org>; Wed, 6 Jun 2007 03:34:17 -0400
-Received: from gelk.kernelslacker.org (localhost.localdomain [127.0.0.1])
-	by gelk.kernelslacker.org (8.14.1/8.13.8) with ESMTP id l567Y9Gb001024
-	for <linux-acpi@vger.kernel.org>; Wed, 6 Jun 2007 03:34:09 -0400
-Received: (from davej@localhost)
-	by gelk.kernelslacker.org (8.14.1/8.14.1/Submit) id l567Y7b1001023
-	for linux-acpi@vger.kernel.org; Wed, 6 Jun 2007 03:34:07 -0400
-Content-Disposition: inline
+	id S932756AbXFFMMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jun 2007 08:12:44 -0400
+In-Reply-To: <46600F1C.5000302@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org
 
-According to http://bugzilla.kernel.org/show_bug.cgi?id=6933
-The latest BIOS for the P2B-S works fine.
-Remove it from the blacklist.
+CCs stripped...
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+On Fri, 2007-06-01 at 14:20 +0200, Michal Piotrowski wrote:
+> Hi all,
+> 
+> Here is a list of some known regressions in 2.6.22-rc3.
+> 
+> Feel free to add new regressions/remove fixed etc.
+> http://kernelnewbies.org/known_regressions
+> 
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 3ec110c..7c24a8d 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -67,8 +67,6 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
- 	/* IBM 600E - _ADR should return 7, but it returns 1 */
- 	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
- 	 "Incorrect _ADR", 1},
--	{"ASUS\0\0", "P2B-S   ", 0, ACPI_SIG_DSDT, all_versions,
--	 "Bogus PCI routing", 1},
- 
- 	{""}
- };
--- 
-http://www.codemonkey.org.uk
+> Subject    : long freezes on thinkpad t60
+> References : http://lkml.org/lkml/2007/5/24/100
+> Submitter  : Miklos Szeredi <miklos@szeredi.hu>
+> Handled-By : Ingo Molnar <mingo@elte.hu>
+> Status     : problem is being debugged
+
+I saw the same phenomenon on a totally other machine (therefore it's
+likely something else):
+Long periods (10-100s) of total unresponsiveness, not even SysRq-*
+working.
+
+In my case it was a HP nx6125, beeing unresponsive for about 5s, also
+e.g. NUM Led did not work (but was still set after the unresponsive
+phase ended).
+Looks like machine got stuck with irqs disabled?
+
+It came out that the problem was related to cpufreq (the real cause
+probably came from ACPI subsytem). The freq was limited via processor
+(_PPC) event and limitation got removed again at the same time, letting
+the machine switching down and up it hang in powernow-k8.
+Yes, it's unlikely that it's the same problem, but disabling cpufreq
+should be worth a test?
+
+Trying a kernel with CONFIG_DETECT_SOFTLOCKUP lockup should tell you at
+which place the machine hangs?
+
+   Thomas
+
