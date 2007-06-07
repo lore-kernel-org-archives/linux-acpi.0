@@ -1,65 +1,38 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Thu, 7 Jun 2007 12:23:04 +0000
-Message-ID: <20070607122303.GA8938@ucw.cz>
-References: <878xb35sje.fsf@goat.bogus.local> <200706012340.54394.rjw@sisk.pl> <87hcpr2ubl.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl> <87wsykpweu.fsf@goat.bogus.local>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Thu, 07 Jun 2007 17:58:59 +0100
+Message-ID: <1181235539.2610.72.camel@work>
+References: <1180614979.2693.26.camel@localhost.localdomain>
+	 <1180788652.2355.27.camel@localhost.localdomain>
+	 <20070602142333.GA3452@srcf.ucam.org>
+	 <200706030048.40393.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3567 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754115AbXFGMXR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jun 2007 08:23:17 -0400
-Content-Disposition: inline
-In-Reply-To: <87wsykpweu.fsf@goat.bogus.local>
+Received: from nf-out-0910.google.com ([64.233.182.184]:28093 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932467AbXFGQ7B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jun 2007 12:59:01 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so18269nfb
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Jun 2007 09:58:49 -0700 (PDT)
+In-Reply-To: <200706030048.40393.dtor@insightbb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Dmitry Torokhov <dtor@insightbb.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Bastien Nocera <hadess@hadess.net>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi!
+On Sun, 2007-06-03 at 00:48 -0400, Dmitry Torokhov wrote:
+> 
+> 
+> It looks like KEY_COFFE comes from 0x0c/0x19e - AL Terminal
+> Lock/Screensaver
+> so your interpretation is indeed correct. I guess I better add an
+> alias to
+> input.h
 
-> > Second, you can use PM_TRACE (Documentation/power/s2ram.txt) to find the
-> > place where it really fails.
-> 
-> First I augmented my minimal config kernel with some TRACE_RESUME()s:
-> 
-> --- a/kernel/power/main.c	2007-05-27 23:48:05.000000000 +0200
-> +++ b/kernel/power/main.c	2007-06-03 22:28:46.000000000 +0200
-> @@ -223,6 +223,7 @@
->  	pr_debug("PM: Finishing wakeup.\n");
->  	suspend_finish(state);
->   Unlock:
-> +	TRACE_RESUME(error);
->  	mutex_unlock(&pm_mutex);
->  	return error;
->  }
-> @@ -303,6 +304,7 @@
->  		error = enter_state(state);
->  	else
->  		error = -EINVAL;
-> +	TRACE_RESUME(error);
->  	return error ? error : n;
->  }
-...
-> I got alternating
->   hash matches drivers/base/power/resume.c:58
-> and
->   hash matches kernel/power/main.c:307
-> 
-> > First, you can check if the patch
-> >
-> > http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc3/patches/20-ACPI-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-> 
-> Then I applied this patch, but it doesn't change anything.
-> 
-> But either way the script never reaches "shutdown -rn now". So, it
-> seems, that my laptop does a full resume every other reboot, but it
-> never returns to userspace.
+What's the status of this patch? Good for merging? Do you want me to
+redo the current patch using input-polldev and the new setkeycode stuff?
 
-But it returns to kernel... can you use more trace points to figure
-out where it hangs?
+Richard.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
