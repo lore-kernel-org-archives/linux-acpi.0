@@ -1,126 +1,65 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [2.6.22-rc4-mm1] ACPI Exception (processor_throttling)
-Date: Thu, 07 Jun 2007 12:30:32 +0200
-Message-ID: <4667DE48.1030401@gmail.com>
-References: <20070606020737.4663d686.akpm@linux-foundation.org>	 <4667B970.7000506@gmail.com> <3877989d0706070209y7fc4518ai785dae5da0c92558@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
+Date: Thu, 7 Jun 2007 12:23:04 +0000
+Message-ID: <20070607122303.GA8938@ucw.cz>
+References: <878xb35sje.fsf@goat.bogus.local> <200706012340.54394.rjw@sisk.pl> <87hcpr2ubl.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl> <87wsykpweu.fsf@goat.bogus.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms080107010400000609070902"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:28870 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752706AbXFGKah (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jun 2007 06:30:37 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so656946ugf
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jun 2007 03:30:36 -0700 (PDT)
-In-Reply-To: <3877989d0706070209y7fc4518ai785dae5da0c92558@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3567 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754115AbXFGMXR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jun 2007 08:23:17 -0400
+Content-Disposition: inline
+In-Reply-To: <87wsykpweu.fsf@goat.bogus.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-This is a cryptographically signed message in MIME format.
+Hi!
 
---------------ms080107010400000609070902
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
-
-Luming Yu pisze:
-> Please test the attached patch.
+> > Second, you can use PM_TRACE (Documentation/power/s2ram.txt) to find the
+> > place where it really fails.
 > 
-
-It works. I still have exceptions in dmesg (probably my dsdt doesn't
-support _PTC and _TSS), but already I can read
-/proc/acpi/processor/CPU0/throttling:
-
-maciek@rutek:~$ cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  00%
-    T1:                  12%
-    T2:                  25%
-    T3:                  37%
-    T4:                  50%
-    T5:                  62%
-    T6:                  75%
-    T7:                  87%
-
-> Thanks,
-> Luming
+> First I augmented my minimal config kernel with some TRACE_RESUME()s:
 > 
+> --- a/kernel/power/main.c	2007-05-27 23:48:05.000000000 +0200
+> +++ b/kernel/power/main.c	2007-06-03 22:28:46.000000000 +0200
+> @@ -223,6 +223,7 @@
+>  	pr_debug("PM: Finishing wakeup.\n");
+>  	suspend_finish(state);
+>   Unlock:
+> +	TRACE_RESUME(error);
+>  	mutex_unlock(&pm_mutex);
+>  	return error;
+>  }
+> @@ -303,6 +304,7 @@
+>  		error = enter_state(state);
+>  	else
+>  		error = -EINVAL;
+> +	TRACE_RESUME(error);
+>  	return error ? error : n;
+>  }
+...
+> I got alternating
+>   hash matches drivers/base/power/resume.c:58
+> and
+>   hash matches kernel/power/main.c:307
+> 
+> > First, you can check if the patch
+> >
+> > http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc3/patches/20-ACPI-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+> 
+> Then I applied this patch, but it doesn't change anything.
+> 
+> But either way the script never reaches "shutdown -rn now". So, it
+> seems, that my laptop does a full resume every other reboot, but it
+> never returns to userspace.
 
-Thanks for help.
+But it returns to kernel... can you use more trace points to figure
+out where it hangs?
 
 -- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
-
---------------ms080107010400000609070902
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJHzCC
-AuowggJToAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloX
-DTA3MDgyODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUG
-CSqGSIb3DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlK
-ZsRSZnkKTdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocT
-wj1GzfReeGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUu
-UuVtCdJosQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJ
-JHdmqKTgjMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgff
-iQIDAQABozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0T
-AQH/BAIwADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCW
-CAfCyORrFaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE
-4I1hcOKz/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAuowggJT
-oAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloXDTA3MDgy
-ODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUGCSqGSIb3
-DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
-MIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlKZsRSZnkK
-TdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocTwj1GzfRe
-eGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUuUuVtCdJo
-sQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJJHdmqKTg
-jMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgffiQIDAQAB
-ozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCWCAfCyORr
-FaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE4I1hcOKz
-/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAz8wggKooAMCAQIC
-AQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENh
-cGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAm
-BgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1h
-aWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
-BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
-EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEF
-AAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B
-1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79A
-gAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8E
-CDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3
-dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEa
-MBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7M
-DaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk1
-3iSx0x1G/11fZU8xggNkMIIDYAIBATB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
-ZW1haWwgSXNzdWluZyBDQQIQTrGgkxzJbnibsa3oUSMXezAJBgUrDgMCGgUAoIIBwzAYBgkq
-hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNzA2MDcxMDMwMzJaMCMG
-CSqGSIb3DQEJBDEWBBT3AHG+fAIUDnG+veaNdmFLgYmuzzBSBgkqhkiG9w0BCQ8xRTBDMAoG
-CCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggq
-hkiG9w0DAgIBKDCBhQYJKwYBBAGCNxAEMXgwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6xoJMcyW54m7Gt6FEjF3swgYcGCyqGSIb3DQEJEAIL
-MXigdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkg
-THRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6x
-oJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEBBQAEggEAWkiY9LkdZyfua9n3+x9kpWZasew6
-KZc8kVGlWLa2F1hqP1WU4WN/zTjgtahW9E5IGXCDGzi8XbWiNz+V7/Joi7JLNoQ1uV111zBF
-KdLscYhFx7W+MV5ytkn9M8xe029UQhZxBeqZVbBRq6aej5fsWWGAZ02NaF7sc2p7aSil31lZ
-KkYvK2aVTcXWH756qt/Mup1yRKUmzbC3mAlSQobCKcnzY8m+pnJyUhNt6eRQAkbSYyZEN+mT
-zN1LT2ND/XxgluOQHvmlEYW1hebKgNt62u9sA8pQUN2Zn/8BZPnJydYXfDCPnQ7Ut6DKQLo/
-ocpDPsEz+D4hJl3I7URa3p+OeQAAAAAAAA==
---------------ms080107010400000609070902--
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
