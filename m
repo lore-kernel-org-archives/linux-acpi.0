@@ -1,38 +1,41 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Thu, 07 Jun 2007 17:58:59 +0100
-Message-ID: <1181235539.2610.72.camel@work>
-References: <1180614979.2693.26.camel@localhost.localdomain>
-	 <1180788652.2355.27.camel@localhost.localdomain>
-	 <20070602142333.GA3452@srcf.ucam.org>
-	 <200706030048.40393.dtor@insightbb.com>
+From: Olaf Dietsche <olaf+list.linux-acpi@olafdietsche.de>
+Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
+Date: Thu, 07 Jun 2007 21:50:28 +0200
+Message-ID: <87y7ivo86z.fsf@goat.bogus.local>
+References: <878xb35sje.fsf@goat.bogus.local> <200706041013.49428.rjw@sisk.pl>
+	<87hcpnpt4k.fsf@goat.bogus.local> <200706042302.45628.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:28093 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932467AbXFGQ7B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jun 2007 12:59:01 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so18269nfb
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jun 2007 09:58:49 -0700 (PDT)
-In-Reply-To: <200706030048.40393.dtor@insightbb.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200706042302.45628.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Mon, 4 Jun 2007 23:02:45 +0200")
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Bastien Nocera <hadess@hadess.net>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Sun, 2007-06-03 at 00:48 -0400, Dmitry Torokhov wrote:
-> 
-> 
-> It looks like KEY_COFFE comes from 0x0c/0x19e - AL Terminal
-> Lock/Screensaver
-> so your interpretation is indeed correct. I guess I better add an
-> alias to
-> input.h
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-What's the status of this patch? Good for merging? Do you want me to
-redo the current patch using input-polldev and the new setkeycode stuff?
+> You may try to use 's2ram --force --vbe_post --vbe_mode', if you haven't tried
+> that already.
 
-Richard.
+Unfortunately, this doesn't work either.
 
+> Still, if the card is a 7300 or higher, that need not work (at present we don't
+> know what magic is required to make these cards work).
+
+It's a GeForce 6600 Go. Anyway, you were right with your assumption.
+
+I installed the nvidia.ko (1.0-9755) kernel module and now the machine
+comes back to life. Although the screen stays black as before, I can
+type blindly "shutdown -r now" or ssh into the laptop.
+
+Regards, Olaf.
