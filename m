@@ -1,120 +1,237 @@
-From: Maciej Rutecki <mrutecki@akcja.pl>
-Subject: Re: [2.6.22-rc4-mm1] ACPI Exception (processor_throttling)
-Date: Thu, 07 Jun 2007 10:51:11 +0200
-Message-ID: <4667C6FF.9020401@akcja.pl>
-References: <20070606020737.4663d686.akpm@linux-foundation.org> <4667B970.7000506@gmail.com>
-Reply-To: mrutecki@akcja.pl
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: expose ACPI tables in sysfs
+Date: Fri, 08 Jun 2007 17:43:27 +0800
+Message-ID: <1181295807.5317.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090604090606040408090701"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx-out.strefa.interia.pl ([217.74.66.54]:42157 "EHLO
-	mx-out.strefa.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836AbXFGJkQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jun 2007 05:40:16 -0400
-In-Reply-To: <4667B970.7000506@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:4724 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751394AbXFGJod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jun 2007 05:44:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-This is a cryptographically signed message in MIME format.
+From: Zhang Rui <rui.zhang@intel.com>
 
---------------ms090604090606040408090701
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+This is the basic functionality of exposing ACPI tables in sysfs.
+Only static tables are exposed to user space in this patch.
+Every static table has a file under /sys/firmware/acpi/tables/.
+The file name is constituted of the table signature and instance number.
 
-Maciej Rutecki pisze:
+With this patch, we can get all the static ACPI tables except for RSDP and RSDT.
+For example, "#cat /sys/firmware/acpi/tables/dsdt > /tmp/dsdt.bin"
+can help you get the content of dsdt table.
+But iasl is still needed to disassemble the acpi tables.
 
-> ACPI Exception (processor_throttling-0084): AE_NOT_FOUND, Evaluating
-> _PTC [20070126]
-> ACPI Exception (processor_throttling-0147): AE_NOT_FOUND, Evaluating
-> _TSS [20070126]
->=20
-> On 2.6.20.9 I don't have this exceptions.
->=20
-> Other problem:
->=20
-> 2.6.22rc4-mm1:
-> rutek:/home/maciek# cat /proc/acpi/processor/CPU0/throttling
-> Naruszenie ochrony pami=C4=99ci (segmentation fault)
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/system.c |  144 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 131 insertions(+), 13 deletions(-)
 
-Update (2.6.22-rc4-mm2):
-
-rutek:/home/maciek# cat /proc/acpi/processor/CPU0/throttling
-acpi_processor_throttling_seq_show() is busted
-rutek:/home/maciek# cat /proc/acpi/processor/CPU1/throttling
-acpi_processor_throttling_seq_show() is busted
-
-
-
---=20
-Maciej Rutecki
-http://www.maciek.unixy.pl
-
-
---------------ms090604090606040408090701
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJAzCC
-AtwwggJFoAMCAQICEBLyWQ/dl9RSVDwQQ7RU42QwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyOTEzNDcyOFoX
-DTA3MDgyOTEzNDcyOFowQzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEgMB4G
-CSqGSIb3DQEJARYRbXJ1dGVja2lAYWtjamEucGwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
-ggEKAoIBAQDOjGXhBB1tZNUE+qezno0MzCYJxWcz/yGoBkafNL8wfwlPPbGhu47NdLCbemqm
-FA1sZJ8oBZ3s29GTsPXhYIXWbPxFn8rbljCGKG96/iC1jila0UCr/EDCSK9PV303x/orT+aC
-XwEg3KA5yfMU7ypGXDiQ9mcPnNu/3JIUUtVVToFKLLx4+whn4ZcU2WOt50njRKG+gfBD1/Eo
-enzkCh4ypywezgo9XCt6W6Sd742ktAN+6q/YGFDe7hHIx/s/cVD44GU3ItfXUR1PH3JqOcCd
-I9ifNn0u6UpXb86EpP/fEC0J52rU6gv6Hy3eNoEGT713e6sMsf2lfeGz/iQavCT5AgMBAAGj
-LjAsMBwGA1UdEQQVMBOBEW1ydXRlY2tpQGFrY2phLnBsMAwGA1UdEwEB/wQCMAAwDQYJKoZI
-hvcNAQEFBQADgYEAc/EVSnVPN/TBZlpdK47pHW9mK+h+30CaET+xKRJN2jvgHqg/mAtN8Fae
-gQWRJ4cNPlqsLVNb515+9DucvpBVEUZExLc7VXo4xqkNbbuhMH8NsQatW7951mFRS9Mr5reD
-/DejuvOmgkMKXe5OSRO03LmA0mHXhkJjtf4XNcGOzzQwggLcMIICRaADAgECAhAS8lkP3ZfU
-UlQ8EEO0VONkMA0GCSqGSIb3DQEBBQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
-ZW1haWwgSXNzdWluZyBDQTAeFw0wNjA4MjkxMzQ3MjhaFw0wNzA4MjkxMzQ3MjhaMEMxHzAd
-BgNVBAMTFlRoYXd0ZSBGcmVlbWFpbCBNZW1iZXIxIDAeBgkqhkiG9w0BCQEWEW1ydXRlY2tp
-QGFrY2phLnBsMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzoxl4QQdbWTVBPqn
-s56NDMwmCcVnM/8hqAZGnzS/MH8JTz2xobuOzXSwm3pqphQNbGSfKAWd7NvRk7D14WCF1mz8
-RZ/K25Ywhihvev4gtY4pWtFAq/xAwkivT1d9N8f6K0/mgl8BINygOcnzFO8qRlw4kPZnD5zb
-v9ySFFLVVU6BSiy8ePsIZ+GXFNljredJ40ShvoHwQ9fxKHp85AoeMqcsHs4KPVwrelukne+N
-pLQDfuqv2BhQ3u4RyMf7P3FQ+OBlNyLX11EdTx9yajnAnSPYnzZ9LulKV2/OhKT/3xAtCedq
-1OoL+h8t3jaBBk+9d3urDLH9pX3hs/4kGrwk+QIDAQABoy4wLDAcBgNVHREEFTATgRFtcnV0
-ZWNraUBha2NqYS5wbDAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUAA4GBAHPxFUp1Tzf0
-wWZaXSuO6R1vZivoft9AmhE/sSkSTdo74B6oP5gLTfBWnoEFkSeHDT5arC1TW+defvQ7nL6Q
-VRFGRMS3O1V6OMapDW27oTB/DbEGrVu/edZhUUvTK+a3g/w3o7rzpoJDCl3uTkkTtNy5gNJh
-14ZCY7X+FzXBjs80MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUFADCB0TELMAkGA1UE
-BhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMRowGAYD
-VQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNhdGlvbiBTZXJ2aWNl
-cyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIENBMSswKQYJ
-KoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4XDTAzMDcxNzAwMDAw
-MFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25z
-dWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJ
-c3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxVc1X7TrnKmVoeaMB1
-BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J8CuFWqo/cVbLrzwL
-B+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9IBH+nttE8YQRAHmQZ
-cmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0fBDwwOjA4oDagNIYy
-aHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1haWxDQS5jcmwwCwYD
-VR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRlTGFiZWwyLTEzODAN
-BgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aUnX9MIbj4Nh+qLZ82
-L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr3
-94fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2QwggNgAgEBMHYwYjEL
-MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAq
-BgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAhAS8lkP3ZfUUlQ8
-EEO0VONkMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTA3MDYwNzA4NTExMVowIwYJKoZIhvcNAQkEMRYEFDT3yPuAFumgJFkL+DVb
-/WK74XF/MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0G
-CCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkrBgEEAYI3EAQxeDB2
-MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQu
-MSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQEvJZD92X
-1FJUPBBDtFTjZDCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQK
-ExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29u
-YWwgRnJlZW1haWwgSXNzdWluZyBDQQIQEvJZD92X1FJUPBBDtFTjZDANBgkqhkiG9w0BAQEF
-AASCAQB0Iaf7CWtmYLjj2Ojh2YctibdfGTcUAcDCSRtPoF7/XYBBljSLe7SsHyfP4baQqx3s
-0ktTN7IvetDEPgoVGYVNC2BL0PmPrAq0PQ+FIRCiVKj41QJZaS39h1/1QsyzN903O/s+xPIf
-H/VVXUY6NKIWFtWtnUSB7mVMWSGdg39fYA6lDfVx5dPE2AwRaO1yXu4HPhAMBl3bTaM856Ic
-DNjmpUj+gpc853N4vkO6qlfytGdJppYN6PJ1j6BMfuZtRUqOu+KzHQiFFw8Ecby1BYkwv+cE
-NXJUjOZsf/U2UDlbGY/8pDMX0LXjbr3iW7sllpspM74YqHOUkzxbc6YqlxBLAAAAAAAA
---------------ms090604090606040408090701--
+Index: linux-2.6.22-rc4/drivers/acpi/system.c
+===================================================================
+--- linux-2.6.22-rc4.orig/drivers/acpi/system.c	2007-06-08 00:16:53.000000000 +0800
++++ linux-2.6.22-rc4/drivers/acpi/system.c	2007-06-08 00:24:40.000000000 +0800
+@@ -39,10 +39,7 @@ ACPI_MODULE_NAME("system");
+ 
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
+-#define ACPI_SYSTEM_FILE_INFO		"info"
+-#define ACPI_SYSTEM_FILE_EVENT		"event"
+-#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
+-#define ACPI_SYSTEM_FILE_FADT		"fadt"
++
+ 
+ /*
+  * Make ACPICA version work as module param
+@@ -58,9 +55,117 @@ static int param_get_acpica_version(char
+ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
+ 
+ /* --------------------------------------------------------------------------
++                              FS Interface (/sys)
++   -------------------------------------------------------------------------- */
++static LIST_HEAD(acpi_table_attr_list);
++static struct kobject tables_kobj;
++
++struct acpi_table_attr {
++	struct bin_attribute	attr;
++	char			name[8];
++	int			instance;
++	struct list_head	node;
++};
++
++static ssize_t acpi_table_show(struct kobject *kobj, struct bin_attribute *bin_attr,
++					char *buf, loff_t offset, size_t count)
++{
++	struct acpi_table_attr *table_attr = container_of(bin_attr, struct acpi_table_attr, attr);
++	struct acpi_table_header *table_header = NULL;
++	acpi_status status;
++	ssize_t ret_count = count;
++
++	status = acpi_get_table(table_attr->name, table_attr->instance, &table_header);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	if (offset >= table_header->length) {
++		ret_count = 0;
++		goto end;
++	}
++
++	if (offset + ret_count > table_header->length)
++		ret_count = table_header->length - offset;
++
++	memcpy(buf, ((char *)table_header)+offset, ret_count);
++
++     end:
++	return ret_count;
++}
++
++static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
++				 struct acpi_table_header *table_header)
++{
++	struct acpi_table_header *header = NULL;
++	struct acpi_table_attr *attr = NULL;
++
++	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
++
++	list_for_each_entry(attr, &acpi_table_attr_list, node) {
++		if (!memcmp(table_header->signature, attr->name,
++			ACPI_NAME_SIZE))
++			if (table_attr->instance < attr->instance)
++				table_attr->instance = attr->instance;
++	}
++	table_attr->instance ++;
++
++	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
++		!acpi_get_table(table_header->signature, 2, &header)))
++		sprintf(table_attr->name+4, "%d", table_attr->instance);
++
++	table_attr->attr.size = 0;
++	table_attr->attr.read = acpi_table_show;
++	table_attr->attr.attr.name = table_attr->name;
++	table_attr->attr.attr.mode = 0444;
++	table_attr->attr.attr.owner = THIS_MODULE;
++
++	return ;
++}
++
++static int acpi_system_sysfs_init(void)
++{
++	struct acpi_table_attr *table_attr;
++	struct acpi_table_header *table_header = NULL;
++	int table_index = 0;
++	int result;
++
++	tables_kobj.parent = &acpi_subsys.kobj;
++	kobject_set_name(&tables_kobj, "tables");
++	result = kobject_register(&tables_kobj);
++	if (result)
++		return result;
++
++	do {
++		result = acpi_get_table_by_index(table_index, &table_header);
++		if (!result) {
++			table_index++;
++			table_attr = NULL;
++			table_attr = kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
++			if (!table_attr)
++				return -ENOMEM;
++
++			acpi_table_attr_init(table_attr, table_header);
++			result = sysfs_create_bin_file(&tables_kobj, &table_attr->attr);
++			if (result) {
++				kfree(table_attr);
++				return result;
++			}
++			else
++				list_add_tail(&table_attr->node, &acpi_table_attr_list);
++		}
++	} while(!result);
++
++	return 0;
++}
++
++/* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_PROCFS
++#define ACPI_SYSTEM_FILE_INFO		"info"
++#define ACPI_SYSTEM_FILE_EVENT		"event"
++#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
++#define ACPI_SYSTEM_FILE_FADT		"fadt"
+ 
+ static int acpi_system_read_info(struct seq_file *seq, void *offset)
+ {
+@@ -80,7 +185,7 @@ static const struct file_operations acpi
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
+-#endif
++
+ 
+ static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
+ 				     loff_t *);
+@@ -134,17 +239,13 @@ acpi_system_read_fadt(struct file *file,
+ 	return res;
+ }
+ 
+-static int __init acpi_system_init(void)
++static int acpi_system_procfs_init(void)
+ {
+ 	struct proc_dir_entry *entry;
+ 	int error = 0;
+ 	char *name;
+ 
+ 
+-	if (acpi_disabled)
+-		return 0;
+-
+-#ifdef CONFIG_ACPI_PROCFS
+ 	/* 'info' [R] */
+ 	name = ACPI_SYSTEM_FILE_INFO;
+ 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
+@@ -153,7 +254,6 @@ static int __init acpi_system_init(void)
+ 	else {
+ 		entry->proc_fops = &acpi_system_info_ops;
+ 	}
+-#endif
+ 
+ 	/* 'dsdt' [R] */
+ 	name = ACPI_SYSTEM_FILE_DSDT;
+@@ -177,12 +277,30 @@ static int __init acpi_system_init(void)
+       Error:
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
+-#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
+-#endif
+ 
+ 	error = -EFAULT;
+ 	goto Done;
+ }
++#else
++static int acpi_system_procfs_init(void) {
++	return 0;
++}
++#endif
++
++static int __init acpi_system_init(void)
++{
++	int result = 0;
+ 
++	if (acpi_disabled)
++		return 0;
++
++	result = acpi_system_procfs_init();
++	if (result)
++		return result;
++
++	result = acpi_system_sysfs_init();
++
++	return result;
++}
+ subsys_initcall(acpi_system_init);
