@@ -1,45 +1,87 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: Docking support?
-Date: Fri, 8 Jun 2007 09:07:33 -0700
-Message-ID: <20070608090733.b737c1a1.kristen.c.accardi@intel.com>
-References: <20070608104706.GA10553@implementation>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.22-rc4-mm1 -- x86_64 ACPI panic
+Date: Fri, 8 Jun 2007 11:12:15 -0700
+Message-ID: <20070608111215.5c492330.akpm@linux-foundation.org>
+References: <20070606020737.4663d686.akpm@linux-foundation.org>
+	<4666BDF1.6080801@shadowen.org>
+	<20070606105223.c8dece17.akpm@linux-foundation.org>
+	<3877989d0706080215x22f35292g8cb999f8720cd87c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37233 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965798AbXFHQLE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jun 2007 12:11:04 -0400
-In-Reply-To: <20070608104706.GA10553@implementation>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54091 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763961AbXFHSM4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2007 14:12:56 -0400
+In-Reply-To: <3877989d0706080215x22f35292g8cb999f8720cd87c@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: linux-acpi@vger.kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: Andy Whitcroft <apw@shadowen.org>, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 8 Jun 2007 18:47:06 +0800
-Samuel Thibault <samuel.thibault@ens-lyon.org> wrote:
+On Fri, 8 Jun 2007 17:15:45 +0800
+"Luming Yu" <luming.yu@gmail.com> wrote:
 
-> Hi,
+> The only problem known as to the acpi throttling changes in the mm tree
+> is a typo ,and the patch to fix it is available here.  Please test and
+> get results back to me. BTW,the log shows that the acpi-cpufreq.ko has
+> problem. Would please also try not to load acpi-cpufreq.
 > 
-> The dock driver seems to work for me for undocking: when I press the
-> button on my docking station, kernel prints a message and the button
-> turns blank, telling me that I can get my laptop out.
-> 
-> However, when I put my laptop back on the docking station, nothing seems
-> to happen.  Do I need to echo something on /proc or something else?
-> Also, I'd really like to receive ACPI docking events in userland for
-> triggering video devices configuration for instance.
-> 
-> Samuel
-> 
+> http://www.ussg.iu.edu/hypermail/linux/kernel/0706.0/2509.html
 
-This should just work without you needing to echo anything.  We also do
-send uevents when you dock, so should be able to use this perfectly fine.
-Can you give it a try with -mm kernel (to make sure you have all the latest
-acpi patches) and send in your dmesg output for docking and undocking? Also,
-what kind of laptop are you using - some of them have issues with repeated
-docking and undocking. 
+Sigh.  Is this some sort of contest to see how many things we can
+do wrong in a single patch?
 
-Thanks,
-Kristen
+- Include a changelog
+
+- Include Signed-off-by:
+
+- Don't use attachments
+
+- If you _must_ use attachments, use text/plain, not application/octet-stream
+
+- Format code to remain within 80 columns.
+
+- Don't do "if(".  Do "if ("
+
+Oh well.  Good to hear that the oops got fixed, thanks.
+
+
+From: "Luming Yu" <luming.yu@gmail.com>
+
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show
++++ a/drivers/acpi/processor_throttling.c
+@@ -656,18 +656,20 @@ static int acpi_processor_throttling_seq
+ 		   pr->throttling.state_count - 1);
+ 
+ 	seq_puts(seq, "states:\n");
+-	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
++	if (pr->throttling.acpi_processor_get_throttling ==
++			acpi_processor_get_throttling_fadt) {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (pr->throttling.states[i].performance ? pr->
+ 				    throttling.states[i].performance / 10 : 0));
+-	else
++	} else {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (int)pr->throttling.states_tss[i].
+ 				   freqpercentage);
++	}
+ 
+       end:
+ 	return 0;
+_
+
