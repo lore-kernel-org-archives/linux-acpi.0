@@ -1,18 +1,18 @@
 From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: [PATCH]: add parameter "struct bin_attribute *" in
 	.read/.write methods for sysfs binary attributes
-Date: Sat, 09 Jun 2007 16:13:05 +0800
-Message-ID: <1181376785.5471.4.camel@localhost.localdomain>
+Date: Fri, 08 Jun 2007 16:36:18 +0800
+Message-ID: <1181291778.5575.4.camel@localhost.localdomain>
 References: <1181208695.5317.2.camel@localhost.localdomain>
 	 <20070608044809.GB28395@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6368 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:52481 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030450AbXFHINW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jun 2007 04:13:22 -0400
+	id S935256AbXFHIfQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jun 2007 04:35:16 -0400
 In-Reply-To: <20070608044809.GB28395@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,6 +20,7 @@ To: Greg KH <greg@kroah.com>
 Cc: linux-kernel@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
 From: Zhang Rui <rui.zhang@intel.com>
+> > 
 > > Well, first of all, I don't want to change so many files either.
 > > 
 > > What I do:
@@ -60,7 +61,7 @@ From: Zhang Rui <rui.zhang@intel.com>
 > 
 > greg k-h
 
-This is the refreshed version. Thanks.
+This is the refreshed patch. Thanks.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
