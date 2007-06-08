@@ -1,41 +1,62 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Thu, 7 Jun 2007 23:15:23 +0200
-Message-ID: <20070607211523.GB8611@elf.ucw.cz>
-References: <878xb35sje.fsf@goat.bogus.local> <200706012340.54394.rjw@sisk.pl> <87hcpr2ubl.fsf@goat.bogus.local> <200706020037.16615.rjw@sisk.pl> <87wsykpweu.fsf@goat.bogus.local> <20070607122303.GA8938@ucw.cz> <87tztjo7zo.fsf@goat.bogus.local>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH]: add parameter "struct bin_attribute *" in
+	.read/.write methods for sysfs binary attributes
+Date: Thu, 7 Jun 2007 21:48:09 -0700
+Message-ID: <20070608044809.GB28395@kroah.com>
+References: <1181208695.5317.2.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:41936 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S936945AbXFGVPb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jun 2007 17:15:31 -0400
+Received: from pentafluge.infradead.org ([213.146.154.40]:40668 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755224AbXFHEvK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2007 00:51:10 -0400
 Content-Disposition: inline
-In-Reply-To: <87tztjo7zo.fsf@goat.bogus.local>
+In-Reply-To: <1181208695.5317.2.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olaf Dietsche <olaf.dietsche@olafdietsche.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-kernel@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
-On Thu 2007-06-07 21:54:51, Olaf Dietsche wrote:
-> Pavel Machek <pavel@ucw.cz> writes:
+On Thu, Jun 07, 2007 at 05:31:35PM +0800, Zhang Rui wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> >> But either way the script never reaches "shutdown -rn now". So, it
-> >> seems, that my laptop does a full resume every other reboot, but it
-> >> never returns to userspace.
-> >
-> > But it returns to kernel... can you use more trace points to figure
-> > out where it hangs?
+> Well, first of all, I don't want to change so many files either.
 > 
-> I haven't looked, but I guess this is somewhere in sysfs.
+> What I do:
+> Adding a new parameter "struct bin_attribute *" in the
+> .read/.write methods for the sysfs binary attributes.
 > 
-> I made some small progress. With the nvidia.ko kernel module loaded,
-> my laptop returns to userspace. I'll investigate this further.
+> In fact, only the four lines change in fs/sysfs/bin.c and
+> include/linux/sysfs.h do the real work.
+> But I have to update all the files that use binary attributes
+> to make them compatible with the new .read and .write methods.
+> I'm not sure if I missed any. :(
+> 
+> Why I do this:
+> For a sysfs attribute, we can get a pointer pointing to the
+> struct attribute in the .show/.store method,
+> while we can't do this for the binary attributes.
+> I don't know why this is different, but this does make it not
+> so handy to use the binary attributes as the regular ones.
+> So I think this patch is reasonable. :)
+> 
+> Who benefits from it:
+> The patch that exposes ACPI tables in sysfs
+> requires such an improvement.
+> All the table binary attributes share the same .read method.
+> Parameter "struct bin_attribute *" is used to get
+> the table signature and instance number which are used to
+> distinguish different ACPI table binary attributes.
+> 
+> Without this parameter, we need to offer different .read methods
+> for different ACPI table binary attributes.
+> This is impossible as there are various ACPI tables on different
+> platforms, and we don't know what they are until they are loaded.
 
-So it _was_ video card related :-). With working console, it should be
-easy to debug with printk.
-									Pavel
+I have no objection to this patch but it failes the checkpatch.pl script
+pretty badly with too long of lines.  Care to fix it up and resend it?
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+thanks,
+
+greg k-h
