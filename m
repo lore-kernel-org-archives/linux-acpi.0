@@ -1,63 +1,26 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Fri, 08 Jun 2007 15:30:16 +0100
-Message-ID: <1181313016.2499.51.camel@work>
-References: <1180614979.2693.26.camel@localhost.localdomain>
-	 <1180788652.2355.27.camel@localhost.localdomain>
-	 <20070602142333.GA3452@srcf.ucam.org>
-	 <200706030048.40393.dtor@insightbb.com> <1181235539.2610.72.camel@work>
-	 <d120d5000706080723i74adf0e2p8906469b72b948e@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH]: add parameter "struct bin_attribute *" in
+	.read/.write methods for sysfs binary attributes
+Date: Fri, 8 Jun 2007 07:52:37 -0700
+Message-ID: <20070608145237.GA6560@kroah.com>
+References: <1181208695.5317.2.camel@localhost.localdomain> <20070608044809.GB28395@kroah.com> <1181291778.5575.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:19939 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S969102AbXFHOaQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2007 10:30:16 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so967720ugf
-        for <linux-acpi@vger.kernel.org>; Fri, 08 Jun 2007 07:30:15 -0700 (PDT)
-In-Reply-To: <d120d5000706080723i74adf0e2p8906469b72b948e@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762891AbXFHOy2@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1181291778.5575.4.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-kernel@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Bastien Nocera <hadess@hadess.net>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, 2007-06-08 at 10:23 -0400, Dmitry Torokhov wrote:
-> On 6/7/07, Richard Hughes <hughsient@gmail.com> wrote:
-> > On Sun, 2007-06-03 at 00:48 -0400, Dmitry Torokhov wrote:
-> > >
-> > >
-> > > It looks like KEY_COFFE comes from 0x0c/0x19e - AL Terminal
-> > > Lock/Screensaver
-> > > so your interpretation is indeed correct. I guess I better add an
-> > > alias to
-> > > input.h
-> >
-> > What's the status of this patch? Good for merging?
+On Fri, Jun 08, 2007 at 04:36:18PM +0800, Zhang Rui wrote:
 > 
-> Not my call - John is the official maintainer of the driver. However
-> from input layer POV it looks good.
+> This is the refreshed patch. Thanks.
 
-Good, thanks.
+Can you resend with the proper changelog information, like the first
+version you sent?
 
-> > Do you want me to
-> > redo the current patch using input-polldev
-> 
-> The patch I send to you earlier already does this. I am attaching a
-> refreshed version that used KEY_COFFEE instead of KEY_BREAK.
+thanks,
 
-Brilliant, these look great.
-
-> > and the new setkeycode stuff?
-> 
-> And I have the patch doing this as well (attached). If you could
-> please give it a try I'd appreciate it.
-
-You beat me to it {hastily removes item from TODO...} :-)
-
-I'll give it a try as soon as possible, thanks.
-
-Richard.
-
-
+greg k-h
