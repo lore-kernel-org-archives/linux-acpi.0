@@ -1,87 +1,52 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.22-rc4-mm1 -- x86_64 ACPI panic
-Date: Fri, 8 Jun 2007 11:12:15 -0700
-Message-ID: <20070608111215.5c492330.akpm@linux-foundation.org>
-References: <20070606020737.4663d686.akpm@linux-foundation.org>
-	<4666BDF1.6080801@shadowen.org>
-	<20070606105223.c8dece17.akpm@linux-foundation.org>
-	<3877989d0706080215x22f35292g8cb999f8720cd87c@mail.gmail.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] check xpm2_control_block while setting bm_control
+Date: Fri, 8 Jun 2007 13:25:37 -0700
+Message-ID: <20070608202537.GA2184@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54091 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763961AbXFHSM4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2007 14:12:56 -0400
-In-Reply-To: <3877989d0706080215x22f35292g8cb999f8720cd87c@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:40748 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751315AbXFHU3X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jun 2007 16:29:23 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: Andy Whitcroft <apw@shadowen.org>, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
-
-On Fri, 8 Jun 2007 17:15:45 +0800
-"Luming Yu" <luming.yu@gmail.com> wrote:
-
-> The only problem known as to the acpi throttling changes in the mm tree
-> is a typo ,and the patch to fix it is available here.  Please test and
-> get results back to me. BTW,the log shows that the acpi-cpufreq.ko has
-> problem. Would please also try not to load acpi-cpufreq.
-> 
-> http://www.ussg.iu.edu/hypermail/linux/kernel/0706.0/2509.html
-
-Sigh.  Is this some sort of contest to see how many things we can
-do wrong in a single patch?
-
-- Include a changelog
-
-- Include Signed-off-by:
-
-- Don't use attachments
-
-- If you _must_ use attachments, use text/plain, not application/octet-stream
-
-- Format code to remain within 80 columns.
-
-- Don't do "if(".  Do "if ("
-
-Oh well.  Good to hear that the oops got fixed, thanks.
+To: Len Brown <len.brown@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
 
-From: "Luming Yu" <luming.yu@gmail.com>
+Check both pm2_control_block and cpm2_control_block for bm_control. It should
+be better to do this with checking of address from consolidated
+fadt_info_table[]. But, that will need some changes in acpica tables code.
 
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
- drivers/acpi/processor_throttling.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show
-+++ a/drivers/acpi/processor_throttling.c
-@@ -656,18 +656,20 @@ static int acpi_processor_throttling_seq
- 		   pr->throttling.state_count - 1);
+Index: linux-2.6.22-rc-mm/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.22-rc-mm.orig/drivers/acpi/processor_core.c	2007-06-07 11:03:56.000000000 -0700
++++ linux-2.6.22-rc-mm/drivers/acpi/processor_core.c	2007-06-07 11:20:53.000000000 -0700
+@@ -521,11 +521,22 @@
  
- 	seq_puts(seq, "states:\n");
--	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
-+	if (pr->throttling.acpi_processor_get_throttling ==
-+			acpi_processor_get_throttling_fadt) {
- 		for (i = 0; i < pr->throttling.state_count; i++)
- 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
- 				   (i == pr->throttling.state ? '*' : ' '), i,
- 				   (pr->throttling.states[i].performance ? pr->
- 				    throttling.states[i].performance / 10 : 0));
--	else
-+	} else {
- 		for (i = 0; i < pr->throttling.state_count; i++)
- 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
- 				   (i == pr->throttling.state ? '*' : ' '), i,
- 				   (int)pr->throttling.states_tss[i].
- 				   freqpercentage);
-+	}
+ 	acpi_processor_errata(pr);
  
-       end:
- 	return 0;
-_
-
++	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID) {
++		/* FADT rev. 2 */
++		if (acpi_gbl_FADT.xpm_timer_block.space_id !=
++		    ACPI_ADR_SPACE_SYSTEM_IO)
+ 	/*
+ 	 * Check to see if we have bus mastering arbitration control.  This
+ 	 * is required for proper C3 usage (to maintain cache coherency).
++	 * Check both pm2_control_block and xpm2_control_block
+ 	 */
+-	if (acpi_gbl_FADT.pm2_control_block && acpi_gbl_FADT.pm2_control_length) {
++	if ((acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
++	     acpi_gbl_FADT.xpm2_control_block.space_id ==
++						 ACPI_ADR_SPACE_SYSTEM_IO &&
++	     acpi_gbl_FADT.xpm2_control_block.address &&
++	     acpi_gbl_FADT.xpm2_control_block.bit_width) ||
++	    (acpi_gbl_FADT.pm2_control_block &&
++	     acpi_gbl_FADT.pm2_control_length)) {
+ 		pr->flags.bm_control = 1;
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Bus mastering arbitration control present\n"));
