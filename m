@@ -1,85 +1,59 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: [PATCH] Enable C3 even when PM2 control block is not present
-Date: Fri, 8 Jun 2007 13:27:11 -0700
-Message-ID: <20070608202711.GB2184@linux-os.sc.intel.com>
+From: "Alexey Starikovskiy" <aystarik@gmail.com>
+Subject: Re: cpufreq support still broken on some laptops
+Date: Sat, 9 Jun 2007 00:33:08 +0400
+Message-ID: <8f8ff01d0706081333q4d44daeg7633838de5207502@mail.gmail.com>
+References: <A2B2EBD3-64AE-457A-92C3-4E0462A35E2B@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21820 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752460AbXFHUa5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jun 2007 16:30:57 -0400
+Received: from wx-out-0506.google.com ([66.249.82.235]:16135 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbXFHUdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2007 16:33:09 -0400
+Received: by wx-out-0506.google.com with SMTP id t15so829257wxc
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Jun 2007 13:33:08 -0700 (PDT)
+In-Reply-To: <A2B2EBD3-64AE-457A-92C3-4E0462A35E2B@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: Tobias Neumann <tobias.neumann@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
+Please take a look at bugzilla.kernel.org $8558
 
-
-On systems that do not have pm2_control_block, we cannot really use
-ARB_DISABLE before C3. We used to disable C3 totally on such systems.
-
-To be compatible with Windows, we need to enable C3 on such systems now.
-We just skip ARB_DISABLE step before entering the C3-state and assume
-hardware is handling things correctly. Also, ACPI spec is not clear
-about pm2_control is _needed_ for C3 or not.
-
-We have atleast one system that need this to enable C3.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-Index: linux-2.6.22-rc-mm/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.22-rc-mm.orig/drivers/acpi/processor_idle.c	2007-06-07 10:47:00.000000000 -0700
-+++ linux-2.6.22-rc-mm/drivers/acpi/processor_idle.c	2007-06-07 11:35:07.000000000 -0700
-@@ -506,9 +506,9 @@
- 	if (pr->flags.bm_check) {
- 		/* bus mastering control is necessary */
- 		if (!pr->flags.bm_control) {
-+			/* In this case we enter C3 without bus mastering */
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "C3 support requires bus mastering control\n"));
--			return;
-+				"C3 support without bus mastering control\n"));
- 		}
- 	} else {
- 		/*
-@@ -977,8 +977,17 @@
- 		return 0;
- 	}
- 
--	/* disable bus master */
--	if (pr->flags.bm_check) {
-+	/*
-+	 * disable bus master
-+	 * bm_check implies we need ARB_DIS
-+	 * !bm_check implies we need cache flush
-+	 * bm_control implies whether we can do ARB_DIS
-+	 *
-+	 * That leaves a case where bm_check is set and bm_control is not set.
-+	 * In that case we cannot do much, we enter C3 without doing anything.
-+	 * This the other OS compatible behavior.
-+	 */
-+	if (pr->flags.bm_check && pr->flags.bm_control) {
- 		spin_lock(&c3_lock);
- 			c3_cpu_count++;
- 		if (c3_cpu_count == num_online_cpus()) {
-@@ -989,7 +998,7 @@
- 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
- 		}
- 		spin_unlock(&c3_lock);
--	} else {
-+	} else if (!pr->flags.bm_check) {
- 		/* SMP with no shared cache... Invalidate cache  */
- 		ACPI_FLUSH_CPU_CACHE();
- 	}
-@@ -1000,7 +1009,7 @@
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--	if (pr->flags.bm_check) {
-+	if (pr->flags.bm_check && pr->flags.bm_control) {
- 		spin_lock(&c3_lock);
- 		/* Enable bus master arbitration */
- 		if (c3_cpu_count == num_online_cpus())
+Regards,
+Alex
+On 6/2/07, Tobias Neumann <tobias.neumann@gmail.com> wrote:
+> Hi,
+> on my Thinkpad T60 (2007-FUG), with kernel 2.6.21.1 I have the same
+> problem Ingo Molnar had in January and successfully fixed for his model:
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/
+> linux-2.6.git;a=commit;h=e4233dec749a3519069d9390561b5636a75c7579
+>
+> "Recently cpufreq support on my laptop (Lenovo T60) broke completely:
+> when
+> it's plugged into AC it would never go higher than 1 GHz - neither
+> 1.3 GHz
+> nor 1.83 GHz is possible - no matter which governor (userspace, speed or
+> ondemand) is used."
+>
+> 2.6.21 and 2.6.20 include this patch and should not have this problem
+> anymore.
+>
+> Is there any way I can see when ACPI calls for _PPC happen (via
+> ACPI_DEBUG) and which _PPC values get returned? Which debug_level do
+> I need?
+>
+> Here are some more people with the same problem on 2.6.20 and 2.6.21
+> (which includes that patch too):
+> https://bugs.beta.launchpad.net/ubuntu/+source/linux-source-2.6.20/
+> +bug/88899
+>
+> Thanks,
+>    Tobias
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
