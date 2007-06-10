@@ -1,44 +1,44 @@
-From: Mikhail Gusarov <dottedmag@dottedmag.net>
-Subject: Asus M6N: no battery information in > 2.6.20
-Date: Sun, 10 Jun 2007 14:54:43 +0700
-Message-ID: <87zm38gs70.fsf@vertex.dottedmag.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [KJ] [PATCH] drivers/acpi: sizeof/sizeof array size calculations replaced with ARRAY_SIZE
+Date: Sun, 10 Jun 2007 10:57:12 +0000
+Message-ID: <20070610105712.GA4695@ucw.cz>
+References: <200705261239.27485.lists-receive@programmierforen.de> <46581C06.7000005@student.ltu.se> <200705261558.24912.lists-receive@programmierforen.de> <200705301525.05905.lenb@kernel.org> <20070531095603.GA24654@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dottedmag.net ([85.118.226.199]:51151 "EHLO dottedmag.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762562AbXFJI0R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Jun 2007 04:26:17 -0400
-Received: from vertex.dottedmag.net (unknown [10.10.31.3])
-	by dottedmag.net (Postfix) with ESMTP id EB07E1BE45
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Jun 2007 14:54:44 +0700 (NOVST)
-Received: from vertex.dottedmag.net (localhost [127.0.0.1])
-	by vertex.dottedmag.net (Postfix) with ESMTP id 1127913BF5
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Jun 2007 14:54:44 +0700 (NOVST)
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1253 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755768AbXFJK5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Jun 2007 06:57:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20070531095603.GA24654@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>, Len Brown <lenb@kernel.org>, Andi Drebes <lists-receive@programmierforen.de>, kernel-janitors@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+Hi!
 
-I've encountered a regression: 2.6.20 kernel correctly obtained battery level
-information on Asus M6N notebook, while 2.6.22-rc3 (and rc4) no longer do this.
+> > > > Any reason to not just replace ACPI_RSD_TABLE_SIZE with ARRAY_SIZE?
+> > 
+> > Probably because ARRAY_SIZE doesn't exist in ACPICA, which is
+> > where this code comes from...
+> > 
+> > When we change syntax in ACPICA files in Linux to make it more "beautiful",
+> > then it creates more work for me -- as forever on, that syntax difference
+> > must be manually compared to upstream ACPICA and Linux -- and that syntax
+> > difference causes upstream patches to no longer apply and require
+> > hand merging.
+> 
+> Or we could stop that ACPCICA crap ASAP.  The acpi code not only looks
+> like crap because of that but it's buggy as hell now.
 
-All relevant information and files are posted in
-http://bugzilla.kernel.org/show_bug.cgi?id=8598. Copying from the bug
-description:
++1.
 
-Most recent kernel where this bug did *NOT* occur: 2.6.20
-Distribution: Debian
-Hardware Environment: Asus M6N notebook
-Problem Description:
-
-Main battery status/information is not reported: in 2.6.20 there were two
-directories in /proc/acpi/battery: BAT0 and BAT1 (second properly reported as
-missing, seems to be slot for extension battery), in 2.6.22-rc3 and rc4 there is
-only BAT1.
-
-PS: please CC me, I'm not in list.
-
+Len, acpi subsystem is old enough to live by kernel standards, and
+important enough that it should look&feel like a kernel code. It also
+does not seem to change quickly, so merging patches should not be a
+big deal.
+							Pavel
 -- 
-JID: dottedmag@jabber.dottedmag.net
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
