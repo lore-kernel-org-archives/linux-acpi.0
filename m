@@ -1,505 +1,152 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Documentation - How to debug ACPI Problems
-Date: Mon, 11 Jun 2007 18:28:41 +0200
-Message-ID: <1181579321.28514.304.camel@queen.suse.de>
-References: <1181140008.28514.259.camel@queen.suse.de>
-	 <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
-Reply-To: trenn@suse.de
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: acpi/sensors temperature on nx6325
+Date: Mon, 11 Jun 2007 21:58:01 +0200
+Message-ID: <466DA949.8050505@gmail.com>
+References: <200706111310.25351.dev.list@mircea.bardac.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-cl6kTzTe0KXF5HRQJSa+"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020001080200070706080204"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:42931 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751622AbXFKQ2n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jun 2007 12:28:43 -0400
-In-Reply-To: <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
+Received: from ug-out-1314.google.com ([66.249.92.170]:44359 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755300AbXFKT6H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jun 2007 15:58:07 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so1555239ugf
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Jun 2007 12:58:05 -0700 (PDT)
+In-Reply-To: <200706111310.25351.dev.list@mircea.bardac.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
+To: Mircea Bardac <dev.list@mircea.bardac.net>
+Cc: linux-acpi@vger.kernel.org
+
+This is a cryptographically signed message in MIME format.
+
+--------------ms020001080200070706080204
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Mircea Bardac pisze:
+> Hi all,
+>=20
+> I'm currently running kernel 2.6.21.3 on a HP nx6325.
+>=20
+> I like having in the taskbar information about cpu/mem/temperature/etc.=
+ I=20
+> found a strange behaviour monitoring the ACPI provided temperature. It =
+
+> currently shows for example 48C constantly, for lots of minutes.=20
+>=20
+> Doing a: dd if=3D/dev/urandom of=3D/dev/null increases the CPU usage an=
+d=20
+> temperature should increase too. The ACPI temperature stays the same th=
+ough.
+>=20
+> I have also loaded the lm_sensors modules which, after some monitoring,=
+ appear=20
+> to be working right, meaning "it shows an increasing temperature if the=
+ CPU=20
+> usage increases".
+>=20
+> # cat /proc/acpi/thermal_zone/TZ1/temperature && sensors
+> temperature:             48 C
+> k8temp-pci-00c3
+> Adapter: PCI adapter
+> Core0 Temp:
+>              +54=B0C
+> Core1 Temp:
+>              +53=B0C
+>=20
+>=20
+> The ACPI temperature increases only when the trip-point is reached. I h=
+ear the=20
+> fans starting. When the fans stop, the temperature drops "hard" to the =
+
+> previous value.
+>=20
+> I've changed the polling frequency to 1:
+> # cat /proc/acpi/thermal_zone/TZ1/polling_frequency
+> polling frequency:       1 seconds
+>=20
+> I got the same effect: I can't see the temperature change dynamically, =
+degree=20
+> by degree. Also, in a test, the sensor went up to 60-65C and the trip-p=
+oint=20
+> did't activate. This was with polling set to 1.
+>=20
+
+Similar on nx6310. Sometimes when I turn on laptop when CPU temperature
+(first thermal zone - TZ0) is above 1st trip point the fan doesn't turn
+on now, but only when second trip point was reached.
+
+--=20
+Maciej Rutecki
+http://www.maciek.unixy.pl
 
 
---=-cl6kTzTe0KXF5HRQJSa+
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+--------------ms020001080200070706080204
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-Thanks a lot for all your input!
-
-Here is an updated version in patch format.
-Len, it would be great if you can also add this one to your test tree.
-
-On Wed, 2007-06-06 at 16:59 +0200, Jesper Juhl wrote:
-> On 06/06/07, Thomas Renninger <trenn@suse.de> wrote:
-> > Hi,
-> >
-> > (patches already exist in
-> >          2.6.22-rcX-mm?) to send syslog messages over firewire.
-> >          The latter might be the only way to debug early hangs on laptops
-> >          without serial console anyway.
-> >
-> 
-> "without a serial console" ???
-Without a serial device (or serial port?), better?
-> 
-> >    3.2.2 Using ACPI_DEBUG Boot Parameters via /sysfs and /proc
-> >
-> >          The same as 3.2.1., you can also pass the parameters at runtime e.g.
-> >          via:
-> >          echo 0x1F >/proc/acpi/debug_level    # before 2.6.22 or
-> >          echo ?!?  >/sys/?/!/?                # Rui?
-> 
-> Seems like some bits are missing here ^^^
-Thanks to Rui, updated..
-
-    Thomas
-
-Create Documentation/acpi dir and add first ACPI debug How-To
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
----
- Documentation/00-INDEX                |    3 
- Documentation/acpi/00-INDEX           |    4 
- Documentation/acpi/acpi_debugging.txt |  181 ++++++++++++++++++++++++++++++++++
- 3 files changed, 188 insertions(+)
-
-Index: linux-2.6.22-rc3/Documentation/acpi/acpi_debugging.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc3/Documentation/acpi/acpi_debugging.txt
-@@ -0,0 +1,181 @@
-+How to debug ACPI (Advanced Configuration and Power Interface) Problems
-+=======================================================================
-+
-+Thomas Renninger <trenn@suse.de>, 2007
-+Copyright (C) 2007 SUSE Linux GmbH
-+
-+
-+1. Introduction
-+---------------
-+
-+1.1. General Info
-+- - - - - - - -
-+
-+Please refer to the latest ACPI spec for general ACPI information:
-+http://www.acpi.info/spec.htm
-+
-+
-+ACPI is required by most recent x86, x86_64 and IA64 architecture based
-+machines.
-+
-+In general ACPI tables provide information from the BIOS to the OS.
-+There are ACPI tables (DSDT and SSDTs), written in the ACPI Source
-+Language (ASL) which include byte code (similar to Java byte code) that gets
-+interpreted by the OS. The kernel makes use of BIOS functions declared and
-+described there by interpreting them to setup and access different hardware.
-+
-+There exist two compilers/interpreters for ASL code, one from Microsoft and
-+one from Intel. The Intel code has an Open Source license. The software package
-+is called ACPICA. It includes the code for disassembling DSDT tables,
-+(re-)compiling them, parsing several ACPI tables and interpreting ACPI Machine
-+Language (AML, the compiled ASL..). The code is used to provide several
-+userspace tools, but large parts are also contributed to the linux kernel and
-+other OSs.
-+drivers/acpi/*.c currently is Linux code implementing most parts of the ACPI
-+spec, everything in the directories below, gets synchronized with the ACPICA
-+Intel package.
-+
-+
-+1.2. Useful Userspace Tools for Table Playing
-+- - - - - - - - - - - - - - - - - - - - - - -
-+
-+The ACPI tables of your system can be extracted with the acpidump tool in the
-+latest pmutils package from here:
-+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils
-+
-+acpixtract, iasl, acpiexec can be found in the ACPICA sources:
-+http://developer.intel.com/technology/iapc/acpi/downloads.htm
-+
-+You can now:
-+acpidump >acpidump       # cp your ACPI tables from memory to disk
-+acpixtract -a acpidump   # extract them into raw, single tables
-+iasl -d TABLE.dat        # disassemble/parse a specific table
-+iasl -sa DSDT.dsl        # e.g. recompile a modified, disassembled DSDT for
-+                           initramfs inclusion (see later)
-+acpiexec DSDT.dat        # parse, interpret and load a DSDT in userspace
-+
-+The latter can sometimes be very useful to debug buggy DSDTs in userspace.
-+It provides a debug shell which e.g. offers execution of specific ACPI
-+functions, increase of debug output and more.
-+
-+
-+2. Overriding DSDT
-+------------------
-+
-+The DSDT (there is a patch also for SSDTs) can be overridden by the user.
-+The tables get copied to RAM when booting and the kernel can override them with
-+alternative tables at early boot time.
-+
-+Historically people used to override their DSDT to workaround BIOS or even
-+kernel bugs. This is a bad idea, the override functionality is for short
-+term workarounds and mainly for debugging! Please always report such bugs to
-+bugzilla.kernel.org or post to linux-acpi@vger.kernel.org if unsure.
-+
-+There are two possibilities to override the DSDT:
-+
-+  - via CONFIG_ACPI_CUSTOM_DSDT (and _FILE) compile option(s)
-+  - via adding a customized DSDT into initramfs
-+
-+The second approach does not need kernel recompilation and some distributions
-+provide the patch, which is not included in mainline, in their kernels.
-+
-+The patch and more information can be found here (many thanks to Markus
-+Gaugusch and Eric Piel):
-+http://gaugusch.at/kernel.shtml
-+
-+
-+3. Problem Analysis and Solving
-+-------------------------------
-+
-+3.1. I see Warnings or Errors when disassembling or compiling my DSDT
-+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-+
-+Some might be sever ACPICA or BIOS bugs, some might just be incompatibilities
-+with the Microsoft compiler. We want to fix both, therefore a bug should be
-+filed at bugzilla.kernel.org
-+In general you should watch your system, if you don't miss any functionality
-+there is no reason to panic (e.g. modify the DSDT and override your original
-+one, you really should not do that if you do not see any big advantage and even
-+then, better try to get a real fix or at least a kernel workaround like a
-+boot or module parameter).
-+
-+You should be able to debug this with userspace tools (See:
-+"1.2. Useful Userspace Tools for Table Playing")
-+
-+
-+3.2. Hardware accessed by ACPI is not working correctly - Using ACPI_DEBUG
-+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-+
-+If you suspect the bug to be in a module in drivers/acpi/*.c code, you may be
-+able to find or narrow down the culprit simply by adding printk()'s.
-+
-+For more complicated bugs you should make use of the ACPI_DEBUG=y facility.
-+This allows you to fine grain enable specific output in the ACPI interpreter.
-+
-+
-+   3.2.1 Using ACPI_DEBUG Boot Parameters acpi.debug_level and acpi.debug_layer
-+
-+         Note: In kernel versions before 2.6.22 the boot parameters were:
-+	       acpi_dbg_level and acpi_dbg_layer
-+
-+         ACPI can produce tons of debug output if these debug masks are
-+         switched to full on.
-+	 include/acpi/acoutput.h shows which flags can be enabled for level and
-+         layer (cat /proc/acpi/debug_{level,layer} also shows you the flags,
-+	 but that interface will move to sysfs, not sure whether there still
-+	 will be such a help).
-+
-+         Therefore, switch on debug flags carefully. You also might want to
-+	 increase the kernel ring buffer by passing:
-+	 log_buf_len=XY in bytes and later use dmesg -s XY to get more than
-+	 16k kernel log output.
-+	 Instead of serial console logging you might want to use the netconsole
-+	 interface (Documentation/networking/netconsole.txt) to send syslog
-+	 messages over network or firewire to send syslog messages over
-+	 firewire.
-+	 The latter might be the only way to debug early hangs on laptops
-+	 without a serial device anyway.
-+
-+   3.2.2 Using ACPI_DEBUG Boot Parameters via /sysfs and /proc
-+
-+	 The same as 3.2.1., you can also pass the parameters at runtime e.g.
-+	 via:
-+	 echo 0x1F >/sys/module/acpi/parameters/debug_{level,layer}
-+
-+	 Be aware that this interface exists since 2.6.22. In older kernels
-+	 it is /proc/acpi/debug_{level,layer}, which worked in the same way.
-+
-+	 Wrapping such statements around loading and unloading a bug affected
-+	 ACPI module might give you the possibility to increase debug_level,
-+	 but still only give you a manageable amount of debug output.
-+
-+   3.2.3 Using ACPI_DEBUG ASL debug object
-+
-+	 You can also add a kind of printk to DSDT code(see 2. Overriding DSDT)
-+	 Store (XY, debug), will print the value of the ACPI XY variable into
-+	 syslog. Be aware that you need to have the
-+	 #define ACPI_LV_DEBUG_OBJECT        0x00000008
-+	 value defined in the debug_level mask to see any output.
-+	 This may only be useful if you get too much output with 3.2.[12] and
-+	 you think it is convenient to debug a very specific part of the ACPI
-+	 code.
-+
-+   3.2.4 Using ACPI_DEBUG acpi_dbg_layer and acpi_dbg_level kernel variables
-+
-+	 Similar, but more powerful than 3.2.3 is to modify the global kernel
-+	 variables for level and layer conditionally in the kernel code for
-+	 your needs.
-+	 E.g.
-+	 acpi_debug_level=0xFFFFFFFF /* increase debug output to max */
-+	 status = acpi_ut_evaluate_object(...) /* by kernel invoked ACPI method
-+						  that should get debugged with
-+						  very high debug output*/
-+ 	 acpi_debug_level=0x3        /* lower debug output again */
-+
-+
-+
-+
-+"It seems unfortunate if we do this work and get our
-+partners to do the work and the result is that Linux works great without
-+having to do the work" (Bill Gates on Making ACPI Not Work with Linux,
-+http://www.osnews.com/story.php/17689/Bill-Gates-on-Making-ACPI-Not-Work-with-Linux)
-Index: linux-2.6.22-rc3/Documentation/acpi/00-INDEX
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc3/Documentation/acpi/00-INDEX
-@@ -0,0 +1,4 @@
-+00-INDEX
-+	- this file
-+acpi_debugging.txt
-+	- How to debug ACPI problems
-\ No newline at end of file
-Index: linux-2.6.22-rc3/Documentation/00-INDEX
-===================================================================
---- linux-2.6.22-rc3.orig/Documentation/00-INDEX
-+++ linux-2.6.22-rc3/Documentation/00-INDEX
-@@ -12,6 +12,9 @@ Following translations are available on 
- 
- 00-INDEX
- 	- this file.
-+acpi/
-+	- general ACPI information
-+
- BUG-HUNTING
- 	- brute force method of doing binary search of patches to find bug.
- Changes
-
-
---=-cl6kTzTe0KXF5HRQJSa+
-Content-Disposition: attachment; filename=acpi_debug_doc.patch
-Content-Type: text/x-patch; name=acpi_debug_doc.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Create Documentation/acpi dir and add first ACPI debug How-To
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
----
- Documentation/00-INDEX                |    3 
- Documentation/acpi/00-INDEX           |    4 
- Documentation/acpi/acpi_debugging.txt |  181 ++++++++++++++++++++++++++++++++++
- 3 files changed, 188 insertions(+)
-
-Index: linux-2.6.22-rc3/Documentation/acpi/acpi_debugging.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc3/Documentation/acpi/acpi_debugging.txt
-@@ -0,0 +1,181 @@
-+How to debug ACPI (Advanced Configuration and Power Interface) Problems
-+=======================================================================
-+
-+Thomas Renninger <trenn@suse.de>, 2007
-+Copyright (C) 2007 SUSE Linux GmbH
-+
-+
-+1. Introduction
-+---------------
-+
-+1.1. General Info
-+- - - - - - - -
-+
-+Please refer to the latest ACPI spec for general ACPI information:
-+http://www.acpi.info/spec.htm
-+
-+
-+ACPI is required by most recent x86, x86_64 and IA64 architecture based
-+machines.
-+
-+In general ACPI tables provide information from the BIOS to the OS.
-+There are ACPI tables (DSDT and SSDTs), written in the ACPI Source
-+Language (ASL) which include byte code (similar to Java byte code) that gets
-+interpreted by the OS. The kernel makes use of BIOS functions declared and
-+described there by interpreting them to setup and access different hardware.
-+
-+There exist two compilers/interpreters for ASL code, one from Microsoft and
-+one from Intel. The Intel code has an Open Source license. The software package
-+is called ACPICA. It includes the code for disassembling DSDT tables,
-+(re-)compiling them, parsing several ACPI tables and interpreting ACPI Machine
-+Language (AML, the compiled ASL..). The code is used to provide several
-+userspace tools, but large parts are also contributed to the linux kernel and
-+other OSs.
-+drivers/acpi/*.c currently is Linux code implementing most parts of the ACPI
-+spec, everything in the directories below, gets synchronized with the ACPICA
-+Intel package.
-+
-+
-+1.2. Useful Userspace Tools for Table Playing
-+- - - - - - - - - - - - - - - - - - - - - - -
-+
-+The ACPI tables of your system can be extracted with the acpidump tool in the
-+latest pmutils package from here:
-+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils
-+
-+acpixtract, iasl, acpiexec can be found in the ACPICA sources:
-+http://developer.intel.com/technology/iapc/acpi/downloads.htm
-+
-+You can now:
-+acpidump >acpidump       # cp your ACPI tables from memory to disk
-+acpixtract -a acpidump   # extract them into raw, single tables
-+iasl -d TABLE.dat        # disassemble/parse a specific table
-+iasl -sa DSDT.dsl        # e.g. recompile a modified, disassembled DSDT for
-+                           initramfs inclusion (see later)
-+acpiexec DSDT.dat        # parse, interpret and load a DSDT in userspace
-+
-+The latter can sometimes be very useful to debug buggy DSDTs in userspace.
-+It provides a debug shell which e.g. offers execution of specific ACPI
-+functions, increase of debug output and more.
-+
-+
-+2. Overriding DSDT
-+------------------
-+
-+The DSDT (there is a patch also for SSDTs) can be overridden by the user.
-+The tables get copied to RAM when booting and the kernel can override them with
-+alternative tables at early boot time.
-+
-+Historically people used to override their DSDT to workaround BIOS or even
-+kernel bugs. This is a bad idea, the override functionality is for short
-+term workarounds and mainly for debugging! Please always report such bugs to
-+bugzilla.kernel.org or post to linux-acpi@vger.kernel.org if unsure.
-+
-+There are two possibilities to override the DSDT:
-+
-+  - via CONFIG_ACPI_CUSTOM_DSDT (and _FILE) compile option(s)
-+  - via adding a customized DSDT into initramfs
-+
-+The second approach does not need kernel recompilation and some distributions
-+provide the patch, which is not included in mainline, in their kernels.
-+
-+The patch and more information can be found here (many thanks to Markus
-+Gaugusch and Eric Piel):
-+http://gaugusch.at/kernel.shtml
-+
-+
-+3. Problem Analysis and Solving
-+-------------------------------
-+
-+3.1. I see Warnings or Errors when disassembling or compiling my DSDT
-+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-+
-+Some might be sever ACPICA or BIOS bugs, some might just be incompatibilities
-+with the Microsoft compiler. We want to fix both, therefore a bug should be
-+filed at bugzilla.kernel.org
-+In general you should watch your system, if you don't miss any functionality
-+there is no reason to panic (e.g. modify the DSDT and override your original
-+one, you really should not do that if you do not see any big advantage and even
-+then, better try to get a real fix or at least a kernel workaround like a
-+boot or module parameter).
-+
-+You should be able to debug this with userspace tools (See:
-+"1.2. Useful Userspace Tools for Table Playing")
-+
-+
-+3.2. Hardware accessed by ACPI is not working correctly - Using ACPI_DEBUG
-+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-+
-+If you suspect the bug to be in a module in drivers/acpi/*.c code, you may be
-+able to find or narrow down the culprit simply by adding printk()'s.
-+
-+For more complicated bugs you should make use of the ACPI_DEBUG=y facility.
-+This allows you to fine grain enable specific output in the ACPI interpreter.
-+
-+
-+   3.2.1 Using ACPI_DEBUG Boot Parameters acpi.debug_level and acpi.debug_layer
-+
-+         Note: In kernel versions before 2.6.22 the boot parameters were:
-+	       acpi_dbg_level and acpi_dbg_layer
-+
-+         ACPI can produce tons of debug output if these debug masks are
-+         switched to full on.
-+	 include/acpi/acoutput.h shows which flags can be enabled for level and
-+         layer (cat /proc/acpi/debug_{level,layer} also shows you the flags,
-+	 but that interface will move to sysfs, not sure whether there still
-+	 will be such a help).
-+
-+         Therefore, switch on debug flags carefully. You also might want to
-+	 increase the kernel ring buffer by passing:
-+	 log_buf_len=XY in bytes and later use dmesg -s XY to get more than
-+	 16k kernel log output.
-+	 Instead of serial console logging you might want to use the netconsole
-+	 interface (Documentation/networking/netconsole.txt) to send syslog
-+	 messages over network or firewire to send syslog messages over
-+	 firewire.
-+	 The latter might be the only way to debug early hangs on laptops
-+	 without a serial device anyway.
-+
-+   3.2.2 Using ACPI_DEBUG Boot Parameters via /sysfs and /proc
-+
-+	 The same as 3.2.1., you can also pass the parameters at runtime e.g.
-+	 via:
-+	 echo 0x1F >/sys/module/acpi/parameters/debug_{level,layer}
-+
-+	 Be aware that this interface exists since 2.6.22. In older kernels
-+	 it is /proc/acpi/debug_{level,layer}, which worked in the same way.
-+
-+	 Wrapping such statements around loading and unloading a bug affected
-+	 ACPI module might give you the possibility to increase debug_level,
-+	 but still only give you a manageable amount of debug output.
-+
-+   3.2.3 Using ACPI_DEBUG ASL debug object
-+
-+	 You can also add a kind of printk to DSDT code(see 2. Overriding DSDT)
-+	 Store (XY, debug), will print the value of the ACPI XY variable into
-+	 syslog. Be aware that you need to have the
-+	 #define ACPI_LV_DEBUG_OBJECT        0x00000008
-+	 value defined in the debug_level mask to see any output.
-+	 This may only be useful if you get too much output with 3.2.[12] and
-+	 you think it is convenient to debug a very specific part of the ACPI
-+	 code.
-+
-+   3.2.4 Using ACPI_DEBUG acpi_dbg_layer and acpi_dbg_level kernel variables
-+
-+	 Similar, but more powerful than 3.2.3 is to modify the global kernel
-+	 variables for level and layer conditionally in the kernel code for
-+	 your needs.
-+	 E.g.
-+	 acpi_debug_level=0xFFFFFFFF /* increase debug output to max */
-+	 status = acpi_ut_evaluate_object(...) /* by kernel invoked ACPI method
-+						  that should get debugged with
-+						  very high debug output*/
-+ 	 acpi_debug_level=0x3        /* lower debug output again */
-+
-+
-+
-+
-+"It seems unfortunate if we do this work and get our
-+partners to do the work and the result is that Linux works great without
-+having to do the work" (Bill Gates on Making ACPI Not Work with Linux,
-+http://www.osnews.com/story.php/17689/Bill-Gates-on-Making-ACPI-Not-Work-with-Linux)
-Index: linux-2.6.22-rc3/Documentation/acpi/00-INDEX
-===================================================================
---- /dev/null
-+++ linux-2.6.22-rc3/Documentation/acpi/00-INDEX
-@@ -0,0 +1,4 @@
-+00-INDEX
-+	- this file
-+acpi_debugging.txt
-+	- How to debug ACPI problems
-\ No newline at end of file
-Index: linux-2.6.22-rc3/Documentation/00-INDEX
-===================================================================
---- linux-2.6.22-rc3.orig/Documentation/00-INDEX
-+++ linux-2.6.22-rc3/Documentation/00-INDEX
-@@ -12,6 +12,9 @@ Following translations are available on 
- 
- 00-INDEX
- 	- this file.
-+acpi/
-+	- general ACPI information
-+
- BUG-HUNTING
- 	- brute force method of doing binary search of patches to find bug.
- Changes
-
---=-cl6kTzTe0KXF5HRQJSa+--
-
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJHzCC
+AuowggJToAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloX
+DTA3MDgyODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUG
+CSqGSIb3DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlK
+ZsRSZnkKTdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocT
+wj1GzfReeGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUu
+UuVtCdJosQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJ
+JHdmqKTgjMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgff
+iQIDAQABozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0T
+AQH/BAIwADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCW
+CAfCyORrFaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE
+4I1hcOKz/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAuowggJT
+oAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0
+ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloXDTA3MDgy
+ODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUGCSqGSIb3
+DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlKZsRSZnkK
+TdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocTwj1GzfRe
+eGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUuUuVtCdJo
+sQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJJHdmqKTg
+jMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgffiQIDAQAB
+ozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0TAQH/BAIw
+ADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCWCAfCyORr
+FaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE4I1hcOKz
+/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAz8wggKooAMCAQIC
+AQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENh
+cGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAm
+BgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0
+ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1h
+aWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
+BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
+EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEF
+AAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B
+1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79A
+gAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8E
+CDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3
+dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEa
+MBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7M
+DaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk1
+3iSx0x1G/11fZU8xggNkMIIDYAIBATB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
+ZW1haWwgSXNzdWluZyBDQQIQTrGgkxzJbnibsa3oUSMXezAJBgUrDgMCGgUAoIIBwzAYBgkq
+hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNzA2MTExOTU4MDFaMCMG
+CSqGSIb3DQEJBDEWBBSt3SMyzavr26N0ht/t00uGGKq3djBSBgkqhkiG9w0BCQ8xRTBDMAoG
+CCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggq
+hkiG9w0DAgIBKDCBhQYJKwYBBAGCNxAEMXgwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6xoJMcyW54m7Gt6FEjF3swgYcGCyqGSIb3DQEJEAIL
+MXigdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkg
+THRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6x
+oJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEBBQAEggEAvykXi2OxSSJFGaI//XS48Oce7HAl
+Dz+95CdNJuHTOSRO6U+5F9XHkkb2lRU+W3I+mnShyRMs0t4LD4FfJIZbHAMdxkuPvjHzwo/7
+z8S8dyF/nIaClghcvnk90CK0ndObF6O+0+Z3cXLUr08bSLmAFQ2rdHT+8fz9oQ8Ctd4WkdFQ
+rRBNdlYzRylB+dFshX7LZV60aEjidFrLtI4vyXbvvaInnnYAkssYIc3kQtuQe2MtrZvKhkoS
+jwI9NWlmhoGPllG3H8S12DUbBwiwiKK1USc1aptKkQQpsb54NiL+aVKKerD6ThIegmzJz/xe
+ZUU4B9nuIcwQmYJjQUICyBxUFQAAAAAAAA==
+--------------ms020001080200070706080204--
