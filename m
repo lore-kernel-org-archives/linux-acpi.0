@@ -1,57 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Wed, 13 Jun 2007 23:42:55 +0200
-Message-ID: <200706132342.55336.rjw@sisk.pl>
-References: <878xb35sje.fsf@goat.bogus.local> <20070612153102.GD5986@ucw.cz> <20070613173925.GA20628@gamma.logic.tuwien.ac.at>
+From: Brice Goglin <Brice.Goglin@ens-lyon.org>
+Subject: Re: ACPI Exception breaking Thinkpad T43 on 2.6.22-rc
+Date: Wed, 13 Jun 2007 23:40:17 +0200
+Message-ID: <46706441.7080300@ens-lyon.org>
+References: <467055B8.4080009@ens-lyon.org> <20070613211802.GA13329@khazad-dum.debian.net> <46706080.1090607@ens-lyon.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48385 "EHLO ogre.sisk.pl"
+Received: from iona.labri.fr ([147.210.8.143]:52744 "EHLO iona.labri.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753994AbXFMVgA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jun 2007 17:36:00 -0400
-In-Reply-To: <20070613173925.GA20628@gamma.logic.tuwien.ac.at>
-Content-Disposition: inline
+	id S1752826AbXFMVjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jun 2007 17:39:42 -0400
+In-Reply-To: <46706080.1090607@ens-lyon.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: linux-acpi@vger.kernel.org
 
-On Wednesday, 13 June 2007 19:39, Norbert Preining wrote:
-> Hi all!
-> 
-> On Die, 12 Jun 2007, Pavel Machek wrote:
-> > > Hibernate (aka suspend to disk) works, however.
-> > > 
-> > > When I resume, everything seems to come up (fan becomes busy, disk and
-> > > dvd spin up for a short time), but the machine is not responding to
-> > > anything - neither keyboard, mouse nor ping from another machine. The
-> > > laptop is effectively dead and only a power cycle helps.
-> > > 
-> > > I've tried a minimal config and init=/bin/bash as well, but the result
-> > > is the same.
-> 
-> All same here, same problem with Acer TM3012, Intel Core Duo, intel
-> 945M, ipw3945.
-> 
-> > Beeping patch? It is in -mm now. noapic nolapic and nosmp are useful,
-> > too.
-> 
-> Can you tell me more about the beeping patch? I checked the patches in
-> -mm and the patch names do not contain "beep", neither does
-> git-acpi.patch. Where does it come from, do I need some special
-> configureation? Is there a bit of explanation around?
+Brice Goglin wrote:
+> Henrique de Moraes Holschuh wrote:
+>   
+>>> CONFIG_BLINK=m
+>>>     
+>>>       
+>> Set the above to "n" and recompile (it is in Drivers|Misc|Keyboard blink
+>> driver".  Does it fix things?
+>>   
+>>     
+>
+>
+> Ok, I'll try that and report back. However, since blink was built as a
+> module and not loaded, could it really break something?
+>   
 
-See http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc4/patches/30-beeping-patch-for-debugging-acpi-sleep.patch
+I just loaded it explicitly for fun and got the problem within 3 minutes:
 
-There's a comment in the patch itself explaining what to do to turn on the
-beeping.
+[16659.584000] Enabling keyboard blinking
+[16840.500000] ACPI Exception (evregion-0420): AE_TIME, Returned by
+Handler for [EmbeddedControl] [20070126]
+[16840.500000] ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node dfeda9f0), AE_TIME
+[16840.500000] ACPI Exception (ac-0095): AE_TIME, Error reading AC
+Adapter state [20070126]
 
-Greetings,
-Rafael
+Now that blink is not built at all in my kernel, I'll report back if the
+problem occurs again. Let me know if you need me to test/debug anything.
 
+thanks,
+Brice
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
