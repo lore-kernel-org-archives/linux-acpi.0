@@ -1,67 +1,48 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [2.6.22-rc3][ACPI?] Resume from s2r doesn't work.
-Date: Wed, 13 Jun 2007 19:39:25 +0200
-Message-ID: <20070613173925.GA20628@gamma.logic.tuwien.ac.at>
-References: <878xb35sje.fsf@goat.bogus.local> <20070612153102.GD5986@ucw.cz>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [1/3] 2.6.22-rc4: known regressions v2
+Date: Wed, 13 Jun 2007 20:02:04 +0200
+Message-ID: <4670311C.4080505@googlemail.com>
+References: <466AE606.7020704@googlemail.com>	<20070612150221.GB5986@ucw.cz> <20070613075110.0a9f54c2.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:42979 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756231AbXFMRj0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2007 13:39:26 -0400
-Received: from gamma.logic.tuwien.ac.at ([128.130.175.3])
-	by mx.logic.tuwien.ac.at with esmtp (Exim 4.63)
-	(envelope-from <preining@logic.at>)
-	id 1HyWoX-0006fi-Qt
-	for linux-acpi@vger.kernel.org; Wed, 13 Jun 2007 19:39:25 +0200
-Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 3.35 #1)
-	id 1HyWoX-0005Yl-00
-	for linux-acpi@vger.kernel.org; Wed, 13 Jun 2007 19:39:25 +0200
-Content-Disposition: inline
-In-Reply-To: <20070612153102.GD5986@ucw.cz>
+Received: from ug-out-1314.google.com ([66.249.92.168]:56318 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757918AbXFMSDG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2007 14:03:06 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so472699ugf
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jun 2007 11:03:05 -0700 (PDT)
+In-Reply-To: <20070613075110.0a9f54c2.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Ingo Molnar <mingo@elte.hu>, "Darrick J. Wong" <djwong@us.ibm.com>, Andi Kleen <ak@suse.de>, Rodrigo Luiz <troops.of.doom@gmail.com>, "Siddha, Suresh B" <suresh.b.siddha@intel.com>, Maximilian Engelhardt <maxi@daemonizer.de>, Gary Zambrano <zambrano@broadcom.com>, Michael Buesch <mb@bu3sch.de>, Thomas Gleixner <tglx@linutronix.de>, Stephen Hemminger <shemminger@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Maciej Rutecki <maciej.rutecki@gmail.com>
 
-Hi all!
+Andrew Morton pisze:
+> On Tue, 12 Jun 2007 15:02:22 +0000 Pavel Machek <pavel@ucw.cz> wrote:
+> 
+>> Hi!
+>>
+>> Can we add 'writing to /proc/acpi/thermal/*/trip_points' no longer
+>> works to the list?
+> 
+> I thought we had.
 
-On Die, 12 Jun 2007, Pavel Machek wrote:
-> > Hibernate (aka suspend to disk) works, however.
-> > 
-> > When I resume, everything seems to come up (fan becomes busy, disk and
-> > dvd spin up for a short time), but the machine is not responding to
-> > anything - neither keyboard, mouse nor ping from another machine. The
-> > laptop is effectively dead and only a power cycle helps.
-> > 
-> > I've tried a minimal config and init=/bin/bash as well, but the result
-> > is the same.
+Len rejected this bug
+http://bugzilla.kernel.org/show_bug.cgi?id=8495
 
-All same here, same problem with Acer TM3012, Intel Core Duo, intel
-945M, ipw3945.
+> 
+>> Len did it intentionally but that does not make it
+>> right. People are using it and we did not go through deprecation
+>> period. Plus there's no reasonable alternative.
+> 
+> Was that writeability causing any actual problems in 2.6.21?
+> 
 
-> Beeping patch? It is in -mm now. noapic nolapic and nosmp are useful,
-> too.
+Regards,
+Michal
 
-Can you tell me more about the beeping patch? I checked the patches in
--mm and the patch names do not contain "beep", neither does
-git-acpi.patch. Where does it come from, do I need some special
-configureation? Is there a bit of explanation around?
-
-Thanks a lot, I really want to try it out. I tried already so many
-kernels and so many iterations and never succeeded, while s2r works
-without problems even with DRI enabled.
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-SCREEB (n.)
-To make the noise of a nylon anorak rubbing against a pair of corduroy
-trousers.
-			--- Douglas Adams, The Meaning of Liff
+-- 
+LOG
+http://www.stardust.webpages.pl/log/
