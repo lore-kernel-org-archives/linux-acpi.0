@@ -1,280 +1,60 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] [-mm]: ACPI: expose ACPI tables in sysfs
-Date: Thu, 14 Jun 2007 17:43:07 +0800
-Message-ID: <1181814187.5411.30.camel@localhost.localdomain>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Thu, 14 Jun 2007 07:28:29 -0400
+Message-ID: <1181820510.4091.9.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21789 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751491AbXFNJly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jun 2007 05:41:54 -0400
+Received: from py-out-1112.google.com ([64.233.166.179]:11827 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbXFNL2j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2007 07:28:39 -0400
+Received: by py-out-1112.google.com with SMTP id a29so881507pyi
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Jun 2007 04:28:34 -0700 (PDT)
+In-Reply-To: <1181811576.5411.27.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: netdev@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+On Thu, 2007-14-06 at 16:59 +0800, Zhang Rui wrote:
+> Hi, Jamal,
+> 
+> Now the genl utility can find the acpi event genetlink family.
+> And a simple user space demo is finished for handling acpi event.
+> I really appreciate your help. :)
 
-This is the basic functionality of exposing ACPI tables in sysfs.
-Only static tables are exposed to user space in this patch.
-Every static table has a file under /sys/firmware/acpi/tables/.
-The file name is constituted of the table signature and instance number.
+np.
 
-With this patch, we can get all the static ACPI tables except for RSDP and RSDT.
-For example, "#cat /sys/firmware/acpi/tables/dsdt > /tmp/dsdt.bin"
-can help you get the content of dsdt table.
-But iasl is still needed to disassemble the acpi tables.
+> I think the patch which exposes ACPI events via netlink is ok.
+> But I still have some problems on
+> how to listen to specified genetlink family in user space?
+> 
+> I can get the dynamic id for "acpi_event" genl family.
+> But I don't know how to use this to receive messages from
+> specified genl family.
+> It seems that "#genl ctrl monitor" has something to do with this,
+> IMO, rtnl_open_byproto(&rth, nl_mgrp(GENL_ID_CTRL), NETLINK_GENERIC) is
+> used to receive messages from the nlctrl(controller) only, but
+> unfortunately it never works for me. :(
+> 
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/system.c |  165 +++++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 144 insertions(+), 21 deletions(-)
+I dont have much time to look at your code given travel, but did you
+try to use your group id instead of the controller's?
+i.e:
+rtnl_open_byproto(&rth, nl_mgrp(mydiscoveredacpiid), NETLINK_GENERIC)
 
-Index: linux-2.6.22-rc4/drivers/acpi/system.c
-===================================================================
---- linux-2.6.22-rc4.orig/drivers/acpi/system.c	2007-06-13 16:00:45.000000000 +0800
-+++ linux-2.6.22-rc4/drivers/acpi/system.c	2007-06-14 19:06:03.000000000 +0800
-@@ -39,15 +39,12 @@ ACPI_MODULE_NAME("system");
- 
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
--#define ACPI_SYSTEM_FILE_INFO		"info"
--#define ACPI_SYSTEM_FILE_EVENT		"event"
--#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
--#define ACPI_SYSTEM_FILE_FADT		"fadt"
- 
- /*
-  * Make ACPICA version work as module param
-  */
--static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
-+static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
-+{
- 	int result;
- 
- 	result = sprintf(buffer, "%x", ACPI_CA_VERSION);
-@@ -58,9 +55,126 @@ static int param_get_acpica_version(char
- module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
- 
- /* --------------------------------------------------------------------------
-+                              FS Interface (/sys)
-+   -------------------------------------------------------------------------- */
-+static LIST_HEAD(acpi_table_attr_list);
-+static struct kobject tables_kobj;
-+
-+struct acpi_table_attr {
-+	struct bin_attribute attr;
-+	char name[8];
-+	int instance;
-+	struct list_head node;
-+};
-+
-+static ssize_t acpi_table_show(struct kobject *kobj,
-+			       struct bin_attribute *bin_attr, char *buf,
-+			       loff_t offset, size_t count)
-+{
-+	struct acpi_table_attr *table_attr =
-+	    container_of(bin_attr, struct acpi_table_attr, attr);
-+	struct acpi_table_header *table_header = NULL;
-+	acpi_status status;
-+	ssize_t ret_count = count;
-+
-+	status =
-+	    acpi_get_table(table_attr->name, table_attr->instance,
-+			   &table_header);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	if (offset >= table_header->length) {
-+		ret_count = 0;
-+		goto end;
-+	}
-+
-+	if (offset + ret_count > table_header->length)
-+		ret_count = table_header->length - offset;
-+
-+	memcpy(buf, ((char *)table_header) + offset, ret_count);
-+
-+      end:
-+	return ret_count;
-+}
-+
-+static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
-+				 struct acpi_table_header *table_header)
-+{
-+	struct acpi_table_header *header = NULL;
-+	struct acpi_table_attr *attr = NULL;
-+
-+	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-+
-+	list_for_each_entry(attr, &acpi_table_attr_list, node) {
-+		if (!memcmp(table_header->signature, attr->name,
-+			    ACPI_NAME_SIZE))
-+			if (table_attr->instance < attr->instance)
-+				table_attr->instance = attr->instance;
-+	}
-+	table_attr->instance++;
-+
-+	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
-+					 !acpi_get_table(table_header->
-+							 signature, 2,
-+							 &header)))
-+		sprintf(table_attr->name + 4, "%d", table_attr->instance);
-+
-+	table_attr->attr.size = 0;
-+	table_attr->attr.read = acpi_table_show;
-+	table_attr->attr.attr.name = table_attr->name;
-+	table_attr->attr.attr.mode = 0444;
-+	table_attr->attr.attr.owner = THIS_MODULE;
-+
-+	return;
-+}
-+
-+static int acpi_system_sysfs_init(void)
-+{
-+	struct acpi_table_attr *table_attr;
-+	struct acpi_table_header *table_header = NULL;
-+	int table_index = 0;
-+	int result;
-+
-+	tables_kobj.parent = &acpi_subsys.kobj;
-+	kobject_set_name(&tables_kobj, "tables");
-+	result = kobject_register(&tables_kobj);
-+	if (result)
-+		return result;
-+
-+	do {
-+		result = acpi_get_table_by_index(table_index, &table_header);
-+		if (!result) {
-+			table_index++;
-+			table_attr = NULL;
-+			table_attr =
-+			    kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
-+			if (!table_attr)
-+				return -ENOMEM;
-+
-+			acpi_table_attr_init(table_attr, table_header);
-+			result =
-+			    sysfs_create_bin_file(&tables_kobj,
-+						  &table_attr->attr);
-+			if (result) {
-+				kfree(table_attr);
-+				return result;
-+			} else
-+				list_add_tail(&table_attr->node,
-+					      &acpi_table_attr_list);
-+		}
-+	} while (!result);
-+
-+	return 0;
-+}
-+
-+/* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- #ifdef CONFIG_ACPI_PROCFS
-+#define ACPI_SYSTEM_FILE_INFO		"info"
-+#define ACPI_SYSTEM_FILE_EVENT		"event"
-+#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
-+#define ACPI_SYSTEM_FILE_FADT		"fadt"
- 
- static int acpi_system_read_info(struct seq_file *seq, void *offset)
- {
-@@ -80,7 +194,6 @@ static const struct file_operations acpi
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
--#endif
- 
- static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
- 				     loff_t *);
-@@ -97,13 +210,11 @@ acpi_system_read_dsdt(struct file *file,
- 	struct acpi_table_header *dsdt = NULL;
- 	ssize_t res;
- 
--
- 	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	res = simple_read_from_buffer(buffer, count, ppos,
--				      dsdt, dsdt->length);
-+	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
- 
- 	return res;
- }
-@@ -123,28 +234,21 @@ acpi_system_read_fadt(struct file *file,
- 	struct acpi_table_header *fadt = NULL;
- 	ssize_t res;
- 
--
- 	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	res = simple_read_from_buffer(buffer, count, ppos,
--				      fadt, fadt->length);
-+	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
- 
- 	return res;
- }
- 
--static int __init acpi_system_init(void)
-+static int acpi_system_procfs_init(void)
- {
- 	struct proc_dir_entry *entry;
- 	int error = 0;
- 	char *name;
- 
--
--	if (acpi_disabled)
--		return 0;
--
--#ifdef CONFIG_ACPI_PROCFS
- 	/* 'info' [R] */
- 	name = ACPI_SYSTEM_FILE_INFO;
- 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
-@@ -153,7 +257,6 @@ static int __init acpi_system_init(void)
- 	else {
- 		entry->proc_fops = &acpi_system_info_ops;
- 	}
--#endif
- 
- 	/* 'dsdt' [R] */
- 	name = ACPI_SYSTEM_FILE_DSDT;
-@@ -177,12 +280,32 @@ static int __init acpi_system_init(void)
-       Error:
- 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
- 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
--#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
--#endif
- 
- 	error = -EFAULT;
- 	goto Done;
- }
-+#else
-+static int acpi_system_procfs_init(void)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int __init acpi_system_init(void)
-+{
-+	int result = 0;
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	result = acpi_system_procfs_init();
-+	if (result)
-+		return result;
-+
-+	result = acpi_system_sysfs_init();
-+
-+	return result;
-+}
- 
- subsys_initcall(acpi_system_init);
+If this doesnt work, ping me and i will take a look  - just expect some
+latency in response.
+
+cheers,
+jamal
+
