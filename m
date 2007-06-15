@@ -1,121 +1,64 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] PNP SMCf010 quirk: auto-config device if BIOS left it broken
-Date: Thu, 14 Jun 2007 16:45:58 -0600
-Message-ID: <200706141645.58799.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Fri, 15 Jun 2007 09:01:25 +0800
+Message-ID: <1181869285.5411.39.camel@localhost.localdomain>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:55186 "EHLO atlrel6.hp.com"
+Received: from mga01.intel.com ([192.55.52.88]:45460 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570AbXFNWqG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jun 2007 18:46:06 -0400
-Content-Disposition: inline
+	id S1752753AbXFOBAM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jun 2007 21:00:12 -0400
+In-Reply-To: <1181820510.4091.9.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Samuel Ortiz <samuel@sortiz.org>, "Linus Walleij (LD/EAB)" <linus.walleij@ericsson.com>, Andrey Borzenkov <arvidjaar@mail.ru>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, ambx1@neo.rr.com, linux-acpi@vger.kernel.org
+To: hadi@cyberus.ca
+Cc: netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
-Some HP firmware leaves the SMCf010 IRDA device incompletely configured,
-or reports the wrong resources in _CRS.  As a workaround, when we find
-such a device, try to auto-configure the device.
+On Thu, 2007-06-14 at 07:28 -0400, jamal wrote:
+> On Thu, 2007-14-06 at 16:59 +0800, Zhang Rui wrote:
+> > Hi, Jamal,
+> > 
+> > Now the genl utility can find the acpi event genetlink family.
+> > And a simple user space demo is finished for handling acpi event.
+> > I really appreciate your help. :)
+> 
+> np.
+> 
+> > I think the patch which exposes ACPI events via netlink is ok.
+> > But I still have some problems on
+> > how to listen to specified genetlink family in user space?
+> > 
+> > I can get the dynamic id for "acpi_event" genl family.
+> > But I don't know how to use this to receive messages from
+> > specified genl family.
+> > It seems that "#genl ctrl monitor" has something to do with this,
+> > IMO, rtnl_open_byproto(&rth, nl_mgrp(GENL_ID_CTRL), NETLINK_GENERIC) is
+> > used to receive messages from the nlctrl(controller) only, but
+> > unfortunately it never works for me. :(
+> > 
+> 
+> I dont have much time to look at your code given travel, but did you
+> try to use your group id instead of the controller's?
+> i.e:
+> rtnl_open_byproto(&rth, nl_mgrp(mydiscoveredacpiid), NETLINK_GENERIC)
+> 
+Yes. It doesn't work if I use my group id here.
+In fact, I'm using rtnl_open_byproto(&rth, 1, NETLINK_GENERIC) now.
+That's why I said that this demo receives all the broadcasted genetlink
+messages.
+> If this doesnt work, ping me and i will take a look  - just expect some
+> latency in response.
+> 
+That's great. Thanks.
 
-This ignores the _CRS data, picks a config from _PRS, and runs _SRS to
-configure the device.  This makes smsc-ircc2 work correctly with PNP
-resources (with no preconfiguration!) on all the machines I tested.
-
-I think Windows does something like this by default for all devices,
-so we should consider doing the same thing in Linux.
-
-This patch addresses part of the 2.6.22 regression:
-    "no irda0 interface (2.6.21 was OK), smsc does not find chip"
-It fixes smsc-ircc2 PNP device detection on HP nc6000, nc6220, nw8000,
-nw8240, and possibly other machines.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: w/drivers/pnp/quirks.c
-===================================================================
---- w.orig/drivers/pnp/quirks.c	2007-06-14 15:08:45.000000000 -0600
-+++ w/drivers/pnp/quirks.c	2007-06-14 15:09:56.000000000 -0600
-@@ -107,31 +107,61 @@
- 	return;
- }
- 
--static void quirk_smc_enable(struct pnp_dev *dev)
-+static int quirk_smc_fir_enabled(struct pnp_dev *dev)
- {
--	unsigned int firbase;
-+	unsigned long firbase;
-+	u8 bank, high, low, chip;
-+
-+	if (!pnp_port_valid(dev, 1))
-+		return 0;
-+
-+	firbase = pnp_port_start(dev, 1);
- 
--	if (!dev->active || !pnp_port_valid(dev, 1))
-+	/* Select register bank 3 */
-+	bank = inb(firbase + 7);
-+	bank &= 0xf0;
-+	bank |= 3;
-+	outb(bank, firbase + 7);
-+
-+	high = inb(firbase + 0);
-+	low  = inb(firbase + 1);
-+	chip = inb(firbase + 2);
-+
-+	/* This corresponds to the check in smsc_ircc_present() */
-+	if (high == 0x10 && low == 0xb8 && (chip == 0xf1 || chip == 0xf2))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static void quirk_smc_enable(struct pnp_dev *dev)
-+{
-+	/*
-+	 * If the BIOS left the device disabled, or it is enabled and
-+	 * responding correctly, we're in good shape.
-+	 */
-+	if (!dev->active || quirk_smc_fir_enabled(dev))
- 		return;
- 
- 	/*
--	 * On the HP/Compaq nw8240 (and probably other similar machines),
--	 * there is an SMCF010 device with two I/O port regions:
--	 *
--	 *	0x3e8-0x3ef SIR
--	 *	0x100-0x10f FIR
-+	 * Sometimes the BIOS claims the device is enabled, but it reports
-+	 * the wrong FIR resources or doesn't properly configure ISA or LPC
-+	 * bridges on the way to the device.
- 	 *
--	 * _STA reports the device is enabled, but in fact, the BIOS
--	 * neglects to enable the FIR range.  Fortunately, it does fully
--	 * enable the device if we call _SRS.
-+	 * HP nc6000 and nc8000/nw8000 laptops have known problems like
-+	 * this.  Fortunately, they do fix things up if we auto-configure
-+	 * the device using its _PRS and _SRS methods.
- 	 */
--	firbase = pnp_port_start(dev, 1);
--	if (inb(firbase + 0x7 /* IRCC_MASTER */) == 0xff) {
--		pnp_err("%s (%s) enabled but not responding, disabling and "
--			"re-enabling", dev->dev.bus_id, pnp_dev_name(dev));
--		pnp_disable_dev(dev);
--		pnp_activate_dev(dev);
--	}
-+	dev_err(&dev->dev, "%s device not responding, auto-configuring "
-+		"resources\n", dev->id->id);
-+
-+	pnp_disable_dev(dev);
-+	pnp_init_resource_table(&dev->res);
-+	pnp_auto_config_dev(dev);
-+	pnp_activate_dev(dev);
-+
-+	if (!quirk_smc_fir_enabled(dev))
-+		dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\"\n");
- }
- 
- 
+Best regards,
+Rui
