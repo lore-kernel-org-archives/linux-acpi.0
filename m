@@ -1,64 +1,30 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 15 Jun 2007 09:01:25 +0800
-Message-ID: <1181869285.5411.39.camel@localhost.localdomain>
-References: <1179827251.7707.29.camel@localhost.localdomain>
-	 <1179831825.4121.30.camel@localhost>
-	 <1180258853.7707.53.camel@localhost.localdomain>
-	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
-	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
-	 <1181811576.5411.27.camel@localhost.localdomain>
-	 <1181820510.4091.9.camel@localhost>
+Subject: Re: [PATCH] [-mm]: ACPI: expose ACPI tables in sysfs
+Date: Fri, 15 Jun 2007 09:09:00 +0800
+Message-ID: <1181869740.5411.47.camel@localhost.localdomain>
+References: <1181814187.5411.30.camel@localhost.localdomain>
+	 <20070614113124.GB13329@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45460 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:23359 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752753AbXFOBAM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jun 2007 21:00:12 -0400
-In-Reply-To: <1181820510.4091.9.camel@localhost>
+	id S1750873AbXFOBHp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jun 2007 21:07:45 -0400
+In-Reply-To: <20070614113124.GB13329@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hadi@cyberus.ca
-Cc: netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
-On Thu, 2007-06-14 at 07:28 -0400, jamal wrote:
-> On Thu, 2007-14-06 at 16:59 +0800, Zhang Rui wrote:
-> > Hi, Jamal,
-> > 
-> > Now the genl utility can find the acpi event genetlink family.
-> > And a simple user space demo is finished for handling acpi event.
-> > I really appreciate your help. :)
+On Thu, 2007-06-14 at 08:31 -0300, Henrique de Moraes Holschuh wrote:
+> Will we get the dynamic tables exported in a later patch?
 > 
-> np.
-> 
-> > I think the patch which exposes ACPI events via netlink is ok.
-> > But I still have some problems on
-> > how to listen to specified genetlink family in user space?
-> > 
-> > I can get the dynamic id for "acpi_event" genl family.
-> > But I don't know how to use this to receive messages from
-> > specified genl family.
-> > It seems that "#genl ctrl monitor" has something to do with this,
-> > IMO, rtnl_open_byproto(&rth, nl_mgrp(GENL_ID_CTRL), NETLINK_GENERIC) is
-> > used to receive messages from the nlctrl(controller) only, but
-> > unfortunately it never works for me. :(
-> > 
-> 
-> I dont have much time to look at your code given travel, but did you
-> try to use your group id instead of the controller's?
-> i.e:
-> rtnl_open_byproto(&rth, nl_mgrp(mydiscoveredacpiid), NETLINK_GENERIC)
-> 
-Yes. It doesn't work if I use my group id here.
-In fact, I'm using rtnl_open_byproto(&rth, 1, NETLINK_GENERIC) now.
-That's why I said that this demo receives all the broadcasted genetlink
-messages.
-> If this doesnt work, ping me and i will take a look  - just expect some
-> latency in response.
-> 
-That's great. Thanks.
+Yes. I send the patch for static tables first in hopes of
+it can hit 2.6.23.
+The patch for dynamic tables needs some hooks in ACPICA code.
+And it may take some time, maybe a couple of weeks.
 
-Best regards,
+Thanks,
 Rui
