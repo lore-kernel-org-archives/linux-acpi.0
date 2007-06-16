@@ -1,56 +1,55 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [patch] Reporting the lid status using INPUT
-Date: Sat, 16 Jun 2007 13:51:27 -0400
-Message-ID: <200706161351.28885.dtor@insightbb.com>
-References: <1181910567.4819.7.camel@work> <1181919208.2681.6.camel@work> <1182013911.2309.4.camel@work>
+From: Christian Leber <christian@leber.de>
+Subject: Re: beeping patch for debugging acpi sleep
+Date: Sat, 16 Jun 2007 21:46:34 +0200
+Message-ID: <20070616194634.GA15953@core>
+References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:11290 "EHLO
-	asav18.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750723AbXFPRva (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jun 2007 13:51:30 -0400
-In-Reply-To: <1182013911.2309.4.camel@work>
+Received: from ipx20189.ipxserver.de ([80.190.249.56]:4705 "EHLO
+	ipx20189.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751779AbXFPTqg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jun 2007 15:46:36 -0400
 Content-Disposition: inline
+In-Reply-To: <20070609130817.GI27793@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, a_bartok@freemail.hu, Bastien Nocera <hadess@hadess.net>, David Zeuthen <david@fubar.dk>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Saturday 16 June 2007 13:11, Richard Hughes wrote:
-> On Fri, 2007-06-15 at 15:53 +0100, Richard Hughes wrote:
-> > On Fri, 2007-06-15 at 10:29 -0400, Dmitry Torokhov wrote:
-> > > On 6/15/07, Richard Hughes <hughsient@gmail.com> wrote:
-> > > > On Fri, 2007-06-15 at 13:29 +0100, Richard Hughes wrote:
-> > > > > in response to an event, but I'm thinking in a resume hook we should
-> > > > > probably do acpi_evaluate_integer(handle, "_LID", NULL, &state) and then
-> > > > > send an event, just so userspace is aware of what the state of the panel
-> > > > > is.
-> > > >
-> > > > Attached patch fixed the issue for me. Comments?
-> > > >
-> > > 
-> > > The patch makes perfect sense. The only issue I have is this:
-> > > 
-> > > > +	/* on resume we send the state; it might be the same, but userspace
-> > > > +	 * should handle duplicated events */
-> > > 
-> > > If switch state matches to what input layer thinks it is the event
-> > > will not even reach userspace.
-> > 
-> > Okay, new patch attached, thanks for the speedy review.
-> 
-> This fix is also confirmed by somebody else, see
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=243030
-> 
-> It would be great if this could go into .22, although I appreciate it's
-> quite late in the day.
->
+On Sat, Jun 09, 2007 at 03:08:17PM +0200, Pavel Machek wrote:
 
-This is of course Len's call but in my book this is a bugfix and as such
-is appropriate for -rc4/rc5.
+> Starting beeper as soon as ACPI sleep returns is very useful in
+> debugging "apparently dead" machines. If it beeps at all, it makes
+> sense to start playing with CMOS tracer.
+
+thank you very much Pavel
+
+The results are a bit unclear, I took a 2.6.22-rc4 with beep.
+Logged into KDE.
+(hardware: Dell Latitude D810)
+
+S = successfull resume
+D = had to resume 2 times, that means when pressing the power button the
+LED goes from blinking to on and after a few seconds it goes back to
+blinking, but without a beep in between; after pressing the power button
+a second time resume is successfull
+F = resume failes, NO beep
+
+-run 1: D D F
+-run 2: D D D(some X garbadge) F
+-run 3: S S S S S S F
+-run 4: S S F
+-run 5: D F
+
+Very odd, nothing was changed in between and after each F i switched it
+off... because it was dead.
+
+With 2.6.19.7 i have never seen it fail.
+
+
+Christian Leber
 
 -- 
-Dmitry
+http://rettetdieti.vde-uni-mannheim.de/
+
