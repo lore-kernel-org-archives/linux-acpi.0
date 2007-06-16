@@ -1,49 +1,33 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [RFC: 2.6 patch] drivers/acpi/sbs.c: remove dead code
-Date: Fri, 15 Jun 2007 23:45:25 +0200
-Message-ID: <20070615214525.GN3588@stusta.de>
+From: Harald Dunkel <harald.dunkel@t-online.de>
+Subject: bootable iso to verify ACPI?
+Date: Sat, 16 Jun 2007 13:13:20 +0200
+Message-ID: <4673C5D0.7010108@t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:36341 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757410AbXFOVpL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jun 2007 17:45:11 -0400
-Content-Disposition: inline
+Received: from mailout03.sul.t-online.com ([194.25.134.81]:56945 "EHLO
+	mailout03.sul.t-online.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755307AbXFPNyB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 Jun 2007 09:54:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vladimir Lebedev <vladimir.p.lebedev@intel.com>, Len Brown <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This patch removes dead code spotted by the Coverity checker.
+Hi folks,
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+A few months ago I had seen some article somewhere mentioning
+a bootable iso for download to verify the system's ACPI
+implementation.
 
----
+Does anybody remember this? Do you have a pointer? I tried to
+google for it (of course), but without luck.
 
- drivers/acpi/sbs.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+Please keep me on CC:, I am not subscribed.
 
---- linux-2.6.22-rc4-mm2/drivers/acpi/sbs.c.old	2007-06-15 22:44:17.000000000 +0200
-+++ linux-2.6.22-rc4-mm2/drivers/acpi/sbs.c	2007-06-15 22:46:26.000000000 +0200
-@@ -1411,7 +1411,7 @@ static int acpi_sbs_update_run(struct ac
- 	char dir_name[32];
- 	int do_battery_init = 0, do_ac_init = 0;
- 	int old_remaining_capacity = 0;
--	int update_ac = 1, update_battery = 1;
-+	int update_battery = 1;
- 	int up_tm = update_time;
- 
- 	if (sbs_zombie(sbs)) {
-@@ -1431,10 +1431,6 @@ static int acpi_sbs_update_run(struct ac
- 
- 	sbs->run_cnt++;
- 
--	if (!update_ac && !update_battery) {
--		goto end;
--	}
--
- 	old_ac_present = sbs->ac.ac_present;
- 
- 	result = acpi_ac_get_present(sbs);
+
+Thanx in advance
+
+Harri
 
