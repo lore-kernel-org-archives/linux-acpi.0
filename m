@@ -1,33 +1,36 @@
-From: Harald Dunkel <harald.dunkel@t-online.de>
-Subject: bootable iso to verify ACPI?
-Date: Sat, 16 Jun 2007 13:13:20 +0200
-Message-ID: <4673C5D0.7010108@t-online.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Exporting EV_SW SW_LID events from thinkpad-acpi to input layer
+Date: Sat, 16 Jun 2007 11:44:11 -0300
+Message-ID: <20070616144411.GA2127@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout03.sul.t-online.com ([194.25.134.81]:56945 "EHLO
-	mailout03.sul.t-online.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755307AbXFPNyB (ORCPT
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:46554 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756068AbXFPOoP (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Jun 2007 09:54:01 -0400
+	Sat, 16 Jun 2007 10:44:15 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, Dmitry Torokhov <dtor@insightbb.com>, Richard Hughes <hughsient@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, ibm-acpi-devel@lists.sourceforge.net
 
-Hi folks,
+thinkpad-acpi can now be made to export EV_SW SW_LID events to the input
+layer.
 
-A few months ago I had seen some article somewhere mentioning
-a bootable iso for download to verify the system's ACPI
-implementation.
+However, most (all?) thinkpads will also generate ACPI notifications to
+\_SB.LID, on LID changes, i.e. this would duplicate an ACPI LID event, and I
+undertand ACPI is already moving to provide those over an input device by
+itself.
 
-Does anybody remember this? Do you have a pointer? I tried to
-google for it (of course), but without luck.
+Given that situation, is it desireable for thinkpad-acpi to export EV_SW
+SW_LID events by itself (possibly duplicating an event that the ACPI layer
+will also issue)?  Or should I just ignore the lid events, and leave them
+for the ACPI layer to deal with?
 
-Please keep me on CC:, I am not subscribed.
-
-
-Thanx in advance
-
-Harri
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
