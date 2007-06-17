@@ -1,153 +1,74 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
+From: Daniel Drake <dsd@gentoo.org>
 Subject: Re: [PATCH v2] ACPI video: poke display on lid open
-Date: Sun, 17 Jun 2007 00:08:33 -0400
-Message-ID: <200706170008.34157.dtor@insightbb.com>
-References: <20070617000321.37F407B409F@zog.reactivated.net>
+Date: Sun, 17 Jun 2007 01:18:53 -0400
+Message-ID: <4674C43D.8090104@gentoo.org>
+References: <20070617000321.37F407B409F@zog.reactivated.net> <200706170008.34157.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:31602 "EHLO
-	asav14.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbXFQEIg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jun 2007 00:08:36 -0400
-In-Reply-To: <20070617000321.37F407B409F@zog.reactivated.net>
-Content-Disposition: inline
+Received: from smtp165.iad.emailsrvr.com ([207.97.245.165]:54590 "EHLO
+	smtp165.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754030AbXFQFTw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jun 2007 01:19:52 -0400
+In-Reply-To: <200706170008.34157.dtor@insightbb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Drake <dsd@gentoo.org>
+To: Dmitry Torokhov <dtor@insightbb.com>
 Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Hi Daniel,
+Dmitry Torokhov wrote:
+> If we do not support multiple LIDs -EBUSY would be a better error code.
 
-On Saturday 16 June 2007 20:03, Daniel Drake wrote:
-> Many Dell laptops have the DSDT coded to power down the display when the lid
-> is closed, and leave it off when it is opened.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=5155
-> 
-> Based on ideas from Len Brown and Dmitry Torokhov, this patch creates an input
-> handler in the video driver which monitors for lid input events. When a lid
-> open event is detected, the video driver reactivates the LCD.
-> 
+OK.
 
-Appears to be working on my Inspiron 8100. Couple of comments:
+> Need to setup handler->name, otherwise "cat /proc/bus/input/devices" looks
+> "interesting".
 
-> +
-> +static int lid_connect(struct input_handler *handler, struct input_dev *dev,
-> +		       const struct input_device_id *id)
-> +{
-> +	struct acpi_video_bus *video = handler->private;
-> +	int r;
-> +
-> +	if (dev->id.product != ACPI_BUTTON_TYPE_LID ||
-> +	    strcmp(dev->name, ACPI_BUTTON_DEVICE_NAME_LID) != 0)
-> +		return -ENODEV;
-> +
-> +	if (video->lid_handle != NULL) {
-> +		printk(KERN_ERR PREFIX "trying to bind to multiple lids?\n");
-> +		return -ENODEV;
+OK.
 
-If we do not support multiple LIDs -EBUSY would be a better error code.
+> Safe from what? I don't see anything altering list state in the body
+> of this loop. Where's list locking?
 
-> +	}
-> +
-> +	video->lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
-> +	if (!video->lid_handle)
-> +		return -ENOMEM;
-> +	video->lid_handle->dev = dev;
-> +	video->lid_handle->handler = handler;
-> +	video->lid_handle->private = video;
+The current driver has no list locking. I iterate over the list in the 
+way that the rest of the code does.
 
-Need to setup handler->name, otherwise "cat /proc/bus/input/devices" looks
-"interesting".
+ > Also, once input core locking is
+> in place handler_>event will be called under a spinlock with interrupts
+> off. Can acpi_video_device_set_state be used in this case? 
 
-> +
-> +static void lid_event(struct input_handle *handle, unsigned int type,
-> +		      unsigned int code, int value)
-> +{
-> +	struct acpi_video_device *dev, *tmp;
-> +	struct acpi_video_bus *video = handle->private;
-> +
-> +	if (type != EV_SW || value != 0)
-> +		return;
-> +
-> +	list_for_each_entry_safe(dev, tmp, &video->video_device_list, entry) {
+I'm not sure, hopefully someone with more ACPI knowledge can pipe up here...
 
-Safe from what? I don't see anything altering list state in the body
-of this loop. Where's list locking? Also, once input core locking is
-in place handler_>event will be called under a spinlock with interrupts
-off. Can acpi_video_device_set_state be used in this case? 
+> Below is a small cleanup patch you may want to fold into yours.
 
-Below is a small cleanup patch you may want to fold into yours.
+Thanks, makes sense.
 
-But I guess more important question if this is a good solution overall.
-My box already generates video bus events when I close and open the lid
-so maybe video.c should just call acpi_video__device_set_state() from
-acpi_video_bus_notify()?
+> But I guess more important question if this is a good solution overall.
+> My box already generates video bus events when I close and open the lid
+> so maybe video.c should just call acpi_video__device_set_state() from
+> acpi_video_bus_notify()?
 
--- 
-Dmitry
+I think trying to handle this from video bus events would be nastier 
+than the input event monitoring approach, because the events are neither 
+meaningful or consistent.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+The events that are generated (and the devices they are raised on) vary 
+between Dell laptops. Also, the events you see are generated both on lid 
+open and lid close, with no differences.
 
- drivers/acpi/video.c |   24 +++++++++++++++---------
- 1 files changed, 15 insertions(+), 9 deletions(-)
+Yes, it's a really stupid DSDT in this respect. The code logic is 
+approximately as follows: (and bear in mind that this executes on BOTH 
+open and close)
 
-Index: work/drivers/acpi/video.c
-===================================================================
---- work.orig/drivers/acpi/video.c
-+++ work/drivers/acpi/video.c
-@@ -1737,6 +1737,7 @@ static int lid_connect(struct input_hand
- 		       const struct input_device_id *id)
- {
- 	struct acpi_video_bus *video = handler->private;
-+	struct input_handle *lid_handle;
- 	int r;
- 
- 	if (dev->id.product != ACPI_BUTTON_TYPE_LID ||
-@@ -1748,18 +1749,22 @@ static int lid_connect(struct input_hand
- 		return -ENODEV;
- 	}
- 
--	video->lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
--	if (!video->lid_handle)
-+	lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
-+	if (!lid_handle)
- 		return -ENOMEM;
--	video->lid_handle->dev = dev;
--	video->lid_handle->handler = handler;
--	video->lid_handle->private = video;
- 
--	r = input_register_handle(video->lid_handle);
-+	video->lid_handle = lid_handle;
-+
-+	lid_handle->dev = dev;
-+	lid_handle->handler = handler;
-+	lid_handle->name = "acpi-video";
-+	lid_handle->private = video;
-+
-+	r = input_register_handle(lid_handle);
- 	if (r)
- 		goto err;
- 
--	r = input_open_device(video->lid_handle);
-+	r = input_open_device(lid_handle);
- 	if (r)
- 		goto err_unregister;
- 
-@@ -1777,9 +1782,10 @@ err:
- static void lid_disconnect(struct input_handle *handle)
- {
- 	struct acpi_video_bus *video = handle->private;
--	input_unregister_handle(handle);
-+
- 	input_close_device(handle);
--	kfree(video->lid_handle);
-+	input_unregister_handle(handle);
-+	kfree(handle);
- 	video->lid_handle = NULL;
- }
- 
+	power down display
+	send notification asking O/S to reinitialize PCI bus
+	send notification asking O/S to reinitialize video bus
+	sent notification of video status change
+	sent notification of video status change (again)
+
+Yes, Dell BIOSes power down the display when you close the lid, and then 
+*again* when you open it. Yes, Dell BIOSes ask the O/S to reinitialize 
+the whole PCI bus when you close/open your lid (fortunately Linux does 
+not respond to this particular notification at the moment).
+
+Daniel
