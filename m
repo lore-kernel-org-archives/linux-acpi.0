@@ -1,283 +1,153 @@
-From: Daniel Drake <dsd@gentoo.org>
-Subject: [PATCH v2] ACPI video: poke display on lid open
-Date: Sun, 17 Jun 2007 01:03:20 +0100 (BST)
-Message-ID: <20070617000321.37F407B409F@zog.reactivated.net>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: Re: [PATCH v2] ACPI video: poke display on lid open
+Date: Sun, 17 Jun 2007 00:08:33 -0400
+Message-ID: <200706170008.34157.dtor@insightbb.com>
+References: <20070617000321.37F407B409F@zog.reactivated.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtaout03-winn.ispmail.ntl.com ([81.103.221.49]:23625 "EHLO
-	mtaout03-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754364AbXFQADT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Jun 2007 20:03:19 -0400
+Received: from gateway.insightbb.com ([74.128.0.19]:31602 "EHLO
+	asav14.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753943AbXFQEIg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jun 2007 00:08:36 -0400
+In-Reply-To: <20070617000321.37F407B409F@zog.reactivated.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: dtor@insightbb.com, linux-acpi@vger.kernel.org
+To: Daniel Drake <dsd@gentoo.org>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Many Dell laptops have the DSDT coded to power down the display when the lid
-is closed, and leave it off when it is opened.
+Hi Daniel,
 
-http://bugzilla.kernel.org/show_bug.cgi?id=5155
+On Saturday 16 June 2007 20:03, Daniel Drake wrote:
+> Many Dell laptops have the DSDT coded to power down the display when the lid
+> is closed, and leave it off when it is opened.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=5155
+> 
+> Based on ideas from Len Brown and Dmitry Torokhov, this patch creates an input
+> handler in the video driver which monitors for lid input events. When a lid
+> open event is detected, the video driver reactivates the LCD.
+> 
 
-Based on ideas from Len Brown and Dmitry Torokhov, this patch creates an input
-handler in the video driver which monitors for lid input events. When a lid
-open event is detected, the video driver reactivates the LCD.
+Appears to be working on my Inspiron 8100. Couple of comments:
 
-Signed-off-by: Daniel Drake <dsd@gentoo.org>
+> +
+> +static int lid_connect(struct input_handler *handler, struct input_dev *dev,
+> +		       const struct input_device_id *id)
+> +{
+> +	struct acpi_video_bus *video = handler->private;
+> +	int r;
+> +
+> +	if (dev->id.product != ACPI_BUTTON_TYPE_LID ||
+> +	    strcmp(dev->name, ACPI_BUTTON_DEVICE_NAME_LID) != 0)
+> +		return -ENODEV;
+> +
+> +	if (video->lid_handle != NULL) {
+> +		printk(KERN_ERR PREFIX "trying to bind to multiple lids?\n");
+> +		return -ENODEV;
 
-Index: linux/drivers/acpi/button.c
+If we do not support multiple LIDs -EBUSY would be a better error code.
+
+> +	}
+> +
+> +	video->lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
+> +	if (!video->lid_handle)
+> +		return -ENOMEM;
+> +	video->lid_handle->dev = dev;
+> +	video->lid_handle->handler = handler;
+> +	video->lid_handle->private = video;
+
+Need to setup handler->name, otherwise "cat /proc/bus/input/devices" looks
+"interesting".
+
+> +
+> +static void lid_event(struct input_handle *handle, unsigned int type,
+> +		      unsigned int code, int value)
+> +{
+> +	struct acpi_video_device *dev, *tmp;
+> +	struct acpi_video_bus *video = handle->private;
+> +
+> +	if (type != EV_SW || value != 0)
+> +		return;
+> +
+> +	list_for_each_entry_safe(dev, tmp, &video->video_device_list, entry) {
+
+Safe from what? I don't see anything altering list state in the body
+of this loop. Where's list locking? Also, once input core locking is
+in place handler_>event will be called under a spinlock with interrupts
+off. Can acpi_video_device_set_state be used in this case? 
+
+Below is a small cleanup patch you may want to fold into yours.
+
+But I guess more important question if this is a good solution overall.
+My box already generates video bus events when I close and open the lid
+so maybe video.c should just call acpi_video__device_set_state() from
+acpi_video_bus_notify()?
+
+-- 
+Dmitry
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ drivers/acpi/video.c |   24 +++++++++++++++---------
+ 1 files changed, 15 insertions(+), 9 deletions(-)
+
+Index: work/drivers/acpi/video.c
 ===================================================================
---- linux.orig/drivers/acpi/button.c
-+++ linux/drivers/acpi/button.c
-@@ -56,8 +56,6 @@
- 
- #define ACPI_BUTTON_SUBCLASS_LID	"lid"
- #define ACPI_BUTTON_HID_LID		"PNP0C0D"
--#define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
--#define ACPI_BUTTON_TYPE_LID		0x05
- 
- #define _COMPONENT		ACPI_BUTTON_COMPONENT
- ACPI_MODULE_NAME("button");
-Index: linux/drivers/acpi/video.c
-===================================================================
---- linux.orig/drivers/acpi/video.c
-+++ linux/drivers/acpi/video.c
-@@ -31,6 +31,7 @@
- #include <linux/list.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include <linux/input.h>
- 
- #include <linux/backlight.h>
- #include <asm/uaccess.h>
-@@ -131,6 +132,8 @@ struct acpi_video_bus {
- 	struct semaphore sem;
- 	struct list_head video_device_list;
- 	struct proc_dir_entry *dir;
-+	struct input_handler lid_handler;
+--- work.orig/drivers/acpi/video.c
++++ work/drivers/acpi/video.c
+@@ -1737,6 +1737,7 @@ static int lid_connect(struct input_hand
+ 		       const struct input_device_id *id)
+ {
+ 	struct acpi_video_bus *video = handler->private;
 +	struct input_handle *lid_handle;
- };
+ 	int r;
  
- struct acpi_video_device_flags {
-@@ -1718,6 +1721,88 @@ static int acpi_video_bus_put_devices(st
- 	return 0;
- }
- 
-+/* lid input monitoring */
-+
-+static const struct input_device_id lid_ids[] = {
-+	{
-+		.flags = INPUT_DEVICE_ID_MATCH_EVBIT |
-+		         INPUT_DEVICE_ID_MATCH_KEYBIT,
-+		.evbit = { BIT(EV_SW) },
-+		.swbit = { BIT(SW_LID) },
-+	},
-+	{ }, /* terminating entry */
-+};
-+
-+static int lid_connect(struct input_handler *handler, struct input_dev *dev,
-+		       const struct input_device_id *id)
-+{
-+	struct acpi_video_bus *video = handler->private;
-+	int r;
-+
-+	if (dev->id.product != ACPI_BUTTON_TYPE_LID ||
-+	    strcmp(dev->name, ACPI_BUTTON_DEVICE_NAME_LID) != 0)
-+		return -ENODEV;
-+
-+	if (video->lid_handle != NULL) {
-+		printk(KERN_ERR PREFIX "trying to bind to multiple lids?\n");
-+		return -ENODEV;
-+	}
-+
-+	video->lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
-+	if (!video->lid_handle)
-+		return -ENOMEM;
-+	video->lid_handle->dev = dev;
-+	video->lid_handle->handler = handler;
-+	video->lid_handle->private = video;
-+
-+	r = input_register_handle(video->lid_handle);
-+	if (r)
-+		goto err;
-+
-+	r = input_open_device(video->lid_handle);
-+	if (r)
-+		goto err_unregister;
-+
-+	printk(KERN_INFO PREFIX "connected %s to lid switch\n",
-+	       acpi_device_bid(video->device));
-+	return 0;
-+
-+err_unregister:
-+	input_unregister_handle(video->lid_handle);
-+err:
-+	kfree(video->lid_handle);
-+	return r;
-+}
-+
-+static void lid_disconnect(struct input_handle *handle)
-+{
-+	struct acpi_video_bus *video = handle->private;
-+	input_unregister_handle(handle);
-+	input_close_device(handle);
-+	kfree(video->lid_handle);
-+	video->lid_handle = NULL;
-+}
-+
-+static void lid_event(struct input_handle *handle, unsigned int type,
-+		      unsigned int code, int value)
-+{
-+	struct acpi_video_device *dev, *tmp;
-+	struct acpi_video_bus *video = handle->private;
-+
-+	if (type != EV_SW || value != 0)
-+		return;
-+
-+	list_for_each_entry_safe(dev, tmp, &video->video_device_list, entry) {
-+		if (!dev->flags.lcd)
-+			continue;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Waking up %s.%s on lid event\n",
-+				  acpi_device_bid(video->device),
-+				  acpi_device_bid(dev->dev)));
-+		acpi_video_device_set_state(dev, 0x80000001);
-+	}
-+}
-+
- /* acpi_video interface */
- 
- static int acpi_video_bus_start_devices(struct acpi_video_bus *video)
-@@ -1808,7 +1893,9 @@ static int acpi_video_bus_add(struct acp
- 	int result = 0;
- 	acpi_status status = 0;
- 	struct acpi_video_bus *video = NULL;
--
-+	char *name;
-+	char *bid = acpi_device_bid(device);
-+	int namelen;
- 
- 	if (!device)
- 		return -EINVAL;
-@@ -1825,11 +1912,11 @@ static int acpi_video_bus_add(struct acp
- 	acpi_video_bus_find_cap(video);
- 	result = acpi_video_bus_check(video);
- 	if (result)
--		goto end;
-+		goto err;
- 
- 	result = acpi_video_bus_add_fs(device);
- 	if (result)
--		goto end;
-+		goto err;
- 
- 	init_MUTEX(&video->sem);
- 	INIT_LIST_HEAD(&video->video_device_list);
-@@ -1843,24 +1930,49 @@ static int acpi_video_bus_add(struct acp
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
- 				  "Error installing notify handler\n"));
--		acpi_video_bus_stop_devices(video);
--		acpi_video_bus_put_devices(video);
--		kfree(video->attached_array);
--		acpi_video_bus_remove_fs(device);
- 		result = -ENODEV;
--		goto end;
-+		goto err_stop;
-+	}
-+
-+	namelen = 10 + strlen(bid);
-+	name = kmalloc(namelen, GFP_KERNEL);
-+	if (!name) {
-+		result = -ENOMEM;
-+		goto err_remove_notify;
-+	}
-+	snprintf(name, namelen, "ACPI-%s-LID", bid);
-+
-+	video->lid_handler.event = lid_event;
-+	video->lid_handler.connect = lid_connect;
-+	video->lid_handler.disconnect = lid_disconnect;
-+	video->lid_handler.name = name;
-+	video->lid_handler.id_table = lid_ids;
-+	video->lid_handler.private = video;
-+
-+	result = input_register_handler(&video->lid_handler);
-+	if (result) {
-+		result = -ENODEV;
-+		goto err_remove_notify;
+ 	if (dev->id.product != ACPI_BUTTON_TYPE_LID ||
+@@ -1748,18 +1749,22 @@ static int lid_connect(struct input_hand
+ 		return -ENODEV;
  	}
  
- 	printk(KERN_INFO PREFIX "%s [%s] (multi-head: %s  rom: %s  post: %s)\n",
--	       ACPI_VIDEO_DEVICE_NAME, acpi_device_bid(device),
-+	       ACPI_VIDEO_DEVICE_NAME, bid,
- 	       video->flags.multihead ? "yes" : "no",
- 	       video->flags.rom ? "yes" : "no",
- 	       video->flags.post ? "yes" : "no");
+-	video->lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
+-	if (!video->lid_handle)
++	lid_handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
++	if (!lid_handle)
+ 		return -ENOMEM;
+-	video->lid_handle->dev = dev;
+-	video->lid_handle->handler = handler;
+-	video->lid_handle->private = video;
  
--      end:
--	if (result)
--		kfree(video);
-+	return result;
+-	r = input_register_handle(video->lid_handle);
++	video->lid_handle = lid_handle;
++
++	lid_handle->dev = dev;
++	lid_handle->handler = handler;
++	lid_handle->name = "acpi-video";
++	lid_handle->private = video;
++
++	r = input_register_handle(lid_handle);
+ 	if (r)
+ 		goto err;
  
-+err_remove_notify:
-+	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+				   acpi_video_bus_notify);
-+err_stop:
-+	acpi_video_bus_stop_devices(video);
-+	acpi_video_bus_put_devices(video);
-+	kfree(video->attached_array);
-+	acpi_video_bus_remove_fs(device);
-+err:
-+	kfree(video);
- 	return result;
+-	r = input_open_device(video->lid_handle);
++	r = input_open_device(lid_handle);
+ 	if (r)
+ 		goto err_unregister;
+ 
+@@ -1777,9 +1782,10 @@ err:
+ static void lid_disconnect(struct input_handle *handle)
+ {
+ 	struct acpi_video_bus *video = handle->private;
+-	input_unregister_handle(handle);
++
+ 	input_close_device(handle);
+-	kfree(video->lid_handle);
++	input_unregister_handle(handle);
++	kfree(handle);
+ 	video->lid_handle = NULL;
  }
- 
-@@ -1875,6 +1987,9 @@ static int acpi_video_bus_remove(struct 
- 
- 	video = acpi_driver_data(device);
- 
-+	input_unregister_handler(&video->lid_handler);
-+	kfree(video->lid_handler.name);
-+
- 	acpi_video_bus_stop_devices(video);
- 
- 	status = acpi_remove_notify_handler(video->device->handle,
-Index: linux/include/acpi/acpi_drivers.h
-===================================================================
---- linux.orig/include/acpi/acpi_drivers.h
-+++ linux/include/acpi/acpi_drivers.h
-@@ -140,6 +140,14 @@ static inline void unregister_hotplug_do
- #endif
- 
- /*--------------------------------------------------------------------------
-+                                  Button
-+  -------------------------------------------------------------------------- */
-+
-+/* definitions shared between button and video drivers */
-+#define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
-+#define ACPI_BUTTON_TYPE_LID		0x05
-+
-+/*--------------------------------------------------------------------------
-                                   Suspend/Resume
-   -------------------------------------------------------------------------- */
- #ifdef CONFIG_ACPI_SLEEP
-Index: linux/drivers/acpi/Kconfig
-===================================================================
---- linux.orig/drivers/acpi/Kconfig
-+++ linux/drivers/acpi/Kconfig
-@@ -124,13 +124,13 @@ config ACPI_BUTTON
- 
- config ACPI_VIDEO
- 	tristate "Video"
--	depends on X86 && BACKLIGHT_CLASS_DEVICE
-+	depends on X86 && BACKLIGHT_CLASS_DEVICE && INPUT
- 	help
- 	  This driver implement the ACPI Extensions For Display Adapters
- 	  for integrated graphics devices on motherboard, as specified in
- 	  ACPI 2.0 Specification, Appendix B, allowing to perform some basic
--	  control like defining the video POST device, retrieving EDID information
--	  or to setup a video output, etc.
-+	  control like defining the video POST device, retrieving EDID
-+	  information or to setup a video output, etc.
- 	  Note that this is an ref. implementation only.  It may or may not work
- 	  for your integrated video device.
  
