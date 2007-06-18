@@ -1,37 +1,32 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
-Date: Sun, 17 Jun 2007 19:49:47 -0300
-Message-ID: <20070617224947.GA17951@khazad-dum.debian.net>
-References: <1182111863.4204.6.camel@noname>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: acpi/sensors temperature on nx6325
+Date: Sun, 17 Jun 2007 23:23:50 -0400
+Message-ID: <200706172323.50305.lenb@kernel.org>
+References: <200706111310.25351.dev.list@mircea.bardac.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33467 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752936AbXFQWtz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Jun 2007 18:49:55 -0400
+Received: from hera.kernel.org ([140.211.167.34]:34703 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751977AbXFRDYz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 17 Jun 2007 23:24:55 -0400
+In-Reply-To: <200706111310.25351.dev.list@mircea.bardac.net>
 Content-Disposition: inline
-In-Reply-To: <1182111863.4204.6.camel@noname>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Mircea Bardac <dev.list@mircea.bardac.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, 17 Jun 2007, Thomas Renninger wrote:
-> Create __mod_acpi_device_table symbol for all acpi drivers.
 
-thinkpad-acpi will autoload by DMI ids in 2.6.23, which is a much better
-solution for model-specific drivers like thinkpad-acpi than autoloading by
-HID, IMHO.
+> I got the same effect: I can't see the temperature change dynamically, degree 
+> by degree. Also, in a test, the sensor went up to 60-65C and the trip-point 
+> did't activate. This was with polling set to 1.
+> 
+> If you need any more information, let me know.
 
-Thus, I'd prefer if your patches did not make thinkpad-acpi autoload by HID.
+Try 2.6.22-rc5 with polling set to 0 and let me know if that doesn't work.
 
-I will send a first batch of thinkpad-acpi changes for 2.6.23 to the list
-soon, which includes the dmi autoload aliases.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+thanks,
+-Len
