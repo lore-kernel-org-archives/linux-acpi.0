@@ -1,61 +1,80 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 8/8] ACPICA: Support for external package objects as method arguments
-Date: Mon, 18 Jun 2007 00:53:28 -0400
-Message-ID: <200706180053.28518.lenb@kernel.org>
-References: <1180761344795-git-send-email-len.brown@intel.com> <6287ee32952b502c23d54f12895c3895ddbe5013.1180761191.git.len.brown@intel.com> <1180995938.5466.3.camel@localhost>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Documentation - How to debug ACPI Problems
+Date: Mon, 18 Jun 2007 13:18:47 +0200
+Message-ID: <1182165527.28514.589.camel@queen.suse.de>
+References: <1181140008.28514.259.camel@queen.suse.de>
+	 <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
+	 <1181579321.28514.304.camel@queen.suse.de>
+	 <200706180012.05665.lenb@kernel.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50953 "EHLO hera.kernel.org"
+Received: from ns2.suse.de ([195.135.220.15]:41145 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771AbXFRExh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jun 2007 00:53:37 -0400
-In-Reply-To: <1180995938.5466.3.camel@localhost>
-Content-Disposition: inline
+	id S1752866AbXFRLSt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jun 2007 07:18:49 -0400
+In-Reply-To: <200706180012.05665.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@hp.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
-Applied.
+On Mon, 2007-06-18 at 00:12 -0400, Len Brown wrote:
+> > +2. Overriding DSDT
+> > +------------------
+> > +
+> > +The DSDT (there is a patch also for SSDTs) can be overridden by the user.
+> > +The tables get copied to RAM when booting and the kernel can override them with
+> > +alternative tables at early boot time.
+> > +
+> > +Historically people used to override their DSDT to workaround BIOS or even
+> > +kernel bugs. This is a bad idea, the override functionality is for short
+> > +term workarounds and mainly for debugging! Please always report such bugs to
+> > +bugzilla.kernel.org or post to linux-acpi@vger.kernel.org if unsure.
+> > +
+> > +There are two possibilities to override the DSDT:
+> > +
+> > +  - via CONFIG_ACPI_CUSTOM_DSDT (and _FILE) compile option(s)
+> > +  - via adding a customized DSDT into initramfs
+> > +
+> > +The second approach does not need kernel recompilation and some distributions
+> > +provide the patch, which is not included in mainline, in their kernels.
+> > +
+> > +The patch and more information can be found here (many thanks to Markus
+> > +Gaugusch and Eric Piel):
+> > +http://gaugusch.at/kernel.shtml
+> > +
+> 
+> how to override the DSDT by re-compiling the upstream kernel
+> is already documented here:
+> 
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
+Ah yes, a link to this one is quite convenient...
 
-thanks Myron!
+> It seems inconsistent to refer to the initrd patch from the in-tree Documentation,
+> since that patch will always be out-of-tree.
+It is inconsistent to point to a useful debug patch outside the kernel?
 
--Len
+> I would think that the in-tree Documentation would refer to specifics relating
+> to the kernel that is actually checked into the tree with the Documentation.
+> This assumption can probably clear up some of the wording relating to the
+> debug flags -- we don't have to describe the old ones -- if somebody is
+> reading this documentation, they already have the new ones:-)
+rip out mentioning /proc/acpi/debug_{level,layer}?
+Ok.
 
-On Monday 04 June 2007 18:25, Myron Stowe wrote:
-> >From : Myron Stowe <myron.stowe@hp.com>
-> 
-> I believe there is an issue with the new 'package' argument type support
-> just submitted upstream.
-> 
-> In the routine acpi_ut_create_package_object(), if the
-> ACPI_ALLOCATE_ZEROED() fails then ACPI_FREE(package_desc) is called as
-> part of the cleanup.  This should instead be
-> acpi_ut_remove_reference(package_desc) in order to remove the reference
-> acquired from acpi_ut_create_internal_object() [see the routine
-> acpi_ut_create_buffer_object() as an example of proper functionality].
-> 
-> This patch is against the Linux-ized ACPI CA, since I don't have a good
-> way to modify or test the original Intel version.  I hope it's small
-> enough that you can easily make the corresponding change to the Intel
-> version.
-> 
-> This modification may be used under either the GPL or the BSD-style
-> license used for the Intel ACPI CA.
-> 
-> Signed-off-by: Myron Stowe < myron.stowe@hp.com>
-> 
-> --- a/drivers/acpi/utilities/utobject.c    2007-06-04 15:49:19.000000000 -0600
-> +++ b/drivers/acpi/utilities/utobject.c    2007-06-04 15:52:17.000000000 -0600
-> @@ -177,7 +177,7 @@
->         package_elements = ACPI_ALLOCATE_ZEROED((acpi_size)
->                                                 (count + 1) * sizeof(void *));
->         if (!package_elements) {
-> -               ACPI_FREE(package_desc);
-> +               acpi_ut_remove_reference(package_desc);
->                 return_PTR(NULL);
->         }
-> 
+> Asside from those specific things that describe the kernel in the tree,
+> I'm thinking that acpi.sourceforge.net documentation would be a better
+> place for a general HOWTO on debugging ACPI issues in general.
+Looking at:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI,
+maybe we could just add that one instead to Documentation/acpi/*?
+If, splitting would IMO be easier to read, e.g. something like:
+  - report_acpi_kernel_bugs.txt
+  - sending_ACPI_patches.txt
+  - debugging_acpi_kernel_errors.txt
+
+      Thomas
+
