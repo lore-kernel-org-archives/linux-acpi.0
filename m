@@ -1,32 +1,66 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: acpi/sensors temperature on nx6325
-Date: Sun, 17 Jun 2007 23:23:50 -0400
-Message-ID: <200706172323.50305.lenb@kernel.org>
-References: <200706111310.25351.dev.list@mircea.bardac.net>
+Subject: Re: Documentation - How to debug ACPI Problems
+Date: Mon, 18 Jun 2007 00:12:05 -0400
+Message-ID: <200706180012.05665.lenb@kernel.org>
+References: <1181140008.28514.259.camel@queen.suse.de> <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com> <1181579321.28514.304.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34703 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:44295 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751977AbXFRDYz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Jun 2007 23:24:55 -0400
-In-Reply-To: <200706111310.25351.dev.list@mircea.bardac.net>
+	id S1751117AbXFREMR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jun 2007 00:12:17 -0400
+In-Reply-To: <1181579321.28514.304.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mircea Bardac <dev.list@mircea.bardac.net>
-Cc: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
 
-> I got the same effect: I can't see the temperature change dynamically, degree 
-> by degree. Also, in a test, the sensor went up to 60-65C and the trip-point 
-> did't activate. This was with polling set to 1.
-> 
-> If you need any more information, let me know.
+> +2. Overriding DSDT
+> +------------------
+> +
+> +The DSDT (there is a patch also for SSDTs) can be overridden by the user.
+> +The tables get copied to RAM when booting and the kernel can override them with
+> +alternative tables at early boot time.
+> +
+> +Historically people used to override their DSDT to workaround BIOS or even
+> +kernel bugs. This is a bad idea, the override functionality is for short
+> +term workarounds and mainly for debugging! Please always report such bugs to
+> +bugzilla.kernel.org or post to linux-acpi@vger.kernel.org if unsure.
+> +
+> +There are two possibilities to override the DSDT:
+> +
+> +  - via CONFIG_ACPI_CUSTOM_DSDT (and _FILE) compile option(s)
+> +  - via adding a customized DSDT into initramfs
+> +
+> +The second approach does not need kernel recompilation and some distributions
+> +provide the patch, which is not included in mainline, in their kernels.
+> +
+> +The patch and more information can be found here (many thanks to Markus
+> +Gaugusch and Eric Piel):
+> +http://gaugusch.at/kernel.shtml
+> +
 
-Try 2.6.22-rc5 with polling set to 0 and let me know if that doesn't work.
+how to override the DSDT by re-compiling the upstream kernel
+is already documented here:
 
-thanks,
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
+
+It seems inconsistent to refer to the initrd patch from the in-tree Documentation,
+since that patch will always be out-of-tree.
+
+I would think that the in-tree Documentation would refer to specifics relating
+to the kernel that is actually checked into the tree with the Documentation.
+This assumption can probably clear up some of the wording relating to the
+debug flags -- we don't have to describe the old ones -- if somebody is
+reading this documentation, they already have the new ones:-)
+
+Asside from those specific things that describe the kernel in the tree,
+I'm thinking that acpi.sourceforge.net documentation would be a better
+place for a general HOWTO on debugging ACPI issues in general.
+
 -Len
