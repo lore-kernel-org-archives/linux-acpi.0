@@ -1,80 +1,49 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Documentation - How to debug ACPI Problems
-Date: Mon, 18 Jun 2007 13:18:47 +0200
-Message-ID: <1182165527.28514.589.camel@queen.suse.de>
-References: <1181140008.28514.259.camel@queen.suse.de>
-	 <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
-	 <1181579321.28514.304.camel@queen.suse.de>
-	 <200706180012.05665.lenb@kernel.org>
-Reply-To: trenn@suse.de
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Mon, 18 Jun 2007 11:01:22 -0400
+Message-ID: <1182178882.4063.11.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:41145 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752866AbXFRLSt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jun 2007 07:18:49 -0400
-In-Reply-To: <200706180012.05665.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1181869285.5411.39.camel@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Mon, 2007-06-18 at 00:12 -0400, Len Brown wrote:
-> > +2. Overriding DSDT
-> > +------------------
-> > +
-> > +The DSDT (there is a patch also for SSDTs) can be overridden by the user.
-> > +The tables get copied to RAM when booting and the kernel can override them with
-> > +alternative tables at early boot time.
-> > +
-> > +Historically people used to override their DSDT to workaround BIOS or even
-> > +kernel bugs. This is a bad idea, the override functionality is for short
-> > +term workarounds and mainly for debugging! Please always report such bugs to
-> > +bugzilla.kernel.org or post to linux-acpi@vger.kernel.org if unsure.
-> > +
-> > +There are two possibilities to override the DSDT:
-> > +
-> > +  - via CONFIG_ACPI_CUSTOM_DSDT (and _FILE) compile option(s)
-> > +  - via adding a customized DSDT into initramfs
-> > +
-> > +The second approach does not need kernel recompilation and some distributions
-> > +provide the patch, which is not included in mainline, in their kernels.
-> > +
-> > +The patch and more information can be found here (many thanks to Markus
-> > +Gaugusch and Eric Piel):
-> > +http://gaugusch.at/kernel.shtml
-> > +
-> 
-> how to override the DSDT by re-compiling the upstream kernel
-> is already documented here:
-> 
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
-Ah yes, a link to this one is quite convenient...
+On Fri, 2007-15-06 at 09:01 +0800, Zhang Rui wrote:
 
-> It seems inconsistent to refer to the initrd patch from the in-tree Documentation,
-> since that patch will always be out-of-tree.
-It is inconsistent to point to a useful debug patch outside the kernel?
+> > I dont have much time to look at your code given travel, but did you
+> > try to use your group id instead of the controller's?
+> > i.e:
+> > rtnl_open_byproto(&rth, nl_mgrp(mydiscoveredacpiid), NETLINK_GENERIC)
+> > 
+> Yes. It doesn't work if I use my group id here.
+> In fact, I'm using rtnl_open_byproto(&rth, 1, NETLINK_GENERIC) now.
+> That's why I said that this demo receives all the broadcasted genetlink
+> messages.
 
-> I would think that the in-tree Documentation would refer to specifics relating
-> to the kernel that is actually checked into the tree with the Documentation.
-> This assumption can probably clear up some of the wording relating to the
-> debug flags -- we don't have to describe the old ones -- if somebody is
-> reading this documentation, they already have the new ones:-)
-rip out mentioning /proc/acpi/debug_{level,layer}?
-Ok.
+Ok, by inspection (sorry, still dont have much time) - your kernel code
+is sending to group 1; i.e
 
-> Asside from those specific things that describe the kernel in the tree,
-> I'm thinking that acpi.sourceforge.net documentation would be a better
-> place for a general HOWTO on debugging ACPI issues in general.
-Looking at:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI,
-maybe we could just add that one instead to Documentation/acpi/*?
-If, splitting would IMO be easier to read, e.g. something like:
-  - report_acpi_kernel_bugs.txt
-  - sending_ACPI_patches.txt
-  - debugging_acpi_kernel_errors.txt
+genlmsg_multicast(skb, 0, 1, GFP_ATOMIC);
 
-      Thomas
+you need to change that to send to your assigned id, i.e:
+genlmsg_multicast(skb, 0, acpi_event_genl_family.id, GFP_ATOMIC);
+
+then the user space code will work. I should be able to look at it if it
+doesnt work by end of week.
+
+cheers,
+jamal
 
