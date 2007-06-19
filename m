@@ -1,73 +1,56 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
-Date: Tue, 19 Jun 2007 18:27:57 -0300
-Message-ID: <20070619212757.GB23946@khazad-dum.debian.net>
-References: <1182111863.4204.6.camel@noname> <20070617224947.GA17951@khazad-dum.debian.net> <1182257607.28514.643.camel@queen.suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] clear GPE earily in resume
+Date: Wed, 20 Jun 2007 00:06:32 +0200
+Message-ID: <200706200006.35413.rjw@sisk.pl>
+References: <1181785011.19274.6.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60393 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751191AbXFSV2G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2007 17:28:06 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:43919 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753084AbXFSV77 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2007 17:59:59 -0400
+In-Reply-To: <1181785011.19274.6.camel@sli10-conroe.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <1182257607.28514.643.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "robert.moore" <robert.moore@intel.com>
 
-On Tue, 19 Jun 2007, Thomas Renninger wrote:
-> On Sun, 2007-06-17 at 19:49 -0300, Henrique de Moraes Holschuh wrote:
-> > On Sun, 17 Jun 2007, Thomas Renninger wrote:
-> > > Create __mod_acpi_device_table symbol for all acpi drivers.
-> > 
-> > thinkpad-acpi will autoload by DMI ids in 2.6.23, which is a much better
-> > solution for model-specific drivers like thinkpad-acpi than autoloading by
-> > HID, IMHO.
+On Thursday, 14 June 2007 03:36, Shaohua Li wrote:
+> Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
+> USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
+> acpi_leave_sleep_state will clear the GPE but it's too late, we should
+> doe it before interrupt is re-enabled. 
+> 
+> Maybe we should just clear wakeup GPE here, but clear all GPEs sounds
+> not harmful in my test. Not sure other systems.
 
-> Yes, I saw some dmi udev strings on Kay's machine and for the thinkpad
-> module dmi autoloading is much better.
+I think that the clearing all of the GPEs is the right thing to do here.
 
-Yeah. The HIDs thinkpad-acpi binds to might exist on non-thinkpads, while
-the DMI matching should be good for all new boxes, and all of the old ones
-which I have some sort of data on.  The few very old thinkpads I am not
-autoloading on are probably not going to care, wouldn't benefit much from
-thinkpad-acpi anyway... or they will send me email about it.
+> Index: 2.6.22-rc/drivers/acpi/sleep/main.c
+> ===================================================================
+> --- 2.6.22-rc.orig/drivers/acpi/sleep/main.c	2007-06-11 15:31:03.000000000 +0800
+> +++ 2.6.22-rc/drivers/acpi/sleep/main.c	2007-06-14 09:31:54.000000000 +0800
+> @@ -104,6 +104,8 @@
+>  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+>  		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+>  
 
-> Not in general, only if the driver provides additional functions and the
-> ACPI device does not appear on machines that need those additional
-> functions.
+I'd add a comment saying why we're clearing the GPEs at this point.
 
-Or, if you risk too many false positives.
+> +	acpi_hw_disable_all_gpes();
+> +
+>  	local_irq_restore(flags);
+>  	printk(KERN_DEBUG "Back to C!\n");
+>  
+> -
 
-> > Thus, I'd prefer if your patches did not make thinkpad-acpi autoload by HID.
+Greetings,
+Rafael
 
-> It would not really hurt? At least thinkpad module is an acpi driver for
-
-It would, if we start trying to autoload on false positive matches.  If we
-did not have any other way to autoload, that would be fine, but since we
-will have DMI matches also in 2.6.23...
-
-> those two HIDs... But your are right, it's superfluous, here with
-> __mod_acpi_device_table symbol ripped out of thinkpad.ko.
-
-Thank you. I did not test the patch, but I am ok with it, now.
-
-> Hmm, what do you think about splitting the Thinkpad driver into Hotkey,
-> PCI and rest? This one got a complicated beast...
-
-It is cooking.  In fact, I was halfway through it, when Richard started
-getting me fired up about improving the input layer support in
-thinkpad-acpi, which is a damn more fun thing to do... so it stalled, but
-now thinkpad-acpi has proper input support, which I will be sending for
-acpi-test merging quite soon now.
-
-Some sort of split will be done. Probably for 2.6.23, even.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+"Premature optimization is the root of all evil." - Donald Knuth
