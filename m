@@ -1,55 +1,73 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Re: Power Mangement Interfaces
-Date: Tue, 19 Jun 2007 14:41:14 -0500
-Message-ID: <3B6D69C3A9EBCA4BA5DA60D913027429013872D0@dlee13.ent.ti.com>
-References: <20070330235759.GC4252@cosmic.amd.com><200703312001.55231.david-b@pacbell.net><20070401165601.GA13389@cosmic.amd.com><200704011728.10966.david-b@pacbell.net>
-	<20070619170048.GA342@dmt.media.mit.edu>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
+Date: Tue, 19 Jun 2007 18:27:57 -0300
+Message-ID: <20070619212757.GB23946@khazad-dum.debian.net>
+References: <1182111863.4204.6.camel@noname> <20070617224947.GA17951@khazad-dum.debian.net> <1182257607.28514.643.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070619170048.GA342@dmt.media.mit.edu>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Marcelo Tosatti <marcelo@kvack.org>, David Brownell <david-b@pacbell.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60393 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751191AbXFSV2G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2007 17:28:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1182257607.28514.643.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
 
-> As you know we want user configuration of enabled wakeup events (unlike
-> embedded platforms where this is hardcoded). It seems that the current
-> interface available for that is /sys/devices/../power/wakeup hook (when
-> !ACPI).
-> 
-> However there are several wakeup capable devices in OLPC which do not
-> have drivers, thus no platform devices:
-> 
-> - power button
-> - lid
-> 
-> It seems that creating platform devices for these two just for the
-> purpose of a having an interface for enabling wakeup events is overkill.
-> 
-> Given that, we probably want something similar to what was initially
-> described in http://wiki.laptop.org/go/Power_Management_Interface ?
-> 
-> The downside of doing that is a non-unified interface: platform
-> devices via /sys/devices/../power/wakeup and otherwise
-> /sys/whatever/wakeup/source?
- 
-Perhaps it is over kill, but is it really very expensive for handful of devices?  I am curious as to others experiences here.
+On Tue, 19 Jun 2007, Thomas Renninger wrote:
+> On Sun, 2007-06-17 at 19:49 -0300, Henrique de Moraes Holschuh wrote:
+> > On Sun, 17 Jun 2007, Thomas Renninger wrote:
+> > > Create __mod_acpi_device_table symbol for all acpi drivers.
+> > 
+> > thinkpad-acpi will autoload by DMI ids in 2.6.23, which is a much better
+> > solution for model-specific drivers like thinkpad-acpi than autoloading by
+> > HID, IMHO.
 
-In hacks for embedded in the past I've sprinkled some extra device/bus registrations around to provide a common way to enable wake ups and idle states.  I don't know that it was the best way to do it, but it could be made to work.
+> Yes, I saw some dmi udev strings on Kay's machine and for the thinkpad
+> module dmi autoloading is much better.
 
-A dev structure is a handy thing to have around and provides symmetry.  Having a sysfs entry provides for an easy way to set and test from user space.  You can always export the function in the kernel also to get a secondary path to the function.  All that seems nicer than adding ioctrls and the like per driver.
+Yeah. The HIDs thinkpad-acpi binds to might exist on non-thinkpads, while
+the DMI matching should be good for all new boxes, and all of the old ones
+which I have some sort of data on.  The few very old thinkpads I am not
+autoloading on are probably not going to care, wouldn't benefit much from
+thinkpad-acpi anyway... or they will send me email about it.
 
-Regards,
-Richard W.
+> Not in general, only if the driver provides additional functions and the
+> ACPI device does not appear on machines that need those additional
+> functions.
+
+Or, if you risk too many false positives.
+
+> > Thus, I'd prefer if your patches did not make thinkpad-acpi autoload by HID.
+
+> It would not really hurt? At least thinkpad module is an acpi driver for
+
+It would, if we start trying to autoload on false positive matches.  If we
+did not have any other way to autoload, that would be fine, but since we
+will have DMI matches also in 2.6.23...
+
+> those two HIDs... But your are right, it's superfluous, here with
+> __mod_acpi_device_table symbol ripped out of thinkpad.ko.
+
+Thank you. I did not test the patch, but I am ok with it, now.
+
+> Hmm, what do you think about splitting the Thinkpad driver into Hotkey,
+> PCI and rest? This one got a complicated beast...
+
+It is cooking.  In fact, I was halfway through it, when Richard started
+getting me fired up about improving the input layer support in
+thinkpad-acpi, which is a damn more fun thing to do... so it stalled, but
+now thinkpad-acpi has proper input support, which I will be sending for
+acpi-test merging quite soon now.
+
+Some sort of split will be done. Probably for 2.6.23, even.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
