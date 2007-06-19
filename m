@@ -1,61 +1,49 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 8/8] cpuidle: first round of documentation updates
-Date: Tue, 19 Jun 2007 15:16:27 +0000
-Message-ID: <20070619151626.GA5127@ucw.cz>
-References: <20070606205641.GH23906@linux-os.sc.intel.com>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Tue, 19 Jun 2007 12:20:06 -0400
+Message-ID: <1182270006.4968.62.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182252616.21013.12.camel@johannes.berg>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3117 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755338AbXFSPQl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2007 11:16:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20070606205641.GH23906@linux-os.sc.intel.com>
+Received: from wx-out-0506.google.com ([66.249.82.239]:1348 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756041AbXFSQUJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jun 2007 12:20:09 -0400
+Received: by wx-out-0506.google.com with SMTP id t15so1878763wxc
+        for <linux-acpi@vger.kernel.org>; Tue, 19 Jun 2007 09:20:08 -0700 (PDT)
+In-Reply-To: <1182252616.21013.12.camel@johannes.berg>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Adam Belay <abelay@novell.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
-Hi!
+On Tue, 2007-19-06 at 13:30 +0200, Johannes Berg wrote:
 
-> Documentation changes based on Pavel's feedback.
-
-Thanks!
-
-> -System global cpuidle information are under
-> +System global cpuidle related information and tunables are under
->  /sys/devices/system/cpu/cpuidle
->  
->  The current interfaces in this directory has self-explanatory names:
-> +* current_driver_ro
-> +* current_governor_ro
-
-Uff, the _ro thing looks ugly to my eyes.
-
-> +With cpuidle_sysfs_switch boot option (meant for developer testing)
-> +following objects are visible instead.
->  * available_drivers
->  * available_governors
->  * current_driver
->  * current_governor
-
-...with different files depending on config it is _very_ ugly.
+> Ah, that coincides with something I was wondering about. Isn't it
+> possible to have multiple multicast groups with generic netlink? If so,
+> we might have to use real netlink for wireless...
 
 
->  More than one governor can be registered at the same time and
-> -user can switch between drivers using /sysfs interface.
-> +user can switch between drivers using /sysfs interface (when supported).
+There is one default mcast group per entity. Most users only need that
+one.
+If you need more, we go one of two ways:
+a) Register for multiple IDs with the code as is. 
+b) we could add a "reserve multicast group" interface in the kernel.
 
-(when enabled)?
+Thoughts?
 
-> +More than one governor part is supported for developers to easily experiment
-> +with different governors. By default, most optimal governor based on your
+cheers,
+jamal
 
-delete 'most'?
-
-							Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
