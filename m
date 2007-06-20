@@ -1,61 +1,61 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 2/3] ACPI autoloading - Create acpi alias interface
-Date: Thu, 21 Jun 2007 00:52:21 +0900
-Message-ID: <20070620155220.GA9226@inferi.kami.home>
-References: <1182111854.4204.4.camel@noname> <1182112047.4204.12.camel@noname>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately
+ resumes after STR
+Date: Wed, 20 Jun 2007 12:33:04 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0706201220150.3518-100000@iolanthe.rowland.org>
+References: <20070620144532.GA3761@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:59646 "EHLO
-	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990AbXFTPwe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 11:52:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1182112047.4204.12.camel@noname>
+Received: from iolanthe.rowland.org ([192.131.102.54]:60990 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752468AbXFTQdH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 12:33:07 -0400
+In-Reply-To: <20070620144532.GA3761@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Zhang Rui <rui.zhang@intel.com>, David Brownell <dbrownell@users.sourceforge.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org
 
-On Sun, Jun 17, 2007 at 10:27:27PM +0200, Thomas Renninger wrote:
-> Create acpi alias interface
-...
-> Index: linux-2.6.22-rc4/drivers/pnp/pnpacpi/core.c
-> ===================================================================
-> --- linux-2.6.22-rc4.orig/drivers/pnp/pnpacpi/core.c
-> +++ linux-2.6.22-rc4/drivers/pnp/pnpacpi/core.c
-> @@ -21,7 +21,10 @@
->  
->  #include <linux/acpi.h>
->  #include <linux/pnp.h>
-> +#include <linux/mod_devicetable.h>
->  #include <acpi/acpi_bus.h>
-> +#include <acpi/actypes.h>
-> +
->  #include "pnpacpi.h"
->  
->  static int num = 0;
-> @@ -33,15 +36,17 @@ static int num = 0;
->   * have irqs (PIC, Timer) because we call acpi_register_gsi.
->   * Finaly only devices that have a CRS method need to be in this list.
->   */
-> -static char __initdata excluded_id_list[] =
-> -	"PNP0C09," /* EC */
-> -	"PNP0C0F," /* Link device */
-> -	"PNP0000," /* PIC */
-> -	"PNP0100," /* Timer */
-> -	;
-> +static __initdata struct acpi_device_id excluded_id_list[] ={
-> +	{"PNP0C09", 0}, /* EC */
-> +	{"PNP0C0F", 0}, /* Link device */
-> +	{"PNP0000", 0}, /* PIC */
-> +	{"PNP0100", 0}, /* Timer */
-> +	{"", 0};
-              ^^^
-eeek!
+On Wed, 20 Jun 2007, Mattia Dongili wrote:
 
-> +};
-> +
--- 
-mattia
-:wq!
+> > Just as with Raphael, I suggest you build a kernel with 
+> > CONFIG_USB_DEBUG turned on and then post the dmesg log showing the USB 
+> > debugging messages during the suspend and immediate resume.  To reduce 
+> > the amount of clutter you might want to rmmod uhci-hcd before starting 
+> > the test.
+> 
+> here we go:
+> http://www.linux.it/~malattia/logs/dmesg-suspend-ehci-debug-log
+> 
+> and by the way:
+> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #1 (rev 02)
+> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #2 (rev 02)
+> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #3 (rev 02)
+> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #4 (rev 02)
+> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI Controller (rev 02)
+> 
+> with ehci only:
+> Bus 005 Device 007: ID 054c:0281 Sony Corp. 
+> Bus 005 Device 004: ID 05ca:1830 Ricoh Co., Ltd 
+> Bus 005 Device 001: ID 0000:0000  
+
+The log shows suspicious behavior on the part of the Sony UMH-U09
+device, the first one in your ehci-only list above.  When it was
+suspended it apparently disconnected itself from the USB bus, thereby
+triggering a wakeup signal.  If at all possible, try unplugging the USB
+cable to that device and then see what happens when you suspend.
+
+You also ought to be able to prevent this immediate resume by disabling
+wakeup on the EHCI controller.  For example:
+
+	echo disable >/sys/bus/usb/devices/usb5/power/wakeup
+	echo disable >/sys/bus/usb/devices/usb5/../power/wakeup
+
+(Maybe you only need one of those two lines; in principle either one
+should be sufficient.)  After doing this it's probably a good idea to
+run lsusb, to force the new settings to take effect in case the root
+hub was autosuspended.
+
+Alan Stern
+
