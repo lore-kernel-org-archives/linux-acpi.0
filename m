@@ -1,109 +1,237 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR
-Date: Wed, 20 Jun 2007 23:39:19 +0200
-Message-ID: <200706202339.20188.rjw@sisk.pl>
-References: <20070518071523.GA3195@inferi.kami.home> <200706191326.10320.rjw@sisk.pl> <1182304359.5411.122.camel@localhost.localdomain>
+From: Martin Tamme <mtamme@cosy.sbg.ac.at>
+Subject: dmidecode
+Date: Thu, 21 Jun 2007 00:04:48 +0200
+Message-ID: <4679A480.1020507@cosy.sbg.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49081 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751063AbXFTVcr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jun 2007 17:32:47 -0400
-In-Reply-To: <1182304359.5411.122.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from mailbackup.inode.at ([213.229.60.24]:41010 "EHLO
+	mailbackup.inode.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbXFTWFo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 18:05:44 -0400
+Received: from [62.99.145.5] (port=51310 helo=mx.inode.at)
+	by mailbackup.inode.at with esmtp (Exim 4.67)
+	(envelope-from <mtamme@cosy.sbg.ac.at>)
+	id 1I18J3-00075q-1p
+	for linux-acpi@vger.kernel.org; Thu, 21 Jun 2007 00:05:41 +0200
+Received: from [85.127.52.101] (port=9093 helo=[192.168.1.20])
+	by smartmx-05.inode.at with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
+	(Exim 4.50)
+	id 1I18ID-0002DU-Ec
+	for linux-acpi@vger.kernel.org; Thu, 21 Jun 2007 00:04:49 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Mattia Dongili <malattia@linux.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, David Brownell <dbrownell@users.sourceforge.net>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday, 20 June 2007 03:52, Zhang Rui wrote:
-> On Tue, 2007-06-19 at 13:26 +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, 19 June 2007 11:55, Zhang Rui wrote:
-> > > On Tue, 2007-06-19 at 18:30 +0900, Mattia Dongili wrote:
-> > > > On Tue, Jun 19, 2007 at 04:57:55PM +0800, Zhang Rui wrote:
-> > > > > On Sun, 2007-05-20 at 15:14 +0900, Mattia Dongili wrote:
-> > > > > > On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
-> > > > > > > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > > > > > 
-> > > > > > > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
-> > > > > > > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > > > > > > > 
-> > > > > > > > > > Hello,
-> > > > > > > > > > 
-> > > > > > > > > > After finally catching fw-{ohci,core} to be problematic during resume,
-> > > > > > > > > > I'm now experiencing an immediate resume after suspending.
-> > > > > > > > > > 
-> > > > > > > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> > > > > > > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> > > > > > > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
-> > > > > > > > > > 
-> > > > > > > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> > > > > > > > > > and a str cycle with PM_DEBUG=y:
-> > > > > > > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
-> > > > > > > > ...
-> > > > > > > > > > Any idea where to start from? (bisecting is ok, but it'll take some
-> > > > > > > > > > time...)
-> > > > > > > > > 
-> > > > > > > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
-> > > > > > > > 
-> > > > > > > > ok, git-acpi.patch is not the bad boy :)
-> > > > > > 
-> > > > > > but very very close:
-> > > > > > acpi-driver-model-flags-and-platform_enable_wake.patch
-> > > > > > 
-> > > > > Hi, Mattia,
-> > > > > 
-> > > > > I tested this patch on several platforms but can not reproduce the bug.
-> > > > > Could you please help me do a simple test please?
-> > > > > 
-> > > > > Any kernel release later than 2.6.22-rc1 is ok. You don't need to apply 
-> > > > > acpi-driver-model-flags-and-platform_enable_wake.patch.
-> > > > > 
-> > > > > Try to enable the wakeup GPE for all the USB devices first.
-> > > > > e.g. "#echo USB1 >/proc/acpi/wakeup" will enable GPE for USB1.
-> > > > > USB1      S3     disabled  pci:0000:00:1d.0
-> > > > > USB2      S3     disabled  pci:0000:00:1d.1
-> > > > > USB3      S3     disabled  pci:0000:00:1d.2
-> > > > > USB4      S3     disabled  pci:0000:00:1d.3
-> > > > > USB7      S3     disabled  pci:0000:00:1d.7
-> > > > > 
-> > > > > Try STR and check if it resumes immediately after suspend.
-> > > > > I think the same problem will happen without this patch.
-> > > > 
-> > > > ok, building right now.
-> > > > Anyway, I don't remember the details but ehci and uhci were already
-> > > > spotted as being part of the problem. See the rest of the thread
-> > > > starting here http://lkml.org/lkml/2007/5/20/223
-> > 
-> > Slightly off-topic, but I have a test box that resumes immediately after an STR
-> > is ehci_hcd is loaded and suspends correctly otherwise (with an Intel chipset).
-> > 
-> Did you manually override /proc/acpi/wakeup?
+# dmidecode 2.9
+SMBIOS 2.4 present.
+17 structures occupying 641 bytes.
+Table at 0x000E3810.
 
-No, I didn't.
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Hewlett-Packard
+	Version: F.23
+	Release Date: 04/13/2007
+	Address: 0xE7390
+	Runtime Size: 101488 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+	BIOS Revision: 1.6
+	Firmware Revision: 1.1
 
-> Attaching the content of /proc/acpi/wakeup may be helpful. :)
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Hewlett-Packard
+	Product Name: HP Pavilion dv5000 (RG959EA#ABD)
+	Version: F.23
+	Serial Number: CND63436SJ
+	UUID: CAB23257-2998-11DB-BA5A-0016D43EC990
+	Wake-up Type: Power Switch
+	SKU Number: RG959EA#ABD
+	Family: 103C_5335KV
 
-Well, there's nothing interesting in there, AFAICS:
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Hewlett-Packard
+	Product Name: 30A7
+	Version: 56.47
+	Serial Number: CND63436SJ
 
-Device	S-state	  Status   Sysfs node
-P0P4	  S4	 disabled  pci:0000:00:1e.0
-BNIC	  S4	 disabled  pci:0000:02:05.0
-USB1	  S4	 disabled  pci:0000:00:1d.0
-USB2	  S4	 disabled  pci:0000:00:1d.1
-USB3	  S4	 disabled  pci:0000:00:1d.2
-EUSB	  S4	 disabled  pci:0000:00:1d.7
-PS2K	  S4	 disabled  pnp:00:0b
-PS2M	  S4	 disabled  pnp:00:0c
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Hewlett-Packard
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
 
-(this is from after a successful hibernation if that matters).
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU T2250
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 1730 MHz
+	Current Speed: 1730 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: Not Provided
+	L2 Cache Handle: 0x0005
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
 
-Greetings,
-Rafael
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 2048 KB
+	Maximum Size: 2048 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
 
+Handle 0x0006, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J1100
+	Type: 32-bit PCI
+	Current Usage: In Use
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J1101
+	Type: 32-bit PCI
+	Current Usage: In Use
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+
+Handle 0x0008, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description: Intel Calistoga
+
+Handle 0x0009, DMI type 11, 5 bytes
+OEM Strings
+	String 1: $HP$
+
+Handle 0x000A, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000B, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000A
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000C, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000A
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 2
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000D, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x000A
+	Partition Width: 0
+
+Handle 0x000E, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Device Handle: 0x000B
+	Memory Array Mapped Address Handle: 0x000D
+	Partition Row Position: 2
+	Interleave Position: 1
+	Interleaved Data Depth: 6
+
+Handle 0x000F, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0010, DMI type 127, 4 bytes
+End Of Table
