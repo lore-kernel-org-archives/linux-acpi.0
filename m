@@ -1,69 +1,52 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 7/12] acpi: fix another compile warning
-Date: Tue, 19 Jun 2007 20:51:58 -0700
-Message-ID: <20070619205158.8d6da762.randy.dunlap@oracle.com>
-References: <20070619225035.GI5193@alberich.amd.com>
-	<200706192338.02807.lenb@kernel.org>
-	<20070619204934.f56722a8.randy.dunlap@oracle.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 12/12] acpi: select ACPI_EC for SONY_LAPTOP
+Date: Wed, 20 Jun 2007 13:30:12 +0900
+Message-ID: <20070620043011.GA4214@inferi.kami.home>
+References: <20070619225225.GN5193@alberich.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:25004 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757227AbXFTDvX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jun 2007 23:51:23 -0400
-In-Reply-To: <20070619204934.f56722a8.randy.dunlap@oracle.com>
+Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:65144 "EHLO
+	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755434AbXFTEaU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 00:30:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20070619225225.GN5193@alberich.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Andreas Herrmann <andreas.herrmann3@amd.com>, linux-acpi@vger.kernel.org
+To: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 19 Jun 2007 20:49:34 -0700 Randy Dunlap wrote:
+On Wed, Jun 20, 2007 at 12:52:25AM +0200, Andreas Herrmann wrote:
+> Fix kernel build problem as SONY_LAPTOP depends on ACPI_EC.
 
-> On Tue, 19 Jun 2007 23:38:02 -0400 Len Brown wrote:
+The same questions about ACPI_SYSTEM and ACPI_POWER surviving oldconfig
+hold here.
+See also http://lkml.org/lkml/2007/5/15/168 and following for a previous
+report.
+
+In any case, Len if you're going apply such fixes feel free to add my
+Acked-By on this one.
+
+> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+>  drivers/misc/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
-> > > Avoid compile warning if !ACPI_BLACKLIST_YEAR
-> > > 
-> > >   CC      drivers/acpi/blacklist.o
-> > >   drivers/acpi/blacklist.c:76:5: warning: "CONFIG_ACPI_BLACKLIST_YEAR" is not defined
-> > 
-> > How were you able to produce a .config with CONFIG_ACPI_BLACKLIST_YEAR not defined?
-> > Can you send it to me?
-> 
-> 'make randconfig' does that kind of thing.  It doesn't enforce/follow
-> "select" clauses.
-
-I should have also said:  randconfig is good for detecting some
-missing conditions/configs or missing header files, but if you find one
-that is just plain Invalid (like some of these), just say so
-and do whatever you want with the patch (IMHO of course).
-
-
-> > thanks,
-> > -Len
-> > 
-> > > Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> > > ---
-> > >  drivers/acpi/blacklist.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> > > index 3ec110c..ac96c47 100644
-> > > --- a/drivers/acpi/blacklist.c
-> > > +++ b/drivers/acpi/blacklist.c
-> > > @@ -73,7 +73,7 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
-> > >  	{""}
-> > >  };
-> > >  
-> > > -#if	CONFIG_ACPI_BLACKLIST_YEAR
-> > > +#if	defined(CONFIG_ACPI_BLACKLIST_YEAR) && CONFIG_ACPI_BLACKLIST_YEAR
-> > >  
-> > >  static int __init blacklist_by_year(void)
-> > >  {
-> > -
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index 0d6f369..463fa41 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -119,6 +119,7 @@ config MSI_LAPTOP
+>  config SONY_LAPTOP
+>  	tristate "Sony Laptop Extras"
+>  	depends on X86 && ACPI
+> +	select ACPI_EC
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	  ---help---
+>  	  This mini-driver drives the SNC and SPIC devices present in the ACPI
+> -- 
+> 1.5.0.7
+-- 
+mattia
+:wq!
