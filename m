@@ -1,78 +1,109 @@
-From: Ravikiran G Thirumalai <kiran@scalex86.org>
-Subject: Re: [PATCH 7/12] acpi: fix another compile warning
-Date: Wed, 20 Jun 2007 11:25:48 -0700
-Message-ID: <20070620182548.GA561@localdomain>
-References: <20070619225035.GI5193@alberich.amd.com> <200706192338.02807.lenb@kernel.org> <20070620084911.GO5193@alberich.amd.com> <200706200936.31236.lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR
+Date: Wed, 20 Jun 2007 23:39:19 +0200
+Message-ID: <200706202339.20188.rjw@sisk.pl>
+References: <20070518071523.GA3195@inferi.kami.home> <200706191326.10320.rjw@sisk.pl> <1182304359.5411.122.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758803AbXFTS0K@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:49081 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751063AbXFTVcr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jun 2007 17:32:47 -0400
+In-Reply-To: <1182304359.5411.122.camel@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <200706200936.31236.lenb@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Steven Whitehouse <swhiteho@redhat.com>, Andi Kleen <ak@suse.de>, Shai Fultheim <shai@scalex86.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, David Brownell <dbrownell@users.sourceforge.net>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, Jun 20, 2007 at 09:36:30AM -0400, Len Brown wrote:
-> On Wednesday 20 June 2007 04:49, Andreas Herrmann wrote:
-> > On Tue, Jun 19, 2007 at 11:38:02PM -0400, Len Brown wrote:
-> > > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
-> 
-> I fear, however, that this patch defeats the purpose of 
-> b0bd35e622ffbda2c01dc67a0381c6a18817a29a -- which was to make selecting
-> NUMA more user-friendly.  So it might make more sense to simply revert that
-> patch entirely.
-> 
-> The underlying problem is that Kconfig doesn't support using select
-> on targets which themselves have dependencies.
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> 
-> 
-> diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
-> index 5ce9443..e9d7767 100644
-> --- a/arch/x86_64/Kconfig
-> +++ b/arch/x86_64/Kconfig
-> @@ -364,9 +364,9 @@ config NODES_SHIFT
->  config X86_64_ACPI_NUMA
->         bool "ACPI NUMA detection"
->         depends on NUMA
-> -       select ACPI 
-> +       depends on ACPI 
->  	select PCI
-> -       select ACPI_NUMA
-> +       depends on ACPI_NUMA
->         default y
->         help
->  	 Enable ACPI SRAT based node topology detection.
-> -
+On Wednesday, 20 June 2007 03:52, Zhang Rui wrote:
+> On Tue, 2007-06-19 at 13:26 +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, 19 June 2007 11:55, Zhang Rui wrote:
+> > > On Tue, 2007-06-19 at 18:30 +0900, Mattia Dongili wrote:
+> > > > On Tue, Jun 19, 2007 at 04:57:55PM +0800, Zhang Rui wrote:
+> > > > > On Sun, 2007-05-20 at 15:14 +0900, Mattia Dongili wrote:
+> > > > > > On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
+> > > > > > > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > > > > > 
+> > > > > > > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
+> > > > > > > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > > > > > > > 
+> > > > > > > > > > Hello,
+> > > > > > > > > > 
+> > > > > > > > > > After finally catching fw-{ohci,core} to be problematic during resume,
+> > > > > > > > > > I'm now experiencing an immediate resume after suspending.
+> > > > > > > > > > 
+> > > > > > > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
+> > > > > > > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
+> > > > > > > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
+> > > > > > > > > > 
+> > > > > > > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
+> > > > > > > > > > and a str cycle with PM_DEBUG=y:
+> > > > > > > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
+> > > > > > > > ...
+> > > > > > > > > > Any idea where to start from? (bisecting is ok, but it'll take some
+> > > > > > > > > > time...)
+> > > > > > > > > 
+> > > > > > > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+> > > > > > > > 
+> > > > > > > > ok, git-acpi.patch is not the bad boy :)
+> > > > > > 
+> > > > > > but very very close:
+> > > > > > acpi-driver-model-flags-and-platform_enable_wake.patch
+> > > > > > 
+> > > > > Hi, Mattia,
+> > > > > 
+> > > > > I tested this patch on several platforms but can not reproduce the bug.
+> > > > > Could you please help me do a simple test please?
+> > > > > 
+> > > > > Any kernel release later than 2.6.22-rc1 is ok. You don't need to apply 
+> > > > > acpi-driver-model-flags-and-platform_enable_wake.patch.
+> > > > > 
+> > > > > Try to enable the wakeup GPE for all the USB devices first.
+> > > > > e.g. "#echo USB1 >/proc/acpi/wakeup" will enable GPE for USB1.
+> > > > > USB1      S3     disabled  pci:0000:00:1d.0
+> > > > > USB2      S3     disabled  pci:0000:00:1d.1
+> > > > > USB3      S3     disabled  pci:0000:00:1d.2
+> > > > > USB4      S3     disabled  pci:0000:00:1d.3
+> > > > > USB7      S3     disabled  pci:0000:00:1d.7
+> > > > > 
+> > > > > Try STR and check if it resumes immediately after suspend.
+> > > > > I think the same problem will happen without this patch.
+> > > > 
+> > > > ok, building right now.
+> > > > Anyway, I don't remember the details but ehci and uhci were already
+> > > > spotted as being part of the problem. See the rest of the thread
+> > > > starting here http://lkml.org/lkml/2007/5/20/223
+> > 
+> > Slightly off-topic, but I have a test box that resumes immediately after an STR
+> > is ehci_hcd is loaded and suspends correctly otherwise (with an Intel chipset).
+> > 
+> Did you manually override /proc/acpi/wakeup?
 
-arch/x86_64/Kconfig:706:error: found recursive dependency: PCI -> ACPI ->
-X86_64_ACPI_NUMA -> PCI
- -> USB_ARCH_HAS_OHCI -> USB_ARCH_HAS_HCD -> MOUSE_APPLETOUCH -> USB ->
-USB_SISUSBVGAmake[1]: *** [menuconfig] Error 1
+No, I didn't.
 
-I guess we have to change PCI to 'depends on' as well.
-Else, select PM?
+> Attaching the content of /proc/acpi/wakeup may be helpful. :)
 
-I am OK with either approach.
+Well, there's nothing interesting in there, AFAICS:
 
-Thanks,
-Kiran
+Device	S-state	  Status   Sysfs node
+P0P4	  S4	 disabled  pci:0000:00:1e.0
+BNIC	  S4	 disabled  pci:0000:02:05.0
+USB1	  S4	 disabled  pci:0000:00:1d.0
+USB2	  S4	 disabled  pci:0000:00:1d.1
+USB3	  S4	 disabled  pci:0000:00:1d.2
+EUSB	  S4	 disabled  pci:0000:00:1d.7
+PS2K	  S4	 disabled  pnp:00:0b
+PS2M	  S4	 disabled  pnp:00:0c
 
-Paper over 'select' inadequacies.  
+(this is from after a successful hibernation if that matters).
 
-Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Greetings,
+Rafael
 
-Index: linux-2.6.22-rc5/arch/x86_64/Kconfig
-===================================================================
---- linux-2.6.22-rc5.orig/arch/x86_64/Kconfig	2007-06-18 16:02:19.571323415 -0700
-+++ linux-2.6.22-rc5/arch/x86_64/Kconfig	2007-06-20 11:34:29.845354250 -0700
-@@ -366,6 +366,7 @@ config X86_64_ACPI_NUMA
-        depends on NUMA
-        select ACPI 
- 	select PCI
-+  	select PM
-        select ACPI_NUMA
-        default y
-        help
+
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
