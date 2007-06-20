@@ -1,61 +1,73 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately
- resumes after STR
-Date: Wed, 20 Jun 2007 12:33:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0706201220150.3518-100000@iolanthe.rowland.org>
-References: <20070620144532.GA3761@inferi.kami.home>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
+Date: Thu, 21 Jun 2007 02:06:18 +0900
+Message-ID: <20070620170617.GA3226@inferi.kami.home>
+References: <1182112047.4204.12.camel@noname> <1182111863.4204.6.camel@noname>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:60990 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752468AbXFTQdH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 12:33:07 -0400
-In-Reply-To: <20070620144532.GA3761@inferi.kami.home>
+Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:44145 "EHLO
+	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154AbXFTRGx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 13:06:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1182111863.4204.6.camel@noname>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Zhang Rui <rui.zhang@intel.com>, David Brownell <dbrownell@users.sourceforge.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Wed, 20 Jun 2007, Mattia Dongili wrote:
-
-> > Just as with Raphael, I suggest you build a kernel with 
-> > CONFIG_USB_DEBUG turned on and then post the dmesg log showing the USB 
-> > debugging messages during the suspend and immediate resume.  To reduce 
-> > the amount of clutter you might want to rmmod uhci-hcd before starting 
-> > the test.
+On Sun, Jun 17, 2007 at 10:24:23PM +0200, Thomas Renninger wrote:
+> Create __mod_acpi_device_table symbol for all acpi drivers.
 > 
-> here we go:
-> http://www.linux.it/~malattia/logs/dmesg-suspend-ehci-debug-log
+> modpost is going to use this one to create modules.alias
 > 
-> and by the way:
-> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #1 (rev 02)
-> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #2 (rev 02)
-> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #3 (rev 02)
-> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #4 (rev 02)
-> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI Controller (rev 02)
+> Hopefully thinkpad module still works.
+> IMO this one should get restructured and make use of acpi_bus_register_driver
+> and try to avoid to test for HIDs/CIDs for its own.
 > 
-> with ehci only:
-> Bus 005 Device 007: ID 054c:0281 Sony Corp. 
-> Bus 005 Device 004: ID 05ca:1830 Ricoh Co., Ltd 
-> Bus 005 Device 001: ID 0000:0000  
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-The log shows suspicious behavior on the part of the Sony UMH-U09
-device, the first one in your ehci-only list above.  When it was
-suspended it apparently disconnected itself from the USB bus, thereby
-triggering a wakeup signal.  If at all possible, try unplugging the USB
-cable to that device and then see what happens when you suspend.
+Tested, except for the compile error already reported it does its job on
+my vaios.
+A question though:
 
-You also ought to be able to prevent this immediate resume by disabling
-wakeup on the EHCI controller.  For example:
+> Index: linux-2.6.22-rc4/drivers/misc/sony-laptop.c
+> ===================================================================
+> --- linux-2.6.22-rc4.orig/drivers/misc/sony-laptop.c
+> +++ linux-2.6.22-rc4/drivers/misc/sony-laptop.c
+> @@ -890,10 +890,22 @@ static int sony_nc_remove(struct acpi_de
+>  	return 0;
+>  }
+>  
+> +static const struct acpi_device_id sony_device_ids[] = {
+> +	{SONY_NC_HID, 0},
+> +	{SONY_PIC_HID, 0},
+> +	{"", 0},
+> +};
+> +MODULE_DEVICE_TABLE(acpi, sony_device_ids);
+> +
+> +static const struct acpi_device_id sony_nc_device_ids[] = {
+> +	{SONY_NC_HID, 0},
+> +	{"", 0},
+> +};
+> +
+...
+> +static const struct acpi_device_id sony_pic_device_ids[] = {
+> +	{SONY_PIC_HID, 0},
+> +	{"", 0},
+> +};
+> +
 
-	echo disable >/sys/bus/usb/devices/usb5/power/wakeup
-	echo disable >/sys/bus/usb/devices/usb5/../power/wakeup
+is it really necessary to have those duplicate entries?
 
-(Maybe you only need one of those two lines; in principle either one
-should be sufficient.)  After doing this it's probably a good idea to
-run lsusb, to force the new settings to take effect in case the root
-hub was autosuspended.
+Also, I guess that when this patch set is applied we also should declare
+sonypi obsolete as sony-laptop will grab the same device that sonypi
+wants (the SPIC one). sony-laptop has options to avoid doing that would
+make things clear to users.
+I still haven't received reports of mafunctioning vaios using the new
+sony-laptop instead of sonypi but 2.6.22 isn't final yet.
 
-Alan Stern
-
+-- 
+mattia
+:wq!
