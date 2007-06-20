@@ -1,89 +1,65 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after
-	STR
-Date: Wed, 20 Jun 2007 09:52:39 +0800
-Message-ID: <1182304359.5411.122.camel@localhost.localdomain>
-References: <20070518071523.GA3195@inferi.kami.home>
-	 <20070619093033.GA3507@inferi.kami.home>
-	 <1182246940.5411.116.camel@localhost.localdomain>
-	 <200706191326.10320.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 3/12] acpi: fix compile error with ACPI && !ACPI_POWER
+Date: Tue, 19 Jun 2007 23:33:47 -0400
+Message-ID: <200706192333.47687.lenb@kernel.org>
+References: <20070619224858.GE5193@alberich.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49196 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:36380 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758013AbXFTBvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2007 21:51:18 -0400
-In-Reply-To: <200706191326.10320.rjw@sisk.pl>
+	id S1752421AbXFTDd6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2007 23:33:58 -0400
+In-Reply-To: <20070619224858.GE5193@alberich.amd.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mattia Dongili <malattia@linux.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, David Brownell <dbrownell@users.sourceforge.net>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 2007-06-19 at 13:26 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, 19 June 2007 11:55, Zhang Rui wrote:
-> > On Tue, 2007-06-19 at 18:30 +0900, Mattia Dongili wrote:
-> > > On Tue, Jun 19, 2007 at 04:57:55PM +0800, Zhang Rui wrote:
-> > > > On Sun, 2007-05-20 at 15:14 +0900, Mattia Dongili wrote:
-> > > > > On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
-> > > > > > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > > > > 
-> > > > > > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
-> > > > > > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > > > > > > 
-> > > > > > > > > Hello,
-> > > > > > > > > 
-> > > > > > > > > After finally catching fw-{ohci,core} to be problematic during resume,
-> > > > > > > > > I'm now experiencing an immediate resume after suspending.
-> > > > > > > > > 
-> > > > > > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> > > > > > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> > > > > > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
-> > > > > > > > > 
-> > > > > > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> > > > > > > > > and a str cycle with PM_DEBUG=y:
-> > > > > > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
-> > > > > > > ...
-> > > > > > > > > Any idea where to start from? (bisecting is ok, but it'll take some
-> > > > > > > > > time...)
-> > > > > > > > 
-> > > > > > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
-> > > > > > > 
-> > > > > > > ok, git-acpi.patch is not the bad boy :)
-> > > > > 
-> > > > > but very very close:
-> > > > > acpi-driver-model-flags-and-platform_enable_wake.patch
-> > > > > 
-> > > > Hi, Mattia,
-> > > > 
-> > > > I tested this patch on several platforms but can not reproduce the bug.
-> > > > Could you please help me do a simple test please?
-> > > > 
-> > > > Any kernel release later than 2.6.22-rc1 is ok. You don't need to apply 
-> > > > acpi-driver-model-flags-and-platform_enable_wake.patch.
-> > > > 
-> > > > Try to enable the wakeup GPE for all the USB devices first.
-> > > > e.g. "#echo USB1 >/proc/acpi/wakeup" will enable GPE for USB1.
-> > > > USB1      S3     disabled  pci:0000:00:1d.0
-> > > > USB2      S3     disabled  pci:0000:00:1d.1
-> > > > USB3      S3     disabled  pci:0000:00:1d.2
-> > > > USB4      S3     disabled  pci:0000:00:1d.3
-> > > > USB7      S3     disabled  pci:0000:00:1d.7
-> > > > 
-> > > > Try STR and check if it resumes immediately after suspend.
-> > > > I think the same problem will happen without this patch.
-> > > 
-> > > ok, building right now.
-> > > Anyway, I don't remember the details but ehci and uhci were already
-> > > spotted as being part of the problem. See the rest of the thread
-> > > starting here http://lkml.org/lkml/2007/5/20/223
-> 
-> Slightly off-topic, but I have a test box that resumes immediately after an STR
-> is ehci_hcd is loaded and suspends correctly otherwise (with an Intel chipset).
-> 
-Did you manually override /proc/acpi/wakeup?
-Attaching the content of /proc/acpi/wakeup may be helpful. :)
+On Tuesday 19 June 2007 18:48, Andreas Herrmann wrote:
+> Fix compile error with ACPI && !ACPI_POWER as bus.c
+> depends on power.c
 
-Thanks,
-Rui
+How were you able to set CONFIG_ACPI_POWER=n to cause this compile error?
+
+When I do that, "make oldconfig" forces it to =y.
+
+-Len
+
+> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+>  drivers/acpi/Kconfig  |    4 ----
+>  drivers/acpi/Makefile |    2 +-
+>  2 files changed, 1 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 139f41f..9d6baab 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -288,10 +288,6 @@ config ACPI_EC
+>  	  the battery and thermal drivers.  If you are compiling for a 
+>  	  mobile system, say Y.
+>  
+> -config ACPI_POWER
+> -	bool
+> -	default y
+> -
+>  config ACPI_SYSTEM
+>  	bool
+>  	default y
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index d4336f1..9485cc3 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -48,7 +48,7 @@ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+>  obj-$(CONFIG_ACPI_BAY)		+= bay.o
+>  obj-$(CONFIG_ACPI_VIDEO)	+= video.o
+>  obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
+> -obj-$(CONFIG_ACPI_POWER)	+= power.o
+> +obj-y				+= power.o
+>  obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+>  obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+>  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
