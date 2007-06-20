@@ -1,78 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC] clear GPE earily in resume
-Date: Wed, 20 Jun 2007 13:35:24 +0200
-Message-ID: <200706201335.24754.rjw@sisk.pl>
-References: <1181785011.19274.6.camel@sli10-conroe.sh.intel.com> <200706200006.35413.rjw@sisk.pl> <1182302278.29466.1.camel@sli10-conroe.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 7/12] acpi: fix another compile warning
+Date: Wed, 20 Jun 2007 09:36:30 -0400
+Message-ID: <200706200936.31236.lenb@kernel.org>
+References: <20070619225035.GI5193@alberich.amd.com> <200706192338.02807.lenb@kernel.org> <20070620084911.GO5193@alberich.amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46779 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:58234 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751039AbXFTL2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jun 2007 07:28:19 -0400
-In-Reply-To: <1182302278.29466.1.camel@sli10-conroe.sh.intel.com>
+	id S1751087AbXFTNgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jun 2007 09:36:51 -0400
+In-Reply-To: <20070620084911.GO5193@alberich.amd.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "robert.moore" <robert.moore@intel.com>
+To: Andreas Herrmann <andreas.herrmann3@amd.com>, Steven Whitehouse <swhiteho@redhat.com>, Andi Kleen <ak@suse.de>, Shai Fultheim <shai@scalex86.org>, Ravikiran Thirumalai <kiran@scalex86.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, 20 June 2007 03:17, Shaohua Li wrote:
-> On Wed, 2007-06-20 at 00:06 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, 14 June 2007 03:36, Shaohua Li wrote:
-> > > Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
-> > > USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
-> > > acpi_leave_sleep_state will clear the GPE but it's too late, we should
-> > > doe it before interrupt is re-enabled. 
+On Wednesday 20 June 2007 04:49, Andreas Herrmann wrote:
+> On Tue, Jun 19, 2007 at 11:38:02PM -0400, Len Brown wrote:
+> > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
+> > > Avoid compile warning if !ACPI_BLACKLIST_YEAR
 > > > 
-> > > Maybe we should just clear wakeup GPE here, but clear all GPEs sounds
-> > > not harmful in my test. Not sure other systems.
+> > >   CC      drivers/acpi/blacklist.o
+> > >   drivers/acpi/blacklist.c:76:5: warning: "CONFIG_ACPI_BLACKLIST_YEAR" is not defined
 > > 
-> > I think that the clearing all of the GPEs is the right thing to do here.
-> > 
-> > > Index: 2.6.22-rc/drivers/acpi/sleep/main.c
-> > > ===================================================================
-> > > --- 2.6.22-rc.orig/drivers/acpi/sleep/main.c	2007-06-11 15:31:03.000000000 +0800
-> > > +++ 2.6.22-rc/drivers/acpi/sleep/main.c	2007-06-14 09:31:54.000000000 +0800
-> > > @@ -104,6 +104,8 @@
-> > >  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
-> > >  		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-> > >  
-> > 
-> > I'd add a comment saying why we're clearing the GPEs at this point.
-> added.
-
-Thanks.
-
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
- 
-> Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
-> USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
-> acpi_leave_sleep_state will clear the GPE but it's too late, we should
-> do it before interrupt is re-enabled. 
+> > How were you able to produce a .config with CONFIG_ACPI_BLACKLIST_YEAR not defined?
 > 
-> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-> index bc7e16e..9f36859 100644
-> --- a/drivers/acpi/sleep/main.c
-> +++ b/drivers/acpi/sleep/main.c
-> @@ -104,6 +104,13 @@ static int acpi_pm_enter(suspend_state_t pm_state)
->  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
->  		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
->  
-> +	/*
-> +	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
-> +	 * (like wakeup GPE) haven't handler, this can avoid such GPE misfire.
-> +	 * acpi_leave_sleep_state will reenable specific GPEs later
-> +	 */
-> +	acpi_hw_disable_all_gpes();
-> +
->  	local_irq_restore(flags);
->  	printk(KERN_DEBUG "Back to C!\n");
->  
+> Initially I used randconfig. But you can easily create it using
+> "make menuconfig", too.
 > 
-> 
+> Just do "make mrproper && make menuconfig" and now
+> deselect CONFIG_PM. On x86_64 ACPI keeps enabled by default.
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+As CONFIG_ACPI depends on CONFIG_PM, then if you are able to end up
+with a config having ACPI && !PM, then the Kconfig system is broken.
+
+The brokeness is x86_64 specific, and results from the "select ACPI" below.
+
+Please test if this single patch fixes all your multiple ACPI related build errors.
+
+I fear, however, that this patch defeats the purpose of 
+b0bd35e622ffbda2c01dc67a0381c6a18817a29a -- which was to make selecting
+NUMA more user-friendly.  So it might make more sense to simply revert that
+patch entirely.
+
+The underlying problem is that Kconfig doesn't support using select
+on targets which themselves have dependencies.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+
+
+diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
+index 5ce9443..e9d7767 100644
+--- a/arch/x86_64/Kconfig
++++ b/arch/x86_64/Kconfig
+@@ -364,9 +364,9 @@ config NODES_SHIFT
+ config X86_64_ACPI_NUMA
+        bool "ACPI NUMA detection"
+        depends on NUMA
+-       select ACPI 
++       depends on ACPI 
+ 	select PCI
+-       select ACPI_NUMA
++       depends on ACPI_NUMA
+        default y
+        help
+ 	 Enable ACPI SRAT based node topology detection.
