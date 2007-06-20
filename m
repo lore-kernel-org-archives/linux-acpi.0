@@ -1,67 +1,89 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [RFC] clear GPE earily in resume
-Date: Wed, 20 Jun 2007 09:17:58 +0800
-Message-ID: <1182302278.29466.1.camel@sli10-conroe.sh.intel.com>
-References: <1181785011.19274.6.camel@sli10-conroe.sh.intel.com>
-	 <200706200006.35413.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after
+	STR
+Date: Wed, 20 Jun 2007 09:52:39 +0800
+Message-ID: <1182304359.5411.122.camel@localhost.localdomain>
+References: <20070518071523.GA3195@inferi.kami.home>
+	 <20070619093033.GA3507@inferi.kami.home>
+	 <1182246940.5411.116.camel@localhost.localdomain>
+	 <200706191326.10320.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55229 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:49196 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757102AbXFTBWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2007 21:22:31 -0400
-In-Reply-To: <200706200006.35413.rjw@sisk.pl>
+	id S1758013AbXFTBvS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2007 21:51:18 -0400
+In-Reply-To: <200706191326.10320.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "robert.moore" <robert.moore@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, David Brownell <dbrownell@users.sourceforge.net>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, 2007-06-20 at 00:06 +0200, Rafael J. Wysocki wrote:
-> On Thursday, 14 June 2007 03:36, Shaohua Li wrote:
-> > Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
-> > USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
-> > acpi_leave_sleep_state will clear the GPE but it's too late, we should
-> > doe it before interrupt is re-enabled. 
-> > 
-> > Maybe we should just clear wakeup GPE here, but clear all GPEs sounds
-> > not harmful in my test. Not sure other systems.
+On Tue, 2007-06-19 at 13:26 +0200, Rafael J. Wysocki wrote:
+> On Tuesday, 19 June 2007 11:55, Zhang Rui wrote:
+> > On Tue, 2007-06-19 at 18:30 +0900, Mattia Dongili wrote:
+> > > On Tue, Jun 19, 2007 at 04:57:55PM +0800, Zhang Rui wrote:
+> > > > On Sun, 2007-05-20 at 15:14 +0900, Mattia Dongili wrote:
+> > > > > On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
+> > > > > > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > > > > 
+> > > > > > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
+> > > > > > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > > > > > > 
+> > > > > > > > > Hello,
+> > > > > > > > > 
+> > > > > > > > > After finally catching fw-{ohci,core} to be problematic during resume,
+> > > > > > > > > I'm now experiencing an immediate resume after suspending.
+> > > > > > > > > 
+> > > > > > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
+> > > > > > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
+> > > > > > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
+> > > > > > > > > 
+> > > > > > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
+> > > > > > > > > and a str cycle with PM_DEBUG=y:
+> > > > > > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
+> > > > > > > ...
+> > > > > > > > > Any idea where to start from? (bisecting is ok, but it'll take some
+> > > > > > > > > time...)
+> > > > > > > > 
+> > > > > > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+> > > > > > > 
+> > > > > > > ok, git-acpi.patch is not the bad boy :)
+> > > > > 
+> > > > > but very very close:
+> > > > > acpi-driver-model-flags-and-platform_enable_wake.patch
+> > > > > 
+> > > > Hi, Mattia,
+> > > > 
+> > > > I tested this patch on several platforms but can not reproduce the bug.
+> > > > Could you please help me do a simple test please?
+> > > > 
+> > > > Any kernel release later than 2.6.22-rc1 is ok. You don't need to apply 
+> > > > acpi-driver-model-flags-and-platform_enable_wake.patch.
+> > > > 
+> > > > Try to enable the wakeup GPE for all the USB devices first.
+> > > > e.g. "#echo USB1 >/proc/acpi/wakeup" will enable GPE for USB1.
+> > > > USB1      S3     disabled  pci:0000:00:1d.0
+> > > > USB2      S3     disabled  pci:0000:00:1d.1
+> > > > USB3      S3     disabled  pci:0000:00:1d.2
+> > > > USB4      S3     disabled  pci:0000:00:1d.3
+> > > > USB7      S3     disabled  pci:0000:00:1d.7
+> > > > 
+> > > > Try STR and check if it resumes immediately after suspend.
+> > > > I think the same problem will happen without this patch.
+> > > 
+> > > ok, building right now.
+> > > Anyway, I don't remember the details but ehci and uhci were already
+> > > spotted as being part of the problem. See the rest of the thread
+> > > starting here http://lkml.org/lkml/2007/5/20/223
 > 
-> I think that the clearing all of the GPEs is the right thing to do here.
+> Slightly off-topic, but I have a test box that resumes immediately after an STR
+> is ehci_hcd is loaded and suspends correctly otherwise (with an Intel chipset).
 > 
-> > Index: 2.6.22-rc/drivers/acpi/sleep/main.c
-> > ===================================================================
-> > --- 2.6.22-rc.orig/drivers/acpi/sleep/main.c	2007-06-11 15:31:03.000000000 +0800
-> > +++ 2.6.22-rc/drivers/acpi/sleep/main.c	2007-06-14 09:31:54.000000000 +0800
-> > @@ -104,6 +104,8 @@
-> >  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
-> >  		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-> >  
-> 
-> I'd add a comment saying why we're clearing the GPEs at this point.
-added.
+Did you manually override /proc/acpi/wakeup?
+Attaching the content of /proc/acpi/wakeup may be helpful. :)
 
-Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
-USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
-acpi_leave_sleep_state will clear the GPE but it's too late, we should
-do it before interrupt is re-enabled. 
-
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index bc7e16e..9f36859 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -104,6 +104,13 @@ static int acpi_pm_enter(suspend_state_t pm_state)
- 	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
- 		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
- 
-+	/*
-+	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
-+	 * (like wakeup GPE) haven't handler, this can avoid such GPE misfire.
-+	 * acpi_leave_sleep_state will reenable specific GPEs later
-+	 */
-+	acpi_hw_disable_all_gpes();
-+
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
- 
+Thanks,
+Rui
