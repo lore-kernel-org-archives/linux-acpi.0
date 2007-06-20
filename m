@@ -1,71 +1,54 @@
-From: Len Brown <lenb@kernel.org>
+From: Andi Kleen <ak@suse.de>
 Subject: Re: [PATCH 7/12] acpi: fix another compile warning
-Date: Wed, 20 Jun 2007 09:36:30 -0400
-Message-ID: <200706200936.31236.lenb@kernel.org>
-References: <20070619225035.GI5193@alberich.amd.com> <200706192338.02807.lenb@kernel.org> <20070620084911.GO5193@alberich.amd.com>
+Date: Wed, 20 Jun 2007 15:46:28 +0200
+Message-ID: <200706201546.28457.ak@suse.de>
+References: <20070619225035.GI5193@alberich.amd.com> <20070620084911.GO5193@alberich.amd.com> <200706200936.31236.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58234 "EHLO hera.kernel.org"
+Received: from mx2.suse.de ([195.135.220.15]:40954 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbXFTNgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jun 2007 09:36:51 -0400
-In-Reply-To: <20070620084911.GO5193@alberich.amd.com>
+	id S1751270AbXFTNqk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jun 2007 09:46:40 -0400
+In-Reply-To: <200706200936.31236.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Herrmann <andreas.herrmann3@amd.com>, Steven Whitehouse <swhiteho@redhat.com>, Andi Kleen <ak@suse.de>, Shai Fultheim <shai@scalex86.org>, Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Steven Whitehouse <swhiteho@redhat.com>, Shai Fultheim <shai@scalex86.org>, Ravikiran Thirumalai <kiran@scalex86.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 20 June 2007 04:49, Andreas Herrmann wrote:
-> On Tue, Jun 19, 2007 at 11:38:02PM -0400, Len Brown wrote:
-> > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
-> > > Avoid compile warning if !ACPI_BLACKLIST_YEAR
-> > > 
-> > >   CC      drivers/acpi/blacklist.o
-> > >   drivers/acpi/blacklist.c:76:5: warning: "CONFIG_ACPI_BLACKLIST_YEAR" is not defined
-> > 
-> > How were you able to produce a .config with CONFIG_ACPI_BLACKLIST_YEAR not defined?
+
+> The underlying problem is that Kconfig doesn't support using select
+> on targets which themselves have dependencies.
 > 
-> Initially I used randconfig. But you can easily create it using
-> "make menuconfig", too.
+> Signed-off-by: Len Brown <len.brown@intel.com>
+
+The depends on ACPI is fine by me, but I would prefer if the 
+ACPI_NUMA dependency worked the other way round (APCI_NUMA default y
+and depends on the relevant architecture specific symbols). That would
+be more user friendly I think because all the NUMA options would
+be in one place.
+
+-Andi
+
+> diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
+> index 5ce9443..e9d7767 100644
+> --- a/arch/x86_64/Kconfig
+> +++ b/arch/x86_64/Kconfig
+> @@ -364,9 +364,9 @@ config NODES_SHIFT
+>  config X86_64_ACPI_NUMA
+>         bool "ACPI NUMA detection"
+>         depends on NUMA
+> -       select ACPI 
+> +       depends on ACPI 
+>  	select PCI
+> -       select ACPI_NUMA
+> +       depends on ACPI_NUMA
+>         default y
+>         help
+>  	 Enable ACPI SRAT based node topology detection.
 > 
-> Just do "make mrproper && make menuconfig" and now
-> deselect CONFIG_PM. On x86_64 ACPI keeps enabled by default.
-
-As CONFIG_ACPI depends on CONFIG_PM, then if you are able to end up
-with a config having ACPI && !PM, then the Kconfig system is broken.
-
-The brokeness is x86_64 specific, and results from the "select ACPI" below.
-
-Please test if this single patch fixes all your multiple ACPI related build errors.
-
-I fear, however, that this patch defeats the purpose of 
-b0bd35e622ffbda2c01dc67a0381c6a18817a29a -- which was to make selecting
-NUMA more user-friendly.  So it might make more sense to simply revert that
-patch entirely.
-
-The underlying problem is that Kconfig doesn't support using select
-on targets which themselves have dependencies.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
 
 
-diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
-index 5ce9443..e9d7767 100644
---- a/arch/x86_64/Kconfig
-+++ b/arch/x86_64/Kconfig
-@@ -364,9 +364,9 @@ config NODES_SHIFT
- config X86_64_ACPI_NUMA
-        bool "ACPI NUMA detection"
-        depends on NUMA
--       select ACPI 
-+       depends on ACPI 
- 	select PCI
--       select ACPI_NUMA
-+       depends on ACPI_NUMA
-        default y
-        help
- 	 Enable ACPI SRAT based node topology detection.
