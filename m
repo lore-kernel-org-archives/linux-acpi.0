@@ -1,114 +1,78 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table
-	symbol for all acpi drivers.
-Date: Wed, 20 Jun 2007 19:47:23 +0200
-Message-ID: <1182361643.28514.708.camel@queen.suse.de>
-References: <1182112047.4204.12.camel@noname>
-	 <1182111863.4204.6.camel@noname>  <20070620170617.GA3226@inferi.kami.home>
-Reply-To: trenn@suse.de
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
+Subject: Re: [PATCH 7/12] acpi: fix another compile warning
+Date: Wed, 20 Jun 2007 11:25:48 -0700
+Message-ID: <20070620182548.GA561@localdomain>
+References: <20070619225035.GI5193@alberich.amd.com> <200706192338.02807.lenb@kernel.org> <20070620084911.GO5193@alberich.amd.com> <200706200936.31236.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56710 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754297AbXFTRri (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jun 2007 13:47:38 -0400
-In-Reply-To: <20070620170617.GA3226@inferi.kami.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758803AbXFTS0K@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200706200936.31236.lenb@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Steven Whitehouse <swhiteho@redhat.com>, Andi Kleen <ak@suse.de>, Shai Fultheim <shai@scalex86.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>
 
-On Thu, 2007-06-21 at 02:06 +0900, Mattia Dongili wrote:
-> On Sun, Jun 17, 2007 at 10:24:23PM +0200, Thomas Renninger wrote:
-> > Create __mod_acpi_device_table symbol for all acpi drivers.
-> > 
-> > modpost is going to use this one to create modules.alias
-> > 
-> > Hopefully thinkpad module still works.
-> > IMO this one should get restructured and make use of acpi_bus_register_driver
-> > and try to avoid to test for HIDs/CIDs for its own.
-> > 
-> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+On Wed, Jun 20, 2007 at 09:36:30AM -0400, Len Brown wrote:
+> On Wednesday 20 June 2007 04:49, Andreas Herrmann wrote:
+> > On Tue, Jun 19, 2007 at 11:38:02PM -0400, Len Brown wrote:
+> > > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
 > 
-> Tested, except for the compile error already reported it does its job on
-> my vaios.
-
-Thanks.
-
-> A question though:
+> I fear, however, that this patch defeats the purpose of 
+> b0bd35e622ffbda2c01dc67a0381c6a18817a29a -- which was to make selecting
+> NUMA more user-friendly.  So it might make more sense to simply revert that
+> patch entirely.
 > 
-> > Index: linux-2.6.22-rc4/drivers/misc/sony-laptop.c
-> > ===================================================================
-> > --- linux-2.6.22-rc4.orig/drivers/misc/sony-laptop.c
-> > +++ linux-2.6.22-rc4/drivers/misc/sony-laptop.c
-> > @@ -890,10 +890,22 @@ static int sony_nc_remove(struct acpi_de
-> >  	return 0;
-> >  }
-> >  
-> > +static const struct acpi_device_id sony_device_ids[] = {
-> > +	{SONY_NC_HID, 0},
-> > +	{SONY_PIC_HID, 0},
-> > +	{"", 0},
-> > +};
-> > +MODULE_DEVICE_TABLE(acpi, sony_device_ids);
-> > +
-> > +static const struct acpi_device_id sony_nc_device_ids[] = {
-> > +	{SONY_NC_HID, 0},
-> > +	{"", 0},
-> > +};
-> > +
-> ...
-> > +static const struct acpi_device_id sony_pic_device_ids[] = {
-> > +	{SONY_PIC_HID, 0},
-> > +	{"", 0},
-> > +};
-> > +
+> The underlying problem is that Kconfig doesn't support using select
+> on targets which themselves have dependencies.
 > 
-> is it really necessary to have those duplicate entries?
-In this case, yes.
-
-It's because two independent ACPI drivers are set up here.
-If you could put these together, only set up
-acpi_bus_register_driver(..) once in .init and get the pic and nc driver
-handled together it would work.
-
-I don't know whether this could be done.
-If not, IMO this driver should get split up in two separate drivers, one
-serving SONY_PIC_HID and one serving SONY_NC_HID.
+> Signed-off-by: Len Brown <len.brown@intel.com>
 > 
-> Also, I guess that when this patch set is applied we also should declare
-> sonypi obsolete as sony-laptop will grab the same device that sonypi
-> wants (the SPIC one). sony-laptop has options to avoid doing that would
-> make things clear to users.
-> I still haven't received reports of mafunctioning vaios using the new
-> sony-laptop instead of sonypi but 2.6.22 isn't final yet.
+> 
+> diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
+> index 5ce9443..e9d7767 100644
+> --- a/arch/x86_64/Kconfig
+> +++ b/arch/x86_64/Kconfig
+> @@ -364,9 +364,9 @@ config NODES_SHIFT
+>  config X86_64_ACPI_NUMA
+>         bool "ACPI NUMA detection"
+>         depends on NUMA
+> -       select ACPI 
+> +       depends on ACPI 
+>  	select PCI
+> -       select ACPI_NUMA
+> +       depends on ACPI_NUMA
+>         default y
+>         help
+>  	 Enable ACPI SRAT based node topology detection.
+> -
 
-Sounds sane.
-Another problem that could come up in future is that new laptops could
-make use of the ACPI video spec (Appendix B) and of these vendor
-specific devices (I already saw this on an ASUS).
-While autoloading should still be ok (both are tried, maybe even both
-are needed), we need to find out which one need to be used in which
-condition.
-I could imagine if we pass some kind of "Vista" OSI string, the ACPI
-video spec stuff is used otherwise e.g. the ATK Asus specific things...
+arch/x86_64/Kconfig:706:error: found recursive dependency: PCI -> ACPI ->
+X86_64_ACPI_NUMA -> PCI
+ -> USB_ARCH_HAS_OHCI -> USB_ARCH_HAS_HCD -> MOUSE_APPLETOUCH -> USB ->
+USB_SISUSBVGAmake[1]: *** [menuconfig] Error 1
 
-It might even be mixed up, that some functions of the video device
-driver are provided, but hotkeys are still working with the other
-driver...
+I guess we have to change PCI to 'depends on' as well.
+Else, select PM?
 
-I fear getting this right for all kind of laptops won't be that easy.
+I am OK with either approach.
 
-   Thomas
+Thanks,
+Kiran
 
-BTW: I also saw a laptop (IIRC it was a sony) with asus and sony ACPI
-device.
-When both drivers got loaded things broke.
-A solution was to only let the asus driver get active if the device is
-known. Currently, not sure whether still (I sent a patch a while ago),
-the Asus driver falls back to a default ("M6N"?) configuration. IMO this
-is a bit too dangerous and instead a message like "unsupported ASUS
-model found, please send acpidump to linux-acpi@vger.kernel.org".
+Paper over 'select' inadequacies.  
 
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+
+Index: linux-2.6.22-rc5/arch/x86_64/Kconfig
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/x86_64/Kconfig	2007-06-18 16:02:19.571323415 -0700
++++ linux-2.6.22-rc5/arch/x86_64/Kconfig	2007-06-20 11:34:29.845354250 -0700
+@@ -366,6 +366,7 @@ config X86_64_ACPI_NUMA
+        depends on NUMA
+        select ACPI 
+ 	select PCI
++  	select PM
+        select ACPI_NUMA
+        default y
+        help
