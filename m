@@ -1,47 +1,67 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/12] acpi: select ACPI_EC for THINKPAD_ACPI
-Date: Tue, 19 Jun 2007 21:57:44 -0300
-Message-ID: <20070620005744.GA15080@khazad-dum.debian.net>
-References: <20070619224836.GD5193@alberich.amd.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC] clear GPE earily in resume
+Date: Wed, 20 Jun 2007 09:17:58 +0800
+Message-ID: <1182302278.29466.1.camel@sli10-conroe.sh.intel.com>
+References: <1181785011.19274.6.camel@sli10-conroe.sh.intel.com>
+	 <200706200006.35413.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759641AbXFTA6B@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070619224836.GD5193@alberich.amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:55229 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757102AbXFTBWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2007 21:22:31 -0400
+In-Reply-To: <200706200006.35413.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "robert.moore" <robert.moore@intel.com>
 
-On Wed, 20 Jun 2007, Andreas Herrmann wrote:
-> Fix kernel build problem:
+On Wed, 2007-06-20 at 00:06 +0200, Rafael J. Wysocki wrote:
+> On Thursday, 14 June 2007 03:36, Shaohua Li wrote:
+> > Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
+> > USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
+> > acpi_leave_sleep_state will clear the GPE but it's too late, we should
+> > doe it before interrupt is re-enabled. 
+> > 
+> > Maybe we should just clear wakeup GPE here, but clear all GPEs sounds
+> > not harmful in my test. Not sure other systems.
 > 
->  thinkpad_acpi.c:(.text+0x7486a): undefined reference to `ec_write'
+> I think that the clearing all of the GPEs is the right thing to do here.
 > 
-> (as THINKPAD_ACPI depends on ACPI_EC)
+> > Index: 2.6.22-rc/drivers/acpi/sleep/main.c
+> > ===================================================================
+> > --- 2.6.22-rc.orig/drivers/acpi/sleep/main.c	2007-06-11 15:31:03.000000000 +0800
+> > +++ 2.6.22-rc/drivers/acpi/sleep/main.c	2007-06-14 09:31:54.000000000 +0800
+> > @@ -104,6 +104,8 @@
+> >  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+> >  		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+> >  
 > 
-> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> ---
->  drivers/misc/Kconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> index 2f2fbff..72774c9 100644
-> --- a/drivers/misc/Kconfig
-> +++ b/drivers/misc/Kconfig
-> @@ -139,6 +139,7 @@ config SONYPI_COMPAT
->  config THINKPAD_ACPI
->  	tristate "ThinkPad ACPI Laptop Extras"
->  	depends on X86 && ACPI
-> +	select ACPI_EC
->  	select BACKLIGHT_CLASS_DEVICE
->  	select HWMON
->  	---help---
+> I'd add a comment saying why we're clearing the GPEs at this point.
+added.
 
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Wakeup GPE hasn't a handler. If system is waked up by such GPE like a
+USB hotplug, I saw a lot of error reporting the GPE hasn't handler.
+acpi_leave_sleep_state will clear the GPE but it's too late, we should
+do it before interrupt is re-enabled. 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index bc7e16e..9f36859 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -104,6 +104,13 @@ static int acpi_pm_enter(suspend_state_t pm_state)
+ 	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+ 		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+ 
++	/*
++	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
++	 * (like wakeup GPE) haven't handler, this can avoid such GPE misfire.
++	 * acpi_leave_sleep_state will reenable specific GPEs later
++	 */
++	acpi_hw_disable_all_gpes();
++
+ 	local_irq_restore(flags);
+ 	printk(KERN_DEBUG "Back to C!\n");
+ 
