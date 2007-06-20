@@ -1,90 +1,54 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 7/12] acpi: fix another compile warning
-Date: Wed, 20 Jun 2007 07:28:21 -0700
-Message-ID: <46793985.4090408@oracle.com>
-References: <20070619225035.GI5193@alberich.amd.com> <200706192338.02807.lenb@kernel.org> <20070619204934.f56722a8.randy.dunlap@oracle.com> <20070619205158.8d6da762.randy.dunlap@oracle.com> <20070620093147.GP5193@alberich.amd.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFD] How to tell ACPI drivers what the target sleep state is (was: Re: [PATCH 1/2] acpi choose sleep state help)
+Date: Wed, 20 Jun 2007 16:36:41 +0200
+Message-ID: <200706201636.41834.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0706201006190.3311-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1250; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:50985 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbXFTO1z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 10:27:55 -0400
-In-Reply-To: <20070620093147.GP5193@alberich.amd.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:47519 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751416AbXFTOaW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jun 2007 10:30:22 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0706201006190.3311-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, dbrownell@users.sourceforge.net, Pavel Machek <pavel@ucw.cz>
 
-Andreas Herrmann wrote:
-> On Tue, Jun 19, 2007 at 08:51:58PM -0700, Randy Dunlap wrote:
->> On Tue, 19 Jun 2007 20:49:34 -0700 Randy Dunlap wrote:
->>
->>> On Tue, 19 Jun 2007 23:38:02 -0400 Len Brown wrote:
->>>
->>>> On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
->>>>> Avoid compile warning if !ACPI_BLACKLIST_YEAR
->>>>>
->>>>>   CC      drivers/acpi/blacklist.o
->>>>>   drivers/acpi/blacklist.c:76:5: warning: "CONFIG_ACPI_BLACKLIST_YEAR" is not defined
->>>> How were you able to produce a .config with CONFIG_ACPI_BLACKLIST_YEAR not defined?
->>>> Can you send it to me?
->>> 'make randconfig' does that kind of thing.  It doesn't enforce/follow
->>> "select" clauses.
->> I should have also said:  randconfig is good for detecting some
->> missing conditions/configs or missing header files, but if you find one
->> that is just plain Invalid (like some of these), just say so
->> and do whatever you want with the patch (IMHO of course).
+On Wednesday, 20 June 2007 16:08, Alan Stern wrote:
+> On Wed, 20 Jun 2007, Rafael J. Wysocki wrote:
 > 
+> > > Not. Could pm_message_t have a member indicating the suspend state?
+> > 
+> > Well, I thought about that, but I did't know what people on linux-pm would
+> > think about that.
+> > 
+> > Alternatively, we could introduce a pm_target() global PM operation that will
+> > set the target sleep state for the entire system.
+> > 
+> > I think we should discuss that on linux-pm before any decision is made.
 > 
-> I think of randconfig as
-> 
->   "make config with random answers to all questions"
-> 
-> (Or did I miss something?)
-> This means that randconfig does not give totally random
-> configurations. The same restrictions apply for config,
-> randconfig and menuconfig. If not we might consider fixing
-> scripts/kconfig/conf.c and friends.
+> Pardon me for asking what may be a dumb question.  Why does ACPI (or
+> anything else) need to know the target system state in order to decide
+> how a device should be suspended or whether wakeup should be enabled?
 
-The last time that I looked at the config code, randconfig generates
-a random value for config symbols, taking "depends on" into account,
-but it does not take "select" into account.  Or put another way,
-it does not follow "select" chains.
+The question isn't so dumb. ;-)
 
-and IIRC, running "make oldconfig" after that still won't enforce
-the "select"s.  This is a long-running problem and one of the problems
-with using "select" at all.
+For each device (handled by it) ACPI defines _SxD and _SxW methods returning
+the highest power (lowest number) D-state supported by the device in the
+(system-wide) state Sx and the lowest power (highest number) D-state in which
+the device can wake up the system being in the Sx sleep state, respectively.
+The target power state of the device should be determined on the basis of these
+values (along with the device's wake up setting) and they depend on the target
+system sleep state.
 
-> So in general a "randconfig" configurations can be generated by a user
-> as well. He just has to give the same answers during "make config"
-> as randconfig did.
-> 
-> I started this randconfig thing yesterday and up to now I have looked
-> at 16 (out of >66) configs which lead to kernel build errors with
-> the current git tree.
-> Of course I have seen duplicates of the problems reported.
-> But there were just 3 (all equal) bogus configurations. There randconfig
-> did not provide a proper file name for CONFIG_ACPI_CUSTOM_DSDT_FILE.
-> This is the only case for which I would use the term "user error" or
-> "bogus randconfig".
-> 
-> IMHO if certain configurations are invalid we should use kconfig-language
-> to prevent them.
-> 
-> 
-> Ah and wrt to the above compile warning. Normally I would have ignored
-> it - but I looked at acpi code and its Kconfig anyway.
-> And It's easy to avoid such a warning to keep the terminal clear
-> for more interesting compile messages ;-)
-> 
-> 
-> 
-> Regards,
-> 
-> Andreas
+Greetings,
+Rafael
+
 
 -- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+"Premature optimization is the root of all evil." - Donald Knuth
