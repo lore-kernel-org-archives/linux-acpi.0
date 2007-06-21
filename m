@@ -1,29 +1,29 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Re: [RFD] How to tell ACPI drivers what the target
- sleep state is (was: Re: [PATCH 1/2] acpi choose sleep state help)
-Date: Thu, 21 Jun 2007 17:04:47 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0706211704110.2553-100000@iolanthe.rowland.org>
-References: <200706212302.52737.rjw@sisk.pl>
+From: Tim Gardner <tim.gardner@canonical.com>
+Subject: ACPI Regression on Dell E1501
+Date: Thu, 21 Jun 2007 15:04:33 -0600
+Message-ID: <467AE7E1.4050805@canonical.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34714 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755555AbXFUVEs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jun 2007 17:04:48 -0400
-In-Reply-To: <200706212302.52737.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758555AbXFUV0R@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>
 
-On Thu, 21 Jun 2007, Rafael J. Wysocki wrote:
+Hi,
 
-> Does anyone have any objections to adding a new pm_op that will tell
-> the ACPI core (or generally, a platform core code) what target system sleep
-> state we are going to enter?
+Commit e9e2cdb412412326c4827fc78ba27f410d837e6e breaks boot on a Dell
+E1501 unless 'acpi=off' is specified (also tried nolapic and nohpet but
+it made no substantive difference). This laptop is an 'AMD Turion(tm) 64
+X2 Mobile Technology TL-50' CPU, but its booting 32 bit SMP (make
+defconfig). No kernel built after this commit works for this platform.
 
-Go for it!
+There is no crash output, it just wedges after 'NET: Registered protocol
+family 2'.
 
-Alan Stern
+How can I debug this problem?
 
+rtg
+-- 
+Tim Gardner tim.gardner@ubuntu.com
