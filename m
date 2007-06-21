@@ -1,159 +1,86 @@
-From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
-Subject: Re: [PATCH 7/12] acpi: fix another compile warning
-Date: Thu, 21 Jun 2007 20:36:15 +0200
-Message-ID: <20070621183615.GI5193@alberich.amd.com>
-References: <20070619225035.GI5193@alberich.amd.com>
- <200706192338.02807.lenb@kernel.org>
- <20070620084911.GO5193@alberich.amd.com>
- <200706200936.31236.lenb@kernel.org> <20070620182548.GA561@localdomain>
+From: Rudolf Marek <r.marek@assembler.cz>
+Subject: Re: [lm-sensors] [RFC] ACPI based hwmon driver for ASUS
+Date: Thu, 21 Jun 2007 20:49:46 +0200
+Message-ID: <467AC84A.303@assembler.cz>
+References: <20070513223329.GA29207@dreamland.darkstar.lan> <46520F36.4080006@assembler.cz> <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com> <46528B6F.3050701@assembler.cz> <20070602222829.GA11893@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-fra.frontbridge.com ([62.209.45.174]:38194 "EHLO
-	outbound1-fra-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756617AbXFUSgV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Jun 2007 14:36:21 -0400
-In-Reply-To: <20070620182548.GA561@localdomain>
-Content-Disposition: inline
+Received: from ms.trustica.cz ([82.208.32.68]:34637 "EHLO ms.trustica.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753317AbXFUSuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jun 2007 14:50:11 -0400
+In-Reply-To: <20070602222829.GA11893@dreamland.darkstar.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ravikiran G Thirumalai <kiran@scalex86.org>
-Cc: Len Brown <lenb@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>, Andi Kleen <ak@suse.de>, Shai Fultheim <shai@scalex86.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jun 20, 2007 at 11:25:48AM -0700, Ravikiran G Thirumalai wrote:
-> On Wed, Jun 20, 2007 at 09:36:30AM -0400, Len Brown wrote:
-> > On Wednesday 20 June 2007 04:49, Andreas Herrmann wrote:
-> > > On Tue, Jun 19, 2007 at 11:38:02PM -0400, Len Brown wrote:
-> > > > On Tuesday 19 June 2007 18:50, Andreas Herrmann wrote:
-> > 
-> > I fear, however, that this patch defeats the purpose of 
-> > b0bd35e622ffbda2c01dc67a0381c6a18817a29a -- which was to make selecting
-> > NUMA more user-friendly.  So it might make more sense to simply revert that
-> > patch entirely.
-> > 
-> > The underlying problem is that Kconfig doesn't support using select
-> > on targets which themselves have dependencies.
-> > 
-> > Signed-off-by: Len Brown <len.brown@intel.com>
-> > 
-> > 
-> > diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
-> > index 5ce9443..e9d7767 100644
-> > --- a/arch/x86_64/Kconfig
-> > +++ b/arch/x86_64/Kconfig
-> > @@ -364,9 +364,9 @@ config NODES_SHIFT
-> >  config X86_64_ACPI_NUMA
-> >         bool "ACPI NUMA detection"
-> >         depends on NUMA
-> > -       select ACPI 
-> > +       depends on ACPI 
-> >  	select PCI
-> > -       select ACPI_NUMA
-> > +       depends on ACPI_NUMA
-> >         default y
-> >         help
-> >  	 Enable ACPI SRAT based node topology detection.
-> > -
+Hello Luca,
+
+Sorry for delay,
+
+> Ok, it makes sense :)
 > 
-> arch/x86_64/Kconfig:706:error: found recursive dependency: PCI -> ACPI ->
-> X86_64_ACPI_NUMA -> PCI
->  -> USB_ARCH_HAS_OHCI -> USB_ARCH_HAS_HCD -> MOUSE_APPLETOUCH -> USB ->
-> USB_SISUSBVGAmake[1]: *** [menuconfig] Error 1
+> Name (FBUF, Package (0x06)
+> {
+>     0x03,
+>     CPUF,
+>     CHAF,
+>     PWRF,
+>     CHPF,
+>     CH2F
+> })
 > 
-> I guess we have to change PCI to 'depends on' as well.
-> Else, select PM?
-> 
-> I am OK with either approach.
-> 
-> Thanks,
-> Kiran
-> 
-> Paper over 'select' inadequacies.  
-> 
-> Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
-> 
-> Index: linux-2.6.22-rc5/arch/x86_64/Kconfig
-> ===================================================================
-> --- linux-2.6.22-rc5.orig/arch/x86_64/Kconfig	2007-06-18 16:02:19.571323415 -0700
-> +++ linux-2.6.22-rc5/arch/x86_64/Kconfig	2007-06-20 11:34:29.845354250 -0700
-> @@ -366,6 +366,7 @@ config X86_64_ACPI_NUMA
->         depends on NUMA
->         select ACPI 
->  	select PCI
-> +  	select PM
->         select ACPI_NUMA
->         default y
->         help
+> Clearly the first number is not the number of available readings (though
+> it matches the count in the other DSDTs I've seen); don't know what it
+> is :|
 
-Yep, this one-liner solves all acpi related compile errors/warnings
-that I've reported.
-
-Additional it resolves anoter problem that results from
-dependencies between CONFIG_PNP and CONFIG_ACPI.
-
-One problem arises:
-If PM is deselected, the PNP menu is empty on x86_64.
-So I suggest to add the attached patch to hide the PNP-menu
-if no PM (and thus ACPI) is selected.
+Maybe study the Pro2.dll from Asus Probe II?
 
 
-Regards,
+> The last field of the individual fan packages is far more interesting: 0
+> means disabled, anything else means enabled. In your DSDT "CHIPSET FAN
+> Speed" is marked as disabled and there's no AML code to read the
+> rotation.
+> This may be true also for the other packages (temp and voltage), but for
+> now I've modified only the fan code.
 
-Andreas
+Ok.
 
---
+Fan3 is disabled because the chip is programed to disabled - (IO pin)
 
-Make CONFIG_PNP a menuconfig to hide the submenu if neither
-ISA nor ACPI is selected.
+> Here's another iteration of the driver, please give it a try:
 
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-
-diff --git a/drivers/pnp/Kconfig b/drivers/pnp/Kconfig
-index 1959cef..2291e7d 100644
---- a/drivers/pnp/Kconfig
-+++ b/drivers/pnp/Kconfig
-@@ -2,11 +2,9 @@
- # Plug and Play configuration
- #
- 
--menu "Plug and Play support"
--	depends on HAS_IOMEM
--
--config PNP
-+menuconfig PNP
- 	bool "Plug and Play support"
-+	depends on HAS_IOMEM
- 	depends on ISA || ACPI
- 	---help---
- 	  Plug and Play (PnP) is a standard for peripherals which allows those
-@@ -22,15 +20,15 @@ config PNP
- 
- 	  If unsure, say Y.
- 
-+if PNP
-+
- config PNP_DEBUG
- 	bool "PnP Debug Messages"
--	depends on PNP
- 	help
- 	  Say Y if you want the Plug and Play Layer to print debug messages.
- 	  This is useful if you are developing a PnP driver or troubleshooting.
- 
- comment "Protocols"
--	depends on PNP
- 
- source "drivers/pnp/isapnp/Kconfig"
- 
-@@ -38,5 +36,4 @@ source "drivers/pnp/pnpbios/Kconfig"
- 
- source "drivers/pnp/pnpacpi/Kconfig"
- 
--endmenu
--
-+endif
+It loads now. I have moved my extra fan to some other connector, now it is fan1 
+for w83627EHF chip.
 
 
+ATK0110 ATK0110:00: removing...
+ATK0110 ATK0110:00: atk: adding...
+ATK0110 ATK0110:00: board ID = A8VE-SE
+ATK0110 ATK0110:00: temp 0: 0x6030000 CPU Temperature [900-1250]
+ATK0110 ATK0110:00: temp 1: 0x6030001 MB Temperature [700-1250]
+ATK0110 ATK0110:00: voltage 0: 0x6020000 Vcore Voltage [1450-1750]
+ATK0110 ATK0110:00: voltage 1: 0x6020001  +3.3 Voltage [3000-3600]
+ATK0110 ATK0110:00: voltage 2: 0x6020002  +5.0 Voltage [4500-5500]
+ATK0110 ATK0110:00: voltage 3: 0x6020003 +12.0 Voltage [11200-13200]
+ATK0110 ATK0110:00: atk_enumerate_fan: invalid fan count? 3 (should be 5)
+ATK0110 ATK0110:00: fan 0: 0x6040000 CPU FAN Speed [0-1800] enabled
+ATK0110 ATK0110:00: fan 1: 0x6040001 CHASSIS FAN Speed [0-1800] enabled
+ATK0110 ATK0110:00: fan 2: 0x6040002 POWER FAN Speed [0-1800] enabled
+ATK0110 ATK0110:00: fan 3: 0x6040005 CHIPSET FAN Speed [0-1800] disabled
+ATK0110 ATK0110:00: fan 4: 0x6040006 CHASSIS2 FAN Speed [0-1800] enabled
+ATK0110 ATK0110:00: registering hwmon device
+ATK0110 ATK0110:00: populating sysfs directory
 
+Although it says it has been registered to hwmon class, I cant find it in sysfs. 
+I have loaded/unloaded the driver several times before I checked the dir, so 
+maybe is something wrong?
+
+Does it show up in your /sys/class/hwmon?
+
+Thanks,
+
+Rudolf
