@@ -1,40 +1,59 @@
-From: Chuck Ebbert <cebbert@redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: ACPI Regression on Dell E1501
-Date: Thu, 21 Jun 2007 17:47:48 -0400
-Message-ID: <467AF204.3060805@redhat.com>
-References: <467AE7E1.4050805@canonical.com>
+Date: Thu, 21 Jun 2007 23:55:02 +0200
+Message-ID: <1182462902.3316.105.camel@chaos>
+References: <467AE7E1.4050805@canonical.com>  <467AF204.3060805@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:42356 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755260AbXFUVsW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Jun 2007 17:48:22 -0400
-In-Reply-To: <467AE7E1.4050805@canonical.com>
+Received: from www.osadl.org ([213.239.205.134]:33376 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757362AbXFUVzF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jun 2007 17:55:05 -0400
+In-Reply-To: <467AF204.3060805@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: Tim Gardner <tim.gardner@canonical.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 06/21/2007 05:04 PM, Tim Gardner wrote:
-> Hi,
+On Thu, 2007-06-21 at 17:47 -0400, Chuck Ebbert wrote:
+> On 06/21/2007 05:04 PM, Tim Gardner wrote:
+> > Hi,
+> > 
+> > Commit e9e2cdb412412326c4827fc78ba27f410d837e6e breaks boot on a Dell
+> > E1501 unless 'acpi=off' is specified (also tried nolapic and nohpet but
+> > it made no substantive difference). This laptop is an 'AMD Turion(tm) 64
+> > X2 Mobile Technology TL-50' CPU, but its booting 32 bit SMP (make
+> > defconfig). No kernel built after this commit works for this platform.
+> > 
+> > There is no crash output, it just wedges after 'NET: Registered protocol
+> > family 2'.
+> > 
+> > How can I debug this problem?
 > 
-> Commit e9e2cdb412412326c4827fc78ba27f410d837e6e breaks boot on a Dell
-> E1501 unless 'acpi=off' is specified (also tried nolapic and nohpet but
-> it made no substantive difference). This laptop is an 'AMD Turion(tm) 64
-> X2 Mobile Technology TL-50' CPU, but its booting 32 bit SMP (make
-> defconfig). No kernel built after this commit works for this platform.
+> That'll be fun.
 > 
-> There is no crash output, it just wedges after 'NET: Registered protocol
-> family 2'.
+> That's:
 > 
-> How can I debug this problem?
+> 	[PATCH] clockevents: i386 drivers
+> 
+> [Author cc: added]
 
-That'll be fun.
+I'm going nuts on this. 
 
-That's:
+Tim, 
 
-	[PATCH] clockevents: i386 drivers
+1.) are you booting a 32bit or a 64 bit kernel ?
 
-[Author cc: added]
+2.) Can you please try 2.6.22-rc5 + 
+http://www.tglx.de/projects/hrtimers/2.6.22-rc5/patch-2.6.22-rc5-hrt1.patch
+	whether this makes any difference 
+
+Thanks,
+
+	tglx
+
+
+
+
