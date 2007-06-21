@@ -1,82 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFD] How to tell ACPI drivers what the target sleep state is (was: Re: [PATCH 1/2] acpi choose sleep state help)
-Date: Thu, 21 Jun 2007 22:04:36 +0200
-Message-ID: <200706212204.36999.rjw@sisk.pl>
-References: <1182220394.14837.9.camel@sli10-conroe.sh.intel.com> <200706211442.41140.rjw@sisk.pl> <200706210748.48781.david-b@pacbell.net>
+From: Luca <kronos.it@gmail.com>
+Subject: Re: [lm-sensors] [RFC] ACPI based hwmon driver for ASUS
+Date: Thu, 21 Jun 2007 22:11:24 +0200
+Message-ID: <68676e00706211311v3776aff2tff3b12074935742@mail.gmail.com>
+References: <20070513223329.GA29207@dreamland.darkstar.lan>
+	 <46520F36.4080006@assembler.cz>
+	 <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com>
+	 <46528B6F.3050701@assembler.cz>
+	 <20070602222829.GA11893@dreamland.darkstar.lan>
+	 <467ACB2A.4070707@assembler.cz> <467ACE57.2010400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53775 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755916AbXFUT5w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jun 2007 15:57:52 -0400
-In-Reply-To: <200706210748.48781.david-b@pacbell.net>
+Received: from nz-out-0506.google.com ([64.233.162.226]:49202 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755069AbXFUULZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jun 2007 16:11:25 -0400
+Received: by nz-out-0506.google.com with SMTP id n1so721065nzf
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Jun 2007 13:11:24 -0700 (PDT)
+In-Reply-To: <467ACE57.2010400@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, 21 June 2007 16:48, David Brownell wrote:
-> On Thursday 21 June 2007, Rafael J. Wysocki wrote:
-> > The issue at hand is that some device drivers may need to know what=
- the
-> > target sleep state of the system will be when their .suspend() rout=
-ines are
-> > being executed. =A0Currently, there's no means of passing that info=
-rmation to the
-> > drivers and my question is how to do this.
->=20
-> Actually what they need to know is some *attribute* of that state.
+On 6/21/07, Alexey Starikovskiy <aystarik@gmail.com> wrote:
+> Hi,
+>
+> I think you might be interested in following patch, which implements _ACPI_ driver for the same hardware...
+> It is only "proof of concept" at the moment, but it does main thing -- reads hwmon device using ACPI interfaces.
 
-Generally, yes.
+Well, reading is easy and is already implemented in the driver that I
+posted. The problem is to figure out how to control the various stuff
+(fans, and maybe some of the other ASUS features).
 
-> They really don't care what the state is.  The $SUBJECT patch isn't
-> driver code ... it's for platform hooks that expose attributes to
-> the drivers.  Specifically, it's ACPI code, talking to drivers that
-> must run on non-ACPI systems.  Any driver that thinks it needs to
-> understand anything about ACPI states is sadly broken.
-
-But finally it has to place the device into a specific state and that s=
-tate
-needs to be determined somehow.  And, if ACPI is involved, it needs to =
-be
-told at one point if the final system state is supposed to be S1 or S2 =
-or S3
-(I guess we can discard S2 safely) just to tell the driver which power =
-states
-of the device are suitable.
-
-That's why I thought we might introduce an additional global pm_op that
-could be used to provide ACPI with that information without engaging dr=
-ivers in
-passing it.
-
-> Remember also that the Linux "states" (in /sys/power/state) are an
-> inadequate representation of what most hardware can do.
-
-Do we really want to introduce more system sleep states right at this p=
-oint?
-
-> Common hardware can support a lot more low power sleep modes than the=
- two
-> states Linux currently defines ... a limitation inherited from first =
-APM, and
-> them more recently ACPI, which doesn't fit embedded systems well at a=
-ll.
-
-I agree with that, but right now we have an ACPI-related problem at han=
-d.
-
-Greetings,
-Rafael
-
-
---=20
-"Premature optimization is the root of all evil." - Donald Knuth
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Luca
