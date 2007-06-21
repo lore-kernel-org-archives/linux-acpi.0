@@ -1,237 +1,69 @@
-From: Martin Tamme <mtamme@cosy.sbg.ac.at>
-Subject: dmidecode
-Date: Thu, 21 Jun 2007 00:04:48 +0200
-Message-ID: <4679A480.1020507@cosy.sbg.ac.at>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Power Mangement Interfaces
+Date: Wed, 20 Jun 2007 18:30:51 -0700
+Message-ID: <200706201830.52277.david-b@pacbell.net>
+References: <20070330235759.GC4252@cosmic.amd.com> <200704011728.10966.david-b@pacbell.net> <20070619170048.GA342@dmt.media.mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailbackup.inode.at ([213.229.60.24]:41010 "EHLO
-	mailbackup.inode.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597AbXFTWFo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jun 2007 18:05:44 -0400
-Received: from [62.99.145.5] (port=51310 helo=mx.inode.at)
-	by mailbackup.inode.at with esmtp (Exim 4.67)
-	(envelope-from <mtamme@cosy.sbg.ac.at>)
-	id 1I18J3-00075q-1p
-	for linux-acpi@vger.kernel.org; Thu, 21 Jun 2007 00:05:41 +0200
-Received: from [85.127.52.101] (port=9093 helo=[192.168.1.20])
-	by smartmx-05.inode.at with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50)
-	id 1I18ID-0002DU-Ec
-	for linux-acpi@vger.kernel.org; Thu, 21 Jun 2007 00:04:49 +0200
+Received: from smtp109.sbc.mail.mud.yahoo.com ([68.142.198.208]:45996 "HELO
+	smtp109.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753856AbXFUBtK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jun 2007 21:49:10 -0400
+In-Reply-To: <20070619170048.GA342@dmt.media.mit.edu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Marcelo Tosatti <marcelo@kvack.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-17 structures occupying 641 bytes.
-Table at 0x000E3810.
+On Tuesday 19 June 2007, Marcelo Tosatti wrote:
+>
+> > Since OLPC isn't using ACPI,  it can be more like embedded Linux,
+> > and just Do The Right Thing ... create platform devices, etc.  :)
+> 
+> As you know we want user configuration of enabled wakeup events (unlike
+> embedded platforms where this is hardcoded). It seems that the current
+> interface available for that is /sys/devices/../power/wakeup hook (when
+> !ACPI).
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Hewlett-Packard
-	Version: F.23
-	Release Date: 04/13/2007
-	Address: 0xE7390
-	Runtime Size: 101488 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		Print screen service is supported (int 5h)
-		8042 keyboard services are supported (int 9h)
-		Printer services are supported (int 17h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		Smart battery is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-	BIOS Revision: 1.6
-	Firmware Revision: 1.1
+And, when some issues get sorted, for ACPI too.  Patches have circulated
+which make it all behave properly ... except for some platform-specific
+oddities that haven't gotten sorted out yet.  (As I recall, there was
+one instance of the "EHCI wrongly issues wakeups" problems; and then the
+mess with PCI init sequence on powerpc vs most other systems.)
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Hewlett-Packard
-	Product Name: HP Pavilion dv5000 (RG959EA#ABD)
-	Version: F.23
-	Serial Number: CND63436SJ
-	UUID: CAB23257-2998-11DB-BA5A-0016D43EC990
-	Wake-up Type: Power Switch
-	SKU Number: RG959EA#ABD
-	Family: 103C_5335KV
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: Hewlett-Packard
-	Product Name: 30A7
-	Version: 56.47
-	Serial Number: CND63436SJ
+> However there are several wakeup capable devices in OLPC which do not
+> have drivers, thus no platform devices:
+> 
+> - power button 
+> - lid
+> 
+> It seems that creating platform devices for these two just for the
+> purpose of a having an interface for enabling wakeup events is overkill.
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Hewlett-Packard
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag:
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
+What Jens said.  ;)  
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: E8 06 00 00 FF FB E9 BF
-	Version: Genuine Intel(R) CPU T2250
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 1730 MHz
-	Current Speed: 1730 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: Not Provided
-	L2 Cache Handle: 0x0005
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
+I'll disagree.  Not just because ACPI already creates devices for
+those two cases, but because creating normal device nodes there is
+the Right Thing To Do.  It's cheap, and won't surprise anyone. 
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 2048 KB
-	Maximum Size: 2048 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
 
-Handle 0x0006, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J1100
-	Type: 32-bit PCI
-	Current Usage: In Use
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
+> Given that, we probably want something similar to what was initially    
+> described in http://wiki.laptop.org/go/Power_Management_Interface ?     
+> 
+> The downside of doing that is a non-unified interface: platform
+> devices via /sys/devices/../power/wakeup and otherwise
+> /sys/whatever/wakeup/source?
 
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J1101
-	Type: 32-bit PCI
-	Current Usage: In Use
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
+That's exactly why "we" do *NOT* want something like what was
+sketched in that Wiki.  Gratuitous divergence hurts ... and in
+this case, it's trivial to adopt that common solution (just add
+platform device, managed the usual way) and not diverge.
 
-Handle 0x0008, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Video
-	Status: Enabled
-	Description: Intel Calistoga
+- Dave
 
-Handle 0x0009, DMI type 11, 5 bytes
-OEM Strings
-	String 1: $HP$
-
-Handle 0x000A, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x000B, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x000C, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 2
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x000D, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x000A
-	Partition Width: 0
-
-Handle 0x000E, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Device Handle: 0x000B
-	Memory Array Mapped Address Handle: 0x000D
-	Partition Row Position: 2
-	Interleave Position: 1
-	Interleaved Data Depth: 6
-
-Handle 0x000F, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0010, DMI type 127, 4 bytes
-End Of Table
