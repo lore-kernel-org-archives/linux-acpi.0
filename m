@@ -1,68 +1,60 @@
-From: Tim Gardner <tim.gardner@canonical.com>
-Subject: Re: ACPI Regression on Dell E1501
-Date: Fri, 22 Jun 2007 07:18:55 -0600
-Message-ID: <467BCC3F.4080405@canonical.com>
-References: <467AE7E1.4050805@canonical.com>  <467AF204.3060805@redhat.com> <1182462902.3316.105.camel@chaos> <467BC9F8.5000403@canonical.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately
+ resumes after STR
+Date: Fri, 22 Jun 2007 10:07:15 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0706220959530.3290-100000@iolanthe.rowland.org>
+References: <200706220243.56056.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756979AbXFVNSj@vger.kernel.org>
-In-Reply-To: <467BC9F8.5000403@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chuck Ebbert <cebbert@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:33906 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754203AbXFVOHR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jun 2007 10:07:17 -0400
+In-Reply-To: <200706220243.56056.david-b@pacbell.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Mattia Dongili <malattia@linux.it>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org
 
-Tim Gardner wrote:
-> Thomas Gleixner wrote:
->> On Thu, 2007-06-21 at 17:47 -0400, Chuck Ebbert wrote:
->>> On 06/21/2007 05:04 PM, Tim Gardner wrote:
->>>> Hi,
->>>>
->>>> Commit e9e2cdb412412326c4827fc78ba27f410d837e6e breaks boot on a Dell
->>>> E1501 unless 'acpi=off' is specified (also tried nolapic and nohpet but
->>>> it made no substantive difference). This laptop is an 'AMD Turion(tm) 64
->>>> X2 Mobile Technology TL-50' CPU, but its booting 32 bit SMP (make
->>>> defconfig). No kernel built after this commit works for this platform.
->>>>
->>>> There is no crash output, it just wedges after 'NET: Registered protocol
->>>> family 2'.
->>>>
->>>> How can I debug this problem?
->>> That'll be fun.
->>>
->>> That's:
->>>
->>> 	[PATCH] clockevents: i386 drivers
->>>
->>> [Author cc: added]
->> I'm going nuts on this. 
->>
->> Tim, 
->>
->> 1.) are you booting a 32bit or a 64 bit kernel ?
->>
->> 2.) Can you please try 2.6.22-rc5 + 
->> http://www.tglx.de/projects/hrtimers/2.6.22-rc5/patch-2.6.22-rc5-hrt1.patch
->> 	whether this makes any difference 
->>
->> Thanks,
->>
->> 	tglx
->>
-> 
-> Thomas,
-> 
-> Your patch (large though it is) did not make any outward difference. As
-> usual, adding 'acpi=off' allows it to boot.
-> 
-> rtg
+On Fri, 22 Jun 2007, David Brownell wrote:
 
-Perhaps I was too hasty. Adding 'acpi=off' did not allow it to boot. The
-IDE drive was detected, but I did not see any partitions detected.
-Eventually it dropped to the initrd shell when it could not find a root
-filesystem. Anyways, this is likely a side issue.
+> > > Maybe we should change the kernel so that the default wakeup setting 
+> > > for USB controllers is disabled. 
+> 
+> I'd rather not go that route.  It may well be that there's
+> something odd in the current handling of wakeup events with
+> EHCI.  I've not personally touched that particular code in
+> several years now, and a lot of code round it has changed
+> since then.
 
-rtg
--- 
-Tim Gardner tim.gardner@ubuntu.com
+We have indeed seen some strange behavior recently.  It hasn't been 
+clear whether it was caused by bad hardware, poor ACPI integration, 
+EHCI driver bugs, or something else.  In fact, different bug reports 
+probably had different causes.
+
+>  Plus of course, problems that don't reproduce
+> on my hardware can't get much attention from me ... there's
+> something like a factor of ten or more in terms of effort
+> to do that sort of remote debugging.
+
+Absolutely.  But sometimes it's unavoidable.
+
+> A userspace tool would certainly be doable.  That's part of why
+> the sysfs wakeup attributes exist:  to cope with hardware oddities
+> the kernel doesn't know about, or to cope with user preferences.
+
+Agreed.  We should simply pick the "most useful" default setting, 
+whatever that may be, and allow userspace to modify it at will.
+
+A common case to consider is USB devices (such as keyboards or mice)
+plugged into laptops.  The user puts the laptop to sleep, unplugs the 
+USB devices, and packs everything up.  In that situation we don't want 
+the unplug events to waken the laptop.
+
+Adopting a user's point of view, I get the feeling that plug and unplug
+aren't useful wakeup events.  But I may be wrong...  and desktop users 
+are likely to have different requirements from laptop users.
+
+Alan Stern
+
