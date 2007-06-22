@@ -1,63 +1,102 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately
- resumes after STR
-Date: Fri, 22 Jun 2007 10:33:43 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0706221022190.3290-100000@iolanthe.rowland.org>
-References: <200706220308.27447.david-b@pacbell.net>
+From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
+Subject: Re: [PATCH 7/12] acpi: fix another compile warning
+Date: Fri, 22 Jun 2007 16:39:13 +0200
+Message-ID: <20070622143913.GU5193@alberich.amd.com>
+References: <20070619225035.GI5193@alberich.amd.com>
+ <200706192338.02807.lenb@kernel.org>
+ <20070620084911.GO5193@alberich.amd.com>
+ <200706200936.31236.lenb@kernel.org> <20070620182548.GA561@localdomain>
+ <20070621183615.GI5193@alberich.amd.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59753 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754493AbXFVOdo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jun 2007 10:33:44 -0400
-In-Reply-To: <200706220308.27447.david-b@pacbell.net>
+Received: from outbound-fra.frontbridge.com ([62.209.45.174]:56285 "EHLO
+	outbound2-fra-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756914AbXFVOi2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jun 2007 10:38:28 -0400
+In-Reply-To: <20070621183615.GI5193@alberich.amd.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>, linux-pm@lists.linux-foundation.org
+To: Ravikiran G Thirumalai <kiran@scalex86.org>, Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Steven Whitehouse <swhiteho@redhat.com>, Shai Fultheim <shai@scalex86.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 22 Jun 2007, David Brownell wrote:
+On Thu, Jun 21, 2007 at 08:36:15PM +0200, Andreas Herrmann wrote:
+> On Wed, Jun 20, 2007 at 11:25:48AM -0700, Ravikiran G Thirumalai wrote:
+> > On Wed, Jun 20, 2007 at 09:36:30AM -0400, Len Brown wrote:
+> > > 
+      <snip>
 
-> On Wednesday 20 June 2007, Rafael J. Wysocki wrote:
-> 
-> > Well, there's nothing interesting in there, AFAICS:
+> > > The underlying problem is that Kconfig doesn't support using select
+> > > on targets which themselves have dependencies.
+> > > 
+> > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > > 
+> > > 
+> > > diff --git a/arch/x86_64/Kconfig b/arch/x86_64/Kconfig
+> > > index 5ce9443..e9d7767 100644
+> > > --- a/arch/x86_64/Kconfig
+> > > +++ b/arch/x86_64/Kconfig
+> > > @@ -364,9 +364,9 @@ config NODES_SHIFT
+> > >  config X86_64_ACPI_NUMA
+> > >         bool "ACPI NUMA detection"
+> > >         depends on NUMA
+> > > -       select ACPI 
+> > > +       depends on ACPI 
+> > >  	select PCI
+> > > -       select ACPI_NUMA
+> > > +       depends on ACPI_NUMA
+> > >         default y
+> > >         help
+> > >  	 Enable ACPI SRAT based node topology detection.
+> > > -
 > > 
-> > Device	S-state	  Status   Sysfs node
-> > P0P4	  S4	 disabled  pci:0000:00:1e.0
-> > BNIC	  S4	 disabled  pci:0000:02:05.0
-> > USB1	  S4	 disabled  pci:0000:00:1d.0
-> > USB2	  S4	 disabled  pci:0000:00:1d.1
-> > USB3	  S4	 disabled  pci:0000:00:1d.2
-> > EUSB	  S4	 disabled  pci:0000:00:1d.7
-> > PS2K	  S4	 disabled  pnp:00:0b
-> > PS2M	  S4	 disabled  pnp:00:0c
+      <snip>
+> > 
+> > 
+> > Paper over 'select' inadequacies.  
+> > 
+> > Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+> > 
+> > Index: linux-2.6.22-rc5/arch/x86_64/Kconfig
+> > ===================================================================
+> > --- linux-2.6.22-rc5.orig/arch/x86_64/Kconfig	2007-06-18 16:02:19.571323415 -0700
+> > +++ linux-2.6.22-rc5/arch/x86_64/Kconfig	2007-06-20 11:34:29.845354250 -0700
+> > @@ -366,6 +366,7 @@ config X86_64_ACPI_NUMA
+> >         depends on NUMA
+> >         select ACPI 
+> >  	select PCI
+> > +  	select PM
+> >         select ACPI_NUMA
+> >         default y
+> >         help
 > 
-> The interesting thing there is that all those devices are
-> able to wake from S4 state ... including USB controllers.
+> Yep, this one-liner solves all acpi related compile errors/warnings
+> that I've reported.
 > 
-> That's not very common for USB.  EHCI ("EUSB" above) at
-> least has a spec for how that should work ... it relies on
-> the PCI Vaux power well to maintain power sessions, though
-> I don't know that the EHCI code has been tested against
-> that part of the spec.  UHCI likely relies on black magic
-> to achieve that effect.
+> Additional it resolves anoter problem that results from
+> dependencies between CONFIG_PNP and CONFIG_ACPI.
+> 
 
-"Black magic"?  Intel's datasheet for the ICH4 board documents a 
-non-standard PCI register in the UHCI configuration space at address 
-0xc4 called "USB_RES USB Resume Enable Register".  The two low-order 
-bits determine whether or not the UHCI controller will monitor the two 
-USB ports for wakeup events.
 
-But the datasheet says nothing about supplying suspend current to the
-ports -- presumably they do remain powered even in S4 or else how could
-they generate wakeup events?  And the datasheet says nothing about 
-_how_ these events are reported.  The lspci output doesn't show any 
-power management capabilities.
+Andi,
 
-I haven't added support for this register to uhci-hcd.  Partly because 
-the issue has never arisen and partly because it wasn't clear whether 
-the ACPI code would handle it already.
+are you going to apply Ravikiran's patch?
 
-Alan Stern
+
+Regards,
+
+Andreas
+
+-- 
+Operating | AMD Saxony Limited Liability Company & Co. KG,
+  System  | Wilschdorfer Landstr. 101, 01109 Dresden, Germany
+ Research | Register Court Dresden: HRA 4896, General Partner authorized
+  Center  | to represent: AMD Saxony LLC (Wilmington, Delaware, US)
+  (OSRC)  | General Manager of AMD Saxony LLC: Dr. Hans-R. Deppe, Thomas McCoy
+
+
 
