@@ -1,73 +1,93 @@
-From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
-Subject: Re: [PATCH 2/12] acpi: select ACPI_EC for THINKPAD_ACPI
-Date: Fri, 22 Jun 2007 16:47:50 +0200
-Message-ID: <20070622144750.GV5193@alberich.amd.com>
-References: <20070619224836.GD5193@alberich.amd.com>
- <20070620005744.GA15080@khazad-dum.debian.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: ACPI Regression on Dell E1501
+Date: Fri, 22 Jun 2007 17:12:30 +0200
+Message-ID: <1182525150.28514.746.camel@queen.suse.de>
+References: <467AE7E1.4050805@canonical.com>  <467AF204.3060805@redhat.com>
+	 <1182462902.3316.105.camel@chaos> <467BC9F8.5000403@canonical.com>
+	 <467BCC3F.4080405@canonical.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-blu.frontbridge.com ([65.55.251.16]:25571 "EHLO
-	outbound7-blu-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756432AbXFVOq6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jun 2007 10:46:58 -0400
-In-Reply-To: <20070620005744.GA15080@khazad-dum.debian.net>
-Content-Disposition: inline
+Received: from mx1.suse.de ([195.135.220.2]:47191 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756770AbXFVPMk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jun 2007 11:12:40 -0400
+In-Reply-To: <467BCC3F.4080405@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Chuck Ebbert <cebbert@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ebiederm@xmission.com
 
-On Tue, Jun 19, 2007 at 09:57:44PM -0300, Henrique de Moraes Holschuh wrote:
-> On Wed, 20 Jun 2007, Andreas Herrmann wrote:
-> > Fix kernel build problem:
+On Fri, 2007-06-22 at 07:18 -0600, Tim Gardner wrote:
+> Tim Gardner wrote:
+> > Thomas Gleixner wrote:
+> >> On Thu, 2007-06-21 at 17:47 -0400, Chuck Ebbert wrote:
+> >>> On 06/21/2007 05:04 PM, Tim Gardner wrote:
+> >>>> Hi,
+> >>>>
+> >>>> Commit e9e2cdb412412326c4827fc78ba27f410d837e6e breaks boot on a Dell
+> >>>> E1501 unless 'acpi=off' is specified (also tried nolapic and nohpet but
+> >>>> it made no substantive difference). This laptop is an 'AMD Turion(tm) 64
+> >>>> X2 Mobile Technology TL-50' CPU, but its booting 32 bit SMP (make
+> >>>> defconfig). No kernel built after this commit works for this platform.
+> >>>>
+> >>>> There is no crash output, it just wedges after 'NET: Registered protocol
+> >>>> family 2'.
+> >>>>
+> >>>> How can I debug this problem?
+> >>> That'll be fun.
+> >>>
+> >>> That's:
+> >>>
+> >>> 	[PATCH] clockevents: i386 drivers
+> >>>
+> >>> [Author cc: added]
+> >> I'm going nuts on this. 
+> >>
+> >> Tim, 
+> >>
+> >> 1.) are you booting a 32bit or a 64 bit kernel ?
+> >>
+> >> 2.) Can you please try 2.6.22-rc5 + 
+> >> http://www.tglx.de/projects/hrtimers/2.6.22-rc5/patch-2.6.22-rc5-hrt1.patch
+> >> 	whether this makes any difference 
+> >>
+> >> Thanks,
+> >>
+> >> 	tglx
+> >>
 > > 
-> >  thinkpad_acpi.c:(.text+0x7486a): undefined reference to `ec_write'
+> > Thomas,
 > > 
-> > (as THINKPAD_ACPI depends on ACPI_EC)
+> > Your patch (large though it is) did not make any outward difference. As
+> > usual, adding 'acpi=off' allows it to boot.
 > > 
-> > Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> > ---
-> >  drivers/misc/Kconfig |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> > index 2f2fbff..72774c9 100644
-> > --- a/drivers/misc/Kconfig
-> > +++ b/drivers/misc/Kconfig
-> > @@ -139,6 +139,7 @@ config SONYPI_COMPAT
-> >  config THINKPAD_ACPI
-> >  	tristate "ThinkPad ACPI Laptop Extras"
-> >  	depends on X86 && ACPI
-> > +	select ACPI_EC
-> >  	select BACKLIGHT_CLASS_DEVICE
-> >  	select HWMON
-> >  	---help---
+> > rtg
 > 
-> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> 
+> Perhaps I was too hasty. Adding 'acpi=off' did not allow it to boot. The
+> IDE drive was detected, but I did not see any partitions detected.
+> Eventually it dropped to the initrd shell when it could not find a root
+> filesystem. Anyways, this is likely a side issue.
 
-Well, this one shouldn't be applied. The problem is better
-fixed in arch/x86_64/Kconfig.
+I am seeing the same with an ACER F5000.
 
-BTW, the above patch would lead to kconfig warnings on non
-x86-architectures. A proper version would be to add
-"select ACPI_EC if X86".
+pci=nomsi let the machine still boot.
 
+I tried a bit and I think I got it, for me it's this one:
 
-Regards,
+commit 78b7611c4a1e3ff008abc4751b566cb533d68f3d
+Author: Eric W. Biederman <ebiederm@xmission.com>
+Date:   Fri Jun 1 00:46:33 2007 -0700
 
-Andreas
+My problem: The laptop does not have an serial output device, I try to
+set up a fire wire console, but might have cable/HW problems.
 
--- 
-Operating | AMD Saxony Limited Liability Company & Co. KG,
-  System  | Wilschdorfer Landstr. 101, 01109 Dresden, Germany
- Research | Register Court Dresden: HRA 4896, General Partner authorized
-  Center  | to represent: AMD Saxony LLC (Wilmington, Delaware, US)
-  (OSRC)  | General Manager of AMD Saxony LLC: Dr. Hans-R. Deppe, Thomas McCoy
+What else can I do to help?
+What do you need?
 
+Thanks,
 
+   Thomas
 
