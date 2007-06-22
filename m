@@ -1,47 +1,53 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR
-Date: Fri, 22 Jun 2007 03:08:26 -0700
-Message-ID: <200706220308.27447.david-b@pacbell.net>
-References: <20070518071523.GA3195@inferi.kami.home> <1182304359.5411.122.camel@localhost.localdomain> <200706202339.20188.rjw@sisk.pl>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [PATCH 6/12] acpi: fix compile warnings
+Date: Fri, 22 Jun 2007 13:34:37 +0200
+Message-ID: <20070622113437.GM23017@stusta.de>
+References: <20070619225011.GH5193@alberich.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:36368 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752069AbXFVKIZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jun 2007 06:08:25 -0400
-In-Reply-To: <200706202339.20188.rjw@sisk.pl>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:36247 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751969AbXFVLeS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jun 2007 07:34:18 -0400
 Content-Disposition: inline
+In-Reply-To: <20070619225011.GH5193@alberich.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhang Rui <rui.zhang@intel.com>, Mattia Dongili <malattia@linux.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 20 June 2007, Rafael J. Wysocki wrote:
-
-> Well, there's nothing interesting in there, AFAICS:
+On Wed, Jun 20, 2007 at 12:50:11AM +0200, Andreas Herrmann wrote:
+> Fix compile warnings:
 > 
-> Device	S-state	  Status   Sysfs node
-> P0P4	  S4	 disabled  pci:0000:00:1e.0
-> BNIC	  S4	 disabled  pci:0000:02:05.0
-> USB1	  S4	 disabled  pci:0000:00:1d.0
-> USB2	  S4	 disabled  pci:0000:00:1d.1
-> USB3	  S4	 disabled  pci:0000:00:1d.2
-> EUSB	  S4	 disabled  pci:0000:00:1d.7
-> PS2K	  S4	 disabled  pnp:00:0b
-> PS2M	  S4	 disabled  pnp:00:0c
+>  drivers/acpi/bus.c: In function 'acpi_bus_get_power':
+>  drivers/acpi/bus.c:162: warning: implicit declaration of function 'acpi_power_get_inferred_state'
+>  drivers/acpi/bus.c: In function 'acpi_bus_set_power':
+>  drivers/acpi/bus.c:232: warning: implicit declaration of function 'acpi_power_transition'
+> 
+> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index b4a9ea5..e01dca1 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -43,6 +43,8 @@ ACPI_MODULE_NAME("bus");
+>  #ifdef	CONFIG_X86
+>  extern void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger);
+>  #endif
+> +extern int acpi_power_get_inferred_state(struct acpi_device *);
+> +extern int acpi_power_transition(struct acpi_device *, int);
+>...
 
-The interesting thing there is that all those devices are
-able to wake from S4 state ... including USB controllers.
+NAK, they belong into a header file.
 
-That's not very common for USB.  EHCI ("EUSB" above) at
-least has a spec for how that should work ... it relies on
-the PCI Vaux power well to maintain power sessions, though
-I don't know that the EHCI code has been tested against
-that part of the spec.  UHCI likely relies on black magic
-to achieve that effect.
+cu
+Adrian
 
-- Dave
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
