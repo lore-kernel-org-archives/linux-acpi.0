@@ -1,112 +1,119 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI patches for 2.6.22 - part 4
-Date: Sat, 23 Jun 2007 11:12:46 -0400
-Message-ID: <200706231112.46496.lenb@kernel.org>
+Subject: Re: [PATCH 1/3] ACPI EC: Re-factor EC space handler to avoid using label/goto for cycle.
+Date: Sat, 23 Jun 2007 16:02:58 -0400
+Message-ID: <200706231602.58111.lenb@kernel.org>
+References: <20070529123823.20303.55101.stgit@z61m> <20070529124252.20303.89820.stgit@z61m>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38871 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:46440 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756184AbXFWPM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Jun 2007 11:12:58 -0400
+	id S1753678AbXFWUDJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jun 2007 16:03:09 -0400
+In-Reply-To: <20070529124252.20303.89820.stgit@z61m>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Applied.
 
-please pull from: 
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-This fixes three regressions, two small ones from within 2.6.22,
-and a boot hang due to a race condition originating in 2.6.20.
-
-It will update the files shown below.
-
-thanks!
-
+thanks,
 -Len
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.22/acpi-release-20070126-2.6.22-rc5.diff.gz
-
- drivers/acpi/processor_idle.c     |   10 ++++++----
- drivers/acpi/thermal.c            |   15 +++++++++++----
- drivers/acpi/utilities/utobject.c |    2 +-
- 3 files changed, 18 insertions(+), 9 deletions(-)
-
-through these commits:
-
-Myron Stowe (1):
-      ACPICA: fix error path in new external package objects as method arguments
-
-Thomas Renninger (1):
-      ACPI: gracefully print null trip-point device
-
-Venkatesh Pallipadi (1):
-      ACPI: fix 2.6.20 SMP boot regression
-
-with this log:
-
-commit 629cf6d74beca87d57cea3e38edf7522c397d41e
-Merge: 75154f4... d5a3d32...
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Jun 23 10:58:24 2007 -0400
-
-    Pull now into release branch
-
-commit d5a3d32a042126f65a008e0e5204ef92ad2ee55d
-Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Date:   Fri Jun 15 19:36:00 2007 -0400
-
-    ACPI: fix 2.6.20 SMP boot regression
-    
-    Always disable/enable interrupts in the acpi idle routine,
-    even in the error path.
-    
-    This is required as the 2.6.20 change in git commit d331e739f5ad2aaa9...
-    "Fix interrupt race in idle callback" expects the idle handler
-    to enable interrupt before returning.
-    
-    There was a case in acpi idle routine, in which interrupt was not being
-    enabled before return, which caused the system to hang at bootup, while
-    enabling C-states on an SMP system.
-    
-    The signature of the hang was that "processor.nocst"
-    was required to enable boot.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 83dd4504456d4b5e464d6ec4a7665e2c922db67f
-Author: Myron Stowe <myron.stowe@hp.com>
-Date:   Mon Jun 4 16:25:37 2007 -0600
-
-    ACPICA: fix error path in new external package objects as method arguments
-    
-    In the routine acpi_ut_create_package_object(), if the
-    ACPI_ALLOCATE_ZEROED() fails then ACPI_FREE(package_desc) is called as
-    part of the cleanup.  This should instead be
-    acpi_ut_remove_reference(package_desc) in order to remove the reference
-    acquired from acpi_ut_create_internal_object() [see the routine
-    acpi_ut_create_buffer_object() as an example of proper functionality].
-    
-    Signed-off-by: Myron Stowe <myron.stowe@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit e7c746ef098770f863ba294adac5b30d124ba469
-Author: Thomas Renninger <trenn@suse.de>
-Date:   Mon Jun 18 00:40:51 2007 -0400
-
-    ACPI: gracefully print null trip-point device
-    
-    if acpi_bus_get_device() returns NULL, print nothing
-    instead of "<NUL" in /proc/acpi/thermal_zone/*/trip_points
-    
-    Signed-off-by: Thomas Renninger <trenn@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+On Tuesday 29 May 2007 08:42, Alexey Starikovskiy wrote:
+> Signed-off-by: Alexey Starikovskiy <aystarik@gmail.com>
+> ---
+> 
+>  drivers/acpi/ec.c |   56 ++++++++++++++++-------------------------------------
+>  1 files changed, 17 insertions(+), 39 deletions(-)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 82f496c..5534b23 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -454,57 +454,35 @@ acpi_ec_space_setup(acpi_handle region_handle,
+>  }
+>  
+>  static acpi_status
+> -acpi_ec_space_handler(u32 function,
+> -		      acpi_physical_address address,
+> -		      u32 bit_width,
+> -		      acpi_integer * value,
+> +acpi_ec_space_handler(u32 function, acpi_physical_address address,
+> +		      u32 bits, acpi_integer *value,
+>  		      void *handler_context, void *region_context)
+>  {
+> -	int result = 0;
+>  	struct acpi_ec *ec = handler_context;
+> -	u64 temp = *value;
+> -	acpi_integer f_v = 0;
+> -	int i = 0;
+> +	int result = 0, i = 0;
+> +	u8 temp = 0;
+>  
+>  	if ((address > 0xFF) || !value || !handler_context)
+>  		return AE_BAD_PARAMETER;
+>  
+> -	if (bit_width != 8 && acpi_strict) {
+> +	if (function != ACPI_READ && function != ACPI_WRITE)
+>  		return AE_BAD_PARAMETER;
+> -	}
+> -
+> -      next_byte:
+> -	switch (function) {
+> -	case ACPI_READ:
+> -		temp = 0;
+> -		result = acpi_ec_read(ec, (u8) address, (u8 *) & temp);
+> -		break;
+> -	case ACPI_WRITE:
+> -		result = acpi_ec_write(ec, (u8) address, (u8) temp);
+> -		break;
+> -	default:
+> -		result = -EINVAL;
+> -		goto out;
+> -		break;
+> -	}
+>  
+> -	bit_width -= 8;
+> -	if (bit_width) {
+> -		if (function == ACPI_READ)
+> -			f_v |= temp << 8 * i;
+> -		if (function == ACPI_WRITE)
+> -			temp >>= 8;
+> -		i++;
+> -		address++;
+> -		goto next_byte;
+> -	}
+> +	if (bits != 8 && acpi_strict)
+> +		return AE_BAD_PARAMETER;
+>  
+> -	if (function == ACPI_READ) {
+> -		f_v |= temp << 8 * i;
+> -		*value = f_v;
+> +	while (bits - i > 0) {
+> +		if (function == ACPI_READ) {
+> +			result = acpi_ec_read(ec, address, &temp);
+> +			(*value) |= ((acpi_integer)temp) << i;
+> +		} else {
+> +			temp = 0xff & ((*value) >> i);
+> +			result = acpi_ec_write(ec, address, temp);
+> +		}
+> +		i += 8;
+> +		++address;
+>  	}
+>  
+> -      out:
+>  	switch (result) {
+>  	case -EINVAL:
+>  		return AE_BAD_PARAMETER;
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
