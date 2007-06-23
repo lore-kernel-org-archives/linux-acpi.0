@@ -1,67 +1,51 @@
-From: Stephan Berberig <s.berberig@arcor.de>
-Subject: Re: [PATCH] ACPI: bay: send envp with uevent - fix
-Date: Sat, 23 Jun 2007 01:12:58 +0200
-Message-ID: <467C577A.5010904@arcor.de>
-References: <466A719F.3010509@arcor.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 7/12] acpi: fix another compile warning
+Date: Fri, 22 Jun 2007 20:55:30 -0700
+Message-ID: <20070622205530.964ebef9.akpm@linux-foundation.org>
+References: <20070619225035.GI5193@alberich.amd.com>
+	<200706192338.02807.lenb@kernel.org>
+	<20070620084911.GO5193@alberich.amd.com>
+	<200706200936.31236.lenb@kernel.org>
+	<20070620182548.GA561@localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:44576 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385AbXFVXRh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jun 2007 19:17:37 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1I1sMR-0003sr-88
-	for linux-acpi@vger.kernel.org; Sat, 23 Jun 2007 01:16:15 +0200
-Received: from pd9e02337.dip0.t-ipconnect.de ([217.224.35.55])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 23 Jun 2007 01:16:15 +0200
-Received: from s.berberig by pd9e02337.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 23 Jun 2007 01:16:15 +0200
-In-Reply-To: <466A719F.3010509@arcor.de>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49358 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750925AbXFWD4E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jun 2007 23:56:04 -0400
+In-Reply-To: <20070620182548.GA561@localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ravikiran G Thirumalai <kiran@scalex86.org>
+Cc: lenb@kernel.org, andreas.herrmann3@amd.com, swhiteho@redhat.com, ak@suse.de, shai@scalex86.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Len,
+> On Wed, 20 Jun 2007 11:25:48 -0700 Ravikiran G Thirumalai <kiran@scalex86.org> wrote:
+> Paper over 'select' inadequacies.  
+> 
+> Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+> 
+> Index: linux-2.6.22-rc5/arch/x86_64/Kconfig
+> ===================================================================
+> --- linux-2.6.22-rc5.orig/arch/x86_64/Kconfig	2007-06-18 16:02:19.571323415 -0700
+> +++ linux-2.6.22-rc5/arch/x86_64/Kconfig	2007-06-20 11:34:29.845354250 -0700
+> @@ -366,6 +366,7 @@ config X86_64_ACPI_NUMA
+>         depends on NUMA
+>         select ACPI 
+>  	select PCI
+> +  	select PM
+>         select ACPI_NUMA
+>         default y
+>         help
 
-any news about applying this patch to acpi-test?
+argh.  (and not just argh-at-your-email-client).
 
-I got Kristen's Acked-by by private email.
+I went through some hair-tearing a few months ago working out why it is so
+damn hard to make CONFIG_PM go away and then I fixed it.  And now you're
+proposing a change which would reinstate the obnoxious old behaviour.
 
-Best regards,
-Stephan
-
-Stephan Berberig schrieb:
-> Hi,
-> attached a patch to fix the bay uevent so that udev doesn't get confused.
-> 
-> Kristen, could I get your Acked-by?
-> 
-> Best regards,
-> Stephan
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> There must not be a new-line character in the uevent. Otherwise, udev gets confused.
-> Thanks to Kay Sievers for pointing it out.
-> 
-> Signed-off-by: Stephan Berberig <s.berberig@arcor.de>
-> CC: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-> 
-> --- a/drivers/acpi/bay.c	2007-06-08 12:01:11.000000000 +0200
-> +++ b/drivers/acpi/bay.c	2007-06-08 12:02:49.000000000 +0200
-> @@ -337,7 +337,7 @@
->  	char *envp[] = { event_string, NULL };
->  
->  	bay_dprintk(handle, "Bay event");
-> -	sprintf(event_string, "BAY_EVENT=%d\n", event);
-> +	sprintf(event_string, "BAY_EVENT=%d", event);
->  	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
->  }
->  
-
+Is the "bug" which you're "fixing" here caused by the randconfig
+inadequacies?  Because randconfig is just busted and simply should auto-run
+oldconfig.
