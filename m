@@ -1,42 +1,74 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [RFC/RFT][PATCH -mm 3/4] PM: Rename struct pm_ops and related things
-Date: Sun, 24 Jun 2007 21:12:49 -0700
-Message-ID: <200706242112.50814.david-b@pacbell.net>
-References: <200706242239.05678.rjw@sisk.pl> <200706242242.47573.rjw@sisk.pl>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Sat, 23 Jun 2007 16:56:24 +0200
+Message-ID: <200706231656.39597.eike-kernel@sf-tec.de>
+References: <1180614979.2693.26.camel@localhost.localdomain>
 Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart1414674.dcvW7uzd5Z";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753782AbXFYJKX@vger.kernel.org>
+In-Reply-To: <1180614979.2693.26.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>
+List-Id: linux-acpi@vger.kernel.org
+
+--nextPart1414674.dcvW7uzd5Z
 Content-Type: text/plain;
   charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp110.sbc.mail.mud.yahoo.com ([68.142.198.209]:31156 "HELO
-	smtp110.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751607AbXFYEMt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2007 00:12:49 -0400
-In-Reply-To: <200706242242.47573.rjw@sisk.pl>
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-On Sunday 24 June 2007, Rafael J. Wysocki wrote:
+Richard Hughes wrote:
+> Attached patch adds a kernel thread to do polling on Toshiba hardware.
 
->  arch/arm/common/sharpsl_pm.c             |    8 +++----
->  arch/arm/mach-at91/pm.c                  |    4 +--
->  arch/arm/mach-omap1/pm.c                 |    6 ++---
->  arch/arm/mach-omap2/pm.c                 |    6 ++---
->  arch/arm/mach-pnx4008/pm.c               |    4 +--
->  arch/arm/mach-pxa/pm.c                   |    6 ++---
->  arch/arm/mach-sa1100/pm.c                |    6 ++---
->  arch/arm/plat-s3c24xx/pm.c               |    6 ++---
->  arch/blackfin/mach-common/pm.c           |    4 +--
->  arch/powerpc/platforms/52xx/mpc52xx_pm.c |    4 +--
->  arch/sh/boards/hp6xx/pm.c                |    6 ++---
->  drivers/acpi/sleep/main.c                |    6 ++---
+Is there something similar available to support other Toshiba laptops? I ow=
+n a=20
+A110-178 that is not supported by the driver but has a lot of keys that I=20
+can't use currently:
 
-It's interesting that so few systems support suspend states,
-and thus need to change for this patch ... 
+=46n:
+=2Dscreen zoom (I actually don't care about this one)
+=2DS2RAM
+=2DS2Disk
+=2DMute*
 
+Multimedia:
+=2DBrowser
+=2DVideo player
+=2DPlay/pause
+=2DStop
+=2DForward
+=2DReverse
 
-- Dave
+*Mute: it's a bit special. If I use it I can an on screen display (mute/sou=
+nd)=20
+but regardless of which setting is displayed the sound is still there.
+
+None of the above keys generated a key event. Neither does "Brightness down=
+",=20
+but it still works. "Brightness up" generates an event and works. Kpowersav=
+e=20
+tells me it can't do brightness switching in software (which works in=20
+WinXtraPain).
+
+If you need an acpidump or I can do some testing just ask.
+
+Eike
+
+--nextPart1414674.dcvW7uzd5Z
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBGfTSnXKSJPmm5/E4RAgM9AJ9H4BZl60u3ccagmhS3z4qBv15EDwCfYlx3
+FmBTj7zQ9e7gmNX0/A8w9no=
+=EEUF
+-----END PGP SIGNATURE-----
+
+--nextPart1414674.dcvW7uzd5Z--
