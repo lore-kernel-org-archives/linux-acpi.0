@@ -1,72 +1,112 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 3/3] ACPI: fix 2.6.20 SMP boot regression
-Date: Sat, 23 Jun 2007 11:04:48 -0400
-Message-ID: <11826110912721-git-send-email-len.brown@intel.com>
-References: <1182611088203-git-send-email-len.brown@intel.com>
- <11826110891391-git-send-email-len.brown@intel.com>
- <11826110902815-git-send-email-len.brown@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.22 - part 4
+Date: Sat, 23 Jun 2007 11:12:46 -0400
+Message-ID: <200706231112.46496.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19465 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:38871 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758108AbXFWPE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Jun 2007 11:04:57 -0400
-In-Reply-To: <11826110902815-git-send-email-len.brown@intel.com>
-Message-Id: <d5a3d32a042126f65a008e0e5204ef92ad2ee55d.1182611002.git.len.brown@intel.com>
-In-Reply-To: <e7c746ef098770f863ba294adac5b30d124ba469.1182611002.git.len.brown@intel.com>
-References: <e7c746ef098770f863ba294adac5b30d124ba469.1182611002.git.len.brown@intel.com>
+	id S1756184AbXFWPM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jun 2007 11:12:58 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Hi Linus,
 
-Always disable/enable interrupts in the acpi idle routine,
-even in the error path.
+please pull from: 
 
-This is required as the 2.6.20 change in git commit d331e739f5ad2aaa9...
-"Fix interrupt race in idle callback" expects the idle handler
-to enable interrupt before returning.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-There was a case in acpi idle routine, in which interrupt was not being
-enabled before return, which caused the system to hang at bootup, while
-enabling C-states on an SMP system.
+This fixes three regressions, two small ones from within 2.6.22,
+and a boot hang due to a race condition originating in 2.6.20.
 
-The signature of the hang was that "processor.nocst"
-was required to enable boot.
+It will update the files shown below.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_idle.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+thanks!
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ee5759b..80ffc78 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -332,16 +332,18 @@ static void acpi_processor_idle(void)
- 	int sleep_ticks = 0;
- 	u32 t1, t2 = 0;
- 
--	pr = processors[smp_processor_id()];
--	if (!pr)
--		return;
--
- 	/*
- 	 * Interrupts must be disabled during bus mastering calculations and
- 	 * for C2/C3 transitions.
- 	 */
- 	local_irq_disable();
- 
-+	pr = processors[smp_processor_id()];
-+	if (!pr) {
-+		local_irq_enable();
-+		return;
-+	}
-+
- 	/*
- 	 * Check whether we truly need to go idle, or should
- 	 * reschedule:
--- 
-1.5.2.1.255.gca6c0
+-Len
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.22/acpi-release-20070126-2.6.22-rc5.diff.gz
+
+ drivers/acpi/processor_idle.c     |   10 ++++++----
+ drivers/acpi/thermal.c            |   15 +++++++++++----
+ drivers/acpi/utilities/utobject.c |    2 +-
+ 3 files changed, 18 insertions(+), 9 deletions(-)
+
+through these commits:
+
+Myron Stowe (1):
+      ACPICA: fix error path in new external package objects as method arguments
+
+Thomas Renninger (1):
+      ACPI: gracefully print null trip-point device
+
+Venkatesh Pallipadi (1):
+      ACPI: fix 2.6.20 SMP boot regression
+
+with this log:
+
+commit 629cf6d74beca87d57cea3e38edf7522c397d41e
+Merge: 75154f4... d5a3d32...
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Jun 23 10:58:24 2007 -0400
+
+    Pull now into release branch
+
+commit d5a3d32a042126f65a008e0e5204ef92ad2ee55d
+Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Fri Jun 15 19:36:00 2007 -0400
+
+    ACPI: fix 2.6.20 SMP boot regression
+    
+    Always disable/enable interrupts in the acpi idle routine,
+    even in the error path.
+    
+    This is required as the 2.6.20 change in git commit d331e739f5ad2aaa9...
+    "Fix interrupt race in idle callback" expects the idle handler
+    to enable interrupt before returning.
+    
+    There was a case in acpi idle routine, in which interrupt was not being
+    enabled before return, which caused the system to hang at bootup, while
+    enabling C-states on an SMP system.
+    
+    The signature of the hang was that "processor.nocst"
+    was required to enable boot.
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 83dd4504456d4b5e464d6ec4a7665e2c922db67f
+Author: Myron Stowe <myron.stowe@hp.com>
+Date:   Mon Jun 4 16:25:37 2007 -0600
+
+    ACPICA: fix error path in new external package objects as method arguments
+    
+    In the routine acpi_ut_create_package_object(), if the
+    ACPI_ALLOCATE_ZEROED() fails then ACPI_FREE(package_desc) is called as
+    part of the cleanup.  This should instead be
+    acpi_ut_remove_reference(package_desc) in order to remove the reference
+    acquired from acpi_ut_create_internal_object() [see the routine
+    acpi_ut_create_buffer_object() as an example of proper functionality].
+    
+    Signed-off-by: Myron Stowe <myron.stowe@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e7c746ef098770f863ba294adac5b30d124ba469
+Author: Thomas Renninger <trenn@suse.de>
+Date:   Mon Jun 18 00:40:51 2007 -0400
+
+    ACPI: gracefully print null trip-point device
+    
+    if acpi_bus_get_device() returns NULL, print nothing
+    instead of "<NUL" in /proc/acpi/thermal_zone/*/trip_points
+    
+    Signed-off-by: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
