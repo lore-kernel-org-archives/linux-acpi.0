@@ -1,124 +1,62 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Ottawa Linux Power Management Summit, June 25-26, 2007
-Date: Sun, 24 Jun 2007 13:08:07 -0400
-Message-ID: <200706241308.07646.lenb@kernel.org>
+From: Christian Leber <christian@leber.de>
+Subject: Re: beeping patch for debugging acpi sleep
+Date: Sun, 24 Jun 2007 22:46:29 +0200
+Message-ID: <20070624204629.GA28049@core>
+References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz> <20070616194634.GA15953@core>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57830 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751398AbXFXRFp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Jun 2007 13:05:45 -0400
+Received: from ipx20189.ipxserver.de ([80.190.249.56]:1653 "EHLO
+	ipx20189.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253AbXFXUqf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 16:46:35 -0400
 Content-Disposition: inline
+In-Reply-To: <20070616194634.GA15953@core>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, Adam Belay <abelay@novell.com>, Mark Gross <mgross@linux.intel.com>, Marcelo Tosatti <marcelo@kvack.org>, Mischa Jonker <mischa.jonker@tass.nl>, Tariq Shureih <tariq.shureih@intel.com>, "Pedersen Klaus.K (Nokia-M/Helsinki)" <klaus.k.pedersen@nokia.com>, Igor Stoppa <igor.stoppa@nokia.com>, Poussa Sakari <sakari.poussa@nokia.com>, Matthew Locke <matt@nomadgs.com>, "Eugeny S. Mints" <eugeny.mints@gmail.com>, "Scott E. Preece" <preece@motorola.com>, Vivek Kashyap <kashyapv@us.ibm.com>, Kevin Hilman <khilman@mvista.com>, Kenneth <kenroz@us.ibm.com>, Seshadri@d975xbx2
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org
 
-Monday, June 25th
+On Sat, Jun 16, 2007 at 09:46:34PM +0200, Christian Leber wrote:
 
-  9AM - 6PM Garden Suite in Les Suites Ottawa
+> The results are a bit unclear, I took a 2.6.22-rc4 with beep.
+> Logged into KDE.
+> (hardware: Dell Latitude D810)
+> 
+> S = successfull resume
+> D = had to resume 2 times, that means when pressing the power button the
+> LED goes from blinking to on and after a few seconds it goes back to
+> blinking, but without a beep in between; after pressing the power button
+> a second time resume is successfull
+> F = resume failes, NO beep
+> 
+> -run 1: D D F
+> -run 2: D D D(some X garbadge) F
+> -run 3: S S S S S S F
+> -run 4: S S F
+> -run 5: D F
 
-	A couple of people have prepared some slides
-	to guide discussion.  OLPC and Nokia come to mind.
-	We'll have an LCD projector available this day only
-	to accommodate them.
+I tracked the problem halfway down, with 2.6.20-rc1-ubuntu1 [1] it works
+and with 2.6.20-rc2-ubuntu2 [2] not.
 
-	working lunch in the room.
+The diff is here, unfortunately the acpi changes are about 100kb.
+http://debian.christian-leber.de/2.2-3.4.patch
 
-  6:45 PM Dinner, courtesy Intel
+(the problem is a bit different, it suspends, when trying to resume it
+goes back to suspend and when i try again it's dead)
 
-	Friday's Road Beef House
-	150 Elgin St, Ottawa
-
-Tuesday, June 26th
-
-  9AM - 6PM Garden Suite in Les Suites Ottawa
-
-	round-table discussions
-
-	working lunch in the room
-
-  (10AM-8PM is OLS registration)
-  (bring OLS badge to pre-OLS pub nite)
+For some reason that i don't get vanilla 2.6.20-rc1 doesn't boot because
+ata_piix doesn't work "PCI: Unable to reserve I/O region...." no remote
+idea why it works with the ubuntu kernel.
+So i can't bisect it.
 
 
-Meeting Memory
+Christian Leber
 
-I volunteer to take notes.
-After the meetings I'll send them to the attendees for review.
-With Mark, I also volunteer to present them at the OLS PM BOF,
-(currently Thursday 6PM) and send them to linux-pm, and LWN.
 
-Expected Attendees: (please send any corrections to me)
+[1] https://launchpad.net/ubuntu/+source/linux-source-2.6.20/2.6.20-2.2
+[2] https://launchpad.net/ubuntu/+source/linux-source-2.6.20/2.6.20-3.4
 
-Marcelo Tosatti <marcelo@kvack.org> 
-
-	One Laptop Per Child
-
-Len Brown <len.brown@intel.com>
-
-	Linux Kernel ACPI Maintainer
-
-Dave Jones <davej@redhat.com>
-
-	Fedora Maintainer, Linux Kernel Cpufreq Maintainer
-
-Adam Belay <abelay@novell.com>
-
-	Linux Kernel PNP Maintainer, cpuidle developer
-	
-Mark Gross <mgross@linux.intel.com>
-
-	Intel OTC embedded Linux team
-
-Tariq Shureih <tariq.shureih@intel.com>
-
-	Intel OTC MID power policy manager
-
-"Pedersen Klaus.K (Nokia-M/Helsinki)" <klaus.k.pedersen@nokia.com>
-Igor Stoppa <igor.stoppa@nokia.com>
-Poussa Sakari <sakari.poussa@nokia.com>
-	Will make a short presentation about latest developments
-	in Nokia N800 power management area.
-
-Matthew Locke <matt@nomadgs.com>
-"Eugeny S. Mints" <eugeny.mints@gmail.com>
-
-	Our primary interest is unified 
-	cross platforms pm API to control pm hardware (covering both x86 and embedded), 
-	constraints (including  latencies) engine, pm subsystem/drivers interface, API 
-	for use case driven pm.
-
-"Scott E. Preece" <preece@motorola.com>
-
-	I would love to see agreement on a way to structure PM so that different
-	kinds of systems could better meet their different goals...
-
-Vivek Kashyap <kashyapv@us.ibm.com>
-Kenneth <kenroz@us.ibm.com>
-
-	We are interested in cross 
-	platform (PowerPC, x86) power management, pm controls and policies, 
-	pm based scheduling, pm in presence of hypervisors, and power scaled 
-	cpu utilization statistics.
-
-Paul Mundt <lethal@linux-sh.org>
-
-	Linux Kernel Super-H Maintainer
-
-Kevin Hilman <khilman@mvista.com>
-
-	MontaVista
-
-Mischa Jonker <mischa.jonker@tass.nl>
-
-	NXP Semiconductors
-
-Seshadri, Harinarayanan" <harinarayanan.seshadri@intel.com>
-
-	Intel, Ultra Mobile Group
-
+-- 
+http://rettetdieti.vde-uni-mannheim.de/
 
