@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 1/4] PM: Introduce set_target method in pm_ops
-Date: Sun, 24 Jun 2007 22:40:39 +0200
-Message-ID: <200706242240.40476.rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 4/4] PM: Rework struct platform_suspend_operations
+Date: Sun, 24 Jun 2007 22:44:50 +0200
+Message-ID: <200706242244.51335.rjw@sisk.pl>
 References: <200706242239.05678.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37122 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:37140 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753871AbXFXV3T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Jun 2007 17:29:19 -0400
+	id S1754107AbXFXV3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Jun 2007 17:29:21 -0400
 In-Reply-To: <200706242239.05678.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,325 +21,464 @@ Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Some drivers may need to use ACPI to determine the low power states in which
-to place their devices, but to provide the drivers with this information the
-ACPI core needs to know what sleep state the system is going to enter.
-Namely, the device's state should not be too high power for given system sleep
-state and, if the device is supposed to be able to wake up the system, its state
-should not be too low power for the wake up to be possible).  However,
-pm_ops->prepare() is only called after the drivers' .suspend() callbacks have
-been executed, so we need an additional means to pass the information of the
-target system sleep state to the ACPI core.  For this purpose, we can introduce
-an additional member function in 'struct pm_ops'.
-
-Additionally, the at91 platform code incorrectly assumes that pm_ops->prepare()
-will be called before devices are suspended and uses it for setting the target
-system sleep state, so pm_ops->prepare() should to be replaced with the new
-operation, pm_ops->set_target(), for this architecture.
+There is no reason why the .prepare() and .finish() methods in 'struct
+platform_suspend_operations' should take any arguments, since architectures
+don't use these methods' argument in any practically meaningful way (ie. either
+the target system sleep state is conveyed to the platform by .set_target(), or
+there is only one suspend state supported and it is indicated to the PM core by
+.valid(), or .prepare() and .finish() aren't defined at all).  There also is
+no reason why .finish() should return any result.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/arm/mach-at91/pm.c   |    4 +-
- drivers/acpi/sleep/main.c |   84 ++++++++++++++++++++++++++++------------------
- include/linux/pm.h        |   53 +++++++++++++++++++----------
- kernel/power/main.c       |    6 ++-
- 4 files changed, 95 insertions(+), 52 deletions(-)
+ arch/arm/common/sharpsl_pm.c             |    2 -
+ arch/arm/mach-omap1/pm.c                 |   20 +-----------
+ arch/arm/mach-omap2/pm.c                 |   21 +------------
+ arch/arm/mach-pxa/pm.c                   |   24 ---------------
+ arch/arm/mach-pxa/pxa25x.c               |   12 -------
+ arch/arm/mach-pxa/pxa27x.c               |   11 ------
+ arch/blackfin/mach-common/pm.c           |   49 +++----------------------------
+ arch/powerpc/platforms/52xx/mpc52xx_pm.c |    8 +----
+ drivers/acpi/sleep/main.c                |    7 +---
+ include/asm-arm/arch-pxa/pm.h            |    2 -
+ include/linux/suspend.h                  |   19 ++++++------
+ kernel/power/main.c                      |   12 +------
+ 12 files changed, 30 insertions(+), 157 deletions(-)
 
-Index: linux-2.6.22-rc5/include/linux/pm.h
+Index: linux-2.6.22-rc5/include/linux/suspend.h
 ===================================================================
---- linux-2.6.22-rc5.orig/include/linux/pm.h	2007-06-24 01:41:12.000000000 +0200
-+++ linux-2.6.22-rc5/include/linux/pm.h	2007-06-24 20:38:33.000000000 +0200
-@@ -110,37 +110,54 @@ typedef int __bitwise suspend_state_t;
- #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
- 
- /**
-- * struct pm_ops - Callbacks for managing platform dependent suspend states.
-- * @valid: Callback to determine whether the given state can be entered.
-- *	Valid states are advertised in /sys/power/state but can still
-- *	be rejected by prepare or enter if the conditions aren't right.
-- *	There is a %pm_valid_only_mem function available that can be assigned
-- *	to this if you only implement mem sleep.
-+ * struct pm_ops - Callbacks for managing platform dependent system sleep
-+ *	states.
+--- linux-2.6.22-rc5.orig/include/linux/suspend.h	2007-06-24 20:45:20.000000000 +0200
++++ linux-2.6.22-rc5/include/linux/suspend.h	2007-06-24 20:48:56.000000000 +0200
+@@ -40,8 +40,9 @@ typedef int __bitwise suspend_state_t;
+  *	entered.  The information passed to @set_target should be disregarded
+  *	by the platform as soon as @finish() is executed and if	@prepare()
+  *	fails.
+- *	This callback is optional.  However, if it is implemented, the
+- *	argument passed to @prepare(), @enter and @finish() must be ignored.
++ *	This callback is optional, but it must be implemented if @prepare() and
++ *	@finish() are.  Moreover, if it is implemented, the argument passed to
++ *	@enter() is meaningless and therefore must be ignored.
   *
-- * @prepare: Prepare the platform for the given suspend state. Can return a
-- *	negative error code if necessary.
-- *
-- * @enter: Enter the given suspend state, must be assigned. Can return a
-- *	negative error code if necessary.
-- *
-- * @finish: Called when the system has left the given state and all devices
-- *	are resumed. The return value is ignored.
-+ * @valid: Callback to determine if given system sleep state is supported by
-+ *	the platform.  Valid (ie. supported) states are advertised in
-+ *	/sys/power/state.  Note that it still may be impossible to enter given
-+ *	system sleep state if the conditions aren't right.
-+ *	There is the %pm_valid_only_mem function available that can be assigned
-+ *	to this if the platform only supports mem sleep.
-+ *
-+ * @set_target: Tell the platform which system sleep state is going to be
-+ *	entered.  The information passed to @set_target should be disregarded
-+ *	by the platform as soon as @finish() is executed and if	@prepare()
-+ *	fails.
-+ *	This callback is optional.  However, if it is implemented, the
-+ *	argument passed to @prepare(), @enter and @finish() must be ignored.
-+ *
-+ * @prepare: Prepare the platform for entering the system sleep state indicated
-+ *	by @set_target().
-+ *	This callback is optional.  It returns 0 on success or a negative
-+ *	error code otherwise, in which case the system cannot enter given
-+ *	sleep state.
-+ *
-+ * @enter: Enter the system sleep state indicated by @set_target().
-+ *	This callback is mandatory.  It returns 0 on success or a negative
-+ *	error code otherwise, in which case the system cannot enter given
-+ *	sleep state.
-+ *
-+ * @finish: Called when the system has just left a sleep state.
-+ *	This callback is optional, but should be implemented by platforms that
-+ *	implement @prepare().  It is always called after @enter() (even if
-+ *	@enter() fails).
+  * @prepare: Prepare the platform for entering the system sleep state indicated
+  *	by @set_target().
+@@ -49,22 +50,24 @@ typedef int __bitwise suspend_state_t;
+  *	error code otherwise, in which case the system cannot enter given
+  *	sleep state.
+  *
+- * @enter: Enter the system sleep state indicated by @set_target().
++ * @enter: Enter the system sleep state indicated by @set_target() or given as
++ *	the argument if @set_target() is not implemented.
+  *	This callback is mandatory.  It returns 0 on success or a negative
+  *	error code otherwise, in which case the system cannot enter given
+- *	sleep state.
++ *	sleep state.  If @set_target() is called prior to it, the argument is
++ *	meaningless and must be ignored.
+  *
+  * @finish: Called when the system has just left a sleep state.
+  *	This callback is optional, but should be implemented by platforms that
+- *	implement @prepare().  It is always called after @enter() (even if
+- *	@enter() fails).
++ *	implement @prepare().  If implemented, it is always called after
++ *	@enter() (even if @enter() fails).
   */
- struct pm_ops {
+ struct platform_suspend_operations {
  	int (*valid)(suspend_state_t state);
-+	int (*set_target)(suspend_state_t state);
- 	int (*prepare)(suspend_state_t state);
+ 	int (*set_target)(suspend_state_t state);
+-	int (*prepare)(suspend_state_t state);
++	int (*prepare)(void);
  	int (*enter)(suspend_state_t state);
- 	int (*finish)(suspend_state_t state);
+-	int (*finish)(suspend_state_t state);
++	void (*finish)(void);
  };
  
-+extern struct pm_ops *pm_ops;
-+
- /**
-  * pm_set_ops - set platform dependent power management ops
-  * @pm_ops: The new power management operations to set.
-  */
- extern void pm_set_ops(struct pm_ops *pm_ops);
--extern struct pm_ops *pm_ops;
--extern int pm_suspend(suspend_state_t state);
--
- extern int pm_valid_only_mem(suspend_state_t state);
- 
- /**
-@@ -161,6 +178,8 @@ extern void arch_suspend_disable_irqs(vo
-  */
- extern void arch_suspend_enable_irqs(void);
- 
-+extern int pm_suspend(suspend_state_t state);
-+
- /*
-  * Device power management
-  */
+ extern struct platform_suspend_operations *suspend_ops;
 Index: linux-2.6.22-rc5/kernel/power/main.c
 ===================================================================
---- linux-2.6.22-rc5.orig/kernel/power/main.c	2007-06-24 01:41:49.000000000 +0200
-+++ linux-2.6.22-rc5/kernel/power/main.c	2007-06-24 20:38:30.000000000 +0200
-@@ -15,7 +15,6 @@
- #include <linux/delay.h>
- #include <linux/errno.h>
- #include <linux/init.h>
--#include <linux/pm.h>
- #include <linux/console.h>
- #include <linux/cpu.h>
- #include <linux/resume-trace.h>
-@@ -161,6 +160,11 @@ int suspend_devices_and_enter(suspend_st
- 	if (!pm_ops)
- 		return -ENOSYS;
- 
-+	if (pm_ops->set_target) {
-+		error = pm_ops->set_target(state);
-+		if (error)
-+			return error;
-+	}
- 	suspend_console();
- 	error = device_suspend(PMSG_SUSPEND);
- 	if (error) {
-Index: linux-2.6.22-rc5/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.22-rc5.orig/drivers/acpi/sleep/main.c	2007-06-24 01:40:38.000000000 +0200
-+++ linux-2.6.22-rc5/drivers/acpi/sleep/main.c	2007-06-24 20:38:30.000000000 +0200
-@@ -34,34 +34,54 @@ static u32 acpi_suspend_states[] = {
- 
- static int init_8259A_after_S1;
- 
-+extern int acpi_sleep_prepare(u32 acpi_state);
-+extern void acpi_power_off(void);
-+
-+static u32 acpi_target_suspend_state = ACPI_STATE_S0;
-+
-+/**
-+ *	acpi_pm_set_target - Set the target system sleep state to the state
-+ *		associated with given @pm_state, if supported.
-+ */
-+
-+static int acpi_pm_set_target(suspend_state_t pm_state)
-+{
-+	u32 acpi_state = acpi_suspend_states[pm_state];
-+	int error = 0;
-+
-+	if (sleep_states[acpi_state]) {
-+		acpi_target_suspend_state = acpi_state;
-+	} else {
-+		printk(KERN_ERR "ACPI does not support this state: %d\n",
-+			pm_state);
-+		error = -ENOSYS;
-+	}
-+	return error;
-+}
-+
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-- *	@pm_state:		suspend state we're entering.
-+ *	@pm_state: ignored
-  *
-- *	Make sure we support the state. If we do, and we need it, set the
-- *	firmware waking vector and do arch-specific nastiness to get the 
-- *	wakeup code to the waking vector. 
-+ *	If necessary, set the firmware waking vector and do arch-specific
-+ *	nastiness to get the wakeup code to the waking vector.
-  */
- 
--extern int acpi_sleep_prepare(u32 acpi_state);
--extern void acpi_power_off(void);
--
- static int acpi_pm_prepare(suspend_state_t pm_state)
- {
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	int error = acpi_sleep_prepare(acpi_target_suspend_state);
- 
--	if (!sleep_states[acpi_state]) {
--		printk("acpi_pm_prepare does not support %d \n", pm_state);
--		return -EPERM;
--	}
--	return acpi_sleep_prepare(acpi_state);
-+	if (error)
-+		acpi_target_suspend_state = ACPI_STATE_S0;
-+
-+	return error;
+--- linux-2.6.22-rc5.orig/kernel/power/main.c	2007-06-24 20:45:20.000000000 +0200
++++ linux-2.6.22-rc5/kernel/power/main.c	2007-06-24 20:45:26.000000000 +0200
+@@ -59,13 +59,6 @@ int suspend_valid_only_mem(suspend_state
+ 	return state == PM_SUSPEND_MEM;
  }
  
- /**
-  *	acpi_pm_enter - Actually enter a sleep state.
-- *	@pm_state:		State we're entering.
-+ *	@pm_state: ignored
-  *
-- *	Flush caches and go to sleep. For STR or STD, we have to call 
-+ *	Flush caches and go to sleep. For STR or S2, we have to call
-  *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
-  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
-  */
-@@ -70,31 +90,32 @@ static int acpi_pm_enter(suspend_state_t
- {
- 	acpi_status status = AE_OK;
- 	unsigned long flags = 0;
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	u32 acpi_state = acpi_target_suspend_state;
- 
- 	ACPI_FLUSH_CPU_CACHE();
- 
- 	/* Do arch specific saving of state. */
--	if (pm_state > PM_SUSPEND_STANDBY) {
-+	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
- 		int error = acpi_save_state_mem();
--		if (error)
-+
-+		if (error) {
-+			acpi_target_suspend_state = ACPI_STATE_S0;
- 			return error;
-+		}
- 	}
- 
- 	local_irq_save(flags);
- 	acpi_enable_wakeup_device(acpi_state);
--	switch (pm_state) {
--	case PM_SUSPEND_STANDBY:
-+	switch (acpi_state) {
-+	case ACPI_STATE_S1:
- 		barrier();
- 		status = acpi_enter_sleep_state(acpi_state);
- 		break;
- 
--	case PM_SUSPEND_MEM:
-+	case ACPI_STATE_S2:
-+	case ACPI_STATE_S3:
- 		do_suspend_lowlevel();
- 		break;
 -
--	default:
--		return -EINVAL;
+-static inline void pm_finish(suspend_state_t state)
+-{
+-	if (suspend_ops->finish)
+-		suspend_ops->finish(state);
+-}
+-
+ /**
+  *	suspend_prepare - Do prep work before entering low-power state.
+  *
+@@ -172,7 +165,7 @@ int suspend_devices_and_enter(suspend_st
+ 		goto Resume_console;
  	}
+ 	if (suspend_ops->prepare) {
+-		error = suspend_ops->prepare(state);
++		error = suspend_ops->prepare();
+ 		if (error)
+ 			goto Resume_devices;
+ 	}
+@@ -181,7 +174,8 @@ int suspend_devices_and_enter(suspend_st
+ 		suspend_enter(state);
  
- 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
-@@ -114,12 +135,8 @@ static int acpi_pm_enter(suspend_state_t
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
+ 	enable_nonboot_cpus();
+-	pm_finish(state);
++	if (suspend_ops->finish)
++		suspend_ops->finish();
+  Resume_devices:
+ 	device_resume();
+  Resume_console:
+Index: linux-2.6.22-rc5/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.22-rc5.orig/drivers/acpi/sleep/main.c	2007-06-24 20:45:20.000000000 +0200
++++ linux-2.6.22-rc5/drivers/acpi/sleep/main.c	2007-06-24 20:49:21.000000000 +0200
+@@ -61,13 +61,12 @@ static int acpi_pm_set_target(suspend_st
  
--	/* restore processor state
--	 * We should only be here if we're coming back from STR or STD.
--	 * And, in the case of the latter, the memory image should have already
--	 * been loaded from disk.
--	 */
--	if (pm_state > PM_SUSPEND_STANDBY)
-+	/* restore processor state */
-+	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
- 		acpi_restore_state_mem();
+ /**
+  *	acpi_pm_prepare - Do preliminary suspend work.
+- *	@pm_state: ignored
+  *
+  *	If necessary, set the firmware waking vector and do arch-specific
+  *	nastiness to get the wakeup code to the waking vector.
+  */
  
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-@@ -127,7 +144,7 @@ static int acpi_pm_enter(suspend_state_t
+-static int acpi_pm_prepare(suspend_state_t pm_state)
++static int acpi_pm_prepare(void)
+ {
+ 	int error = acpi_sleep_prepare(acpi_target_suspend_state);
+ 
+@@ -144,13 +143,12 @@ static int acpi_pm_enter(suspend_state_t
  
  /**
   *	acpi_pm_finish - Finish up suspend sequence.
-- *	@pm_state:		State we're coming out of.
-+ *	@pm_state: ignored
+- *	@pm_state: ignored
   *
   *	This is called after we wake back up (or if entering the sleep state
   *	failed). 
-@@ -135,7 +152,7 @@ static int acpi_pm_enter(suspend_state_t
+  */
  
- static int acpi_pm_finish(suspend_state_t pm_state)
+-static int acpi_pm_finish(suspend_state_t pm_state)
++static void acpi_pm_finish(void)
  {
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	u32 acpi_state = acpi_target_suspend_state;
+ 	u32 acpi_state = acpi_target_suspend_state;
  
- 	acpi_leave_sleep_state(acpi_state);
- 	acpi_disable_wakeup_device(acpi_state);
-@@ -143,6 +160,8 @@ static int acpi_pm_finish(suspend_state_
- 	/* reset firmware waking vector */
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
-+	acpi_target_suspend_state = ACPI_STATE_S0;
-+
- 	if (init_8259A_after_S1) {
+@@ -166,7 +164,6 @@ static int acpi_pm_finish(suspend_state_
  		printk("Broken toshiba laptop -> kicking interrupts\n");
  		init_8259A(0);
-@@ -183,6 +202,7 @@ static int acpi_pm_state_valid(suspend_s
+ 	}
+-	return 0;
+ }
  
- static struct pm_ops acpi_pm_ops = {
- 	.valid = acpi_pm_state_valid,
-+	.set_target = acpi_pm_set_target,
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_pm_enter,
- 	.finish = acpi_pm_finish,
-Index: linux-2.6.22-rc5/arch/arm/mach-at91/pm.c
+ int acpi_suspend(u32 acpi_state)
+Index: linux-2.6.22-rc5/arch/arm/common/sharpsl_pm.c
 ===================================================================
---- linux-2.6.22-rc5.orig/arch/arm/mach-at91/pm.c	2007-06-24 20:38:33.000000000 +0200
-+++ linux-2.6.22-rc5/arch/arm/mach-at91/pm.c	2007-06-24 20:40:20.000000000 +0200
-@@ -53,7 +53,7 @@ static suspend_state_t target_state;
- /*
-  * Called after processes are frozen, but before we shutdown devices.
-  */
--static int at91_pm_prepare(suspend_state_t state)
-+static int at91_pm_set_target(suspend_state_t state)
- {
- 	target_state = state;
- 	return 0;
-@@ -201,7 +201,7 @@ error:
+--- linux-2.6.22-rc5.orig/arch/arm/common/sharpsl_pm.c	2007-06-24 20:45:20.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/common/sharpsl_pm.c	2007-06-24 20:45:26.000000000 +0200
+@@ -767,9 +767,7 @@ static void sharpsl_apm_get_power_status
+ }
  
- static struct pm_ops at91_pm_ops ={
- 	.valid		= at91_pm_valid_state,
--	.prepare	= at91_pm_prepare,
-+	.set_target	= at91_pm_set_target,
- 	.enter		= at91_pm_enter,
+ static struct platform_suspend_operations sharpsl_pm_ops = {
+-	.prepare	= pxa_pm_prepare,
+ 	.enter		= corgi_pxa_pm_enter,
+-	.finish		= pxa_pm_finish,
+ 	.valid		= suspend_valid_only_mem,
  };
  
+Index: linux-2.6.22-rc5/arch/arm/mach-pxa/pm.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/arm/mach-pxa/pm.c	2007-06-24 20:45:21.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/mach-pxa/pm.c	2007-06-24 20:45:26.000000000 +0200
+@@ -201,32 +201,8 @@ unsigned long sleep_phys_sp(void *sp)
+ 	return virt_to_phys(sp);
+ }
+ 
+-/*
+- * Called after processes are frozen, but before we shut down devices.
+- */
+-int pxa_pm_prepare(suspend_state_t state)
+-{
+-	extern int pxa_cpu_pm_prepare(suspend_state_t state);
+-
+-	return pxa_cpu_pm_prepare(state);
+-}
+-
+-EXPORT_SYMBOL_GPL(pxa_pm_prepare);
+-
+-/*
+- * Called after devices are re-setup, but before processes are thawed.
+- */
+-int pxa_pm_finish(suspend_state_t state)
+-{
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL_GPL(pxa_pm_finish);
+-
+ static struct platform_suspend_operations pxa_pm_ops = {
+-	.prepare	= pxa_pm_prepare,
+ 	.enter		= pxa_pm_enter,
+-	.finish		= pxa_pm_finish,
+ 	.valid		= suspend_valid_only_mem,
+ };
+ 
+Index: linux-2.6.22-rc5/arch/arm/mach-pxa/pxa25x.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/arm/mach-pxa/pxa25x.c	2007-06-24 20:38:28.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/mach-pxa/pxa25x.c	2007-06-24 20:45:26.000000000 +0200
+@@ -105,18 +105,6 @@ EXPORT_SYMBOL(get_lcdclk_frequency_10khz
+ 
+ #ifdef CONFIG_PM
+ 
+-int pxa_cpu_pm_prepare(suspend_state_t state)
+-{
+-	switch (state) {
+-	case PM_SUSPEND_MEM:
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ void pxa_cpu_pm_enter(suspend_state_t state)
+ {
+ 	extern void pxa_cpu_suspend(unsigned int);
+Index: linux-2.6.22-rc5/arch/arm/mach-pxa/pxa27x.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/arm/mach-pxa/pxa27x.c	2007-06-24 20:38:28.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/mach-pxa/pxa27x.c	2007-06-24 20:45:26.000000000 +0200
+@@ -122,17 +122,6 @@ EXPORT_SYMBOL(get_lcdclk_frequency_10khz
+ 
+ #ifdef CONFIG_PM
+ 
+-int pxa_cpu_pm_prepare(suspend_state_t state)
+-{
+-	switch (state) {
+-	case PM_SUSPEND_MEM:
+-	case PM_SUSPEND_STANDBY:
+-		return 0;
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+ void pxa_cpu_pm_enter(suspend_state_t state)
+ {
+ 	extern void pxa_cpu_standby(void);
+Index: linux-2.6.22-rc5/include/asm-arm/arch-pxa/pm.h
+===================================================================
+--- linux-2.6.22-rc5.orig/include/asm-arm/arch-pxa/pm.h	2007-06-24 20:38:28.000000000 +0200
++++ linux-2.6.22-rc5/include/asm-arm/arch-pxa/pm.h	2007-06-24 20:45:26.000000000 +0200
+@@ -7,6 +7,4 @@
+  *
+  */
+ 
+-extern int pxa_pm_prepare(suspend_state_t state);
+ extern int pxa_pm_enter(suspend_state_t state);
+-extern int pxa_pm_finish(suspend_state_t state);
+Index: linux-2.6.22-rc5/arch/arm/mach-omap1/pm.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/arm/mach-omap1/pm.c	2007-06-24 20:45:21.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/mach-omap1/pm.c	2007-06-24 20:48:48.000000000 +0200
+@@ -613,27 +613,15 @@ static void (*saved_idle)(void) = NULL;
+ 
+ /*
+  *	omap_pm_prepare - Do preliminary suspend work.
+- *	@state:		suspend state we're entering.
+  *
+  */
+-static int omap_pm_prepare(suspend_state_t state)
++static int omap_pm_prepare(void)
+ {
+-	int error = 0;
+-
+ 	/* We cannot sleep in idle until we have resumed */
+ 	saved_idle = pm_idle;
+ 	pm_idle = NULL;
+ 
+-	switch (state)
+-	{
+-	case PM_SUSPEND_STANDBY:
+-	case PM_SUSPEND_MEM:
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return error;
++	return 0;
+ }
+ 
+ 
+@@ -661,16 +649,14 @@ static int omap_pm_enter(suspend_state_t
+ 
+ /**
+  *	omap_pm_finish - Finish up suspend sequence.
+- *	@state:		State we're coming out of.
+  *
+  *	This is called after we wake back up (or if entering the sleep state
+  *	failed).
+  */
+ 
+-static int omap_pm_finish(suspend_state_t state)
++static void omap_pm_finish(void)
+ {
+ 	pm_idle = saved_idle;
+-	return 0;
+ }
+ 
+ 
+Index: linux-2.6.22-rc5/arch/arm/mach-omap2/pm.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/arm/mach-omap2/pm.c	2007-06-24 20:45:21.000000000 +0200
++++ linux-2.6.22-rc5/arch/arm/mach-omap2/pm.c	2007-06-24 20:53:15.000000000 +0200
+@@ -72,26 +72,10 @@ void omap2_pm_idle(void)
+ 
+ static int omap2_pm_prepare(suspend_state_t state)
+ {
+-	int error = 0;
+-
+ 	/* We cannot sleep in idle until we have resumed */
+ 	saved_idle = pm_idle;
+ 	pm_idle = NULL;
+-
+-	switch (state)
+-	{
+-	case PM_SUSPEND_STANDBY:
+-	case PM_SUSPEND_MEM:
+-		break;
+-
+-	case PM_SUSPEND_DISK:
+-		return -ENOTSUPP;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return error;
++	return 0;
+ }
+ 
+ #define INT0_WAKE_MASK	(OMAP_IRQ_BIT(INT_24XX_GPIO_BANK1) |	\
+@@ -362,10 +346,9 @@ static int omap2_pm_enter(suspend_state_
+ 	return ret;
+ }
+ 
+-static int omap2_pm_finish(suspend_state_t state)
++static void omap2_pm_finish(suspend_state_t state)
+ {
+ 	pm_idle = saved_idle;
+-	return 0;
+ }
+ 
+ static struct platform_suspend_operations omap_pm_ops = {
+Index: linux-2.6.22-rc5/arch/blackfin/mach-common/pm.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/blackfin/mach-common/pm.c	2007-06-24 20:45:21.000000000 +0200
++++ linux-2.6.22-rc5/arch/blackfin/mach-common/pm.c	2007-06-24 21:00:17.000000000 +0200
+@@ -89,28 +89,15 @@ void bfin_pm_suspend_standby_enter(void)
+ #endif				/* CONFIG_PM_WAKEUP_GPIO_BY_SIC_IWR */
+ }
+ 
+-
+ /*
+- *	bfin_pm_prepare - Do preliminary suspend work.
+- *	@state:		suspend state we're entering.
++ *	bfin_pm_valid - Tell the PM core that we only support the standby sleep
++ *			state
++ *	@state:		suspend state we're checking.
+  *
+  */
+-static int bfin_pm_prepare(suspend_state_t state)
++static int bfin_pm_valid(suspend_state_t state)
+ {
+-	int error = 0;
+-
+-	switch (state) {
+-	case PM_SUSPEND_STANDBY:
+-		break;
+-
+-	case PM_SUSPEND_MEM:
+-		return -ENOTSUPP;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return error;
++	return (state == PM_SUSPEND_STANDBY);
+ }
+ 
+ /*
+@@ -135,33 +122,9 @@ static int bfin_pm_enter(suspend_state_t
+ 	return 0;
+ }
+ 
+-/*
+- *	bfin_pm_finish - Finish up suspend sequence.
+- *	@state:		State we're coming out of.
+- *
+- *	This is called after we wake back up (or if entering the sleep state
+- *	failed).
+- */
+-static int bfin_pm_finish(suspend_state_t state)
+-{
+-	switch (state) {
+-	case PM_SUSPEND_STANDBY:
+-		break;
+-
+-	case PM_SUSPEND_MEM:
+-		return -ENOTSUPP;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ struct platform_suspend_operations bfin_pm_ops = {
+-	.prepare = bfin_pm_prepare,
++	.valid = bfin_pm_valid,
+ 	.enter = bfin_pm_enter,
+-	.finish = bfin_pm_finish,
+ };
+ 
+ static int __init bfin_pm_init(void)
+Index: linux-2.6.22-rc5/arch/powerpc/platforms/52xx/mpc52xx_pm.c
+===================================================================
+--- linux-2.6.22-rc5.orig/arch/powerpc/platforms/52xx/mpc52xx_pm.c	2007-06-24 20:45:21.000000000 +0200
++++ linux-2.6.22-rc5/arch/powerpc/platforms/52xx/mpc52xx_pm.c	2007-06-24 21:07:41.000000000 +0200
+@@ -25,6 +25,7 @@ static void *sram;
+ static int sram_size;
+ 
+ struct mpc52xx_suspend mpc52xx_suspend;
++static suspend_state_t mpc52xx_pm_target_state;
+ 
+ static int mpc52xx_pm_valid(suspend_state_t state)
+ {
+@@ -57,11 +58,8 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 l
+ 	return 0;
+ }
+ 
+-int mpc52xx_pm_prepare(suspend_state_t state)
++static int mpc52xx_pm_prepare(void)
+ {
+-	if (state != PM_SUSPEND_STANDBY)
+-		return -EINVAL;
+-
+ 	/* map the whole register space */
+ 	mbar = mpc52xx_find_and_map("mpc5200");
+ 	if (!mbar) {
+@@ -166,7 +164,7 @@ int mpc52xx_pm_enter(suspend_state_t sta
+ 	return 0;
+ }
+ 
+-int mpc52xx_pm_finish(suspend_state_t state)
++static void mpc52xx_pm_finish(void)
+ {
+ 	/* call board resume code */
+ 	if (mpc52xx_suspend.board_resume_finish)
 
