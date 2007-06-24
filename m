@@ -1,51 +1,50 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [linux-pm] Re: [RFC][PATCH -mm] PM: Introduce set_target
-	method in pm_ops
-Date: Sun, 24 Jun 2007 11:52:34 +0200
-Message-ID: <1182678754.21939.135.camel@johannes.berg>
-References: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
+From: Brice Goglin <Brice.Goglin@ens-lyon.org>
+Subject: Re: ACPI Exception breaking Thinkpad T43 on 2.6.22-rc
+Date: Sun, 24 Jun 2007 11:49:00 +0200
+Message-ID: <467E3E0C.4050804@ens-lyon.org>
+References: <467055B8.4080009@ens-lyon.org> <20070613211802.GA13329@khazad-dum.debian.net> <46706080.1090607@ens-lyon.org> <20070614003322.GA26355@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-YiLWCoipO96/7RQiwSE3"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:32911 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751412AbXFXJvJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 05:51:09 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
+Received: from postfix1-g20.free.fr ([212.27.60.42]:48959 "EHLO
+	postfix1-g20.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752411AbXFXKHK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 06:07:10 -0400
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by postfix1-g20.free.fr (Postfix) with ESMTP id 9C95C1368240
+	for <linux-acpi@vger.kernel.org>; Sun, 24 Jun 2007 11:49:17 +0200 (CEST)
+In-Reply-To: <20070614003322.GA26355@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org
+
+Henrique de Moraes Holschuh wrote:
+> On Wed, 13 Jun 2007, Brice Goglin wrote:
+>   
+>> Henrique de Moraes Holschuh wrote:
+>>     
+>>>> CONFIG_BLINK=m
+>>>>     
+>>>>         
+>>> Set the above to "n" and recompile (it is in Drivers|Misc|Keyboard blink
+>>> driver".  Does it fix things?
+>>>       
+>> Ok, I'll try that and report back. However, since blink was built as a
+>> module and not loaded, could it really break something?
+>>     
+>
+> If it was never loaded?  I don't see how it could break anything.  Are you
+> sure nothing loaded it behind your back?
+>   
 
 
---=-YiLWCoipO96/7RQiwSE3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+The problem just occurred again (still no idea how to reproduce it) and
+this time I can confirm that blink was not loaded.
 
-On Sat, 2007-06-23 at 20:28 -0400, Alan Stern wrote:
+Is there anything else I should look at? Could it be a hardware problem?
 
-> Okay.  But on non-ACPI systems, do we want to restrict the=20
-> /sys/power/state interface to sleep states?  How then should the user=20
-> tell the system to go to a low-performance run state?  Or should that=20
-> be handled automatically within the kernel?
-
-The code for pasemi processors/boards has various idle loops right now
-that put the processor into different states with different wakeup
-latency, these are currently handled with a kernel parameter there.
-
-johannes
-
---=-YiLWCoipO96/7RQiwSE3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Comment: Johannes Berg (powerbook)
-
-iD8DBQBGfj7i/ETPhpq3jKURApNKAJ94pVVOeLOUIsPaaYCzUCzpygtm4QCfbbPI
-P0i3l4uLVaAYFV+EdoMn3os=
-=5weH
------END PGP SIGNATURE-----
-
---=-YiLWCoipO96/7RQiwSE3--
+thanks,
+Brice
 
