@@ -1,45 +1,51 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH -mm] PM: Introduce set_target method in pm_ops
-Date: Sat, 23 Jun 2007 20:28:28 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
-References: <200706240203.12970.rjw@sisk.pl>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [linux-pm] Re: [RFC][PATCH -mm] PM: Introduce set_target
+	method in pm_ops
+Date: Sun, 24 Jun 2007 11:52:34 +0200
+Message-ID: <1182678754.21939.135.camel@johannes.berg>
+References: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-YiLWCoipO96/7RQiwSE3"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3419 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752859AbXFXAeV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jun 2007 20:34:21 -0400
-In-Reply-To: <200706240203.12970.rjw@sisk.pl>
+Received: from crystal.sipsolutions.net ([195.210.38.204]:32911 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412AbXFXJvJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 05:51:09 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sun, 24 Jun 2007, Rafael J. Wysocki wrote:
 
-> > Is this design okay with system states in which the CPU is able to run?
-> 
-> Do you mean the patch or the suggestions above?
+--=-YiLWCoipO96/7RQiwSE3
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-The suggestions.
+On Sat, 2007-06-23 at 20:28 -0400, Alan Stern wrote:
 
-> > Right now the states we have are On, Standby, and Suspend, and the CPU
-> > runs only in the On state.  But on some platforms there could be
-> > multiple states in which the CPU is able to run, albeit with degraded 
-> > performance.
-> 
-> I wouldn't call those system sleep states.  For example, ACPI defines system
-> sleep states as the states in which no instructions are executed by any CPUs
-> and I think that's reasonable.
-> 
-> Moreover, the ACPI spec insists that transitions between different sleep
-> states should be made through the On state.
+> Okay.  But on non-ACPI systems, do we want to restrict the=20
+> /sys/power/state interface to sleep states?  How then should the user=20
+> tell the system to go to a low-performance run state?  Or should that=20
+> be handled automatically within the kernel?
 
-Okay.  But on non-ACPI systems, do we want to restrict the 
-/sys/power/state interface to sleep states?  How then should the user 
-tell the system to go to a low-performance run state?  Or should that 
-be handled automatically within the kernel?
+The code for pasemi processors/boards has various idle loops right now
+that put the processor into different states with different wakeup
+latency, these are currently handled with a kernel parameter there.
 
-Alan Stern
+johannes
+
+--=-YiLWCoipO96/7RQiwSE3
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGfj7i/ETPhpq3jKURApNKAJ94pVVOeLOUIsPaaYCzUCzpygtm4QCfbbPI
+P0i3l4uLVaAYFV+EdoMn3os=
+=5weH
+-----END PGP SIGNATURE-----
+
+--=-YiLWCoipO96/7RQiwSE3--
 
