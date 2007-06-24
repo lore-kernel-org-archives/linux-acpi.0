@@ -1,50 +1,90 @@
-From: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Subject: Re: ACPI Exception breaking Thinkpad T43 on 2.6.22-rc
-Date: Sun, 24 Jun 2007 11:49:00 +0200
-Message-ID: <467E3E0C.4050804@ens-lyon.org>
-References: <467055B8.4080009@ens-lyon.org> <20070613211802.GA13329@khazad-dum.debian.net> <46706080.1090607@ens-lyon.org> <20070614003322.GA26355@khazad-dum.debian.net>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: [linux-pm] Re: [RFC][PATCH -mm] PM: Introduce set_target
+	method in pm_ops
+Date: Sun, 24 Jun 2007 14:49:48 +0300
+Message-ID: <1182685788.10929.28.camel@Dogbert.NOE.nokia.com>
+References: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from postfix1-g20.free.fr ([212.27.60.42]:48959 "EHLO
-	postfix1-g20.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411AbXFXKHK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 06:07:10 -0400
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by postfix1-g20.free.fr (Postfix) with ESMTP id 9C95C1368240
-	for <linux-acpi@vger.kernel.org>; Sun, 24 Jun 2007 11:49:17 +0200 (CEST)
-In-Reply-To: <20070614003322.GA26355@khazad-dum.debian.net>
+Received: from smtp.nokia.com ([131.228.20.171]:43028 "EHLO
+	mgw-ext12.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754248AbXFXLuf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 07:50:35 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org
+To: ext Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-Henrique de Moraes Holschuh wrote:
-> On Wed, 13 Jun 2007, Brice Goglin wrote:
->   
->> Henrique de Moraes Holschuh wrote:
->>     
->>>> CONFIG_BLINK=m
->>>>     
->>>>         
->>> Set the above to "n" and recompile (it is in Drivers|Misc|Keyboard blink
->>> driver".  Does it fix things?
->>>       
->> Ok, I'll try that and report back. However, since blink was built as a
->> module and not loaded, could it really break something?
->>     
->
-> If it was never loaded?  I don't see how it could break anything.  Are you
-> sure nothing loaded it behind your back?
->   
+Hi,
+On Sat, 2007-06-23 at 20:28 -0400, ext Alan Stern wrote:
+> On Sun, 24 Jun 2007, Rafael J. Wysocki wrote:
+> 
+> > > Is this design okay with system states in which the CPU is able to
+> run?
+> > 
+> > Do you mean the patch or the suggestions above?
+> 
+> The suggestions.
+> 
+> > > Right now the states we have are On, Standby, and Suspend, and the
+> CPU
+> > > runs only in the On state.  But on some platforms there could be
+> > > multiple states in which the CPU is able to run, albeit with
+> degraded 
+> > > performance.
+> > 
+> > I wouldn't call those system sleep states.  For example, ACPI
+> defines system
+> > sleep states as the states in which no instructions are executed by
+> any CPUs
+> > and I think that's reasonable.
+> > 
+> > Moreover, the ACPI spec insists that transitions between different sleep
+> > states should be made through the On state.
+> 
+> Okay.  But on non-ACPI systems, do we want to restrict the 
+> /sys/power/state interface to sleep states?  How then should the user 
+> tell the system to go to a low-performance run state?  Or should that 
+> be handled automatically within the kernel?
+
+That's how we do it since Nokia IT 770 where we have:
+ 
+/sys/power/sleep_while_idle
+
+and if that's set to 1 (default), then in the idle loop we try to hit
+SoC retention.
+
+Retention can be achieved if all the clocks have been released by their
+respective users. If not all the clocks are free, the system oscillator
+is not stopped and thereffore only some part will be in clock stop mode.
+This, still, yelds significant power saving.
+
+There is also an architecture specific (OMAP1 vs OMAP2) way to control
+latency.
+
+It's very rudimental and partially hackish: in OMAP2 it's mostly used to
+workaround some missing wakeup dependencies (some are not provided by
+the hw, some are not implemented properly by sw and should be fixed).
+
+OMAP1: select ARM idle vs Big Sleep vs Deep Sleep
+
+OMAP2: select ARM idle vs ARM retention, vs SoC retention
+
+That's nice both from user's perspective (no need to worry about runtime
+pm, it just works) and driver developer's perspective (if your driver is
+for hw that has been properly wired, then using the clock fw interface
+is enough).
+
+So if you want to implement dependencies betweeen userspace and
+kernelspace because your architecture has them builtin, it's ok, but
+they should not be forced upon those arch that don't need them.
 
 
-The problem just occurred again (still no idea how to reproduce it) and
-this time I can confirm that blink was not loaded.
+-- 
+Cheers, Igor
 
-Is there anything else I should look at? Could it be a hardware problem?
-
-thanks,
-Brice
-
+Igor Stoppa <igor.stoppa@nokia.com>
+(Nokia Multimedia - CP - OSSO / Helsinki, Finland)
