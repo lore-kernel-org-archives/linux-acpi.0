@@ -1,62 +1,50 @@
-From: Christian Leber <christian@leber.de>
-Subject: Re: beeping patch for debugging acpi sleep
-Date: Sun, 24 Jun 2007 22:46:29 +0200
-Message-ID: <20070624204629.GA28049@core>
-References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz> <20070616194634.GA15953@core>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 0/4] PM: Rework struct pm_ops and related things
+Date: Sun, 24 Jun 2007 22:39:04 +0200
+Message-ID: <200706242239.05678.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ipx20189.ipxserver.de ([80.190.249.56]:1653 "EHLO
-	ipx20189.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253AbXFXUqf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 16:46:35 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:37116 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753699AbXFXV3R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Jun 2007 17:29:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20070616194634.GA15953@core>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-On Sat, Jun 16, 2007 at 09:46:34PM +0200, Christian Leber wrote:
+Hi,
 
-> The results are a bit unclear, I took a 2.6.22-rc4 with beep.
-> Logged into KDE.
-> (hardware: Dell Latitude D810)
-> 
-> S = successfull resume
-> D = had to resume 2 times, that means when pressing the power button the
-> LED goes from blinking to on and after a few seconds it goes back to
-> blinking, but without a beep in between; after pressing the power button
-> a second time resume is successfull
-> F = resume failes, NO beep
-> 
-> -run 1: D D F
-> -run 2: D D D(some X garbadge) F
-> -run 3: S S S S S S F
-> -run 4: S S F
-> -run 5: D F
+I had some time to create patches implementing my suggestions from the previous
+thread "PM: Introduce set_target method in pm_ops".  For completness I also
+include the first patch that introduces .set_target() into the series.
 
-I tracked the problem halfway down, with 2.6.20-rc1-ubuntu1 [1] it works
-and with 2.6.20-rc2-ubuntu2 [2] not.
+The following series of patches:
+* introduces the .set_target() method in 'struct pm_ops' so that the platform
+  code knows in advance what sleep state the system is going to enter (this
+  is necessary for ACPI and at91)
+* moves the definition of 'struct pm_ops' to <include/suspend.h>
+* changes the name of 'struct pm_ops' to 'struct platform_suspend_operations'
+  and modified the names of some related functions and global variables
+  accordingly
+* modifies 'struct platform_suspend_operations' so that .prepare() and
+  .finish() don't take arguments (.enter() still takes the state argument, 
+  because some platforms don't implement the other callbacks)
 
-The diff is here, unfortunately the acpi changes are about 100kb.
-http://debian.christian-leber.de/2.2-3.4.patch
+I was only able to compile the patches on a PC, so if you can point me to
+any tools I can use for testing them on the other affected architectures,
+I'd be grateful.
 
-(the problem is a bit different, it suspends, when trying to resume it
-goes back to suspend and when i try again it's dead)
+Comments welcome.
 
-For some reason that i don't get vanilla 2.6.20-rc1 doesn't boot because
-ata_piix doesn't work "PCI: Unable to reserve I/O region...." no remote
-idea why it works with the ubuntu kernel.
-So i can't bisect it.
+Greetings,
+Rafael
 
-
-Christian Leber
-
-
-[1] https://launchpad.net/ubuntu/+source/linux-source-2.6.20/2.6.20-2.2
-[2] https://launchpad.net/ubuntu/+source/linux-source-2.6.20/2.6.20-3.4
 
 -- 
-http://rettetdieti.vde-uni-mannheim.de/
+"Premature optimization is the root of all evil." - Donald Knuth
 
