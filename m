@@ -1,55 +1,36 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Mon, 25 Jun 2007 13:03:38 +0200
-Message-ID: <200706251303.47652.eike-kernel@sf-tec.de>
-References: <1180614979.2693.26.camel@localhost.localdomain> <200706231656.39597.eike-kernel@sf-tec.de> <1182765156.2519.0.camel@work>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH -mm] PM: Introduce set_target method in pm_ops
+Date: Mon, 25 Jun 2007 15:04:08 +0200
+Message-ID: <20070625130408.GA20203@atrey.karlin.mff.cuni.cz>
+References: <Pine.LNX.4.44L0.0706231937010.9663-100000@netrider.rowland.org> <200706240203.12970.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1519661.JvPYJ4N3vj";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sf-mail.de ([62.27.20.61]:54842 "EHLO mail.sf-mail.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144AbXFYLDe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2007 07:03:34 -0400
-In-Reply-To: <1182765156.2519.0.camel@work>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:34381 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752755AbXFYNEf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jun 2007 09:04:35 -0400
+Content-Disposition: inline
+In-Reply-To: <200706240203.12970.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, David Brownell <david-b@pacbell.net>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>
 
---nextPart1519661.JvPYJ4N3vj
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi!
 
-Richard Hughes wrote:
-> On Sat, 2007-06-23 at 16:56 +0200, Rolf Eike Beer wrote:
-> > None of the above keys generated a key event. Neither does "Brightness
-> > down", but it still works. "Brightness up" generates an event and works.
-> > Kpowersave tells me it can't do brightness switching in software (which
-> > works in WinXtraPain).
->
-> Do you know how windows does this? Do you have to load a special
-> system-try thing to make the keys work?
+> > Right now the states we have are On, Standby, and Suspend, and the CPU
+> > runs only in the On state.  But on some platforms there could be
+> > multiple states in which the CPU is able to run, albeit with degraded 
+> > performance.
+> 
+> I wouldn't call those system sleep states.  For example, ACPI defines system
+> sleep states as the states in which no instructions are executed by any CPUs
+> and I think that's reasonable.
 
-I'll have a look once I find time to boot Windows.
-
-Eike
-
---nextPart1519661.JvPYJ4N3vj
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBGf6ETXKSJPmm5/E4RAsXUAKCQ+l+LO4tPfhU+WgPVbqx828NSXgCdHWVT
-BIEDo46KH72aH7FjiCJ+dCM=
-=ABkB
------END PGP SIGNATURE-----
-
---nextPart1519661.JvPYJ4N3vj--
+Well, in some cases, we have 200MHz CPU running at 30kHz. ...that's so
+slow that it is pretty similar to ACPI sleep state.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
