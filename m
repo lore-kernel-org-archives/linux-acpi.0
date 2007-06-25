@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 2/8] ACPI: Implement the set_target() callback from pm_ops
-Date: Tue, 26 Jun 2007 00:43:17 +0200
-Message-ID: <200706260043.18150.rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 8/8] PM: Rename hibernation_ops to platform_hibernation_operations
+Date: Tue, 26 Jun 2007 00:52:27 +0200
+Message-ID: <200706260052.28206.rjw@sisk.pl>
 References: <200706242239.05678.rjw@sisk.pl> <200706260039.17530.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41919 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:41929 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317AbXFYWrk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:47:40 -0400
+	id S1752575AbXFYWrm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jun 2007 18:47:42 -0400
 In-Reply-To: <200706260039.17530.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,184 +21,87 @@ Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-In the future some drivers may need to use ACPI to determine the low power
-states in which to place their devices, but to provide the drivers with this
-information the ACPI core needs to know what sleep state the system is going to
-enter.  Namely, the device's state should not be too high power for given system
-sleep state and, if the device is supposed to be able to wake up the system, its
-state should not be too low power for the wake up to be possible).  For this
-purpose, the ACPI core needs to implement the set_target() method from 'struct
-pm_ops' and store the target system sleep state passed by the PM core in a
-variable.
+Rename 'struct hibernation_ops' to 'struct platform_hibernation_operations' in
+analogy with 'struct platform_suspend_operations'.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep/main.c |   84 ++++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 32 deletions(-)
+ drivers/acpi/sleep/main.c |    2 +-
+ include/linux/suspend.h   |    9 +++++----
+ kernel/power/disk.c       |    4 ++--
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
 Index: linux-2.6.22-rc6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 21:09:18.000000000 +0200
-+++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 21:34:46.000000000 +0200
-@@ -34,34 +34,54 @@ static u32 acpi_suspend_states[] = {
- 
- static int init_8259A_after_S1;
- 
-+extern int acpi_sleep_prepare(u32 acpi_state);
-+extern void acpi_power_off(void);
-+
-+static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+/**
-+ *	acpi_pm_set_target - Set the target system sleep state to the state
-+ *		associated with given @pm_state, if supported.
-+ */
-+
-+static int acpi_pm_set_target(suspend_state_t pm_state)
-+{
-+	u32 acpi_state = acpi_suspend_states[pm_state];
-+	int error = 0;
-+
-+	if (sleep_states[acpi_state]) {
-+		acpi_target_sleep_state = acpi_state;
-+	} else {
-+		printk(KERN_ERR "ACPI does not support this state: %d\n",
-+			pm_state);
-+		error = -ENOSYS;
-+	}
-+	return error;
-+}
-+
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-- *	@pm_state:		suspend state we're entering.
-+ *	@pm_state: ignored
-  *
-- *	Make sure we support the state. If we do, and we need it, set the
-- *	firmware waking vector and do arch-specific nastiness to get the 
-- *	wakeup code to the waking vector. 
-+ *	If necessary, set the firmware waking vector and do arch-specific
-+ *	nastiness to get the wakeup code to the waking vector.
-  */
- 
--extern int acpi_sleep_prepare(u32 acpi_state);
--extern void acpi_power_off(void);
--
- static int acpi_pm_prepare(suspend_state_t pm_state)
- {
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	int error = acpi_sleep_prepare(acpi_target_sleep_state);
- 
--	if (!sleep_states[acpi_state]) {
--		printk("acpi_pm_prepare does not support %d \n", pm_state);
--		return -EPERM;
--	}
--	return acpi_sleep_prepare(acpi_state);
-+	if (error)
-+		acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+	return error;
+--- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 22:58:53.000000000 +0200
++++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 23:08:48.000000000 +0200
+@@ -258,7 +258,7 @@ static void acpi_hibernation_restore_cle
+ 	acpi_hw_enable_all_runtime_gpes();
  }
  
+-static struct hibernation_ops acpi_hibernation_ops = {
++static struct platform_hibernation_operations acpi_hibernation_ops = {
+ 	.start = acpi_hibernation_start,
+ 	.pre_snapshot = acpi_hibernation_prepare,
+ 	.finish = acpi_hibernation_finish,
+Index: linux-2.6.22-rc6/include/linux/suspend.h
+===================================================================
+--- linux-2.6.22-rc6.orig/include/linux/suspend.h	2007-06-25 22:58:00.000000000 +0200
++++ linux-2.6.22-rc6/include/linux/suspend.h	2007-06-25 23:07:21.000000000 +0200
+@@ -121,7 +121,7 @@ extern void drain_local_pages(void);
+ extern void mark_free_pages(struct zone *zone);
+ 
  /**
-  *	acpi_pm_enter - Actually enter a sleep state.
-- *	@pm_state:		State we're entering.
-+ *	@pm_state: ignored
+- * struct hibernation_ops - hibernation platform support
++ * struct platform_hibernation_operations - hibernation platform support
   *
-- *	Flush caches and go to sleep. For STR or STD, we have to call 
-+ *	Flush caches and go to sleep. For STR or S2, we have to call
-  *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
-  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
+  * The methods in this structure allow a platform to override the default
+  * mechanism of shutting down the machine during a hibernation transition.
+@@ -158,7 +158,7 @@ extern void mark_free_pages(struct zone 
+  *	Called right after the nonboot CPUs have been enabled and before
+  *	thawing devices (runs with IRQs on).
   */
-@@ -70,31 +90,32 @@ static int acpi_pm_enter(suspend_state_t
- {
- 	acpi_status status = AE_OK;
- 	unsigned long flags = 0;
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	u32 acpi_state = acpi_target_sleep_state;
+-struct hibernation_ops {
++struct platform_hibernation_operations {
+ 	int (*start)(void);
+ 	int (*pre_snapshot)(void);
+ 	void (*finish)(void);
+@@ -185,14 +185,15 @@ extern void swsusp_set_page_free(struct 
+ extern void swsusp_unset_page_free(struct page *);
+ extern unsigned long get_safe_page(gfp_t gfp_mask);
  
- 	ACPI_FLUSH_CPU_CACHE();
+-extern void hibernation_set_ops(struct hibernation_ops *ops);
++extern void hibernation_set_ops(struct platform_hibernation_operations *ops);
+ extern int hibernate(void);
+ #else /* CONFIG_SOFTWARE_SUSPEND */
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+ static inline void swsusp_unset_page_free(struct page *p) {}
  
- 	/* Do arch specific saving of state. */
--	if (pm_state > PM_SUSPEND_STANDBY) {
-+	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
- 		int error = acpi_save_state_mem();
--		if (error)
-+
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
- 			return error;
-+		}
- 	}
+-static inline void hibernation_set_ops(struct hibernation_ops *ops) {}
++static inline void
++hibernation_set_ops(struct platform_hibernation_operations *ops) {}
+ static inline int hibernate(void) { return -ENOSYS; }
+ #endif /* CONFIG_SOFTWARE_SUSPEND */
  
- 	local_irq_save(flags);
- 	acpi_enable_wakeup_device(acpi_state);
--	switch (pm_state) {
--	case PM_SUSPEND_STANDBY:
-+	switch (acpi_state) {
-+	case ACPI_STATE_S1:
- 		barrier();
- 		status = acpi_enter_sleep_state(acpi_state);
- 		break;
+Index: linux-2.6.22-rc6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.22-rc6.orig/kernel/power/disk.c	2007-06-25 22:59:28.000000000 +0200
++++ linux-2.6.22-rc6/kernel/power/disk.c	2007-06-25 23:08:36.000000000 +0200
+@@ -45,14 +45,14 @@ enum {
  
--	case PM_SUSPEND_MEM:
-+	case ACPI_STATE_S2:
-+	case ACPI_STATE_S3:
- 		do_suspend_lowlevel();
- 		break;
--
--	default:
--		return -EINVAL;
- 	}
+ static int hibernation_mode = HIBERNATION_SHUTDOWN;
  
- 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
-@@ -114,12 +135,8 @@ static int acpi_pm_enter(suspend_state_t
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
- 
--	/* restore processor state
--	 * We should only be here if we're coming back from STR or STD.
--	 * And, in the case of the latter, the memory image should have already
--	 * been loaded from disk.
--	 */
--	if (pm_state > PM_SUSPEND_STANDBY)
-+	/* restore processor state */
-+	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
- 		acpi_restore_state_mem();
- 
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-@@ -127,7 +144,7 @@ static int acpi_pm_enter(suspend_state_t
+-struct hibernation_ops *hibernation_ops;
++struct platform_hibernation_operations *hibernation_ops;
  
  /**
-  *	acpi_pm_finish - Finish up suspend sequence.
-- *	@pm_state:		State we're coming out of.
-+ *	@pm_state: ignored
-  *
-  *	This is called after we wake back up (or if entering the sleep state
-  *	failed). 
-@@ -135,7 +152,7 @@ static int acpi_pm_enter(suspend_state_t
+  * hibernation_set_ops - set the global hibernate operations
+  * @ops: the hibernation operations to use in subsequent hibernation transitions
+  */
  
- static int acpi_pm_finish(suspend_state_t pm_state)
+-void hibernation_set_ops(struct hibernation_ops *ops)
++void hibernation_set_ops(struct platform_hibernation_operations *ops)
  {
--	u32 acpi_state = acpi_suspend_states[pm_state];
-+	u32 acpi_state = acpi_target_sleep_state;
- 
- 	acpi_leave_sleep_state(acpi_state);
- 	acpi_disable_wakeup_device(acpi_state);
-@@ -143,6 +160,8 @@ static int acpi_pm_finish(suspend_state_
- 	/* reset firmware waking vector */
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+
- 	if (init_8259A_after_S1) {
- 		printk("Broken toshiba laptop -> kicking interrupts\n");
- 		init_8259A(0);
-@@ -183,6 +202,7 @@ static int acpi_pm_state_valid(suspend_s
- 
- static struct pm_ops acpi_pm_ops = {
- 	.valid = acpi_pm_state_valid,
-+	.set_target = acpi_pm_set_target,
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_pm_enter,
- 	.finish = acpi_pm_finish,
+ 	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
+ 	    && ops->prepare && ops->enter && ops->pre_restore
