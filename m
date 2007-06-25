@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 8/8] PM: Rename hibernation_ops to platform_hibernation_operations
-Date: Tue, 26 Jun 2007 00:52:27 +0200
-Message-ID: <200706260052.28206.rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 3/8] ACPI: Add acpi_pm_device_sleep_state helper routine
+Date: Tue, 26 Jun 2007 00:45:49 +0200
+Message-ID: <200706260045.51039.rjw@sisk.pl>
 References: <200706242239.05678.rjw@sisk.pl> <200706260039.17530.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41929 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:41923 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752575AbXFYWrm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:47:42 -0400
+	id S1752467AbXFYWrl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jun 2007 18:47:41 -0400
 In-Reply-To: <200706260039.17530.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,89 +19,97 @@ List-Id: linux-acpi@vger.kernel.org
 To: pm list <linux-pm@lists.linux-foundation.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
 
-Rename 'struct hibernation_ops' to 'struct platform_hibernation_operations' in
-analogy with 'struct platform_suspend_operations'.
+Based on the David Brownell's patch at
+http://marc.info/?l=linux-acpi&m=117873972806360&w=2
+
+Add a helper routine returning the lowest power (highest number) ACPI device
+power state that given device can be in while the system is in the sleep state
+indicated by acpi_target_sleep_state .
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep/main.c |    2 +-
- include/linux/suspend.h   |    9 +++++----
- kernel/power/disk.c       |    4 ++--
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/acpi/sleep/main.c |   55 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h   |    2 +
+ 2 files changed, 57 insertions(+)
 
 Index: linux-2.6.22-rc6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 22:58:53.000000000 +0200
-+++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 23:08:48.000000000 +0200
-@@ -258,7 +258,7 @@ static void acpi_hibernation_restore_cle
- 	acpi_hw_enable_all_runtime_gpes();
- }
+--- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 21:34:46.000000000 +0200
++++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 21:58:30.000000000 +0200
+@@ -262,6 +262,61 @@ static struct hibernation_ops acpi_hiber
+ };
+ #endif				/* CONFIG_SOFTWARE_SUSPEND */
  
--static struct hibernation_ops acpi_hibernation_ops = {
-+static struct platform_hibernation_operations acpi_hibernation_ops = {
- 	.start = acpi_hibernation_start,
- 	.pre_snapshot = acpi_hibernation_prepare,
- 	.finish = acpi_hibernation_finish,
-Index: linux-2.6.22-rc6/include/linux/suspend.h
++/**
++ *	acpi_pm_device_sleep_state - return the lowest power (highest number)
++ *				     ACPI device power state given device can be
++ *				     in while the system is in the sleep state
++ *				     indicated by %acpi_target_sleep_state
++ *	@handle: Represents the device the state is evaluated for
++ */
++
++int acpi_pm_device_sleep_state(acpi_handle handle)
++{
++	char acpi_method[] = "_SxD";
++	unsigned long d_min, d_max;
++	struct acpi_device *dev;
++
++	if (acpi_bus_get_device(handle, &dev)) {
++		printk(KERN_ERR "ACPI handle has no context!\n");
++		return ACPI_STATE_D3;
++	}
++	acpi_method[2] = '0' + acpi_target_sleep_state;
++	/*
++	 * If the sleep state is S0, we will return D3, but if the device has
++	 * _S0W, we will use the value from _S0W
++	 */
++	d_min = ACPI_STATE_D3;
++	d_max = ACPI_STATE_D3;
++
++	/*
++	 * If present, _SxD methods give the minimum D-state we may use
++	 * for each S-state ... with lowest latency state switching.
++	 *
++	 * We rely on acpi_evaluate_integer() not clobbering the integer
++	 * provided -- that's our fault recovery, we ignore retval.
++	 */
++	if (acpi_target_sleep_state > ACPI_STATE_S0)
++		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
++
++	/*
++	 * If _PRW says we can wake from the upcoming system state, the _SxD
++	 * value can wake ... and we'll assume a wakeup-aware driver.  If _SxW
++	 * methods exist (ACPI 3.x), they give the lowest power D-state that
++	 * can also wake the system.  _S0W can be valid.
++	 */
++	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
++	    (dev->wakeup.state.enabled &&
++	     dev->wakeup.sleep_state <= acpi_target_sleep_state)) {
++		acpi_method[3] = 'W';
++		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
++	}
++	/*
++	 * Choose a state within d_min to d_max, we just choose the max
++	 * (ie. lower power)
++	 */
++	return d_max > d_min ? d_max : d_min;
++}
++
+ /*
+  * Toshiba fails to preserve interrupts over S1, reinitialization
+  * of 8259 is needed after S1 resume.
+Index: linux-2.6.22-rc6/include/acpi/acpi_bus.h
 ===================================================================
---- linux-2.6.22-rc6.orig/include/linux/suspend.h	2007-06-25 22:58:00.000000000 +0200
-+++ linux-2.6.22-rc6/include/linux/suspend.h	2007-06-25 23:07:21.000000000 +0200
-@@ -121,7 +121,7 @@ extern void drain_local_pages(void);
- extern void mark_free_pages(struct zone *zone);
+--- linux-2.6.22-rc6.orig/include/acpi/acpi_bus.h	2007-06-25 21:34:04.000000000 +0200
++++ linux-2.6.22-rc6/include/acpi/acpi_bus.h	2007-06-25 21:53:19.000000000 +0200
+@@ -364,6 +364,8 @@ acpi_handle acpi_get_child(acpi_handle, 
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
  
- /**
-- * struct hibernation_ops - hibernation platform support
-+ * struct platform_hibernation_operations - hibernation platform support
-  *
-  * The methods in this structure allow a platform to override the default
-  * mechanism of shutting down the machine during a hibernation transition.
-@@ -158,7 +158,7 @@ extern void mark_free_pages(struct zone 
-  *	Called right after the nonboot CPUs have been enabled and before
-  *	thawing devices (runs with IRQs on).
-  */
--struct hibernation_ops {
-+struct platform_hibernation_operations {
- 	int (*start)(void);
- 	int (*pre_snapshot)(void);
- 	void (*finish)(void);
-@@ -185,14 +185,15 @@ extern void swsusp_set_page_free(struct 
- extern void swsusp_unset_page_free(struct page *);
- extern unsigned long get_safe_page(gfp_t gfp_mask);
++int acpi_pm_device_sleep_state(acpi_handle handle);
++
+ #endif				/* CONFIG_ACPI */
  
--extern void hibernation_set_ops(struct hibernation_ops *ops);
-+extern void hibernation_set_ops(struct platform_hibernation_operations *ops);
- extern int hibernate(void);
- #else /* CONFIG_SOFTWARE_SUSPEND */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
- static inline void swsusp_unset_page_free(struct page *p) {}
- 
--static inline void hibernation_set_ops(struct hibernation_ops *ops) {}
-+static inline void
-+hibernation_set_ops(struct platform_hibernation_operations *ops) {}
- static inline int hibernate(void) { return -ENOSYS; }
- #endif /* CONFIG_SOFTWARE_SUSPEND */
- 
-Index: linux-2.6.22-rc6/kernel/power/disk.c
-===================================================================
---- linux-2.6.22-rc6.orig/kernel/power/disk.c	2007-06-25 22:59:28.000000000 +0200
-+++ linux-2.6.22-rc6/kernel/power/disk.c	2007-06-25 23:08:36.000000000 +0200
-@@ -45,14 +45,14 @@ enum {
- 
- static int hibernation_mode = HIBERNATION_SHUTDOWN;
- 
--struct hibernation_ops *hibernation_ops;
-+struct platform_hibernation_operations *hibernation_ops;
- 
- /**
-  * hibernation_set_ops - set the global hibernate operations
-  * @ops: the hibernation operations to use in subsequent hibernation transitions
-  */
- 
--void hibernation_set_ops(struct hibernation_ops *ops)
-+void hibernation_set_ops(struct platform_hibernation_operations *ops)
- {
- 	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
- 	    && ops->prepare && ops->enter && ops->pre_restore
+ #endif /*__ACPI_BUS_H__*/
