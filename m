@@ -1,60 +1,103 @@
-From: GMail <hughsient@gmail.com>
-Subject: Re: [patch] Reporting the lid status using INPUT
-Date: Sun, 24 Jun 2007 23:06:37 +0100
-Message-ID: <15e53e180706241506p53ec648ib93d684bbe076a46@mail.gmail.com>
-References: <1181910567.4819.7.camel@work> <1181919208.2681.6.camel@work>
-	 <1182013911.2309.4.camel@work> <200706161351.28885.dtor@insightbb.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [RFC][PATCH -mm] PM: Introduce set_target method in pm_ops
+Date: Sun, 24 Jun 2007 17:01:52 -0700
+Message-ID: <200706241701.53971.david-b@pacbell.net>
+References: <Pine.LNX.4.44L0.0706232026460.9663-100000@netrider.rowland.org> <200706241457.21237.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:46177 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751081AbXFXWGi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Jun 2007 18:06:38 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so1168671ugf
-        for <linux-acpi@vger.kernel.org>; Sun, 24 Jun 2007 15:06:37 -0700 (PDT)
-In-Reply-To: <200706161351.28885.dtor@insightbb.com>
+Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:24925 "HELO
+	smtp104.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751004AbXFYAff (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Jun 2007 20:35:35 -0400
+In-Reply-To: <200706241457.21237.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, a_bartok@freemail.hu, Bastien Nocera <hadess@hadess.net>, David Zeuthen <david@fubar.dk>, linux-kernel <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-On 16/06/07, Dmitry Torokhov <dtor@insightbb.com> wrote:
-> On Saturday 16 June 2007 13:11, Richard Hughes wrote:
-> > On Fri, 2007-06-15 at 15:53 +0100, Richard Hughes wrote:
-> > > On Fri, 2007-06-15 at 10:29 -0400, Dmitry Torokhov wrote:
-> > > > On 6/15/07, Richard Hughes <hughsient@gmail.com> wrote:
-> > > > > On Fri, 2007-06-15 at 13:29 +0100, Richard Hughes wrote:
-> > > > > > in response to an event, but I'm thinking in a resume hook we should
-> > > > > > probably do acpi_evaluate_integer(handle, "_LID", NULL, &state) and then
-> > > > > > send an event, just so userspace is aware of what the state of the panel
-> > > > > > is.
-> > > > >
-> > > > > Attached patch fixed the issue for me. Comments?
-> > > > >
-> > > >
-> > > > The patch makes perfect sense. The only issue I have is this:
-> > > >
-> > > > > +       /* on resume we send the state; it might be the same, but userspace
-> > > > > +        * should handle duplicated events */
-> > > >
-> > > > If switch state matches to what input layer thinks it is the event
-> > > > will not even reach userspace.
-> > >
-> > > Okay, new patch attached, thanks for the speedy review.
-> >
-> > This fix is also confirmed by somebody else, see
-> > https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=243030
-> >
-> > It would be great if this could go into .22, although I appreciate it's
-> > quite late in the day.
-> >
->
-> This is of course Len's call but in my book this is a bugfix and as such
-> is appropriate for -rc4/rc5.
+On Sunday 24 June 2007, Rafael J. Wysocki wrote:
+> On Sunday, 24 June 2007 02:28, Alan Stern wrote:
+> > On Sun, 24 Jun 2007, Rafael J. Wysocki wrote:
+> > 
+> > > > Right now the states we have are On, Standby, and Suspend, and the CPU
+> > > > runs only in the On state.  But on some platforms there could be
+> > > > multiple states in which the CPU is able to run, albeit with degraded 
+> > > > performance.
 
-Guys? Any ack-nak?
+That starts to get into those cpufreq/"operating point" discussions".
 
-Richard.
+
+> > > I wouldn't call those system sleep states.  For example, ACPI defines system
+> > > sleep states as the states in which no instructions are executed by any CPUs
+> > > and I think that's reasonable.
+
+Its Embedded Controller surely executes instructions!
+
+
+> > > Moreover, the ACPI spec insists that transitions between different sleep
+> > > states should be made through the On state.
+
+Not that the world should feel compelled to restrict itself to what
+ACPI envisions of course...
+
+
+> > Okay.  But on non-ACPI systems, do we want to restrict the 
+> > /sys/power/state interface to sleep states?  How then should the user 
+> > tell the system to go to a low-performance run state?  Or should that 
+> > be handled automatically within the kernel?
+> 
+> I think that the /sys/power/state interface should be restricted to system
+> sleep states only and we should introduce another one for handling non-sleep
+> low-power states.
+
+Then /sys/power/state would more accurately be named something
+like /sys/power/sleep_state, right?
+
+The core reason it would make sense to have such a bifurcation is
+IMO that those lower power operating states mostly shouldn't involve
+walking the device tree and suspending everything.  They involve some
+set of hardware (possibly including CPUs) entering low power states.
+But not *every* bit of hardware.
+
+Another aspect here is what idle state is used.  Sometimes that
+can be all but indistinguishable from a "sleep" state.
+
+
+> IMHO, the kernel can automatically transition to non-sleep low-power states,
+> but the users should be able to define the conditions for that.  Also, the user
+> should be able to force the transition if necessary/desired.
+
+There are several ways those lowpower run states can be entered.
+But I'm not keen on userspace being able to "force" transitions
+like that.
+
+IMO it's strongly preferable if the platform code -- perhaps its
+custom idle loop -- inventories the system regularly to see if
+it's eligible to enter one of the states.
+
+As a rule, if certain resources are in use that means related
+power states can't be entered.  If they're in use, then userspace
+trying to force a transition means breaking something -- else
+those resources would stay used!
+
+The similarity with cpufreq is obvious:  cpufreq inventories the
+CPU usage regularly to see if the CPU should be revved up or down.
+
+Now, inputs to that inventory can come from userspace ... there's
+information about upcoming usage that the kernel could otherwise
+only guess at.  User exiting the video playback app, vs just pausing
+it, might suggest more aggressive savings are appropriate; etc.
+Userspace can also provide tuning parameters.  I have no problems
+with that model.
+
+- Dave
+
+
+
+
+
