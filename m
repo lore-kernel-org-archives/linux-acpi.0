@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 6/8] PM: Rework struct platform_suspend_operations
-Date: Tue, 26 Jun 2007 00:49:39 +0200
-Message-ID: <200706260049.40457.rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 7/8] PM: Rework struct hibernation_ops
+Date: Tue, 26 Jun 2007 00:51:15 +0200
+Message-ID: <200706260051.17211.rjw@sisk.pl>
 References: <200706242239.05678.rjw@sisk.pl> <200706260039.17530.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41930 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:41928 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752558AbXFYWrm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752570AbXFYWrm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 25 Jun 2007 18:47:42 -0400
 In-Reply-To: <200706260039.17530.rjw@sisk.pl>
 Content-Disposition: inline
@@ -21,458 +21,176 @@ Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There is no reason why the .prepare() and .finish() methods in 'struct
-platform_suspend_operations' should take any arguments, since architectures
-don't use these methods' argument in any practically meaningful way (ie. either
-the target system sleep state is conveyed to the platform by .set_target(), or
-there is only one suspend state supported and it is indicated to the PM core by
-.valid(), or .prepare() and .finish() aren't defined at all).  There also is
-no reason why .finish() should return any result.
+During hibernation we also need to tell the ACPI core that we're going to put
+the system into the S4 sleep state.  For this reason, an additional method
+in 'struct hibernation_ops' is needed, playing the role of set_target() in
+'struct platform_suspend_operations'.  Moreover, the role of the .prepare()
+method is now different, so it's better to introduce another method, that in
+general may be different from .prepare(), that will be used to prepare the
+platform for creating the hibernation image (.prepare() is used anyway to
+notify the platform that we're going to enter the low power state after the
+image has been saved).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/arm/common/sharpsl_pm.c             |    2 -
- arch/arm/mach-omap1/pm.c                 |   20 +-----------
- arch/arm/mach-omap2/pm.c                 |   21 +------------
- arch/arm/mach-pxa/pm.c                   |   24 ---------------
- arch/arm/mach-pxa/pxa25x.c               |   12 -------
- arch/arm/mach-pxa/pxa27x.c               |   11 ------
- arch/blackfin/mach-common/pm.c           |   49 +++----------------------------
- arch/powerpc/platforms/52xx/mpc52xx_pm.c |    8 +----
- drivers/acpi/sleep/main.c                |    7 +---
- include/asm-arm/arch-pxa/pm.h            |    2 -
- include/linux/suspend.h                  |   13 +++-----
- kernel/power/main.c                      |   12 +------
- 12 files changed, 24 insertions(+), 157 deletions(-)
+ drivers/acpi/sleep/main.c |   12 +++++++++++-
+ include/linux/suspend.h   |   38 ++++++++++++++++++++++++++++++++------
+ kernel/power/disk.c       |   27 +++++++++++++++++++++------
+ 3 files changed, 64 insertions(+), 13 deletions(-)
 
 Index: linux-2.6.22-rc6/include/linux/suspend.h
 ===================================================================
---- linux-2.6.22-rc6.orig/include/linux/suspend.h	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/include/linux/suspend.h	2007-06-25 21:58:38.000000000 +0200
-@@ -45,12 +45,10 @@ typedef int __bitwise suspend_state_t;
-  *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
-  *	@prepare(), @enter() and @finish() will not be called by the PM core.
-  *	This callback is optional.  However, if it is implemented, the argument
-- *	passed to @prepare(), @enter() and @finish() is meaningless and should
-- *	be ignored.
-+ *	passed to @enter() is meaningless and should be ignored.
+--- linux-2.6.22-rc6.orig/include/linux/suspend.h	2007-06-25 22:53:16.000000000 +0200
++++ linux-2.6.22-rc6/include/linux/suspend.h	2007-06-25 22:58:00.000000000 +0200
+@@ -128,16 +128,42 @@ extern void mark_free_pages(struct zone 
   *
-  * @prepare: Prepare the platform for entering the system sleep state indicated
-- *	by @set_target() or represented by the argument if @set_target() is not
-- *	implemented.
-+ *	by @set_target().
-  *	@prepare() is called right after devices have been suspended (ie. the
-  *	appropriate .suspend() method has been executed for each device) and
-  *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
-@@ -66,8 +64,7 @@ typedef int __bitwise suspend_state_t;
+  * All three methods must be assigned.
   *
-  * @finish: Called when the system has just left a sleep state, right after
-  *	the nonboot CPUs have been enabled and before devices are resumed (it is
-- *	executed with IRQs enabled).  If @set_target() is not implemented, the
-- *	argument represents the sleep state being left.
-+ *	executed with IRQs enabled).
-  *	This callback is optional, but should be implemented by the platforms
-  *	that implement @prepare().  If implemented, it is always called after
-  *	@enter() (even if @enter() fails).
-@@ -75,9 +72,9 @@ typedef int __bitwise suspend_state_t;
- struct platform_suspend_operations {
- 	int (*valid)(suspend_state_t state);
- 	int (*set_target)(suspend_state_t state);
--	int (*prepare)(suspend_state_t state);
-+	int (*prepare)(void);
- 	int (*enter)(suspend_state_t state);
--	int (*finish)(suspend_state_t state);
+- * @prepare: prepare system for hibernation
+- * @enter: shut down system after state has been saved to disk
+- * @finish: finish/clean up after state has been reloaded
+- * @pre_restore: prepare system for the restoration from a hibernation image
+- * @restore_cleanup: clean up after a failing image restoration
++ * @start: Tell the platform driver that we're starting hibernation.
++ *	Called right after shrinking memory and before freezing devices.
++ *
++ * @pre_snapshot: Prepare the platform for creating the hibernation image.
++ *	Called right after devices have been frozen and before the nonboot
++ *	CPUs are disabled (runs with IRQs on).
++ *
++ * @finish: Restore the previous state of the platform after the hibernation
++ *	image has been created *or* put the platform into the normal operation
++ *	mode after the hibernation (the same method is executed in both cases).
++ *	Called right after the nonboot CPUs have been enabled and before
++ *	thawing devices (runs with IRQs on).
++ *
++ * @prepare: Prepare the platform for entering the low power state.
++ *	Called right after the hibernation image has been saved and before
++ *	devices are prepared for entering the low power state.
++ *
++ * @enter: Put the system into the low power state after the hibernation image
++ *	has been saved to disk.
++ *	Called after the nonboot CPUs have been disabled and all of the low
++ *	level devices have been shut down (runs with IRQs off).
++ *
++ * @pre_restore: Prepare system for the restoration from a hibernation image.
++ *	Called right after devices have been frozen and before the nonboot
++ *	CPUs are disabled (runs with IRQs on).
++ *
++ * @restore_cleanup: Clean up after a failing image restoration.
++ *	Called right after the nonboot CPUs have been enabled and before
++ *	thawing devices (runs with IRQs on).
+  */
+ struct hibernation_ops {
++	int (*start)(void);
++	int (*pre_snapshot)(void);
 +	void (*finish)(void);
+ 	int (*prepare)(void);
+ 	int (*enter)(void);
+-	void (*finish)(void);
+ 	int (*pre_restore)(void);
+ 	void (*restore_cleanup)(void);
  };
- 
- extern struct platform_suspend_operations *suspend_ops;
-Index: linux-2.6.22-rc6/kernel/power/main.c
+Index: linux-2.6.22-rc6/kernel/power/disk.c
 ===================================================================
---- linux-2.6.22-rc6.orig/kernel/power/main.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/kernel/power/main.c	2007-06-25 21:58:38.000000000 +0200
-@@ -59,13 +59,6 @@ int suspend_valid_only_mem(suspend_state
- 	return state == PM_SUSPEND_MEM;
+--- linux-2.6.22-rc6.orig/kernel/power/disk.c	2007-06-25 22:53:16.000000000 +0200
++++ linux-2.6.22-rc6/kernel/power/disk.c	2007-06-25 22:59:28.000000000 +0200
+@@ -54,8 +54,9 @@ struct hibernation_ops *hibernation_ops;
+ 
+ void hibernation_set_ops(struct hibernation_ops *ops)
+ {
+-	if (ops && !(ops->prepare && ops->enter && ops->finish
+-	    && ops->pre_restore && ops->restore_cleanup)) {
++	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
++	    && ops->prepare && ops->enter && ops->pre_restore
++	    && ops->restore_cleanup)) {
+ 		WARN_ON(1);
+ 		return;
+ 	}
+@@ -69,16 +70,26 @@ void hibernation_set_ops(struct hibernat
+ 	mutex_unlock(&pm_mutex);
  }
  
--
--static inline void pm_finish(suspend_state_t state)
--{
--	if (suspend_ops->finish)
--		suspend_ops->finish(state);
--}
--
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-  *
-@@ -172,7 +165,7 @@ int suspend_devices_and_enter(suspend_st
- 		goto Resume_console;
- 	}
- 	if (suspend_ops->prepare) {
--		error = suspend_ops->prepare(state);
-+		error = suspend_ops->prepare();
- 		if (error)
- 			goto Resume_devices;
- 	}
-@@ -181,7 +174,8 @@ int suspend_devices_and_enter(suspend_st
- 		suspend_enter(state);
++/**
++ *	platform_start - tell the platform driver that we're starting
++ *	hibernation
++ */
++
++static int platform_start(int platform_mode)
++{
++	return (platform_mode && hibernation_ops) ?
++		hibernation_ops->start() : 0;
++}
  
- 	enable_nonboot_cpus();
--	pm_finish(state);
-+	if (suspend_ops->finish)
-+		suspend_ops->finish();
-  Resume_devices:
- 	device_resume();
-  Resume_console:
+ /**
+- *	platform_prepare - prepare the machine for hibernation using the
++ *	platform_pre_snapshot - prepare the machine for hibernation using the
+  *	platform driver if so configured and return an error code if it fails
+  */
+ 
+-static int platform_prepare(int platform_mode)
++static int platform_pre_snapshot(int platform_mode)
+ {
+ 	return (platform_mode && hibernation_ops) ?
+-		hibernation_ops->prepare() : 0;
++		hibernation_ops->pre_snapshot() : 0;
+ }
+ 
+ /**
+@@ -135,12 +146,16 @@ int hibernation_snapshot(int platform_mo
+ 	if (error)
+ 		return error;
+ 
++	error = platform_start(platform_mode);
++	if (error)
++		return error;
++
+ 	suspend_console();
+ 	error = device_suspend(PMSG_FREEZE);
+ 	if (error)
+ 		goto Resume_console;
+ 
+-	error = platform_prepare(platform_mode);
++	error = platform_pre_snapshot(platform_mode);
+ 	if (error)
+ 		goto Resume_devices;
+ 
 Index: linux-2.6.22-rc6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 21:58:38.000000000 +0200
-@@ -61,13 +61,12 @@ static int acpi_pm_set_target(suspend_st
- 
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-- *	@pm_state: ignored
-  *
-  *	If necessary, set the firmware waking vector and do arch-specific
-  *	nastiness to get the wakeup code to the waking vector.
-  */
- 
--static int acpi_pm_prepare(suspend_state_t pm_state)
-+static int acpi_pm_prepare(void)
- {
- 	int error = acpi_sleep_prepare(acpi_target_sleep_state);
- 
-@@ -144,13 +143,12 @@ static int acpi_pm_enter(suspend_state_t
- 
- /**
-  *	acpi_pm_finish - Finish up suspend sequence.
-- *	@pm_state: ignored
-  *
-  *	This is called after we wake back up (or if entering the sleep state
-  *	failed). 
-  */
- 
--static int acpi_pm_finish(suspend_state_t pm_state)
-+static void acpi_pm_finish(void)
- {
- 	u32 acpi_state = acpi_target_sleep_state;
- 
-@@ -166,7 +164,6 @@ static int acpi_pm_finish(suspend_state_
- 		printk("Broken toshiba laptop -> kicking interrupts\n");
- 		init_8259A(0);
- 	}
--	return 0;
- }
- 
- int acpi_suspend(u32 acpi_state)
-Index: linux-2.6.22-rc6/arch/arm/common/sharpsl_pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/common/sharpsl_pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/common/sharpsl_pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -767,9 +767,7 @@ static void sharpsl_apm_get_power_status
- }
- 
- static struct platform_suspend_operations sharpsl_pm_ops = {
--	.prepare	= pxa_pm_prepare,
- 	.enter		= corgi_pxa_pm_enter,
--	.finish		= pxa_pm_finish,
- 	.valid		= suspend_valid_only_mem,
+--- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c	2007-06-25 22:53:16.000000000 +0200
++++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c	2007-06-25 22:58:53.000000000 +0200
+@@ -206,6 +206,12 @@ static struct platform_suspend_operation
  };
  
-Index: linux-2.6.22-rc6/arch/arm/mach-pxa/pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/mach-pxa/pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/mach-pxa/pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -201,32 +201,8 @@ unsigned long sleep_phys_sp(void *sp)
- 	return virt_to_phys(sp);
- }
- 
--/*
-- * Called after processes are frozen, but before we shut down devices.
-- */
--int pxa_pm_prepare(suspend_state_t state)
--{
--	extern int pxa_cpu_pm_prepare(suspend_state_t state);
--
--	return pxa_cpu_pm_prepare(state);
--}
--
--EXPORT_SYMBOL_GPL(pxa_pm_prepare);
--
--/*
-- * Called after devices are re-setup, but before processes are thawed.
-- */
--int pxa_pm_finish(suspend_state_t state)
--{
--	return 0;
--}
--
--EXPORT_SYMBOL_GPL(pxa_pm_finish);
--
- static struct platform_suspend_operations pxa_pm_ops = {
--	.prepare	= pxa_pm_prepare,
- 	.enter		= pxa_pm_enter,
--	.finish		= pxa_pm_finish,
- 	.valid		= suspend_valid_only_mem,
- };
- 
-Index: linux-2.6.22-rc6/arch/arm/mach-pxa/pxa25x.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/mach-pxa/pxa25x.c	2007-06-25 21:58:20.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/mach-pxa/pxa25x.c	2007-06-25 21:58:38.000000000 +0200
-@@ -105,18 +105,6 @@ EXPORT_SYMBOL(get_lcdclk_frequency_10khz
- 
- #ifdef CONFIG_PM
- 
--int pxa_cpu_pm_prepare(suspend_state_t state)
--{
--	switch (state) {
--	case PM_SUSPEND_MEM:
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
- void pxa_cpu_pm_enter(suspend_state_t state)
- {
- 	extern void pxa_cpu_suspend(unsigned int);
-Index: linux-2.6.22-rc6/arch/arm/mach-pxa/pxa27x.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/mach-pxa/pxa27x.c	2007-06-25 21:58:20.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/mach-pxa/pxa27x.c	2007-06-25 21:58:38.000000000 +0200
-@@ -122,17 +122,6 @@ EXPORT_SYMBOL(get_lcdclk_frequency_10khz
- 
- #ifdef CONFIG_PM
- 
--int pxa_cpu_pm_prepare(suspend_state_t state)
--{
--	switch (state) {
--	case PM_SUSPEND_MEM:
--	case PM_SUSPEND_STANDBY:
--		return 0;
--	default:
--		return -EINVAL;
--	}
--}
--
- void pxa_cpu_pm_enter(suspend_state_t state)
- {
- 	extern void pxa_cpu_standby(void);
-Index: linux-2.6.22-rc6/include/asm-arm/arch-pxa/pm.h
-===================================================================
---- linux-2.6.22-rc6.orig/include/asm-arm/arch-pxa/pm.h	2007-06-25 21:58:20.000000000 +0200
-+++ linux-2.6.22-rc6/include/asm-arm/arch-pxa/pm.h	2007-06-25 21:58:38.000000000 +0200
-@@ -7,6 +7,4 @@
-  *
-  */
- 
--extern int pxa_pm_prepare(suspend_state_t state);
- extern int pxa_pm_enter(suspend_state_t state);
--extern int pxa_pm_finish(suspend_state_t state);
-Index: linux-2.6.22-rc6/arch/arm/mach-omap1/pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/mach-omap1/pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/mach-omap1/pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -613,27 +613,15 @@ static void (*saved_idle)(void) = NULL;
- 
- /*
-  *	omap_pm_prepare - Do preliminary suspend work.
-- *	@state:		suspend state we're entering.
-  *
-  */
--static int omap_pm_prepare(suspend_state_t state)
-+static int omap_pm_prepare(void)
- {
--	int error = 0;
--
- 	/* We cannot sleep in idle until we have resumed */
- 	saved_idle = pm_idle;
- 	pm_idle = NULL;
- 
--	switch (state)
--	{
--	case PM_SUSPEND_STANDBY:
--	case PM_SUSPEND_MEM:
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return error;
+ #ifdef CONFIG_SOFTWARE_SUSPEND
++static int acpi_hibernation_start(void)
++{
++	acpi_target_sleep_state = ACPI_STATE_S4;
 +	return 0;
- }
- 
- 
-@@ -661,16 +649,14 @@ static int omap_pm_enter(suspend_state_t
- 
- /**
-  *	omap_pm_finish - Finish up suspend sequence.
-- *	@state:		State we're coming out of.
-  *
-  *	This is called after we wake back up (or if entering the sleep state
-  *	failed).
-  */
- 
--static int omap_pm_finish(suspend_state_t state)
-+static void omap_pm_finish(void)
++}
++
+ static int acpi_hibernation_prepare(void)
  {
- 	pm_idle = saved_idle;
--	return 0;
+ 	return acpi_sleep_prepare(ACPI_STATE_S4);
+@@ -234,6 +240,8 @@ static void acpi_hibernation_finish(void
+ 
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
++
++	acpi_target_sleep_state = ACPI_STATE_S0;
  }
  
- 
-Index: linux-2.6.22-rc6/arch/arm/mach-omap2/pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/arm/mach-omap2/pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/arm/mach-omap2/pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -72,26 +72,10 @@ void omap2_pm_idle(void)
- 
- static int omap2_pm_prepare(suspend_state_t state)
- {
--	int error = 0;
--
- 	/* We cannot sleep in idle until we have resumed */
- 	saved_idle = pm_idle;
- 	pm_idle = NULL;
--
--	switch (state)
--	{
--	case PM_SUSPEND_STANDBY:
--	case PM_SUSPEND_MEM:
--		break;
--
--	case PM_SUSPEND_DISK:
--		return -ENOTSUPP;
--
--	default:
--		return -EINVAL;
--	}
--
--	return error;
-+	return 0;
+ static int acpi_hibernation_pre_restore(void)
+@@ -251,9 +259,11 @@ static void acpi_hibernation_restore_cle
  }
  
- #define INT0_WAKE_MASK	(OMAP_IRQ_BIT(INT_24XX_GPIO_BANK1) |	\
-@@ -362,10 +346,9 @@ static int omap2_pm_enter(suspend_state_
- 	return ret;
- }
- 
--static int omap2_pm_finish(suspend_state_t state)
-+static void omap2_pm_finish(suspend_state_t state)
- {
- 	pm_idle = saved_idle;
--	return 0;
- }
- 
- static struct platform_suspend_operations omap_pm_ops = {
-Index: linux-2.6.22-rc6/arch/blackfin/mach-common/pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/blackfin/mach-common/pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/blackfin/mach-common/pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -89,28 +89,15 @@ void bfin_pm_suspend_standby_enter(void)
- #endif				/* CONFIG_PM_WAKEUP_GPIO_BY_SIC_IWR */
- }
- 
--
- /*
-- *	bfin_pm_prepare - Do preliminary suspend work.
-- *	@state:		suspend state we're entering.
-+ *	bfin_pm_valid - Tell the PM core that we only support the standby sleep
-+ *			state
-+ *	@state:		suspend state we're checking.
-  *
-  */
--static int bfin_pm_prepare(suspend_state_t state)
-+static int bfin_pm_valid(suspend_state_t state)
- {
--	int error = 0;
--
--	switch (state) {
--	case PM_SUSPEND_STANDBY:
--		break;
--
--	case PM_SUSPEND_MEM:
--		return -ENOTSUPP;
--
--	default:
--		return -EINVAL;
--	}
--
--	return error;
-+	return (state == PM_SUSPEND_STANDBY);
- }
- 
- /*
-@@ -135,33 +122,9 @@ static int bfin_pm_enter(suspend_state_t
- 	return 0;
- }
- 
--/*
-- *	bfin_pm_finish - Finish up suspend sequence.
-- *	@state:		State we're coming out of.
-- *
-- *	This is called after we wake back up (or if entering the sleep state
-- *	failed).
-- */
--static int bfin_pm_finish(suspend_state_t state)
--{
--	switch (state) {
--	case PM_SUSPEND_STANDBY:
--		break;
--
--	case PM_SUSPEND_MEM:
--		return -ENOTSUPP;
--
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
- struct platform_suspend_operations bfin_pm_ops = {
--	.prepare = bfin_pm_prepare,
-+	.valid = bfin_pm_valid,
- 	.enter = bfin_pm_enter,
--	.finish = bfin_pm_finish,
+ static struct hibernation_ops acpi_hibernation_ops = {
++	.start = acpi_hibernation_start,
++	.pre_snapshot = acpi_hibernation_prepare,
++	.finish = acpi_hibernation_finish,
+ 	.prepare = acpi_hibernation_prepare,
+ 	.enter = acpi_hibernation_enter,
+-	.finish = acpi_hibernation_finish,
+ 	.pre_restore = acpi_hibernation_pre_restore,
+ 	.restore_cleanup = acpi_hibernation_restore_cleanup,
  };
- 
- static int __init bfin_pm_init(void)
-Index: linux-2.6.22-rc6/arch/powerpc/platforms/52xx/mpc52xx_pm.c
-===================================================================
---- linux-2.6.22-rc6.orig/arch/powerpc/platforms/52xx/mpc52xx_pm.c	2007-06-25 21:58:38.000000000 +0200
-+++ linux-2.6.22-rc6/arch/powerpc/platforms/52xx/mpc52xx_pm.c	2007-06-25 21:58:38.000000000 +0200
-@@ -25,6 +25,7 @@ static void *sram;
- static int sram_size;
- 
- struct mpc52xx_suspend mpc52xx_suspend;
-+static suspend_state_t mpc52xx_pm_target_state;
- 
- static int mpc52xx_pm_valid(suspend_state_t state)
- {
-@@ -57,11 +58,8 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 l
- 	return 0;
- }
- 
--int mpc52xx_pm_prepare(suspend_state_t state)
-+static int mpc52xx_pm_prepare(void)
- {
--	if (state != PM_SUSPEND_STANDBY)
--		return -EINVAL;
--
- 	/* map the whole register space */
- 	mbar = mpc52xx_find_and_map("mpc5200");
- 	if (!mbar) {
-@@ -166,7 +164,7 @@ int mpc52xx_pm_enter(suspend_state_t sta
- 	return 0;
- }
- 
--int mpc52xx_pm_finish(suspend_state_t state)
-+static void mpc52xx_pm_finish(void)
- {
- 	/* call board resume code */
- 	if (mpc52xx_suspend.board_resume_finish)
-
