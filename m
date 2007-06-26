@@ -1,29 +1,29 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 3/8] ACPI: Add acpi_pm_device_sleep_state helper routine (updated)
-Date: Tue, 26 Jun 2007 12:00:28 +0200
-Message-ID: <200706261200.29421.rjw@sisk.pl>
-References: <200706242239.05678.rjw@sisk.pl> <200706260039.17530.rjw@sisk.pl> <200706260045.51039.rjw@sisk.pl>
+Subject: [RFC/RFT][PATCH -mm 3/8] ACPI: Add acpi_pm_device_sleep_state helper routine (updated 2x)
+Date: Tue, 26 Jun 2007 12:34:20 +0200
+Message-ID: <200706261234.22073.rjw@sisk.pl>
+References: <200706242239.05678.rjw@sisk.pl> <200706260045.51039.rjw@sisk.pl> <200706261200.29421.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43813 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:43936 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbXFZJx3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jun 2007 05:53:29 -0400
-In-Reply-To: <200706260045.51039.rjw@sisk.pl>
+	id S1751987AbXFZK1a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jun 2007 06:27:30 -0400
+In-Reply-To: <200706261200.29421.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: pm list <linux-pm@lists.linux-foundation.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-[The previous version wouldn't work correctly.]
+[The previous version didn't compile.  Sorry for the mess.]
 ---
 From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
 
-Based on the David Brownell's patch at
+Based on David Brownell's patch at
 http://marc.info/?l=linux-acpi&m=117873972806360&w=2
 
 Add a helper routine returning the lowest power (highest number) ACPI device
@@ -31,7 +31,7 @@ power state that given device can be in while the system is in the sleep state
 indicated by acpi_target_sleep_state .
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+
  drivers/acpi/sleep/main.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
  include/acpi/acpi_bus.h   |    2 +
  2 files changed, 53 insertions(+)
@@ -58,7 +58,7 @@ Index: linux-2.6.22-rc6/drivers/acpi/sleep/main.c
 +	unsigned long d_min, d_max;
 +	struct acpi_device *dev;
 +
-+	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev)))
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
 +		printk(KERN_ERR "ACPI handle has no context!\n");
 +		return -ENODEV;
 +	}
