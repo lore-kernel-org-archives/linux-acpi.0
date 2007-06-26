@@ -1,113 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC/RFT][PATCH -mm 3/8] ACPI: Add acpi_pm_device_sleep_state helper routine (updated 2x)
-Date: Tue, 26 Jun 2007 12:34:20 +0200
-Message-ID: <200706261234.22073.rjw@sisk.pl>
-References: <200706242239.05678.rjw@sisk.pl> <200706260045.51039.rjw@sisk.pl> <200706261200.29421.rjw@sisk.pl>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Tue, 26 Jun 2007 09:33:16 -0400
+Message-ID: <1182864796.5186.39.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43936 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987AbXFZK1a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jun 2007 06:27:30 -0400
-In-Reply-To: <200706261200.29421.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from wx-out-0506.google.com ([66.249.82.232]:10661 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752193AbXFZNdV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2007 09:33:21 -0400
+Received: by wx-out-0506.google.com with SMTP id t15so1770358wxc
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jun 2007 06:33:20 -0700 (PDT)
+In-Reply-To: <1182811210.6644.22.camel@johannes.berg>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
-[The previous version didn't compile.  Sorry for the mess.]
----
-From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
+On Tue, 2007-26-06 at 00:40 +0200, Johannes Berg wrote:
 
-Based on David Brownell's patch at
-http://marc.info/?l=linux-acpi&m=117873972806360&w=2
+> I wonder if we should hold off on this API until we've worked out the
+> multicast issue.
 
-Add a helper routine returning the lowest power (highest number) ACPI device
-power state that given device can be in while the system is in the sleep state
-indicated by acpi_target_sleep_state .
+I think we can fix all the code in one shot later. I just glanced at
+your patch but i have to run out, i will stare at it later - seems to be
+in the right direction.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+cheers,
+jamal
 
- drivers/acpi/sleep/main.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h   |    2 +
- 2 files changed, 53 insertions(+)
 
-Index: linux-2.6.22-rc6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.22-rc6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6.22-rc6/drivers/acpi/sleep/main.c
-@@ -262,6 +262,57 @@ static struct hibernation_ops acpi_hiber
- };
- #endif				/* CONFIG_SOFTWARE_SUSPEND */
- 
-+/**
-+ *	acpi_pm_device_sleep_state - return the lowest power (highest number)
-+ *				     ACPI device power state given device can be
-+ *				     in while the system is in the sleep state
-+ *				     indicated by %acpi_target_sleep_state
-+ *	@handle: Represents the device the state is evaluated for
-+ */
-+
-+int acpi_pm_device_sleep_state(acpi_handle handle)
-+{
-+	char acpi_method[] = "_SxD";
-+	unsigned long d_min, d_max;
-+	struct acpi_device *dev;
-+
-+	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
-+		printk(KERN_ERR "ACPI handle has no context!\n");
-+		return -ENODEV;
-+	}
-+	acpi_method[2] = '0' + acpi_target_sleep_state;
-+	/*
-+	 * If the sleep state is S0, we will return D3, but if the device has
-+	 * _S0W, we will use the value from _S0W
-+	 */
-+	d_min = ACPI_STATE_D3;
-+	d_max = ACPI_STATE_D3;
-+	/*
-+	 * If present, _SxD methods give the minimum D-state we may use
-+	 * for each S-state ... with lowest latency state switching.
-+	 *
-+	 * We rely on acpi_evaluate_integer() not clobbering the integer
-+	 * provided -- that's our fault recovery, we ignore retval.
-+	 */
-+	if (acpi_target_sleep_state > ACPI_STATE_S0)
-+		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
-+
-+	/*
-+	 * If _PRW says we can wake from the upcoming system state, the _SxD
-+	 * value can wake ... and we'll assume a wakeup-aware driver.  If _SxW
-+	 * methods exist (ACPI 3.x), they give the lowest power D-state that
-+	 * can also wake the system.  _S0W can be valid.
-+	 */
-+	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-+	    (dev->wakeup.state.enabled &&
-+	     dev->wakeup.sleep_state <= acpi_target_sleep_state)) {
-+		d_max = d_min;
-+		acpi_method[3] = 'W';
-+		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
-+	}
-+	return d_max;
-+}
-+
- /*
-  * Toshiba fails to preserve interrupts over S1, reinitialization
-  * of 8259 is needed after S1 resume.
-Index: linux-2.6.22-rc6/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.22-rc6.orig/include/acpi/acpi_bus.h
-+++ linux-2.6.22-rc6/include/acpi/acpi_bus.h
-@@ -364,6 +364,8 @@ acpi_handle acpi_get_child(acpi_handle, 
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
- 
-+int acpi_pm_device_sleep_state(acpi_handle handle);
-+
- #endif				/* CONFIG_ACPI */
- 
- #endif /*__ACPI_BUS_H__*/
+
+
