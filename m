@@ -1,36 +1,46 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC/RFT][PATCH -mm 6/8] PM: Rework struct platform_suspend_operations
-Date: Tue, 26 Jun 2007 10:52:22 +0200
-Message-ID: <20070626085222.GB4594@elf.ucw.cz>
-References: <200706242239.05678.rjw@sisk.pl> <200706260039.17530.rjw@sisk.pl> <200706260049.40457.rjw@sisk.pl>
+Subject: Re: [RFC/RFT][PATCH -mm 1/4] PM: Introduce set_target
+	method in pm_ops
+Date: Tue, 26 Jun 2007 10:55:13 +0200
+Message-ID: <20070626085513.GD4594@elf.ucw.cz>
+References: <200706242239.05678.rjw@sisk.pl> <200706242240.40476.rjw@sisk.pl>
+	<1182806886.6644.4.camel@johannes.berg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:53697 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756751AbXFZWZ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jun 2007 18:25:58 -0400
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200706260049.40457.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1182806886.6644.4.camel@johannes.berg>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Len Brown <len.brown@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>
 
-Hi!
-
-> There is no reason why the .prepare() and .finish() methods in 'struct
-> platform_suspend_operations' should take any arguments, since architectures
-> don't use these methods' argument in any practically meaningful way (ie. either
-> the target system sleep state is conveyed to the platform by .set_target(), or
-> there is only one suspend state supported and it is indicated to the PM core by
-> .valid(), or .prepare() and .finish() aren't defined at all).  There also is
-> no reason why .finish() should return any result.
+On Mon 2007-06-25 23:28:06, Johannes Berg wrote:
+> On Sun, 2007-06-24 at 22:40 +0200, Rafael J. Wysocki wrote:
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > + * @set_target: Tell the platform which system sleep state is going to be
+> > + *	entered.  The information passed to @set_target should be disregarded
+> > + *	by the platform as soon as @finish() is executed and if	@prepare()
+> > + *	fails.
+> > + *	This callback is optional.  However, if it is implemented, the
+> > + *	argument passed to @prepare(), @enter and @finish() must be ignored.
+> 
+> I don't understand the point in mandating that then the argument to
+> enter() is to be ignored, why bother? It doesn't look as though we can
+> possibly do anything with the semantics here that would mean the state
+> set by set_target is different to the state passed to enter(), can we?
 
-ACK. (Maybe you should not in changelog that this changes absolutely
-no behaviour; it is not immediately obvious).
+That's what 4/4 does, AFAICT.
+
+
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
