@@ -1,70 +1,143 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC/RFT][PATCH -mm 1/8][bugfix] PM: Introduce set_target method in pm_ops
-Date: Wed, 27 Jun 2007 22:55:55 +0200
-Message-ID: <200706272255.57243.rjw@sisk.pl>
-References: <200706242239.05678.rjw@sisk.pl> <200706260041.20561.rjw@sisk.pl> <200706271341.53599.david-b@pacbell.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Wed, 27 Jun 2007 19:24:41 -0400
+Message-ID: <1182986681.5155.55.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51318 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754644AbXF0Usk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Jun 2007 16:48:40 -0400
-In-Reply-To: <200706271341.53599.david-b@pacbell.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1182811210.6644.22.camel@johannes.berg>
+Sender: netdev-owner@vger.kernel.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Andrew Victor <andrew@sanpeople.com>
 
-On Wednesday, 27 June 2007 22:41, David Brownell wrote:
-> On Monday 25 June 2007, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > The at91 platform code incorrectly assumes that pm_ops->prepare() will be called
+
+On Tue, 2007-26-06 at 00:40 +0200, Johannes Berg wrote:
+
+> I wonder if we should hold off on this API until we've worked out the
+> multicast issue.
+
+Even if the ACPI thing goes in first, you will have to change a few
+others that are existing in-kernel that need to be changed sooner or
+later. So either way is fine.
+
+> My proposition for the actual dynamic registration interface would be to
+> add a .groups array to pointers to struct genl_family with that just
+> being
 > 
-> Make that "code assumes that ... but that requirement was broken
-> by a patch merged in RC5 to make ACPI behave better."  That is,
-> the problem is not that the AT91 code was doing anything wrong,
-> it's that the API definition changed (incompatibly!) in RC5.
-> 
-> > before devices are suspended and uses it to make the PM core set the target
-> > system sleep state used by the platform when suspending devices.  Thus, at91
-> > needs a new member function in 'struct pm_ops' that will be used by the PM core
-> > to convey the target system sleep state to the platform code before devices are
-> > suspended.
-> > 
-> > Moreover, in the future some drivers may need to use ACPI to determine the low
-> > power states in which to place their devices, but to provide the drivers with
-> > this information the ACPI core needs to know what sleep state the system is
-> > going to enter.  Namely, the device's state should not be too high power for
-> > given system sleep state and, if the device is supposed to be able to wake up
-> > the system, its state should not be too low power for the wake up to be
-> > possible).  However, pm_ops->prepare() is only called after the drivers'
-> > .suspend() callbacks have been executed, so we need an additional means to
-> > convey the target system sleep state to the ACPI core.  The new member function
-> > in 'struct pm_ops', set_target(), can be used for this purpose.
-> 
-> That's all extremely verbose:  (a) prepare() used to be called
-> early, so a platform knew the target state while devices were
-> being suspended; (b) that changed in RC5; (c) we still need a
-> call delivering the original semantics, since (c1) AT91 depends
-> on it now and (c2) ACPI should be depending on it, and this change
-> broke a patch fixing that; ... so (d) here's a patch adding a new
-> function that can do what prepare() used to do.
+> struct genl_multicast_group {
+> 	char *name;
+> 	u32 id;
+> }
 
-OK, I'll modify the changelog.
+heres some feedback:
+- I think you should use the same approach as we use for ops. 
+a) i.e other than the reserved group for controller (which you seem to
+be taking care of), every other genetlink user has to explicitly
+register when they need a mcast group. 
+b) While the names may vary on a per-family basis, the Grpids should be
+unique (e.g when you run out of group ids - it would take a lot more
+allocations than there are families; 32 bit vs 16 bit for that to
+happen)
+c) Use a global hash table to store all the genl_multicast_groups;
+I think this (handwaving) should be searchable by i) name ii)ID and iii)
+family. 
 
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+> --- wireless-dev.orig/include/net/genetlink.h	2007-06-25 23:56:59.085732308 +0200
+> +++ wireless-dev/include/net/genetlink.h	2007-06-26 00:01:43.935732308 +0200
+> @@ -5,12 +5,26 @@
+>  #include <net/netlink.h>
+>  
+>  /**
+> + * struct genl_multicast_group - generic netlink multicast group
+> + * @name: name of the multicast group, names are per-family
+> + * @id: multicast group ID, assigned by the core, to use with
+> + *      genlmsg_multicast().
+> + */
+> +struct genl_multicast_group
+> +{
+> +	char	name[GENL_NAMSIZ];
+> +	u32	id;
+> +};
 
-Thanks,
-Rafael
+Add the list constructs on the struct - look at the way commands are
+done.
+We do use hash tables for global storage of families for example.
+ 
+> +/**
+>   * struct genl_family - generic netlink family
+>   * @id: protocol family idenfitier
+>   * @hdrsize: length of user specific header in bytes
+>   * @name: name of family
+>   * @version: protocol version
+>   * @maxattr: maximum number of attributes supported
+> + * @multicast_groups: multicast groups to be registered
+> + *	for this family (%NULL-terminated array)
+>   * @attrbuf: buffer to store parsed attributes
+>   * @ops_list: list of all assigned operations
+>   * @family_list: family list
+> @@ -22,6 +36,7 @@ struct genl_family
+>  	char			name[GENL_NAMSIZ];
+>  	unsigned int		version;
+>  	unsigned int		maxattr;
+> +	struct genl_multicast_group **multicast_groups;
+
+If you do the lists (struct list_head) you wont need this.
 
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+> +static unsigned long mcast_group_start = 0x3;
+> +static unsigned long *multicast_groups = &mcast_group_start;
+> +static unsigned long multicast_group_bits = BITS_PER_LONG;
+
+I think if you used a hash table you wont need to keep track of the
+above; maybe not - You may still need the above to keep track of which
+IDs are in use and where holes in multicast group ID space exist
+(assuming some are going to be unregistered over time etc) 
+
+
+> +
+> +static int genl_register_mcast_groups(struct genl_family *family)
+> +{
+
+ we use a simple scheme in the case of families; once all
+IDs are consumed we dont alloc more - in the case of mcast grps this is
+not necessary IMO i.e it doesnt matter if there is collision when you
+run out. You return errors at the moment.
+
+
+> --- wireless-dev.orig/include/linux/genetlink.h	2007-06-25 23:56:19.895732308 +0200
+> +++ wireless-dev/include/linux/genetlink.h	2007-06-26 00:33:36.785732308 +0200
+> @@ -52,6 +52,9 @@ enum {
+>  	CTRL_ATTR_HDRSIZE,
+>  	CTRL_ATTR_MAXATTR,
+>  	CTRL_ATTR_OPS,
+> +	CTRL_ATTR_MCAST_GROUPS,
+> +	CTRL_ATTR_MCAST_GRP_NAME,
+> +	CTRL_ATTR_MCAST_GRP_ID,
+
+Dont think those last two belong in the same namespace. i.e  they should
+be a separate enum; even more the name/id pair probably belong in one
+TLV under the struct genl_multicast_group that is exported to user
+space.
+
+Overall: I think you are on the right path. Good stuff.
+I see user space doing a discovery of which groups a family belongs to
+or even doing a bind-by-name in which the underlying user-space code
+does a discovery to find the id, then does a bind to that id.
+
+cheers,
+jamal
+
