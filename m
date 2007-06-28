@@ -1,65 +1,166 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Thu, 28 Jun 2007 13:27:21 +0200
-Message-ID: <200706281327.29962.eike-kernel@sf-tec.de>
-References: <1180614979.2693.26.camel@localhost.localdomain> <200706260703.22994.eike-kernel@sf-tec.de> <1182848195.2335.0.camel@work>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [Fwd: Re: long-term regression - Parallel Port broken?]
+Date: Thu, 28 Jun 2007 13:28:00 +0200
+Message-ID: <1183030080.4249.172.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1303352.hcWxgIIjnn";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sf-mail.de ([62.27.20.61]:41133 "EHLO mail.sf-mail.de"
+Received: from ns.suse.de ([195.135.220.2]:54323 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760042AbXF1L1g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2007 07:27:36 -0400
-In-Reply-To: <1182848195.2335.0.camel@work>
+	id S1760051AbXF1L2B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jun 2007 07:28:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>
+To: david@lang.hm
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
---nextPart1303352.hcWxgIIjnn
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi David,
 
-Richard Hughes wrote:
-> On Tue, 2007-06-26 at 07:03 +0200, Rolf Eike Beer wrote:
->> Richard Hughes wrote:
->>> On Sat, 2007-06-23 at 16:56 +0200, Rolf Eike Beer wrote:
->>>> None of the above keys generated a key event. Neither does
->>>> "Brightness down", but it still works. "Brightness up" generates an ev=
-ent
->>>> and works.
->>
->>>> Kpowersave tells me it can't do brightness switching in software
->>>> (which works in WinXtraPain).
->>
->> Yes, I need a special process running for this. Would it be of some
->> use if I take a look with IRPtracker on it or is that all you need to
->> know?
->
-> Yes, although this is out of my area or expertise, sorry.
+Could this problem have to do with this one:
+https://bugzilla.novell.com/show_bug.cgi?id=180390
+Tell me if you have problems accessing the bug, it should be public.
+Unfortunately the ongoing of the bug stopped a bit for various reasons.
 
-I've looked a bit but can't find any driver interaction of those programs. =
-Any=20
-further ideas welcome.
+The first comments pointed in the wrong direction, it's getting
+interesting when Vojtech joined the conversation and things pointed to
+acpi, possibly acpipnp.
 
-Eike
+First a collection of acpidump outputs of affected machines would be
+great, hopefully other reporters start helping again...
 
---nextPart1303352.hcWxgIIjnn
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+If it is the same bug, it's interesting that 2.6.18-rc3 worked for you
+(vanilla or gentoo?). Because SLE[DS]10 is 2.6.16 based, we could have
+backported the bug and that might help finding it?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
+Thanks,
 
-iD8DBQBGg5shXKSJPmm5/E4RAhAjAKCLxeHcxmfOxAe9Gp+/4LpiDWKBtgCcCNUP
-lkB5X4zHPHcnuqI3uPZpwyQ=
-=avti
------END PGP SIGNATURE-----
+   Thomas
 
---nextPart1303352.hcWxgIIjnn--
+PS: I stripped the CC list, things seem to point to acpi...
+
+PSS: Has there already been a bug at bugzilla.kernel.org opened where
+dmesg, acpidump and other info can be reviewed? If not this should be
+done.
+
+On Wed, 2007-06-27 at 09:19 -0700, Randy Dunlap wrote:
+> [adding linux-acpi@vger.kernel.org]
+> 
+> On Wed, 27 Jun 2007 00:38:17 -0700 (PDT) david@lang.hm wrote:
+> 
+> > On Tue, 26 Jun 2007, Randy Dunlap wrote:
+> > 
+> > > On Mon, 25 Jun 2007 15:56:17 -0700 (PDT) david@lang.hm wrote:
+> > >
+> > >> due to the size the files are posted at http://linux.lang.hm/linux
+> > >>
+> > >> let me know what else I can send to help.
+> > >>
+> > >> David Lang
+> > >
+> > >
+> > > I suggest that you test 2.6.22-rcN using one or both of these
+> > > boot options:
+> > >
+> > > noisapnp
+> > > pnpacpi=off
+> > >
+> > > Somewhere between 2.6.18 and 2.6.22-development, the ACPI config
+> > > symbol also starting enabling (selecting) PNP.  That's one of many
+> > > differences....
+> > 
+> > with the 2.6.22-rc4 kernel that I was useing earlier, adding these two 
+> > options clears up the problem. Thanks.
+> > 
+> > should I test the two individually? or just plan on useing both from now 
+> > on?
+> 
+> Yes, please test them individually.  I expect that just one of them
+> will suffice, but I don't know which one.
+> 
+> > I normally disable PnP (both ISA and PCI), should I leave it enabled with 
+> > the newer kernels and this motherboard?
+> 
+> ACPI recently began enabling (selecting) PNP for you...
+> 
+> How do you normally disable PCI PNP?
+> 
+> What kind of hardware is this?  Please show us lspci output.
+> 
+> > > I would also disable CONFIG_USB_USS720, at least for testing.
+> > 
+> > for ease of testing (I got time to reboot the box around midnight) I used 
+> > the same config as before, so this is still on.
+> > 
+> > David Lang
+> > 
+> > >
+> > >> On Mon, 25 Jun 2007, Randy Dunlap wrote:
+> > >>
+> > >>> Date: Mon, 25 Jun 2007 15:40:28 -0700
+> > >>> From: Randy Dunlap <randy.dunlap@oracle.com>
+> > >>> To: david@lang.hm
+> > >>> Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
+> > >>>     linux-usb-devel@lists.sourceforge.net
+> > >>> Subject: Re: long-term regression
+> > >>>
+> > >>> david@lang.hm wrote:
+> > >>>>  On Thu, 21 Jun 2007, Randy Dunlap wrote:
+> > >>>>
+> > >>>>>  Date: Thu, 21 Jun 2007 08:36:59 -0700
+> > >>>>>  From: Randy Dunlap <randy.dunlap@oracle.com>
+> > >>>>>  To: Andrew Morton <akpm@linux-foundation.org>
+> > >>>>>  Cc: david@lang.hm, linux-kernel@vger.kernel.org,
+> > >>>>>      linux-usb-devel@lists.sourceforge.net
+> > >>>>>  Subject: Re: long-term regression
+> > >>>>>
+> > >>>>>  On Thu, 21 Jun 2007 05:28:07 -0700 Andrew Morton wrote:
+> > >>>>>
+> > >>>>>>>  On Sun, 17 Jun 2007 10:57:55 -0700 (PDT) david@lang.hm wrote:
+> > >>>>>>>  I haven't had time to bisect this, but I'm having a problem on a
+> > >>>>>>>  AMD64
+> > >>>>>>>  gentoo system where the printer doesn't work with recent kernels.
+> > >>>>>>>
+> > >>>>>>>  2.6.18-rc3 worked
+> > >>>>>>>  2.6.21.1 doesn't
+> > >>>>>>>  2.6.22-rc4 doesn't
+> > >>>>>>>
+> > >>>>>>>  unfortunantly the system is gooted on 2.6.18 at the moment and I'm
+> > >>>>>>>  out of
+> > >>>>>>>  town so my ability to test is limited I can provide the 2.6.22-rc4
+> > >>>>>>>  (attached) and 2.6.18-rc3 configs.
+> > >>>>>>>
+> > >>>>>>>  dmesg appears to show the port being detected, but writes to the
+> > >>>>>>>  port
+> > >>>>>>>  under newer kernels appear to complete, but no data gets to the
+> > >>>>>>>  printer.
+> > >>>>>>>
+> > >>>>>>>  any suggestions other then doing the large bisect?
+> > >>>>>>
+> > >>>>>>  That would be good, thanks.  Please be sure to cc linux-usb-devel on
+> > >>>>>>  the results.
+> > >>>>>
+> > >>>>>  OK, I'm curious about how someone deduced that this is a problem
+> > >>>>>  with a USB printer vs. parallel port printer since the config file has:
+> > >>>>>
+> > >>>>>  CONFIG_PRINTER=y
+> > >>>>>  CONFIG_USB_PRINTER=y
+> > >>>>>
+> > >>>>>  The kernel boot log should probably be posted also.
+> > >>>>
+> > >>>>  here is the dmesg from 2.6.22-rc4 and kern.log showing 2.6.22.-rc4 and
+> > >>>>  2.6.180rc3
+> > >>>>
+> > >>>>  the printer not working is the parallel port.
+> > >>>
+> > >>> This email didn't show up on lkml or linux-usb-devel due to size limits (it
+> > >>> was 900+ KB).
+> > >>>
+> > >>> David, please send your working 2.6.18 config file.
+> > >>>
+> > >>> Can you post the kernel log files on the web somewhere?
+> 
+> ---
+
+
