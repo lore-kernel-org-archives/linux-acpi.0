@@ -1,38 +1,57 @@
-From: "Renato S. Yamane" <renatoyamane@mandic.com.br>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Thu, 28 Jun 2007 09:22:38 -0300
-Message-ID: <4683A80E.4070006@mandic.com.br>
-References: <1180614979.2693.26.camel@localhost.localdomain> <200706260703.22994.eike-kernel@sf-tec.de> <1182848195.2335.0.camel@work> <200706281327.29962.eike-kernel@sf-tec.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: beeping patch for debugging acpi sleep
+Date: Thu, 28 Jun 2007 14:08:15 +0000
+Message-ID: <20070628140815.GA5339@ucw.cz>
+References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz> <20070616194634.GA15953@core> <20070624204629.GA28049@core>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-03.mandic.com.br ([200.225.81.143]:57534 "EHLO
-	smtp-03.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759045AbXF1MdF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2007 08:33:05 -0400
-In-Reply-To: <200706281327.29962.eike-kernel@sf-tec.de>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2982 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1761433AbXF1Osu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jun 2007 10:48:50 -0400
+Content-Disposition: inline
+In-Reply-To: <20070624204629.GA28049@core>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Cc: Richard Hughes <hughsient@gmail.com>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>, Mathieu.Berard@crans.org
+To: Christian Leber <christian@leber.de>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
 
-Rolf Eike Beer wrote:
-> Richard Hughes wrote:
->> Yes, although this is out of my area or expertise, sorry.
+Hi!
+
+> > The results are a bit unclear, I took a 2.6.22-rc4 with beep.
+> > Logged into KDE.
+> > (hardware: Dell Latitude D810)
+> > 
+> > S = successfull resume
+> > D = had to resume 2 times, that means when pressing the power button the
+> > LED goes from blinking to on and after a few seconds it goes back to
+> > blinking, but without a beep in between; after pressing the power button
+> > a second time resume is successfull
+> > F = resume failes, NO beep
+> > 
+> > -run 1: D D F
+> > -run 2: D D D(some X garbadge) F
+> > -run 3: S S S S S S F
+> > -run 4: S S F
+> > -run 5: D F
 > 
-> I've looked a bit but can't find any driver interaction of those programs. Any 
-> further ideas welcome.
+> I tracked the problem halfway down, with 2.6.20-rc1-ubuntu1 [1] it works
+> and with 2.6.20-rc2-ubuntu2 [2] not.
+> 
+> The diff is here, unfortunately the acpi changes are about 100kb.
+> http://debian.christian-leber.de/2.2-3.4.patch
+> 
+> (the problem is a bit different, it suspends, when trying to resume it
+> goes back to suspend and when i try again it's dead)
 
-Do you try omnibook driver?
-svn export https://svn.sourceforge.net/svnroot/omnibook/omnibook/trunk
+It may well be different problem :-(. 100KB diff and I'm not an acpi
+expert :-(.
 
-toshiba_acpi don't work on my Toshiba M45-S355 (Toshiba BIOS) and I try 
-this module above and now I can change brightness writing in 
-/proc/omnibook/lcd and kpowersave can change brightness too.
+I just discovered I have problems with s2ram, too, but it looks like
+usermodehelper is responsible.
 
-But, is impossible use multimedia keys (play, pause, browser, etc) and 
-couple keys (fn-fx), because Fn key and Multimedia keys don't is recognized.
-
-Regards,
-Renato S. Yamane
+							Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
