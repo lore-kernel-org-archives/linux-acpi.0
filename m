@@ -1,57 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: beeping patch for debugging acpi sleep
-Date: Thu, 28 Jun 2007 14:08:15 +0000
-Message-ID: <20070628140815.GA5339@ucw.cz>
-References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz> <20070616194634.GA15953@core> <20070624204629.GA28049@core>
+From: Mikhail Gusarov <dottedmag@dottedmag.net>
+Subject: Asus M6*, A6*, L5D - can't reboot after suspend/resume
+Date: Fri, 29 Jun 2007 03:52:05 +0700
+Message-ID: <87myyjdcp6.fsf@vertex.dottedmag.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2982 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761433AbXF1Osu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2007 10:48:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20070624204629.GA28049@core>
+Received: from dottedmag.net ([85.118.226.199]:54659 "EHLO dottedmag.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756303AbXF1UwG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jun 2007 16:52:06 -0400
+Received: from vertex.dottedmag.net (unknown [10.10.31.3])
+	by dottedmag.net (Postfix) with ESMTP id B62101DE21
+	for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2007 03:52:05 +0700 (NOVST)
+Received: from vertex.dottedmag.net (localhost [127.0.0.1])
+	by vertex.dottedmag.net (Postfix) with ESMTP id 5AE3A13BD3
+	for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2007 03:52:05 +0700 (NOVST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Leber <christian@leber.de>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi!
+Hi.
 
-> > The results are a bit unclear, I took a 2.6.22-rc4 with beep.
-> > Logged into KDE.
-> > (hardware: Dell Latitude D810)
-> > 
-> > S = successfull resume
-> > D = had to resume 2 times, that means when pressing the power button the
-> > LED goes from blinking to on and after a few seconds it goes back to
-> > blinking, but without a beep in between; after pressing the power button
-> > a second time resume is successfull
-> > F = resume failes, NO beep
-> > 
-> > -run 1: D D F
-> > -run 2: D D D(some X garbadge) F
-> > -run 3: S S S S S S F
-> > -run 4: S S F
-> > -run 5: D F
-> 
-> I tracked the problem halfway down, with 2.6.20-rc1-ubuntu1 [1] it works
-> and with 2.6.20-rc2-ubuntu2 [2] not.
-> 
-> The diff is here, unfortunately the acpi changes are about 100kb.
-> http://debian.christian-leber.de/2.2-3.4.patch
-> 
-> (the problem is a bit different, it suspends, when trying to resume it
-> goes back to suspend and when i try again it's dead)
+ping'ing mailing list: there is stuck bug in bugzilla and probably fresh eyes
+need to look at it to find the obvious solution :) Sorry if this noise is
+unnecessary.
 
-It may well be different problem :-(. 100KB diff and I'm not an acpi
-expert :-(.
+Bug is http://bugzilla.kernel.org/show_bug.cgi?id=8598
 
-I just discovered I have problems with s2ram, too, but it looks like
-usermodehelper is responsible.
+Summary:
 
-							Pavel
+Most recent kernel where this bug did not occur: n/a
+Distribution: debian/sid
+Hardware Environment: Asus A6B, A6BA, M6A, M6N, M6NE, L5D notebooks
+Problem Description: After S3 STR reboot does not work, reboot=w,h and
+reboot=c,b, no luck. System shows message about restarting system. Caps lock and
+num lock LEDs flash, but it does not reboot.
+
+I personally have only M6N notebook, so can test things only on it.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+JID: dottedmag@jabber.dottedmag.net
