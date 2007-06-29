@@ -1,7 +1,7 @@
-From: jamal <hadi@cyberus.ca>
+From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 07:17:15 -0400
-Message-ID: <1183115835.5156.37.camel@localhost>
+Date: Fri, 29 Jun 2007 13:28:47 +0200
+Message-ID: <1183116527.4089.40.camel@johannes.berg>
 References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1179831825.4121.30.camel@localhost>
 	 <1180258853.7707.53.camel@localhost.localdomain>
@@ -15,135 +15,85 @@ References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1182811210.6644.22.camel@johannes.berg>
 	 <1182986681.5155.55.camel@localhost>
 	 <1183023939.4769.76.camel@johannes.berg>
-Reply-To: hadi@cyberus.ca
+	 <1183115835.5156.37.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.226]:10481 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756384AbXF2LRU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 07:17:20 -0400
-Received: by wx-out-0506.google.com with SMTP id h31so808853wxd
-        for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2007 04:17:19 -0700 (PDT)
-In-Reply-To: <1183023939.4769.76.camel@johannes.berg>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-XMYuzPdr5h5GyWdc0CvU"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1183115835.5156.37.camel@localhost>
+Sender: netdev-owner@vger.kernel.org
+To: hadi@cyberus.ca
 Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
-
-On Thu, 2007-28-06 at 11:45 +0200, Johannes Berg wrote:
-
-> No, the controller is the only other generic netlink multicast user
-> according to what I've found. :)
-
-Scanning the code - true ;-> Iam a little suprised that the task
-accounting folks didnt use it to periodically dump stats. 
-
-> actually didn't you just say that groups don't run out at 32-bit because
-> the groups bitmap can be extended? You wouldn't be able to sign up for
-> the groups >31 at bind() time but with ioctls you can bind higher group
-> numbers after the fact. And the dynamic groups mean you need to bind
-> later anyway since you don't know the ID when you create the socket.
-
-Sorry i meant there are 2^16 families (-1 considering controller)
-There are 2^32 groups (-1 considering controller) for the same number of
-families. i.e i see those items as being global within genetlink.
-
-> > c) Use a global hash table to store all the genl_multicast_groups;
-> > I think this (handwaving) should be searchable by i) name ii)ID and iii)
-> > family. 
-> 
-> Yeah, makes sense, I never liked the bitmap stuff I did there.
-> 
-
-It may be needed and better than how we keep track of the families - I
-was just making a handwaving suggestion; when you code/test it will
-become obvious.
+List-Id: linux-acpi@vger.kernel.org
 
 
-> >  we use a simple scheme in the case of families; once all
-> > IDs are consumed we dont alloc more - in the case of mcast grps this is
-> > not necessary IMO i.e it doesnt matter if there is collision when you
-> > run out. You return errors at the moment.
-> 
-> Are you saying I should double-allocate groups? 
+--=-XMYuzPdr5h5GyWdc0CvU
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I am not sure "double-allocate" would be the right description.
-It sort of like shared-irq or a netdevice running in promisc/bcast mode.
-More below.
+On Fri, 2007-06-29 at 07:17 -0400, jamal wrote:
 
-> I really don't want that
-> since I plan to add permission checks on top of this.
+> > No, the controller is the only other generic netlink multicast user
+> > according to what I've found. :)
+>=20
+> Scanning the code - true ;-> Iam a little suprised that the task
+> accounting folks didnt use it to periodically dump stats.=20
 
-It is just a boundary condition policy. When there are no more groups
-left (Note: it will take a lot of effort to hit that), then what do you
-do?
-Your current approach seems to say "return an error". My suggestion is 
-to just reuse the first or last allocated one or reserve some groups for
-sharing and always make sure someone is guaranteed they will get a group
-when they ask for it. Infact you can even let the family tell you on
-registration whether it is willing to share (and fail allocation if
-nothing shareable is available).
-Each family when using a shared group will always have a unique name to
-itself, so discovery from user space still works - but the id will be
-unique across multiple groups. User space code will be like promisc 
-mode in networking, it will have to filter out the noise. If i ask the
-controller to tell me about a family - it will show all group name/id
-and a tag whether it is shared or not (that way my user space code knows
-it needs to ignore noise it sees).
-I am begining to wonder if Evgeniy's connector actually does this - i
-dont remember. I am almost certain TIPC also does something similar.
-In any case, this is a corner case - the suggestion is how to deal with
-it. You can skin it many ways. Toss a coin - pick one.
+:)
+Because of this I'd really prefer if we could hold off on adding groups,
+but I can handle both cases fine by just reserving a family and group ID
+for the current users.
 
-> > > --- wireless-dev.orig/include/linux/genetlink.h	2007-06-25 23:56:19.895732308 +0200
-> > > +++ wireless-dev/include/linux/genetlink.h	2007-06-26 00:33:36.785732308 +0200
-> > > @@ -52,6 +52,9 @@ enum {
-> > >  	CTRL_ATTR_HDRSIZE,
-> > >  	CTRL_ATTR_MAXATTR,
-> > >  	CTRL_ATTR_OPS,
-> > > +	CTRL_ATTR_MCAST_GROUPS,
-> > > +	CTRL_ATTR_MCAST_GRP_NAME,
-> > > +	CTRL_ATTR_MCAST_GRP_ID,
-> > 
-> > Dont think those last two belong in the same namespace. i.e  they should
-> > be a separate enum; even more the name/id pair probably belong in one
-> > TLV under the struct genl_multicast_group that is exported to user
-> > space.
-> 
-> Hm? Not sure I understand this. These are attributes for the generic
-> netlink controller messages, 
+> Sorry i meant there are 2^16 families (-1 considering controller)
+> There are 2^32 groups (-1 considering controller) for the same number of
+> families. i.e i see those items as being global within genetlink.
 
-Group name/id are nested into CTRL_ATTR_MCAST_GROUPS. Once you nest, you
-are starting to a new namespace i.e as good practice you start counting
-from 0. 
+Yeah, so we shouldn't really be worried about running out of either.
 
-> where else should I put them? 
+> It is just a boundary condition policy. When there are no more groups
+> left (Note: it will take a lot of effort to hit that), then what do you
+> do?
+> Your current approach seems to say "return an error".
 
-A new enum.
+[suggestion snipped]
 
-> Why give them
-> numbers from a different namespace because they're used inside nested
-> attributes?
+I think I'd prefer if we just returned an error. See, we aren't going to
+run out of groups in the foreseeable future, and if we ever have users
+that generate *a lot* of groups we can still add the sharing code etc.
+For now it seems just bloat and a code path we won't ever touch so prone
+to errors in it.
 
-Sorry - i should have read up to here ;-> Yes, it is because of the
-nesting. Again consider the suggestion of sending just one TLV.
+> > Why give them
+> > numbers from a different namespace because they're used inside nested
+> > attributes?
+>=20
+> Sorry - i should have read up to here ;-> Yes, it is because of the
+> nesting. Again consider the suggestion of sending just one TLV.
 
-> > Overall: I think you are on the right path. Good stuff.
-> > I see user space doing a discovery of which groups a family belongs to
-> > or even doing a bind-by-name in which the underlying user-space code
-> > does a discovery to find the id, then does a bind to that id.
-> 
-> Yeah, that's what I was thinking of, although the bind-by-name needs
-> (family-id, group-name) and nost just group-name
+Ok :) Though I'm not sure I understood the suggestion of sending just
+one TLV, what should I send? Or are you referring to dynamic group
+registration where the whole nesting is going away anyway since you get
+one message per new group...
 
-Well, you can hide that from the user in the form of a library etc. They
-dont have to know; what they know is group named "link-events" is where
-they can join to listen to link events (and your abstraction generic
-code does all the dirty work). 
+> Well, you can hide that from the user in the form of a library etc. They
+> dont have to know; what they know is group named "link-events" is where
+> they can join to listen to link events (and your abstraction generic
+> code does all the dirty work).=20
 
-cheers,
-jamal
+Right. We'll see how it turns out in practice when we start using it :)
 
+johannes
+
+--=-XMYuzPdr5h5GyWdc0CvU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGhOzv/ETPhpq3jKURAhDaAJ97u99JUttLDfHDv2BA17bIHQzC3QCfcxdF
+fCTp0+xklK5bEBUCob7OKnQ=
+=5HBD
+-----END PGP SIGNATURE-----
+
+--=-XMYuzPdr5h5GyWdc0CvU--
 
