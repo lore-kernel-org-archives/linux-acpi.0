@@ -1,7 +1,7 @@
 From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 14:51:51 +0200
-Message-ID: <1183121511.4089.53.camel@johannes.berg>
+Date: Fri, 29 Jun 2007 14:57:49 +0200
+Message-ID: <1183121869.4089.57.camel@johannes.berg>
 References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1179831825.4121.30.camel@localhost>
 	 <1180258853.7707.53.camel@localhost.localdomain>
@@ -14,47 +14,53 @@ References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1182223964.5411.76.camel@localhost.localdomain>
 	 <1182811210.6644.22.camel@johannes.berg>
 	 <1182986681.5155.55.camel@localhost>
-	 <1183023939.4769.76.camel@johannes.berg>  <4684F25B.5090607@trash.net>
-	 <1183121180.4089.51.camel@johannes.berg>  <4684FF9A.10807@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-6LA5z19I0fohnDD5A6GU"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-VCu6RSV7ZBu4+UFr7AKX"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4684FF9A.10807@trash.net>
+In-Reply-To: <1182986681.5155.55.camel@localhost>
 Sender: netdev-owner@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
+To: hadi@cyberus.ca
+Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>, Patrick McHardy <kaber@trash.net>
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-6LA5z19I0fohnDD5A6GU
+--=-VCu6RSV7ZBu4+UFr7AKX
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2007-06-29 at 14:48 +0200, Patrick McHardy wrote:
+On Wed, 2007-06-27 at 19:24 -0400, jamal wrote:
 
-> > Hmm, another thought: since we have 32 bits for group numbers and 16
-> > bits for families we could just reserve 16 bits for groups within each
-> > family. Or do we get trouble with that because in some place there's a
-> > group bitmap or such?
->=20
->=20
-> Yes, af_netlink has a bitmap per socket that is subscribed to any group.
+> a) i.e other than the reserved group for controller (which you seem to
+> be taking care of), every other genetlink user has to explicitly
+> register when they need a mcast group.=20
 
-Not a good idea then. I'll see what I can do.
+Hm. I'm starting to dislike the dynamic registration the more I think
+about it. Now when a group is unregistered I'd have to unbind everybody
+who's currently using it... At least when I want to enforce
+root/non-root binds which is a further goal.
+
+> c) Use a global hash table to store all the genl_multicast_groups;
+> I think this (handwaving) should be searchable by i) name ii)ID and iii)
+> family.=20
+
+Also, it doesn't look like I'll ever be searching for a group unless we
+want to allow userspace to explicitly ask for a group ID, but I'd think
+it should just get the list of all IDs when asking for family
+information and then cache that.
 
 johannes
 
---=-6LA5z19I0fohnDD5A6GU
+--=-VCu6RSV7ZBu4+UFr7AKX
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Comment: Johannes Berg (powerbook)
 
-iD8DBQBGhQBm/ETPhpq3jKURAqrJAJ42Y2hrvCCaOTgs1AZYlm7iVb7KqQCaAz+V
-DrqW+Uy52VYZaVT87utl2Tg=
-=e/HP
+iD8DBQBGhQHN/ETPhpq3jKURAr6/AJ9f3r8/cgjxhFmeJ1VFqbt57RoNjwCgohfK
+48nto6hoibMREHvM1tsHSQg=
+=6OZt
 -----END PGP SIGNATURE-----
 
---=-6LA5z19I0fohnDD5A6GU--
+--=-VCu6RSV7ZBu4+UFr7AKX--
 
