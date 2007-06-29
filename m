@@ -1,7 +1,7 @@
 From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 13:58:17 +0200
-Message-ID: <1183118297.4089.44.camel@johannes.berg>
+Date: Fri, 29 Jun 2007 13:59:55 +0200
+Message-ID: <1183118395.4089.47.camel@johannes.berg>
 References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1179831825.4121.30.camel@localhost>
 	 <1180258853.7707.53.camel@localhost.localdomain>
@@ -14,60 +14,66 @@ References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1182223964.5411.76.camel@localhost.localdomain>
 	 <1182811210.6644.22.camel@johannes.berg>
 	 <1182986681.5155.55.camel@localhost>
-	 <1183023939.4769.76.camel@johannes.berg>
-	 <1183115835.5156.37.camel@localhost>
-	 <1183116527.4089.40.camel@johannes.berg>
-	 <1183117692.5156.67.camel@localhost>
+	 <1183023939.4769.76.camel@johannes.berg>  <4684F25B.5090607@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-V75/SMRD/g5kiS7k2p1R"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-61g+mG9AQv0RmtBOT5dv"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:47243 "EHLO
+Received: from crystal.sipsolutions.net ([195.210.38.204]:55863 "EHLO
 	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756962AbXF2L6M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 07:58:12 -0400
-In-Reply-To: <1183117692.5156.67.camel@localhost>
+	with ESMTP id S1760477AbXF2L7y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 07:59:54 -0400
+In-Reply-To: <4684F25B.5090607@trash.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hadi@cyberus.ca
-Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
+To: Patrick McHardy <kaber@trash.net>
+Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
 
---=-V75/SMRD/g5kiS7k2p1R
+--=-61g+mG9AQv0RmtBOT5dv
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2007-06-29 at 07:48 -0400, jamal wrote:
+On Fri, 2007-06-29 at 13:51 +0200, Patrick McHardy wrote:
 
-> sure - if you rush you can make it into Daves 2.6.23; then both can
-> conform at the same time.
-
-Yeah, I'll have to see whether I can make that. If not, no big deal
-either.
-
-> > Ok :) Though I'm not sure I understood the suggestion of sending just
-> > one TLV, what should I send?=20
+> Do multicast groups have to have a seperate name? Or would it suffice
+> to have them associated with the genl family and be able to find out
+> the starting group number? In that case something like
 >=20
-> I meant when user space asks the controller "please tell me details
-> about family X" you will always pass an id and name. Never just one.
-> So why not just send that in a struct which has a id/name (as you
-> already have defined in your current patch).
+> struct genl_mc_groups {
+> 	struct genl_family *family or char *family_name or similar;
+> 	unsigned int group_off;
+> 	unsigned int group_num;
+> 	unsigned long groups[];
+> };
+>=20
+> seems to make more sense since you only need a single struct
+> per family.
 
-I'll have to look at the struct stuff again, but yeah, something like
-that can be done.
+Hm. For me that'd work too but Jamal wanted dynamically allocated groups
+if I understood him correctly. I'm not too concerned with that case, I'd
+think most people know the groups up-front. On the other hand, I can see
+something like a group per netdev or whatever other instance too.
+
+> Why would you care about holes? If you really want to use sparse
+> bitmaps that would complicate the code a lot.
+
+No, not sparse bitmaps, but the bitmap could have a hole when a family
+goes away, and we could reuse that group number later. If we have it in
+a bitmap we know without checking all group IDs.
 
 johannes
 
---=-V75/SMRD/g5kiS7k2p1R
+--=-61g+mG9AQv0RmtBOT5dv
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Comment: Johannes Berg (powerbook)
 
-iD8DBQBGhPPZ/ETPhpq3jKURAh48AKCWzPqQS3QUltBYrt9d3LLZCZTuagCfZj13
-JZhStUuR0faaWCBxoTL6/Zs=
-=qsdg
+iD8DBQBGhPQ7/ETPhpq3jKURArwDAJ9GmdR3giGzEzZ/xbE3nOwKHGYJgQCdEo9m
+OBcNyyjrbkpYdps5T9w0Sn0=
+=np+n
 -----END PGP SIGNATURE-----
 
---=-V75/SMRD/g5kiS7k2p1R--
+--=-61g+mG9AQv0RmtBOT5dv--
 
