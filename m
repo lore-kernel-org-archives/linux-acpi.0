@@ -1,7 +1,7 @@
 From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 16:18:59 +0200
-Message-ID: <1183126739.4089.76.camel@johannes.berg>
+Date: Fri, 29 Jun 2007 16:56:46 +0200
+Message-ID: <1183129006.4089.84.camel@johannes.berg>
 References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1179831825.4121.30.camel@localhost>
 	 <1180258853.7707.53.camel@localhost.localdomain>
@@ -19,32 +19,35 @@ References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1183124085.4089.66.camel@johannes.berg>  <46850CB8.8000509@trash.net>
 	 <1183124981.4089.69.camel@johannes.berg>  <46850EDE.5020804@trash.net>
 	 <1183125924.4089.73.camel@johannes.berg>
+	 <1183126739.4089.76.camel@johannes.berg>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1183125924.4089.73.camel@johannes.berg>
+In-Reply-To: <1183126739.4089.76.camel@johannes.berg>
 Sender: netdev-owner@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2007-06-29 at 16:05 +0200, Johannes Berg wrote:
+On Fri, 2007-06-29 at 16:19 +0200, Johannes Berg wrote:
 
-> +			mc_groups =
-> +				kzalloc(mc_groups_bits/BITS_PER_LONG + 1,
-> +					GFP_KERNEL);
-> +			if (!mc_groups)
-> +				return -ENOMEM;
-> +			*mc_groups = mc_group_start;
+> Uh huh, this reallocation is buggy. Fixed version below.
 
-Uh huh, this reallocation is buggy. Fixed version below.
+More breakage, sorry about the patch-spam.
+
+Btw, I notice that the bug we talked about isn't present in practice
+since we have no multicast users except for the always-present
+controller :)
+
+New patch below. I'll get this tested and maybe a bit nicer and I'll try
+to fix the bug too, but not before the weekend.
 
 ---
  include/linux/genetlink.h |   13 ++++++
- include/net/genetlink.h   |   18 +++++++++
- net/netlink/genetlink.c   |   90 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 121 insertions(+)
+ include/net/genetlink.h   |   18 ++++++++
+ net/netlink/genetlink.c   |   93 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 124 insertions(+)
 
 --- wireless-dev.orig/include/net/genetlink.h	2007-06-26 16:58:42.154806179 +0200
 +++ wireless-dev/include/net/genetlink.h	2007-06-29 15:40:35.547910932 +0200
@@ -95,7 +98,7 @@ Uh huh, this reallocation is buggy. Fixed version below.
  extern struct sock *genl_sock;
  
 --- wireless-dev.orig/net/netlink/genetlink.c	2007-06-26 16:58:42.244806179 +0200
-+++ wireless-dev/net/netlink/genetlink.c	2007-06-29 16:14:06.307910932 +0200
++++ wireless-dev/net/netlink/genetlink.c	2007-06-29 16:48:35.007910932 +0200
 @@ -3,6 +3,7 @@
   *
   * 		Authors:	Jamal Hadi Salim
@@ -125,38 +128,37 @@ Uh huh, this reallocation is buggy. Fixed version below.
 + */
 +static unsigned long mc_group_start = 0x2;
 +static unsigned long *mc_groups = &mc_group_start;
-+static unsigned long mc_groups_bits = BITS_PER_LONG;
++static unsigned long mc_groups_longs = 1;
  
  static int genl_ctrl_event(int event, void *data);
  
-@@ -116,6 +128,56 @@ static inline u16 genl_generate_id(void)
+@@ -116,6 +128,59 @@ static inline u16 genl_generate_id(void)
  	return id_gen_idx;
  }
  
 +int genl_register_mc_group(struct genl_family *family,
 +			   struct genl_multicast_group *grp)
 +{
-+	int id = find_first_zero_bit(mc_groups, mc_groups_bits);
++	int id = find_first_zero_bit(mc_groups,
++				     mc_groups_longs * BITS_PER_LONG);
 +	unsigned long *new_groups;
++	size_t nlen = (mc_groups_longs + 1) * sizeof(unsigned long);
 +
-+	if (id >= mc_groups_bits) {
++	if (id >= mc_groups_longs * BITS_PER_LONG) {
 +		if (mc_groups == &mc_group_start) {
-+			new_groups = kzalloc(mc_groups_bits/BITS_PER_LONG + 1,
-+					     GFP_KERNEL);
++			new_groups = kzalloc(nlen, GFP_KERNEL);
 +			if (!mc_groups)
 +				return -ENOMEM;
 +			mc_groups = new_groups;
 +			*mc_groups = mc_group_start;
 +		} else {
-+			new_groups = krealloc(mc_groups,
-+					      mc_groups_bits/BITS_PER_LONG + 1,
-+					      GFP_KERNEL);
++			new_groups = krealloc(mc_groups, nlen, GFP_KERNEL);
 +			if (!new_groups)
 +				return -ENOMEM;
 +			mc_groups = new_groups;
-+			mc_groups[mc_groups_bits/BITS_PER_LONG] = 0;
++			mc_groups[mc_groups_longs] = 0;
 +		}
-+		mc_groups_bits += BITS_PER_LONG;
++		mc_groups_longs++;
 +	}
 +
 +	grp->id = id;
@@ -169,33 +171,37 @@ Uh huh, this reallocation is buggy. Fixed version below.
 +}
 +EXPORT_SYMBOL(genl_register_mc_group);
 +
-+static void genl_unregister_mcast_group(struct genl_multicast_group *grp)
++static void genl_unregister_mc_group(struct genl_multicast_group *grp)
 +{
++	/*
++	 * TODO: fix multicast group re-use by clearing the bit
++	 *	 for this group in all genetlink sockets.
++	 */
 +	clear_bit(grp->id, mc_groups);
 +	list_del(&grp->list);
 +}
 +
-+static void genl_unregister_mcast_groups(struct genl_family *family)
++static void genl_unregister_mc_groups(struct genl_family *family)
 +{
 +	struct genl_multicast_group *grp, *tmp;
 +
 +	list_for_each_entry_safe(grp, tmp, &family->mcast_groups, list)
-+		genl_unregister_mcast_group(grp);
++		genl_unregister_mc_group(grp);
 +}
 +
  /**
   * genl_register_ops - register generic netlink operations
   * @family: generic netlink family
-@@ -290,6 +352,8 @@ int genl_unregister_family(struct genl_f
+@@ -290,6 +355,8 @@ int genl_unregister_family(struct genl_f
  		return 0;
  	}
  
-+	genl_unregister_mcast_groups(family);
++	genl_unregister_mc_groups(family);
 +
  	genl_unlock();
  
  	return -ENOENT;
-@@ -410,6 +474,31 @@ static int ctrl_fill_info(struct genl_fa
+@@ -410,6 +477,31 @@ static int ctrl_fill_info(struct genl_fa
  		nla_nest_end(skb, nla_ops);
  	}
  
@@ -227,7 +233,7 @@ Uh huh, this reallocation is buggy. Fixed version below.
  	return genlmsg_end(skb, hdr);
  
  nla_put_failure:
-@@ -523,6 +612,7 @@ static int genl_ctrl_event(int event, vo
+@@ -523,6 +615,7 @@ static int genl_ctrl_event(int event, vo
  	switch (event) {
  	case CTRL_CMD_NEWFAMILY:
  	case CTRL_CMD_DELFAMILY:
