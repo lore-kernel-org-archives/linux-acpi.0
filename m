@@ -1,118 +1,149 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN (v2)
-Date: Fri, 29 Jun 2007 01:04:52 -0400
-Message-ID: <200706290104.53909.dtor@insightbb.com>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <20070531222814.GB4076@khazad-dum.debian.net> <20070606165509.GB18984@khazad-dum.debian.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Fri, 29 Jun 2007 07:17:15 -0400
+Message-ID: <1183115835.5156.37.camel@localhost>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+	 <1182986681.5155.55.camel@localhost>
+	 <1183023939.4769.76.camel@johannes.berg>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <20070606165509.GB18984@khazad-dum.debian.net>
-Content-Disposition: inline
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.226]:10481 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756384AbXF2LRU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 07:17:20 -0400
+Received: by wx-out-0506.google.com with SMTP id h31so808853wxd
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2007 04:17:19 -0700 (PDT)
+In-Reply-To: <1183023939.4769.76.camel@johannes.berg>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
-Hi Henrique,
+On Thu, 2007-28-06 at 11:45 +0200, Johannes Berg wrote:
 
-On Wednesday 06 June 2007 12:55, Henrique de Moraes Holschuh wrote:
-> We have most of the pieces needed to have sane, generic userland keyboard
-> handling in place for a while now, but it is not sufficiently documented.
+> No, the controller is the only other generic netlink multicast user
+> according to what I've found. :)
+
+Scanning the code - true ;-> Iam a little suprised that the task
+accounting folks didnt use it to periodically dump stats. 
+
+> actually didn't you just say that groups don't run out at 32-bit because
+> the groups bitmap can be extended? You wouldn't be able to sign up for
+> the groups >31 at bind() time but with ioctls you can bind higher group
+> numbers after the fact. And the dynamic groups mean you need to bind
+> later anyway since you don't know the ID when you create the socket.
+
+Sorry i meant there are 2^16 families (-1 considering controller)
+There are 2^32 groups (-1 considering controller) for the same number of
+families. i.e i see those items as being global within genetlink.
+
+> > c) Use a global hash table to store all the genl_multicast_groups;
+> > I think this (handwaving) should be searchable by i) name ii)ID and iii)
+> > family. 
 > 
-> This patch documents the requirements and best practices for EV_KEY input
-> drivers.
+> Yeah, makes sense, I never liked the bitmap stuff I did there.
 > 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Richard Hughes <hughsient@gmail.com>
-> ---
+
+It may be needed and better than how we keep track of the families - I
+was just making a handwaving suggestion; when you code/test it will
+become obvious.
+
+
+> >  we use a simple scheme in the case of families; once all
+> > IDs are consumed we dont alloc more - in the case of mcast grps this is
+> > not necessary IMO i.e it doesnt matter if there is collision when you
+> > run out. You return errors at the moment.
 > 
->  I have changed the KEY_UNKNOWN preference over positional keycodes around,
->  and also added a small paragraph on the expected behaviour of userland
->  applications re. EV_MSC MSC_SCAN events.
+> Are you saying I should double-allocate groups? 
+
+I am not sure "double-allocate" would be the right description.
+It sort of like shared-irq or a netdevice running in promisc/bcast mode.
+More below.
+
+> I really don't want that
+> since I plan to add permission checks on top of this.
+
+It is just a boundary condition policy. When there are no more groups
+left (Note: it will take a lot of effort to hit that), then what do you
+do?
+Your current approach seems to say "return an error". My suggestion is 
+to just reuse the first or last allocated one or reserve some groups for
+sharing and always make sure someone is guaranteed they will get a group
+when they ask for it. Infact you can even let the family tell you on
+registration whether it is willing to share (and fail allocation if
+nothing shareable is available).
+Each family when using a shared group will always have a unique name to
+itself, so discovery from user space still works - but the id will be
+unique across multiple groups. User space code will be like promisc 
+mode in networking, it will have to filter out the noise. If i ask the
+controller to tell me about a family - it will show all group name/id
+and a tag whether it is shared or not (that way my user space code knows
+it needs to ignore noise it sees).
+I am begining to wonder if Evgeniy's connector actually does this - i
+dont remember. I am almost certain TIPC also does something similar.
+In any case, this is a corner case - the suggestion is how to deal with
+it. You can skin it many ways. Toss a coin - pick one.
+
+> > > --- wireless-dev.orig/include/linux/genetlink.h	2007-06-25 23:56:19.895732308 +0200
+> > > +++ wireless-dev/include/linux/genetlink.h	2007-06-26 00:33:36.785732308 +0200
+> > > @@ -52,6 +52,9 @@ enum {
+> > >  	CTRL_ATTR_HDRSIZE,
+> > >  	CTRL_ATTR_MAXATTR,
+> > >  	CTRL_ATTR_OPS,
+> > > +	CTRL_ATTR_MCAST_GROUPS,
+> > > +	CTRL_ATTR_MCAST_GRP_NAME,
+> > > +	CTRL_ATTR_MCAST_GRP_ID,
+> > 
+> > Dont think those last two belong in the same namespace. i.e  they should
+> > be a separate enum; even more the name/id pair probably belong in one
+> > TLV under the struct genl_multicast_group that is exported to user
+> > space.
 > 
->  Comments?
+> Hm? Not sure I understand this. These are attributes for the generic
+> netlink controller messages, 
 
-Finally gottent to the patch. It seems a little long-winded, how about
-the patch below instead?
+Group name/id are nested into CTRL_ATTR_MCAST_GROUPS. Once you nest, you
+are starting to a new namespace i.e as good practice you start counting
+from 0. 
 
--- 
-Dmitry
+> where else should I put them? 
 
-Subject: Input: document the proper usage of EV_KEY and KEY_UNKNOWN
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+A new enum.
+
+> Why give them
+> numbers from a different namespace because they're used inside nested
+> attributes?
+
+Sorry - i should have read up to here ;-> Yes, it is because of the
+nesting. Again consider the suggestion of sending just one TLV.
+
+> > Overall: I think you are on the right path. Good stuff.
+> > I see user space doing a discovery of which groups a family belongs to
+> > or even doing a bind-by-name in which the underlying user-space code
+> > does a discovery to find the id, then does a bind to that id.
+> 
+> Yeah, that's what I was thinking of, although the bind-by-name needs
+> (family-id, group-name) and nost just group-name
+
+Well, you can hide that from the user in the form of a library etc. They
+dont have to know; what they know is group named "link-events" is where
+they can join to listen to link events (and your abstraction generic
+code does all the dirty work). 
+
+cheers,
+jamal
 
 
-We have most of the pieces needed to have sane, generic userland keyboard
-handling in place for a while now, but it is not sufficiently documented.
-
-This patch documents the requirements and best practices for EV_KEY input
-drivers.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
-
- Documentation/input/input-programming.txt |   36 ++++++++++++++++++++++++++++--
- 1 files changed, 34 insertions(+), 2 deletions(-)
-
-Index: work/Documentation/input/input-programming.txt
-===================================================================
---- work.orig/Documentation/input/input-programming.txt
-+++ work/Documentation/input/input-programming.txt
-@@ -263,7 +263,38 @@ getkeycode() and setkeycode() callbacks 
- keycode/keycodesize/keycodemax mapping mechanism provided by input core
- and implement sparse keycode maps.
- 
--1.8 Key autorepeat
-+1.8 Keymaps and KEY_UNKNOWN
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+Follow these rules when creating a default keymap for an input device:
-+
-+- If a key has a specific function that is known to the driver, it should
-+  generate keycode corresponding to that function. FOr example, in a laptop
-+  where FN+F1 key combination is always marked "HELP" the driver should
-+  generate KEY_HELP and not KEY_FN_F1.
-+
-+- If a positional keycode for a key already exists in input.h (e.g. KEY_FN_F1
-+  for FN+F1), it should be used instead of KEY_UNKNOWN. When such a code
-+  doesn't exist KEY_UNKNOWN should be used.
-+
-+- Non-positional keycodes like KEY_PROG1 should be avoided.
-+
-+Input drivers that generate EV_KEY events should always support either
-+dev->getkeycode()/dev->setkeycode(), or keycode, keycodemax and keycodesize
-+methods of reprogramming their keymaps. Drivers that do not allow changing
-+keycode map should not genrate KEY_UNKNOWN events.
-+
-+In addition to EV_KEY events drivers should also generate EV_MSC/MSC_SCAN
-+events. This event provides assistance to a generic userspace keyboard helper
-+in remapping keys and assigning them specific function.
-+
-+MSC_SCAN event should be sent in the same event block (marked by
-+EV_SYN/SYN_REPORT event) as corresponding EV_KEY event. The scan code
-+reported must be a valid index in the keycode map, as implemented by
-+dev->getkeycode()/dev->setkeycode(), or keycode, keycodemax and keycodesize
-+for the device.
-+
-+1.9 Key autorepeat
- ~~~~~~~~~~~~~~~~~~
- 
- ... is simple. It is handled by the input.c module. Hardware autorepeat is
-@@ -272,7 +303,8 @@ present, it is broken sometimes (at keyb
- autorepeat for your device, just set EV_REP in dev->evbit. All will be
- handled by the input system.
- 
--1.9 Other event types, handling output events
-+
-+1.10 Other event types, handling output events
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
- The other event types up to now are:
