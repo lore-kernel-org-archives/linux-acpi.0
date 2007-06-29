@@ -1,89 +1,118 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: Asus M6*, A6*, L5D - can't reboot after suspend/resume
-Date: Fri, 29 Jun 2007 06:08:13 +0800
-Message-ID: <3877989d0706281508wa281ff0j735f684cb5c40de2@mail.gmail.com>
-References: <87myyjdcp6.fsf@vertex.dottedmag.net>
-	 <200706282323.21340.rjw@sisk.pl>
-	 <3877989d0706281451j6ed47793u27d0855532106991@mail.gmail.com>
-	 <200706290006.52333.rjw@sisk.pl>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and KEY_UNKNOWN (v2)
+Date: Fri, 29 Jun 2007 01:04:52 -0400
+Message-ID: <200706290104.53909.dtor@insightbb.com>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <20070531222814.GB4076@khazad-dum.debian.net> <20070606165509.GB18984@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.227]:55331 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759461AbXF1WIO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2007 18:08:14 -0400
-Received: by nz-out-0506.google.com with SMTP id s18so256658nze
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Jun 2007 15:08:13 -0700 (PDT)
-In-Reply-To: <200706290006.52333.rjw@sisk.pl>
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <20070606165509.GB18984@khazad-dum.debian.net>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mikhail Gusarov <dottedmag@dottedmag.net>, linux-acpi@vger.kernel.org
 
-OK, let's try linuxfirmware tool to see if it is Linux problem or
-probably bios problem.
-you can grab the tool kit from http://www.linuxfirmwarekit.org/
-then please do a suspend-resume cycle, then try reboot from the command line.
-Let's see the results. :-)
+Hi Henrique,
 
-On 6/29/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, 28 June 2007 23:51, Luming Yu wrote:
-> > Please try the 1st patch:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=6655#c8
-> > if not work, please try the 2nd patch:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=6655#c23
-> > if still not, I don't know what's the hell about the problem.
-> > Need to debug further.
->
-> Well, the patch at http://bugzilla.kernel.org/show_bug.cgi?id=6655#c39
-> (based on http://bugzilla.kernel.org/show_bug.cgi?id=6655#c23) works on one of
-> my test boxes, but on the second one (Asus L5D) it doesn't work.
->
-> Greetings,
-> Rafael
->
->
-> > On 6/29/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > On Thursday, 28 June 2007 22:52, Mikhail Gusarov wrote:
-> > > > Hi.
-> > > >
-> > > > ping'ing mailing list: there is stuck bug in bugzilla and probably fresh eyes
-> > > > need to look at it to find the obvious solution :) Sorry if this noise is
-> > > > unnecessary.
-> > > >
-> > > > Bug is http://bugzilla.kernel.org/show_bug.cgi?id=8598
-> > > >
-> > > > Summary:
-> > > >
-> > > > Most recent kernel where this bug did not occur: n/a
-> > > > Distribution: debian/sid
-> > > > Hardware Environment: Asus A6B, A6BA, M6A, M6N, M6NE, L5D notebooks
-> > > > Problem Description: After S3 STR reboot does not work, reboot=w,h and
-> > > > reboot=c,b, no luck. System shows message about restarting system. Caps lock and
-> > > > num lock LEDs flash, but it does not reboot.
-> > > >
-> > > > I personally have only M6N notebook, so can test things only on it.
-> > >
-> > > I'm afraid that this is not an easy problem.  It shows up on two of my own test
-> > > machines and I have no idea how to debug it further, let alone fixing.
-> > >
-> > > Greetings,
-> > > Rafael
-> > >
-> > >
-> > > --
-> > > "Premature optimization is the root of all evil." - Donald Knuth
-> > > -
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> >
-> >
->
-> --
-> "Premature optimization is the root of all evil." - Donald Knuth
->
+On Wednesday 06 June 2007 12:55, Henrique de Moraes Holschuh wrote:
+> We have most of the pieces needed to have sane, generic userland keyboard
+> handling in place for a while now, but it is not sufficiently documented.
+> 
+> This patch documents the requirements and best practices for EV_KEY input
+> drivers.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Richard Hughes <hughsient@gmail.com>
+> ---
+> 
+>  I have changed the KEY_UNKNOWN preference over positional keycodes around,
+>  and also added a small paragraph on the expected behaviour of userland
+>  applications re. EV_MSC MSC_SCAN events.
+> 
+>  Comments?
+
+Finally gottent to the patch. It seems a little long-winded, how about
+the patch below instead?
+
+-- 
+Dmitry
+
+Subject: Input: document the proper usage of EV_KEY and KEY_UNKNOWN
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+
+We have most of the pieces needed to have sane, generic userland keyboard
+handling in place for a while now, but it is not sufficiently documented.
+
+This patch documents the requirements and best practices for EV_KEY input
+drivers.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ Documentation/input/input-programming.txt |   36 ++++++++++++++++++++++++++++--
+ 1 files changed, 34 insertions(+), 2 deletions(-)
+
+Index: work/Documentation/input/input-programming.txt
+===================================================================
+--- work.orig/Documentation/input/input-programming.txt
++++ work/Documentation/input/input-programming.txt
+@@ -263,7 +263,38 @@ getkeycode() and setkeycode() callbacks 
+ keycode/keycodesize/keycodemax mapping mechanism provided by input core
+ and implement sparse keycode maps.
+ 
+-1.8 Key autorepeat
++1.8 Keymaps and KEY_UNKNOWN
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++Follow these rules when creating a default keymap for an input device:
++
++- If a key has a specific function that is known to the driver, it should
++  generate keycode corresponding to that function. FOr example, in a laptop
++  where FN+F1 key combination is always marked "HELP" the driver should
++  generate KEY_HELP and not KEY_FN_F1.
++
++- If a positional keycode for a key already exists in input.h (e.g. KEY_FN_F1
++  for FN+F1), it should be used instead of KEY_UNKNOWN. When such a code
++  doesn't exist KEY_UNKNOWN should be used.
++
++- Non-positional keycodes like KEY_PROG1 should be avoided.
++
++Input drivers that generate EV_KEY events should always support either
++dev->getkeycode()/dev->setkeycode(), or keycode, keycodemax and keycodesize
++methods of reprogramming their keymaps. Drivers that do not allow changing
++keycode map should not genrate KEY_UNKNOWN events.
++
++In addition to EV_KEY events drivers should also generate EV_MSC/MSC_SCAN
++events. This event provides assistance to a generic userspace keyboard helper
++in remapping keys and assigning them specific function.
++
++MSC_SCAN event should be sent in the same event block (marked by
++EV_SYN/SYN_REPORT event) as corresponding EV_KEY event. The scan code
++reported must be a valid index in the keycode map, as implemented by
++dev->getkeycode()/dev->setkeycode(), or keycode, keycodemax and keycodesize
++for the device.
++
++1.9 Key autorepeat
+ ~~~~~~~~~~~~~~~~~~
+ 
+ ... is simple. It is handled by the input.c module. Hardware autorepeat is
+@@ -272,7 +303,8 @@ present, it is broken sometimes (at keyb
+ autorepeat for your device, just set EV_REP in dev->evbit. All will be
+ handled by the input system.
+ 
+-1.9 Other event types, handling output events
++
++1.10 Other event types, handling output events
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+ The other event types up to now are:
