@@ -1,7 +1,7 @@
 From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 16:05:24 +0200
-Message-ID: <1183125924.4089.73.camel@johannes.berg>
+Date: Fri, 29 Jun 2007 16:18:59 +0200
+Message-ID: <1183126739.4089.76.camel@johannes.berg>
 References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1179831825.4121.30.camel@localhost>
 	 <1180258853.7707.53.camel@localhost.localdomain>
@@ -18,38 +18,33 @@ References: <1179827251.7707.29.camel@localhost.localdomain>
 	 <1183122920.4089.63.camel@johannes.berg>  <468507C9.2000800@trash.net>
 	 <1183124085.4089.66.camel@johannes.berg>  <46850CB8.8000509@trash.net>
 	 <1183124981.4089.69.camel@johannes.berg>  <46850EDE.5020804@trash.net>
+	 <1183125924.4089.73.camel@johannes.berg>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:55174 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765172AbXF2OFP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 10:05:15 -0400
-In-Reply-To: <46850EDE.5020804@trash.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1183125924.4089.73.camel@johannes.berg>
+Sender: netdev-owner@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2007-06-29 at 15:53 +0200, Patrick McHardy wrote:
+On Fri, 2007-06-29 at 16:05 +0200, Johannes Berg wrote:
 
-> If you're worried about patch size, you could sell that part as a
-> bugfix :)
+> +			mc_groups =
+> +				kzalloc(mc_groups_bits/BITS_PER_LONG + 1,
+> +					GFP_KERNEL);
+> +			if (!mc_groups)
+> +				return -ENOMEM;
+> +			*mc_groups = mc_group_start;
 
-Heh. Actually, right now I'm more worried about how much work I have to
-do short-term.
-
-This patch keeps the bitmap but does dynamic group allocation. Just to
-see where I'm right now, I have a few things I'd like to change like not
-sending out the full family info if it registers a new group.
-
+Uh huh, this reallocation is buggy. Fixed version below.
 
 ---
  include/linux/genetlink.h |   13 ++++++
  include/net/genetlink.h   |   18 +++++++++
- net/netlink/genetlink.c   |   89 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 120 insertions(+)
+ net/netlink/genetlink.c   |   90 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+)
 
 --- wireless-dev.orig/include/net/genetlink.h	2007-06-26 16:58:42.154806179 +0200
 +++ wireless-dev/include/net/genetlink.h	2007-06-29 15:40:35.547910932 +0200
@@ -100,7 +95,7 @@ sending out the full family info if it registers a new group.
  extern struct sock *genl_sock;
  
 --- wireless-dev.orig/net/netlink/genetlink.c	2007-06-26 16:58:42.244806179 +0200
-+++ wireless-dev/net/netlink/genetlink.c	2007-06-29 16:01:38.487910932 +0200
++++ wireless-dev/net/netlink/genetlink.c	2007-06-29 16:14:06.307910932 +0200
 @@ -3,6 +3,7 @@
   *
   * 		Authors:	Jamal Hadi Salim
@@ -134,7 +129,7 @@ sending out the full family info if it registers a new group.
  
  static int genl_ctrl_event(int event, void *data);
  
-@@ -116,6 +128,55 @@ static inline u16 genl_generate_id(void)
+@@ -116,6 +128,56 @@ static inline u16 genl_generate_id(void)
  	return id_gen_idx;
  }
  
@@ -142,22 +137,23 @@ sending out the full family info if it registers a new group.
 +			   struct genl_multicast_group *grp)
 +{
 +	int id = find_first_zero_bit(mc_groups, mc_groups_bits);
++	unsigned long *new_groups;
 +
 +	if (id >= mc_groups_bits) {
 +		if (mc_groups == &mc_group_start) {
-+			mc_groups =
-+				kzalloc(mc_groups_bits/BITS_PER_LONG + 1,
-+					GFP_KERNEL);
++			new_groups = kzalloc(mc_groups_bits/BITS_PER_LONG + 1,
++					     GFP_KERNEL);
 +			if (!mc_groups)
 +				return -ENOMEM;
++			mc_groups = new_groups;
 +			*mc_groups = mc_group_start;
 +		} else {
-+			mc_groups =
-+				krealloc(mc_groups,
-+					 mc_groups_bits/BITS_PER_LONG + 1,
-+					 GFP_KERNEL);
-+			if (!mc_groups)
++			new_groups = krealloc(mc_groups,
++					      mc_groups_bits/BITS_PER_LONG + 1,
++					      GFP_KERNEL);
++			if (!new_groups)
 +				return -ENOMEM;
++			mc_groups = new_groups;
 +			mc_groups[mc_groups_bits/BITS_PER_LONG] = 0;
 +		}
 +		mc_groups_bits += BITS_PER_LONG;
@@ -190,7 +186,7 @@ sending out the full family info if it registers a new group.
  /**
   * genl_register_ops - register generic netlink operations
   * @family: generic netlink family
-@@ -290,6 +351,8 @@ int genl_unregister_family(struct genl_f
+@@ -290,6 +352,8 @@ int genl_unregister_family(struct genl_f
  		return 0;
  	}
  
@@ -199,7 +195,7 @@ sending out the full family info if it registers a new group.
  	genl_unlock();
  
  	return -ENOENT;
-@@ -410,6 +473,31 @@ static int ctrl_fill_info(struct genl_fa
+@@ -410,6 +474,31 @@ static int ctrl_fill_info(struct genl_fa
  		nla_nest_end(skb, nla_ops);
  	}
  
@@ -231,7 +227,7 @@ sending out the full family info if it registers a new group.
  	return genlmsg_end(skb, hdr);
  
  nla_put_failure:
-@@ -523,6 +611,7 @@ static int genl_ctrl_event(int event, vo
+@@ -523,6 +612,7 @@ static int genl_ctrl_event(int event, vo
  	switch (event) {
  	case CTRL_CMD_NEWFAMILY:
  	case CTRL_CMD_DELFAMILY:
