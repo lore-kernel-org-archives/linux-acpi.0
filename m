@@ -1,63 +1,72 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
-Date: Fri, 29 Jun 2007 14:09:47 +0200
-Message-ID: <4684F68B.5030805@trash.net>
-References: <1179827251.7707.29.camel@localhost.localdomain>	 <1179831825.4121.30.camel@localhost>	 <1180258853.7707.53.camel@localhost.localdomain>	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>	 <1181811576.5411.27.camel@localhost.localdomain>	 <1181820510.4091.9.camel@localhost>	 <1181869285.5411.39.camel@localhost.localdomain>	 <1182178882.4063.11.camel@localhost>	 <1182223964.5411.76.camel@localhost.localdomain>	 <1182811210.6644.22.camel@johannes.berg>	 <1182986681.5155.55.camel@localhost>	 <1183023939.4769.76.camel@johannes.berg>  <4684F25B.5090607@trash.net> <1183118486.5156.77.camel@localhost>
+Date: Fri, 29 Jun 2007 14:46:20 +0200
+Message-ID: <1183121180.4089.51.camel@johannes.berg>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+	 <1182986681.5155.55.camel@localhost>
+	 <1183023939.4769.76.camel@johannes.berg>  <4684F25B.5090607@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-iLSSSorjytBRDoLbhFLX"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43203 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762155AbXF2MJ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 08:09:59 -0400
-In-Reply-To: <1183118486.5156.77.camel@localhost>
+Received: from crystal.sipsolutions.net ([195.210.38.204]:38226 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754239AbXF2MqS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2007 08:46:18 -0400
+In-Reply-To: <4684F25B.5090607@trash.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hadi@cyberus.ca
-Cc: Johannes Berg <johannes@sipsolutions.net>, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
-
-jamal wrote:
-> On Fri, 2007-29-06 at 13:51 +0200, Patrick McHardy wrote:
-> 
-> 
->>Do multicast groups have to have a seperate name? 
-> 
-> 
-> As i see it: the name would be unique per family
-> Its like DNS IP to name mapping essentially (in the simple case of IP
-> being globaly reachable). You do a discovery of the ID by knowing the
-> name.
+To: Patrick McHardy <kaber@trash.net>
+Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
 
-Mhh .. I agree that it would be necessary to have a group identifier
-for dynamically allocated groups like one group per device or something.
-I'm wondering if anyone really needs this though. Having messages
-grouped logically by type makes more sense to me.
+--=-iLSSSorjytBRDoLbhFLX
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
->>Or would it suffice
->>to have them associated with the genl family and be able to find out
->>the starting group number? 
-> 
-> 
-> The id space is global.
-> 
-> 
->>In that case something like
->>
->>struct genl_mc_groups {
->>	struct genl_family *family or char *family_name or similar;
->>	unsigned int group_off;
->>	unsigned int group_num;
->>	unsigned long groups[];
->>};
->>
->>seems to make more sense since you only need a single struct
->>per family.
-> 
-> 
-> I think something that ties to the family would be needed.
+On Fri, 2007-06-29 at 13:51 +0200, Patrick McHardy wrote:
 
+> Do multicast groups have to have a seperate name? Or would it suffice
+> to have them associated with the genl family and be able to find out
+> the starting group number? In that case something like
+>=20
+> struct genl_mc_groups {
+> 	struct genl_family *family or char *family_name or similar;
+> 	unsigned int group_off;
+> 	unsigned int group_num;
+> 	unsigned long groups[];
+> };
+>=20
+> seems to make more sense since you only need a single struct
+> per family.
 
-My example includes a pointer to the family or the name, but anything
-else that works is fine also.
+Hmm, another thought: since we have 32 bits for group numbers and 16
+bits for families we could just reserve 16 bits for groups within each
+family. Or do we get trouble with that because in some place there's a
+group bitmap or such?
+
+johannes
+
+--=-iLSSSorjytBRDoLbhFLX
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGhP8c/ETPhpq3jKURApxvAKClnV/RA1tbN8h9c8TYh18UEaanEACdE1Qb
+4HGfZgJ+ol6pU5ze1TbIwBU=
+=lXRq
+-----END PGP SIGNATURE-----
+
+--=-iLSSSorjytBRDoLbhFLX--
+
