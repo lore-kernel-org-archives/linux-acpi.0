@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH -mm 6/9] PM: Fix compilation of suspend code if CONFIG_PM is unset
-Date: Sat, 30 Jun 2007 23:08:53 +0200
-Message-ID: <200706302308.55223.rjw@sisk.pl>
+Subject: [RFC][PATCH -mm 2/9] ACPI: Add acpi_pm_device_sleep_state helper routine
+Date: Sat, 30 Jun 2007 22:59:47 +0200
+Message-ID: <200706302259.48700.rjw@sisk.pl>
 References: <200706302257.17556.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35227 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:35241 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500AbXF3VGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 Jun 2007 17:06:07 -0400
+	id S1752595AbXF3VGI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 Jun 2007 17:06:08 -0400
 In-Reply-To: <200706302257.17556.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,40 +19,93 @@ List-Id: linux-acpi@vger.kernel.org
 To: pm list <linux-pm@lists.linux-foundation.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Paul Mackerras <paulus@samba.org>, Russell King <rmk@arm.linux.org.uk>, Nigel Cunningham <nigel@nigel.suspend2.net>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
 
-Some platforms, particualrly in the ARM tree, require that suspend_set_ops() and
-pm_suspend() be defined even if CONFIG_PM is not set.  Make this requirement be
-satisfied.
+Based on the David Brownell's patch at
+http://marc.info/?l=linux-acpi&m=117873972806360&w=2
+
+Add a helper routine returning the lowest power (highest number) ACPI device
+power state that given device can be in while the system is in the sleep state
+indicated by acpi_target_sleep_state .
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- include/linux/suspend.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/sleep/main.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h   |    2 +
+ 2 files changed, 53 insertions(+)
 
-Index: linux-2.6.22-rc6/include/linux/suspend.h
+Index: linux-2.6.22-rc6-mm1/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.22-rc6.orig/include/linux/suspend.h	2007-06-29 22:42:55.000000000 +0200
-+++ linux-2.6.22-rc6/include/linux/suspend.h	2007-06-29 22:43:37.000000000 +0200
-@@ -79,6 +79,7 @@ struct platform_suspend_ops {
+--- linux-2.6.22-rc6-mm1.orig/drivers/acpi/sleep/main.c	2007-06-30 12:18:47.000000000 +0200
++++ linux-2.6.22-rc6-mm1/drivers/acpi/sleep/main.c	2007-06-30 12:18:58.000000000 +0200
+@@ -255,6 +255,57 @@ static struct hibernation_ops acpi_hiber
+ };
+ #endif				/* CONFIG_SOFTWARE_SUSPEND */
  
- extern struct platform_suspend_ops *suspend_ops;
- 
-+#ifdef CONFIG_PM
- /**
-  * suspend_set_ops - set platform dependent suspend operations
-  * @ops: The new suspend operations to set.
-@@ -105,6 +106,12 @@ extern void arch_suspend_disable_irqs(vo
- extern void arch_suspend_enable_irqs(void);
- 
- extern int pm_suspend(suspend_state_t state);
-+#else /* CONFIG_PM */
-+#define suspend_valid_only_mem	NULL
++/**
++ *	acpi_pm_device_sleep_state - return the lowest power (highest number)
++ *				     ACPI device power state given device can be
++ *				     in while the system is in the sleep state
++ *				     indicated by %acpi_target_sleep_state
++ *	@handle: Represents the device the state is evaluated for
++ */
 +
-+static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
-+static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
-+#endif /* CONFIG_PM */
++int acpi_pm_device_sleep_state(acpi_handle handle)
++{
++	char acpi_method[] = "_SxD";
++	unsigned long d_min, d_max;
++	struct acpi_device *dev;
++
++	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
++		printk(KERN_ERR "ACPI handle has no context!\n");
++		return -ENODEV;
++	}
++	acpi_method[2] = '0' + acpi_target_sleep_state;
++	/*
++	 * If the sleep state is S0, we will return D3, but if the device has
++	 * _S0W, we will use the value from _S0W
++	 */
++	d_min = ACPI_STATE_D3;
++	d_max = ACPI_STATE_D3;
++	/*
++	 * If present, _SxD methods give the minimum D-state we may use
++	 * for each S-state ... with lowest latency state switching.
++	 *
++	 * We rely on acpi_evaluate_integer() not clobbering the integer
++	 * provided -- that's our fault recovery, we ignore retval.
++	 */
++	if (acpi_target_sleep_state > ACPI_STATE_S0)
++		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
++
++	/*
++	 * If _PRW says we can wake from the upcoming system state, the _SxD
++	 * value can wake ... and we'll assume a wakeup-aware driver.  If _SxW
++	 * methods exist (ACPI 3.x), they give the lowest power D-state that
++	 * can also wake the system.  _S0W can be valid.
++	 */
++	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
++	    (dev->wakeup.state.enabled &&
++	     dev->wakeup.sleep_state <= acpi_target_sleep_state)) {
++		d_max = d_min;
++		acpi_method[3] = 'W';
++		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
++	}
++	return d_max;
++}
++
+ /*
+  * Toshiba fails to preserve interrupts over S1, reinitialization
+  * of 8259 is needed after S1 resume.
+Index: linux-2.6.22-rc6-mm1/include/acpi/acpi_bus.h
+===================================================================
+--- linux-2.6.22-rc6-mm1.orig/include/acpi/acpi_bus.h	2007-06-28 21:56:24.000000000 +0200
++++ linux-2.6.22-rc6-mm1/include/acpi/acpi_bus.h	2007-06-30 12:18:58.000000000 +0200
+@@ -364,6 +364,8 @@ acpi_handle acpi_get_child(acpi_handle, 
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
  
- /* struct pbe is used for creating lists of pages that should be restored
-  * atomically during the resume from disk, because the page frames they have
-
++int acpi_pm_device_sleep_state(acpi_handle handle);
++
+ #endif				/* CONFIG_ACPI */
+ 
+ #endif /*__ACPI_BUS_H__*/
