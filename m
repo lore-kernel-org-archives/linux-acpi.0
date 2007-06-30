@@ -1,45 +1,60 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] Input: document the proper usage of EV_KEY and
-	KEY_UNKNOWN (v2)
-Date: Sat, 30 Jun 2007 15:20:29 -0300
-Message-ID: <20070630182029.GA25474@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <20070531222814.GB4076@khazad-dum.debian.net> <20070606165509.GB18984@khazad-dum.debian.net> <200706290104.53909.dtor@insightbb.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH -mm 7/9] PM: Make suspend_ops static
+Date: Sat, 30 Jun 2007 23:09:57 +0200
+Message-ID: <200706302309.58612.rjw@sisk.pl>
+References: <200706302257.17556.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:35227 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752442AbXF3VGG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 Jun 2007 17:06:06 -0400
+In-Reply-To: <200706302257.17556.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <200706290104.53909.dtor@insightbb.com>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Paul Mackerras <paulus@samba.org>, Russell King <rmk@arm.linux.org.uk>, Nigel Cunningham <nigel@nigel.suspend2.net>
 
-On Fri, 29 Jun 2007, Dmitry Torokhov wrote:
-> Finally gottent to the patch. It seems a little long-winded, how about
-> the patch below instead?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Well, your version of the patch:
+The variable suspend_ops representing the set of global platform-specific
+suspend-related operations, used by the PM core, need not be exported outside of
+kernel/power/main.c .  Make it static.
 
-1. does not make it clear to *userland* that using EV_SCAN instead of EV_KEY
-is something that is not to be done.  If userland wants to use a key that is
-not generating an useful EV_KEY, it must remap the key to something.
-Otherwise, we are opening our flank to the crap we have with that kludge
-from hell AT keyboard reverse scan-code generation all again...  it might
-have been unavoidable with the AT keyboard, due to legacy stuff, but there
-is no way we should let it happen to anything else.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ include/linux/suspend.h |    2 --
+ kernel/power/main.c     |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-2. does not make it clear that EV_SCAN events must reflect the scan code
-that, when remapped, would reprogram the key that caused that EV_SCAN event
-to be generated.
+Index: linux-2.6.22-rc6-mm1/include/linux/suspend.h
+===================================================================
+--- linux-2.6.22-rc6-mm1.orig/include/linux/suspend.h	2007-06-30 21:21:15.000000000 +0200
++++ linux-2.6.22-rc6-mm1/include/linux/suspend.h	2007-06-30 21:21:33.000000000 +0200
+@@ -77,8 +77,6 @@ struct platform_suspend_ops {
+ 	void (*finish)(void);
+ };
+ 
+-extern struct platform_suspend_ops *suspend_ops;
+-
+ #ifdef CONFIG_PM
+ /**
+  * suspend_set_ops - set platform dependent suspend operations
+Index: linux-2.6.22-rc6-mm1/kernel/power/main.c
+===================================================================
+--- linux-2.6.22-rc6-mm1.orig/kernel/power/main.c	2007-06-30 21:21:01.000000000 +0200
++++ linux-2.6.22-rc6-mm1/kernel/power/main.c	2007-06-30 21:21:33.000000000 +0200
+@@ -30,7 +30,7 @@ BLOCKING_NOTIFIER_HEAD(pm_chain_head);
+ 
+ DEFINE_MUTEX(pm_mutex);
+ 
+-struct platform_suspend_ops *suspend_ops;
++static struct platform_suspend_ops *suspend_ops;
+ 
+ /**
+  *	suspend_set_ops - Set the global suspend method table.
 
-I think these two points need to be addressed by the docs.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
