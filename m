@@ -1,484 +1,460 @@
-From: a.biardi@tiscali.it
-Subject: dmidecode (acpi_osi=!Linux)
-Date: Sun, 1 Jul 2007 14:39:23 +0000
-Message-ID: <200707011439.23511.a.biardi@tiscali.it>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI
+Date: Sun, 1 Jul 2007 22:20:37 +0200
+Message-ID: <20070701202037.GC10869@stusta.de>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_by7hG/JO+6j6PZp"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from busyinternet.com ([66.36.229.35]:36055 "EHLO busylab.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752581AbXGATyR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Jul 2007 15:54:17 -0400
-Received: from [192.168.1.90] (81.199.79.162.ipplanet.com [81.199.79.162] (may be forged))
-	(authenticated (0 bits))
-	by slsp-db4p6.busyworks.com (8.11.6/8.11.6) with ESMTP id l61JC3X17410
-	for <linux-acpi@vger.kernel.org>; Sun, 1 Jul 2007 15:12:04 -0400
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:46805 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757503AbXGAUUL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jul 2007 16:20:11 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dave Jones <davej@redhat.com>, cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
---Boundary-00=_by7hG/JO+6j6PZp
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This patch contains the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI.
 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Acked-by: Dave Jones <davej@redhat.com>
 
-Upon booting 2.6.22-rc6, the kernel says:
+---
 
-Initializing Device/Processor/Thermal objects by executing _INI 
-methods:<4>ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
+This patch has been sent on:
+- 6 Apr 2007
 
-so, attached is the dmidecode for my macbook pro (core2 duo)
+ Documentation/feature-removal-schedule.txt        |   23 -
+ arch/i386/kernel/cpu/cpufreq/Kconfig              |   18 
+ arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |  280 --------------
+ arch/x86_64/kernel/cpufreq/Kconfig                |    6 
+ 4 files changed, 21 insertions(+), 306 deletions(-)
 
-let me know if you need further information
-
-andrea.
-
---Boundary-00=_by7hG/JO+6j6PZp
-Content-Type: text/plain;
-  charset="us-ascii";
-  name="dmidecode-to-linux-acpi@vger.kernel.org"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="dmidecode-to-linux-acpi@vger.kernel.org"
-
-# dmidecode 2.9
-SMBIOS 2.4 present.
-40 structures occupying 1552 bytes.
-Table at 0x000E73F0.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Apple Computer, Inc.
-	Version:    MBP22.88Z.00A5.B01.0611031551
-	Release Date: 11/03/06
-	ROM Size: 2048 kB
-	Characteristics:
-		PCI is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		Boot from CD is supported
-		Selectable boot is supported
-		ACPI is supported
-		IEEE 1394 boot is supported
-		Smart battery is supported
-		Function key-initiated network boot is supported
-	BIOS Revision: 0.1
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Apple Computer, Inc.
-	Product Name: MacBookPro2,2
-	Version: 1.0
-	Serial Number: W864523QW0K
-	UUID: 29649BED-2E50-5C42-B76E-2ECE64DD7E6C
-	Wake-up Type: Power Switch
-	SKU Number: System SKUNumber
-	Family: MacBook Pro
-
-Handle 0x0002, DMI type 2, 16 bytes
-Base Board Information
-	Manufacturer: Apple Computer, Inc.
-	Product Name: Mac-F42187C8
-	Version: PVT
-	Serial Number: 1
-	Asset Tag: Base Board Asset Tag
-	Features:
-		Board is a hosting board
-		Board is replaceable
-	Location In Chassis: Part Component
-	Chassis Handle: 0x0003
-	Type: Unknown
-	Contained Object Handles: 0
-
-Handle 0x0003, DMI type 3, 21 bytes
-Chassis Information
-	Manufacturer: Apple Computer, Inc.
-	Type: Portable
-	Lock: Not Present
-	Version: Mac-F42187C8
-	Serial Number: W864523QW0K
-	Asset Tag: Asset Tag
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Other
-	Security Status: Other
-	OEM Information: 0x00000000
-	Height: Unspecified
-	Number Of Power Cords: Unspecified
-	Contained Elements: 0
-
-Handle 0x0004, DMI type 32, 20 bytes
-System Boot Information
-	Status: No errors detected
-
-Handle 0x0005, DMI type 13, 22 bytes
-BIOS Language Information
-	Installable Languages: 1
-		<BAD INDEX>
-	Currently Installed Language: Not Specified
-
-Handle 0x0106, DMI type 12, 5 bytes
-System Configuration Options
-
-Handle 0x0107, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: DVI
-	External Connector Type: Other
-	Port Type: Video Port
-
-Handle 0x0108, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: USBB
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x0109, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: USBA
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x010A, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: 1394A
-	External Connector Type: IEEE 1394
-	Port Type: Firewire (IEEE P1394)
-
-Handle 0x010B, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: Audio Out
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x010C, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: Microphone
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x010D, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: RJ-45
-	External Connector Type: RJ-45
-	Port Type: Network Port
-
-Handle 0x010E, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: PCI-Express Mini Card
-	External Connector Type: Other
-	Port Type: Other
-
-Handle 0x010F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: None
-	Internal Connector Type: None
-	External Reference Designator: Digital Battery
-	External Connector Type: Other
-	Port Type: Other
-
-Handle 0x0110, DMI type 9, 13 bytes
-System Slot Information
-	Designation: Airport
-	Type: x1 PCI Express
-	Current Usage: Available
-	Length: Short
-	ID: 2
-	Characteristics:
-		3.3 V is provided
-		Hot-plug devices are supported
-		SMBus signal is supported
-
-Handle 0x0111, DMI type 9, 13 bytes
-System Slot Information
-	Designation: ExpressCard
-	Type: x1 PCI Express
-	Current Usage: Available
-	Length: Short
-	ID: 3
-	Characteristics:
-		3.3 V is provided
-		Hot-plug devices are supported
-		SMBus signal is supported
-
-Handle 0x0112, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Video
-	Status: Enabled
-	Description: ATI M56 Video
-
-Handle 0x0113, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Enabled
-	Description: Azalia Audio Codec
-
-Handle 0x0114, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Ethernet
-	Status: Enabled
-	Description: Yukon Ethernet Controller
-
-Handle 0x0115, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Other
-	Status: Enabled
-	Description: Sata
-
-Handle 0x0116, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Other
-	Status: Enabled
-	Description: Pata
-
-Handle 0x0117, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Other
-	Status: Enabled
-	Description: Sudden Motion Sensor
-
-Handle 0x0118, DMI type 136, 6 bytes
-OEM-specific Type
-	Header and Data:
-		88 06 18 01 00 00
-
-Handle 0x0119, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Unknown
-	Manufacturer: Intel(R) Corporation
-	ID: F6 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU
-	Voltage: 1.6 V
-	External Clock: 166 MHz
-	Max Speed: 2160 MHz
-	Current Speed: 2160 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x011C
-	L2 Cache Handle: 0x011A
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Unknown
-	Part Number: Not Specified
-
-Handle 0x011A, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 4096 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Unified
-	Associativity: 16-way Set-associative
-
-Handle 0x011B, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Instruction
-	Associativity: 8-way Set-associative
-
-Handle 0x011C, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Data
-	Associativity: 8-way Set-associative
-
-Handle 0x011D, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Unknown
-	Manufacturer: Intel(R) Corporation
-	ID: F6 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU
-	Voltage: 1.6 V
-	External Clock: 166 MHz
-	Max Speed: 2160 MHz
-	Current Speed: 2160 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0120
-	L2 Cache Handle: 0x011E
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Unknown
-	Part Number: Not Specified
-
-Handle 0x011E, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 4096 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Unified
-	Associativity: 16-way Set-associative
-
-Handle 0x011F, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Instruction
-	Associativity: 8-way Set-associative
-
-Handle 0x0120, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Unknown
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Data
-	Associativity: 8-way Set-associative
-
-Handle 0x0121, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 4 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0122, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0121
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM0
-	Bank Locator: BANK 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 667 MHz (1.5 ns)
-	Manufacturer: 0x7F98000000000000
-	Serial Number: 0x992DAC7B
-	Asset Tag: Unknown
-	Part Number: 0x000000000000000000000000000000000000
-
-Handle 0x0123, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0122
-	Memory Array Mapped Address Handle: 0x0126
-	Partition Row Position: 1
-	Interleave Position: 1
-	Interleaved Data Depth: 1
-
-Handle 0x0124, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0121
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM1
-	Bank Locator: BANK 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 667 MHz (1.5 ns)
-	Manufacturer: 0x2CFFFFFFFFFFFFFF
-	Serial Number: 0xD3103332
-	Asset Tag: Unknown
-	Part Number: 0x3136485446313238363448592D3636374233
-
-Handle 0x0125, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0124
-	Memory Array Mapped Address Handle: 0x0126
-	Partition Row Position: 2
-	Interleave Position: 2
-	Interleaved Data Depth: 1
-
-Handle 0x0126, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x0121
-	Partition Width: 0
-
-Handle 0xFFFD, DMI type 127, 4 bytes
-End Of Table
-
-
---Boundary-00=_by7hG/JO+6j6PZp--
+--- linux-2.6.19-rc6-mm2/arch/i386/kernel/cpu/cpufreq/Kconfig.old	2006-12-01 07:23:38.000000000 +0100
++++ linux-2.6.19-rc6-mm2/arch/i386/kernel/cpu/cpufreq/Kconfig	2006-12-01 07:24:02.000000000 +0100
+@@ -109,7 +109,7 @@
+ config X86_SPEEDSTEP_CENTRINO
+ 	tristate "Intel Enhanced SpeedStep"
+ 	select CPU_FREQ_TABLE
+-	select X86_SPEEDSTEP_CENTRINO_TABLE if (!X86_SPEEDSTEP_CENTRINO_ACPI)
++	select X86_SPEEDSTEP_CENTRINO_TABLE
+ 	help
+ 	  This adds the CPUFreq driver for Enhanced SpeedStep enabled
+ 	  mobile CPUs.  This means Intel Pentium M (Centrino) CPUs. However,
+@@ -121,20 +121,6 @@
+ 
+ 	  If in doubt, say N.
+ 
+-config X86_SPEEDSTEP_CENTRINO_ACPI
+-	bool "Use ACPI tables to decode valid frequency/voltage (deprecated)"
+-	depends on X86_SPEEDSTEP_CENTRINO && ACPI_PROCESSOR
+-	depends on !(X86_SPEEDSTEP_CENTRINO = y && ACPI_PROCESSOR = m)
+-	help
+-	  This is deprecated and this functionality is now merged into
+-	  acpi_cpufreq (X86_ACPI_CPUFREQ). Use that driver instead of
+-	  speedstep_centrino.
+-	  Use primarily the information provided in the BIOS ACPI tables
+-	  to determine valid CPU frequency and voltage pairings. It is
+-	  required for the driver to work on non-Banias CPUs.
+-
+-	  If in doubt, say Y.
+-
+ config X86_SPEEDSTEP_CENTRINO_TABLE
+ 	bool "Built-in tables for Banias CPUs"
+ 	depends on X86_SPEEDSTEP_CENTRINO
+@@ -222,7 +207,7 @@
+ config X86_ACPI_CPUFREQ_PROC_INTF
+ 	bool "/proc/acpi/processor/../performance interface (deprecated)"
+ 	depends on PROC_FS
+-	depends on X86_ACPI_CPUFREQ || X86_SPEEDSTEP_CENTRINO_ACPI || X86_POWERNOW_K7_ACPI || X86_POWERNOW_K8_ACPI
++	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K7_ACPI || X86_POWERNOW_K8_ACPI
+ 	help
+ 	  This enables the deprecated /proc/acpi/processor/../performance
+ 	  interface. While it is helpful for debugging, the generic,
+--- linux-2.6.19-rc6-mm2/arch/x86_64/kernel/cpufreq/Kconfig.old	2006-12-01 07:24:11.000000000 +0100
++++ linux-2.6.19-rc6-mm2/arch/x86_64/kernel/cpufreq/Kconfig	2006-12-01 07:24:21.000000000 +0100
+@@ -42,10 +42,6 @@
+ 
+ 	  If in doubt, say N.
+ 
+-config X86_SPEEDSTEP_CENTRINO_ACPI
+-	bool
+-	depends on X86_SPEEDSTEP_CENTRINO
+-
+ config X86_ACPI_CPUFREQ
+ 	tristate "ACPI Processor P-States driver"
+ 	select CPU_FREQ_TABLE
+@@ -65,7 +60,7 @@
+ config X86_ACPI_CPUFREQ_PROC_INTF
+         bool "/proc/acpi/processor/../performance interface (deprecated)"
+ 	depends on PROC_FS
+-	depends on X86_ACPI_CPUFREQ || X86_SPEEDSTEP_CENTRINO_ACPI || X86_POWERNOW_K8_ACPI
++	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K8_ACPI
+ 	help
+ 	  This enables the deprecated /proc/acpi/processor/../performance
+ 	  interface. While it is helpful for debugging, the generic,
+--- linux-2.6.20-mm1/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c.old	2007-02-17 23:29:53.000000000 +0100
++++ linux-2.6.20-mm1/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2007-02-17 23:30:44.000000000 +0100
+@@ -21,12 +21,6 @@
+ #include <linux/delay.h>
+ #include <linux/compiler.h>
+ 
+-#ifdef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-#include <linux/acpi.h>
+-#include <linux/dmi.h>
+-#include <acpi/processor.h>
+-#endif
+-
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpufeature.h>
+@@ -257,9 +251,7 @@
+ 		/* Matched a non-match */
+ 		dprintk("no table support for CPU model \"%s\"\n",
+ 		       cpu->x86_model_id);
+-#ifndef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-		dprintk("try compiling with CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI enabled\n");
+-#endif
++		dprintk("try using the acpi-cpufreq driver\n");
+ 		return -ENOENT;
+ 	}
+ 
+@@ -346,213 +338,6 @@
+ }
+ 
+ 
+-#ifdef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-
+-static struct acpi_processor_performance *acpi_perf_data[NR_CPUS];
+-
+-/*
+- * centrino_cpu_early_init_acpi - Do the preregistering with ACPI P-States
+- * library
+- *
+- * Before doing the actual init, we need to do _PSD related setup whenever
+- * supported by the BIOS. These are handled by this early_init routine.
+- */
+-static int centrino_cpu_early_init_acpi(void)
+-{
+-	unsigned int	i, j;
+-	struct acpi_processor_performance	*data;
+-
+-	for_each_possible_cpu(i) {
+-		data = kzalloc(sizeof(struct acpi_processor_performance), 
+-				GFP_KERNEL);
+-		if (!data) {
+-			for_each_possible_cpu(j) {
+-				kfree(acpi_perf_data[j]);
+-				acpi_perf_data[j] = NULL;
+-			}
+-			return (-ENOMEM);
+-		}
+-		acpi_perf_data[i] = data;
+-	}
+-
+-	acpi_processor_preregister_performance(acpi_perf_data);
+-	return 0;
+-}
+-
+-
+-#ifdef CONFIG_SMP
+-/*
+- * Some BIOSes do SW_ANY coordination internally, either set it up in hw
+- * or do it in BIOS firmware and won't inform about it to OS. If not
+- * detected, this has a side effect of making CPU run at a different speed
+- * than OS intended it to run at. Detect it and handle it cleanly.
+- */
+-static int bios_with_sw_any_bug;
+-static int sw_any_bug_found(struct dmi_system_id *d)
+-{
+-	bios_with_sw_any_bug = 1;
+-	return 0;
+-}
+-
+-static struct dmi_system_id sw_any_bug_dmi_table[] = {
+-	{
+-		.callback = sw_any_bug_found,
+-		.ident = "Supermicro Server X6DLP",
+-		.matches = {
+-			DMI_MATCH(DMI_SYS_VENDOR, "Supermicro"),
+-			DMI_MATCH(DMI_BIOS_VERSION, "080010"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "X6DLP"),
+-		},
+-	},
+-	{ }
+-};
+-#endif
+-
+-/*
+- * centrino_cpu_init_acpi - register with ACPI P-States library
+- *
+- * Register with the ACPI P-States library (part of drivers/acpi/processor.c)
+- * in order to determine correct frequency and voltage pairings by reading
+- * the _PSS of the ACPI DSDT or SSDT tables.
+- */
+-static int centrino_cpu_init_acpi(struct cpufreq_policy *policy)
+-{
+-	unsigned long			cur_freq;
+-	int				result = 0, i;
+-	unsigned int			cpu = policy->cpu;
+-	struct acpi_processor_performance	*p;
+-
+-	p = acpi_perf_data[cpu];
+-
+-	/* register with ACPI core */
+-	if (acpi_processor_register_performance(p, cpu)) {
+-		dprintk(PFX "obtaining ACPI data failed\n");
+-		return -EIO;
+-	}
+-
+-	policy->shared_type = p->shared_type;
+-	/*
+-	 * Will let policy->cpus know about dependency only when software 
+-	 * coordination is required.
+-	 */
+-	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ALL ||
+-	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
+-		policy->cpus = p->shared_cpu_map;
+-	}
+-
+-#ifdef CONFIG_SMP
+-	dmi_check_system(sw_any_bug_dmi_table);
+-	if (bios_with_sw_any_bug && cpus_weight(policy->cpus) == 1) {
+-		policy->shared_type = CPUFREQ_SHARED_TYPE_ALL;
+-		policy->cpus = cpu_core_map[cpu];
+-	}
+-#endif
+-
+-	/* verify the acpi_data */
+-	if (p->state_count <= 1) {
+-		dprintk("No P-States\n");
+-		result = -ENODEV;
+-		goto err_unreg;
+-	}
+-
+-	if ((p->control_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE) ||
+-	    (p->status_register.space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)) {
+-		dprintk("Invalid control/status registers (%x - %x)\n",
+-			p->control_register.space_id, p->status_register.space_id);
+-		result = -EIO;
+-		goto err_unreg;
+-	}
+-
+-	for (i=0; i<p->state_count; i++) {
+-		if ((p->states[i].control & INTEL_MSR_RANGE) !=
+-		    (p->states[i].status & INTEL_MSR_RANGE)) {
+-			dprintk("Different MSR bits in control (%llu) and status (%llu)\n",
+-				p->states[i].control, p->states[i].status);
+-			result = -EINVAL;
+-			goto err_unreg;
+-		}
+-
+-		if (!p->states[i].core_frequency) {
+-			dprintk("Zero core frequency for state %u\n", i);
+-			result = -EINVAL;
+-			goto err_unreg;
+-		}
+-
+-		if (p->states[i].core_frequency > p->states[0].core_frequency) {
+-			dprintk("P%u has larger frequency (%llu) than P0 (%llu), skipping\n", i,
+-				p->states[i].core_frequency, p->states[0].core_frequency);
+-			p->states[i].core_frequency = 0;
+-			continue;
+-		}
+-	}
+-
+-	centrino_model[cpu] = kzalloc(sizeof(struct cpu_model), GFP_KERNEL);
+-	if (!centrino_model[cpu]) {
+-		result = -ENOMEM;
+-		goto err_unreg;
+-	}
+-
+-	centrino_model[cpu]->model_name=NULL;
+-	centrino_model[cpu]->max_freq = p->states[0].core_frequency * 1000;
+-	centrino_model[cpu]->op_points =  kmalloc(sizeof(struct cpufreq_frequency_table) *
+-					     (p->state_count + 1), GFP_KERNEL);
+-        if (!centrino_model[cpu]->op_points) {
+-                result = -ENOMEM;
+-                goto err_kfree;
+-        }
+-
+-        for (i=0; i<p->state_count; i++) {
+-		centrino_model[cpu]->op_points[i].index = p->states[i].control & INTEL_MSR_RANGE;
+-		centrino_model[cpu]->op_points[i].frequency = p->states[i].core_frequency * 1000;
+-		dprintk("adding state %i with frequency %u and control value %04x\n", 
+-			i, centrino_model[cpu]->op_points[i].frequency, centrino_model[cpu]->op_points[i].index);
+-	}
+-	centrino_model[cpu]->op_points[p->state_count].frequency = CPUFREQ_TABLE_END;
+-
+-	cur_freq = get_cur_freq(cpu);
+-
+-	for (i=0; i<p->state_count; i++) {
+-		if (!p->states[i].core_frequency) {
+-			dprintk("skipping state %u\n", i);
+-			centrino_model[cpu]->op_points[i].frequency = CPUFREQ_ENTRY_INVALID;
+-			continue;
+-		}
+-		
+-		if (extract_clock(centrino_model[cpu]->op_points[i].index, cpu, 0) !=
+-		    (centrino_model[cpu]->op_points[i].frequency)) {
+-			dprintk("Invalid encoded frequency (%u vs. %u)\n",
+-				extract_clock(centrino_model[cpu]->op_points[i].index, cpu, 0),
+-				centrino_model[cpu]->op_points[i].frequency);
+-			result = -EINVAL;
+-			goto err_kfree_all;
+-		}
+-
+-		if (cur_freq == centrino_model[cpu]->op_points[i].frequency)
+-			p->state = i;
+-	}
+-
+-	/* notify BIOS that we exist */
+-	acpi_processor_notify_smm(THIS_MODULE);
+-	printk("speedstep-centrino with X86_SPEEDSTEP_CENTRINO_ACPI "
+-	       "config is deprecated.\n "
+-	       "Use X86_ACPI_CPUFREQ (acpi-cpufreq) instead.\n" );
+-
+-	return 0;
+-
+- err_kfree_all:
+-	kfree(centrino_model[cpu]->op_points);
+- err_kfree:
+-	kfree(centrino_model[cpu]);
+- err_unreg:
+-	acpi_processor_unregister_performance(p, cpu);
+-	dprintk(PFX "invalid ACPI data\n");
+-	return (result);
+-}
+-#else
+-static inline int centrino_cpu_init_acpi(struct cpufreq_policy *policy) { return -ENODEV; }
+-static inline int centrino_cpu_early_init_acpi(void) { return 0; }
+-#endif
+-
+ static int centrino_cpu_init(struct cpufreq_policy *policy)
+ {
+ 	struct cpuinfo_x86 *cpu = &cpu_data[policy->cpu];
+@@ -568,27 +353,25 @@
+ 	if (cpu_has(cpu, X86_FEATURE_CONSTANT_TSC))
+ 		centrino_driver.flags |= CPUFREQ_CONST_LOOPS;
+ 
+-	if (centrino_cpu_init_acpi(policy)) {
+-		if (policy->cpu != 0)
+-			return -ENODEV;
++	if (policy->cpu != 0)
++		return -ENODEV;
+ 
+-		for (i = 0; i < N_IDS; i++)
+-			if (centrino_verify_cpu_id(cpu, &cpu_ids[i]))
+-				break;
+-
+-		if (i != N_IDS)
+-			centrino_cpu[policy->cpu] = &cpu_ids[i];
+-
+-		if (!centrino_cpu[policy->cpu]) {
+-			dprintk("found unsupported CPU with "
+-			"Enhanced SpeedStep: send /proc/cpuinfo to "
+-			MAINTAINER "\n");
+-			return -ENODEV;
+-		}
++	for (i = 0; i < N_IDS; i++)
++		if (centrino_verify_cpu_id(cpu, &cpu_ids[i]))
++			break;
+ 
+-		if (centrino_cpu_init_table(policy)) {
+-			return -ENODEV;
+-		}
++	if (i != N_IDS)
++		centrino_cpu[policy->cpu] = &cpu_ids[i];
++
++	if (!centrino_cpu[policy->cpu]) {
++		dprintk("found unsupported CPU with "
++		"Enhanced SpeedStep: send /proc/cpuinfo to "
++		MAINTAINER "\n");
++		return -ENODEV;
++	}
++
++	if (centrino_cpu_init_table(policy)) {
++		return -ENODEV;
+ 	}
+ 
+ 	/* Check to see if Enhanced SpeedStep is enabled, and try to
+@@ -634,20 +417,6 @@
+ 
+ 	cpufreq_frequency_table_put_attr(cpu);
+ 
+-#ifdef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-	if (!centrino_model[cpu]->model_name) {
+-		static struct acpi_processor_performance *p;
+-
+-		if (acpi_perf_data[cpu]) {
+-			p = acpi_perf_data[cpu];
+-			dprintk("unregistering and freeing ACPI data\n");
+-			acpi_processor_unregister_performance(p, cpu);
+-			kfree(centrino_model[cpu]->op_points);
+-			kfree(centrino_model[cpu]);
+-		}
+-	}
+-#endif
+-
+ 	centrino_model[cpu] = NULL;
+ 
+ 	return 0;
+@@ -841,25 +610,12 @@
+ 	if (!cpu_has(cpu, X86_FEATURE_EST))
+ 		return -ENODEV;
+ 
+-	centrino_cpu_early_init_acpi();
+-
+ 	return cpufreq_register_driver(&centrino_driver);
+ }
+ 
+ static void __exit centrino_exit(void)
+ {
+-#ifdef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-	unsigned int j;
+-#endif
+-	
+ 	cpufreq_unregister_driver(&centrino_driver);
+-
+-#ifdef CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI
+-	for_each_possible_cpu(j) {
+-		kfree(acpi_perf_data[j]);
+-		acpi_perf_data[j] = NULL;
+-	}
+-#endif
+ }
+ 
+ MODULE_AUTHOR ("Jeremy Fitzhardinge <jeremy@goop.org>");
+--- linux-2.6.20-mm1/Documentation/feature-removal-schedule.txt.old	2007-02-17 23:33:09.000000000 +0100
++++ linux-2.6.20-mm1/Documentation/feature-removal-schedule.txt	2007-02-17 23:33:46.000000000 +0100
+@@ -214,28 +214,6 @@
+ 
+ ---------------------------
+ 
+-What:	ACPI hooks (X86_SPEEDSTEP_CENTRINO_ACPI) in speedstep-centrino driver
+-When:	December 2006
+-Why:	Speedstep-centrino driver with ACPI hooks and acpi-cpufreq driver are
+-	functionally very much similar. They talk to ACPI in same way. Only
+-	difference between them is the way they do frequency transitions.
+-	One uses MSRs and the other one uses IO ports. Functionaliy of
+-	speedstep_centrino with ACPI hooks is now merged into acpi-cpufreq.
+-	That means one common driver will support all Intel Enhanced Speedstep
+-	capable CPUs. That means less confusion over name of
+-	speedstep-centrino driver (with that driver supposed to be used on
+-	non-centrino platforms). That means less duplication of code and
+-	less maintenance effort and no possibility of these two drivers
+-	going out of sync.
+-	Current users of speedstep_centrino with ACPI hooks are requested to
+-	switch over to acpi-cpufreq driver. speedstep-centrino will continue
+-	to work using older non-ACPI static table based scheme even after this
+-	date.
+-
+-Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+-
+----------------------------
+-
+ What:	/sys/firmware/acpi/namespace
+ When:	2.6.21
+ Why:	The ACPI namespace is effectively the symbol list for
