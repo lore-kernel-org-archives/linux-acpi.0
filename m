@@ -1,47 +1,38 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 1/2] ACPI: Do not prepare for hibernation in acpi_shutdown
-Date: Sun, 1 Jul 2007 20:53:08 +0200
-Message-ID: <200707012053.08663.rjw@sisk.pl>
-References: <200707012051.48338.rjw@sisk.pl>
+Subject: [RFC][PATCH 0/2] PM: Update system power off code
+Date: Sun, 1 Jul 2007 20:51:47 +0200
+Message-ID: <200707012051.48338.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38153 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:38150 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755380AbXGASra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Jul 2007 14:47:30 -0400
-In-Reply-To: <200707012051.48338.rjw@sisk.pl>
+	id S1755371AbXGASr3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Jul 2007 14:47:29 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: pm list <linux-pm@lists.linux-foundation.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi,
 
-Since we are now explicitly calling hibernation_ops->prepare() before
-hibernation_ops->enter() in hibernation_platform_enter() (defined in
-kernel/power/disk.c), ACPI should not call acpi_sleep_prepare(ACPI_STATE_S4)
-from acpi_shutdown().
+The following two patches update the system power off code.  They:
+* remove the (unnecessary) call to acpi_sleep_prepare(ACPI_STATE_S4) from
+  acpi_shutdown()
+* remove acpi_sysclass and device_acpi that are only defined to register the
+  ACPI power off preparation callback in acpi_shutdown() and introduce more
+  general mechanism instead
+The details are in the changelogs.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep/poweroff.c |    3 ---
- 1 file changed, 3 deletions(-)
+Comments welcome.
 
-Index: linux-2.6.22-rc6/drivers/acpi/sleep/poweroff.c
-===================================================================
---- linux-2.6.22-rc6.orig/drivers/acpi/sleep/poweroff.c	2007-07-01 15:08:54.000000000 +0200
-+++ linux-2.6.22-rc6/drivers/acpi/sleep/poweroff.c	2007-07-01 15:10:07.000000000 +0200
-@@ -54,9 +54,6 @@ static int acpi_shutdown(struct sys_devi
- 	case SYSTEM_POWER_OFF:
- 		/* Prepare to power off the system */
- 		return acpi_sleep_prepare(ACPI_STATE_S5);
--	case SYSTEM_SUSPEND_DISK:
--		/* Prepare to suspend the system to disk */
--		return acpi_sleep_prepare(ACPI_STATE_S4);
- 	default:
- 		return 0;
- 	}
+Greetings,
+Rafael
+
+
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
+
