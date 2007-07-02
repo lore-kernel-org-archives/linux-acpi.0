@@ -1,30 +1,69 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: [RFC][PATCH -mm 0/9] PM: Update global suspend and hibernation operations framework
-Date: Mon, 2 Jul 2007 15:36:32 +0100
-Message-ID: <20070702143632.GC32096@flint.arm.linux.org.uk>
-References: <200706302257.17556.rjw@sisk.pl> <200707012128.41742.david-b@pacbell.net> <200707021628.27139.rjw@sisk.pl>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Mon, 02 Jul 2007 16:48:07 +0200
+Message-ID: <1183387687.4089.124.camel@johannes.berg>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+	 <1182986681.5155.55.camel@localhost>
+	 <1183121869.4089.57.camel@johannes.berg>  <468504FE.9000502@trash.net>
+	 <1183122920.4089.63.camel@johannes.berg>  <468507C9.2000800@trash.net>
+	 <1183124085.4089.66.camel@johannes.berg>  <46850CB8.8000509@trash.net>
+	 <1183124981.4089.69.camel@johannes.berg>  <46850EDE.5020804@trash.net>
+	 <1183125924.4089.73.camel@johannes.berg>
+	 <1183126739.4089.76.camel@johannes.berg>
+	 <1183129006.4089.84.camel@johannes.berg>
+	 <1183217536.5165.25.camel@localhost>
+	 <1183365821.4089.94.camel@johannes.berg>  <4688F612.1060408@trash.net>
+	 <1183386883.4089.120.camel@johannes.ber g>  <46890DF8.2020706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-r/ICgW/0ln80BlCm+J85"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([217.147.92.249]:42066 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759828AbXGBOkq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jul 2007 10:40:46 -0400
-Content-Disposition: inline
-In-Reply-To: <200707021628.27139.rjw@sisk.pl>
+Received: from crystal.sipsolutions.net ([195.210.38.204]:46738 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558AbXGBOrb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jul 2007 10:47:31 -0400
+In-Reply-To: <46890DF8.2020706@trash.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: David Brownell <david-b@pacbell.net>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Paul Mackerras <paulus@samba.org>, Nigel Cunningham <nigel@nigel.suspend2.net>
+To: Patrick McHardy <kaber@trash.net>
+Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
-On Mon, Jul 02, 2007 at 04:28:25PM +0200, Rafael J. Wysocki wrote:
-> BTW, Russell, is there any chance that your patchest will be in -mm before
-> it's merged?  My patches will go through -mm anyway ...
 
-If akpm picks up the devel branch from the ARM tree (which I believe he
-does) he'll get the PXA stuff with that next time around.
+--=-r/ICgW/0ln80BlCm+J85
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+On Mon, 2007-07-02 at 16:38 +0200, Patrick McHardy wrote:
+
+> > Do I understand you correctly in that you prefer the way I did it now?
+>=20
+>=20
+> Yes.
+
+Alright, then I'll rework the event generation to not include the whole
+family info and repost with that tomorrow or so. If I find time I might
+actually fix the unregistration bug too, but I have a feeling digging in
+the socket code might take more time than I have right now.
+
+johannes
+
+--=-r/ICgW/0ln80BlCm+J85
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGiRAn/ETPhpq3jKURAofSAKCMTXUx+SjPI4WaZXM5+9o69/wIZQCaA88v
+3xFGeVfIPZ1AK4kYj3mjg2Q=
+=BoMj
+-----END PGP SIGNATURE-----
+
+--=-r/ICgW/0ln80BlCm+J85--
+
