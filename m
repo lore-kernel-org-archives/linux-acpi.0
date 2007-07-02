@@ -1,40 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH -mm 0/9] PM: Update global suspend and hibernation operations framework
-Date: Mon, 2 Jul 2007 22:17:36 +0200
-Message-ID: <200707022217.37759.rjw@sisk.pl>
-References: <200706302257.17556.rjw@sisk.pl> <200707021628.27139.rjw@sisk.pl> <20070702143632.GC32096@flint.arm.linux.org.uk>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [2.6 patch] the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI
+Date: Mon, 2 Jul 2007 19:22:55 -0400
+Message-ID: <20070702232255.GH6403@redhat.com>
+References: <20070701202037.GC10869@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41773 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753862AbXGBUKH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jul 2007 16:10:07 -0400
-In-Reply-To: <20070702143632.GC32096@flint.arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070701202037.GC10869@stusta.de>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
+To: Adrian Bunk <bunk@stusta.de>
+Cc: cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King <rmk@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Paul Mackerras <paulus@samba.org>, Nigel Cunningham <nigel@nigel.suspend2.net>
 
-On Monday, 2 July 2007 16:36, Russell King wrote:
-> On Mon, Jul 02, 2007 at 04:28:25PM +0200, Rafael J. Wysocki wrote:
-> > BTW, Russell, is there any chance that your patchest will be in -mm before
-> > it's merged?  My patches will go through -mm anyway ...
-> 
-> If akpm picks up the devel branch from the ARM tree (which I believe he
-> does) he'll get the PXA stuff with that next time around.
-> 
+On Sun, Jul 01, 2007 at 10:20:37PM +0200, Adrian Bunk wrote:
 
-OK, thanks.
+Hi Adrian,
 
-I'll push my patches to Andrew when the PXA update hits -mm.
+ > This patch contains the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI.
+ > 
+ > Signed-off-by: Adrian Bunk <bunk@stusta.de>
+ > Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+ > Acked-by: Dave Jones <davej@redhat.com>
 
-Greetings,
-Rafael
+Can you do this against -mm please ?
+There's been some changes, which mean that your patch won't apply
+without fuzz, which git-apply hates.
 
+(19:06:04:davej@hera:cpufreq)$ git-applymbox -k ~/cf
+1 patch(es) to process.
+
+Applying '[CPUFREQ] the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI'
+
+error: patch failed: arch/x86_64/kernel/cpufreq/Kconfig:65
+error: arch/x86_64/kernel/cpufreq/Kconfig: patch does not apply
+
+
+Thanks,
+
+	Dave
 
 -- 
-"Premature optimization is the root of all evil." - Donald Knuth
+http://www.codemonkey.org.uk
