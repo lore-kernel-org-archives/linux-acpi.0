@@ -1,200 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH -mm 2/9] ACPI: Add acpi_pm_device_sleep_state helper routine
-Date: Mon, 2 Jul 2007 10:17:00 +0200
-Message-ID: <200707021017.01295.rjw@sisk.pl>
-References: <200706302257.17556.rjw@sisk.pl> <200706302259.48700.rjw@sisk.pl> <200707012249.14143.david-b@pacbell.net>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Mon, 02 Jul 2007 10:43:41 +0200
+Message-ID: <1183365821.4089.94.camel@johannes.berg>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
+	 <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+	 <1181811576.5411.27.camel@localhost.localdomain>
+	 <1181820510.4091.9.camel@localhost>
+	 <1181869285.5411.39.camel@localhost.localdomain>
+	 <1182178882.4063.11.camel@localhost>
+	 <1182223964.5411.76.camel@localhost.localdomain>
+	 <1182811210.6644.22.camel@johannes.berg>
+	 <1182986681.5155.55.camel@localhost>
+	 <1183121869.4089.57.camel@johannes.berg>  <468504FE.9000502@trash.net>
+	 <1183122920.4089.63.camel@johannes.berg>  <468507C9.2000800@trash.net>
+	 <1183124085.4089.66.camel@johannes.berg>  <46850CB8.8000509@trash.net>
+	 <1183124981.4089.69.camel@johannes.berg>  <46850EDE.5020804@trash.net>
+	 <1183125924.4089.73.camel@johannes.berg>
+	 <1183126739.4089.76.camel@johannes.berg>
+	 <1183129006.4089.84.camel@johannes.berg>
+	 <1183217536.5165.25.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-y+Z5QCL/K0zrec3qDGJZ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39580 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439AbXGBIJ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jul 2007 04:09:56 -0400
-In-Reply-To: <200707012249.14143.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from crystal.sipsolutions.net ([195.210.38.204]:58002 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303AbXGBInd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jul 2007 04:43:33 -0400
+In-Reply-To: <1183217536.5165.25.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Shaohua Li <shaohua.li@intel.com>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Igor Stoppa <igor.stoppa@nokia.com>, Paul Mackerras <paulus@samba.org>, Russell King <rmk@arm.linux.org.uk>, Nigel Cunningham <nigel@nigel.suspend2.net>
+To: hadi@cyberus.ca
+Cc: Patrick McHardy <kaber@trash.net>, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
 
-On Monday, 2 July 2007 07:49, David Brownell wrote:
-> On Saturday 30 June 2007, Rafael J. Wysocki wrote:
-> > From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > Based on the David Brownell's patch at
-> > http://marc.info/?l=linux-acpi&m=117873972806360&w=2
-> 
-> I hope someone's going to refresh the PCI glue calling this, then...
-> making pci_choose_state() work was the goal of that patch!!
-> 
-> Also the updates to teach how the PCI root bridge wakeup capabilities
-> fit into the equation, for non-mainboard devices (all kinds of add-on
-> cards that talk PCI) ... that stuff was unclear to me, which is most
-> of why I left it out of that patch.
-> 
-> Correct me if I'm wrong here, but nothing else in this patch set
-> depends on this particular patch ... yes?
 
-That's correct.
+--=-y+Z5QCL/K0zrec3qDGJZ
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> > Add a helper routine returning the lowest power (highest number) ACPI device
-> > power state that given device can be in while the system is in the sleep state
-> > indicated by acpi_target_sleep_state .
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/acpi/sleep/main.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h   |    2 +
-> >  2 files changed, 53 insertions(+)
-> > 
-> > Index: linux-2.6.22-rc6-mm1/drivers/acpi/sleep/main.c
-> > ===================================================================
-> > --- linux-2.6.22-rc6-mm1.orig/drivers/acpi/sleep/main.c	2007-06-30 12:18:47.000000000 +0200
-> > +++ linux-2.6.22-rc6-mm1/drivers/acpi/sleep/main.c	2007-06-30 12:18:58.000000000 +0200
-> > @@ -255,6 +255,57 @@ static struct hibernation_ops acpi_hiber
-> >  };
-> >  #endif				/* CONFIG_SOFTWARE_SUSPEND */
-> >  
-> > +/**
-> > + *	acpi_pm_device_sleep_state - return the lowest power (highest number)
-> > + *				     ACPI device power state given device can be
-> > + *				     in while the system is in the sleep state
-> > + *				     indicated by %acpi_target_sleep_state
-> > + *	@handle: Represents the device the state is evaluated for
-> > + */
-> > +
-> > +int acpi_pm_device_sleep_state(acpi_handle handle)
-> 
-> Yeah, moving this from the PCI glue to the ACPI core is probably
-> better.  But I'd like to see the comment use standard kerneldoc ...
-> that is, the descriptive paragraph follows a set of (one line)
-> summaries of the function and its parameter(s).  The description
-> needs to cover the fault returns too.
+On Sat, 2007-06-30 at 11:32 -0400, jamal wrote:
 
-OK
-
-> Also, recall that this was originally PCI-specific.  A generalized
-> approach would return a range of states, not a single state that
-> embeds a particular policy that may not be universally appropriate...
-
-Via pointers and the return value equal to 0 on success?
-
+> > +static void genl_unregister_mc_group(struct genl_multicast_group *grp)
 > > +{
-> > +	char acpi_method[] = "_SxD";
-> > +	unsigned long d_min, d_max;
-> > +	struct acpi_device *dev;
+> > +	/*
+> > +	 * TODO: fix multicast group re-use by clearing the bit
+> > +	 *	 for this group in all genetlink sockets.
+> > +	 */
+> > +	clear_bit(grp->id, mc_groups);
+> > +	list_del(&grp->list);
+>=20
+> I think you need a=20
+> genl_ctrl_event(CTRL_CMD_DELMCAST_GRP, family);
+> here? You may need to save the mcast details before you delete.
+
+I will, but not currently because right now mcast groups are only
+deleted when the family is dropped.
+
+> > +			NLA_PUT_U32(skb, CTRL_ATTR_MCAST_GRP_ID, grp->id);
+> > +			NLA_PUT_STRING(skb, CTRL_ATTR_MCAST_GRP_NAME,
+> > +				       grp->name);
 > > +
-> > +	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &dev))) {
-> > +		printk(KERN_ERR "ACPI handle has no context!\n");
-> 
-> The description above should cover this fault return ... the caller
-> would normally need some default to apply in such cases, too.
-> 
-> (Example:  PCI could just look at the PCI PM resource and see what
-> states are supported there.  Choosing PCI_D2, where it's available,
-> could eliminate various driver re-initialization problems.  That
-> might make some video code work better, from what I'm told ...)
+>=20
+> Consider my earlier suggestion to use CTRL_ATTR_MCAST_GRP which has both
+> id and name in one struct.
 
-OK
- 
-> > +		return -ENODEV;
-> > +	}
-> > +	acpi_method[2] = '0' + acpi_target_sleep_state;
-> > +	/*
-> > +	 * If the sleep state is S0, we will return D3, but if the device has
-> > +	 * _S0W, we will use the value from _S0W
-> 
-> There was also the assumption that if it can wake, it can do
-> so from D3 *or* there will be an _SxD method... remembering
-> that lots of systems don't have ACPI 3.0 _SxW methods.
-> 
-> But returning D3 is not necessarily best, here...
-> 
-> 
-> > +	 */
-> > +	d_min = ACPI_STATE_D3;
-> > +	d_max = ACPI_STATE_D3;
-> 
-> Other than the lack of empty lines separating code paragraphs ...
-> I recall choosing "d_min = ACPI_STATE_D3" with specific reference
-> to PCI.  It's not clear to me that's appropriate for non-PCI
-> devices.
->
-> The logic was that PCI devices can all support PCI_D0 and PCI_D3.
-> For non-PCI devices we can't actually know that.  So "min" should
-> probably default to ACPI_STATE_D0.  If this returns a range, then
-> such issues can stay out of this code.
+Yeah I thought about that but then saw Patrick's patches to convert
+other things away from structs so I wasn't sure what the idea here is.
+Patrick, care to comment?
 
-The ACPI spec says that all devices must support D0 and D3.
- 
-> > +	/*
-> > +	 * If present, _SxD methods give the minimum D-state we may use
-> > +	 * for each S-state ... with lowest latency state switching.
-> > +	 *
-> > +	 * We rely on acpi_evaluate_integer() not clobbering the integer
-> > +	 * provided -- that's our fault recovery, we ignore retval.
-> > +	 */
-> > +	if (acpi_target_sleep_state > ACPI_STATE_S0)
-> > +		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
-> 
-> ... "lowest latency" implies avoiding ACPI D3.  Thing is, in my
-> testing with PCI, most devices didn't have _SxD methods, so the
-> only way to return anything other than PCI_D0 (i.e. some state
-> that saved power) was to force a different default.  D3 was the
-> only option that always worked.
+> Other than that - looking good.
 
-I think that usually D3 will be returned here.
+:)
 
-> > +
-> > +	/*
-> > +	 * If _PRW says we can wake from the upcoming system state, the _SxD
-> > +	 * value can wake ... and we'll assume a wakeup-aware driver.  If _SxW
-> > +	 * methods exist (ACPI 3.x), they give the lowest power D-state that
-> > +	 * can also wake the system.  _S0W can be valid.
-> > +	 */
-> > +	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-> > +	    (dev->wakeup.state.enabled &&
-> 
-> This used device_may_wakeup() before.  That ACPI flag is not a
-> direct analogue ... without looking again at the issues, I'd
-> say the right solution is to phase out the ACPI-only flags in
-> new code.
+johannes
 
-Hm, I'm not sure.  This is an ACPI routine after all ...
+--=-y+Z5QCL/K0zrec3qDGJZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-> Maybe just expect the caller to pass the results 
-> of device_may_wakeup() in ... or update the signature to accept
-> a "struct device", and fetch the handle from there.  (That'd
-> be a better match for most callers, I'd think...)
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
 
-In that case it would be nicer to pass 'struct acpi_device *' rahter than
-'struct device *', IMO.
+iD8DBQBGiLq9/ETPhpq3jKURAk7SAJ0Q97DJhEE4b/ozZtscZP4kmdl9cQCfbR2k
+4SVPf6JujQTM6Np8m96EbTE=
+=5J4b
+-----END PGP SIGNATURE-----
 
-> > +	     dev->wakeup.sleep_state <= acpi_target_sleep_state)) {
-> > +		d_max = d_min;
-> 
-> None of my systems happend to have _SxW methods to execute.
-> So with few _SxD methods, most of the time d_max never changed.
-> All the more reason to return both min and max...
-> 
-> 
-> > +		acpi_method[3] = 'W';
-> > +		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
-> > +	}
-> > +	return d_max;
-> 
-> ... so there's a range of from d_min to d_max that would be OK
-> with ACPI, but this particular routine is only showing one end
-> of the range.  For a general purpose routine, that doesn't seem
-> like it's obviously the best answer.
+--=-y+Z5QCL/K0zrec3qDGJZ--
 
-We can return a range.
-
-Greetings,
-Rafael
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
