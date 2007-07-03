@@ -1,39 +1,101 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [2.6 patch] the overdue removal of X86_SPEEDSTEP_CENTRINO_ACPI
-Date: Mon, 2 Jul 2007 21:13:54 -0400
-Message-ID: <20070703011354.GB31035@redhat.com>
-References: <20070701202037.GC10869@stusta.de> <20070702232255.GH6403@redhat.com> <20070702234313.GB3492@stusta.de> <20070703003648.GA31035@redhat.com> <20070703010611.GD3492@stusta.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: dmidecode (acpi_osi=!Linux)
+Date: Mon, 2 Jul 2007 23:49:19 -0400
+Message-ID: <200707022349.19743.lenb@kernel.org>
+References: <200707011439.23511.a.biardi@tiscali.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:37741 "EHLO mx1.redhat.com"
+Received: from hera.kernel.org ([140.211.167.34]:39670 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756808AbXGCBPh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jul 2007 21:15:37 -0400
+	id S1753385AbXGCDta (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Jul 2007 23:49:30 -0400
+In-Reply-To: <200707011439.23511.a.biardi@tiscali.it>
 Content-Disposition: inline
-In-Reply-To: <20070703010611.GD3492@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: a.biardi@tiscali.it
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Jul 03, 2007 at 03:06:11AM +0200, Adrian Bunk wrote:
+thanks for the macbook pro acpidump, andrea.
 
- > >  > @@ -65,1 +60,1 @@
- > >  > -	depends on X86_ACPI_CPUFREQ || X86_SPEEDSTEP_CENTRINO_ACPI || X86_POWERNOW_K8_ACPI
- > >  > +	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K8_ACPI
- > >  > --- linux-2.6.20-mm1/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c.old	2007-02-17 23:29:53.000000000 +0100
- > >  > +++ linux-2.6.20-mm1/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2007-02-17 23:30:44.000000000 +0100
- > > 
- > > This won't apply either.
- > 
- >   git-apply --unidiff-zero
+Apple got it wrong -- they're using if/then/else with _OSI
+to try to identify the OS, just like the broken reference code.
 
-git-apply isn't the same thing as git-applymbox. (which doesn't know that option)
-The former involves a lot more hassle to get the changelog & comments
-pasted in, along with it getting attribution correct automatically.
+But it doesn't look like in this version it will make any difference.
+The _STA.GUI bit for HPET will be set for Windows and Darwin, 
+but not for Linux.  But Linux doesn't use that bit anyway.
 
-	Dave
+Also, thanks for the dmesg -- the fact that you got no extra
+line in dmesg means I botched it -- so I'll fix that it in a minute.
 
--- 
-http://www.codemonkey.org.uk
+Finally, there are some interesting parts of the DSDT that will
+change depending on "acpi_osi=Darwin" -- looks like bits
+related to the smart battery.  We should look into what it
+would mean to set _OSI "Darwin" at some point...
+
+cheers,
+-Len
+
+for those interested in the details, here is the interesting part of the DSDT:
+
+        Method (_INI, 0, NotSerialized)
+        {
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (_OSI ("Darwin"))
+                {
+                    Store (0x2710, OSYS)
+
+# if (Darwin), OSYS=Ox2710
+                }
+                Else
+                {
+                    If (_OSI ("Linux"))
+                    {
+                        Store (0x03E8, OSYS)
+# if (Linux) OSYS=0x3E8
+                    }
+                    Else
+                    {
+                        Store (0x07D1, OSYS)
+# else OSYS=7D1 (modern Windows goes here)
+                    }
+                }
+            }
+            Else
+            {
+                Store (0x07D0, OSYS)
+# else OSYS=0x7D0 (old windows and old Linux go here)
+            }
+...
+                Device (HPET)
+                {
+                    Name (_HID, EisaId ("PNP0103"))
+                    Name (_CID, 0x010CD041)
+ ...
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LGreaterEqual (OSYS, 0x07D1))
+                        {
+                            If (HPAE)
+                            {
+                                Return (0x0F)
+# if HPET enabled && (>= new Windows), return functioning, gui, enabled, present
+# note that Linux is not >= new Windows here
+                            }
+                        }
+                        Else
+                        {
+                            If (HPAE)
+                            {
+                                Return (0x0B)
+# if HPET enabled && (< new Windows) return functioning, enabled, present
+                            }
+                        }
+
+                        Return (0x00)
+                    }
+
