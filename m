@@ -1,120 +1,101 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/3] ACPI autoloading
-Date: Tue, 3 Jul 2007 03:40:30 -0400
-Message-ID: <200707030340.31094.lenb@kernel.org>
-References: <1182111724.4204.0.camel@noname>
+Subject: Re: [PATCH 1/3] ACPI autoloading - ACPICA adjustance
+Date: Tue, 3 Jul 2007 03:58:58 -0400
+Message-ID: <200707030358.59031.lenb@kernel.org>
+References: <1182111854.4204.4.camel@noname>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:60310 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:50121 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753950AbXGCHkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2007 03:40:43 -0400
-In-Reply-To: <1182111724.4204.0.camel@noname>
+	id S1753016AbXGCH7J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jul 2007 03:59:09 -0400
+In-Reply-To: <1182111854.4204.4.camel@noname>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: trenn@suse.de
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Kay Sievers <kasievers@suse.de>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-> A) Cannot pass acpi_device_id through ops.add (probe equivalent func)
-> ---------------------------------------------------------------------
-> 
-> int acpi_match_device_ids(..)
-> should be:
-> const acpi_device_id *acpi_match_device_ids
-> and the matching device id should get passed to the acpi driver's .add
-> function.
-> This would ease up the code in the ACPI driver a lot (e.g. see button.c,
-> it is compared again which device (HID) has been found. Theoretically
-> the drivers also needs to check CIDs...).
-> 
-> The problem is that in scan.c ACPI driver is abstracted to use .match
-> and .probe "struct bus_type" functions and I have no idea how the
-> matching acpi_device_id should get passed or stored from
-> acpi_match_device_ids (.match) to ops.add (invoked in .probe).
-> Currently:
->         kernel_ulong_t driver_data;
-> of acpi_device_id got added, but is not used at all atm.
->
-> B) Thermal module always gets loaded
-> ------------------------------------
-> 
-> This is because _TZ_ (scope?!?) always gets added, but is declared as a
-> device or at least pops up as a thermal device.
-> This is in drivers/acpi/utilities/utglobal.c:
-> 
-> /*
->  * Predefined ACPI Names (Built-in to the Interpreter)
->  *
->  * NOTES:
->  * 1) _SB_ is defined to be a device to allow \_SB_._INI to be run
->  *    during the initialization sequence.
->  * 2) _TZ_ is defined to be a thermal zone in order to allow ASL code to
->  *    perform a Notify() operation on it.
->  */
-> 
-> Any idea how to get rid of that is very welcome.
-> Is this to be able to process buggy ASL code of this kind?:
-> "Notify ("_TZ_", 0x80)"
-> While _TZ_ is not a real device, but a scope operator and gets
-> statically declared as a device here to solve such things?
+On Sunday 17 June 2007 16:24, Thomas Renninger wrote:
+> Define standardized HIDs ...
 
-ThermalZone objects hang under _TZ, whether TZ it be global, or under _SB
-I would think that if there are no ThermalZone objects,
-then we'd not need to bind the thermal driver.
+> Index: linux-2.6.22-rc4/include/acpi/acpi_drivers.h
+> ===================================================================
+> --- linux-2.6.22-rc4.orig/include/acpi/acpi_drivers.h
+> +++ linux-2.6.22-rc4/include/acpi/acpi_drivers.h
+> @@ -34,16 +34,33 @@
+>  #define ACPI_BUS_COMPONENT		0x00010000
+>  #define ACPI_SYSTEM_COMPONENT		0x02000000
+>  
+> -/* _HID definitions */
+> +/*
+> +  _HID definitions
+> +  HIDs starting with 'X' are self defined here and are used for devices where
+> +  a HID does not exist in spec.
+> +  HIDs must conform to (ACPI spec - 6.1.4):
+>  
+> -#define ACPI_POWER_HID			"power_resource"
+> +  Numeric 32-bit compressed EISA type ID are not supported (never seen one as
+> +  an ACPI HID?)
+> +
+> +  A valid PNP ID must be of the form AAA#### where A is an uppercase letter
+> +  and # is a hex digit.
+> +  A valid ACPI ID must be of the form ACPI#### where # is a hex digit.
+> +
+> +  and our self-defined: XAAA#### where A is an uppercase letter and # is a hex
+> +  digit.
 
-However, this would be a custom binding method (like acpi video.c)
-rather than a HID based one.
+What was the criteria for inventing the XAAA#### format?
+It doesn't comply with the PNP standard format above, since
+it starts with four letters instead of three.
 
-I'm really not sure about the _TZ_ syntax -- we'll have to ask Bob
-where that came from when he returns -- but I don't think it matters
-for the issue at hand.
+I don't think that "XVID0001" will be more meaningful than "video"
+when seen in sysfs...
 
-> C) Renaming/Unifying of HID strings
-> -----------------------------------
-> 
-> This shouldn't be a problem. Consequence is that the new ACPI sysfs
-> structure will show other names, but as it got introduced recently this
-> shouldn't hurt anyone?
+> +*/
+> +
+> +#define ACPI_POWER_HID			"XPWR0001"
+>  #define ACPI_PROCESSOR_HID		"ACPI0007"
+> -#define ACPI_SYSTEM_HID			"acpi_system"
+> -#define ACPI_THERMAL_HID		"thermal"
+> -#define ACPI_BUTTON_HID_POWERF		"button_power"
+> -#define ACPI_BUTTON_HID_SLEEPF		"button_sleep"
+> -#define ACPI_VIDEO_HID			"video"
+> -#define ACPI_BAY_HID			"bay"
+> +#define ACPI_SYSTEM_HID			"XSYS0001"
+> +#define ACPI_THERMAL_HID		"XTHM0001"
+> +#define ACPI_BUTTON_HID_POWERF		"XPBT0001"
+> +#define ACPI_BUTTON_HID_SLEEPF		"XSBT0001"
+> +#define ACPI_VIDEO_HID			"XVID0001"
+> +#define ACPI_BAY_HID			"XBAY0001"
+> +
 
-I agree that it is still new and that it is unlikely that a re-name
-now would be a significant compatibility issue.
+If the criteria is to stay within an 8 character id length,
+I'd rather spell a word with capital letters, and stick
+in 0's where we don't need more letters:
 
-> For better readability we could map all HIDs to a device name through a
-> HID <-> Device Name - enum and table. And then export "battery" again
-> through /sys instead of "PNP0C0A".
-> This was a bit mixed up. If, this should get implemented soon as the
-> sysfs structure should not get altered that often...
-> If wanted, I can send an on top patch later...
+POWER000
+SYSTEM00
+THERMAL0
+PWRBTN00
+SLEEPBTN
+VIDEO000
+DRIVEBAY
 
-We've had this discussion before.
+Or when we discussed this before, we though about not conflicting
+with a standard (or vendor standard) name by becoming the Linux vendor --
+say using  the "LNX" prefix, and trying to spell something useful
+in the remaining 5 characters. eg.
 
-I'm inclined to keep the kernel as simple as possible, and let
-some user-space thingie look up standard strings in some user-space table.
-I don't want to get into the game of trying to make sysfs
-so user-friendly, that a kernel re-build is necessary to add/translate
-a new string...
-
-that said, if we have to _invent_ a new string, it might as well
-be something meaningful to a human.
-
-> D) Why renaming struct acpi_device_id to struct __acpi_device_id
-> 
-> Not a problem, just for understanding why I have done this:
-> struct acpi_device_id already exists in ACPICA. The module aliasing
-> interface requires that struct "SUBSYSTEM"_device_id is used as name.
-> This is not that obvious (include/linux/module.h):
-> #define MODULE_GENERIC_TABLE(gtype,name) and
-> #define MODULE_DEVICE_TABLE(type,name)
-
-it is really irritating to end up with two nearly identical definitions.
-it is also irritating to diverge from ACPICA for syntax reasons.
-
-I don't really have a better idea -- though I'd be inclined to call it
-acpica_device_id instead of __acpi_device_id if we're stuck with that route.
+LNXPOWER
+LNXSYSTM
+LNXTHERM
+LNXSLPBN
+LNXPWRBN
+LNXVIDEO
+LNXIOBAY
 
 -Len
-
