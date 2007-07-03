@@ -1,116 +1,55 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 1/3] ACPI autoloading - ACPICA adjustance
-Date: Tue, 03 Jul 2007 14:23:55 +0200
-Message-ID: <1183465435.16639.131.camel@queen.suse.de>
-References: <1182111854.4204.4.camel@noname>
-	 <200707030358.59031.lenb@kernel.org>
-Reply-To: trenn@suse.de
+From: "Renato S. Yamane" <renatoyamane@mandic.com.br>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Tue, 03 Jul 2007 09:59:42 -0300
+Message-ID: <468A483E.6060207@mandic.com.br>
+References: <1180614979.2693.26.camel@localhost.localdomain> <200706281327.29962.eike-kernel@sf-tec.de> <4683A80E.4070006@mandic.com.br> <200707030738.39980.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:53768 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751287AbXGCMX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2007 08:23:57 -0400
-In-Reply-To: <200707030358.59031.lenb@kernel.org>
+Received: from smtp-01b.mandic.com.br ([200.225.81.136]:58804 "EHLO
+	smtp-01.mandic.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752846AbXGCM7r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jul 2007 08:59:47 -0400
+Received: from unknown (HELO [192.168.1.65]) (48XWxNa3qdTI2cq3yJaVop5Ok6I=@[200.228.134.10])
+          (envelope-sender <renatoyamane@mandic.com.br>)
+          by smtp-01.mandic.com.br (qmail-ldap-1.03) with AES256-SHA encrypted SMTP
+          for <linux-acpi@vger.kernel.org>; 3 Jul 2007 12:59:44 -0000
+In-Reply-To: <200707030738.39980.eike-kernel@sf-tec.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>, "Renato S. Yamane" <renatoyamane@mandic.com.br>, Richard Hughes <hughsient@gmail.com>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>, Mathieu.Berard@crans.org, mjg59@srcf.ucam.org, jaimeff@gmail.com
 
-On Tue, 2007-07-03 at 03:58 -0400, Len Brown wrote:
-> On Sunday 17 June 2007 16:24, Thomas Renninger wrote:
-> > Define standardized HIDs ...
-> 
-> > Index: linux-2.6.22-rc4/include/acpi/acpi_drivers.h
-> > ===================================================================
-> > --- linux-2.6.22-rc4.orig/include/acpi/acpi_drivers.h
-> > +++ linux-2.6.22-rc4/include/acpi/acpi_drivers.h
-> > @@ -34,16 +34,33 @@
-> >  #define ACPI_BUS_COMPONENT		0x00010000
-> >  #define ACPI_SYSTEM_COMPONENT		0x02000000
-> >  
-> > -/* _HID definitions */
-> > +/*
-> > +  _HID definitions
-> > +  HIDs starting with 'X' are self defined here and are used for devices where
-> > +  a HID does not exist in spec.
-> > +  HIDs must conform to (ACPI spec - 6.1.4):
-> >  
-> > -#define ACPI_POWER_HID			"power_resource"
-> > +  Numeric 32-bit compressed EISA type ID are not supported (never seen one as
-> > +  an ACPI HID?)
-> > +
-> > +  A valid PNP ID must be of the form AAA#### where A is an uppercase letter
-> > +  and # is a hex digit.
-> > +  A valid ACPI ID must be of the form ACPI#### where # is a hex digit.
-> > +
-> > +  and our self-defined: XAAA#### where A is an uppercase letter and # is a hex
-> > +  digit.
-> 
-> What was the criteria for inventing the XAAA#### format?
-> It doesn't comply with the PNP standard format above, since
-> it starts with four letters instead of three.
-Yes, it still violates the standard, intend was to not do so.
-And to stick to the 8/9 bytes.
-The X has the same meaning as your suggestion below, starting with LNX,
-it should be visible that it is an out of spec, linux only hid.
-> 
-> I don't think that "XVID0001" will be more meaningful than "video"
-> when seen in sysfs...
-> 
-> > +*/
-> > +
-> > +#define ACPI_POWER_HID			"XPWR0001"
-> >  #define ACPI_PROCESSOR_HID		"ACPI0007"
-> > -#define ACPI_SYSTEM_HID			"acpi_system"
-> > -#define ACPI_THERMAL_HID		"thermal"
-> > -#define ACPI_BUTTON_HID_POWERF		"button_power"
-> > -#define ACPI_BUTTON_HID_SLEEPF		"button_sleep"
-> > -#define ACPI_VIDEO_HID			"video"
-> > -#define ACPI_BAY_HID			"bay"
-> > +#define ACPI_SYSTEM_HID			"XSYS0001"
-> > +#define ACPI_THERMAL_HID		"XTHM0001"
-> > +#define ACPI_BUTTON_HID_POWERF		"XPBT0001"
-> > +#define ACPI_BUTTON_HID_SLEEPF		"XSBT0001"
-> > +#define ACPI_VIDEO_HID			"XVID0001"
-> > +#define ACPI_BAY_HID			"XBAY0001"
-> > +
-> 
-> If the criteria is to stay within an 8 character id length,
-> I'd rather spell a word with capital letters, and stick
-> in 0's where we don't need more letters:
-> 
-> POWER000
-> SYSTEM00
-> THERMAL0
-> PWRBTN00
-> SLEEPBTN
-> VIDEO000
-> DRIVEBAY
-> 
-> Or when we discussed this before, we though about not conflicting
-> with a standard (or vendor standard) name by becoming the Linux vendor --
-> say using  the "LNX" prefix, and trying to spell something useful
-> in the remaining 5 characters. eg.
-> 
-> LNXPOWER
-> LNXSYSTM
-> LNXTHERM
-> LNXSLPBN
-> LNXPWRBN
-> LNXVIDEO
-> LNXIOBAY
+Rolf Eike Beer wrote:
+> Renato S. Yamane wrote:
+>> Rolf Eike Beer wrote:
+>>> Richard Hughes wrote:
+>>>>
+>>>> Yes, although this is out of my area or expertise, sorry.
+>>>
+>>> I've looked a bit but can't find any driver interaction of those
+>>> programs. Any further ideas welcome.
+>>
+>> Do you try omnibook driver?
+>> svn export https://svn.sourceforge.net/svnroot/omnibook/omnibook/trunk
+>>
+>> toshiba_acpi don't work on my Toshiba M45-S355 (Toshiba BIOS) and I try
+>> this module above and now I can change brightness writing in
+>> /proc/omnibook/lcd and kpowersave can change brightness too.
+>
+> Oh wow! Even my Multimedia keys get recognized. Thanks very much for your 
+> pointer.
 
-Don't know what is better, the first solution looks nicer...
-Just tell me the final suggestion and I redo the patch.
+I think that is a good idea more support to Toshiba Laptops, so 
+omnibook+toshiba_acpi is a perfect couple, because some functions works 
+with toshiba_acpi and others works with omnibook.
 
-    Thomas
+Jaime (in cc too) do a very useful module that work in some laptop 
+models that not work on toshiba_acpi and omnibook driver.
 
-PS: What is your general impression of the patches, will you add the
-next series to acpi-test?
-Shall I wait for some other patch(es) and then rebase, this one touches
-nearly every file in /drivers/acpi/*.c and could end up in some merge
-work for me or others.
+So, I think that is a very good idea all work together to do a more 
+powerful (and compatible) module in next kernel releases.
 
+Regards,
+Renato S. Yamane
