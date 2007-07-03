@@ -1,49 +1,116 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table
-	symbol for all acpi drivers.
-Date: Wed, 04 Jul 2007 12:17:06 +0200
-Message-ID: <1183544226.16639.142.camel@queen.suse.de>
-References: <1182112047.4204.12.camel@noname>
-	 <20070620170617.GA3226@inferi.kami.home>
-	 <1182361643.28514.708.camel@queen.suse.de>
-	 <200707030315.33526.lenb@kernel.org>
-	 <20070704073342.GC8338@inferi.kami.home>
-Reply-To: trenn@suse.de
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [PATCH] ACPI: export acpi events via generic netlink
+Date: Tue, 03 Jul 2007 19:18:51 +0200
+Message-ID: <1183483131.4021.8.camel@johannes.berg>
+References: <1182224403.5411.84.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-C7mlnHTcn0ByTDQu5cga"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:58747 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757539AbXGDKR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Jul 2007 06:17:28 -0400
-In-Reply-To: <20070704073342.GC8338@inferi.kami.home>
+Received: from crystal.sipsolutions.net ([195.210.38.204]:58533 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756338AbXGDLh3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jul 2007 07:37:29 -0400
+In-Reply-To: <1182224403.5411.84.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, netdev@vger.kernel.org, lenb@kernel.org, hadi@cyberus.ca
 
-On Wed, 2007-07-04 at 16:33 +0900, Mattia Dongili wrote:
-> On Tue, Jul 03, 2007 at 03:15:33AM -0400, Len Brown wrote:
-> > 
-> > > BTW: I also saw a laptop (IIRC it was a sony) with asus and sony ACPI
-> > > device.
-> > > When both drivers got loaded things broke.
-> > > A solution was to only let the asus driver get active if the device is
-> > > known. Currently, not sure whether still (I sent a patch a while ago),
-> > > the Asus driver falls back to a default ("M6N"?) configuration. IMO this
-> > > is a bit too dangerous and instead a message like "unsupported ASUS
-> > > model found, please send acpidump to linux-acpi@vger.kernel.org".
-> > 
-> > This is pretty scary.
-> > Can you drop the acpidump output into a bugzilla?
-> 
-> and add myself to the cc-list?
-I don't have such a machine, opening a bug does not make much sense.
-Acpidump and more info is here:
-https://bugzilla.novell.com/show_bug.cgi?id=166920
 
-Thanks,
+--=-C7mlnHTcn0ByTDQu5cga
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-   Thomas
+On Tue, 2007-06-19 at 11:40 +0800, Zhang Rui wrote:
+
+> +/* attributes of acpi_genl_family */
+> +enum {
+> +	ACPI_GENL_ATTR_UNSPEC,
+> +	ACPI_GENL_ATTR_EVENT,	/* ACPI event info needed by user space */
+> +	__ACPI_GENL_ATTR_MAX,
+> +};
+> +#define ACPI_GENL_ATTR_MAX (__ACPI_GENL_ATTR_MAX - 1)
+> +
+> +/* commands supported by the acpi_genl_family */
+> +enum {
+> +	ACPI_GENL_CMD_UNSPEC,
+> +	ACPI_GENL_CMD_EVENT,	/* kernel->user notifications for ACPI events */
+> +	__ACPI_GENL_CMD_MAX,
+> +};
+> +#define ACPI_GENL_CMD_MAX (__ACPI_GENL_CMD_MAX - 1)
+
+Shouldn't you put these into some header file instead of copying them
+into your userspace tool?
+
+> +#define ACPI_GENL_NAME		"acpi_event"
+> +#define ACPI_GENL_VERSION	0x01
+
+and maybe those too?
+
+> +/* .doit: standard command callback */
+> +static int acpi_genl_cmd_event(struct sk_buff *skb, struct genl_info *in=
+fo)
+> +{
+> +	struct acpi_genl_event *event =3D info->userhdr;
+> +
+> +	if (!event)
+> +		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "ACPI event: NULL\n"));
+> +
+> +	return 0;
+> +}
+> +
+> +static struct genl_ops acpi_event_genl_ops =3D {
+> +	.cmd =3D ACPI_GENL_CMD_EVENT,
+> +	.doit =3D acpi_genl_cmd_event,
+> +};
+
+This I don't understand, why would userspace ever send events to the
+kernel? I think you should just leave this out completely.
+
+> +	result =3D
+> +	    genlmsg_multicast(skb, 0, acpi_event_genl_family.id, GFP_ATOMIC);
+
+If my patches are merged you should now register a multicast group.
+
+Here's how I do it in nl80211 now:
+
+| static struct genl_multicast_group nl80211_config_mcgrp =3D {
+| 	.name =3D "config",
+| };
+
+during init:
+
+| err =3D genl_register_mc_group(&nl80211_fam, &nl80211_config_mcgrp);
+| if (err)
+| 	goto err_out;
+
+
+for sending the message:
+
+| genlmsg_multicast(msg, 0, nl80211_config_mcgrp.id, GFP_KERNEL);
+
+(I suppose you want GFP_ATOMIC for a reason)
+
+In userspace you query the new multicast group attribute(s) [but let's
+see what Jamal wants me to change there first] and bind to that group
+using
+| int group =3D ...;
+| setsockopt(s, 270 /*SOL_NETLINK*/, NETLINK_ADD_MEMBERSHIP, &group, sizeof=
+(group));.
+
+johannes
+
+--=-C7mlnHTcn0ByTDQu5cga
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGioT6/ETPhpq3jKURAjxLAJ4gYY6Ofcej1XDuSgiSeeQREG+lgwCdGY3l
+WAFaOzzd2h7PqWxuhvVAGlM=
+=8wPw
+-----END PGP SIGNATURE-----
+
+--=-C7mlnHTcn0ByTDQu5cga--
 
