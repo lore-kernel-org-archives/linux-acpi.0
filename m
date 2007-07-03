@@ -1,87 +1,94 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH] netlink: allocate group bitmaps dynamically
-Date: Tue, 03 Jul 2007 16:32:01 +0200
-Message-ID: <1183473121.3722.16.camel@johannes.berg>
-References: <1179827251.7707.29.camel@localhost.localdomain>
-	 <1182223964.5411.76.camel@localhost.localdomain>
-	 <1182811210.6644.22.camel@johannes.berg>
-	 <1182986681.5155.55.camel@localhost>
-	 <1183121869.4089.57.camel@johannes.berg>  <468504FE.9000502@trash.net>
-	 <1183122920.4089.63.camel@johannes.berg>  <468507C9.2000800@trash.net>
-	 <1183124085.4089.66.camel@johannes.berg>  <46850CB8.8000509@trash.net>
-	 <1183124981.4089.69.camel@johannes.berg>  <46850EDE.5020804@trash.net>
-	 <1183125924.4089.73.camel@johannes.berg>
-	 <1183126739.4089.76.camel@johannes.berg>
-	 <1183129006.4089.84.camel@johannes.berg>
-	 <1183217536.5165.25.camel@localhost>
-	 <1183365821.4089.94.camel@johannes.berg>  <4688F612.1060408@trash.net>
-	 <1183386883.4089.120.camel@johannes.ber g>  <46890DF8.2020706@trash.net>
-	 <1183387687.4089.124.camel@johannes.berg>
-	 <1183414370.4089.141.camel@johannes.berg>
-	 <1183457329.3841.0.camel@johannes.berg>  <468A3BA5.9050909@trash.net>
-	 <1183471741.3722.6.camel@johannes.berg>  <468A5920.7070304@trash.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table
+	symbol for all acpi drivers.
+Date: Tue, 3 Jul 2007 12:06:27 -0300
+Message-ID: <20070703150627.GA32367@khazad-dum.debian.net>
+References: <1182111863.4204.6.camel@noname> <1182257607.28514.643.camel@queen.suse.de> <20070619212757.GB23946@khazad-dum.debian.net> <200707030311.36139.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-r5ujvxv+NXQeN7ZvQwBz"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:39321 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbXGCOcH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jul 2007 10:32:07 -0400
-In-Reply-To: <468A5920.7070304@trash.net>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:37621 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754363AbXGCPGd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jul 2007 11:06:33 -0400
+Content-Disposition: inline
+In-Reply-To: <200707030311.36139.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Cc: hadi@cyberus.ca, Zhang Rui <rui.zhang@intel.com>, netdev@vger.kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, Thomas Graf <tgraf@suug.ch>
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
 
+On Tue, 03 Jul 2007, Len Brown wrote:
+> My $0.02 on thinkpad_acpi & HID's...
+> 
+> 1. moving to DMI binding from PNP-id binding
+> sounds like a step in the wrong direction.
 
---=-r5ujvxv+NXQeN7ZvQwBz
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+IBM made real use of the DMI data, so they even issued BIOS fixes to get it
+right when crap made it to the DMI tables.  I am not sure Lenovo will keep
+up the good work, but so far they did not do anything braindamaged to the
+DMI tables AFAIK.
 
-On Tue, 2007-07-03 at 16:11 +0200, Patrick McHardy wrote:
+And we have a damn good table of the more interesting DMI data, which the
+community maintains.  It is at http://www.thinkwiki.org/wiki/List_of_DMI_IDs
+so I have a lot of support to take DMI-based decisions.
 
+Note that I can use PNP-id autoload as well as the DMI-based one, it just
+won't buy much.  AFAIK the driver already auto-loads on every supported
+thinkpad, including new ones.
 
-> >>>-	nlk->groups =3D kzalloc(NLGRPSZ(groups), GFP_KERNEL);
-> >>>-	if (nlk->groups =3D=3D NULL)
-> >>>+	if (nlk->ngroups >=3D groups)
-> >>>+		return 0;
-> >>>+
-> >>>+	new_groups =3D krealloc(nlk->groups, NLGRPSZ(groups), GFP_KERNEL);
-> >>>+	if (new_groups =3D=3D NULL)
-> >>> 		return -ENOMEM;
-> >>>+	memset((char*)new_groups + NLGRPSZ(nlk->ngroups), 0,
-> >>>+	       NLGRPSZ(groups) - NLGRPSZ(nlk->ngroups));
-> >>>+	nlk->groups =3D new_groups;
-> >>
-> >>
-> >>This should probably happen with the table grabbed to avoid races
-> >>with concurrent broadcasts.
-> >=20
-> >=20
-> > Hmm, possibly, I'll have to look again.
->=20
->=20
-> do_one_broadcast locks the table and checks nlk->groups. The
-> reallocation races with this without taking the lock or maybe
-> using rcu.
+As for using PNP-id autoloading instead of DMI-based autoloading, I have two
+problems with it:
 
-Yeah, sounds about right, but since we lock the table anyway I see
-little use in using RCU here. I'll look into it and also double-check
-the first hunk of this patch.
+	1. I don't trust IBM0068 more than the dmi data.  If you can assure
+	me IBM0068 is only used for thinkpad laptops, because that's how
+	these things work or somesuch, then I might change my mind.
 
-johannes
+	2. Lots of what thinkpad-acpi does has nothing to do with IBM0068.
+	Autoloading based only on IBM0068 seems wrong to me, in this case.
 
---=-r5ujvxv+NXQeN7ZvQwBz
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+> Are there thinkpads that you need to support that don't export IBM0068?
 
------BEGIN PGP SIGNATURE-----
-Comment: Johannes Berg (powerbook)
+There could be, especially the very old ones that thinkpad-acpi partially
+supports.  AFAIK, IBM0068 is a firmware-OS message-passing device, and also
+hot key handler.  But it does little else.  Most of the other stuff is done
+by directly poking stuff in different ACPI subtrees, or ACPI EC registers,
+or accessing the CMOS NVRAM, and those have no unique HIDs...
 
-iD8DBQBGil3h/ETPhpq3jKURAhEJAJ9MWU9pQ5UY8xCggQrYdawlP/x5bACeIrYk
-uGtclI03zpUG12wYeOXRHMU=
-=Sg+H
------END PGP SIGNATURE-----
+> There is a long tradition of DMI information being copy/pasted
+> and being invalid.  While the thinkpad BIOS guys are probably
+> above average here, they're probably not immune from this issue.
 
---=-r5ujvxv+NXQeN7ZvQwBz--
+No, they are not imune :-)  Some thinkpads have had slightly screwed up dmi
+tables, but none due to something as ridiculous as copy-and-paste, and IBM
+issued BIOS updates to fix the breakages.  Lenovo didn't break anything in
+DMI so far, either (AFAIK, anyway).
 
+> At the end of the day, I'd be astonished if somebody told me that
+> the Windows thinkpad platform driver binds via DMI strings instead
+> of binding to IBM0068 -- which was likely invented for this sole purpose.
+
+They bind by HID, I think.  But I don't know what *else* they check before
+they decide to load sucessfully.  If anyone would like to do some clean-room
+reverse engineering of the windows drivers and send us the information,
+fine, I'd welcome the information and use it.  But I am not touching the
+Windows drivers.
+
+Also, there are a number of different drivers, and AFAIK only the hot keys
+one bind by HID.  I have not ever touched the Windows drivers, I just used
+the thinkpad for a while with Windows to learn how it was supposed to act to
+different events, but that's it.
+
+> 2. IBM_PCI_HID = ACPI_PCI_HOST_HID = PCI_ROOT_HID_STRING = "PNP0A03"
+> 
+> There is nothing IBM specific about a PCI root bridge.
+> If you need to use this one, please call it PCI_ROOT_HID_STRING.
+
+Sure, it is something internal to the driver, and *IT MUST NOT BE USED FOR
+AUTOLOADING*.  I will rename it, or get rid of it.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
