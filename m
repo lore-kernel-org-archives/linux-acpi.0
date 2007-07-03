@@ -1,43 +1,36 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
-Date: Tue, 3 Jul 2007 03:11:35 -0400
-Message-ID: <200707030311.36139.lenb@kernel.org>
-References: <1182111863.4204.6.camel@noname> <1182257607.28514.643.camel@queen.suse.de> <20070619212757.GB23946@khazad-dum.debian.net>
+Date: Tue, 3 Jul 2007 03:15:33 -0400
+Message-ID: <200707030315.33526.lenb@kernel.org>
+References: <1182112047.4204.12.camel@noname> <20070620170617.GA3226@inferi.kami.home> <1182361643.28514.708.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35006 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:45751 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752579AbXGCHLv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2007 03:11:51 -0400
-In-Reply-To: <20070619212757.GB23946@khazad-dum.debian.net>
+	id S1756013AbXGCHPw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jul 2007 03:15:52 -0400
+In-Reply-To: <1182361643.28514.708.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
+To: trenn@suse.de
+Cc: Mattia Dongili <malattia@linux.it>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>
 
-My $0.02 on thinkpad_acpi & HID's...
 
-1. moving to DMI binding from PNP-id binding
-sounds like a step in the wrong direction.
+> BTW: I also saw a laptop (IIRC it was a sony) with asus and sony ACPI
+> device.
+> When both drivers got loaded things broke.
+> A solution was to only let the asus driver get active if the device is
+> known. Currently, not sure whether still (I sent a patch a while ago),
+> the Asus driver falls back to a default ("M6N"?) configuration. IMO this
+> is a bit too dangerous and instead a message like "unsupported ASUS
+> model found, please send acpidump to linux-acpi@vger.kernel.org".
 
-Are there thinkpads that you need to support that don't export IBM0068?
-
-There is a long tradition of DMI information being copy/pasted
-and being invalid.  While the thinkpad BIOS guys are probably
-above average here, they're probably not immune from this issue.
-
-At the end of the day, I'd be astonished if somebody told me that
-the Windows thinkpad platform driver binds via DMI strings instead
-of binding to IBM0068 -- which was likely invented for this sole purpose.
-
-2. IBM_PCI_HID = ACPI_PCI_HOST_HID = PCI_ROOT_HID_STRING = "PNP0A03"
-
-There is nothing IBM specific about a PCI root bridge.
-If you need to use this one, please call it PCI_ROOT_HID_STRING.
+This is pretty scary.
+Can you drop the acpidump output into a bugzilla?
 
 thanks,
 -Len
