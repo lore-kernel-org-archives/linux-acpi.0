@@ -1,65 +1,43 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: Add INPUT support to toshiba_acpi
-Date: Tue, 3 Jul 2007 07:38:34 +0200
-Message-ID: <200707030738.39980.eike-kernel@sf-tec.de>
-References: <1180614979.2693.26.camel@localhost.localdomain> <200706281327.29962.eike-kernel@sf-tec.de> <4683A80E.4070006@mandic.com.br>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 3/3] ACPI autoloading - Create __mod_acpi_device_table symbol for all acpi drivers.
+Date: Tue, 3 Jul 2007 03:11:35 -0400
+Message-ID: <200707030311.36139.lenb@kernel.org>
+References: <1182111863.4204.6.camel@noname> <1182257607.28514.643.camel@queen.suse.de> <20070619212757.GB23946@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart9037258.MZ5o41Lbe6";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sf-mail.de ([62.27.20.61]:41859 "EHLO mail.sf-mail.de"
+Received: from hera.kernel.org ([140.211.167.34]:35006 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752113AbXGCFzS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2007 01:55:18 -0400
-In-Reply-To: <4683A80E.4070006@mandic.com.br>
+	id S1752579AbXGCHLv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jul 2007 03:11:51 -0400
+In-Reply-To: <20070619212757.GB23946@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Renato S. Yamane" <renatoyamane@mandic.com.br>
-Cc: Richard Hughes <hughsient@gmail.com>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>, Mathieu.Berard@crans.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kasievers@suse.de>
 
---nextPart9037258.MZ5o41Lbe6
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+My $0.02 on thinkpad_acpi & HID's...
 
-Renato S. Yamane wrote:
-> Rolf Eike Beer wrote:
-> > Richard Hughes wrote:
-> >> Yes, although this is out of my area or expertise, sorry.
-> >
-> > I've looked a bit but can't find any driver interaction of those
-> > programs. Any further ideas welcome.
->
-> Do you try omnibook driver?
-> svn export https://svn.sourceforge.net/svnroot/omnibook/omnibook/trunk
->
-> toshiba_acpi don't work on my Toshiba M45-S355 (Toshiba BIOS) and I try
-> this module above and now I can change brightness writing in
-> /proc/omnibook/lcd and kpowersave can change brightness too.
->
-> But, is impossible use multimedia keys (play, pause, browser, etc) and
-> couple keys (fn-fx), because Fn key and Multimedia keys don't is
-> recognized.
+1. moving to DMI binding from PNP-id binding
+sounds like a step in the wrong direction.
 
-Oh wow! Even my Multimedia keys get recognized. Thanks very much for your=20
-pointer.
+Are there thinkpads that you need to support that don't export IBM0068?
 
-Eike
+There is a long tradition of DMI information being copy/pasted
+and being invalid.  While the thinkpad BIOS guys are probably
+above average here, they're probably not immune from this issue.
 
---nextPart9037258.MZ5o41Lbe6
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+At the end of the day, I'd be astonished if somebody told me that
+the Windows thinkpad platform driver binds via DMI strings instead
+of binding to IBM0068 -- which was likely invented for this sole purpose.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
+2. IBM_PCI_HID = ACPI_PCI_HOST_HID = PCI_ROOT_HID_STRING = "PNP0A03"
 
-iD8DBQBGieDfXKSJPmm5/E4RArIHAJ0TIxNDBoJa3BF27psfUUuz9g7/gACgjlq/
-2J5E8rLntBTClsJGWyMuSwQ=
-=+1eI
------END PGP SIGNATURE-----
+There is nothing IBM specific about a PCI root bridge.
+If you need to use this one, please call it PCI_ROOT_HID_STRING.
 
---nextPart9037258.MZ5o41Lbe6--
+thanks,
+-Len
