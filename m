@@ -1,43 +1,65 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH for 2.6.22] ACPI: fix acpi_osi=!Linux
-Date: Mon, 2 Jul 2007 23:57:45 -0400
-Message-ID: <200707022357.45836.lenb@kernel.org>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: Re: Add INPUT support to toshiba_acpi
+Date: Tue, 3 Jul 2007 07:38:34 +0200
+Message-ID: <200707030738.39980.eike-kernel@sf-tec.de>
+References: <1180614979.2693.26.camel@localhost.localdomain> <200706281327.29962.eike-kernel@sf-tec.de> <4683A80E.4070006@mandic.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: multipart/signed;
+  boundary="nextPart9037258.MZ5o41Lbe6";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42291 "EHLO hera.kernel.org"
+Received: from mail.sf-mail.de ([62.27.20.61]:41859 "EHLO mail.sf-mail.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486AbXGCD6Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jul 2007 23:58:25 -0400
-Content-Disposition: inline
+	id S1752113AbXGCFzS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jul 2007 01:55:18 -0400
+In-Reply-To: <4683A80E.4070006@mandic.com.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, a.biardi@tiscali.it
+To: "Renato S. Yamane" <renatoyamane@mandic.com.br>
+Cc: Richard Hughes <hughsient@gmail.com>, John Belmonte <john@neggie.net>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bastien Nocera <hadess@hadess.net>, Mathieu.Berard@crans.org
 
-Need to check for special case "acpi_osi=!Linux"
-before general case "acpi_osi=!*",
-or it will have no effect.
+--nextPart9037258.MZ5o41Lbe6
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 58ceb18..2e7ba61 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -999,11 +999,11 @@ static int __init acpi_osi_setup(char *str)
- 	if (str == NULL || *str == '\0') {
- 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
- 		acpi_gbl_create_osi_method = FALSE;
-+	} else if (!strcmp("!Linux", str)) {
-+		enable_osi_linux(0);
- 	} else if (*str == '!') {
- 		if (acpi_osi_invalidate(++str) == AE_OK)
- 			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
--	} else if (!strcmp("!Linux", str)) {
--		enable_osi_linux(0);
- 	} else if (!strcmp("Linux", str)) {
- 		enable_osi_linux(1);
- 	} else if (*osi_additional_string == '\0') {
+Renato S. Yamane wrote:
+> Rolf Eike Beer wrote:
+> > Richard Hughes wrote:
+> >> Yes, although this is out of my area or expertise, sorry.
+> >
+> > I've looked a bit but can't find any driver interaction of those
+> > programs. Any further ideas welcome.
+>
+> Do you try omnibook driver?
+> svn export https://svn.sourceforge.net/svnroot/omnibook/omnibook/trunk
+>
+> toshiba_acpi don't work on my Toshiba M45-S355 (Toshiba BIOS) and I try
+> this module above and now I can change brightness writing in
+> /proc/omnibook/lcd and kpowersave can change brightness too.
+>
+> But, is impossible use multimedia keys (play, pause, browser, etc) and
+> couple keys (fn-fx), because Fn key and Multimedia keys don't is
+> recognized.
+
+Oh wow! Even my Multimedia keys get recognized. Thanks very much for your=20
+pointer.
+
+Eike
+
+--nextPart9037258.MZ5o41Lbe6
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBGieDfXKSJPmm5/E4RArIHAJ0TIxNDBoJa3BF27psfUUuz9g7/gACgjlq/
+2J5E8rLntBTClsJGWyMuSwQ=
+=+1eI
+-----END PGP SIGNATURE-----
+
+--nextPart9037258.MZ5o41Lbe6--
