@@ -1,53 +1,53 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH] ACPI: export acpi events via generic netlink
-Date: Wed, 04 Jul 2007 14:01:27 +0200
-Message-ID: <1183550487.3812.14.camel@johannes.berg>
-References: <1182224403.5411.84.camel@localhost.localdomain>
-	 <200707031545.16787.lenb@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/2] ACPI: Do not prepare for hibernation in acpi_shutdown
+Date: Wed, 4 Jul 2007 21:49:05 +0200
+Message-ID: <20070704194905.GH2728@elf.ucw.cz>
+References: <200707012051.48338.rjw@sisk.pl> <200707012053.08663.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-v8ZmBqZoVw8uz68gP1X+"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:60863 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758274AbXGDMCk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jul 2007 08:02:40 -0400
-In-Reply-To: <200707031545.16787.lenb@kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:60175 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754309AbXGDTtJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Jul 2007 15:49:09 -0400
+Content-Disposition: inline
+In-Reply-To: <200707012053.08663.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, hadi@cyberus.ca
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+Hi!
 
---=-v8ZmBqZoVw8uz68gP1X+
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> Since we are now explicitly calling hibernation_ops->prepare() before
+> hibernation_ops->enter() in hibernation_platform_enter() (defined in
+> kernel/power/disk.c), ACPI should not call acpi_sleep_prepare(ACPI_STATE_S4)
+> from acpi_shutdown().
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/sleep/poweroff.c |    3 ---
+>  1 file changed, 3 deletions(-)
+> 
+> Index: linux-2.6.22-rc6/drivers/acpi/sleep/poweroff.c
+> ===================================================================
+> --- linux-2.6.22-rc6.orig/drivers/acpi/sleep/poweroff.c	2007-07-01 15:08:54.000000000 +0200
+> +++ linux-2.6.22-rc6/drivers/acpi/sleep/poweroff.c	2007-07-01 15:10:07.000000000 +0200
+> @@ -54,9 +54,6 @@ static int acpi_shutdown(struct sys_devi
+>  	case SYSTEM_POWER_OFF:
+>  		/* Prepare to power off the system */
+>  		return acpi_sleep_prepare(ACPI_STATE_S5);
+> -	case SYSTEM_SUSPEND_DISK:
+> -		/* Prepare to suspend the system to disk */
+> -		return acpi_sleep_prepare(ACPI_STATE_S4);
+>  	default:
+>  		return 0;
 
-On Tue, 2007-07-03 at 15:45 -0400, Len Brown wrote:
-> Thanks for including the demo program, Rui, it works for me (tm).
->=20
-> Applied -- with the incremental patch below, which I think
-> is correct because the only caller is bus.c, which is part of
-> the base kernel, not a module.
+Hmm, I do not see why this is unneccessary... acpi wants to be
+notified of poweroff, and hooks in a pretty reasonable
+way. kernel/power does not seem to call acpi_sleep_prepare(). Hmm?
 
-Dang, mail crossing :)
-
-Are you open to reworking this on top of my multicast patches that I
-hope to get in soonish, or should I respin my multicast patches to
-ensure ACPI has a stable family and multicast group number?
-
-johannes
-
---=-v8ZmBqZoVw8uz68gP1X+
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Comment: Johannes Berg (powerbook)
-
-iD8DBQBGi4wX/ETPhpq3jKURAiYOAKCjbHp01r13B6vksUuWB5UOKeIY4QCeOoTQ
-P9Ieefg5jkIGK3sP8+E9QTQ=
-=cyOB
------END PGP SIGNATURE-----
-
---=-v8ZmBqZoVw8uz68gP1X+--
-
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
