@@ -1,56 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 2/2] PM: Introduce pm_power_off_prepare
-Date: Wed, 4 Jul 2007 23:52:02 +0200
-Message-ID: <200707042352.02563.rjw@sisk.pl>
-References: <200707012051.48338.rjw@sisk.pl> <200707042342.27427.rjw@sisk.pl> <20070704213910.GA1836@elf.ucw.cz>
+From: Stefano Marinelli <postnet@dragas.dyndns.org>
+Subject: HP and DSDT
+Date: Thu, 05 Jul 2007 10:10:29 +0200
+Message-ID: <468CA775.2030301@dragas.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50994 "EHLO ogre.sisk.pl"
+Received: from vsmtp4.tin.it ([212.216.176.224]:64102 "EHLO vsmtp4.tin.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757160AbXGDVo0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Jul 2007 17:44:26 -0400
-In-Reply-To: <20070704213910.GA1836@elf.ucw.cz>
-Content-Disposition: inline
+	id S1752419AbXGEIQU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Jul 2007 04:16:20 -0400
+Received: from mail.dragas.org (82.56.18.254) by vsmtp4.tin.it (7.3.122)
+        id 467FB9C400CA9333 for linux-acpi@vger.kernel.org; Thu, 5 Jul 2007 10:10:36 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by mail.dragas.org (Postfix) with ESMTP id 5FFAE61C184
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Jul 2007 10:10:35 +0200 (CEST)
+Received: from mail.dragas.org ([127.0.0.1])
+	by localhost (dragas.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id PTb00RntXgeA for <linux-acpi@vger.kernel.org>;
+	Thu,  5 Jul 2007 10:10:32 +0200 (CEST)
+Received: from [192.168.2.6] (unknown [192.168.2.6])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.dragas.org (Postfix) with ESMTP id 5546E61C170
+	for <linux-acpi@vger.kernel.org>; Thu,  5 Jul 2007 10:10:32 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday, 4 July 2007 23:39, Pavel Machek wrote:
-> Hi!
-> 
-> > > > Introduce the pm_power_off_prepare() callback that can be registered by the
-> > > > interested platforms in analogy with pm_idle() and pm_power_off(), used for
-> > > > preparing the system to power off (needed by ACPI).
-> > > > 
-> > > > This allows us to drop acpi_sysclass and device_acpi that are only defined in
-> > > > order to register the ACPI power off preparation callback, which is needed by
-> > > > pm_power_off() registered in a much different way.
-> > > 
-> > > Well, the acpi way works with more than one piece of code "listening"
-> > > for powerdowns... and does not seem that ugly to me.
-> > > 
-> > > Okay, so accessing system_state is not _that_ nice... aha, and perhaps
-> > > I understand why 1/2 of this series is right... it called prepare for
-> > > S4 even when we had shutdown in /sys/power/disk, right?
-> > > 
-> > > Hmm. Okay, I think I can ACK both of these patches, but ACPI people
-> > > should have chance to comment, and it probably needs to stay in -mm
-> > > for a while.
-> > 
-> > Well, linux-acpi in on the CC list and I see no comments from them. :-)
-> 
-> Hmm, that's bad. We can try adding "APM rocks" into subject line to
-> get their attetion or something...
-
-Well, I take the lack of comments as the lack of objections. ;-)
-
-Greetings,
-Rafael
+Hello everybody, I don't know if it's the right mailing list but I try.
+I've had this HP laptop for more than two years now and have always had
+problems with the wireless and suspend/resume. Hacking a little bit
+brought me to find out it's an acpi issue (booting with noacpi solves
+the problem but it's a suicide for a laptop). The machine hangs often
+when bringing up/down the wireless interface, especially if some time
+from the boot has passed.
+Yesterday I had a look at the DSDT and from iasl it get out that:
 
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+dsdt.dsl   3330:	Name (_HID, "*SYN0110")
+Error    1068 -  String must be entirely alphanumeric ^(*SYN0110)
+
+and other lines like that, same error, and
+
+dsdt.dsl   365:                     Return (TPTM)
+Warning  1098 -       Statement is unreachable ^
+
+I've tried to remove the "*" and the error goes away but no fix, the 
+system hangs when trying to change the wireless configuration.
+What could I try?
+
+Thank you!
