@@ -1,30 +1,48 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [PATCH 12/16] INPUT: add a new EV_SW SW_RADIO event, for radio switches on laptops
-Date: Thu, 5 Jul 2007 23:46:31 -0400
-Message-ID: <200707052346.32047.dtor@insightbb.com>
-References: <11836897482509-git-send-email-hmh@hmh.eng.br> <11836897491378-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [PATCH 12/16] INPUT: add a new EV_SW
+	SW_RADIO	event, for radio switches on laptops
+Date: Fri, 6 Jul 2007 00:55:02 -0300
+Message-ID: <20070706035502.GC1692@khazad-dum.debian.net>
+References: <11836897482509-git-send-email-hmh@hmh.eng.br>
+	<11836897491378-git-send-email-hmh@hmh.eng.br>
+	<200707052346.32047.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:32175 "EHLO
-	asav00.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097AbXGFDqd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2007 23:46:33 -0400
-In-Reply-To: <11836897491378-git-send-email-hmh@hmh.eng.br>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200707052346.32047.dtor-xOqKmqBdiMhF6kxbq+BtvQ@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dmitry Torokhov <dtor-xOqKmqBdiMhF6kxbq+BtvQ@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Ivo van Doorn <ivdoorn@gmail.com>, Richard Hughes <hughsient@gmail.com>
 
-On Thursday 05 July 2007 22:42, Henrique de Moraes Holschuh wrote:
-> Many laptops have rf-kill physical switches that are not keys, but slider
-> or rocker switches.  Often (like in all ThinkPads with a radio kill slider
-> switch), they have both a slider/rocker switch and a hot key.
+On Thu, 05 Jul 2007, Dmitry Torokhov wrote:
+> On Thursday 05 July 2007 22:42, Henrique de Moraes Holschuh wrote:
+> > Many laptops have rf-kill physical switches that are not keys, but slider
+> > or rocker switches.  Often (like in all ThinkPads with a radio kill slider
+> > switch), they have both a slider/rocker switch and a hot key.
+> 
+> Linus just merged this one with the last round of input updates.
 
-Linus just merged this one with the last round of input updates.
+Wow, that was rather fast.  Thanks!
 
 -- 
-Dmitry
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
