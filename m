@@ -1,48 +1,63 @@
-From: "Natalie Protasevich" <protasnb@gmail.com>
-Subject: Fwd: [Bug 8459] sensors problem
-Date: Thu, 5 Jul 2007 01:58:32 -0700
-Message-ID: <32209efe0707050158s381409fauc0c6bb022d82d37a@mail.gmail.com>
-References: <bug-8459-10281@http.bugzilla.kernel.org/>
-	 <20070705085538.8986010807F@picon.linux-foundation.org>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [GIT PULL] thinkpad-acpi initial queue for 2.6.23
+Date: Thu,  5 Jul 2007 23:42:12 -0300
+Message-ID: <11836897482509-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:45967 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758666AbXGEI6e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2007 04:58:34 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so440334ugf
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Jul 2007 01:58:33 -0700 (PDT)
-In-Reply-To: <20070705085538.8986010807F@picon.linux-foundation.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Something is wrong with thermal and other sensors. Can someone look at this bug?
-Thanks.
-
----------- Forwarded message ----------
-From: bugme-daemon@bugzilla.kernel.org <bugme-daemon@bugzilla.kernel.org>
-Date: Jul 5, 2007 1:55 AM
-Subject: [Bug 8459] sensors problem
-To: protasnb@gmail.com
 
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8459
+Len,
+
+Please pull from:                                                                                                                                     
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test                                                                     
+
+to receive the first batch of thinkpad-acpi changes for 2.6.23:
+
+      ACPI: thinkpad-acpi: add DMI-based modalias
+      ACPI: thinkpad-acpi: remove all uneeded initializers
+      ACPI: thinkpad-acpi: update information on T43 thermal sensor 0xc1
+      ACPI: thinkpad-acpi: enable more hotkeys
+      ACPI: thinkpad-acpi: export hotkey maximum masks
+      ACPI: thinkpad-acpi: export to sysfs the state of the radio slider switch
+      ACPI: thinkpad-acpi: checkpoint sysfs interface version due to hotkey
+      ACPI: thinkpad-acpi: update CMOS commands documentation
+      ACPI: thinkpad-acpi: register input device
+      ACPI: thinkpad-acpi: add input device support to hotkey subdriver
+      ACPI: thinkpad-acpi: make the input event mode the default
+      INPUT: add a new EV_SW SW_RADIO event, for radio switches on laptops
+      ACPI: thinkpad-acpi: add power-management handler capability
+      ACPI: thinkpad-acpi: export EV_SW SW_RADIO events
+      ACPI: thinkpad-acpi: checkpoint sysfs interface version due to input layer
+      ACPI: thinkpad-acpi: rename pci HID constant
 
 
-protasnb@gmail.com changed:
+These changes are composed mainly of the first part of the effort to move all
+the hot keys functionality to the input layer.
 
-           What    |Removed                     |Added
-----------------------------------------------------------------------------
-                 CC|                            |protasnb@gmail.com
+The "INPUT: add a new EV_SW SW_RADIO event, for radio switches on laptops"
+patch probably needs to go upstream through the input subsystem, but I included
+it in this batch because some of the later patches depend on it.  I will track
+its progress to mainline with the input maintainer, and keep you posted.  ACPI
+usually merges a lot later than input.
 
+All these patches are targetted to 2.6.23.  Please merge for acpi-test.
 
-
-
---
-Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
