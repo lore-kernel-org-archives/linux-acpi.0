@@ -1,48 +1,360 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 12/16] INPUT: add a new EV_SW
-	SW_RADIO	event, for radio switches on laptops
-Date: Fri, 6 Jul 2007 00:55:02 -0300
-Message-ID: <20070706035502.GC1692@khazad-dum.debian.net>
-References: <11836897482509-git-send-email-hmh@hmh.eng.br>
-	<11836897491378-git-send-email-hmh@hmh.eng.br>
-	<200707052346.32047.dtor@insightbb.com>
+From: Casual Programmer <casualprogrammer@yahoo.com>
+Subject: Please send dmidecode to linux-acpi@vger.kernel.org
+Date: Fri, 6 Jul 2007 08:15:28 -0700 (PDT)
+Message-ID: <792090.47777.qm@web52407.mail.re2.yahoo.com>
+Reply-To: casualprogrammer@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200707052346.32047.dtor-xOqKmqBdiMhF6kxbq+BtvQ@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Dmitry Torokhov <dtor-xOqKmqBdiMhF6kxbq+BtvQ@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="0-132470993-1183734928=:47777"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from web52407.mail.re2.yahoo.com ([206.190.48.170]:33871 "HELO
+	web52407.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1763135AbXGFPWK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jul 2007 11:22:10 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 05 Jul 2007, Dmitry Torokhov wrote:
-> On Thursday 05 July 2007 22:42, Henrique de Moraes Holschuh wrote:
-> > Many laptops have rf-kill physical switches that are not keys, but slider
-> > or rocker switches.  Often (like in all ThinkPads with a radio kill slider
-> > switch), they have both a slider/rocker switch and a hot key.
-> 
-> Linus just merged this one with the last round of input updates.
+--0-132470993-1183734928=:47777
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
-Wow, that was rather fast.  Thanks!
+Linux version 2.6.22-rc5-git5-2-default
+(geeko@buildhost) (gcc version
+4.2.1 20070604 (prerelease) (SUSE Linux)) #1 SMP
+2007/06/21 22:30:31 UTC
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Initializing Device/Processor/Thermal objects by
+executing _INI
+methods:<4>ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
+Please send dmidecode to linux-acpi@vger.kernel.org
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+
+
+
+
+       
+____________________________________________________________________________________
+Need a vacation? Get great deals
+to amazing places on Yahoo! Travel.
+http://travel.yahoo.com/
+--0-132470993-1183734928=:47777
+Content-Type: text/plain; name="dmidecode.txt"
+Content-Description: 2662411929-dmidecode.txt
+Content-Disposition: inline; filename="dmidecode.txt"
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+29 structures occupying 1116 bytes.
+Table at 0x000DC010.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Phoenix                
+	Version:  1.19    
+	Release Date: 01/26/2007
+	Address: 0xE7860
+	Runtime Size: 100256 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		APM is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: FUJITSU SIEMENS
+	Product Name: Amilo Si 1520
+	Version: Rev 1
+	Serial Number: DW1TFCCFM617055703
+	UUID: 80F1E6A6-AE2E-0F10-A827-9F6A430B7123
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: FUJITSU  
+	Product Name: 10AD
+	Version: 3D51
+	Serial Number: QTFBFM61101090
+
+Handle 0x0003, DMI type 3, 13 bytes
+Chassis Information
+	Manufacturer: FUJITSU SIEMENS
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:        
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU T2500 @ 2.00
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 500 MHz
+	Current Speed: 2000 MHz
+	Status: Populated, Enabled
+	Upgrade: Slot 1
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J11
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J12
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 1
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 2
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 3
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000C, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: ADI
+
+Handle 0x000D, DMI type 11, 5 bytes
+OEM Strings
+	String 1: SMBIOS 2.4
+	String 2: Customer Reference Platform
+
+Handle 0x000E, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 32 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Invalid, Not Full
+	Change Token: 0x0000009C
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000F, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 3 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0010, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000F
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 0
+	Bank Locator: Bank 0, 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 533 MHz (1.9 ns)
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0011, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000F
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 1
+	Bank Locator: Bank 2, 3
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 533 MHz (1.9 ns)
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0012, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x000F
+	Partition Width: 0
+
+Handle 0x0013, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0010
+	Memory Array Mapped Address Handle: 0x0012
+	Partition Row Position: 1
+	Interleave Position: 1
+
+Handle 0x0014, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0011
+	Memory Array Mapped Address Handle: 0x0012
+	Partition Row Position: 1
+	Interleave Position: 1
+
+Handle 0x0015, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0016, DMI type 143, 15 bytes
+OEM-specific Type
+	Header and Data:
+		8F 0F 16 00 00 5F 46 4A 5F 4F 45 4D 5F 00 00
+
+Handle 0x0017, DMI type 143, 8 bytes
+OEM-specific Type
+	Header and Data:
+		8F 08 17 00 01 03 00 00
+
+Handle 0x0018, DMI type 176, 16 bytes
+OEM-specific Type
+	Header and Data:
+		B0 10 18 00 00 00 00 00 00 00 FF FF FF FF FF FF
+
+Handle 0x0019, DMI type 188, 8 bytes
+OEM-specific Type
+	Header and Data:
+		BC 08 19 00 39 38 31 24
+
+Handle 0x001A, DMI type 200, 7 bytes
+OEM-specific Type
+	Header and Data:
+		C8 07 1A 00 01 02 03
+	Strings:
+		10AD
+		DW1
+		F3C31
+
+Handle 0x001B, DMI type 126, 4 bytes
+Inactive
+
+Handle 0x001C, DMI type 127, 4 bytes
+End Of Table
+
+
+--0-132470993-1183734928=:47777--
