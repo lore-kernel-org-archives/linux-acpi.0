@@ -1,86 +1,65 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 13/16] ACPI: thinkpad-acpi: add
-	power-management handler capability
-Date: Thu,  5 Jul 2007 23:42:25 -0300
-Message-ID: <11836897503020-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 01/16] ACPI: thinkpad-acpi: add DMI-based modalias
+Date: Thu,  5 Jul 2007 23:42:13 -0300
+Message-ID: <11836897482737-git-send-email-hmh@hmh.eng.br>
 References: <11836897482509-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11836897482509-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35037 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758440AbXGFCmg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2007 22:42:36 -0400
+In-Reply-To: <11836897482509-git-send-email-hmh@hmh.eng.br>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lennart Poettering <mzxreary@0pointer.de>
 
-Some subdrivers could benefit from resume handling, so add the
-infrastructure for simple resume handling.
+Add DMI-based aliases to allow module autoloading on select thinkpads.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+The aliases will do nothing unless the dmi-based-module-autoloading.patch
+patch from Lennart Poettering <mzxreary@0pointer.de> is applied.  Lennart's
+patch has been accepted by greghk and will be merged eventually.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++++++++++
- drivers/misc/thinkpad_acpi.h |    1 +
- 2 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index c86b228..78914bf 100644
+index 95c0b96..22a5f22 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -519,11 +519,27 @@ static struct platform_device *tpacpi_pdev;
- static struct class_device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
+@@ -92,6 +92,29 @@ MODULE_LICENSE("GPL");
+ /* Please remove this in year 2009 */
+ MODULE_ALIAS("ibm_acpi");
  
++/*
++ * DMI matching for module autoloading
++ *
++ * See http://thinkwiki.org/wiki/List_of_DMI_IDs
++ * See http://thinkwiki.org/wiki/BIOS_Upgrade_Downloads
++ *
++ * Only models listed in thinkwiki will be supported, so add yours
++ * if it is not there yet.
++ */
++#define IBM_BIOS_MODULE_ALIAS(__type) \
++	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
 +
-+static int tpacpi_resume_handler(struct platform_device *pdev)
-+{
-+	struct ibm_struct *ibm, *itmp;
++/* Non-ancient thinkpads */
++MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
++MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
 +
-+	list_for_each_entry_safe(ibm, itmp,
-+				 &tpacpi_all_drivers,
-+				 all_drivers) {
-+		if (ibm->resume)
-+			(ibm->resume)();
-+	}
++/* Ancient thinkpad BIOSes have to be identified by
++ * BIOS type or model number, and there are far less
++ * BIOS types than model numbers... */
++IBM_BIOS_MODULE_ALIAS("I[B,D,H,I,M,N,O,T,W,V,Y,Z]");
++IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
++IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
 +
-+	return 0;
-+}
-+
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
- 		.name = IBM_DRVR_NAME,
- 		.owner = THIS_MODULE,
- 	},
-+	.resume = tpacpi_resume_handler,
- };
+ #define __unused __attribute__ ((unused))
  
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 00f1bd7..c5c1316 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -205,6 +205,7 @@ struct ibm_struct {
- 	int (*read) (char *);
- 	int (*write) (char *);
- 	void (*exit) (void);
-+	void (*resume) (void);
- 
- 	struct list_head all_drivers;
- 
+ /****************************************************************************
 -- 
 1.5.2.1
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
