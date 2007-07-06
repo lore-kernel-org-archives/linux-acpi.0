@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 02/16] ACPI: thinkpad-acpi: remove all
-	uneeded initializers
-Date: Thu,  5 Jul 2007 23:42:14 -0300
-Message-ID: <11836897481307-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 07/16] ACPI: thinkpad-acpi: checkpoint
+	sysfs interface version due to hotkey
+Date: Thu,  5 Jul 2007 23:42:19 -0300
+Message-ID: <11836897493088-git-send-email-hmh@hmh.eng.br>
 References: <11836897482509-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,82 +22,65 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Remove all initializers to NULL or zero.
+The change in the size of the hotkey mask, the hability to report the keys
+that use the higher bits, and the addition of the hotkey_radio_sw attribute
+are important enough features to warrant increasing the minor field of the
+sysfs interface version.
+
+Also, document a bit better how and when the thinkpad-acpi sysfs interface
+version will be updated.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/thinkpad-acpi.txt |   17 +++++++++++++++++
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 18 insertions(+), 1 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index fe26e50..7a06a27 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -134,6 +134,21 @@ end of this document.  Changes to the sysfs interface done by the kernel
+ subsystems are not documented here, nor are they tracked by this
+ attribute.
+ 
++Changes to the thinkpad-acpi sysfs interface are only considered
++non-experimental when they are submitted to Linux mainline, at which
++point the changes in this interface are documented and interface_version
++may be updated.  If you are using any thinkpad-acpi features not yet
++sent to mainline for merging, you do so on your own risk: these features
++may disappear, or be implemented in a different and incompatible way by
++the time they are merged in Linux mainline.
++
++Changes that are backwards-compatible by nature (e.g. the addition of
++attributes that do not change the way the other attributes work) do not
++always warrant an update of interface_version.  Therefore, one must
++expect that an attribute might not be there, and deal with it properly
++(an attribute not being there *is* a valid way to make it clear that a
++feature is not available in sysfs).
++
+ Hot keys
+ --------
+ 
+@@ -989,3 +1004,5 @@ Sysfs interface changelog:
+ 
+ 0x000100:	Initial sysfs support, as a single platform driver and
+ 		device.
++0x000200:	Hot key support for 32 hot keys, and radio slider switch
++		support.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 22a5f22..9f10b46 100644
+index 3cf37bb..4d71893 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -129,7 +129,7 @@ IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
-  * ACPI basic handles
+@@ -22,7 +22,7 @@
   */
  
--static acpi_handle root_handle = NULL;
-+static acpi_handle root_handle;
+ #define IBM_VERSION "0.14"
+-#define TPACPI_SYSFS_VERSION 0x000100
++#define TPACPI_SYSFS_VERSION 0x000200
  
- #define IBM_HANDLE(object, parent, paths...)			\
- 	static acpi_handle  object##_handle;			\
-@@ -515,8 +515,8 @@ static char *next_cmd(char **cmds)
-  ****************************************************************************
-  ****************************************************************************/
- 
--static struct platform_device *tpacpi_pdev = NULL;
--static struct class_device *tpacpi_hwmon = NULL;
-+static struct platform_device *tpacpi_pdev;
-+static struct class_device *tpacpi_hwmon;
- 
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
-@@ -729,7 +729,7 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
- 
--static struct attribute_set *hotkey_dev_attributes = NULL;
-+static struct attribute_set *hotkey_dev_attributes;
- 
- /* sysfs hotkey enable ------------------------------------------------- */
- static ssize_t hotkey_enable_show(struct device *dev,
-@@ -2694,7 +2694,7 @@ static struct ibm_struct ecdump_driver_data = {
-  * Backlight/brightness subdriver
-  */
- 
--static struct backlight_device *ibm_backlight_device = NULL;
-+static struct backlight_device *ibm_backlight_device;
- 
- static struct backlight_ops ibm_backlight_data = {
-         .get_brightness = brightness_get,
-@@ -3497,7 +3497,7 @@ static void fan_watchdog_fire(struct work_struct *ignored)
- 
- static void fan_watchdog_reset(void)
- {
--	static int fan_watchdog_active = 0;
-+	static int fan_watchdog_active;
- 
- 	if (fan_control_access_mode == TPACPI_FAN_WR_NONE)
- 		return;
-@@ -3900,7 +3900,7 @@ static struct ibm_struct fan_driver_data = {
-  ****************************************************************************/
- 
- /* /proc support */
--static struct proc_dir_entry *proc_dir = NULL;
-+static struct proc_dir_entry *proc_dir;
- 
- /* Subdriver registry */
- static LIST_HEAD(tpacpi_all_drivers);
-@@ -4043,7 +4043,7 @@ static void ibm_exit(struct ibm_struct *ibm)
- 
- /* Probing */
- 
--static char *ibm_thinkpad_ec_found = NULL;
-+static char *ibm_thinkpad_ec_found;
- 
- static char* __init check_dmi_for_ec(void)
- {
+ /*
+  *  Changelog:
 -- 
 1.5.2.1
 
