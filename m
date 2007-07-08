@@ -1,16 +1,16 @@
-From: Marcelo Tosatti <marcelo@kvack.org>
-Subject: Re: rtc-cmos not supporting RTC_AIE?
-Date: Sun, 8 Jul 2007 15:03:50 -0400
-Message-ID: <20070708190350.GB20078@dmt>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OLPC rtc-cmos support
+Date: Sun, 8 Jul 2007 12:10:50 -0700
+Message-ID: <200707081210.51145.david-b@pacbell.net>
 References: <20070330235759.GC4252@cosmic.amd.com>
-	<20070402165511.GD5024@cosmic.amd.com> <20070708034633.GA19633@dmt>
-	<200707072226.50069.david-b@pacbell.net>
+	<200707072213.41028.david-b@pacbell.net>
+	<20070708184035.GA20078@dmt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devel-bounces@lists.laptop.org>
+In-Reply-To: <20070708184035.GA20078@dmt>
 Content-Disposition: inline
-In-Reply-To: <200707072226.50069.david-b@pacbell.net>
 List-Unsubscribe: <http://lists.laptop.org/listinfo/devel>,
 	<mailto:devel-request@lists.laptop.org?subject=unsubscribe>
 List-Archive: <http://lists.laptop.org/pipermail/devel>
@@ -20,86 +20,64 @@ List-Subscribe: <http://lists.laptop.org/listinfo/devel>,
 	<mailto:devel-request@lists.laptop.org?subject=subscribe>
 Sender: devel-bounces@lists.laptop.org
 Errors-To: devel-bounces@lists.laptop.org
-To: David Brownell <david-b@pacbell.net>
-Cc: rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
+To: Marcelo Tosatti <marcelo@kvack.org>
+Cc: linux-pm@lists.linux-foundation.org, devel@laptop.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jul 07, 2007 at 10:26:49PM -0700, David Brownell wrote:
-> On Saturday 07 July 2007, Marcelo Tosatti wrote:
-> 
-> > 
-> > David,
-> > 
-> > Is there any reason why programs using RTC_AIE/RTC_ALM_SET ioctls are    
-> > unable to arm alarm irq's?                                              
-> 
-> The ALM_SET request never did!  And I'm pretty sure AIE_ON does
-> indeed set it ... the test cases use ALM_SET then AIE_ON, which
-> is the "traditional" idiom (i.e. legacy drivers/char/rtc.c idiom).
+On Sunday 08 July 2007, Marcelo Tosatti wrote:
 
-My point is that RTC_ALM_SET after RTC_AIE_ON works with drivers/char/rtc.c
-but not rtc-cmos:
+> Like this? 
 
-        ret = ioctl(fd, RTC_AIE_ON);
-        if (ret) {
-                perror("ioctl RTC_AIE_ON");
-                exit(0);
-        }
+Not quite ...
 
-        ret = ioctl(fd, RTC_ALM_SET, &rtctime);
-        if (ret) {
-                perror("ioctl RTC_ALM_SET");
-                exit(0);
-        }
 
-I think its fine to consider such applications broken anyway?
+> +struct resource rtc_platform_irq = {
+> +	.flags = IORESOURCE_IRQ,
+> +	.start = 8,
+> +	.end = 8,
+> +};
 
-> > I'm aware of the new RTC_WKALM_SET... but shouldnt backward
-> > compatibility be kept?
-> 
-> According to <linux/rtc.h> the ALM_SET ioctl takes an rtc_time,
-> while WKALM_SET takes an rtc_wkalm ... which differs from the
-> former by including the flag controlling wheter the alarm will
-> be enabled (or not) when setting the alarm.  (Model inherited
-> from EFI.)
+Unused, right?
 
-Right.
 
->  
-> > The code seems to imply that its not supported anymore, however ioctl
-> > returns success but no alarm is fired (for instance alarm.enabled is set
-> > to 0):
-> > 
-> >         case RTC_ALM_SET:
-> >                 if (copy_from_user(&alarm.time, uarg, sizeof(tm)))
-> >                         return -EFAULT;
-> > 
-> >                 alarm.enabled = 0;
-> >                 alarm.pending = 0;
-> >                 alarm.time.tm_wday = -1;
-> >                 alarm.time.tm_yday = -1;
-> >                 alarm.time.tm_isdst = -1;
-> 
-> That code is generic RTC framework code (rtc-dev.c), and not
-> code specific to rtc-cmos ... the comment immediately following
-> that (2.6.22-rc7 and previous) should clarify many of the issues.
-> 
-> I think the current manpage does the same.  (If it mentions the
-> /dev/rtc0, /dev/rtc1, etc files, it should be current enough.)
-> 
-> What it does is just stuff the rtc_time into the expanded
-> rtc_wkalm.  The idea is that the RTC drivers only support one
-> alarm-setting method, but the /dev/rtcN ioctl interface uses
-> it in two modes:
-> 
->  - "legacy", up to 24 hours in the future, and requiring
->    the alarm to be enabled later with AIE_ON;
-> 
->  - "EFI-style", into the arbitrary future, and bundling the
->    flag saying whether to enable the alarm.
-> 
-> Since ALM_SET is the legacy mode, it requires separate AIE_ON
-> (from the RTC driver directly).  But RTC_WKALM_SET doesn't.
-> 
-> - Dave
+> +static int olpc_rtc_init(void)
+
+... should be marked __init ...
+
+> +{
+> +	rtc_info.rtc_day_alarm = 0;
+> +	rtc_info.rtc_mon_alarm = 0;
+> +	rtc_info.rtc_century = 0;
+> +	rtc_info.wake_on = rtc_wake_on;
+> +	rtc_info.wake_off = rtc_wake_off;
+
+... that can all just be static init ...
+
+> +
+> +	(void)platform_device_register(&olpc_rtc_device);
+> +
+> +	device_init_wakeup(&olpc_rtc_device.dev, 1);
+
+... do the init_wakeup before registering the device, so
+there can never be confusion about whether a probe() will
+see that part of device config ...
+
+> +
+> +	return 0;
+> +}
+> +fs_initcall(olpc_rtc_init);
+
+... and try to register platform devices in arch_initcall().
+Just to avoid potential confusion; that's where it's normally
+done, and I don't think you had a need to do it elsewhere.
+
+- Dave
+
+
+
+> +#endif /* CONFIG_RTC_DRV_CMOS */
+> +
+>  static void olpc_pm_exit(void)
+>  {
+>  	/* Clear any pending events, and disable them */
 > 
