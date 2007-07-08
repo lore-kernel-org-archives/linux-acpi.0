@@ -1,164 +1,49 @@
-From: Marcelo Tosatti <marcelo@kvack.org>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [PATCH] OLPC rtc-cmos support
-Date: Sun, 8 Jul 2007 16:17:47 -0400
-Message-ID: <20070708201747.GA13115@dmt>
-References: <20070330235759.GC4252@cosmic.amd.com>
-	<200707072213.41028.david-b@pacbell.net>
-	<20070708184035.GA20078@dmt>
-	<200707081210.51145.david-b@pacbell.net>
+Date: Sun, 8 Jul 2007 13:47:34 -0700
+Message-ID: <200707081347.35231.david-b@pacbell.net>
+References: <20070330235759.GC4252@cosmic.amd.com> <200707081210.51145.david-b@pacbell.net> <20070708201747.GA13115@dmt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@lists.laptop.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:46680 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756665AbXGHUrh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jul 2007 16:47:37 -0400
+In-Reply-To: <20070708201747.GA13115@dmt>
 Content-Disposition: inline
-In-Reply-To: <200707081210.51145.david-b@pacbell.net>
-List-Unsubscribe: <http://lists.laptop.org/listinfo/devel>,
-	<mailto:devel-request@lists.laptop.org?subject=unsubscribe>
-List-Archive: <http://lists.laptop.org/pipermail/devel>
-List-Post: <mailto:devel@lists.laptop.org>
-List-Help: <mailto:devel-request@lists.laptop.org?subject=help>
-List-Subscribe: <http://lists.laptop.org/listinfo/devel>,
-	<mailto:devel-request@lists.laptop.org?subject=subscribe>
-Sender: devel-bounces@lists.laptop.org
-Errors-To: devel-bounces@lists.laptop.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-pm@lists.linux-foundation.org, devel@laptop.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Sun, Jul 08, 2007 at 12:10:50PM -0700, David Brownell wrote:
-> On Sunday 08 July 2007, Marcelo Tosatti wrote:
-> 
-> > Like this? 
-> 
-> Not quite ...
-> 
-> 
-> > +struct resource rtc_platform_irq = {
-> > +	.flags = IORESOURCE_IRQ,
-> > +	.start = 8,
-> > +	.end = 8,
-> > +};
-> 
-> Unused, right?
-> 
-> 
-> > +static int olpc_rtc_init(void)
-> 
-> ... should be marked __init ...
-> 
-> > +{
-> > +	rtc_info.rtc_day_alarm = 0;
-> > +	rtc_info.rtc_mon_alarm = 0;
-> > +	rtc_info.rtc_century = 0;
-> > +	rtc_info.wake_on = rtc_wake_on;
-> > +	rtc_info.wake_off = rtc_wake_off;
-> 
-> ... that can all just be static init ...
-> 
-> > +
-> > +	(void)platform_device_register(&olpc_rtc_device);
-> > +
-> > +	device_init_wakeup(&olpc_rtc_device.dev, 1);
-> 
-> ... do the init_wakeup before registering the device, so
-> there can never be confusion about whether a probe() will
-> see that part of device config ...
-
-For some reason doing things in that order causes wake_on/wake_off
-to not be called...
-
-Thanks again for the comments.
+To: Marcelo Tosatti <marcelo@kvack.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
 
 
-diff --git a/arch/i386/kernel/olpc-pm.c b/arch/i386/kernel/olpc-pm.c
-index 9599dbe..474be1a 100644
---- a/arch/i386/kernel/olpc-pm.c
-+++ b/arch/i386/kernel/olpc-pm.c
-@@ -11,6 +11,9 @@ #include <linux/delay.h>
- #include <linux/input.h>
- #include <linux/suspend.h>
- #include <linux/bootmem.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/mc146818rtc.h>
- #include <asm/io.h>
- 
- #include <asm/olpc.h>
-@@ -272,6 +275,8 @@ static int olpc_pm_enter(suspend_state_t
- 	return 0;
- }
- 
-+static u16 olpc_wakeup_mask = CS5536_PM_PWRBTN;
-+
- int asmlinkage olpc_do_sleep(u8 sleep_state)
- {
- 	void *pgd_addr = __va(read_cr3());
-@@ -282,7 +287,7 @@ int asmlinkage olpc_do_sleep(u8 sleep_st
- 
- 	/* FIXME:  Set any other SCI events that we might want here */
- 
--	outl((CS5536_PM_PWRBTN << 16) | 0xFFFF, acpi_base + PM1_STS);
-+	outl((olpc_wakeup_mask << 16) | 0xFFFF, acpi_base + PM1_STS);
- 
- 	/* If we are in test mode, then just return (simulate a successful
- 	   suspend/resume).  Otherwise, if we are doing the real thing,
-@@ -549,6 +554,59 @@ static int __init olpc_pm_init(void)
- 	return 0;
- }
- 
-+
-+#if defined (CONFIG_RTC_DRV_CMOS) || defined (CONFIG_RTC_DRV_CMOS_MODULE)
-+struct resource rtc_platform_resource[2] = {
-+	{
-+		.flags		= IORESOURCE_IO,
-+		.start		= RTC_PORT(0),
-+		.end		= RTC_PORT(0) + RTC_IO_EXTENT
-+	},
-+	{
-+		.flags = IORESOURCE_IRQ,
-+		.start = 8,
-+		.end = 8,
-+	},
-+};
-+
-+
-+static void rtc_wake_on(struct device *dev)
-+{
-+	olpc_wakeup_mask |= CS5536_PM_RTC;
-+}
-+
-+static void rtc_wake_off(struct device *dev)
-+{
-+	olpc_wakeup_mask &= ~(CS5536_PM_RTC);
-+}
-+
-+static struct cmos_rtc_board_info rtc_info = {
-+	.rtc_day_alarm = 0,
-+	.rtc_mon_alarm = 0,
-+	.rtc_century = 0,
-+	.wake_on = rtc_wake_on,
-+	.wake_off = rtc_wake_off,
-+};
-+
-+struct platform_device olpc_rtc_device = {
-+	.name = "rtc_cmos",
-+	.id = 0,
-+	.num_resources = ARRAY_SIZE(rtc_platform_resource),
-+	.dev.platform_data = &rtc_info,
-+	.resource = rtc_platform_resource,
-+};
-+
-+static int __init olpc_rtc_init(void)
-+{
-+	(void)platform_device_register(&olpc_rtc_device);
-+
-+	device_init_wakeup(&olpc_rtc_device.dev, 1);
-+
-+	return 0;
-+}
-+arch_initcall(olpc_rtc_init);
-+#endif /* CONFIG_RTC_DRV_CMOS */
-+
- static void olpc_pm_exit(void)
- {
- 	/* Clear any pending events, and disable them */
+> > > +	(void)platform_device_register(&olpc_rtc_device);
+> > > +
+> > > +	device_init_wakeup(&olpc_rtc_device.dev, 1);
+> > 
+> > ... do the init_wakeup before registering the device, so
+> > there can never be confusion about whether a probe() will
+> > see that part of device config ...
+> 
+> For some reason doing things in that order causes wake_on/wake_off
+> to not be called...
+
+I see ... because platform_device_register() will device_initialize()
+which clobbers that state, before doing platform_device_add().  I
+wonder what bugs are lurking thereby.  :(
+
+
+> Thanks again for the comments.
+
+This last version looks clean and OK, so long as the driver registers
+after that arch_initcall().
+
+Really, no day field in the alarm for that particular southbridge?
+Too bad.  And a bit surprising ... I thought current versions of
+ACPI required the up-to-one-month enhancement to mc146818.
+
+- Dave
+
