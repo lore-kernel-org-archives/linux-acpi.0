@@ -1,98 +1,84 @@
 From: Marcelo Tosatti <marcelo@kvack.org>
-Subject: [PATCH] add powerbutton and lid platform devices
-Date: Sun, 8 Jul 2007 18:10:27 -0400
-Message-ID: <20070708221027.GA4964@dmt>
-References: <20070330235759.GC4252@cosmic.amd.com> <200704011728.10966.david-b@pacbell.net> <20070619170048.GA342@dmt.media.mit.edu> <200706201830.52277.david-b@pacbell.net>
+Subject: Re: Hibernate after alarm wakes from STR
+Date: Sun, 8 Jul 2007 18:31:21 -0400
+Message-ID: <20070708223121.GB4964@dmt>
+References: <20070330235759.GC4252@cosmic.amd.com>
+	<200707081217.53071.david-b@pacbell.net>
+	<1183923098.2814.8.camel@work>
+	<200707081315.40560.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57793 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757057AbXGHWNK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Jul 2007 18:13:10 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@lists.laptop.org>
 Content-Disposition: inline
-In-Reply-To: <200706201830.52277.david-b@pacbell.net>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200707081315.40560.david-b@pacbell.net>
+List-Unsubscribe: <http://lists.laptop.org/listinfo/devel>,
+	<mailto:devel-request@lists.laptop.org?subject=unsubscribe>
+List-Archive: <http://lists.laptop.org/pipermail/devel>
+List-Post: <mailto:devel@lists.laptop.org>
+List-Help: <mailto:devel-request@lists.laptop.org?subject=help>
+List-Subscribe: <http://lists.laptop.org/listinfo/devel>,
+	<mailto:devel-request@lists.laptop.org?subject=subscribe>
+Sender: devel-bounces@lists.laptop.org
+Errors-To: devel-bounces@lists.laptop.org
+To: David Brownell <david-b@pacbell.net>
+Cc: rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Jordan Crouse <jordan.crouse@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
 
-Jordan,
+On Sun, Jul 08, 2007 at 01:15:40PM -0700, David Brownell wrote:
+> On Sunday 08 July 2007, Richard Hughes wrote:
+> > On Sun, 2007-07-08 at 12:17 -0700, David Brownell wrote:
+> > > 
+> > > I think so ... although that's unfortunately another difference
+> > > between the legacy x86-mostly code and the newer RTC framework.
+> > 
+> > (sorry for hijacking the thread)
+> 
+> I changed $SUBJECT ...
+> 
+> 
+> > Is this the interface should stuff like HAL use to do:
+> > 
+> > * Suspend for 10 minutes
+> > * auto wakeup and then hibernate...
+> 
+> That is, "Suspend-to-RAM" or "standby"?  Yes, assuming that works on
+> this particular system.  Arguably that would be a direction for
+> cpuidle to think about too, but I think alarm-driven wakeup is more
+> ready-to-use at this point.
+> 
+> 
+> > I figure we can do a suspend setting the rtc using the ioctls and then
+> > we wakeup, and HAL has to know that we woke up from the alarm rather
+> > than from a lid event or keypress.
 
-This allows configuration of powerbutton/lid events... Are the 
-gpio_gpio_{clear,set} calls correct for enabling/disabling LID
-events?
+On OLPC hibernate would be suspend-to-disk, but we haven't done any
+testing with that yet. It would be necessary to check for available disk
+space before attempting it (or reserving space perhaps?).
 
-What else do we want to support?
+> ... although I don't know whether that particular distinction is
+> made to userspace right now.  ACPI provides a bit like that, and
+> at least a few other systems can do something analagous.
 
---- olpc-pm.c.orig	2007-07-08 17:09:07.000000000 -0400
-+++ olpc-pm.c	2007-07-08 18:07:03.000000000 -0400
-@@ -54,6 +54,18 @@
- 
- static int gpio_wake_events = 0;
- static int ebook_state = -1;
-+static u16 olpc_wakeup_mask = 0;
-+
-+struct platform_device olpc_powerbutton_dev = {
-+	.name = "powerbutton",
-+	.id = 0,
-+};
-+
-+struct platform_device olpc_lid_dev = {
-+	.name = "lid",
-+	.id = 0,
-+};
-+
- 
- static void __init init_ebook_state(void)
- {
-@@ -250,6 +262,16 @@
- 	/* Save the MFGPT MSRs */
- 	rdmsrl(MFGPT_IRQ_MSR, mfgpt_irq_msr);
- 	rdmsrl(MFGPT_NR_MSR, mfgpt_nr_msr);
-+
-+	if (device_may_wakeup(&olpc_powerbutton_dev.dev))
-+		olpc_wakeup_mask |= CS5536_PM_PWRBTN;
-+	else
-+		olpc_wakeup_mask &= ~(CS5536_PM_PWRBTN);
-+
-+	if (device_may_wakeup(&olpc_lid_dev.dev))
-+		geode_gpio_clear(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
-+	else
-+		geode_gpio_set(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
- }
- 
- static int olpc_pm_enter(suspend_state_t pm_state)
-@@ -275,8 +297,6 @@
- 	return 0;
- }
- 
--static u16 olpc_wakeup_mask = CS5536_PM_PWRBTN;
--
- int asmlinkage olpc_do_sleep(u8 sleep_state)
- {
- 	void *pgd_addr = __va(read_cr3());
-@@ -596,15 +616,20 @@
- 	.resource = rtc_platform_resource,
- };
- 
--static int __init olpc_rtc_init(void)
-+static int __init olpc_platform_init(void)
- {
- 	(void)platform_device_register(&olpc_rtc_device);
--
- 	device_init_wakeup(&olpc_rtc_device.dev, 1);
- 
-+	(void)platform_device_register(&olpc_powerbutton_dev);
-+	device_init_wakeup(&olpc_powerbutton_dev.dev, 1);
-+
-+	(void)platform_device_register(&olpc_lid_dev);
-+	device_init_wakeup(&olpc_lid_dev.dev, 1);
-+
- 	return 0;
- }
--arch_initcall(olpc_rtc_init);
-+arch_initcall(olpc_platform_init);
- #endif /* CONFIG_RTC_DRV_CMOS */
- 
- static void olpc_pm_exit(void)
+Yes, we can poke at registers to find that out.
+
+> That is, we may want to provide a bit more information about the
+> specific event which triggered wakeup.  I don't believe there is
+> such an interface, in general.
+
+What would be a nice interface? Perhaps an additional file under
+/sys/devices/.../power/wakeup_fired or something (only for devices with
+can_wakeup set).
+
+> Plus, the notion seems kind of racey to me.  (If you press a key
+> right while the wakealarm fires, you don't want hibernation..)
+
+Then you check if the any key or other wakeup event has happened other
+than RTC... I don't see any problem with that.
+
+> > Is this something we can do (or should do) for OLPC and general ACPI?
+> 
+> I'd certainly rather see laptops doing that than what they do now:
+> running the battery out, and needing filesystem recovery!!
+
+Yep.
