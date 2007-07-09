@@ -1,46 +1,29 @@
-From: "Jordan Crouse" <jordan.crouse@amd.com>
-Subject: Re: add powerbutton and lid platform devices
-Date: Mon, 9 Jul 2007 10:36:10 -0600
-Message-ID: <20070709163610.GG31533@cosmic.amd.com>
-References: <20070330235759.GC4252@cosmic.amd.com>
-	<20070708221027.GA4964@dmt> <20070709150545.GD31533@cosmic.amd.com>
-	<200707090930.26973.david-b@pacbell.net>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
+Date: Mon, 9 Jul 2007 17:45:44 +0100
+Message-ID: <20070709174544.2a6b7067@the-village.bc.nu>
+References: <20070709145755.GD3492@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@lists.laptop.org>
-In-Reply-To: <200707090930.26973.david-b@pacbell.net>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.laptop.org/listinfo/devel>,
-	<mailto:devel-request@lists.laptop.org?subject=unsubscribe>
-List-Archive: <http://lists.laptop.org/pipermail/devel>
-List-Post: <mailto:devel@lists.laptop.org>
-List-Help: <mailto:devel-request@lists.laptop.org?subject=help>
-List-Subscribe: <http://lists.laptop.org/listinfo/devel>,
-	<mailto:devel-request@lists.laptop.org?subject=subscribe>
-Sender: devel-bounces@lists.laptop.org
-Errors-To: devel-bounces@lists.laptop.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:51236 "EHLO
+	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758592AbXGIQl0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 12:41:26 -0400
+In-Reply-To: <20070709145755.GD3492@stusta.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 09/07/07 09:30 -0700, David Brownell wrote:
-> > Lid behavior is so policy  
-> > driven, I think we should leave it off by default, and let the power manager
-> > decide what to do.
-> 
-> What's this "power manager" component?
-> 
-> This policy is easily set through sysfs.  It doesn't need a new
-> component to make that decision.
+On Mon, 9 Jul 2007 16:57:56 +0200
+Adrian Bunk <bunk@stusta.de> wrote:
 
-I'm talking about OHM for userspace policy decisions.  But you are
-correct.  It all boils down to a single sysfs knob for the kernel.
-Nothing more is needed.
+> This patch contains the scheduled removal of the ACPI procfs interface.
 
-Jordan
+NAK
 
--- 
-Jordan Crouse
-Systems Software Development Engineer 
-Advanced Micro Devices, Inc.
+
+What part of "we do not gratuitously break user space interfaces" is so
+hard for people to understand.
