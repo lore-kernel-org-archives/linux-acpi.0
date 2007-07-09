@@ -1,363 +1,137 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] the scheduled ACPI_PROCFS removal
-Date: Mon, 9 Jul 2007 16:57:56 +0200
-Message-ID: <20070709145755.GD3492@stusta.de>
+From: "Jordan Crouse" <jordan.crouse@amd.com>
+Subject: Re: add powerbutton and lid platform devices
+Date: Mon, 9 Jul 2007 09:05:45 -0600
+Message-ID: <20070709150545.GD31533@cosmic.amd.com>
+References: <20070330235759.GC4252@cosmic.amd.com>
+ <200704011728.10966.david-b@pacbell.net>
+ <20070619170048.GA342@dmt.media.mit.edu>
+ <200706201830.52277.david-b@pacbell.net> <20070708221027.GA4964@dmt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:55606 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756445AbXGIO5Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 10:57:24 -0400
+Received: from outbound-dub.frontbridge.com ([213.199.154.16]:44274 "EHLO
+	outbound1-dub-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750929AbXGIPE7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 11:04:59 -0400
+In-Reply-To: <20070708221027.GA4964@dmt>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Marcelo Tosatti <marcelo@kvack.org>
+Cc: David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
 
-This patch contains the scheduled removal of the ACPI procfs interface.
+On 08/07/07 18:10 -0400, Marcelo Tosatti wrote:
+> Jordan,
+> 
+> This allows configuration of powerbutton/lid events... Are the 
+> gpio_gpio_{clear,set} calls correct for enabling/disabling LID
+> events?
+> 
+> What else do we want to support?
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+The obvious ones would be RTC (but you already covered that), and SCI.
+But this is an excellent start. 
 
----
+> --- olpc-pm.c.orig	2007-07-08 17:09:07.000000000 -0400
+> +++ olpc-pm.c	2007-07-08 18:07:03.000000000 -0400
+> @@ -54,6 +54,18 @@
+>  
+>  static int gpio_wake_events = 0;
+>  static int ebook_state = -1;
+> +static u16 olpc_wakeup_mask = 0;
+> +
+> +struct platform_device olpc_powerbutton_dev = {
+> +	.name = "powerbutton",
+> +	.id = 0,
+> +};
+> +
+> +struct platform_device olpc_lid_dev = {
+> +	.name = "lid",
+> +	.id = 0,
+> +};
+> +
 
- Documentation/feature-removal-schedule.txt |    8 -
- drivers/acpi/Kconfig                       |   13 -
- drivers/acpi/debug.c                       |  143 ---------------------
- drivers/acpi/system.c                      |  129 ------------------
- 4 files changed, 293 deletions(-)
+>  static void __init init_ebook_state(void)
+>  {
+> @@ -250,6 +262,16 @@
+>  	/* Save the MFGPT MSRs */
+>  	rdmsrl(MFGPT_IRQ_MSR, mfgpt_irq_msr);
+>  	rdmsrl(MFGPT_NR_MSR, mfgpt_nr_msr);
+> +
+> +	if (device_may_wakeup(&olpc_powerbutton_dev.dev))
+> +		olpc_wakeup_mask |= CS5536_PM_PWRBTN;
+> +	else
+> +		olpc_wakeup_mask &= ~(CS5536_PM_PWRBTN);
+> +
+> +	if (device_may_wakeup(&olpc_lid_dev.dev))
+> +		geode_gpio_clear(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
+> +	else
+> +		geode_gpio_set(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
+>  }
 
---- linux-2.6.22-rc6-mm1/Documentation/feature-removal-schedule.txt.old	2007-07-09 02:04:01.000000000 +0200
-+++ linux-2.6.22-rc6-mm1/Documentation/feature-removal-schedule.txt	2007-07-09 02:04:32.000000000 +0200
-@@ -190,14 +190,6 @@
- 
- ---------------------------
- 
--What:	ACPI procfs interface
--When:	July 2007
--Why:	After ACPI sysfs conversion, ACPI attributes will be duplicated
--	in sysfs and the ACPI procfs interface should be removed.
--Who:	Zhang Rui <rui.zhang@intel.com>
--
-----------------------------
--
- What:	/proc/acpi/button
- When:	August 2007
- Why:	/proc/acpi/button has been replaced by events to the input layer
---- linux-2.6.22-rc6-mm1/drivers/acpi/Kconfig.old	2007-07-09 02:04:39.000000000 +0200
-+++ linux-2.6.22-rc6-mm1/drivers/acpi/Kconfig	2007-07-09 02:04:57.000000000 +0200
-@@ -75,19 +75,6 @@
- 	  Create /proc/acpi/sleep
- 	  Deprecated by /sys/power/state
- 
--config ACPI_PROCFS
--	bool "Procfs interface (deprecated)"
--	default y
--	---help---
--	  The Procfs interface for ACPI is made optional for backward compatibility.
--	  As the same functions are duplicated in the sysfs interface
--	  and this proc interface will be removed some time later,
--	  it's marked as deprecated.
--	  ( /proc/acpi/debug_layer && debug_level are deprecated by
--	    /sys/module/acpi/parameters/debug_layer && debug_level.
--	    /proc/acpi/info is deprecated by
--	    /sys/module/acpi/parameters/acpica_version )
--
- config ACPI_AC
- 	tristate "AC Adapter"
- 	depends on X86
---- linux-2.6.22-rc6-mm1/drivers/acpi/debug.c.old	2007-07-09 02:05:04.000000000 +0200
-+++ linux-2.6.22-rc6-mm1/drivers/acpi/debug.c	2007-07-09 02:05:41.000000000 +0200
-@@ -130,146 +130,3 @@
- module_param_call(debug_layer, param_set_uint, param_get_debug_layer, &acpi_dbg_layer, 0644);
- module_param_call(debug_level, param_set_uint, param_get_debug_level, &acpi_dbg_level, 0644);
- 
--/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
--#define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
--
--static int
--acpi_system_read_debug(char *page,
--		       char **start, off_t off, int count, int *eof, void *data)
--{
--	char *p = page;
--	int size = 0;
--	unsigned int i;
--
--	if (off != 0)
--		goto end;
--
--	p += sprintf(p, "%-25s\tHex        SET\n", "Description");
--
--	switch ((unsigned long)data) {
--	case 0:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
--			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_layers[i].name,
--				     acpi_debug_layers[i].value,
--				     (acpi_dbg_layer & acpi_debug_layers[i].
--				      value) ? '*' : ' ');
--		}
--		p += sprintf(p, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
--			     ACPI_ALL_DRIVERS,
--			     (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
--			     ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
--						       ACPI_ALL_DRIVERS) ==
--			     0 ? ' ' : '-');
--		p += sprintf(p,
--			     "--\ndebug_layer = 0x%08X (* = enabled, - = partial)\n",
--			     acpi_dbg_layer);
--		break;
--	case 1:
--		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
--			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
--				     acpi_debug_levels[i].name,
--				     acpi_debug_levels[i].value,
--				     (acpi_dbg_level & acpi_debug_levels[i].
--				      value) ? '*' : ' ');
--		}
--		p += sprintf(p, "--\ndebug_level = 0x%08X (* = enabled)\n",
--			     acpi_dbg_level);
--		break;
--	default:
--		p += sprintf(p, "Invalid debug option\n");
--		break;
--	}
--
--      end:
--	size = (p - page);
--	if (size <= off + count)
--		*eof = 1;
--	*start = page + off;
--	size -= off;
--	if (size > count)
--		size = count;
--	if (size < 0)
--		size = 0;
--
--	return size;
--}
--
--static int
--acpi_system_write_debug(struct file *file,
--			const char __user * buffer,
--			unsigned long count, void *data)
--{
--	char debug_string[12] = { '\0' };
--
--
--	if (count > sizeof(debug_string) - 1)
--		return -EINVAL;
--
--	if (copy_from_user(debug_string, buffer, count))
--		return -EFAULT;
--
--	debug_string[count] = '\0';
--
--	switch ((unsigned long)data) {
--	case 0:
--		acpi_dbg_layer = simple_strtoul(debug_string, NULL, 0);
--		break;
--	case 1:
--		acpi_dbg_level = simple_strtoul(debug_string, NULL, 0);
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return count;
--}
--
--static int __init acpi_debug_init(void)
--{
--	struct proc_dir_entry *entry;
--	int error = 0;
--	char *name;
--
--
--	if (acpi_disabled)
--		return 0;
--
--	/* 'debug_layer' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
--	entry =
--	    create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
--				   acpi_root_dir, acpi_system_read_debug,
--				   (void *)0);
--	if (entry)
--		entry->write_proc = acpi_system_write_debug;
--	else
--		goto Error;
--
--	/* 'debug_level' [R/W] */
--	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
--	entry =
--	    create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
--				   acpi_root_dir, acpi_system_read_debug,
--				   (void *)1);
--	if (entry)
--		entry->write_proc = acpi_system_write_debug;
--	else
--		goto Error;
--
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LEVEL, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER, acpi_root_dir);
--	error = -ENODEV;
--	goto Done;
--}
--
--subsys_initcall(acpi_debug_init);
--#endif
---- linux-2.6.22-rc6-mm1/drivers/acpi/system.c.old	2007-07-09 02:05:48.000000000 +0200
-+++ linux-2.6.22-rc6-mm1/drivers/acpi/system.c	2007-07-09 02:06:30.000000000 +0200
-@@ -167,131 +167,6 @@
- 	return 0;
- }
- 
--/* --------------------------------------------------------------------------
--                              FS Interface (/proc)
--   -------------------------------------------------------------------------- */
--#ifdef CONFIG_ACPI_PROCFS
--#define ACPI_SYSTEM_FILE_INFO		"info"
--#define ACPI_SYSTEM_FILE_EVENT		"event"
--#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
--#define ACPI_SYSTEM_FILE_FADT		"fadt"
--
--static int acpi_system_read_info(struct seq_file *seq, void *offset)
--{
--
--	seq_printf(seq, "version:                 %x\n", ACPI_CA_VERSION);
--	return 0;
--}
--
--static int acpi_system_info_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_system_read_info, PDE(inode)->data);
--}
--
--static const struct file_operations acpi_system_info_ops = {
--	.open = acpi_system_info_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_dsdt_ops = {
--	.read = acpi_system_read_dsdt,
--};
--
--static ssize_t
--acpi_system_read_dsdt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *dsdt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
--
--	return res;
--}
--
--static ssize_t acpi_system_read_fadt(struct file *, char __user *, size_t,
--				     loff_t *);
--
--static const struct file_operations acpi_system_fadt_ops = {
--	.read = acpi_system_read_fadt,
--};
--
--static ssize_t
--acpi_system_read_fadt(struct file *file,
--		      char __user * buffer, size_t count, loff_t * ppos)
--{
--	acpi_status status = AE_OK;
--	struct acpi_table_header *fadt = NULL;
--	ssize_t res;
--
--	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
--
--	return res;
--}
--
--static int acpi_system_procfs_init(void)
--{
--	struct proc_dir_entry *entry;
--	int error = 0;
--	char *name;
--
--	/* 'info' [R] */
--	name = ACPI_SYSTEM_FILE_INFO;
--	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
--	if (!entry)
--		goto Error;
--	else {
--		entry->proc_fops = &acpi_system_info_ops;
--	}
--
--	/* 'dsdt' [R] */
--	name = ACPI_SYSTEM_FILE_DSDT;
--	entry = create_proc_entry(name, S_IRUSR, acpi_root_dir);
--	if (entry)
--		entry->proc_fops = &acpi_system_dsdt_ops;
--	else
--		goto Error;
--
--	/* 'fadt' [R] */
--	name = ACPI_SYSTEM_FILE_FADT;
--	entry = create_proc_entry(name, S_IRUSR, acpi_root_dir);
--	if (entry)
--		entry->proc_fops = &acpi_system_fadt_ops;
--	else
--		goto Error;
--
--      Done:
--	return error;
--
--      Error:
--	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
--	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
--
--	error = -EFAULT;
--	goto Done;
--}
--#else
--static int acpi_system_procfs_init(void)
--{
--	return 0;
--}
--#endif
--
- static int __init acpi_system_init(void)
- {
- 	int result = 0;
-@@ -299,10 +174,6 @@
- 	if (acpi_disabled)
- 		return 0;
- 
--	result = acpi_system_procfs_init();
--	if (result)
--		return result;
--
- 	result = acpi_system_sysfs_init();
- 
- 	return result;
+As was already mentioned before, the clear and set clauses should be
+reversed. 
+
+You'll also need to get rid of
+
+outl(1 << 31, acpi_base + PM_GPE0_EN);
+
+in olpc_pm_enter() since that would have the undesired effect of eliminating
+the LID completely from the list of wakeup sources.  We should leave the
+value of GPE0_EN the same through the lifetime of the system,
+and control the individual events through the event enable bit(s) as you
+have done above.
+
+>  static int olpc_pm_enter(suspend_state_t pm_state)
+> @@ -275,8 +297,6 @@
+>  	return 0;
+>  }
+>  
+> -static u16 olpc_wakeup_mask = CS5536_PM_PWRBTN;
+> -
+>  int asmlinkage olpc_do_sleep(u8 sleep_state)
+>  {
+>  	void *pgd_addr = __va(read_cr3());
+> @@ -596,15 +616,20 @@
+>  	.resource = rtc_platform_resource,
+>  };
+>  
+> -static int __init olpc_rtc_init(void)
+> +static int __init olpc_platform_init(void)
+>  {
+>  	(void)platform_device_register(&olpc_rtc_device);
+> -
+>  	device_init_wakeup(&olpc_rtc_device.dev, 1);
+>  
+> +	(void)platform_device_register(&olpc_powerbutton_dev);
+> +	device_init_wakeup(&olpc_powerbutton_dev.dev, 1);
+> +
+> +	(void)platform_device_register(&olpc_lid_dev);
+> +	device_init_wakeup(&olpc_lid_dev.dev, 1);
+> +
+>  	return 0;
+>  }
+
+I agree that the default setting for the power button should be to 
+wake up, but I don't know about the lid.  Imagine a scenario where somebody
+manually puts the machine to sleep and then shuts the lid.  You wouldn't want
+the machine to turn back on when you lifted it.  Lid behavior is so policy 
+driven, I think we should leave it off by default, and let the power manager
+decide what to do.
+
+> -arch_initcall(olpc_rtc_init);
+> +arch_initcall(olpc_platform_init);
+>  #endif /* CONFIG_RTC_DRV_CMOS */
+>  
+>  static void olpc_pm_exit(void)
+> 
+> 
+
+-- 
+Jordan Crouse
+Systems Software Development Engineer 
+Advanced Micro Devices, Inc.
+
 
