@@ -1,29 +1,64 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
-Date: Mon, 9 Jul 2007 17:45:44 +0100
-Message-ID: <20070709174544.2a6b7067@the-village.bc.nu>
-References: <20070709145755.GD3492@stusta.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: akpm@linux-foundation.org
+Subject: [patch 1/7] git-acpi: s390: struct bin_attribute changes
+Date: Mon, 09 Jul 2007 11:33:12 -0700
+Message-ID: <200707091833.l69IXDiT000333@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:51236 "EHLO
-	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758592AbXGIQl0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 12:41:26 -0400
-In-Reply-To: <20070709145755.GD3492@stusta.de>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49694 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753727AbXGISd3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, heiko.carstens@de.ibm.com, greg@kroah.com, len.brown@intel.com, rui.zhang@intel.com, schwidefsky@de.ibm.com
 
-On Mon, 9 Jul 2007 16:57:56 +0200
-Adrian Bunk <bunk@stusta.de> wrote:
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-> This patch contains the scheduled removal of the ACPI procfs interface.
+git-acpi contains a patch that adds 'struct bin_attribute *' to
+the read method of struct bin_attribute. This breaks s390:
 
-NAK
+  CC      arch/s390/kernel/ipl.o
+arch/s390/kernel/ipl.c:317:
+ warning: initialization from incompatible pointer type
+arch/s390/kernel/ipl.c:340:
+  warning: initialization from incompatible pointer type
 
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-What part of "we do not gratuitously break user space interfaces" is so
-hard for people to understand.
+ arch/s390/kernel/ipl.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff -puN arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes arch/s390/kernel/ipl.c
+--- a/arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes
++++ a/arch/s390/kernel/ipl.c
+@@ -297,8 +297,9 @@ static ssize_t sys_ipl_device_show(struc
+ static struct subsys_attribute sys_ipl_device_attr =
+ 	__ATTR(device, S_IRUGO, sys_ipl_device_show, NULL);
+ 
+-static ssize_t ipl_parameter_read(struct kobject *kobj, char *buf, loff_t off,
+-				  size_t count)
++static ssize_t ipl_parameter_read(struct kobject *kobj,
++				  struct bin_attribute *attr,
++				  char *buf, loff_t off, size_t count)
+ {
+ 	unsigned int size = IPL_PARMBLOCK_SIZE;
+ 
+@@ -320,8 +321,9 @@ static struct bin_attribute ipl_paramete
+ 	.read = &ipl_parameter_read,
+ };
+ 
+-static ssize_t ipl_scp_data_read(struct kobject *kobj, char *buf, loff_t off,
+-	size_t count)
++static ssize_t ipl_scp_data_read(struct kobject *kobj,
++				 struct bin_attribute *attr,
++				 char *buf, loff_t off, size_t count)
+ {
+ 	unsigned int size = IPL_PARMBLOCK_START->ipl_info.fcp.scp_data_len;
+ 	void *scp_data = &IPL_PARMBLOCK_START->ipl_info.fcp.scp_data;
+_
