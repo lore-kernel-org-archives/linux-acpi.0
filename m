@@ -1,36 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 7/7] drivers/acpi/pci_link.c: lower printk severity
-Date: Mon, 09 Jul 2007 11:33:18 -0700
-Message-ID: <200707091833.l69IXIo8000354@imap1.linux-foundation.org>
+Subject: [patch 6/7] acpi: enable C3 Power State on Dell Inspiron 8200
+Date: Mon, 09 Jul 2007 11:33:16 -0700
+Message-ID: <200707091833.l69IXGUW000350@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53396 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38141 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXGISdg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:36 -0400
+	by vger.kernel.org with ESMTP id S1754545AbXGISdj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, da-x@monatomic.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, arjan@infradead.org, dag@bakke.com
 
-From: Dan Aloni <da-x@monatomic.org>
+From: Arjan van de Ven <arjan@infradead.org>
 
-Signed-off-by: Dan Aloni <da-x@monatomic.org>
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
+
+Cc: Dag Bakke <dag@bakke.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_link.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |   24 ++++++++++++++++++++++--
+ 1 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_link.c~drivers-acpi-pci_linkc-lower-printk-severity drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c~drivers-acpi-pci_linkc-lower-printk-severity
-+++ a/drivers/acpi/pci_link.c
-@@ -733,7 +733,7 @@ static int acpi_pci_link_add(struct acpi
- 	/* query and set link->irq.active */
- 	acpi_pci_link_get_current(link);
+diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
++++ a/drivers/acpi/processor_idle.c
+@@ -67,6 +67,8 @@ ACPI_MODULE_NAME("processor_idle");
+ #define C2_OVERHEAD			1	/* 1us */
+ #define C3_OVERHEAD			1	/* 1us */
  
--	printk(PREFIX "%s [%s] (IRQs", acpi_device_name(device),
-+	printk(KERN_INFO PREFIX "%s [%s] (IRQs", acpi_device_name(device),
- 	       acpi_device_bid(device));
- 	for (i = 0; i < link->irq.possible_count; i++) {
- 		if (link->irq.active == link->irq.possible[i]) {
++static int forced_c3;
++
+ void acpi_max_cstate_changed(void)
+ {
+ 	/* Driver will reset devices' max cstate limit */
+@@ -115,6 +117,20 @@ static int set_max_cstate(struct dmi_sys
+ 	return 0;
+ }
+ 
++/*
++ * Some (Dell) machines have a too large C3 latency set, but it still works completely.
++ * Dell provides a driver for other operating systems to hack around this bug, so we know
++ * it's safe.
++ */
++static int dmi_force_c3(struct dmi_system_id *id)
++{
++	forced_c3 = 1;
++
++	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.", id->ident);
++
++	return 0;
++}
++
+ /* Actually this shouldn't be __cpuinitdata, would be better to fix the
+    callers to only run once -AK */
+ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+@@ -173,6 +189,9 @@ static struct dmi_system_id __cpuinitdat
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
+ 	 (void *)2},
++	{ dmi_force_c3, "Dell Inspiron 8200", {
++	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
+ 	{},
+ };
+ 
+@@ -487,11 +506,12 @@ static void acpi_processor_power_verify_
+ 	 * C3 latency must be less than or equal to 1000
+ 	 * microseconds.
+ 	 */
+-	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
++	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "latency too large [%d]\n", cx->latency));
+ 		return;
+-	}
++	} else if (forced_c3)
++		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+ 
+ 	/*
+ 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
 _
