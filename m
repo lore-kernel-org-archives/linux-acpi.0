@@ -1,64 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/7] git-acpi: s390: struct bin_attribute changes
-Date: Mon, 09 Jul 2007 11:33:12 -0700
-Message-ID: <200707091833.l69IXDiT000333@imap1.linux-foundation.org>
+Subject: [patch 3/7] Exit ACPI processor module gracefully if acpi is disabled
+Date: Mon, 09 Jul 2007 11:33:14 -0700
+Message-ID: <200707091833.l69IXEQe000341@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49694 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54077 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753727AbXGISd3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:29 -0400
+	by vger.kernel.org with ESMTP id S1754002AbXGISdb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, heiko.carstens@de.ibm.com, greg@kroah.com, len.brown@intel.com, rui.zhang@intel.com, schwidefsky@de.ibm.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+From: Thomas Renninger <trenn@suse.de>
 
-git-acpi contains a patch that adds 'struct bin_attribute *' to
-the read method of struct bin_attribute. This breaks s390:
-
-  CC      arch/s390/kernel/ipl.o
-arch/s390/kernel/ipl.c:317:
- warning: initialization from incompatible pointer type
-arch/s390/kernel/ipl.c:340:
-  warning: initialization from incompatible pointer type
-
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/ipl.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/acpi/processor_core.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes arch/s390/kernel/ipl.c
---- a/arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes
-+++ a/arch/s390/kernel/ipl.c
-@@ -297,8 +297,9 @@ static ssize_t sys_ipl_device_show(struc
- static struct subsys_attribute sys_ipl_device_attr =
- 	__ATTR(device, S_IRUGO, sys_ipl_device_show, NULL);
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -998,6 +998,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
  
--static ssize_t ipl_parameter_read(struct kobject *kobj, char *buf, loff_t off,
--				  size_t count)
-+static ssize_t ipl_parameter_read(struct kobject *kobj,
-+				  struct bin_attribute *attr,
-+				  char *buf, loff_t off, size_t count)
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
  {
- 	unsigned int size = IPL_PARMBLOCK_SIZE;
+ 	int result = 0;
+@@ -1023,6 +1025,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
+ 	}
  
-@@ -320,8 +321,9 @@ static struct bin_attribute ipl_paramete
- 	.read = &ipl_parameter_read,
- };
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
  
--static ssize_t ipl_scp_data_read(struct kobject *kobj, char *buf, loff_t off,
--	size_t count)
-+static ssize_t ipl_scp_data_read(struct kobject *kobj,
-+				 struct bin_attribute *attr,
-+				 char *buf, loff_t off, size_t count)
- {
- 	unsigned int size = IPL_PARMBLOCK_START->ipl_info.fcp.scp_data_len;
- 	void *scp_data = &IPL_PARMBLOCK_START->ipl_info.fcp.scp_data;
+ 	acpi_thermal_cpufreq_init();
+@@ -1043,12 +1047,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
+ 
 _
