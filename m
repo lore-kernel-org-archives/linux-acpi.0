@@ -1,51 +1,35 @@
-From: akpm@linux-foundation.org
-Subject: [patch 5/7] drivers/acpi/sbs.c: remove dead code
-Date: Mon, 09 Jul 2007 11:33:15 -0700
-Message-ID: <200707091833.l69IXFCL000347@imap1.linux-foundation.org>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
+Date: Mon, 9 Jul 2007 20:46:20 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0707092044520.2887@fbirervta.pbzchgretzou.qr>
+References: <20070709145755.GD3492@stusta.de> <20070709174544.2a6b7067@the-village.bc.nu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55683 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754505AbXGISdg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:33:36 -0400
+Received: from sovereign.computergmbh.de ([85.214.69.204]:1410 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754056AbXGISqV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 14:46:21 -0400
+In-Reply-To: <20070709174544.2a6b7067@the-village.bc.nu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, bunk@stusta.de, len.brown@intel.com, vladimir.p.lebedev@intel.com
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Adrian Bunk <bunk@stusta.de>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
 
-Remove dead code spotted by the Coverity checker.
+On Jul 9 2007 17:45, Alan Cox wrote:
+>
+>> This patch contains the scheduled removal of the ACPI procfs interface.
+>
+>What part of "we do not gratuitously break user space interfaces" is so
+>hard for people to understand.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Generally I am with you on that, but if everyone keeps on using /proc --
+and I do[*] -- we will never get rid of it.
 
- drivers/acpi/sbs.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code
-+++ a/drivers/acpi/sbs.c
-@@ -1409,7 +1409,7 @@ static int acpi_sbs_update_run(struct ac
- 	char dir_name[32];
- 	int do_battery_init = 0, do_ac_init = 0;
- 	int old_remaining_capacity = 0;
--	int update_ac = 1, update_battery = 1;
-+	int update_battery = 1;
- 	int up_tm = update_time;
- 
- 	if (sbs_zombie(sbs)) {
-@@ -1429,10 +1429,6 @@ static int acpi_sbs_update_run(struct ac
- 
- 	sbs->run_cnt++;
- 
--	if (!update_ac && !update_battery) {
--		goto end;
--	}
--
- 	old_ac_present = sbs->ac.ac_present;
- 
- 	result = acpi_ac_get_present(sbs);
-_
+[*] Does someone have an alternative for /proc/acpi/battery/BAT1/{state,info}?
+
+Thanks,
+	Jan
+-- 
