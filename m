@@ -1,73 +1,26 @@
-From: Marcelo Tosatti <marcelo@kvack.org>
-Subject: Re: Hibernate after alarm wakes from STR
-Date: Mon, 9 Jul 2007 11:40:14 -0400
-Message-ID: <20070709154014.GF27828@dmt>
-References: <20070330235759.GC4252@cosmic.amd.com> <200707081315.40560.david-b@pacbell.net> <20070708223121.GB4964@dmt> <200707081944.04598.david-b@pacbell.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
+Date: Mon, 9 Jul 2007 16:51:51 +0100
+Message-ID: <20070709155151.GA27711@srcf.ucam.org>
+References: <20070709145755.GD3492@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50193 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031AbXGIPjW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jul 2007 11:39:22 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757512AbXGIPwZ@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200707081944.04598.david-b@pacbell.net>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070709145755.GD3492@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Marcelo Tosatti <marcelo@kvack.org>, Richard Hughes <hughsient@gmail.com>, linux-pm@lists.linux-foundation.org, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org
 
-On Sun, Jul 08, 2007 at 07:44:03PM -0700, David Brownell wrote:
-> On Sunday 08 July 2007, Marcelo Tosatti wrote:
-> > On Sun, Jul 08, 2007 at 01:15:40PM -0700, David Brownell wrote:
-> > > On Sunday 08 July 2007, Richard Hughes wrote:
-> > > 
-> > > That is, we may want to provide a bit more information about the
-> > > specific event which triggered wakeup.  I don't believe there is
-> > > such an interface, in general.
-> > 
-> > What would be a nice interface? Perhaps an additional file under
-> > /sys/devices/.../power/wakeup_fired or something (only for devices with
-> > can_wakeup set).
-> 
-> Better a /sys/power/wakeup_event (or whatever) that's more easily
-> found.  It could link to the device issuing the event.
+On Mon, Jul 09, 2007 at 04:57:56PM +0200, Adrian Bunk wrote:
+> This patch contains the scheduled removal of the ACPI procfs interface.
 
-As you mentioned, there might be two wakeup sources (RTC and power
-button for instance) or even more at the same time.
+This was only flagged deprecated in January. Userspace hasn't really 
+caught up, so I think removing it now is premature. Given the quantity 
+of software that's been written to use the old /proc interface, I don't 
+think we're realistically going to be able to remove it in the 
+forseeable future.
 
-Do you think its fine to simply but the device separated by spaces in
-the wakeup_event file?
-
-Sounds fine by me, but what about the one-value-per-file sysfs rule?
-
-> > > Plus, the notion seems kind of racey to me.  (If you press a key
-> > > right while the wakealarm fires, you don't want hibernation..)
-> > 
-> > Then you check if the any key or other wakeup event has happened other
-> > than RTC... I don't see any problem with that.
-> 
-> It might be best not to need to re-activate the whole system from
-> STR though ... it ought to be possible to just power off, having
-> already written the image to disk.  Right?
-
-Perhaps, yes... 
-
-> Yes, there's all that stuff about how to quiesce the system properly,
-> freezer/icebox/flamesuits/etc.  Regardless, going from STR to fully
-> operational and then hibernating would take time and energy that
-> might not be available...
-
-True, that needs to be taken into account.
-
-> - Dave
-> 
-> 
-> > > > Is this something we can do (or should do) for OLPC and general ACPI?
-> > > 
-> > > I'd certainly rather see laptops doing that than what they do now:
-> > > running the battery out, and needing filesystem recovery!!
-> > 
-> > Yep.
-> > 
-> 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
