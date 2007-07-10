@@ -1,148 +1,191 @@
-From: Vasileios Lourdas <lourdas_v@yahoo.gr>
-Subject: dmidecode output for my laptop
-Date: Tue, 10 Jul 2007 09:47:58 +0300
-Message-ID: <200707100947.58962.lourdas_v@yahoo.gr>
+From: Dirk Gorny <Dirk.Gorny@genion.de>
+Subject: dmidecode from DELL Inspiron 1501
+Date: Tue, 10 Jul 2007 08:42:15 +0200
+Message-ID: <200707100842.15999.Dirk.Gorny@Genion.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_HpykGKSaeN4/ArI"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp111.plus.mail.re1.yahoo.com ([69.147.102.74]:40482 "HELO
-	smtp111.plus.mail.re1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751205AbXGJGyo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Jul 2007 02:54:44 -0400
-Content-Disposition: inline
+Received: from mail05.o2online.de ([82.113.101.32]:60556 "EHLO
+	mail05.o2online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971AbXGJHK4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 03:10:56 -0400
+Received: from [192.168.0.16] (port-87-234-17-253.static.qsc.de [87.234.17.253])
+	(authenticated bits=0)
+	by mail05.o2online.de (8.12.11.20060308/8.12.11) with ESMTP id l6A6gGT9028268
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Jul 2007 08:42:17 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi,
+--Boundary-00=_HpykGKSaeN4/ArI
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I've just upgraded to Linux 2.6.22 and I noticed this in dmesg:
+Hello,
 
-PCI: Using MMCONFIG
-Setting up standard PCI resources
-ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (0000:00)
+ read "Please send dmidecode to linux-acpi@vger.kernel.org" at dmesg from my 
+gentoo with kernel 2.6.22 Kernel command line: root=/dev/ram0 vga=0x31B 
+acpi_osi=!Linux init=/linuxrc ramdisk=8192 re
+al_root=/dev/sda7  udev
+Attached the dmidecode. Please feel free to send questions to complete the 
+information or patches for testing.
 
-So, I'm sending the output of dmidecode to you:
+Best regars,
+
+Dirk Gorny
+
+--Boundary-00=_HpykGKSaeN4/ArI
+Content-Type: text/plain;
+  charset="utf-8";
+  name="dmidecode-out-Dell-inspiron-1501"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dmidecode-out-Dell-inspiron-1501"
 
 # dmidecode 2.9
 SMBIOS 2.4 present.
-35 structures occupying 1159 bytes.
-Table at 0x3FEEA000.
+37 structures occupying 1297 bytes.
+Table at 0x000F0470.
 
-Handle 0x0000, DMI type 0, 24 bytes
+Handle 0xDA00, DMI type 218, 131 bytes
+OEM-specific Type
+	Header and Data:
+		DA 83 00 DA B0 00 92 1B 07 02 00 7D 00 00 00 00
+		00 80 01 16 00 01 00 7F 01 16 00 00 00 75 01 75
+		01 01 00 76 01 76 01 01 00 2E 00 25 00 00 00 6E
+		00 25 00 01 00 2D 00 25 00 02 00 8A 01 48 00 01
+		00 89 01 48 00 00 00 9B 00 23 00 01 00 9C 00 23
+		00 00 00 14 01 46 00 00 00 15 01 46 00 01 00 16
+		01 46 00 02 00 94 01 47 00 01 00 93 01 47 00 00
+		00 EA 00 67 00 01 00 EB 00 67 00 00 00 FF FF 00
+		00 00 00
+
+Handle 0x0001, DMI type 0, 24 bytes
 BIOS Information
-	Vendor: FUJITSU SIEMENS
-	Version: 1.23
-	Release Date: 03/16/2007
-	ROM Size: 64 kB
+	Vendor: Dell Inc.
+	Version: 2.3.0    
+	Release Date: 03/15/2006
+	Address: 0xE58B0
+	Runtime Size: 108368 bytes
+	ROM Size: 1024 kB
 	Characteristics:
-		ISA is supported
 		PCI is supported
-		PC Card (PCMCIA) is supported
 		PNP is supported
-		APM is supported
 		BIOS is upgradeable
 		BIOS shadowing is allowed
 		ESCD support is available
 		Boot from CD is supported
+		Selectable boot is supported
+		BIOS ROM is socketed
+		EDD is supported
+		5.25"/360 KB floppy services are supported (int 13h)
+		5.25"/1.2 MB floppy services are supported (int 13h)
+		3.5"/720 KB floppy services are supported (int 13h)
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
 		ACPI is supported
 		USB legacy is supported
-		AGP is supported
+		LS-120 boot is supported
+		ATAPI Zip drive boot is supported
 		BIOS boot specification is supported
 		Targeted content distribution is supported
 
-Handle 0x0001, DMI type 1, 27 bytes
+Handle 0x0002, DMI type 1, 27 bytes
 System Information
-	Manufacturer: FUJITSU SIEMENS
-	Product Name: AMILO Pi 1536
-	Version: Not Applicable
-	Serial Number: 53102817
-	UUID: 00659C5C-CD63-0010-A350-E07A70B44E78
+	Manufacturer: Dell Inc.
+	Product Name: Inspiron 1501 
+	Version: Not Specified                   
+	Serial Number: 6R9GQ2J
+	UUID: 44454C4C-5200-1039-8047-B6C04F51324A
 	Wake-up Type: Power Switch
 	SKU Number: Not Specified
 	Family: Not Specified
 
-Handle 0x0002, DMI type 2, 8 bytes
+Handle 0x0003, DMI type 2, 8 bytes
 Base Board Information
-	Manufacturer: FUJITSU SIEMENS
-	Product Name: AMILO Pi 1536
-	Version: Not Applicable
-	Serial Number: Not Applicable
+	Manufacturer: Dell Inc.
+	Product Name: 0UW744
+	Version:    
+	Serial Number: .6R9GQ2J.CN486436CNC570.
 
-Handle 0x0003, DMI type 3, 17 bytes
+Handle 0x0004, DMI type 3, 17 bytes
 Chassis Information
-	Manufacturer: FUJITSU SIEMENS
-	Type: Notebook
+	Manufacturer: Dell Inc.
+	Type: Portable
 	Lock: Not Present
-	Version: Not Applicable
-	Serial Number: Not Applicable
-	Asset Tag: Not Applicable
+	Version: Not Specified           
+	Serial Number: 6R9GQ2J
+	Asset Tag:                         
 	Boot-up State: Safe
 	Power Supply State: Safe
 	Thermal State: Safe
 	Security Status: None
 	OEM Information: 0x00001234
 
-Handle 0x0004, DMI type 4, 35 bytes
+Handle 0x0005, DMI type 4, 35 bytes
 Processor Information
-	Socket Designation: U2E1
+	Socket Designation: Socket M2/S1G1
 	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: E8 06 00 00 FF FB E9 BF
-	Version: Genuine Intel(R) CPU           T2
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 2048 MHz
-	Current Speed: 1600 MHz
+	Family: Opteron
+	Manufacturer: AMD
+	ID: 82 0F 04 00 FF FB 8B 17
+	Signature: Family 15, Model 72, Stepping 2
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+		HTT (Hyper-threading technology)
+	Version: Engineering Sample
+	Voltage: 1.4 V
+	External Clock: 200 MHz
+	Max Speed: 4000 MHz
+	Current Speed: 1800 MHz
 	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
+	Upgrade: Other
+	L1 Cache Handle: Not Provided
 	L2 Cache Handle: 0x0006
 	L3 Cache Handle: Not Provided
 	Serial Number: Not Specified
 	Asset Tag: Not Specified
 	Part Number: Not Specified
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
 Handle 0x0006, DMI type 7, 19 bytes
 Cache Information
 	Socket Designation: L2 Cache
 	Configuration: Enabled, Socketed, Level 2
 	Operational Mode: Write Back
-	Location: External
-	Installed Size: 2048 KB
-	Maximum Size: 512 KB
+	Location: Internal
+	Installed Size: 1024 KB
+	Maximum Size: 1024 KB
 	Supported SRAM Types:
 		Burst
 		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
+	Installed SRAM Type: Synchronous
 	Speed: Unknown
 	Error Correction Type: Unknown
 	System Type: Unknown
@@ -150,15 +193,15 @@ Cache Information
 
 Handle 0x0007, DMI type 8, 9 bytes
 Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
+	Internal Reference Designator: J28
+	Internal Connector Type: None
+	External Reference Designator: Video
+	External Connector Type: DB-15 female
+	Port Type: Video Port
 
 Handle 0x0008, DMI type 8, 9 bytes
 Port Connector Information
-	Internal Reference Designator: J1A1
+	Internal Reference Designator: J33
 	Internal Connector Type: None
 	External Reference Designator: Keyboard
 	External Connector Type: Circular DIN-8 male
@@ -166,15 +209,71 @@ Port Connector Information
 
 Handle 0x0009, DMI type 8, 9 bytes
 Port Connector Information
-	Internal Reference Designator: J1A1
+	Internal Reference Designator: J33
 	Internal Connector Type: None
 	External Reference Designator: PS/2 Mouse
 	External Connector Type: Circular DIN-8 male
-	Port Type: Mouse Port
+	Port Type: Keyboard Port
 
-Handle 0x000A, DMI type 9, 13 bytes
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J31
+	Internal Connector Type: None
+	External Reference Designator: USB 1
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J32
+	Internal Connector Type: None
+	External Reference Designator: USB 2
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J32
+	Internal Connector Type: None
+	External Reference Designator: USB 3
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J31
+	Internal Connector Type: None
+	External Reference Designator: USB 4
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Microphone In
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Line In
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J30
+	Internal Connector Type: None
+	External Reference Designator: Speaker Out
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x0011, DMI type 9, 13 bytes
 System Slot Information
-	Designation: PCI Slot J8B1
+	Designation: PCI1
 	Type: 32-bit PCI
 	Current Usage: Unknown
 	Length: Long
@@ -182,10 +281,11 @@ System Slot Information
 	Characteristics:
 		5.0 V is provided
 		3.3 V is provided
+		PME signal is supported
 
-Handle 0x000B, DMI type 9, 13 bytes
+Handle 0x0012, DMI type 9, 13 bytes
 System Slot Information
-	Designation: PCI Slot J9B1
+	Designation: PCI2
 	Type: 32-bit PCI
 	Current Usage: Unknown
 	Length: Long
@@ -193,56 +293,37 @@ System Slot Information
 	Characteristics:
 		5.0 V is provided
 		3.3 V is provided
+		PME signal is supported
 
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PEG Slot J6C1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 6
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
+Handle 0x0013, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Disabled
+	Description: ATI RS485M
 
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J7C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 7
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 7
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000F, DMI type 10, 6 bytes
+Handle 0x0014, DMI type 10, 6 bytes
 On Board Device Information
 	Type: Sound
 	Status: Disabled
-	Description: HD-Audio
+	Description: Sigmatel
 
-Handle 0x0010, DMI type 11, 5 bytes
+Handle 0x0015, DMI type 11, 5 bytes
 OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
+	String 1: Dell System
+	String 2: 5
+	String 3: 13
 
-Handle 0x0011, DMI type 12, 5 bytes
+Handle 0x0016, DMI type 12, 5 bytes
 System Configuration Options
-	Option 1: Jumper settings can be described here.
+	Option 1: J13 1-2 Normal Operation, 2-3 Clear CMOS
 
-Handle 0x0012, DMI type 15, 29 bytes
+Handle 0x0017, DMI type 13, 22 bytes
+BIOS Language Information
+	Installable Languages: 1
+		enUS
+	Currently Installed Language: enUS
+
+Handle 0x0018, DMI type 15, 29 bytes
 System Event Log
 	Area Length: 16 bytes
 	Header Start Offset: 0x0000
@@ -251,7 +332,7 @@ System Event Log
 	Access Method: General-purpose non-volatile data functions
 	Access Address: 0x0000
 	Status: Valid, Not Full
-	Change Token: 0x00000001
+	Change Token: 0x00000000
 	Header Format: Type 1
 	Supported Log Type Descriptors: 3
 	Descriptor 1: POST error
@@ -261,27 +342,27 @@ System Event Log
 	Descriptor 3: Multi-bit ECC memory error
 	Data Format 3: Multiple-event
 
-Handle 0x0013, DMI type 16, 15 bytes
+Handle 0x0019, DMI type 16, 15 bytes
 Physical Memory Array
 	Location: System Board Or Motherboard
 	Use: System Memory
 	Error Correction Type: None
-	Maximum Capacity: 3 GB
+	Maximum Capacity: 4 GB
 	Error Information Handle: Not Provided
 	Number Of Devices: 2
 
-Handle 0x0014, DMI type 17, 27 bytes
+Handle 0x001A, DMI type 17, 27 bytes
 Memory Device
-	Array Handle: 0x0013
+	Array Handle: 0x0019
 	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
+	Total Width: 128 bits
+	Data Width: 64 bits
 	Size: 512 MB
-	Form Factor: SODIMM
+	Form Factor: DIMM
 	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
+	Locator: S1
+	Bank Locator: DIMM1
+	Type: DRAM
 	Type Detail: Synchronous
 	Speed: Unknown
 	Manufacturer: Not Specified
@@ -289,18 +370,18 @@ Memory Device
 	Asset Tag: Not Specified
 	Part Number: Not Specified
 
-Handle 0x0015, DMI type 17, 27 bytes
+Handle 0x001B, DMI type 17, 27 bytes
 Memory Device
-	Array Handle: 0x0013
+	Array Handle: 0x0019
 	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
+	Total Width: 128 bits
+	Data Width: 64 bits
 	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
+	Form Factor: DIMM
+	Set: 2
+	Locator: S2
+	Bank Locator: DIMM2
+	Type: DRAM
 	Type Detail: Synchronous
 	Speed: Unknown
 	Manufacturer: Not Specified
@@ -308,117 +389,71 @@ Memory Device
 	Asset Tag: Not Specified
 	Part Number: Not Specified
 
-Handle 0x0016, DMI type 19, 15 bytes
+Handle 0x001C, DMI type 18, 23 bytes
+32-bit Memory Error Information
+	Type: OK
+	Granularity: Unknown
+	Operation: Unknown
+	Vendor Syndrome: Unknown
+	Memory Array Address: Unknown
+	Device Address: Unknown
+	Resolution: Unknown
+
+Handle 0x001D, DMI type 19, 15 bytes
 Memory Array Mapped Address
 	Starting Address: 0x00000000000
 	Ending Address: 0x0003FFFFFFF
 	Range Size: 1 GB
-	Physical Array Handle: 0x0013
+	Physical Array Handle: 0x0019
 	Partition Width: 0
 
-Handle 0x0017, DMI type 20, 19 bytes
+Handle 0x001E, DMI type 20, 19 bytes
 Memory Device Mapped Address
 	Starting Address: 0x00000000000
 	Ending Address: 0x0001FFFFFFF
 	Range Size: 512 MB
-	Physical Device Handle: 0x0014
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
+	Physical Device Handle: 0x001A
+	Memory Array Mapped Address Handle: 0x001D
+	Partition Row Position: 2
+	Interleave Position: 1
+	Interleaved Data Depth: 6
 
-Handle 0x0018, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00020000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0015
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0019, DMI type 23, 13 bytes
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x001A, DMI type 24, 5 bytes
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x001B, DMI type 25, 9 bytes
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x001C, DMI type 26, 20 bytes
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
+Handle 0x001F, DMI type 22, 26 bytes
+Portable Battery
+	Location: System Battery Bay
+	Manufacturer: Sanyo DELLTM7876    
+	Name: Sanyo DELLTM7876    
+	Chemistry: Lithium Ion
+	Design Capacity: 29000 mWh
+	Design Voltage: 14800 mV
+	SBDS Version: Bat123
+	Maximum Error: Unknown
+	SBDS Serial Number: 009B
+	SBDS Manufacture Date: 1980-00-00
 	OEM-specific Information: 0x00000000
 
-Handle 0x001D, DMI type 27, 12 bytes
-Cooling Device
-	Temperature Probe Handle: 0x001E
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001E, DMI type 28, 20 bytes
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001F, DMI type 29, 20 bytes
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x0020, DMI type 30, 6 bytes
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x0021, DMI type 32, 20 bytes
+Handle 0x0020, DMI type 32, 20 bytes
 System Boot Information
 	Status: <OUT OF SPEC>
 
-Handle 0x0022, DMI type 127, 4 bytes
+Handle 0xB100, DMI type 177, 12 bytes
+OEM-specific Type
+	Header and Data:
+		B1 0C 00 B1 02 00 00 00 00 00 00 00
+
+Handle 0xD000, DMI type 208, 10 bytes
+OEM-specific Type
+	Header and Data:
+		D0 0A 00 D0 01 05 FE 00 F5 01
+
+Handle 0xD400, DMI type 212, 17 bytes
+OEM-specific Type
+	Header and Data:
+		D4 11 00 D4 70 00 71 00 00 10 2D 2E FF FF 00 00
+		00
+
+Handle 0x0024, DMI type 127, 4 bytes
 End Of Table
 
 
-Thanks.
--- 
-# Vasileios Lourdas,
-# Informatics Engineer, Thessaloniki (Greece)
-# http://www.lourdas.name
+--Boundary-00=_HpykGKSaeN4/ArI--
