@@ -1,110 +1,320 @@
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
-Subject: Re: [linux-pm] Re: Hibernate after alarm wakes from STR
-Date: Tue, 10 Jul 2007 12:45:30 +1000
-Message-ID: <200707101245.31449.nigel@nigel.suspend2.net>
-References: <20070330235759.GC4252@cosmic.amd.com> <20070709154014.GF27828@dmt> <200707090926.32826.david-b@pacbell.net>
-Reply-To: nigel@suspend2.net
+From: Mateusz Jedrasik <m.jedrasik@gmail.com>
+Subject: By popular demand - dmidecode on Compal H/EL80
+Date: Tue, 10 Jul 2007 08:43:04 +0200
+Message-ID: <200707100843.04391.m.jedrasik@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1633309.Asmc9IrAUR";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_4pykG3glKV5o+4h"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nigel.suspend2.net ([203.171.70.205]:35726 "EHLO
-	nigel.suspend2.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755954AbXGJCpS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2007 22:45:18 -0400
-In-Reply-To: <200707090926.32826.david-b@pacbell.net>
+Received: from ug-out-1314.google.com ([66.249.92.169]:23486 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761667AbXGJGnR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 02:43:17 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so1270892ugf
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Jul 2007 23:43:15 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: David Brownell <david-b@pacbell.net>, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
+To: linux-acpi@vger.kernel.org
 
---nextPart1633309.Asmc9IrAUR
+--Boundary-00=_4pykG3glKV5o+4h
 Content-Type: text/plain;
-  charset="cp 850"
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-Hi.
+Hi,
 
-On Tuesday 10 July 2007 02:26:32 David Brownell wrote:
-> On Monday 09 July 2007, Marcelo Tosatti wrote:
-> > On Sun, Jul 08, 2007 at 07:44:03PM -0700, David Brownell wrote:
->=20
-> > > Better a /sys/power/wakeup_event (or whatever) that's more easily
-> > > found.  It could link to the device issuing the event.
-> >=20
-> > As you mentioned, there might be two wakeup sources (RTC and power
-> > button for instance) or even more at the same time.
->=20
-> Actually I though I said that there would be races.  Though come
-> to think of it, one way they'd show up on a typical embedded system
-> would be to have multiple wake IRQs pending ... you couldn't tell
-> which one came first.  (The typical case would be a single event,
-> of course.)  ACPI-ish systems would do that with GPEs and the
-> magic "rtc woke" flag.
->=20
-> And then there are shared IRQ lines serving as wake sources.  There
-> could be three wake-enabled devices on that line (plus others that
-> aren't wake-enabled); the drivers returning IRQ_HANDLED should likely
-> be reported as having been wake sources, but not the ones returning
-> IRQ_NONE ...
->=20
-> ... so yes, systems might need to present multiple wake events.
->=20
->=20
-> > Do you think its fine to simply but the device separated by spaces in
-> > the wakeup_event file?
-> >=20
-> > Sounds fine by me, but what about the one-value-per-file sysfs rule?
->=20
-> Better to have that node be a directory of links then, rather than
-> a single link.
->=20
-> Note that I'm just throwing ideas out there.  I suspect that
-> in the general case it may not be easy to map from wake event
-> to device, without infrastructure that's now missing.
+According to linux-2.6.22 dmesg:
 
-=46WIW, I've recently added code to Suspend2 to allow it to (optionally) se=
-t the=20
-RTC wake alarm when it's finished writing the image and check the lid switc=
-h=20
-when waking, entering a different sleep state if the lid switch is still=20
-closed. It achieves this by letting the user set the name of an rtc alarm t=
-o=20
-use (the 'rtc0' in /sys/class/rtc/rtc0/*) and of a button to use (lid/LID=20
-in /proc/acpi/button/lid/LID/*). It then opens the button directory's state=
-=20
-file and the rtc directory's since_epoch and wakealarm files, and uses them=
-=20
-to determine read the time since epoch and set the wakealarm and determine=
-=20
-whether the lid button is still closed.
+<snip>
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=3D!Linux"
+Please send dmidecode to linux-acpi@vger.kernel.org
+<snip>
 
-I don't really like the opening /proc and /sysfs files in this way - whatev=
-er=20
-solution you come up with, could you consider exposing some way for kernel=
-=20
-code to do this more neatly?
+Hereby I attach the dmidecode.
 
-Regards,
+Glad to help, if any further testing or so is to be carried out, please e-m=
+ail=20
+me and I will happily provide information.
 
-Nigel
+Good day,
+
+//m.
 =2D-=20
-See http://www.tuxonice.net for Howtos, FAQs, mailing
-lists, wiki and bugzilla info.
+Mateusz J=C4=99drasik <m.jedrasik@gmail.com>
+tel. +48(79)022-9393, +48(51)69-444-90
+http://imachine.szklo.eu.org
 
---nextPart1633309.Asmc9IrAUR
-Content-Type: application/pgp-signature
+--Boundary-00=_4pykG3glKV5o+4h
+Content-Type: text/plain;
+  charset="us-ascii";
+  name="dmidecode"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dmidecode"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+# dmidecode 2.9
+SMBIOS 2.4 present.
+22 structures occupying 970 bytes.
+Table at 0x000DC010.
 
-iD8DBQBGkvLLN0y+n1M3mo0RAha4AJ9wpmItfkcrZ6MhhkK0oMiXX360dgCcDwPm
-On5WSvNP5Lp07+++kSaXK+k=
-=UhIT
------END PGP SIGNATURE-----
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: COMPAL
+	Version: 121B
+	Release Date: 07/02/2007
+	Address: 0xE63F0
+	Runtime Size: 105488 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+	BIOS Revision: 1.21
+	Firmware Revision: 1.0
 
---nextPart1633309.Asmc9IrAUR--
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: COMPAL          
+	Product Name: HEL80I          
+	Version: -
+	Serial Number: 2054228700233   
+	UUID: 158F767F-3E9F-11DB-B7EC-0016D41DF7E7
+	Wake-up Type: Power Switch
+	SKU Number:                                                                                               
+	Family: Intel
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: COMPAL
+	Product Name: HEL8X
+	Version: Null
+	Serial Number: 0123456789AB
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: COMPAL
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag: -
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: F6 06 00 00 FF FB EB BF
+	Version: Intel(R) Core(TM)2 CPU         T5
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 2330 MHz
+	Current Speed: 1600 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 4096 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J11
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J12
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+	Designation: ENE CB-714
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000A, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x000B, DMI type 11, 5 bytes
+OEM Strings
+	String 1: -
+
+Handle 0x000C, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x000D, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 3 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000D
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000F, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000D
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0010, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000D
+	Partition Width: 0
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x0010
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0012, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000F
+	Memory Array Mapped Address Handle: 0x0010
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0013, DMI type 22, 26 bytes
+Portable Battery
+	Location: 1st Battery
+	Manufacturer: COMPAL
+	Manufacture Date: 12/01/2005
+	Serial Number: 3658Q
+	Name: PA3395U 
+	Chemistry: Lithium Ion
+	Design Capacity: 31500 mWh
+	Design Voltage: 14800 mV
+	SBDS Version: Not Specified
+	Maximum Error: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0014, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0015, DMI type 127, 4 bytes
+End Of Table
+
+
+--Boundary-00=_4pykG3glKV5o+4h--
