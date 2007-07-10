@@ -1,420 +1,308 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
-Date: Tue, 10 Jul 2007 17:07:53 +0800
-Message-ID: <1184058473.16979.13.camel@localhost.localdomain>
-References: <20070709145755.GD3492@stusta.de>
+From: "Lone_Wolf" <lonewolf@xs4all.nl>
+Subject: acpi_osi=!Linux please send dmidecode
+Date: Tue, 10 Jul 2007 12:38:56 +0200 (CEST)
+Message-ID: <22160.82.92.72.219.1184063936.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;boundary="----=_20070710123856_28737"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63522 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757411AbXGJJGD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Jul 2007 05:06:03 -0400
-In-Reply-To: <20070709145755.GD3492@stusta.de>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2949 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758707AbXGJKzK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 06:55:10 -0400
+Received: from webmail.xs4all.nl (dovemail7.xs4all.nl [194.109.26.9])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id l6AAfY7E022718
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Jul 2007 12:41:35 +0200 (CEST)
+	(envelope-from lonewolf@xs4all.nl)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: lenb@kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
+------=_20070710123856_28737
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-I really appreciate your help.
-The ACPI sysfs conversion work is still in progress.
-We'll update the ACPI_PROCFS removal plan soon.
-Sorry to make you confused.
+Jul 10 12:19:11 julia ACPI: System BIOS is requesting _OSI(Linux)
+Jul 10 12:19:11 julia ACPI: Please test with "acpi_osi=!Linux"
+Jul 10 12:19:11 julia Please send dmidecode to linux-acpi@vger.kernel.org
 
-Thanks,
-Rui
+After adding acpi_osi=!Linux to the bootline the message stayed, and the
+behaviour of my laptop appears to be the same as without it.
+
+------=_20070710123856_28737
+Content-Type: text/plain; name="dmidecode.txt"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="dmidecode.txt"
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+19 structures occupying 726 bytes.
+Table at 0x000F0260.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Acer
+	Version: V2.83
+	Release Date: 03/21/2007
+	Address: 0xE48B0
+	Runtime Size: 112464 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Acer            
+	Product Name: Aspire 5100     
+	Version: V2.83
+	Serial Number: LXABH0J252645153AC1601
+	UUID: 36323361-3930-3335-6237-0016D45A690C
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Acer
+	Product Name: Navarro
+	Version: N/A
+	Serial Number: LXABH0J252645153AC1601
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Acer
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: LXABH0J252645153AC1601          
+	Asset Tag:                                 
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00000000
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: Socket M2/S1G1
+	Type: Central Processor
+	Family: Opteron
+	Manufacturer: AMD
+	ID: 82 0F 04 00 FF FB 8B 17
+	Signature: Family 15, Model 72, Stepping 2
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+		HTT (Hyper-threading technology)
+	Version: Engineering Sample
+	Voltage: 1.4 V
+	External Clock: 200 MHz
+	Max Speed: 1600 MHz
+	Current Speed: 1600 MHz
+	Status: Populated, Enabled
+	Upgrade: Other
+	L1 Cache Handle: Not Provided
+	L2 Cache Handle: 0x0005
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 512 KB
+	Maximum Size: 1024 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+	Installed SRAM Type: Synchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCMCIA Slot0
+	Type: 32-bit PC Card (PCMCIA)
+	Current Usage: Unknown
+	Length: Long
+	ID: Adapter 0, Socket 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PC Card-16 is supported
+		Cardbus is supported
+		Hot-plug devices are supported
+
+Handle 0x0007, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Disabled
+	Description: ATI RS485M
+
+Handle 0x0008, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x0009, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x00000013
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000A, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 4 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000B, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000A
+	Error Information Handle: No Error
+	Total Width: 128 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: S1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Unknown
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000C, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000A
+	Error Information Handle: No Error
+	Total Width: Unknown
+	Data Width: Unknown
+	Size: No Module Installed
+	Form Factor: DIMM
+	Set: 2
+	Locator: S2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000D, DMI type 18, 23 bytes
+32-bit Memory Error Information
+	Type: OK
+	Granularity: Unknown
+	Operation: Unknown
+	Vendor Syndrome: Unknown
+	Memory Array Address: Unknown
+	Device Address: Unknown
+	Resolution: Unknown
+
+Handle 0x000E, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000A
+	Partition Width: 0
+
+Handle 0x000F, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x000B
+	Memory Array Mapped Address Handle: 0x000E
+	Partition Row Position: 2
+	Interleave Position: 1
+	Interleaved Data Depth: 6
+
+Handle 0x0010, DMI type 22, 26 bytes
+Portable Battery
+	Location: 1st Battery
+	Manufacturer: PANASONIC 
+	Name: PANASONIC 
+	Chemistry: Lithium Ion
+	Design Capacity: 3900 mWh
+	Design Voltage: 14800 mV
+	SBDS Version: Not Specified
+	Maximum Error: Unknown
+	SBDS Serial Number: 0000
+	SBDS Manufacture Date: 1980-00-00
+	OEM-specific Information: 0x00000000
+
+Handle 0x0011, DMI type 32, 11 bytes
+System Boot Information
+	Status: No errors detected
+
+Handle 0x0012, DMI type 127, 4 bytes
+End Of Table
+
+------=_20070710123856_28737--
 
 
-On Mon, 2007-07-09 at 22:57 +0800, Adrian Bunk wrote:
-> This patch contains the scheduled removal of the ACPI procfs
-> interface.
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> 
-> ---
-> 
->  Documentation/feature-removal-schedule.txt |    8 -
->  drivers/acpi/Kconfig                       |   13 -
->  drivers/acpi/debug.c                       |  143
-> ---------------------
->  drivers/acpi/system.c                      |  129 ------------------
->  4 files changed, 293 deletions(-)
-> 
-> --- linux-2.6.22-rc6-mm1/Documentation/feature-removal-
-> schedule.txt.old 2007-07-09 02:04:01.000000000 +0200
-> +++ linux-2.6.22-rc6-mm1/Documentation/feature-removal-schedule.txt
-> 2007-07-09 02:04:32.000000000 +0200
-> @@ -190,14 +190,6 @@
-> 
->  ---------------------------
-> 
-> -What:  ACPI procfs interface
-> -When:  July 2007
-> -Why:   After ACPI sysfs conversion, ACPI attributes will be
-> duplicated
-> -       in sysfs and the ACPI procfs interface should be removed.
-> -Who:   Zhang Rui <rui.zhang@intel.com>
-> -
-> ----------------------------
-> -
->  What:  /proc/acpi/button
->  When:  August 2007
->  Why:   /proc/acpi/button has been replaced by events to the input
-> layer
-> --- linux-2.6.22-rc6-mm1/drivers/acpi/Kconfig.old       2007-07-09
-> 02:04:39.000000000 +0200
-> +++ linux-2.6.22-rc6-mm1/drivers/acpi/Kconfig   2007-07-09
-> 02:04:57.000000000 +0200
-> @@ -75,19 +75,6 @@
->           Create /proc/acpi/sleep
->           Deprecated by /sys/power/state
-> 
-> -config ACPI_PROCFS
-> -       bool "Procfs interface (deprecated)"
-> -       default y
-> -       ---help---
-> -         The Procfs interface for ACPI is made optional for backward
-> compatibility.
-> -         As the same functions are duplicated in the sysfs interface
-> -         and this proc interface will be removed some time later,
-> -         it's marked as deprecated.
-> -         ( /proc/acpi/debug_layer && debug_level are deprecated by
-> -           /sys/module/acpi/parameters/debug_layer && debug_level.
-> -           /proc/acpi/info is deprecated by
-> -           /sys/module/acpi/parameters/acpica_version )
-> -
->  config ACPI_AC
->         tristate "AC Adapter"
->         depends on X86
-> --- linux-2.6.22-rc6-mm1/drivers/acpi/debug.c.old       2007-07-09
-> 02:05:04.000000000 +0200
-> +++ linux-2.6.22-rc6-mm1/drivers/acpi/debug.c   2007-07-09
-> 02:05:41.000000000 +0200
-> @@ -130,146 +130,3 @@
->  module_param_call(debug_layer, param_set_uint, param_get_debug_layer,
-> &acpi_dbg_layer, 0644);
->  module_param_call(debug_level, param_set_uint, param_get_debug_level,
-> &acpi_dbg_level, 0644);
-> 
-> -/*
-> --------------------------------------------------------------------------
-> -                              FS Interface (/proc)
-> -
-> -------------------------------------------------------------------------- */
-> -#ifdef CONFIG_ACPI_PROCFS
-> -#define ACPI_SYSTEM_FILE_DEBUG_LAYER   "debug_layer"
-> -#define ACPI_SYSTEM_FILE_DEBUG_LEVEL           "debug_level"
-> -
-> -static int
-> -acpi_system_read_debug(char *page,
-> -                      char **start, off_t off, int count, int *eof,
-> void *data)
-> -{
-> -       char *p = page;
-> -       int size = 0;
-> -       unsigned int i;
-> -
-> -       if (off != 0)
-> -               goto end;
-> -
-> -       p += sprintf(p, "%-25s\tHex        SET\n", "Description");
-> -
-> -       switch ((unsigned long)data) {
-> -       case 0:
-> -               for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
-> -                       p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
-> -                                    acpi_debug_layers[i].name,
-> -                                    acpi_debug_layers[i].value,
-> -                                    (acpi_dbg_layer &
-> acpi_debug_layers[i].
-> -                                     value) ? '*' : ' ');
-> -               }
-> -               p += sprintf(p, "%-25s\t0x%08X [%c]\n",
-> "ACPI_ALL_DRIVERS",
-> -                            ACPI_ALL_DRIVERS,
-> -                            (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
-> -                            ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer
-> &
-> -
-> ACPI_ALL_DRIVERS) ==
-> -                            0 ? ' ' : '-');
-> -               p += sprintf(p,
-> -                            "--\ndebug_layer = 0x%08X (* = enabled, -
-> = partial)\n",
-> -                            acpi_dbg_layer);
-> -               break;
-> -       case 1:
-> -               for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
-> -                       p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
-> -                                    acpi_debug_levels[i].name,
-> -                                    acpi_debug_levels[i].value,
-> -                                    (acpi_dbg_level &
-> acpi_debug_levels[i].
-> -                                     value) ? '*' : ' ');
-> -               }
-> -               p += sprintf(p, "--\ndebug_level = 0x%08X (* =
-> enabled)\n",
-> -                            acpi_dbg_level);
-> -               break;
-> -       default:
-> -               p += sprintf(p, "Invalid debug option\n");
-> -               break;
-> -       }
-> -
-> -      end:
-> -       size = (p - page);
-> -       if (size <= off + count)
-> -               *eof = 1;
-> -       *start = page + off;
-> -       size -= off;
-> -       if (size > count)
-> -               size = count;
-> -       if (size < 0)
-> -               size = 0;
-> -
-> -       return size;
-> -}
-> -
-> -static int
-> -acpi_system_write_debug(struct file *file,
-> -                       const char __user * buffer,
-> -                       unsigned long count, void *data)
-> -{
-> -       char debug_string[12] = { '\0' };
-> -
-> -
-> -       if (count > sizeof(debug_string) - 1)
-> -               return -EINVAL;
-> -
-> -       if (copy_from_user(debug_string, buffer, count))
-> -               return -EFAULT;
-> -
-> -       debug_string[count] = '\0';
-> -
-> -       switch ((unsigned long)data) {
-> -       case 0:
-> -               acpi_dbg_layer = simple_strtoul(debug_string, NULL,
-> 0);
-> -               break;
-> -       case 1:
-> -               acpi_dbg_level = simple_strtoul(debug_string, NULL,
-> 0);
-> -               break;
-> -       default:
-> -               return -EINVAL;
-> -       }
-> -
-> -       return count;
-> -}
-> -
-> -static int __init acpi_debug_init(void)
-> -{
-> -       struct proc_dir_entry *entry;
-> -       int error = 0;
-> -       char *name;
-> -
-> -
-> -       if (acpi_disabled)
-> -               return 0;
-> -
-> -       /* 'debug_layer' [R/W] */
-> -       name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
-> -       entry =
-> -           create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
-> -                                  acpi_root_dir,
-> acpi_system_read_debug,
-> -                                  (void *)0);
-> -       if (entry)
-> -               entry->write_proc = acpi_system_write_debug;
-> -       else
-> -               goto Error;
-> -
-> -       /* 'debug_level' [R/W] */
-> -       name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
-> -       entry =
-> -           create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
-> -                                  acpi_root_dir,
-> acpi_system_read_debug,
-> -                                  (void *)1);
-> -       if (entry)
-> -               entry->write_proc = acpi_system_write_debug;
-> -       else
-> -               goto Error;
-> -
-> -      Done:
-> -       return error;
-> -
-> -      Error:
-> -       remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LEVEL,
-> acpi_root_dir);
-> -       remove_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER,
-> acpi_root_dir);
-> -       error = -ENODEV;
-> -       goto Done;
-> -}
-> -
-> -subsys_initcall(acpi_debug_init);
-> -#endif
-> --- linux-2.6.22-rc6-mm1/drivers/acpi/system.c.old      2007-07-09
-> 02:05:48.000000000 +0200
-> +++ linux-2.6.22-rc6-mm1/drivers/acpi/system.c  2007-07-09
-> 02:06:30.000000000 +0200
-> @@ -167,131 +167,6 @@
->         return 0;
->  }
-> 
-> -/*
-> --------------------------------------------------------------------------
-> -                              FS Interface (/proc)
-> -
-> -------------------------------------------------------------------------- */
-> -#ifdef CONFIG_ACPI_PROCFS
-> -#define ACPI_SYSTEM_FILE_INFO          "info"
-> -#define ACPI_SYSTEM_FILE_EVENT         "event"
-> -#define ACPI_SYSTEM_FILE_DSDT          "dsdt"
-> -#define ACPI_SYSTEM_FILE_FADT          "fadt"
-> -
-> -static int acpi_system_read_info(struct seq_file *seq, void *offset)
-> -{
-> -
-> -       seq_printf(seq, "version:                 %x\n",
-> ACPI_CA_VERSION);
-> -       return 0;
-> -}
-> -
-> -static int acpi_system_info_open_fs(struct inode *inode, struct file
-> *file)
-> -{
-> -       return single_open(file, acpi_system_read_info, PDE(inode)-
-> >data);
-> -}
-> -
-> -static const struct file_operations acpi_system_info_ops = {
-> -       .open = acpi_system_info_open_fs,
-> -       .read = seq_read,
-> -       .llseek = seq_lseek,
-> -       .release = single_release,
-> -};
-> -
-> -static ssize_t acpi_system_read_dsdt(struct file *, char __user *,
-> size_t,
-> -                                    loff_t *);
-> -
-> -static const struct file_operations acpi_system_dsdt_ops = {
-> -       .read = acpi_system_read_dsdt,
-> -};
-> -
-> -static ssize_t
-> -acpi_system_read_dsdt(struct file *file,
-> -                     char __user * buffer, size_t count, loff_t *
-> ppos)
-> -{
-> -       acpi_status status = AE_OK;
-> -       struct acpi_table_header *dsdt = NULL;
-> -       ssize_t res;
-> -
-> -       status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
-> -       if (ACPI_FAILURE(status))
-> -               return -ENODEV;
-> -
-> -       res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt-
-> >length);
-> -
-> -       return res;
-> -}
-> -
-> -static ssize_t acpi_system_read_fadt(struct file *, char __user *,
-> size_t,
-> -                                    loff_t *);
-> -
-> -static const struct file_operations acpi_system_fadt_ops = {
-> -       .read = acpi_system_read_fadt,
-> -};
-> -
-> -static ssize_t
-> -acpi_system_read_fadt(struct file *file,
-> -                     char __user * buffer, size_t count, loff_t *
-> ppos)
-> -{
-> -       acpi_status status = AE_OK;
-> -       struct acpi_table_header *fadt = NULL;
-> -       ssize_t res;
-> -
-> -       status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
-> -       if (ACPI_FAILURE(status))
-> -               return -ENODEV;
-> -
-> -       res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt-
-> >length);
-> -
-> -       return res;
-> -}
-> -
-> -static int acpi_system_procfs_init(void)
-> -{
-> -       struct proc_dir_entry *entry;
-> -       int error = 0;
-> -       char *name;
-> -
-> -       /* 'info' [R] */
-> -       name = ACPI_SYSTEM_FILE_INFO;
-> -       entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
-> -       if (!entry)
-> -               goto Error;
-> -       else {
-> -               entry->proc_fops = &acpi_system_info_ops;
-> -       }
-> -
-> -       /* 'dsdt' [R] */
-> -       name = ACPI_SYSTEM_FILE_DSDT;
-> -       entry = create_proc_entry(name, S_IRUSR, acpi_root_dir);
-> -       if (entry)
-> -               entry->proc_fops = &acpi_system_dsdt_ops;
-> -       else
-> -               goto Error;
-> -
-> -       /* 'fadt' [R] */
-> -       name = ACPI_SYSTEM_FILE_FADT;
-> -       entry = create_proc_entry(name, S_IRUSR, acpi_root_dir);
-> -       if (entry)
-> -               entry->proc_fops = &acpi_system_fadt_ops;
-> -       else
-> -               goto Error;
-> -
-> -      Done:
-> -       return error;
-> -
-> -      Error:
-> -       remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
-> -       remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
-> -       remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
-> -
-> -       error = -EFAULT;
-> -       goto Done;
-> -}
-> -#else
-> -static int acpi_system_procfs_init(void)
-> -{
-> -       return 0;
-> -}
-> -#endif
-> -
->  static int __init acpi_system_init(void)
->  {
->         int result = 0;
-> @@ -299,10 +174,6 @@
->         if (acpi_disabled)
->                 return 0;
-> 
-> -       result = acpi_system_procfs_init();
-> -       if (result)
-> -               return result;
-> -
->         result = acpi_system_sysfs_init();
-> 
->         return result;
-> 
-> 
