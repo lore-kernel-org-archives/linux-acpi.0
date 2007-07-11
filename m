@@ -1,37 +1,91 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 Subject: Re: [linux-pm] Re: Hibernate after alarm wakes from STR
-Date: Wed, 11 Jul 2007 02:23:02 +0100
-Message-ID: <20070711012301.GA30596@srcf.ucam.org>
-References: <20070330235759.GC4252@cosmic.amd.com> <200707110816.42114.nigel@nigel.suspend2.net> <20070711004549.GA30249@srcf.ucam.org> <200707111053.36590.nigel@nigel.suspend2.net>
+Date: Wed, 11 Jul 2007 11:39:37 +1000
+Message-ID: <200707111139.38667.nigel@nigel.suspend2.net>
+References: <20070330235759.GC4252@cosmic.amd.com> <200707111053.36590.nigel@nigel.suspend2.net> <20070711012301.GA30596@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart2118737.UVkYT3uRbr";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:51223 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020AbXGKBXP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 21:23:15 -0400
-Content-Disposition: inline
-In-Reply-To: <200707111053.36590.nigel@nigel.suspend2.net>
+Received: from nigel.suspend2.net ([203.171.70.205]:33739 "EHLO
+	nigel.suspend2.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755048AbXGKBj2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 21:39:28 -0400
+In-Reply-To: <20070711012301.GA30596@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nigel@suspend2.net
-Cc: David Brownell <david-b@pacbell.net>, linux-pm@lists.linux-foundation.org, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: nigel@suspend2.net, David Brownell <david-b@pacbell.net>, linux-pm@lists.linux-foundation.org, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
 
-On Wed, Jul 11, 2007 at 10:53:35AM +1000, Nigel Cunningham wrote:
-> On Wednesday 11 July 2007 10:45:50 Matthew Garrett wrote:
-> > How are you going to shift into suspend to disk without going via 
-> > userspace? It's quite plausible that people will want different 
-> > configuration at that point (or, realistically, need a different set of 
-> > workarounds...)
-> 
-> This is done after writing the image, from kernel space. We do the 
-> suspend-to-ram, and if/when we wake from that, we look at the lid switch 
-> state before removing the image. If it's still closed, the kernel code powers 
-> down again (this time properly) without userspace ever seeing the light of 
-> day.
+--nextPart2118737.UVkYT3uRbr
+Content-Type: text/plain;
+  charset="cp 850"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Yes. I'm sort of struggling to see how this is done especially reliably 
-- if we have separate hibernation and suspend to ram pathways, which is 
-executed in this scenario?
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Hi.
+
+On Wednesday 11 July 2007 11:23:02 Matthew Garrett wrote:
+> On Wed, Jul 11, 2007 at 10:53:35AM +1000, Nigel Cunningham wrote:
+> > On Wednesday 11 July 2007 10:45:50 Matthew Garrett wrote:
+> > > How are you going to shift into suspend to disk without going via=20
+> > > userspace? It's quite plausible that people will want different=20
+> > > configuration at that point (or, realistically, need a different set =
+of=20
+> > > workarounds...)
+> >=20
+> > This is done after writing the image, from kernel space. We do the=20
+> > suspend-to-ram, and if/when we wake from that, we look at the lid switc=
+h=20
+> > state before removing the image. If it's still closed, the kernel code=
+=20
+powers=20
+> > down again (this time properly) without userspace ever seeing the light=
+ of=20
+> > day.
+>=20
+> Yes. I'm sort of struggling to see how this is done especially reliably=20
+> - if we have separate hibernation and suspend to ram pathways, which is=20
+> executed in this scenario?
+
+Yeah, that is a bit confusing. At the moment, I'm doing the suspend to ram=
+=20
+platform dependent preparation and cleanup in this scenario. That's=20
+definitely the right thing to do in the case where we write an image, then=
+=20
+suspend to ram, wake and continue working without running running out of=20
+battery (writing the image is redundant in that case). Where we end up=20
+properly powering down after suspending to ram, I believe we don't run the=
+=20
+pm_ops->finish after doing the atomic restore when resuming the image.
+
+I haven't looked at what uswsusp does (I'm just looking at Suspend2 code=20
+above), but it will have similar issues as it also has support for suspendi=
+ng=20
+to ram after writing an image.
+
+Regards,
+
+Nigel
+=2D-=20
+Nigel Cunningham
+Christian Reformed Church of Cobden
+103 Curdie Street, Cobden 3266, Victoria, Australia
+Ph. +61 3 5595 1185 / +61 417 100 574
+Communal Worship: 11 am Sunday.
+
+--nextPart2118737.UVkYT3uRbr
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGlDTaN0y+n1M3mo0RAnNTAJ9nExw22TI7XX9cFbuOLB+faDdX0wCdFSjc
+PH/8PuW5F6zokM+KL5lz7a0=
+=EZtE
+-----END PGP SIGNATURE-----
+
+--nextPart2118737.UVkYT3uRbr--
