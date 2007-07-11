@@ -1,29 +1,54 @@
-From: Norman Ziert <norman_ziert@web.de>
-Subject: Re: need support for MSI-9625 ACPI
-Date: Wed, 11 Jul 2007 14:16:35 +0200
-Message-ID: <4694CA23.8050805@web.de>
-References: <4689549B.80301@web.de>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] Re: Hibernate after alarm wakes from STR
+Date: Wed, 11 Jul 2007 09:04:33 -0700
+Message-ID: <200707110904.33696.david-b@pacbell.net>
+References: <20070330235759.GC4252@cosmic.amd.com> <200707100951.04193.david-b@pacbell.net> <200707110816.42114.nigel@nigel.suspend2.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:50456 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555AbXGKMQj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jul 2007 08:16:39 -0400
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate03.web.de (Postfix) with ESMTP id 33CBC8B5AD14
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 14:16:38 +0200 (CEST)
-Received: from [84.179.82.33] (helo=[192.168.2.3])
-	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.108 #197)
-	id 1I8b7U-0006R8-00
-	for linux-acpi@vger.kernel.org; Wed, 11 Jul 2007 14:16:36 +0200
-In-Reply-To: <4689549B.80301@web.de>
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:45224 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758246AbXGKQIh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jul 2007 12:08:37 -0400
+In-Reply-To: <200707110816.42114.nigel@nigel.suspend2.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: nigel@suspend2.net
+Cc: linux-pm@lists.linux-foundation.org, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
 
-I've reported the bug to bugzilla.kernel.org.
+On Tuesday 10 July 2007, Nigel Cunningham wrote:
+> Yeah, the bit I consider to be ugly is opening the files from within the 
+> kernel, but it seemed to be necessary in order to provide the functionality 
+> without having to rely on userspace or do some sort of messy work to figure 
+> out how to access the lid button and so on.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8734
+Perhaps there should be a formal API to such buttons.
+
+
+> Re proc files, are the button files already exposed under sysfs and I just 
+> don't know? If so, I'll happily shift to using them.
+
+ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ ls -l 
+total 0
+lrwxrwxrwx 1 root root    0 2007-07-11 08:58 bus -> ../../../../bus/acpi/
+lrwxrwxrwx 1 root root    0 2007-07-11 08:58 driver -> ../../../../bus/acpi/drivers/button/
+-r--r--r-- 1 root root 4096 2007-07-11 08:58 hid
+lrwxrwxrwx 1 root root    0 2007-07-11 08:58 input:event2 -> ../../../../class/input/input2/event2/
+lrwxrwxrwx 1 root root    0 2007-07-11 08:58 input:input2 -> ../../../../class/input/input2/
+-r--r--r-- 1 root root 4096 2007-07-11 08:58 path
+drwxr-xr-x 2 root root    0 2007-07-11 08:58 power/
+lrwxrwxrwx 1 root root    0 2007-07-11 08:58 subsystem -> ../../../../bus/acpi/
+-rw-r--r-- 1 root root 4096 2007-07-11 08:58 uevent
+db@ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ cat path
+\_SB_.LID_
+ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ 
+
+If the generic kernel doesn't show that, then it's likely
+a consequence of a submitted-but-not-yet-merged patch.
+
+- Dave
+
