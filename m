@@ -1,54 +1,35 @@
-From: Martin Larsson <morg@borgeby.se>
-Subject: C-States problems with Zepto
-Date: Wed, 11 Jul 2007 18:48:41 +0200
-Message-ID: <469509E9.1020401@borgeby.se>
+From: Bill Davidsen <davidsen@tmr.com>
+Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
+Date: Wed, 11 Jul 2007 13:54:49 -0400
+Message-ID: <46951969.4030109@tmr.com>
+References: <20070709145755.GD3492@stusta.de> <20070709174544.2a6b7067@the-village.bc.nu> <Pine.LNX.4.64.0707092044520.2887@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from av8-2-sn3.vrr.skanova.net ([81.228.9.184]:37902 "EHLO
-	av8-2-sn3.vrr.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841AbXGKRJq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jul 2007 13:09:46 -0400
-Received: from smtp3-2-sn3.vrr.skanova.net (smtp3-2-sn3.vrr.skanova.net [81.228.9.102])
-	by av8-2-sn3.vrr.skanova.net (Postfix) with ESMTP id B9E8438016
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
-Received: from borgeby (h191n1fls32o985.telia.com [213.65.17.191])
-	by smtp3-2-sn3.vrr.skanova.net (Postfix) with ESMTP id A3B1C37E47
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
-Received: from [192.168.1.4] (my.router [192.168.1.1])
-	by borgeby (Postfix) with ESMTP id 58535BC588
-	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1765850AbXGKRwE@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0707092044520.2887@fbirervta.pbzchgretzou.qr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Adrian Bunk <bunk@stusta.de>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi
+Jan Engelhardt wrote:
+> On Jul 9 2007 17:45, Alan Cox wrote:
+>>> This patch contains the scheduled removal of the ACPI procfs interface.
+>> What part of "we do not gratuitously break user space interfaces" is so
+>> hard for people to understand.
+> 
+> Generally I am with you on that, but if everyone keeps on using /proc --
+> and I do[*] -- we will never get rid of it.
+> 
+Is there some reason why you should get rid of it? Is it causing a lot 
+work to maintain?
+> 
+> [*] Does someone have an alternative for /proc/acpi/battery/BAT1/{state,info}?
+> 
 
-I don't think this is a problem that can or should be fixed by the acpi
-team, but I was hoping for some advice and maybe someone knows a solution.
 
-I have a Zepto Znote 6024W with an intel core 2 duo T7100 and intel
-965gm chipset. The problem is that it only reports down to C2 state, ie
-i get this message in dmesg:
-ACPI: CPU0 (power states: C1[C1] C2[C2])
-ACPI: CPU1 (power states: C1[C1] C2[C2])
-
-I have the bios set to default and it says extended (or enhanced, not
-sure which word was used) c-states are enabled. I also boot without
-ac-adapter. If i boot with processor.nocst=1, I get C3-state, but the
-cpu never leaves C0 mode.
-
-When looking at the dsdt i can't find any _CST method or anything else
-for that matter that i can see is related to c-states. It does compile
-with warnings running "iasl -w3 dsdt.dsl" (output, see next link)
-
-I have uploaded dmesg output, dsdt etc to http://www.borgeby.se/laptop .
-dmesg is with acpi.debug_level=0x200f. If something other would be
-better, please tell me.
-
-Anyone with experience interested in taking a quick look at this and try
-to help me? Maybe some advice what i shall tell Zepto if i contact them?
-
-Regards
-/Martin
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
