@@ -1,54 +1,54 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] Re: Hibernate after alarm wakes from STR
-Date: Wed, 11 Jul 2007 09:04:33 -0700
-Message-ID: <200707110904.33696.david-b@pacbell.net>
-References: <20070330235759.GC4252@cosmic.amd.com> <200707100951.04193.david-b@pacbell.net> <200707110816.42114.nigel@nigel.suspend2.net>
+From: Martin Larsson <morg@borgeby.se>
+Subject: C-States problems with Zepto
+Date: Wed, 11 Jul 2007 18:48:41 +0200
+Message-ID: <469509E9.1020401@borgeby.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:45224 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758246AbXGKQIh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jul 2007 12:08:37 -0400
-In-Reply-To: <200707110816.42114.nigel@nigel.suspend2.net>
-Content-Disposition: inline
+Received: from av8-2-sn3.vrr.skanova.net ([81.228.9.184]:37902 "EHLO
+	av8-2-sn3.vrr.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841AbXGKRJq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jul 2007 13:09:46 -0400
+Received: from smtp3-2-sn3.vrr.skanova.net (smtp3-2-sn3.vrr.skanova.net [81.228.9.102])
+	by av8-2-sn3.vrr.skanova.net (Postfix) with ESMTP id B9E8438016
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
+Received: from borgeby (h191n1fls32o985.telia.com [213.65.17.191])
+	by smtp3-2-sn3.vrr.skanova.net (Postfix) with ESMTP id A3B1C37E47
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
+Received: from [192.168.1.4] (my.router [192.168.1.1])
+	by borgeby (Postfix) with ESMTP id 58535BC588
+	for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2007 18:49:04 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nigel@suspend2.net
-Cc: linux-pm@lists.linux-foundation.org, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
+To: linux-acpi@vger.kernel.org
 
-On Tuesday 10 July 2007, Nigel Cunningham wrote:
-> Yeah, the bit I consider to be ugly is opening the files from within the 
-> kernel, but it seemed to be necessary in order to provide the functionality 
-> without having to rely on userspace or do some sort of messy work to figure 
-> out how to access the lid button and so on.
+Hi
 
-Perhaps there should be a formal API to such buttons.
+I don't think this is a problem that can or should be fixed by the acpi
+team, but I was hoping for some advice and maybe someone knows a solution.
 
+I have a Zepto Znote 6024W with an intel core 2 duo T7100 and intel
+965gm chipset. The problem is that it only reports down to C2 state, ie
+i get this message in dmesg:
+ACPI: CPU0 (power states: C1[C1] C2[C2])
+ACPI: CPU1 (power states: C1[C1] C2[C2])
 
-> Re proc files, are the button files already exposed under sysfs and I just 
-> don't know? If so, I'll happily shift to using them.
+I have the bios set to default and it says extended (or enhanced, not
+sure which word was used) c-states are enabled. I also boot without
+ac-adapter. If i boot with processor.nocst=1, I get C3-state, but the
+cpu never leaves C0 mode.
 
-ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ ls -l 
-total 0
-lrwxrwxrwx 1 root root    0 2007-07-11 08:58 bus -> ../../../../bus/acpi/
-lrwxrwxrwx 1 root root    0 2007-07-11 08:58 driver -> ../../../../bus/acpi/drivers/button/
--r--r--r-- 1 root root 4096 2007-07-11 08:58 hid
-lrwxrwxrwx 1 root root    0 2007-07-11 08:58 input:event2 -> ../../../../class/input/input2/event2/
-lrwxrwxrwx 1 root root    0 2007-07-11 08:58 input:input2 -> ../../../../class/input/input2/
--r--r--r-- 1 root root 4096 2007-07-11 08:58 path
-drwxr-xr-x 2 root root    0 2007-07-11 08:58 power/
-lrwxrwxrwx 1 root root    0 2007-07-11 08:58 subsystem -> ../../../../bus/acpi/
--rw-r--r-- 1 root root 4096 2007-07-11 08:58 uevent
-db@ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ cat path
-\_SB_.LID_
-ascent:/sys/devices/acpi_system:00/device:00/PNP0C0D:00$ 
+When looking at the dsdt i can't find any _CST method or anything else
+for that matter that i can see is related to c-states. It does compile
+with warnings running "iasl -w3 dsdt.dsl" (output, see next link)
 
-If the generic kernel doesn't show that, then it's likely
-a consequence of a submitted-but-not-yet-merged patch.
+I have uploaded dmesg output, dsdt etc to http://www.borgeby.se/laptop .
+dmesg is with acpi.debug_level=0x200f. If something other would be
+better, please tell me.
 
-- Dave
+Anyone with experience interested in taking a quick look at this and try
+to help me? Maybe some advice what i shall tell Zepto if i contact them?
 
+Regards
+/Martin
