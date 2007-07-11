@@ -1,48 +1,37 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: need support for MSI-9625 ACPI
-Date: Wed, 11 Jul 2007 09:13:39 +0800
-Message-ID: <823A93EED437D048963A3697DB0E35DE730DE1@pdsmsx414.ccr.corp.intel.com>
-References: <4693FBB2.70002@web.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] Re: Hibernate after alarm wakes from STR
+Date: Wed, 11 Jul 2007 02:23:02 +0100
+Message-ID: <20070711012301.GA30596@srcf.ucam.org>
+References: <20070330235759.GC4252@cosmic.amd.com> <200707110816.42114.nigel@nigel.suspend2.net> <20070711004549.GA30249@srcf.ucam.org> <200707111053.36590.nigel@nigel.suspend2.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15768 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755435AbXGKBNz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 21:13:55 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <4693FBB2.70002@web.de>
+Received: from cavan.codon.org.uk ([217.147.92.49]:51223 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbXGKBXP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2007 21:23:15 -0400
+Content-Disposition: inline
+In-Reply-To: <200707111053.36590.nigel@nigel.suspend2.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norman Ziert <norman_ziert@web.de>, linux-acpi@vger.kernel.org
+To: nigel@suspend2.net
+Cc: David Brownell <david-b@pacbell.net>, linux-pm@lists.linux-foundation.org, Marcelo Tosatti <marcelo@kvack.org>, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, rtc-linux@googlegroups.com
 
-Hi, Norman,
-Please submit a new bug at http://bugzilla.kernel.org/
-and attach all the information you sent here.
+On Wed, Jul 11, 2007 at 10:53:35AM +1000, Nigel Cunningham wrote:
+> On Wednesday 11 July 2007 10:45:50 Matthew Garrett wrote:
+> > How are you going to shift into suspend to disk without going via 
+> > userspace? It's quite plausible that people will want different 
+> > configuration at that point (or, realistically, need a different set of 
+> > workarounds...)
+> 
+> This is done after writing the image, from kernel space. We do the 
+> suspend-to-ram, and if/when we wake from that, we look at the lid switch 
+> state before removing the image. If it's still closed, the kernel code powers 
+> down again (this time properly) without userspace ever seeing the light of 
+> day.
 
-Thanks,
-Ray
-
------Original Message-----
-=46rom: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
-kernel.org] On Behalf Of Norman Ziert
-Sent: 2007=C4=EA7=D4=C211=C8=D5 5:36
-To: linux-acpi@vger.kernel.org
-Subject: Re: need support for MSI-9625 ACPI
-
-Hello everybody,
-
-I attached dmidecode and acpidump to this mail, so you might be able to=
-=20
-help me with my problem.
-I also mailed with the MSI support, but they just send me a bios for=20
-different board than mine and didn't respond yet to my second mail.
-
-
-Norman
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes. I'm sort of struggling to see how this is done especially reliably 
+- if we have separate hibernation and suspend to ram pathways, which is 
+executed in this scenario?
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
