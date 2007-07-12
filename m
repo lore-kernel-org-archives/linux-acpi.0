@@ -1,45 +1,46 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH][BUTTON] remove procfs-interface
-Date: Thu, 12 Jul 2007 10:38:23 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB60365D429@hdsmsx411.amr.corp.intel.com>
-References: <1184235969.2415.0.camel@work>
+From: Eduardo Habkost <ehabkost@redhat.com>
+Subject: [PATCH] Remove #ifdef CONFIG_PM from ACPI power-off code
+Date: Thu, 12 Jul 2007 11:58:40 -0300
+Message-ID: <20070712145840.GJ4083@blackpad.ctb.virtua.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21749 "EHLO mga02.intel.com"
+Received: from mx1.redhat.com ([66.187.233.31]:58298 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762056AbXGLOi0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2007 10:38:26 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1184235969.2415.0.camel@work>
+	id S1755503AbXGLO65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jul 2007 10:58:57 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Henne <henne@nachtwindheim.de>, Arjan van de Ven <arjan@infradead.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-The last time I tried to remove this code,
-we discovered that people were using it to query
-the lid (button) status.
+The ACPI poweroff code is inside a #ifdef CONFIG_PM, that was added on
+commit b35c67a46b025e8dc320b59fbe5c283094e1d7f5. The #ifdef is not
+necessary because the poweroff code compiles and works even if
+CONFIG_PM is disabled. This patch removes the #ifdef around the code.
 
--Len 
+Signed-off-by: Eduardo Habkost <ehabkost@redhat.com>
+---
+ drivers/acpi/sleep/poweroff.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
->-----Original Message-----
->From: Richard Hughes [mailto:hughsient@gmail.com] 
->Sent: Thursday, July 12, 2007 6:26 AM
->To: Zhang, Rui
->Cc: Henne; Arjan van de Ven; Brown, Len; 
->linux-acpi@vger.kernel.org; akpm@linux-foundation.org; 
->linux-kernel@vger.kernel.org
->Subject: RE: [PATCH][ACPI][BUTTON] remove procfs-interface
->
->On Thu, 2007-07-12 at 17:46 +0800, Zhang, Rui wrote:
->> 
->> I'm not sure if the button sysfs I/F is already finished.
->> We'd better make a double check. :)
->
->We need a button sysfs interface? What's wrong with just using input?
->
->Richard.
->
+diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
+index d9801ef..5d6ba10 100644
+--- a/drivers/acpi/sleep/poweroff.c
++++ b/drivers/acpi/sleep/poweroff.c
+@@ -37,8 +37,6 @@ #endif
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-
+ void acpi_power_off(void)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+@@ -94,5 +92,3 @@ static int acpi_poweroff_init(void)
+ }
+ 
+ late_initcall(acpi_poweroff_init);
+-
+-#endif				/* CONFIG_PM */
