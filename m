@@ -1,173 +1,118 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH - 2/2] Identify native drivers and ACPI subsystem accessing the same resources - Main implementation
-Date: Fri, 13 Jul 2007 10:58:11 -0600
-Message-ID: <200707131058.11413.bjorn.helgaas@hp.com>
-References: <1184331563.3960.107.camel@d88.suse.de>
+Subject: Re: [PATCH - 0/2] Identify native drivers and ACPI subsystem accessing the same resources
+Date: Fri, 13 Jul 2007 10:56:45 -0600
+Message-ID: <200707131056.46193.bjorn.helgaas@hp.com>
+References: <1184331492.3960.100.camel@d88.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:52116 "EHLO atlrel8.hp.com"
+Received: from atlrel7.hp.com ([156.153.255.213]:48947 "EHLO atlrel7.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282AbXGMQ6n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jul 2007 12:58:43 -0400
-In-Reply-To: <1184331563.3960.107.camel@d88.suse.de>
+	id S1752051AbXGMRKR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jul 2007 13:10:17 -0400
+In-Reply-To: <1184331492.3960.100.camel@d88.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: trenn@suse.de
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, akpm <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, akpm <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-I noticed a number of minor formatting issues:
-    - often missing a space before "{", e.g., "struct ioport_res_list{",
-      "if (foo){", "else{"
-    - use "} else {" rather than "else" on a new line
-    - no space between function name and "(", e.g., "dprintk ("
-    - block comments missing leading "*" on each line
-    - remove blank lines after opening "{" of function, e.g.,
-      acpi_enforce_resources_setup()
+On Friday 13 July 2007 06:58:12 am Thomas Renninger wrote:
+> This patch should:
+> a) Identify machines where potentially ACPI interference can happen and
+>    tell the user which legacy drivers are affected.
+> b) Identify drivers/HW where we might need an ACPI driver in future
+> c) If it works out (if not too much important drivers are affected)
+>    enforce that native, non-ACPI drivers using the same IO/System
+>    memory addresses as declared in ACPI namespace fail to load.
 
-On Friday 13 July 2007 06:59:23 am Thomas Renninger wrote:
+I like some of the ideas here, but as you say, there are some
+issues to work out.
+
+> There are two kind of IO/System memory declarations in ACPI ASL
+> language: general variables and device specific resource
+> declarations.
+> The latter is already handled by pnpacpi and resources get requested 
+> from pnpacpi already. These resources can (with this patch) partly
+> already be requested by the general ACPI declarations and this patch
+> should handle this gracefully.
+
+The PNP core does not request resources for devices that are active
+at boot.  Those resources currently don't get requested until a driver
+claims the device.  I think this is a bug that we should fix.
+
+> ACPI drivers (e.g. pnpacpi and others) are allowed to request these
+> resources (marked IORESOURCE_SHARED) through acpi_request_region().
+
+I'm not a fan of IORESOURCE_SHARED.  I think that will make people
+think it's acceptable to share a device between several drivers.  It
+would be better to keep the ugliness of forcibly taking over a resource,
+just as an incentive to clean up the drivers.
+
+> Here two examples of not nice things that could happen with lax option:
+> 
+>  a) legacy drivers (in this case arch/x86_64/setup.c) request resources
+>     before ACPI variables (shared resources) are requested:
+> (/proc/ioports):
+> 0080-008f : dma page reg
+>   0080-0080 : ACPI DEB0*
+>     In this case it's working as "dma page reg" includes the ACPI 
+>     SystemIO variable's space. If the ACPI variable is bigger, I expect
+>     the ACPI variable would not get inserted...
+
+I think the best thing would be to reserve the PNP (including ACPI)
+resources first, then the legacy things from setup.c.  I haven't looked
+into that to see whether it's feasible.  Then you might have something
+like this:
+
+  0080-008f : 00:07 PNP0200
+    0080-008f : dma page reg
+
+>  b) A legacy driver requests resources bigger than the ACPI SystemIO 
+>     variable, but the ACPI resource variable lies within the requested
+>     space. Example:
+> (/proc/ioports):
+> 0070-0071 : rtc0
+> 0072-0073 : ACPI KSB0*
+> (syslog):
+> IO region [rtc] conflicts with [ACPI KSB0].  Ignoring.., system might
+> run unstable.
+> rtc: I/O resource 70 is not free.
+> 
+>     The rtc driver seems to request the whole rtc space (0x70-0x77)
+>     which fails because 0x72-0x73 has already been requested SHARED by
+>     an ACPI SystemIO variable. At least parts of the rtc space got
+>     requested (rtc0), I haven't checked whether the device was working
+>     correctly...
+
+I tripped over a couple of these when I changed the PNP core to request
+resources for active devices.  The RTC is one; often BIOS says the RTC
+is at 0x70-0x71 and 0x72-0x73, but the rtc drivers like to claim 0x8
+(RTC_IO_EXTENT) ports.  However, I think the driver only *uses* two
+ports, so we should change the driver to only request what it is
+using.
+
+Another case is the "dma1" region from e820.c.  Currently this is
+0x0-0x1f, but most PNP0c02 devices only respond from 0x10-0x1f.  So
+I think we should start by splitting "dma1" into 0x0-0xf and 0x10-0x1f.
+
+> Another issue that needs fix up is that the motherboad driver is not
+> requesting it's resources anymore (which it still did with 2.6.18 - I
+> didn't dig here anymore, maybe someone can comment why this has changed)
+
+I don't know what's up here; I haven't looked at this recently.
+
+> Summary:
 > ...
-> +#if 1
-> +#define dprintk printk   /* debug */
-> +#else
-> +#define dprintk(format,args...)
-> +#endif
+>   - Not fixable (maybe someone has an idea): If ACPI IO region declares
+>     a smaller IO part than the later native driver (e.g. example above
+>     with rtc driver), the partially overlapping resource cannot be
+>     registered and the native driver fails to load with strict and lax
+>     option.
 
-Another printk wrapper ... can you use pr_debug() or some other
-already existing one?
+Assuming the BIOS describes the region correctly, I'd say a driver
+that claims a larger region is buggy and should be fixed.
 
-> +int acpi_request_region (resource_size_t addr, unsigned int length,
-> +			 const char *desc, unsigned int port)
-> +{
-> +	struct resource *par_res = NULL;
-> +	struct resource *new_res;
-> +	struct ioport_res_list *io_res_list;
-> +
-> +	new_res = (struct resource*) kzalloc(sizeof (struct resource), GFP_KERNEL);
-
-No cast needed.
-
->  static int __init acpi_reserve_resources(void)
->  {
-> -	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
-> -		"ACPI PM1a_EVT_BLK");
-> +	acpi_request_region(acpi_gbl_FADT.xpm1a_event_block.address, acpi_gbl_FADT.pm1_event_length,
-> +		"ACPI PM1a_EVT_BLK", 1);
-
-Oops, this throws away the information that these regions might be
-SYSTEM_MEMORY rather than SYSTEM_IO.
-
-> @@ -1220,15 +1372,90 @@ acpi_status
->  acpi_os_validate_address (
->      u8                   space_id,
->      acpi_physical_address   address,
-> -    acpi_size               length)
-> +    acpi_size               length,
-> +    char *name)
->  {
-
-This function no longer just validates an address.  One should be able to
-call a function named "validate_address" many times, without worrying about
-leaking memory.  So this needs a new name or different behavior.
-
-(I think it was a poor interface to begin with -- even if it merely
-validates the address, it should be called something like
-"acpi_os_valid_address()" and return a boolean.)
-
-> +	char *buf;
-> +	struct ioport_res_list *res;
-> +
-> +	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-> +		return AE_OK;
-> +
-> +	/*
-> +	   This will never ever get freed again...
-> +	   This could get a problem for dynamic table allocation/removal
-> +	   with SSDTs, needs to be handled at later time.
-> +	*/
-> +	res = (struct ioport_res_list*) kzalloc(sizeof(struct ioport_res_list), GFP_KERNEL);
-> +	buf = (char*)kzalloc(strlen(name) + 6, GFP_KERNEL);
-
-No casts needed for kzalloc.
-
-> -    return AE_OK;
-> +	if(!buf || !res)
-> +		return AE_OK;
-> +
-> +	res->res.name = buf;
-> +	res->res.start = address;
-> +	res->res.end = address + length - 1;
-> +
-> +	sprintf (buf, "ACPI %s", name);
-> +	switch (space_id){
-> +	case ACPI_ADR_SPACE_SYSTEM_IO:
-> +		res->res.flags |= IORESOURCE_IO;
-> +		list_add(&res->res_list, &ioport_res_list);
-> +		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
-> +			res->res.flags |= IORESOURCE_BUSY;
-> +		else if (acpi_enforce_resources == ENFORCE_RESOURCES_LAX)
-> +			res->res.flags |= IORESOURCE_SHARED;
-> +		if (insert_resource(&ioport_resource, &res->res))
-> +			printk(KERN_ERR "Could not insert resource: %s\n",
-> +			       res->res.name);
-> +		else
-> +			dprintk ("Added %s %s: IO reg: start: %lX, end: %lX, "
-> +				 "name: %s\n",
-> +				 (res->res.flags & IORESOURCE_SHARED)
-> +				 ? "sharable" : "",
-> +				 (res->res.flags & IORESOURCE_BUSY)
-> +				 ? "busy" : "",
-> +				 (long unsigned int)res->res.start,
-> +				 (long unsigned int)res->res.end,
-> +				 res->res.name);
-> +		break;
-> +
-
-acpi_os_validate_address() does not seem like the right interface to be
-mucking about requesting resources.  That should be done when we enumerate
-devices and when drivers claim devices.
-
-> -static int dmi_osi_not_linux(struct dmi_system_id *d)
-> +	static int dmi_osi_not_linux(struct dmi_system_id *d)
-
-Looks like an extra tab snuck in above.
-
-> +#define IORESOURCE_SHARED	0x00100000	/* This IO address appears in ACPI namespace */
-
-This comment should tell me the semantics of IORESOURCE_SHARED, but
-doesn't.
-
-> @@ -80,11 +80,12 @@ static int r_show(struct seq_file *m, vo
->  	for (depth = 0, p = r; depth < MAX_IORES_LEVEL; depth++, p = p->parent)
->  		if (p->parent == root)
->  			break;
-> -	seq_printf(m, "%*s%0*llx-%0*llx : %s\n",
-> +	seq_printf(m, "%*s%0*llx-%0*llx : %s%s - %p\n",
->  			depth * 2, "",
->  			width, (unsigned long long) r->start,
->  			width, (unsigned long long) r->end,
-> -			r->name ? r->name : "<BAD>");
-> +			r->name ? r->name : "<BAD>", r->flags &
-> +		        IORESOURCE_SHARED ? "*" : "",r);
-
-This looks like debugging (at least the extra pointer).  It's
-not clear to me that adding a "*" in /proc/io{mem,ports} for these
-"shared" resources is a good idea.  I don't think that's something
-we want to expose to userspace.
-
-> +++ linux-2.6.22.1/drivers/pnp/system.c
-> @@ -22,21 +22,18 @@ static const struct pnp_device_id pnp_de
->  	{	"",			0	}
->  };
->  
-> -static void reserve_range(const char *pnpid, resource_size_t start, resource_size_t end, int port)
-> +int pnp_reserve_range(resource_size_t start, unsigned int length,
-> +		  const char *pnpid, int port)
-
-Since you're using pnp_reserve_range() as a generic PNP service, it should
-be moved from the system.c driver to a generic PNP location, like support.c
-or resource.c.
-
+Bjorn
