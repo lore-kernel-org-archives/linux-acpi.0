@@ -1,54 +1,72 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH][BUTTON] remove procfs-interface
-Date: Fri, 13 Jul 2007 15:23:51 +0800
-Message-ID: <1184311431.4427.12.camel@rzhang-crestline.sh.intel.com>
-References: <4695F726.7030203@nachtwindheim.de>
-	 <823A93EED437D048963A3697DB0E35DE7314AB@pdsmsx414.ccr.corp.intel.com>
-	 <a781481a0707121207o3497edbye9f89c9f2589f3e5@mail.gmail.com>
+From: Eduardo Pereira Habkost <ehabkost@redhat.com>
+Subject: Re: [PATCH] Remove #ifdef CONFIG_PM from ACPI power-off code
+Date: Fri, 13 Jul 2007 09:55:54 -0300
+Message-ID: <20070713125553.GE15845@blackpad.ctb.virtua.com.br>
+References: <20070712145840.GJ4083@blackpad.ctb.virtua.com.br> <200707122319.16433.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27125 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([66.187.233.31]:58833 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754119AbXGMHW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:22:59 -0400
-In-Reply-To: <a781481a0707121207o3497edbye9f89c9f2589f3e5@mail.gmail.com>
+	id S1758711AbXGMM4G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jul 2007 08:56:06 -0400
+Content-Disposition: inline
+In-Reply-To: <200707122319.16433.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Satyam Sharma <satyam.sharma@gmail.com>
-Cc: Henne <henne@nachtwindheim.de>, Arjan van de Ven <arjan@infradead.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2007-07-13 at 03:07 +0800, Satyam Sharma wrote:
-> On 7/12/07, Zhang, Rui <rui.zhang@intel.com> wrote:
-> > Well, the ACPI sysfs conversion is not finished yet
-> > [...]
-> > I'm not sure if the button sysfs I/F is already finished.
-> > We'd better make a double check. :)
+On Thu, Jul 12, 2007 at 11:19:16PM -0400, Len Brown wrote:
+> On Thursday 12 July 2007 10:58, Eduardo Habkost wrote:
+> > The ACPI poweroff code is inside a #ifdef CONFIG_PM, that was added on
+> > commit b35c67a46b025e8dc320b59fbe5c283094e1d7f5. The #ifdef is not
+> > necessary because the poweroff code compiles and works even if
+> > CONFIG_PM is disabled. This patch removes the #ifdef around the code.
 > 
-> Ok, this sounds reasonable.
-> 
-> > and some user space tools still use the ACPI procfs.
-> 
-> But this does *not*, IMHO. It quite defeats the whole concept of
-> feature-removal-schedule.txt. I think that file exists precisely
-> because we cannot gratuitously break userspace interfaces just
-> like that, but when something gets put up there with a removal date
-> that is a good one year in the future, and userspace tools _still_
-> continue to use it ... then, I suspect something's seriously wrong.
-> 
-Hi, Satyam,
-Here I mean the sysfs conversion is not finished, like some ACPI
-device/driver attributes.
-i.e. we don't have the alternative in sysfs for all the ACPI proc I/F,
-which means that part of the ACPI proc I/F are still needed.
+> the patch is correct, but the comment is not,
+> as it should not be possible to build CONFIG_ACPI w/o CONFIG_PM,
 
-> Either the feature-removal-schedule.txt file has become something
-> that users don't even bother checking, or else, they _know_ that
-> even if they don't bother keeping up with the pace in kernel-land,
-> that interface still won't go away (because they're still using it!).
-> In both the above cases, it appears that file itself has become
-> irrelevant and a "feature" that could be "removed" ... :-)
+I have a patched tree (test tree the xen patches) where CONFIG_ACPI
+builds without CONFIG_PM. But I have sent this upstream anyway because
+not being able to compile CONFIG_ACPI without CONFIG_PM is another reason
+to not have the #ifdef.
 
-Thanks,
-Rui
+I could be more clear on the comment. I didn't mean that CONFIG_ACPI
+works without CONFIG_PM out of the box, but that specifically the poweroff
+code would compile and work even without CONFIG_PM (but, yes, only if
+compiling ACPI without CONFIG_PM was possible, like in the tree I am
+working on).
+
+Should I correct the comment and resend?
+
+> 
+> -Len
+> 
+> > Signed-off-by: Eduardo Habkost <ehabkost@redhat.com>
+> > ---
+> >  drivers/acpi/sleep/poweroff.c |    4 ----
+> >  1 files changed, 0 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
+> > index d9801ef..5d6ba10 100644
+> > --- a/drivers/acpi/sleep/poweroff.c
+> > +++ b/drivers/acpi/sleep/poweroff.c
+> > @@ -37,8 +37,6 @@ #endif
+> >  	return 0;
+> >  }
+> >  
+> > -#ifdef CONFIG_PM
+> > -
+> >  void acpi_power_off(void)
+> >  {
+> >  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> > @@ -94,5 +92,3 @@ static int acpi_poweroff_init(void)
+> >  }
+> >  
+> >  late_initcall(acpi_poweroff_init);
+> > -
+> > -#endif				/* CONFIG_PM */
+
+-- 
+Eduardo
