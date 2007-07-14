@@ -1,8 +1,7 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: ACPI: thinkpad-acpi: store ThinkPad model
-	information
-Date: Sat, 14 Jul 2007 11:12:07 -0300
-Message-ID: <11844223362783-git-send-email-hmh@hmh.eng.br>
+Subject: ACPI: thinkpad-acpi: rename pci HID constant
+Date: Sat, 14 Jul 2007 11:12:04 -0300
+Message-ID: <11844223351798-git-send-email-hmh@hmh.eng.br>
 References: <11844223322928-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,226 +21,52 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Keep note of ThinkPad model, BIOS and EC firmware information, and log it
-on startup.  Makes for far more readable code in places, too.
+Rename an internal driver constant, on request by Len Brown.  Also,
+document exactly what it is for.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   98 ++++++++++++++++++++++++++++++------------
- drivers/misc/thinkpad_acpi.h |   17 ++++++-
- 2 files changed, 85 insertions(+), 30 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    7 +++++--
+ drivers/misc/thinkpad_acpi.h |    1 -
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 44aa8c9..99500af 100644
+index c1e6a01..78e4110 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -717,9 +717,19 @@ static int __init thinkpad_acpi_driver_init(struct ibm_init_struct *iibm)
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
- 
--	if (ibm_thinkpad_ec_found)
--		printk(IBM_INFO "ThinkPad EC firmware %s\n",
--		       ibm_thinkpad_ec_found);
-+	printk(IBM_INFO "ThinkPad BIOS %s, EC %s\n",
-+		(thinkpad_id.bios_version_str) ?
-+			thinkpad_id.bios_version_str : "unknown",
-+		(thinkpad_id.ec_version_str) ?
-+			thinkpad_id.ec_version_str : "unknown");
-+
-+	if (thinkpad_id.vendor && thinkpad_id.model_str)
-+		printk(IBM_INFO "%s %s\n",
-+			(thinkpad_id.vendor == PCI_VENDOR_ID_IBM) ?
-+				"IBM" : ((thinkpad_id.vendor ==
-+						PCI_VENDOR_ID_LENOVO) ?
-+					"Lenovo" : "Unknown vendor"),
-+			thinkpad_id.model_str);
- 
- 	return 0;
- }
-@@ -2648,7 +2658,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
- 
- 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
- 
--	if (ibm_thinkpad_ec_found && experimental) {
-+	if (thinkpad_id.ec_model && experimental) {
- 		/*
- 		 * Direct EC access mode: sensors at registers
- 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
-@@ -3532,20 +3542,19 @@ static int __init fan_init(struct ibm_init_struct *iibm)
- 			 * Enable for TP-1Y (T43), TP-78 (R51e),
- 			 * TP-76 (R52), TP-70 (T43, R52), which are known
- 			 * to be buggy. */
--			if (fan_control_initial_status == 0x07 &&
--			    ibm_thinkpad_ec_found &&
--			    ((ibm_thinkpad_ec_found[0] == '1' &&
--			      ibm_thinkpad_ec_found[1] == 'Y') ||
--			     (ibm_thinkpad_ec_found[0] == '7' &&
--			      (ibm_thinkpad_ec_found[1] == '6' ||
--			       ibm_thinkpad_ec_found[1] == '8' ||
--			       ibm_thinkpad_ec_found[1] == '0'))
--			    )) {
--				printk(IBM_NOTICE
--				       "fan_init: initial fan status is "
--				       "unknown, assuming it is in auto "
--				       "mode\n");
--				tp_features.fan_ctrl_status_undef = 1;
-+			if (fan_control_initial_status == 0x07) {
-+				switch (thinkpad_id.ec_model) {
-+				case 0x5931: /* TP-1Y */
-+				case 0x3837: /* TP-78 */
-+				case 0x3637: /* TP-76 */
-+				case 0x3037: /* TP-70 */
-+					printk(IBM_NOTICE
-+					       "fan_init: initial fan status is "
-+					       "unknown, assuming it is in auto "
-+					       "mode\n");
-+					tp_features.fan_ctrl_status_undef = 1;
-+					;;
-+				}
- 			}
- 		} else {
- 			printk(IBM_ERR
-@@ -4279,13 +4288,30 @@ static void ibm_exit(struct ibm_struct *ibm)
- 
- /* Probing */
- 
--static char *ibm_thinkpad_ec_found;
--
--static char* __init check_dmi_for_ec(void)
-+static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
+@@ -2026,7 +2026,10 @@ static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	},
+ 	{
+-	 .hid = IBM_PCI_HID,
++	/* THIS ONE MUST NEVER BE USED FOR DRIVER AUTOLOADING.
++	 * We just use it to get notifications of dock hotplug
++	 * in very old thinkpads */
++	 .hid = PCI_ROOT_HID_STRING,
+ 	 .notify = dock_notify,
+ 	 .handle = &pci_handle,
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+@@ -2085,7 +2088,7 @@ static int __init dock_init2(struct ibm_init_struct *iibm)
+ static void dock_notify(struct ibm_struct *ibm, u32 event)
  {
- 	struct dmi_device *dev = NULL;
- 	char ec_fw_string[18];
+ 	int docked = dock_docked();
+-	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, IBM_PCI_HID);
++	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, PCI_ROOT_HID_STRING);
  
-+	if (!tp)
-+		return;
-+
-+	memset(tp, 0, sizeof(*tp));
-+
-+	if (dmi_name_in_vendors("IBM"))
-+		tp->vendor = PCI_VENDOR_ID_IBM;
-+	else if (dmi_name_in_vendors("LENOVO"))
-+		tp->vendor = PCI_VENDOR_ID_LENOVO;
-+	else
-+		return;
-+
-+	tp->bios_version_str = kstrdup(dmi_get_system_info(DMI_BIOS_VERSION),
-+					GFP_KERNEL);
-+	if (!tp->bios_version_str)
-+		return;
-+	tp->bios_model = tp->bios_version_str[0]
-+			 | (tp->bios_version_str[1] << 8);
-+
- 	/*
- 	 * ThinkPad T23 or newer, A31 or newer, R50e or newer,
- 	 * X32 or newer, all Z series;  Some models must have an
-@@ -4299,10 +4325,20 @@ static char* __init check_dmi_for_ec(void)
- 			   ec_fw_string) == 1) {
- 			ec_fw_string[sizeof(ec_fw_string) - 1] = 0;
- 			ec_fw_string[strcspn(ec_fw_string, " ]")] = 0;
--			return kstrdup(ec_fw_string, GFP_KERNEL);
-+
-+			tp->ec_version_str = kstrdup(ec_fw_string, GFP_KERNEL);
-+			tp->ec_model = ec_fw_string[0]
-+					| (ec_fw_string[1] << 8);
-+			break;
- 		}
- 	}
--	return NULL;
-+
-+	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
-+					GFP_KERNEL);
-+	if (strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
-+		kfree(tp->model_str);
-+		tp->model_str = NULL;
-+	}
- }
- 
- static int __init probe_for_thinkpad(void)
-@@ -4316,7 +4352,7 @@ static int __init probe_for_thinkpad(void)
- 	 * Non-ancient models have better DMI tagging, but very old models
- 	 * don't.
- 	 */
--	is_thinkpad = dmi_name_in_vendors("ThinkPad");
-+	is_thinkpad = (thinkpad_id.model_str != NULL);
- 
- 	/* ec is required because many other handles are relative to it */
- 	IBM_ACPIHANDLE_INIT(ec);
-@@ -4332,7 +4368,7 @@ static int __init probe_for_thinkpad(void)
- 	 * false positives a damn great deal
- 	 */
- 	if (!is_thinkpad)
--		is_thinkpad = dmi_name_in_vendors("IBM");
-+		is_thinkpad = (thinkpad_id.vendor == PCI_VENDOR_ID_IBM);
- 
- 	if (!is_thinkpad && !force_load)
- 		return -ENODEV;
-@@ -4475,12 +4511,16 @@ static int __init thinkpad_acpi_module_init(void)
- 	int ret, i;
- 
- 	/* Driver-level probe */
-+
-+	get_thinkpad_model_data(&thinkpad_id);
- 	ret = probe_for_thinkpad();
--	if (ret)
-+	if (ret) {
-+		thinkpad_acpi_module_exit();
- 		return ret;
-+	}
- 
- 	/* Driver initialization */
--	ibm_thinkpad_ec_found = check_dmi_for_ec();
-+
- 	IBM_ACPIHANDLE_INIT(ecrd);
- 	IBM_ACPIHANDLE_INIT(ecwr);
- 
-@@ -4590,7 +4630,9 @@ static void thinkpad_acpi_module_exit(void)
- 	if (proc_dir)
- 		remove_proc_entry(IBM_PROC_DIR, acpi_root_dir);
- 
--	kfree(ibm_thinkpad_ec_found);
-+	kfree(thinkpad_id.bios_version_str);
-+	kfree(thinkpad_id.ec_version_str);
-+	kfree(thinkpad_id.model_str);
- }
- 
- module_init(thinkpad_acpi_module_init);
+ 	if (event == 1 && !pci)	/* 570 */
+ 		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index fee0421..09b2282 100644
+index c5c1316..fee0421 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -175,9 +175,7 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv);
- static int experimental;
- static u32 dbg_level;
- static int force_load;
--static char *ibm_thinkpad_ec_found;
+@@ -107,7 +107,6 @@ static const char *str_supported(int is_supported);
  
--static char* check_dmi_for_ec(void);
- static int thinkpad_acpi_module_init(void);
- static void thinkpad_acpi_module_exit(void);
+ /* ACPI HIDs */
+ #define IBM_HKEY_HID    "IBM0068"
+-#define IBM_PCI_HID     "PNP0A03"
  
-@@ -244,6 +242,21 @@ static struct {
- 	u16 input_device_registered:1;
- } tp_features;
- 
-+struct thinkpad_id_data {
-+	unsigned int vendor;	/* ThinkPad vendor:
-+				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
-+
-+	char *bios_version_str;	/* Something like 1ZET51WW (1.03z) */
-+	char *ec_version_str;	/* Something like 1ZHT51WW-1.04a */
-+
-+	u16 bios_model;		/* Big Endian, TP-1Y = 0x5931, 0 = unknown */
-+	u16 ec_model;
-+
-+	char *model_str;
-+};
-+
-+static struct thinkpad_id_data thinkpad_id;
-+
- static struct list_head tpacpi_all_drivers;
- 
- static struct ibm_init_struct ibms_init[];
+ /* ACPI helpers */
+ static int __must_check acpi_evalf(acpi_handle handle,
 -- 
 1.5.2.1
 
