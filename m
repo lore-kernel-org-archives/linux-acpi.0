@@ -1,82 +1,92 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: ACPI: thinkpad-acpi: update CMOS commands documentation
-Date: Sat, 14 Jul 2007 11:11:57 -0300
-Message-ID: <1184422333373-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: ACPI: thinkpad-acpi: checkpoint sysfs interface
+	version due to hotkey
+Date: Sat, 14 Jul 2007 11:11:56 -0300
+Message-ID: <1184422333961-git-send-email-hmh@hmh.eng.br>
 References: <11844223322928-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:46910 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758342AbXGNOMW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Jul 2007 10:12:22 -0400
-In-Reply-To: <11844223322928-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <11844223322928-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-The CMOS set of commands is often just used to keep the CMOS NVRAM in sync
-with whatever the ACPI BIOS has been doing in modern ThinkPads.  In older
-ThinkPads, it actually carried out real actions.  Document this.
+The change in the size of the hotkey mask, the hability to report the keys
+that use the higher bits, and the addition of the hotkey_radio_sw attribute
+are important enough features to warrant increasing the minor field of the
+sysfs interface version.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Also, document a bit better how and when the thinkpad-acpi sysfs interface
+version will be updated.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/thinkpad-acpi.txt |   35 +++++++++++++++++++++--------------
- 1 files changed, 21 insertions(+), 14 deletions(-)
+ Documentation/thinkpad-acpi.txt |   17 +++++++++++++++++
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 18 insertions(+), 1 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 7a06a27..bd00d14 100644
+index fe26e50..7a06a27 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -464,27 +464,34 @@ CMOS control
- procfs: /proc/acpi/ibm/cmos
- sysfs device attribute: cmos_command
+@@ -134,6 +134,21 @@ end of this document.  Changes to the sysfs interface done by the kernel
+ subsystems are not documented here, nor are they tracked by this
+ attribute.
  
--This feature is used internally by the ACPI firmware to control the
--ThinkLight on most newer ThinkPad models. It may also control LCD
--brightness, sounds volume and more, but only on some models.
-+This feature is mostly used internally by the ACPI firmware to keep the legacy
-+CMOS NVRAM bits in sync with the current machine state, and to record this
-+state so that the ThinkPad will retain such settings across reboots.
++Changes to the thinkpad-acpi sysfs interface are only considered
++non-experimental when they are submitted to Linux mainline, at which
++point the changes in this interface are documented and interface_version
++may be updated.  If you are using any thinkpad-acpi features not yet
++sent to mainline for merging, you do so on your own risk: these features
++may disappear, or be implemented in a different and incompatible way by
++the time they are merged in Linux mainline.
 +
-+Some of these commands actually perform actions in some ThinkPad models, but
-+this is expected to disappear more and more in newer models.  As an example, in
-+a T43 and in a X40, commands 12 and 13 still control the ThinkLight state for
-+real, but commands 0 to 2 don't control the mixer anymore (they have been
-+phased out) and just update the NVRAM.
++Changes that are backwards-compatible by nature (e.g. the addition of
++attributes that do not change the way the other attributes work) do not
++always warrant an update of interface_version.  Therefore, one must
++expect that an attribute might not be there, and deal with it properly
++(an attribute not being there *is* a valid way to make it clear that a
++feature is not available in sysfs).
++
+ Hot keys
+ --------
  
- The range of valid cmos command numbers is 0 to 21, but not all have an
- effect and the behavior varies from model to model.  Here is the behavior
- on the X40 (tpb is the ThinkPad Buttons utility):
+@@ -989,3 +1004,5 @@ Sysfs interface changelog:
  
--	0 - no effect but tpb reports "Volume down"
--	1 - no effect but tpb reports "Volume up"
--	2 - no effect but tpb reports "Mute on"
--	3 - simulate pressing the "Access IBM" button
--	4 - LCD brightness up
--	5 - LCD brightness down
--	11 - toggle screen expansion
--	12 - ThinkLight on
--	13 - ThinkLight off
--	14 - no effect but tpb reports ThinkLight status change
-+	0 - Related to "Volume down" key press
-+	1 - Related to "Volume up" key press
-+	2 - Related to "Mute on" key press
-+	3 - Related to "Access IBM" key press
-+	4 - Related to "LCD brightness up" key pess
-+	5 - Related to "LCD brightness down" key press
-+	11 - Related to "toggle screen expansion" key press/function
-+	12 - Related to "ThinkLight on"
-+	13 - Related to "ThinkLight off"
-+	14 - Related to "ThinkLight" key press (toggle thinklight)
+ 0x000100:	Initial sysfs support, as a single platform driver and
+ 		device.
++0x000200:	Hot key support for 32 hot keys, and radio slider switch
++		support.
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 3cf37bb..4d71893 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -22,7 +22,7 @@
+  */
  
- The cmos command interface is prone to firmware split-brain problems, as
--in newer ThinkPads it is just a compatibility layer.
-+in newer ThinkPads it is just a compatibility layer.  Do not use it, it is
-+exported just as a debug tool.
+ #define IBM_VERSION "0.14"
+-#define TPACPI_SYSFS_VERSION 0x000100
++#define TPACPI_SYSFS_VERSION 0x000200
  
- LED control -- /proc/acpi/ibm/led
- ---------------------------------
+ /*
+  *  Changelog:
 -- 
 1.5.2.1
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
