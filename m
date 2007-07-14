@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: ACPI: thinkpad-acpi: add power-management handler
-	capability
-Date: Sat, 14 Jul 2007 11:12:01 -0300
-Message-ID: <11844223343913-git-send-email-hmh@hmh.eng.br>
+Subject: ACPI: thinkpad-acpi: make EC-based thermal
+	readings non-experimental
+Date: Sat, 14 Jul 2007 11:12:11 -0300
+Message-ID: <11844223362013-git-send-email-hmh@hmh.eng.br>
 References: <11844223322928-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,59 +22,62 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some subdrivers could benefit from resume handling, so add the
-infrastructure for simple resume handling.
+Reading the 16 thermal sensors directly from the EC has been stable for
+about one year, in all supported ThinkPad models.  Remove its
+"experimental" label.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++++++++++
- drivers/misc/thinkpad_acpi.h |    1 +
- 2 files changed, 17 insertions(+), 0 deletions(-)
+ Documentation/thinkpad-acpi.txt |   18 +++++-------------
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 6 insertions(+), 14 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 5d827de..3eb949e 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -710,23 +710,15 @@ Temperature sensors
+ procfs: /proc/acpi/ibm/thermal
+ sysfs device attributes: (hwmon) temp*_input
+ 
+-Most ThinkPads include six or more separate temperature sensors but
+-only expose the CPU temperature through the standard ACPI methods.
+-This feature shows readings from up to eight different sensors on older
+-ThinkPads, and it has experimental support for up to sixteen different
+-sensors on newer ThinkPads.
+-
+-EXPERIMENTAL: The 16-sensors feature is marked EXPERIMENTAL because the
+-implementation directly accesses hardware registers and may not work as
+-expected. USE WITH CAUTION! To use this feature, you need to supply the
+-experimental=1 parameter when loading the module.  When EXPERIMENTAL
+-mode is enabled, reading the first 8 sensors on newer ThinkPads will
+-also use an new experimental thermal sensor access mode.
++Most ThinkPads include six or more separate temperature sensors but only
++expose the CPU temperature through the standard ACPI methods.  This
++feature shows readings from up to eight different sensors on older
++ThinkPads, and up to sixteen different sensors on newer ThinkPads.
+ 
+ For example, on the X40, a typical output may be:
+ temperatures:   42 42 45 41 36 -128 33 -128
+ 
+-EXPERIMENTAL: On the T43/p, a typical output may be:
++On the T43/p, a typical output may be:
+ temperatures:   48 48 36 52 38 -128 31 -128 48 52 48 -128 -128 -128 -128 -128
+ 
+ The mapping of thermal sensors to physical locations varies depending on
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index c86b228..78914bf 100644
+index edae74f..2a26941 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -519,11 +519,27 @@ static struct platform_device *tpacpi_pdev;
- static struct class_device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
+@@ -2709,7 +2709,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
  
-+
-+static int tpacpi_resume_handler(struct platform_device *pdev)
-+{
-+	struct ibm_struct *ibm, *itmp;
-+
-+	list_for_each_entry_safe(ibm, itmp,
-+				 &tpacpi_all_drivers,
-+				 all_drivers) {
-+		if (ibm->resume)
-+			(ibm->resume)();
-+	}
-+
-+	return 0;
-+}
-+
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
- 		.name = IBM_DRVR_NAME,
- 		.owner = THIS_MODULE,
- 	},
-+	.resume = tpacpi_resume_handler,
- };
+ 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
  
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 00f1bd7..c5c1316 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -205,6 +205,7 @@ struct ibm_struct {
- 	int (*read) (char *);
- 	int (*write) (char *);
- 	void (*exit) (void);
-+	void (*resume) (void);
- 
- 	struct list_head all_drivers;
- 
+-	if (thinkpad_id.ec_model && experimental) {
++	if (thinkpad_id.ec_model) {
+ 		/*
+ 		 * Direct EC access mode: sensors at registers
+ 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
 -- 
 1.5.2.1
 
