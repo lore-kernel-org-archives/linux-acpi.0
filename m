@@ -1,45 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [GIT PULL] thinkpad-acpi queue for 2.6.23 (v2)
-Date: Sat, 14 Jul 2007 11:58:10 -0300
-Message-ID: <20070714145809.GA9080@khazad-dum.debian.net>
-References: <11844223322928-git-send-email-hmh@hmh.eng.br>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI: thinkpad-acpi: add input device support to hotkey subdriver
+Date: Sat, 14 Jul 2007 23:31:45 +0100
+Message-ID: <20070714223144.GA25782@srcf.ucam.org>
+References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223334107-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:41159 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbXGNWup (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jul 2007 18:50:45 -0400
 Content-Disposition: inline
-In-Reply-To: <11844223322928-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <11844223334107-git-send-email-hmh@hmh.eng.br>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Richard Hughes <hughsient@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Len,
+On Sat, Jul 14, 2007 at 11:11:59AM -0300, Henrique de Moraes Holschuh wrote:
 
-I forgot to tell git send-email to number the patches.  Sorry about that.
+> +static u16 hotkey_keycode_map[] = {
+> +	/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+> +	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+> +	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+> +	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+> +	/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
+> +	KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+> +	KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
+> +	KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
+> +	KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
 
-The shortlog has the correct patch order listed, and there is also the git
-branch.
+KEY_BRIGHTNESSUP
 
-Still, if you'd rather I post the batch again with the proper patch ordering
-in the subject this time, just say so.
+> +	/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
+> +	KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
+
+KEY_BRIGHTNESSDOWN
+
+> +	KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
+> +	KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
+> +	KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
+> +	KEY_RESERVED,	/* 0x14: VOLUME UP */
+
+KEY_VOLUMEUP
+
+> +	KEY_RESERVED,	/* 0x15: VOLUME DOWN */
+
+KEY_VOLUMEDOWN
+
+> +	KEY_RESERVED,	/* 0x16: MUTE */
+
+KEY_MUTE
+
+Why aren't we setting these sensibly?
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+Matthew Garrett | mjg59@srcf.ucam.org
