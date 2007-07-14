@@ -1,8 +1,7 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: ACPI: thinkpad-acpi: make EC-based thermal
-	readings non-experimental
-Date: Sat, 14 Jul 2007 11:12:11 -0300
-Message-ID: <11844223362013-git-send-email-hmh@hmh.eng.br>
+Subject: pci-ids: add Lenovo PCI vendor ID
+Date: Sat, 14 Jul 2007 11:12:06 -0300
+Message-ID: <1184422336812-git-send-email-hmh@hmh.eng.br>
 References: <11844223322928-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,65 +18,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jeff Garzik <jeff-o2qLIJkoznsdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Reading the 16 thermal sensors directly from the EC has been stable for
-about one year, in all supported ThinkPad models.  Remove its
-"experimental" label.
+thinkpad-acpi wants to differentiate IBM from Lenovo ThinkPads, and the PCI
+IDs are the best way to go about it for quirk tables and so on.  Add the
+missing Lenovo PCI ID to pci_ids.h.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Jeff Garzik <jeff-o2qLIJkoznsdnm+yROfE0A@public.gmane.org>
 ---
- Documentation/thinkpad-acpi.txt |   18 +++++-------------
- drivers/misc/thinkpad_acpi.c    |    2 +-
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ include/linux/pci_ids.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 5d827de..3eb949e 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -710,23 +710,15 @@ Temperature sensors
- procfs: /proc/acpi/ibm/thermal
- sysfs device attributes: (hwmon) temp*_input
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index 5b1c999..b5f54ca 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -2067,6 +2067,8 @@
+ #define PCI_DEVICE_ID_ALTIMA_AC9100	0x03ea
+ #define PCI_DEVICE_ID_ALTIMA_AC1003	0x03eb
  
--Most ThinkPads include six or more separate temperature sensors but
--only expose the CPU temperature through the standard ACPI methods.
--This feature shows readings from up to eight different sensors on older
--ThinkPads, and it has experimental support for up to sixteen different
--sensors on newer ThinkPads.
--
--EXPERIMENTAL: The 16-sensors feature is marked EXPERIMENTAL because the
--implementation directly accesses hardware registers and may not work as
--expected. USE WITH CAUTION! To use this feature, you need to supply the
--experimental=1 parameter when loading the module.  When EXPERIMENTAL
--mode is enabled, reading the first 8 sensors on newer ThinkPads will
--also use an new experimental thermal sensor access mode.
-+Most ThinkPads include six or more separate temperature sensors but only
-+expose the CPU temperature through the standard ACPI methods.  This
-+feature shows readings from up to eight different sensors on older
-+ThinkPads, and up to sixteen different sensors on newer ThinkPads.
- 
- For example, on the X40, a typical output may be:
- temperatures:   42 42 45 41 36 -128 33 -128
- 
--EXPERIMENTAL: On the T43/p, a typical output may be:
-+On the T43/p, a typical output may be:
- temperatures:   48 48 36 52 38 -128 31 -128 48 52 48 -128 -128 -128 -128 -128
- 
- The mapping of thermal sensors to physical locations varies depending on
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index edae74f..2a26941 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -2709,7 +2709,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
- 
- 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
- 
--	if (thinkpad_id.ec_model && experimental) {
-+	if (thinkpad_id.ec_model) {
- 		/*
- 		 * Direct EC access mode: sensors at registers
- 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
++#define PCI_VENDOR_ID_LENOVO		0x17aa
++
+ #define PCI_VENDOR_ID_ARECA		0x17d3
+ #define PCI_DEVICE_ID_ARECA_1110	0x1110
+ #define PCI_DEVICE_ID_ARECA_1120	0x1120
 -- 
 1.5.2.1
 
