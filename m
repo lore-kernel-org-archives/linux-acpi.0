@@ -1,56 +1,43 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: make the input event
-	mode the default
-Date: Sun, 15 Jul 2007 17:09:48 -0300
-Message-ID: <20070715200948.GC19066@khazad-dum.debian.net>
-References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223341511-git-send-email-hmh@hmh.eng.br> <20070714223315.GB25782@srcf.ucam.org> <20070715180529.GF14134@khazad-dum.debian.net> <20070715183823.GC3235@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: add input device support to hotkey subdriver
+Date: Sun, 15 Jul 2007 21:12:02 +0100
+Message-ID: <20070715201201.GA5518@srcf.ucam.org>
+References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223334107-git-send-email-hmh@hmh.eng.br> <20070714223144.GA25782@srcf.ucam.org> <20070715181233.GG14134@khazad-dum.debian.net> <20070715184519.GD3235@srcf.ucam.org> <20070715200338.GB19066@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:37328 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751284AbXGOUJw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Jul 2007 16:09:52 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:40756 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412AbXGOUMN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Jul 2007 16:12:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20070715183823.GC3235@srcf.ucam.org>
+In-Reply-To: <20070715200338.GB19066@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, dmitry.torokhov@gmail.com, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sun, 15 Jul 2007, Matthew Garrett wrote:
-> On Sun, Jul 15, 2007 at 03:05:29PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Sat, 14 Jul 2007, Matthew Garrett wrote:
-> > > Again, we have keycodes for most of these and we have the ability to 
-> > > make the driver choose the correct one by default. Why make things more 
-> > > difficult?
-> > 
-> > Because I only map keys that are marked (silk-screened) on the keys on at
-> > least 90% of the current models.
-> 
-> But we're able to differentiate between the models.
+On Sun, Jul 15, 2007 at 05:03:38PM -0300, Henrique de Moraes Holschuh wrote:
 
-Yes. And I was told to not do it in the kernel when possible, so I will map
-by default only what is marked and working on a vast majority.  Otherwise,
-I'd need a big quirk db, based on what is silk-screened on the keyboards.
+> I do not consider screwing up the mixer handling a harmless result.
 
-HAL is welcome to remap the keys to whatever it wants, based on
-model-specific fdi files.
+We've shipped in this configuration for over a year. Total number of 
+bugs filed? None. It's not ideal, but it's simply not true that it 
+results in a high level of user confusion or a screwed up mixer.
 
-> > And I could not find the proper keycode for "switch output video port", yet.
-> 
-> Yes, that's a good point. Dmitry? As vendors move towards adopting the 
-> ACPI video extension and getting the OS to look after this, we could 
-> really do with a standardised code.
+(Context for those not aware of it - Thinkpad hardware has two mixers. 
+One is associated with the sound codec and is controllable via ALSA. The 
+other is Thinkpad-specific and is controlled via the hotkeys. Sending 
+KEY_VOLUMEUP and KEY_VOLUMEDOWN results in both of these mixers being 
+changed. However, since they're both changed in the same direction, 
+nobody seems to be especially unhappy about this)
 
-Well, that one I will add as soon as I get it :-)  All thinkpads I know the
-keyboard layout have FN+F7 mapped to "switch output video port".  But I have
-seen a lot of non-thinkpad notebooks with "set output port to LCD" and "set
-output port to vga out" keys as well.
+> Until then, since the default meaning of *all* KEY_ events are active in
+> nature, I am against the idea of generating events that are to be handled in
+> a passive way, by default.
+
+That's simply not true. Userspace already interprets the brightness keys 
+differently depending on the hardware type.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Matthew Garrett | mjg59@srcf.ucam.org
