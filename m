@@ -1,56 +1,57 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI: thinkpad-acpi: make the input event mode
-	the default
-Date: Sun, 15 Jul 2007 22:19:53 +0100
-Message-ID: <20070715211953.GA6527@srcf.ucam.org>
-References: <11844223322928-git-send-email-hmh@hmh.eng.br>
-	<11844223341511-git-send-email-hmh@hmh.eng.br>
-	<20070714223315.GB25782@srcf.ucam.org>
-	<20070715180529.GF14134@khazad-dum.debian.net>
-	<20070715183823.GC3235@srcf.ucam.org>
-	<20070715200948.GC19066@khazad-dum.debian.net>
-	<20070715201346.GB5518@srcf.ucam.org>
-	<20070715211421.GG19066@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: pci-ids: add Lenovo PCI vendor ID
+Date: Sun, 15 Jul 2007 18:22:06 -0300
+Message-ID: <20070715212206.GI19066@khazad-dum.debian.net>
+References: <11844223322928-git-send-email-hmh@hmh.eng.br> <1184422336812-git-send-email-hmh@hmh.eng.br> <469A0A6A.9020208@garzik.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:36172 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751110AbXGOVWK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jul 2007 17:22:10 -0400
 Content-Disposition: inline
-In-Reply-To: <20070715211421.GG19066-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <469A0A6A.9020208@garzik.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeff Garzik <jeff@garzik.org>
+Cc: lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Sun, Jul 15, 2007 at 06:14:21PM -0300, Henrique de Moraes Holschuh wrote:
-> On Sun, 15 Jul 2007, Matthew Garrett wrote:
-> > We already have in-kernel drivers that do this properly, so I'd suspect 
-> > that whoever told you that was wrong.
-> 
-> I got tired of being told one way or the other, already.
-> 
-> My position is simple, for now: I am keeping model-specific knowledge on the
-> driver to the bare minimum needed for correct driver operation.  But I will
-> add it anytime I fell it is needed to keep correct driver operation.
+On Sun, 15 Jul 2007, Jeff Garzik wrote:
+> Henrique de Moraes Holschuh wrote:
+>> thinkpad-acpi wants to differentiate IBM from Lenovo ThinkPads, and the 
+>> PCI
+>> IDs are the best way to go about it for quirk tables and so on.  Add the
+>> missing Lenovo PCI ID to pci_ids.h.
+>> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+>> Cc: Jeff Garzik <jeff@garzik.org>
+>> ---
+>>  include/linux/pci_ids.h |    2 ++
+>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>> diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+>> index 5b1c999..b5f54ca 100644
+>> --- a/include/linux/pci_ids.h
+>> +++ b/include/linux/pci_ids.h
+>> @@ -2067,6 +2067,8 @@
+>>  #define PCI_DEVICE_ID_ALTIMA_AC9100	0x03ea
+>>  #define PCI_DEVICE_ID_ALTIMA_AC1003	0x03eb
+>>  +#define PCI_VENDOR_ID_LENOVO		0x17aa
+>> +
+>>  #define PCI_VENDOR_ID_ARECA		0x17d3
+>>  #define PCI_DEVICE_ID_ARECA_1110	0x1110
+>
+> Not sure why I'm CC'd :)  But of course I have an opinion :)  Usually we 
+> don't add these IDs until a driver is actually using them.  Just add it in 
+> the patch that starts using it in thinkpad-acpi.
 
-Right now, the hotkey functionality of the driver is not terribly useful 
-without (bleeding-edge) userspace. This is inconsistent with the 
-majority of input drivers which do something broadly sane in that 
-situation.
+Very well.  I don't usually merge stuff that goes to different subsystems,
+but since you implicitly ACK'd it... :-)
+
+I will merge this patch with the next one in the series :)
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
