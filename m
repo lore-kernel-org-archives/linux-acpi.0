@@ -1,52 +1,52 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI: thinkpad-acpi: react to Lenovo ThinkPad
-	differences in hot key
-Date: Sun, 15 Jul 2007 21:24:41 +0100
-Message-ID: <20070715202441.GA5840@srcf.ucam.org>
-References: <11844223322928-git-send-email-hmh@hmh.eng.br>
-	<118442233665-git-send-email-hmh@hmh.eng.br>
-	<20070714223932.GD25782@srcf.ucam.org>
-	<20070715175922.GD14134@khazad-dum.debian.net>
-	<20070715183150.GA3235@srcf.ucam.org>
-	<20070715201712.GD19066@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: add input device support
+	to hotkey subdriver
+Date: Sun, 15 Jul 2007 17:59:34 -0300
+Message-ID: <20070715205934.GF19066@khazad-dum.debian.net>
+References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223334107-git-send-email-hmh@hmh.eng.br> <20070714223144.GA25782@srcf.ucam.org> <20070715181233.GG14134@khazad-dum.debian.net> <20070715184519.GD3235@srcf.ucam.org> <20070715200338.GB19066@khazad-dum.debian.net> <20070715201201.GA5518@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:54337 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751898AbXGOU7i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jul 2007 16:59:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20070715201712.GD19066-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20070715201201.GA5518@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sun, Jul 15, 2007 at 05:17:12PM -0300, Henrique de Moraes Holschuh wrote:
+On Sun, 15 Jul 2007, Matthew Garrett wrote:
+> On Sun, Jul 15, 2007 at 05:03:38PM -0300, Henrique de Moraes Holschuh wrote:
+> > I do not consider screwing up the mixer handling a harmless result.
+> 
+> We've shipped in this configuration for over a year. Total number of 
+> bugs filed? None. It's not ideal, but it's simply not true that it 
+> results in a high level of user confusion or a screwed up mixer.
 
-> Life would be significantly easier if I could convey that information in the
-> kernel.  Since I cannot, I effectively consider these keys to be "defective"
-> as far as the regular input device events are supposed to mean, and I don't
-> generate events for them.
+Well, I got one report.
 
-Any userspace application that can do anything with brightness keys 
-needs to know how to speak to that specific hardware /anyway/ - on some 
-machines that may be calling a userspace application, on others using an 
-interface in /sys/class/backlight, on others calling out to X. There's 
-no way to automatically make that decision, so it's fine to insist that 
-they also take into account whether it's active or passive.
+> > Until then, since the default meaning of *all* KEY_ events are active in
+> > nature, I am against the idea of generating events that are to be handled in
+> > a passive way, by default.
+> 
+> That's simply not true. Userspace already interprets the brightness keys 
+> differently depending on the hardware type.
+
+*HAL* does.  HAL is *not* all there is to userspace.  The input layer is not
+an interface between the kernel and HAL, it is an interface between kernel
+and userspace.
+
+Add that knowledge to the input layer, and I will agree.  Add it to every
+consumer of input events, and I will concede.  Until then, it is good that
+HAL can overcome the lack of such information in the input layer, but that
+doesn't make it the right way to use the input layer.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
