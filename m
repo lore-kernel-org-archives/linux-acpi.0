@@ -1,44 +1,47 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: make the input event
-	mode the default
-Date: Sun, 15 Jul 2007 18:14:21 -0300
-Message-ID: <20070715211421.GG19066@khazad-dum.debian.net>
-References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223341511-git-send-email-hmh@hmh.eng.br> <20070714223315.GB25782@srcf.ucam.org> <20070715180529.GF14134@khazad-dum.debian.net> <20070715183823.GC3235@srcf.ucam.org> <20070715200948.GC19066@khazad-dum.debian.net> <20070715201346.GB5518@srcf.ucam.org>
+Subject: Re: ACPI: thinkpad-acpi: rename pci HID constant
+Date: Sun, 15 Jul 2007 18:18:21 -0300
+Message-ID: <20070715211820.GH19066@khazad-dum.debian.net>
+References: <11844223322928-git-send-email-hmh@hmh.eng.br> <11844223351798-git-send-email-hmh@hmh.eng.br> <20070714223713.GC25782@srcf.ucam.org> <20070715180246.GE14134@khazad-dum.debian.net> <20070715183412.GB3235@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:39994 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:39129 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751110AbXGOVO3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751505AbXGOVS0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Jul 2007 17:14:29 -0400
+	Sun, 15 Jul 2007 17:18:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20070715201346.GB5518@srcf.ucam.org>
+In-Reply-To: <20070715183412.GB3235@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, dmitry.torokhov@gmail.com, linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
 On Sun, 15 Jul 2007, Matthew Garrett wrote:
-> On Sun, Jul 15, 2007 at 05:09:48PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Sun, 15 Jul 2007, Matthew Garrett wrote:
-> > > But we're able to differentiate between the models.
+> On Sun, Jul 15, 2007 at 03:02:46PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Sat, 14 Jul 2007, Matthew Garrett wrote:
+> > > On Sat, Jul 14, 2007 at 11:12:04AM -0300, Henrique de Moraes Holschuh wrote:
+> > > > -	 .hid = IBM_PCI_HID,
+> > > > +	/* THIS ONE MUST NEVER BE USED FOR DRIVER AUTOLOADING.
+> > > 
+> > > Some rationale here would be good. There are no known devices where 
+> > > loading ibm-acpi is harmful.
 > > 
-> > Yes. And I was told to not do it in the kernel when possible, so I will map
-> > by default only what is marked and working on a vast majority.  Otherwise,
-> > I'd need a big quirk db, based on what is silk-screened on the keyboards.
+> > It is completely and utterly useless to autoload based on this.  You would
+> > try to autoload it on every machine with a PCI root bridge, which is NOT a
+> > bright idea at all.
 > 
-> We already have in-kernel drivers that do this properly, so I'd suspect 
-> that whoever told you that was wrong.
+> I meant the IBM0068 device. That doesn't appear to be used anywhere 
+> other than Thinkpads.
 
-I got tired of being told one way or the other, already.
+Oh, you CAN use the IBM0068 device to autoload.  I am not really sure
+nothing but ThinkPads use it, and I already have other autoload hooks (based
+on DMI) anyway, but it can be used as an autoload hint, yes.
 
-My position is simple, for now: I am keeping model-specific knowledge on the
-driver to the bare minimum needed for correct driver operation.  But I will
-add it anytime I fell it is needed to keep correct driver operation.
-
-The different lenovo/ibm keymaps were added because of the mess with the
-brightness and volume keys in the latest BIOSes.
+But the comment about not using a HID for driver autoloading is for the
+PCI_ROOT_HID_STRING only.  Is it in a confusing place on the source code, or
+somesuch?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
