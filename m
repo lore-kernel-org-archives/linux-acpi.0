@@ -1,124 +1,92 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI: thinkpad-acpi: make the input event mode
-	the default
-Date: Mon, 16 Jul 2007 01:24:20 +0100
-Message-ID: <20070716002420.GA8140@srcf.ucam.org>
-References: <20070714223315.GB25782@srcf.ucam.org>
-	<20070715180529.GF14134@khazad-dum.debian.net>
-	<20070715183823.GC3235@srcf.ucam.org>
-	<20070715200948.GC19066@khazad-dum.debian.net>
-	<20070715201346.GB5518@srcf.ucam.org>
-	<20070715211421.GG19066@khazad-dum.debian.net>
-	<20070715211953.GA6527@srcf.ucam.org>
-	<20070715220801.GK19066@khazad-dum.debian.net>
-	<20070715224914.GB7164@srcf.ucam.org>
-	<20070716001239.GA31604@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: add input device support
+	to hotkey subdriver
+Date: Sun, 15 Jul 2007 23:47:36 -0300
+Message-ID: <20070716024736.GB31604@khazad-dum.debian.net>
+References: <11844223334107-git-send-email-hmh@hmh.eng.br> <20070714223144.GA25782@srcf.ucam.org> <20070715181233.GG14134@khazad-dum.debian.net> <20070715184519.GD3235@srcf.ucam.org> <20070715200338.GB19066@khazad-dum.debian.net> <20070715201201.GA5518@srcf.ucam.org> <20070715205934.GF19066@khazad-dum.debian.net> <20070715210405.GA6216@srcf.ucam.org> <20070715215453.GJ19066@khazad-dum.debian.net> <20070715224511.GA7164@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41834 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758572AbXGPCrk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jul 2007 22:47:40 -0400
 Content-Disposition: inline
-In-Reply-To: <20070716001239.GA31604-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <20070715224511.GA7164@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Sun, Jul 15, 2007 at 09:12:40PM -0300, Henrique de Moraes Holschuh wrote:
-> On Sun, 15 Jul 2007, Matthew Garrett wrote:
-> > No, it doesn't. It interacts in a way that you may not consider to be 
-> > ideal - the vast majority of our users appear to prefer it to the 
-> > previous behaviour, so it's better than nothing.
+On Sun, 15 Jul 2007, Matthew Garrett wrote:
+> On Sun, Jul 15, 2007 at 06:54:53PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Sun, 15 Jul 2007, Matthew Garrett wrote:
+> > > Hal is the only piece of userspace that knows how to speak to more than 
+> > > one type of backlight in any useful way, which makes it the de-facto 
+> > > reference for how userspace interprets these keys.
+> > 
+> > Since when does system-specific programs not count?
 > 
-> I don't go for "better than nothing", when there is a way to have it right
-> (and there is: an alsa mixer, or an extension to the input layer).
+> If they're Thinkpad-specific, they're already doing the right thing. If 
+> they're specific to another model, they're not running on a Thinkpad.
 
-Certainly. Once it's possible to do it the right way, we can do it the 
-right way :)
+True. I missed that angle.
 
-> > No. Nothing will screw up if you send brightness events.
+> > > The fact that keys share event codes doesn't mean that these keycodes 
+> > > are going to have identical semantics on all hardware. One solution to 
+> > > that would be to avoid ever sending these keycodes, but that would make 
+> > > having them defined in the first place a bit silly. Since they /are/ 
+> > > there, it makes sense to use them.
+> > 
+> > I see a keycode defined in the USB HID spec for use in stuff that only knows
+> > active handling -- passive doesn't even make any sense for them -- and its
+> > reflect on the kernel input layer.
+> > 
+> > There _are_ a few platforms where *one* of the built-in devices need a
+> > different handling, and that's just because the firmware won't cooperate.
+> > But if I plug a USB keyboard on a thinkpad, for example, I need the proper
+> > (active) handling of the event.
 > 
-> It can, if it feed backs a brightness up order to the kernel, either
-> through thinkpad-acpi, or through the ACPI video driver at the wrong time
-> (before the thinkpad firmware did it).  And before you think the firmware
-> might be doing something sane for a change, I've had reports of more than
-> half-a-second delay on a X60s without the latest EC between a brightness
-> change order, and the hardware responding to it.
+> That's fine. You know that the event came from an external keyboard, so 
+> you know that it has to be handled actively.
 > 
-> A bad feedback will either increase brightness once with two writes (waste
-> of resources, but the user won't notice, and I hope the thinkpad hardware is
-> not so crappy as to bother the inverter in this case), increase twice, or
-> cause a loop (got a report, don't know how it happened, but I *do* know the
-> code has no defense --yet-- against such a loop) that makes it increase the
-> brightness all the way up or all the way down until you press some other key
-> that disturbs the loop.
-
-The only code currently listening for KEY_BRIGHTNESS* on Thinkpads is 
-gnome-power-manager, and that uses the Hal information to check whether 
-it needs to behave passively or actively and so does the right thing. 
-Anything else is either Thinkpad-specific and doesn't listen for 
-KEY_BRIGHTNESS or listens for KEY_BRIGHTNESS and doesn't know how to 
-control the Thinkpad hardware. As a result, sending KEY_BRIGHTNESS can't 
-break any existing software.
-
-> > We've been listening for KEY_BRIGHTNESS* on Thinkpads for over a year. 
-> > It's already implemented and works fine.
+> > I definately think "avoid ever sending these keycodes" in this instance is
+> > the right way to go, until we can actually issue a "this is a passive key
+> > press" event.
 > 
-> If everything did it right, I would have never heard of it.  Note that I am
-> not accusing HAL of breakage, I am talking about *userspace*.  I am *not*
-> sure if hal is what broke it, and, if it indeed was hal, whether it was new
-> enough.  I am sure bleeding-edge hal does something sensible for brightness,
-> and I have no reasons not to believe you that one-year-old hal will do
-> something wrong, either.  But there is other userspace, AND much older hal.
+> As I said, the existing userspace implementation disagrees. I'd prefer 
+> to avoid breaking that.
 
-We had a broken version of hal in a development version of Ubuntu. No 
-release version (of Ubuntu or hal) has ever had this bug.
+I have not nearly as much patience as you do with broken designs.  The input
+layer interface was *not* made to convey the idea of passive keys.  *This*
+was not broken (it just wasn't generic enough, and the fact that you don't
+have an extensible "flags" field that you could use to extend it *is* the
+real design shortcoming).
 
-> > That's fine. Send KEY_FN_F1 if there's no label.
-> 
-> Isn't that what I am doing right now?  That's why I asked you which key
-> codes I was missing when you complained about it. I really don't know of
-> any.
+However, abusing that interface to send passive events *is* broken.
+Especially because the other side has to know by itself what is active and
+what is passive, and this changes from system model to model, and maybe even
+from bios version to bios version.
 
-I hadn't read all the way through the patch series before sending my 
-initial mail, so the one that added more keys fixes most of my concerns.
+IMHO, it should NEVER have been done like that in the first place.  You
+start walking such a road, you will have to work thrice to fix it.  The
+correct thing to do is to fix the interface.  It can be done in a backwards
+compatible way.  It won't be anywhere as pretty as it could have been if
+input layer events were friendly to being extended, but it can be done.
 
-> > On a machine with a glyph, the driver should generate a keycode 
-> > appropriate for that glyph.
-> 
-> It already does so for every key with a glyph that requires active handling
-> AND which is present on most thinkpads AND for which I could find a sensible
-> keycode.
-> 
-> Oh, I miss an undock/eject generic device keycode, too.  Can't use EJECTCD
-> to undock...
-> 
-> Again, what you want me to change in that default key code matrix that is
-> not a passive-action key?  I aimed to do the best I could according to the
-> info I have (http://thinkwiki.org/wiki/Default_meanings_of_special_keys).
+Please correct me if I am mistaken, but AFAIK, nothing I do in thinkpad-acpi
+that doesn't start generating *new* passive-masquerated-as-active events
+around will break any old system, as these are ALREADY working using tpb or
+somesuch. 
 
-Having checked other drivers, it looks like KEY_SWITCHVIDEOMODE is the 
-one used for video toggling. If that's not actually how people are using 
-it, we need to fix that - if it is, I'd just go for it.
-
-As for the passive keys - I can (with a very high level of certainty) 
-assert that there is no existing userspace that will be broken by 
-sending the brightness keys. We can quibble over the volume ones, but 
-even there the breakage is minimal.
+Since thinkpad-acpi not generating such broken events by default that
+doesn't stop (or even make it more difficult) for new HAL to get the driver
+to produce them if it wants to, and it also doesn't stop old HAL from
+working just fine (using tpb, etc), it looks to me like the best path.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
