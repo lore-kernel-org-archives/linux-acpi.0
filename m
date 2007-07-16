@@ -1,43 +1,43 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: [PATCH] ACPI: update ACPI_PROCFS removal schedule
-Date: Mon, 16 Jul 2007 09:38:44 +0200
-Message-ID: <20070716073844.GB23083@suse.de>
-References: <1184235634.6286.2.camel@rzhang1-laptop>
+From: "Satyam Sharma" <satyam.sharma@gmail.com>
+Subject: Re: [PATCH][BUTTON] remove procfs-interface
+Date: Mon, 16 Jul 2007 13:17:27 +0530
+Message-ID: <a781481a0707160047i59b45797y491e9b303d2d8909@mail.gmail.com>
+References: <4695F726.7030203@nachtwindheim.de>
+	 <823A93EED437D048963A3697DB0E35DE7314AB@pdsmsx414.ccr.corp.intel.com>
+	 <a781481a0707121207o3497edbye9f89c9f2589f3e5@mail.gmail.com>
+	 <20070716073533.GA23083@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:52452 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753035AbXGPHiw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Jul 2007 03:38:52 -0400
+Received: from wr-out-0506.google.com ([64.233.184.224]:64204 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795AbXGPHr2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 03:47:28 -0400
+Received: by wr-out-0506.google.com with SMTP id i30so472836wra
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 00:47:27 -0700 (PDT)
+In-Reply-To: <20070716073533.GA23083@suse.de>
 Content-Disposition: inline
-In-Reply-To: <1184235634.6286.2.camel@rzhang1-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rzhang1 <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
+To: Stefan Seyfried <seife@suse.de>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Henne <henne@nachtwindheim.de>, Arjan van de Ven <arjan@infradead.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 12, 2007 at 06:20:34PM +0800, rzhang1 wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
->=20
-> ACPI sysfs conversion is not finished yet and
-> some user space tools still depend on the ACPI procfs I/F.
->=20
-> The ACPI_PROCFS removal schedule is changed to Jan 08.
+On 7/16/07, Stefan Seyfried <seife@suse.de> wrote:
 
-I think that's too early. The conversion to sysfs is not even
-finished, so it will be less than 6 months.
---=20
-Stefan Seyfried
-QA / R&D Team Mobile Devices        |              "Any ideas, John?"
-SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
-=20
+> Holy sh*t. There is not even a functional replacement ready, but still
+> everybody wants to remove /proc/acpi. (Maybe the replacement started
+> to work recently, i have not looked into this area for the last months.
+> This does not change my pint, though).
+> This is not going to work.
+> IMNSHO, we need the new interface available and usable for quite some time
+> (i'd say for over one year), and then we can start to phase out the old
+> interface.
+> Starting with removing /proc/acpi is not the correct ordering of actions.
 
-This footer brought to you by insane German lawmakers:
-SUSE Linux Products GmbH, GF: Markus Rex, HRB 16746 (AG N=FCrnberg)
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Heh, you're 3 days late to the party, but yeah, Zhang's corrected me/
+pointed this out (the functionality in /proc/acpi not yet in the sysfs I/F
+being used by said userspace tools) already. I guess I had originally
+misunderstood the "some user space tools still use the ACPI procfs" bit.
+
+Satyam
