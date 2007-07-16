@@ -1,55 +1,65 @@
-From: "Aaron Durbin" <adurbin@google.com>
-Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Mon, 16 Jul 2007 11:22:13 -0700
-Message-ID: <8f95bb250707161122q33e2c1afo9dd5fa2b3b97988e@mail.gmail.com>
-References: <20070716180019.GA5112@google.com>
-	 <1184609844.2698.1.camel@laptopd505.fenrus.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: add input device support to hotkey subdriver
+Date: Mon, 16 Jul 2007 19:37:16 +0100
+Message-ID: <20070716183716.GA21384@srcf.ucam.org>
+References: <20070715181233.GG14134@khazad-dum.debian.net> <20070715184519.GD3235@srcf.ucam.org> <20070715200338.GB19066@khazad-dum.debian.net> <20070715201201.GA5518@srcf.ucam.org> <20070715205934.GF19066@khazad-dum.debian.net> <20070715210405.GA6216@srcf.ucam.org> <20070715215453.GJ19066@khazad-dum.debian.net> <d120d5000707160846m541ddd33uccdb5387ee9ee1c3@mail.gmail.com> <20070716155103.GB19199@srcf.ucam.org> <20070716181911.GA13710@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:46654 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637AbXGPSWX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 14:22:23 -0400
-Received: from zps18.corp.google.com (zps18.corp.google.com [172.25.146.18])
-	by smtp-out.google.com with ESMTP id l6GIMH1H007200
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 19:22:17 +0100
-Received: from nz-out-0506.google.com (nzar28.prod.google.com [10.36.69.28])
-	by zps18.corp.google.com with ESMTP id l6GILRuP021794
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 11:22:13 -0700
-Received: by nz-out-0506.google.com with SMTP id r28so863389nza
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 11:22:13 -0700 (PDT)
-In-Reply-To: <1184609844.2698.1.camel@laptopd505.fenrus.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:56497 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246AbXGPSh2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 14:37:28 -0400
 Content-Disposition: inline
+In-Reply-To: <20070716181911.GA13710@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, ak@suse.de, akpm@osdl.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On 7/16/07, Arjan van de Ven <arjan@infradead.org> wrote:
-> On Mon, 2007-07-16 at 11:00 -0700, Aaron Durbin wrote:
-> > Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
-> >
-> > Signed-off-by: Aaron Durbin <adurbin@google.com>
-> > ---
-> >
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > index d4336f1..c9906a5 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -21,7 +21,7 @@ obj-$(CONFIG_X86)           += blacklist.o
-> >  #
-> >  # ACPI Core Subsystem (Interpreter)
-> >  #
-> > -obj-y                                += osl.o utils.o \
-> > +obj-y                                += osl.o utils.o reboot.o \
->
-> a one function C file? Can you just stick it in one of the other files
-> instead?
->
+On Mon, Jul 16, 2007 at 03:19:11PM -0300, Henrique de Moraes Holschuh wrote:
 
-I originally did not do this because I didn't know the proper place.  Any
-suggestions where you would want this?
+> Anyway, if the input layer is really not the place for "passive key
+> presses", then my decision to not issue input events for such stuff is the
+> correct one.
 
--Aaron
+That wasn't my interpretation of what Dmitry said - it's not a generic 
+event layer, but when you have keys that generate events that would be 
+useful to userspace then I think it makes absolute sense to send them.
+
+> Brightness can be notified through ACPI (ACPI 3.0b has standard events for
+> this), or it could be done through an improved backlight sysfs class.  It
+> will require work either way, because you don't want ACPI video processing
+> these synthezised events, or because you need to get backlight to be
+> poll()/select() or inotify()-friendly if you don't want to add another
+> dumbass userspace polling loop.
+
+The simple fact of the matter is that when you get outside the range of 
+the standard qwerty keys, the semantics of the buttons become hardware 
+dependent. The behaviour of KEY_SWITCHVIDEOMODE is going to vary wildly 
+between hardware. Wlan control may be active or passive (and the 
+standard adopted there appears to be to send KEY_WLAN regardless). Dells 
+will trigger a dock unplug event automatically if you hit the dock 
+unplug button - Thinkpads won't.
+
+I think it makes absolute sense to get these notifications in the same 
+way wherever possible, and then let userspace handle them as 
+appropriate. On modern Thinkpads I need to alter whichever backlight 
+interface is most appropriate to the machine in question (something that 
+itself is going to differ between Thinkpads and, say, Macs) whereas in 
+older ones I just want to pop up a notification with the new brightness. 
+
+I realise your concern about breaking existing userspace, but as far as 
+I can tell there /is/ no existing userspace to break. Hal does the right 
+thing already, and there's nothing else that listens for key brightness 
+events on Thinkpads.
+
+> Built-in headphone/speaker volume can be notified and controlled through an
+> ALSA mixer.  It won't be a nice poll-less thing, but I can trap the ACPI hot
+> key events as a hint to update the mixer state, and if ALSA lets me do it,
+> issue mixer changed notifications.
+
+ALSA lets you do that.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
