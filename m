@@ -1,39 +1,42 @@
 From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: add powerbutton and lid platform devices
-Date: Mon, 16 Jul 2007 09:51:01 +0100
-Message-ID: <1184575861.2228.39.camel@work>
-References: <20070330235759.GC4252@cosmic.amd.com>
-	 <20070708221027.GA4964@dmt> <20070709150545.GD31533@cosmic.amd.com>
-	 <200707090930.26973.david-b@pacbell.net>
+Subject: Re: [PATCH 5/7] Make the driver use MSC_SCAN and a setkeycode and
+	getkeycode key table.
+Date: Mon, 16 Jul 2007 18:06:05 +0100
+Message-ID: <1184605565.2228.57.camel@work>
+References: <1184520879452-git-send-email-malattia@linux.it>
+	 <1184520879991-git-send-email-malattia@linux.it>
+	 <11845208793336-git-send-email-malattia@linux.it>
+	 <11845208793678-git-send-email-malattia@linux.it>
+	 <11845208794064-git-send-email-malattia@linux.it>
+	 <11845208791511-git-send-email-malattia@linux.it>
+	 <20070715211128.GA6291@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:31448 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.172]:39298 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516AbXGPRDi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 13:03:38 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so1020145ugf
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 10:03:37 -0700 (PDT)
-In-Reply-To: <200707090930.26973.david-b@pacbell.net>
+	with ESMTP id S1752037AbXGPRJi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 13:09:38 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so1021327ugf
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 10:09:36 -0700 (PDT)
+In-Reply-To: <20070715211128.GA6291@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Jordan Crouse <jordan.crouse@amd.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, devel@laptop.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Richard Hughes <richard@hughsie.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Mon, 2007-07-09 at 09:30 -0700, David Brownell wrote:
-> What's this "power manager" component?
+On Sun, 2007-07-15 at 22:11 +0100, Matthew Garrett wrote:
+> On Mon, Jul 16, 2007 at 02:34:37AM +0900, Mattia Dongili wrote:
+> > +		/* we emit the scancode so we can always remap the key */
+> > +		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
+> 
+> As I said to Henrique, I don't think this is the right solution. We know 
+> what these keys do - we should send the appropriate keycode, rather than 
+> asking userspace to remap it.
 
-At the moment we're using OHM, although it's got a few rough edges, it
-seems to do mostly what we need it to right now.
-
-> This policy is easily set through sysfs.  It doesn't need a new
-> component to make that decision.
-
-Sure you do. What happens if you are right in the middle of a system
-update over wifi -- do you still want to suspend in that case? Or a bios
-flash? There has to be something higher level to unset or set the policy
-knobs in the kernel with the information from the system or session.
+We don't - the decal on FnF2 changes between different models, and I'm
+sure others are the same.
 
 Richard.
 
