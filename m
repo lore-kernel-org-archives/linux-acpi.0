@@ -1,87 +1,61 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: ACPI strangeness - battery jumping to low capacity and back
-Date: Mon, 16 Jul 2007 19:25:06 +0400
-Message-ID: <469B8DD2.1040304@gmail.com>
-References: <469B4E8A.3050809@iversen-net.dk>
+From: "Dmitry Torokhov" <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI: thinkpad-acpi: make the input event mode
+	the default
+Date: Mon, 16 Jul 2007 11:27:35 -0400
+Message-ID: <d120d5000707160827u5217722fvcffb9339b80c0c79@mail.gmail.com>
+References: <20070715180529.GF14134@khazad-dum.debian.net>
+	<20070715200948.GC19066@khazad-dum.debian.net>
+	<20070715201346.GB5518@srcf.ucam.org>
+	<20070715211421.GG19066@khazad-dum.debian.net>
+	<20070715211953.GA6527@srcf.ucam.org>
+	<20070715220801.GK19066@khazad-dum.debian.net>
+	<20070715224914.GB7164@srcf.ucam.org>
+	<20070716001239.GA31604@khazad-dum.debian.net>
+	<20070716002420.GA8140@srcf.ucam.org>
+	<20070716030254.GD31604@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:25143 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755463AbXGPPZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 11:25:08 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so999318ugf
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 08:25:06 -0700 (PDT)
-In-Reply-To: <469B4E8A.3050809@iversen-net.dk>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070716030254.GD31604-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Iversen <chrivers@iversen-net.dk>
-Cc: linux-acpi@vger.kernel.org
 
-Hi Christian,
+On 7/15/07, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org> wrote:
+> On Mon, 16 Jul 2007, Matthew Garrett wrote:
+> >
+> > Having checked other drivers, it looks like KEY_SWITCHVIDEOMODE is the
+> > one used for video toggling. If that's not actually how people are using
+> > it, we need to fix that - if it is, I'd just go for it.
+>
+> This looks like a breakage warning to me.  Better decide once and for all
+> what this keycode is supposed to do, and document it.  Because switching
+> video mode is not "switch video output mode", and can easily be confused
+> with "switch screen resolution", "switch video mode between expanded and
+> normal" or whatever.
+>
 
-First, it is better if you open a bug in bugzilla.kernel.org against 
-ACPI/Battery and attach all your files there, so they will not be lost.
-Second, please try latest stable kernel from kernel.org, not Ubuntu one, 
-as they seem to be not very careful with ACPI. 
+I will add a comment to input.h to the effect that KEY_SWITCHVIDEOMODE
+is to switch between available outputs (LCD/Monitor/TV-Out/Whatnot).
+Right now couple of RCs are using it for different purposes (cycling
+through inputs I think) so we should do somethig about these.
 
-Regards,
-Alex.
+-- 
+Dmitry
 
-Christian Iversen wrote:
-> 
-> Hi $ALL
-> 
-> My notebook is behaving somewhat oddly. The KDE battery indicator
-> usually shows the right amount of battery power left, although every now
-> and then, it jumps to a value in the range 0-10%, and then jumps back.
-> This is quite annoying, because it gives of all sorts of warnings about
-> imminent power failure.
-> 
-> I'm running kubuntu 7.04 with 2.6.20-15-generic from standard packages,
-> on a Zepto 4200 (rebranded Compal CL56)
-> 
-> It _seems_ -- I'm not quite sure about the causality of this -- that the
-> following error messages turn up in dmesg when the jump happens:
-> 
-> ...
-> [577843.068000] ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BST] (Node df853608), AE_NOT_FOUND
-> [577843.068000] ACPI Exception (acpi_battery-0207): AE_NOT_FOUND,
-> Evaluating _BST [20060707]
-> [577873.068000] ACPI Error (psargs-0355): [PBST] Namespace lookup
-> failure, AE_NOT_FOUND
-> [577873.068000] ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BST] (Node df853608), AE_NOT_FOUND
-> [577873.068000] ACPI Exception (acpi_battery-0207): AE_NOT_FOUND,
-> Evaluating _BST [20060707]
-> [577903.080000] ACPI Error (psargs-0355): [PBST] Namespace lookup
-> failure, AE_NOT_FOUND
-> [577903.080000] ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BST] (Node df853608), AE_NOT_FOUND
-> [577903.080000] ACPI Exception (acpi_battery-0207): AE_NOT_FOUND,
-> Evaluating _BST [20060707]
-> [577933.076000] ACPI Error (psargs-0355): [PBST] Namespace lookup
-> failure, AE_NOT_FOUND
-> [577933.076000] ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BST] (Node df853608), AE_NOT_FOUND
-> [577933.076000] ACPI Exception (acpi_battery-0207): AE_NOT_FOUND,
-> Evaluating _BST [20060707]
-> [577963.068000] ACPI Error (psargs-0355): [PBST] Namespace lookup
-> failure, AE_NOT_FOUND
-> [577963.068000] ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BST] (Node df853608), AE_NOT_FOUND
-> [577963.068000] ACPI Exception (acpi_battery-0207): AE_NOT_FOUND,
-> Evaluating _BST [20060707]
-> ...
-> 
-> Maybe it has nothing to do with it? It seems to be battery-related, at
-> least.
-> 
-> Is there something else I can do to help debug the cause of these error
-> messages and/or the battery problem?
-> 
-> I've attached the output of dmidecode and acpidump, in case it's useful.
-> 
-
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
