@@ -1,33 +1,144 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [ibm-acpi-devel] ACPI: thinkpad-acpi: add input device support to hotkey subdriver
-Date: Mon, 16 Jul 2007 16:51:03 +0100
-Message-ID: <20070716155103.GB19199@srcf.ucam.org>
-References: <11844223334107-git-send-email-hmh@hmh.eng.br> <20070714223144.GA25782@srcf.ucam.org> <20070715181233.GG14134@khazad-dum.debian.net> <20070715184519.GD3235@srcf.ucam.org> <20070715200338.GB19066@khazad-dum.debian.net> <20070715201201.GA5518@srcf.ucam.org> <20070715205934.GF19066@khazad-dum.debian.net> <20070715210405.GA6216@srcf.ucam.org> <20070715215453.GJ19066@khazad-dum.debian.net> <d120d5000707160846m541ddd33uccdb5387ee9ee1c3@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] - Increase PNP_MAX_PORT. ACPI devices can have a lot IO
+ resource declarations
+Date: Mon, 16 Jul 2007 18:48:56 +0200
+Message-ID: <20070716184856.253203d8@hyperion.delvare>
+References: <1184595667.19959.312.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:39795 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763619AbXGPPvP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 11:51:15 -0400
-Content-Disposition: inline
-In-Reply-To: <d120d5000707160846m541ddd33uccdb5387ee9ee1c3@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933193AbXGPQsh@vger.kernel.org>
+In-Reply-To: <1184595667.19959.312.camel@queen.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Alexey Starikovskiy <aystarik@gmail.com>, Bernhard Walle <bwalle@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Mon, Jul 16, 2007 at 11:46:26AM -0400, Dmitry Torokhov wrote:
+Hi Thomas,
 
-> How do you know that this is a "passive keypress"? Can you put another
-> (better) soundcard in a docking station? Woudl the firmware still
-> control that card (doubtful)? Do we want the same keys to control that
-> card's volume?
+On Mon, 16 Jul 2007 16:21:07 +0200, Thomas Renninger wrote:
+> PNP0C02 devices normally have a lot more IO port declarations than
+> currently defined in PNP_MAX_PORT
+> 
+> For checking, have a look at your disassembled DSDT, and look out for
+> the _CRS function (and/or a ResourceTemplate often called CRS).
+> 
+> Here an  example:
+> IO (Decode16,0x0010,             // Range Minimum
+>              0x0010,             // Range Maximum
+>              0x00,               // Alignment
+>              0x10,               // Length
+> )
+> IO (Decode16,
+>              0x0022,             // Range Minimum
+>              0x0022,             // Range Maximum
+>              0x00,               // Alignment
+>              0x1E,               // Length
+> )
+> ...
+> IO (Decode16,
+>              0x0000,             // Range Minimum
+>              0x0000,             // Range Maximum
+>              0x00,               // Alignment
+>              0x00,               // Length
+> _Y06)
+> IO (Decode16,
+>              0x0000,             // Range Minimum
+>              0x0000,             // Range Maximum
+>              0x00,               // Alignment
+>              0x00,               // Length
+> _Y07)
+> 
+> The latter zeroed (_Y07) declarations are filled with dynamic values in
+> _CRS and also need an PNP IO port reserved.
+> 
+> On this machine (x86_64 workstation) more then 20 IO resource
+> declarations exist for one PNP0C02 device.
+> It could be that the suggested 32 is still not big enough.
 
-This is absolutely possible. In that case I'd expect the hotkeys to 
-start controlling the card mixer's volume, but that's a policy decision 
-that would have to be taken in userspace by an application aware of 
-everything that's happened.
+I just tested on my own workstation, and 8 wasn't enough for me either:
+there are 12 resources listed for the PNP0C02 device on my workstation.
 
+After applying your patch, I get the following differences in /proc/ioports:
+
+--- ioports.before      2007-07-16 18:29:30.000000000 +0200
++++ ioports.after       2007-07-16 18:39:05.000000000 +0200
+@@ -13,7 +13,8 @@
+ 01f0-01f7 : 0000:00:0f.0
+   01f0-01f7 : ide0
+ 0290-0297 : f71805f
+-  0295-0296 : f71805f
++  0290-0297 : pnp 00:03
++    0295-0296 : f71805f
+ 0376-0376 : 0000:00:0f.0
+   0376-0376 : ide1
+ 0378-037a : parport0
+@@ -21,6 +22,8 @@
+ 03f6-03f6 : 0000:00:0f.0
+   03f6-03f6 : ide0
+ 03f8-03ff : serial
++04d0-04d1 : pnp 00:03
++0800-0805 : pnp 00:03
+ 0cf8-0cff : PCI conf1
+ 4000-407f : pnp 00:02
+   4000-4003 : ACPI PM1a_EVT_BLK
+
+> (...)
+> ------------------
+> 
+> Increase PNP_MAX_PORT. ACPI devices can have a lot IO resource declarations
+> 
+> Also print a message if PNP_DEBUG is set if we run out of PNP_MAX_PORTS.
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> 
+> ---
+>  drivers/pnp/pnpacpi/rsparser.c |    3 ++-
+>  include/linux/pnp.h            |    2 +-
+>  2 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6.22.1/include/linux/pnp.h
+> ===================================================================
+> --- linux-2.6.22.1.orig/include/linux/pnp.h
+> +++ linux-2.6.22.1/include/linux/pnp.h
+> @@ -14,7 +14,7 @@
+>  #include <linux/errno.h>
+>  #include <linux/mod_devicetable.h>
+>  
+> -#define PNP_MAX_PORT		8
+> +#define PNP_MAX_PORT		32
+>  #define PNP_MAX_MEM		4
+>  #define PNP_MAX_IRQ		2
+>  #define PNP_MAX_DMA		2
+> Index: linux-2.6.22.1/drivers/pnp/pnpacpi/rsparser.c
+> ===================================================================
+> --- linux-2.6.22.1.orig/drivers/pnp/pnpacpi/rsparser.c
+> +++ linux-2.6.22.1/drivers/pnp/pnpacpi/rsparser.c
+> @@ -185,7 +185,8 @@ pnpacpi_parse_allocated_ioresource(struc
+>  		}
+>  		res->port_resource[i].start = io;
+>  		res->port_resource[i].end = io + len - 1;
+> -	}
+> +	} else
+> +		pnp_dbg("Run out of pnp ports - MAX_PNP_PORT must be increased");
+
+PNP_MAX_PORT, not MAX_PNP_PORT.
+
+>  }
+>  
+>  static void
+
+I like this patch and I'd like to see it upstream soon. I think it can
+even be improved:
+
+* If we run out of pnp ports, we should print an error message rather
+than a debug message. If it takes CONFIG_PNP_DEBUG=y to get reports
+that the max is too low, we won't have many reports.
+
+* Can we have similar messages for PNP_MAX_MEM, PNP_MAX_IRQ and
+PNP_MAX_DMA? I think that we really want to know when we hit limits for
+these too.
+
+Thanks,
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jean Delvare
