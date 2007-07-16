@@ -1,37 +1,58 @@
 From: Stefan Seyfried <seife@suse.de>
-Subject: Re: [2.6 patch] the scheduled ACPI_PROCFS removal
-Date: Mon, 16 Jul 2007 07:34:32 +0200
-Message-ID: <20070716053432.GA20102@suse.de>
-References: <20070709145755.GD3492@stusta.de> <20070709174544.2a6b7067@the-village.bc.nu> <Pine.LNX.4.64.0707092044520.2887@fbirervta.pbzchgretzou.qr> <46951969.4030109@tmr.com> <4695BCEA.4060108@gmail.com> <1184231897.2380.2.camel@work>
+Subject: Re: [PATCH][BUTTON] remove procfs-interface
+Date: Mon, 16 Jul 2007 09:35:33 +0200
+Message-ID: <20070716073533.GA23083@suse.de>
+References: <4695F726.7030203@nachtwindheim.de> <823A93EED437D048963A3697DB0E35DE7314AB@pdsmsx414.ccr.corp.intel.com> <a781481a0707121207o3497edbye9f89c9f2589f3e5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:49145 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218AbXGPGjq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Jul 2007 02:39:46 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757264AbXGPHgP@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1184231897.2380.2.camel@work>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <a781481a0707121207o3497edbye9f89c9f2589f3e5@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Henne <henne@nachtwindheim.de>, Arjan van de Ven <arjan@infradead.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Bill Davidsen <davidsen@tmr.com>, Jan Engelhardt <jengelh@computergmbh.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Adrian Bunk <bunk@stusta.de>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 12, 2007 at 10:18:17AM +0100, Richard Hughes wrote:
-> On Thu, 2007-07-12 at 09:32 +0400, Alexey Starikovskiy wrote:
-> > >> [*] Does someone have an alternative for
-> > >> /proc/acpi/battery/BAT1/{state,info}?
-> > I'm working on it. Should have proto by the end of week.
+On Fri, Jul 13, 2007 at 12:37:07AM +0530, Satyam Sharma wrote:
+> On 7/12/07, Zhang, Rui <rui.zhang@intel.com> wrote:
+> >Well, the ACPI sysfs conversion is not finished yet
+> >[...]
+> >I'm not sure if the button sysfs I/F is already finished.
+> >We'd better make a double check. :)
 >=20
-> If you are using the power_supply class (i hope you are ;-) then a HA=
-L
-> from freedesktop git should make userspace continue to just work.
+> Ok, this sounds reasonable.
+>=20
+> >and some user space tools still use the ACPI procfs.
+>=20
+> But this does *not*, IMHO. It quite defeats the whole concept of
+> feature-removal-schedule.txt. I think that file exists precisely
+> because we cannot gratuitously break userspace interfaces just
+> like that, but when something gets put up there with a removal date
+> that is a good one year in the future, and userspace tools _still_
+> continue to use it ... then, I suspect something's seriously wrong.
 
-Having to update HAL is not my definition of "does not break userspace"=
-=2E
-And, BTW, there is more than just HAL out there using /proc/acpi, and
-this should continue to work.
+Holy sh*t. There is not even a functional replacement ready, but still
+everybody wants to remove /proc/acpi. (Maybe the replacement started
+to work recently, i have not looked into this area for the last months.
+This does not change my pint, though).
+This is not going to work.
+IMNSHO, we need the new interface available and usable for quite some t=
+ime
+(i'd say for over one year), and then we can start to phase out the old
+interface.
+Starting with removing /proc/acpi is not the correct ordering of action=
+s.
+=20
+> Either the feature-removal-schedule.txt file has become something
+> that users don't even bother checking, or else, they _know_ that
+> even if they don't bother keeping up with the pace in kernel-land,
+> that interface still won't go away (because they're still using it!).
+
+Or they look at the feature-removal document, find out that there is
+no replacement available and conclude "the writers of this document
+must have been on crack, or this document is unmaintained". I cannot
+disagree with them.
 --=20
 Stefan Seyfried
 QA / R&D Team Mobile Devices        |              "Any ideas, John?"
@@ -40,8 +61,3 @@ SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
 
 This footer brought to you by insane German lawmakers:
 SUSE Linux Products GmbH, GF: Markus Rex, HRB 16746 (AG N=FCrnberg)
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
