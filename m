@@ -1,44 +1,43 @@
-From: "Aaron Durbin" <adurbin@google.com>
-Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Mon, 16 Jul 2007 19:10:21 -0700
-Message-ID: <8f95bb250707161910j7b6e333cwd09d937709386a9f@mail.gmail.com>
-References: <20070716180019.GA5112@google.com>
-	 <1184636816.11983.1.camel@sli10-conroe.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: ACPI: EC: Handler for query 0x80 is not found!
+Date: Mon, 16 Jul 2007 20:33:18 -0700
+Message-ID: <20070716203318.66e25911.akpm@linux-foundation.org>
+References: <48f7fe350707100653w6f01c645u388fbb4691b74c6b@mail.gmail.com>
+	<48f7fe350707100947g1453a790n3e425935994003a9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:33467 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755248AbXGQCKb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2007 22:10:31 -0400
-Received: from zps37.corp.google.com (zps37.corp.google.com [172.25.146.37])
-	by smtp-out.google.com with ESMTP id l6H2AQIW004916
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 19:10:26 -0700
-Received: from wa-out-1112.google.com (wafk17.prod.google.com [10.114.187.17])
-	by zps37.corp.google.com with ESMTP id l6H2A5Hw021546
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 19:10:22 -0700
-Received: by wa-out-1112.google.com with SMTP id k17so2166803waf
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Jul 2007 19:10:22 -0700 (PDT)
-In-Reply-To: <1184636816.11983.1.camel@sli10-conroe.sh.intel.com>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51891 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753981AbXGQDdc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Jul 2007 23:33:32 -0400
+In-Reply-To: <48f7fe350707100947g1453a790n3e425935994003a9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, ak@suse.de, akpm@osdl.org
+To: Ryan Hope <rmh3093@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On 7/16/07, Shaohua Li <shaohua.li@intel.com> wrote:
-> On Tue, 2007-07-17 at 02:00 +0800, Aaron Durbin wrote:
+On Tue, 10 Jul 2007 12:47:08 -0400 "Ryan Hope" <rmh3093@gmail.com> wrote:
+
+> I noticed that this message goes away if I reboot my computer... So a
+> fresh boot it errors, on reboot it does not error.
+> 
+> On 7/10/07, Ryan Hope <rmh3093@gmail.com> wrote:
+> > Ever since 2.6.22-rc6-mm1 I have been seeing these messages in dmesg:
 > >
-> > Add the ability to reset the machine using the RESET_REG in ACPI's
-> > FADT table.
-> We could have another command for 'reboot' kernel command line.
->
+> > ACPI: EC: Handler for query 0x80 is not found!
+> > ACPI: EC: Handler for query 0x81 is not found!
+> >
+> > This did not happen in 2.6.22-rc4-mm1. Does anyone have any clue what
+> > this is about?
+> >
 
-I did this in a separate patch for x86_64. See
+(switch to correct mailing list)
 
-http://www.ussg.iu.edu/hypermail/linux/kernel/0707.2/0319.html
-and
-http://www.ussg.iu.edu/hypermail/linux/kernel/0707.2/0319.html
+The acpi guys would probably like you to enter this in bugzilla.kernel.org,
+please.
 
--Aaron
+But given that this will be a regression if we merge it into
+mainline, I hope that it will get urgent attention.
