@@ -1,51 +1,91 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI: EC: Handler for query 0x80 is not found!
-Date: Tue, 17 Jul 2007 11:06:48 +0400
-Message-ID: <469C6A88.5090406@suse.de>
-References: <48f7fe350707100653w6f01c645u388fbb4691b74c6b@mail.gmail.com>	<48f7fe350707100947g1453a790n3e425935994003a9@mail.gmail.com> <20070716203318.66e25911.akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: ACPI cpufreq broken on 2.6.22 for core2 duo
+Date: Tue, 17 Jul 2007 00:10:06 -0700
+Message-ID: <20070717001006.d54bd576.akpm@linux-foundation.org>
+References: <4698B9AC.6060300@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:52330 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758177AbXGQHG5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 03:06:57 -0400
-In-Reply-To: <20070716203318.66e25911.akpm@linux-foundation.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39570 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758097AbXGQHKN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2007 03:10:13 -0400
+In-Reply-To: <4698B9AC.6060300@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ryan Hope <rmh3093@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: patrizio.bassi@gmail.com
+Cc: linux-acpi@vger.kernel.org
 
+On Sat, 14 Jul 2007 13:55:24 +0200 Patrizio Bassi <patrizio.bassi@gmail.com> wrote:
 
-Andrew Morton wrote:
-> On Tue, 10 Jul 2007 12:47:08 -0400 "Ryan Hope" <rmh3093@gmail.com> wrote:
+> With linux 2.6.21 and 22 i cannot get cpufreq working anymore while it
+> worked in previous versions
 > 
->> I noticed that this message goes away if I reboot my computer... So a
->> fresh boot it errors, on reboot it does not error.
->>
->> On 7/10/07, Ryan Hope <rmh3093@gmail.com> wrote:
->>> Ever since 2.6.22-rc6-mm1 I have been seeing these messages in dmesg:
->>>
->>> ACPI: EC: Handler for query 0x80 is not found!
->>> ACPI: EC: Handler for query 0x81 is not found!
->>>
->>> This did not happen in 2.6.22-rc4-mm1. Does anyone have any clue what
->>> this is about?
-This is just a printout of the HW error, which we silently ignored before.
-Will do a patch to silence it again...
->>>
+> ACPI Exception (processor_core-0781): AE_NOT_FOUND, Processor Device is
+> not present [20070126]
+> ACPI Exception (processor_core-0781): AE_NOT_FOUND, Processor Device is
+> not present [20070126]
 > 
-> (switch to correct mailing list)
+> i'm in 64bit profile.
+> Bios updated to latest version.
 > 
-> The acpi guys would probably like you to enter this in bugzilla.kernel.org,
-> please.
-
+> CC me as i'm not subscribed.
 > 
-> But given that this will be a regression if we merge it into
-> mainline, I hope that it will get urgent attention.
-It is not a regression in functionality, just a noise...
+> 
+> cat /proc/cpuinfo
+> processor       : 0
+> vendor_id       : GenuineIntel
+> cpu family      : 6
+> model           : 15
+> model name      : Intel(R) Core(TM)2 CPU          6300  @ 1.86GHz
+> stepping        : 6
+> cpu MHz         : 1866.667
+> cache size      : 2048 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 0
+> cpu cores       : 2
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 10
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+> mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall
+> nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
+> bogomips        : 3735.47
+> clflush size    : 64
+> cache_alignment : 64
+> address sizes   : 36 bits physical, 48 bits virtual
+> power management:
+> 
+> processor       : 1
+> vendor_id       : GenuineIntel
+> cpu family      : 6
+> model           : 15
+> model name      : Intel(R) Core(TM)2 CPU          6300  @ 1.86GHz
+> stepping        : 6
+> cpu MHz         : 1866.667
+> cache size      : 2048 KB
+> physical id     : 0
+> siblings        : 2
+> core id         : 1
+> cpu cores       : 2
+> fpu             : yes
+> fpu_exception   : yes
+> cpuid level     : 10
+> wp              : yes
+> flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+> mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall
+> nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
+> bogomips        : 3733.31
+> clflush size    : 64
+> cache_alignment : 64
+> address sizes   : 36 bits physical, 48 bits virtual
+> power management:
 
-Thanks,
-Alex.
+(switched mailing lists)
 
+Please raise a report against acpi at bugzilla.kernel.org for this,
+thanks.
