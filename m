@@ -1,183 +1,335 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] - Increase PNP_MAX_PORT. ACPI devices can have a lot IO resource declarations
-Date: Tue, 17 Jul 2007 09:49:47 -0600
-Message-ID: <200707170949.47346.bjorn.helgaas@hp.com>
-References: <1184595667.19959.312.camel@queen.suse.de>
+From: gothicx@sapo.pt
+Subject: System BIOS is requesting...
+Date: Tue, 17 Jul 2007 20:21:57 +0100
+Message-ID: <20070717202157.w4omck7ntllw8g08@w11.mail.sapo.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: multipart/mixed;
+	boundary="=_525yv8edsmps"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:43158 "EHLO atlrel9.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760179AbXGQQKy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jul 2007 12:10:54 -0400
-In-Reply-To: <1184595667.19959.312.camel@queen.suse.de>
-Content-Disposition: inline
+Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:44162 "HELO sapo.pt"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753224AbXGQT2k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2007 15:28:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, Jean Delvare <khali@linux-fr.org>, Bernhard Walle <bwalle@suse.de>
+To: linux-acpi@vger.kernel.org
 
-On Monday 16 July 2007 08:21:07 am Thomas Renninger wrote:
-> PNP0C02 devices normally have a lot more IO port declarations than
-> currently defined in PNP_MAX_PORT
+This message is in MIME format.
 
-Yes.
+--=_525yv8edsmps
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-> I also wonder whether other limits like:
->  #define PNP_MAX_MEM        4
->  #define PNP_MAX_IRQ        2
->  #define PNP_MAX_DMA        2
-> could get exceeded with pnpacpi?
+Distribution: Ubuntu Gutsy with kernel v2.6.22
 
-Definitely.  I think the current limits come from the PNP ISA spec
-(sec 4.6).  I don't see similar limits in the PNPBIOS or ACPI specs,
-so ideally I think they should be dynamically allocated as you suggest.
-
-HPET devices often use more than two IRQs, so I worked up the following
-patch a while ago.  I didn't post it because Adam had plans for a better
-fix.  But I suspect he's otherwise occupied now :-)
-
-It doesn't change PNP_MAX_PORT, so that would have to be updated.
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
+Please send dmidecode to linux-acpi@vger.kernel.org
 
 
+Sem mais de momento,
+Marco Rodrigues
+--
+Portal Tondela Online
+www.Tondela.org
 
+--=_525yv8edsmps
+Content-Type: text/x-log;
+	charset=UTF-8;
+	name="dmidecode.log"
+Content-Disposition: attachment;
+	filename="dmidecode.log"
+Content-Transfer-Encoding: quoted-printable
 
-PNP: increase number of resources devices can use
+# dmidecode 2.9
+SMBIOS 2.33 present.
+25 structures occupying 808 bytes.
+Table at 0x000E3810.
 
-PNPACPI and PNPBIOS devices can use more than 2 IRQs, so bump PNP_MAX_IRQ
-from 2 to 4.  For example, HPET devices can have up to 32 timers, each with
-an IRQ.  (Current HPETs typically have 3 timers.)
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+=09Vendor: Acer
+=09Version: V3.10
+=09Release Date: 11/15/2006
+=09Address: 0xE69B0
+=09Runtime Size: 104016 bytes
+=09ROM Size: 1024 kB
+=09Characteristics:
+=09=09PCI is supported
+=09=09PC Card (PCMCIA) is supported
+=09=09PNP is supported
+=09=09BIOS is upgradeable
+=09=09BIOS shadowing is allowed
+=09=09ESCD support is available
+=09=09Boot from CD is supported
+=09=09Selectable boot is supported
+=09=09Print screen service is supported (int 5h)
+=09=098042 keyboard services are supported (int 9h)
+=09=09Printer services are supported (int 17h)
+=09=09CGA/mono video services are supported (int 10h)
+=09=09ACPI is supported
+=09=09USB legacy is supported
+=09=09AGP is supported
+=09=09Smart battery is supported
+=09=09BIOS boot specification is supported
+=09=09Targeted content distribution is supported
+=09BIOS Revision: 0.0
+=09Firmware Revision: 0.0
 
-Add ISAPNP_MAX_PORT, ISAPNP_MAX_MEM, ISAPNP_MAX_IRQ, and ISAPNP_MAX_DMA
-because ISAPNP does limit the number of resources a device can use.
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+=09Manufacturer: Acer           =20
+=09Product Name: Aspire 5630    =20
+=09Version: V3.10
+=09Serial Number: LXAG40J0666450D6031601
+=09UUID: 5835016D-AB01-9504-F4EC-0016D457B22B
+=09Wake-up Type: Power Switch
+=09SKU Number: Not Specified
+=09Family: Not Specified
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+=09Manufacturer: Acer
+=09Product Name: Grapevine
+=09Version: N/A
+=09Serial Number: LXAG40J0666450D6031601
 
-Index: work-mm1/drivers/pnp/isapnp/core.c
-===================================================================
---- work-mm1.orig/drivers/pnp/isapnp/core.c	2005-08-09 10:07:45.000000000 -0600
-+++ work-mm1/drivers/pnp/isapnp/core.c	2005-08-09 14:03:03.000000000 -0600
-@@ -950,28 +950,28 @@
- 
- 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
- 	if (dev->active) {
--		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
- 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
- 			if (!ret)
- 				continue;
- 			res->port_resource[tmp].start = ret;
- 			res->port_resource[tmp].flags = IORESOURCE_IO;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
- 			ret = isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
- 				continue;
- 			res->mem_resource[tmp].start = ret;
- 			res->mem_resource[tmp].flags = IORESOURCE_MEM;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
- 			ret = (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >> 8);
- 			if (!ret)
- 				continue;
- 			res->irq_resource[tmp].start = res->irq_resource[tmp].end = ret;
- 			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
-@@ -998,17 +998,17 @@
- 
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
--	for (tmp = 0; tmp < PNP_MAX_PORT && (res->port_resource[tmp].flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO; tmp++)
-+	for (tmp = 0; tmp < ISAPNP_MAX_PORT && (res->port_resource[tmp].flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO; tmp++)
- 		isapnp_write_word(ISAPNP_CFG_PORT+(tmp<<1), res->port_resource[tmp].start);
--	for (tmp = 0; tmp < PNP_MAX_IRQ && (res->irq_resource[tmp].flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ; tmp++) {
-+	for (tmp = 0; tmp < ISAPNP_MAX_IRQ && (res->irq_resource[tmp].flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ; tmp++) {
- 		int irq = res->irq_resource[tmp].start;
- 		if (irq == 2)
- 			irq = 9;
- 		isapnp_write_byte(ISAPNP_CFG_IRQ+(tmp<<1), irq);
- 	}
--	for (tmp = 0; tmp < PNP_MAX_DMA && (res->dma_resource[tmp].flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA; tmp++)
-+	for (tmp = 0; tmp < ISAPNP_MAX_DMA && (res->dma_resource[tmp].flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA; tmp++)
- 		isapnp_write_byte(ISAPNP_CFG_DMA+tmp, res->dma_resource[tmp].start);
--	for (tmp = 0; tmp < PNP_MAX_MEM && (res->mem_resource[tmp].flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM; tmp++)
-+	for (tmp = 0; tmp < ISAPNP_MAX_MEM && (res->mem_resource[tmp].flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM; tmp++)
- 		isapnp_write_word(ISAPNP_CFG_MEM+(tmp<<3), (res->mem_resource[tmp].start >> 8) & 0xffff);
- 	/* FIXME: We aren't handling 32bit mems properly here */
- 	isapnp_activate(dev->number);
-Index: work-mm1/include/linux/isapnp.h
-===================================================================
---- work-mm1.orig/include/linux/isapnp.h	2005-06-17 13:48:29.000000000 -0600
-+++ work-mm1/include/linux/isapnp.h	2005-08-09 14:35:31.000000000 -0600
-@@ -24,6 +24,7 @@
- 
- #include <linux/config.h>
- #include <linux/errno.h>
-+#include <linux/kernel.h>
- #include <linux/pnp.h>
- 
- /*
-@@ -36,6 +37,11 @@
- #define ISAPNP_CFG_IRQ			0x70	/* 2 * word */
- #define ISAPNP_CFG_DMA			0x74	/* 2 * byte */
- 
-+#define ISAPNP_MAX_PORT			min(8, PNP_MAX_PORT)
-+#define ISAPNP_MAX_MEM			min(4, PNP_MAX_MEM)
-+#define ISAPNP_MAX_IRQ			min(2, PNP_MAX_IRQ)
-+#define ISAPNP_MAX_DMA			min(2, PNP_MAX_DMA)
-+
- /*
-  *
-  */
-Index: work-mm1/include/linux/pnp.h
-===================================================================
---- work-mm1.orig/include/linux/pnp.h	2005-08-09 10:07:46.000000000 -0600
-+++ work-mm1/include/linux/pnp.h	2005-08-09 14:01:08.000000000 -0600
-@@ -16,7 +16,7 @@
- 
- #define PNP_MAX_PORT		8
- #define PNP_MAX_MEM		4
--#define PNP_MAX_IRQ		2
-+#define PNP_MAX_IRQ		4
- #define PNP_MAX_DMA		2
- #define PNP_NAME_LEN		50
- 
-Index: work-mm1/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work-mm1.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 10:07:45.000000000 -0600
-+++ work-mm1/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 14:29:59.000000000 -0600
-@@ -72,6 +72,10 @@
- 	}
- }
- 
-+/*
-+ * ACPI doesn't limit the number of resources a device can use, so
-+ * we can use the generic PNP limits (PNP_MAX_IRQ, etc).
-+ */
- static void
- pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
- 	int edge_level, int active_high_low)
-Index: work-mm1/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work-mm1.orig/drivers/pnp/pnpbios/rsparser.c	2005-08-09 10:07:45.000000000 -0600
-+++ work-mm1/drivers/pnp/pnpbios/rsparser.c	2005-08-09 14:29:37.000000000 -0600
-@@ -51,6 +51,10 @@
-  * Allocated Resources
-  */
- 
-+/*
-+ * PNPBIOS doesn't limit the number of resources a device can use, so
-+ * we can use the generic PNP limits (PNP_MAX_IRQ, etc).
-+ */
- static void
- pnpbios_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
- {
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+=09Manufacturer: Acer
+=09Type: Notebook
+=09Lock: Not Present
+=09Version: N/A
+=09Serial Number: None
+=09Asset Tag:                                =20
+=09Boot-up State: Safe
+=09Power Supply State: Safe
+=09Thermal State: Safe
+=09Security Status: None
+=09OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+=09Socket Designation: U1
+=09Type: Central Processor
+=09Family: Other
+=09Manufacturer: Intel
+=09ID: F6 06 00 00 FF FB EB BF
+=09Version: Intel(R) Core(TM)2 CPU         T5
+=09Voltage: 3.3 V
+=09External Clock: 166 MHz
+=09Max Speed: 1660 MHz
+=09Current Speed: 1660 MHz
+=09Status: Populated, Enabled
+=09Upgrade: ZIF Socket
+=09L1 Cache Handle: Not Provided
+=09L2 Cache Handle: 0x0005
+=09L3 Cache Handle: Not Provided
+=09Serial Number: Not Specified
+=09Asset Tag: Not Specified
+=09Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+=09Socket Designation: L2 Cache
+=09Configuration: Enabled, Socketed, Level 2
+=09Operational Mode: Write Back
+=09Location: Internal
+=09Installed Size: 2048 KB
+=09Maximum Size: 2048 KB
+=09Supported SRAM Types:
+=09=09Burst
+=09=09Pipeline Burst
+=09Installed SRAM Type: Burst
+=09Speed: Unknown
+=09Error Correction Type: Unknown
+=09System Type: Unknown
+=09Associativity: Unknown
+
+Handle 0x0006, DMI type 9, 13 bytes
+System Slot Information
+=09Designation: PCI Slot J1100
+=09Type: 32-bit PCI
+=09Current Usage: In Use
+=09Length: Long
+=09ID: 0
+=09Characteristics:
+=09=095.0 V is provided
+=09=093.3 V is provided
+=09=09PME signal is supported
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+=09Designation: PCI Slot J1101
+=09Type: 32-bit PCI
+=09Current Usage: In Use
+=09Length: Long
+=09ID: 0
+=09Characteristics:
+=09=095.0 V is provided
+=09=093.3 V is provided
+=09=09PME signal is supported
+
+Handle 0x0008, DMI type 10, 6 bytes
+On Board Device Information
+=09Type: Sound
+=09Status: Disabled
+=09Description: HD-Audio
+
+Handle 0x0009, DMI type 14, 11 bytes
+Group Associations
+=09Name: Cpu Module
+=09Items: 2
+=09=090x0015 (Processor)
+=09=090x0016 (Cache)
+
+Handle 0x000A, DMI type 16, 15 bytes
+Physical Memory Array
+=09Location: System Board Or Motherboard
+=09Use: System Memory
+=09Error Correction Type: None
+=09Maximum Capacity: 2 GB
+=09Error Information Handle: Not Provided
+=09Number Of Devices: 2
+
+Handle 0x000B, DMI type 17, 27 bytes
+Memory Device
+=09Array Handle: 0x000A
+=09Error Information Handle: No Error
+=09Total Width: 32 bits
+=09Data Width: 32 bits
+=09Size: 512 MB
+=09Form Factor: SODIMM
+=09Set: 1
+=09Locator: M1
+=09Bank Locator: Bank 0
+=09Type: DDR2
+=09Type Detail: Synchronous
+=09Speed: Unknown
+=09Manufacturer: Not Specified
+=09Serial Number: Not Specified
+=09Asset Tag: Not Specified
+=09Part Number: Not Specified
+
+Handle 0x000C, DMI type 17, 27 bytes
+Memory Device
+=09Array Handle: 0x000A
+=09Error Information Handle: No Error
+=09Total Width: 32 bits
+=09Data Width: 32 bits
+=09Size: 512 MB
+=09Form Factor: SODIMM
+=09Set: 2
+=09Locator: M2
+=09Bank Locator: Bank 1
+=09Type: DDR2
+=09Type Detail: Synchronous
+=09Speed: Unknown
+=09Manufacturer: Not Specified
+=09Serial Number: Not Specified
+=09Asset Tag: Not Specified
+=09Part Number: Not Specified
+
+Handle 0x000D, DMI type 19, 15 bytes
+Memory Array Mapped Address
+=09Starting Address: 0x00000000000
+=09Ending Address: 0x0003FFFFFFF
+=09Range Size: 1 GB
+=09Physical Array Handle: 0x000A
+=09Partition Width: 0
+
+Handle 0x000E, DMI type 20, 19 bytes
+Memory Device Mapped Address
+=09Starting Address: 0x00000000000
+=09Ending Address: 0x0003FFFFFFF
+=09Range Size: 1 GB
+=09Physical Device Handle: 0x000B
+=09Memory Array Mapped Address Handle: 0x000D
+=09Partition Row Position: 2
+=09Interleave Position: 1
+=09Interleaved Data Depth: 6
+
+Handle 0x000F, DMI type 23, 13 bytes
+System Reset
+=09Status: Enabled
+=09Watchdog Timer: Present
+=09Boot Option: Do Not Reboot
+=09Boot Option On Limit: Do Not Reboot
+=09Reset Count: Unknown
+=09Reset Limit: Unknown
+=09Timer Interval: Unknown
+=09Timeout: Unknown
+
+Handle 0x0010, DMI type 24, 5 bytes
+Hardware Security
+=09Power-On Password Status: Disabled
+=09Keyboard Password Status: Unknown
+=09Administrator Password Status: Disabled
+=09Front Panel Reset Status: Unknown
+
+Handle 0x0011, DMI type 25, 9 bytes
+=09System Power Controls
+=09Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0012, DMI type 26, 20 bytes
+Voltage Probe
+=09Description: Voltage Probe
+=09Location: Processor
+=09Status: OK
+=09Maximum Value: Unknown
+=09Minimum Value: Unknown
+=09Resolution: Unknown
+=09Tolerance: Unknown
+=09Accuracy: Unknown
+=09OEM-specific Information: 0x00000000
+
+Handle 0x0013, DMI type 27, 12 bytes
+Cooling Device
+=09Temperature Probe Handle: 0x0014
+=09Type: Fan
+=09Status: OK
+=09OEM-specific Information: 0x00000000
+
+Handle 0x0014, DMI type 28, 20 bytes
+Temperature Probe
+=09Description: Temperature Probe
+=09Location: Processor
+=09Status: OK
+=09Maximum Value: Unknown
+=09Minimum Value Unknown
+=09Resolution: Unknown
+=09Tolerance: Unknown
+=09Accuracy: Unknown
+=09OEM-specific Information: 0x00000000
+
+Handle 0x0015, DMI type 29, 20 bytes
+Electrical Current Probe
+=09Description: Electrical Current Probe
+=09Location: Processor
+=09Status: OK
+=09Maximum Value: Unknown
+=09Minimum Value: Unknown
+=09Resolution: Unknown
+=09Tolerance: Unknown
+=09Accuracy: Unknown
+=09OEM-specific Information: 0x00000000
+
+Handle 0x0016, DMI type 30, 6 bytes
+Out-of-band Remote Access
+=09Manufacturer Name: Intel
+=09Inbound Connection: Enabled
+=09Outbound Connection: Disabled
+
+Handle 0x0017, DMI type 32, 20 bytes
+System Boot Information
+=09Status: <OUT OF SPEC>
+
+Handle 0x0018, DMI type 127, 4 bytes
+End Of Table
+
+--=_525yv8edsmps--
