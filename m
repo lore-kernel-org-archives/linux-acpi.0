@@ -1,46 +1,183 @@
-From: "Aaron Durbin" <adurbin@google.com>
-Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Tue, 17 Jul 2007 08:47:56 -0700
-Message-ID: <8f95bb250707170847t5b3aded3hb6d08f825362f76c@mail.gmail.com>
-References: <20070716180019.GA5112@google.com>
-	 <86802c440707170740i30ed2110l130dafbec8e4d4a5@mail.gmail.com>
-	 <8f95bb250707170808n19799ba5l3acd13e2ee7e0f08@mail.gmail.com>
-	 <200707171742.39067.ak@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] - Increase PNP_MAX_PORT. ACPI devices can have a lot IO resource declarations
+Date: Tue, 17 Jul 2007 09:49:47 -0600
+Message-ID: <200707170949.47346.bjorn.helgaas@hp.com>
+References: <1184595667.19959.312.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:12124 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935151AbXGQPsN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 11:48:13 -0400
-Received: from zps38.corp.google.com (zps38.corp.google.com [172.25.146.38])
-	by smtp-out.google.com with ESMTP id l6HFm43v031610
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 16:48:05 +0100
-Received: from nz-out-0506.google.com (nzfl1.prod.google.com [10.36.188.1])
-	by zps38.corp.google.com with ESMTP id l6HFlu1l017803
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:47:56 -0700
-Received: by nz-out-0506.google.com with SMTP id l1so1075096nzf
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:47:56 -0700 (PDT)
-In-Reply-To: <200707171742.39067.ak@suse.de>
+Received: from atlrel9.hp.com ([156.153.255.214]:43158 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760179AbXGQQKy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2007 12:10:54 -0400
+In-Reply-To: <1184595667.19959.312.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
+To: trenn@suse.de
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, Jean Delvare <khali@linux-fr.org>, Bernhard Walle <bwalle@suse.de>
 
-On 7/17/07, Andi Kleen <ak@suse.de> wrote:
-> On Tuesday 17 July 2007 17:08:19 Aaron Durbin wrote:
->
-> > This is true if SMIs are still flowing, and the SMI handler correctly handles
-> > the reset properly. I have seen cases where the SMI handler is broken which
-> > causes the system to perpetually hang.
->
-> Ah, that is the rationale that was missing in the first mail ...
-> Ok that makes some sense. Is it a common issue?
->
+On Monday 16 July 2007 08:21:07 am Thomas Renninger wrote:
+> PNP0C02 devices normally have a lot more IO port declarations than
+> currently defined in PNP_MAX_PORT
 
-I am not sure in how common it is, but I have access to some machines around
-here that are displaying this issue.
+Yes.
 
--Aaron
+> I also wonder whether other limits like:
+>  #define PNP_MAX_MEM        4
+>  #define PNP_MAX_IRQ        2
+>  #define PNP_MAX_DMA        2
+> could get exceeded with pnpacpi?
+
+Definitely.  I think the current limits come from the PNP ISA spec
+(sec 4.6).  I don't see similar limits in the PNPBIOS or ACPI specs,
+so ideally I think they should be dynamically allocated as you suggest.
+
+HPET devices often use more than two IRQs, so I worked up the following
+patch a while ago.  I didn't post it because Adam had plans for a better
+fix.  But I suspect he's otherwise occupied now :-)
+
+It doesn't change PNP_MAX_PORT, so that would have to be updated.
+
+
+
+
+PNP: increase number of resources devices can use
+
+PNPACPI and PNPBIOS devices can use more than 2 IRQs, so bump PNP_MAX_IRQ
+from 2 to 4.  For example, HPET devices can have up to 32 timers, each with
+an IRQ.  (Current HPETs typically have 3 timers.)
+
+Add ISAPNP_MAX_PORT, ISAPNP_MAX_MEM, ISAPNP_MAX_IRQ, and ISAPNP_MAX_DMA
+because ISAPNP does limit the number of resources a device can use.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+Index: work-mm1/drivers/pnp/isapnp/core.c
+===================================================================
+--- work-mm1.orig/drivers/pnp/isapnp/core.c	2005-08-09 10:07:45.000000000 -0600
++++ work-mm1/drivers/pnp/isapnp/core.c	2005-08-09 14:03:03.000000000 -0600
+@@ -950,28 +950,28 @@
+ 
+ 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
+ 	if (dev->active) {
+-		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
++		for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
+ 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
+ 			if (!ret)
+ 				continue;
+ 			res->port_resource[tmp].start = ret;
+ 			res->port_resource[tmp].flags = IORESOURCE_IO;
+ 		}
+-		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
++		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
+ 			ret = isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
+ 			if (!ret)
+ 				continue;
+ 			res->mem_resource[tmp].start = ret;
+ 			res->mem_resource[tmp].flags = IORESOURCE_MEM;
+ 		}
+-		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
++		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
+ 			ret = (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >> 8);
+ 			if (!ret)
+ 				continue;
+ 			res->irq_resource[tmp].start = res->irq_resource[tmp].end = ret;
+ 			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
+ 		}
+-		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
++		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
+ 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
+ 			if (ret == 4)
+ 				continue;
+@@ -998,17 +998,17 @@
+ 
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+ 	dev->active = 1;
+-	for (tmp = 0; tmp < PNP_MAX_PORT && (res->port_resource[tmp].flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO; tmp++)
++	for (tmp = 0; tmp < ISAPNP_MAX_PORT && (res->port_resource[tmp].flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO; tmp++)
+ 		isapnp_write_word(ISAPNP_CFG_PORT+(tmp<<1), res->port_resource[tmp].start);
+-	for (tmp = 0; tmp < PNP_MAX_IRQ && (res->irq_resource[tmp].flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ; tmp++) {
++	for (tmp = 0; tmp < ISAPNP_MAX_IRQ && (res->irq_resource[tmp].flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ; tmp++) {
+ 		int irq = res->irq_resource[tmp].start;
+ 		if (irq == 2)
+ 			irq = 9;
+ 		isapnp_write_byte(ISAPNP_CFG_IRQ+(tmp<<1), irq);
+ 	}
+-	for (tmp = 0; tmp < PNP_MAX_DMA && (res->dma_resource[tmp].flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA; tmp++)
++	for (tmp = 0; tmp < ISAPNP_MAX_DMA && (res->dma_resource[tmp].flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA; tmp++)
+ 		isapnp_write_byte(ISAPNP_CFG_DMA+tmp, res->dma_resource[tmp].start);
+-	for (tmp = 0; tmp < PNP_MAX_MEM && (res->mem_resource[tmp].flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM; tmp++)
++	for (tmp = 0; tmp < ISAPNP_MAX_MEM && (res->mem_resource[tmp].flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM; tmp++)
+ 		isapnp_write_word(ISAPNP_CFG_MEM+(tmp<<3), (res->mem_resource[tmp].start >> 8) & 0xffff);
+ 	/* FIXME: We aren't handling 32bit mems properly here */
+ 	isapnp_activate(dev->number);
+Index: work-mm1/include/linux/isapnp.h
+===================================================================
+--- work-mm1.orig/include/linux/isapnp.h	2005-06-17 13:48:29.000000000 -0600
++++ work-mm1/include/linux/isapnp.h	2005-08-09 14:35:31.000000000 -0600
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/config.h>
+ #include <linux/errno.h>
++#include <linux/kernel.h>
+ #include <linux/pnp.h>
+ 
+ /*
+@@ -36,6 +37,11 @@
+ #define ISAPNP_CFG_IRQ			0x70	/* 2 * word */
+ #define ISAPNP_CFG_DMA			0x74	/* 2 * byte */
+ 
++#define ISAPNP_MAX_PORT			min(8, PNP_MAX_PORT)
++#define ISAPNP_MAX_MEM			min(4, PNP_MAX_MEM)
++#define ISAPNP_MAX_IRQ			min(2, PNP_MAX_IRQ)
++#define ISAPNP_MAX_DMA			min(2, PNP_MAX_DMA)
++
+ /*
+  *
+  */
+Index: work-mm1/include/linux/pnp.h
+===================================================================
+--- work-mm1.orig/include/linux/pnp.h	2005-08-09 10:07:46.000000000 -0600
++++ work-mm1/include/linux/pnp.h	2005-08-09 14:01:08.000000000 -0600
+@@ -16,7 +16,7 @@
+ 
+ #define PNP_MAX_PORT		8
+ #define PNP_MAX_MEM		4
+-#define PNP_MAX_IRQ		2
++#define PNP_MAX_IRQ		4
+ #define PNP_MAX_DMA		2
+ #define PNP_NAME_LEN		50
+ 
+Index: work-mm1/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work-mm1.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 10:07:45.000000000 -0600
++++ work-mm1/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 14:29:59.000000000 -0600
+@@ -72,6 +72,10 @@
+ 	}
+ }
+ 
++/*
++ * ACPI doesn't limit the number of resources a device can use, so
++ * we can use the generic PNP limits (PNP_MAX_IRQ, etc).
++ */
+ static void
+ pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
+ 	int edge_level, int active_high_low)
+Index: work-mm1/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work-mm1.orig/drivers/pnp/pnpbios/rsparser.c	2005-08-09 10:07:45.000000000 -0600
++++ work-mm1/drivers/pnp/pnpbios/rsparser.c	2005-08-09 14:29:37.000000000 -0600
+@@ -51,6 +51,10 @@
+  * Allocated Resources
+  */
+ 
++/*
++ * PNPBIOS doesn't limit the number of resources a device can use, so
++ * we can use the generic PNP limits (PNP_MAX_IRQ, etc).
++ */
+ static void
+ pnpbios_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
+ {
