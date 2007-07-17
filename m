@@ -1,34 +1,49 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Tue, 17 Jul 2007 07:40:46 -0700
-Message-ID: <86802c440707170740i30ed2110l130dafbec8e4d4a5@mail.gmail.com>
-References: <20070716180019.GA5112@google.com> <200707171331.59414.ak@suse.de>
+From: Carlos Corbacho <cathectic@gmail.com>
+Subject: [RFC][PATCH 0/5] ACPI: acer_acpi
+Date: Tue, 17 Jul 2007 15:44:56 +0100
+Message-ID: <200707171544.57004.cathectic@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:42821 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759911AbXGQOku (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 10:40:50 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so2003385wah
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 07:40:50 -0700 (PDT)
-In-Reply-To: <200707171331.59414.ak@suse.de>
+Received: from wx-out-0506.google.com ([66.249.82.233]:18236 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677AbXGQOoq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 10:44:46 -0400
+Received: by wx-out-0506.google.com with SMTP id h31so1531062wxd
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 07:44:45 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Aaron Durbin <adurbin@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
+To: linux-acpi@vger.kernel.org
 
-On 7/17/07, Andi Kleen <ak@suse.de> wrote:
-> On Monday 16 July 2007 20:00:19 Aaron Durbin wrote:
-> >
-> > Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
->
-> Why? I had such a patch at some point as experiment, but it never
-> helped actually fix a box.
->
-system without superio, should still have SMI to simulate one keyboard
-controller. So the key board reset still works.
+Hello all,
 
-YH
+The following five patches (against acpi test) add support for Acer laptops
+(2005 and newer) that define the PNP0C14 _HID device in ACPI (aka the Windows
+Management Instrumentation Device).
+
+There are two known, supported ACPI devices so far that are attached to
+PNP0C14 in the DSDTs of supported laptops that I've seen:
+
+1) \_SB.AMW0 (some 2005 - 2006 laptops)
+2) \_SB.WMID (some 2006 - present laptops)
+
+acer_acpi can enable and disable the wireless and bluetooth devices on these
+laptops through the methods with this _HID device (especially useful since
+many Acer laptops ship with software controlled switches for these). On AMW0
+laptops, we can also enable the mail LED, and on WMID, alter the brightness
+of the backlight.
+
+For one laptop, we also apply an old quirk with the keyboard controller to
+make the multimedia keys emit scancodes.
+
+Any comments, thoughts, criticisms, etc are all welcome - if it isn't painfully
+obvious already, this is my first kernel driver.
+
+-Carlos
+-- 
+E-Mail: cathectic@gmail.com
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
