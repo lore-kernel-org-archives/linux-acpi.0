@@ -1,429 +1,54 @@
-From: andrea <andrea@dottout.com>
-Subject: dmidecode output
-Date: Tue, 17 Jul 2007 21:51:45 +0200
-Message-ID: <469D1DD1.6080704@dottout.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
+Date: Tue, 17 Jul 2007 16:08:26 -0600
+Message-ID: <200707171608.26775.bjorn.helgaas@hp.com>
+References: <1183030080.4249.172.camel@queen.suse.de> <200707061038.50755.bjorn.helgaas@hp.com> <200707061520.37137.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050409040503040304050903"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:52491 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760443AbXGQT5h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 15:57:37 -0400
-Received: from [192.168.1.2] (2.255.96.134) by aa013msr.fastwebnet.it (7.3.118.6) (authenticated as angst@fastwebnet.it)
-        id 469C22BA000DBFDC for linux-acpi@vger.kernel.org; Tue, 17 Jul 2007 21:51:49 +0200
+Received: from atlrel6.hp.com ([156.153.255.205]:56979 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752194AbXGQWJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2007 18:09:10 -0400
+In-Reply-To: <200707061520.37137.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: david@lang.hm, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-This is a multi-part message in MIME format.
---------------050409040503040304050903
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday 06 July 2007 03:20:36 pm Bjorn Helgaas wrote:
+> On Friday 06 July 2007 10:38:50 am Bjorn Helgaas wrote:
+> > > should I test the two individually? or just plan on useing both from now 
+> > > on?
+> > > I normally disable PnP (both ISA and PCI), should I leave it enabled with 
+> > > the newer kernels and this motherboard?
+> > 
+> > Ultimately, you should have CONFIG_ACPI=y and CONFIG_PNPACPI=y, and you
+> > should not have to boot with "noisapnp" or "pnpacpi=off".  My guess is
+> > that you only need "pnpacpi=off" to work around the current problem.
+> > 
+> > At http://linux.lang.hm/linux, I see dmesg logs (with tons of
+> > kobject debug that's useless to me) from 2.6.22-rc4.  It would
+> > be useful to have the log from 2.6.22-rc4 with "pnpacpi=off"
+> > (which I expect to work), so we could compare it with the
+> > "2.6.22-rc4.dmesg" log, which I assume a non-working one.
+> > 
+> > Linux PNPACPI currently doesn't manage resources quite the same way
+> > Windows does, and that might account for this problem.  You might
+> > try this:
+> > 
+> >   - boot without "pnpacpi=off" (leave PNPACPI enabled)
+> >   - before loading the parport_pc driver, do this:
+> >     # echo "disable" > /sys/devices/pnp0/00:0a/resources
+> >     # echo "enable" > /sys/devices/pnp0/00:0a/resources
+> 
+> Sorry, I meant:
+> 
+>      # echo "disable" > /sys/devices/pnp0/00:0a/resources
+>      # echo "clear"   > /sys/devices/pnp0/00:0a/resources
+>      # echo "enable"  > /sys/devices/pnp0/00:0a/resources
 
-Hi, Im running kernel 2.6.22, dmesg show this also with acpi_osi=!linux 
-set.
-
-Using ACPI (MADT) for SMP configuration information
-Kernel command line: BOOT_IMAGE=Gentoo ro root=802 acpi_osi=!Linux
-ACPI: Disabled _OSI(Linux)
-ACPI: Core revision 20070126
-ACPI: bus type pci registered
-ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
-
-
---------------050409040503040304050903
-Content-Type: text/plain;
- name="dmidecode.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dmidecode.txt"
-
-# dmidecode 2.9
-SMBIOS 2.4 present.
-35 structures occupying 1159 bytes.
-Table at 0x3FEEA000.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: FUJITSU SIEMENS
-	Version: 1.23
-	Release Date: 03/16/2007
-	ROM Size: 64 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: FUJITSU SIEMENS
-	Product Name: AMILO Pi 1536
-	Version: Not Applicable
-	Serial Number: 5311F9B6
-	UUID: 00D5D495-CD63-0010-8C63-99E512DA426C
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: FUJITSU SIEMENS
-	Product Name: AMILO Pi 1536
-	Version: Not Applicable
-	Serial Number: Not Applicable
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: FUJITSU SIEMENS
-	Type: Notebook
-	Lock: Not Present
-	Version: Not Applicable
-	Serial Number: Not Applicable
-	Asset Tag: Not Applicable
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: F6 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU         T5
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 2048 MHz
-	Current Speed: 1800 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 2048 KB
-	Maximum Size: 512 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Mouse Port
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J8B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PEG Slot J6C1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 6
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J7C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 7
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 7
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000F, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: HD-Audio
-
-Handle 0x0010, DMI type 11, 5 bytes
-OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
-
-Handle 0x0011, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x0012, DMI type 15, 29 bytes
-System Event Log
-	Area Length: 16 bytes
-	Header Start Offset: 0x0000
-	Header Length: 16 bytes
-	Data Start Offset: 0x0010
-	Access Method: General-purpose non-volatile data functions
-	Access Address: 0x0000
-	Status: Valid, Not Full
-	Change Token: 0x00000005
-	Header Format: Type 1
-	Supported Log Type Descriptors: 3
-	Descriptor 1: POST error
-	Data Format 1: POST results bitmap
-	Descriptor 2: Single-bit ECC memory error
-	Data Format 2: Multiple-event
-	Descriptor 3: Multi-bit ECC memory error
-	Data Format 3: Multiple-event
-
-Handle 0x0013, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 3 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0014, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0015, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0016, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Array Handle: 0x0013
-	Partition Width: 0
-
-Handle 0x0017, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0014
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0018, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00020000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0015
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0019, DMI type 23, 13 bytes
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x001A, DMI type 24, 5 bytes
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x001B, DMI type 25, 9 bytes
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x001C, DMI type 26, 20 bytes
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 27, 12 bytes
-Cooling Device
-	Temperature Probe Handle: 0x001E
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001E, DMI type 28, 20 bytes
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001F, DMI type 29, 20 bytes
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x0020, DMI type 30, 6 bytes
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x0021, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0022, DMI type 127, 4 bytes
-End Of Table
-
-
---------------050409040503040304050903--
+Ping!  David, do you still care about this issue?
