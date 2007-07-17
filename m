@@ -1,58 +1,31 @@
 From: Andi Kleen <ak@suse.de>
 Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Tue, 17 Jul 2007 17:41:27 +0200
-Message-ID: <200707171741.27628.ak@suse.de>
-References: <fa.IMXKKgfBkv/U+MG0xx5sLkpV2Ws@ifi.uio.no> <fa.+iOE+OqrQUbecN788fV4aEhLLtg@ifi.uio.no> <469CD4B8.9070506@shaw.ca>
+Date: Tue, 17 Jul 2007 17:42:38 +0200
+Message-ID: <200707171742.39067.ak@suse.de>
+References: <20070716180019.GA5112@google.com> <86802c440707170740i30ed2110l130dafbec8e4d4a5@mail.gmail.com> <8f95bb250707170808n19799ba5l3acd13e2ee7e0f08@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:47354 "EHLO mx1.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:47489 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934618AbXGQPlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jul 2007 11:41:32 -0400
-In-Reply-To: <469CD4B8.9070506@shaw.ca>
+	id S934684AbXGQPmm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2007 11:42:42 -0400
+In-Reply-To: <8f95bb250707170808n19799ba5l3acd13e2ee7e0f08@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Aaron Durbin <adurbin@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
 
-On Tuesday 17 July 2007 16:39:52 Robert Hancock wrote:
-> Andi Kleen wrote:
-> > On Monday 16 July 2007 20:00:19 Aaron Durbin wrote:
-> >> Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
-> > 
-> > Why? I had such a patch at some point as experiment, but it never
-> > helped actually fix a box.
-> 
-> Depends if Windows resets using this method,> in that case using it as  
-> well would likely prevent the steady trickle of machines that seem to 
-> have trouble with other reset methods and need blacklist entries..
+On Tuesday 17 July 2007 17:08:19 Aaron Durbin wrote:
+ 
+> This is true if SMIs are still flowing, and the SMI handler correctly handles
+> the reset properly. I have seen cases where the SMI handler is broken which
+> causes the system to perpetually hang.
 
-It's not that easy -- there are different windows versions out who
-do different things. Sometimes systems are built for older windows
-versions, sometimes systems are built for newer windows versions.
-They don't necessarily work on newer versions.
-But people expect Linux to run on all of them.
-
-> I sometimes think that with these sorts of things where basic 
-> functionality like reboot is broken, 
-
-I'm not aware of that many systems where reboot doesn't work.
-Also I'm sure there are some who don't reboot even in Windows.
-
-Another reason is probably that reboot is quite hard to debug.
-
-One recently new problem is that some systems don't have keyboard
-controllers anymore so that method obviously doesn't work. But 
-it doesn't hurt to try it first because it's unlikely to break
-something
-
-The triple fault fallback is normally quite reliable though.
-
-I would expect that putting the ACPI method in the middle
-is probably safe enough.
+Ah, that is the rationale that was missing in the first mail ...
+Ok that makes some sense. Is it a common issue? 
 
 -Andi
