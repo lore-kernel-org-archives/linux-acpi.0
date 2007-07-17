@@ -1,48 +1,42 @@
 From: "Aaron Durbin" <adurbin@google.com>
 Subject: Re: [PATCH] ACPI: Add reboot mechanism
-Date: Tue, 17 Jul 2007 08:08:19 -0700
-Message-ID: <8f95bb250707170808n19799ba5l3acd13e2ee7e0f08@mail.gmail.com>
+Date: Tue, 17 Jul 2007 08:08:24 -0700
+Message-ID: <8f95bb250707170808u5afee515y592c0a0ccafa95b2@mail.gmail.com>
 References: <20070716180019.GA5112@google.com> <200707171331.59414.ak@suse.de>
-	 <86802c440707170740i30ed2110l130dafbec8e4d4a5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:22975 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:8533 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933907AbXGQPIY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 11:08:24 -0400
-Received: from zps36.corp.google.com (zps36.corp.google.com [172.25.146.36])
-	by smtp-out.google.com with ESMTP id l6HF8LRH004668
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:08:21 -0700
-Received: from wa-out-1112.google.com (wafj32.prod.google.com [10.114.186.32])
-	by zps36.corp.google.com with ESMTP id l6HF8Cea019028
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:08:19 -0700
-Received: by wa-out-1112.google.com with SMTP id j32so1959151waf
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:08:19 -0700 (PDT)
-In-Reply-To: <86802c440707170740i30ed2110l130dafbec8e4d4a5@mail.gmail.com>
+	with ESMTP id S934121AbXGQPIa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2007 11:08:30 -0400
+Received: from zps35.corp.google.com (zps35.corp.google.com [172.25.146.35])
+	by smtp-out.google.com with ESMTP id l6HF8REH027710
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 16:08:27 +0100
+Received: from wa-out-1112.google.com (wagn7.prod.google.com [10.114.215.7])
+	by zps35.corp.google.com with ESMTP id l6HF7Zmp027882
+	for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:08:24 -0700
+Received: by wa-out-1112.google.com with SMTP id n7so2260062wag
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jul 2007 08:08:24 -0700 (PDT)
+In-Reply-To: <200707171331.59414.ak@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
+To: Andi Kleen <ak@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org
 
-On 7/17/07, Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-> On 7/17/07, Andi Kleen <ak@suse.de> wrote:
-> > On Monday 16 July 2007 20:00:19 Aaron Durbin wrote:
-> > >
-> > > Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
+On 7/17/07, Andi Kleen <ak@suse.de> wrote:
+> On Monday 16 July 2007 20:00:19 Aaron Durbin wrote:
 > >
-> > Why? I had such a patch at some point as experiment, but it never
-> > helped actually fix a box.
-> >
-> system without superio, should still have SMI to simulate one keyboard
-> controller. So the key board reset still works.
+> > Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
+>
+> Why? I had such a patch at some point as experiment, but it never
+> helped actually fix a box.
 
-This is true if SMIs are still flowing, and the SMI handler correctly handles
-the reset properly. I have seen cases where the SMI handler is broken which
-causes the system to perpetually hang. Utilizing the exposed reset mechanism
-in ACPI should reset the system every time. However, if the reset fails it
-will fall back to the keyboard controller.
+I have a box here that it fixes, but I also don't see what it hurts. How much
+are you against the patch? If the keyboard controller won't work and there are
+issues using the triple fault, but if the RESET_REG is setup properly it will
+definitely reboot the machine as intended with no ill side effects.
 
 -Aaron
