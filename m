@@ -1,41 +1,66 @@
 From: Mattia Dongili <malattia@linux.it>
 Subject: Re: [PATCH 5/7] Make the driver use MSC_SCAN and a setkeycode and
 	getkeycode key table.
-Date: Wed, 18 Jul 2007 20:45:19 +0900
-Message-ID: <20070718114518.GB21658@inferi.kami.home>
-References: <1184520879452-git-send-email-malattia@linux.it> <1184520879991-git-send-email-malattia@linux.it> <11845208793336-git-send-email-malattia@linux.it> <11845208793678-git-send-email-malattia@linux.it> <11845208794064-git-send-email-malattia@linux.it> <11845208791511-git-send-email-malattia@linux.it> <20070715211128.GA6291@srcf.ucam.org> <1184605565.2228.57.camel@work> <20070716180928.GA21211@srcf.ucam.org> <1184668653.2443.2.camel@work>
+Date: Wed, 18 Jul 2007 20:45:32 +0900
+Message-ID: <20070718114532.GC21658@inferi.kami.home>
+References: <1184520879452-git-send-email-malattia@linux.it> <1184520879991-git-send-email-malattia@linux.it> <11845208793336-git-send-email-malattia@linux.it> <11845208793678-git-send-email-malattia@linux.it> <11845208794064-git-send-email-malattia@linux.it> <11845208791511-git-send-email-malattia@linux.it> <d120d5000707160622v7b62eeb5sd962e6e96dafdfec@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71]:43580 "EHLO
-	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758333AbXGRLp2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 07:45:28 -0400
+Received: from aa014msr.fastwebnet.it ([85.18.95.74]:39178 "EHLO
+	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbXGRL54 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 07:57:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1184668653.2443.2.camel@work>
+In-Reply-To: <d120d5000707160622v7b62eeb5sd962e6e96dafdfec@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Richard Hughes <richard@hughsie.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Richard Hughes <richard@hughsie.com>
 
-On Tue, Jul 17, 2007 at 11:37:33AM +0100, Richard Hughes wrote:
-> On Mon, 2007-07-16 at 19:09 +0100, Matthew Garrett wrote:
-> > 
-> > That's fine, we have information that lets us distinguish between 
-> > models. 
+On Mon, Jul 16, 2007 at 09:22:28AM -0400, Dmitry Torokhov wrote:
+> Hi Mattia,
+>
+> On 7/15/07, Mattia Dongili <malattia@linux.it> wrote:
+>> +static int sony_laptop_input_keycode_map[] = {
+>> +       KEY_RESERVED,    /* no event... */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_DOWN */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_UP */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_DOWN_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_UP_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_RELEASED */
+>
+> Jogdial events are never passed through key_dev, do they? If so then
+> we should not allow remapping them as it is pointless. EVCSKEYCODE
+> shoudl return -EINVAL wehn trying to remap them.
 
-Well, I don't think we have all, at least I don't and anyway it's nice
-to have some way to add new models that doesn't require waiting for a new
-kernel to be available.
+yes, JOG events are going to the other input_dev.
 
-> Yes, but the consensus I seemed to get from previous mails was that the
-> matching quirks should be done in userspace where possible. The current
-> FDI thing lets a user edit a simple text xml file and stuff just works.
-> I'm not sure asking user to compile custom kernel modules to test out
-> new keymaps is feasible, at least for the majority of linux users.
+...
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_LID_CLOSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_LID_OPENED */
+>
+> EV_SW/SW_LID unless LID events are delivered through ACPI (in which
+> case we should hide these events completely).
 
-Yep, I agree.
+every event except jogdial's is also being delivered through ACPI. Will
+hide these from input then.
 
+...
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_ANYBUTTON_RELEASED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_BATTERY_INSERT */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_BATTERY_REMOVE */
+
+ACPI only stuff as well?
+
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_FNKEY_RELEASED */
+>
+> Do we really want let userspace remap this event?
+
+hehehe, no, I don't think so.
+
+Thanks for the comments
 -- 
 mattia
 :wq!
