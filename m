@@ -1,67 +1,63 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: [PATCH] Fix potential oops in dock driver
-Date: Wed, 18 Jul 2007 01:10:24 -0400
-Message-ID: <200707180110.24792.dtor@insightbb.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Resend][PATCH 1/9] ACPI: Implement the set_target() callback from pm_ops
+Date: Wed, 18 Jul 2007 08:41:10 +0200
+Message-ID: <200707180841.11481.rjw@sisk.pl>
+References: <200707172236.28895.rjw@sisk.pl> <200707172240.08494.rjw@sisk.pl> <20070717170201.c301cd06.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:35917 "EHLO
-	asav05.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626AbXGRFK1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 01:10:27 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:52395 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751311AbXGRGd3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jul 2007 02:33:29 -0400
+In-Reply-To: <20070717170201.c301cd06.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <len.brown@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Len Brown <len.brown@intel.com>, Nigel Cunningham <nigel@nigel.suspend2.net>, Pavel Machek <pavel@ucw.cz>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Paul Mackerras <paulus@samba.org>, Russell King <rmk@arm.linux.org.uk>
 
-Possible needed for -stable as well.
+On Wednesday, 18 July 2007 02:02, Andrew Morton wrote:
+> On Tue, 17 Jul 2007 22:40:06 +0200
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > In the future some drivers may need to use ACPI to determine the low power
+> > states in which to place their devices, but to provide the drivers with this
+> > information the ACPI core needs to know what sleep state the system is going to
+> > enter.  Namely, the device's state should not be too high power for given system
+> > sleep state and, if the device is supposed to be able to wake up the system, its
+> > state should not be too low power for the wake up to be possible).  For this
+> > purpose, the ACPI core needs to implement the set_target() method in 'struct
+> > pm_ops' and store the target system sleep state passed by the PM core in a
+> > variable.
+> > 
+> 
+> Len, I can add this to the to-send-to-Len queue, but it would be more
+> convenient at this end if you were to ack it and I'll send it in. 
+> Preferences?
+> 
+> 
+> > 
+> > Index: linux-2.6.22-git5/drivers/acpi/sleep/main.c
+> > ===================================================================
+> > --- linux-2.6.22-git5.orig/drivers/acpi/sleep/main.c
+> > +++ linux-2.6.22-git5/drivers/acpi/sleep/main.c
+> > @@ -34,34 +34,54 @@ static u32 acpi_suspend_states[] = {
+> >  
+> >  static int init_8259A_after_S1;
+> >  
+> > +extern int acpi_sleep_prepare(u32 acpi_state);
+> > +extern void acpi_power_off(void);
+> 
+> weep.  Please don't do this.
 
--- 
-Dmitry
+Well, in fact I didn't add those.  They were just moved from below the comment
+before acpi_pm_prepare().  Seems logical to me ...
 
-ACPI: dock - fix an oops when _DCK evaluation fails
+> checkpatch will detect this error.
 
-Data returned by acpi_get_name in acpi_buffer is not acpi_object and
-therefore should not be cast to it, otherwise we'll get an nice oops
-trying to print error message.
-
-Also print name of the ACPI object corresponding to the docking station
-and elevate severity of the message printed when _DCK fails to KERN_ERR.
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
- drivers/acpi/dock.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-Index: linux/drivers/acpi/dock.c
-===================================================================
---- linux.orig/drivers/acpi/dock.c
-+++ linux/drivers/acpi/dock.c
-@@ -380,12 +380,11 @@ static void handle_dock(struct dock_stat
- 	union acpi_object arg;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
- 
- 	acpi_get_name(ds->handle, ACPI_FULL_PATHNAME, &name_buffer);
--	obj = name_buffer.pointer;
- 
--	printk(KERN_INFO PREFIX "%s\n", dock ? "docking" : "undocking");
-+	printk(KERN_INFO PREFIX "%s - %s\n",
-+		(char *)name_buffer.pointer, dock ? "docking" : "undocking");
- 
- 	/* _DCK method has one argument */
- 	arg_list.count = 1;
-@@ -394,7 +393,8 @@ static void handle_dock(struct dock_stat
- 	arg.integer.value = dock;
- 	status = acpi_evaluate_object(ds->handle, "_DCK", &arg_list, &buffer);
- 	if (ACPI_FAILURE(status))
--		pr_debug("%s: failed to execute _DCK\n", obj->string.pointer);
-+		printk(KERN_ERR PREFIX "%s - failed to execute _DCK\n",
-+			 (char *)name_buffer.pointer);
- 	kfree(buffer.pointer);
- 	kfree(name_buffer.pointer);
- }
+Well, I'd call it a false positive. :-)
