@@ -1,78 +1,84 @@
-From: Omari Stephens <xsdg@mit.edu>
-Subject: 2.6.21, 2.6.21.6, and 2.6.22.1 lock during boot without "acpi=off"
-Date: Wed, 18 Jul 2007 17:25:03 +0000
-Message-ID: <469E4CEF.307@mit.edu>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: acpi_find_bmc() and acpi_get_table()
+Date: Wed, 18 Jul 2007 13:19:40 -0600
+Message-ID: <200707181319.41081.bjorn.helgaas@hp.com>
+References: <200702102327.28312.lenb@kernel.org>
+	<5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
+	<5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94B@ausx3mpc102.aus.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 30-26-160.dynamic.csail.mit.edu ([128.30.26.160]:51141 "EHLO
-	whitespace.xsdg.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934683AbXGRS3f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 14:29:35 -0400
-Received: from localhost ([127.0.0.1])
-	by whitespace.xsdg.org with esmtp (Exim 4.63)
-	(envelope-from <xsdg@mit.edu>)
-	id 1IBDJj-0007P5-Ax
-	for linux-acpi@vger.kernel.org; Wed, 18 Jul 2007 17:28:03 +0000
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE53C94B@ausx3mpc102.aus.amer.dell.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Sender: openipmi-developer-bounces@lists.sourceforge.net
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: Jordan_Hargrave@dell.com
+Cc: minyard@acm.org, linux-acpi@vger.kernel.org, Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi, all.  I'm trying to compile 2.6.21.6 for an Intel SR6850HW4, which 
-is a quad dual-core (with hyperthreading) Xeon box, so linux detects 16 
-logical processors.
+On Wednesday 18 July 2007 10:49:58 am Jordan_Hargrave@dell.com wrote:
+> I've done some more investigating on this and found why this works
+> in RHEL5 but not other releases (RHEL4/SLES9/SLES10). 
+> 
+> The acpi motherboard driver is claiming all devices with _HID or
+> _CID of PNP0C01.  Our BIOS declares the IPI0001 with a _CID of
+> PNP0C01, so the acpi motherboard driver normally claims it.  When
+> the IPMI driver loads it can't find the IPI0001 device as it is
+> already claimed.    
 
-The Debian SID kernels 2.6.18-4-686 and 2.6.21-2-686 boot fine, but only 
-pick up 8 of the 16 processors (compiled-in limit) and 2 (not 4?) of the 
-16 GB of memory.  On the 2.6.21 kernels I've compiled, however, the 
-machine locks after displaying the message "Brought up 16 CPUs".  At 
-this point, SysRQ does not evoke a response and I'm forced to 
-hard-reboot the machine.
+I think this is dumb.  PNP0C01 is a generic "system board" identifier
+with no clear programming model that I can see.  What good does it
+do to have a _CID of PNP0C01?  The only useful thing that happens in
+Linux is that the "motherboard" driver claims PNP0C01 devices and
+reserves their resources.  But PNP ought to reserve the resources of
+*all* active devices, even if no driver claims them.
 
-If I boot with acpi=off with any of the kernels I've compiled (2.6.21* 
-or 2.6.22.1), the machine boots fine until it can't find the root 
-partition (which, I'd guess, is related to it wanting to use ACPI to 
-discover the SCSI controller that the root partition is on).  Someone in 
-#kernelnewbies suggested acpi=ht, acpi=noirq, pci=noacpi, and noapic, 
-none of which prevented the lockup.
+So I think this sounds like a BIOS defect.  Of course, I'm sure it's
+already in the field, so even if we agree that it's a BIOS problem,
+we'd have to work around it in Linux.  What if we had some sort of
+quirk that removes that _CID?
 
-In terms of timers, I've tried both with and without tickless; HPET and 
-Enhanced RTC are always compiled in.
+> In RHEL5 there was a change made to the acpi motherboard driver to
+> not attach if any of the _CRS values are not I/O ports.
 
-Also of note, running 2.6.22.1, I encounter the issue mentioned at [1], 
-and one of the following two things happens:
-ENABLING IO-APIC IRQs
-..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
-..MP-BIOS Bug: 8254 timer not connected to IO-APIC
-...trying to set up timer (IRQ0) through the 8259A ...   failed.
-...trying to set up timer as Virtual Wire IRQ... failed.
-...trying ot ste up timer as ExtINT IRQ... failed :(.
-Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with 
-apic=debug and send a report.  Then try booting iwth the 'noapic' option
+Yes.  This is part of linux-2.6-x86_64-memory-hotplug.patch, and it
+apparently helps fix a bug:
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=208445,
+But I can't read the bugzilla, so I don't know exactly how.  I suspect
+some hot-addable memory device also had a _CID of PNP0C01, and they
+had the same problem you now have with IPMI.
 
-OR
+But making the motherboard driver ignore devices if they have any
+non-I/O port resources seems like the wrong fix.
 
-...
-checking TSC synchronization [CPU#0 -> CPU#7]: passed.
-checking TSC synchronization [CPU#0 -> CPU#8]:
-Measured 117 cycles TSC warp between CPUs, turning off TSC clock.
-Marking TSC unstable due to: check_tsc_sync_source failed.
-Brought up 16 CPUs
-<machine locks up here as with 2.6.21.6>
+> Technically the only reason it is working in RHEL5 is due to the
+> bug of the motherboard driver not attaching. 
 
-To be clear, with 2.6.21 and 2.6.21.6, all of the TSC synchronization 
-checks pass all of the time.
+Right.  I'm sure you've noticed that the ACPI motherboard driver has
+been removed completely upstream.  It's been replaced by the PNP
+"system" driver, which claims all PNP0C01 and PNP0C02 devices regardless
+of what sort of resources they have.
 
-I'll probably work on moving my configuration toward 2.6.21-2-686's 
-configuration (or vice-versa; not sure yet) to try to figure out when it 
-breaks/starts working.  However, if anyone has any suggestions, I'd love 
-to hear them; I've been banging my head against this for more than a few 
-hours now.  Hopefully-useful debug info (including lspci, dmesg, and 
-relevant .config's) are at [2]. TIA.
+> So using acpi_bus_register_driver looks like it won't work as a general solution.
+> I'm investigating walking the whole namespace to detect the IPI0001 device.
 
-[1] http://marc.info/?l=linux-kernel&m=118401628825056&w=2
-[2] http://xsdg.mit.edu/~xsdg/nl/acpi/
+I think we should make acpi_bus_register_driver() work.  It looks like
+we already have two cases (IPMI and memory hotplug), so I'd like to
+have a general solution rather than a collection of workarounds.
 
---xsdg
+Bjorn
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
