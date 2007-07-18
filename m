@@ -1,45 +1,66 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: update ACPI proc I/F removal schedule
-Date: Wed, 18 Jul 2007 17:23:24 +0800
-Message-ID: <1184750604.8054.16.camel@rzhang1-laptop>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 5/7] Make the driver use MSC_SCAN and a setkeycode and
+	getkeycode key table.
+Date: Wed, 18 Jul 2007 20:33:21 +0900
+Message-ID: <20070718113321.GG5711@inferi.kami.home>
+References: <1184520879452-git-send-email-malattia@linux.it> <1184520879991-git-send-email-malattia@linux.it> <11845208793336-git-send-email-malattia@linux.it> <11845208793678-git-send-email-malattia@linux.it> <11845208794064-git-send-email-malattia@linux.it> <11845208791511-git-send-email-malattia@linux.it> <d120d5000707160622v7b62eeb5sd962e6e96dafdfec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:38233 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753248AbXGRJXg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jul 2007 05:23:36 -0400
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:50385 "EHLO
+	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756638AbXGRLjQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 07:39:16 -0400
+Content-Disposition: inline
+In-Reply-To: <d120d5000707160622v7b62eeb5sd962e6e96dafdfec@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org, satyam.sharma@gmail.com, seife@suse.de
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Richard Hughes <richard@hughsie.com>
 
-ACPI sysfs conversion is not finished yet and
-some user space tools still depend on the ACPI proc I/F.
+On Mon, Jul 16, 2007 at 09:22:28AM -0400, Dmitry Torokhov wrote:
+> Hi Mattia,
+>
+> On 7/15/07, Mattia Dongili <malattia@linux.it> wrote:
+>> +static int sony_laptop_input_keycode_map[] = {
+>> +       KEY_RESERVED,    /* no event... */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_DOWN */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_UP */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_DOWN_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_UP_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_PRESSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_JOGDIAL_RELEASED */
+>
+> Jogdial events are never passed through key_dev, do they? If so then
+> we should not allow remapping them as it is pointless. EVCSKEYCODE
+> shoudl return -EINVAL wehn trying to remap them.
 
-We plan to finish all the sysfs conversion by January 2008
-and remove the ACPI proc I/F in July 2008.
+yes, JOG events are going to the other input_dev.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/feature-removal-schedule.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+...
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_LID_CLOSED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_LID_OPENED */
+>
+> EV_SW/SW_LID unless LID events are delivered through ACPI (in which
+> case we should hide these events completely).
 
-Index: linux-2.6.22/Documentation/feature-removal-schedule.txt
-===================================================================
---- linux-2.6.22.orig/Documentation/feature-removal-schedule.txt
-+++ linux-2.6.22/Documentation/feature-removal-schedule.txt
-@@ -243,9 +243,10 @@ Who:	Len Brown <len.brown@intel.com>
- ---------------------------
- 
- What:	ACPI procfs interface
--When:	July 2007
--Why:	After ACPI sysfs conversion, ACPI attributes will be duplicated
--	in sysfs and the ACPI procfs interface should be removed.
-+When:	July 2008
-+Why:	ACPI sysfs conversion should be finished by January 2008.
-+	ACPI procfs interface will be removed in July 2008 so that
-+	there is enough time for the user space to catch up.
- Who:	Zhang Rui <rui.zhang@intel.com>
- 
- ---------------------------
+every event except jogdial's is also being delivered through ACPI. Will
+hide these from input then.
+
+...
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_ANYBUTTON_RELEASED */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_BATTERY_INSERT */
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_BATTERY_REMOVE */
+
+ACPI only stuff as well?
+
+>> +       KEY_RESERVED,   /* SONYPI_EVENT_FNKEY_RELEASED */
+>
+> Do we really want let userspace remap this event?
+
+hehehe, no, I don't think so.
+
+Thanks for the comments
+-- 
+mattia
+:wq!
