@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 12/23] ACPI: thinkpad-acpi: add
-	power-management handler capability
-Date: Wed, 18 Jul 2007 23:45:37 -0300
-Message-ID: <11848131502430-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 13/23] ACPI: thinkpad-acpi: export EV_SW
+	SW_RADIO events
+Date: Wed, 18 Jul 2007 23:45:38 -0300
+Message-ID: <1184813151551-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,61 +19,91 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some subdrivers could benefit from resume handling, so add the
-infrastructure for simple resume handling.
+The expected user case for the radio slider switch on a ThinkPad includes
+interfacing to applications, so that the user gets an offer to find and
+associate with a wireless network when the switch is changed from disabled
+to enabled (ThinkVantage suite).
+
+Export the information about the switch state, and switch change events as
+an EV_SW SW_RADIO event over the input layer.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++++++++++
- drivers/misc/thinkpad_acpi.h |    1 +
- 2 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index c86b228..78914bf 100644
+index 78914bf..cfef218 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -519,11 +519,27 @@ static struct platform_device *tpacpi_pdev;
- static struct class_device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
+@@ -1014,6 +1014,11 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			}
+ 		}
  
++		if (tp_features.hotkey_wlsw) {
++			set_bit(EV_SW, tpacpi_inputdev->evbit);
++			set_bit(SW_RADIO, tpacpi_inputdev->swbit);
++		}
 +
-+static int tpacpi_resume_handler(struct platform_device *pdev)
+ #ifdef CONFIG_THINKPAD_ACPI_INPUT_ENABLED
+ 		dbg_printk(TPACPI_DBG_INIT,
+ 				"enabling hot key handling\n");
+@@ -1062,6 +1067,15 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 	}
+ }
+ 
++static void tpacpi_input_send_radiosw(void)
 +{
-+	struct ibm_struct *ibm, *itmp;
++	int wlsw;
 +
-+	list_for_each_entry_safe(ibm, itmp,
-+				 &tpacpi_all_drivers,
-+				 all_drivers) {
-+		if (ibm->resume)
-+			(ibm->resume)();
-+	}
-+
-+	return 0;
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw))
++		input_report_switch(tpacpi_inputdev,
++				    SW_RADIO, !!wlsw);
 +}
 +
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
- 		.name = IBM_DRVR_NAME,
- 		.owner = THIS_MODULE,
- 	},
-+	.resume = tpacpi_resume_handler,
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	u32 hkey;
+@@ -1096,6 +1110,14 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 						hkey);
+ 				}
+ 				break;
++			case 7:
++				/* 0x7000-0x7FFF: misc */
++				if (tp_features.hotkey_wlsw && hkey == 0x7000) {
++						tpacpi_input_send_radiosw();
++						sendacpi = 0;
++					break;
++				}
++				/* fallthrough to default */
+ 			default:
+ 				/* case 2: dock-related */
+ 				/*	0x2305 - T43 waking up due to bay lever eject while aslept */
+@@ -1113,6 +1135,11 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 	}
+ }
+ 
++static void hotkey_resume(void)
++{
++	tpacpi_input_send_radiosw();
++}
++
+ /*
+  * Call with hotkey_mutex held
+  */
+@@ -1240,6 +1267,7 @@ static struct ibm_struct hotkey_driver_data = {
+ 	.read = hotkey_read,
+ 	.write = hotkey_write,
+ 	.exit = hotkey_exit,
++	.resume = hotkey_resume,
+ 	.acpi = &ibm_hotkey_acpidriver,
  };
- 
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 00f1bd7..c5c1316 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -205,6 +205,7 @@ struct ibm_struct {
- 	int (*read) (char *);
- 	int (*write) (char *);
- 	void (*exit) (void);
-+	void (*resume) (void);
- 
- 	struct list_head all_drivers;
  
 -- 
 1.5.2.1
