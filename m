@@ -1,63 +1,79 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PULL] thinkpad-acpi queue for 2.6.23 (v3)
-Date: Wed, 18 Jul 2007 23:45:25 -0300
-Message-ID: <11848131483573-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:53077 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754260AbXGSCpy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jul 2007 22:45:54 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 15/23] ACPI: thinkpad-acpi: rename pci HID
+	constant
+Date: Wed, 18 Jul 2007 23:45:40 -0300
+Message-ID: <1184813151647-git-send-email-hmh@hmh.eng.br>
+References: <11848131483573-git-send-email-hmh@hmh.eng.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <11848131483573-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
+Rename an internal driver constant, on request by Len Brown.  Also,
+document exactly what it is for.
 
-Len,
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+---
+ drivers/misc/thinkpad_acpi.c |    7 +++++--
+ drivers/misc/thinkpad_acpi.h |    1 -
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-Please pull from:                                                                                                                                     
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test                                                                     
-
-to receive the main batch of thinkpad-acpi changes for the merge window, now
-rebased to apply on top of v2.6.22, with changes based on the comments I
-received when I posted v2 of this queue.
-
-It replaces all the other patches I sent you (none were merged yet, AFAIK).
-
-Henrique de Moraes Holschuh (23):
-      ACPI: thinkpad-acpi: add DMI-based modalias
-      ACPI: thinkpad-acpi: remove all uneeded initializers
-      ACPI: thinkpad-acpi: update information on T43 thermal sensor 0xc1
-      ACPI: thinkpad-acpi: enable more hotkeys
-      ACPI: thinkpad-acpi: export hotkey maximum masks
-      ACPI: thinkpad-acpi: export to sysfs the state of the radio slider switch
-      ACPI: thinkpad-acpi: checkpoint sysfs interface version due to hotkey
-      ACPI: thinkpad-acpi: update CMOS commands documentation
-      ACPI: thinkpad-acpi: register input device
-      ACPI: thinkpad-acpi: add input device support to hotkey subdriver
-      ACPI: thinkpad-acpi: make the input event mode the default
-      ACPI: thinkpad-acpi: add power-management handler capability
-      ACPI: thinkpad-acpi: export EV_SW SW_RADIO events
-      ACPI: thinkpad-acpi: checkpoint sysfs interface version due to input layer
-      ACPI: thinkpad-acpi: rename pci HID constant
-      ACPI: thinkpad_acpi: use bool for boolean parameters
-      ACPI: thinkpad-acpi: store ThinkPad model information
-      ACPI: thinkpad-acpi: allow use of CMOS NVRAM for brightness control
-      ACPI: thinkpad-acpi: react to Lenovo ThinkPad differences in hot key
-      ACPI: thinkpad-acpi: make sure DSDT TMPx readings don't return +128
-      ACPI: thinkpad-acpi: make EC-based thermal readings non-experimental
-      ACPI: thinkpad-acpi: bump up version to 0.15
-      ACPI: thinkpad-acpi: add locking to brightness subdriver
-
-These changes are composed mainly of the first part of the effort to move all
-the hot keys functionality to the input layer, plus some fixes.
-
-All these patches are targetted to 2.6.23's merge window.  Please merge for
-acpi-test.
-
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index c1e6a01..78e4110 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -2026,7 +2026,10 @@ static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	},
+ 	{
+-	 .hid = IBM_PCI_HID,
++	/* THIS ONE MUST NEVER BE USED FOR DRIVER AUTOLOADING.
++	 * We just use it to get notifications of dock hotplug
++	 * in very old thinkpads */
++	 .hid = PCI_ROOT_HID_STRING,
+ 	 .notify = dock_notify,
+ 	 .handle = &pci_handle,
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+@@ -2085,7 +2088,7 @@ static int __init dock_init2(struct ibm_init_struct *iibm)
+ static void dock_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	int docked = dock_docked();
+-	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, IBM_PCI_HID);
++	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, PCI_ROOT_HID_STRING);
+ 
+ 	if (event == 1 && !pci)	/* 570 */
+ 		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index c5c1316..fee0421 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -107,7 +107,6 @@ static const char *str_supported(int is_supported);
+ 
+ /* ACPI HIDs */
+ #define IBM_HKEY_HID    "IBM0068"
+-#define IBM_PCI_HID     "PNP0A03"
+ 
+ /* ACPI helpers */
+ static int __must_check acpi_evalf(acpi_handle handle,
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.2.1
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
