@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 15/23] ACPI: thinkpad-acpi: rename pci HID
-	constant
-Date: Wed, 18 Jul 2007 23:45:40 -0300
-Message-ID: <1184813151647-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 16/23] ACPI: thinkpad_acpi: use bool for
+	boolean parameters
+Date: Wed, 18 Jul 2007 23:45:41 -0300
+Message-ID: <1184813151151-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,52 +22,30 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rename an internal driver constant, on request by Len Brown.  Also,
-document exactly what it is for.
+Some of the module parameters are boolean in nature.  Make it so in fact.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |    7 +++++--
- drivers/misc/thinkpad_acpi.h |    1 -
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index c1e6a01..78e4110 100644
+index 78e4110..44aa8c9 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2026,7 +2026,10 @@ static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
- 	 .type = ACPI_SYSTEM_NOTIFY,
- 	},
- 	{
--	 .hid = IBM_PCI_HID,
-+	/* THIS ONE MUST NEVER BE USED FOR DRIVER AUTOLOADING.
-+	 * We just use it to get notifications of dock hotplug
-+	 * in very old thinkpads */
-+	 .hid = PCI_ROOT_HID_STRING,
- 	 .notify = dock_notify,
- 	 .handle = &pci_handle,
- 	 .type = ACPI_SYSTEM_NOTIFY,
-@@ -2085,7 +2088,7 @@ static int __init dock_init2(struct ibm_init_struct *iibm)
- static void dock_notify(struct ibm_struct *ibm, u32 event)
- {
- 	int docked = dock_docked();
--	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, IBM_PCI_HID);
-+	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, PCI_ROOT_HID_STRING);
+@@ -4444,10 +4444,10 @@ static u32 dbg_level;
+ module_param_named(debug, dbg_level, uint, 0);
  
- 	if (event == 1 && !pci)	/* 570 */
- 		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index c5c1316..fee0421 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -107,7 +107,6 @@ static const char *str_supported(int is_supported);
+ static int force_load;
+-module_param(force_load, int, 0);
++module_param(force_load, bool, 0);
  
- /* ACPI HIDs */
- #define IBM_HKEY_HID    "IBM0068"
--#define IBM_PCI_HID     "PNP0A03"
+ static int fan_control_allowed;
+-module_param_named(fan_control, fan_control_allowed, int, 0);
++module_param_named(fan_control, fan_control_allowed, bool, 0);
  
- /* ACPI helpers */
- static int __must_check acpi_evalf(acpi_handle handle,
+ #define IBM_PARAM(feature) \
+ 	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
 -- 
 1.5.2.1
 
