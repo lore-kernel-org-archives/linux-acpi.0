@@ -1,34 +1,43 @@
-From: Theodore Tso <tytso@mit.edu>
-Subject: Re: [ibm-acpi-devel] [GIT PULL] thinkpad-acpi queue for 2.6.23 (v3)
-Date: Thu, 19 Jul 2007 09:57:36 -0400
-Message-ID: <20070719135736.GG28872@thunk.org>
-References: <11848131483573-git-send-email-hmh@hmh.eng.br>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 5/7] Make the driver use MSC_SCAN and a setkeycode and
+	getkeycode key table.
+Date: Fri, 20 Jul 2007 00:51:59 +0900
+Message-ID: <20070719155158.GB5412@inferi.kami.home>
+References: <11845208793336-git-send-email-malattia@linux.it> <11845208793678-git-send-email-malattia@linux.it> <11845208794064-git-send-email-malattia@linux.it> <11845208791511-git-send-email-malattia@linux.it> <20070715211128.GA6291@srcf.ucam.org> <1184605565.2228.57.camel@work> <20070716180928.GA21211@srcf.ucam.org> <1184668653.2443.2.camel@work> <20070718114518.GB21658@inferi.kami.home> <20070718142800.GA20607@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from THUNK.ORG ([69.25.196.29]:56542 "EHLO thunker.thunk.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S938262AbXGSN5x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jul 2007 09:57:53 -0400
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:52198 "EHLO
+	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S938496AbXGSPwN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2007 11:52:13 -0400
 Content-Disposition: inline
-In-Reply-To: <11848131483573-git-send-email-hmh@hmh.eng.br>
+In-Reply-To: <20070718142800.GA20607@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Richard Hughes <hughsient@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Richard Hughes <richard@hughsie.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Wed, Jul 18, 2007 at 11:45:25PM -0300, Henrique de Moraes Holschuh wrote:
+On Wed, Jul 18, 2007 at 03:28:01PM +0100, Matthew Garrett wrote:
+> On Wed, Jul 18, 2007 at 08:45:19PM +0900, Mattia Dongili wrote:
+> > On Tue, Jul 17, 2007 at 11:37:33AM +0100, Richard Hughes wrote:
+> > > On Mon, 2007-07-16 at 19:09 +0100, Matthew Garrett wrote:
+> > > > 
+> > > > That's fine, we have information that lets us distinguish between 
+> > > > models. 
+> > 
+> > Well, I don't think we have all, at least I don't and anyway it's nice
+> > to have some way to add new models that doesn't require waiting for a new
+> > kernel to be available.
 > 
-> Len,
-> 
-> Please pull from:....
+> They can still be overridden in exactly the same way - it's just a 
+> question of sending useful defaults on most machines. If a user finds 
+> that the defaults don't work they can still be remapped via hal, but the 
+> aim should be for that to be unnecessary where possible.
 
-Henirque, just as a suggestion, but now that thinkpad-acpi isn't part
-of the ACPI subdirectories in the kernel source, I'm wondering whether
-it might not be better for you to just submit directly to Linus.
-Given that your changes are largely localized to the ACPI subtree, it
-might make it easier to get fixes in post -rc2 or so.
+BTW, isn't backward compatibility an issue here?
+How do input devices deal with changes in keycodes they send?
 
-Just a thought....
-
-						- Ted
+-- 
+mattia
+:wq!
