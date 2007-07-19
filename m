@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 23/23] ACPI: thinkpad-acpi: add locking to
-	brightness subdriver
-Date: Wed, 18 Jul 2007 23:45:48 -0300
-Message-ID: <11848131523026-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 20/23] ACPI: thinkpad-acpi: make sure DSDT
+	TMPx readings don't return +128
+Date: Wed, 18 Jul 2007 23:45:45 -0300
+Message-ID: <11848131523148-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,91 +22,33 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The backlight class does all the locking needed for sysfs access, but
-offers no API to interface to that locking without an layer violation.
+We get +128 instead of -128 from the DSDT TMPx methods, due to errors when
+converting a EC byte return that is a s8 to an ACPI handler return that is
+an int.
 
-Since we need to mutex-lock procfs access, implement in-driver locking for
-brightness.  It will go away the day thinkpad-acpi procfs goes away, or the
-backlight class gives us a way to use its locks without a layer violation.
+Fix it once and for all, by clamping acceptable temperature readings from
+DSDT TMPx so that anything outside the [-127,+127] range is converted to
+TP_EC_THERMAL_TMP_NA (-128).
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Michael Olbrich <michael.olbrich-hi6Y0CQ0nG0@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   35 ++++++++++++++++++++++++++++-------
- 1 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 01bed93..f15a58f 100644
+index 623d36f..f74d7d6 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -3000,12 +3000,16 @@ static struct backlight_ops ibm_backlight_data = {
-         .update_status  = brightness_update_status,
- };
- 
-+static struct mutex brightness_mutex;
-+
- static int __init brightness_init(struct ibm_init_struct *iibm)
- {
- 	int b;
- 
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
- 
-+	mutex_init(&brightness_mutex);
-+
- 	if (!brightness_mode) {
- 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
- 			brightness_mode = 2;
-@@ -3092,27 +3096,44 @@ static int brightness_get(struct backlight_device *bd)
- 
- static int brightness_set(int value)
- {
--	int cmos_cmd, inc, i;
--	int current_value = brightness_get(NULL);
-+	int cmos_cmd, inc, i, res;
-+	int current_value;
- 
- 	if (value > 7)
- 		return -EINVAL;
- 
-+	res = mutex_lock_interruptible(&brightness_mutex);
-+	if (res < 0)
-+		return res;
-+
-+	current_value = brightness_get(NULL);
-+	if (current_value < 0) {
-+		res = current_value;
-+		goto errout;
-+	}
-+
- 	cmos_cmd = value > current_value ?
- 			TP_CMOS_BRIGHTNESS_UP :
- 			TP_CMOS_BRIGHTNESS_DOWN;
- 	inc = value > current_value ? 1 : -1;
- 
-+	res = 0;
- 	for (i = current_value; i != value; i += inc) {
- 		if ((brightness_mode & 2) &&
--		    issue_thinkpad_cmos_command(cmos_cmd))
--			return -EIO;
-+		    issue_thinkpad_cmos_command(cmos_cmd)) {
-+			res = -EIO;
-+			goto errout;
-+		}
- 		if ((brightness_mode & 1) &&
--		    !acpi_ec_write(brightness_offset, i + inc))
--			return -EIO;
-+		    !acpi_ec_write(brightness_offset, i + inc)) {
-+			res = -EIO;
-+			goto errout;;
-+		}
- 	}
- 
--	return 0;
-+errout:
-+	mutex_unlock(&brightness_mutex);
-+	return res;
- }
- 
- static int brightness_read(char *p)
+@@ -2853,6 +2853,8 @@ static int thermal_get_sensor(int idx, s32 *value)
+ 			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
+ 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
+ 				return -EIO;
++			if (t > 127 || t < -127)
++				t = TP_EC_THERMAL_TMP_NA;
+ 			*value = t * 1000;
+ 			return 0;
+ 		}
 -- 
 1.5.2.1
 
