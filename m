@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 20/23] ACPI: thinkpad-acpi: make sure DSDT
-	TMPx readings don't return +128
-Date: Wed, 18 Jul 2007 23:45:45 -0300
-Message-ID: <11848131523148-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 22/23] ACPI: thinkpad-acpi: bump up version
+	to 0.15
+Date: Wed, 18 Jul 2007 23:45:47 -0300
+Message-ID: <11848131522594-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,33 +22,47 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-We get +128 instead of -128 from the DSDT TMPx methods, due to errors when
-converting a EC byte return that is a s8 to an ACPI handler return that is
-an int.
-
-Fix it once and for all, by clamping acceptable temperature readings from
-DSDT TMPx so that anything outside the [-127,+127] range is converted to
-TP_EC_THERMAL_TMP_NA (-128).
+Name it thinkpad-acpi version 0.15.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Michael Olbrich <michael.olbrich-hi6Y0CQ0nG0@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ Documentation/thinkpad-acpi.txt |    8 ++++----
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 3eb949e..6711fbc 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -1,11 +1,11 @@
+ 		     ThinkPad ACPI Extras Driver
+ 
+-                            Version 0.14
+-                          April 21st, 2007
++                            Version 0.15
++                           July 1st, 2007
+ 
+                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
+-	     Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+-		      http://ibm-acpi.sf.net/
++             Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
++                      http://ibm-acpi.sf.net/
+ 
+ 
+ This is a Linux driver for the IBM and Lenovo ThinkPad laptops. It
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 623d36f..f74d7d6 100644
+index 84a1000..01bed93 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2853,6 +2853,8 @@ static int thermal_get_sensor(int idx, s32 *value)
- 			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
- 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
- 				return -EIO;
-+			if (t > 127 || t < -127)
-+				t = TP_EC_THERMAL_TMP_NA;
- 			*value = t * 1000;
- 			return 0;
- 		}
+@@ -21,7 +21,7 @@
+  *  02110-1301, USA.
+  */
+ 
+-#define IBM_VERSION "0.14"
++#define IBM_VERSION "0.15"
+ #define TPACPI_SYSFS_VERSION 0x010000
+ 
+ /*
 -- 
 1.5.2.1
 
