@@ -1,100 +1,113 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH - 0/2] Identify native drivers and ACPI subsystem accessing the same resources
-Date: Wed, 18 Jul 2007 16:10:43 -0600
-Message-ID: <200707181610.43418.bjorn.helgaas@hp.com>
-References: <1184331492.3960.100.camel@d88.suse.de> <200707131056.46193.bjorn.helgaas@hp.com> <1184781038.15328.109.camel@queen.suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Fix potential oops in dock driver
+Date: Wed, 18 Jul 2007 20:38:22 -0400
+Message-ID: <200707182038.23028.lenb@kernel.org>
+References: <200707180110.24792.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:34637 "EHLO atlrel8.hp.com"
+Received: from hera.kernel.org ([140.211.167.34]:35588 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446AbXGRWM7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jul 2007 18:12:59 -0400
-In-Reply-To: <1184781038.15328.109.camel@queen.suse.de>
+	id S1758996AbXGSAie convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2007 20:38:34 -0400
+In-Reply-To: <200707180110.24792.dtor@insightbb.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Bernhard Walle <bwalle@suse.de>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, akpm <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
+To: Dmitry Torokhov <dtor@insightbb.com>
+Cc: linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-On Wednesday 18 July 2007 11:50:38 am Thomas Renninger wrote:
-> On Fri, 2007-07-13 at 10:56 -0600, Bjorn Helgaas wrote:
-> > The PNP core does not request resources for devices that are active
-> > at boot.  Those resources currently don't get requested until a driver
-> > claims the device.  I think this is a bug that we should fix.
-> Yep, this is also a problem for the ACPI variables (in fact not really,
-> as long as not overlapping like the rtc resource) and probably the
-> reason why pnpacpi ignores addresses below 0x100?
+Applied.
 
-By "ACPI variables," do you mean PM1a_EVT_BLK and the like?  Those
-should be subsets of the _CRS resources for some device.
+thanks,
+-Len
 
-> IMO:
->   - Making sure ACPI claimed regions do not interfere with native
->     drivers is very important and will get much more important in near 
->     future
-
-I agree with this.  I know some of these native drivers (lm-sensors, etc)
-are pretty essential right now.  But they just aren't safe because they
-use resources that ACPI thinks it owns.  I think the drivers should be
-changed to explicitly override (with appropriate KERN_WARN messages)
-any prior ACPI resource reservations.
-
-> > >     The rtc driver seems to request the whole rtc space (0x70-0x77)
-> > >     which fails because 0x72-0x73 has already been requested SHARED by
-> > >     an ACPI SystemIO variable. At least parts of the rtc space got
-> > >     requested (rtc0), I haven't checked whether the device was working
-> > >     correctly...
-> > 
-> > I tripped over a couple of these when I changed the PNP core to request
-> > resources for active devices.  The RTC is one; often BIOS says the RTC
-> > is at 0x70-0x71 and 0x72-0x73, but the rtc drivers like to claim 0x8
-> > (RTC_IO_EXTENT) ports.  However, I think the driver only *uses* two
-> > ports, so we should change the driver to only request what it is
-> > using.
-
-> But there could be more?
-
-I think the PNP core should request all the ports the device responds
-to (as reported by the BIOS).  The driver should request only the ports
-it uses.  If the rtc driver only uses two ports, there's no reason for
-it to request all eight.
-
-> Argggggh, normally it should be:
-> 5000-50fe : ACPI PMIO
-> ...
->   50c0-50df : pnp 00:07
->   50e0-50ff : pnp 00:07       # this one is missing because
->                               # it's bigger than the parent
->     50e0-50ef : amd756_smbus
-
-IMO, this is backwards.  "pnp 00:07" should be the parent and should
-be reserved by the PNP core.  A side-effect of this is that
-drivers/pnp/system.c would not be needed at all.
-
-> > > Summary:
-> > > ...
-> > >   - Not fixable (maybe someone has an idea): If ACPI IO region declares
-> > >     a smaller IO part than the later native driver (e.g. example above
-> > >     with rtc driver), the partially overlapping resource cannot be
-> > >     registered and the native driver fails to load with strict and lax
-> > >     option.
-> > 
-> > Assuming the BIOS describes the region correctly, I'd say a driver
-> > that claims a larger region is buggy and should be fixed.
-> 
-> Yep, but a temporary solution where everything just works fine and a
-> message: "This driver needs fixing" is needed IMO (if the code gets
-> accepted... It's possible, but ...).
-
-How about something like this:  We fix all the native drivers we know
-about.  We make the PNP and ACPI cores request resources for all active
-devices by default, but add a flag like "pnp=no_reservations" that turns
-this off.  Then native drivers that request conflicting resources
-will fail, but the user can limp along by using the boot-time option.
-
-Bjorn
-
-
+On Wednesday 18 July 2007 01:10, Dmitry Torokhov wrote:
+> [PATCH] Fix potential oops in dock driver
+> From:=20
+> Dmitry Torokhov <dtor@insightbb.com>
+>   To:=20
+> linux-acpi@vger.kernel.org
+>   CC:=20
+> Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <len=
+=2Ebrown@intel.com>
+>   Date:=20
+> Today 01:10:24 am
+>   =A0
+>   Spam Status:=A0Spamassassin 0% probability of being spam.
+>=20
+> Full report:
+> No, score=3D-2.1 required=3D5.0 tests=3DAWL,BAYES_00,FORGED_RCVD_HELO=
+ autolearn=3Dham version=3D3.1.9 =A0
+> Possible needed for -stable as well.
+>=20
+> --=20
+> Dmitry
+>=20
+> ACPI: dock - fix an oops when _DCK evaluation fails
+>=20
+> Data returned by acpi_get_name in acpi_buffer is not acpi_object and
+> therefore should not be cast to it, otherwise we'll get an nice oops
+> trying to print error message.
+>=20
+> Also print name of the ACPI object corresponding to the docking stati=
+on
+> and elevate severity of the message printed when _DCK fails to KERN_E=
+RR.
+>=20
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> ---
+> =A0drivers/acpi/dock.c | =A0 =A08 ++++----
+> =A01 file changed, 4 insertions(+), 4 deletions(-)
+>=20
+> Index: linux/drivers/acpi/dock.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.orig/drivers/acpi/dock.c
+> +++ linux/drivers/acpi/dock.c
+> @@ -380,12 +380,11 @@ static void handle_dock(struct dock_stat
+> =A0=A0=A0=A0=A0=A0=A0=A0union acpi_object arg;
+> =A0=A0=A0=A0=A0=A0=A0=A0struct acpi_buffer buffer =3D { ACPI_ALLOCATE=
+_BUFFER, NULL };
+> =A0=A0=A0=A0=A0=A0=A0=A0struct acpi_buffer name_buffer =3D { ACPI_ALL=
+OCATE_BUFFER, NULL };
+> -=A0=A0=A0=A0=A0=A0=A0union acpi_object *obj;
+> =A0
+> =A0=A0=A0=A0=A0=A0=A0=A0acpi_get_name(ds->handle, ACPI_FULL_PATHNAME,=
+ &name_buffer);
+> -=A0=A0=A0=A0=A0=A0=A0obj =3D name_buffer.pointer;
+> =A0
+> -=A0=A0=A0=A0=A0=A0=A0printk(KERN_INFO PREFIX "%s\n", dock ? "docking=
+" : "undocking");
+> +=A0=A0=A0=A0=A0=A0=A0printk(KERN_INFO PREFIX "%s - %s\n",
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(char *)name_buffer.poi=
+nter, dock ? "docking" : "undocking");
+> =A0
+> =A0=A0=A0=A0=A0=A0=A0=A0/* _DCK method has one argument */
+> =A0=A0=A0=A0=A0=A0=A0=A0arg_list.count =3D 1;
+> @@ -394,7 +393,8 @@ static void handle_dock(struct dock_stat
+> =A0=A0=A0=A0=A0=A0=A0=A0arg.integer.value =3D dock;
+> =A0=A0=A0=A0=A0=A0=A0=A0status =3D acpi_evaluate_object(ds->handle, "=
+_DCK", &arg_list, &buffer);
+> =A0=A0=A0=A0=A0=A0=A0=A0if (ACPI_FAILURE(status))
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0pr_debug("%s: failed to=
+ execute _DCK\n", obj->string.pointer);
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0printk(KERN_ERR PREFIX =
+"%s - failed to execute _DCK\n",
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+ (char *)name_buffer.pointer);
+> =A0=A0=A0=A0=A0=A0=A0=A0kfree(buffer.pointer);
+> =A0=A0=A0=A0=A0=A0=A0=A0kfree(name_buffer.pointer);
+> =A0}
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
