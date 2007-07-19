@@ -1,74 +1,35 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 22/23] ACPI: thinkpad-acpi: bump up version
-	to 0.15
-Date: Wed, 18 Jul 2007 23:45:47 -0300
-Message-ID: <11848131522594-git-send-email-hmh@hmh.eng.br>
-References: <11848131483573-git-send-email-hmh@hmh.eng.br>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Resend][PATCH 1/9] ACPI: Implement the set_target() callback from pm_ops
+Date: Thu, 19 Jul 2007 11:17:17 +0200
+Message-ID: <200707191117.19367.rjw@sisk.pl>
+References: <200707172236.28895.rjw@sisk.pl> <20070717170201.c301cd06.akpm@linux-foundation.org> <200707182205.13957.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11848131483573-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:58667 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751991AbXGSJJT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jul 2007 05:09:19 -0400
+In-Reply-To: <200707182205.13957.lenb@kernel.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Nigel Cunningham <nigel@nigel.suspend2.net>, Pavel Machek <pavel@ucw.cz>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>, Paul Mackerras <paulus@samba.org>, Russell King <rmk@arm.linux.org.uk>
 
-Name it thinkpad-acpi version 0.15.
+On Thursday, 19 July 2007 04:05, Len Brown wrote:
+> Rafael,
+> Please delete the instances of the string ACPI_STATE_S2 -- it doesn't exist in practice
+> and we don't want to imply it exists by inventing it here.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
----
- Documentation/thinkpad-acpi.txt |    8 ++++----
- drivers/misc/thinkpad_acpi.c    |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+OK, I will.
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 3eb949e..6711fbc 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -1,11 +1,11 @@
- 		     ThinkPad ACPI Extras Driver
- 
--                            Version 0.14
--                          April 21st, 2007
-+                            Version 0.15
-+                           July 1st, 2007
- 
-                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
--	     Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
--		      http://ibm-acpi.sf.net/
-+             Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-+                      http://ibm-acpi.sf.net/
- 
- 
- This is a Linux driver for the IBM and Lenovo ThinkPad laptops. It
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 84a1000..01bed93 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
- 
--#define IBM_VERSION "0.14"
-+#define IBM_VERSION "0.15"
- #define TPACPI_SYSFS_VERSION 0x010000
- 
- /*
--- 
-1.5.2.1
+> otherwise:
+> Acked-by: Len Brown <len.brown@intel.com>
 
+Thanks!
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+Greetings,
+Rafael
