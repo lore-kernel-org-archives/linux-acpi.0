@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 02/23] ACPI: thinkpad-acpi: remove all
-	uneeded initializers
-Date: Wed, 18 Jul 2007 23:45:27 -0300
-Message-ID: <11848131482109-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 14/23] ACPI: thinkpad-acpi: checkpoint
+	sysfs interface version due to input layer
+Date: Wed, 18 Jul 2007 23:45:39 -0300
+Message-ID: <11848131512022-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,82 +22,41 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Remove all initializers to NULL or zero.
+The change in the way hotkey events are handled by default, and the use of
+the input layer for the hotkey events are important enough features to
+warrant increasing the major field of the sysfs interface version.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/thinkpad-acpi.txt |    4 ++++
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 5b59cf5..c670363 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -1157,3 +1157,7 @@ Sysfs interface changelog:
+ 		device.
+ 0x000200:	Hot key support for 32 hot keys, and radio slider switch
+ 		support.
++0x010000:	Hot keys are now handled by default over the input
++		layer, the radio switch generates input event EV_RADIO,
++		and the driver enables hot key handling by default in
++		the firmware.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 22a5f22..9f10b46 100644
+index cfef218..c1e6a01 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -129,7 +129,7 @@ IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
-  * ACPI basic handles
+@@ -22,7 +22,7 @@
   */
  
--static acpi_handle root_handle = NULL;
-+static acpi_handle root_handle;
+ #define IBM_VERSION "0.14"
+-#define TPACPI_SYSFS_VERSION 0x000200
++#define TPACPI_SYSFS_VERSION 0x010000
  
- #define IBM_HANDLE(object, parent, paths...)			\
- 	static acpi_handle  object##_handle;			\
-@@ -515,8 +515,8 @@ static char *next_cmd(char **cmds)
-  ****************************************************************************
-  ****************************************************************************/
- 
--static struct platform_device *tpacpi_pdev = NULL;
--static struct class_device *tpacpi_hwmon = NULL;
-+static struct platform_device *tpacpi_pdev;
-+static struct class_device *tpacpi_hwmon;
- 
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
-@@ -729,7 +729,7 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
- 
--static struct attribute_set *hotkey_dev_attributes = NULL;
-+static struct attribute_set *hotkey_dev_attributes;
- 
- /* sysfs hotkey enable ------------------------------------------------- */
- static ssize_t hotkey_enable_show(struct device *dev,
-@@ -2694,7 +2694,7 @@ static struct ibm_struct ecdump_driver_data = {
-  * Backlight/brightness subdriver
-  */
- 
--static struct backlight_device *ibm_backlight_device = NULL;
-+static struct backlight_device *ibm_backlight_device;
- 
- static struct backlight_ops ibm_backlight_data = {
-         .get_brightness = brightness_get,
-@@ -3497,7 +3497,7 @@ static void fan_watchdog_fire(struct work_struct *ignored)
- 
- static void fan_watchdog_reset(void)
- {
--	static int fan_watchdog_active = 0;
-+	static int fan_watchdog_active;
- 
- 	if (fan_control_access_mode == TPACPI_FAN_WR_NONE)
- 		return;
-@@ -3900,7 +3900,7 @@ static struct ibm_struct fan_driver_data = {
-  ****************************************************************************/
- 
- /* /proc support */
--static struct proc_dir_entry *proc_dir = NULL;
-+static struct proc_dir_entry *proc_dir;
- 
- /* Subdriver registry */
- static LIST_HEAD(tpacpi_all_drivers);
-@@ -4043,7 +4043,7 @@ static void ibm_exit(struct ibm_struct *ibm)
- 
- /* Probing */
- 
--static char *ibm_thinkpad_ec_found = NULL;
-+static char *ibm_thinkpad_ec_found;
- 
- static char* __init check_dmi_for_ec(void)
- {
+ /*
+  *  Changelog:
 -- 
 1.5.2.1
 
