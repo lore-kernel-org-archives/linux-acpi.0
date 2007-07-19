@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 13/23] ACPI: thinkpad-acpi: export EV_SW
-	SW_RADIO events
-Date: Wed, 18 Jul 2007 23:45:38 -0300
-Message-ID: <1184813151551-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 18/23] ACPI: thinkpad-acpi: allow use of
+	CMOS NVRAM for brightness control
+Date: Wed, 18 Jul 2007 23:45:43 -0300
+Message-ID: <11848131513695-git-send-email-hmh@hmh.eng.br>
 References: <11848131483573-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,92 +19,190 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The expected user case for the radio slider switch on a ThinkPad includes
-interfacing to applications, so that the user gets an offer to find and
-associate with a wireless network when the switch is changed from disabled
-to enabled (ThinkVantage suite).
+It appears that Lenovo decided to break the EC brightness control interface
+in a weird way in their latest BIOSes.  Fortunately, the old CMOS NVRAM
+interface works just fine in such BIOSes.
 
-Export the information about the switch state, and switch change events as
-an EV_SW SW_RADIO event over the input layer.
+Add a module parameter that allows the user to select which strategy to use
+for brightness control: EC, NVRAM, or both.  By default, do both (which is
+the way thinkpad-acpi used to work until now) on IBM ThinkPads, and use
+NVRAM only on Lenovo ThinkPads.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ivo van Doorn <ivdoorn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+ Documentation/thinkpad-acpi.txt |    6 ++++
+ drivers/misc/Kconfig            |    1 +
+ drivers/misc/thinkpad_acpi.c    |   62 +++++++++++++++++++++++++++++++++-----
+ drivers/misc/thinkpad_acpi.h    |    7 ++++
+ 4 files changed, 67 insertions(+), 9 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index c670363..c145bcc 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -860,6 +860,12 @@ cannot be controlled.
+ The backlight control has eight levels, ranging from 0 to 7.  Some of the
+ levels may not be distinct.
+ 
++There are two interfaces to the firmware for brightness control, EC and CMOS.
++To select which one should be used, use the brightness_mode module parameter:
++brightness_mode=1 selects EC mode, brightness_mode=2 selects CMOS mode,
++brightness_mode=3 selects both EC and CMOS.  The driver tries to autodetect
++which interface to use.
++
+ Procfs notes:
+ 
+ 	The available commands are:
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 7d92f26..e39cedb 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -141,6 +141,7 @@ config THINKPAD_ACPI
+ 	depends on X86 && ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
++	select NVRAM
+ 	---help---
+ 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 78914bf..cfef218 100644
+index 99500af..5318eb2 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1014,6 +1014,11 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 			}
- 		}
+@@ -2953,9 +2953,22 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
  
-+		if (tp_features.hotkey_wlsw) {
-+			set_bit(EV_SW, tpacpi_inputdev->evbit);
-+			set_bit(SW_RADIO, tpacpi_inputdev->swbit);
-+		}
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+ 
++	if (!brightness_mode) {
++		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
++			brightness_mode = 2;
++		else
++			brightness_mode = 3;
 +
- #ifdef CONFIG_THINKPAD_ACPI_INPUT_ENABLED
- 		dbg_printk(TPACPI_DBG_INIT,
- 				"enabling hot key handling\n");
-@@ -1062,6 +1067,15 @@ static void tpacpi_input_send_key(unsigned int scancode,
- 	}
++		dbg_printk(TPACPI_DBG_INIT, "selected brightness_mode=%d\n",
++			brightness_mode);
++	}
++
++	if (brightness_mode > 3)
++		return -EINVAL;
++
+ 	b = brightness_get(NULL);
+ 	if (b < 0)
+-		return b;
++		return 1;
+ 
+ 	ibm_backlight_device = backlight_device_register(
+ 					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
+@@ -2991,13 +3004,35 @@ static int brightness_update_status(struct backlight_device *bd)
+ 				bd->props.brightness : 0);
  }
  
-+static void tpacpi_input_send_radiosw(void)
-+{
-+	int wlsw;
-+
-+	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw))
-+		input_report_switch(tpacpi_inputdev,
-+				    SW_RADIO, !!wlsw);
-+}
-+
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
++/*
++ * ThinkPads can read brightness from two places: EC 0x31, or
++ * CMOS NVRAM byte 0x5E, bits 0-3.
++ */
+ static int brightness_get(struct backlight_device *bd)
  {
- 	u32 hkey;
-@@ -1096,6 +1110,14 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 						hkey);
- 				}
- 				break;
-+			case 7:
-+				/* 0x7000-0x7FFF: misc */
-+				if (tp_features.hotkey_wlsw && hkey == 0x7000) {
-+						tpacpi_input_send_radiosw();
-+						sendacpi = 0;
-+					break;
-+				}
-+				/* fallthrough to default */
- 			default:
- 				/* case 2: dock-related */
- 				/*	0x2305 - T43 waking up due to bay lever eject while aslept */
-@@ -1113,6 +1135,11 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	}
- }
+-	u8 level;
+-	if (!acpi_ec_read(brightness_offset, &level))
+-		return -EIO;
++	u8 lec = 0, lcmos = 0, level = 0;
  
-+static void hotkey_resume(void)
-+{
-+	tpacpi_input_send_radiosw();
-+}
+-	level &= 0x7;
++	if (brightness_mode & 1) {
++		if (!acpi_ec_read(brightness_offset, &lec))
++			return -EIO;
++		lec &= 7;
++		level = lec;
++	};
++	if (brightness_mode & 2) {
++		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
++			 & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
++			>> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
++		level = lcmos;
++	}
 +
- /*
-  * Call with hotkey_mutex held
-  */
-@@ -1240,6 +1267,7 @@ static struct ibm_struct hotkey_driver_data = {
- 	.read = hotkey_read,
- 	.write = hotkey_write,
- 	.exit = hotkey_exit,
-+	.resume = hotkey_resume,
- 	.acpi = &ibm_hotkey_acpidriver,
- };
++	if (brightness_mode == 3 && lec != lcmos) {
++		printk(IBM_ERR
++			"CMOS NVRAM (%u) and EC (%u) do not agree "
++			"on display brightness level\n",
++			(unsigned int) lcmos,
++			(unsigned int) lec);
++		return -EIO;
++	}
  
+ 	return level;
+ }
+@@ -3007,14 +3042,20 @@ static int brightness_set(int value)
+ 	int cmos_cmd, inc, i;
+ 	int current_value = brightness_get(NULL);
+ 
+-	value &= 7;
++	if (value > 7)
++		return -EINVAL;
+ 
+-	cmos_cmd = value > current_value ? TP_CMOS_BRIGHTNESS_UP : TP_CMOS_BRIGHTNESS_DOWN;
++	cmos_cmd = value > current_value ?
++			TP_CMOS_BRIGHTNESS_UP :
++			TP_CMOS_BRIGHTNESS_DOWN;
+ 	inc = value > current_value ? 1 : -1;
++
+ 	for (i = current_value; i != value; i += inc) {
+-		if (issue_thinkpad_cmos_command(cmos_cmd))
++		if ((brightness_mode & 2) &&
++		    issue_thinkpad_cmos_command(cmos_cmd))
+ 			return -EIO;
+-		if (!acpi_ec_write(brightness_offset, i + inc))
++		if ((brightness_mode & 1) &&
++		    !acpi_ec_write(brightness_offset, i + inc))
+ 			return -EIO;
+ 	}
+ 
+@@ -4485,6 +4526,9 @@ module_param(force_load, bool, 0);
+ static int fan_control_allowed;
+ module_param_named(fan_control, fan_control_allowed, bool, 0);
+ 
++static int brightness_mode;
++module_param_named(brightness_mode, brightness_mode, int, 0);
++
+ #define IBM_PARAM(feature) \
+ 	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
+ 
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 09b2282..b7a4a88 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -32,6 +32,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ 
++#include <linux/nvram.h>
+ #include <linux/proc_fs.h>
+ #include <linux/sysfs.h>
+ #include <linux/backlight.h>
+@@ -80,6 +81,11 @@
+ #define TP_CMOS_BRIGHTNESS_UP	4
+ #define TP_CMOS_BRIGHTNESS_DOWN	5
+ 
++/* ThinkPad CMOS NVRAM constants */
++#define TP_NVRAM_ADDR_BRIGHTNESS       0x5e
++#define TP_NVRAM_MASK_LEVEL_BRIGHTNESS 0x07
++#define TP_NVRAM_POS_LEVEL_BRIGHTNESS 0
++
+ #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
+ #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
+ #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+@@ -323,6 +329,7 @@ static int bluetooth_write(char *buf);
+ 
+ static struct backlight_device *ibm_backlight_device;
+ static int brightness_offset = 0x31;
++static int brightness_mode;
+ 
+ static int brightness_init(struct ibm_init_struct *iibm);
+ static void brightness_exit(void);
 -- 
 1.5.2.1
 
