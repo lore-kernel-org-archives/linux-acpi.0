@@ -1,38 +1,94 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi_bus_generate_genetlink_event
-Date: Fri, 20 Jul 2007 13:29:23 +0800
-Message-ID: <1184909363.5547.5.camel@rzhang1-laptop>
-References: <20070719132556.a3fe2303.akpm@linux-foundation.org>
+Subject: [PATCH] ACPI: export ACPI events via acpi_mc_group multicast group
+Date: Fri, 20 Jul 2007 16:41:14 +0800
+Message-ID: <1184920874.5547.21.camel@rzhang1-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43648 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30359 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338AbXGTF32 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jul 2007 01:29:28 -0400
-In-Reply-To: <20070719132556.a3fe2303.akpm@linux-foundation.org>
+	id S1751595AbXGTIlW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jul 2007 04:41:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, johannes@sipsolutions.net, hadi@cyberus.ca
 
-On Fri, 2007-07-20 at 04:25 +0800, Andrew Morton wrote:
-> 
-> It's quite sad that this uses GFP_ATOMIC.  Because GFP_ATOMIC is quite
-> unreliable.
-> 
-> Is it just not possible to use GFP_KERNEL here?
-I thought of this problem before,
-but GFP_ATOMIC is required in some cases.
+This is an incremental patch for the recent genetlink
+multicast changes.
 
-> If _any_ of the callers of this function could have used GFP_KERNEL
-> then we
-> could at least pass the gfp_t into this function to allow it to use
-> the
-> stronger form where it can do so.
-> 
-That makes sense. I'll send an incremental patch soon.
+Now ACPI events are exported via generic netlink multicast group.
 
-Thanks,
-Rui
+Attachment is an refreshed user space demo "acpi_genl"
+that receives genetlink multicast messages from acpi_mc_group.
+
+Thanks for Johannes' help on developing this patch and
+the user space demo.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/event.c |   29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
+
+Index: linux-2.6.22/drivers/acpi/event.c
+===================================================================
+--- linux-2.6.22.orig/drivers/acpi/event.c
++++ linux-2.6.22/drivers/acpi/event.c
+@@ -132,30 +132,19 @@ enum {
+ };
+ #define ACPI_GENL_CMD_MAX (__ACPI_GENL_CMD_MAX - 1)
+ 
+-#define ACPI_GENL_NAME		"acpi_event"
+-#define ACPI_GENL_VERSION	0x01
++#define ACPI_GENL_FAMILY_NAME		"acpi_event"
++#define ACPI_GENL_VERSION		0x01
++#define ACPI_GENL_MCAST_GROUP_NAME 	"acpi_mc_group"
+ 
+ static struct genl_family acpi_event_genl_family = {
+ 	.id = GENL_ID_GENERATE,
+-	.name = ACPI_GENL_NAME,
++	.name = ACPI_GENL_FAMILY_NAME,
+ 	.version = ACPI_GENL_VERSION,
+ 	.maxattr = ACPI_GENL_ATTR_MAX,
+ };
+ 
+-/* .doit: standard command callback */
+-static int acpi_genl_cmd_event(struct sk_buff *skb, struct genl_info *info)
+-{
+-	struct acpi_genl_event *event = info->userhdr;
+-
+-	if (!event)
+-		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "ACPI event: NULL\n"));
+-
+-	return 0;
+-}
+-
+-static struct genl_ops acpi_event_genl_ops = {
+-	.cmd = ACPI_GENL_CMD_EVENT,
+-	.doit = acpi_genl_cmd_event,
++static struct genl_multicast_group acpi_event_mcgrp = {
++	.name = ACPI_GENL_MCAST_GROUP_NAME,
+ };
+ 
+ int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+@@ -215,7 +204,7 @@ int acpi_bus_generate_genetlink_event(st
+ 	}
+ 
+ 	result =
+-	    genlmsg_multicast(skb, 0, acpi_event_genl_family.id, GFP_ATOMIC);
++	    genlmsg_multicast(skb, 0, acpi_event_mcgrp.id, GFP_ATOMIC);
+ 	if (result)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Failed to send a Genetlink message!\n"));
+@@ -230,8 +219,8 @@ static int acpi_event_genetlink_init(voi
+ 	if (result)
+ 		return result;
+ 
+-	result =
+-	    genl_register_ops(&acpi_event_genl_family, &acpi_event_genl_ops);
++	result = genl_register_mc_group(&acpi_event_genl_family,
++					&acpi_event_mcgrp);
+ 	if (result)
+ 		genl_unregister_family(&acpi_event_genl_family);
+ 
