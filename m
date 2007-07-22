@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 46/77] ACPI: thinkpad-acpi: export to sysfs the state of the radio slider switch
-Date: Sun, 22 Jul 2007 05:14:31 -0400
-Message-ID: <11850957503243-git-send-email-len.brown@intel.com>
+Subject: [PATCH 47/77] ACPI: thinkpad-acpi: checkpoint sysfs interface version due to hotkey
+Date: Sun, 22 Jul 2007 05:14:32 -0400
+Message-ID: <1185095751279-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -48,151 +48,82 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957471828-git-send-email-len.brown@intel.com>
  <11850957482671-git-send-email-len.brown@intel.com>
  <11850957491254-git-send-email-len.brown@intel.com>
+ <11850957503243-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22481 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53139 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763397AbXGVJPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:54 -0400
-In-Reply-To: <11850957491254-git-send-email-len.brown@intel.com>
-Message-Id: <74941a69afcc06722685d492784414ec042ab492.1185095456.git.len.brown@intel.com>
+	id S1763423AbXGVJPz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:55 -0400
+In-Reply-To: <11850957503243-git-send-email-len.brown@intel.com>
+Message-Id: <94b08713186cc47a5c367a866cc0a0a762721455.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Henning Schild <henning@wh9.tu-dresden.de>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Some ThinkPad models, notably the T60 and X60, have a slider switch to
-enable and disable the radios.  The switch has the capability of
-force-disabling the radios in hardware on most models, and it is supposed
-to affect all radios (WLAN, WWAN, BlueTooth).
+The change in the size of the hotkey mask, the hability to report the keys
+that use the higher bits, and the addition of the hotkey_radio_sw attribute
+are important enough features to warrant increasing the minor field of the
+sysfs interface version.
 
-Export the switch state as a sysfs attribute, on ThinkPads where it is
-available.
-
-Thanks to Henning Schild for asking for this feature, and for tracking down
-the EC register that holds the radio switch state.
+Also, document a bit better how and when the thinkpad-acpi sysfs interface
+version will be updated.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Henning Schild <henning@wh9.tu-dresden.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |    6 ++++++
- drivers/misc/thinkpad_acpi.c    |   38 ++++++++++++++++++++++++++++++++++++--
- drivers/misc/thinkpad_acpi.h    |    1 +
- 3 files changed, 43 insertions(+), 2 deletions(-)
+ Documentation/thinkpad-acpi.txt |   17 +++++++++++++++++
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 18 insertions(+), 1 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 142a14f..fe26e50 100644
+index fe26e50..7a06a27 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -227,6 +227,12 @@ sysfs notes:
- 		supported hot keys, except those which are handled by
- 		the firmware.  Echo it to hotkey_mask above, to use.
+@@ -134,6 +134,21 @@ end of this document.  Changes to the sysfs interface done by the kernel
+ subsystems are not documented here, nor are they tracked by this
+ attribute.
  
-+	hotkey_radio_sw:
-+		if the ThinkPad has a hardware radio switch, this
-+		attribute will read 0 if the switch is in the "radios
-+		disabled" postition, and 1 if the switch is in the
-+		"radios enabled" position.
++Changes to the thinkpad-acpi sysfs interface are only considered
++non-experimental when they are submitted to Linux mainline, at which
++point the changes in this interface are documented and interface_version
++may be updated.  If you are using any thinkpad-acpi features not yet
++sent to mainline for merging, you do so on your own risk: these features
++may disappear, or be implemented in a different and incompatible way by
++the time they are merged in Linux mainline.
 +
++Changes that are backwards-compatible by nature (e.g. the addition of
++attributes that do not change the way the other attributes work) do not
++always warrant an update of interface_version.  Therefore, one must
++expect that an attribute might not be there, and deal with it properly
++(an attribute not being there *is* a valid way to make it clear that a
++feature is not available in sysfs).
++
+ Hot keys
+ --------
  
- Bluetooth
- ---------
+@@ -989,3 +1004,5 @@ Sysfs interface changelog:
+ 
+ 0x000100:	Initial sysfs support, as a single platform driver and
+ 		device.
++0x000200:	Hot key support for 32 hot keys, and radio slider switch
++		support.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 8c08868..3cf37bb 100644
+index 3cf37bb..4d71893 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -733,6 +733,13 @@ static u32 hotkey_reserved_mask = 0x00778000;
+@@ -22,7 +22,7 @@
+  */
  
- static struct attribute_set *hotkey_dev_attributes;
+ #define IBM_VERSION "0.14"
+-#define TPACPI_SYSFS_VERSION 0x000100
++#define TPACPI_SYSFS_VERSION 0x000200
  
-+static int hotkey_get_wlsw(int *status)
-+{
-+	if (!acpi_evalf(hkey_handle, status, "WLSW", "d"))
-+		return -EIO;
-+	return 0;
-+}
-+
- /* sysfs hotkey enable ------------------------------------------------- */
- static ssize_t hotkey_enable_show(struct device *dev,
- 			   struct device_attribute *attr,
-@@ -853,6 +860,22 @@ static struct device_attribute dev_attr_hotkey_recommended_mask =
- 	__ATTR(hotkey_recommended_mask, S_IRUGO,
- 		hotkey_recommended_mask_show, NULL);
- 
-+/* sysfs hotkey radio_sw ----------------------------------------------- */
-+static ssize_t hotkey_radio_sw_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	int res, s;
-+	res = hotkey_get_wlsw(&s);
-+	if (res < 0)
-+		return res;
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", !!s);
-+}
-+
-+static struct device_attribute dev_attr_hotkey_radio_sw =
-+	__ATTR(hotkey_radio_sw, S_IRUGO, hotkey_radio_sw_show, NULL);
-+
- /* --------------------------------------------------------------------- */
- 
- static struct attribute *hotkey_mask_attributes[] = {
-@@ -866,6 +889,7 @@ static struct attribute *hotkey_mask_attributes[] = {
- static int __init hotkey_init(struct ibm_init_struct *iibm)
- {
- 	int res;
-+	int status;
- 
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
- 
-@@ -879,7 +903,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.hotkey));
- 
- 	if (tp_features.hotkey) {
--		hotkey_dev_attributes = create_attr_set(6, NULL);
-+		hotkey_dev_attributes = create_attr_set(7, NULL);
- 		if (!hotkey_dev_attributes)
- 			return -ENOMEM;
- 		res = add_to_attr_set(hotkey_dev_attributes,
-@@ -908,11 +932,21 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 				hotkey_mask_attributes,
- 				ARRAY_SIZE(hotkey_mask_attributes));
- 		}
-+
-+		/* Not all thinkpads have a hardware radio switch */
-+		if (!res && acpi_evalf(hkey_handle, &status, "WLSW", "qd")) {
-+			tp_features.hotkey_wlsw = 1;
-+			printk(IBM_INFO
-+				"radio switch found; radios are %s\n",
-+				enabled(status, 0));
-+			res = add_to_attr_set(hotkey_dev_attributes,
-+					&dev_attr_hotkey_radio_sw.attr);
-+		}
-+
- 		if (!res)
- 			res = register_attr_set_with_sysfs(
- 					hotkey_dev_attributes,
- 					&tpacpi_pdev->dev.kobj);
--
- 		if (res)
- 			return res;
- 	}
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index e1a64f0..78ea4c8 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -228,6 +228,7 @@ static struct {
- 	u16 bluetooth:1;
- 	u16 hotkey:1;
- 	u16 hotkey_mask:1;
-+	u16 hotkey_wlsw:1;
- 	u16 light:1;
- 	u16 light_status:1;
- 	u16 wan:1;
+ /*
+  *  Changelog:
 -- 
 1.5.3.rc2.22.g69a9b
