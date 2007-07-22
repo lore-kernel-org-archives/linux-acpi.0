@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 42/77] ACPI: thinkpad-acpi: remove all uneeded initializers
-Date: Sun, 22 Jul 2007 05:14:27 -0400
-Message-ID: <11850957462109-git-send-email-len.brown@intel.com>
+Subject: [PATCH 45/77] ACPI: thinkpad-acpi: export hotkey maximum masks
+Date: Sun, 22 Jul 2007 05:14:30 -0400
+Message-ID: <11850957491254-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -44,13 +44,16 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957432095-git-send-email-len.brown@intel.com>
  <11850957443711-git-send-email-len.brown@intel.com>
  <11850957451942-git-send-email-len.brown@intel.com>
+ <11850957462109-git-send-email-len.brown@intel.com>
+ <11850957471828-git-send-email-len.brown@intel.com>
+ <11850957482671-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:11278 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763091AbXGVJPs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:48 -0400
-In-Reply-To: <11850957451942-git-send-email-len.brown@intel.com>
-Message-Id: <94954cc60194796fb257802f6f65d79553c9a8ca.1185095456.git.len.brown@intel.com>
+	id S1763348AbXGVJPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:54 -0400
+In-Reply-To: <11850957482671-git-send-email-len.brown@intel.com>
+Message-Id: <9b010de59cb6dcab7e167dd2a0fa5d3b31447fea.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -60,82 +63,119 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Remove all initializers to NULL or zero.
+The firmware knows how many hot keys it supports, so export this
+information in a sysfs attribute.
+
+And the driver knows which keys are always handled by the firmware in all
+known ThinkPad models too, so export this information as well in a sysfs
+attribute.  Unless you know which events need to be handled in a passive
+way, do *not* enable hotkeys that are always handled by the firmware.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/thinkpad-acpi.txt |   13 +++++++++++++
+ drivers/misc/thinkpad_acpi.c    |   37 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 49 insertions(+), 1 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 2f30db0..142a14f 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -214,6 +214,19 @@ sysfs notes:
+ 		key (see above).  Returns the current status of the hot
+ 		keys mask, and allows one to modify it.
+ 
++	hotkey_all_mask:
++		bit mask that should enable event reporting for all
++		supported hot keys, when echoed to hotkey_mask above.
++		Unless you know which events need to be handled
++		passively (because the firmware *will* handle them
++		anyway), do *not* use hotkey_all_mask.  Use
++		hotkey_recommended_mask, instead. You have been warned.
++
++	hotkey_recommended_mask:
++		bit mask that should enable event reporting for all
++		supported hot keys, except those which are handled by
++		the firmware.  Echo it to hotkey_mask above, to use.
++
+ 
+ Bluetooth
+ ---------
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 22a5f22..9f10b46 100644
+index 450b1e5..8c08868 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -129,7 +129,7 @@ IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
-  * ACPI basic handles
-  */
+@@ -728,6 +728,8 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
  
--static acpi_handle root_handle = NULL;
-+static acpi_handle root_handle;
- 
- #define IBM_HANDLE(object, parent, paths...)			\
- 	static acpi_handle  object##_handle;			\
-@@ -515,8 +515,8 @@ static char *next_cmd(char **cmds)
-  ****************************************************************************
-  ****************************************************************************/
- 
--static struct platform_device *tpacpi_pdev = NULL;
--static struct class_device *tpacpi_hwmon = NULL;
-+static struct platform_device *tpacpi_pdev;
-+static struct class_device *tpacpi_hwmon;
- 
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
-@@ -729,7 +729,7 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
  static int hotkey_orig_status;
- static int hotkey_orig_mask;
+ static u32 hotkey_orig_mask;
++static u32 hotkey_all_mask;
++static u32 hotkey_reserved_mask = 0x00778000;
  
--static struct attribute_set *hotkey_dev_attributes = NULL;
-+static struct attribute_set *hotkey_dev_attributes;
+ static struct attribute_set *hotkey_dev_attributes;
  
- /* sysfs hotkey enable ------------------------------------------------- */
- static ssize_t hotkey_enable_show(struct device *dev,
-@@ -2694,7 +2694,7 @@ static struct ibm_struct ecdump_driver_data = {
-  * Backlight/brightness subdriver
-  */
+@@ -827,12 +829,38 @@ static ssize_t hotkey_bios_mask_show(struct device *dev,
+ static struct device_attribute dev_attr_hotkey_bios_mask =
+ 	__ATTR(hotkey_bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
  
--static struct backlight_device *ibm_backlight_device = NULL;
-+static struct backlight_device *ibm_backlight_device;
++/* sysfs hotkey all_mask ----------------------------------------------- */
++static ssize_t hotkey_all_mask_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "0x%08x\n", hotkey_all_mask);
++}
++
++static struct device_attribute dev_attr_hotkey_all_mask =
++	__ATTR(hotkey_all_mask, S_IRUGO, hotkey_all_mask_show, NULL);
++
++/* sysfs hotkey recommended_mask --------------------------------------- */
++static ssize_t hotkey_recommended_mask_show(struct device *dev,
++					    struct device_attribute *attr,
++					    char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "0x%08x\n",
++			hotkey_all_mask & ~hotkey_reserved_mask);
++}
++
++static struct device_attribute dev_attr_hotkey_recommended_mask =
++	__ATTR(hotkey_recommended_mask, S_IRUGO,
++		hotkey_recommended_mask_show, NULL);
++
+ /* --------------------------------------------------------------------- */
  
- static struct backlight_ops ibm_backlight_data = {
-         .get_brightness = brightness_get,
-@@ -3497,7 +3497,7 @@ static void fan_watchdog_fire(struct work_struct *ignored)
+ static struct attribute *hotkey_mask_attributes[] = {
+ 	&dev_attr_hotkey_mask.attr,
+ 	&dev_attr_hotkey_bios_enabled.attr,
+ 	&dev_attr_hotkey_bios_mask.attr,
++	&dev_attr_hotkey_all_mask.attr,
++	&dev_attr_hotkey_recommended_mask.attr,
+ };
  
- static void fan_watchdog_reset(void)
- {
--	static int fan_watchdog_active = 0;
-+	static int fan_watchdog_active;
+ static int __init hotkey_init(struct ibm_init_struct *iibm)
+@@ -851,7 +879,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		str_supported(tp_features.hotkey));
  
- 	if (fan_control_access_mode == TPACPI_FAN_WR_NONE)
- 		return;
-@@ -3900,7 +3900,7 @@ static struct ibm_struct fan_driver_data = {
-  ****************************************************************************/
+ 	if (tp_features.hotkey) {
+-		hotkey_dev_attributes = create_attr_set(4, NULL);
++		hotkey_dev_attributes = create_attr_set(6, NULL);
+ 		if (!hotkey_dev_attributes)
+ 			return -ENOMEM;
+ 		res = add_to_attr_set(hotkey_dev_attributes,
+@@ -867,6 +895,13 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
+ 			str_supported(tp_features.hotkey_mask));
  
- /* /proc support */
--static struct proc_dir_entry *proc_dir = NULL;
-+static struct proc_dir_entry *proc_dir;
- 
- /* Subdriver registry */
- static LIST_HEAD(tpacpi_all_drivers);
-@@ -4043,7 +4043,7 @@ static void ibm_exit(struct ibm_struct *ibm)
- 
- /* Probing */
- 
--static char *ibm_thinkpad_ec_found = NULL;
-+static char *ibm_thinkpad_ec_found;
- 
- static char* __init check_dmi_for_ec(void)
- {
++		if (tp_features.hotkey_mask) {
++			/* MHKA available in A31, R40, R40e, T4x, X31, and later */
++			if (!acpi_evalf(hkey_handle, &hotkey_all_mask,
++					"MHKA", "qd"))
++				hotkey_all_mask = 0x080cU; /* FN+F12, FN+F4, FN+F3 */
++		}
++
+ 		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
+ 		if (!res && tp_features.hotkey_mask) {
+ 			res = add_many_to_attr_set(hotkey_dev_attributes,
 -- 
 1.5.3.rc2.22.g69a9b
