@@ -1,81 +1,107 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/7] git-acpi: s390: struct bin_attribute changes
-Date: Sun, 22 Jul 2007 00:43:28 -0400
-Message-ID: <200707220043.29286.lenb@kernel.org>
-References: <200707091833.l69IXDiT000333@imap1.linux-foundation.org>
+Subject: Re: [PATCH] ACPI: export ACPI events via acpi_mc_group multicast group
+Date: Sun, 22 Jul 2007 01:01:01 -0400
+Message-ID: <200707220101.01278.lenb@kernel.org>
+References: <1184920874.5547.21.camel@rzhang1-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37872 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:53639 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750900AbXGVErc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 00:47:32 -0400
-In-Reply-To: <200707091833.l69IXDiT000333@imap1.linux-foundation.org>
+	id S1751229AbXGVFBg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 01:01:36 -0400
+In-Reply-To: <1184920874.5547.21.camel@rzhang1-laptop>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, heiko.carstens@de.ibm.com, greg@kroah.com, rui.zhang@intel.com, schwidefsky@de.ibm.com
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, johannes@sipsolutions.net, hadi@cyberus.ca
 
-Applied.
+either my mail client is smarter than I am,
+or the new acpi_genl demo program was not attached to your message -- 
+can you send it along?
 
 thanks,
 -Len
-On Monday 09 July 2007 14:33, akpm@linux-foundation.org wrote:
-> From: Heiko Carstens <heiko.carstens@de.ibm.com>
+
+On Friday 20 July 2007 04:41, Zhang Rui wrote:
+> This is an incremental patch for the recent genetlink
+> multicast changes.
 > 
-> git-acpi contains a patch that adds 'struct bin_attribute *' to
-> the read method of struct bin_attribute. This breaks s390:
+> Now ACPI events are exported via generic netlink multicast group.
 > 
->   CC      arch/s390/kernel/ipl.o
-> arch/s390/kernel/ipl.c:317:
->  warning: initialization from incompatible pointer type
-> arch/s390/kernel/ipl.c:340:
->   warning: initialization from incompatible pointer type
+> Attachment is an refreshed user space demo "acpi_genl"
+> that receives genetlink multicast messages from acpi_mc_group.
 > 
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Greg KH <greg@kroah.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-> Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Thanks for Johannes' help on developing this patch and
+> the user space demo.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
+>  drivers/acpi/event.c |   29 +++++++++--------------------
+>  1 file changed, 9 insertions(+), 20 deletions(-)
 > 
->  arch/s390/kernel/ipl.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff -puN arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes arch/s390/kernel/ipl.c
-> --- a/arch/s390/kernel/ipl.c~git-acpi-s390-struct-bin_attribute-changes
-> +++ a/arch/s390/kernel/ipl.c
-> @@ -297,8 +297,9 @@ static ssize_t sys_ipl_device_show(struc
->  static struct subsys_attribute sys_ipl_device_attr =
->  	__ATTR(device, S_IRUGO, sys_ipl_device_show, NULL);
+> Index: linux-2.6.22/drivers/acpi/event.c
+> ===================================================================
+> --- linux-2.6.22.orig/drivers/acpi/event.c
+> +++ linux-2.6.22/drivers/acpi/event.c
+> @@ -132,30 +132,19 @@ enum {
+>  };
+>  #define ACPI_GENL_CMD_MAX (__ACPI_GENL_CMD_MAX - 1)
 >  
-> -static ssize_t ipl_parameter_read(struct kobject *kobj, char *buf, loff_t off,
-> -				  size_t count)
-> +static ssize_t ipl_parameter_read(struct kobject *kobj,
-> +				  struct bin_attribute *attr,
-> +				  char *buf, loff_t off, size_t count)
->  {
->  	unsigned int size = IPL_PARMBLOCK_SIZE;
+> -#define ACPI_GENL_NAME		"acpi_event"
+> -#define ACPI_GENL_VERSION	0x01
+> +#define ACPI_GENL_FAMILY_NAME		"acpi_event"
+> +#define ACPI_GENL_VERSION		0x01
+> +#define ACPI_GENL_MCAST_GROUP_NAME 	"acpi_mc_group"
 >  
-> @@ -320,8 +321,9 @@ static struct bin_attribute ipl_paramete
->  	.read = &ipl_parameter_read,
+>  static struct genl_family acpi_event_genl_family = {
+>  	.id = GENL_ID_GENERATE,
+> -	.name = ACPI_GENL_NAME,
+> +	.name = ACPI_GENL_FAMILY_NAME,
+>  	.version = ACPI_GENL_VERSION,
+>  	.maxattr = ACPI_GENL_ATTR_MAX,
 >  };
 >  
-> -static ssize_t ipl_scp_data_read(struct kobject *kobj, char *buf, loff_t off,
-> -	size_t count)
-> +static ssize_t ipl_scp_data_read(struct kobject *kobj,
-> +				 struct bin_attribute *attr,
-> +				 char *buf, loff_t off, size_t count)
->  {
->  	unsigned int size = IPL_PARMBLOCK_START->ipl_info.fcp.scp_data_len;
->  	void *scp_data = &IPL_PARMBLOCK_START->ipl_info.fcp.scp_data;
-> _
+> -/* .doit: standard command callback */
+> -static int acpi_genl_cmd_event(struct sk_buff *skb, struct genl_info *info)
+> -{
+> -	struct acpi_genl_event *event = info->userhdr;
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	if (!event)
+> -		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "ACPI event: NULL\n"));
+> -
+> -	return 0;
+> -}
+> -
+> -static struct genl_ops acpi_event_genl_ops = {
+> -	.cmd = ACPI_GENL_CMD_EVENT,
+> -	.doit = acpi_genl_cmd_event,
+> +static struct genl_multicast_group acpi_event_mcgrp = {
+> +	.name = ACPI_GENL_MCAST_GROUP_NAME,
+>  };
+>  
+>  int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+> @@ -215,7 +204,7 @@ int acpi_bus_generate_genetlink_event(st
+>  	}
+>  
+>  	result =
+> -	    genlmsg_multicast(skb, 0, acpi_event_genl_family.id, GFP_ATOMIC);
+> +	    genlmsg_multicast(skb, 0, acpi_event_mcgrp.id, GFP_ATOMIC);
+>  	if (result)
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  				  "Failed to send a Genetlink message!\n"));
+> @@ -230,8 +219,8 @@ static int acpi_event_genetlink_init(voi
+>  	if (result)
+>  		return result;
+>  
+> -	result =
+> -	    genl_register_ops(&acpi_event_genl_family, &acpi_event_genl_ops);
+> +	result = genl_register_mc_group(&acpi_event_genl_family,
+> +					&acpi_event_mcgrp);
+>  	if (result)
+>  		genl_unregister_family(&acpi_event_genl_family);
+>  
 > 
