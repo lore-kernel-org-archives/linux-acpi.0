@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 60/77] ACPI: thinkpad-acpi: make sure DSDT TMPx readings don't return +128
-Date: Sun, 22 Jul 2007 05:14:45 -0400
-Message-ID: <11850957651127-git-send-email-len.brown@intel.com>
+Subject: [PATCH 62/77] ACPI: thinkpad-acpi: bump up version to 0.15
+Date: Sun, 22 Jul 2007 05:14:47 -0400
+Message-ID: <1185095767879-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -62,49 +62,65 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957621605-git-send-email-len.brown@intel.com>
  <11850957633613-git-send-email-len.brown@intel.com>
  <11850957641697-git-send-email-len.brown@intel.com>
+ <11850957651127-git-send-email-len.brown@intel.com>
+ <1185095766274-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45627 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45767 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764380AbXGVJQH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:07 -0400
-In-Reply-To: <11850957641697-git-send-email-len.brown@intel.com>
-Message-Id: <a8fba3da3d11d808137be7ebeb3b6938a42f011f.1185095456.git.len.brown@intel.com>
+	id S1764396AbXGVJQI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:08 -0400
+In-Reply-To: <1185095766274-git-send-email-len.brown@intel.com>
+Message-Id: <c78d5c96bb65b71a54b7551b404fbaf4763ed6e4.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Olbrich <michael.olbrich@gmx.net>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-We get +128 instead of -128 from the DSDT TMPx methods, due to errors when
-converting a EC byte return that is a s8 to an ACPI handler return that is
-an int.
-
-Fix it once and for all, by clamping acceptable temperature readings from
-DSDT TMPx so that anything outside the [-127,+127] range is converted to
-TP_EC_THERMAL_TMP_NA (-128).
+Name it thinkpad-acpi version 0.15.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Michael Olbrich <michael.olbrich@gmx.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ Documentation/thinkpad-acpi.txt |    8 ++++----
+ drivers/misc/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 3eb949e..6711fbc 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -1,11 +1,11 @@
+ 		     ThinkPad ACPI Extras Driver
+ 
+-                            Version 0.14
+-                          April 21st, 2007
++                            Version 0.15
++                           July 1st, 2007
+ 
+                Borislav Deianov <borislav@users.sf.net>
+-	     Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+-		      http://ibm-acpi.sf.net/
++             Henrique de Moraes Holschuh <hmh@hmh.eng.br>
++                      http://ibm-acpi.sf.net/
+ 
+ 
+ This is a Linux driver for the IBM and Lenovo ThinkPad laptops. It
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 623d36f..f74d7d6 100644
+index 84a1000..01bed93 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2853,6 +2853,8 @@ static int thermal_get_sensor(int idx, s32 *value)
- 			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
- 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
- 				return -EIO;
-+			if (t > 127 || t < -127)
-+				t = TP_EC_THERMAL_TMP_NA;
- 			*value = t * 1000;
- 			return 0;
- 		}
+@@ -21,7 +21,7 @@
+  *  02110-1301, USA.
+  */
+ 
+-#define IBM_VERSION "0.14"
++#define IBM_VERSION "0.15"
+ #define TPACPI_SYSFS_VERSION 0x010000
+ 
+ /*
 -- 
 1.5.3.rc2.22.g69a9b
