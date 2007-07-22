@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 61/77] ACPI: thinkpad-acpi: make EC-based thermal readings non-experimental
-Date: Sun, 22 Jul 2007 05:14:46 -0400
-Message-ID: <1185095766274-git-send-email-len.brown@intel.com>
+Subject: [PATCH 63/77] ACPI: thinkpad-acpi: add locking to brightness subdriver
+Date: Sun, 22 Jul 2007 05:14:48 -0400
+Message-ID: <1185095768376-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -63,13 +63,15 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957633613-git-send-email-len.brown@intel.com>
  <11850957641697-git-send-email-len.brown@intel.com>
  <11850957651127-git-send-email-len.brown@intel.com>
+ <1185095766274-git-send-email-len.brown@intel.com>
+ <1185095767879-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45627 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764307AbXGVJQI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:08 -0400
-In-Reply-To: <11850957651127-git-send-email-len.brown@intel.com>
-Message-Id: <3d6f99ca00ccf861305fd8630a21f2e696886708.1185095456.git.len.brown@intel.com>
+	id S1762477AbXGVJQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:09 -0400
+In-Reply-To: <1185095767879-git-send-email-len.brown@intel.com>
+Message-Id: <f432255e936a892a6896e5032e2b4897423076f2.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -79,62 +81,91 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Reading the 16 thermal sensors directly from the EC has been stable for
-about one year, in all supported ThinkPad models.  Remove its
-"experimental" label.
+The backlight class does all the locking needed for sysfs access, but
+offers no API to interface to that locking without an layer violation.
+
+Since we need to mutex-lock procfs access, implement in-driver locking for
+brightness.  It will go away the day thinkpad-acpi procfs goes away, or the
+backlight class gives us a way to use its locks without a layer violation.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   18 +++++-------------
- drivers/misc/thinkpad_acpi.c    |    2 +-
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   35 ++++++++++++++++++++++++++++-------
+ 1 files changed, 28 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 5d827de..3eb949e 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -710,23 +710,15 @@ Temperature sensors
- procfs: /proc/acpi/ibm/thermal
- sysfs device attributes: (hwmon) temp*_input
- 
--Most ThinkPads include six or more separate temperature sensors but
--only expose the CPU temperature through the standard ACPI methods.
--This feature shows readings from up to eight different sensors on older
--ThinkPads, and it has experimental support for up to sixteen different
--sensors on newer ThinkPads.
--
--EXPERIMENTAL: The 16-sensors feature is marked EXPERIMENTAL because the
--implementation directly accesses hardware registers and may not work as
--expected. USE WITH CAUTION! To use this feature, you need to supply the
--experimental=1 parameter when loading the module.  When EXPERIMENTAL
--mode is enabled, reading the first 8 sensors on newer ThinkPads will
--also use an new experimental thermal sensor access mode.
-+Most ThinkPads include six or more separate temperature sensors but only
-+expose the CPU temperature through the standard ACPI methods.  This
-+feature shows readings from up to eight different sensors on older
-+ThinkPads, and up to sixteen different sensors on newer ThinkPads.
- 
- For example, on the X40, a typical output may be:
- temperatures:   42 42 45 41 36 -128 33 -128
- 
--EXPERIMENTAL: On the T43/p, a typical output may be:
-+On the T43/p, a typical output may be:
- temperatures:   48 48 36 52 38 -128 31 -128 48 52 48 -128 -128 -128 -128 -128
- 
- The mapping of thermal sensors to physical locations varies depending on
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index f74d7d6..84a1000 100644
+index 01bed93..f15a58f 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2709,7 +2709,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+@@ -3000,12 +3000,16 @@ static struct backlight_ops ibm_backlight_data = {
+         .update_status  = brightness_update_status,
+ };
  
- 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
++static struct mutex brightness_mutex;
++
+ static int __init brightness_init(struct ibm_init_struct *iibm)
+ {
+ 	int b;
  
--	if (thinkpad_id.ec_model && experimental) {
-+	if (thinkpad_id.ec_model) {
- 		/*
- 		 * Direct EC access mode: sensors at registers
- 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+ 
++	mutex_init(&brightness_mutex);
++
+ 	if (!brightness_mode) {
+ 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
+ 			brightness_mode = 2;
+@@ -3092,27 +3096,44 @@ static int brightness_get(struct backlight_device *bd)
+ 
+ static int brightness_set(int value)
+ {
+-	int cmos_cmd, inc, i;
+-	int current_value = brightness_get(NULL);
++	int cmos_cmd, inc, i, res;
++	int current_value;
+ 
+ 	if (value > 7)
+ 		return -EINVAL;
+ 
++	res = mutex_lock_interruptible(&brightness_mutex);
++	if (res < 0)
++		return res;
++
++	current_value = brightness_get(NULL);
++	if (current_value < 0) {
++		res = current_value;
++		goto errout;
++	}
++
+ 	cmos_cmd = value > current_value ?
+ 			TP_CMOS_BRIGHTNESS_UP :
+ 			TP_CMOS_BRIGHTNESS_DOWN;
+ 	inc = value > current_value ? 1 : -1;
+ 
++	res = 0;
+ 	for (i = current_value; i != value; i += inc) {
+ 		if ((brightness_mode & 2) &&
+-		    issue_thinkpad_cmos_command(cmos_cmd))
+-			return -EIO;
++		    issue_thinkpad_cmos_command(cmos_cmd)) {
++			res = -EIO;
++			goto errout;
++		}
+ 		if ((brightness_mode & 1) &&
+-		    !acpi_ec_write(brightness_offset, i + inc))
+-			return -EIO;
++		    !acpi_ec_write(brightness_offset, i + inc)) {
++			res = -EIO;
++			goto errout;;
++		}
+ 	}
+ 
+-	return 0;
++errout:
++	mutex_unlock(&brightness_mutex);
++	return res;
+ }
+ 
+ static int brightness_read(char *p)
 -- 
 1.5.3.rc2.22.g69a9b
