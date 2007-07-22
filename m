@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 76/77] ACPI: create CONFIG_ACPI_DEBUG_FUNC_TRACE
-Date: Sun, 22 Jul 2007 05:15:01 -0400
-Message-ID: <11850957811573-git-send-email-len.brown@intel.com>
+Subject: [PATCH 77/77] ACPI: Populate /sys/firmware/acpi/tables/
+Date: Sun, 22 Jul 2007 05:15:02 -0400
+Message-ID: <11850957822419-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -78,119 +78,285 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957781461-git-send-email-len.brown@intel.com>
  <11850957791127-git-send-email-len.brown@intel.com>
  <11850957801755-git-send-email-len.brown@intel.com>
+ <11850957811573-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31622 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764630AbXGVJQW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:22 -0400
-In-Reply-To: <11850957801755-git-send-email-len.brown@intel.com>
-Message-Id: <798d91039849486c7a4f1a458a5680cb55a65408.1185095456.git.len.brown@intel.com>
+	id S1764608AbXGVJQ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:26 -0400
+In-Reply-To: <11850957811573-git-send-email-len.brown@intel.com>
+Message-Id: <d4c5f047ae2a33296774e41abc2ac5c89283f736.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Thomas Renninger <trenn@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
 
-Split ACPI_DEBUG into function trace enabled and not enabled.
+The file name is the signature, such as DSDT,
+and the contents are the binary table image.
 
-Function trace is most of the ACPI_DEBUG costs, but is
-not much of use for kernel ACPI debugging.
+Some tables, such as the SSDT, can have multiple instances.
+If just one, the file is SSDT, but if 3 instances,
+for example, it will be SSDT1, SSDT2, SSDT3
 
-Size of kernel image increased on test compile:
-+ 48k  (Full ACPI_DEBUG)
-+ 35k  (ACPI_DEBUG with function trace compiled out)
+All static tables (besides teh RSDP and RSDT themselves
+are exported.  Dynamic tables, such as SSDT op-regions that
+are not declared in the RSDT, will be added in a subsequent patch.
 
-Performance without function trace is also much better.
-
-Also remove ACPI_LV_DEBUG_OBJECT from default debug level as
-a lot vendors let Store (value, debug) in their code and this
-might confuse users when it pops up in syslog.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig    |    8 ++++++++
- include/acpi/acmacros.h |   23 +++++++++++++++++++++++
- include/acpi/acoutput.h |    4 ++--
- 3 files changed, 33 insertions(+), 2 deletions(-)
+ drivers/acpi/system.c |  165 ++++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 144 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 139f41f..1121a1f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -280,6 +280,14 @@ config ACPI_DEBUG
- 	  of verbosity. Saying Y enables these statements. This will increase
- 	  your kernel size by around 50K.
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+index 83a8d30..edee280 100644
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -39,15 +39,12 @@ ACPI_MODULE_NAME("system");
  
-+config ACPI_DEBUG_FUNC_TRACE
-+	bool "Additionally enable ACPI function tracing"
-+	default n
-+	depends on ACPI_DEBUG
-+	help
-+	  ACPI Debug Statements slow down ACPI processing. Function trace
-+	  is about half of the penalty and is rarely useful.
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
+-#define ACPI_SYSTEM_FILE_INFO		"info"
+-#define ACPI_SYSTEM_FILE_EVENT		"event"
+-#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
+-#define ACPI_SYSTEM_FILE_FADT		"fadt"
+ 
+ /*
+  * Make ACPICA version work as module param
+  */
+-static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
++static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
++{
+ 	int result;
+ 
+ 	result = sprintf(buffer, "%x", ACPI_CA_VERSION);
+@@ -58,9 +55,126 @@ static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
+ module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
+ 
+ /* --------------------------------------------------------------------------
++                              FS Interface (/sys)
++   -------------------------------------------------------------------------- */
++static LIST_HEAD(acpi_table_attr_list);
++static struct kobject tables_kobj;
 +
- config ACPI_EC
- 	bool
- 	default y
-diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-index 8948a64..c22f6da 100644
---- a/include/acpi/acmacros.h
-+++ b/include/acpi/acmacros.h
-@@ -486,6 +486,8 @@
- #define ACPI_FUNCTION_NAME(name)
- #endif
- 
-+#ifdef DEBUG_FUNC_TRACE
++struct acpi_table_attr {
++	struct bin_attribute attr;
++	char name[8];
++	int instance;
++	struct list_head node;
++};
 +
- #define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
- 			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
- #define ACPI_FUNCTION_TRACE_PTR(a,b)    ACPI_FUNCTION_NAME(a) \
-@@ -563,6 +565,27 @@
- 
- #endif				/* ACPI_SIMPLE_RETURN_MACROS */
- 
-+#else /* !DEBUG_FUNC_TRACE */
++static ssize_t acpi_table_show(struct kobject *kobj,
++			       struct bin_attribute *bin_attr, char *buf,
++			       loff_t offset, size_t count)
++{
++	struct acpi_table_attr *table_attr =
++	    container_of(bin_attr, struct acpi_table_attr, attr);
++	struct acpi_table_header *table_header = NULL;
++	acpi_status status;
++	ssize_t ret_count = count;
 +
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_TRACE_PTR(a,b)
-+#define ACPI_FUNCTION_TRACE_U32(a,b)
-+#define ACPI_FUNCTION_TRACE_STR(a,b)
-+#define ACPI_FUNCTION_EXIT
-+#define ACPI_FUNCTION_STATUS_EXIT(s)
-+#define ACPI_FUNCTION_VALUE_EXIT(s)
-+#define ACPI_FUNCTION_TRACE(a)
-+#define ACPI_FUNCTION_ENTRY()
++	status =
++	    acpi_get_table(table_attr->name, table_attr->instance,
++			   &table_header);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
 +
-+#define return_VOID                     return
-+#define return_ACPI_STATUS(s)           return(s)
-+#define return_VALUE(s)                 return(s)
-+#define return_UINT8(s)                 return(s)
-+#define return_UINT32(s)                return(s)
-+#define return_PTR(s)                   return(s)
++	if (offset >= table_header->length) {
++		ret_count = 0;
++		goto end;
++	}
 +
-+#endif /* DEBUG_FUNC_TRACE */
++	if (offset + ret_count > table_header->length)
++		ret_count = table_header->length - offset;
 +
- /* Conditional execution */
++	memcpy(buf, ((char *)table_header) + offset, ret_count);
++
++      end:
++	return ret_count;
++}
++
++static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
++				 struct acpi_table_header *table_header)
++{
++	struct acpi_table_header *header = NULL;
++	struct acpi_table_attr *attr = NULL;
++
++	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
++
++	list_for_each_entry(attr, &acpi_table_attr_list, node) {
++		if (!memcmp(table_header->signature, attr->name,
++			    ACPI_NAME_SIZE))
++			if (table_attr->instance < attr->instance)
++				table_attr->instance = attr->instance;
++	}
++	table_attr->instance++;
++
++	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
++					 !acpi_get_table(table_header->
++							 signature, 2,
++							 &header)))
++		sprintf(table_attr->name + 4, "%d", table_attr->instance);
++
++	table_attr->attr.size = 0;
++	table_attr->attr.read = acpi_table_show;
++	table_attr->attr.attr.name = table_attr->name;
++	table_attr->attr.attr.mode = 0444;
++	table_attr->attr.attr.owner = THIS_MODULE;
++
++	return;
++}
++
++static int acpi_system_sysfs_init(void)
++{
++	struct acpi_table_attr *table_attr;
++	struct acpi_table_header *table_header = NULL;
++	int table_index = 0;
++	int result;
++
++	tables_kobj.parent = &acpi_subsys.kobj;
++	kobject_set_name(&tables_kobj, "tables");
++	result = kobject_register(&tables_kobj);
++	if (result)
++		return result;
++
++	do {
++		result = acpi_get_table_by_index(table_index, &table_header);
++		if (!result) {
++			table_index++;
++			table_attr = NULL;
++			table_attr =
++			    kzalloc(sizeof(struct acpi_table_attr), GFP_KERNEL);
++			if (!table_attr)
++				return -ENOMEM;
++
++			acpi_table_attr_init(table_attr, table_header);
++			result =
++			    sysfs_create_bin_file(&tables_kobj,
++						  &table_attr->attr);
++			if (result) {
++				kfree(table_attr);
++				return result;
++			} else
++				list_add_tail(&table_attr->node,
++					      &acpi_table_attr_list);
++		}
++	} while (!result);
++
++	return 0;
++}
++
++/* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_PROCFS
++#define ACPI_SYSTEM_FILE_INFO		"info"
++#define ACPI_SYSTEM_FILE_EVENT		"event"
++#define ACPI_SYSTEM_FILE_DSDT		"dsdt"
++#define ACPI_SYSTEM_FILE_FADT		"fadt"
  
- #define ACPI_DEBUG_EXEC(a)              a
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index 7812267..c090a8b 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -178,8 +178,8 @@
+ static int acpi_system_read_info(struct seq_file *seq, void *offset)
+ {
+@@ -80,7 +194,6 @@ static const struct file_operations acpi_system_info_ops = {
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
+-#endif
  
- /* Defaults for debug_level, debug and normal */
+ static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
+ 				     loff_t *);
+@@ -97,13 +210,11 @@ acpi_system_read_dsdt(struct file *file,
+ 	struct acpi_table_header *dsdt = NULL;
+ 	ssize_t res;
  
--#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
--#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR | ACPI_LV_DEBUG_OBJECT)
-+#define ACPI_DEBUG_DEFAULT          (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
-+#define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_WARN | ACPI_LV_ERROR)
- #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
+-
+ 	status = acpi_get_table(ACPI_SIG_DSDT, 1, &dsdt);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
  
- #endif				/* __ACOUTPUT_H__ */
+-	res = simple_read_from_buffer(buffer, count, ppos,
+-				      dsdt, dsdt->length);
++	res = simple_read_from_buffer(buffer, count, ppos, dsdt, dsdt->length);
+ 
+ 	return res;
+ }
+@@ -123,28 +234,21 @@ acpi_system_read_fadt(struct file *file,
+ 	struct acpi_table_header *fadt = NULL;
+ 	ssize_t res;
+ 
+-
+ 	status = acpi_get_table(ACPI_SIG_FADT, 1, &fadt);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	res = simple_read_from_buffer(buffer, count, ppos,
+-				      fadt, fadt->length);
++	res = simple_read_from_buffer(buffer, count, ppos, fadt, fadt->length);
+ 
+ 	return res;
+ }
+ 
+-static int __init acpi_system_init(void)
++static int acpi_system_procfs_init(void)
+ {
+ 	struct proc_dir_entry *entry;
+ 	int error = 0;
+ 	char *name;
+ 
+-
+-	if (acpi_disabled)
+-		return 0;
+-
+-#ifdef CONFIG_ACPI_PROCFS
+ 	/* 'info' [R] */
+ 	name = ACPI_SYSTEM_FILE_INFO;
+ 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
+@@ -153,7 +257,6 @@ static int __init acpi_system_init(void)
+ 	else {
+ 		entry->proc_fops = &acpi_system_info_ops;
+ 	}
+-#endif
+ 
+ 	/* 'dsdt' [R] */
+ 	name = ACPI_SYSTEM_FILE_DSDT;
+@@ -177,12 +280,32 @@ static int __init acpi_system_init(void)
+       Error:
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
+-#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
+-#endif
+ 
+ 	error = -EFAULT;
+ 	goto Done;
+ }
++#else
++static int acpi_system_procfs_init(void)
++{
++	return 0;
++}
++#endif
++
++static int __init acpi_system_init(void)
++{
++	int result = 0;
++
++	if (acpi_disabled)
++		return 0;
++
++	result = acpi_system_procfs_init();
++	if (result)
++		return result;
++
++	result = acpi_system_sysfs_init();
++
++	return result;
++}
+ 
+ subsys_initcall(acpi_system_init);
 -- 
 1.5.3.rc2.22.g69a9b
