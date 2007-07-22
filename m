@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 44/77] ACPI: thinkpad-acpi: enable more hotkeys
-Date: Sun, 22 Jul 2007 05:14:29 -0400
-Message-ID: <11850957482671-git-send-email-len.brown@intel.com>
+Subject: [PATCH 46/77] ACPI: thinkpad-acpi: export to sysfs the state of the radio slider switch
+Date: Sun, 22 Jul 2007 05:14:31 -0400
+Message-ID: <11850957503243-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -46,264 +46,153 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957451942-git-send-email-len.brown@intel.com>
  <11850957462109-git-send-email-len.brown@intel.com>
  <11850957471828-git-send-email-len.brown@intel.com>
+ <11850957482671-git-send-email-len.brown@intel.com>
+ <11850957491254-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53139 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:22481 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763260AbXGVJPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1763397AbXGVJPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 22 Jul 2007 05:15:54 -0400
-In-Reply-To: <11850957471828-git-send-email-len.brown@intel.com>
-Message-Id: <ae92bd17ff703b3703562148c73b4d6833e6a326.1185095456.git.len.brown@intel.com>
+In-Reply-To: <11850957491254-git-send-email-len.brown@intel.com>
+Message-Id: <74941a69afcc06722685d492784414ec042ab492.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Henning Schild <henning@wh9.tu-dresden.de>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Revise ACPI HKEY functionality to better interface with the firmware, and
-enable up to 32 regular hotkeys, instead of just 16 of them.  Ouch.
+Some ThinkPad models, notably the T60 and X60, have a slider switch to
+enable and disable the radios.  The switch has the capability of
+force-disabling the radios in hardware on most models, and it is supposed
+to affect all radios (WLAN, WWAN, BlueTooth).
 
-This takes care of most keys one used to have to do CMOS NVRAM polling on,
-and should drop the need for tpb, thinkpad-keys, and other such 5Hz NVRAM
-polling power vampires on most modern ThinkPads ;-)
+Export the switch state as a sysfs attribute, on ThinkPads where it is
+available.
 
-And, just to add insult to injury, this was sort of working since forever
-through the procfs interface, but nobody noticed or tried an echo
-0xffffffff > /proc/acpi/ibm/hotkey and told me it would generate weird
-events. ARGH!
-
-Thanks to Richard Hughes for kicking off the work that ended up with this
-discovery, and to Matthew Garret for calling my attention to the fact that
-newer ThinkPads were indeed generating ACPI GPEs when such hot keys were
-pressed.
+Thanks to Henning Schild for asking for this feature, and for tracking down
+the EC register that holds the radio switch state.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Richard Hughes <hughsient@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Henning Schild <henning@wh9.tu-dresden.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   41 ++++++++++++++++----------------------
- drivers/misc/thinkpad_acpi.c    |   38 ++++++++++++++++++++---------------
- drivers/misc/thinkpad_acpi.h    |    6 ++--
- 3 files changed, 42 insertions(+), 43 deletions(-)
+ Documentation/thinkpad-acpi.txt |    6 ++++++
+ drivers/misc/thinkpad_acpi.c    |   38 ++++++++++++++++++++++++++++++++++++--
+ drivers/misc/thinkpad_acpi.h    |    1 +
+ 3 files changed, 43 insertions(+), 2 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index b90d9a7..2f30db0 100644
+index 142a14f..fe26e50 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -153,29 +153,22 @@ addition, the lid microswitch and some docking station buttons may
- also generate such events.
+@@ -227,6 +227,12 @@ sysfs notes:
+ 		supported hot keys, except those which are handled by
+ 		the firmware.  Echo it to hotkey_mask above, to use.
  
- The bit mask allows some control over which hot keys generate ACPI
--events. Not all bits in the mask can be modified. Not all bits that
--can be modified do anything. Not all hot keys can be individually
--controlled by the mask. Most recent ThinkPad models honor the
--following bits (assuming the hot keys feature has been enabled):
--
--	key	bit	behavior when set	behavior when unset
--
--	Fn-F3			always generates ACPI event
--	Fn-F4			always generates ACPI event
--	Fn-F5	0010	generate ACPI event	enable/disable Bluetooth
--	Fn-F7	0040	generate ACPI event	switch LCD and external display
--	Fn-F8	0080	generate ACPI event	expand screen or none
--	Fn-F9	0100	generate ACPI event	none
--	Fn-F12			always generates ACPI event
--
--Some models do not support all of the above. For example, the T30 does
--not support Fn-F5 and Fn-F9. Other models do not support the mask at
--all. On those models, hot keys cannot be controlled individually.
-+events. Not all bits in the mask can be modified. Not all bits that can
-+be modified do anything. Not all hot keys can be individually controlled
-+by the mask. Some models do not support the mask at all. On those
-+models, hot keys cannot be controlled individually.
- 
- Note that enabling ACPI events for some keys prevents their default
--behavior. For example, if events for Fn-F5 are enabled, that key will
--no longer enable/disable Bluetooth by itself. This can still be done
--from an acpid handler for the ibm/hotkey event.
-+behavior. For example, if events for Fn-F5 are enabled, that key will no
-+longer enable/disable Bluetooth by itself. This can still be done from
-+an acpid handler for the ibm/hotkey event.
++	hotkey_radio_sw:
++		if the ThinkPad has a hardware radio switch, this
++		attribute will read 0 if the switch is in the "radios
++		disabled" postition, and 1 if the switch is in the
++		"radios enabled" position.
 +
-+On some models, even enabling/disabling the entire hot key feature may
-+change the way some keys behave (e.g. in a T43, Fn+F4 will generate an
-+button/sleep ACPI event if hot keys are disabled, and it will ignore its
-+mask when hot keys are enabled, so the key always does something.  On a
-+X40, Fn+F4 respects its mask status, but generates the button/sleep ACPI
-+event if masked off).
  
- Note also that not all Fn key combinations are supported through
- ACPI. For example, on the X40, the brightness, volume and "Access IBM"
-@@ -189,9 +182,9 @@ The following commands can be written to the /proc/acpi/ibm/hotkey file:
- 
- 	echo enable > /proc/acpi/ibm/hotkey -- enable the hot keys feature
- 	echo disable > /proc/acpi/ibm/hotkey -- disable the hot keys feature
--	echo 0xffff > /proc/acpi/ibm/hotkey -- enable all possible hot keys
--	echo 0x0000 > /proc/acpi/ibm/hotkey -- disable all possible hot keys
--	... any other 4-hex-digit mask ...
-+	echo 0xffffffff > /proc/acpi/ibm/hotkey -- enable all hot keys
-+	echo 0 > /proc/acpi/ibm/hotkey -- disable all possible hot keys
-+	... any other 8-hex-digit mask ...
- 	echo reset > /proc/acpi/ibm/hotkey -- restore the original mask
- 
- sysfs notes:
+ Bluetooth
+ ---------
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 9f10b46..450b1e5 100644
+index 8c08868..3cf37bb 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -727,7 +727,7 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
-  */
- 
- static int hotkey_orig_status;
--static int hotkey_orig_mask;
-+static u32 hotkey_orig_mask;
+@@ -733,6 +733,13 @@ static u32 hotkey_reserved_mask = 0x00778000;
  
  static struct attribute_set *hotkey_dev_attributes;
  
-@@ -736,7 +736,8 @@ static ssize_t hotkey_enable_show(struct device *dev,
++static int hotkey_get_wlsw(int *status)
++{
++	if (!acpi_evalf(hkey_handle, status, "WLSW", "d"))
++		return -EIO;
++	return 0;
++}
++
+ /* sysfs hotkey enable ------------------------------------------------- */
+ static ssize_t hotkey_enable_show(struct device *dev,
  			   struct device_attribute *attr,
- 			   char *buf)
+@@ -853,6 +860,22 @@ static struct device_attribute dev_attr_hotkey_recommended_mask =
+ 	__ATTR(hotkey_recommended_mask, S_IRUGO,
+ 		hotkey_recommended_mask_show, NULL);
+ 
++/* sysfs hotkey radio_sw ----------------------------------------------- */
++static ssize_t hotkey_radio_sw_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	int res, s;
++	res = hotkey_get_wlsw(&s);
++	if (res < 0)
++		return res;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", !!s);
++}
++
++static struct device_attribute dev_attr_hotkey_radio_sw =
++	__ATTR(hotkey_radio_sw, S_IRUGO, hotkey_radio_sw_show, NULL);
++
+ /* --------------------------------------------------------------------- */
+ 
+ static struct attribute *hotkey_mask_attributes[] = {
+@@ -866,6 +889,7 @@ static struct attribute *hotkey_mask_attributes[] = {
+ static int __init hotkey_init(struct ibm_init_struct *iibm)
  {
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
+ 	int res;
++	int status;
  
- 	res = hotkey_get(&status, &mask);
- 	if (res)
-@@ -750,7 +751,8 @@ static ssize_t hotkey_enable_store(struct device *dev,
- 			    const char *buf, size_t count)
- {
- 	unsigned long t;
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
- 	if (parse_strtoul(buf, 1, &t))
- 		return -EINVAL;
-@@ -771,13 +773,14 @@ static ssize_t hotkey_mask_show(struct device *dev,
- 			   struct device_attribute *attr,
- 			   char *buf)
- {
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
+@@ -879,7 +903,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		str_supported(tp_features.hotkey));
  
- 	res = hotkey_get(&status, &mask);
- 	if (res)
- 		return res;
- 
--	return snprintf(buf, PAGE_SIZE, "0x%04x\n", mask);
-+	return snprintf(buf, PAGE_SIZE, "0x%08x\n", mask);
- }
- 
- static ssize_t hotkey_mask_store(struct device *dev,
-@@ -785,9 +788,10 @@ static ssize_t hotkey_mask_store(struct device *dev,
- 			    const char *buf, size_t count)
- {
- 	unsigned long t;
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
- 
--	if (parse_strtoul(buf, 0xffff, &t))
-+	if (parse_strtoul(buf, 0xffffffffUL, &t))
- 		return -EINVAL;
- 
- 	res = hotkey_get(&status, &mask);
-@@ -817,7 +821,7 @@ static ssize_t hotkey_bios_mask_show(struct device *dev,
- 			   struct device_attribute *attr,
- 			   char *buf)
- {
--	return snprintf(buf, PAGE_SIZE, "0x%04x\n", hotkey_orig_mask);
-+	return snprintf(buf, PAGE_SIZE, "0x%08x\n", hotkey_orig_mask);
- }
- 
- static struct device_attribute dev_attr_hotkey_bios_mask =
-@@ -902,10 +906,10 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- {
- 	int hkey;
- 
--	if (acpi_evalf(hkey_handle, &hkey, "MHKP", "d"))
-+	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
- 		acpi_bus_generate_event(ibm->acpi->device, event, hkey);
--	else {
--		printk(IBM_ERR "unknown hotkey event %d\n", event);
-+	} else {
-+		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
- 		acpi_bus_generate_event(ibm->acpi->device, event, 0);
+ 	if (tp_features.hotkey) {
+-		hotkey_dev_attributes = create_attr_set(6, NULL);
++		hotkey_dev_attributes = create_attr_set(7, NULL);
+ 		if (!hotkey_dev_attributes)
+ 			return -ENOMEM;
+ 		res = add_to_attr_set(hotkey_dev_attributes,
+@@ -908,11 +932,21 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 				hotkey_mask_attributes,
+ 				ARRAY_SIZE(hotkey_mask_attributes));
+ 		}
++
++		/* Not all thinkpads have a hardware radio switch */
++		if (!res && acpi_evalf(hkey_handle, &status, "WLSW", "qd")) {
++			tp_features.hotkey_wlsw = 1;
++			printk(IBM_INFO
++				"radio switch found; radios are %s\n",
++				enabled(status, 0));
++			res = add_to_attr_set(hotkey_dev_attributes,
++					&dev_attr_hotkey_radio_sw.attr);
++		}
++
+ 		if (!res)
+ 			res = register_attr_set_with_sysfs(
+ 					hotkey_dev_attributes,
+ 					&tpacpi_pdev->dev.kobj);
+-
+ 		if (res)
+ 			return res;
  	}
- }
-@@ -913,7 +917,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- /*
-  * Call with hotkey_mutex held
-  */
--static int hotkey_get(int *status, int *mask)
-+static int hotkey_get(int *status, u32 *mask)
- {
- 	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
- 		return -EIO;
-@@ -928,7 +932,7 @@ static int hotkey_get(int *status, int *mask)
- /*
-  * Call with hotkey_mutex held
-  */
--static int hotkey_set(int status, int mask)
-+static int hotkey_set(int status, u32 mask)
- {
- 	int i;
- 
-@@ -949,7 +953,8 @@ static int hotkey_set(int status, int mask)
- /* procfs -------------------------------------------------------------- */
- static int hotkey_read(char *p)
- {
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
- 	int len = 0;
- 
- 	if (!tp_features.hotkey) {
-@@ -967,7 +972,7 @@ static int hotkey_read(char *p)
- 
- 	len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 0));
- 	if (tp_features.hotkey_mask) {
--		len += sprintf(p + len, "mask:\t\t0x%04x\n", mask);
-+		len += sprintf(p + len, "mask:\t\t0x%08x\n", mask);
- 		len += sprintf(p + len,
- 			       "commands:\tenable, disable, reset, <mask>\n");
- 	} else {
-@@ -980,7 +985,8 @@ static int hotkey_read(char *p)
- 
- static int hotkey_write(char *buf)
- {
--	int res, status, mask;
-+	int res, status;
-+	u32 mask;
- 	char *cmd;
- 	int do_cmd = 0;
- 
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 72d62f2..e1a64f0 100644
+index e1a64f0..78ea4c8 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -415,14 +415,14 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
-  */
- 
- static int hotkey_orig_status;
--static int hotkey_orig_mask;
-+static u32 hotkey_orig_mask;
- 
- static struct mutex hotkey_mutex;
- 
- static int hotkey_init(struct ibm_init_struct *iibm);
- static void hotkey_exit(void);
--static int hotkey_get(int *status, int *mask);
--static int hotkey_set(int status, int mask);
-+static int hotkey_get(int *status, u32 *mask);
-+static int hotkey_set(int status, u32 mask);
- static void hotkey_notify(struct ibm_struct *ibm, u32 event);
- static int hotkey_read(char *p);
- static int hotkey_write(char *buf);
+@@ -228,6 +228,7 @@ static struct {
+ 	u16 bluetooth:1;
+ 	u16 hotkey:1;
+ 	u16 hotkey_mask:1;
++	u16 hotkey_wlsw:1;
+ 	u16 light:1;
+ 	u16 light_status:1;
+ 	u16 wan:1;
 -- 
 1.5.3.rc2.22.g69a9b
