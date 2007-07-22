@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 40/77] ACPI: Enable C3 even when PM2_control is zero
-Date: Sun, 22 Jul 2007 05:14:25 -0400
-Message-ID: <11850957443711-git-send-email-len.brown@intel.com>
+Subject: [PATCH 41/77] ACPI: thinkpad-acpi: add DMI-based modalias
+Date: Sun, 22 Jul 2007 05:14:26 -0400
+Message-ID: <11850957451942-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -42,90 +42,69 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957403722-git-send-email-len.brown@intel.com>
  <11850957413607-git-send-email-len.brown@intel.com>
  <11850957432095-git-send-email-len.brown@intel.com>
+ <11850957443711-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22481 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53139 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763128AbXGVJPs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1763274AbXGVJPs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 22 Jul 2007 05:15:48 -0400
-In-Reply-To: <11850957432095-git-send-email-len.brown@intel.com>
-Message-Id: <18eab8550397f1f3d4b8b2c5257c88dae25d58ed.1185095456.git.len.brown@intel.com>
+In-Reply-To: <11850957443711-git-send-email-len.brown@intel.com>
+Message-Id: <b964b437601a0e7d09896d5d9a85c83643e94f41.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lennart Poettering <mzxreary@0pointer.de>, Len Brown <len.brown@intel.com>
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On systems that do not have pm2_control_block, we cannot really use
-ARB_DISABLE before C3. We used to disable C3 totally on such systems.
+Add DMI-based aliases to allow module autoloading on select thinkpads.
 
-To be compatible with Windows, we need to enable C3 on such systems now.
-We just skip ARB_DISABLE step before entering the C3-state and assume
-hardware is handling things correctly. Also, ACPI spec is not clear
-about pm2_control is _needed_ for C3 or not.
+The aliases will do nothing unless the dmi-based-module-autoloading.patch
+patch from Lennart Poettering <mzxreary@0pointer.de> is applied.  Lennart's
+patch has been accepted by greghk and will be merged eventually.
 
-We have atleast one system that need this to enable C3.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ee5759b..36dc1d2 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -488,7 +488,17 @@ static void acpi_processor_idle(void)
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 95c0b96..22a5f22 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -92,6 +92,29 @@ MODULE_LICENSE("GPL");
+ /* Please remove this in year 2009 */
+ MODULE_ALIAS("ibm_acpi");
  
- 	case ACPI_STATE_C3:
++/*
++ * DMI matching for module autoloading
++ *
++ * See http://thinkwiki.org/wiki/List_of_DMI_IDs
++ * See http://thinkwiki.org/wiki/BIOS_Upgrade_Downloads
++ *
++ * Only models listed in thinkwiki will be supported, so add yours
++ * if it is not there yet.
++ */
++#define IBM_BIOS_MODULE_ALIAS(__type) \
++	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
++
++/* Non-ancient thinkpads */
++MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
++MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
++
++/* Ancient thinkpad BIOSes have to be identified by
++ * BIOS type or model number, and there are far less
++ * BIOS types than model numbers... */
++IBM_BIOS_MODULE_ALIAS("I[B,D,H,I,M,N,O,T,W,V,Y,Z]");
++IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
++IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
++
+ #define __unused __attribute__ ((unused))
  
--		if (pr->flags.bm_check) {
-+		/*
-+		 * disable bus master
-+		 * bm_check implies we need ARB_DIS
-+		 * !bm_check implies we need cache flush
-+		 * bm_control implies whether we can do ARB_DIS
-+		 *
-+		 * That leaves a case where bm_check is set and bm_control is
-+		 * not set. In that case we cannot do much, we enter C3
-+		 * without doing anything.
-+		 */
-+		if (pr->flags.bm_check && pr->flags.bm_control) {
- 			if (atomic_inc_return(&c3_cpu_count) ==
- 			    num_online_cpus()) {
- 				/*
-@@ -497,7 +507,7 @@ static void acpi_processor_idle(void)
- 				 */
- 				acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
- 			}
--		} else {
-+		} else if (!pr->flags.bm_check) {
- 			/* SMP with no shared cache... Invalidate cache  */
- 			ACPI_FLUSH_CPU_CACHE();
- 		}
-@@ -509,7 +519,7 @@ static void acpi_processor_idle(void)
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--		if (pr->flags.bm_check) {
-+		if (pr->flags.bm_check && pr->flags.bm_control) {
- 			/* Enable bus master arbitration */
- 			atomic_dec(&c3_cpu_count);
- 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
-@@ -959,9 +969,9 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
- 	if (pr->flags.bm_check) {
- 		/* bus mastering control is necessary */
- 		if (!pr->flags.bm_control) {
-+			/* In this case we enter C3 without bus mastering */
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "C3 support requires bus mastering control\n"));
--			return;
-+				"C3 support without bus mastering control\n"));
- 		}
- 	} else {
- 		/*
+ /****************************************************************************
 -- 
 1.5.3.rc2.22.g69a9b
