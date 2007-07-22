@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 25/77] ACPI: sbs: probe smart battery vis SMBus controller
-Date: Sun, 22 Jul 2007 05:14:10 -0400
-Message-ID: <11850957282082-git-send-email-len.brown@intel.com>
+Subject: [PATCH 27/77] ACPI: static
+Date: Sun, 22 Jul 2007 05:14:12 -0400
+Message-ID: <11850957302782-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -27,123 +27,45 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957252722-git-send-email-len.brown@intel.com>
  <11850957262869-git-send-email-len.brown@intel.com>
  <11850957272369-git-send-email-len.brown@intel.com>
+ <11850957282082-git-send-email-len.brown@intel.com>
+ <11850957292555-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36470 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:33300 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762887AbXGVJPa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:30 -0400
-In-Reply-To: <11850957272369-git-send-email-len.brown@intel.com>
-Message-Id: <addad45494cb4f9c03470a4e5155f442791b0d7f.1185095456.git.len.brown@intel.com>
+	id S1762929AbXGVJPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:32 -0400
+In-Reply-To: <11850957292555-git-send-email-len.brown@intel.com>
+Message-Id: <3312111d1bd1a409892031f7979c57a52b01185c.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Adrian Bunk <bunk@stusta.de>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8559
+make the needlessly global osi_linux static.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sbs.c |   33 +++++++--------------------------
- 1 files changed, 7 insertions(+), 26 deletions(-)
+ drivers/acpi/osl.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index c1bae10..974d00c 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -127,7 +127,7 @@ static int acpi_sbs_resume(struct acpi_device *device);
- static struct acpi_driver acpi_sbs_driver = {
- 	.name = "sbs",
- 	.class = ACPI_SBS_CLASS,
--	.ids = ACPI_SBS_HID,
-+	.ids = "ACPI0001,ACPI0005",
- 	.ops = {
- 		.add = acpi_sbs_add,
- 		.remove = acpi_sbs_remove,
-@@ -176,10 +176,8 @@ struct acpi_battery {
- };
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 3f244eb..5cfb7b5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_notify_wq;
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
  
- struct acpi_sbs {
--	acpi_handle handle;
- 	int base;
- 	struct acpi_device *device;
--	struct acpi_ec_smbus *smbus;
- 	struct mutex mutex;
- 	int sbsm_present;
- 	int sbsm_batteries_supported;
-@@ -511,7 +509,7 @@ static int acpi_sbsm_get_info(struct acpi_sbs *sbs)
- 				"acpi_sbs_read_word() failed"));
- 		goto end;
- 	}
--
-+	sbs->sbsm_present = 1;
- 	sbs->sbsm_batteries_supported = battery_system_info & 0x000f;
+-int osi_linux;		/* disable _OSI(Linux) by default */
++static int osi_linux;		/* disable _OSI(Linux) by default */
  
-       end:
-@@ -1630,13 +1628,12 @@ static int acpi_sbs_add(struct acpi_device *device)
- {
- 	struct acpi_sbs *sbs = NULL;
- 	int result = 0, remove_result = 0;
--	unsigned long sbs_obj;
- 	int id;
- 	acpi_status status = AE_OK;
- 	unsigned long val;
- 
- 	status =
--	    acpi_evaluate_integer(device->parent->handle, "_EC", NULL, &val);
-+	    acpi_evaluate_integer(device->handle, "_EC", NULL, &val);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, AE_ERROR, "Error obtaining _EC"));
- 		return -EIO;
-@@ -1653,7 +1650,7 @@ static int acpi_sbs_add(struct acpi_device *device)
- 
- 	sbs_mutex_lock(sbs);
- 
--	sbs->base = (val & 0xff00ull) >> 8;
-+	sbs->base = 0xff & (val >> 8);
- 	sbs->device = device;
- 
- 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
-@@ -1665,24 +1662,10 @@ static int acpi_sbs_add(struct acpi_device *device)
- 		ACPI_EXCEPTION((AE_INFO, AE_ERROR, "acpi_ac_add() failed"));
- 		goto end;
- 	}
--	status = acpi_evaluate_integer(device->handle, "_SBS", NULL, &sbs_obj);
--	if (status) {
--		ACPI_EXCEPTION((AE_INFO, status,
--				"acpi_evaluate_integer() failed"));
--		result = -EIO;
--		goto end;
--	}
--	if (sbs_obj > 0) {
--		result = acpi_sbsm_get_info(sbs);
--		if (result) {
--			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
--					"acpi_sbsm_get_info() failed"));
--			goto end;
--		}
--		sbs->sbsm_present = 1;
--	}
- 
--	if (sbs->sbsm_present == 0) {
-+	acpi_sbsm_get_info(sbs);
-+
-+	if (!sbs->sbsm_present) {
- 		result = acpi_battery_add(sbs, 0);
- 		if (result) {
- 			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-@@ -1702,8 +1685,6 @@ static int acpi_sbs_add(struct acpi_device *device)
- 		}
- 	}
- 
--	sbs->handle = device->handle;
--
- 	init_timer(&sbs->update_timer);
- 	result = acpi_check_update_proc(sbs);
- 	if (result)
+ #ifdef CONFIG_DMI
+ static struct __initdata dmi_system_id acpi_osl_dmi_table[];
 -- 
 1.5.3.rc2.22.g69a9b
