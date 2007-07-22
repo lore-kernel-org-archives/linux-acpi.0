@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 27/77] ACPI: static
-Date: Sun, 22 Jul 2007 05:14:12 -0400
-Message-ID: <11850957302782-git-send-email-len.brown@intel.com>
+Subject: [PATCH 28/77] ACPI: delete cmdline documentation for deleted hotkey code
+Date: Sun, 22 Jul 2007 05:14:13 -0400
+Message-ID: <11850957311269-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -29,43 +29,47 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957272369-git-send-email-len.brown@intel.com>
  <11850957282082-git-send-email-len.brown@intel.com>
  <11850957292555-git-send-email-len.brown@intel.com>
+ <11850957302782-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:33300 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762929AbXGVJPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1761457AbXGVJPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 22 Jul 2007 05:15:32 -0400
-In-Reply-To: <11850957292555-git-send-email-len.brown@intel.com>
-Message-Id: <3312111d1bd1a409892031f7979c57a52b01185c.1185095456.git.len.brown@intel.com>
+In-Reply-To: <11850957302782-git-send-email-len.brown@intel.com>
+Message-Id: <1c1558ec50618c4a179e0684037d9f7bb0c1a326.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Adrian Bunk <bunk@stusta.de>
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-make the needlessly global osi_linux static.
+This looks like left over text in the kernel parameters documentation.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ Documentation/kernel-parameters.txt |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 3f244eb..5cfb7b5 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_notify_wq;
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index ce91560..7ce5ea9 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -220,11 +220,6 @@ and is between 256 and 4096 characters. It is defined in the file
  
--int osi_linux;		/* disable _OSI(Linux) by default */
-+static int osi_linux;		/* disable _OSI(Linux) by default */
+ 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
  
- #ifdef CONFIG_DMI
- static struct __initdata dmi_system_id acpi_osl_dmi_table[];
+-	acpi_generic_hotkey [HW,ACPI]
+-			Allow consolidated generic hotkey driver to
+-			override platform specific driver.
+-			See also Documentation/acpi-hotkey.txt.
+-
+ 	acpi_pm_good	[IA-32,X86-64]
+ 			Override the pmtimer bug detection: force the kernel
+ 			to assume that this machine's pmtimer latches its value
 -- 
 1.5.3.rc2.22.g69a9b
