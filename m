@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 64/77] sony-laptop: add new SNC handlers
-Date: Sun, 22 Jul 2007 05:14:49 -0400
-Message-ID: <11850957691561-git-send-email-len.brown@intel.com>
+Subject: [PATCH 65/77] sony-laptop: map wireless switch events to KEY_WLAN
+Date: Sun, 22 Jul 2007 05:14:50 -0400
+Message-ID: <11850957703097-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -66,13 +66,14 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <1185095766274-git-send-email-len.brown@intel.com>
  <1185095767879-git-send-email-len.brown@intel.com>
  <1185095768376-git-send-email-len.brown@intel.com>
+ <11850957691561-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45767 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764403AbXGVJQL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:11 -0400
-In-Reply-To: <1185095768376-git-send-email-len.brown@intel.com>
-Message-Id: <044847e02d46c0a9430e19249fd68777bb1d3c98.1185095456.git.len.brown@intel.com>
+	id S1764410AbXGVJQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:13 -0400
+In-Reply-To: <11850957691561-git-send-email-len.brown@intel.com>
+Message-Id: <8538c3686c895f9334a3c22997b51b5a82de7550.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -82,47 +83,24 @@ Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
 From: Mattia Dongili <malattia@linux.it>
 
-- lid state: GLID
-- indicator lamp: GILS/SILS
-- multimedia bass gain: GMGB/CMGB
-
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/misc/sony-laptop.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 9623eaf..0f378fe 100644
+index 0f378fe..142d660 100644
 --- a/drivers/misc/sony-laptop.c
 +++ b/drivers/misc/sony-laptop.c
-@@ -487,6 +487,14 @@ SNC_HANDLE_NAMES(audiopower_set, "AZPW");
- SNC_HANDLE_NAMES(lanpower_get, "GLNP");
- SNC_HANDLE_NAMES(lanpower_set, "LNPW");
- 
-+SNC_HANDLE_NAMES(lidstate_get, "GLID");
-+
-+SNC_HANDLE_NAMES(indicatorlamp_get, "GILS");
-+SNC_HANDLE_NAMES(indicatorlamp_set, "SILS");
-+
-+SNC_HANDLE_NAMES(gainbass_get, "GMGB");
-+SNC_HANDLE_NAMES(gainbass_set, "CMGB");
-+
- SNC_HANDLE_NAMES(PID_get, "GPID");
- 
- SNC_HANDLE_NAMES(CTR_get, "GCTR");
-@@ -507,6 +515,12 @@ static struct sony_nc_value sony_nc_values[] = {
- 			boolean_validate, 0),
- 	SNC_HANDLE(lanpower, snc_lanpower_get, snc_lanpower_set,
- 			boolean_validate, 1),
-+	SNC_HANDLE(lidstate, snc_lidstate_get, NULL,
-+			boolean_validate, 0),
-+	SNC_HANDLE(indicatorlamp, snc_indicatorlamp_get, snc_indicatorlamp_set,
-+			boolean_validate, 0),
-+	SNC_HANDLE(gainbass, snc_gainbass_get, snc_gainbass_set,
-+			boolean_validate, 0),
- 	/* unknown methods */
- 	SNC_HANDLE(PID, snc_PID_get, NULL, NULL, 1),
- 	SNC_HANDLE(CTR, snc_CTR_get, snc_CTR_set, NULL, 1),
+@@ -177,6 +177,8 @@ static struct {
+ 	{ SONYPI_EVENT_BACK_PRESSED, 		KEY_BACK },
+ 	{ SONYPI_EVENT_HELP_PRESSED, 		KEY_HELP },
+ 	{ SONYPI_EVENT_ZOOM_PRESSED, 		KEY_ZOOM },
++	{ SONYPI_EVENT_WIRELESS_ON, 		KEY_WLAN },
++	{ SONYPI_EVENT_WIRELESS_OFF, 		KEY_WLAN },
+ 	{ SONYPI_EVENT_THUMBPHRASE_PRESSED, 	BTN_THUMB },
+ 	{ 0, 0 },
+ };
 -- 
 1.5.3.rc2.22.g69a9b
