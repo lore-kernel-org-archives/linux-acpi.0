@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 57/77] ACPI: thinkpad-acpi: store ThinkPad model information
-Date: Sun, 22 Jul 2007 05:14:42 -0400
-Message-ID: <11850957621605-git-send-email-len.brown@intel.com>
+Subject: [PATCH 58/77] ACPI: thinkpad-acpi: allow use of CMOS NVRAM for brightness control
+Date: Sun, 22 Jul 2007 05:14:43 -0400
+Message-ID: <11850957633613-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -59,13 +59,14 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957591101-git-send-email-len.brown@intel.com>
  <11850957601664-git-send-email-len.brown@intel.com>
  <1185095761326-git-send-email-len.brown@intel.com>
+ <11850957621605-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43305 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:35331 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764252AbXGVJQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:03 -0400
-In-Reply-To: <1185095761326-git-send-email-len.brown@intel.com>
-Message-Id: <d5a2f2f1d68e2da538ac28540cddd9ccc733b001.1185095456.git.len.brown@intel.com>
+	id S1764086AbXGVJQE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:04 -0400
+In-Reply-To: <11850957621605-git-send-email-len.brown@intel.com>
+Message-Id: <24d3b77467b6aaf59e38dce4aa86d05541858195.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -75,242 +76,187 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Keep note of ThinkPad model, BIOS and EC firmware information, and log it
-on startup.  Makes for far more readable code in places, too.
+It appears that Lenovo decided to break the EC brightness control interface
+in a weird way in their latest BIOSes.  Fortunately, the old CMOS NVRAM
+interface works just fine in such BIOSes.
 
-This patch also adds Lenovo's PCI ID to the pci ids table.
+Add a module parameter that allows the user to select which strategy to use
+for brightness control: EC, NVRAM, or both.  By default, do both (which is
+the way thinkpad-acpi used to work until now) on IBM ThinkPads, and use
+NVRAM only on Lenovo ThinkPads.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   98 ++++++++++++++++++++++++++++++------------
- drivers/misc/thinkpad_acpi.h |   17 ++++++-
- include/linux/pci_ids.h      |    2 +
- 3 files changed, 87 insertions(+), 30 deletions(-)
+ Documentation/thinkpad-acpi.txt |    6 ++++
+ drivers/misc/Kconfig            |    1 +
+ drivers/misc/thinkpad_acpi.c    |   62 +++++++++++++++++++++++++++++++++-----
+ drivers/misc/thinkpad_acpi.h    |    7 ++++
+ 4 files changed, 67 insertions(+), 9 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index c670363..c145bcc 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -860,6 +860,12 @@ cannot be controlled.
+ The backlight control has eight levels, ranging from 0 to 7.  Some of the
+ levels may not be distinct.
+ 
++There are two interfaces to the firmware for brightness control, EC and CMOS.
++To select which one should be used, use the brightness_mode module parameter:
++brightness_mode=1 selects EC mode, brightness_mode=2 selects CMOS mode,
++brightness_mode=3 selects both EC and CMOS.  The driver tries to autodetect
++which interface to use.
++
+ Procfs notes:
+ 
+ 	The available commands are:
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 5197f9b..aaaa61e 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -150,6 +150,7 @@ config THINKPAD_ACPI
+ 	depends on X86 && ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
++	select NVRAM
+ 	---help---
+ 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 44aa8c9..99500af 100644
+index 99500af..5318eb2 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -717,9 +717,19 @@ static int __init thinkpad_acpi_driver_init(struct ibm_init_struct *iibm)
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
+@@ -2953,9 +2953,22 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
  
--	if (ibm_thinkpad_ec_found)
--		printk(IBM_INFO "ThinkPad EC firmware %s\n",
--		       ibm_thinkpad_ec_found);
-+	printk(IBM_INFO "ThinkPad BIOS %s, EC %s\n",
-+		(thinkpad_id.bios_version_str) ?
-+			thinkpad_id.bios_version_str : "unknown",
-+		(thinkpad_id.ec_version_str) ?
-+			thinkpad_id.ec_version_str : "unknown");
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+ 
++	if (!brightness_mode) {
++		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
++			brightness_mode = 2;
++		else
++			brightness_mode = 3;
 +
-+	if (thinkpad_id.vendor && thinkpad_id.model_str)
-+		printk(IBM_INFO "%s %s\n",
-+			(thinkpad_id.vendor == PCI_VENDOR_ID_IBM) ?
-+				"IBM" : ((thinkpad_id.vendor ==
-+						PCI_VENDOR_ID_LENOVO) ?
-+					"Lenovo" : "Unknown vendor"),
-+			thinkpad_id.model_str);
++		dbg_printk(TPACPI_DBG_INIT, "selected brightness_mode=%d\n",
++			brightness_mode);
++	}
++
++	if (brightness_mode > 3)
++		return -EINVAL;
++
+ 	b = brightness_get(NULL);
+ 	if (b < 0)
+-		return b;
++		return 1;
  
- 	return 0;
+ 	ibm_backlight_device = backlight_device_register(
+ 					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
+@@ -2991,13 +3004,35 @@ static int brightness_update_status(struct backlight_device *bd)
+ 				bd->props.brightness : 0);
  }
-@@ -2648,7 +2658,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
  
- 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
- 
--	if (ibm_thinkpad_ec_found && experimental) {
-+	if (thinkpad_id.ec_model && experimental) {
- 		/*
- 		 * Direct EC access mode: sensors at registers
- 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
-@@ -3532,20 +3542,19 @@ static int __init fan_init(struct ibm_init_struct *iibm)
- 			 * Enable for TP-1Y (T43), TP-78 (R51e),
- 			 * TP-76 (R52), TP-70 (T43, R52), which are known
- 			 * to be buggy. */
--			if (fan_control_initial_status == 0x07 &&
--			    ibm_thinkpad_ec_found &&
--			    ((ibm_thinkpad_ec_found[0] == '1' &&
--			      ibm_thinkpad_ec_found[1] == 'Y') ||
--			     (ibm_thinkpad_ec_found[0] == '7' &&
--			      (ibm_thinkpad_ec_found[1] == '6' ||
--			       ibm_thinkpad_ec_found[1] == '8' ||
--			       ibm_thinkpad_ec_found[1] == '0'))
--			    )) {
--				printk(IBM_NOTICE
--				       "fan_init: initial fan status is "
--				       "unknown, assuming it is in auto "
--				       "mode\n");
--				tp_features.fan_ctrl_status_undef = 1;
-+			if (fan_control_initial_status == 0x07) {
-+				switch (thinkpad_id.ec_model) {
-+				case 0x5931: /* TP-1Y */
-+				case 0x3837: /* TP-78 */
-+				case 0x3637: /* TP-76 */
-+				case 0x3037: /* TP-70 */
-+					printk(IBM_NOTICE
-+					       "fan_init: initial fan status is "
-+					       "unknown, assuming it is in auto "
-+					       "mode\n");
-+					tp_features.fan_ctrl_status_undef = 1;
-+					;;
-+				}
- 			}
- 		} else {
- 			printk(IBM_ERR
-@@ -4279,13 +4288,30 @@ static void ibm_exit(struct ibm_struct *ibm)
- 
- /* Probing */
- 
--static char *ibm_thinkpad_ec_found;
--
--static char* __init check_dmi_for_ec(void)
-+static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
++/*
++ * ThinkPads can read brightness from two places: EC 0x31, or
++ * CMOS NVRAM byte 0x5E, bits 0-3.
++ */
+ static int brightness_get(struct backlight_device *bd)
  {
- 	struct dmi_device *dev = NULL;
- 	char ec_fw_string[18];
+-	u8 level;
+-	if (!acpi_ec_read(brightness_offset, &level))
+-		return -EIO;
++	u8 lec = 0, lcmos = 0, level = 0;
  
-+	if (!tp)
-+		return;
+-	level &= 0x7;
++	if (brightness_mode & 1) {
++		if (!acpi_ec_read(brightness_offset, &lec))
++			return -EIO;
++		lec &= 7;
++		level = lec;
++	};
++	if (brightness_mode & 2) {
++		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
++			 & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
++			>> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
++		level = lcmos;
++	}
 +
-+	memset(tp, 0, sizeof(*tp));
++	if (brightness_mode == 3 && lec != lcmos) {
++		printk(IBM_ERR
++			"CMOS NVRAM (%u) and EC (%u) do not agree "
++			"on display brightness level\n",
++			(unsigned int) lcmos,
++			(unsigned int) lec);
++		return -EIO;
++	}
+ 
+ 	return level;
+ }
+@@ -3007,14 +3042,20 @@ static int brightness_set(int value)
+ 	int cmos_cmd, inc, i;
+ 	int current_value = brightness_get(NULL);
+ 
+-	value &= 7;
++	if (value > 7)
++		return -EINVAL;
+ 
+-	cmos_cmd = value > current_value ? TP_CMOS_BRIGHTNESS_UP : TP_CMOS_BRIGHTNESS_DOWN;
++	cmos_cmd = value > current_value ?
++			TP_CMOS_BRIGHTNESS_UP :
++			TP_CMOS_BRIGHTNESS_DOWN;
+ 	inc = value > current_value ? 1 : -1;
 +
-+	if (dmi_name_in_vendors("IBM"))
-+		tp->vendor = PCI_VENDOR_ID_IBM;
-+	else if (dmi_name_in_vendors("LENOVO"))
-+		tp->vendor = PCI_VENDOR_ID_LENOVO;
-+	else
-+		return;
-+
-+	tp->bios_version_str = kstrdup(dmi_get_system_info(DMI_BIOS_VERSION),
-+					GFP_KERNEL);
-+	if (!tp->bios_version_str)
-+		return;
-+	tp->bios_model = tp->bios_version_str[0]
-+			 | (tp->bios_version_str[1] << 8);
-+
- 	/*
- 	 * ThinkPad T23 or newer, A31 or newer, R50e or newer,
- 	 * X32 or newer, all Z series;  Some models must have an
-@@ -4299,10 +4325,20 @@ static char* __init check_dmi_for_ec(void)
- 			   ec_fw_string) == 1) {
- 			ec_fw_string[sizeof(ec_fw_string) - 1] = 0;
- 			ec_fw_string[strcspn(ec_fw_string, " ]")] = 0;
--			return kstrdup(ec_fw_string, GFP_KERNEL);
-+
-+			tp->ec_version_str = kstrdup(ec_fw_string, GFP_KERNEL);
-+			tp->ec_model = ec_fw_string[0]
-+					| (ec_fw_string[1] << 8);
-+			break;
- 		}
+ 	for (i = current_value; i != value; i += inc) {
+-		if (issue_thinkpad_cmos_command(cmos_cmd))
++		if ((brightness_mode & 2) &&
++		    issue_thinkpad_cmos_command(cmos_cmd))
+ 			return -EIO;
+-		if (!acpi_ec_write(brightness_offset, i + inc))
++		if ((brightness_mode & 1) &&
++		    !acpi_ec_write(brightness_offset, i + inc))
+ 			return -EIO;
  	}
--	return NULL;
+ 
+@@ -4485,6 +4526,9 @@ module_param(force_load, bool, 0);
+ static int fan_control_allowed;
+ module_param_named(fan_control, fan_control_allowed, bool, 0);
+ 
++static int brightness_mode;
++module_param_named(brightness_mode, brightness_mode, int, 0);
 +
-+	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
-+					GFP_KERNEL);
-+	if (strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
-+		kfree(tp->model_str);
-+		tp->model_str = NULL;
-+	}
- }
+ #define IBM_PARAM(feature) \
+ 	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
  
- static int __init probe_for_thinkpad(void)
-@@ -4316,7 +4352,7 @@ static int __init probe_for_thinkpad(void)
- 	 * Non-ancient models have better DMI tagging, but very old models
- 	 * don't.
- 	 */
--	is_thinkpad = dmi_name_in_vendors("ThinkPad");
-+	is_thinkpad = (thinkpad_id.model_str != NULL);
- 
- 	/* ec is required because many other handles are relative to it */
- 	IBM_ACPIHANDLE_INIT(ec);
-@@ -4332,7 +4368,7 @@ static int __init probe_for_thinkpad(void)
- 	 * false positives a damn great deal
- 	 */
- 	if (!is_thinkpad)
--		is_thinkpad = dmi_name_in_vendors("IBM");
-+		is_thinkpad = (thinkpad_id.vendor == PCI_VENDOR_ID_IBM);
- 
- 	if (!is_thinkpad && !force_load)
- 		return -ENODEV;
-@@ -4475,12 +4511,16 @@ static int __init thinkpad_acpi_module_init(void)
- 	int ret, i;
- 
- 	/* Driver-level probe */
-+
-+	get_thinkpad_model_data(&thinkpad_id);
- 	ret = probe_for_thinkpad();
--	if (ret)
-+	if (ret) {
-+		thinkpad_acpi_module_exit();
- 		return ret;
-+	}
- 
- 	/* Driver initialization */
--	ibm_thinkpad_ec_found = check_dmi_for_ec();
-+
- 	IBM_ACPIHANDLE_INIT(ecrd);
- 	IBM_ACPIHANDLE_INIT(ecwr);
- 
-@@ -4590,7 +4630,9 @@ static void thinkpad_acpi_module_exit(void)
- 	if (proc_dir)
- 		remove_proc_entry(IBM_PROC_DIR, acpi_root_dir);
- 
--	kfree(ibm_thinkpad_ec_found);
-+	kfree(thinkpad_id.bios_version_str);
-+	kfree(thinkpad_id.ec_version_str);
-+	kfree(thinkpad_id.model_str);
- }
- 
- module_init(thinkpad_acpi_module_init);
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index fee0421..09b2282 100644
+index 09b2282..b7a4a88 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -175,9 +175,7 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv);
- static int experimental;
- static u32 dbg_level;
- static int force_load;
--static char *ibm_thinkpad_ec_found;
+@@ -32,6 +32,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
  
--static char* check_dmi_for_ec(void);
- static int thinkpad_acpi_module_init(void);
- static void thinkpad_acpi_module_exit(void);
++#include <linux/nvram.h>
+ #include <linux/proc_fs.h>
+ #include <linux/sysfs.h>
+ #include <linux/backlight.h>
+@@ -80,6 +81,11 @@
+ #define TP_CMOS_BRIGHTNESS_UP	4
+ #define TP_CMOS_BRIGHTNESS_DOWN	5
  
-@@ -244,6 +242,21 @@ static struct {
- 	u16 input_device_registered:1;
- } tp_features;
++/* ThinkPad CMOS NVRAM constants */
++#define TP_NVRAM_ADDR_BRIGHTNESS       0x5e
++#define TP_NVRAM_MASK_LEVEL_BRIGHTNESS 0x07
++#define TP_NVRAM_POS_LEVEL_BRIGHTNESS 0
++
+ #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
+ #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
+ #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+@@ -323,6 +329,7 @@ static int bluetooth_write(char *buf);
  
-+struct thinkpad_id_data {
-+	unsigned int vendor;	/* ThinkPad vendor:
-+				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
-+
-+	char *bios_version_str;	/* Something like 1ZET51WW (1.03z) */
-+	char *ec_version_str;	/* Something like 1ZHT51WW-1.04a */
-+
-+	u16 bios_model;		/* Big Endian, TP-1Y = 0x5931, 0 = unknown */
-+	u16 ec_model;
-+
-+	char *model_str;
-+};
-+
-+static struct thinkpad_id_data thinkpad_id;
-+
- static struct list_head tpacpi_all_drivers;
+ static struct backlight_device *ibm_backlight_device;
+ static int brightness_offset = 0x31;
++static int brightness_mode;
  
- static struct ibm_init_struct ibms_init[];
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index b15c649..ced4d3f 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -2040,6 +2040,8 @@
- #define PCI_DEVICE_ID_ALTIMA_AC9100	0x03ea
- #define PCI_DEVICE_ID_ALTIMA_AC1003	0x03eb
- 
-+#define PCI_VENDOR_ID_LENOVO		0x17aa
-+
- #define PCI_VENDOR_ID_ARECA		0x17d3
- #define PCI_DEVICE_ID_ARECA_1110	0x1110
- #define PCI_DEVICE_ID_ARECA_1120	0x1120
+ static int brightness_init(struct ibm_init_struct *iibm);
+ static void brightness_exit(void);
 -- 
 1.5.3.rc2.22.g69a9b
