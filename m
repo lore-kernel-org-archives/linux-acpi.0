@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 67/77] sony-laptop: Invoke _INI for SNC devices that provide it
-Date: Sun, 22 Jul 2007 05:14:52 -0400
-Message-ID: <11850957721285-git-send-email-len.brown@intel.com>
+Subject: [PATCH 71/77] ACPI: drivers/acpi/pci_link.c: lower printk severity
+Date: Sun, 22 Jul 2007 05:14:56 -0400
+Message-ID: <1185095776538-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -69,72 +69,45 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957691561-git-send-email-len.brown@intel.com>
  <11850957703097-git-send-email-len.brown@intel.com>
  <11850957712166-git-send-email-len.brown@intel.com>
+ <11850957721285-git-send-email-len.brown@intel.com>
+ <11850957721315-git-send-email-len.brown@intel.com>
+ <11850957741937-git-send-email-len.brown@intel.com>
+ <1185095775978-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:35829 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764406AbXGVJQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:16 -0400
-In-Reply-To: <11850957712166-git-send-email-len.brown@intel.com>
-Message-Id: <b25b732a16e4e035247fa729f931ed173f9fc8e2.1185095456.git.len.brown@intel.com>
+	id S1764594AbXGVJQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:18 -0400
+In-Reply-To: <1185095775978-git-send-email-len.brown@intel.com>
+Message-Id: <0dc070bb0242481a6100c95e5deaa07b267399a8.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Dan Aloni <da-x@monatomic.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Mattia Dongili <malattia@linux.it>
+From: Dan Aloni <da-x@monatomic.org>
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletions(-)
+ drivers/acpi/pci_link.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 43315be..5300cad 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -864,6 +864,15 @@ static int sony_nc_add(struct acpi_device *device)
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index acc5947..3448edd 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -733,7 +733,7 @@ static int acpi_pci_link_add(struct acpi_device *device)
+ 	/* query and set link->irq.active */
+ 	acpi_pci_link_get_current(link);
  
- 	sony_nc_acpi_handle = device->handle;
- 
-+	/* read device status */
-+	result = acpi_bus_get_status(device);
-+	/* bail IFF the above call was successful and the device is not present */
-+	if (!result && !device->status.present) {
-+		dprintk("Device not present\n");
-+		result = -ENODEV;
-+		goto outwalk;
-+	}
-+
- 	if (debug) {
- 		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_nc_acpi_handle,
- 					     1, sony_walk_callback, NULL, NULL);
-@@ -874,6 +883,15 @@ static int sony_nc_add(struct acpi_device *device)
- 		}
- 	}
- 
-+	/* try to _INI the device if such method exists (ACPI spec 3.0-6.5.1
-+	 * should be respected as we already checked for the device presence above */
-+	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, METHOD_NAME__INI, &handle))) {
-+		dprintk("Invoking _INI\n");
-+		if (ACPI_FAILURE(acpi_evaluate_object(sony_nc_acpi_handle, METHOD_NAME__INI,
-+						NULL, NULL)))
-+			dprintk("_INI Method failed\n");
-+	}
-+
- 	/* setup input devices and helper fifo */
- 	result = sony_laptop_setup_input();
- 	if (result) {
-@@ -886,7 +904,7 @@ static int sony_nc_add(struct acpi_device *device)
- 					     ACPI_DEVICE_NOTIFY,
- 					     sony_acpi_notify, NULL);
- 	if (ACPI_FAILURE(status)) {
--		printk(KERN_WARNING DRV_PFX "unable to install notify handler\n");
-+		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
- 		result = -ENODEV;
- 		goto outinput;
- 	}
+-	printk(PREFIX "%s [%s] (IRQs", acpi_device_name(device),
++	printk(KERN_INFO PREFIX "%s [%s] (IRQs", acpi_device_name(device),
+ 	       acpi_device_bid(device));
+ 	for (i = 0; i < link->irq.possible_count; i++) {
+ 		if (link->irq.active == link->irq.possible[i]) {
 -- 
 1.5.3.rc2.22.g69a9b
