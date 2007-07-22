@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 50/77] ACPI: thinkpad-acpi: add input device support to hotkey subdriver
-Date: Sun, 22 Jul 2007 05:14:35 -0400
-Message-ID: <11850957541879-git-send-email-len.brown@intel.com>
+Subject: [PATCH 51/77] ACPI: thinkpad-acpi: make the input event mode the default
+Date: Sun, 22 Jul 2007 05:14:36 -0400
+Message-ID: <11850957552824-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -52,363 +52,241 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <1185095751279-git-send-email-len.brown@intel.com>
  <11850957522609-git-send-email-len.brown@intel.com>
  <11850957531914-git-send-email-len.brown@intel.com>
+ <11850957541879-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53139 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:35103 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763634AbXGVJP4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:56 -0400
-In-Reply-To: <11850957531914-git-send-email-len.brown@intel.com>
-Message-Id: <6a38abbf2b68e37493f2d5e8702b895a6c23ba0f.1185095456.git.len.brown@intel.com>
+	id S1763666AbXGVJP5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:57 -0400
+In-Reply-To: <11850957541879-git-send-email-len.brown@intel.com>
+Message-Id: <1a343760b516ca5466d201bec32b1794858b18a5.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add input device support to the hotkey subdriver.
+Make the input layer the default way to deal with thinkpad-acpi hot keys,
+but add a kernel config option to retain the old way of doing things.
 
-Hot keys that have a valid keycode mapping are reported through the input
-layer if the input device is open.  Otherwise, they will be reported as
-ACPI events, as they were before.
+This means we map a lot more keys to useful stuff by default, and also that
+we enable hot key handling by default on driver load (like Windows does).
 
-Scan codes are reported (using EV_MSC MSC_SCAN events) along with EV_KEY
-KEY_UNKNOWN events.
-
-For backwards compatibility purposes, hot keys that used to be reported
-through ACPI events are not mapped to anything meaningful by default.
-Userspace is supposed to remap them if it wants to use the input device for
-hot key reporting.
-
-This patch is based on a patch by Richard Hughes <hughsient@gmail.com>.
+The documentation for proper use of this resource is also updated.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Richard Hughes <hughsient@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |  151 +++++++++++++++++++++++++++++++++++++++
- drivers/misc/thinkpad_acpi.c    |  108 +++++++++++++++++++++++++++-
- 2 files changed, 255 insertions(+), 4 deletions(-)
+ Documentation/thinkpad-acpi.txt |   89 ++++++++++++++++++---------------------
+ drivers/misc/Kconfig            |   13 ++++++
+ drivers/misc/thinkpad_acpi.c    |   19 +++++++-
+ 3 files changed, 70 insertions(+), 51 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index bd00d14..91d0892 100644
+index 91d0892..5b59cf5 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -167,6 +167,17 @@ All labeled Fn-Fx key combinations generate distinct events. In
- addition, the lid microswitch and some docking station buttons may
- also generate such events.
+@@ -155,52 +155,47 @@ Hot keys
+ procfs: /proc/acpi/ibm/hotkey
+ sysfs device attribute: hotkey_*
  
-+Hot keys also generate regular keyboard key press/release events through
-+the input layer in addition to the ibm/hotkey ACPI events.  The input
-+layer support accepts the standard IOCTLs to remap the keycodes assigned
-+to each hotkey.
+-Without this driver, only the Fn-F4 key (sleep button) generates an
+-ACPI event. With the driver loaded, the hotkey feature enabled and the
+-mask set (see below), the various hot keys generate ACPI events in the
++In a ThinkPad, the ACPI HKEY handler is responsible for comunicating
++some important events and also keyboard hot key presses to the operating
++system.  Enabling the hotkey functionality of thinkpad-acpi signals the
++firmware that such a driver is present, and modifies how the ThinkPad
++firmware will behave in many situations.
 +
-+When the input device is open, the driver will suppress any ACPI hot key
-+events that get translated into a meaningful input layer event, in order
-+to avoid sending duplicate events to userspace.  Hot keys that are
-+mapped to KEY_RESERVED are not translated, and will always generate only
-+ACPI hot key event, and no input layer events.
-+
- The bit mask allows some control over which hot keys generate ACPI
- events. Not all bits in the mask can be modified. Not all bits that can
- be modified do anything. Not all hot keys can be individually controlled
-@@ -248,6 +259,146 @@ sysfs notes:
- 		disabled" postition, and 1 if the switch is in the
- 		"radios enabled" position.
++When the hotkey feature is enabled and the hot key mask is set (see
++below), the various hot keys either generate ACPI events in the
+ following format:
  
-+input layer notes:
-+
-+A Hot key is mapped to a single input layer EV_KEY event, possibly
-+followed by an EV_MSC MSC_SCAN event that shall contain that key's scan
-+code.  An EV_SYN event will always be generated to mark the end of the
-+event block.
-+
-+Do not use the EV_MSC MSC_SCAN events to process keys.  They are to be
-+used as a helper to remap keys, only.  They are particularly useful when
-+remapping KEY_UNKNOWN keys.
-+
-+The events are available in an input device, with the following id:
-+
-+	Bus:		BUS_HOST
-+	vendor:		0x1014 (PCI_VENDOR_ID_IBM)
-+	product:	0x5054 ("TP")
-+	version:	0x4101
-+
-+The version will have its LSB incremented if the keymap changes in a
-+backwards-compatible way.  The MSB shall always be 0x41 for this input
-+device.  If the MSB is not 0x41, do not use the device as described in
-+this section, as it is either something else (e.g. another input device
-+exported by a thinkpad driver, such as HDAPS) or its functionality has
-+been changed in a non-backwards compatible way.
-+
-+Adding other event types for other functionalities shall be considered a
-+backwards-compatible change for this input device.
-+
-+Thinkpad-acpi Hot Key event map (version 0x4101):
-+
-+ACPI	Scan
-+event	code	Key		Notes
-+
-+0x1001	0x00	FN+F1		-
-+0x1002	0x01	FN+F2		-
-+
-+0x1003	0x02	FN+F3		Many models always report this
-+				hot key, even with hot keys
-+				disabled or with Fn+F3 masked
-+				off
-+
-+0x1004	0x03	FN+F4		Sleep button (ACPI sleep button
-+				semanthics, i.e. sleep-to-RAM).
-+				It is always generate some kind
-+				of event, either the hot key
-+				event or a ACPI sleep button
-+				event. The firmware may
-+				refuse to generate further FN+F4
-+				key presses until a S3 or S4 ACPI
-+				sleep cycle is performed or some
-+				time passes.
-+
-+0x1005	0x04	FN+F5		Radio.  Enables/disables
-+				the internal BlueTooth hardware
-+				and W-WAN card if left in control
-+				of the firmware.  Does not affect
-+				the WLAN card.
-+
-+0x1006	0x05	FN+F6		-
-+
-+0x1007	0x06	FN+F7		Video output cycle.
-+				Do you feel lucky today?
-+
-+0x1008	0x07	FN+F8		-
-+	..	..		..
-+0x100B	0x0A	FN+F11		-
-+
-+0x100C	0x0B	FN+F12		Sleep to disk.  You are always
-+				supposed to handle it yourself,
-+				either through the ACPI event,
-+				or through a hotkey event.
-+				The firmware may refuse to
-+				generate further FN+F4 key
-+				press events until a S3 or S4
-+				ACPI sleep cycle is performed,
-+				or some time passes.
-+
-+0x100D	0x0C	FN+BACKSPACE	-
-+0x100E	0x0D	FN+INSERT	-
-+0x100F	0x0E	FN+DELETE	-
-+
-+0x1010	0x0F	FN+HOME		Brightness up.  This key is
-+				always handled by the firmware,
-+				even when unmasked.  Just leave
-+				it alone.
-+0x1011	0x10	FN+END		Brightness down. This key is
-+				always handled by the firmware,
-+				even when unmasked.  Just leave
-+				it alone.
-+0x1012	0x11	FN+PGUP		Thinklight toggle.  This key is
-+				always handled by the firmware,
-+				even when unmasked.
-+
-+0x1013	0x12	FN+PGDOWN	-
-+
-+0x1014	0x13	FN+SPACE	Zoom key
-+
-+0x1015	0x14	VOLUME UP	Internal mixer volume up. This
-+				key is always handled by the
-+				firmware, even when unmasked.
-+0x1016	0x15	VOLUME DOWN	Internal mixer volume up. This
-+				key is always handled by the
-+				firmware, even when unmasked.
-+0x1017	0x16	MUTE		Mute internal mixer. This
-+				key is always handled by the
-+				firmware, even when unmasked.
-+
-+0x1018	0x17	THINKPAD	Thinkpad/Access IBM/Lenovo key
-+
-+0x1019	0x18	unknown
-+..	..	..
-+0x1020	0x1F	unknown
-+
-+The ThinkPad firmware does not allow one to differentiate when most hot
-+keys are pressed or released (either that, or we don't know how to, yet).
-+For these keys, the driver generates a set of events for a key press and
-+immediately issues the same set of events for a key release.  It is
-+unknown by the driver if the ThinkPad firmware triggered these events on
-+hot key press or release, but the firmware will do it for either one, not
-+both.
-+
-+If a key is mapped to KEY_RESERVED, it generates no input events at all,
-+and it may generate a legacy thinkpad-acpi ACPI hotkey event.
-+
-+If a key is mapped to KEY_UNKNOWN, it generates an input event that
-+includes an scan code, and it may also generate a legacy thinkpad-acpi
-+ACPI hotkey event.
-+
-+If a key is mapped to anything else, it will only generate legacy
-+thinkpad-acpi ACPI hotkey events if nobody has opened the input device.
-+
-+For userspace backwards-compatibility purposes, the keycode map is
-+initially filled with KEY_RESERVED and KEY_UNKNOWN mappings for scan codes
-+0x00 to 0x10 (and maybe others).
-+
-+Non hot-key ACPI HKEY event map:
-+0x5001		Lid closed
-+0x5002		Lid opened
-+0x7000		Radio Switch may have changed state
-+
+ 	ibm/hotkey HKEY 00000080 0000xxxx
  
- Bluetooth
- ---------
+-The last four digits vary depending on the key combination pressed.
+-All labeled Fn-Fx key combinations generate distinct events. In
+-addition, the lid microswitch and some docking station buttons may
+-also generate such events.
+-
+-Hot keys also generate regular keyboard key press/release events through
+-the input layer in addition to the ibm/hotkey ACPI events.  The input
+-layer support accepts the standard IOCTLs to remap the keycodes assigned
+-to each hotkey.
++or events over the input layer.  The input layer support accepts the
++standard IOCTLs to remap the keycodes assigned to each hotkey.
+ 
+ When the input device is open, the driver will suppress any ACPI hot key
+ events that get translated into a meaningful input layer event, in order
+ to avoid sending duplicate events to userspace.  Hot keys that are
+-mapped to KEY_RESERVED are not translated, and will always generate only
+-ACPI hot key event, and no input layer events.
+-
+-The bit mask allows some control over which hot keys generate ACPI
+-events. Not all bits in the mask can be modified. Not all bits that can
+-be modified do anything. Not all hot keys can be individually controlled
+-by the mask. Some models do not support the mask at all. On those
+-models, hot keys cannot be controlled individually.
+-
+-Note that enabling ACPI events for some keys prevents their default
+-behavior. For example, if events for Fn-F5 are enabled, that key will no
+-longer enable/disable Bluetooth by itself. This can still be done from
+-an acpid handler for the ibm/hotkey event.
+-
+-On some models, even enabling/disabling the entire hot key feature may
+-change the way some keys behave (e.g. in a T43, Fn+F4 will generate an
+-button/sleep ACPI event if hot keys are disabled, and it will ignore its
+-mask when hot keys are enabled, so the key always does something.  On a
+-X40, Fn+F4 respects its mask status, but generates the button/sleep ACPI
+-event if masked off).
+-
+-Note also that not all Fn key combinations are supported through
+-ACPI. For example, on the X40, the brightness, volume and "Access IBM"
+-buttons do not generate ACPI events even with this driver. They *can*
+-be used through the "ThinkPad Buttons" utility, see
+-http://www.nongnu.org/tpb/
++mapped to KEY_RESERVED in the keymap are not translated, and will always
++generate an ACPI ibm/hotkey HKEY event, and no input layer events.
++
++The hot key bit mask allows some control over which hot keys generate
++events.  If a key is "masked" (bit set to 0 in the mask), the firmware
++will handle it.  If it is "unmasked", it signals the firmware that
++thinkpad-acpi would prefer to handle it, if the firmware would be so
++kind to allow it (and it often doesn't!).
++
++Not all bits in the mask can be modified.  Not all bits that can be
++modified do anything.  Not all hot keys can be individually controlled
++by the mask.  Some models do not support the mask at all, and in those
++models, hot keys cannot be controlled individually.  The behaviour of
++the mask is, therefore, higly dependent on the ThinkPad model.
++
++Note that unmasking some keys prevents their default behavior.  For
++example, if Fn+F5 is unmasked, that key will no longer enable/disable
++Bluetooth by itself.
++
++Note also that not all Fn key combinations are supported through ACPI.
++For example, on the X40, the brightness, volume and "Access IBM" buttons
++do not generate ACPI events even with this driver.  They *can* be used
++through the "ThinkPad Buttons" utility, see http://www.nongnu.org/tpb/
+ 
+ procfs notes:
+ 
+@@ -221,7 +216,7 @@ sysfs notes:
+ 		key feature status will be restored to this value.
+ 
+ 		0: hot keys were disabled
+-		1: hot keys were enabled
++		1: hot keys were enabled (unusual)
+ 
+ 	hotkey_bios_mask:
+ 		Returns the hot keys mask when thinkpad-acpi was loaded.
+@@ -236,9 +231,10 @@ sysfs notes:
+ 		1: enables the hot keys feature / feature enabled
+ 
+ 	hotkey_mask:
+-		bit mask to enable ACPI event generation for each hot
+-		key (see above).  Returns the current status of the hot
+-		keys mask, and allows one to modify it.
++		bit mask to enable driver-handling and ACPI event
++		generation for each hot key (see above).  Returns the
++		current status of the hot keys mask, and allows one to
++		modify it.
+ 
+ 	hotkey_all_mask:
+ 		bit mask that should enable event reporting for all
+@@ -250,8 +246,9 @@ sysfs notes:
+ 
+ 	hotkey_recommended_mask:
+ 		bit mask that should enable event reporting for all
+-		supported hot keys, except those which are handled by
+-		the firmware.  Echo it to hotkey_mask above, to use.
++		supported hot keys, except those which are always
++		handled by the firmware anyway.  Echo it to
++		hotkey_mask above, to use.
+ 
+ 	hotkey_radio_sw:
+ 		if the ThinkPad has a hardware radio switch, this
+@@ -390,10 +387,6 @@ ACPI hotkey event.
+ If a key is mapped to anything else, it will only generate legacy
+ thinkpad-acpi ACPI hotkey events if nobody has opened the input device.
+ 
+-For userspace backwards-compatibility purposes, the keycode map is
+-initially filled with KEY_RESERVED and KEY_UNKNOWN mappings for scan codes
+-0x00 to 0x10 (and maybe others).
+-
+ Non hot-key ACPI HKEY event map:
+ 0x5001		Lid closed
+ 0x5002		Lid opened
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 1d516f2..5197f9b 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -196,4 +196,17 @@ config THINKPAD_ACPI_BAY
+ 
+ 	  If you are not sure, say Y here.
+ 
++config THINKPAD_ACPI_INPUT_ENABLED
++	bool "Enable input layer support by default"
++	depends on THINKPAD_ACPI
++	default y
++	---help---
++	  Enables hot key handling over the input layer by default.  If unset,
++	  the driver does not enable any hot key handling by default, and also
++	  starts up with a mostly empty keymap.
++
++	  If you are not sure, say Y here.  Say N to retain the deprecated
++	  behavior of ibm-acpi, and thinkpad-acpi for kernels up to 2.6.21.
++
++
+ endif # MISC_DEVICES
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 4427c99..5c1bea1 100644
+index 5c1bea1..c86b228 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -730,7 +730,31 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
- static int hotkey_orig_status;
- static u32 hotkey_orig_mask;
- static u32 hotkey_all_mask;
--static u32 hotkey_reserved_mask = 0x00778000;
-+static u32 hotkey_reserved_mask;
-+
-+static u16 hotkey_keycode_map[] = {
-+	/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
-+	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-+	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-+	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-+	/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
-+	KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
-+	KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
-+	KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
-+	KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
-+	/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
-+	KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
-+	KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
-+	KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
-+	KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
-+	KEY_RESERVED,	/* 0x14: VOLUME UP */
-+	KEY_RESERVED,	/* 0x15: VOLUME DOWN */
-+	KEY_RESERVED,	/* 0x16: MUTE */
-+	KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
-+	/* (assignments unknown, please report if found) */
-+	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-+	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-+};
+@@ -734,9 +734,9 @@ static u32 hotkey_reserved_mask;
  
- static struct attribute_set *hotkey_dev_attributes;
- 
-@@ -889,11 +913,13 @@ static struct attribute *hotkey_mask_attributes[] = {
- 
- static int __init hotkey_init(struct ibm_init_struct *iibm)
- {
--	int res;
-+	int res, i;
- 	int status;
- 
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
- 
-+	BUG_ON(!tpacpi_inputdev);
-+
- 	IBM_ACPIHANDLE_INIT(hkey);
- 	mutex_init(&hotkey_mutex);
- 
-@@ -950,6 +976,23 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 					&tpacpi_pdev->dev.kobj);
+ static u16 hotkey_keycode_map[] = {
+ 	/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+-	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+-	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+-	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
++	KEY_FN_F1,	KEY_FN_F2,	KEY_FN_F3,	KEY_SLEEP,
++	KEY_FN_F5,	KEY_FN_F6,	KEY_FN_F7,	KEY_FN_F8,
++	KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+ 	/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
+ 	KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+ 	KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
+@@ -977,6 +977,11 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
  		if (res)
  			return res;
+ 
++#ifndef CONFIG_THINKPAD_ACPI_INPUT_ENABLED
++		for (i = 0; i < 12; i++)
++			hotkey_keycode_map[i] = KEY_UNKNOWN;
++#endif /* ! CONFIG_THINKPAD_ACPI_INPUT_ENABLED */
 +
-+		set_bit(EV_KEY, tpacpi_inputdev->evbit);
-+		set_bit(EV_MSC, tpacpi_inputdev->evbit);
-+		set_bit(MSC_SCAN, tpacpi_inputdev->mscbit);
-+		tpacpi_inputdev->keycodesize = sizeof(hotkey_keycode_map[0]);
-+		tpacpi_inputdev->keycodemax = ARRAY_SIZE(hotkey_keycode_map);
-+		tpacpi_inputdev->keycode = &hotkey_keycode_map;
-+		for (i = 0; i < ARRAY_SIZE(hotkey_keycode_map); i++) {
-+			if (hotkey_keycode_map[i] != KEY_RESERVED) {
-+				set_bit(hotkey_keycode_map[i],
-+					tpacpi_inputdev->keybit);
-+			} else {
-+				if (i < sizeof(hotkey_reserved_mask)*8)
-+					hotkey_reserved_mask |= 1 << i;
-+			}
-+		}
-+
+ 		set_bit(EV_KEY, tpacpi_inputdev->evbit);
+ 		set_bit(EV_MSC, tpacpi_inputdev->evbit);
+ 		set_bit(MSC_SCAN, tpacpi_inputdev->mscbit);
+@@ -993,6 +998,14 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			}
+ 		}
+ 
++#ifdef CONFIG_THINKPAD_ACPI_INPUT_ENABLED
++		dbg_printk(TPACPI_DBG_INIT,
++				"enabling hot key handling\n");
++		res = hotkey_set(1, (hotkey_all_mask & ~hotkey_reserved_mask)
++					| hotkey_orig_mask);
++		if (res)
++			return res;
++#endif /* CONFIG_THINKPAD_ACPI_INPUT_ENABLED */
  	}
  
  	return (tp_features.hotkey)? 0 : 1;
-@@ -972,12 +1015,69 @@ static void hotkey_exit(void)
- 	}
- }
- 
-+static void tpacpi_input_send_key(unsigned int scancode,
-+				  unsigned int keycode)
-+{
-+	if (keycode != KEY_RESERVED) {
-+		input_report_key(tpacpi_inputdev, keycode, 1);
-+		if (keycode == KEY_UNKNOWN)
-+			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
-+				    scancode);
-+		input_sync(tpacpi_inputdev);
-+
-+		input_report_key(tpacpi_inputdev, keycode, 0);
-+		if (keycode == KEY_UNKNOWN)
-+			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
-+				    scancode);
-+		input_sync(tpacpi_inputdev);
-+	}
-+}
-+
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- {
--	int hkey;
-+	u32 hkey;
-+	unsigned int keycode, scancode;
-+	int sendacpi = 1;
- 
- 	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
--		acpi_bus_generate_event(ibm->acpi->device, event, hkey);
-+		if (tpacpi_inputdev->users > 0) {
-+			switch (hkey >> 12) {
-+			case 1:
-+				/* 0x1000-0x1FFF: key presses */
-+				scancode = hkey & 0xfff;
-+				if (scancode > 0 && scancode < 0x21) {
-+					scancode--;
-+					keycode = hotkey_keycode_map[scancode];
-+					tpacpi_input_send_key(scancode, keycode);
-+					sendacpi = (keycode == KEY_RESERVED
-+						|| keycode == KEY_UNKNOWN);
-+				} else {
-+					printk(IBM_ERR
-+					       "hotkey 0x%04x out of range for keyboard map\n",
-+					       hkey);
-+				}
-+				break;
-+			case 5:
-+				/* 0x5000-0x5FFF: LID */
-+				/* we don't handle it through this path, just
-+				 * eat up known LID events */
-+				if (hkey != 0x5001 && hkey != 0x5002) {
-+					printk(IBM_ERR
-+						"unknown LID-related hotkey event: 0x%04x\n",
-+						hkey);
-+				}
-+				break;
-+			default:
-+				/* case 2: dock-related */
-+				/*	0x2305 - T43 waking up due to bay lever eject while aslept */
-+				/* case 3: ultra-bay related. maybe bay in dock? */
-+				/*	0x3003 - T43 after wake up by bay lever eject (0x2305) */
-+				printk(IBM_NOTICE "unhandled hotkey event 0x%04x\n", hkey);
-+			}
-+		}
-+
-+		if (sendacpi)
-+			acpi_bus_generate_event(ibm->acpi->device, event, hkey);
- 	} else {
- 		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
- 		acpi_bus_generate_event(ibm->acpi->device, event, 0);
 -- 
 1.5.3.rc2.22.g69a9b
