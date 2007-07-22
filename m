@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 32/77] ACPICA: Update _OSI string list
-Date: Sun, 22 Jul 2007 05:14:17 -0400
-Message-ID: <11850957362476-git-send-email-len.brown@intel.com>
+Subject: [PATCH 34/77] ACPICA: Fixed possible corruption of global GPE list
+Date: Sun, 22 Jul 2007 05:14:19 -0400
+Message-ID: <1185095737422-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -34,13 +34,15 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957323059-git-send-email-len.brown@intel.com>
  <11850957332171-git-send-email-len.brown@intel.com>
  <11850957342584-git-send-email-len.brown@intel.com>
+ <11850957362476-git-send-email-len.brown@intel.com>
+ <11850957361736-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53139 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:22481 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762981AbXGVJPi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:38 -0400
-In-Reply-To: <11850957342584-git-send-email-len.brown@intel.com>
-Message-Id: <3c6394c5bd04e31d40d007af8b6c2484a08838d0.1185095456.git.len.brown@intel.com>
+	id S1763064AbXGVJPk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:40 -0400
+In-Reply-To: <11850957361736-git-send-email-len.brown@intel.com>
+Message-Id: <e0b91050f208ab370fac9269f8e42bc746889422.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -50,42 +52,30 @@ Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-Latest update for the Windows strings, with comments. Removed
-unused strings.
+Fixed a problem in acpi_ev_delete_gpe_xrupt where the global interrupt
+list could be corrupted if the interrupt being removed was at
+the head of the list. Reported by Linn Crosetto.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/uteval.c |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/acpi/events/evgpeblk.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/utilities/uteval.c b/drivers/acpi/utilities/uteval.c
-index 8ec6f8e..f112af4 100644
---- a/drivers/acpi/utilities/uteval.c
-+++ b/drivers/acpi/utilities/uteval.c
-@@ -62,16 +62,13 @@ acpi_ut_translate_one_cid(union acpi_operand_object *obj_desc,
- static char *acpi_interfaces_supported[] = {
- 	/* Operating System Vendor Strings */
+diff --git a/drivers/acpi/events/evgpeblk.c b/drivers/acpi/events/evgpeblk.c
+index 902c287..361ebe6 100644
+--- a/drivers/acpi/events/evgpeblk.c
++++ b/drivers/acpi/events/evgpeblk.c
+@@ -586,6 +586,10 @@ acpi_ev_delete_gpe_xrupt(struct acpi_gpe_xrupt_info *gpe_xrupt)
+ 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+ 	if (gpe_xrupt->previous) {
+ 		gpe_xrupt->previous->next = gpe_xrupt->next;
++	} else {
++		/* No previous, update list head */
++
++		acpi_gbl_gpe_xrupt_list_head = gpe_xrupt->next;
+ 	}
  
--	"Windows 2000",
--	"Windows 2001",
--	"Windows 2001 SP0",
--	"Windows 2001 SP1",
--	"Windows 2001 SP2",
--	"Windows 2001 SP3",
--	"Windows 2001 SP4",
--	"Windows 2001.1",
--	"Windows 2001.1 SP1",	/* Added 03/2006 */
--	"Windows 2006",		/* Added 03/2006 */
-+	"Windows 2000",		/* Windows 2000 */
-+	"Windows 2001",		/* Windows XP */
-+	"Windows 2001 SP1",	/* Windows XP SP1 */
-+	"Windows 2001 SP2",	/* Windows XP SP2 */
-+	"Windows 2001.1",	/* Windows Server 2003 */
-+	"Windows 2001.1 SP1",	/* Windows Server 2003 SP1 - Added 03/2006 */
-+	"Windows 2006",		/* Windows Vista - Added 03/2006 */
- 
- 	/* Feature Group Strings */
- 
+ 	if (gpe_xrupt->next) {
 -- 
 1.5.3.rc2.22.g69a9b
