@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 74/77] ACPI: update feature-removal-schedule.txt, /sys/firmware/acpi/namespace is gone
-Date: Sun, 22 Jul 2007 05:14:59 -0400
-Message-ID: <11850957791127-git-send-email-len.brown@intel.com>
+Subject: [PATCH 73/77] ACPI: export ACPI events via acpi_mc_group multicast group
+Date: Sun, 22 Jul 2007 05:14:58 -0400
+Message-ID: <11850957781461-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -75,14 +75,13 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <1185095775978-git-send-email-len.brown@intel.com>
  <1185095776538-git-send-email-len.brown@intel.com>
  <1185095777144-git-send-email-len.brown@intel.com>
- <11850957781461-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:35829 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764622AbXGVJQU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:20 -0400
-In-Reply-To: <11850957781461-git-send-email-len.brown@intel.com>
-Message-Id: <7a9b9068b8c7b526894904c0b9b90354825b8fbd.1185095456.git.len.brown@intel.com>
+	id S1762050AbXGVJQT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:19 -0400
+In-Reply-To: <1185095777144-git-send-email-len.brown@intel.com>
+Message-Id: <9c977a453ed62396d067b75f3f272b3fb1ea3acc.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -92,38 +91,79 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-The /sys/firmware/acpi/namespace has already been removed in 2.6.21.
+This is an incremental patch for the recent genetlink
+multicast changes.
+
+Now ACPI events are exported via generic netlink multicast group.
+
+Thanks for Johannes' help on developing this patch
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/feature-removal-schedule.txt |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
+ drivers/acpi/event.c |   29 +++++++++--------------------
+ 1 files changed, 9 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 49ae1ea..22fe37e 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -227,20 +227,6 @@ Who:	Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+index de4def9..dfa5853 100644
+--- a/drivers/acpi/event.c
++++ b/drivers/acpi/event.c
+@@ -132,30 +132,19 @@ enum {
+ };
+ #define ACPI_GENL_CMD_MAX (__ACPI_GENL_CMD_MAX - 1)
  
- ---------------------------
+-#define ACPI_GENL_NAME		"acpi_event"
+-#define ACPI_GENL_VERSION	0x01
++#define ACPI_GENL_FAMILY_NAME		"acpi_event"
++#define ACPI_GENL_VERSION		0x01
++#define ACPI_GENL_MCAST_GROUP_NAME 	"acpi_mc_group"
  
--What:	/sys/firmware/acpi/namespace
--When:	2.6.21
--Why:	The ACPI namespace is effectively the symbol list for
--	the BIOS.  The device names are completely arbitrary
--	and have no place being exposed to user-space.
+ static struct genl_family acpi_event_genl_family = {
+ 	.id = GENL_ID_GENERATE,
+-	.name = ACPI_GENL_NAME,
++	.name = ACPI_GENL_FAMILY_NAME,
+ 	.version = ACPI_GENL_VERSION,
+ 	.maxattr = ACPI_GENL_ATTR_MAX,
+ };
+ 
+-/* .doit: standard command callback */
+-static int acpi_genl_cmd_event(struct sk_buff *skb, struct genl_info *info)
+-{
+-	struct acpi_genl_event *event = info->userhdr;
 -
--	For those interested in the BIOS ACPI namespace,
--	the BIOS can be extracted and disassembled with acpidump
--	and iasl as documented in the pmtools package here:
--	http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils
--Who:	Len Brown <len.brown@intel.com>
+-	if (!event)
+-		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "ACPI event: NULL\n"));
 -
-----------------------------
+-	return 0;
+-}
 -
- What:	ACPI procfs interface
- When:	July 2007
- Why:	After ACPI sysfs conversion, ACPI attributes will be duplicated
+-static struct genl_ops acpi_event_genl_ops = {
+-	.cmd = ACPI_GENL_CMD_EVENT,
+-	.doit = acpi_genl_cmd_event,
++static struct genl_multicast_group acpi_event_mcgrp = {
++	.name = ACPI_GENL_MCAST_GROUP_NAME,
+ };
+ 
+ int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+@@ -215,7 +204,7 @@ int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+ 	}
+ 
+ 	result =
+-	    genlmsg_multicast(skb, 0, acpi_event_genl_family.id, GFP_ATOMIC);
++	    genlmsg_multicast(skb, 0, acpi_event_mcgrp.id, GFP_ATOMIC);
+ 	if (result)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Failed to send a Genetlink message!\n"));
+@@ -230,8 +219,8 @@ static int acpi_event_genetlink_init(void)
+ 	if (result)
+ 		return result;
+ 
+-	result =
+-	    genl_register_ops(&acpi_event_genl_family, &acpi_event_genl_ops);
++	result = genl_register_mc_group(&acpi_event_genl_family,
++					&acpi_event_mcgrp);
+ 	if (result)
+ 		genl_unregister_family(&acpi_event_genl_family);
+ 
 -- 
 1.5.3.rc2.22.g69a9b
