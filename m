@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 71/77] ACPI: drivers/acpi/pci_link.c: lower printk severity
-Date: Sun, 22 Jul 2007 05:14:56 -0400
-Message-ID: <1185095776538-git-send-email-len.brown@intel.com>
+Subject: [PATCH 69/77] sony-laptop: Add Vaio FE to the special init sequence
+Date: Sun, 22 Jul 2007 05:14:54 -0400
+Message-ID: <11850957741937-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -71,43 +71,49 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957712166-git-send-email-len.brown@intel.com>
  <11850957721285-git-send-email-len.brown@intel.com>
  <11850957721315-git-send-email-len.brown@intel.com>
- <11850957741937-git-send-email-len.brown@intel.com>
- <1185095775978-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:35829 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45627 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764594AbXGVJQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:18 -0400
-In-Reply-To: <1185095775978-git-send-email-len.brown@intel.com>
-Message-Id: <0dc070bb0242481a6100c95e5deaa07b267399a8.1185095456.git.len.brown@intel.com>
+	id S1764535AbXGVJQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:16 -0400
+In-Reply-To: <11850957721315-git-send-email-len.brown@intel.com>
+Message-Id: <89892d153d0d46018241afc7944910912bcd9688.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Dan Aloni <da-x@monatomic.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Dan Aloni <da-x@monatomic.org>
+From: Mattia Dongili <malattia@linux.it>
 
-Signed-off-by: Dan Aloni <da-x@monatomic.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+The Vaio FE series uses the same sequence as Vaio C series
+
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_link.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/misc/sony-laptop.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index acc5947..3448edd 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -733,7 +733,7 @@ static int acpi_pci_link_add(struct acpi_device *device)
- 	/* query and set link->irq.active */
- 	acpi_pci_link_get_current(link);
- 
--	printk(PREFIX "%s [%s] (IRQs", acpi_device_name(device),
-+	printk(KERN_INFO PREFIX "%s [%s] (IRQs", acpi_device_name(device),
- 	       acpi_device_bid(device));
- 	for (i = 0; i < link->irq.possible_count; i++) {
- 		if (link->irq.active == link->irq.possible[i]) {
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index af69b3b..85969c8 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -847,6 +847,15 @@ static struct sony_nc_event sony_C_events[] = {
+ /* SNC-only model map */
+ struct dmi_system_id sony_nc_ids[] = {
+ 		{
++			.ident = "Sony Vaio FE Series",
++			.callback = sony_nc_C_enable,
++			.driver_data = sony_C_events,
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FE"),
++			},
++		},
++		{
+ 			.ident = "Sony Vaio C Series",
+ 			.callback = sony_nc_C_enable,
+ 			.driver_data = sony_C_events,
 -- 
 1.5.3.rc2.22.g69a9b
