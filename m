@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 23/77] ACPI EC: drop usage of ACPI_DEBUG_PRINT as too heavy weight
-Date: Sun, 22 Jul 2007 05:14:08 -0400
-Message-ID: <11850957262869-git-send-email-len.brown@intel.com>
+Subject: [PATCH 22/77] ACPI EC: Re-factor EC space handler to avoid using label/goto for cycle.
+Date: Sun, 22 Jul 2007 05:14:07 -0400
+Message-ID: <11850957252722-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -24,14 +24,13 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <1185095721760-git-send-email-len.brown@intel.com>
  <11850957232745-git-send-email-len.brown@intel.com>
  <11850957242656-git-send-email-len.brown@intel.com>
- <11850957252722-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44346 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:51283 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762169AbXGVJP1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:27 -0400
-In-Reply-To: <11850957252722-git-send-email-len.brown@intel.com>
-Message-Id: <4350933a7447591041b51157a6b307be1816415f.1185095456.git.len.brown@intel.com>
+	id S1762049AbXGVJP0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:26 -0400
+In-Reply-To: <11850957242656-git-send-email-len.brown@intel.com>
+Message-Id: <5b7734b440d29dab583a6c3f0ee49ff20f323332.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -44,85 +43,87 @@ From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |   20 ++++++--------------
- 1 files changed, 6 insertions(+), 14 deletions(-)
+ drivers/acpi/ec.c |   56 ++++++++++++++++------------------------------------
+ 1 files changed, 17 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 5534b23..ffb8361 100644
+index 82f496c..5534b23 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -39,20 +39,19 @@
- #include <acpi/acpi_drivers.h>
- #include <acpi/actypes.h>
+@@ -454,57 +454,35 @@ acpi_ec_space_setup(acpi_handle region_handle,
+ }
  
--#define _COMPONENT		ACPI_EC_COMPONENT
--ACPI_MODULE_NAME("ec");
--#define ACPI_EC_COMPONENT		0x00100000
- #define ACPI_EC_CLASS			"embedded_controller"
- #define ACPI_EC_HID			"PNP0C09"
- #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
- #define ACPI_EC_FILE_INFO		"info"
- #undef PREFIX
- #define PREFIX				"ACPI: EC: "
-+
- /* EC status register */
- #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
- #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
- #define ACPI_EC_FLAG_BURST	0x10	/* burst mode */
- #define ACPI_EC_FLAG_SCI	0x20	/* EC-SCI occurred */
-+
- /* EC commands */
- enum ec_command {
- 	ACPI_EC_COMMAND_READ = 0x80,
-@@ -245,7 +244,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
+ static acpi_status
+-acpi_ec_space_handler(u32 function,
+-		      acpi_physical_address address,
+-		      u32 bit_width,
+-		      acpi_integer * value,
++acpi_ec_space_handler(u32 function, acpi_physical_address address,
++		      u32 bits, acpi_integer *value,
+ 		      void *handler_context, void *region_context)
+ {
+-	int result = 0;
+ 	struct acpi_ec *ec = handler_context;
+-	u64 temp = *value;
+-	acpi_integer f_v = 0;
+-	int i = 0;
++	int result = 0, i = 0;
++	u8 temp = 0;
  
- 	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0, 0);
- 	if (status) {
--		printk(KERN_DEBUG PREFIX
-+		printk(KERN_ERR PREFIX
- 		       "input buffer is not empty, aborting transaction\n");
- 		goto end;
+ 	if ((address > 0xFF) || !value || !handler_context)
+ 		return AE_BAD_PARAMETER;
+ 
+-	if (bit_width != 8 && acpi_strict) {
++	if (function != ACPI_READ && function != ACPI_WRITE)
+ 		return AE_BAD_PARAMETER;
+-	}
+-
+-      next_byte:
+-	switch (function) {
+-	case ACPI_READ:
+-		temp = 0;
+-		result = acpi_ec_read(ec, (u8) address, (u8 *) & temp);
+-		break;
+-	case ACPI_WRITE:
+-		result = acpi_ec_write(ec, (u8) address, (u8) temp);
+-		break;
+-	default:
+-		result = -EINVAL;
+-		goto out;
+-		break;
+-	}
+ 
+-	bit_width -= 8;
+-	if (bit_width) {
+-		if (function == ACPI_READ)
+-			f_v |= temp << 8 * i;
+-		if (function == ACPI_WRITE)
+-			temp >>= 8;
+-		i++;
+-		address++;
+-		goto next_byte;
+-	}
++	if (bits != 8 && acpi_strict)
++		return AE_BAD_PARAMETER;
+ 
+-	if (function == ACPI_READ) {
+-		f_v |= temp << 8 * i;
+-		*value = f_v;
++	while (bits - i > 0) {
++		if (function == ACPI_READ) {
++			result = acpi_ec_read(ec, address, &temp);
++			(*value) |= ((acpi_integer)temp) << i;
++		} else {
++			temp = 0xff & ((*value) >> i);
++			result = acpi_ec_write(ec, address, temp);
++		}
++		i += 8;
++		++address;
  	}
-@@ -630,10 +629,6 @@ static int acpi_ec_add(struct acpi_device *device)
  
- 	acpi_ec_add_fs(device);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "%s [%s] (gpe %d) interrupt mode.",
--			  acpi_device_name(device), acpi_device_bid(device),
--			  (u32) ec->gpe));
--
- 	return 0;
- }
- 
-@@ -718,9 +713,6 @@ static int acpi_ec_start(struct acpi_device *device)
- 	if (!ec)
- 		return -EINVAL;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "gpe=0x%02lx, ports=0x%2lx,0x%2lx",
--			  ec->gpe, ec->command_addr, ec->data_addr));
--
- 	/* Boot EC is already working */
- 	if (ec == boot_ec)
- 		return 0;
-@@ -779,8 +771,8 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 
- 	ec->handle = handle;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "GPE=0x%02lx, ports=0x%2lx, 0x%2lx",
--			  ec->gpe, ec->command_addr, ec->data_addr));
-+	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx",
-+			  ec->gpe, ec->command_addr, ec->data_addr);
- 
- 	return AE_CTRL_TERMINATE;
- }
-@@ -803,7 +795,7 @@ int __init acpi_ec_ecdt_probe(void)
- 	if (ACPI_FAILURE(status))
- 		goto error;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found ECDT"));
-+	printk(KERN_INFO PREFIX "EC description table is found, configuring boot EC\n");
- 
- 	boot_ec->command_addr = ecdt_ptr->control.address;
- 	boot_ec->data_addr = ecdt_ptr->data.address;
+-      out:
+ 	switch (result) {
+ 	case -EINVAL:
+ 		return AE_BAD_PARAMETER;
 -- 
 1.5.3.rc2.22.g69a9b
