@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 14/77] ACPI: add ACPI 3.0 _TPC _TSS _PTC throttling support
-Date: Sun, 22 Jul 2007 05:13:59 -0400
-Message-ID: <11850957162801-git-send-email-len.brown@intel.com>
+Subject: [PATCH 13/77] ACPI: battery: syntax cleanup
+Date: Sun, 22 Jul 2007 05:13:58 -0400
+Message-ID: <1185095715506-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -15,589 +15,736 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957123807-git-send-email-len.brown@intel.com>
  <11850957131802-git-send-email-len.brown@intel.com>
  <1185095714699-git-send-email-len.brown@intel.com>
- <1185095715506-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5737 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:33449 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762441AbXGVJPT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1762477AbXGVJPT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 22 Jul 2007 05:15:19 -0400
-In-Reply-To: <1185095715506-git-send-email-len.brown@intel.com>
-Message-Id: <01854e697a77a434104b2f7e6d7fd463a978af32.1185095456.git.len.brown@intel.com>
+In-Reply-To: <1185095714699-git-send-email-len.brown@intel.com>
+Message-Id: <78490d82129f7331d1366737c8704c1c053221a3.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Luming Yu <luming.yu@gmail.com>, Luming Yu <luming.yu@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Len Brown <len.brown@intel.com>
 
-From: Luming Yu <luming.yu@gmail.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
 
-adds _TPC _TSS _PTC -- Throttling Present Capabilities
+In response to review comments from Andrew Morton
 
-Signed-off-by: Luming Yu <luming.yu@intel.com>
+Signed-off-by: Alexey Starikovskiy <aystarik@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_core.c       |    6 +
- drivers/acpi/processor_throttling.c |  380 ++++++++++++++++++++++++++++++++++-
- include/acpi/processor.h            |   46 ++++-
- 3 files changed, 423 insertions(+), 9 deletions(-)
+ drivers/acpi/battery.c |  418 ++++++++++++++++++++----------------------------
+ 1 files changed, 172 insertions(+), 246 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index f7de02a..7aefb7c 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -66,6 +66,7 @@
- #define ACPI_PROCESSOR_FILE_LIMIT	"limit"
- #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
- #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
-+#define ACPI_PROCESSOR_NOTIFY_THROTTLING	0x82
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b5df318..cad932d 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -43,9 +43,6 @@
+ #define ACPI_BATTERY_CLASS		"battery"
+ #define ACPI_BATTERY_HID		"PNP0C0A"
+ #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+-#define ACPI_BATTERY_FILE_INFO		"info"
+-#define ACPI_BATTERY_FILE_STATE		"state"
+-#define ACPI_BATTERY_FILE_ALARM		"alarm"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+ #define ACPI_BATTERY_UNITS_WATTS	"mW"
+@@ -111,13 +108,18 @@ struct acpi_battery_info {
+ 	acpi_string oem_info;
+ };
  
- #define ACPI_PROCESSOR_LIMIT_USER	0
- #define ACPI_PROCESSOR_LIMIT_THERMAL	1
-@@ -84,6 +85,8 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
- static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
-+extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
++enum acpi_battery_files{
++	ACPI_BATTERY_INFO = 0,
++	ACPI_BATTERY_STATE,
++	ACPI_BATTERY_ALARM,
++	ACPI_BATTERY_NUMFILES,
++};
 +
+ struct acpi_battery_flags {
+ 	u8 battery_present_prev;
+ 	u8 alarm_present;
+ 	u8 init_update;
+-	u8 info_update;
+-	u8 state_update;
+-	u8 alarm_update;
++	u8 update[ACPI_BATTERY_NUMFILES];
+ 	u8 power_unit;
+ };
  
- static struct acpi_driver acpi_processor_driver = {
- 	.name = "processor",
-@@ -699,6 +702,9 @@ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
- 		acpi_processor_cst_has_changed(pr);
- 		acpi_bus_generate_event(device, event, 0);
- 		break;
-+	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
-+		acpi_processor_tstate_has_changed(pr);
-+		acpi_bus_generate_event(device, event, 0);
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index b334860..1bae2e4 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -44,10 +44,222 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_throttling");
+@@ -128,47 +130,37 @@ struct acpi_battery {
+ 	struct acpi_buffer bif_data;
+ 	struct acpi_buffer bst_data;
+ 	unsigned long alarm;
+-	unsigned long info_update_time;
+-	unsigned long state_update_time;
+-	unsigned long alarm_update_time;
++	unsigned long update_time[ACPI_BATTERY_NUMFILES];
+ };
  
-+static int acpi_processor_get_throttling (struct acpi_processor *pr);
-+int acpi_processor_set_throttling (struct acpi_processor *pr, int state);
-+
-+static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
-+{
-+	acpi_status status = 0;
-+	unsigned long tpc = 0;
-+
-+	if(!pr) 
-+		return -EINVAL;
-+	status = acpi_evaluate_integer(pr->handle, "_TPC", NULL, &tpc);
-+	if(ACPI_FAILURE(status) && status != AE_NOT_FOUND){
-+		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TPC"));
-+		return -ENODEV;
-+	}
-+	pr->throttling_platform_limit = (int)tpc;
-+	return 0;
+-#define acpi_battery_present(battery) battery->device->status.battery_present
+-#define acpi_battery_present_prev(battery) battery->flags.battery_present_prev
+-#define acpi_battery_alarm_present(battery) battery->flags.alarm_present
+-#define acpi_battery_init_update_flag(battery) battery->flags.init_update
+-#define acpi_battery_info_update_flag(battery) battery->flags.info_update
+-#define acpi_battery_state_update_flag(battery) battery->flags.state_update
+-#define acpi_battery_alarm_update_flag(battery) battery->flags.alarm_update
+-#define acpi_battery_power_units(battery) battery->flags.power_unit ? \
+-		ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS
+-#define acpi_battery_handle(battery) battery->device->handle
+-#define acpi_battery_inserted(battery) (!acpi_battery_present_prev(battery) & acpi_battery_present(battery))
+-#define acpi_battery_removed(battery) (acpi_battery_present_prev(battery) & !acpi_battery_present(battery))
+-#define acpi_battery_bid(battery) acpi_device_bid(battery->device)
+-#define acpi_battery_status_str(battery) acpi_battery_present(battery) ? "present" : "absent"
+-
+-/* --------------------------------------------------------------------------
+-                               Battery Management
+-   -------------------------------------------------------------------------- */
+-
+-static void acpi_battery_mutex_lock(struct acpi_battery *battery)
++inline int acpi_battery_present(struct acpi_battery *battery)
+ {
+-	mutex_lock(&battery->mutex);
++	return battery->device->status.battery_present;
 +}
-+
-+int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
++inline char *acpi_battery_power_units(struct acpi_battery *battery)
 +{
-+	return acpi_processor_get_platform_limit(pr);
-+}
-+
++	if (battery->flags.power_unit)
++		return ACPI_BATTERY_UNITS_AMPS;
++	else
++		return ACPI_BATTERY_UNITS_WATTS;
+ }
+ 
+-static void acpi_battery_mutex_unlock(struct acpi_battery *battery)
++inline acpi_handle acpi_battery_handle(struct acpi_battery *battery)
+ {
+-	mutex_unlock(&battery->mutex);
++	return battery->device->handle;
+ }
+ 
 +/* --------------------------------------------------------------------------
-+                             _PTC, _TSS, _TSD support 
++                               Battery Management
 +   -------------------------------------------------------------------------- */
-+static int acpi_processor_get_throttling_control(struct acpi_processor *pr)
-+{
-+	int result = 0;
-+	acpi_status status = 0;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *ptc = NULL;
-+	union acpi_object obj = { 0 };
 +
-+	status = acpi_evaluate_object(pr->handle, "_PTC", NULL, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PTC"));
-+		return -ENODEV;
-+	}
-+
-+	ptc = (union acpi_object *)buffer.pointer;
-+	if (!ptc || (ptc->type != ACPI_TYPE_PACKAGE)
-+	    || (ptc->package.count != 2)) {
-+		printk(KERN_ERR PREFIX "Invalid _PTC data\n");
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	/*
-+	 * control_register
-+	 */
-+
-+	obj = ptc->package.elements[0];
-+
-+	if ((obj.type != ACPI_TYPE_BUFFER)
-+	    || (obj.buffer.length < sizeof(struct acpi_ptc_register))
-+	    || (obj.buffer.pointer == NULL)) {
-+		printk(KERN_ERR PREFIX "Invalid _PTC data (control_register)\n");
-+		result = -EFAULT;
-+		goto end;
-+	}
-+	memcpy(&pr->throttling.control_register, obj.buffer.pointer,
-+	       sizeof(struct acpi_ptc_register));
-+
-+	/*
-+	 * status_register
-+	 */
-+
-+	obj = ptc->package.elements[1];
-+
-+	if ((obj.type != ACPI_TYPE_BUFFER)
-+	    || (obj.buffer.length < sizeof(struct acpi_ptc_register))
-+	    || (obj.buffer.pointer == NULL)) {
-+		printk(KERN_ERR PREFIX "Invalid _PTC data (status_register)\n");
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	memcpy(&pr->throttling.status_register, obj.buffer.pointer,
-+		sizeof(struct acpi_ptc_register));
-+
-+	end:
+ static void acpi_battery_check_result(struct acpi_battery *battery, int result)
+ {
+ 	if (!battery)
+ 		return;
+ 
+ 	if (result) {
+-		acpi_battery_init_update_flag(battery) = 1;
++		battery->flags.init_update = 1;
+ 	}
+ }
+ 
+@@ -189,9 +181,7 @@ static int acpi_battery_extract_package(struct acpi_battery *battery,
+ 	}
+ 
+ 	if (data_null.length != data->length) {
+-		if (data->pointer) {
+-			kfree(data->pointer);
+-		}
++		kfree(data->pointer);
+ 		data->pointer = kzalloc(data_null.length, GFP_KERNEL);
+ 		if (!data->pointer) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "kzalloc()"));
+@@ -234,12 +224,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 	struct acpi_buffer *data = NULL;
+ 	struct acpi_battery_info *bif = NULL;
+ 
+-	battery->info_update_time = get_seconds();
++	battery->update_time[ACPI_BATTERY_INFO] = get_seconds();
+ 
+ 	if (!acpi_battery_present(battery))
+ 		return 0;
+ 
+-	/* Evalute _BIF */
++	/* Evaluate _BIF */
+ 
+ 	status =
+ 	    acpi_evaluate_object(acpi_battery_handle(battery), "_BIF", NULL,
+@@ -263,9 +253,7 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 
+       end:
+ 
+-	if (buffer.pointer) {
+-		kfree(buffer.pointer);
+-	}
 +	kfree(buffer.pointer);
+ 
+ 	if (!result) {
+ 		bif = data->pointer;
+@@ -286,12 +274,12 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 	union acpi_object *package = NULL;
+ 	struct acpi_buffer *data = NULL;
+ 
+-	battery->state_update_time = get_seconds();
++	battery->update_time[ACPI_BATTERY_STATE] = get_seconds();
+ 
+ 	if (!acpi_battery_present(battery))
+ 		return 0;
+ 
+-	/* Evalute _BST */
++	/* Evaluate _BST */
+ 
+ 	status =
+ 	    acpi_evaluate_object(acpi_battery_handle(battery), "_BST", NULL,
+@@ -314,16 +302,14 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 		goto end;
+ 
+       end:
+-	if (buffer.pointer) {
+-		kfree(buffer.pointer);
+-	}
++	kfree(buffer.pointer);
+ 
+ 	return result;
+ }
+ 
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+-	battery->alarm_update_time = get_seconds();
++	battery->update_time[ACPI_BATTERY_ALARM] = get_seconds();
+ 
+ 	return 0;
+ }
+@@ -335,12 +321,12 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery,
+ 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+ 	struct acpi_object_list arg_list = { 1, &arg0 };
+ 
+-	battery->alarm_update_time = get_seconds();
++	battery->update_time[ACPI_BATTERY_ALARM] = get_seconds();
+ 
+ 	if (!acpi_battery_present(battery))
+ 		return -ENODEV;
+ 
+-	if (!acpi_battery_alarm_present(battery))
++	if (!battery->flags.alarm_present)
+ 		return -ENODEV;
+ 
+ 	arg0.integer.value = alarm;
+@@ -370,7 +356,7 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
+ 
+ 	status = acpi_get_handle(acpi_battery_handle(battery), "_BTP", &handle);
+ 	if (ACPI_SUCCESS(status)) {
+-		acpi_battery_alarm_present(battery) = 1;
++		battery->flags.alarm_present = 1;
+ 		if (!alarm && bif) {
+ 			alarm = bif->design_capacity_warning;
+ 		}
+@@ -378,7 +364,7 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
+ 		if (result)
+ 			goto end;
+ 	} else {
+-		acpi_battery_alarm_present(battery) = 0;
++		battery->flags.alarm_present = 0;
+ 	}
+ 
+       end:
+@@ -394,7 +380,7 @@ static int acpi_battery_init_update(struct acpi_battery *battery)
+ 	if (result)
+ 		return result;
+ 
+-	acpi_battery_present_prev(battery) = acpi_battery_present(battery);
++	battery->flags.battery_present_prev = acpi_battery_present(battery);
+ 
+ 	if (acpi_battery_present(battery)) {
+ 		result = acpi_battery_get_info(battery);
+@@ -420,20 +406,20 @@ static int acpi_battery_update(struct acpi_battery *battery,
+ 		update = 1;
+ 	}
+ 
+-	if (acpi_battery_init_update_flag(battery)) {
++	if (battery->flags.init_update) {
+ 		result = acpi_battery_init_update(battery);
+ 		if (result)
+-			goto end;;
++			goto end;
+ 		update_result = ACPI_BATTERY_INIT_UPDATE;
+ 	} else if (update) {
+ 		result = acpi_battery_get_status(battery);
+ 		if (result)
+-			goto end;;
+-		if (acpi_battery_inserted(battery)
+-		    || acpi_battery_removed(battery)) {
++			goto end;
++		if ((!battery->flags.battery_present_prev & acpi_battery_present(battery))
++		    || (battery->flags.battery_present_prev & !acpi_battery_present(battery))) {
+ 			result = acpi_battery_init_update(battery);
+ 			if (result)
+-				goto end;;
++				goto end;
+ 			update_result = ACPI_BATTERY_INIT_UPDATE;
+ 		} else {
+ 			update_result = ACPI_BATTERY_EASY_UPDATE;
+@@ -442,7 +428,7 @@ static int acpi_battery_update(struct acpi_battery *battery,
+ 
+       end:
+ 
+-	acpi_battery_init_update_flag(battery) = (result != 0);
++	battery->flags.init_update = (result != 0);
+ 
+ 	*update_result_ptr = update_result;
+ 
+@@ -453,16 +439,19 @@ static void acpi_battery_notify_update(struct acpi_battery *battery)
+ {
+ 	acpi_battery_get_status(battery);
+ 
+-	if (acpi_battery_init_update_flag(battery)) {
++	if (battery->flags.init_update) {
+ 		return;
+ 	}
+ 
+-	if (acpi_battery_inserted(battery) || acpi_battery_removed(battery)) {
+-		acpi_battery_init_update_flag(battery) = 1;
++	if ((!battery->flags.battery_present_prev &
++	     acpi_battery_present(battery)) ||
++	    (battery->flags.battery_present_prev &
++	     !acpi_battery_present(battery))) {
++		battery->flags.init_update = 1;
+ 	} else {
+-		acpi_battery_info_update_flag(battery) = 1;
+-		acpi_battery_state_update_flag(battery) = 1;
+-		acpi_battery_alarm_update_flag(battery) = 1;
++		battery->flags.update[ACPI_BATTERY_INFO] = 1;
++		battery->flags.update[ACPI_BATTERY_STATE] = 1;
++		battery->flags.update[ACPI_BATTERY_ALARM] = 1;
+ 	}
+ }
+ 
+@@ -472,7 +461,7 @@ static void acpi_battery_notify_update(struct acpi_battery *battery)
+ 
+ static struct proc_dir_entry *acpi_battery_dir;
+ 
+-static int acpi_battery_read_info_print(struct seq_file *seq, int result)
++static int acpi_battery_print_info(struct seq_file *seq, int result)
+ {
+ 	struct acpi_battery *battery = seq->private;
+ 	struct acpi_battery_info *bif = NULL;
+@@ -549,49 +538,7 @@ static int acpi_battery_read_info_print(struct seq_file *seq, int result)
+ 	return result;
+ }
+ 
+-static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = 0;
+-	int update_result = ACPI_BATTERY_NONE_UPDATE;
+-	int update = 0;
+-
+-	acpi_battery_mutex_lock(battery);
+-
+-	update = (get_seconds() - battery->info_update_time >= update_time);
+-	update = (update | acpi_battery_info_update_flag(battery));
+-
+-	result = acpi_battery_update(battery, update, &update_result);
+-	if (result)
+-		goto end;
+-
+-	/* Battery Info (_BIF) */
+-
+-	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
+-		result = acpi_battery_get_info(battery);
+-		if (result)
+-			goto end;
+-	}
+-
+-      end:
+-
+-	result = acpi_battery_read_info_print(seq, result);
+-
+-	acpi_battery_check_result(battery, result);
+-
+-	acpi_battery_info_update_flag(battery) = result;
+-
+-	acpi_battery_mutex_unlock(battery);
+-
+-	return result;
+-}
+-
+-static int acpi_battery_info_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_read_info, PDE(inode)->data);
+-}
+-
+-static int acpi_battery_read_state_print(struct seq_file *seq, int result)
++static int acpi_battery_print_state(struct seq_file *seq, int result)
+ {
+ 	struct acpi_battery *battery = seq->private;
+ 	struct acpi_battery_state *bst = NULL;
+@@ -661,49 +608,7 @@ static int acpi_battery_read_state_print(struct seq_file *seq, int result)
+ 	return result;
+ }
+ 
+-static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = 0;
+-	int update_result = ACPI_BATTERY_NONE_UPDATE;
+-	int update = 0;
+-
+-	acpi_battery_mutex_lock(battery);
+-
+-	update = (get_seconds() - battery->state_update_time >= update_time);
+-	update = (update | acpi_battery_state_update_flag(battery));
+-
+-	result = acpi_battery_update(battery, update, &update_result);
+-	if (result)
+-		goto end;
+-
+-	/* Battery State (_BST) */
+-
+-	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
+-		result = acpi_battery_get_state(battery);
+-		if (result)
+-			goto end;
+-	}
+-
+-      end:
+-
+-	result = acpi_battery_read_state_print(seq, result);
+-
+-	acpi_battery_check_result(battery, result);
+-
+-	acpi_battery_state_update_flag(battery) = result;
+-
+-	acpi_battery_mutex_unlock(battery);
+-
+-	return result;
+-}
+-
+-static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_battery_read_state, PDE(inode)->data);
+-}
+-
+-static int acpi_battery_read_alarm_print(struct seq_file *seq, int result)
++static int acpi_battery_print_alarm(struct seq_file *seq, int result)
+ {
+ 	struct acpi_battery *battery = seq->private;
+ 	char *units = "?";
+@@ -734,43 +639,6 @@ static int acpi_battery_read_alarm_print(struct seq_file *seq, int result)
+ 	return result;
+ }
+ 
+-static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_battery *battery = seq->private;
+-	int result = 0;
+-	int update_result = ACPI_BATTERY_NONE_UPDATE;
+-	int update = 0;
+-
+-	acpi_battery_mutex_lock(battery);
+-
+-	update = (get_seconds() - battery->alarm_update_time >= update_time);
+-	update = (update | acpi_battery_alarm_update_flag(battery));
+-
+-	result = acpi_battery_update(battery, update, &update_result);
+-	if (result)
+-		goto end;
+-
+-	/* Battery Alarm */
+-
+-	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
+-		result = acpi_battery_get_alarm(battery);
+-		if (result)
+-			goto end;
+-	}
+-
+-      end:
+-
+-	result = acpi_battery_read_alarm_print(seq, result);
+-
+-	acpi_battery_check_result(battery, result);
+-
+-	acpi_battery_alarm_update_flag(battery) = result;
+-
+-	acpi_battery_mutex_unlock(battery);
+-
+-	return result;
+-}
+-
+ static ssize_t
+ acpi_battery_write_alarm(struct file *file,
+ 			 const char __user * buffer,
+@@ -785,7 +653,7 @@ acpi_battery_write_alarm(struct file *file,
+ 	if (!battery || (count > sizeof(alarm_string) - 1))
+ 		return -EINVAL;
+ 
+-	acpi_battery_mutex_lock(battery);
++	mutex_lock(&battery->mutex);
+ 
+ 	result = acpi_battery_update(battery, 1, &update_result);
+ 	if (result) {
+@@ -817,44 +685,128 @@ acpi_battery_write_alarm(struct file *file,
+ 	if (!result)
+ 		result = count;
+ 
+-	acpi_battery_mutex_unlock(battery);
++	mutex_unlock(&battery->mutex);
 +
 +	return result;
 +}
-+static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
++
++typedef int(*print_func)(struct seq_file *seq, int result);
++typedef int(*get_func)(struct acpi_battery *battery);
++
++static struct acpi_read_mux {
++	print_func print;
++	get_func get;
++} acpi_read_funcs[ACPI_BATTERY_NUMFILES] = {
++	{.get = acpi_battery_get_info, .print = acpi_battery_print_info},
++	{.get = acpi_battery_get_state, .print = acpi_battery_print_state},
++	{.get = acpi_battery_get_alarm, .print = acpi_battery_print_alarm},
++};
+ 
++static int acpi_battery_read(int fid, struct seq_file *seq)
 +{
++	struct acpi_battery *battery = seq->private;
 +	int result = 0;
-+	acpi_status status = AE_OK;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_buffer format = { sizeof("NNNNN"), "NNNNN" };
-+	struct acpi_buffer state = { 0, NULL };
-+	union acpi_object *tss = NULL;
-+	int i;
++	int update_result = ACPI_BATTERY_NONE_UPDATE;
++	int update = 0;
 +
-+	status = acpi_evaluate_object(pr->handle, "_TSS", NULL, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TSS"));
-+		return -ENODEV;
-+	}
++	mutex_lock(&battery->mutex);
 +
-+	tss = buffer.pointer;
-+	if (!tss || (tss->type != ACPI_TYPE_PACKAGE)) {
-+		printk(KERN_ERR PREFIX "Invalid _TSS data\n");
-+		result = -EFAULT;
++	update = (get_seconds() - battery->update_time[fid] >= update_time);
++	update = (update | battery->flags.update[fid]);
++
++	result = acpi_battery_update(battery, update, &update_result);
++	if (result)
 +		goto end;
-+	}
 +
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d throttling states\n",
-+			  tss->package.count));
-+
-+	pr->throttling.state_count = tss->package.count;
-+	pr->throttling.states_tss =
-+	    kmalloc(sizeof(struct acpi_processor_tx_tss) * tss->package.count,
-+		    GFP_KERNEL);
-+	if (!pr->throttling.states_tss) {
-+		result = -ENOMEM;
-+		goto end;
-+	}
-+
-+	for (i = 0; i < pr->throttling.state_count; i++) {
-+
-+		struct acpi_processor_tx_tss *tx = (struct acpi_processor_tx_tss *) &(pr->throttling.states_tss[i]);
-+
-+		state.length = sizeof(struct acpi_processor_tx_tss);
-+		state.pointer = tx;
-+
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Extracting state %d\n", i));
-+
-+		status = acpi_extract_package(&(tss->package.elements[i]),
-+					      &format, &state);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status, "Invalid _TSS data"));
-+			result = -EFAULT;
-+			kfree(pr->throttling.states_tss);
++	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
++		result = acpi_read_funcs[fid].get(battery);
++		if (result)
 +			goto end;
-+		}
-+
-+		if (!tx->freqpercentage) {
-+			printk(KERN_ERR PREFIX
-+				    "Invalid _TSS data: freq is zero\n");
-+			result = -EFAULT;
-+			kfree(pr->throttling.states_tss);
-+			goto end;
-+		}
 +	}
 +
 +      end:
-+	kfree(buffer.pointer);
-+
-+	return result;
-+}
-+static int acpi_processor_get_tsd(struct acpi_processor	*pr)
-+{
-+	int result = 0;
-+	acpi_status status = AE_OK;
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_buffer format = {sizeof("NNNNN"), "NNNNN"};
-+	struct acpi_buffer state = {0, NULL};
-+	union acpi_object  *tsd = NULL;
-+	struct acpi_tsd_package *pdomain;
-+
-+	status = acpi_evaluate_object(pr->handle, "_TSD", NULL, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		return -ENODEV;
-+	}
-+
-+	tsd = buffer.pointer;
-+	if (!tsd || (tsd->type != ACPI_TYPE_PACKAGE)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	if (tsd->package.count != 1) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	pdomain = &(pr->throttling.domain_info);
-+
-+	state.length = sizeof(struct acpi_tsd_package);
-+	state.pointer = pdomain;
-+
-+	status = acpi_extract_package(&(tsd->package.elements[0]),
-+		&format, &state);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _TSD data\n"));
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	if (pdomain->num_entries != ACPI_TSD_REV0_ENTRIES) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:num_entries\n"));
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+	if (pdomain->revision != ACPI_TSD_REV0_REVISION) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unknown _TSD:revision\n"));
-+		result = -EFAULT;
-+		goto end;
-+	}
-+
-+end:
-+	kfree(buffer.pointer);
-+	return result;
-+}
-+
- /* --------------------------------------------------------------------------
-                               Throttling Control
-    -------------------------------------------------------------------------- */
--static int acpi_processor_get_throttling(struct acpi_processor *pr)
-+static int acpi_processor_get_throttling_fadt(struct acpi_processor *pr)
- {
- 	int state = 0;
- 	u32 value = 0;
-@@ -94,7 +306,101 @@ static int acpi_processor_get_throttling(struct acpi_processor *pr)
- 	return 0;
++	result = acpi_read_funcs[fid].print(seq, result);
++	acpi_battery_check_result(battery, result);
++	battery->flags.update[fid] = result;
++	mutex_unlock(&battery->mutex);
+ 	return result;
  }
  
--int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
-+static int acpi_read_throttling_status(struct acpi_processor_throttling *throttling)
++static int acpi_battery_read_info(struct seq_file *seq, void *offset)
 +{
-+	int value = -1;
-+	switch (throttling->status_register.space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		acpi_os_read_port((acpi_io_address)throttling->status_register.address,
-+				&value,
-+				(u32)throttling->status_register.bit_width*8);
-+		break;
-+	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-+		printk(KERN_ERR PREFIX "HARDWARE addr space,NOT supported yet\n");
-+		break;
-+	default:
-+		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
-+			(u32) (throttling->status_register.space_id));
-+	}
-+	return value;
++	return acpi_battery_read(ACPI_BATTERY_INFO, seq);
 +}
 +
-+static int acpi_write_throttling_state(struct acpi_processor_throttling *throttling,int value)
++static int acpi_battery_read_state(struct seq_file *seq, void *offset)
 +{
-+	int ret = -1;
-+
-+	switch (throttling->control_register.space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		acpi_os_write_port((acpi_io_address)throttling->control_register.address,
-+				value,
-+				(u32)throttling->control_register.bit_width*8);
-+		ret = 0;
-+		break;
-+	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-+		printk(KERN_ERR PREFIX "HARDWARE addr space,NOT supported yet\n");
-+		break;
-+	default:
-+		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
-+			(u32) (throttling->control_register.space_id));
-+	}
-+	return ret;
++	return acpi_battery_read(ACPI_BATTERY_STATE, seq);
 +}
 +
-+static int acpi_get_throttling_state(struct acpi_processor *pr,int value)
++static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
 +{
++	return acpi_battery_read(ACPI_BATTERY_ALARM, seq);
++}
++
++static int acpi_battery_info_open_fs(struct inode *inode, struct file *file)
++{
++	return single_open(file, acpi_battery_read_info, PDE(inode)->data);
++}
++
++static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
++{
++	return single_open(file, acpi_battery_read_state, PDE(inode)->data);
++}
++
+ static int acpi_battery_alarm_open_fs(struct inode *inode, struct file *file)
+ {
+ 	return single_open(file, acpi_battery_read_alarm, PDE(inode)->data);
+ }
+ 
+-static const struct file_operations acpi_battery_info_ops = {
++static struct battery_file {
++	struct file_operations ops;
++	mode_t mode;
++	char *name;
++} acpi_battery_file[] = {
++	{
++	.name = "info",
++	.mode = S_IRUGO,
++	.ops = {
+ 	.open = acpi_battery_info_open_fs,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ 	.owner = THIS_MODULE,
+-};
+-
+-static const struct file_operations acpi_battery_state_ops = {
++	},
++	},
++	{
++	.name = "state",
++	.mode = S_IRUGO,
++	.ops = {
+ 	.open = acpi_battery_state_open_fs,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ 	.owner = THIS_MODULE,
+-};
+-
+-static const struct file_operations acpi_battery_alarm_ops = {
++	},
++	},
++	{
++	.name = "alarm",
++	.mode = S_IFREG | S_IRUGO | S_IWUSR,
++	.ops = {
+ 	.open = acpi_battery_alarm_open_fs,
+ 	.read = seq_read,
+ 	.write = acpi_battery_write_alarm,
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ 	.owner = THIS_MODULE,
++	},
++	},
+ };
+ 
+ static int acpi_battery_add_fs(struct acpi_device *device)
+ {
+ 	struct proc_dir_entry *entry = NULL;
 +	int i;
-+
-+	for (i = 0; i < pr->throttling.state_count; i++) {
-+		struct acpi_processor_tx_tss *tx = (struct acpi_processor_tx_tss *) &(pr->throttling.states_tss[i]);
-+		if(tx->control == value)
-+			break;
-+	}
-+	if(i > pr->throttling.state_count)
-+		i=-1;
-+	return i;
-+}
-+
-+static int acpi_get_throttling_value(struct acpi_processor *pr,int state)
-+{
-+	int value = -1;
-+	if(state >=0 && state <= pr->throttling.state_count){
-+		struct acpi_processor_tx_tss *tx = (struct acpi_processor_tx_tss *) &(pr->throttling.states_tss[state]);
-+		value = tx->control;
-+	}
-+	return value;
-+}
-+
-+static int acpi_processor_get_throttling_ptc(struct acpi_processor *pr)
-+{
-+	int state = 0;
-+	u32 value = 0;
-+
-+
-+	if (!pr)
-+		return -EINVAL;
-+
-+	if (!pr->flags.throttling)
-+		return -ENODEV;
-+
-+	pr->throttling.state = 0;
-+	local_irq_disable();
-+	value = acpi_read_throttling_status(&pr->throttling);
-+	if(value >= 0){
-+		state = acpi_get_throttling_state(pr,value);
-+		pr->throttling.state = state;
-+	}
-+	local_irq_enable();
-+
-+	return 0;
-+}
-+
-+
-+static int acpi_processor_get_throttling(struct acpi_processor *pr)
-+{
-+	return pr->throttling.acpi_processor_get_throttling(pr);
-+}
-+
-+int acpi_processor_set_throttling_fadt(struct acpi_processor *pr, int state)
- {
- 	u32 value = 0;
- 	u32 duty_mask = 0;
-@@ -113,6 +419,8 @@ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
- 	if (state == pr->throttling.state)
- 		return 0;
  
-+	if (state < pr->throttling_platform_limit)
-+		return -EPERM;
- 	/*
- 	 * Calculate the duty_value and duty_mask.
- 	 */
-@@ -165,11 +473,50 @@ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
- 	return 0;
- }
- 
-+int acpi_processor_set_throttling_ptc(struct acpi_processor *pr, int state)
-+{
-+	u32 value = 0;
-+
-+	if (!pr)
-+		return -EINVAL;
-+
-+	if ((state < 0) || (state > (pr->throttling.state_count - 1)))
-+		return -EINVAL;
-+
-+	if (!pr->flags.throttling)
-+		return -ENODEV;
-+
-+	if (state == pr->throttling.state)
-+		return 0;
-+
-+	if (state < pr->throttling_platform_limit)
-+		return -EPERM;
-+
-+	local_irq_disable();
-+
-+	value = acpi_get_throttling_value(pr,state);
-+	if(value >=0){ 
-+		acpi_write_throttling_state(&pr->throttling,value);
-+		pr->throttling.state = state;
-+	}
-+	local_irq_enable();
-+
-+	return 0;
-+}
-+
-+int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
-+{
-+	return pr->throttling.acpi_processor_set_throttling(pr,state);
-+}
-+
- int acpi_processor_get_throttling_info(struct acpi_processor *pr)
- {
- 	int result = 0;
- 	int step = 0;
- 	int i = 0;
-+	int no_ptc = 0;
-+	int no_tss = 0;
-+	int no_tsd = 0;
- 
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-@@ -182,6 +529,17 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
- 		return -EINVAL;
- 
- 	/* TBD: Support ACPI 2.0 objects */
-+	no_ptc = acpi_processor_get_throttling_control(pr);
-+	no_tss = acpi_processor_get_throttling_states(pr);
-+	no_tsd = acpi_processor_get_tsd(pr);
-+
-+	if(no_ptc || no_tss) {
-+		pr->throttling.acpi_processor_get_throttling = &acpi_processor_get_throttling_fadt;
-+		pr->throttling.acpi_processor_set_throttling = &acpi_processor_set_throttling_fadt;
-+	} else {
-+		pr->throttling.acpi_processor_get_throttling = &acpi_processor_get_throttling_ptc;
-+		pr->throttling.acpi_processor_set_throttling = &acpi_processor_set_throttling_ptc;
-+	}
- 
- 	if (!pr->throttling.address) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No throttling register\n"));
-@@ -280,15 +638,25 @@ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+ 	if (!acpi_device_dir(device)) {
+ 		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+@@ -864,38 +816,16 @@ static int acpi_battery_add_fs(struct acpi_device *device)
+ 		acpi_device_dir(device)->owner = THIS_MODULE;
  	}
  
- 	seq_printf(seq, "state count:             %d\n"
--		   "active state:            T%d\n",
--		   pr->throttling.state_count, pr->throttling.state);
-+		   "active state:            T%d\n"
-+			"state available: T%d to T%d\n",
-+		   pr->throttling.state_count, pr->throttling.state,
-+			pr->throttling_platform_limit,
-+			pr->throttling.state_count-1);
+-	/* 'info' [R] */
+-	entry = create_proc_entry(ACPI_BATTERY_FILE_INFO,
+-				  S_IRUGO, acpi_device_dir(device));
+-	if (!entry)
+-		return -ENODEV;
+-	else {
+-		entry->proc_fops = &acpi_battery_info_ops;
+-		entry->data = acpi_driver_data(device);
+-		entry->owner = THIS_MODULE;
+-	}
+-
+-	/* 'status' [R] */
+-	entry = create_proc_entry(ACPI_BATTERY_FILE_STATE,
+-				  S_IRUGO, acpi_device_dir(device));
+-	if (!entry)
+-		return -ENODEV;
+-	else {
+-		entry->proc_fops = &acpi_battery_state_ops;
+-		entry->data = acpi_driver_data(device);
+-		entry->owner = THIS_MODULE;
+-	}
+-
+-	/* 'alarm' [R/W] */
+-	entry = create_proc_entry(ACPI_BATTERY_FILE_ALARM,
+-				  S_IFREG | S_IRUGO | S_IWUSR,
+-				  acpi_device_dir(device));
+-	if (!entry)
+-		return -ENODEV;
+-	else {
+-		entry->proc_fops = &acpi_battery_alarm_ops;
+-		entry->data = acpi_driver_data(device);
+-		entry->owner = THIS_MODULE;
++	for (i = 0; i < ACPI_BATTERY_NUMFILES; ++i) {
++		entry = create_proc_entry(acpi_battery_file[i].name,
++				  acpi_battery_file[i].mode, acpi_device_dir(device));
++		if (!entry)
++			return -ENODEV;
++		else {
++			entry->proc_fops = &acpi_battery_file[i].ops;
++			entry->data = acpi_driver_data(device);
++			entry->owner = THIS_MODULE;
++		}
+ 	}
  
- 	seq_puts(seq, "states:\n");
--	for (i = 0; i < pr->throttling.state_count; i++)
--		seq_printf(seq, "   %cT%d:                  %02d%%\n",
-+	if(acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
-+		for (i = 0; i < pr->throttling.state_count; i++)
-+			seq_printf(seq, "   %cT%d:                  %02d%%\n",
- 			   (i == pr->throttling.state ? '*' : ' '), i,
- 			   (pr->throttling.states[i].performance ? pr->
- 			    throttling.states[i].performance / 10 : 0));
-+	else
-+		for (i = 0; i < pr->throttling.state_count; i++)
-+			seq_printf(seq, "   %cT%d:                  %02d%%\n",
-+			   (i == pr->throttling.state ? '*' : ' '), i,
-+			   (int)pr->throttling.states_tss[i].freqpercentage);
-+		
- 
-       end:
  	return 0;
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index b4b0ffd..01d2f24 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -21,6 +21,8 @@
- #define ACPI_PSD_REV0_REVISION		0	/* Support for _PSD as in ACPI 3.0 */
- #define ACPI_PSD_REV0_ENTRIES		5
+@@ -903,14 +833,12 @@ static int acpi_battery_add_fs(struct acpi_device *device)
  
-+#define ACPI_TSD_REV0_REVISION		0	/* Support for _PSD as in ACPI 3.0 */
-+#define ACPI_TSD_REV0_ENTRIES		5
- /*
-  * Types of coordination defined in ACPI 3.0. Same macros can be used across
-  * P, C and T states
-@@ -125,17 +127,52 @@ struct acpi_processor_performance {
+ static int acpi_battery_remove_fs(struct acpi_device *device)
+ {
++	int i;
+ 	if (acpi_device_dir(device)) {
+-		remove_proc_entry(ACPI_BATTERY_FILE_ALARM,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_BATTERY_FILE_STATE,
+-				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_BATTERY_FILE_INFO,
++		for (i = 0; i < ACPI_BATTERY_NUMFILES; ++i) {
++			remove_proc_entry(acpi_battery_file[i].name,
+ 				  acpi_device_dir(device));
+-
++		}
+ 		remove_proc_entry(acpi_device_bid(device), acpi_battery_dir);
+ 		acpi_device_dir(device) = NULL;
+ 	}
+@@ -966,7 +894,7 @@ static int acpi_battery_add(struct acpi_device *device)
  
- /* Throttling Control */
+ 	mutex_init(&battery->mutex);
  
-+struct acpi_tsd_package {
-+	acpi_integer num_entries;
-+	acpi_integer revision;
-+	acpi_integer domain;
-+	acpi_integer coord_type;
-+	acpi_integer num_processors;
-+} __attribute__ ((packed));
-+
-+struct acpi_ptc_register {
-+	u8 descriptor;
-+	u16 length;
-+	u8 space_id;
-+	u8 bit_width;
-+	u8 bit_offset;
-+	u8 reserved;
-+	u64 address;
-+} __attribute__ ((packed));
-+
-+struct acpi_processor_tx_tss {
-+	acpi_integer freqpercentage;	/* */
-+	acpi_integer power;	/* milliWatts */
-+	acpi_integer transition_latency;	/* microseconds */
-+	acpi_integer control;	/* control value */
-+	acpi_integer status;	/* success indicator */
-+};
- struct acpi_processor_tx {
- 	u16 power;
- 	u16 performance;
- };
+-	acpi_battery_mutex_lock(battery);
++	mutex_lock(&battery->mutex);
  
-+struct acpi_processor;
- struct acpi_processor_throttling {
--	int state;
-+	unsigned int state;
-+	unsigned int platform_limit;
-+	struct acpi_pct_register control_register;
-+	struct acpi_pct_register status_register;
-+	unsigned int state_count;
-+	struct acpi_processor_tx_tss *states_tss;
-+	struct acpi_tsd_package domain_info;
-+	cpumask_t shared_cpu_map;
-+	int (*acpi_processor_get_throttling) (struct acpi_processor *pr);
-+	int (*acpi_processor_set_throttling) (struct acpi_processor *pr, int state);
-+
- 	u32 address;
- 	u8 duty_offset;
- 	u8 duty_width;
--	int state_count;
- 	struct acpi_processor_tx states[ACPI_PROCESSOR_MAX_THROTTLING];
- };
+ 	battery->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+@@ -977,7 +905,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (result)
+ 		goto end;
  
-@@ -169,6 +206,9 @@ struct acpi_processor {
- 	u32 id;
- 	u32 pblk;
- 	int performance_platform_limit;
-+	int throttling_platform_limit;
-+		/*0 - states 0..n-th satte available*/
-+
- 	struct acpi_processor_flags flags;
- 	struct acpi_processor_power power;
- 	struct acpi_processor_performance *performance;
-@@ -270,7 +310,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+-	acpi_battery_init_update_flag(battery) = 1;
++	battery->flags.init_update = 1;
  
- /* in processor_throttling.c */
- int acpi_processor_get_throttling_info(struct acpi_processor *pr);
--int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
-+extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
- extern struct file_operations acpi_processor_throttling_fops;
+ 	result = acpi_battery_add_fs(device);
+ 	if (result)
+@@ -1003,7 +931,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 		kfree(battery);
+ 	}
  
- /* in processor_idle.c */
+-	acpi_battery_mutex_unlock(battery);
++	mutex_unlock(&battery->mutex);
+ 
+ 	return result;
+ }
+@@ -1018,7 +946,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ 
+ 	battery = acpi_driver_data(device);
+ 
+-	acpi_battery_mutex_lock(battery);
++	mutex_lock(&battery->mutex);
+ 
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY,
+@@ -1026,13 +954,11 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ 
+ 	acpi_battery_remove_fs(device);
+ 
+-	if (battery->bif_data.pointer)
+-		kfree(battery->bif_data.pointer);
++	kfree(battery->bif_data.pointer);
+ 
+-	if (battery->bst_data.pointer)
+-		kfree(battery->bst_data.pointer);
++	kfree(battery->bst_data.pointer);
+ 
+-	acpi_battery_mutex_unlock(battery);
++	mutex_unlock(&battery->mutex);
+ 
+ 	mutex_destroy(&battery->mutex);
+ 
+@@ -1051,7 +977,7 @@ static int acpi_battery_resume(struct acpi_device *device)
+ 
+ 	battery = device->driver_data;
+ 
+-	acpi_battery_init_update_flag(battery) = 1;
++	battery->flags.init_update = 1;
+ 
+ 	return 0;
+ }
 -- 
 1.5.3.rc2.22.g69a9b
