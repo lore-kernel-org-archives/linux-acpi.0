@@ -1,183 +1,88 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 05/77] ACPI: video: output switch sysfs support
-Date: Sun, 22 Jul 2007 05:13:50 -0400
-Message-ID: <11850957073494-git-send-email-len.brown@intel.com>
+Subject: [PATCH 06/77] ACPI: dock: cleanup the uid patch
+Date: Sun, 22 Jul 2007 05:13:51 -0400
+Message-ID: <1185095708928-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
  <11850957053842-git-send-email-len.brown@intel.com>
  <11850957062754-git-send-email-len.brown@intel.com>
+ <11850957073494-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47794 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:54665 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761954AbXGVJPI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:15:08 -0400
-In-Reply-To: <11850957062754-git-send-email-len.brown@intel.com>
-Message-Id: <23b0f015bf2c050b8b5399430ca64e1b3398cf76.1185095456.git.len.brown@intel.com>
+	id S1761013AbXGVJPJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:15:09 -0400
+In-Reply-To: <11850957073494-git-send-email-len.brown@intel.com>
+Message-Id: <38ff4ffc039ba5a5878f2dcbb03d87c3a1f02f1b.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Luming Yu <luming.yu@gmail.com>, Luming Yu <Luming.yu@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, "Illya A. Volynets-Evenbakh" <ilya@total-knowledge.com>, Len Brown <len.brown@intel.com>
 
-From: Luming Yu <luming.yu@gmail.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Requires CONFIG_VIDEO_OUTPUT_CONTROL and CONFIG_ACPI_VIDEO.
+Make uid sysfs file error path free memory, and cleanup sysfs file
+when removing driver.  Also fix CodingStyle violations.
 
-After loading output.ko and video.ko, you would have
-/sys/class/video_output and several device acpi_videoNum there.
-
-For example, I got acpi_video0, acpi_video1,acpi_video2,and acpi_video3
-under /sys/class/video_output on my T40.
-I can query the status of  output device0 by running " cat
-/sys/class/video_output/acpi_video0
-" The return value is defined in ACPI SPEC B.5.5 _DCS(Return the
-Status of Output Device).  Also you can turn off video1 and turn on
-video0  by " echo 0 > acpi_video1; echo 0x80000000 > acpi_video0".
-Please reference ACPI SPEC  B.5.7 _DSS for the parameter definition.
-
-Please note that it may or may NOT works purely depending on if
-your vendor providing correct ACPI video extension support in bios.
-the driver output.ko and video.ko just works like a interface to
-invoke BIOS.
-
-Signed-off-by: Luming Yu <Luming.yu@intel.com>
+Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Illya A. Volynets-Evenbakh <ilya@total-knowledge.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig   |    2 +-
- drivers/acpi/video.c   |   40 ++++++++++++++++++++++++++++++++++++++++
- drivers/video/Kconfig  |    7 +++++++
- drivers/video/Makefile |    3 +++
- 4 files changed, 51 insertions(+), 1 deletions(-)
+ drivers/acpi/dock.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 139f41f..eb4855f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -124,7 +124,7 @@ config ACPI_BUTTON
- 
- config ACPI_VIDEO
- 	tristate "Video"
--	depends on X86 && BACKLIGHT_CLASS_DEVICE
-+	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
- 	help
- 	  This driver implement the ACPI Extensions For Display Adapters
- 	  for integrated graphics devices on motherboard, as specified in
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 00d25b3..39273da 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -33,6 +33,7 @@
- #include <linux/seq_file.h>
- 
- #include <linux/backlight.h>
-+#include <linux/video_output.h>
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_bus.h>
-@@ -169,6 +170,7 @@ struct acpi_video_device {
- 	struct acpi_device *dev;
- 	struct acpi_video_device_brightness *brightness;
- 	struct backlight_device *backlight;
-+	struct output_device *output_dev;
- };
- 
- /* bus */
-@@ -272,6 +274,10 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
- 				     u32 level_current, u32 event);
- static void acpi_video_switch_brightness(struct acpi_video_device *device,
- 					 int event);
-+static int acpi_video_device_get_state(struct acpi_video_device *device,
-+			    unsigned long *state);
-+static int acpi_video_output_get(struct output_device *od);
-+static int acpi_video_device_set_state(struct acpi_video_device *device, int state);
- 
- /*backlight device sysfs support*/
- static int acpi_video_get_brightness(struct backlight_device *bd)
-@@ -297,6 +303,28 @@ static struct backlight_ops acpi_backlight_ops = {
- 	.update_status  = acpi_video_set_brightness,
- };
- 
-+/*video output device sysfs support*/
-+static int acpi_video_output_get(struct output_device *od)
-+{
-+	unsigned long state;
-+	struct acpi_video_device *vd =
-+		(struct acpi_video_device *)class_get_devdata(&od->class_dev);
-+	acpi_video_device_get_state(vd, &state);
-+	return (int)state;
-+}
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 4546bf8..9ddc3f1 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -675,16 +675,15 @@ static ssize_t show_dock_uid(struct device *dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	unsigned long lbuf;
+-	acpi_status status = acpi_evaluate_integer(dock_station->handle, "_UID", NULL, &lbuf);
+-	if(ACPI_FAILURE(status)) {
++	acpi_status status = acpi_evaluate_integer(dock_station->handle,
++					"_UID", NULL, &lbuf);
++	if (ACPI_FAILURE(status))
+ 	    return 0;
+-	}
 +
-+static int acpi_video_output_set(struct output_device *od)
-+{
-+	unsigned long state = od->request_state;
-+	struct acpi_video_device *vd=
-+		(struct acpi_video_device *)class_get_devdata(&od->class_dev);
-+	return acpi_video_device_set_state(vd, state);
-+}
-+
-+static struct output_properties acpi_output_properties = {
-+	.set_state = acpi_video_output_set,
-+	.get_status = acpi_video_output_get,
-+};
- /* --------------------------------------------------------------------------
-                                Video Management
-    -------------------------------------------------------------------------- */
-@@ -626,6 +654,17 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 
- 		kfree(name);
- 	}
-+	if (device->cap._DCS && device->cap._DSS){
-+		static int count = 0;
-+		char *name;
-+		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+		if (!name)
-+			return;
-+		sprintf(name, "acpi_video%d", count++);
-+		device->output_dev = video_output_register(name,
-+				NULL, device, &acpi_output_properties);
-+		kfree(name);
-+	}
- 	return;
+ 	return snprintf(buf, PAGE_SIZE, "%lx\n", lbuf);
  }
+ DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
  
-@@ -1669,6 +1708,7 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
- 	backlight_device_unregister(device->backlight);
-+	video_output_unregister(device->output_dev);
- 	return 0;
- }
+-
+-
+ /**
+  * dock_add - add a new dock station
+  * @handle: the dock station handle
+@@ -736,6 +735,8 @@ static int dock_add(acpi_handle handle)
+ 	ret = device_create_file(&dock_device.dev, &dev_attr_uid);
+ 	if (ret) {
+ 		printk("Error %d adding sysfs file\n", ret);
++		device_remove_file(&dock_device.dev, &dev_attr_docked);
++		device_remove_file(&dock_device.dev, &dev_attr_undock);
+ 		platform_device_unregister(&dock_device);
+ 		kfree(dock_station);
+ 		return ret;
+@@ -775,6 +776,7 @@ dock_add_err:
+ dock_add_err_unregister:
+ 	device_remove_file(&dock_device.dev, &dev_attr_docked);
+ 	device_remove_file(&dock_device.dev, &dev_attr_undock);
++	device_remove_file(&dock_device.dev, &dev_attr_uid);
+ 	platform_device_unregister(&dock_device);
+ 	kfree(dock_station);
+ 	return ret;
+@@ -806,6 +808,7 @@ static int dock_remove(void)
+ 	/* cleanup sysfs */
+ 	device_remove_file(&dock_device.dev, &dev_attr_docked);
+ 	device_remove_file(&dock_device.dev, &dev_attr_undock);
++	device_remove_file(&dock_device.dev, &dev_attr_uid);
+ 	platform_device_unregister(&dock_device);
  
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 1132ba5..6c8ffe6 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -11,6 +11,13 @@ config VGASTATE
-        tristate
-        default n
- 
-+config VIDEO_OUTPUT_CONTROL
-+	tristate "Lowlevel video output switch controls"
-+	default m
-+	help
-+	  This framework adds support for low-level control of the video 
-+	  output switch.
-+
- config FB
- 	tristate "Support for frame buffer devices"
- 	---help---
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index a916c20..08b7c26 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -119,3 +119,6 @@ obj-$(CONFIG_FB_OF)               += offb.o
- 
- # the test framebuffer is last
- obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
-+
-+#video output switch sysfs driver
-+obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+ 	/* free dock station memory */
 -- 
 1.5.3.rc2.22.g69a9b
