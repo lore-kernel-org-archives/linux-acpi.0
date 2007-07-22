@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 58/77] ACPI: thinkpad-acpi: allow use of CMOS NVRAM for brightness control
-Date: Sun, 22 Jul 2007 05:14:43 -0400
-Message-ID: <11850957633613-git-send-email-len.brown@intel.com>
+Subject: [PATCH 59/77] ACPI: thinkpad-acpi: react to Lenovo ThinkPad differences in hot key
+Date: Sun, 22 Jul 2007 05:14:44 -0400
+Message-ID: <11850957641697-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -60,13 +60,14 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957601664-git-send-email-len.brown@intel.com>
  <1185095761326-git-send-email-len.brown@intel.com>
  <11850957621605-git-send-email-len.brown@intel.com>
+ <11850957633613-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:35331 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45767 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764086AbXGVJQE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:04 -0400
-In-Reply-To: <11850957621605-git-send-email-len.brown@intel.com>
-Message-Id: <24d3b77467b6aaf59e38dce4aa86d05541858195.1185095456.git.len.brown@intel.com>
+	id S1764315AbXGVJQF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:05 -0400
+In-Reply-To: <11850957633613-git-send-email-len.brown@intel.com>
+Message-Id: <edf0e0e56904f794c97ca6c4562d8256e3d8d8e3.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -76,187 +77,258 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-It appears that Lenovo decided to break the EC brightness control interface
-in a weird way in their latest BIOSes.  Fortunately, the old CMOS NVRAM
-interface works just fine in such BIOSes.
+Lenovo ThinkPads have a slightly different key map layout from IBM
+ThinkPads (fn+f2 and fn+f3 are swapped).  Knowing which one we are dealing
+with, we can properly set a few more hot keys up by default.
 
-Add a module parameter that allows the user to select which strategy to use
-for brightness control: EC, NVRAM, or both.  By default, do both (which is
-the way thinkpad-acpi used to work until now) on IBM ThinkPads, and use
-NVRAM only on Lenovo ThinkPads.
+Also, export the correct vendor in the input device, as that information
+might be useful to userspace.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |    6 ++++
- drivers/misc/Kconfig            |    1 +
- drivers/misc/thinkpad_acpi.c    |   62 +++++++++++++++++++++++++++++++++-----
- drivers/misc/thinkpad_acpi.h    |    7 ++++
- 4 files changed, 67 insertions(+), 9 deletions(-)
+ Documentation/thinkpad-acpi.txt |   40 ++++++++++----
+ drivers/misc/thinkpad_acpi.c    |  109 +++++++++++++++++++++++++++++----------
+ 2 files changed, 109 insertions(+), 40 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index c670363..c145bcc 100644
+index c145bcc..5d827de 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -860,6 +860,12 @@ cannot be controlled.
- The backlight control has eight levels, ranging from 0 to 7.  Some of the
- levels may not be distinct.
+@@ -270,7 +270,8 @@ remapping KEY_UNKNOWN keys.
+ The events are available in an input device, with the following id:
  
-+There are two interfaces to the firmware for brightness control, EC and CMOS.
-+To select which one should be used, use the brightness_mode module parameter:
-+brightness_mode=1 selects EC mode, brightness_mode=2 selects CMOS mode,
-+brightness_mode=3 selects both EC and CMOS.  The driver tries to autodetect
-+which interface to use.
+ 	Bus:		BUS_HOST
+-	vendor:		0x1014 (PCI_VENDOR_ID_IBM)
++	vendor:		0x1014 (PCI_VENDOR_ID_IBM)  or
++			0x17aa (PCI_VENDOR_ID_LENOVO)
+ 	product:	0x5054 ("TP")
+ 	version:	0x4101
+ 
+@@ -290,12 +291,15 @@ ACPI	Scan
+ event	code	Key		Notes
+ 
+ 0x1001	0x00	FN+F1		-
+-0x1002	0x01	FN+F2		-
++0x1002	0x01	FN+F2		IBM: battery (rare)
++				Lenovo: Screen lock
+ 
+-0x1003	0x02	FN+F3		Many models always report this
+-				hot key, even with hot keys
++0x1003	0x02	FN+F3		Many IBM models always report
++				this hot key, even with hot keys
+ 				disabled or with Fn+F3 masked
+ 				off
++				IBM: screen lock
++				Lenovo: battery
+ 
+ 0x1004	0x03	FN+F4		Sleep button (ACPI sleep button
+ 				semanthics, i.e. sleep-to-RAM).
+@@ -313,13 +317,19 @@ event	code	Key		Notes
+ 				and W-WAN card if left in control
+ 				of the firmware.  Does not affect
+ 				the WLAN card.
++				Should be used to turn on/off all
++				radios (bluetooth+W-WAN+WLAN),
++				really.
+ 
+ 0x1006	0x05	FN+F6		-
+ 
+ 0x1007	0x06	FN+F7		Video output cycle.
+ 				Do you feel lucky today?
+ 
+-0x1008	0x07	FN+F8		-
++0x1008	0x07	FN+F8		IBM: toggle screen expand
++				Lenovo: configure ultranav
 +
- Procfs notes:
++0x1009	0x08	FN+F9		-
+ 	..	..		..
+ 0x100B	0x0A	FN+F11		-
  
- 	The available commands are:
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 5197f9b..aaaa61e 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -150,6 +150,7 @@ config THINKPAD_ACPI
- 	depends on X86 && ACPI
- 	select BACKLIGHT_CLASS_DEVICE
- 	select HWMON
-+	select NVRAM
- 	---help---
- 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
- 	  support for Fn-Fx key combinations, Bluetooth control, video
+@@ -338,13 +348,15 @@ event	code	Key		Notes
+ 0x100F	0x0E	FN+DELETE	-
+ 
+ 0x1010	0x0F	FN+HOME		Brightness up.  This key is
+-				always handled by the firmware,
+-				even when unmasked.  Just leave
+-				it alone.
+-0x1011	0x10	FN+END		Brightness down. This key is
+-				always handled by the firmware,
+-				even when unmasked.  Just leave
+-				it alone.
++				always handled by the firmware
++				in IBM ThinkPads, even when
++				unmasked.  Just leave it alone.
++				For Lenovo ThinkPads with a new
++				BIOS, it has to be handled either
++				by the ACPI OSI, or by userspace.
++0x1011	0x10	FN+END		Brightness down.  See brightness
++				up for details.
++
+ 0x1012	0x11	FN+PGUP		Thinklight toggle.  This key is
+ 				always handled by the firmware,
+ 				even when unmasked.
+@@ -356,9 +368,13 @@ event	code	Key		Notes
+ 0x1015	0x14	VOLUME UP	Internal mixer volume up. This
+ 				key is always handled by the
+ 				firmware, even when unmasked.
++				NOTE: Lenovo seems to be changing
++				this.
+ 0x1016	0x15	VOLUME DOWN	Internal mixer volume up. This
+ 				key is always handled by the
+ 				firmware, even when unmasked.
++				NOTE: Lenovo seems to be changing
++				this.
+ 0x1017	0x16	MUTE		Mute internal mixer. This
+ 				key is always handled by the
+ 				firmware, even when unmasked.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 99500af..5318eb2 100644
+index 5318eb2..623d36f 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2953,9 +2953,22 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+@@ -758,29 +758,7 @@ static u32 hotkey_orig_mask;
+ static u32 hotkey_all_mask;
+ static u32 hotkey_reserved_mask;
  
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+-static u16 hotkey_keycode_map[] = {
+-	/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+-	KEY_FN_F1,	KEY_FN_F2,	KEY_FN_F3,	KEY_SLEEP,
+-	KEY_FN_F5,	KEY_FN_F6,	KEY_FN_F7,	KEY_FN_F8,
+-	KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+-	/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
+-	KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+-	KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
+-	KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
+-	KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
+-	/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
+-	KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
+-	KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
+-	KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
+-	KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
+-	KEY_RESERVED,	/* 0x14: VOLUME UP */
+-	KEY_RESERVED,	/* 0x15: VOLUME DOWN */
+-	KEY_RESERVED,	/* 0x16: MUTE */
+-	KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
+-	/* (assignments unknown, please report if found) */
+-	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+-	KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+-};
++static u16 *hotkey_keycode_map;
  
-+	if (!brightness_mode) {
-+		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
-+			brightness_mode = 2;
-+		else
-+			brightness_mode = 3;
-+
-+		dbg_printk(TPACPI_DBG_INIT, "selected brightness_mode=%d\n",
-+			brightness_mode);
-+	}
-+
-+	if (brightness_mode > 3)
-+		return -EINVAL;
-+
- 	b = brightness_get(NULL);
- 	if (b < 0)
--		return b;
-+		return 1;
+ static struct attribute_set *hotkey_dev_attributes;
  
- 	ibm_backlight_device = backlight_device_register(
- 					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
-@@ -2991,13 +3004,35 @@ static int brightness_update_status(struct backlight_device *bd)
- 				bd->props.brightness : 0);
- }
+@@ -939,6 +917,58 @@ static struct attribute *hotkey_mask_attributes[] = {
  
-+/*
-+ * ThinkPads can read brightness from two places: EC 0x31, or
-+ * CMOS NVRAM byte 0x5E, bits 0-3.
-+ */
- static int brightness_get(struct backlight_device *bd)
+ static int __init hotkey_init(struct ibm_init_struct *iibm)
  {
--	u8 level;
--	if (!acpi_ec_read(brightness_offset, &level))
--		return -EIO;
-+	u8 lec = 0, lcmos = 0, level = 0;
- 
--	level &= 0x7;
-+	if (brightness_mode & 1) {
-+		if (!acpi_ec_read(brightness_offset, &lec))
-+			return -EIO;
-+		lec &= 7;
-+		level = lec;
++
++	static u16 ibm_keycode_map[] __initdata = {
++		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
++		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SLEEP,
++		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
++		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
++		/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
++		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
++		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
++		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
++		KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
++		/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
++		KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
++		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
++		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
++		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
++		KEY_RESERVED,	/* 0x14: VOLUME UP */
++		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
++		KEY_RESERVED,	/* 0x16: MUTE */
++		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
++		/* (assignments unknown, please report if found) */
++		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
++		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
 +	};
-+	if (brightness_mode & 2) {
-+		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
-+			 & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
-+			>> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
-+		level = lcmos;
-+	}
++	static u16 lenovo_keycode_map[] __initdata = {
++		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
++		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SLEEP,
++		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
++		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
++		/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
++		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
++		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
++		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
++		KEY_BRIGHTNESSUP,	/* 0x0F: FN+HOME (brightness up) */
++		/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
++		KEY_BRIGHTNESSDOWN,	/* 0x10: FN+END (brightness down) */
++		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
++		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
++		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
++		KEY_RESERVED,	/* 0x14: VOLUME UP */
++		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
++		KEY_RESERVED,	/* 0x16: MUTE */
++		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
++		/* (assignments unknown, please report if found) */
++		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
++		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
++	};
 +
-+	if (brightness_mode == 3 && lec != lcmos) {
-+		printk(IBM_ERR
-+			"CMOS NVRAM (%u) and EC (%u) do not agree "
-+			"on display brightness level\n",
-+			(unsigned int) lcmos,
-+			(unsigned int) lec);
-+		return -EIO;
-+	}
- 
- 	return level;
- }
-@@ -3007,14 +3042,20 @@ static int brightness_set(int value)
- 	int cmos_cmd, inc, i;
- 	int current_value = brightness_get(NULL);
- 
--	value &= 7;
-+	if (value > 7)
-+		return -EINVAL;
- 
--	cmos_cmd = value > current_value ? TP_CMOS_BRIGHTNESS_UP : TP_CMOS_BRIGHTNESS_DOWN;
-+	cmos_cmd = value > current_value ?
-+			TP_CMOS_BRIGHTNESS_UP :
-+			TP_CMOS_BRIGHTNESS_DOWN;
- 	inc = value > current_value ? 1 : -1;
++#define TPACPI_HOTKEY_MAP_LEN		ARRAY_SIZE(ibm_keycode_map)
++#define TPACPI_HOTKEY_MAP_SIZE		sizeof(ibm_keycode_map)
++#define TPACPI_HOTKEY_MAP_TYPESIZE	sizeof(ibm_keycode_map[0])
 +
- 	for (i = current_value; i != value; i += inc) {
--		if (issue_thinkpad_cmos_command(cmos_cmd))
-+		if ((brightness_mode & 2) &&
-+		    issue_thinkpad_cmos_command(cmos_cmd))
- 			return -EIO;
--		if (!acpi_ec_write(brightness_offset, i + inc))
-+		if ((brightness_mode & 1) &&
-+		    !acpi_ec_write(brightness_offset, i + inc))
- 			return -EIO;
+ 	int res, i;
+ 	int status;
+ 
+@@ -1003,6 +1033,27 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		if (res)
+ 			return res;
+ 
++		/* Set up key map */
++
++		hotkey_keycode_map = kmalloc(TPACPI_HOTKEY_MAP_SIZE,
++						GFP_KERNEL);
++		if (!hotkey_keycode_map) {
++			printk(IBM_ERR "failed to allocate memory for key map\n");
++			return -ENOMEM;
++		}
++
++		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
++			dbg_printk(TPACPI_DBG_INIT,
++				   "using Lenovo default hot key map\n");
++			memcpy(hotkey_keycode_map, &lenovo_keycode_map,
++				TPACPI_HOTKEY_MAP_SIZE);
++		} else {
++			dbg_printk(TPACPI_DBG_INIT,
++				   "using IBM default hot key map\n");
++			memcpy(hotkey_keycode_map, &ibm_keycode_map,
++				TPACPI_HOTKEY_MAP_SIZE);
++		}
++
+ #ifndef CONFIG_THINKPAD_ACPI_INPUT_ENABLED
+ 		for (i = 0; i < 12; i++)
+ 			hotkey_keycode_map[i] = KEY_UNKNOWN;
+@@ -1011,10 +1062,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		set_bit(EV_KEY, tpacpi_inputdev->evbit);
+ 		set_bit(EV_MSC, tpacpi_inputdev->evbit);
+ 		set_bit(MSC_SCAN, tpacpi_inputdev->mscbit);
+-		tpacpi_inputdev->keycodesize = sizeof(hotkey_keycode_map[0]);
+-		tpacpi_inputdev->keycodemax = ARRAY_SIZE(hotkey_keycode_map);
+-		tpacpi_inputdev->keycode = &hotkey_keycode_map;
+-		for (i = 0; i < ARRAY_SIZE(hotkey_keycode_map); i++) {
++		tpacpi_inputdev->keycodesize = TPACPI_HOTKEY_MAP_TYPESIZE;
++		tpacpi_inputdev->keycodemax = TPACPI_HOTKEY_MAP_LEN;
++		tpacpi_inputdev->keycode = hotkey_keycode_map;
++		for (i = 0; i < TPACPI_HOTKEY_MAP_LEN; i++) {
+ 			if (hotkey_keycode_map[i] != KEY_RESERVED) {
+ 				set_bit(hotkey_keycode_map[i],
+ 					tpacpi_inputdev->keybit);
+@@ -4618,7 +4669,9 @@ static int __init thinkpad_acpi_module_init(void)
+ 		tpacpi_inputdev->name = "ThinkPad Extra Buttons";
+ 		tpacpi_inputdev->phys = IBM_DRVR_NAME "/input0";
+ 		tpacpi_inputdev->id.bustype = BUS_HOST;
+-		tpacpi_inputdev->id.vendor = TPACPI_HKEY_INPUT_VENDOR;
++		tpacpi_inputdev->id.vendor = (thinkpad_id.vendor) ?
++						thinkpad_id.vendor :
++						PCI_VENDOR_ID_IBM;
+ 		tpacpi_inputdev->id.product = TPACPI_HKEY_INPUT_PRODUCT;
+ 		tpacpi_inputdev->id.version = TPACPI_HKEY_INPUT_VERSION;
  	}
- 
-@@ -4485,6 +4526,9 @@ module_param(force_load, bool, 0);
- static int fan_control_allowed;
- module_param_named(fan_control, fan_control_allowed, bool, 0);
- 
-+static int brightness_mode;
-+module_param_named(brightness_mode, brightness_mode, int, 0);
-+
- #define IBM_PARAM(feature) \
- 	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 09b2282..b7a4a88 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -32,6 +32,7 @@
- #include <linux/list.h>
- #include <linux/mutex.h>
- 
-+#include <linux/nvram.h>
- #include <linux/proc_fs.h>
- #include <linux/sysfs.h>
- #include <linux/backlight.h>
-@@ -80,6 +81,11 @@
- #define TP_CMOS_BRIGHTNESS_UP	4
- #define TP_CMOS_BRIGHTNESS_DOWN	5
- 
-+/* ThinkPad CMOS NVRAM constants */
-+#define TP_NVRAM_ADDR_BRIGHTNESS       0x5e
-+#define TP_NVRAM_MASK_LEVEL_BRIGHTNESS 0x07
-+#define TP_NVRAM_POS_LEVEL_BRIGHTNESS 0
-+
- #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
- #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
- #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
-@@ -323,6 +329,7 @@ static int bluetooth_write(char *buf);
- 
- static struct backlight_device *ibm_backlight_device;
- static int brightness_offset = 0x31;
-+static int brightness_mode;
- 
- static int brightness_init(struct ibm_init_struct *iibm);
- static void brightness_exit(void);
 -- 
 1.5.3.rc2.22.g69a9b
