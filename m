@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 63/77] ACPI: thinkpad-acpi: add locking to brightness subdriver
-Date: Sun, 22 Jul 2007 05:14:48 -0400
-Message-ID: <1185095768376-git-send-email-len.brown@intel.com>
+Subject: [PATCH 64/77] sony-laptop: add new SNC handlers
+Date: Sun, 22 Jul 2007 05:14:49 -0400
+Message-ID: <11850957691561-git-send-email-len.brown@intel.com>
 References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957033938-git-send-email-len.brown@intel.com>
  <11850957043270-git-send-email-len.brown@intel.com>
@@ -65,107 +65,64 @@ References: <11850957022956-git-send-email-len.brown@intel.com>
  <11850957651127-git-send-email-len.brown@intel.com>
  <1185095766274-git-send-email-len.brown@intel.com>
  <1185095767879-git-send-email-len.brown@intel.com>
+ <1185095768376-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45627 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:6024 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762477AbXGVJQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Jul 2007 05:16:09 -0400
-In-Reply-To: <1185095767879-git-send-email-len.brown@intel.com>
-Message-Id: <f432255e936a892a6896e5032e2b4897423076f2.1185095456.git.len.brown@intel.com>
+	id S1764403AbXGVJQL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jul 2007 05:16:11 -0400
+In-Reply-To: <1185095768376-git-send-email-len.brown@intel.com>
+Message-Id: <044847e02d46c0a9430e19249fd68777bb1d3c98.1185095456.git.len.brown@intel.com>
 In-Reply-To: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 References: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1185095456.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Mattia Dongili <malattia@linux.it>
 
-The backlight class does all the locking needed for sysfs access, but
-offers no API to interface to that locking without an layer violation.
+- lid state: GLID
+- indicator lamp: GILS/SILS
+- multimedia bass gain: GMGB/CMGB
 
-Since we need to mutex-lock procfs access, implement in-driver locking for
-brightness.  It will go away the day thinkpad-acpi procfs goes away, or the
-backlight class gives us a way to use its locks without a layer violation.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   35 ++++++++++++++++++++++++++++-------
- 1 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/misc/sony-laptop.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 01bed93..f15a58f 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -3000,12 +3000,16 @@ static struct backlight_ops ibm_backlight_data = {
-         .update_status  = brightness_update_status,
- };
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 9623eaf..0f378fe 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -487,6 +487,14 @@ SNC_HANDLE_NAMES(audiopower_set, "AZPW");
+ SNC_HANDLE_NAMES(lanpower_get, "GLNP");
+ SNC_HANDLE_NAMES(lanpower_set, "LNPW");
  
-+static struct mutex brightness_mutex;
++SNC_HANDLE_NAMES(lidstate_get, "GLID");
 +
- static int __init brightness_init(struct ibm_init_struct *iibm)
- {
- 	int b;
- 
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
- 
-+	mutex_init(&brightness_mutex);
++SNC_HANDLE_NAMES(indicatorlamp_get, "GILS");
++SNC_HANDLE_NAMES(indicatorlamp_set, "SILS");
 +
- 	if (!brightness_mode) {
- 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
- 			brightness_mode = 2;
-@@ -3092,27 +3096,44 @@ static int brightness_get(struct backlight_device *bd)
- 
- static int brightness_set(int value)
- {
--	int cmos_cmd, inc, i;
--	int current_value = brightness_get(NULL);
-+	int cmos_cmd, inc, i, res;
-+	int current_value;
- 
- 	if (value > 7)
- 		return -EINVAL;
- 
-+	res = mutex_lock_interruptible(&brightness_mutex);
-+	if (res < 0)
-+		return res;
++SNC_HANDLE_NAMES(gainbass_get, "GMGB");
++SNC_HANDLE_NAMES(gainbass_set, "CMGB");
 +
-+	current_value = brightness_get(NULL);
-+	if (current_value < 0) {
-+		res = current_value;
-+		goto errout;
-+	}
-+
- 	cmos_cmd = value > current_value ?
- 			TP_CMOS_BRIGHTNESS_UP :
- 			TP_CMOS_BRIGHTNESS_DOWN;
- 	inc = value > current_value ? 1 : -1;
+ SNC_HANDLE_NAMES(PID_get, "GPID");
  
-+	res = 0;
- 	for (i = current_value; i != value; i += inc) {
- 		if ((brightness_mode & 2) &&
--		    issue_thinkpad_cmos_command(cmos_cmd))
--			return -EIO;
-+		    issue_thinkpad_cmos_command(cmos_cmd)) {
-+			res = -EIO;
-+			goto errout;
-+		}
- 		if ((brightness_mode & 1) &&
--		    !acpi_ec_write(brightness_offset, i + inc))
--			return -EIO;
-+		    !acpi_ec_write(brightness_offset, i + inc)) {
-+			res = -EIO;
-+			goto errout;;
-+		}
- 	}
- 
--	return 0;
-+errout:
-+	mutex_unlock(&brightness_mutex);
-+	return res;
- }
- 
- static int brightness_read(char *p)
+ SNC_HANDLE_NAMES(CTR_get, "GCTR");
+@@ -507,6 +515,12 @@ static struct sony_nc_value sony_nc_values[] = {
+ 			boolean_validate, 0),
+ 	SNC_HANDLE(lanpower, snc_lanpower_get, snc_lanpower_set,
+ 			boolean_validate, 1),
++	SNC_HANDLE(lidstate, snc_lidstate_get, NULL,
++			boolean_validate, 0),
++	SNC_HANDLE(indicatorlamp, snc_indicatorlamp_get, snc_indicatorlamp_set,
++			boolean_validate, 0),
++	SNC_HANDLE(gainbass, snc_gainbass_get, snc_gainbass_set,
++			boolean_validate, 0),
+ 	/* unknown methods */
+ 	SNC_HANDLE(PID, snc_PID_get, NULL, NULL, 1),
+ 	SNC_HANDLE(CTR, snc_CTR_get, snc_CTR_set, NULL, 1),
 -- 
 1.5.3.rc2.22.g69a9b
