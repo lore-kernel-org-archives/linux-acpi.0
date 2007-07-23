@@ -1,14 +1,14 @@
 From: helgaas@ldl.fc.hp.com
-Subject: [patch 16/17] PNPACPI: Lindent core.c
-Date: Mon, 23 Jul 2007 15:28:13 -0600
-Message-ID: <20070723213243.551918730@ldl.fc.hp.com>
+Subject: [patch 14/17] PNPBIOS: Lindent proc.c
+Date: Mon, 23 Jul 2007 15:28:11 -0600
+Message-ID: <20070723213243.146529716@ldl.fc.hp.com>
 References: <20070723212757.122218147@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:52751 "EHLO atlrel8.hp.com"
+Received: from atlrel8.hp.com ([156.153.255.206]:52752 "EHLO atlrel8.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753008AbXGWVdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757295AbXGWVdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 23 Jul 2007 17:33:15 -0400
-Content-Disposition: inline; filename=pnpacpi-format-core
+Content-Disposition: inline; filename=pnpbios-format-proc
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -18,209 +18,280 @@ Run through Lindent, no functional change.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work2/drivers/pnp/pnpacpi/core.c
+Index: work2/drivers/pnp/pnpbios/proc.c
 ===================================================================
---- work2.orig/drivers/pnp/pnpacpi/core.c	2007-07-20 16:15:34.000000000 -0600
-+++ work2/drivers/pnp/pnpacpi/core.c	2007-07-20 16:16:08.000000000 -0600
-@@ -31,14 +31,15 @@
-  * used by the kernel (PCI root, ...), as it is harmless and there were
-  * already present in pnpbios. But there is an exception for devices that
-  * have irqs (PIC, Timer) because we call acpi_register_gsi.
-- * Finaly only devices that have a CRS method need to be in this list.
-+ * Finally, only devices that have a CRS method need to be in this list.
+--- work2.orig/drivers/pnp/pnpbios/proc.c	2007-07-20 14:45:27.000000000 -0600
++++ work2/drivers/pnp/pnpbios/proc.c	2007-07-20 14:46:52.000000000 -0600
+@@ -18,9 +18,6 @@
+  * The other files are human-readable.
   */
- static char __initdata excluded_id_list[] =
--	"PNP0C09," /* EC */
--	"PNP0C0F," /* Link device */
--	"PNP0000," /* PIC */
--	"PNP0100," /* Timer */
--	;
-+    "PNP0C09,"			/* EC */
-+    "PNP0C0F,"			/* Link device */
-+    "PNP0000,"			/* PIC */
-+    "PNP0100,"			/* Timer */
-+    ;
-+
- static inline int is_exclusive_device(struct acpi_device *dev)
+ 
+-//#include <pcmcia/config.h>
+-//#include <pcmcia/k_compat.h>
+-
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+@@ -37,42 +34,37 @@
+ static struct proc_dir_entry *proc_pnp_boot = NULL;
+ 
+ static int proc_read_pnpconfig(char *buf, char **start, off_t pos,
+-                               int count, int *eof, void *data)
++			       int count, int *eof, void *data)
  {
- 	return (!acpi_match_ids(dev, excluded_id_list));
-@@ -79,15 +80,18 @@
- 	str[7] = '\0';
+ 	struct pnp_isa_config_struc pnps;
+ 
+ 	if (pnp_bios_isapnp_config(&pnps))
+ 		return -EIO;
+ 	return snprintf(buf, count,
+-		"structure_revision %d\n"
+-		"number_of_CSNs %d\n"
+-		"ISA_read_data_port 0x%x\n",
+-		pnps.revision,
+-		pnps.no_csns,
+-		pnps.isa_rd_data_port
+-	);
++			"structure_revision %d\n"
++			"number_of_CSNs %d\n"
++			"ISA_read_data_port 0x%x\n",
++			pnps.revision, pnps.no_csns, pnps.isa_rd_data_port);
  }
  
--static int pnpacpi_get_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
-+static int pnpacpi_get_resources(struct pnp_dev *dev,
-+				 struct pnp_resource_table *res)
+ static int proc_read_escdinfo(char *buf, char **start, off_t pos,
+-                              int count, int *eof, void *data)
++			      int count, int *eof, void *data)
  {
- 	acpi_status status;
--	status = pnpacpi_parse_allocated_resource((acpi_handle)dev->data,
--		&dev->res);
-+
-+	status = pnpacpi_parse_allocated_resource((acpi_handle) dev->data,
-+						  &dev->res);
- 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ 	struct escd_info_struc escd;
+ 
+ 	if (pnp_bios_escd_info(&escd))
+ 		return -EIO;
+ 	return snprintf(buf, count,
+-		"min_ESCD_write_size %d\n"
+-		"ESCD_size %d\n"
+-		"NVRAM_base 0x%x\n",
+-		escd.min_escd_write_size,
+-		escd.escd_size,
+-		escd.nv_storage_base
+-	);
++			"min_ESCD_write_size %d\n"
++			"ESCD_size %d\n"
++			"NVRAM_base 0x%x\n",
++			escd.min_escd_write_size,
++			escd.escd_size, escd.nv_storage_base);
  }
  
--static int pnpacpi_set_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
-+static int pnpacpi_set_resources(struct pnp_dev *dev,
-+				 struct pnp_resource_table *res)
+ #define MAX_SANE_ESCD_SIZE (32*1024)
+ static int proc_read_escd(char *buf, char **start, off_t pos,
+-                          int count, int *eof, void *data)
++			  int count, int *eof, void *data)
  {
- 	acpi_handle handle = dev->data;
- 	struct acpi_buffer buffer;
-@@ -114,15 +118,15 @@
- 	acpi_status status;
+ 	struct escd_info_struc escd;
+ 	char *tmpbuf;
+@@ -83,30 +75,36 @@
  
- 	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
--	status = acpi_evaluate_object((acpi_handle)dev->data,
--		"_DIS", NULL, NULL);
-+	status = acpi_evaluate_object((acpi_handle) dev->data,
-+				      "_DIS", NULL, NULL);
- 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ 	/* sanity check */
+ 	if (escd.escd_size > MAX_SANE_ESCD_SIZE) {
+-		printk(KERN_ERR "PnPBIOS: proc_read_escd: ESCD size reported by BIOS escd_info call is too great\n");
++		printk(KERN_ERR
++		       "PnPBIOS: proc_read_escd: ESCD size reported by BIOS escd_info call is too great\n");
+ 		return -EFBIG;
+ 	}
+ 
+ 	tmpbuf = kzalloc(escd.escd_size, GFP_KERNEL);
+-	if (!tmpbuf) return -ENOMEM;
++	if (!tmpbuf)
++		return -ENOMEM;
+ 
+ 	if (pnp_bios_read_escd(tmpbuf, escd.nv_storage_base)) {
+ 		kfree(tmpbuf);
+ 		return -EIO;
+ 	}
+ 
+-	escd_size = (unsigned char)(tmpbuf[0]) + (unsigned char)(tmpbuf[1])*256;
++	escd_size =
++	    (unsigned char)(tmpbuf[0]) + (unsigned char)(tmpbuf[1]) * 256;
+ 
+ 	/* sanity check */
+ 	if (escd_size > MAX_SANE_ESCD_SIZE) {
+-		printk(KERN_ERR "PnPBIOS: proc_read_escd: ESCD size reported by BIOS read_escd call is too great\n");
++		printk(KERN_ERR
++		       "PnPBIOS: proc_read_escd: ESCD size reported by BIOS read_escd call is too great\n");
+ 		return -EFBIG;
+ 	}
+ 
+ 	escd_left_to_read = escd_size - pos;
+-	if (escd_left_to_read < 0) escd_left_to_read = 0;
+-	if (escd_left_to_read == 0) *eof = 1;
+-	n = min(count,escd_left_to_read);
++	if (escd_left_to_read < 0)
++		escd_left_to_read = 0;
++	if (escd_left_to_read == 0)
++		*eof = 1;
++	n = min(count, escd_left_to_read);
+ 	memcpy(buf, tmpbuf + pos, n);
+ 	kfree(tmpbuf);
+ 	*start = buf;
+@@ -114,17 +112,17 @@
  }
  
- static struct pnp_protocol pnpacpi_protocol = {
--	.name	= "Plug and Play ACPI",
--	.get	= pnpacpi_get_resources,
--	.set	= pnpacpi_set_resources,
-+	.name	 = "Plug and Play ACPI",
-+	.get	 = pnpacpi_get_resources,
-+	.set	 = pnpacpi_set_resources,
- 	.disable = pnpacpi_disable_resources,
- };
+ static int proc_read_legacyres(char *buf, char **start, off_t pos,
+-                               int count, int *eof, void *data)
++			       int count, int *eof, void *data)
+ {
+ 	/* Assume that the following won't overflow the buffer */
+-	if (pnp_bios_get_stat_res(buf)) 
++	if (pnp_bios_get_stat_res(buf))
+ 		return -EIO;
  
-@@ -135,17 +139,17 @@
+-	return count;  // FIXME: Return actual length
++	return count;		// FIXME: Return actual length
+ }
  
- 	status = acpi_get_handle(device->handle, "_CRS", &temp);
- 	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
--		is_exclusive_device(device))
-+	    is_exclusive_device(device))
+ static int proc_read_devices(char *buf, char **start, off_t pos,
+-                             int count, int *eof, void *data)
++			     int count, int *eof, void *data)
+ {
+ 	struct pnp_bios_node *node;
+ 	u8 nodenum;
+@@ -134,9 +132,10 @@
  		return 0;
  
- 	pnp_dbg("ACPI device : hid %s", acpi_device_hid(device));
--	dev =  kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
-+	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
- 	if (!dev) {
- 		pnp_err("Out of memory");
- 		return -ENOMEM;
- 	}
- 	dev->data = device->handle;
--	/* .enabled means if the device can decode the resources */
-+	/* .enabled means the device can decode the resources */
- 	dev->active = device->status.enabled;
- 	status = acpi_get_handle(device->handle, "_SRS", &temp);
- 	if (ACPI_SUCCESS(status))
-@@ -175,20 +179,23 @@
- 	pnpidacpi_to_pnpid(acpi_device_hid(device), dev_id->id);
- 	pnp_add_id(dev_id, dev);
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+-	if (!node) return -ENOMEM;
++	if (!node)
++		return -ENOMEM;
  
--	if(dev->active) {
-+	if (dev->active) {
- 		/* parse allocated resource */
--		status = pnpacpi_parse_allocated_resource(device->handle, &dev->res);
-+		status = pnpacpi_parse_allocated_resource(device->handle,
-+							  &dev->res);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s", dev_id->id);
-+			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
-+				dev_id->id);
- 			goto err1;
+-	for (nodenum=pos; nodenum<0xff; ) {
++	for (nodenum = pos; nodenum < 0xff;) {
+ 		u8 thisnodenum = nodenum;
+ 		/* 26 = the number of characters per line sprintf'ed */
+ 		if ((p - buf + 26) > count)
+@@ -148,7 +147,11 @@
+ 			     node->type_code[0], node->type_code[1],
+ 			     node->type_code[2], node->flags);
+ 		if (nodenum <= thisnodenum) {
+-			printk(KERN_ERR "%s Node number 0x%x is out of sequence following node 0x%x. Aborting.\n", "PnPBIOS: proc_read_devices:", (unsigned int)nodenum, (unsigned int)thisnodenum);
++			printk(KERN_ERR
++			       "%s Node number 0x%x is out of sequence following node 0x%x. Aborting.\n",
++			       "PnPBIOS: proc_read_devices:",
++			       (unsigned int)nodenum,
++			       (unsigned int)thisnodenum);
+ 			*eof = 1;
+ 			break;
  		}
- 	}
- 
--	if(dev->capabilities & PNP_CONFIGURABLE) {
-+	if (dev->capabilities & PNP_CONFIGURABLE) {
- 		status = pnpacpi_parse_resource_option_data(device->handle,
--			dev);
-+							    dev);
- 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
--			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s", dev_id->id);
-+			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
-+				dev_id->id);
- 			goto err1;
- 		}
- 	}
-@@ -214,18 +221,19 @@
- 	if (!dev->active)
- 		pnp_init_resource_table(&dev->res);
- 	pnp_add_device(dev);
--	num ++;
-+	num++;
- 
- 	return AE_OK;
--err1:
-+      err1:
- 	kfree(dev_id);
--err:
-+      err:
- 	kfree(dev);
- 	return -EINVAL;
+@@ -156,12 +159,12 @@
+ 	kfree(node);
+ 	if (nodenum == 0xff)
+ 		*eof = 1;
+-	*start = (char *)((off_t)nodenum - pos);
++	*start = (char *)((off_t) nodenum - pos);
+ 	return p - buf;
  }
  
- static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
--	u32 lvl, void *context, void **rv)
-+						     u32 lvl, void *context,
-+						     void **rv)
+ static int proc_read_node(char *buf, char **start, off_t pos,
+-                          int count, int *eof, void *data)
++			  int count, int *eof, void *data)
  {
- 	struct acpi_device *device;
+ 	struct pnp_bios_node *node;
+ 	int boot = (long)data >> 8;
+@@ -169,7 +172,8 @@
+ 	int len;
  
-@@ -238,23 +246,22 @@
- 
- static int __init acpi_pnp_match(struct device *dev, void *_pnp)
- {
--	struct acpi_device	*acpi = to_acpi_device(dev);
--	struct pnp_dev		*pnp = _pnp;
-+	struct acpi_device *acpi = to_acpi_device(dev);
-+	struct pnp_dev *pnp = _pnp;
- 
- 	/* true means it matched */
- 	return acpi->flags.hardware_id
--		&& !acpi_get_physical_device(acpi->handle)
--		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
-+	    && !acpi_get_physical_device(acpi->handle)
-+	    && compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+-	if (!node) return -ENOMEM;
++	if (!node)
++		return -ENOMEM;
+ 	if (pnp_bios_get_dev_node(&nodenum, boot, node)) {
+ 		kfree(node);
+ 		return -EIO;
+@@ -180,8 +184,8 @@
+ 	return len;
  }
  
--static int __init acpi_pnp_find_device(struct device *dev, acpi_handle *handle)
-+static int __init acpi_pnp_find_device(struct device *dev, acpi_handle * handle)
+-static int proc_write_node(struct file *file, const char __user *buf,
+-                           unsigned long count, void *data)
++static int proc_write_node(struct file *file, const char __user * buf,
++			   unsigned long count, void *data)
  {
--	struct device		*adev;
--	struct acpi_device	*acpi;
-+	struct device *adev;
-+	struct acpi_device *acpi;
+ 	struct pnp_bios_node *node;
+ 	int boot = (long)data >> 8;
+@@ -208,12 +212,12 @@
+ 		goto out;
+ 	}
+ 	ret = count;
+-out:
++      out:
+ 	kfree(node);
+ 	return ret;
+ }
  
- 	adev = bus_find_device(&acpi_bus_type, NULL,
--			to_pnp_dev(dev),
--			acpi_pnp_match);
-+			       to_pnp_dev(dev), acpi_pnp_match);
- 	if (!adev)
- 		return -ENODEV;
+-int pnpbios_interface_attach_device(struct pnp_bios_node * node)
++int pnpbios_interface_attach_device(struct pnp_bios_node *node)
+ {
+ 	char name[3];
+ 	struct proc_dir_entry *ent;
+@@ -222,7 +226,7 @@
  
-@@ -268,7 +275,7 @@
-  * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
+ 	if (!proc_pnp)
+ 		return -EIO;
+-	if ( !pnpbios_dont_use_current_config ) {
++	if (!pnpbios_dont_use_current_config) {
+ 		ent = create_proc_entry(name, 0, proc_pnp);
+ 		if (ent) {
+ 			ent->read_proc = proc_read_node;
+@@ -237,7 +241,7 @@
+ 	if (ent) {
+ 		ent->read_proc = proc_read_node;
+ 		ent->write_proc = proc_write_node;
+-		ent->data = (void *)(long)(node->handle+0x100);
++		ent->data = (void *)(long)(node->handle + 0x100);
+ 		return 0;
+ 	}
+ 
+@@ -249,7 +253,7 @@
+  * work and the pnpbios_dont_use_current_config flag
+  * should already have been set to the appropriate value
   */
- static struct acpi_bus_type __initdata acpi_pnp_bus = {
--	.bus = &pnp_bus_type,
-+	.bus	     = &pnp_bus_type,
- 	.find_device = acpi_pnp_find_device,
- };
+-int __init pnpbios_proc_init( void )
++int __init pnpbios_proc_init(void)
+ {
+ 	proc_pnp = proc_mkdir("pnp", proc_bus);
+ 	if (!proc_pnp)
+@@ -258,10 +262,13 @@
+ 	if (!proc_pnp_boot)
+ 		return -EIO;
+ 	create_proc_read_entry("devices", 0, proc_pnp, proc_read_devices, NULL);
+-	create_proc_read_entry("configuration_info", 0, proc_pnp, proc_read_pnpconfig, NULL);
+-	create_proc_read_entry("escd_info", 0, proc_pnp, proc_read_escdinfo, NULL);
++	create_proc_read_entry("configuration_info", 0, proc_pnp,
++			       proc_read_pnpconfig, NULL);
++	create_proc_read_entry("escd_info", 0, proc_pnp, proc_read_escdinfo,
++			       NULL);
+ 	create_proc_read_entry("escd", S_IRUSR, proc_pnp, proc_read_escd, NULL);
+-	create_proc_read_entry("legacy_device_resources", 0, proc_pnp, proc_read_legacyres, NULL);
++	create_proc_read_entry("legacy_device_resources", 0, proc_pnp,
++			       proc_read_legacyres, NULL);
  
-@@ -288,6 +295,7 @@
- 	pnp_platform_devices = 1;
  	return 0;
  }
-+
- subsys_initcall(pnpacpi_init);
+@@ -274,9 +281,9 @@
+ 	if (!proc_pnp)
+ 		return;
  
- static int __init pnpacpi_setup(char *str)
-@@ -298,8 +306,5 @@
- 		pnpacpi_disabled = 1;
- 	return 1;
+-	for (i=0; i<0xff; i++) {
++	for (i = 0; i < 0xff; i++) {
+ 		sprintf(name, "%02x", i);
+-		if ( !pnpbios_dont_use_current_config )
++		if (!pnpbios_dont_use_current_config)
+ 			remove_proc_entry(name, proc_pnp);
+ 		remove_proc_entry(name, proc_pnp_boot);
+ 	}
+@@ -287,6 +294,4 @@
+ 	remove_proc_entry("devices", proc_pnp);
+ 	remove_proc_entry("boot", proc_pnp);
+ 	remove_proc_entry("pnp", proc_bus);
+-
+-	return;
  }
--__setup("pnpacpi=", pnpacpi_setup);
- 
--#if 0
--EXPORT_SYMBOL(pnpacpi_protocol);
--#endif
-+__setup("pnpacpi=", pnpacpi_setup);
 
 --
