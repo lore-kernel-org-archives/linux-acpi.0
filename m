@@ -1,14 +1,14 @@
 From: helgaas@ldl.fc.hp.com
-Subject: [patch 04/17] PNP: Lindent interface.c
-Date: Mon, 23 Jul 2007 15:28:01 -0600
-Message-ID: <20070723213241.146605860@ldl.fc.hp.com>
+Subject: [patch 07/17] PNP: Lindent resource.c
+Date: Mon, 23 Jul 2007 15:28:04 -0600
+Message-ID: <20070723213241.751546611@ldl.fc.hp.com>
 References: <20070723212757.122218147@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:52730 "EHLO atlrel8.hp.com"
+Received: from atlrel8.hp.com ([156.153.255.206]:52729 "EHLO atlrel8.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756324AbXGWVdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1755881AbXGWVdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 23 Jul 2007 17:33:09 -0400
-Content-Disposition: inline; filename=pnp-format-interface
+Content-Disposition: inline; filename=pnp-format-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -18,475 +18,373 @@ Run through Lindent, no functional change.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work2/drivers/pnp/interface.c
+Index: work2/drivers/pnp/resource.c
 ===================================================================
---- work2.orig/drivers/pnp/interface.c	2007-07-20 15:42:09.000000000 -0600
-+++ work2/drivers/pnp/interface.c	2007-07-20 15:42:58.000000000 -0600
+--- work2.orig/drivers/pnp/resource.c	2007-07-23 12:11:09.000000000 -0600
++++ work2/drivers/pnp/resource.c	2007-07-23 12:11:54.000000000 -0600
 @@ -3,7 +3,6 @@
   *
-  * Some code, especially possible resource dumping is based on isapnp_proc.c (c) Jaroslav Kysela <perex@suse.cz>
-  * Copyright 2002 Adam Belay <ambx1@neo.rr.com>
+  * based on isapnp.c resource management (c) Jaroslav Kysela <perex@suse.cz>
+  * Copyright 2003 Adam Belay <ambx1@neo.rr.com>
 - *
   */
  
+ #include <linux/module.h>
+@@ -20,21 +19,19 @@
  #include <linux/pnp.h>
-@@ -29,7 +28,7 @@
+ #include "base.h"
  
- typedef struct pnp_info_buffer pnp_info_buffer_t;
+-static int pnp_reserve_irq[16] = { [0 ... 15] = -1 };	/* reserve (don't use) some IRQ */
+-static int pnp_reserve_dma[8] = { [0 ... 7] = -1 };	/* reserve (don't use) some DMA */
+-static int pnp_reserve_io[16] = { [0 ... 15] = -1 };	/* reserve (don't use) some I/O region */
+-static int pnp_reserve_mem[16] = { [0 ... 15] = -1 };	/* reserve (don't use) some memory region */
+-
++static int pnp_reserve_irq[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some IRQ */
++static int pnp_reserve_dma[8] = {[0 ... 7] = -1 };	/* reserve (don't use) some DMA */
++static int pnp_reserve_io[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some I/O region */
++static int pnp_reserve_mem[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some memory region */
  
--static int pnp_printf(pnp_info_buffer_t * buffer, char *fmt,...)
-+static int pnp_printf(pnp_info_buffer_t * buffer, char *fmt, ...)
+ /*
+  * option registration
+  */
+ 
+-static struct pnp_option * pnp_build_option(int priority)
++static struct pnp_option *pnp_build_option(int priority)
  {
- 	va_list args;
- 	int res;
-@@ -48,14 +47,18 @@
- 	return res;
+ 	struct pnp_option *option = pnp_alloc(sizeof(struct pnp_option));
+ 
+-	/* check if pnp_alloc ran out of memory */
+ 	if (!option)
+ 		return NULL;
+ 
+@@ -46,9 +43,10 @@
+ 	return option;
  }
  
--static void pnp_print_port(pnp_info_buffer_t *buffer, char *space, struct pnp_port *port)
-+static void pnp_print_port(pnp_info_buffer_t * buffer, char *space,
-+			   struct pnp_port *port)
+-struct pnp_option * pnp_register_independent_option(struct pnp_dev *dev)
++struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev)
  {
--	pnp_printf(buffer, "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
--			space, port->min, port->max, port->align ? (port->align-1) : 0, port->size,
--			port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
-+	pnp_printf(buffer,
-+		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
-+		   space, port->min, port->max,
-+		   port->align ? (port->align - 1) : 0, port->size,
-+		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
+ 	struct pnp_option *option;
++
+ 	if (!dev)
+ 		return NULL;
+ 
+@@ -61,9 +59,11 @@
+ 	return option;
  }
  
--static void pnp_print_irq(pnp_info_buffer_t *buffer, char *space, struct pnp_irq *irq)
-+static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
-+			  struct pnp_irq *irq)
+-struct pnp_option * pnp_register_dependent_option(struct pnp_dev *dev, int priority)
++struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
++						 int priority)
  {
- 	int first = 1, i;
+ 	struct pnp_option *option;
++
+ 	if (!dev)
+ 		return NULL;
  
-@@ -85,14 +88,15 @@
- 	pnp_printf(buffer, "\n");
- }
- 
--static void pnp_print_dma(pnp_info_buffer_t *buffer, char *space, struct pnp_dma *dma)
-+static void pnp_print_dma(pnp_info_buffer_t * buffer, char *space,
-+			  struct pnp_dma *dma)
+@@ -82,6 +82,7 @@
+ int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data)
  {
- 	int first = 1, i;
- 	char *s;
- 
- 	pnp_printf(buffer, "%sdma ", space);
- 	for (i = 0; i < 8; i++)
--		if (dma->map & (1<<i)) {
-+		if (dma->map & (1 << i)) {
- 			if (!first) {
- 				pnp_printf(buffer, ",");
- 			} else {
-@@ -136,12 +140,13 @@
- 	pnp_printf(buffer, " %s\n", s);
- }
- 
--static void pnp_print_mem(pnp_info_buffer_t *buffer, char *space, struct pnp_mem *mem)
-+static void pnp_print_mem(pnp_info_buffer_t * buffer, char *space,
-+			  struct pnp_mem *mem)
+ 	struct pnp_irq *ptr;
++
+ 	if (!option)
+ 		return -EINVAL;
+ 	if (!data)
+@@ -110,6 +111,7 @@
+ int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data)
  {
- 	char *s;
- 
- 	pnp_printf(buffer, "%sMemory 0x%x-0x%x, align 0x%x, size 0x%x",
--			space, mem->min, mem->max, mem->align, mem->size);
-+		   space, mem->min, mem->max, mem->align, mem->size);
- 	if (mem->flags & IORESOURCE_MEM_WRITEABLE)
- 		pnp_printf(buffer, ", writeable");
- 	if (mem->flags & IORESOURCE_MEM_CACHEABLE)
-@@ -168,7 +173,7 @@
- 	pnp_printf(buffer, ", %s\n", s);
- }
- 
--static void pnp_print_option(pnp_info_buffer_t *buffer, char *space,
-+static void pnp_print_option(pnp_info_buffer_t * buffer, char *space,
- 			     struct pnp_option *option, int dep)
+ 	struct pnp_dma *ptr;
++
+ 	if (!option)
+ 		return -EINVAL;
+ 	if (!data)
+@@ -129,6 +131,7 @@
+ int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data)
  {
- 	char *s;
-@@ -179,19 +184,19 @@
- 
- 	if (dep) {
- 		switch (option->priority) {
--			case PNP_RES_PRIORITY_PREFERRED:
-+		case PNP_RES_PRIORITY_PREFERRED:
- 			s = "preferred";
- 			break;
--			case PNP_RES_PRIORITY_ACCEPTABLE:
-+		case PNP_RES_PRIORITY_ACCEPTABLE:
- 			s = "acceptable";
- 			break;
--			case PNP_RES_PRIORITY_FUNCTIONAL:
-+		case PNP_RES_PRIORITY_FUNCTIONAL:
- 			s = "functional";
- 			break;
--			default:
-+		default:
- 			s = "invalid";
- 		}
--		pnp_printf(buffer, "Dependent: %02i - Priority %s\n",dep, s);
-+		pnp_printf(buffer, "Dependent: %02i - Priority %s\n", dep, s);
+ 	struct pnp_port *ptr;
++
+ 	if (!option)
+ 		return -EINVAL;
+ 	if (!data)
+@@ -148,6 +151,7 @@
+ int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data)
+ {
+ 	struct pnp_mem *ptr;
++
+ 	if (!option)
+ 		return -EINVAL;
+ 	if (!data)
+@@ -222,7 +226,6 @@
  	}
- 
- 	for (port = option->port; port; port = port->next)
-@@ -204,16 +209,16 @@
- 		pnp_print_mem(buffer, space, mem);
  }
  
 -
--static ssize_t pnp_show_options(struct device *dmdev, struct device_attribute *attr, char *buf)
-+static ssize_t pnp_show_options(struct device *dmdev,
-+				struct device_attribute *attr, char *buf)
+ /*
+  * resource validity checking
+  */
+@@ -236,11 +239,12 @@
+ #define cannot_compare(flags) \
+ ((flags) & (IORESOURCE_UNSET | IORESOURCE_DISABLED))
+ 
+-int pnp_check_port(struct pnp_dev * dev, int idx)
++int pnp_check_port(struct pnp_dev *dev, int idx)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
--	struct pnp_option * independent = dev->independent;
--	struct pnp_option * dependent = dev->dependent;
-+	struct pnp_option *independent = dev->independent;
-+	struct pnp_option *dependent = dev->dependent;
- 	int ret, dep = 1;
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *port, *end, *tport, *tend;
++
+ 	port = &dev->res.port_resource[idx].start;
+ 	end = &dev->res.port_resource[idx].end;
  
- 	pnp_info_buffer_t *buffer = (pnp_info_buffer_t *)
--				 pnp_alloc(sizeof(pnp_info_buffer_t));
-+	    pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
+@@ -250,8 +254,8 @@
  
-@@ -223,7 +228,7 @@
- 	if (independent)
- 		pnp_print_option(buffer, "", independent, 0);
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+-	if(!dev->active) {
+-		if (__check_region(&ioport_resource, *port, length(port,end)))
++	if (!dev->active) {
++		if (__check_region(&ioport_resource, *port, length(port, end)))
+ 			return 0;
+ 	}
  
--	while (dependent){
-+	while (dependent) {
- 		pnp_print_option(buffer, "   ", dependent, dep);
- 		dependent = dependent->next;
- 		dep++;
-@@ -233,10 +238,11 @@
- 	return ret;
+@@ -259,7 +263,7 @@
+ 	for (tmp = 0; tmp < 8; tmp++) {
+ 		int rport = pnp_reserve_io[tmp << 1];
+ 		int rend = pnp_reserve_io[(tmp << 1) + 1] + rport - 1;
+-		if (ranged_conflict(port,end,&rport,&rend))
++		if (ranged_conflict(port, end, &rport, &rend))
+ 			return 0;
+ 	}
+ 
+@@ -268,7 +272,7 @@
+ 		if (dev->res.port_resource[tmp].flags & IORESOURCE_IO) {
+ 			tport = &dev->res.port_resource[tmp].start;
+ 			tend = &dev->res.port_resource[tmp].end;
+-			if (ranged_conflict(port,end,tport,tend))
++			if (ranged_conflict(port, end, tport, tend))
+ 				return 0;
+ 		}
+ 	}
+@@ -279,11 +283,12 @@
+ 			continue;
+ 		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
+ 			if (tdev->res.port_resource[tmp].flags & IORESOURCE_IO) {
+-				if (cannot_compare(tdev->res.port_resource[tmp].flags))
++				if (cannot_compare
++				    (tdev->res.port_resource[tmp].flags))
+ 					continue;
+ 				tport = &tdev->res.port_resource[tmp].start;
+ 				tend = &tdev->res.port_resource[tmp].end;
+-				if (ranged_conflict(port,end,tport,tend))
++				if (ranged_conflict(port, end, tport, tend))
+ 					return 0;
+ 			}
+ 		}
+@@ -292,11 +297,12 @@
+ 	return 1;
  }
  
--static DEVICE_ATTR(options,S_IRUGO,pnp_show_options,NULL);
--
-+static DEVICE_ATTR(options, S_IRUGO, pnp_show_options, NULL);
- 
--static ssize_t pnp_show_current_resources(struct device *dmdev, struct device_attribute *attr, char *buf)
-+static ssize_t pnp_show_current_resources(struct device *dmdev,
-+					  struct device_attribute *attr,
-+					  char *buf)
+-int pnp_check_mem(struct pnp_dev * dev, int idx)
++int pnp_check_mem(struct pnp_dev *dev, int idx)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
- 	int i, ret;
-@@ -252,52 +258,56 @@
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *addr, *end, *taddr, *tend;
++
+ 	addr = &dev->res.mem_resource[idx].start;
+ 	end = &dev->res.mem_resource[idx].end;
  
--	pnp_printf(buffer,"state = ");
-+	pnp_printf(buffer, "state = ");
- 	if (dev->active)
--		pnp_printf(buffer,"active\n");
-+		pnp_printf(buffer, "active\n");
- 	else
--		pnp_printf(buffer,"disabled\n");
-+		pnp_printf(buffer, "disabled\n");
+@@ -306,8 +312,8 @@
  
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
- 		if (pnp_port_valid(dev, i)) {
--			pnp_printf(buffer,"io");
-+			pnp_printf(buffer, "io");
- 			if (pnp_port_flags(dev, i) & IORESOURCE_DISABLED)
--				pnp_printf(buffer," disabled\n");
-+				pnp_printf(buffer, " disabled\n");
- 			else
--				pnp_printf(buffer," 0x%llx-0x%llx\n",
--					(unsigned long long)pnp_port_start(dev, i),
--					(unsigned long long)pnp_port_end(dev, i));
-+				pnp_printf(buffer, " 0x%llx-0x%llx\n",
-+					   (unsigned long long)
-+					   pnp_port_start(dev, i),
-+					   (unsigned long long)pnp_port_end(dev,
-+									    i));
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+-	if(!dev->active) {
+-		if (check_mem_region(*addr, length(addr,end)))
++	if (!dev->active) {
++		if (check_mem_region(*addr, length(addr, end)))
+ 			return 0;
+ 	}
+ 
+@@ -315,7 +321,7 @@
+ 	for (tmp = 0; tmp < 8; tmp++) {
+ 		int raddr = pnp_reserve_mem[tmp << 1];
+ 		int rend = pnp_reserve_mem[(tmp << 1) + 1] + raddr - 1;
+-		if (ranged_conflict(addr,end,&raddr,&rend))
++		if (ranged_conflict(addr, end, &raddr, &rend))
+ 			return 0;
+ 	}
+ 
+@@ -324,7 +330,7 @@
+ 		if (dev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
+ 			taddr = &dev->res.mem_resource[tmp].start;
+ 			tend = &dev->res.mem_resource[tmp].end;
+-			if (ranged_conflict(addr,end,taddr,tend))
++			if (ranged_conflict(addr, end, taddr, tend))
+ 				return 0;
  		}
  	}
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
- 		if (pnp_mem_valid(dev, i)) {
--			pnp_printf(buffer,"mem");
-+			pnp_printf(buffer, "mem");
- 			if (pnp_mem_flags(dev, i) & IORESOURCE_DISABLED)
--				pnp_printf(buffer," disabled\n");
-+				pnp_printf(buffer, " disabled\n");
- 			else
--				pnp_printf(buffer," 0x%llx-0x%llx\n",
--					(unsigned long long)pnp_mem_start(dev, i),
--					(unsigned long long)pnp_mem_end(dev, i));
-+				pnp_printf(buffer, " 0x%llx-0x%llx\n",
-+					   (unsigned long long)
-+					   pnp_mem_start(dev, i),
-+					   (unsigned long long)pnp_mem_end(dev,
-+									   i));
- 		}
- 	}
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
- 		if (pnp_irq_valid(dev, i)) {
--			pnp_printf(buffer,"irq");
-+			pnp_printf(buffer, "irq");
- 			if (pnp_irq_flags(dev, i) & IORESOURCE_DISABLED)
--				pnp_printf(buffer," disabled\n");
-+				pnp_printf(buffer, " disabled\n");
- 			else
--				pnp_printf(buffer," %lld\n",
--					(unsigned long long)pnp_irq(dev, i));
-+				pnp_printf(buffer, " %lld\n",
-+					   (unsigned long long)pnp_irq(dev, i));
- 		}
- 	}
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
- 		if (pnp_dma_valid(dev, i)) {
--			pnp_printf(buffer,"dma");
-+			pnp_printf(buffer, "dma");
- 			if (pnp_dma_flags(dev, i) & IORESOURCE_DISABLED)
--				pnp_printf(buffer," disabled\n");
-+				pnp_printf(buffer, " disabled\n");
- 			else
--				pnp_printf(buffer," %lld\n",
--					(unsigned long long)pnp_dma(dev, i));
-+				pnp_printf(buffer, " %lld\n",
-+					   (unsigned long long)pnp_dma(dev, i));
- 		}
- 	}
- 	ret = (buffer->curr - buf);
-@@ -308,55 +318,57 @@
- extern struct semaphore pnp_res_mutex;
- 
- static ssize_t
--pnp_set_current_resources(struct device * dmdev, struct device_attribute *attr, const char * ubuf, size_t count)
-+pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
-+			  const char *ubuf, size_t count)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
--	char	*buf = (void *)ubuf;
--	int	retval = 0;
-+	char *buf = (void *)ubuf;
-+	int retval = 0;
- 
- 	if (dev->status & PNP_ATTACHED) {
- 		retval = -EBUSY;
--		pnp_info("Device %s cannot be configured because it is in use.", dev->dev.bus_id);
-+		pnp_info("Device %s cannot be configured because it is in use.",
-+			 dev->dev.bus_id);
- 		goto done;
- 	}
- 
- 	while (isspace(*buf))
- 		++buf;
--	if (!strnicmp(buf,"disable",7)) {
-+	if (!strnicmp(buf, "disable", 7)) {
- 		retval = pnp_disable_dev(dev);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"activate",8)) {
-+	if (!strnicmp(buf, "activate", 8)) {
- 		retval = pnp_activate_dev(dev);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"fill",4)) {
-+	if (!strnicmp(buf, "fill", 4)) {
- 		if (dev->active)
- 			goto done;
- 		retval = pnp_auto_config_dev(dev);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"auto",4)) {
-+	if (!strnicmp(buf, "auto", 4)) {
- 		if (dev->active)
- 			goto done;
- 		pnp_init_resource_table(&dev->res);
- 		retval = pnp_auto_config_dev(dev);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"clear",5)) {
-+	if (!strnicmp(buf, "clear", 5)) {
- 		if (dev->active)
- 			goto done;
- 		pnp_init_resource_table(&dev->res);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"get",3)) {
-+	if (!strnicmp(buf, "get", 3)) {
- 		down(&pnp_res_mutex);
- 		if (pnp_can_read(dev))
- 			dev->protocol->get(dev, &dev->res);
- 		up(&pnp_res_mutex);
- 		goto done;
- 	}
--	if (!strnicmp(buf,"set",3)) {
-+	if (!strnicmp(buf, "set", 3)) {
- 		int nport = 0, nmem = 0, nirq = 0, ndma = 0;
- 		if (dev->active)
- 			goto done;
-@@ -366,65 +378,77 @@
- 		while (1) {
- 			while (isspace(*buf))
- 				++buf;
--			if (!strnicmp(buf,"io",2)) {
-+			if (!strnicmp(buf, "io", 2)) {
- 				buf += 2;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.port_resource[nport].start = simple_strtoul(buf,&buf,0);
-+				dev->res.port_resource[nport].start =
-+				    simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
--				if(*buf == '-') {
-+				if (*buf == '-') {
- 					buf += 1;
- 					while (isspace(*buf))
- 						++buf;
--					dev->res.port_resource[nport].end = simple_strtoul(buf,&buf,0);
-+					dev->res.port_resource[nport].end =
-+					    simple_strtoul(buf, &buf, 0);
- 				} else
--					dev->res.port_resource[nport].end = dev->res.port_resource[nport].start;
--				dev->res.port_resource[nport].flags = IORESOURCE_IO;
-+					dev->res.port_resource[nport].end =
-+					    dev->res.port_resource[nport].start;
-+				dev->res.port_resource[nport].flags =
-+				    IORESOURCE_IO;
- 				nport++;
- 				if (nport >= PNP_MAX_PORT)
- 					break;
- 				continue;
+@@ -335,11 +341,12 @@
+ 			continue;
+ 		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
+ 			if (tdev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
+-				if (cannot_compare(tdev->res.mem_resource[tmp].flags))
++				if (cannot_compare
++				    (tdev->res.mem_resource[tmp].flags))
+ 					continue;
+ 				taddr = &tdev->res.mem_resource[tmp].start;
+ 				tend = &tdev->res.mem_resource[tmp].end;
+-				if (ranged_conflict(addr,end,taddr,tend))
++				if (ranged_conflict(addr, end, taddr, tend))
+ 					return 0;
  			}
--			if (!strnicmp(buf,"mem",3)) {
-+			if (!strnicmp(buf, "mem", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.mem_resource[nmem].start = simple_strtoul(buf,&buf,0);
-+				dev->res.mem_resource[nmem].start =
-+				    simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
--				if(*buf == '-') {
-+				if (*buf == '-') {
- 					buf += 1;
- 					while (isspace(*buf))
- 						++buf;
--					dev->res.mem_resource[nmem].end = simple_strtoul(buf,&buf,0);
-+					dev->res.mem_resource[nmem].end =
-+					    simple_strtoul(buf, &buf, 0);
- 				} else
--					dev->res.mem_resource[nmem].end = dev->res.mem_resource[nmem].start;
--				dev->res.mem_resource[nmem].flags = IORESOURCE_MEM;
-+					dev->res.mem_resource[nmem].end =
-+					    dev->res.mem_resource[nmem].start;
-+				dev->res.mem_resource[nmem].flags =
-+				    IORESOURCE_MEM;
- 				nmem++;
- 				if (nmem >= PNP_MAX_MEM)
- 					break;
- 				continue;
- 			}
--			if (!strnicmp(buf,"irq",3)) {
-+			if (!strnicmp(buf, "irq", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
- 				dev->res.irq_resource[nirq].start =
--				dev->res.irq_resource[nirq].end = simple_strtoul(buf,&buf,0);
--				dev->res.irq_resource[nirq].flags = IORESOURCE_IRQ;
-+				    dev->res.irq_resource[nirq].end =
-+				    simple_strtoul(buf, &buf, 0);
-+				dev->res.irq_resource[nirq].flags =
-+				    IORESOURCE_IRQ;
- 				nirq++;
- 				if (nirq >= PNP_MAX_IRQ)
- 					break;
- 				continue;
- 			}
--			if (!strnicmp(buf,"dma",3)) {
-+			if (!strnicmp(buf, "dma", 3)) {
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
- 				dev->res.dma_resource[ndma].start =
--				dev->res.dma_resource[ndma].end = simple_strtoul(buf,&buf,0);
--				dev->res.dma_resource[ndma].flags = IORESOURCE_DMA;
-+				    dev->res.dma_resource[ndma].end =
-+				    simple_strtoul(buf, &buf, 0);
-+				dev->res.dma_resource[ndma].flags =
-+				    IORESOURCE_DMA;
- 				ndma++;
- 				if (ndma >= PNP_MAX_DMA)
- 					break;
-@@ -435,45 +459,49 @@
- 		up(&pnp_res_mutex);
- 		goto done;
- 	}
-- done:
-+      done:
- 	if (retval < 0)
- 		return retval;
- 	return count;
+ 		}
+@@ -353,11 +360,11 @@
+ 	return IRQ_HANDLED;
  }
  
--static DEVICE_ATTR(resources,S_IRUGO | S_IWUSR,
--		   pnp_show_current_resources,pnp_set_current_resources);
-+static DEVICE_ATTR(resources, S_IRUGO | S_IWUSR,
-+		   pnp_show_current_resources, pnp_set_current_resources);
- 
--static ssize_t pnp_show_current_ids(struct device *dmdev, struct device_attribute *attr, char *buf)
-+static ssize_t pnp_show_current_ids(struct device *dmdev,
-+				    struct device_attribute *attr, char *buf)
+-int pnp_check_irq(struct pnp_dev * dev, int idx)
++int pnp_check_irq(struct pnp_dev *dev, int idx)
  {
- 	char *str = buf;
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
--	struct pnp_id * pos = dev->id;
-+	struct pnp_id *pos = dev->id;
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+-	resource_size_t * irq = &dev->res.irq_resource[idx].start;
++	resource_size_t *irq = &dev->res.irq_resource[idx].start;
  
- 	while (pos) {
--		str += sprintf(str,"%s\n", pos->id);
-+		str += sprintf(str, "%s\n", pos->id);
- 		pos = pos->next;
+ 	/* if the resource doesn't exist, don't complain about it */
+ 	if (cannot_compare(dev->res.irq_resource[idx].flags))
+@@ -394,9 +401,9 @@
+ 
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+-	if(!dev->active) {
++	if (!dev->active) {
+ 		if (request_irq(*irq, pnp_test_handler,
+-				IRQF_DISABLED|IRQF_PROBE_SHARED, "pnp", NULL))
++				IRQF_DISABLED | IRQF_PROBE_SHARED, "pnp", NULL))
+ 			return 0;
+ 		free_irq(*irq, NULL);
  	}
- 	return (str - buf);
+@@ -407,7 +414,8 @@
+ 			continue;
+ 		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
+ 			if (tdev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
+-				if (cannot_compare(tdev->res.irq_resource[tmp].flags))
++				if (cannot_compare
++				    (tdev->res.irq_resource[tmp].flags))
+ 					continue;
+ 				if ((tdev->res.irq_resource[tmp].start == *irq))
+ 					return 0;
+@@ -418,12 +426,12 @@
+ 	return 1;
  }
  
--static DEVICE_ATTR(id,S_IRUGO,pnp_show_current_ids,NULL);
-+static DEVICE_ATTR(id, S_IRUGO, pnp_show_current_ids, NULL);
- 
- int pnp_interface_attach_device(struct pnp_dev *dev)
+-int pnp_check_dma(struct pnp_dev * dev, int idx)
++int pnp_check_dma(struct pnp_dev *dev, int idx)
  {
--	int rc = device_create_file(&dev->dev,&dev_attr_options);
--	if (rc) goto err;
--	rc = device_create_file(&dev->dev,&dev_attr_resources);
--	if (rc) goto err_opt;
--	rc = device_create_file(&dev->dev,&dev_attr_id);
--	if (rc) goto err_res;
-+	int rc = device_create_file(&dev->dev, &dev_attr_options);
-+	if (rc)
-+		goto err;
-+	rc = device_create_file(&dev->dev, &dev_attr_resources);
-+	if (rc)
-+		goto err_opt;
-+	rc = device_create_file(&dev->dev, &dev_attr_id);
-+	if (rc)
-+		goto err_res;
+ #ifndef CONFIG_IA64
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+-	resource_size_t * dma = &dev->res.dma_resource[idx].start;
++	resource_size_t *dma = &dev->res.dma_resource[idx].start;
  
+ 	/* if the resource doesn't exist, don't complain about it */
+ 	if (cannot_compare(dev->res.dma_resource[idx].flags))
+@@ -449,7 +457,7 @@
+ 
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+-	if(!dev->active) {
++	if (!dev->active) {
+ 		if (request_dma(*dma, "pnp"))
+ 			return 0;
+ 		free_dma(*dma);
+@@ -461,7 +469,8 @@
+ 			continue;
+ 		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
+ 			if (tdev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
+-				if (cannot_compare(tdev->res.dma_resource[tmp].flags))
++				if (cannot_compare
++				    (tdev->res.dma_resource[tmp].flags))
+ 					continue;
+ 				if ((tdev->res.dma_resource[tmp].start == *dma))
+ 					return 0;
+@@ -471,30 +480,18 @@
+ 
+ 	return 1;
+ #else
+-	/* IA64 hasn't legacy DMA */
++	/* IA64 does not have legacy DMA */
  	return 0;
+ #endif
+ }
  
--err_res:
--	device_remove_file(&dev->dev,&dev_attr_resources);
--err_opt:
--	device_remove_file(&dev->dev,&dev_attr_options);
--err:
-+      err_res:
-+	device_remove_file(&dev->dev, &dev_attr_resources);
-+      err_opt:
-+	device_remove_file(&dev->dev, &dev_attr_options);
-+      err:
- 	return rc;
+-
+-#if 0
+-EXPORT_SYMBOL(pnp_register_dependent_option);
+-EXPORT_SYMBOL(pnp_register_independent_option);
+-EXPORT_SYMBOL(pnp_register_irq_resource);
+-EXPORT_SYMBOL(pnp_register_dma_resource);
+-EXPORT_SYMBOL(pnp_register_port_resource);
+-EXPORT_SYMBOL(pnp_register_mem_resource);
+-#endif  /*  0  */
+-
+-
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+-
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < 16; i++)
+-		if (get_option(&str,&pnp_reserve_irq[i]) != 2)
++		if (get_option(&str, &pnp_reserve_irq[i]) != 2)
+ 			break;
+ 	return 1;
+ }
+@@ -502,13 +499,12 @@
+ __setup("pnp_reserve_irq=", pnp_setup_reserve_irq);
+ 
+ /* format is: pnp_reserve_dma=dma1[,dma2] .... */
+-
+ static int __init pnp_setup_reserve_dma(char *str)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < 8; i++)
+-		if (get_option(&str,&pnp_reserve_dma[i]) != 2)
++		if (get_option(&str, &pnp_reserve_dma[i]) != 2)
+ 			break;
+ 	return 1;
+ }
+@@ -516,13 +512,12 @@
+ __setup("pnp_reserve_dma=", pnp_setup_reserve_dma);
+ 
+ /* format is: pnp_reserve_io=io1,size1[,io2,size2] .... */
+-
+ static int __init pnp_setup_reserve_io(char *str)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < 16; i++)
+-		if (get_option(&str,&pnp_reserve_io[i]) != 2)
++		if (get_option(&str, &pnp_reserve_io[i]) != 2)
+ 			break;
+ 	return 1;
+ }
+@@ -530,13 +525,12 @@
+ __setup("pnp_reserve_io=", pnp_setup_reserve_io);
+ 
+ /* format is: pnp_reserve_mem=mem1,size1[,mem2,size2] .... */
+-
+ static int __init pnp_setup_reserve_mem(char *str)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < 16; i++)
+-		if (get_option(&str,&pnp_reserve_mem[i]) != 2)
++		if (get_option(&str, &pnp_reserve_mem[i]) != 2)
+ 			break;
+ 	return 1;
  }
 
 --
