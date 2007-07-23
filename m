@@ -1,14 +1,14 @@
 From: helgaas@ldl.fc.hp.com
-Subject: [patch 15/17] PNPBIOS: Lindent rsparser.c
-Date: Mon, 23 Jul 2007 15:28:12 -0600
-Message-ID: <20070723213243.341700650@ldl.fc.hp.com>
+Subject: [patch 13/17] PNPBIOS: Lindent core.c
+Date: Mon, 23 Jul 2007 15:28:10 -0600
+Message-ID: <20070723213242.946956748@ldl.fc.hp.com>
 References: <20070723212757.122218147@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:45626 "EHLO atlrel6.hp.com"
+Received: from atlrel6.hp.com ([156.153.255.205]:45634 "EHLO atlrel6.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759291AbXGWVdh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:33:37 -0400
-Content-Disposition: inline; filename=pnpbios-format-rsparser
+	id S1759178AbXGWVdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2007 17:33:41 -0400
+Content-Disposition: inline; filename=pnpbios-format-core
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -18,781 +18,538 @@ Run through Lindent, no functional change.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work2/drivers/pnp/pnpbios/rsparser.c
+Index: work2/drivers/pnp/pnpbios/core.c
 ===================================================================
---- work2.orig/drivers/pnp/pnpbios/rsparser.c	2007-07-20 14:47:22.000000000 -0600
-+++ work2/drivers/pnp/pnpbios/rsparser.c	2007-07-20 14:54:49.000000000 -0600
-@@ -1,6 +1,5 @@
- /*
-  * rsparser.c - parses and encodes pnpbios resource data streams
-- *
+--- work2.orig/drivers/pnp/pnpbios/core.c	2007-07-23 14:57:12.000000000 -0600
++++ work2/drivers/pnp/pnpbios/core.c	2007-07-23 15:00:43.000000000 -0600
+@@ -32,7 +32,7 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   */
- 
- #include <linux/ctype.h>
-@@ -12,8 +11,10 @@
- #ifdef CONFIG_PCI
- #include <linux/pci.h>
- #else
--inline void pcibios_penalize_isa_irq(int irq, int active) {}
--#endif /* CONFIG_PCI */
-+inline void pcibios_penalize_isa_irq(int irq, int active)
-+{
-+}
-+#endif				/* CONFIG_PCI */
+- 
++
+ /* Change Log
+  *
+  * Adam Belay - <ambx1@neo.rr.com> - March 16, 2003
+@@ -71,14 +71,13 @@
  
  #include "pnpbios.h"
  
-@@ -52,75 +53,88 @@
-  * Allocated Resources
-  */
- 
--static void
--pnpbios_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
-+static void pnpbios_parse_allocated_irqresource(struct pnp_resource_table *res,
-+						int irq)
- {
- 	int i = 0;
--	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_IRQ) i++;
-+
-+	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET)
-+	       && i < PNP_MAX_IRQ)
-+		i++;
- 	if (i < PNP_MAX_IRQ) {
--		res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
-+		res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
- 		if (irq == -1) {
- 			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
- 		res->irq_resource[i].start =
--		res->irq_resource[i].end = (unsigned long) irq;
-+		    res->irq_resource[i].end = (unsigned long)irq;
- 		pcibios_penalize_isa_irq(irq, 1);
- 	}
- }
- 
--static void
--pnpbios_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
-+static void pnpbios_parse_allocated_dmaresource(struct pnp_resource_table *res,
-+						int dma)
- {
- 	int i = 0;
-+
- 	while (i < PNP_MAX_DMA &&
--			!(res->dma_resource[i].flags & IORESOURCE_UNSET))
-+	       !(res->dma_resource[i].flags & IORESOURCE_UNSET))
- 		i++;
- 	if (i < PNP_MAX_DMA) {
--		res->dma_resource[i].flags = IORESOURCE_DMA;  // Also clears _UNSET flag
-+		res->dma_resource[i].flags = IORESOURCE_DMA;	// Also clears _UNSET flag
- 		if (dma == -1) {
- 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
- 		res->dma_resource[i].start =
--		res->dma_resource[i].end = (unsigned long) dma;
-+		    res->dma_resource[i].end = (unsigned long)dma;
- 	}
- }
- 
--static void
--pnpbios_parse_allocated_ioresource(struct pnp_resource_table * res, int io, int len)
-+static void pnpbios_parse_allocated_ioresource(struct pnp_resource_table *res,
-+					       int io, int len)
- {
- 	int i = 0;
--	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_PORT) i++;
-+
-+	while (!(res->port_resource[i].flags & IORESOURCE_UNSET)
-+	       && i < PNP_MAX_PORT)
-+		i++;
- 	if (i < PNP_MAX_PORT) {
--		res->port_resource[i].flags = IORESOURCE_IO;  // Also clears _UNSET flag
--		if (len <= 0 || (io + len -1) >= 0x10003) {
-+		res->port_resource[i].flags = IORESOURCE_IO;	// Also clears _UNSET flag
-+		if (len <= 0 || (io + len - 1) >= 0x10003) {
- 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->port_resource[i].start = (unsigned long) io;
-+		res->port_resource[i].start = (unsigned long)io;
- 		res->port_resource[i].end = (unsigned long)(io + len - 1);
- 	}
- }
- 
--static void
--pnpbios_parse_allocated_memresource(struct pnp_resource_table * res, int mem, int len)
-+static void pnpbios_parse_allocated_memresource(struct pnp_resource_table *res,
-+						int mem, int len)
- {
- 	int i = 0;
--	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_MEM) i++;
-+
-+	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET)
-+	       && i < PNP_MAX_MEM)
-+		i++;
- 	if (i < PNP_MAX_MEM) {
--		res->mem_resource[i].flags = IORESOURCE_MEM;  // Also clears _UNSET flag
-+		res->mem_resource[i].flags = IORESOURCE_MEM;	// Also clears _UNSET flag
- 		if (len <= 0) {
- 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->mem_resource[i].start = (unsigned long) mem;
-+		res->mem_resource[i].start = (unsigned long)mem;
- 		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
- 	}
- }
- 
--static unsigned char *
--pnpbios_parse_allocated_resource_data(unsigned char * p, unsigned char * end, struct pnp_resource_table * res)
-+static unsigned char *pnpbios_parse_allocated_resource_data(unsigned char *p,
-+							    unsigned char *end,
-+							    struct
-+							    pnp_resource_table
-+							    *res)
- {
- 	unsigned int len, tag;
- 	int io, size, mask, i;
-@@ -134,12 +148,12 @@
- 	while ((char *)p < (char *)end) {
- 
- 		/* determine the type of tag */
--		if (p[0] & LARGE_TAG) { /* large tag */
-+		if (p[0] & LARGE_TAG) {	/* large tag */
- 			len = (p[2] << 8) | p[1];
- 			tag = p[0];
--		} else { /* small tag */
-+		} else {	/* small tag */
- 			len = p[0] & 0x07;
--			tag = ((p[0]>>3) & 0x0f);
-+			tag = ((p[0] >> 3) & 0x0f);
- 		}
- 
- 		switch (tag) {
-@@ -147,8 +161,8 @@
- 		case LARGE_TAG_MEM:
- 			if (len != 9)
- 				goto len_err;
--			io = *(short *) &p[4];
--			size = *(short *) &p[10];
-+			io = *(short *)&p[4];
-+			size = *(short *)&p[10];
- 			pnpbios_parse_allocated_memresource(res, io, size);
- 			break;
- 
-@@ -163,16 +177,16 @@
- 		case LARGE_TAG_MEM32:
- 			if (len != 17)
- 				goto len_err;
--			io = *(int *) &p[4];
--			size = *(int *) &p[16];
-+			io = *(int *)&p[4];
-+			size = *(int *)&p[16];
- 			pnpbios_parse_allocated_memresource(res, io, size);
- 			break;
- 
- 		case LARGE_TAG_FIXEDMEM32:
- 			if (len != 9)
- 				goto len_err;
--			io = *(int *) &p[4];
--			size = *(int *) &p[8];
-+			io = *(int *)&p[4];
-+			size = *(int *)&p[8];
- 			pnpbios_parse_allocated_memresource(res, io, size);
- 			break;
- 
-@@ -180,9 +194,10 @@
- 			if (len < 2 || len > 3)
- 				goto len_err;
- 			io = -1;
--			mask= p[1] + p[2]*256;
--			for (i=0;i<16;i++, mask=mask>>1)
--				if(mask & 0x01) io=i;
-+			mask = p[1] + p[2] * 256;
-+			for (i = 0; i < 16; i++, mask = mask >> 1)
-+				if (mask & 0x01)
-+					io = i;
- 			pnpbios_parse_allocated_irqresource(res, io);
- 			break;
- 
-@@ -191,15 +206,16 @@
- 				goto len_err;
- 			io = -1;
- 			mask = p[1];
--			for (i=0;i<8;i++, mask = mask>>1)
--				if(mask & 0x01) io=i;
-+			for (i = 0; i < 8; i++, mask = mask >> 1)
-+				if (mask & 0x01)
-+					io = i;
- 			pnpbios_parse_allocated_dmaresource(res, io);
- 			break;
- 
- 		case SMALL_TAG_PORT:
- 			if (len != 7)
- 				goto len_err;
--			io = p[2] + p[3] *256;
-+			io = p[2] + p[3] * 256;
- 			size = p[7];
- 			pnpbios_parse_allocated_ioresource(res, io, size);
- 			break;
-@@ -218,12 +234,14 @@
- 
- 		case SMALL_TAG_END:
- 			p = p + 2;
--        		return (unsigned char *)p;
-+			return (unsigned char *)p;
- 			break;
- 
--		default: /* an unkown tag */
--			len_err:
--			printk(KERN_ERR "PnPBIOS: Unknown tag '0x%x', length '%d'.\n", tag, len);
-+		default:	/* an unkown tag */
-+		      len_err:
-+			printk(KERN_ERR
-+			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
-+			       tag, len);
- 			break;
- 		}
- 
-@@ -234,20 +252,21 @@
- 			p += len + 1;
- 	}
- 
--	printk(KERN_ERR "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	printk(KERN_ERR
-+	       "PnPBIOS: Resource structure does not contain an end tag.\n");
- 
- 	return NULL;
- }
- 
 -
  /*
-  * Resource Configuration Options
+  *
+  * PnP BIOS INTERFACE
+  *
   */
  
--static void
--pnpbios_parse_mem_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_mem_option(unsigned char *p, int size,
-+				     struct pnp_option *option)
+-static union pnp_bios_install_struct * pnp_bios_install = NULL;
++static union pnp_bios_install_struct *pnp_bios_install = NULL;
+ 
+ int pnp_bios_present(void)
  {
--	struct pnp_mem * mem;
-+	struct pnp_mem *mem;
-+
- 	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
- 	if (!mem)
- 		return;
-@@ -256,14 +275,14 @@
- 	mem->align = (p[9] << 8) | p[8];
- 	mem->size = ((p[11] << 8) | p[10]) << 8;
- 	mem->flags = p[3];
--	pnp_register_mem_resource(option,mem);
--	return;
-+	pnp_register_mem_resource(option, mem);
- }
- 
--static void
--pnpbios_parse_mem32_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_mem32_option(unsigned char *p, int size,
-+				       struct pnp_option *option)
+@@ -101,36 +100,35 @@
+ /*
+  * (Much of this belongs in a shared routine somewhere)
+  */
+- 
+ static int pnp_dock_event(int dock, struct pnp_docking_station_info *info)
  {
--	struct pnp_mem * mem;
-+	struct pnp_mem *mem;
-+
- 	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
- 	if (!mem)
- 		return;
-@@ -272,14 +291,13 @@
- 	mem->align = (p[15] << 24) | (p[14] << 16) | (p[13] << 8) | p[12];
- 	mem->size = (p[19] << 24) | (p[18] << 16) | (p[17] << 8) | p[16];
- 	mem->flags = p[3];
--	pnp_register_mem_resource(option,mem);
--	return;
-+	pnp_register_mem_resource(option, mem);
- }
+-	char *argv [3], **envp, *buf, *scratch;
++	char *argv[3], **envp, *buf, *scratch;
+ 	int i = 0, value;
  
--static void
--pnpbios_parse_fixed_mem32_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_fixed_mem32_option(unsigned char *p, int size,
-+					     struct pnp_option *option)
- {
--	struct pnp_mem * mem;
-+	struct pnp_mem *mem;
- 	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
- 	if (!mem)
- 		return;
-@@ -287,14 +305,13 @@
- 	mem->size = (p[11] << 24) | (p[10] << 16) | (p[9] << 8) | p[8];
- 	mem->align = 0;
- 	mem->flags = p[3];
--	pnp_register_mem_resource(option,mem);
--	return;
-+	pnp_register_mem_resource(option, mem);
- }
- 
--static void
--pnpbios_parse_irq_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_irq_option(unsigned char *p, int size,
-+				     struct pnp_option *option)
- {
--	struct pnp_irq * irq;
-+	struct pnp_irq *irq;
- 	unsigned long bits;
- 
- 	irq = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
-@@ -306,27 +323,27 @@
- 		irq->flags = p[3];
- 	else
- 		irq->flags = IORESOURCE_IRQ_HIGHEDGE;
--	pnp_register_irq_resource(option,irq);
--	return;
-+	pnp_register_irq_resource(option, irq);
- }
- 
--static void
--pnpbios_parse_dma_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_dma_option(unsigned char *p, int size,
-+				     struct pnp_option *option)
- {
--	struct pnp_dma * dma;
-+	struct pnp_dma *dma;
-+
- 	dma = kzalloc(sizeof(struct pnp_dma), GFP_KERNEL);
- 	if (!dma)
- 		return;
- 	dma->map = p[1];
- 	dma->flags = p[2];
--	pnp_register_dma_resource(option,dma);
--	return;
-+	pnp_register_dma_resource(option, dma);
- }
- 
--static void
--pnpbios_parse_port_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_port_option(unsigned char *p, int size,
-+				      struct pnp_option *option)
- {
--	struct pnp_port * port;
-+	struct pnp_port *port;
-+
- 	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
- 	if (!port)
- 		return;
-@@ -335,14 +352,14 @@
- 	port->align = p[6];
- 	port->size = p[7];
- 	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
--	pnp_register_port_resource(option,port);
--	return;
-+	pnp_register_port_resource(option, port);
- }
- 
--static void
--pnpbios_parse_fixed_port_option(unsigned char *p, int size, struct pnp_option *option)
-+static void pnpbios_parse_fixed_port_option(unsigned char *p, int size,
-+					    struct pnp_option *option)
- {
--	struct pnp_port * port;
-+	struct pnp_port *port;
-+
- 	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
- 	if (!port)
- 		return;
-@@ -350,12 +367,12 @@
- 	port->size = p[3];
- 	port->align = 0;
- 	port->flags = PNP_PORT_FLAG_FIXED;
--	pnp_register_port_resource(option,port);
--	return;
-+	pnp_register_port_resource(option, port);
- }
- 
--static unsigned char *
--pnpbios_parse_resource_option_data(unsigned char * p, unsigned char * end, struct pnp_dev *dev)
-+static unsigned char *pnpbios_parse_resource_option_data(unsigned char *p,
-+							 unsigned char *end,
-+							 struct pnp_dev *dev)
- {
- 	unsigned int len, tag;
- 	int priority = 0;
-@@ -371,12 +388,12 @@
- 	while ((char *)p < (char *)end) {
- 
- 		/* determine the type of tag */
--		if (p[0] & LARGE_TAG) { /* large tag */
-+		if (p[0] & LARGE_TAG) {	/* large tag */
- 			len = (p[2] << 8) | p[1];
- 			tag = p[0];
--		} else { /* small tag */
-+		} else {	/* small tag */
- 			len = p[0] & 0x07;
--			tag = ((p[0]>>3) & 0x0f);
-+			tag = ((p[0] >> 3) & 0x0f);
- 		}
- 
- 		switch (tag) {
-@@ -442,16 +459,19 @@
- 			if (len != 0)
- 				goto len_err;
- 			if (option_independent == option)
--				printk(KERN_WARNING "PnPBIOS: Missing SMALL_TAG_STARTDEP tag\n");
-+				printk(KERN_WARNING
-+				       "PnPBIOS: Missing SMALL_TAG_STARTDEP tag\n");
- 			option = option_independent;
- 			break;
- 
- 		case SMALL_TAG_END:
--        		return p + 2;
-+			return p + 2;
- 
--		default: /* an unkown tag */
--			len_err:
--			printk(KERN_ERR "PnPBIOS: Unknown tag '0x%x', length '%d'.\n", tag, len);
-+		default:	/* an unkown tag */
-+		      len_err:
-+			printk(KERN_ERR
-+			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
-+			       tag, len);
- 			break;
- 		}
- 
-@@ -462,19 +482,18 @@
- 			p += len + 1;
+-	if (!current->fs->root) {
++	if (!current->fs->root)
+ 		return -EAGAIN;
+-	}
+-	if (!(envp = kcalloc(20, sizeof (char *), GFP_KERNEL))) {
++	if (!(envp = kcalloc(20, sizeof(char *), GFP_KERNEL)))
+ 		return -ENOMEM;
+-	}
+ 	if (!(buf = kzalloc(256, GFP_KERNEL))) {
+-		kfree (envp);
++		kfree(envp);
+ 		return -ENOMEM;
  	}
  
--	printk(KERN_ERR "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	printk(KERN_ERR
-+	       "PnPBIOS: Resource structure does not contain an end tag.\n");
+-	/* FIXME: if there are actual users of this, it should be integrated into
+-	 * the driver core and use the usual infrastructure like sysfs and uevents */
+-	argv [0] = "/sbin/pnpbios";
+-	argv [1] = "dock";
+-	argv [2] = NULL;
++	/* FIXME: if there are actual users of this, it should be
++	 * integrated into the driver core and use the usual infrastructure
++	 * like sysfs and uevents
++	 */
++	argv[0] = "/sbin/pnpbios";
++	argv[1] = "dock";
++	argv[2] = NULL;
  
- 	return NULL;
- }
+ 	/* minimal command environment */
+-	envp [i++] = "HOME=/";
+-	envp [i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
++	envp[i++] = "HOME=/";
++	envp[i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
  
--
- /*
-  * Compatible Device IDs
-  */
+ #ifdef	DEBUG
+ 	/* hint that policy agent should enter no-stdout debug mode */
+-	envp [i++] = "DEBUG=kernel";
++	envp[i++] = "DEBUG=kernel";
+ #endif
+ 	/* extensible set of named bus-specific parameters,
+ 	 * supporting multiple driver selection algorithms.
+@@ -138,33 +136,33 @@
+ 	scratch = buf;
  
- #define HEX(id,a) hex[((id)>>a) & 15]
- #define CHAR(id,a) (0x40 + (((id)>>a) & 31))
--//
+ 	/* action:  add, remove */
+-	envp [i++] = scratch;
+-	scratch += sprintf (scratch, "ACTION=%s", dock?"add":"remove") + 1;
++	envp[i++] = scratch;
++	scratch += sprintf(scratch, "ACTION=%s", dock ? "add" : "remove") + 1;
  
- void pnpid32_to_pnpid(u32 id, char *str)
- {
-@@ -483,7 +502,7 @@
- 	id = be32_to_cpu(id);
- 	str[0] = CHAR(id, 26);
- 	str[1] = CHAR(id, 21);
--	str[2] = CHAR(id,16);
-+	str[2] = CHAR(id, 16);
- 	str[3] = HEX(id, 12);
- 	str[4] = HEX(id, 8);
- 	str[5] = HEX(id, 4);
-@@ -492,12 +511,13 @@
- 
- 	return;
- }
--//
+ 	/* Report the ident for the dock */
+-	envp [i++] = scratch;
+-	scratch += sprintf (scratch, "DOCK=%x/%x/%x",
+-		info->location_id, info->serial, info->capabilities);
++	envp[i++] = scratch;
++	scratch += sprintf(scratch, "DOCK=%x/%x/%x",
++			   info->location_id, info->serial, info->capabilities);
+ 	envp[i] = NULL;
+-	
+-	value = call_usermodehelper (argv [0], argv, envp, UMH_WAIT_EXEC);
+-	kfree (buf);
+-	kfree (envp);
 +
- #undef CHAR
- #undef HEX
++	value = call_usermodehelper(argv [0], argv, envp, UMH_WAIT_EXEC);
++	kfree(buf);
++	kfree(envp);
+ 	return 0;
+ }
  
--static unsigned char *
--pnpbios_parse_compatible_ids(unsigned char *p, unsigned char *end, struct pnp_dev *dev)
-+static unsigned char *pnpbios_parse_compatible_ids(unsigned char *p,
-+						   unsigned char *end,
-+						   struct pnp_dev *dev)
+ /*
+  * Poll the PnP docking at regular intervals
+  */
+-static int pnp_dock_thread(void * unused)
++static int pnp_dock_thread(void *unused)
  {
- 	int len, tag;
+ 	static struct pnp_docking_station_info now;
+ 	int docked = -1, d = 0;
++
+ 	set_freezable();
+-	while (!unloading)
+-	{
++	while (!unloading) {
+ 		int status;
+-		
++
+ 		/*
+ 		 * Poll every 2 seconds
+ 		 */
+@@ -175,30 +173,29 @@
+ 
+ 		status = pnp_bios_dock_station_info(&now);
+ 
+-		switch(status)
+-		{
++		switch (status) {
+ 			/*
+ 			 * No dock to manage
+ 			 */
+-			case PNP_FUNCTION_NOT_SUPPORTED:
+-				complete_and_exit(&unload_sem, 0);
+-			case PNP_SYSTEM_NOT_DOCKED:
+-				d = 0;
+-				break;
+-			case PNP_SUCCESS:
+-				d = 1;
+-				break;
+-			default:
+-				pnpbios_print_status( "pnp_dock_thread", status );
+-				continue;
++		case PNP_FUNCTION_NOT_SUPPORTED:
++			complete_and_exit(&unload_sem, 0);
++		case PNP_SYSTEM_NOT_DOCKED:
++			d = 0;
++			break;
++		case PNP_SUCCESS:
++			d = 1;
++			break;
++		default:
++			pnpbios_print_status("pnp_dock_thread", status);
++			continue;
+ 		}
+-		if(d != docked)
+-		{
+-			if(pnp_dock_event(d, &now)==0)
+-			{
++		if (d != docked) {
++			if (pnp_dock_event(d, &now) == 0) {
+ 				docked = d;
+ #if 0
+-				printk(KERN_INFO "PnPBIOS: Docking station %stached\n", docked?"at":"de");
++				printk(KERN_INFO
++				       "PnPBIOS: Docking station %stached\n",
++				       docked ? "at" : "de");
+ #endif
+ 			}
+ 		}
+@@ -206,21 +203,21 @@
+ 	complete_and_exit(&unload_sem, 0);
+ }
+ 
+-#endif   /* CONFIG_HOTPLUG */
++#endif				/* CONFIG_HOTPLUG */
+ 
+-static int pnpbios_get_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
++static int pnpbios_get_resources(struct pnp_dev *dev,
++				 struct pnp_resource_table *res)
+ {
+ 	u8 nodenum = dev->number;
+-	struct pnp_bios_node * node;
++	struct pnp_bios_node *node;
+ 
+-	/* just in case */
+-	if(!pnpbios_is_dynamic(dev))
++	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+-	if (pnp_bios_get_dev_node(&nodenum, (char )PNPMODE_DYNAMIC, node)) {
++	if (pnp_bios_get_dev_node(&nodenum, (char)PNPMODE_DYNAMIC, node)) {
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+@@ -230,24 +227,24 @@
+ 	return 0;
+ }
+ 
+-static int pnpbios_set_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
++static int pnpbios_set_resources(struct pnp_dev *dev,
++				 struct pnp_resource_table *res)
+ {
+ 	u8 nodenum = dev->number;
+-	struct pnp_bios_node * node;
++	struct pnp_bios_node *node;
+ 	int ret;
+ 
+-	/* just in case */
+ 	if (!pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -1;
+-	if (pnp_bios_get_dev_node(&nodenum, (char )PNPMODE_DYNAMIC, node)) {
++	if (pnp_bios_get_dev_node(&nodenum, (char)PNPMODE_DYNAMIC, node)) {
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+-	if(pnpbios_write_resources_to_node(res, node)<0) {
++	if (pnpbios_write_resources_to_node(res, node) < 0) {
+ 		kfree(node);
+ 		return -1;
+ 	}
+@@ -258,18 +255,19 @@
+ 	return ret;
+ }
+ 
+-static void pnpbios_zero_data_stream(struct pnp_bios_node * node)
++static void pnpbios_zero_data_stream(struct pnp_bios_node *node)
+ {
+-	unsigned char * p = (char *)node->data;
+-	unsigned char * end = (char *)(node->data + node->size);
++	unsigned char *p = (char *)node->data;
++	unsigned char *end = (char *)(node->data + node->size);
+ 	unsigned int len;
+ 	int i;
++
+ 	while ((char *)p < (char *)end) {
+-		if(p[0] & 0x80) { /* large tag */
++		if (p[0] & 0x80) {	/* large tag */
+ 			len = (p[2] << 8) | p[1];
+ 			p += 3;
+ 		} else {
+-			if (((p[0]>>3) & 0x0f) == 0x0f)
++			if (((p[0] >> 3) & 0x0f) == 0x0f)
+ 				return;
+ 			len = p[0] & 0x07;
+ 			p += 1;
+@@ -278,24 +276,24 @@
+ 			p[i] = 0;
+ 		p += len;
+ 	}
+-	printk(KERN_ERR "PnPBIOS: Resource structure did not contain an end tag.\n");
++	printk(KERN_ERR
++	       "PnPBIOS: Resource structure did not contain an end tag.\n");
+ }
+ 
+ static int pnpbios_disable_resources(struct pnp_dev *dev)
+ {
+-	struct pnp_bios_node * node;
++	struct pnp_bios_node *node;
+ 	u8 nodenum = dev->number;
+ 	int ret;
+ 
+-	/* just in case */
+-	if(dev->flags & PNPBIOS_NO_DISABLE || !pnpbios_is_dynamic(dev))
++	if (dev->flags & PNPBIOS_NO_DISABLE || !pnpbios_is_dynamic(dev))
+ 		return -EPERM;
+ 
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+ 		return -ENOMEM;
+ 
+-	if (pnp_bios_get_dev_node(&nodenum, (char )PNPMODE_DYNAMIC, node)) {
++	if (pnp_bios_get_dev_node(&nodenum, (char)PNPMODE_DYNAMIC, node)) {
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+@@ -311,22 +309,22 @@
+ /* PnP Layer support */
+ 
+ struct pnp_protocol pnpbios_protocol = {
+-	.name	= "Plug and Play BIOS",
+-	.get	= pnpbios_get_resources,
+-	.set	= pnpbios_set_resources,
++	.name = "Plug and Play BIOS",
++	.get = pnpbios_get_resources,
++	.set = pnpbios_set_resources,
+ 	.disable = pnpbios_disable_resources,
+ };
+ 
+-static int insert_device(struct pnp_dev *dev, struct pnp_bios_node * node)
++static int insert_device(struct pnp_dev *dev, struct pnp_bios_node *node)
+ {
+-	struct list_head * pos;
+-	struct pnp_dev * pnp_dev;
++	struct list_head *pos;
++	struct pnp_dev *pnp_dev;
+ 	struct pnp_id *dev_id;
  	char id[8];
-@@ -509,40 +529,45 @@
- 	while ((char *)p < (char *)end) {
  
- 		/* determine the type of tag */
--		if (p[0] & LARGE_TAG) { /* large tag */
-+		if (p[0] & LARGE_TAG) {	/* large tag */
- 			len = (p[2] << 8) | p[1];
- 			tag = p[0];
--		} else { /* small tag */
-+		} else {	/* small tag */
- 			len = p[0] & 0x07;
--			tag = ((p[0]>>3) & 0x0f);
-+			tag = ((p[0] >> 3) & 0x0f);
+ 	/* check if the device is already added */
+ 	dev->number = node->handle;
+-	list_for_each (pos, &pnpbios_protocol.devices){
++	list_for_each(pos, &pnpbios_protocol.devices) {
+ 		pnp_dev = list_entry(pos, struct pnp_dev, protocol_list);
+ 		if (dev->number == pnp_dev->number)
+ 			return -1;
+@@ -336,8 +334,8 @@
+ 	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
+ 	if (!dev_id)
+ 		return -1;
+-	pnpid32_to_pnpid(node->eisa_id,id);
+-	memcpy(dev_id->id,id,7);
++	pnpid32_to_pnpid(node->eisa_id, id);
++	memcpy(dev_id->id, id, 7);
+ 	pnp_add_id(dev_id, dev);
+ 	pnpbios_parse_data_stream(dev, node);
+ 	dev->active = pnp_is_active(dev);
+@@ -375,35 +373,41 @@
+ 	if (!node)
+ 		return;
+ 
+-	for(nodenum=0; nodenum<0xff; ) {
++	for (nodenum = 0; nodenum < 0xff;) {
+ 		u8 thisnodenum = nodenum;
+ 		/* eventually we will want to use PNPMODE_STATIC here but for now
+ 		 * dynamic will help us catch buggy bioses to add to the blacklist.
+ 		 */
+ 		if (!pnpbios_dont_use_current_config) {
+-			if (pnp_bios_get_dev_node(&nodenum, (char )PNPMODE_DYNAMIC, node))
++			if (pnp_bios_get_dev_node
++			    (&nodenum, (char)PNPMODE_DYNAMIC, node))
+ 				break;
+ 		} else {
+-			if (pnp_bios_get_dev_node(&nodenum, (char )PNPMODE_STATIC, node))
++			if (pnp_bios_get_dev_node
++			    (&nodenum, (char)PNPMODE_STATIC, node))
+ 				break;
  		}
- 
- 		switch (tag) {
- 
- 		case LARGE_TAG_ANSISTR:
--			strncpy(dev->name, p + 3, len >= PNP_NAME_LEN ? PNP_NAME_LEN - 2 : len);
--			dev->name[len >= PNP_NAME_LEN ? PNP_NAME_LEN - 1 : len] = '\0';
-+			strncpy(dev->name, p + 3,
-+				len >= PNP_NAME_LEN ? PNP_NAME_LEN - 2 : len);
-+			dev->name[len >=
-+				  PNP_NAME_LEN ? PNP_NAME_LEN - 1 : len] = '\0';
+ 		nodes_got++;
+-		dev =  kzalloc(sizeof (struct pnp_dev), GFP_KERNEL);
++		dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+ 		if (!dev)
  			break;
- 
--		case SMALL_TAG_COMPATDEVID: /* compatible ID */
-+		case SMALL_TAG_COMPATDEVID:	/* compatible ID */
- 			if (len != 4)
- 				goto len_err;
--			dev_id =  kzalloc(sizeof (struct pnp_id), GFP_KERNEL);
-+			dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
- 			if (!dev_id)
- 				return NULL;
--			pnpid32_to_pnpid(p[1] | p[2] << 8 | p[3] << 16 | p[4] << 24,id);
-+			pnpid32_to_pnpid(p[1] | p[2] << 8 | p[3] << 16 | p[4] <<
-+					 24, id);
- 			memcpy(&dev_id->id, id, 7);
- 			pnp_add_id(dev_id, dev);
- 			break;
- 
- 		case SMALL_TAG_END:
- 			p = p + 2;
--        		return (unsigned char *)p;
-+			return (unsigned char *)p;
- 			break;
- 
--		default: /* an unkown tag */
--			len_err:
--			printk(KERN_ERR "PnPBIOS: Unknown tag '0x%x', length '%d'.\n", tag, len);
-+		default:	/* an unkown tag */
-+		      len_err:
+-		if(insert_device(dev,node)<0)
++		if (insert_device(dev, node) < 0)
+ 			kfree(dev);
+ 		else
+ 			devs++;
+ 		if (nodenum <= thisnodenum) {
+-			printk(KERN_ERR "PnPBIOS: build_devlist: Node number 0x%x is out of sequence following node 0x%x. Aborting.\n", (unsigned int)nodenum, (unsigned int)thisnodenum);
 +			printk(KERN_ERR
-+			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
-+			       tag, len);
++			       "PnPBIOS: build_devlist: Node number 0x%x is out of sequence following node 0x%x. Aborting.\n",
++			       (unsigned int)nodenum,
++			       (unsigned int)thisnodenum);
  			break;
  		}
- 
-@@ -553,33 +578,34 @@
- 			p += len + 1;
  	}
+ 	kfree(node);
  
--	printk(KERN_ERR "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	printk(KERN_ERR
-+	       "PnPBIOS: Resource structure does not contain an end tag.\n");
- 
- 	return NULL;
+-	printk(KERN_INFO "PnPBIOS: %i node%s reported by PnP BIOS; %i recorded by driver\n",
+-		nodes_got, nodes_got != 1 ? "s" : "", devs);
++	printk(KERN_INFO
++	       "PnPBIOS: %i node%s reported by PnP BIOS; %i recorded by driver\n",
++	       nodes_got, nodes_got != 1 ? "s" : "", devs);
  }
  
--
  /*
-  * Allocated Resource Encoding
+@@ -412,8 +416,8 @@
+  *
   */
  
--static void pnpbios_encode_mem(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_mem(unsigned char *p, struct resource *res)
- {
- 	unsigned long base = res->start;
- 	unsigned long len = res->end - res->start + 1;
-+
- 	p[4] = (base >> 8) & 0xff;
- 	p[5] = ((base >> 8) >> 8) & 0xff;
- 	p[6] = (base >> 8) & 0xff;
- 	p[7] = ((base >> 8) >> 8) & 0xff;
- 	p[10] = (len >> 8) & 0xff;
- 	p[11] = ((len >> 8) >> 8) & 0xff;
--	return;
- }
+-static int pnpbios_disabled; /* = 0 */
+-int pnpbios_dont_use_current_config; /* = 0 */
++static int pnpbios_disabled;
++int pnpbios_dont_use_current_config;
  
--static void pnpbios_encode_mem32(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_mem32(unsigned char *p, struct resource *res)
- {
- 	unsigned long base = res->start;
- 	unsigned long len = res->end - res->start + 1;
-+
- 	p[4] = base & 0xff;
- 	p[5] = (base >> 8) & 0xff;
- 	p[6] = (base >> 16) & 0xff;
-@@ -592,12 +618,13 @@
- 	p[17] = (len >> 8) & 0xff;
- 	p[18] = (len >> 16) & 0xff;
- 	p[19] = (len >> 24) & 0xff;
--	return;
- }
+ #ifndef MODULE
+ static int __init pnpbios_setup(char *str)
+@@ -422,9 +426,9 @@
  
--static void pnpbios_encode_fixed_mem32(unsigned char *p, struct resource * res)
--{	unsigned long base = res->start;
-+static void pnpbios_encode_fixed_mem32(unsigned char *p, struct resource *res)
-+{
-+	unsigned long base = res->start;
- 	unsigned long len = res->end - res->start + 1;
-+
- 	p[4] = base & 0xff;
- 	p[5] = (base >> 8) & 0xff;
- 	p[6] = (base >> 16) & 0xff;
-@@ -606,50 +633,52 @@
- 	p[9] = (len >> 8) & 0xff;
- 	p[10] = (len >> 16) & 0xff;
- 	p[11] = (len >> 24) & 0xff;
--	return;
- }
+ 	while ((str != NULL) && (*str != '\0')) {
+ 		if (strncmp(str, "off", 3) == 0)
+-			pnpbios_disabled=1;
++			pnpbios_disabled = 1;
+ 		if (strncmp(str, "on", 2) == 0)
+-			pnpbios_disabled=0;
++			pnpbios_disabled = 0;
+ 		invert = (strncmp(str, "no-", 3) == 0);
+ 		if (invert)
+ 			str += 3;
+@@ -453,35 +457,41 @@
+ 	printk(KERN_INFO "PnPBIOS: Scanning system for PnP BIOS support...\n");
  
--static void pnpbios_encode_irq(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_irq(unsigned char *p, struct resource *res)
- {
- 	unsigned long map = 0;
-+
- 	map = 1 << res->start;
- 	p[1] = map & 0xff;
- 	p[2] = (map >> 8) & 0xff;
--	return;
- }
- 
--static void pnpbios_encode_dma(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_dma(unsigned char *p, struct resource *res)
- {
- 	unsigned long map = 0;
-+
- 	map = 1 << res->start;
- 	p[1] = map & 0xff;
--	return;
- }
- 
--static void pnpbios_encode_port(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_port(unsigned char *p, struct resource *res)
- {
- 	unsigned long base = res->start;
- 	unsigned long len = res->end - res->start + 1;
-+
- 	p[2] = base & 0xff;
- 	p[3] = (base >> 8) & 0xff;
- 	p[4] = base & 0xff;
- 	p[5] = (base >> 8) & 0xff;
- 	p[7] = len & 0xff;
--	return;
- }
- 
--static void pnpbios_encode_fixed_port(unsigned char *p, struct resource * res)
-+static void pnpbios_encode_fixed_port(unsigned char *p, struct resource *res)
- {
- 	unsigned long base = res->start;
- 	unsigned long len = res->end - res->start + 1;
-+
- 	p[1] = base & 0xff;
- 	p[2] = (base >> 8) & 0xff;
- 	p[3] = len & 0xff;
--	return;
- }
- 
--static unsigned char *
--pnpbios_encode_allocated_resource_data(unsigned char * p, unsigned char * end, struct pnp_resource_table * res)
-+static unsigned char *pnpbios_encode_allocated_resource_data(unsigned char *p,
-+							     unsigned char *end,
-+							     struct
-+							     pnp_resource_table
-+							     *res)
- {
- 	unsigned int len, tag;
- 	int port = 0, irq = 0, dma = 0, mem = 0;
-@@ -660,12 +689,12 @@
- 	while ((char *)p < (char *)end) {
- 
- 		/* determine the type of tag */
--		if (p[0] & LARGE_TAG) { /* large tag */
-+		if (p[0] & LARGE_TAG) {	/* large tag */
- 			len = (p[2] << 8) | p[1];
- 			tag = p[0];
--		} else { /* small tag */
-+		} else {	/* small tag */
- 			len = p[0] & 0x07;
--			tag = ((p[0]>>3) & 0x0f);
-+			tag = ((p[0] >> 3) & 0x0f);
- 		}
- 
- 		switch (tag) {
-@@ -725,12 +754,14 @@
- 
- 		case SMALL_TAG_END:
- 			p = p + 2;
--        		return (unsigned char *)p;
-+			return (unsigned char *)p;
- 			break;
- 
--		default: /* an unkown tag */
--			len_err:
--			printk(KERN_ERR "PnPBIOS: Unknown tag '0x%x', length '%d'.\n", tag, len);
-+		default:	/* an unkown tag */
-+		      len_err:
+ 	/*
+- 	 * Search the defined area (0xf0000-0xffff0) for a valid PnP BIOS
++	 * Search the defined area (0xf0000-0xffff0) for a valid PnP BIOS
+ 	 * structure and, if one is found, sets up the selectors and
+ 	 * entry points
+ 	 */
+-	for (check = (union pnp_bios_install_struct *) __va(0xf0000);
+-	     check < (union pnp_bios_install_struct *) __va(0xffff0);
++	for (check = (union pnp_bios_install_struct *)__va(0xf0000);
++	     check < (union pnp_bios_install_struct *)__va(0xffff0);
+ 	     check = (void *)check + 16) {
+ 		if (check->fields.signature != PNP_SIGNATURE)
+ 			continue;
+-		printk(KERN_INFO "PnPBIOS: Found PnP BIOS installation structure at 0x%p\n", check);
++		printk(KERN_INFO
++		       "PnPBIOS: Found PnP BIOS installation structure at 0x%p\n",
++		       check);
+ 		length = check->fields.length;
+ 		if (!length) {
+-			printk(KERN_ERR "PnPBIOS: installation structure is invalid, skipping\n");
 +			printk(KERN_ERR
-+			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
-+			       tag, len);
- 			break;
++			       "PnPBIOS: installation structure is invalid, skipping\n");
+ 			continue;
  		}
+ 		for (sum = 0, i = 0; i < length; i++)
+ 			sum += check->chars[i];
+ 		if (sum) {
+-			printk(KERN_ERR "PnPBIOS: installation structure is corrupted, skipping\n");
++			printk(KERN_ERR
++			       "PnPBIOS: installation structure is corrupted, skipping\n");
+ 			continue;
+ 		}
+ 		if (check->fields.version < 0x10) {
+-			printk(KERN_WARNING "PnPBIOS: PnP BIOS version %d.%d is not supported\n",
++			printk(KERN_WARNING
++			       "PnPBIOS: PnP BIOS version %d.%d is not supported\n",
+ 			       check->fields.version >> 4,
+ 			       check->fields.version & 15);
+ 			continue;
+ 		}
+-		printk(KERN_INFO "PnPBIOS: PnP BIOS version %d.%d, entry 0x%x:0x%x, dseg 0x%x\n",
+-                       check->fields.version >> 4, check->fields.version & 15,
++		printk(KERN_INFO
++		       "PnPBIOS: PnP BIOS version %d.%d, entry 0x%x:0x%x, dseg 0x%x\n",
++		       check->fields.version >> 4, check->fields.version & 15,
+ 		       check->fields.pm16cseg, check->fields.pm16offset,
+ 		       check->fields.pm16dseg);
+ 		pnp_bios_install = check;
+@@ -499,25 +509,25 @@
+ }
  
-@@ -741,52 +772,52 @@
- 			p += len + 1;
+ static struct dmi_system_id pnpbios_dmi_table[] __initdata = {
+-	{	/* PnPBIOS GPF on boot */
+-		.callback = exploding_pnp_bios,
+-		.ident = "Higraded P14H",
+-		.matches = {
+-			DMI_MATCH(DMI_BIOS_VENDOR, "American Megatrends Inc."),
+-			DMI_MATCH(DMI_BIOS_VERSION, "07.00T"),
+-			DMI_MATCH(DMI_SYS_VENDOR, "Higraded"),
+-			DMI_MATCH(DMI_PRODUCT_NAME, "P14H"),
+-		},
+-	},
+-	{	/* PnPBIOS GPF on boot */
+-		.callback = exploding_pnp_bios,
+-		.ident = "ASUS P4P800",
+-		.matches = {
+-			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc."),
+-			DMI_MATCH(DMI_BOARD_NAME, "P4P800"),
+-		},
+-	},
+-	{ }
++	{			/* PnPBIOS GPF on boot */
++	 .callback = exploding_pnp_bios,
++	 .ident = "Higraded P14H",
++	 .matches = {
++		     DMI_MATCH(DMI_BIOS_VENDOR, "American Megatrends Inc."),
++		     DMI_MATCH(DMI_BIOS_VERSION, "07.00T"),
++		     DMI_MATCH(DMI_SYS_VENDOR, "Higraded"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "P14H"),
++		     },
++	 },
++	{			/* PnPBIOS GPF on boot */
++	 .callback = exploding_pnp_bios,
++	 .ident = "ASUS P4P800",
++	 .matches = {
++		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc."),
++		     DMI_MATCH(DMI_BOARD_NAME, "P4P800"),
++		     },
++	 },
++	{}
+ };
+ 
+ static int __init pnpbios_init(void)
+@@ -533,14 +543,13 @@
+ 		printk(KERN_INFO "PnPBIOS: Disabled\n");
+ 		return -ENODEV;
+ 	}
+-
+ #ifdef CONFIG_PNPACPI
+ 	if (!acpi_disabled && !pnpacpi_disabled) {
+ 		pnpbios_disabled = 1;
+ 		printk(KERN_INFO "PnPBIOS: Disabled by ACPI PNP\n");
+ 		return -ENODEV;
+ 	}
+-#endif /* CONFIG_ACPI */
++#endif				/* CONFIG_ACPI */
+ 
+ 	/* scan the system for pnpbios support */
+ 	if (!pnpbios_probe_system())
+@@ -552,14 +561,16 @@
+ 	/* read the node info */
+ 	ret = pnp_bios_dev_node_info(&node_info);
+ 	if (ret) {
+-		printk(KERN_ERR "PnPBIOS: Unable to get node info.  Aborting.\n");
++		printk(KERN_ERR
++		       "PnPBIOS: Unable to get node info.  Aborting.\n");
+ 		return ret;
  	}
  
--	printk(KERN_ERR "PnPBIOS: Resource structure does not contain an end tag.\n");
-+	printk(KERN_ERR
-+	       "PnPBIOS: Resource structure does not contain an end tag.\n");
+ 	/* register with the pnp layer */
+ 	ret = pnp_register_protocol(&pnpbios_protocol);
+ 	if (ret) {
+-		printk(KERN_ERR "PnPBIOS: Unable to register driver.  Aborting.\n");
++		printk(KERN_ERR
++		       "PnPBIOS: Unable to register driver.  Aborting.\n");
+ 		return ret;
+ 	}
  
- 	return NULL;
- }
- 
--
- /*
-  * Core Parsing Functions
-  */
- 
--int
--pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node * node)
-+int pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node *node)
- {
--	unsigned char * p = (char *)node->data;
--	unsigned char * end = (char *)(node->data + node->size);
--	p = pnpbios_parse_allocated_resource_data(p,end,&dev->res);
-+	unsigned char *p = (char *)node->data;
-+	unsigned char *end = (char *)(node->data + node->size);
-+
-+	p = pnpbios_parse_allocated_resource_data(p, end, &dev->res);
- 	if (!p)
- 		return -EIO;
--	p = pnpbios_parse_resource_option_data(p,end,dev);
-+	p = pnpbios_parse_resource_option_data(p, end, dev);
- 	if (!p)
- 		return -EIO;
--	p = pnpbios_parse_compatible_ids(p,end,dev);
-+	p = pnpbios_parse_compatible_ids(p, end, dev);
- 	if (!p)
- 		return -EIO;
- 	return 0;
- }
- 
--int
--pnpbios_read_resources_from_node(struct pnp_resource_table *res,
--				 struct pnp_bios_node * node)
--{
--	unsigned char * p = (char *)node->data;
--	unsigned char * end = (char *)(node->data + node->size);
--	p = pnpbios_parse_allocated_resource_data(p,end,res);
-+int pnpbios_read_resources_from_node(struct pnp_resource_table *res,
-+				     struct pnp_bios_node *node)
-+{
-+	unsigned char *p = (char *)node->data;
-+	unsigned char *end = (char *)(node->data + node->size);
-+
-+	p = pnpbios_parse_allocated_resource_data(p, end, res);
- 	if (!p)
- 		return -EIO;
- 	return 0;
- }
- 
--int
--pnpbios_write_resources_to_node(struct pnp_resource_table *res,
--				struct pnp_bios_node * node)
--{
--	unsigned char * p = (char *)node->data;
--	unsigned char * end = (char *)(node->data + node->size);
--	p = pnpbios_encode_allocated_resource_data(p,end,res);
-+int pnpbios_write_resources_to_node(struct pnp_resource_table *res,
-+				    struct pnp_bios_node *node)
-+{
-+	unsigned char *p = (char *)node->data;
-+	unsigned char *end = (char *)(node->data + node->size);
-+
-+	p = pnpbios_encode_allocated_resource_data(p, end, res);
- 	if (!p)
- 		return -EIO;
- 	return 0;
 
 --
