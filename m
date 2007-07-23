@@ -1,375 +1,657 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/3] ACPI autoload (v2) - Create acpi alias interface
-Date: Mon, 23 Jul 2007 14:43:51 +0200
-Message-ID: <1185194631.14451.45.camel@fanta4.site>
+Subject: [PATCH 3/3] ACPI autoload (v2) - Create __mod_acpi_device_table
+	symbol for all acpi drivers
+Date: Mon, 23 Jul 2007 14:44:41 +0200
+Message-ID: <1185194681.14451.47.camel@fanta4.site>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:48008 "EHLO mx2.suse.de"
+Received: from mail.suse.de ([195.135.220.2]:56099 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754139AbXGWMpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2007 08:45:03 -0400
+	id S1755155AbXGWMpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2007 08:45:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Kay Sievers <kay.sievers@vrfy.org>
 
-Create acpi alias interface
+Create __mod_acpi_device_table symbol for all acpi drivers
 
-Modify modpost (file2alias.c) to add acpi*:XYZ0001: alias in modules.alias
-like:
-grep acpi /lib/modules/2.6.22-rc4-default/modules.alias 
-alias acpi*:SNY5001:* sony_laptop
-alias acpi*:SNY6001:* sony_laptop
-for e.g. the sony_laptop module.
-This module matches against all ACPI devices with a HID or CID of SNY5001
-or SNY6001
-
-Export an uevent and modalias sysfs file containing the string:
-[MODALIAS=]acpi:PNP0C0C:
-additional CIDs are concatenated at the end.
+modpost is going to use these to create e.g. acpi:ACPI0001
+in modules.alias.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 
 ---
- drivers/acpi/scan.c             |  163 ++++++++++++++++++++++++++++------------
- drivers/pnp/pnpacpi/core.c      |   19 ++--
- include/linux/acpi.h            |    1 
- include/linux/mod_devicetable.h |   15 +++
- scripts/mod/file2alias.c        |   12 ++
- 5 files changed, 158 insertions(+), 52 deletions(-)
+ drivers/acpi/ac.c               |    9 +++++++--
+ drivers/acpi/acpi_memhotplug.c  |    8 +++++++-
+ drivers/acpi/asus_acpi.c        |   11 ++++++++---
+ drivers/acpi/battery.c          |    9 +++++++--
+ drivers/acpi/button.c           |   12 +++++++++++-
+ drivers/acpi/container.c        |   10 +++++++++-
+ drivers/acpi/ec.c               |    8 ++++++--
+ drivers/acpi/fan.c              |    8 +++++++-
+ drivers/acpi/pci_link.c         |    9 +++++++--
+ drivers/acpi/pci_root.c         |    9 +++++++--
+ drivers/acpi/power.c            |    8 +++++++-
+ drivers/acpi/processor_core.c   |    8 +++++++-
+ drivers/acpi/sbs.c              |   10 ++++++++--
+ drivers/acpi/thermal.c          |    8 +++++++-
+ drivers/acpi/video.c            |    8 +++++++-
+ drivers/char/hpet.c             |    8 +++++++-
+ drivers/input/misc/atlas_btns.c |    9 +++++++--
+ drivers/misc/asus-laptop.c      |    9 +++++++--
+ drivers/misc/sony-laptop.c      |   21 +++++++++++++++++++--
+ drivers/misc/thinkpad_acpi.c    |   20 ++++++++++++++++----
+ drivers/misc/thinkpad_acpi.h    |    2 +-
+ 21 files changed, 169 insertions(+), 35 deletions(-)
 
-Index: lenb/include/linux/mod_devicetable.h
+Index: lenb/drivers/acpi/button.c
 ===================================================================
---- lenb.orig/include/linux/mod_devicetable.h
-+++ lenb/include/linux/mod_devicetable.h
-@@ -159,6 +159,12 @@ struct ap_device_id {
+--- lenb.orig/drivers/acpi/button.c
++++ lenb/drivers/acpi/button.c
+@@ -66,6 +66,16 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI Button Driver");
+ MODULE_LICENSE("GPL");
  
- #define AP_DEVICE_ID_MATCH_DEVICE_TYPE		0x01
- 
-+#define ACPI_ID_LEN	9
-+
-+struct acpi_device_id {
-+	__u8 id[ACPI_ID_LEN];
-+	kernel_ulong_t driver_data;
++static const struct acpi_device_id button_device_ids[] = {
++	{ACPI_BUTTON_HID_LID,    0},
++	{ACPI_BUTTON_HID_SLEEP,  0},
++	{ACPI_BUTTON_HID_SLEEPF, 0},
++	{ACPI_BUTTON_HID_POWER,  0},
++	{ACPI_BUTTON_HID_POWERF, 0},
++	{"", 0},
 +};
- 
- #define PNP_ID_LEN	8
- #define PNP_MAX_DEVICES	8
-Index: lenb/scripts/mod/file2alias.c
++MODULE_DEVICE_TABLE(acpi, button_device_ids);
++
+ static int acpi_button_add(struct acpi_device *device);
+ static int acpi_button_remove(struct acpi_device *device, int type);
+ static int acpi_button_info_open_fs(struct inode *inode, struct file *file);
+@@ -74,7 +84,7 @@ static int acpi_button_state_open_fs(str
+ static struct acpi_driver acpi_button_driver = {
+ 	.name = "button",
+ 	.class = ACPI_BUTTON_CLASS,
+-	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
++	.ids = button_device_ids,
+ 	.ops = {
+ 		.add = acpi_button_add,
+ 		.remove = acpi_button_remove,
+Index: lenb/drivers/acpi/asus_acpi.c
 ===================================================================
---- lenb.orig/scripts/mod/file2alias.c
-+++ lenb/scripts/mod/file2alias.c
-@@ -290,6 +290,14 @@ static int do_serio_entry(const char *fi
- 	return 1;
- }
+--- lenb.orig/drivers/acpi/asus_acpi.c
++++ lenb/drivers/acpi/asus_acpi.c
+@@ -56,7 +56,6 @@
+ #define ACPI_HOTK_NAME          "Asus Laptop ACPI Extras Driver"
+ #define ACPI_HOTK_CLASS         "hotkey"
+ #define ACPI_HOTK_DEVICE_NAME   "Hotkey"
+-#define ACPI_HOTK_HID           "ATK0100"
  
-+/* looks like: "acpi:ACPI0003 or acpi:PNP0C0B" or "acpi:LNXVIDEO" */
-+static int do_acpi_entry(const char *filename,
-+			struct acpi_device_id *id, char *alias)
-+{
-+	sprintf(alias, "acpi*:%s:", id->id);
-+	return 1;
-+}
-+
- /* looks like: "pnp:dD" */
- static int do_pnp_entry(const char *filename,
- 			struct pnp_device_id *id, char *alias)
-@@ -551,6 +559,10 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct serio_device_id), "serio",
- 			 do_serio_entry, mod);
-+	else if (sym_is(symname, "__mod_acpi_device_table"))
-+		do_table(symval, sym->st_size,
-+			 sizeof(struct acpi_device_id), "acpi",
-+			 do_acpi_entry, mod);
- 	else if (sym_is(symname, "__mod_pnp_device_table"))
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct pnp_device_id), "pnp",
-Index: lenb/drivers/acpi/scan.c
-===================================================================
---- lenb.orig/drivers/acpi/scan.c
-+++ lenb/drivers/acpi/scan.c
-@@ -16,7 +16,7 @@ ACPI_MODULE_NAME("scan");
- extern struct acpi_device *acpi_root;
+ /*
+  * Some events we use, same for all Asus
+@@ -426,14 +425,20 @@ static struct acpi_table_header *asus_in
+ static struct asus_hotk *hotk;
  
- #define ACPI_BUS_CLASS			"system_bus"
--#define ACPI_BUS_HID			"ACPI_BUS"
-+#define ACPI_BUS_HID			"LNXSYBUS"
- #define ACPI_BUS_DEVICE_NAME		"System Bus"
- 
- static LIST_HEAD(acpi_device_list);
-@@ -29,6 +29,62 @@ struct acpi_device_bus_id{
- 	unsigned int instance_no;
- 	struct list_head node;
- };
-+
-+/*
-+ * Creates hid/cid(s) string needed for modalias and uevent
-+ * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-+ * char *modalias: "acpi:IBM0001:ACPI0001"
-+*/
-+int create_modalias(struct acpi_device *acpi_dev, char *modalias, int size){
-+
-+	int len;
-+
-+	if (!acpi_dev->flags.hardware_id)
-+		return -ENODEV;
-+
-+	len = snprintf(modalias, size, "acpi:%s:",
-+		       acpi_dev->pnp.hardware_id);
-+	if (len < 0 || len >= size)
-+		return -EINVAL;
-+	size -= len;
-+
-+	if (acpi_dev->flags.compatible_ids) {
-+		struct acpi_compatible_id_list *cid_list;
-+		int i;
-+		int count;
-+
-+		cid_list = acpi_dev->pnp.cid_list;
-+		for (i = 0; i < cid_list->count; i++) {
-+			count = snprintf(&modalias[len], size, "%s:",
-+					 cid_list->id[i].value);
-+			if (count < 0 || count >= size) {
-+				printk(KERN_ERR "acpi: %s cid[%i] exceeds event buffer size",
-+				       acpi_dev->pnp.device_name, i);
-+				break;
-+			}
-+			len += count;
-+			size -= count;
-+		}
-+	}
-+
-+	modalias[len] = '\0';
-+	return len;
-+}
-+
-+static ssize_t
-+acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int len;
-+
-+	/* Device has no HID and no CID or string is >1024 */
-+	len = create_modalias(acpi_dev, buf, 1024);
-+	if (len <= 0)
-+		return 0;
-+	buf[len++] = '\n';
-+	return len;
-+}
-+static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
-+
- static int acpi_eject_operation(acpi_handle handle, int lockable)
- {
- 	struct acpi_object_list arg_list;
-@@ -154,6 +210,12 @@ static int acpi_device_setup_files(struc
- 			goto end;
- 	}
- 
-+	if (dev->flags.hardware_id || dev->flags.compatible_ids){
-+		result = device_create_file(&dev->dev, &dev_attr_modalias);
-+		if(result)
-+			goto end;
-+	}
-+
-         /*
-          * If device has _EJ0, 'eject' file is created that is used to trigger
-          * hot-removal function from userland.
-@@ -178,6 +240,9 @@ static void acpi_device_remove_files(str
- 	if (ACPI_SUCCESS(status))
- 		device_remove_file(&dev->dev, &dev_attr_eject);
- 
-+	if (dev->flags.hardware_id || dev->flags.compatible_ids)
-+		device_remove_file(&dev->dev, &dev_attr_modalias);
-+
- 	if(dev->flags.hardware_id)
- 		device_remove_file(&dev->dev, &dev_attr_hid);
- 	if(dev->handle)
-@@ -186,6 +251,37 @@ static void acpi_device_remove_files(str
- /* --------------------------------------------------------------------------
- 			ACPI Bus operations
-    -------------------------------------------------------------------------- */
-+
-+int acpi_match_device_ids(struct acpi_device *device,
-+			  const struct acpi_device_id *ids)
-+{
-+	const struct acpi_device_id *id;
-+
-+	if (device->flags.hardware_id) {
-+		for (id = ids; id->id[0]; id++) {
-+			if (!strcmp((char*)id->id, device->pnp.hardware_id))
-+				return 0;
-+		}
-+	}
-+
-+	if (device->flags.compatible_ids) {
-+		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-+		int i;
-+
-+		for (id = ids; id->id[0]; id++) {
-+			/* compare multiple _CID entries against driver ids */
-+			for (i = 0; i < cid_list->count; i++) {
-+				if (!strcmp((char*)id->id,
-+					    cid_list->id[i].value))
-+					return 0;
-+			}
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL(acpi_match_device_ids);
-+
- static void acpi_device_release(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
-@@ -219,37 +315,19 @@ static int acpi_bus_match(struct device 
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
- 
--	return !acpi_match_ids(acpi_dev, acpi_drv->ids);
-+	return !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
- }
- 
- static int acpi_device_uevent(struct device *dev, char **envp, int num_envp,
--	char *buffer, int buffer_size)
-+			      char *buffer, int buffer_size)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	int i = 0, length = 0, ret = 0;
--
--	if (acpi_dev->flags.hardware_id)
--		ret = add_uevent_var(envp, num_envp, &i,
--			buffer, buffer_size, &length,
--			"HWID=%s", acpi_dev->pnp.hardware_id);
--	if (ret)
--		return -ENOMEM;
--	if (acpi_dev->flags.compatible_ids) {
--		int j;
--		struct acpi_compatible_id_list *cid_list;
- 
--		cid_list = acpi_dev->pnp.cid_list;
--
--		for (j = 0; j < cid_list->count; j++) {
--			ret = add_uevent_var(envp, num_envp, &i, buffer,
--				buffer_size, &length, "COMPTID=%s",
--				cid_list->id[j].value);
--			if (ret)
--				return -ENOMEM;
--		}
-+	strcpy(buffer, "MODALIAS=");
-+	if (create_modalias(acpi_dev, buffer + 9, buffer_size - 9) > 0) {
-+		envp[0] = buffer;
-+		envp[1] = NULL;
- 	}
--
--	envp[i] = NULL;
- 	return 0;
- }
- 
-@@ -543,25 +621,6 @@ void acpi_bus_data_handler(acpi_handle h
- 	return;
- }
- 
--int acpi_match_ids(struct acpi_device *device, char *ids)
--{
--	if (device->flags.hardware_id)
--		if (strstr(ids, device->pnp.hardware_id))
--			return 0;
--
--	if (device->flags.compatible_ids) {
--		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
--		int i;
--
--		/* compare multiple _CID entries against driver ids */
--		for (i = 0; i < cid_list->count; i++) {
--			if (strstr(ids, cid_list->id[i].value))
--				return 0;
--		}
--	}
--	return -ENOENT;
--}
--
- static int acpi_bus_get_perf_flags(struct acpi_device *device)
- {
- 	device->performance.state = ACPI_STATE_UNKNOWN;
-@@ -624,6 +683,13 @@ static int acpi_bus_get_wakeup_device_fl
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *package = NULL;
- 
-+	struct acpi_device_id button_device_ids[] = {
-+		{"PNP0C0D", 0},
-+		{"PNP0C0C", 0},
-+		{"PNP0C0E", 0},
-+		{"", 0},
-+	};
-+
- 
- 	/* _PRW */
- 	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
-@@ -643,7 +709,7 @@ static int acpi_bus_get_wakeup_device_fl
- 
- 	device->wakeup.flags.valid = 1;
- 	/* Power button, Lid switch always enable wakeup */
--	if (!acpi_match_ids(device, "PNP0C0D,PNP0C0C,PNP0C0E"))
-+	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
- 
-       end:
-Index: lenb/drivers/pnp/pnpacpi/core.c
-===================================================================
---- lenb.orig/drivers/pnp/pnpacpi/core.c
-+++ lenb/drivers/pnp/pnpacpi/core.c
-@@ -21,7 +21,10 @@
- 
- #include <linux/acpi.h>
- #include <linux/pnp.h>
-+#include <linux/mod_devicetable.h>
- #include <acpi/acpi_bus.h>
-+#include <acpi/actypes.h>
-+
- #include "pnpacpi.h"
- 
- static int num = 0;
-@@ -33,15 +36,17 @@ static int num = 0;
-  * have irqs (PIC, Timer) because we call acpi_register_gsi.
-  * Finaly only devices that have a CRS method need to be in this list.
+ /*
+- * The hotkey driver declaration
++ * The hotkey driver and autoloading declaration
   */
--static char __initdata excluded_id_list[] =
--	"PNP0C09," /* EC */
--	"PNP0C0F," /* Link device */
--	"PNP0000," /* PIC */
--	"PNP0100," /* Timer */
--	;
-+static __initdata struct acpi_device_id excluded_id_list[] ={
-+	{"PNP0C09", 0}, /* EC */
-+	{"PNP0C0F", 0}, /* Link device */
-+	{"PNP0000", 0}, /* PIC */
-+	{"PNP0100", 0}, /* Timer */
+ static int asus_hotk_add(struct acpi_device *device);
+ static int asus_hotk_remove(struct acpi_device *device, int type);
++static const struct acpi_device_id asus_device_ids[] = {
++	{"ATK0100", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, asus_device_ids);
++
+ static struct acpi_driver asus_hotk_driver = {
+ 	.name = "asus_acpi",
+ 	.class = ACPI_HOTK_CLASS,
+-	.ids = ACPI_HOTK_HID,
++	.ids = asus_device_ids,
+ 	.ops = {
+ 		.add = asus_hotk_add,
+ 		.remove = asus_hotk_remove,
+Index: lenb/drivers/acpi/fan.c
+===================================================================
+--- lenb.orig/drivers/acpi/fan.c
++++ lenb/drivers/acpi/fan.c
+@@ -50,10 +50,16 @@ static int acpi_fan_remove(struct acpi_d
+ static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state);
+ static int acpi_fan_resume(struct acpi_device *device);
+ 
++static const struct acpi_device_id fan_device_ids[] = {
++	{"PNP0C0B", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, fan_device_ids);
++
+ static struct acpi_driver acpi_fan_driver = {
+ 	.name = "fan",
+ 	.class = ACPI_FAN_CLASS,
+-	.ids = "PNP0C0B",
++	.ids = fan_device_ids,
+ 	.ops = {
+ 		.add = acpi_fan_add,
+ 		.remove = acpi_fan_remove,
+Index: lenb/drivers/acpi/container.c
+===================================================================
+--- lenb.orig/drivers/acpi/container.c
++++ lenb/drivers/acpi/container.c
+@@ -52,10 +52,18 @@ MODULE_LICENSE("GPL");
+ static int acpi_container_add(struct acpi_device *device);
+ static int acpi_container_remove(struct acpi_device *device, int type);
+ 
++static const struct acpi_device_id container_device_ids[] = {
++	{"ACPI0004", 0},
++	{"PNP0A05", 0},
++	{"PNP0A06", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, container_device_ids);
++
+ static struct acpi_driver acpi_container_driver = {
+ 	.name = "container",
+ 	.class = ACPI_CONTAINER_CLASS,
+-	.ids = "ACPI0004,PNP0A05,PNP0A06",
++	.ids = container_device_ids,
+ 	.ops = {
+ 		.add = acpi_container_add,
+ 		.remove = acpi_container_remove,
+Index: lenb/drivers/acpi/sbs.c
+===================================================================
+--- lenb.orig/drivers/acpi/sbs.c
++++ lenb/drivers/acpi/sbs.c
+@@ -38,7 +38,6 @@
+ #define ACPI_SBS_CLASS			"sbs"
+ #define ACPI_AC_CLASS			"ac_adapter"
+ #define ACPI_BATTERY_CLASS		"battery"
+-#define ACPI_SBS_HID			"ACPI0002"
+ #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
+ #define ACPI_SBS_FILE_INFO		"info"
+ #define ACPI_SBS_FILE_STATE		"state"
+@@ -124,10 +123,17 @@ static int acpi_sbs_add(struct acpi_devi
+ static int acpi_sbs_remove(struct acpi_device *device, int type);
+ static int acpi_sbs_resume(struct acpi_device *device);
+ 
++static const struct acpi_device_id sbs_device_ids[] = {
++	{"ACPI0001", 0},
++	{"ACPI0005", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
++
+ static struct acpi_driver acpi_sbs_driver = {
+ 	.name = "sbs",
+ 	.class = ACPI_SBS_CLASS,
+-	.ids = "ACPI0001,ACPI0005",
++	.ids = sbs_device_ids,
+ 	.ops = {
+ 		.add = acpi_sbs_add,
+ 		.remove = acpi_sbs_remove,
+Index: lenb/drivers/acpi/battery.c
+===================================================================
+--- lenb.orig/drivers/acpi/battery.c
++++ lenb/drivers/acpi/battery.c
+@@ -41,7 +41,6 @@
+ 
+ #define ACPI_BATTERY_COMPONENT		0x00040000
+ #define ACPI_BATTERY_CLASS		"battery"
+-#define ACPI_BATTERY_HID		"PNP0C0A"
+ #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+@@ -74,10 +73,16 @@ static int acpi_battery_add(struct acpi_
+ static int acpi_battery_remove(struct acpi_device *device, int type);
+ static int acpi_battery_resume(struct acpi_device *device);
+ 
++static const struct acpi_device_id battery_device_ids[] = {
++	{"PNP0C0A", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, battery_device_ids);
++
+ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+-	.ids = ACPI_BATTERY_HID,
++	.ids = battery_device_ids,
+ 	.ops = {
+ 		.add = acpi_battery_add,
+ 		.resume = acpi_battery_resume,
+Index: lenb/drivers/acpi/thermal.c
+===================================================================
+--- lenb.orig/drivers/acpi/thermal.c
++++ lenb/drivers/acpi/thermal.c
+@@ -92,10 +92,16 @@ static int acpi_thermal_polling_open_fs(
+ static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+ 					  size_t, loff_t *);
+ 
++static const struct acpi_device_id  thermal_device_ids[] = {
++	{ACPI_THERMAL_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
++
+ static struct acpi_driver acpi_thermal_driver = {
+ 	.name = "thermal",
+ 	.class = ACPI_THERMAL_CLASS,
+-	.ids = ACPI_THERMAL_HID,
++	.ids = thermal_device_ids,
+ 	.ops = {
+ 		.add = acpi_thermal_add,
+ 		.remove = acpi_thermal_remove,
+Index: lenb/drivers/acpi/ac.c
+===================================================================
+--- lenb.orig/drivers/acpi/ac.c
++++ lenb/drivers/acpi/ac.c
+@@ -34,7 +34,6 @@
+ 
+ #define ACPI_AC_COMPONENT		0x00020000
+ #define ACPI_AC_CLASS			"ac_adapter"
+-#define ACPI_AC_HID 			"ACPI0003"
+ #define ACPI_AC_DEVICE_NAME		"AC Adapter"
+ #define ACPI_AC_FILE_STATE		"state"
+ #define ACPI_AC_NOTIFY_STATUS		0x80
+@@ -56,10 +55,16 @@ static int acpi_ac_add(struct acpi_devic
+ static int acpi_ac_remove(struct acpi_device *device, int type);
+ static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+ 
++const static struct acpi_device_id ac_device_ids[] = {
++	{"ACPI0003", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, ac_device_ids);
++
+ static struct acpi_driver acpi_ac_driver = {
+ 	.name = "ac",
+ 	.class = ACPI_AC_CLASS,
+-	.ids = ACPI_AC_HID,
++	.ids = ac_device_ids,
+ 	.ops = {
+ 		.add = acpi_ac_add,
+ 		.remove = acpi_ac_remove,
+Index: lenb/drivers/acpi/pci_link.c
+===================================================================
+--- lenb.orig/drivers/acpi/pci_link.c
++++ lenb/drivers/acpi/pci_link.c
+@@ -46,7 +46,6 @@
+ #define _COMPONENT		ACPI_PCI_COMPONENT
+ ACPI_MODULE_NAME("pci_link");
+ #define ACPI_PCI_LINK_CLASS		"pci_irq_routing"
+-#define ACPI_PCI_LINK_HID		"PNP0C0F"
+ #define ACPI_PCI_LINK_DEVICE_NAME	"PCI Interrupt Link"
+ #define ACPI_PCI_LINK_FILE_INFO		"info"
+ #define ACPI_PCI_LINK_FILE_STATUS	"state"
+@@ -54,10 +53,16 @@ ACPI_MODULE_NAME("pci_link");
+ static int acpi_pci_link_add(struct acpi_device *device);
+ static int acpi_pci_link_remove(struct acpi_device *device, int type);
+ 
++static struct acpi_device_id link_device_ids[] = {
++	{"PNP0C0F", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, link_device_ids);
++
+ static struct acpi_driver acpi_pci_link_driver = {
+ 	.name = "pci_link",
+ 	.class = ACPI_PCI_LINK_CLASS,
+-	.ids = ACPI_PCI_LINK_HID,
++	.ids = link_device_ids,
+ 	.ops = {
+ 		.add = acpi_pci_link_add,
+ 		.remove = acpi_pci_link_remove,
+Index: lenb/drivers/acpi/pci_root.c
+===================================================================
+--- lenb.orig/drivers/acpi/pci_root.c
++++ lenb/drivers/acpi/pci_root.c
+@@ -38,16 +38,21 @@
+ #define _COMPONENT		ACPI_PCI_COMPONENT
+ ACPI_MODULE_NAME("pci_root");
+ #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
+-#define ACPI_PCI_ROOT_HID		"PNP0A03"
+ #define ACPI_PCI_ROOT_DEVICE_NAME	"PCI Root Bridge"
+ static int acpi_pci_root_add(struct acpi_device *device);
+ static int acpi_pci_root_remove(struct acpi_device *device, int type);
+ static int acpi_pci_root_start(struct acpi_device *device);
+ 
++static struct acpi_device_id root_device_ids[] = {
++	{"PNP0A03", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, root_device_ids);
++
+ static struct acpi_driver acpi_pci_root_driver = {
+ 	.name = "pci_root",
+ 	.class = ACPI_PCI_ROOT_CLASS,
+-	.ids = ACPI_PCI_ROOT_HID,
++	.ids = root_device_ids,
+ 	.ops = {
+ 		.add = acpi_pci_root_add,
+ 		.remove = acpi_pci_root_remove,
+Index: lenb/drivers/acpi/power.c
+===================================================================
+--- lenb.orig/drivers/acpi/power.c
++++ lenb/drivers/acpi/power.c
+@@ -59,10 +59,16 @@ static int acpi_power_remove(struct acpi
+ static int acpi_power_resume(struct acpi_device *device);
+ static int acpi_power_open_fs(struct inode *inode, struct file *file);
+ 
++static struct acpi_device_id power_device_ids[] = {
++	{ACPI_POWER_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, power_device_ids);
++
+ static struct acpi_driver acpi_power_driver = {
+ 	.name = "power",
+ 	.class = ACPI_POWER_CLASS,
+-	.ids = ACPI_POWER_HID,
++	.ids = power_device_ids,
+ 	.ops = {
+ 		.add = acpi_power_add,
+ 		.remove = acpi_power_remove,
+Index: lenb/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- lenb.orig/drivers/acpi/acpi_memhotplug.c
++++ lenb/drivers/acpi/acpi_memhotplug.c
+@@ -53,10 +53,16 @@ static int acpi_memory_device_add(struct
+ static int acpi_memory_device_remove(struct acpi_device *device, int type);
+ static int acpi_memory_device_start(struct acpi_device *device);
+ 
++static const struct acpi_device_id memory_device_ids[] = {
++	{ACPI_MEMORY_DEVICE_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, memory_device_ids);
++
+ static struct acpi_driver acpi_memory_device_driver = {
+ 	.name = "acpi_memhotplug",
+ 	.class = ACPI_MEMORY_DEVICE_CLASS,
+-	.ids = ACPI_MEMORY_DEVICE_HID,
++	.ids = memory_device_ids,
+ 	.ops = {
+ 		.add = acpi_memory_device_add,
+ 		.remove = acpi_memory_device_remove,
+Index: lenb/drivers/acpi/processor_core.c
+===================================================================
+--- lenb.orig/drivers/acpi/processor_core.c
++++ lenb/drivers/acpi/processor_core.c
+@@ -89,10 +89,16 @@ static int acpi_processor_handle_eject(s
+ extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ 
+ 
++static const struct acpi_device_id processor_device_ids[] = {
++	{ACPI_PROCESSOR_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, processor_device_ids);
++
+ static struct acpi_driver acpi_processor_driver = {
+ 	.name = "processor",
+ 	.class = ACPI_PROCESSOR_CLASS,
+-	.ids = ACPI_PROCESSOR_HID,
++	.ids = processor_device_ids,
+ 	.ops = {
+ 		.add = acpi_processor_add,
+ 		.remove = acpi_processor_remove,
+Index: lenb/drivers/acpi/video.c
+===================================================================
+--- lenb.orig/drivers/acpi/video.c
++++ lenb/drivers/acpi/video.c
+@@ -74,10 +74,16 @@ MODULE_LICENSE("GPL");
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+ 
++static const struct acpi_device_id video_device_ids[] = {
++	{ACPI_VIDEO_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, video_device_ids);
++
+ static struct acpi_driver acpi_video_bus = {
+ 	.name = "video",
+ 	.class = ACPI_VIDEO_CLASS,
+-	.ids = ACPI_VIDEO_HID,
++	.ids = video_device_ids,
+ 	.ops = {
+ 		.add = acpi_video_bus_add,
+ 		.remove = acpi_video_bus_remove,
+Index: lenb/drivers/char/hpet.c
+===================================================================
+--- lenb.orig/drivers/char/hpet.c
++++ lenb/drivers/char/hpet.c
+@@ -1007,9 +1007,15 @@ static int hpet_acpi_remove(struct acpi_
+ 	return -EINVAL;
+ }
+ 
++static const struct acpi_device_id hpet_device_ids[] = {
++	{"PNP0103", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, hpet_device_ids);
++
+ static struct acpi_driver hpet_acpi_driver = {
+ 	.name = "hpet",
+-	.ids = "PNP0103",
++	.ids = hpet_device_ids,
+ 	.ops = {
+ 		.add = hpet_acpi_add,
+ 		.remove = hpet_acpi_remove,
+Index: lenb/drivers/input/misc/atlas_btns.c
+===================================================================
+--- lenb.orig/drivers/input/misc/atlas_btns.c
++++ lenb/drivers/input/misc/atlas_btns.c
+@@ -31,7 +31,6 @@
+ 
+ #define ACPI_ATLAS_NAME			"Atlas ACPI"
+ #define ACPI_ATLAS_CLASS		"Atlas"
+-#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
+ 
+ static struct input_dev *input_dev;
+ 
+@@ -130,10 +129,16 @@ static int atlas_acpi_button_remove(stru
+ 	return status;
+ }
+ 
++static const struct acpi_device_id atlas_device_ids[] = {
++	{"ASIM0000", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, atlas_device_ids);
++
+ static struct acpi_driver atlas_acpi_driver = {
+ 	.name	= ACPI_ATLAS_NAME,
+ 	.class	= ACPI_ATLAS_CLASS,
+-	.ids	= ACPI_ATLAS_BUTTON_HID,
++	.ids	= atlas_device_ids,
+ 	.ops	= {
+ 		.add	= atlas_acpi_button_add,
+ 		.remove	= atlas_acpi_button_remove,
+Index: lenb/drivers/misc/asus-laptop.c
+===================================================================
+--- lenb.orig/drivers/misc/asus-laptop.c
++++ lenb/drivers/misc/asus-laptop.c
+@@ -53,7 +53,6 @@
+ #define ASUS_HOTK_NAME          "Asus Laptop Support"
+ #define ASUS_HOTK_CLASS         "hotkey"
+ #define ASUS_HOTK_DEVICE_NAME   "Hotkey"
+-#define ASUS_HOTK_HID           "ATK0100"
+ #define ASUS_HOTK_FILE          "asus-laptop"
+ #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
+ 
+@@ -197,12 +196,18 @@ static struct asus_hotk *hotk;
+ /*
+  * The hotkey driver declaration
+  */
++static const struct acpi_device_id asus_device_ids[] = {
++	{"ATK0100", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, asus_device_ids);
++
+ static int asus_hotk_add(struct acpi_device *device);
+ static int asus_hotk_remove(struct acpi_device *device, int type);
+ static struct acpi_driver asus_hotk_driver = {
+ 	.name = ASUS_HOTK_NAME,
+ 	.class = ASUS_HOTK_CLASS,
+-	.ids = ASUS_HOTK_HID,
++	.ids = asus_device_ids,
+ 	.ops = {
+ 		.add = asus_hotk_add,
+ 		.remove = asus_hotk_remove,
+Index: lenb/drivers/acpi/ec.c
+===================================================================
+--- lenb.orig/drivers/acpi/ec.c
++++ lenb/drivers/acpi/ec.c
+@@ -41,7 +41,6 @@
+ #include <acpi/actypes.h>
+ 
+ #define ACPI_EC_CLASS			"embedded_controller"
+-#define ACPI_EC_HID			"PNP0C09"
+ #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
+ #define ACPI_EC_FILE_INFO		"info"
+ 
+@@ -82,10 +81,15 @@ static int acpi_ec_start(struct acpi_dev
+ static int acpi_ec_stop(struct acpi_device *device, int type);
+ static int acpi_ec_add(struct acpi_device *device);
+ 
++static const struct acpi_device_id ec_device_ids[] = {
++	{"PNP0C09", 0},
 +	{"", 0},
 +};
 +
- static inline int is_exclusive_device(struct acpi_device *dev)
- {
--	return (!acpi_match_ids(dev, excluded_id_list));
-+	return (!acpi_match_device_ids(dev, excluded_id_list));
+ static struct acpi_driver acpi_ec_driver = {
+ 	.name = "ec",
+ 	.class = ACPI_EC_CLASS,
+-	.ids = ACPI_EC_HID,
++	.ids = ec_device_ids,
+ 	.ops = {
+ 		.add = acpi_ec_add,
+ 		.remove = acpi_ec_remove,
+Index: lenb/drivers/misc/thinkpad_acpi.c
+===================================================================
+--- lenb.orig/drivers/misc/thinkpad_acpi.c
++++ lenb/drivers/misc/thinkpad_acpi.c
+@@ -411,12 +411,13 @@ static int __init register_tpacpi_subdri
+ 
+ 	sprintf(ibm->acpi->driver->name, "%s_%s", IBM_NAME, ibm->name);
+ 	ibm->acpi->driver->ids = ibm->acpi->hid;
++
+ 	ibm->acpi->driver->ops.add = &tpacpi_device_add;
+ 
+ 	rc = acpi_bus_register_driver(ibm->acpi->driver);
+ 	if (rc < 0) {
+ 		printk(IBM_ERR "acpi_bus_register_driver(%s) failed: %d\n",
+-		       ibm->acpi->hid, rc);
++		       ibm->name, rc);
+ 		kfree(ibm->acpi->driver);
+ 		ibm->acpi->driver = NULL;
+ 	} else if (!rc)
+@@ -1316,8 +1317,13 @@ errexit:
+ 	return res;
  }
  
- /*
-Index: lenb/include/linux/acpi.h
++static const struct acpi_device_id ibm_htk_device_ids[] = {
++	{IBM_HKEY_HID, 0},
++	{"", 0},
++};
++
+ static struct tp_acpi_drv_struct ibm_hotkey_acpidriver = {
+-	.hid = IBM_HKEY_HID,
++	.hid = ibm_htk_device_ids,
+ 	.notify = hotkey_notify,
+ 	.handle = &hkey_handle,
+ 	.type = ACPI_DEVICE_NOTIFY,
+@@ -2080,6 +2086,11 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* 
+ /* don't list other alternatives as we install a notify handler on the 570 */
+ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
+ 
++static const struct acpi_device_id ibm_pci_device_ids[] = {
++	{PCI_ROOT_HID_STRING, 0},
++	{"", 0},
++};
++
+ static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
+ 	{
+ 	 .notify = dock_notify,
+@@ -2090,7 +2101,7 @@ static struct tp_acpi_drv_struct ibm_doc
+ 	/* THIS ONE MUST NEVER BE USED FOR DRIVER AUTOLOADING.
+ 	 * We just use it to get notifications of dock hotplug
+ 	 * in very old thinkpads */
+-	 .hid = PCI_ROOT_HID_STRING,
++	 .hid = ibm_pci_device_ids,
+ 	 .notify = dock_notify,
+ 	 .handle = &pci_handle,
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+@@ -2149,7 +2160,8 @@ static int __init dock_init2(struct ibm_
+ static void dock_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	int docked = dock_docked();
+-	int pci = ibm->acpi->hid && strstr(ibm->acpi->hid, PCI_ROOT_HID_STRING);
++	int pci = ibm->acpi->hid && ibm->acpi->device &&
++		acpi_match_device_ids(ibm->acpi->device, ibm_pci_device_ids);
+ 
+ 	if (event == 1 && !pci)	/* 570 */
+ 		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
+Index: lenb/drivers/misc/thinkpad_acpi.h
 ===================================================================
---- lenb.orig/include/linux/acpi.h
-+++ lenb/include/linux/acpi.h
-@@ -33,6 +33,7 @@
- #endif
+--- lenb.orig/drivers/misc/thinkpad_acpi.h
++++ lenb/drivers/misc/thinkpad_acpi.h
+@@ -194,7 +194,7 @@ static void thinkpad_acpi_module_exit(vo
+ struct ibm_struct;
  
- #include <linux/list.h>
-+#include <linux/mod_devicetable.h>
+ struct tp_acpi_drv_struct {
+-	char *hid;
++	const struct acpi_device_id *hid;
+ 	struct acpi_driver *driver;
  
- #include <acpi/acpi.h>
- #include <acpi/acpi_bus.h>
+ 	void (*notify) (struct ibm_struct *, u32);
+Index: lenb/drivers/misc/sony-laptop.c
+===================================================================
+--- lenb.orig/drivers/misc/sony-laptop.c
++++ lenb/drivers/misc/sony-laptop.c
+@@ -1124,10 +1124,22 @@ static int sony_nc_remove(struct acpi_de
+ 	return 0;
+ }
+ 
++static const struct acpi_device_id sony_device_ids[] = {
++	{SONY_NC_HID, 0},
++	{SONY_PIC_HID, 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, sony_device_ids);
++
++static const struct acpi_device_id sony_nc_device_ids[] = {
++	{SONY_NC_HID, 0},
++	{"", 0},
++};
++
+ static struct acpi_driver sony_nc_driver = {
+ 	.name = SONY_NC_DRIVER_NAME,
+ 	.class = SONY_NC_CLASS,
+-	.ids = SONY_NC_HID,
++	.ids = sony_nc_device_ids,
+ 	.owner = THIS_MODULE,
+ 	.ops = {
+ 		.add = sony_nc_add,
+@@ -2470,10 +2482,15 @@ static int sony_pic_resume(struct acpi_d
+ 	return 0;
+ }
+ 
++static const struct acpi_device_id sony_pic_device_ids[] = {
++	{SONY_PIC_HID, 0},
++	{"", 0},
++};
++
+ static struct acpi_driver sony_pic_driver = {
+ 	.name = SONY_PIC_DRIVER_NAME,
+ 	.class = SONY_PIC_CLASS,
+-	.ids = SONY_PIC_HID,
++	.ids = sony_pic_device_ids,
+ 	.owner = THIS_MODULE,
+ 	.ops = {
+ 		.add = sony_pic_add,
 
 
