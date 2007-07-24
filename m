@@ -1,78 +1,77 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
-Date: Tue, 24 Jul 2007 15:40:43 -0600
-Message-ID: <200707241540.43868.bjorn.helgaas@hp.com>
-References: <1183030080.4249.172.camel@queen.suse.de> <200707061038.50755.bjorn.helgaas@hp.com> <Pine.LNX.4.64.0707211905450.6747@asgard.lang.hm>
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: [2.6.22] ACPI video problems with T60p laptop
+Date: Tue, 24 Jul 2007 22:34:54 +0100 (BST)
+Message-ID: <974101.13462.qm@web52908.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:35687 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802AbXGXVlN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jul 2007 17:41:13 -0400
-In-Reply-To: <Pine.LNX.4.64.0707211905450.6747@asgard.lang.hm>
-Content-Disposition: inline
+Received: from web52908.mail.re2.yahoo.com ([206.190.49.18]:44278 "HELO
+	web52908.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753971AbXGXVlg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jul 2007 17:41:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: david@lang.hm
-Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
+To: linux-acpi@vger.kernel.org
 
-On Saturday 21 July 2007 08:09:11 pm david@lang.hm wrote:
-> On Fri, 6 Jul 2007, Bjorn Helgaas wrote:
-> > Ultimately, you should have CONFIG_ACPI=y and CONFIG_PNPACPI=y, and you
-> > should not have to boot with "noisapnp" or "pnpacpi=off".  My guess is
-> > that you only need "pnpacpi=off" to work around the current problem.
-> 
-> these two options are enabled and pnpacpi=off does solve the problem.
-> ...
-> there's now a dmesg.pnpacpi_off which works, and you are correct that the 
-> dmesg that's there is the non working one.
+Hi,
 
-Thanks.  Here's what I glean from that.  With no arguments, it doesn't work:
+I have noticed the following problems with the ACPI video functionality on my Thinkpad T60p
+laptop:
 
-    parport_pc 00:0a: reported by Plug and Play ACPI
-    parport0: PC-style at 0x378 (0x778), irq 7, dma 3 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
-    parport0: Printer, Brother HL-5040 series
-    lp0: using parport0 (interrupt-driven).
+- The kernel is likely to lock up when the video.ko modules loads, if nmi_watchdog=1
+- The VID/ directory appears twice in the /proc/acpi/video/ directory:
 
-With pnpacpi=off, it works:
+$ ls -alis /proc/acpi/video/
+total 0
+4026532147 0 dr-xr-xr-x  4 root root 0 2007-07-24 22:17 .
+4026531915 0 dr-xr-xr-x 12 root root 0 2007-07-24 19:27 ..
+4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
+4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
 
-    parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE]
-    parport0: irq 7 detected
-    parport0: Printer, Brother HL-5040 series
-    lp0: using parport0 (polling).
+- Close the laptop lid, wait a bit, open the lid again, and the X server has crashed. (The kernel
+survives, but the screen is a multi-coloured mess. Ctrl-Alt-Backspace still works, though.)
 
-With pnpacpi=off, or a kernel without PNPACPI, we just probe at 0x378
-and use the port in polling mode, and it works.
+ACPI: SSDT 7FEF1D36, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
+ACPI: SSDT 7FEF207F, 065A (r1  PmRef  Cpu0Cst      100 INTL 20050513)
+Monitor-Mwait will be used to enter C-1 state
+Monitor-Mwait will be used to enter C-2 state
+Monitor-Mwait will be used to enter C-3 state
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+ACPI: Processor [CPU0] (supports 8 throttling states)
+ACPI: SSDT 7FEF1C6E, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
+ACPI: SSDT 7FEF1FFA, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
+ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])
+ACPI: Processor [CPU1] (supports 8 throttling states)
+ACPI: Thermal Zone [THM0] (35 C)
+ACPI: Thermal Zone [THM1] (37 C)
 
-PNPACPI claims the device supports interrupts, so we try to use it in
-interrupt mode, and it doesn't work.  It's possible that ACPI is lying
-to us, and the interrupt really doesn't work.  Or maybe the interrupt
-*does* work, but the BIOS left it half-configured.
+...
 
-Could you try the attached patch and collect the dmesg log and contents
-of /proc/interrupts?
+ACPI: AC Adapter [AC] (on-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: ACPI Dock Station Driver 
+ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: found ejectable bay
+ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: Adding notify handler
+ACPI: Bay [\_SB_.PCI0.IDE0.PRIM.MSTR] Added
+input: Power Button (FF) as /class/input/input3
+ACPI: Power Button (FF) [PWRF]
+input: Lid Switch as /class/input/input4
+ACPI: Lid Switch [LID]
+input: Sleep Button (CM) as /class/input/input5
+ACPI: Sleep Button (CM) [SLPB]
+set_level status: 0
+ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
+set_level status: 0
+ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
 
-Thanks,
-  Bjorn
+Cheers,
+Chris
 
-Index: w/drivers/pnp/pnpacpi/core.c
-===================================================================
---- w.orig/drivers/pnp/pnpacpi/core.c	2007-07-24 15:05:25.000000000 -0600
-+++ w/drivers/pnp/pnpacpi/core.c	2007-07-24 15:29:50.000000000 -0600
-@@ -216,6 +216,13 @@
- 	pnp_add_device(dev);
- 	num ++;
- 
-+	if (dev->active) {
-+		printk("%s: configuring %s (%s)\n", __FUNCTION__, dev->dev.bus_id, dev_id->id);
-+		pnp_disable_dev(dev);
-+		pnp_init_resource_table(&dev->res);
-+		pnp_activate_dev(dev);
-+	}
-+
- 	return AE_OK;
- err1:
- 	kfree(dev_id);
+
+
+
+      ___________________________________________________________ 
+Yahoo! Mail is the world's favourite email. Don't settle for less, sign up for
+your free account today http://uk.rd.yahoo.com/evt=44106/*http://uk.docs.yahoo.com/mail/winter07.html 
