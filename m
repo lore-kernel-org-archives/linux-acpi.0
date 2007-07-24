@@ -1,77 +1,77 @@
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: [2.6.22] ACPI video problems with T60p laptop
-Date: Tue, 24 Jul 2007 22:34:54 +0100 (BST)
-Message-ID: <974101.13462.qm@web52908.mail.re2.yahoo.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: adding new device and driver HOWTO?
+Date: Tue, 24 Jul 2007 16:12:15 -0600
+Message-ID: <200707241612.15163.bjorn.helgaas@hp.com>
+References: <7ee95fff0707231547k3511b730qda9caf034473e5d1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web52908.mail.re2.yahoo.com ([206.190.49.18]:44278 "HELO
-	web52908.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753971AbXGXVlg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jul 2007 17:41:36 -0400
+Received: from atlrel8.hp.com ([156.153.255.206]:39689 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756737AbXGXWPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jul 2007 18:15:42 -0400
+In-Reply-To: <7ee95fff0707231547k3511b730qda9caf034473e5d1@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ken MacLeod <ken@bitsko.slc.ut.us>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Monday 23 July 2007 04:47:16 pm Ken MacLeod wrote:
+> We manufacture an x86 system with a device on an I/O port.  We
+> initially wrote our Linux driver to load in an init script and if it
+> probed OK then we knew the device was present.  We now want to be a
+> little safer and portable by enumerating and autoloading properly.
+> 
+> Problem is, everything I've read so far is geared towards installing
+> ACPI or using it, particularly only with well-known devices for power
+> management.
+> 
+> I can't seem to find an example DSDT definition for a generic device
+> or how I would tie that to its driver -- a new device developer's
+> HOWTO.
 
-I have noticed the following problems with the ACPI video functionality on my Thinkpad T60p
-laptop:
+Here's sample DSDT code for a UART:
 
-- The kernel is likely to lock up when the video.ko modules loads, if nmi_watchdog=1
-- The VID/ directory appears twice in the /proc/acpi/video/ directory:
+            Device (U000)
+            {
+                Name (_HID, EisaId ("PNP0501"))
+                Name (_UID, 0x40000010)
+                Method (_STA, 0, NotSerialized)
+                {
+                    Return (0x0000000F)
+                }
 
-$ ls -alis /proc/acpi/video/
-total 0
-4026532147 0 dr-xr-xr-x  4 root root 0 2007-07-24 22:17 .
-4026531915 0 dr-xr-xr-x 12 root root 0 2007-07-24 19:27 ..
-4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
-4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
+                Name (_CRS, ResourceTemplate ()
+                {
+                    QWordMemory (ResourceConsumer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                        0x0000000000000000, // Address Space Granularity
+                        0x00000FFC300E4000, // Address Range Minimum
+                        0x00000FFC300E4007, // Address Range Maximum
+                        0x0000000000000000, // Address Translation Offset
+                        0x0000000000000008, // Address Length
+                        ,,, AddressRangeMemory, TypeStatic)
+                    Interrupt (ResourceConsumer, Level, ActiveLow, Shared, ,,)
+                    {
+                        0x00000017,
+                    }
+                })
+            }
 
-- Close the laptop lid, wait a bit, open the lid again, and the X server has crashed. (The kernel
-survives, but the screen is a multi-coloured mess. Ctrl-Alt-Backspace still works, though.)
+The Linux driver that claims this device is drivers/serial/8250_pnp.c.
+It has a pnp_dev_table[] that contains PNP IDs that it will claim.
 
-ACPI: SSDT 7FEF1D36, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
-ACPI: SSDT 7FEF207F, 065A (r1  PmRef  Cpu0Cst      100 INTL 20050513)
-Monitor-Mwait will be used to enter C-1 state
-Monitor-Mwait will be used to enter C-2 state
-Monitor-Mwait will be used to enter C-3 state
-ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
-ACPI: Processor [CPU0] (supports 8 throttling states)
-ACPI: SSDT 7FEF1C6E, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
-ACPI: SSDT 7FEF1FFA, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
-ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])
-ACPI: Processor [CPU1] (supports 8 throttling states)
-ACPI: Thermal Zone [THM0] (35 C)
-ACPI: Thermal Zone [THM1] (37 C)
+So you need to get yourself a new unique PNP ID.  I've never done it,
+but you might be able to do it here:
+  http://www.microsoft.com/whdc/system/pnppwr/pnp/pnpid.mspx
 
-...
+Then add a description of your device to your DSDT using your new
+PNP ID as the _HID, and write a Linux driver that registers with that
+same PNP ID.
 
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: ACPI Dock Station Driver 
-ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: found ejectable bay
-ACPI: \_SB_.PCI0.IDE0.PRIM.MSTR: Adding notify handler
-ACPI: Bay [\_SB_.PCI0.IDE0.PRIM.MSTR] Added
-input: Power Button (FF) as /class/input/input3
-ACPI: Power Button (FF) [PWRF]
-input: Lid Switch as /class/input/input4
-ACPI: Lid Switch [LID]
-input: Sleep Button (CM) as /class/input/input5
-ACPI: Sleep Button (CM) [SLPB]
-set_level status: 0
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-set_level status: 0
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
+I think there's now some mechanism for autoloading using udev, maybe
+using acpi_device_uevent(), but I don't know much about it.
 
-Cheers,
-Chris
-
-
-
-
-      ___________________________________________________________ 
-Yahoo! Mail is the world's favourite email. Don't settle for less, sign up for
-your free account today http://uk.rd.yahoo.com/evt=44106/*http://uk.docs.yahoo.com/mail/winter07.html 
+Bjorn
