@@ -1,82 +1,97 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Remove references to ACPI_STATE_S2 from acpi_pm_enter
-Date: Tue, 24 Jul 2007 11:30:34 -0400
-Message-ID: <200707241130.35323.lenb@kernel.org>
-References: <200707241158.40282.rjw@sisk.pl>
+From: Arkadiusz Miskiewicz <arekm@maven.pl>
+Subject: Re: 2.6.23rc1 git: EIP is at acpi_processor_throttling_seq_show+0x8b/0xdd [processor]
+Date: Tue, 24 Jul 2007 17:50:03 +0200
+Message-ID: <200707241750.03588.arekm@maven.pl>
+References: <200707231740.38263.arekm@maven.pl> <200707231226.35183.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758787AbXGXPbR@vger.kernel.org>
-In-Reply-To: <200707241158.40282.rjw@sisk.pl>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.carme.maven.pl ([193.239.45.138]:35696 "EHLO
+	main.carme.maven.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123AbXGXPuM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jul 2007 11:50:12 -0400
+In-Reply-To: <200707231226.35183.lenb@kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>, LKML <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 24 July 2007 05:58, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Remove references to ACPI_STATE_S2, introduced by
-> acpi-implement-the-set_target-callback-from-pm_ops.patch, from acpi_pm_enter().
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> 
+On Monday 23 of July 2007, Len Brown wrote:
+> On Monday 23 July 2007 11:40, Arkadiusz Miskiewicz wrote:
+> > After booting fresh 2.6.23rc1 taken from git I noticed oops in dmes=
+g:
+> >
+> > [   46.274038] BUG: unable to handle kernel NULL pointer dereferenc=
+e at
+> > virtual address 00000000 [   46.274042]  printing eip:
+> > [   46.274044] f8b5b2dc
+> > [   46.274045] *pde =3D 00000000
+> > [   46.274048] Oops: 0000 [#1]
+[...]
+>
+> Please try the patch below -- seems that I somehow neglected to inclu=
+de it
+> in my rc1 batch.
 
-per SubmittingPatches, please try to remember to follow the comments
-and preceed the diffstat with a line having just '---'
+No oops with patch applied. Thanks!
 
-Applied.
-thanks Rafael,
--Len
+>
+> thanks,
+> -Len
+>
+> Subject: fix oops due to typo in new throttling code
+> From: Luming Yu <luming.yu@gmail.com>
+>
+>
+> Signed-off-by: Luming Yu <luming.yu@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+>
+> ---
+>
+>  drivers/acpi/processor_throttling.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+>
+> Index: linus/drivers/acpi/processor_throttling.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linus.orig/drivers/acpi/processor_throttling.c
+> +++ linus/drivers/acpi/processor_throttling.c
+> @@ -658,18 +658,20 @@ static int acpi_processor_throttling_seq
+>  		   pr->throttling.state_count - 1);
+>
+>  	seq_puts(seq, "states:\n");
+> -	if (acpi_processor_get_throttling =3D=3D acpi_processor_get_throttl=
+ing_fadt)
+> +	if (pr->throttling.acpi_processor_get_throttling =3D=3D
+> +			acpi_processor_get_throttling_fadt) {
+>  		for (i =3D 0; i < pr->throttling.state_count; i++)
+>  			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+>  				   (i =3D=3D pr->throttling.state ? '*' : ' '), i,
+>  				   (pr->throttling.states[i].performance ? pr->
+>  				    throttling.states[i].performance / 10 : 0));
+> -	else
+> +	} else {
+>  		for (i =3D 0; i < pr->throttling.state_count; i++)
+>  			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+>  				   (i =3D=3D pr->throttling.state ? '*' : ' '), i,
+>  				   (int)pr->throttling.states_tss[i].
+>  				   freqpercentage);
+> +	}
+>
+>        end:
+>  	return 0;
 
->  drivers/acpi/sleep/main.c |    9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6.23-rc1/drivers/acpi/sleep/main.c
-> ===================================================================
-> --- linux-2.6.23-rc1.orig/drivers/acpi/sleep/main.c	2007-07-23 22:28:36.000000000 +0200
-> +++ linux-2.6.23-rc1/drivers/acpi/sleep/main.c	2007-07-24 11:38:46.000000000 +0200
-> @@ -80,8 +80,8 @@ static int acpi_pm_prepare(void)
->   *	acpi_pm_enter - Actually enter a sleep state.
->   *	@pm_state: ignored
->   *
-> - *	Flush caches and go to sleep. For STR or S2, we have to call
-> - *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
-> + *	Flush caches and go to sleep. For STR we have to call arch-specific
-> + *	assembly, which in turn call acpi_enter_sleep_state().
->   *	It's unfortunate, but it works. Please fix if you're feeling frisky.
->   */
->  
-> @@ -94,7 +94,7 @@ static int acpi_pm_enter(suspend_state_t
->  	ACPI_FLUSH_CPU_CACHE();
->  
->  	/* Do arch specific saving of state. */
-> -	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
-> +	if (acpi_state == ACPI_STATE_S3) {
->  		int error = acpi_save_state_mem();
->  
->  		if (error) {
-> @@ -111,7 +111,6 @@ static int acpi_pm_enter(suspend_state_t
->  		status = acpi_enter_sleep_state(acpi_state);
->  		break;
->  
-> -	case ACPI_STATE_S2:
->  	case ACPI_STATE_S3:
->  		do_suspend_lowlevel();
->  		break;
-> @@ -135,7 +134,7 @@ static int acpi_pm_enter(suspend_state_t
->  	printk(KERN_DEBUG "Back to C!\n");
->  
->  	/* restore processor state */
-> -	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
-> +	if (acpi_state == ACPI_STATE_S3)
->  		acpi_restore_state_mem();
->  
->  	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+
+--=20
+Arkadiusz Mi=B6kiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
