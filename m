@@ -1,77 +1,125 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
-Date: Wed, 25 Jul 2007 12:50:22 -0400
-Message-ID: <200707251250.22469.lenb@kernel.org>
-References: <20070723221630.GA28951@alice> <6bffcb0e0707241614s7b563b5bu114d2ecb227b1557@mail.gmail.com> <20070725113349.GB5469@alice>
+Subject: Re: 2.6.23-rc1 -- build failure
+Date: Wed, 25 Jul 2007 12:55:12 -0400
+Message-ID: <200707251255.12359.lenb@kernel.org>
+References: <20070725161116.GF23458@ittc.ku.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070725113349.GB5469@alice>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:59436 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752061AbXGYQzR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jul 2007 12:55:17 -0400
+In-Reply-To: <20070725161116.GF23458@ittc.ku.edu>
 Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Noah Watkins <nwatkins@ittc.ku.edu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 25 July 2007 07:33, Eric Sesterhenn / Snakebyte wrote:
-> * Michal Piotrowski (michal.k.k.piotrowski@gmail.com) wrote:
-> >  On 24/07/07, Eric Sesterhenn / Snakebyte <snakebyte@gmx.de> wrote:
-> > > see second 13 to 510, after pressing it about ten
-> > > times, it continues booting.
-> > 
-> >  Probing IDE interface...
-> > 
-> >  [   13.867939] VP_IDE: VIA vt82c686a (rev 22) IDE UDMA66 controller on
-> >  pci0000:00:04.1
-> >  [   13.868062]     ide0: BM-DMA at 0xd800-0xd807, BIOS settings:
-> >  hda:DMA, hdb:pio
-> >  [   13.868268]     ide1: BM-DMA at 0xd808-0xd80f, BIOS settings:
-> >  hdc:DMA, hdd:DMA
-> >  [   13.868574] Probing IDE interface ide0...
-> >  [  387.279576] Clocksource tsc unstable (delta = 370195339890 ns)
-> >  [  496.200082] hda: ST340823A, ATA DISK drive
-> >  [  510.264511] hda: selected mode 0x44
-> >  [  510.264826] ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-> > 
-> >  Could you please try to revert these commits
-> > 
-> >  commit 4099d14322149c7a467e4997b87be4ba8eb78697
-> >  commit 6a824c92db4d606c324272c4eed366fb71672440
-> >  commit a5d8c5c834d3cabf4b7b477c3f6ee923c25026fc
-> 
-> reverting these commits didnt change anything at all,
-> booting with acpi=off resolved the issue, so i guess it is
-> an acpi problem after all.
+On Wednesday 25 July 2007 12:11, Noah Watkins wrote:
+> Latest git tree gives following build errors (config attached):
+>=20
+> make -C /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6 O=3D/yggnfs/=
+nwatkins/kernels/git-linux-2.6/build
+>   Using /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6 as source fo=
+r kernel
+>   GEN     /yggnfs/nwatkins/kernels/git-linux-2.6/build/Makefile
+>   CHK     include/linux/version.h
+>   CHK     include/linux/utsrelease.h
+>   CALL    /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/scripts/ch=
+ecksyscalls.sh
+>   CHK     include/linux/compile.h
+>   CC      arch/i386/kernel/acpi/cstate.o
+> In file included from /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.=
+6/arch/i386/kernel/acpi/cstate.c:16:
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:90: error: expected specifier-qualifier-list before =E2=80=98acpi_=
+integer=E2=80=99
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:108: error: expected specifier-qualifier-list before =E2=80=98acpi=
+_integer=E2=80=99
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:131: error: expected specifier-qualifier-list before =E2=80=98acpi=
+_integer=E2=80=99
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:149: error: expected specifier-qualifier-list before =E2=80=98acpi=
+_integer=E2=80=99
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:205: error: expected specifier-qualifier-list before =E2=80=98acpi=
+_handle=E2=80=99
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:319: warning: =E2=80=98struct acpi_device=E2=80=99 declared inside=
+ parameter list
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:319: warning: its scope is only this definition or declaration, wh=
+ich is probably not what you want
+> /yggnfs/nwatkins/kernels/git-linux-2.6/linux-2.6/include/acpi/process=
+or.h:322: warning: =E2=80=98struct acpi_device=E2=80=99 declared inside=
+ parameter list
+> make[4]: *** [arch/i386/kernel/acpi/cstate.o] Error 1
+> make[3]: *** [arch/i386/kernel/acpi] Error 2
+> make[2]: *** [arch/i386/kernel] Error 2
+> make[1]: *** [_all] Error 2
+> make: *** [all] Error 2
 
-Maybe yes, maybe no.
+try this:
 
-> > > > [   13.506890] ACPI Exception (processor_throttling-0084): AE_NOT_FOUND, Evaluating _PTC [20070126]
-> > > > [   13.507101] ACPI Exception (processor_throttling-0147): AE_NOT_FOUND, Evaluating _TSS [20070126]
+=46rom akpm@linux-foundation.org Mon Jul 23 20:50:44 2007
 
-Note that these are just noise -- new code being verbose when looking for an optional feature.
 
-The fact that hitting the power button a bunch of times
-to make the system move along suggests some sort of missing interrupt problem --
-most likely the timer itself.
+-----------------------------------------------------
+Subject: X86_POWERNOW_K8_ACPI must depend on ACPI
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-[   13.868574] Probing IDE interface ide0...
-[  387.279576] Clocksource tsc unstable (delta = 370195339890 ns)
+This patch fixes the following compile error introduced by
+commit e8666b2718fdb5bf0ea7c3126f7e292bbbf2946b and reported
+by Alexey Dobriyan:
 
-5-minutes -- a long probe:-)
+<--  snip  -->
 
-> CONFIG_NO_HZ=y
+   CC      arch/i386/kernel/acpi/cstate.o
+In file included from arch/i386/kernel/acpi/cstate.c:17:
+include/acpi/processor.h:88: error: expected specifier-qualifier-list b=
+efore 'acpi_integer'
 
-does CONFIG_NO_HZ=n make a difference?
+<--  snip  -->
 
-> CONFIG_HIGH_RES_TIMERS=y
+If you select something you must ensure that the dependencies of what
+you are selecting are fulfilled.
 
-does CONFIG_HIGH_RES_TIMERS=n make a difference?
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Joshua Hoblitt <jhoblitt@ifa.hawaii.edu>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-does "irqpoll" make any difference?
-does "notsc" make any difference?
-does "idle=poll" make any difference?
+ arch/i386/kernel/cpu/cpufreq/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-cheers,
--Len
+diff -puN arch/i386/kernel/cpu/cpufreq/Kconfig~x86_powernow_k8_acpi-mus=
+t-depend-on-acpi arch/i386/kernel/cpu/cpufreq/Kconfig
+--- a/arch/i386/kernel/cpu/cpufreq/Kconfig~x86_powernow_k8_acpi-must-de=
+pend-on-acpi
++++ a/arch/i386/kernel/cpu/cpufreq/Kconfig
+@@ -92,7 +92,7 @@ config X86_POWERNOW_K8
+ config X86_POWERNOW_K8_ACPI
+ 	bool "ACPI Support"
+ 	select ACPI_PROCESSOR
+-	depends on X86_POWERNOW_K8
++	depends on ACPI && X86_POWERNOW_K8
+ 	default y
+ 	help
+ 	  This provides access to the K8s Processor Performance States via AC=
+PI.
+_
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
