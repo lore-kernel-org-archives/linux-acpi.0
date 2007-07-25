@@ -1,39 +1,37 @@
-From: Tino Keitel <tino.keitel@tikei.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1
-Date: Wed, 25 Jul 2007 18:49:28 +0200
-Message-ID: <20070725164928.GA15918@dose.home.local>
+Date: Wed, 25 Jul 2007 11:48:44 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707251147130.3607@woody.linux-foundation.org>
 References: <200707251238.50218.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eazy.amigager.de ([213.239.192.238]:38503 "EHLO
-	eazy.amigager.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753481AbXGYRPW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jul 2007 13:15:22 -0400
-Received: from dose.home.local (port-212-202-201-164.dynamic.qsc.de [212.202.201.164])
-	by eazy.amigager.de (Postfix) with ESMTP id 25C6C25C005
-	for <linux-acpi@vger.kernel.org>; Wed, 25 Jul 2007 18:49:32 +0200 (CEST)
-Received: from scorpion by dose.home.local with local (Exim 4.67)
-	(envelope-from <tino.keitel@tikei.de>)
-	id 1IDk3E-0004AV-L3
-	for linux-acpi@vger.kernel.org; Wed, 25 Jul 2007 18:49:28 +0200
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58511 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S935141AbXGYStG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jul 2007 14:49:06 -0400
 In-Reply-To: <200707251238.50218.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jul 25, 2007 at 12:38:50 -0400, Len Brown wrote:
-> Len Brown (5):
->       ACPI: Kconfig: CONFIG_ACPI_PROCFS now defaults to N
 
-Hi,
 
-where can I find the information in /proc/acpi/battery and
-/proc/acpi/processor without procfs?
+On Wed, 25 Jul 2007, Len Brown wrote:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+> 
+> Fixes regressions -- a build failure, an oops, some dmesg spam.
+> Also fixes some D-state issues and adds ACPI module auto-loading.
+> Yes, I'd hoped to get the last two in before rc1.
+> I'm hopeful that a couple-days into rc2 is sufficiently early for them.
 
-Regards,
-Tino
+I hate pulling this, but I did. However, what I hate even more after 
+having done so is that ACPI now seems to select CPU hotplug. Why?
 
-Please CC: me in replies.
+That is just *broken*. Sure, if you select STR or hibernation, we need CPU 
+hotplug, but just for picking ACPI? Why?
 
+		Linus
