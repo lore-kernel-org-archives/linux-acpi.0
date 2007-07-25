@@ -1,376 +1,71 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 09/16] ACPI: autoload modules - Create ACPI alias interface
-Date: Wed, 25 Jul 2007 01:51:18 -0400
-Message-ID: <11853426953044-git-send-email-len.brown@intel.com>
+Subject: [PATCH 11/16] ACPI: Kconfig: CONFIG_ACPI_PROCFS now defaults to N
+Date: Wed, 25 Jul 2007 01:51:20 -0400
+Message-ID: <11853426972055-git-send-email-len.brown@intel.com>
 References: <11853426852588-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9155 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:18276 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752890AbXGYFvj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752840AbXGYFvj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 25 Jul 2007 01:51:39 -0400
 In-Reply-To: <11853426852588-git-send-email-len.brown@intel.com>
-Message-Id: <29b71a1ca74491fab9fed09e9d835d840d042690.1185342489.git.len.brown@intel.com>
+Message-Id: <fb804714560463534ebcb538a3b0a3c687a830ec.1185342489.git.len.brown@intel.com>
 In-Reply-To: <e9b3aba887f47f9cd64de20fec9c333a932b70dc.1185342489.git.len.brown@intel.com>
 References: <e9b3aba887f47f9cd64de20fec9c333a932b70dc.1185342489.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, Kay Sievers <kay.sievers@vrfy.org>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Thomas Renninger <trenn@suse.de>
+delete "default y" from CONFIG_ACPI_PROCFS
+(effectively making the default 'N')
 
-Modify modpost (file2alias.c) to add acpi*:XYZ0001: alias in modules.alias
-like:
-grep acpi /lib/modules/2.6.22-rc4-default/modules.alias
-alias acpi*:SNY5001:* sony_laptop
-alias acpi*:SNY6001:* sony_laptop
-for e.g. the sony_laptop module.
-This module matches against all ACPI devices with a HID or CID of SNY5001
-or SNY6001
+List exactly what /proc files this option controls,
+and clarify that it doesn't change non-deprecated files.
 
-Export an uevent and modalias sysfs file containing the string:
-[MODALIAS=]acpi:PNP0C0C:
-additional CIDs are concatenated at the end.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c             |  156 +++++++++++++++++++++++++++-----------
- drivers/pnp/pnpacpi/core.c      |   19 +++--
- include/linux/acpi.h            |    1 +
- include/linux/mod_devicetable.h |    6 ++
- scripts/mod/file2alias.c        |   12 +++
- 5 files changed, 142 insertions(+), 52 deletions(-)
+ drivers/acpi/Kconfig |   27 +++++++++++++++++----------
+ 1 files changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 6b3b8a5..be74347 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -16,7 +16,7 @@ ACPI_MODULE_NAME("scan");
- extern struct acpi_device *acpi_root;
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 408b451..8e42977 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -76,17 +76,24 @@ config ACPI_SLEEP_PROC_SLEEP
+ 	  Deprecated by /sys/power/state
  
- #define ACPI_BUS_CLASS			"system_bus"
--#define ACPI_BUS_HID			"ACPI_BUS"
-+#define ACPI_BUS_HID			"LNXSYBUS"
- #define ACPI_BUS_DEVICE_NAME		"System Bus"
+ config ACPI_PROCFS
+-	bool "Procfs interface (deprecated)"
+-	default y
++	bool "Deprecated /proc/acpi files"
++	depends on PROC_FS
+ 	---help---
+-	  The Procfs interface for ACPI is made optional for backward compatibility.
+-	  As the same functions are duplicated in the sysfs interface
+-	  and this proc interface will be removed some time later,
+-	  it's marked as deprecated.
+-	  ( /proc/acpi/debug_layer && debug_level are deprecated by
+-	    /sys/module/acpi/parameters/debug_layer && debug_level.
+-	    /proc/acpi/info is deprecated by
+-	    /sys/module/acpi/parameters/acpica_version )
++	  For backwards compatibility, this option allows
++	  depricated /proc/acpi/ files to exist, even when
++	  they have been replaced by functions in /sys.
++	  The deprecated files (and their replacements) include:
++
++	  /proc/acpi/info (/sys/modules/acpi/parameters/acpica_version)
++	  /proc/acpi/dsdt (/sys/firmware/acpi/tables/DSDT)
++	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
++	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
++	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
++
++	  This option has no effect on /proc/acpi/ files
++	  and functions which do not yet exist in /sys.
++
++	  Say N to delete /proc/acpi/ files that have moved to /sys/
  
- static LIST_HEAD(acpi_device_list);
-@@ -29,6 +29,62 @@ struct acpi_device_bus_id{
- 	unsigned int instance_no;
- 	struct list_head node;
- };
-+
-+/*
-+ * Creates hid/cid(s) string needed for modalias and uevent
-+ * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
-+ * char *modalias: "acpi:IBM0001:ACPI0001"
-+*/
-+int create_modalias(struct acpi_device *acpi_dev, char *modalias, int size){
-+
-+	int len;
-+
-+	if (!acpi_dev->flags.hardware_id)
-+		return -ENODEV;
-+
-+	len = snprintf(modalias, size, "acpi:%s:",
-+		       acpi_dev->pnp.hardware_id);
-+	if (len < 0 || len >= size)
-+		return -EINVAL;
-+	size -= len;
-+
-+	if (acpi_dev->flags.compatible_ids) {
-+		struct acpi_compatible_id_list *cid_list;
-+		int i;
-+		int count;
-+
-+		cid_list = acpi_dev->pnp.cid_list;
-+		for (i = 0; i < cid_list->count; i++) {
-+			count = snprintf(&modalias[len], size, "%s:",
-+					 cid_list->id[i].value);
-+			if (count < 0 || count >= size) {
-+				printk(KERN_ERR "acpi: %s cid[%i] exceeds event buffer size",
-+				       acpi_dev->pnp.device_name, i);
-+				break;
-+			}
-+			len += count;
-+			size -= count;
-+		}
-+	}
-+
-+	modalias[len] = '\0';
-+	return len;
-+}
-+
-+static ssize_t
-+acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int len;
-+
-+	/* Device has no HID and no CID or string is >1024 */
-+	len = create_modalias(acpi_dev, buf, 1024);
-+	if (len <= 0)
-+		return 0;
-+	buf[len++] = '\n';
-+	return len;
-+}
-+static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
-+
- static int acpi_eject_operation(acpi_handle handle, int lockable)
- {
- 	struct acpi_object_list arg_list;
-@@ -154,6 +210,12 @@ static int acpi_device_setup_files(struct acpi_device *dev)
- 			goto end;
- 	}
- 
-+	if (dev->flags.hardware_id || dev->flags.compatible_ids){
-+		result = device_create_file(&dev->dev, &dev_attr_modalias);
-+		if(result)
-+			goto end;
-+	}
-+
-         /*
-          * If device has _EJ0, 'eject' file is created that is used to trigger
-          * hot-removal function from userland.
-@@ -178,6 +240,9 @@ static void acpi_device_remove_files(struct acpi_device *dev)
- 	if (ACPI_SUCCESS(status))
- 		device_remove_file(&dev->dev, &dev_attr_eject);
- 
-+	if (dev->flags.hardware_id || dev->flags.compatible_ids)
-+		device_remove_file(&dev->dev, &dev_attr_modalias);
-+
- 	if(dev->flags.hardware_id)
- 		device_remove_file(&dev->dev, &dev_attr_hid);
- 	if(dev->handle)
-@@ -186,6 +251,37 @@ static void acpi_device_remove_files(struct acpi_device *dev)
- /* --------------------------------------------------------------------------
- 			ACPI Bus operations
-    -------------------------------------------------------------------------- */
-+
-+int acpi_match_device_ids(struct acpi_device *device,
-+			  const struct acpi_device_id *ids)
-+{
-+	const struct acpi_device_id *id;
-+
-+	if (device->flags.hardware_id) {
-+		for (id = ids; id->id[0]; id++) {
-+			if (!strcmp((char*)id->id, device->pnp.hardware_id))
-+				return 0;
-+		}
-+	}
-+
-+	if (device->flags.compatible_ids) {
-+		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-+		int i;
-+
-+		for (id = ids; id->id[0]; id++) {
-+			/* compare multiple _CID entries against driver ids */
-+			for (i = 0; i < cid_list->count; i++) {
-+				if (!strcmp((char*)id->id,
-+					    cid_list->id[i].value))
-+					return 0;
-+			}
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL(acpi_match_device_ids);
-+
- static void acpi_device_release(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
-@@ -219,37 +315,19 @@ static int acpi_bus_match(struct device *dev, struct device_driver *drv)
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
- 
--	return !acpi_match_ids(acpi_dev, acpi_drv->ids);
-+	return !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
- }
- 
- static int acpi_device_uevent(struct device *dev, char **envp, int num_envp,
--	char *buffer, int buffer_size)
-+			      char *buffer, int buffer_size)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	int i = 0, length = 0, ret = 0;
--
--	if (acpi_dev->flags.hardware_id)
--		ret = add_uevent_var(envp, num_envp, &i,
--			buffer, buffer_size, &length,
--			"HWID=%s", acpi_dev->pnp.hardware_id);
--	if (ret)
--		return -ENOMEM;
--	if (acpi_dev->flags.compatible_ids) {
--		int j;
--		struct acpi_compatible_id_list *cid_list;
- 
--		cid_list = acpi_dev->pnp.cid_list;
--
--		for (j = 0; j < cid_list->count; j++) {
--			ret = add_uevent_var(envp, num_envp, &i, buffer,
--				buffer_size, &length, "COMPTID=%s",
--				cid_list->id[j].value);
--			if (ret)
--				return -ENOMEM;
--		}
-+	strcpy(buffer, "MODALIAS=");
-+	if (create_modalias(acpi_dev, buffer + 9, buffer_size - 9) > 0) {
-+		envp[0] = buffer;
-+		envp[1] = NULL;
- 	}
--
--	envp[i] = NULL;
- 	return 0;
- }
- 
-@@ -543,25 +621,6 @@ void acpi_bus_data_handler(acpi_handle handle, u32 function, void *context)
- 	return;
- }
- 
--int acpi_match_ids(struct acpi_device *device, char *ids)
--{
--	if (device->flags.hardware_id)
--		if (strstr(ids, device->pnp.hardware_id))
--			return 0;
--
--	if (device->flags.compatible_ids) {
--		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
--		int i;
--
--		/* compare multiple _CID entries against driver ids */
--		for (i = 0; i < cid_list->count; i++) {
--			if (strstr(ids, cid_list->id[i].value))
--				return 0;
--		}
--	}
--	return -ENOENT;
--}
--
- static int acpi_bus_get_perf_flags(struct acpi_device *device)
- {
- 	device->performance.state = ACPI_STATE_UNKNOWN;
-@@ -624,6 +683,13 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *package = NULL;
- 
-+	struct acpi_device_id button_device_ids[] = {
-+		{"PNP0C0D", 0},
-+		{"PNP0C0C", 0},
-+		{"PNP0C0E", 0},
-+		{"", 0},
-+	};
-+
- 
- 	/* _PRW */
- 	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
-@@ -643,7 +709,7 @@ static int acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
- 
- 	device->wakeup.flags.valid = 1;
- 	/* Power button, Lid switch always enable wakeup */
--	if (!acpi_match_ids(device, "PNP0C0D,PNP0C0C,PNP0C0E"))
-+	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
- 
-       end:
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index a005487..0bc8891 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -21,7 +21,10 @@
- 
- #include <linux/acpi.h>
- #include <linux/pnp.h>
-+#include <linux/mod_devicetable.h>
- #include <acpi/acpi_bus.h>
-+#include <acpi/actypes.h>
-+
- #include "pnpacpi.h"
- 
- static int num = 0;
-@@ -33,15 +36,17 @@ static int num = 0;
-  * have irqs (PIC, Timer) because we call acpi_register_gsi.
-  * Finaly only devices that have a CRS method need to be in this list.
-  */
--static char __initdata excluded_id_list[] =
--	"PNP0C09," /* EC */
--	"PNP0C0F," /* Link device */
--	"PNP0000," /* PIC */
--	"PNP0100," /* Timer */
--	;
-+static __initdata struct acpi_device_id excluded_id_list[] ={
-+	{"PNP0C09", 0}, /* EC */
-+	{"PNP0C0F", 0}, /* Link device */
-+	{"PNP0000", 0}, /* PIC */
-+	{"PNP0100", 0}, /* Timer */
-+	{"", 0},
-+};
-+
- static inline int is_exclusive_device(struct acpi_device *dev)
- {
--	return (!acpi_match_ids(dev, excluded_id_list));
-+	return (!acpi_match_device_ids(dev, excluded_id_list));
- }
- 
- /*
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d5680cd..bf5e000 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -33,6 +33,7 @@
- #endif
- 
- #include <linux/list.h>
-+#include <linux/mod_devicetable.h>
- 
- #include <acpi/acpi.h>
- #include <acpi/acpi_bus.h>
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index af04a55..2ada8ee 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -159,6 +159,12 @@ struct ap_device_id {
- 
- #define AP_DEVICE_ID_MATCH_DEVICE_TYPE		0x01
- 
-+#define ACPI_ID_LEN	9
-+
-+struct acpi_device_id {
-+	__u8 id[ACPI_ID_LEN];
-+	kernel_ulong_t driver_data;
-+};
- 
- #define PNP_ID_LEN	8
- #define PNP_MAX_DEVICES	8
-diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
-index f646381..8a09021 100644
---- a/scripts/mod/file2alias.c
-+++ b/scripts/mod/file2alias.c
-@@ -290,6 +290,14 @@ static int do_serio_entry(const char *filename,
- 	return 1;
- }
- 
-+/* looks like: "acpi:ACPI0003 or acpi:PNP0C0B" or "acpi:LNXVIDEO" */
-+static int do_acpi_entry(const char *filename,
-+			struct acpi_device_id *id, char *alias)
-+{
-+	sprintf(alias, "acpi*:%s:", id->id);
-+	return 1;
-+}
-+
- /* looks like: "pnp:dD" */
- static int do_pnp_entry(const char *filename,
- 			struct pnp_device_id *id, char *alias)
-@@ -551,6 +559,10 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct serio_device_id), "serio",
- 			 do_serio_entry, mod);
-+	else if (sym_is(symname, "__mod_acpi_device_table"))
-+		do_table(symval, sym->st_size,
-+			 sizeof(struct acpi_device_id), "acpi",
-+			 do_acpi_entry, mod);
- 	else if (sym_is(symname, "__mod_pnp_device_table"))
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct pnp_device_id), "pnp",
+ config ACPI_AC
+ 	tristate "AC Adapter"
 -- 
 1.5.3.rc2.22.g69a9b
