@@ -1,73 +1,68 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 14/16] ACPI: Remove references to ACPI_STATE_S2 from acpi_pm_enter
-Date: Wed, 25 Jul 2007 01:51:23 -0400
-Message-ID: <11853427003606-git-send-email-len.brown@intel.com>
+Subject: [PATCH 13/16] ACPI: Kconfig: always enable CONFIG_ACPI_SLEEP on X86
+Date: Wed, 25 Jul 2007 01:51:22 -0400
+Message-ID: <1185342699713-git-send-email-len.brown@intel.com>
 References: <11853426852588-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5266 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:18276 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752959AbXGYFvm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1753138AbXGYFvm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 25 Jul 2007 01:51:42 -0400
 In-Reply-To: <11853426852588-git-send-email-len.brown@intel.com>
-Message-Id: <50ad147aa09c829cd452fae6ca99396c0b5b0695.1185342489.git.len.brown@intel.com>
+Message-Id: <7c5aa6642fa26641ebf286966a165aec71c91991.1185342489.git.len.brown@intel.com>
 In-Reply-To: <e9b3aba887f47f9cd64de20fec9c333a932b70dc.1185342489.git.len.brown@intel.com>
 References: <e9b3aba887f47f9cd64de20fec9c333a932b70dc.1185342489.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+The SMP dependency on HOTPLUG_CPU and SUSPEND_SMP
+caused more harm than good -- making ACPI sleep
+support vanish for configs missing those options.
+So simply select them on the (ACPI && SMP && X86) systems
+that need them.
 
-Remove references to ACPI_STATE_S2, introduced by
-acpi-implement-the-set_target-callback-from-pm_ops.patch, from acpi_pm_enter().
+Also, remove the prompt for ACPI_SLEEP,
+virtually nobody (intentionally) enables ACPI without it.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/acpi/Kconfig |   21 ++++-----------------
+ 1 files changed, 4 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 55eca6e..29bdb01 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -81,8 +81,8 @@ static int acpi_pm_prepare(suspend_state_t pm_state)
-  *	acpi_pm_enter - Actually enter a sleep state.
-  *	@pm_state: ignored
-  *
-- *	Flush caches and go to sleep. For STR or S2, we have to call
-- *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
-+ *	Flush caches and go to sleep. For STR we have to call arch-specific
-+ *	assembly, which in turn call acpi_enter_sleep_state().
-  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
-  */
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index efd47ee..524cbf1 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -43,24 +43,11 @@ menuconfig ACPI
+ if ACPI
  
-@@ -95,7 +95,7 @@ static int acpi_pm_enter(suspend_state_t pm_state)
- 	ACPI_FLUSH_CPU_CACHE();
+ config ACPI_SLEEP
+-	bool "Sleep States"
+-	depends on X86 && (!SMP || SUSPEND_SMP)
++	bool
++	depends on X86
++	select HOTPLUG_CPU if SMP
++	select SUSPEND_SMP if SMP
+ 	default y
+-	---help---
+-	  This option adds support for ACPI suspend states. 
+-
+-	  With this option, you will be able to put the system "to sleep". 
+-	  Sleep states are low power states for the system and devices. All
+-	  of the system operating state is saved to either memory or disk
+-	  (depending on the state), to allow the system to resume operation
+-	  quickly at your request.
+-
+-	  Although this option sounds really nifty, barely any of the device
+-	  drivers have been converted to the new driver model and hence few
+-	  have proper power management support. 
+-
+-	  This option is not recommended for anyone except those doing driver
+-	  power management development.
  
- 	/* Do arch specific saving of state. */
--	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
-+	if (acpi_state == ACPI_STATE_S3) {
- 		int error = acpi_save_state_mem();
- 
- 		if (error) {
-@@ -112,7 +112,6 @@ static int acpi_pm_enter(suspend_state_t pm_state)
- 		status = acpi_enter_sleep_state(acpi_state);
- 		break;
- 
--	case ACPI_STATE_S2:
- 	case ACPI_STATE_S3:
- 		do_suspend_lowlevel();
- 		break;
-@@ -129,7 +128,7 @@ static int acpi_pm_enter(suspend_state_t pm_state)
- 	printk(KERN_DEBUG "Back to C!\n");
- 
- 	/* restore processor state */
--	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
-+	if (acpi_state == ACPI_STATE_S3)
- 		acpi_restore_state_mem();
- 
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ config ACPI_PROCFS
+ 	bool "Deprecated /proc/acpi files"
 -- 
 1.5.3.rc2.22.g69a9b
