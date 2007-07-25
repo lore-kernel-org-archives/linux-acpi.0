@@ -1,77 +1,46 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: adding new device and driver HOWTO?
-Date: Tue, 24 Jul 2007 16:12:15 -0600
-Message-ID: <200707241612.15163.bjorn.helgaas@hp.com>
-References: <7ee95fff0707231547k3511b730qda9caf034473e5d1@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [2.6.22] ACPI video problems with T60p laptop
+Date: Tue, 24 Jul 2007 22:12:35 -0300
+Message-ID: <20070725011235.GB778@khazad-dum.debian.net>
+References: <974101.13462.qm@web52908.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:39689 "EHLO atlrel8.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756737AbXGXWPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:15:42 -0400
-In-Reply-To: <7ee95fff0707231547k3511b730qda9caf034473e5d1@mail.gmail.com>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:57633 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757594AbXGYBMj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Jul 2007 21:12:39 -0400
 Content-Disposition: inline
+In-Reply-To: <974101.13462.qm@web52908.mail.re2.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ken MacLeod <ken@bitsko.slc.ut.us>
+To: Chris Rankin <rankincj@yahoo.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Monday 23 July 2007 04:47:16 pm Ken MacLeod wrote:
-> We manufacture an x86 system with a device on an I/O port.  We
-> initially wrote our Linux driver to load in an init script and if it
-> probed OK then we knew the device was present.  We now want to be a
-> little safer and portable by enumerating and autoloading properly.
+On Tue, 24 Jul 2007, Chris Rankin wrote:
+> - The kernel is likely to lock up when the video.ko modules loads, if nmi_watchdog=1
+
+NEVER use nmi_watchdog on thinkpads.  IBM/Lenovo's crap of a SMBIOS is
+deeply alergic to NMIs while handling a SMI.
+
+I don't know why the nmi_watchdog is not blacklisted on thinkpads, I recall
+someone wanted to do that and sent a patch...
+
+> - The VID/ directory appears twice in the /proc/acpi/video/ directory:
 > 
-> Problem is, everything I've read so far is geared towards installing
-> ACPI or using it, particularly only with well-known devices for power
-> management.
-> 
-> I can't seem to find an example DSDT definition for a generic device
-> or how I would tie that to its driver -- a new device developer's
-> HOWTO.
+> $ ls -alis /proc/acpi/video/
+> total 0
+> 4026532147 0 dr-xr-xr-x  4 root root 0 2007-07-24 22:17 .
+> 4026531915 0 dr-xr-xr-x 12 root root 0 2007-07-24 19:27 ..
+> 4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
+> 4026532169 0 dr-xr-xr-x  5 root root 0 2007-07-24 22:17 VID
 
-Here's sample DSDT code for a UART:
+This is stuff that is overloaded by a SSDT in the thinkpad. Maybe something
+is weird with that?
 
-            Device (U000)
-            {
-                Name (_HID, EisaId ("PNP0501"))
-                Name (_UID, 0x40000010)
-                Method (_STA, 0, NotSerialized)
-                {
-                    Return (0x0000000F)
-                }
-
-                Name (_CRS, ResourceTemplate ()
-                {
-                    QWordMemory (ResourceConsumer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
-                        0x0000000000000000, // Address Space Granularity
-                        0x00000FFC300E4000, // Address Range Minimum
-                        0x00000FFC300E4007, // Address Range Maximum
-                        0x0000000000000000, // Address Translation Offset
-                        0x0000000000000008, // Address Length
-                        ,,, AddressRangeMemory, TypeStatic)
-                    Interrupt (ResourceConsumer, Level, ActiveLow, Shared, ,,)
-                    {
-                        0x00000017,
-                    }
-                })
-            }
-
-The Linux driver that claims this device is drivers/serial/8250_pnp.c.
-It has a pnp_dev_table[] that contains PNP IDs that it will claim.
-
-So you need to get yourself a new unique PNP ID.  I've never done it,
-but you might be able to do it here:
-  http://www.microsoft.com/whdc/system/pnppwr/pnp/pnpid.mspx
-
-Then add a description of your device to your DSDT using your new
-PNP ID as the _HID, and write a Linux driver that registers with that
-same PNP ID.
-
-I think there's now some mechanism for autoloading using udev, maybe
-using acpi_device_uevent(), but I don't know much about it.
-
-Bjorn
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
