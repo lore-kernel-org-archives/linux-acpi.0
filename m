@@ -1,37 +1,41 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
 Subject: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1
-Date: Wed, 25 Jul 2007 11:48:44 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0707251147130.3607@woody.linux-foundation.org>
-References: <200707251238.50218.lenb@kernel.org>
+Date: Wed, 25 Jul 2007 15:44:35 -0400
+Message-ID: <200707251544.35811.lenb@kernel.org>
+References: <200707251238.50218.lenb@kernel.org> <20070725164928.GA15918@dose.home.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58511 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935141AbXGYStG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jul 2007 14:49:06 -0400
-In-Reply-To: <200707251238.50218.lenb@kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:59729 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101AbXGYTol (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jul 2007 15:44:41 -0400
+In-Reply-To: <20070725164928.GA15918@dose.home.local>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tino Keitel <tino.keitel@tikei.de>
+Cc: linux-acpi@vger.kernel.org
 
-
-
-On Wed, 25 Jul 2007, Len Brown wrote:
+On Wednesday 25 July 2007 12:49, Tino Keitel wrote:
+> On Wed, Jul 25, 2007 at 12:38:50 -0400, Len Brown wrote:
+> > Len Brown (5):
+> >       ACPI: Kconfig: CONFIG_ACPI_PROCFS now defaults to N
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+> Hi,
 > 
-> Fixes regressions -- a build failure, an oops, some dmesg spam.
-> Also fixes some D-state issues and adds ACPI module auto-loading.
-> Yes, I'd hoped to get the last two in before rc1.
-> I'm hopeful that a couple-days into rc2 is sufficiently early for them.
+> where can I find the information in /proc/acpi/battery and
+> /proc/acpi/processor without procfs?
 
-I hate pulling this, but I did. However, what I hate even more after 
-having done so is that ACPI now seems to select CPU hotplug. Why?
+CONFIG_ACPI_PROCFS applies only to the deprecated /proc files
+listed in the Kconfig help -- it doesn't apply (yet)
+to /proc/acpi/battery and /proc/acpi/processor
 
-That is just *broken*. Sure, if you select STR or hibernation, we need CPU 
-hotplug, but just for picking ACPI? Why?
+see the patch here:
 
-		Linus
+http://marc.info/?l=linux-acpi&m=118534272010912&w=2
+
+cheers,
+-Len
