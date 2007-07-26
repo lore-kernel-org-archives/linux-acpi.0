@@ -1,76 +1,50 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1
-Date: Thu, 26 Jul 2007 00:02:45 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0707252357420.3442@woody.linux-foundation.org>
-References: <200707251238.50218.lenb@kernel.org>
- <alpine.LFD.0.999.0707251147130.3607@woody.linux-foundation.org>
- <200707251851.22777.lenb@kernel.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [patch 2.6.21-rc5-git 2/3] ACPI driver model flags and
+	platform_enable_wake()
+Date: Thu, 26 Jul 2007 16:07:39 +0900
+Message-ID: <20070726070739.GB3901@inferi.kami.home>
+References: <200704051249.10407.david-b@pacbell.net> <200707251304.03191.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41010 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755523AbXGZHC7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2007 03:02:59 -0400
-In-Reply-To: <200707251851.22777.lenb@kernel.org>
+Received: from aa014msr.fastwebnet.it ([85.18.95.74]:54465 "EHLO
+	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762072AbXGZHHv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2007 03:07:51 -0400
+Content-Disposition: inline
+In-Reply-To: <200707251304.03191.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>
 
-
-
-On Wed, 25 Jul 2007, Len Brown wrote:
-> On Wednesday 25 July 2007 14:48, Linus Torvalds wrote:
+On Wed, Jul 25, 2007 at 01:04:02PM -0700, David Brownell wrote:
+> I'm curious about the status of the appended patch ... without it,
+> the new acpi_pm_device_sleep_state() routine isn't really able to
+> do anything intelligent.  The patch still applies to 2.6.23-rc1-git;
+> my patches-that-still-haven't-merged queue has had this at the very
+> top for quite a few months now...
 > 
-> > ... ACPI now seems to select CPU hotplug. Why? 
-> 
-> ACPI=y SMP=y systems require SUSPEND_SMP=y for system sleep support,
-> and that requires HOTPLUG_CPU=y.
+> As I recall, Mattia Dongili <malattia@linux.it> reported an error
+> with a Vaio laptop; it would wake immediately after entering STR.
+> It didn't reproduce for anyone else.  But that was eventually tracked
+> down to a bug in iwl3945, which has since been fixed (yes?).
 
-.. and why do you think I want system sleep support? That's the bug.
+not exactly. The problem was a pcmcia express card reader disconnecting
+itself after suspend and thus triggering the wakeup.
+A good summary is this and following posts:
+http://marc.info/?l=linux-acpi&m=118250426218485&w=2
 
-> Note that ACPI=y SMP=n systems do not need it,
-> and thus will not select HOTPLUG_CPU=y
+AFAICT it is reproducible by simply suspending and disconnecting an usb
+mouse, that should trigger the wakeup event :)
 
-I want SMP, dammit. This machine has multi-core. And I want ACPI. I just 
-don't want the system sleep thing.
+...
+> On Thursday 05 April 2007, David Brownell wrote:
+> > This upgrades the ACPI code to start cooperating with the two driver
+> > model wakeup flags and with pci_enable_wake(), based on the previous
+> > patch updating that PCI call:
 
-I didn't have it before, I don't need it, I don't want it.
-
-> My assumption is that if somebody selects CONFIG_ACPI,
-> that 99% of the time, they intend that to include support for
-> the ACPI hooks for system sleep states.
-
-That wasn't true before, and it makes no sense what-so-ever as an 
-assumption.
-
-The system sleep states are mostly usable on laptops. Not always even 
-then. They are seldom used on desktops or servers, but both of those are 
-often SMP machines, and certainly want ACPI.
-
-So your "99%" makes no sense.
-
-> So today we have this:
-> 
-> menuconfig ACPI
-> 	...
->         select HOTPLUG_CPU if X86 && SMP
->         select SUSPEND_SMP if X86 && SMP
-
-But why the *hell* is this dependent on ACPI?
-
-Why not just do ACPI_SLEEP, and have *that* do "select 
-HOTPLUG_CPU/SUSPEND_CPU".
-
-> Which I think leads to fewer surprises, and less complicated code.
-
-That makes no sense. You're tying together things that have *nothing* to 
-do with each other.
-
-As mentioned (and as is *obvious*), pretty much everybody who has a 
-multi-core CPU on x86 wants ACPI and SMP. But the set of people who want 
-to sw-suspend such a machine is *much* smaller. There is no 99%.
-
-			Linus
+ciao
+-- 
+mattia
+:wq!
