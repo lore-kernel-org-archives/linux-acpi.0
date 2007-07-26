@@ -1,55 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
-Date: Thu, 26 Jul 2007 22:48:08 +0200
-Message-ID: <200707262248.09187.rjw@sisk.pl>
-References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for
+ 2.6.23-rc1)
+Date: Thu, 26 Jul 2007 13:55:18 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
+References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl>
+ <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org>
+ <200707262248.09187.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38283 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764714AbXGZUjo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2007 16:39:44 -0400
-In-Reply-To: <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59941 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757143AbXGZU4R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jul 2007 16:56:17 -0400
+In-Reply-To: <200707262248.09187.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Thursday, 26 July 2007 21:57, Linus Torvalds wrote:
+
+
+On Thu, 26 Jul 2007, Rafael J. Wysocki wrote:
 > 
-> On Thu, 26 Jul 2007, Rafael J. Wysocki wrote:
-> > 
-> > Hmm, perhaps we should introduce a CONFIG_SUSPEND and change
-> > CONFIG_SOFTWARE_SUSPEND into CONFIG_HIBERNATION, both depending on
-> > CONFIG_PM?
-> > 
-> > There's quite some code needed only for suspend compiled in when CONFIG_PM is
-> > set ...
-> 
-> Sounds like a good idea, although I suspect that CONFIG_PM really *is* 
-> fairly close to CONFIG_SUSPEND. The thing is, all the stuff it enabled is 
-> largely useless without at least STR.
+> My point is we have ACPI dependent on PM, so if you want ACPI, you end
+> up with all of the STR stuff built in, which is what you don't like (if I
+> understand that correctly).  If we have CONFIG_SUSPEND, you'll be able to
+> choose ACPI alone. :-)
 
-My point is we have ACPI dependent on PM, so if you want ACPI, you end
-up with all of the STR stuff built in, which is what you don't like (if I
-understand that correctly).  If we have CONFIG_SUSPEND, you'll be able to
-choose ACPI alone. :-)
+Good point. 
 
-> (Yes, I realize that you can do per-driver suspend events etc, but I 
-> suspect not a lot of people have used it).
->
-> But from a logical standpoint, it does make sense to have a separate 
-> config option for the STR support.
+Anyway, I think the ACPI problem really is as trivial as the following 
+three-liner removal fix. If the user doesn't want suspend, ACPI shouldn't 
+force it on him.
 
-Exactly.
+A nicer fix might be to also make some of the ACPI helper routines depend 
+on whether they are needed or not (which in turn will depend on whether 
+suspend support has been compiled into the kernel), but quite frankly, 
+that's secondary at least for me.
 
-Greetings,
-Rafael
+So if we have a few ACPI routines that will never get called (because we 
+don't even enable the interfaces that would *cause* them to be called), I 
+don't think that's a huge problem. It's a beauty wart, but nobody really 
+cares (and it's even something that we could get the compiler to optimize 
+away for us if we really cared).
 
+		Linus
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+---
+    Don't force-enable suspend/hibernate support just for ACPI
+    
+    It's a totally independent decision for the user whether he wants
+    suspend and/or hibernation support, and ACPI shouldn't care.
+    
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ drivers/acpi/Kconfig |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 251344c..22b401b 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -11,9 +11,6 @@ menuconfig ACPI
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+-	# for sleep
+-	select HOTPLUG_CPU if X86 && SMP
+-	select SUSPEND_SMP if X86 && SMP
+ 	default y
+ 	---help---
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
