@@ -1,65 +1,44 @@
-From: Benson Chow <blc+acpi@q.dyndns.org>
-Subject: ACPI hang on startup, inconsistent
-Date: Thu, 26 Jul 2007 13:19:54 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0707261305230.25067@q.dyndns.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for
+ 2.6.23-rc1)
+Date: Thu, 26 Jul 2007 12:57:54 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org>
+References: <200707251238.50218.lenb@kernel.org>
+ <alpine.LFD.0.999.0707252353150.3442@woody.linux-foundation.org>
+ <200707261345.29902.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from doujima.mine.nu ([70.57.19.177]:58545 "EHLO q.dyndns.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761772AbXGZTeI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:34:08 -0400
-Received: from q.dyndns.org (localhost [127.0.0.1])
-	by q.dyndns.org (8.14.0/8.14.0) with ESMTP id l6QJJtew025218
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Jul 2007 13:20:30 -0600
-Received: from localhost (blc@localhost)
-	by q.dyndns.org (8.14.0/8.14.0/Submit) with ESMTP id l6QJJsI9025212
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Jul 2007 13:19:54 -0600
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52032 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754569AbXGZT6W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jul 2007 15:58:22 -0400
+In-Reply-To: <200707262117.26353.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-I'm seeing a fairly strange hang on my Foxconn G9657MA with firmware 50.
-
-Upon bootup I get a hang while working with ACPI.  With ACPI debug 
-statements turned on, it hangs after (Kernel 2.6.21.5 stock):
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
 
-[...]
-Compat vDSO mapped to ffffe000.
-Checking 'hlt' instruction... OK.
-Freeing SMP alternatives: 12k freed
-ACPI: Core revision 20070126
-Parsing all Control Methods:
-Table [DSDT](id 0001) - 694 Objects with 62 Devices 187 Methods 43 Regions
-  tbxface-0587 [02] tb_load_namespace     : ACPI Tables successfully acquired
-[hang occurs here]
 
-The kicker is these few observations:
-1) Booting off the Ubuntu 7.04 CD seems to always works fine.
-2) Booting off the Windows XP CD seems to always works fine.
-3) Booting with ACPI=OFF always works (but then my PATA port fails to work)
-4) the trick: If I let it boot with ACPI=OFF past the timeouts while 
-detecting the above PATA port, and then immediately control-alt-delete 
-reboot the machine, it will once boot fine without ACPI=OFF, just that 
-one time!
+On Thu, 26 Jul 2007, Rafael J. Wysocki wrote:
+> 
+> Hmm, perhaps we should introduce a CONFIG_SUSPEND and change
+> CONFIG_SOFTWARE_SUSPEND into CONFIG_HIBERNATION, both depending on
+> CONFIG_PM?
+> 
+> There's quite some code needed only for suspend compiled in when CONFIG_PM is
+> set ...
 
+Sounds like a good idea, although I suspect that CONFIG_PM really *is* 
+fairly close to CONFIG_SUSPEND. The thing is, all the stuff it enabled is 
+largely useless without at least STR.
 
-When I did get the machine to come up, I was able to grab and decompile 
-the DSDT.  There were a couple of errors in it.  However should a bad DSDT 
-cause a hang at this point?  I believe I've seen some sillyness such as
-"Store(Local0, Local0)" and getting "use before assignment" of Local0, 
-but I don't have the DSDT handy right.
+(Yes, I realize that you can do per-driver suspend events etc, but I 
+suspect not a lot of people have used it).
 
-Any other hints I could try to get to the bottom of this issue?  Let me 
-know if there's some more data I can collect.
+But from a logical standpoint, it does make sense to have a separate 
+config option for the STR support.
 
-Thanks,
-
--bc
-
-Reference:
-If the machine doesn't hang, the next two lines displayed in dmesg are:
-
-evxfevnt-0091 [02] enable                : Transition to ACPI mode successful
-CPU0: Intel(R) Core(TM)2 CPU          6700  @ 2.66GHz stepping 06
+		Linus
