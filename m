@@ -1,39 +1,138 @@
-From: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [v4l-dvb-maintainer] [2/2] 2.6.23-rc1: known
- regressions with patches v2
-Date: Fri, 27 Jul 2007 14:16:44 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0707271414420.30561@shell4.speakeasy.net>
-References: <46AA5A28.3090205@googlemail.com> <46AA5B4A.40500@googlemail.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] let SUSPEND select HOTPLUG_CPU
+Date: Sat, 28 Jul 2007 00:25:03 +0200
+Message-ID: <20070727222503.GB15129@stusta.de>
+References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org> <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <46AA5B4A.40500@googlemail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Mikael Pettersson <mikpe@it.uu.se>, Peter Zijlstra <peterz@infradead.org>, Thierry MERLE <thierry.merle@free.fr>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, linux-usb-devel@lists.sourceforge.net, Kay Sievers <kay.sievers@vrfy.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Mel Gorman <mel@skynet.ie>, Simon Arlott <simon@fire.lp0.eu>, Ingo Molnar <mingo@elte.hu>, Greg KH <gregkh@suse.de>, Mauro Carvalho Chehab <mchehab@infradead.org>, Pekka Enberg <penberg@cs.helsinki.fi>, Cornelia Huck <cornelia.huck@de.ibm.com>, "Dwaine P. Garden" <dwainegarden@rogers.com>, v4l-dvb-maintainer@linuxtv.org, linux-pm@lists.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foun>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:46919 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934915AbXG0WZ2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2007 18:25:28 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Fri, 27 Jul 2007, Michal Piotrowski wrote:
-> Media
->
-> Subject         : usbvision: don't return an uninitialized value
-> References      : http://lkml.org/lkml/2007/7/23/65
-> Last known good : ?
-> Submitter       : Adrian Bunk <bunk@stusta.de>
-> Caused-By       : ?
-> Handled-By      : Adrian Bunk <bunk@stusta.de>
-> Patch           : http://lkml.org/lkml/2007/7/23/65
-> Status          : patch available
+On Thu, Jul 26, 2007 at 01:55:18PM -0700, Linus Torvalds wrote:
+> 
+> 
+> On Thu, 26 Jul 2007, Rafael J. Wysocki wrote:
+> > 
+> > My point is we have ACPI dependent on PM, so if you want ACPI, you end
+> > up with all of the STR stuff built in, which is what you don't like (if I
+> > understand that correctly).  If we have CONFIG_SUSPEND, you'll be able to
+> > choose ACPI alone. :-)
+> 
+> Good point. 
+> 
+> Anyway, I think the ACPI problem really is as trivial as the following 
+> three-liner removal fix. If the user doesn't want suspend, ACPI shouldn't 
+> force it on him.
+> 
+> A nicer fix might be to also make some of the ACPI helper routines depend 
+> on whether they are needed or not (which in turn will depend on whether 
+> suspend support has been compiled into the kernel), but quite frankly, 
+> that's secondary at least for me.
+> 
+> So if we have a few ACPI routines that will never get called (because we 
+> don't even enable the interfaces that would *cause* them to be called), I 
+> don't think that's a huge problem. It's a beauty wart, but nobody really 
+> cares (and it's even something that we could get the compiler to optimize 
+> away for us if we really cared).
+> 
+> 		Linus
+> 
+> ---
+>     Don't force-enable suspend/hibernate support just for ACPI
+>     
+>     It's a totally independent decision for the user whether he wants
+>     suspend and/or hibernation support, and ACPI shouldn't care.
+>     
+>     Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+> ---
+>  drivers/acpi/Kconfig |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 251344c..22b401b 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -11,9 +11,6 @@ menuconfig ACPI
+>  	depends on PCI
+>  	depends on PM
+>  	select PNP
+> -	# for sleep
+> -	select HOTPLUG_CPU if X86 && SMP
+> -	select SUSPEND_SMP if X86 && SMP
+>  	default y
+>  	---help---
+>  	  Advanced Configuration and Power Interface (ACPI) support for 
 
-I've made a real fix for this one:
+The dependency of SUSPEND_SMP on HOTPLUG_CPU is quite unintuitive, so 
+what about something like the patch below?
 
-http://lkml.org/lkml/2007/7/23/114
-http://linuxtv.org/hg/v4l-dvb/rev/d5c4fffbbad3
+This should address a main issue behind Len's patch.
+
+cu
+Adrian
+
+
+<--  snip  -->
+
+
+An implementation detail of the suspend code that is not intuitive for 
+the user is the HOTPLUG_CPU dependency of SOFTWARE_SUSPEND if SMP.
+
+This patch changes SOFTWARE_SUSPEND if SMP to select HOTPLUG_CPU instead 
+of depending on it.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+
+ kernel/power/Kconfig |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -72,9 +72,22 @@ config PM_TRACE
+ 	CAUTION: this option will cause your machine's real-time clock to be
+ 	set to an invalid time after a resume.
+ 
++config SUSPEND_SMP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
++	depends on SMP
++	default y
++
++config SUSPEND_SMP
++	bool
++	depends on SUSPEND_SMP_POSSIBLE && SOFTWARE_SUSPEND
++	select HOTPLUG_CPU
++	default y
++
+ config SOFTWARE_SUSPEND
+ 	bool "Software Suspend (Hibernation)"
+-	depends on PM && SWAP && (((X86 || PPC64_SWSUSP) && (!SMP || SUSPEND_SMP)) || ((FRV || PPC32) && !SMP))
++	depends on PM && SWAP
++	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
+ 	---help---
+ 	  Enable the suspend to disk (STD) functionality, which is usually
+ 	  called "hibernation" in user interfaces.  STD checkpoints the
+@@ -132,11 +145,6 @@ config PM_STD_PARTITION
+ 	  suspended image to. It will simply pick the first available swap 
+ 	  device.
+ 
+-config SUSPEND_SMP
+-	bool
+-	depends on HOTPLUG_CPU && (X86 || PPC64) && PM
+-	default y
+-
+ config APM_EMULATION
+ 	tristate "Advanced Power Management Emulation"
+ 	depends on PM && SYS_SUPPORTS_APM_EMULATION
+
