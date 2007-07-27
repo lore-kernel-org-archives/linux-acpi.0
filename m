@@ -1,47 +1,104 @@
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [2.6 patch] let SUSPEND select HOTPLUG_CPU
-Date: Sat, 28 Jul 2007 00:47:37 +0200
-Message-ID: <46AA7609.1040900@s5r6.in-berlin.de>
-References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org> <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org> <20070727222503.GB15129@stusta.de>
+Date: Fri, 27 Jul 2007 15:57:39 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707271545220.3442@woody.linux-foundation.org>
+References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl>
+ <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org>
+ <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
+ <20070727222503.GB15129@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S938124AbXG0Wsv@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38496 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752680AbXG0W6s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jul 2007 18:58:48 -0400
 In-Reply-To: <20070727222503.GB15129@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-Adrian Bunk wrote:
-> The dependency of SUSPEND_SMP on HOTPLUG_CPU is quite unintuitive,
 
-It's not entirely unintuitive.  That option's full name is "Support for
-suspend on SMP and hot-pluggable CPUs".
 
-Only the place where you find the option is unintuitive, as far as its
-first application is concerned.  (It lives in the "Processor type and
-features" menu which is OK for the 2nd application of this option.)  And
-the variable name of that option is unintuitive because it covers only
-the 2nd application of the option, I suppose for historical reasons.
+On Sat, 28 Jul 2007, Adrian Bunk wrote:
+> 
+> The dependency of SUSPEND_SMP on HOTPLUG_CPU is quite unintuitive, so 
+> what about something like the patch below?
+
+Yeah, this looks reasonable.
+
+May I suggest another level of indirection, though:
 
 > +config SUSPEND_SMP_POSSIBLE
 > +	bool
 > +	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
 > +	depends on SMP
 > +	default y
-> +
-> +config SUSPEND_SMP
-> +	bool
-> +	depends on SUSPEND_SMP_POSSIBLE && SOFTWARE_SUSPEND
-> +	select HOTPLUG_CPU
-> +	default y
 
-Yes, that's the price to pay if you want to select something that in
-turn depends on a number of other things.
+How about making this a bit more split up, and do it as
 
-Wait, doesn't HOTPLUG_CPU also depend on EXPERIMENTAL?
--- 
-Stefan Richter
--=====-=-=== -=== ===--
-http://arcgraph.de/sr/
+	# SMP suspend is possible on ..
+	config SUSPEND_SMP_POSSIBLE
+		bool
+		depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
+		default y
+
+	# UP suspend is possible on ..
+	config SUSPEND_UP_POSSIBLE
+		bool
+		depends on X86 || PPC64_SWSUSP || FRV || PPC32
+		default y 
+
+	# Can we suspend?
+	config SUSPEND_POSSIBLE
+		bool
+		depends on (SMP && SUSPEND_SMP_POSSIBLE) || (SUSPEND_UP_POSSIBLE && !SMP)
+		default y
+
+and then we have just a
+
+	config SOFTWARE_SUSPEND
+		bool "Software Suspend (Hibernation)"
+		depends on PM && SWAP
+		depends on SUSPEND_POSSIBLE
+
+	config SUSPEND_SMP
+		bool
+		depends on SOFTWARE_SUSPEND && SMP
+		select HOTPLUG_CPU
+		default y
+
+and now each of the config options looks pretty simple and describe one 
+thing.
+
+[ For extra bonus points: the SUSPEND_POSSIBLE thing is still pretty 
+  complicated, and it might actually be a better idea to make it a 
+  per-arch config option, and just make the x86/arch say
+
+	config SUSPEND_POSSIBLE
+		bool
+		depends on !(X86_VOYAGER && SMP)
+		default y
+
+  instead: since SUSPEND_POSSIBLE is always true on x86 regardless of SMP 
+  or not, just not on X86_VOYAGER. Then, each architecture can have its 
+  own private rules for whether that architecture has SUSPEND_POSSIBLE or 
+  not, so on ppc, it might look like
+
+	config SUSPEND_POSSIBLE
+		bool
+		depends on (PPC64 && (PPC_PSERIES || PPC_PMAC)) || PPC_SWSUSP
+		bool y
+
+  or something, but the point is, now the complexity is a per-architecture 
+  thing, so other architectures simply don't have to care any more! ]
+
+And the user only ever sees one single question: the one for 
+"SOFTWARE_SUSPEND". All the others would directly flow either from the 
+architecture choice, or from that.
+
+Anybody willing to rewrite it that way?
+
+			Linus
