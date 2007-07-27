@@ -1,91 +1,125 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] ACPI: thinkpad-acpi: fix the module init failure path
-Date: Fri, 27 Jul 2007 17:04:40 -0300
-Message-ID: <11855666802322-git-send-email-hmh@hmh.eng.br>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [2/2] 2.6.23-rc1: known regressions with patches v2
+Date: Fri, 27 Jul 2007 22:53:30 +0200
+Message-ID: <46AA5B4A.40500@googlemail.com>
+References: <46AA5A28.3090205@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41366 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934495AbXG0UEt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jul 2007 16:04:49 -0400
+Received: from ug-out-1314.google.com ([66.249.92.174]:19788 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937821AbXG0U4U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2007 16:56:20 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so770821ugf
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Jul 2007 13:56:20 -0700 (PDT)
+In-Reply-To: <46AA5A28.3090205@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Thomas Renninger <trenn@suse.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, v4l-dvb-maintainer@linuxtv.org, Thierry MERLE <thierry.merle@free.fr>, "Dwaine P. Garden" <dwainegarden@rogers.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Adrian Bunk <bunk@stusta.de>, Christoph Lameter <clameter@sgi.com>, Pekka Enberg <penberg@cs.helsinki.fi>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Mikael Pettersson <mikpe@it.uu.se>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Mel Gorman <mel@skynet.ie>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@vrfy.org>, Cornelia Huck <cornelia.huck@de.ibm.com>, Simon Arlott <simon@fire.lp0.eu>, linux-usb-devel@lists.sourceforge.net, Alan Stern <stern@rowlan>
 
-Thomas Renninger reports that if one tries to load thinkpad-acpi in a
-non-thinkpad, one gets:
+Hi all,
 
-Call Trace:
- [<ffffffff802fa57d>] kref_get+0x2f/0x36
- [<ffffffff802f97f7>] kobject_get+0x12/0x17
- [<ffffffff8036dfd7>] get_driver+0x14/0x1a
- [<ffffffff8036dfee>] driver_remove_file+0x11/0x32
- [<ffffffff8823b9be>] :thinkpad_acpi:thinkpad_acpi_module_exit+0xa8/0xfc
- [<ffffffff8824b8a0>] :thinkpad_acpi:thinkpad_acpi_module_init+0x74a/0x776
- [<ffffffff8024f968>] __link_module+0x0/0x25
- [<ffffffff80252269>] sys_init_module+0x162c/0x178f
- [<ffffffff8020bc2e>] system_call+0x7e/0x83
+Here is a list of some known regressions in 2.6.23-rc1
+with patches available.
 
-So, track if the platform driver and its driver attributes were registered,
-and only deallocate them in that case.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-This patch is based on Thomas Renninger's patch for the issue.
+List of Aces
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Thomas Renninger <trenn@suse.de>
----
- drivers/misc/thinkpad_acpi.c |   10 ++++++++--
- drivers/misc/thinkpad_acpi.h |    2 ++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            6
+Andi Kleen                             4
+Andrew Morton                          4
+Linus Torvalds                         4
+Al Viro                                3
+Jens Axboe                             3
+Tejun Heo                              3
+David Woodhouse                        2
+Hugh Dickins                           2
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index f15a58f..2fee6a6 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -4656,12 +4656,15 @@ static int __init thinkpad_acpi_module_init(void)
- 		thinkpad_acpi_module_exit();
- 		return ret;
- 	}
-+	tp_features.platform_drv_registered = 1;
-+
- 	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
- 	if (ret) {
- 		printk(IBM_ERR "unable to create sysfs driver attributes\n");
- 		thinkpad_acpi_module_exit();
- 		return ret;
- 	}
-+	tp_features.platform_drv_attrs_registered = 1;
- 
- 
- 	/* Device initialization */
-@@ -4744,8 +4747,11 @@ static void thinkpad_acpi_module_exit(void)
- 	if (tpacpi_pdev)
- 		platform_device_unregister(tpacpi_pdev);
- 
--	tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
--	platform_driver_unregister(&tpacpi_pdriver);
-+	if (tp_features.platform_drv_attrs_registered)
-+		tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
-+
-+	if (tp_features.platform_drv_registered)
-+		platform_driver_unregister(&tpacpi_pdriver);
- 
- 	if (proc_dir)
- 		remove_proc_entry(IBM_PROC_DIR, acpi_root_dir);
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index b7a4a88..a0b950e 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -246,6 +246,8 @@ static struct {
- 	u16 wan:1;
- 	u16 fan_ctrl_status_undef:1;
- 	u16 input_device_registered:1;
-+	u16 platform_drv_registered:1;
-+	u16 platform_drv_attrs_registered:1;
- } tp_features;
- 
- struct thinkpad_id_data {
--- 
-1.5.2.1
 
+
+Media
+
+Subject         : usbvision: don't return an uninitialized value
+References      : http://lkml.org/lkml/2007/7/23/65
+Last known good : ?
+Submitter       : Adrian Bunk <bunk@stusta.de>
+Caused-By       : ?
+Handled-By      : Adrian Bunk <bunk@stusta.de>
+Patch           : http://lkml.org/lkml/2007/7/23/65
+Status          : patch available
+
+
+
+Memory management
+
+Subject         : [bug] SLUB & freeing locks
+References      : http://lkml.org/lkml/2007/7/26/90
+Last known good : ?
+Submitter       : Ingo Molnar <mingo@elte.hu>
+Caused-By       : ?
+Handled-By      : Peter Zijlstra <peterz@infradead.org>
+Patch           : http://lkml.org/lkml/2007/7/26/97
+Status          : patch available
+
+
+
+Power Management
+
+Subject         : ACPI-related oops on x86_64
+References      : http://lkml.org/lkml/2007/7/23/111
+Last known good : ?
+Submitter       : Mel Gorman <mel@skynet.ie>
+Caused-By       : ?
+Handled-By      : Len Brown <lenb@kernel.org>
+Patch           : http://lkml.org/lkml/2007/7/23/300
+Status          : patch available
+
+Subject         : 2.6.23-rc1 broke APM
+References      : http://lkml.org/lkml/2007/7/23/169
+Last known good : ?
+Submitter       : Mikael Pettersson <mikpe@it.uu.se>
+Caused-By       : ?
+Handled-By      : H. Peter Anvin <hpa@zytor.com>
+Patch           : http://lkml.org/lkml/2007/7/23/489
+Status          : patch available
+
+
+
+SYSFS
+
+Subject         : sysfs/udev broken in 2.6.23-rc1
+References      : http://lkml.org/lkml/2007/7/24/276
+Last known good : ?
+Submitter       : Simon Arlott <simon@fire.lp0.eu>
+Caused-By       : ?
+Handled-By      : Kay Sievers <kay.sievers@vrfy.org>
+                  Cornelia Huck <cornelia.huck@de.ibm.com>
+Patch           : http://lkml.org/lkml/2007/7/25/83
+Status          : patch available
+
+
+
+USB
+
+Subject         : BUG: sleeping function called from invalid context at drivers/usb/core/urb.c:524,in_atomic():1, irqs_disabled():0
+References      : http://lkml.org/lkml/2007/7/23/400
+Last known good : ?
+Submitter       : Jeremy Fitzhardinge <jeremy@goop.org>
+Caused-By       : ?
+Handled-By      : Oliver Neukum <oliver@neukum.org>
+Patch           : http://lkml.org/lkml/2007/7/24/203
+Status          : patch available
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
