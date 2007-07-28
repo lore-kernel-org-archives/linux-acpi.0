@@ -1,58 +1,66 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for
- 2.6.23-rc1)
-Date: Sat, 28 Jul 2007 09:55:23 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
-References: <200707251238.50218.lenb@kernel.org> <200707262248.09187.rjw@sisk.pl>
- <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
- <200707280330.26991.lenb@kernel.org>
- <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
+Date: Sat, 28 Jul 2007 20:29:02 +0200
+Message-ID: <200707282029.03563.rjw@sisk.pl>
+References: <200707251238.50218.lenb@kernel.org> <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org> <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56108 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752095AbXG1Q4E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Jul 2007 12:56:04 -0400
-In-Reply-To: <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:45721 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751165AbXG1SUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Jul 2007 14:20:39 -0400
+In-Reply-To: <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-
-
-On Sat, 28 Jul 2007, Linus Torvalds wrote:
+On Saturday, 28 July 2007 18:55, Linus Torvalds wrote:
 > 
-> And it's the *top*level* code that selects HOTPLUG_CPU. Through 
-> SUSPEND_SMP (which will select HOTPLUG_CPU) and SOFTWARE_SUSPEND.
+> On Sat, 28 Jul 2007, Linus Torvalds wrote:
+> > 
+> > And it's the *top*level* code that selects HOTPLUG_CPU. Through 
+> > SUSPEND_SMP (which will select HOTPLUG_CPU) and SOFTWARE_SUSPEND.
+> 
+> In other words, the problem seems to be that 
+> 
+> 	kernel/power/main.c:
+> 		suspend_devices_and_enter()
+> 
+> does the proper "disable/enable_nonboot_cpus()", but it does so without 
+> having enabled CPU hotplug.
+> 
+> And you seem to think that it's ACPI that should enable the hotplug, even 
+> though the code that actually needs it is _outside_ ACPI. And I think 
+> that's wrong, and that this is a bug.
+> 
+> So I think the real issue is that we allow that 
+> "suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in 
+> the first place. It's not supposed to work that way.
+> 
+> Of course, it may well be that other architectures can happily suspend 
+> even with multiple CPU's active, which may be the cause of this mess. But 
+> I really think it shouldn't be ACPI that has to select the CPU hotplug, 
+> since it's not ACPI that _uses_ it in the first place.
+> 
+> Rafael: making a config option for STR (the same way we have a config 
+> option for hibernate), and just not allowing it on SMP without HOTPLUG_CPU 
+> seems to be the right thing. Len is right in that we do insane things 
+> right now (trying to STR with multiple CPU's still active), and I just 
+> don't think he's the one that should work around it!
 
-In other words, the problem seems to be that 
+Well, I agree and that's why I asked. :-)
 
-	kernel/power/main.c:
-		suspend_devices_and_enter()
+OK, I'll prepare a patch to introduce CONFIG_SUSPEND, but that will require
+quite a bit of (compilation) testing on different architectures.
 
-does the proper "disable/enable_nonboot_cpus()", but it does so without 
-having enabled CPU hotplug.
+Greetings,
+Rafael
 
-And you seem to think that it's ACPI that should enable the hotplug, even 
-though the code that actually needs it is _outside_ ACPI. And I think 
-that's wrong, and that this is a bug.
 
-So I think the real issue is that we allow that 
-"suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in 
-the first place. It's not supposed to work that way.
-
-Of course, it may well be that other architectures can happily suspend 
-even with multiple CPU's active, which may be the cause of this mess. But 
-I really think it shouldn't be ACPI that has to select the CPU hotplug, 
-since it's not ACPI that _uses_ it in the first place.
-
-Rafael: making a config option for STR (the same way we have a config 
-option for hibernate), and just not allowing it on SMP without HOTPLUG_CPU 
-seems to be the right thing. Len is right in that we do insane things 
-right now (trying to STR with multiple CPU's still active), and I just 
-don't think he's the one that should work around it!
-
-		Linus
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
