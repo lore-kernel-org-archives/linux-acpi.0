@@ -1,37 +1,32 @@
-From: Jan Dittmer <jdi@l4x.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1
-Date: Sat, 28 Jul 2007 09:58:01 +0200
-Message-ID: <46AAF709.9060407@l4x.org>
-References: <200707251238.50218.lenb@kernel.org> <46A98FF9.8060801@l4x.org> <je8x91flu9.fsf@sykes.suse.de>
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [2.6 patch] let SUSPEND select HOTPLUG_CPU
+Date: Sat, 28 Jul 2007 10:42:45 +0200
+Message-ID: <46AB0185.3020405@s5r6.in-berlin.de>
+References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org> <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org> <20070727222503.GB15129@stusta.de> <46AA7609.1040900@s5r6.in-berlin.de> <20070727230307.GC15129@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S937812AbXG1IAU@vger.kernel.org>
-In-Reply-To: <je8x91flu9.fsf@sykes.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Schwab <schwab@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:51411 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591AbXG1In1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Jul 2007 04:43:27 -0400
+In-Reply-To: <20070727230307.GC15129@stusta.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-Andreas Schwab wrote:
-> Jan Dittmer <jdi@l4x.org> writes:
+Adrian Bunk wrote:
+> On Sat, Jul 28, 2007 at 12:47:37AM +0200, Stefan Richter wrote:
+>> Yes, that's the price to pay if you want to select something that in
+>> turn depends on a number of other things.
 > 
->> Len Brown wrote:
->>> Hi Linus,
->>>
->>> please pull from: 
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
->> This seems to break ia64 defconfig:
->>
->>   Building modules, stage 2.
->>   MODPOST 157 modules
->> FATAL: drivers/acpi/button: sizeof(struct acpi_device_id)=20 is not a modulo of the size of section __mod_acpi_device_table=144.
-> 
-> Are you cross-compiling?  The definition of kernel_ulong_t won't work on
-> x86.
+> Yes, but a good user interface is worth it.
 
-Yes, sorry, should have mentioned that. Build system is x86. Still,
-it didn't happen before the recent acpi merge.
-
-Jan
+That's right.  But a hypothetical other way would be to leave Kconfigs
+minimal ands put the necessary features into scripts/kconfig.
+-- 
+Stefan -ENOPATCH Richter
+-=====-=-=== -=== ===--
+http://arcgraph.de/sr/
