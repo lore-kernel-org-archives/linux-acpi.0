@@ -1,20 +1,21 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for
  2.6.23-rc1)
-Date: Sat, 28 Jul 2007 09:25:30 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
+Date: Sat, 28 Jul 2007 09:55:23 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
 References: <200707251238.50218.lenb@kernel.org> <200707262248.09187.rjw@sisk.pl>
  <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org>
  <200707280330.26991.lenb@kernel.org>
+ <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56108 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752801AbXG1Q0I (ORCPT
+	by vger.kernel.org with ESMTP id S1752095AbXG1Q4E (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Jul 2007 12:26:08 -0400
-In-Reply-To: <200707280330.26991.lenb@kernel.org>
+	Sat, 28 Jul 2007 12:56:04 -0400
+In-Reply-To: <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -22,26 +23,36 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-
 
 
 
-On Sat, 28 Jul 2007, Len Brown wrote:
+On Sat, 28 Jul 2007, Linus Torvalds wrote:
 > 
-> That three-liner will crash ACPI+SMP-HOTPLUG_CPU kernels on resume.
+> And it's the *top*level* code that selects HOTPLUG_CPU. Through 
+> SUSPEND_SMP (which will select HOTPLUG_CPU) and SOFTWARE_SUSPEND.
 
-Explain that to me.
+In other words, the problem seems to be that 
 
-There should *be* no resume.
+	kernel/power/main.c:
+		suspend_devices_and_enter()
 
-ACPI doesn't suspend/resume on its own, I hope.
+does the proper "disable/enable_nonboot_cpus()", but it does so without 
+having enabled CPU hotplug.
 
-It is all done by the top-level suspend/resume code, not by ACPI. ACPI is 
-a pure helper, and if you've changed that, then I think we need to revert 
-more than a few lines.
+And you seem to think that it's ACPI that should enable the hotplug, even 
+though the code that actually needs it is _outside_ ACPI. And I think 
+that's wrong, and that this is a bug.
 
-And it's the *top*level* code that selects HOTPLUG_CPU. Through 
-SUSPEND_SMP (which will select HOTPLUG_CPU) and SOFTWARE_SUSPEND.
+So I think the real issue is that we allow that 
+"suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in 
+the first place. It's not supposed to work that way.
 
-This is why it's so *totally* and *utterly* bogus for ACPI to select 
-features that it has nothign what-so-ever to do with. 
+Of course, it may well be that other architectures can happily suspend 
+even with multiple CPU's active, which may be the cause of this mess. But 
+I really think it shouldn't be ACPI that has to select the CPU hotplug, 
+since it's not ACPI that _uses_ it in the first place.
 
-In other words: ACPI isn't in the driving seat. 
+Rafael: making a config option for STR (the same way we have a config 
+option for hibernate), and just not allowing it on SMP without HOTPLUG_CPU 
+seems to be the right thing. Len is right in that we do insane things 
+right now (trying to STR with multiple CPU's still active), and I just 
+don't think he's the one that should work around it!
 
-			Linus
+		Linus
