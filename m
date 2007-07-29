@@ -1,579 +1,249 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/2] Replace CONFIG_SOFTWARE_SUSPEND with CONFIG_HIBERNATION
-Date: Sun, 29 Jul 2007 12:21:08 +0200
-Message-ID: <200707291221.09779.rjw@sisk.pl>
-References: <200707251238.50218.lenb@kernel.org> <alpine.LFD.0.999.0707281130110.3442@woody.linux-foundation.org> <200707291220.14880.rjw@sisk.pl>
+From: Ian Snow <ian.snow@btinternet.com>
+Subject: dmidecode output for Sony Vaio VGN-FZ11M laptop
+Date: Sun, 29 Jul 2007 13:18:42 +0100
+Message-ID: <200707291318.42184.ian.snow@btinternet.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47752 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761543AbXG2MWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jul 2007 08:22:08 -0400
-In-Reply-To: <200707291220.14880.rjw@sisk.pl>
+Received: from smtp814.mail.ird.yahoo.com ([217.146.188.74]:23763 "HELO
+	smtp814.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1760615AbXG2MZZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jul 2007 08:25:25 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi,
 
-Replace CONFIG_SOFTWARE_SUSPEND with CONFIG_HIBERNATION to avoid confusion
-(among other things, with CONFIG_SUSPEND introduced in the next patch).
+It doesn't matter if i boot with acpi_osi=!Linux I still get the message:
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/i386/Kconfig.debug                 |    4 ++--
- arch/i386/kernel/e820.c                 |    2 +-
- arch/i386/mm/init.c                     |    2 +-
- arch/i386/power/Makefile                |    2 +-
- arch/powerpc/Kconfig.debug              |    2 +-
- arch/powerpc/configs/lite5200_defconfig |    2 +-
- arch/powerpc/configs/pmac32_defconfig   |    2 +-
- arch/powerpc/kernel/Makefile            |    6 +++---
- arch/ppc/configs/TQM8540_defconfig      |    2 +-
- arch/ppc/configs/TQM8541_defconfig      |    2 +-
- arch/ppc/configs/TQM8555_defconfig      |    2 +-
- arch/ppc/configs/TQM8560_defconfig      |    2 +-
- arch/ppc/configs/ev64360_defconfig      |    2 +-
- arch/ppc/configs/ml300_defconfig        |    2 +-
- arch/ppc/configs/ml403_defconfig        |    2 +-
- arch/ppc/configs/mpc834x_sys_defconfig  |    2 +-
- arch/ppc/configs/prep_defconfig         |    2 +-
- arch/sparc64/Kconfig.debug              |    2 +-
- arch/x86_64/defconfig                   |    2 +-
- arch/x86_64/kernel/Makefile             |    2 +-
- arch/x86_64/kernel/suspend.c            |    4 ++--
- drivers/acpi/sleep/main.c               |    6 +++---
- drivers/acpi/sleep/proc.c               |    2 +-
- drivers/i2c/chips/tps65010.c            |    2 +-
- include/asm-i386/e820.h                 |    2 +-
- include/linux/suspend.h                 |    8 ++++----
- kernel/power/Kconfig                    |    6 +++---
- kernel/power/Makefile                   |    2 +-
- kernel/power/main.c                     |    2 +-
- kernel/power/power.h                    |    2 +-
- kernel/sys.c                            |    2 +-
- mm/Kconfig                              |    4 ++--
- mm/swapfile.c                           |    6 +++---
- 33 files changed, 47 insertions(+), 47 deletions(-)
+Below is the output of dmidecode for this laptop
 
-Index: linux-2.6.23-rc1/arch/i386/Kconfig.debug
-===================================================================
---- linux-2.6.23-rc1.orig/arch/i386/Kconfig.debug	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/i386/Kconfig.debug	2007-07-28 20:57:00.000000000 +0200
-@@ -36,11 +36,11 @@ config DEBUG_STACK_USAGE
- 	  This option will slow down process creation somewhat.
- 
- comment "Page alloc debug is incompatible with Software Suspend on i386"
--	depends on DEBUG_KERNEL && SOFTWARE_SUSPEND
-+	depends on DEBUG_KERNEL && HIBERNATION
- 
- config DEBUG_PAGEALLOC
- 	bool "Debug page memory allocations"
--	depends on DEBUG_KERNEL && !SOFTWARE_SUSPEND && !HUGETLBFS
-+	depends on DEBUG_KERNEL && !HIBERNATION && !HUGETLBFS
- 	help
- 	  Unmap pages from the kernel linear mapping after free_pages().
- 	  This results in a large slowdown, but helps to find certain types
-Index: linux-2.6.23-rc1/arch/i386/kernel/e820.c
-===================================================================
---- linux-2.6.23-rc1.orig/arch/i386/kernel/e820.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/i386/kernel/e820.c	2007-07-28 20:57:00.000000000 +0200
-@@ -321,7 +321,7 @@ static int __init request_standard_resou
- 
- subsys_initcall(request_standard_resources);
- 
--#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
-+#if defined(CONFIG_PM) && defined(CONFIG_HIBERNATION)
- /**
-  * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
-  * correspond to e820 RAM areas and mark the corresponding pages as nosave for
-Index: linux-2.6.23-rc1/arch/i386/mm/init.c
-===================================================================
---- linux-2.6.23-rc1.orig/arch/i386/mm/init.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/i386/mm/init.c	2007-07-28 20:57:00.000000000 +0200
-@@ -432,7 +432,7 @@ static void __init pagetable_init (void)
- 	paravirt_pagetable_setup_done(pgd_base);
- }
- 
--#if defined(CONFIG_SOFTWARE_SUSPEND) || defined(CONFIG_ACPI_SLEEP)
-+#if defined(CONFIG_HIBERNATION) || defined(CONFIG_ACPI_SLEEP)
- /*
-  * Swap suspend & friends need this for resume because things like the intel-agp
-  * driver might have split up a kernel 4MB mapping.
-Index: linux-2.6.23-rc1/arch/i386/power/Makefile
-===================================================================
---- linux-2.6.23-rc1.orig/arch/i386/power/Makefile	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/i386/power/Makefile	2007-07-28 20:57:00.000000000 +0200
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_PM)		+= cpu.o
--obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o suspend.o
-+obj-$(CONFIG_HIBERNATION)	+= swsusp.o suspend.o
-Index: linux-2.6.23-rc1/arch/powerpc/Kconfig.debug
-===================================================================
---- linux-2.6.23-rc1.orig/arch/powerpc/Kconfig.debug	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/powerpc/Kconfig.debug	2007-07-28 20:57:00.000000000 +0200
-@@ -20,7 +20,7 @@ config DEBUG_STACK_USAGE
- 
- config DEBUG_PAGEALLOC
-         bool "Debug page memory allocations"
--        depends on DEBUG_KERNEL && !SOFTWARE_SUSPEND
-+        depends on DEBUG_KERNEL && !HIBERNATION
-         help
-           Unmap pages from the kernel linear mapping after free_pages().
-           This results in a large slowdown, but helps to find certain types
-Index: linux-2.6.23-rc1/arch/powerpc/configs/lite5200_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/powerpc/configs/lite5200_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/powerpc/configs/lite5200_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -196,7 +196,7 @@ CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- # CONFIG_PM_DEBUG is not set
- # CONFIG_PM_SYSFS_DEPRECATED is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- # CONFIG_WANT_DEVICE_TREE is not set
- CONFIG_ISA_DMA_API=y
-Index: linux-2.6.23-rc1/arch/powerpc/configs/pmac32_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/powerpc/configs/pmac32_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/powerpc/configs/pmac32_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -218,7 +218,7 @@ CONFIG_PM=y
- CONFIG_PM_DEBUG=y
- # CONFIG_DISABLE_CONSOLE_SUSPEND is not set
- CONFIG_PM_SYSFS_DEPRECATED=y
--CONFIG_SOFTWARE_SUSPEND=y
-+CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
- CONFIG_APM_EMULATION=y
- CONFIG_SECCOMP=y
-Index: linux-2.6.23-rc1/arch/powerpc/kernel/Makefile
-===================================================================
---- linux-2.6.23-rc1.orig/arch/powerpc/kernel/Makefile	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/powerpc/kernel/Makefile	2007-07-28 20:57:00.000000000 +0200
-@@ -37,9 +37,9 @@ obj-$(CONFIG_GENERIC_TBSYNC)	+= smp-tbsy
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_6xx)		+= idle_6xx.o l2cr_6xx.o cpu_setup_6xx.o
- obj-$(CONFIG_TAU)		+= tau_6xx.o
--obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o suspend.o
--obj32-$(CONFIG_SOFTWARE_SUSPEND) += swsusp_32.o
--obj64-$(CONFIG_SOFTWARE_SUSPEND) += swsusp_64.o swsusp_asm64.o
-+obj-$(CONFIG_HIBERNATION)	+= swsusp.o suspend.o
-+obj32-$(CONFIG_HIBERNATION) += swsusp_32.o
-+obj64-$(CONFIG_HIBERNATION) += swsusp_64.o swsusp_asm64.o
- obj32-$(CONFIG_MODULES)		+= module_32.o
- 
- ifeq ($(CONFIG_PPC_MERGE),y)
-Index: linux-2.6.23-rc1/arch/ppc/configs/TQM8540_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/TQM8540_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/TQM8540_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -136,7 +136,7 @@ CONFIG_BINFMT_ELF=y
- # CONFIG_BINFMT_MISC is not set
- # CONFIG_CMDLINE_BOOL is not set
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/TQM8541_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/TQM8541_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/TQM8541_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -138,7 +138,7 @@ CONFIG_BINFMT_ELF=y
- # CONFIG_BINFMT_MISC is not set
- # CONFIG_CMDLINE_BOOL is not set
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/TQM8555_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/TQM8555_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/TQM8555_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -138,7 +138,7 @@ CONFIG_BINFMT_ELF=y
- # CONFIG_BINFMT_MISC is not set
- # CONFIG_CMDLINE_BOOL is not set
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/TQM8560_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/TQM8560_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/TQM8560_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -137,7 +137,7 @@ CONFIG_BINFMT_ELF=y
- # CONFIG_BINFMT_MISC is not set
- # CONFIG_CMDLINE_BOOL is not set
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/ev64360_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/ev64360_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/ev64360_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -142,7 +142,7 @@ CONFIG_BINFMT_MISC=y
- CONFIG_CMDLINE_BOOL=y
- CONFIG_CMDLINE="console=ttyMM0,115200 root=/dev/mtdblock1 rw rootfstype=jffs2"
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/ml300_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/ml300_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/ml300_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -148,7 +148,7 @@ CONFIG_BINFMT_ELF=y
- CONFIG_CMDLINE_BOOL=y
- CONFIG_CMDLINE="console=ttyS0,9600"
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/ml403_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/ml403_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/ml403_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -149,7 +149,7 @@ CONFIG_BINFMT_ELF=y
- CONFIG_CMDLINE_BOOL=y
- CONFIG_CMDLINE="console=ttyS0,9600"
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/mpc834x_sys_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/mpc834x_sys_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/mpc834x_sys_defconfig	2007-07-28 20:57:00.000000000 +0200
-@@ -130,7 +130,7 @@ CONFIG_BINFMT_ELF=y
- # CONFIG_BINFMT_MISC is not set
- # CONFIG_CMDLINE_BOOL is not set
- # CONFIG_PM is not set
--# CONFIG_SOFTWARE_SUSPEND is not set
-+# CONFIG_HIBERNATION is not set
- CONFIG_SECCOMP=y
- CONFIG_ISA_DMA_API=y
- 
-Index: linux-2.6.23-rc1/arch/ppc/configs/prep_defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/ppc/configs/prep_defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/ppc/configs/prep_defconfig	2007-07-28 20:57:01.000000000 +0200
-@@ -166,7 +166,7 @@ CONFIG_PROC_PREPRESIDUAL=y
- CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- # CONFIG_PM_DEBUG is not set
--CONFIG_SOFTWARE_SUSPEND=y
-+CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
- # CONFIG_SECCOMP is not set
- CONFIG_ISA_DMA_API=y
-Index: linux-2.6.23-rc1/arch/sparc64/Kconfig.debug
-===================================================================
---- linux-2.6.23-rc1.orig/arch/sparc64/Kconfig.debug	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/sparc64/Kconfig.debug	2007-07-28 20:57:01.000000000 +0200
-@@ -29,7 +29,7 @@ config DEBUG_BOOTMEM
- 
- config DEBUG_PAGEALLOC
- 	bool "Debug page memory allocations"
--	depends on DEBUG_KERNEL && !SOFTWARE_SUSPEND
-+	depends on DEBUG_KERNEL && !HIBERNATION
- 	help
- 	  Unmap pages from the kernel linear mapping after free_pages().
- 	  This results in a large slowdown, but helps to find certain types
-Index: linux-2.6.23-rc1/arch/x86_64/defconfig
-===================================================================
---- linux-2.6.23-rc1.orig/arch/x86_64/defconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/x86_64/defconfig	2007-07-28 20:57:01.000000000 +0200
-@@ -199,7 +199,7 @@ CONFIG_GENERIC_PENDING_IRQ=y
- CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- # CONFIG_PM_DEBUG is not set
--CONFIG_SOFTWARE_SUSPEND=y
-+CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
- CONFIG_SUSPEND_SMP=y
- 
-Index: linux-2.6.23-rc1/arch/x86_64/kernel/Makefile
-===================================================================
---- linux-2.6.23-rc1.orig/arch/x86_64/kernel/Makefile	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/x86_64/kernel/Makefile	2007-07-28 20:57:01.000000000 +0200
-@@ -26,7 +26,7 @@ obj-y				+= io_apic.o mpparse.o genapic.
- obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_PM)		+= suspend.o
--obj-$(CONFIG_SOFTWARE_SUSPEND)	+= suspend_asm.o
-+obj-$(CONFIG_HIBERNATION)	+= suspend_asm.o
- obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_IOMMU)		+= pci-gart.o aperture.o
-Index: linux-2.6.23-rc1/arch/x86_64/kernel/suspend.c
-===================================================================
---- linux-2.6.23-rc1.orig/arch/x86_64/kernel/suspend.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/arch/x86_64/kernel/suspend.c	2007-07-28 20:57:01.000000000 +0200
-@@ -146,7 +146,7 @@ void fix_processor_context(void)
- 
- }
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- /* Defined in arch/x86_64/kernel/suspend_asm.S */
- extern int restore_image(void);
- 
-@@ -236,4 +236,4 @@ int pfn_is_nosave(unsigned long pfn)
- 	unsigned long nosave_end_pfn = PAGE_ALIGN(__pa_symbol(&__nosave_end)) >> PAGE_SHIFT;
- 	return (pfn >= nosave_begin_pfn) && (pfn < nosave_end_pfn);
- }
--#endif /* CONFIG_SOFTWARE_SUSPEND */
-+#endif /* CONFIG_HIBERNATION */
-Index: linux-2.6.23-rc1/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.23-rc1.orig/drivers/acpi/sleep/main.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/drivers/acpi/sleep/main.c	2007-07-28 20:57:01.000000000 +0200
-@@ -204,7 +204,7 @@ static struct platform_suspend_ops acpi_
- 	.finish = acpi_pm_finish,
- };
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- static int acpi_hibernation_start(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
-@@ -266,7 +266,7 @@ static struct platform_hibernation_ops a
- 	.pre_restore = acpi_hibernation_pre_restore,
- 	.restore_cleanup = acpi_hibernation_restore_cleanup,
- };
--#endif				/* CONFIG_SOFTWARE_SUSPEND */
-+#endif				/* CONFIG_HIBERNATION */
- 
- /**
-  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-@@ -386,7 +386,7 @@ int __init acpi_sleep_init(void)
- 
- 	suspend_set_ops(&acpi_pm_ops);
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- 	if (sleep_states[ACPI_STATE_S4])
- 		hibernation_set_ops(&acpi_hibernation_ops);
- #else
-Index: linux-2.6.23-rc1/drivers/acpi/sleep/proc.c
-===================================================================
---- linux-2.6.23-rc1.orig/drivers/acpi/sleep/proc.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/drivers/acpi/sleep/proc.c	2007-07-28 20:57:01.000000000 +0200
-@@ -58,7 +58,7 @@ acpi_system_write_sleep(struct file *fil
- 		goto Done;
- 	}
- 	state = simple_strtoul(str, NULL, 0);
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- 	if (state == 4) {
- 		error = hibernate();
- 		goto Done;
-Index: linux-2.6.23-rc1/drivers/i2c/chips/tps65010.c
-===================================================================
---- linux-2.6.23-rc1.orig/drivers/i2c/chips/tps65010.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/drivers/i2c/chips/tps65010.c	2007-07-28 20:57:01.000000000 +0200
-@@ -352,7 +352,7 @@ static void tps65010_interrupt(struct tp
- 			/* REVISIT:  this might need its own workqueue
- 			 * plus tweaks including deadlock avoidance ...
- 			 * also needs to get error handling and probably
--			 * an #ifdef CONFIG_SOFTWARE_SUSPEND
-+			 * an #ifdef CONFIG_HIBERNATION
- 			 */
- 			hibernate();
- #endif
-Index: linux-2.6.23-rc1/include/asm-i386/e820.h
-===================================================================
---- linux-2.6.23-rc1.orig/include/asm-i386/e820.h	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/include/asm-i386/e820.h	2007-07-28 20:57:01.000000000 +0200
-@@ -47,7 +47,7 @@ extern void e820_register_memory(void);
- extern void limit_regions(unsigned long long size);
- extern void print_memory_map(char *who);
- 
--#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
-+#if defined(CONFIG_PM) && defined(CONFIG_HIBERNATION)
- extern void e820_mark_nosave_regions(void);
- #else
- static inline void e820_mark_nosave_regions(void)
-Index: linux-2.6.23-rc1/include/linux/suspend.h
-===================================================================
---- linux-2.6.23-rc1.orig/include/linux/suspend.h	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/include/linux/suspend.h	2007-07-28 20:57:01.000000000 +0200
-@@ -174,7 +174,7 @@ struct platform_hibernation_ops {
- };
- 
- #ifdef CONFIG_PM
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- /* kernel/power/snapshot.c */
- extern void __register_nosave_region(unsigned long b, unsigned long e, int km);
- static inline void register_nosave_region(unsigned long b, unsigned long e)
-@@ -192,14 +192,14 @@ extern unsigned long get_safe_page(gfp_t
- 
- extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
- extern int hibernate(void);
--#else /* CONFIG_SOFTWARE_SUSPEND */
-+#else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
- static inline void swsusp_unset_page_free(struct page *p) {}
- 
- static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
- static inline int hibernate(void) { return -ENOSYS; }
--#endif /* CONFIG_SOFTWARE_SUSPEND */
-+#endif /* CONFIG_HIBERNATION */
- 
- void save_processor_state(void);
- void restore_processor_state(void);
-@@ -240,7 +240,7 @@ static inline int unregister_pm_notifier
- #define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
- #endif /* CONFIG_PM */
- 
--#if !defined CONFIG_SOFTWARE_SUSPEND || !defined(CONFIG_PM)
-+#if !defined CONFIG_HIBERNATION || !defined(CONFIG_PM)
- static inline void register_nosave_region(unsigned long b, unsigned long e)
- {
- }
-Index: linux-2.6.23-rc1/kernel/power/Kconfig
-===================================================================
---- linux-2.6.23-rc1.orig/kernel/power/Kconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/kernel/power/Kconfig	2007-07-28 21:04:06.000000000 +0200
-@@ -72,8 +72,8 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
- 
--config SOFTWARE_SUSPEND
--	bool "Software Suspend (Hibernation)"
-+config HIBERNATION
-+	bool "Hibernation"
- 	depends on PM && SWAP && (((X86 || PPC64_SWSUSP) && (!SMP || SUSPEND_SMP)) || ((FRV || PPC32) && !SMP))
- 	---help---
- 	  Enable the suspend to disk (STD) functionality, which is usually
-@@ -112,7 +112,7 @@ config SOFTWARE_SUSPEND
- 
- config PM_STD_PARTITION
- 	string "Default resume partition"
--	depends on SOFTWARE_SUSPEND
-+	depends on HIBERNATION
- 	default ""
- 	---help---
- 	  The default resume partition is the partition that the suspend-
-Index: linux-2.6.23-rc1/kernel/power/Makefile
-===================================================================
---- linux-2.6.23-rc1.orig/kernel/power/Makefile	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/kernel/power/Makefile	2007-07-28 20:57:01.000000000 +0200
-@@ -5,6 +5,6 @@ endif
- 
- obj-y				:= main.o process.o console.o
- obj-$(CONFIG_PM_LEGACY)		+= pm.o
--obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o disk.o snapshot.o swap.o user.o
-+obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
- 
- obj-$(CONFIG_MAGIC_SYSRQ)	+= poweroff.o
-Index: linux-2.6.23-rc1/kernel/power/main.c
-===================================================================
---- linux-2.6.23-rc1.orig/kernel/power/main.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/kernel/power/main.c	2007-07-28 20:57:01.000000000 +0200
-@@ -295,7 +295,7 @@ static ssize_t state_show(struct kset *k
- 		if (pm_states[i] && valid_state(i))
- 			s += sprintf(s,"%s ", pm_states[i]);
- 	}
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- 	s += sprintf(s, "%s\n", "disk");
- #else
- 	if (s != buf)
-Index: linux-2.6.23-rc1/kernel/power/power.h
-===================================================================
---- linux-2.6.23-rc1.orig/kernel/power/power.h	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/kernel/power/power.h	2007-07-28 20:57:01.000000000 +0200
-@@ -13,7 +13,7 @@ struct swsusp_info {
- 
- 
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- /*
-  * Keep some memory free so that I/O operations can succeed without paging
-  * [Might this be more than 4 MB?]
-Index: linux-2.6.23-rc1/kernel/sys.c
-===================================================================
---- linux-2.6.23-rc1.orig/kernel/sys.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/kernel/sys.c	2007-07-28 20:57:01.000000000 +0200
-@@ -954,7 +954,7 @@ asmlinkage long sys_reboot(int magic1, i
- 		unlock_kernel();
- 		return -EINVAL;
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- 	case LINUX_REBOOT_CMD_SW_SUSPEND:
- 		{
- 			int ret = hibernate();
-Index: linux-2.6.23-rc1/mm/Kconfig
-===================================================================
---- linux-2.6.23-rc1.orig/mm/Kconfig	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/mm/Kconfig	2007-07-28 20:57:01.000000000 +0200
-@@ -116,11 +116,11 @@ config SPARSEMEM_EXTREME
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
--	depends on HOTPLUG && !SOFTWARE_SUSPEND && ARCH_ENABLE_MEMORY_HOTPLUG
-+	depends on HOTPLUG && !HIBERNATION && ARCH_ENABLE_MEMORY_HOTPLUG
- 	depends on (IA64 || X86 || PPC64 || SUPERH)
- 
- comment "Memory hotplug is currently incompatible with Software Suspend"
--	depends on SPARSEMEM && HOTPLUG && SOFTWARE_SUSPEND
-+	depends on SPARSEMEM && HOTPLUG && HIBERNATION
- 
- config MEMORY_HOTPLUG_SPARSE
- 	def_bool y
-Index: linux-2.6.23-rc1/mm/swapfile.c
-===================================================================
---- linux-2.6.23-rc1.orig/mm/swapfile.c	2007-07-28 20:56:27.000000000 +0200
-+++ linux-2.6.23-rc1/mm/swapfile.c	2007-07-28 20:57:01.000000000 +0200
-@@ -425,7 +425,7 @@ void free_swap_and_cache(swp_entry_t ent
- 	}
- }
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- /*
-  * Find the swap type that corresponds to given device (if any).
-  *
-@@ -951,7 +951,7 @@ sector_t map_swap_page(struct swap_info_
- 	}
- }
- 
--#ifdef CONFIG_SOFTWARE_SUSPEND
-+#ifdef CONFIG_HIBERNATION
- /*
-  * Get the (PAGE_SIZE) block corresponding to given offset on the swapdev
-  * corresponding to given index in swap_info (swap type).
-@@ -966,7 +966,7 @@ sector_t swapdev_block(int swap_type, pg
- 	sis = swap_info + swap_type;
- 	return (sis->flags & SWP_WRITEOK) ? map_swap_page(sis, offset) : 0;
- }
--#endif /* CONFIG_SOFTWARE_SUSPEND */
-+#endif /* CONFIG_HIBERNATION */
- 
- /*
-  * Free all of a swapdev's extent information
+# dmidecode 2.9
+SMBIOS 2.4 present.
+17 structures occupying 710 bytes.
+Table at 0x000DC010.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+    Vendor: Phoenix Technologies LTD
+    Version: R0050J7
+    Release Date: 04/18/2007
+    Address: 0xE62C0
+    Runtime Size: 105792 bytes
+    ROM Size: 1024 kB
+    Characteristics:
+        PCI is supported
+        PNP is supported
+        BIOS is upgradeable
+        BIOS shadowing is allowed
+        ESCD support is available
+        Boot from CD is supported
+        Selectable boot is supported
+        EDD is supported
+        8042 keyboard services are supported (int 9h)
+        CGA/mono video services are supported (int 10h)
+        ACPI is supported
+        USB legacy is supported
+        AGP is supported
+        Smart battery is supported
+        BIOS boot specification is supported
+        Function key-initiated network boot is supported
+        Targeted content distribution is supported
+    BIOS Revision: 5.0
+    Firmware Revision: 5.0
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+    Manufacturer: Sony Corporation
+    Product Name: VGN-FZ11M
+    Version: C3LP8MZ3
+    Serial Number: 28201150-5000954
+    UUID: 25BBA8A0-08D1-11DC-874E-0013A9C09B3B
+    Wake-up Type: Power Switch
+    SKU Number: N/A
+    Family: N/A
+
+Handle 0x0002, DMI type 2, 10 bytes
+Base Board Information
+    Manufacturer: Sony Corporation
+    Product Name: VAIO
+    Version: N/A
+    Serial Number: N/A
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+    Manufacturer: Sony Corporation
+    Type: Notebook
+    Lock: Not Present
+    Version: N/A
+    Serial Number: N/A
+    Asset Tag: N/A
+    Boot-up State: Safe
+    Power Supply State: Safe
+    Thermal State: Safe
+    Security Status: None
+    OEM Information: 0x00000000
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+    Socket Designation: N/A
+    Type: Central Processor
+    Family: Other
+    Manufacturer: GenuineIntel
+    ID: FD 06 00 00 FF FB EB BF
+    Version: Intel(R) Core(TM)2 Duo CPU     T7100  @ 1.80GHz
+    Voltage: 1.2 V
+    External Clock: 200 MHz
+    Max Speed: 1800 MHz
+    Current Speed: 1800 MHz
+    Status: Populated, Enabled
+    Upgrade: None
+    L1 Cache Handle: 0x0005
+    L2 Cache Handle: 0x0006
+    L3 Cache Handle: 0x0007
+    Serial Number: N/A
+    Asset Tag: N/A
+    Part Number: N/A
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+    Socket Designation: L1 Cache
+    Configuration: Enabled, Socketed, Level 1
+    Operational Mode: Write Back
+    Location: Internal
+    Installed Size: 64 KB
+    Maximum Size: 64 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+        Asynchronous
+    Installed SRAM Type: Other
+    Speed: Unknown
+    Error Correction Type: Single-bit ECC
+    System Type: Data
+    Associativity: 8-way Set-associative
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+    Socket Designation: L2 Cache
+    Configuration: Enabled, Socketed, Level 2
+    Operational Mode: Write Back
+    Location: Internal
+    Installed Size: 2048 KB
+    Maximum Size: 2048 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+        Asynchronous
+    Installed SRAM Type: Burst
+    Speed: Unknown
+    Error Correction Type: Single-bit ECC
+    System Type: Unified
+    Associativity: 8-way Set-associative
+
+Handle 0x0007, DMI type 7, 19 bytes
+Cache Information
+    Socket Designation: L3 Cache
+    Configuration: Disabled, Not Socketed, Level 3
+    Operational Mode: Unknown
+    Location: Unknown
+    Installed Size: 0 KB
+    Maximum Size: 0 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+        Asynchronous
+    Installed SRAM Type: Unknown
+    Speed: Unknown
+    Error Correction Type: Unknown
+    System Type: Unknown
+    Associativity: Unknown
+
+Handle 0x0008, DMI type 11, 5 bytes
+OEM Strings
+    String 1: JPBL-003584
+    String 2: FNC-CCIA0sodEXTB
+    String 3: 381M0000000075257818136C5D53
+    String 4: Reserved
+    String 5: Reserved
+
+Handle 0x0009, DMI type 16, 15 bytes
+Physical Memory Array
+    Location: System Board Or Motherboard
+    Use: System Memory
+    Error Correction Type: None
+    Maximum Capacity: 2048 GB
+    Error Information Handle: Not Provided
+    Number Of Devices: 2
+
+Handle 0x000A, DMI type 17, 21 bytes
+Memory Device
+    Array Handle: 0x0009
+    Error Information Handle: Not Provided
+    Total Width: 64 bits
+    Data Width: 64 bits
+    Size: 1024 MB
+    Form Factor: SODIMM
+    Set: None
+    Locator: SODIMM1
+    Bank Locator: Bank 0
+    Type: DDR2
+    Type Detail: Unknown
+
+Handle 0x000B, DMI type 17, 21 bytes
+Memory Device
+    Array Handle: 0x0009
+    Error Information Handle: Not Provided
+    Total Width: 64 bits
+    Data Width: 64 bits
+    Size: 1024 MB
+    Form Factor: SODIMM
+    Set: None
+    Locator: SODIMM2
+    Bank Locator: Bank 1
+    Type: DDR2
+    Type Detail: Unknown
+
+Handle 0x000C, DMI type 19, 15 bytes
+Memory Array Mapped Address
+    Starting Address: 0x00000000000
+    Ending Address: 0x0007FFFFFFF
+    Range Size: 2 GB
+    Physical Array Handle: 0x0009
+    Partition Width: 0
+
+Handle 0x000D, DMI type 20, 19 bytes
+Memory Device Mapped Address
+    Starting Address: 0x00000000000
+    Ending Address: 0x0003FFFFFFF
+    Range Size: 1 GB
+    Physical Device Handle: 0x000A
+    Memory Array Mapped Address Handle: 0x000C
+    Partition Row Position: Unknown
+    Interleave Position: Unknown
+    Interleaved Data Depth: Unknown
+
+Handle 0x000E, DMI type 20, 19 bytes
+Memory Device Mapped Address
+    Starting Address: 0x00040000000
+    Ending Address: 0x0007FFFFFFF
+    Range Size: 1 GB
+    Physical Device Handle: 0x000B
+    Memory Array Mapped Address Handle: 0x000C
+    Partition Row Position: Unknown
+    Interleave Position: Unknown
+    Interleaved Data Depth: Unknown
+
+Handle 0x000F, DMI type 32, 20 bytes
+System Boot Information
+    Status: No errors detected
+
+Handle 0x0010, DMI type 127, 4 bytes
+End Of Table
