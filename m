@@ -1,35 +1,45 @@
-From: "Frank Hale" <frankhale@gmail.com>
-Subject: Re: ACPI on Averatec 2370
-Date: Sun, 29 Jul 2007 19:58:39 +0000
-Message-ID: <5ebbd9b50707291258l1d67fa20g3542dd3bbfcb4aef@mail.gmail.com>
-References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
-	 <46ACD8DB.2020108@googlemail.com>
-	 <Pine.LNX.4.64.0707291428100.7379@lancer.cnet.absolutedigital.net>
-	 <5ebbd9b50707291158n4cfffcbl7f620bd10181fb6d@mail.gmail.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND
+Date: Sun, 29 Jul 2007 22:40:01 +0200
+Message-ID: <20070729204001.GJ16817@stusta.de>
+References: <200707251238.50218.lenb@kernel.org> <alpine.LFD.0.999.0707281130110.3442@woody.linux-foundation.org> <200707291220.14880.rjw@sisk.pl> <200707291438.06849.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.245]:4983 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763611AbXG2T6k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 15:58:40 -0400
-Received: by an-out-0708.google.com with SMTP id d31so245476and
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Jul 2007 12:58:39 -0700 (PDT)
-In-Reply-To: <5ebbd9b50707291158n4cfffcbl7f620bd10181fb6d@mail.gmail.com>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:48128 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933894AbXG2Uk0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 16:40:26 -0400
 Content-Disposition: inline
+In-Reply-To: <200707291438.06849.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cal Peake <cp@absolutedigital.net>
-Cc: Gabriel C <nix.or.die@googlemail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
-Your work around seems to do the trick. I took out SMP support, added
-ACPI and now it boots normally.
+On Sun, Jul 29, 2007 at 02:38:05PM +0200, Rafael J. Wysocki wrote:
+>...
+> +config SUSPEND
+> +	bool "Suspend"
+=C2=A0            "Suspend to RAM"
+>...
+>  config HIBERNATION
+>  	bool "Hibernation"
+>...         "Hibernation (Suspend to disk)"
 
-On 7/29/07, Frank Hale <frankhale@gmail.com> wrote:
-> > Frank, can you try a non-SMP build with ACPI and see if you still have the
-> > problem?
->
-> I certainly will, I never tried it without it so now I am curious.
-> Thanks a bunch!
->
+cu
+Adrian
+
+--=20
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
