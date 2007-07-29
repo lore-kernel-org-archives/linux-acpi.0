@@ -1,46 +1,45 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: acpi_battery_add(): use-after-free
-Date: Sun, 29 Jul 2007 17:00:46 +0200
-Message-ID: <20070729150046.GM16817@stusta.de>
+Subject: [2.6.23 regression fix] acpi_ec_remove(): fix use-after-free
+Date: Sun, 29 Jul 2007 17:00:37 +0200
+Message-ID: <20070729150036.GL16817@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:47888 "EHLO
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:47885 "EHLO
 	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1763954AbXG2PBK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 11:01:10 -0400
+	with ESMTP id S1764273AbXG2PBA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 11:01:00 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 
-The Coverity checker spotted the following use-after-free in 
-acpi_battery_add():
+This patch fixes an obvious use-after-free introduced by
+commit 837012ede14a8fc088be3682c964da7fc6af026b.
 
-<--  snip  -->
+Spotted by the Coverity checker.
 
-...
-static int acpi_battery_add(struct acpi_device *device)
-{
-...
-        if (result) {
-                acpi_battery_remove_fs(device);
-                kfree(battery);
-        }
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-        mutex_unlock(&battery->mutex);
-...
-
-<--  snip  -->
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+---
+--- linux-2.6.23-rc1-mm1/drivers/acpi/ec.c.old	2007-07-28 07:59:49.000000000 +0200
++++ linux-2.6.23-rc1-mm1/drivers/acpi/ec.c	2007-07-28 08:00:25.000000000 +0200
+@@ -730,14 +730,14 @@
+ static int acpi_ec_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_ec *ec;
+-	struct acpi_ec_query_handler *handler;
++	struct acpi_ec_query_handler *handler, *tmp;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+ 
+ 	ec = acpi_driver_data(device);
+ 	mutex_lock(&ec->lock);
+-	list_for_each_entry(handler, &ec->list, node) {
++	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
+ 		list_del(&handler->node);
+ 		kfree(handler);
+ 	}
 
