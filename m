@@ -1,41 +1,62 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 0/2] Introduce CONFIG_HIBERNATION and
- CONFIG_SUSPEND (updated)
-Date: Sun, 29 Jul 2007 17:21:22 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0707291717410.3442@woody.linux-foundation.org>
-References: <200707251238.50218.lenb@kernel.org>
-	<alpine.LFD.0.999.0707281130110.3442@woody.linux-foundation.org>
-	<200707291220.14880.rjw@sisk.pl> <200707292323.29601.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC PATCH] report acpi video hot key event through input device
+Date: Mon, 30 Jul 2007 01:50:50 +0100
+Message-ID: <20070730005050.GB27398@srcf.ucam.org>
+References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200707292323.29601.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: david@lang.hm, Nigel Cunningham <nigel@nigel.suspend2.net>, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:40341 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1761933AbXG3AvB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 20:51:01 -0400
+Content-Disposition: inline
+In-Reply-To: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
+On Sun, Jul 29, 2007 at 12:40:16PM -0400, Luming Yu wrote:
+>  	switch (event) {
+>  	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
+>  					 * most likely via hotkey. */
+>  		acpi_bus_generate_event(device, event, 0);
+> +		keycode = KEY_UNKNOWN;
 
+KEY_SWITCHVIDEOMODE ?
 
-Ok, I took this, and modified Len's patch to re-introduce ACPI_SLEEP on 
-top of it (I took the easy way out, and just made PM_SLEEP imply 
-ACPI_SLEEP, which should make everything come out right. I could have 
-dropped ACPI_SLEEP entirely in favour of PM_SLEEP, but that would have 
-implied changing more of Len's patch than I was really comfy with).
+> 
+>  	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
+> @@ -1734,21 +1741,37 @@ static void acpi_video_bus_notify(acpi_h
+>  		acpi_video_device_rebind(video);
+>  		acpi_video_switch_output(video, event);
+>  		acpi_bus_generate_event(device, event, 0);
+> +		keycode = KEY_UNKNOWN;
+>  		break;
 
-Len, Rafael, please do check that the end result looks ok. 
+Here too.
 
-I suspect ACPI could now take the PM_SLEEP/SUSPEND/HIBERNATE details into 
-account, and that some of the code is not necessary when HIBERNATE is not 
-selected, for example, but I'm not at all sure that it's worth it being 
-very fine-grained.
+>  	case ACPI_VIDEO_NOTIFY_SWITCH:	/* change in status (cycle output device) */
+>  	case ACPI_VIDEO_NOTIFY_PROBE:	/* change in status (output device status) */
+>  		acpi_bus_generate_event(device, event, 0);
+> +		keycode = KEY_UNKNOWN;
+>  		break;
 
-		Linus
+And these? I'm not sure in this case, though.
+
+> +#define KEY_VIDEO_NEXT		0x1f9
+> +#define KEY_VIDEO_PREV		0x1fa
+> +#define KEY_BRIGHTNESS_UP	0x1fb
+> +#define KEY_BRIGHTNESS_DOWN	0x1fc
+
+What's wrong with the existing KEY_BRIGHTNESSDOWN and KEY_BRIGHTNESSUP?
+
+> +#define KEY_BRIGHTNESS_ZERO	0x1fd
+> +#define KEY_BRIGHTNESS_OFF	0x1fe
+
+You almost certainly want to go via linux-input if you're adding new 
+keycodes.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
