@@ -1,56 +1,40 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
-Date: Mon, 30 Jul 2007 13:30:54 -0400
-Message-ID: <200707301330.54640.lenb@kernel.org>
-References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Frequency scaling, Dell Inspiron 6000
+Date: Mon, 30 Jul 2007 19:01:11 +0100
+Message-ID: <20070730180111.GA6881@srcf.ucam.org>
+References: <46AC9E33.3020008@molgaard.org> <20070730004423.GA27398@srcf.ucam.org> <46ADE700.6070400@molgaard.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S937954AbXG3Rbi@vger.kernel.org>
-In-Reply-To: <20070730025412.GA22888@dth.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:60467 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S966099AbXG3SBY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2007 14:01:24 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Danny ter Haar <dth@dth.net>
-Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <46ADE700.6070400@molgaard.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sune =?iso-8859-1?Q?M=F8lgaard?= <sune@molgaard.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday 29 July 2007 22:54, Danny ter Haar wrote:
-> Quoting Gabriel C (nix.or.die@googlemail.com):
-> > Now while we think is ACPI this should be easy for you to bisect.
-> > This commit http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=39804b20f62532fa05c2a8c3e2d1ae551fd0327b
-> > merged ACPI so this one should be your first bad one.
-> > Maybe Len has some idea and you don't need to bisect :)
-> 
-> Thanks to personal coaching of Gabriel i bisected the last few days.
-> 
-> It looked like this was the cullprit:
-> 
-> 22aadf8a07067644e101267ed5003043f2ad05bf is first bad commit
+On Mon, Jul 30, 2007 at 03:26:24PM +0200, Sune M=F8lgaard wrote:
 
-Please attach the output from acpidump to 
-http://bugzilla.kernel.org/show_bug.cgi?id=7880
-We'll likely be able to tell from it if that patch
-has any real effect on your system, or if you test
-result was from some unrelated event.
+> If I had bought the laptop today and encountered the problems, I woul=
+d=20
+> probably reach the same conclusion as you, but IIRC powernowd doesn't=
+=20
+> cooperate with p4-clockmod, and it was a kernel upgrade that made it=20
+> complain.
 
-Also, please test with CONFIG_X86_ACPI_CPUFREQ=n
-to remove the acpi-cpufreq driver (and thus this patch)
-from your kernel.  If it still fails, then we know
-that this driver (and this patch) are not related
-to the failure.
+powernowd works fine with p4-clockmod, but that doesn't change the majo=
+r=20
+point - Celerons don't support any form of Speedstep.
 
-> 2.6.23-rc1-git[1-6] all lockup solid after either direct or
-> within a couple of minutes (less than 2) after reboot.
-> 
-> They all run fine with "acpi=off" as boot argument.
-
-Hmmm, okay, the "big hammer" works.  Please see
-if any of these smaller hammers work:
-
-pnpacpi=off
-acpi=noirq
-notsc
-
-thanks,
--Len
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
