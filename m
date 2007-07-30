@@ -1,40 +1,49 @@
-From: Meelis Roos <mroos@linux.ee>
-Subject: Re: [2/3] 2.6.23-rc1: known regressions v3
-Date: Mon, 30 Jul 2007 23:03:18 +0300 (EEST)
-Message-ID: <Pine.SOC.4.64.0707302301290.14147@math.ut.ee>
-References: <46AE0F5D.3000500@googlemail.com> <46AE12F5.4030706@googlemail.com>
- <200707302208.20891.ismail@pardus.org.tr>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [2.6 patch] let SUSPEND select HOTPLUG_CPU
+Date: Mon, 30 Jul 2007 23:18:26 +0200
+Message-ID: <20070730211826.GA22419@elf.ucw.cz>
+References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org> <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org> <20070727222503.GB15129@stusta.de> <46AA7609.1040900@s5r6.in-berlin.de> <20070727230307.GC15129@stusta.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1185825798=:14147"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S968310AbXG3UDs@vger.kernel.org>
-In-Reply-To: <200707302208.20891.ismail@pardus.org.tr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ismail =?iso-8859-2?q?D=F6nmez?= <ismail@pardus.org.tr>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:42031 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S964959AbXG3VTL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jul 2007 17:19:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20070727230307.GC15129@stusta.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi!
 
----559023410-851401618-1185825798=:14147
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
-
-> > Subject         : New ACPI error/warning with Linus' latest GIT
-> > References      : http://lkml.org/lkml/2007/7/26/395
-> > Last known good : ?
-> > Submitter       : Ismail Dönmez <ismail@pardus.org.tr>
-> > Caused-By       : ?
-> > Handled-By      : ?
-> > Status          : unknown
+> > Wait, doesn't HOTPLUG_CPU also depend on EXPERIMENTAL?
 > 
-> This started to happen after the second ACPI merge which was for 2.6.23-rc2.
+> Damn, I started thinking about it, and then forgot about it when 
+> finishing the patch.
+> 
+> My thoughts were:
+> Is HOTPLUG_CPU still an experimental feature, or has it become a 
+> well-tested no longer experimental feature now that it's used on
+> most recent laptops?
 
-It appeared after new Embedded Controller code was merged into ACPI. It 
-might as well be just a debug message or a remainder to add support for 
-new queries (whatever these are), but I do not know. The message itself 
-seems harmless.
+It is complex :-(.
 
+HOTPLUG_CPU is pretty solid for the case how _suspend_ uses it (ie
+drivers quiescent).
+
+It is also known broken for _other_ uses. (There was flamewar about
+that recently).
+
+I'm not sure how to express that in Kconfig language without
+uglyness... We probably could split HOTPLUG_CPU into
+HOTPLUG_CPU_SUSPEND_ONLY (not experimental) and HOTPLUG_CPU (enables
+/sysfs interface)... but I do not think that is good idea. (It would
+also make suspend debugging a bit harder).
+
+									Pavel
 -- 
-Meelis Roos (mroos@linux.ee)
----559023410-851401618-1185825798=:14147--
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
