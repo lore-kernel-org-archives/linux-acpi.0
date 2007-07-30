@@ -1,70 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND
-Date: Mon, 30 Jul 2007 00:22:53 +0200
-Message-ID: <200707300022.54633.rjw@sisk.pl>
-References: <200707251238.50218.lenb@kernel.org> <200707292336.55588.rjw@sisk.pl> <1185744640.2295.4.camel@work>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH 0/2] Introduce CONFIG_HIBERNATION and
+ CONFIG_SUSPEND (updated)
+Date: Sun, 29 Jul 2007 17:21:22 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0707291717410.3442@woody.linux-foundation.org>
+References: <200707251238.50218.lenb@kernel.org>
+	<alpine.LFD.0.999.0707281130110.3442@woody.linux-foundation.org>
+	<200707291220.14880.rjw@sisk.pl> <200707292323.29601.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49600 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754908AbXG2WOY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jul 2007 18:14:24 -0400
-In-Reply-To: <1185744640.2295.4.camel@work>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=us-ascii
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200707292323.29601.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: david@lang.hm, Nigel Cunningham <nigel@nigel.suspend2.net>, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sunday, 29 July 2007 23:30, Richard Hughes wrote:
-> On Sun, 2007-07-29 at 23:36 +0200, Rafael J. Wysocki wrote:
-> > On Sunday, 29 July 2007 23:18, Adrian Bunk wrote:
-> > > On Sun, Jul 29, 2007 at 11:17:20PM +0200, Rafael J. Wysocki wrote:
-> > > > On Sunday, 29 July 2007 22:40, Adrian Bunk wrote:
-> > > > > On Sun, Jul 29, 2007 at 02:38:05PM +0200, Rafael J. Wysocki wrote:
-> > > > > >...
-> > > > > > +config SUSPEND
-> > > > > > +	bool "Suspend"
-> > > > >              "Suspend to RAM"
-> > > > 
-> > > > Not only.  This also includes "standby".
-> > > 
-> > > Whatever it includes - please tell it to the user in the prompt.
-> > > 
-> > > Technical issues are important, but it's often forgotten how many 
-> > > problems people run into because the description of a kconfig option 
-> > > could have been better.
-> > 
-> > Sure.  Please see the updated patch I've just sent. :-)
-> 
-> So are you guys using:
-> 
-> "standby" = idle state, ~0.5 seconds
-> "suspend" = sleep to ram, ~10 seconds
-> "hibernate" = sleep to disk, ~30 seconds
 
-Something like this, but "suspend" is not reserved as a name of specific state.
 
-The second state is usually referred to as "suspend to RAM" or "STR" and is
-denoted by "mem" in /sys/power/state, if implemented.  Moreover, "standby" and
-"mem" are both entered using the same code path, so they may generally be
-referred to as "suspend" states.
+Ok, I took this, and modified Len's patch to re-introduce ACPI_SLEEP on 
+top of it (I took the easy way out, and just made PM_SLEEP imply 
+ACPI_SLEEP, which should make everything come out right. I could have 
+dropped ACPI_SLEEP entirely in favour of PM_SLEEP, but that would have 
+implied changing more of Len's patch than I was really comfy with).
 
-The times aren't strictly defined for "mem" and "standby", too.  The general
-rule is that the times for "mem" are greater then for "standby" and the power
-drawn in "mem" is smaller than the power drawn in "standby", but the exact
-values will always depend on the platform.  Apart from this, if the platform
-supports only one "suspend" state, it decides if that's "mem" or "standby".
+Len, Rafael, please do check that the end result looks ok. 
 
-On ACPI systems "standby" and "mem" correspond to the S1 and S3 sleep states,
-respectively.
+I suspect ACPI could now take the PM_SLEEP/SUSPEND/HIBERNATE details into 
+account, and that some of the code is not necessary when HIBERNATE is not 
+selected, for example, but I'm not at all sure that it's worth it being 
+very fine-grained.
 
-Greetings,
-Rafael
- 
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+		Linus
