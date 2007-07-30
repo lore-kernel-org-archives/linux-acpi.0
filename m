@@ -1,52 +1,107 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [patch] Refresh lid state on resume
-Date: Mon, 30 Jul 2007 16:33:30 +0100
-Message-ID: <1185809610.24649.3.camel@hughsie-laptop>
-References: <1184670921.8890.2.camel@work>
-	 <1185808891.18821.25.camel@queen.suse.de>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [2/3] 2.6.23-rc1: known regressions v3
+Date: Mon, 30 Jul 2007 18:33:57 +0200
+Message-ID: <46AE12F5.4030706@googlemail.com>
+References: <46AE0F5D.3000500@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.228]:7713 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755451AbXG3Pdh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2007 11:33:37 -0400
-Received: by wr-out-0506.google.com with SMTP id 36so54796wra
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jul 2007 08:33:37 -0700 (PDT)
-In-Reply-To: <1185808891.18821.25.camel@queen.suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <46AE0F5D.3000500@googlemail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Denis Sadykov <denis.m.sadykov@intel.com>, dth <dth@dth.net>, Netdev <netdev@vger.kernel.org>, Stephen Hemminger <shemminger@osdl.org>, Thomas Meyer <thomas@m3y3r.de>, Florian Lohoff <flo@rfc822.org>, =?ISO-8859-2?Q?Ismail_D=F6nmez?= <ismail@pardus.org.tr>, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, James Bottomley <James.Bottomley@steeleye.com>, James Smart <James.Smart@emulex.com>, Adrian Bunk <bunk@stusta.de>
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, 2007-07-30 at 17:21 +0200, Thomas Renninger wrote:
-> On Tue, 2007-07-17 at 12:15 +0100, Richard Hughes wrote:
-> > On resume we need to refresh the lid status as we will not get an event if
-> > the lid opening was what triggered the suspend.
-> > This manifests itself in users never getting a "lid open" event when a
-> > suspend happens because of lid close on hardware that supports wake on
-> > lid open. This makes userspace gets very confused indeed.
-> > Patch inline (and also attached) forces a check of the lid status in the
-> > resume handler.
-> Is this a general problem on all machines?
+Hi all,
 
-I've only seen myself it on new ThinkPads such as the T61 and X60,
-although I've been getting a few bug reports about other IBM laptops.
+Here is a list of some known regressions in 2.6.23-rc1.
 
-> Or does this only happen if "shutdown" suspend mode is used?
+=46eel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-No, I don't believe so.
+List of Aces
 
-> I could imagine a lot machines let it up to OS to check for LID state
-> change, then this one should be added.
-
-I guess it's up to the BIOS, and I don't think this refresh hurts any
-machines that implement a notify on resume, and fixes a fair few
-machines that don't.
-
-Thanks,
-
-Richard.
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            6
+Andi Kleen                             4
+Andrew Morton                          4
+Linus Torvalds                         4
+Al Viro                                3
+Jens Axboe                             3
+Tejun Heo                              3
+David Woodhouse                        2
+Hugh Dickins                           2
 
 
+
+CPUFREQ/ACPI
+
+Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is no=
+t
+References      : http://lkml.org/lkml/2007/7/27/298
+                  http://lkml.org/lkml/2007/7/29/371
+Last known good : ?
+Submitter       : dth <dth@dth.net>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+Networking
+
+Subject         : sky2 boot crash in sky2_mac_intr
+References      : http://lkml.org/lkml/2007/7/24/91
+Last known good : ?
+Submitter       : Florian Lohoff <flo@rfc822.org>
+Caused-By       :=20
+Handled-By      : Stephen Hemminger <shemminger@osdl.org>
+Status          : unknown
+
+Subject         : New wake ups from sky2
+References      : http://lkml.org/lkml/2007/7/20/386
+Last known good : ?
+Submitter       : Thomas Meyer <thomas@m3y3r.de>
+Caused-By       : Stephen Hemminger <shemminger@osdl.org>
+                  commit eb35cf60e462491249166182e3e755d3d5d91a28
+Handled-By      : Stephen Hemminger <shemminger@osdl.org>
+Status          : unknown
+
+
+
+Power Management
+
+Subject         : New ACPI error/warning with Linus' latest GIT
+References      : http://lkml.org/lkml/2007/7/26/395
+Last known good : ?
+Submitter       : Ismail D=F6nmez <ismail@pardus.org.tr>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+SCSI
+
+Subject         : lpfc_sli.c: off-by-10
+References      : http://lkml.org/lkml/2007/7/22/284
+Last known good : ?
+Submitter       : Adrian Bunk <bunk@stusta.de>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
+-
+To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
