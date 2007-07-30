@@ -1,56 +1,77 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
-Date: Mon, 30 Jul 2007 08:08:17 -0600
-Message-ID: <200707300808.17934.bjorn.helgaas@hp.com>
-References: <1183030080.4249.172.camel@queen.suse.de> <200707292141.23339.bjorn.helgaas@hp.com> <Pine.LNX.4.64.0707292058040.6510@asgard.lang.hm>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
+Date: Mon, 30 Jul 2007 16:32:20 +0200
+Message-ID: <6bffcb0e0707300732s6a63e63g4622ebfbbe26e479@mail.gmail.com>
+References: <20070723221630.GA28951@alice>
+	 <6bffcb0e0707241614s7b563b5bu114d2ecb227b1557@mail.gmail.com>
+	 <20070725113349.GB5469@alice> <200707251250.22469.lenb@kernel.org>
+	 <20070725231714.GA24867@alice>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:46453 "EHLO atlrel6.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757386AbXG3OPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jul 2007 10:15:54 -0400
-In-Reply-To: <Pine.LNX.4.64.0707292058040.6510@asgard.lang.hm>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20070725231714.GA24867@alice>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: david@lang.hm
-Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On Sunday 29 July 2007 09:59:18 pm david@lang.hm wrote:
-> On Sun, 29 Jul 2007, Bjorn Helgaas wrote:
-> 
-> >>>
-> >>> Could you try the attached patch and collect the dmesg log and contents
-> >>> of /proc/interrupts?
-> >>
-> >> done, see the files
-> >> 2.6.22-rc4.interrupts
-> >> 2.6.22-rc4.dmesg.test
-> >> at http://lang.hm/linux
+Hi Eric,
+
+On 26/07/07, Eric Sesterhenn / Snakebyte <snakebyte@gmx.de> wrote:
+> * Len Brown (lenb@kernel.org) wrote:
+> > > > > > [   13.506890] ACPI Exception (processor_throttling-0084): AE_NOT_FOUND, Evaluating _PTC [20070126]
+> > > > > > [   13.507101] ACPI Exception (processor_throttling-0147): AE_NOT_FOUND, Evaluating _TSS [20070126]
 > >
-> > Thanks, but you booted with "pnpacpi=off", so we didn't learn anything.
-> > The port works with "pnpacpi=off" even without the patch.  Somebody
-> > else tried my "disable/init/activate" patch with terrible results, so
-> > that approach will need more work.
-> 
-> Ok, the new versions are there now.
-
-I assume the port still didn't work.  My current theory is that
-there's something wrong with parport DMA.
-
-> > This seems an awful lot like this bug report:
-> >  http://bugzilla.kernel.org/show_bug.cgi?id=5832
+> > Note that these are just noise -- new code being verbose when looking for an optional feature.
 > >
-> > Can you take a look at 5832, and maybe we can combine your problem
-> > with that one if you agree they look the same?
-> 
-> yes, it definantly looks like the same thing.
+> > The fact that hitting the power button a bunch of times
+> > to make the system move along suggests some sort of missing interrupt problem --
+> > most likely the timer itself.
+> >
+> > [   13.868574] Probing IDE interface ide0...
+> > [  387.279576] Clocksource tsc unstable (delta = 370195339890 ns)
+> >
+> > 5-minutes -- a long probe:-)
+> >
+> > > CONFIG_NO_HZ=y
+> >
+> > does CONFIG_NO_HZ=n make a difference?
+>
+> [   41.007654] EXT3 FS on hda1, internal journal
+> [  322.133656] Clocksource tsc unstable (delta = 276476174785 ns)
+> Boot went fine but the system got pretty unresponsive later, 2-3 seconds
+> delay after keypresses on an idle system and a hang during shutdown which i had to resolve by
+> pressing the power button (not to switch it of the hard way, but to keep it rebooting)
+>
+> > > CONFIG_HIGH_RES_TIMERS=y
+> >
+> > does CONFIG_HIGH_RES_TIMERS=n make a difference?
+>
+> doesnt change anything
+>
+> > does "irqpoll" make any difference?
+> > does "notsc" make any difference?
+> > does "idle=poll" make any difference?
+>
+> I tried these with the HIGH_RES_TIMERS=n, irqpoll and notsc dont change
+> a thing, idle=poll makes it boot normally
 
-OK, I added you to the cc: list of 5832.
+Please use git-bisect
 
-Bjorn
+git-bisect start
+git-bisect bad
+git-bisect good 7dcca30a32aadb0520417521b0c44f42d09fe05c
 
+>
+>
+> Greetings, Eric
+>
 
+Regards,
+Michal
+
+-- 
+LOG
+http://www.stardust.webpages.pl/log/
