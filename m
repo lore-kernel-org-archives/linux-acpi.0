@@ -1,76 +1,77 @@
-From: Danny ter Haar <dth@dth.net>
-Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
-Date: Mon, 30 Jul 2007 04:54:12 +0200
-Message-ID: <20070730025412.GA22888@dth.net>
-References: <20070727193832.GA20289@dth.net> <200707290142.53689.bzolnier@gmail.com> <20070729012324.GA29723@dth.net> <46ABFFE4.3060703@googlemail.com> <20070729033030.GA24636@dth.net> <46AC0F6E.2000008@googlemail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
+Date: Sun, 29 Jul 2007 21:41:22 -0600
+Message-ID: <200707292141.23339.bjorn.helgaas@hp.com>
+References: <1183030080.4249.172.camel@queen.suse.de> <200707241540.43868.bjorn.helgaas@hp.com> <Pine.LNX.4.64.0707291821590.6331@asgard.lang.hm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965724AbXG3Cy1@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel7.hp.com ([156.153.255.213]:53288 "EHLO atlrel7.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S937206AbXG3Dl7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jul 2007 23:41:59 -0400
+In-Reply-To: <Pine.LNX.4.64.0707291821590.6331@asgard.lang.hm>
 Content-Disposition: inline
-In-Reply-To: <46AC0F6E.2000008@googlemail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gabriel C <nix.or.die@googlemail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: david@lang.hm
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-Quoting Gabriel C (nix.or.die@googlemail.com):
-> Now while we think is ACPI this should be easy for you to bisect.
-> This commit http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=39804b20f62532fa05c2a8c3e2d1ae551fd0327b
-> merged ACPI so this one should be your first bad one.
-> Maybe Len has some idea and you don't need to bisect :)
+On Sunday 29 July 2007 07:22:41 pm david@lang.hm wrote:
+> On Tue, 24 Jul 2007, Bjorn Helgaas wrote:
+> 
+> > On Saturday 21 July 2007 08:09:11 pm david@lang.hm wrote:
+> >> On Fri, 6 Jul 2007, Bjorn Helgaas wrote:
+> >>> Ultimately, you should have CONFIG_ACPI=y and CONFIG_PNPACPI=y, and you
+> >>> should not have to boot with "noisapnp" or "pnpacpi=off".  My guess is
+> >>> that you only need "pnpacpi=off" to work around the current problem.
+> >>
+> >> these two options are enabled and pnpacpi=off does solve the problem.
+> >> ...
+> >> there's now a dmesg.pnpacpi_off which works, and you are correct that the
+> >> dmesg that's there is the non working one.
+> >
+> > Thanks.  Here's what I glean from that.  With no arguments, it doesn't work:
+> >
+> >    parport_pc 00:0a: reported by Plug and Play ACPI
+> >    parport0: PC-style at 0x378 (0x778), irq 7, dma 3 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
+> >    parport0: Printer, Brother HL-5040 series
+> >    lp0: using parport0 (interrupt-driven).
+> >
+> > With pnpacpi=off, it works:
+> >
+> >    parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE]
+> >    parport0: irq 7 detected
+> >    parport0: Printer, Brother HL-5040 series
+> >    lp0: using parport0 (polling).
+> >
+> > With pnpacpi=off, or a kernel without PNPACPI, we just probe at 0x378
+> > and use the port in polling mode, and it works.
+> >
+> > PNPACPI claims the device supports interrupts, so we try to use it in
+> > interrupt mode, and it doesn't work.  It's possible that ACPI is lying
+> > to us, and the interrupt really doesn't work.  Or maybe the interrupt
+> > *does* work, but the BIOS left it half-configured.
+> >
+> > Could you try the attached patch and collect the dmesg log and contents
+> > of /proc/interrupts?
+> 
+> done, see the files
+> 2.6.22-rc4.interrupts
+> 2.6.22-rc4.dmesg.test
+> at http://lang.hm/linux
 
-Thanks to personal coaching of Gabriel i bisected the last few days.
+Thanks, but you booted with "pnpacpi=off", so we didn't learn anything.
+The port works with "pnpacpi=off" even without the patch.  Somebody
+else tried my "disable/init/activate" patch with terrible results, so
+that approach will need more work.
 
-It looked like this was the cullprit:
+This seems an awful lot like this bug report:
+  http://bugzilla.kernel.org/show_bug.cgi?id=5832
 
-22aadf8a07067644e101267ed5003043f2ad05bf is first bad commit
+Can you take a look at 5832, and maybe we can combine your problem
+with that one if you agree they look the same?
 
-2.6.23-rc1-git[1-6] all lockup solid after either direct or
-within a couple of minutes (less than 2) after reboot.
-
-They all run fine with "acpi=off" as boot argument.
-
-
-However, i'm currently running 2.6.23-rc1-git6 with this reverted:
-
-diff --git a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-index 18c8b67..6f846be 100644 (file)
---- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -665,8 +665,8 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
-        data->max_freq = perf->states[0].core_frequency * 1000;
-        /* table init */
-        for (i=0; i<perf->state_count; i++) {
--               if (i>0 && perf->states[i].core_frequency ==
--                   perf->states[i-1].core_frequency)
-+               if (i>0 && perf->states[i].core_frequency >=
-+                   data->freq_table[valid_states-1].frequency / 1000)
-                        continue;
-
------------
-
-I could hardly believe this could be the cause.
-And indeed after about 16 minutes the kernel froze again, though longer
-uptime than other kernels :-(
-
-This hardware is a via epia 5000 with latest bios available (2.07)
-
-It's remarkable that with acpi=off the machine is rocksolid.
-As is with 2.6.22* kernels _with_ acpi enabled!
-weeks of uptime before i wanted to upgrade to a new kernel ;-)
-
-I'm thinking of redoing the git disect but this time really powercycle
-the unit between kernels since it "seems/feels" like a timer which 
-really counts to 0 and then locks the machine. 
-After a lockup/freeze i cant boot the kernel another time with acpi 
-enabled: it will simply hang after booting init.
-And again nobody home: no keyboard activity whatsoever.
-
-I've put the dmesg of 2.6.23-rc1-git6 with and without acpi=off online:
-http://www.dth.net/kernel/via_output_2.6.23-rc1-git6-acpi_off
-http://www.dth.net/kernel/via_output_2.6.23-rc1-git6-acpi_on
-
-I would like to hear if someone has an idea how to tackle this problem.
-
-Danny
--- 
+Bjorn
