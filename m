@@ -1,48 +1,59 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [2.6 patch] let SUSPEND select HOTPLUG_CPU
-Date: Mon, 30 Jul 2007 23:18:26 +0200
-Message-ID: <20070730211826.GA22419@elf.ucw.cz>
-References: <200707251238.50218.lenb@kernel.org> <200707262117.26353.rjw@sisk.pl> <alpine.LFD.0.999.0707261255380.3442@woody.linux-foundation.org> <200707262248.09187.rjw@sisk.pl> <alpine.LFD.0.999.0707261351430.3442@woody.linux-foundation.org> <20070727222503.GB15129@stusta.de> <46AA7609.1040900@s5r6.in-berlin.de> <20070727230307.GC15129@stusta.de>
+Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND
+Date: Mon, 30 Jul 2007 23:26:08 +0200
+Message-ID: <20070730212608.GB22419@elf.ucw.cz>
+References: <200707251238.50218.lenb@kernel.org> <200707292336.55588.rjw@sisk.pl> <1185744640.2295.4.camel@work> <200707300022.54633.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:42031 "EHLO amd.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:56934 "EHLO amd.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S964959AbXG3VTL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jul 2007 17:19:11 -0400
+	id S967421AbXG3V02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jul 2007 17:26:28 -0400
 Content-Disposition: inline
-In-Reply-To: <20070727230307.GC15129@stusta.de>
+In-Reply-To: <200707300022.54633.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Richard Hughes <hughsient@gmail.com>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
 Hi!
 
-> > Wait, doesn't HOTPLUG_CPU also depend on EXPERIMENTAL?
+> > > > > Not only.  This also includes "standby".
+> > > > 
+> > > > Whatever it includes - please tell it to the user in the prompt.
+> > > > 
+> > > > Technical issues are important, but it's often forgotten how many 
+> > > > problems people run into because the description of a kconfig option 
+> > > > could have been better.
+> > > 
+> > > Sure.  Please see the updated patch I've just sent. :-)
+> > 
+> > So are you guys using:
+> > 
+> > "standby" = idle state, ~0.5 seconds
+> > "suspend" = sleep to ram, ~10 seconds
+> > "hibernate" = sleep to disk, ~30 seconds
 > 
-> Damn, I started thinking about it, and then forgot about it when 
-> finishing the patch.
+> Something like this, but "suspend" is not reserved as a name of specific state.
 > 
-> My thoughts were:
-> Is HOTPLUG_CPU still an experimental feature, or has it become a 
-> well-tested no longer experimental feature now that it's used on
-> most recent laptops?
+> The second state is usually referred to as "suspend to RAM" or "STR" and is
+> denoted by "mem" in /sys/power/state, if implemented.  Moreover, "standby" and
+> "mem" are both entered using the same code path, so they may generally be
+> referred to as "suspend" states.
+> 
+> The times aren't strictly defined for "mem" and "standby", too.  The general
+> rule is that the times for "mem" are greater then for "standby" and the power
+> drawn in "mem" is smaller than the power drawn in "standby", but the exact
+> values will always depend on the platform.  Apart from this, if the platform
+> supports only one "suspend" state, it decides if that's "mem" or "standby".
+> 
+> On ACPI systems "standby" and "mem" correspond to the S1 and S3 sleep states,
+> respectively.
 
-It is complex :-(.
-
-HOTPLUG_CPU is pretty solid for the case how _suspend_ uses it (ie
-drivers quiescent).
-
-It is also known broken for _other_ uses. (There was flamewar about
-that recently).
-
-I'm not sure how to express that in Kconfig language without
-uglyness... We probably could split HOTPLUG_CPU into
-HOTPLUG_CPU_SUSPEND_ONLY (not experimental) and HOTPLUG_CPU (enables
-/sysfs interface)... but I do not think that is good idea. (It would
-also make suspend debugging a bit harder).
-
+And I'd expect ~2seconds for both "standby" and "mem" on ACPI
+system. ACPI S1 is just "for windows ME compatibility, do not use" --
+it draws too much power, and is not really faster.
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
