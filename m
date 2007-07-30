@@ -1,95 +1,76 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch] Refresh lid state on resume
-Date: Mon, 30 Jul 2007 17:21:30 +0200
-Message-ID: <1185808891.18821.25.camel@queen.suse.de>
-References: <1184670921.8890.2.camel@work>
-Reply-To: trenn@suse.de
+From: Cal Peake <cp@absolutedigital.net>
+Subject: Re: ACPI on Averatec 2370
+Date: Mon, 30 Jul 2007 11:20:40 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
+ <46ACD8DB.2020108@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <1184670921.8890.2.camel@work>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from livid.absolutedigital.net ([66.92.46.173]:33320 "EHLO
+	mx2.absolutedigital.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755238AbXG3PV1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2007 11:21:27 -0400
+In-Reply-To: <46ACD8DB.2020108@googlemail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriel C <nix.or.die@googlemail.com>
+Cc: Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
-On Tue, 2007-07-17 at 12:15 +0100, Richard Hughes wrote:
-> On resume we need to refresh the lid status as we will not get an event if
-> the lid opening was what triggered the suspend.
-> This manifests itself in users never getting a "lid open" event when a
-> suspend happens because of lid close on hardware that supports wake on
-> lid open. This makes userspace gets very confused indeed.
-> Patch inline (and also attached) forces a check of the lid status in the
-> resume handler.
-Is this a general problem on all machines?
-Or does this only happen if "shutdown" suspend mode is used?
-AFAIK AML code (only on some machines? or only in suspend functions
-which are not invoked in shutdown mode?) checks for LID state change and
-invokes a notify(LID0,0x80) (or similar).
-If this only happens in shutdown mode then IMO this is not needed ->
-working around a workaround makes not much sense.
-I could imagine a lot machines let it up to OS to check for LID state
-change, then this one should be added.
+On Sun, 29 Jul 2007, Gabriel C wrote:
 
-Thanks,
+> Frank Hale wrote:
+> [ added  linux-acpi to CC ]
+> > I have an Averatec 2370 laptop with the nVidia MCP51. With kernel
+> > 2.6.20 I had no issues with ACPI however with 2.6.21 and higher the
+> > kernel will hang on boot until I press the suspend button or the power
+> > button in which case the kernel wakes up and finishes the boot
+> > process. Including the following support only causes the issue:
+> > 
+> >  [*] ACPI Support
+> > 
+> > What I mean by that is every ACPI option has been deactivated and only
+> > ACPI support checked. The boot process with 2.6.21 and higher hangs at
+> > the point where the Scheduler is being registered.
+> > 
+> > io scheduler cfq registered (default)
+> > 
+> > If I allow it to sit there it never comes back to life and finishes
+> > booting. If I press the power or suspend button it will finish booting
+> > as expected.
+> > 
+> > I've scoured google for quite a while but cannot find any relevant
+> > information pertaining to this issue. For now I've disabled ACPI
+> > altogether.
 
-    Thomas
+Frank, thanks for the tip about 2.6.20 being good, it gave me a nice place 
+to start bisecting from.
 
-> Signed-off-by: Richard Hughes <richard@hughsie.com>
-> ---
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index cb4110b..fd3473b 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -68,6 +68,7 @@ MODULE_LICENSE("GPL");
->  
->  static int acpi_button_add(struct acpi_device *device);
->  static int acpi_button_remove(struct acpi_device *device, int type);
-> +static int acpi_button_resume(struct acpi_device *device);
->  static int acpi_button_info_open_fs(struct inode *inode, struct file *file);
->  static int acpi_button_state_open_fs(struct inode *inode, struct file *file);
->  
-> @@ -77,6 +78,7 @@ static struct acpi_driver acpi_button_driver = {
->  	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
->  	.ops = {
->  		.add = acpi_button_add,
-> +		.resume = acpi_button_resume,
->  		.remove = acpi_button_remove,
->  	},
->  };
-> @@ -487,6 +489,29 @@ static int acpi_button_remove(struct acpi_device *device, int type)
->  	return 0;
->  }
->  
-> +/* this is needed to learn about changes made in suspended state */
-> +static int acpi_button_resume(struct acpi_device *device)
-> +{
-> +	struct acpi_button *button;
-> +	struct acpi_handle *handle;
-> +	struct input_dev *input;
-> +	unsigned long state;
-> +
-> +	button = device->driver_data;
-> +	handle = button->device->handle;
-> +	input = button->input;
-> +
-> +	/*
-> +	 * On resume we send the state; if it matches to what input layer
-> +	 * thinks then the event will not even reach userspace.
-> +	 */
-> +	if (!ACPI_FAILURE(acpi_evaluate_integer(handle, "_LID",
-> +						NULL, &state)))
-> +		input_report_switch(input, SW_LID, !state);
-> +
-> +	return 0;
-> +}
-> +
->  static int __init acpi_button_init(void)
->  {
->  	int result;
+Thomas, Ingo,
+
+Regarding the issue described above that Frank and I are having, I've 
+narrowed it down to commit e9e2cdb4[1]: [PATCH] clockevents: i386 drivers
+
+About our systems:
+  Averatec 2370/2371 Laptop
+    AMD Turion 64 X2 TL-50/TL-52
+    nVidia MCP51 chipset
+
+Here a small matrix of my tests:
+
+2.6.20.15 SMP		: OK
+2.6.21.5 SMP		: hang
+2.6.21.5 UP w/o APIC	: OK
+2.6.22.1 UP		: hang
+2.6.22.1 UP w/o IO-APIC	: hang
+2.6.22.1 UP w/o APIC	: OK
+2.6.22.1 SMP		: hang
+2.6.22.1 SMP w/o ACPI	: OK
+
+Please let me know if there's anything else I can provide to help.
+
+thanks!
+-- 
+Cal Peake
+
+[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=e9e2cdb412412326c4827fc78ba27f410d837e6e
