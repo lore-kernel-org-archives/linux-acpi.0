@@ -1,107 +1,56 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [2/3] 2.6.23-rc1: known regressions v3
-Date: Mon, 30 Jul 2007 18:33:57 +0200
-Message-ID: <46AE12F5.4030706@googlemail.com>
-References: <46AE0F5D.3000500@googlemail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
+Date: Mon, 30 Jul 2007 13:30:54 -0400
+Message-ID: <200707301330.54640.lenb@kernel.org>
+References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <46AE0F5D.3000500@googlemail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Denis Sadykov <denis.m.sadykov@intel.com>, dth <dth@dth.net>, Netdev <netdev@vger.kernel.org>, Stephen Hemminger <shemminger@osdl.org>, Thomas Meyer <thomas@m3y3r.de>, Florian Lohoff <flo@rfc822.org>, =?ISO-8859-2?Q?Ismail_D=F6nmez?= <ismail@pardus.org.tr>, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, James Bottomley <James.Bottomley@steeleye.com>, James Smart <James.Smart@emulex.com>, Adrian Bunk <bunk@stusta.de>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S937954AbXG3Rbi@vger.kernel.org>
+In-Reply-To: <20070730025412.GA22888@dth.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Danny ter Haar <dth@dth.net>
+Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+On Sunday 29 July 2007 22:54, Danny ter Haar wrote:
+> Quoting Gabriel C (nix.or.die@googlemail.com):
+> > Now while we think is ACPI this should be easy for you to bisect.
+> > This commit http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=39804b20f62532fa05c2a8c3e2d1ae551fd0327b
+> > merged ACPI so this one should be your first bad one.
+> > Maybe Len has some idea and you don't need to bisect :)
+> 
+> Thanks to personal coaching of Gabriel i bisected the last few days.
+> 
+> It looked like this was the cullprit:
+> 
+> 22aadf8a07067644e101267ed5003043f2ad05bf is first bad commit
 
-Here is a list of some known regressions in 2.6.23-rc1.
+Please attach the output from acpidump to 
+http://bugzilla.kernel.org/show_bug.cgi?id=7880
+We'll likely be able to tell from it if that patch
+has any real effect on your system, or if you test
+result was from some unrelated event.
 
-=46eel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+Also, please test with CONFIG_X86_ACPI_CPUFREQ=n
+to remove the acpi-cpufreq driver (and thus this patch)
+from your kernel.  If it still fails, then we know
+that this driver (and this patch) are not related
+to the failure.
 
-List of Aces
+> 2.6.23-rc1-git[1-6] all lockup solid after either direct or
+> within a couple of minutes (less than 2) after reboot.
+> 
+> They all run fine with "acpi=off" as boot argument.
 
-Name                    Regressions fixed since 21-Jun-2007
-Adrian Bunk                            6
-Andi Kleen                             4
-Andrew Morton                          4
-Linus Torvalds                         4
-Al Viro                                3
-Jens Axboe                             3
-Tejun Heo                              3
-David Woodhouse                        2
-Hugh Dickins                           2
+Hmmm, okay, the "big hammer" works.  Please see
+if any of these smaller hammers work:
 
+pnpacpi=off
+acpi=noirq
+notsc
 
-
-CPUFREQ/ACPI
-
-Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is no=
-t
-References      : http://lkml.org/lkml/2007/7/27/298
-                  http://lkml.org/lkml/2007/7/29/371
-Last known good : ?
-Submitter       : dth <dth@dth.net>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
-
-
-
-Networking
-
-Subject         : sky2 boot crash in sky2_mac_intr
-References      : http://lkml.org/lkml/2007/7/24/91
-Last known good : ?
-Submitter       : Florian Lohoff <flo@rfc822.org>
-Caused-By       :=20
-Handled-By      : Stephen Hemminger <shemminger@osdl.org>
-Status          : unknown
-
-Subject         : New wake ups from sky2
-References      : http://lkml.org/lkml/2007/7/20/386
-Last known good : ?
-Submitter       : Thomas Meyer <thomas@m3y3r.de>
-Caused-By       : Stephen Hemminger <shemminger@osdl.org>
-                  commit eb35cf60e462491249166182e3e755d3d5d91a28
-Handled-By      : Stephen Hemminger <shemminger@osdl.org>
-Status          : unknown
-
-
-
-Power Management
-
-Subject         : New ACPI error/warning with Linus' latest GIT
-References      : http://lkml.org/lkml/2007/7/26/395
-Last known good : ?
-Submitter       : Ismail D=F6nmez <ismail@pardus.org.tr>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
-
-
-
-SCSI
-
-Subject         : lpfc_sli.c: off-by-10
-References      : http://lkml.org/lkml/2007/7/22/284
-Last known good : ?
-Submitter       : Adrian Bunk <bunk@stusta.de>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
-
-
-
-Regards,
-Michal
-
---
-LOG
-http://www.stardust.webpages.pl/log/
--
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-Len
