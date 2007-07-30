@@ -1,64 +1,72 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: acpi_battery_add(): use-after-free
-Date: Mon, 30 Jul 2007 15:34:20 -0700
-Message-ID: <20070730153420.317ae2ee.akpm@linux-foundation.org>
-References: <20070729150046.GM16817@stusta.de>
+From: Doug Chapman <doug.chapman@hp.com>
+Subject: regression on HP zx1 platform from ACPI autoload modules patches
+Date: Mon, 30 Jul 2007 18:57:18 -0400
+Message-ID: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52703 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932790AbXG3Wev (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:34:51 -0400
-In-Reply-To: <20070729150046.GM16817@stusta.de>
+Received: from atlrel8.hp.com ([156.153.255.206]:35413 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755960AbXG3XCE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jul 2007 19:02:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
 
-On Sun, 29 Jul 2007 17:00:46 +0200
-Adrian Bunk <bunk@stusta.de> wrote:
+I am seeing a regression on the HP ia64 zx1 platforms when using
+a .config with CONFIG_IA64_HP_ZX1=y.  Oddly it works OK with
+CONFIG_IA64_GENERIC=y.
 
-> The Coverity checker spotted the following use-after-free in 
-> acpi_battery_add():
-> 
-> <--  snip  -->
-> 
-> ...
-> static int acpi_battery_add(struct acpi_device *device)
-> {
-> ...
->         if (result) {
->                 acpi_battery_remove_fs(device);
->                 kfree(battery);
->         }
-> 
->         mutex_unlock(&battery->mutex);
-> ...
-> 
-> <--  snip  -->
-> 
 
-This?
+During bootup it panics with:
 
---- a/drivers/acpi/battery.c~acpi_battery_add-use-after-free
-+++ a/drivers/acpi/battery.c
-@@ -931,13 +931,12 @@ static int acpi_battery_add(struct acpi_
- 
-       end:
- 
-+	mutex_unlock(&battery->mutex);
- 	if (result) {
- 		acpi_battery_remove_fs(device);
- 		kfree(battery);
- 	}
- 
--	mutex_unlock(&battery->mutex);
--
- 	return result;
- }
- 
-_
+Kernel panic - not syncing: Unable to find SBA IOMMU: Try a generic or DIG kernel
+
+I can provide the full console output if that is helpful.  Also, please let
+me know if there is any other data I can provide that would be helpful.
+
+Using git bisect I have narrowed it down to these 2 commits.  These commits
+cannot be built separately as they appear to have code that depends on each
+other.
+
+
+commit 29b71a1ca74491fab9fed09e9d835d840d042690
+Author: Thomas Renninger <trenn@suse.de>
+Date:   Mon Jul 23 14:43:51 2007 +0200
+
+    ACPI: autoload modules - Create ACPI alias interface
+    
+    Modify modpost (file2alias.c) to add acpi*:XYZ0001: alias in modules.alias
+    like:
+    grep acpi /lib/modules/2.6.22-rc4-default/modules.alias
+    alias acpi*:SNY5001:* sony_laptop
+    alias acpi*:SNY6001:* sony_laptop
+    for e.g. the sony_laptop module.
+    This module matches against all ACPI devices with a HID or CID of SNY5001
+    or SNY6001
+    
+    Export an uevent and modalias sysfs file containing the string:
+    [MODALIAS=]acpi:PNP0C0C:
+    additional CIDs are concatenated at the end.
+    
+    Signed-off-by: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+
+Author: Thomas Renninger <trenn@suse.de>
+Date:   Mon Jul 23 14:43:32 2007 +0200
+
+    ACPI: autoload modules - ACPICA modifications
+    
+    Define standardized HIDs - Rename current acpi_device_id to acpica_device_id
+    
+    Signed-off-by: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+
+
+- Doug
+
 
