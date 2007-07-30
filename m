@@ -1,43 +1,86 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Frequency scaling, Dell Inspiron 6000
-Date: Mon, 30 Jul 2007 01:44:24 +0100
-Message-ID: <20070730004423.GA27398@srcf.ucam.org>
-References: <46AC9E33.3020008@molgaard.org>
+From: david@lang.hm
+Subject: Re: [Fwd: Re: long-term regression - Parallel Port broken?]
+Date: Sun, 29 Jul 2007 18:22:41 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0707291821590.6331@asgard.lang.hm>
+References: <1183030080.4249.172.camel@queen.suse.de> <200707061038.50755.bjorn.helgaas@hp.com>
+ <Pine.LNX.4.64.0707211905450.6747@asgard.lang.hm> <200707241540.43868.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:45269 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S965519AbXG3BUm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 21:20:42 -0400
-Content-Disposition: inline
-In-Reply-To: <46AC9E33.3020008@molgaard.org>
+Received: from dsl081-033-126.lax1.dsl.speakeasy.net ([64.81.33.126]:50463
+	"EHLO bifrost.lang.hm" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935950AbXG3BXf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2007 21:23:35 -0400
+In-Reply-To: <200707241540.43868.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sune =?iso-8859-1?Q?M=F8lgaard?= <sune@molgaard.org>
-Cc: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On Sun, Jul 29, 2007 at 04:03:31PM +0200, Sune M=F8lgaard wrote:
+On Tue, 24 Jul 2007, Bjorn Helgaas wrote:
 
-> The CPU of the machine is labeled as centrino compliant, but is in fa=
-ct=20
-> a Celeron-M, and hence does not support _Enhanced_ Speedstep. However=
-, I=20
-> clearly remember having frequency scaling working with Ubuntu kernel=20
-> 2.6.15, but failing with Ubuntu 2.6.17 (possibly with some 2.6.18 cod=
-e=20
-> backported).
+> On Saturday 21 July 2007 08:09:11 pm david@lang.hm wrote:
+>> On Fri, 6 Jul 2007, Bjorn Helgaas wrote:
+>>> Ultimately, you should have CONFIG_ACPI=y and CONFIG_PNPACPI=y, and you
+>>> should not have to boot with "noisapnp" or "pnpacpi=off".  My guess is
+>>> that you only need "pnpacpi=off" to work around the current problem.
+>>
+>> these two options are enabled and pnpacpi=off does solve the problem.
+>> ...
+>> there's now a dmesg.pnpacpi_off which works, and you are correct that the
+>> dmesg that's there is the non working one.
+>
+> Thanks.  Here's what I glean from that.  With no arguments, it doesn't work:
+>
+>    parport_pc 00:0a: reported by Plug and Play ACPI
+>    parport0: PC-style at 0x378 (0x778), irq 7, dma 3 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
+>    parport0: Printer, Brother HL-5040 series
+>    lp0: using parport0 (interrupt-driven).
+>
+> With pnpacpi=off, it works:
+>
+>    parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE]
+>    parport0: irq 7 detected
+>    parport0: Printer, Brother HL-5040 series
+>    lp0: using parport0 (polling).
+>
+> With pnpacpi=off, or a kernel without PNPACPI, we just probe at 0x378
+> and use the port in polling mode, and it works.
+>
+> PNPACPI claims the device supports interrupts, so we try to use it in
+> interrupt mode, and it doesn't work.  It's possible that ACPI is lying
+> to us, and the interrupt really doesn't work.  Or maybe the interrupt
+> *does* work, but the BIOS left it half-configured.
+>
+> Could you try the attached patch and collect the dmesg log and contents
+> of /proc/interrupts?
 
-It doesn't support Speedstep at all. You were probably using p4-clockmo=
-d=20
-in the past, which is a mechanism for temperature control rather than=20
-any sort of useful power saving.
+done, see the files
+2.6.22-rc4.interrupts
+2.6.22-rc4.dmesg.test
+at http://lang.hm/linux
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+David Lang
+
+> Thanks,
+>  Bjorn
+>
+> Index: w/drivers/pnp/pnpacpi/core.c
+> ===================================================================
+> --- w.orig/drivers/pnp/pnpacpi/core.c	2007-07-24 15:05:25.000000000 -0600
+> +++ w/drivers/pnp/pnpacpi/core.c	2007-07-24 15:29:50.000000000 -0600
+> @@ -216,6 +216,13 @@
+> 	pnp_add_device(dev);
+> 	num ++;
+>
+> +	if (dev->active) {
+> +		printk("%s: configuring %s (%s)\n", __FUNCTION__, dev->dev.bus_id, dev_id->id);
+> +		pnp_disable_dev(dev);
+> +		pnp_init_resource_table(&dev->res);
+> +		pnp_activate_dev(dev);
+> +	}
+> +
+> 	return AE_OK;
+> err1:
+> 	kfree(dev_id);
+>
