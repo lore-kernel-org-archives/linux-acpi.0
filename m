@@ -1,45 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND (updated)
-Date: Tue, 31 Jul 2007 11:15:27 +0200
-Message-ID: <200707311115.29057.rjw@sisk.pl>
-References: <200707251238.50218.lenb@kernel.org> <200707292327.19884.rjw@sisk.pl> <200707310059.50329.lenb@kernel.org>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [patch] Refresh lid state on resume
+Date: Tue, 31 Jul 2007 10:07:22 +0100
+Message-ID: <1185872842.2652.11.camel@hughsie-laptop>
+References: <1184670921.8890.2.camel@work>
+	 <1185808891.18821.25.camel@queen.suse.de>
+	 <1185809610.24649.3.camel@hughsie-laptop>  <200707311108.42947.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56808 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751967AbXGaJG3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 05:06:29 -0400
-In-Reply-To: <200707310059.50329.lenb@kernel.org>
-Content-Disposition: inline
+Received: from wx-out-0506.google.com ([66.249.82.229]:14583 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852AbXGaJH3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 05:07:29 -0400
+Received: by wx-out-0506.google.com with SMTP id h31so1587290wxd
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Jul 2007 02:07:28 -0700 (PDT)
+In-Reply-To: <200707311108.42947.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: trenn@suse.de, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>
 
-On Tuesday, 31 July 2007 06:59, Len Brown wrote:
-> On Sunday 29 July 2007 17:27, Rafael J. Wysocki wrote:
-> > Still, there are many other files in which CONFIG_PM can be replaced
-> > with CONFIG_PM_SLEEP or even with CONFIG_SUSPEND, but they can be updated in
-> > the future.
+On Tue, 2007-07-31 at 11:08 +0200, Rafael J. Wysocki wrote:
+> On Monday, 30 July 2007 17:33, Richard Hughes wrote:
+> > On Mon, 2007-07-30 at 17:21 +0200, Thomas Renninger wrote:
+> > > On Tue, 2007-07-17 at 12:15 +0100, Richard Hughes wrote:
+> > > > On resume we need to refresh the lid status as we will not get an event if
+> > > > the lid opening was what triggered the suspend.
+> > > > This manifests itself in users never getting a "lid open" event when a
+> > > > suspend happens because of lid close on hardware that supports wake on
+> > > > lid open. This makes userspace gets very confused indeed.
+> > > > Patch inline (and also attached) forces a check of the lid status in the
+> > > > resume handler.
+> > > Is this a general problem on all machines?
+> > 
+> > I've only seen myself it on new ThinkPads such as the T61 and X60,
+> > although I've been getting a few bug reports about other IBM laptops.
+> > 
+> > > Or does this only happen if "shutdown" suspend mode is used?
+> > 
+> > No, I don't believe so.
+> > 
+> > > I could imagine a lot machines let it up to OS to check for LID state
+> > > change, then this one should be added.
+> > 
+> > I guess it's up to the BIOS, and I don't think this refresh hurts any
+> > machines that implement a notify on resume, and fixes a fair few
+> > machines that don't.
 > 
-> There is #ifdef CONFIG_PM
-> around all the .suspend and .resume methods.
-> 
-> Technically they are PM_DEVICE_STATES or something,
-> that could really be under PM, and both SUSPEND and HIBERNATE
-> would depend on PM_DEVICE_STATES, but it is also possible to have
-> PM_DEVICE_STATES without SUSPEND and HIBERNATE.
+> AFAICS, the notify doesn't seem to work very well on some machines.
 
-Well, the people on linux-pm seem to agree that the .suspend() and .resume()
-callbacks are not suitable for runtime power management, so having them
-built without SUSPEND or HIBERNATION wouldn't be very useful. ;-)
+Agree.
 
-Greetings,
-Rafael
+> Are there any downsides of the $subject patch?
+
+Not that I've found. I've been testing it on ~6 IBM and non-IBM machines
+with no bad effects so far.
+
+Richard.
 
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
