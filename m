@@ -1,59 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] create CONFIG_SUSPEND_UP_POSSIBLE
-Date: Mon, 30 Jul 2007 23:54:22 -0400
-Message-ID: <200707302354.23237.lenb@kernel.org>
-References: <200707251238.50218.lenb@kernel.org> <200707292323.29601.rjw@sisk.pl> <alpine.LFD.0.999.0707291717410.3442@woody.linux-foundation.org>
+From: Danny ter Haar <dth@dth.net>
+Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
+Date: Tue, 31 Jul 2007 06:00:12 +0200
+Message-ID: <20070731040012.GA23707@dth.net>
+References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net> <200707301330.54640.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:47789 "EHLO hera.kernel.org"
+Received: from zaphod.dth.net ([85.159.112.68]:53758 "EHLO zaphod.dth.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S940514AbXGaDzp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jul 2007 23:55:45 -0400
-In-Reply-To: <alpine.LFD.0.999.0707291717410.3442@woody.linux-foundation.org>
+	id S1750820AbXGaEAP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 00:00:15 -0400
 Content-Disposition: inline
+In-Reply-To: <200707301330.54640.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Quoting Len Brown (lenb@kernel.org):
+> Hmmm, okay, the "big hammer" works.  Please see
+> if any of these smaller hammers work:
+> 
+> pnpacpi=off
+Went out for dinner, machine was frozen on return.
+One less on the checklist ..
 
-Without this change, it is possible to build CONFIG_HIBERNATE
-on all !SMP architectures, but not necessarily their SMP versions.
-
-I don't know for sure if the architecture list under SUSPEND_UP_POSSIBLE
-is correct.  For now it simply matches the list for SUSPEND_SMP_POSSIBLE.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Kconfig |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index 412859f..ccf6576 100644
---- a/kernel/power/Kconfig
-+++ b/kernel/power/Kconfig
-@@ -72,6 +72,11 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
- 
-+config SUSPEND_UP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
-+	default y
-+
- config SUSPEND_SMP_POSSIBLE
- 	bool
- 	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
-@@ -92,7 +97,7 @@ config PM_SLEEP
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM
--	depends on !SMP || SUSPEND_SMP_POSSIBLE
-+	depends on (!SMP && SUSPEND_UP_POSSIBLE) || (SMP && SUSPEND_SMP_POSSIBLE)
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
+-- 
