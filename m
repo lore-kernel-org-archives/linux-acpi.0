@@ -1,94 +1,61 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: Re: regression on HP zx1 platform from ACPI autoload modules patches
-Date: Tue, 31 Jul 2007 01:07:03 +0200
-Message-ID: <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
-References: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
+From: Danny ter Haar <dth@dth.net>
+Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
+Date: Tue, 31 Jul 2007 03:10:05 +0200
+Message-ID: <20070731011005.GA22245@dth.net>
+References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net> <200707301330.54640.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.191]:9387 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757386AbXG3XHJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2007 19:07:09 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so443801rvb
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jul 2007 16:07:09 -0700 (PDT)
-In-Reply-To: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
+Received: from zaphod.dth.net ([85.159.112.68]:34380 "EHLO zaphod.dth.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S939039AbXGaBKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jul 2007 21:10:08 -0400
 Content-Disposition: inline
+In-Reply-To: <200707301330.54640.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Doug Chapman <doug.chapman@hp.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
+To: Len Brown <lenb@kernel.org>
+Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Doug,
+Quoting Len Brown (lenb@kernel.org):
+> Please attach the output from acpidump to 
+> http://bugzilla.kernel.org/show_bug.cgi?id=7880
 
-On 31/07/07, Doug Chapman <doug.chapman@hp.com> wrote:
-> I am seeing a regression on the HP ia64 zx1 platforms when using
-> a .config with CONFIG_IA64_HP_ZX1=y.  Oddly it works OK with
-> CONFIG_IA64_GENERIC=y.
->
->
-> During bootup it panics with:
->
-> Kernel panic - not syncing: Unable to find SBA IOMMU: Try a generic or DIG kernel
->
-> I can provide the full console output if that is helpful.
+done
+also on : http://www.dth.net/kernel/acpidump_output_via_c3_5000
 
-Yes, it is very useful.
+> We'll likely be able to tell from it if that patch
+> has any real effect on your system, or if you test
+> result was from some unrelated event.
 
->  Also, please let
-> me know if there is any other data I can provide that would be helpful.
+Reverting the patch didn't make a real difference, it only took
+longer (eg 16 minutes before lockup in stead of 2-3 minutes)
 
-Kernel .config file.
+> Also, please test with CONFIG_X86_ACPI_CPUFREQ=n
+> to remove the acpi-cpufreq driver (and thus this patch)
+> from your kernel.  If it still fails, then we know
+> that this driver (and this patch) are not related
+> to the failure.
 
->
-> Using git bisect I have narrowed it down to these 2 commits.  These commits
-> cannot be built separately as they appear to have code that depends on each
-> other.
->
->
-> commit 29b71a1ca74491fab9fed09e9d835d840d042690
-> Author: Thomas Renninger <trenn@suse.de>
-> Date:   Mon Jul 23 14:43:51 2007 +0200
->
->     ACPI: autoload modules - Create ACPI alias interface
->
->     Modify modpost (file2alias.c) to add acpi*:XYZ0001: alias in modules.alias
->     like:
->     grep acpi /lib/modules/2.6.22-rc4-default/modules.alias
->     alias acpi*:SNY5001:* sony_laptop
->     alias acpi*:SNY6001:* sony_laptop
->     for e.g. the sony_laptop module.
->     This module matches against all ACPI devices with a HID or CID of SNY5001
->     or SNY6001
->
->     Export an uevent and modalias sysfs file containing the string:
->     [MODALIAS=]acpi:PNP0C0C:
->     additional CIDs are concatenated at the end.
->
->     Signed-off-by: Thomas Renninger <trenn@suse.de>
->     Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
->     Signed-off-by: Len Brown <len.brown@intel.com>
->
->
-> Author: Thomas Renninger <trenn@suse.de>
-> Date:   Mon Jul 23 14:43:32 2007 +0200
->
->     ACPI: autoload modules - ACPICA modifications
->
->     Define standardized HIDs - Rename current acpi_device_id to acpica_device_id
->
->     Signed-off-by: Thomas Renninger <trenn@suse.de>
->     Signed-off-by: Len Brown <len.brown@intel.com>
->
->
->
-> - Doug
->
+Will do.
+This machine(firewall) is solar powered so i tried to let it
+consume as less power as possible 
+This is in my startup script at the moment:
 
-Regards,
-Michal
+echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
+> Hmmm, okay, the "big hammer" works.  Please see
+> if any of these smaller hammers work:
+> 
+> pnpacpi=off
+> acpi=noirq
+> notsc
+
+More testing to do, however, sunday i'm going abroad for a while,
+all stuff will be in storage. If i cant find in the next few days
+(packing everything in moving boxes) it might take a while before
+i can test again. Sorry for that.
+
+Danny
 
 -- 
-LOG
-http://www.stardust.webpages.pl/log/
