@@ -1,56 +1,57 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] create CONFIG_SUSPEND_UP_POSSIBLE
-Date: Tue, 31 Jul 2007 08:38:33 +0200
-Message-ID: <20070731063833.GD22419@elf.ucw.cz>
-References: <200707251238.50218.lenb@kernel.org> <200707292323.29601.rjw@sisk.pl> <alpine.LFD.0.999.0707291717410.3442@woody.linux-foundation.org> <200707302354.23237.lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch] Refresh lid state on resume
+Date: Tue, 31 Jul 2007 11:08:42 +0200
+Message-ID: <200707311108.42947.rjw@sisk.pl>
+References: <1184670921.8890.2.camel@work> <1185808891.18821.25.camel@queen.suse.de> <1185809610.24649.3.camel@hughsie-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51172 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751002AbXGaGjE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:39:04 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:56748 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752531AbXGaI77 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 04:59:59 -0400
+In-Reply-To: <1185809610.24649.3.camel@hughsie-laptop>
 Content-Disposition: inline
-In-Reply-To: <200707302354.23237.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
+To: Richard Hughes <hughsient@gmail.com>
+Cc: trenn@suse.de, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>
 
-Hi!
-
-> Without this change, it is possible to build CONFIG_HIBERNATE
-> on all !SMP architectures, but not necessarily their SMP versions.
-
-Did you want to say "CONFIG_SUSPEND"?
-
-> I don't know for sure if the architecture list under SUSPEND_UP_POSSIBLE
-> is correct.  For now it simply matches the list for
-> SUSPEND_SMP_POSSIBLE.
-
-I do not think it is.
-
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  Kconfig |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
+On Monday, 30 July 2007 17:33, Richard Hughes wrote:
+> On Mon, 2007-07-30 at 17:21 +0200, Thomas Renninger wrote:
+> > On Tue, 2007-07-17 at 12:15 +0100, Richard Hughes wrote:
+> > > On resume we need to refresh the lid status as we will not get an event if
+> > > the lid opening was what triggered the suspend.
+> > > This manifests itself in users never getting a "lid open" event when a
+> > > suspend happens because of lid close on hardware that supports wake on
+> > > lid open. This makes userspace gets very confused indeed.
+> > > Patch inline (and also attached) forces a check of the lid status in the
+> > > resume handler.
+> > Is this a general problem on all machines?
 > 
-> diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-> index 412859f..ccf6576 100644
-> --- a/kernel/power/Kconfig
-> +++ b/kernel/power/Kconfig
-> @@ -72,6 +72,11 @@ config PM_TRACE
->  	CAUTION: this option will cause your machine's real-time clock to be
->  	set to an invalid time after a resume.
->  
-> +config SUSPEND_UP_POSSIBLE
-> +	bool
-> +	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES ||
+> I've only seen myself it on new ThinkPads such as the T61 and X60,
+> although I've been getting a few bug reports about other IBM laptops.
+> 
+> > Or does this only happen if "shutdown" suspend mode is used?
+> 
+> No, I don't believe so.
+> 
+> > I could imagine a lot machines let it up to OS to check for LID state
+> > change, then this one should be added.
+> 
+> I guess it's up to the BIOS, and I don't think this refresh hurts any
+> machines that implement a notify on resume, and fixes a fair few
+> machines that don't.
 
-At least ARM can do suspend, too... probably others. I was under
-impression that SUSPEND is "supported" by all the architectures, just
-some of them veto it at runtime (using pm_ops or how was it renamed).
-									Pavel
+AFAICS, the notify doesn't seem to work very well on some machines.
+
+Are there any downsides of the $subject patch?
+
+Greetings,
+Rafael
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+"Premature optimization is the root of all evil." - Donald Knuth
