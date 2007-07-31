@@ -1,51 +1,94 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC PATCH] report acpi video hot key event through input
-	device
-Date: Tue, 31 Jul 2007 09:58:17 -0300
-Message-ID: <20070731125817.GD19965@khazad-dum.debian.net>
-References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com> <20070730005050.GB27398@srcf.ucam.org> <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com> <d120d5000707300555g1e677815s6148d346f0d65e5e@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: regression on HP zx1 platform from ACPI autoload modules
+	patches - PATCH that fixes it
+Date: Tue, 31 Jul 2007 15:01:02 +0200
+Message-ID: <1185886862.18821.168.camel@queen.suse.de>
+References: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
+	 <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
+	 <1185883574.14987.6.camel@athlon>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:33273 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751142AbXGaM6W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 08:58:22 -0400
-Content-Disposition: inline
-In-Reply-To: <d120d5000707300555g1e677815s6148d346f0d65e5e@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1185883574.14987.6.camel@athlon>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Doug Chapman <doug.chapman@hp.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Richard Hughes <hughsient@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-On Mon, 30 Jul 2007, Dmitry Torokhov wrote:
-> I have some concerns over this patch. Some of the events reported are
-> not the regular key presses that something needs to process and
-> perform an action. Consider ACPI_VIDEO_NOTIFY_SWITCH is "Used to
-> notify OSPM whenever the state of one of the output devices attached
-> to the VGA controller has been switched or toggled." As far as I
-> understand the event (whatever it was) was already processed by
-> firmware and we getting a notification event of system change. So I am
-> not sure that this event should be sent as a key event.
+On Tue, 2007-07-31 at 08:06 -0400, Doug Chapman wrote:
+> On Tue, 2007-07-31 at 01:07 +0200, Michal Piotrowski wrote:
+> > Hi Doug,
+> > 
+> > On 31/07/07, Doug Chapman <doug.chapman@hp.com> wrote:
+> > > I am seeing a regression on the HP ia64 zx1 platforms when using
+> > > a .config with CONFIG_IA64_HP_ZX1=y.  Oddly it works OK with
+> > > CONFIG_IA64_GENERIC=y.
+> > >
+> > >
+> > > During bootup it panics with:
+> > >
+> > > Kernel panic - not syncing: Unable to find SBA IOMMU: Try a generic or DIG kernel
+> > >
+> > > I can provide the full console output if that is helpful.
+> > 
+> > Yes, it is very useful.
+> > 
+> > >  Also, please let
+> > > me know if there is any other data I can provide that would be helpful.
+> > 
+> > Kernel .config file.
+> 
+> 
+> Michal,
+> 
+> Attached are the full console output up to the panic and the .config
+> file I used to build the kernel.  Let me know if there is anything else
+> you need or if you would like me to try a patch.
 
-This is the whole "passive and active input events" crap I went over with
-thinkpad-acpi not too long ago.
+This patch should fix it.
+It's already sent to Len. Bjorn/Myron already tested this one and gave
+an acked-by, but it has not hit Len's git tree yet.
+Len?
+Or should it be picked up by an IA64 tree?
 
-Can we please get a formal documentation in input of how it should be done,
-and declare anything that doesn't follow it "buggy"?
+   Thomas
 
-You know my position on it: a new event type, or not producing such events
-at all.  But I will follow whatever rule the input layer sets.
+-----------------
 
-> The brightness events on the other hand seem to be perfectly suited
-> for an input device (unless are are also already processed by the
-> firmware and action has already been taken).
+Use new acpi_device_id struct for HID init in ia64/hp/common/sba_iommu.c
 
-Agreed.
+Forgot to adjust this one with the acpi autoloading patches.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Acked-by: Myron Stowe <myron.stowe@hp.com>
+
+---
+ arch/ia64/hp/common/sba_iommu.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.23-rc1/arch/ia64/hp/common/sba_iommu.c
+===================================================================
+--- linux-2.6.23-rc1.orig/arch/ia64/hp/common/sba_iommu.c
++++ linux-2.6.23-rc1/arch/ia64/hp/common/sba_iommu.c
+@@ -2015,9 +2015,14 @@ acpi_sba_ioc_add(struct acpi_device *dev
+ 	return 0;
+ }
+ 
++static const struct acpi_device_id hp_ioc_iommu_device_ids[] = {
++	{"HWP0001", 0},
++	{"HWP0004", 0},
++	{"", 0},
++};
+ static struct acpi_driver acpi_sba_ioc_driver = {
+ 	.name		= "IOC IOMMU Driver",
+-	.ids		= "HWP0001,HWP0004",
++	.ids		= hp_ioc_iommu_device_ids,
+ 	.ops		= {
+ 		.add	= acpi_sba_ioc_add,
+ 	},
+
+
+
+
