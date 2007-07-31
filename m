@@ -1,63 +1,67 @@
-From: Doug Chapman <doug.chapman@hp.com>
-Subject: RE: regression on HP zx1 platform from ACPI autoload modulespatches
-Date: Tue, 31 Jul 2007 12:59:56 -0400
-Message-ID: <1185901196.4478.16.camel@deimos.americas.hpqcorp.net>
-References: <617E1C2C70743745A92448908E030B2A020E3AD2@scsmsx411.amr.corp.intel.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
+Date: Tue, 31 Jul 2007 12:04:31 -0700
+Message-ID: <20070731190431.GA24577@linux-os.sc.intel.com>
+References: <20070731145456.GB25175@alice> <653FFBB4508B9042B5D43DC9E18836F5013588F6@scsmsx415.amr.corp.intel.com> <20070731153808.GC25175@alice>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:38540 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753193AbXGaRD1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 13:03:27 -0400
-In-Reply-To: <617E1C2C70743745A92448908E030B2A020E3AD2@scsmsx411.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20070731153808.GC25175@alice>
+Sender: linux-ide-owner@vger.kernel.org
+To: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Tony Luck <tony.luck@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
 
-On Tue, 2007-07-31 at 09:29 -0700, Luck, Tony wrote:
-> > commit 8c8eb78f673c07b60f31751e1e47ac367c60c6b7
+On Tue, Jul 31, 2007 at 05:38:08PM +0200, Eric Sesterhenn / Snakebyte wrote:
+> * Pallipadi, Venkatesh (venkatesh.pallipadi@intel.com) wrote:
+> > This means things should work fine with processor.max_cstate=2 boot
+> > option
+> > as well. Can you please double check that.
 > 
-> Oops.  I cut & pasted the wrong commit id.  The fix went in as
-> commit 7091138fb762aed22317b4ff91eb211e7da3865c.
+> yes, system boots fine with this kernel parameter
 > 
-> > FYI, I did a git pull yesterday just before I hit this issue so I should
-> > have had the latest stuff.
+> > Also, please send in the acpidump from your system.
 > 
-> So this confuses me.  Linus pulled this into his tree on Friday (IIRC), but
-> at the very latest on Saturday (as there is a commit *after* this one that
-> is dated 2007-07-28 19:29:37).
+> here we go, if you need some parameters to acpidump, just say so.
 > 
-> The patch that is in the tree appears to be identical to the one that
-> Thomas Renninger posted to this thread, and you confirmed as working.
-> 
-> So when you have a moment, please pull latest Linus tree.  Confirm that
-> this patch is present:
->  $ grep hp_ioc_iommu_device_ids arch/ia64/hp/common/sba_iommu.c
->  static const struct acpi_device_id hp_ioc_iommu_device_ids[] = {
->  	.ids		= hp_ioc_iommu_device_ids,
->  $
-> 
-> and that it builds and boots for you.
-> 
-> Thanks
-> 
-> -Tony
->  
 
-Tony, all,
+Eric,
 
-I think I have solved the mystery.  I have my git tree pointing to
-git.frob.com to try to lessen the load on kernel.org.  I am guessing
-that the last time I pulled linus's tree from there they had not pulled
-since the commit was made so I was still a little out of date.
+Can you check the test patch below (over latest git) and let me know whether it
+resolves the issue.
 
-The latest git pull now does indeed grab this commit.
-
-sorry for any confusion I may have caused.
-
-- Doug
+Thanks,
+Venki
 
 
+Enable C3 without bm control only for CST based C3.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+Index: linux-2.6/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_idle.c	2007-07-31 04:29:26.000000000 -0700
++++ linux-2.6/drivers/acpi/processor_idle.c	2007-07-31 04:52:50.000000000 -0700
+@@ -969,11 +969,17 @@
+ 	}
+ 
+ 	if (pr->flags.bm_check) {
+-		/* bus mastering control is necessary */
+ 		if (!pr->flags.bm_control) {
+-			/* In this case we enter C3 without bus mastering */
+-			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				"C3 support without bus mastering control\n"));
++			if (pr->flags.has_cst != 1) {
++				/* bus mastering control is necessary */
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"C3 support requires BM control\n"));
++				return;
++			} else {
++				/* Here we enter C3 without bus mastering */
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"C3 support without BM control\n"));
++			}
+ 		}
+ 	} else {
+ 		/*
