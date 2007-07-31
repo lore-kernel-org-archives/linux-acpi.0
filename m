@@ -1,44 +1,29 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND (updated)
-Date: Tue, 31 Jul 2007 00:59:49 -0400
-Message-ID: <200707310059.50329.lenb@kernel.org>
-References: <200707251238.50218.lenb@kernel.org>
-	<200707292323.29601.rjw@sisk.pl> <200707292327.19884.rjw@sisk.pl>
+From: "Tony Luck" <tony.luck@gmail.com>
+Subject: Re: regression on HP zx1 platform from ACPI autoload modules patches
+Date: Mon, 30 Jul 2007 22:12:51 -0700
+Message-ID: <12c511ca0707302212o3702789bt8d597ec53a389e0a@mail.gmail.com>
+References: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
+	 <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200707292327.19884.rjw@sisk.pl>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: david@lang.hm, Nigel Cunningham <nigel@nigel.suspend2.net>, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Doug Chapman <doug.chapman@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 29 July 2007 17:27, Rafael J. Wysocki wrote:
-> Still, there are many other files in which CONFIG_PM can be replaced
-> with CONFIG_PM_SLEEP or even with CONFIG_SUSPEND, but they can be updated in
-> the future.
+> > During bootup it panics with:
+> >
+> > Kernel panic - not syncing: Unable to find SBA IOMMU: Try a generic or DIG kernel
 
-There is #ifdef CONFIG_PM
-around all the .suspend and .resume methods.
+I think that the fix for this has already gone into Linus's tree (on
+Friday).  Commit SHA1
+for the patch that should fix this is:
+8c8eb78f673c07b60f31751e1e47ac367c60c6b7
 
-Technically they are PM_DEVICE_STATES or something,
-that could really be under PM, and both SUSPEND and HIBERNATE
-would depend on PM_DEVICE_STATES, but it is also possible to have
-PM_DEVICE_STATES without SUSPEND and HIBERNATE.
+If latest GIT tree still has this problem, then please let us know.
 
-oh no, I just suggested more instead of fewer config options:-O
-
-but i agree, this can wait a bit...
-
--Len
+-Tony
