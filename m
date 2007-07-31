@@ -1,44 +1,44 @@
-From: david@lang.hm
-Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
-Date: Mon, 30 Jul 2007 21:09:33 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0707302102160.6478@asgard.lang.hm>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/2] Introduce CONFIG_SUSPEND (updated)
+Date: Tue, 31 Jul 2007 00:59:49 -0400
+Message-ID: <200707310059.50329.lenb@kernel.org>
 References: <200707251238.50218.lenb@kernel.org>
- <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
- <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
- <200707302353.19217.lenb@kernel.org>
+	<200707292323.29601.rjw@sisk.pl> <200707292327.19884.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dsl081-033-126.lax1.dsl.speakeasy.net ([64.81.33.126]:40539
-	"EHLO bifrost.lang.hm" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489AbXGaEL2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 00:11:28 -0400
-In-Reply-To: <200707302353.19217.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200707292327.19884.rjw@sisk.pl>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: david@lang.hm, Nigel Cunningham <nigel@nigel.suspend2.net>, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Mon, 30 Jul 2007, Len Brown wrote:
+On Sunday 29 July 2007 17:27, Rafael J. Wysocki wrote:
+> Still, there are many other files in which CONFIG_PM can be replaced
+> with CONFIG_PM_SLEEP or even with CONFIG_SUSPEND, but they can be updated in
+> the future.
 
-> On Saturday 28 July 2007 12:55, Linus Torvalds wrote:
->
->> So I think the real issue is that we allow that
->> "suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in
->> the first place. It's not supposed to work that way.
->
-> I don't see how CONFIG_HOTPLUG_CPU justifies its own existence.
-> This e-mail thread would have never happened if it were simply included
-> in CONFIG_SMP, always.
->
-> I agree, of course, that ACPI should never have had to work-around
-> this by selecting HOTPLUG_CPU.  But even though it is now done at
-> the right layer, I don't see why PM should have to
-> be bothered with selecting HOTPLUG_CPU either --
-> it should just come with SMP.
+There is #ifdef CONFIG_PM
+around all the .suspend and .resume methods.
 
-why do you need hotplug just becouse you have muliple cpus? if you never 
-have any intention of useing suspend and your hardware doesn't support 
-hotplugging, why should you have to include the code for it?
+Technically they are PM_DEVICE_STATES or something,
+that could really be under PM, and both SUSPEND and HIBERNATE
+would depend on PM_DEVICE_STATES, but it is also possible to have
+PM_DEVICE_STATES without SUSPEND and HIBERNATE.
 
-Dvaid Lang
+oh no, I just suggested more instead of fewer config options:-O
+
+but i agree, this can wait a bit...
+
+-Len
