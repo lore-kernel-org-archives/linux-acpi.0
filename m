@@ -1,69 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: acpi=off vs. blacklist (HP DC 7700)
-Date: Tue, 31 Jul 2007 12:18:23 -0400
-Message-ID: <200707311218.23154.lenb@kernel.org>
-References: <200707311235.53302.philipp.marek@bmlv.gv.at>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: regression on HP zx1 platform from ACPI autoload modulespatches
+Date: Tue, 31 Jul 2007 09:29:31 -0700
+Message-ID: <617E1C2C70743745A92448908E030B2A020E3AD2@scsmsx411.amr.corp.intel.com>
+References: <1185882604.14987.2.camel@athlon>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46050 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751796AbXGaQSh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 12:18:37 -0400
-In-Reply-To: <200707311235.53302.philipp.marek@bmlv.gv.at>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <1185882604.14987.2.camel@athlon>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Doug Chapman <doug.chapman@hp.com>, Tony Luck <tony.luck@gmail.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
 List-Id: linux-acpi@vger.kernel.org
-To: "Ph. Marek" <philipp.marek@bmlv.gv.at>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 31 July 2007 06:35, Ph. Marek wrote:
-> Hello everybody!
-> 
-> I have two machines which freeze during boot; this seems to be ACPI-related, 
-> because with acpi=off they start.
-> 
-> The first one is the HP DC 7700; some summary can be seen on
->   http://forums1.itrc.hp.com/service/forums/questionanswer.do?threadId=1081719
-> It hangs after a line
->   ACPI assume root bridge[\sp_.pci0] bus is 0
+> commit 8c8eb78f673c07b60f31751e1e47ac367c60c6b7
 
-Looks like this box has been broken since December, 2006!
-Not booting unless "acpi=off" is a serious failure.
+Oops.  I cut & pasted the wrong commit id.  The fix went in as
+commit 7091138fb762aed22317b4ff91eb211e7da3865c.
 
-> The second one is a notebook; a Roda Rocky III+ RK886EX, which just shows a 
-> blank screen.
+> FYI, I did a git pull yesterday just before I hit this issue so I should
+> have had the latest stuff.
 
-Please get Linux up and running on the two boxes
-using whatever means are at your disposal (some mentioned
-in the thread above are acpi=off, pci=noacpi,
-pci=conf1, noapic hda=noprobe hdc=noprobe)
+So this confuses me.  Linus pulled this into his tree on Friday (IIRC), but
+at the very latest on Saturday (as there is a commit *after* this one that
+is dated 2007-07-28 19:29:37).
 
-Download the latest stable kernel.org kernel (2.6.22.1 today)
-Make sure that the latest kernel still fails unless
-you apply the workaround(s).
+The patch that is in the tree appears to be identical to the one that
+Thomas Renninger posted to this thread, and you confirmed as working.
 
-Then open two a bug report for each machine here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+So when you have a moment, please pull latest Linus tree.  Confirm that
+this patch is present:
+ $ grep hp_ioc_iommu_device_ids arch/ia64/hp/common/sba_iommu.c
+ static const struct acpi_device_id hp_ioc_iommu_device_ids[] = {
+ 	.ids		= hp_ioc_iommu_device_ids,
+ $
 
-Attach the output from acpidump, as well as the
-complete dmesg and lspci -vv output,
-and paste the contents of /proc/interrupts.
-Then, if you can capture the console output taken from the actual failure
-case, that would be ideal
+and that it builds and boots for you.
 
-> As we drive many machines from the same kernel image via PXE, I tried to 
-> insert them into drivers/acpi/blacklist.c; but that doesn't help, either - 
-> the notebook hangs as before, no matter whether I set is_critical_error or 
-> not. 
->  [ I suppose I wrote the entries wrong; is there some HOWTO? I used
->    acpidump/acpixtract/acpitbl, copied other blacklist entries, and took
->    "OEM Table ID", "OEMID", "OEM REVISION". Help? ]
+Thanks
 
-Lets see if we can find out what the problem is before we
-blacklist the machines.
-
-thanks,
--Len
+-Tony
+ 
