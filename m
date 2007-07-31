@@ -1,55 +1,40 @@
-From: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
-Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
-Date: Tue, 31 Jul 2007 22:08:25 +0200
-Message-ID: <20070731200825.GB28917@alice>
-References: <20070731145456.GB25175@alice> <653FFBB4508B9042B5D43DC9E18836F5013588F6@scsmsx415.amr.corp.intel.com> <20070731153808.GC25175@alice> <20070731190431.GA24577@linux-os.sc.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: RE: regression on HP zx1 platform from ACPI autoload modulespatches
+Date: Wed, 01 Aug 2007 00:27:53 +0200
+Message-ID: <1185920873.18821.268.camel@queen.suse.de>
+References: <617E1C2C70743745A92448908E030B2A020E3B4F@scsmsx411.amr.corp.intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070731190431.GA24577@linux-os.sc.intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:47038 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753150AbXGaW15 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 18:27:57 -0400
+In-Reply-To: <617E1C2C70743745A92448908E030B2A020E3B4F@scsmsx411.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Doug Chapman <doug.chapman@hp.com>, Tony Luck <tony.luck@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-* Venki Pallipadi (venkatesh.pallipadi@intel.com) wrote:
-> Can you check the test patch below (over latest git) and let me know whether it
-> resolves the issue.
+On Tue, 2007-07-31 at 09:54 -0700, Luck, Tony wrote:
+> > Tony, it looks like the patch has not hit Linus tree yet:
 > 
-
-the patch fixes the issue for me,
-thanks a lot.
-
-Eric
-
-> Enable C3 without bm control only for CST based C3.
 > 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> Huh?  I can see it in his tree via gitweb.  Here's the patch:
 > 
-> Index: linux-2.6/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_idle.c	2007-07-31 04:29:26.000000000 -0700
-> +++ linux-2.6/drivers/acpi/processor_idle.c	2007-07-31 04:52:50.000000000 -0700
-> @@ -969,11 +969,17 @@
->  	}
->  
->  	if (pr->flags.bm_check) {
-> -		/* bus mastering control is necessary */
->  		if (!pr->flags.bm_control) {
-> -			/* In this case we enter C3 without bus mastering */
-> -			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> -				"C3 support without bus mastering control\n"));
-> +			if (pr->flags.has_cst != 1) {
-> +				/* bus mastering control is necessary */
-> +				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +					"C3 support requires BM control\n"));
-> +				return;
-> +			} else {
-> +				/* Here we enter C3 without bus mastering */
-> +				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +					"C3 support without BM control\n"));
-> +			}
->  		}
->  	} else {
->  		/*
+> 	http://tinyurl.com/3csnu6
+> 
+> and the raw "blob" for sba_iommu.c:
+> 
+> 	http://tinyurl.com/397cy6
+> 
+> [Scroll down to line 2018 and you'll see the new code in place].
+> 
+> Something very odd is happening.
+My fault. A clean new checkout of the tree has the patch included.
+Sorry for the confusion,
+
+   Thomas
+
