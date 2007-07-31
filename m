@@ -1,33 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] [-mm] ACPI: use GFP_KERNEL instead of GFP_ATOMIC
-Date: Tue, 31 Jul 2007 15:33:57 +0200
-Message-ID: <200707311533.57599.rjw@sisk.pl>
-References: <1185922802.3993.4.camel@rzhang-asus.sh.intel.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [patch] Refresh lid state on resume
+Date: Tue, 31 Jul 2007 14:18:15 +0100
+Message-ID: <1185887895.5338.2.camel@hughsie-laptop>
+References: <1184670921.8890.2.camel@work>
+	 <1185808891.18821.25.camel@queen.suse.de>
+	 <1185809610.24649.3.camel@hughsie-laptop>  <200707311108.42947.rjw@sisk.pl>
+	 <1185872842.2652.11.camel@hughsie-laptop>
+	 <1185878536.18821.129.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57973 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763316AbXGaNZN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 09:25:13 -0400
-In-Reply-To: <1185922802.3993.4.camel@rzhang-asus.sh.intel.com>
-Content-Disposition: inline
+Received: from wr-out-0506.google.com ([64.233.184.237]:56294 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758860AbXGaNb3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 09:31:29 -0400
+Received: by wr-out-0506.google.com with SMTP id 36so167830wra
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Jul 2007 06:31:26 -0700 (PDT)
+In-Reply-To: <1185878536.18821.129.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: trenn@suse.de
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>
 
-On Wednesday, 1 August 2007 01:00, Zhang Rui wrote:
-> Use GFP_KERNEL instead of GFP_ATOMIC.
+On Tue, 2007-07-31 at 12:42 +0200, Thomas Renninger wrote:
+> Richard, could you give attached patch a try, pls.
+> Also check that platform suspend mode is used. AFAIK this isn't called
+> at all in suspend mode.
 
-Hmm, if any of these things can happen during a suspend, GFP_NOFS would be
-safer (or even GFP_NOIO).
+The attached patch works for me with a git kernel on my X60. I'm not in
+the office today so I can't test it on other machines.
 
-Greetings,
-Rafael
+The suspend was called using echo mem > /sys/power/state
+
+Thanks,
+
+Richard.
 
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
