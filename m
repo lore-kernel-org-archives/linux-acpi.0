@@ -1,57 +1,44 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [2/3] 2.6.23-rc1: known regressions v3
-Date: Tue, 31 Jul 2007 08:07:55 +0400
-Message-ID: <46AEB59B.7030909@gmail.com>
-References: <46AE0F5D.3000500@googlemail.com> <46AE12F5.4030706@googlemail.com> <200707302208.20891.ismail@pardus.org.tr> <Pine.SOC.4.64.0707302301290.14147@math.ut.ee>
+From: david@lang.hm
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
+Date: Mon, 30 Jul 2007 21:09:33 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0707302102160.6478@asgard.lang.hm>
+References: <200707251238.50218.lenb@kernel.org>
+ <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org>
+ <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
+ <200707302353.19217.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:38287 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396AbXGaEIC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 00:08:02 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so38220ugf
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Jul 2007 21:08:01 -0700 (PDT)
-In-Reply-To: <Pine.SOC.4.64.0707302301290.14147@math.ut.ee>
+Received: from dsl081-033-126.lax1.dsl.speakeasy.net ([64.81.33.126]:40539
+	"EHLO bifrost.lang.hm" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbXGaEL2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 00:11:28 -0400
+In-Reply-To: <200707302353.19217.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Meelis Roos <mroos@linux.ee>
-Cc: =?ISO-8859-1?Q?Ismail_D=F6nmez?= <ismail@pardus.org.tr>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-Meelis Roos wrote:
->>> Subject         : New ACPI error/warning with Linus' latest GIT
->>> References      : http://lkml.org/lkml/2007/7/26/395
->>> Last known good : ?
->>> Submitter       : Ismail D=F6nmez <ismail@pardus.org.tr>
->>> Caused-By       : ?
->>> Handled-By      : ?
->>> Status          : unknown
->> This started to happen after the second ACPI merge which was for 2.6=
-=2E23-rc2.
->=20
-> It appeared after new Embedded Controller code was merged into ACPI. =
-It=20
-> might as well be just a debug message or a remainder to add support f=
-or=20
-> new queries (whatever these are), but I do not know. The message itse=
-lf=20
-> seems harmless.
->=20
-This _is_ a debug message. EC asks us to perform query which was never =
-defined in DSDT.
-Previously I thought it would be rare error report, but now it seems th=
-at every machine
-has at least one unregistered query... It is not a functional regressio=
-n, as we just=20
-ignored errors from query execution before.
+On Mon, 30 Jul 2007, Len Brown wrote:
 
-Len already has a patch to remove this printk.
+> On Saturday 28 July 2007 12:55, Linus Torvalds wrote:
+>
+>> So I think the real issue is that we allow that
+>> "suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in
+>> the first place. It's not supposed to work that way.
+>
+> I don't see how CONFIG_HOTPLUG_CPU justifies its own existence.
+> This e-mail thread would have never happened if it were simply included
+> in CONFIG_SMP, always.
+>
+> I agree, of course, that ACPI should never have had to work-around
+> this by selecting HOTPLUG_CPU.  But even though it is now done at
+> the right layer, I don't see why PM should have to
+> be bothered with selecting HOTPLUG_CPU either --
+> it should just come with SMP.
 
-Regards,
-	Alex.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+why do you need hotplug just becouse you have muliple cpus? if you never 
+have any intention of useing suspend and your hardware doesn't support 
+hotplugging, why should you have to include the code for it?
+
+Dvaid Lang
