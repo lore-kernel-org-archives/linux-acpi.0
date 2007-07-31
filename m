@@ -1,61 +1,38 @@
-From: Danny ter Haar <dth@dth.net>
-Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
-Date: Tue, 31 Jul 2007 03:10:05 +0200
-Message-ID: <20070731011005.GA22245@dth.net>
-References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net> <200707301330.54640.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
+Date: Mon, 30 Jul 2007 23:53:18 -0400
+Message-ID: <200707302353.19217.lenb@kernel.org>
+References: <200707251238.50218.lenb@kernel.org> <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org> <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zaphod.dth.net ([85.159.112.68]:34380 "EHLO zaphod.dth.net"
+Received: from hera.kernel.org ([140.211.167.34]:47641 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S939039AbXGaBKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jul 2007 21:10:08 -0400
+	id S1761845AbXGaDyI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jul 2007 23:54:08 -0400
+In-Reply-To: <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200707301330.54640.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-Quoting Len Brown (lenb@kernel.org):
-> Please attach the output from acpidump to 
-> http://bugzilla.kernel.org/show_bug.cgi?id=7880
+On Saturday 28 July 2007 12:55, Linus Torvalds wrote:
 
-done
-also on : http://www.dth.net/kernel/acpidump_output_via_c3_5000
+> So I think the real issue is that we allow that 
+> "suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in 
+> the first place. It's not supposed to work that way.
 
-> We'll likely be able to tell from it if that patch
-> has any real effect on your system, or if you test
-> result was from some unrelated event.
+I don't see how CONFIG_HOTPLUG_CPU justifies its own existence.
+This e-mail thread would have never happened if it were simply included
+in CONFIG_SMP, always.
 
-Reverting the patch didn't make a real difference, it only took
-longer (eg 16 minutes before lockup in stead of 2-3 minutes)
+I agree, of course, that ACPI should never have had to work-around
+this by selecting HOTPLUG_CPU.  But even though it is now done at
+the right layer, I don't see why PM should have to
+be bothered with selecting HOTPLUG_CPU either --
+it should just come with SMP.
 
-> Also, please test with CONFIG_X86_ACPI_CPUFREQ=n
-> to remove the acpi-cpufreq driver (and thus this patch)
-> from your kernel.  If it still fails, then we know
-> that this driver (and this patch) are not related
-> to the failure.
-
-Will do.
-This machine(firewall) is solar powered so i tried to let it
-consume as less power as possible 
-This is in my startup script at the moment:
-
-echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-
-> Hmmm, okay, the "big hammer" works.  Please see
-> if any of these smaller hammers work:
-> 
-> pnpacpi=off
-> acpi=noirq
-> notsc
-
-More testing to do, however, sunday i'm going abroad for a while,
-all stuff will be in storage. If i cant find in the next few days
-(packing everything in moving boxes) it might take a while before
-i can test again. Sorry for that.
-
-Danny
-
--- 
+-Len
