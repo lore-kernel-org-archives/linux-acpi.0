@@ -1,53 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Re: [PATCH 2/2] Introduce CONFIG_SUSPEND (updated)
-Date: Tue, 31 Jul 2007 12:01:07 +0200
-Message-ID: <200707311201.09384.rjw@sisk.pl>
-References: <200707251238.50218.lenb@kernel.org> <200707311115.29057.rjw@sisk.pl> <200707311116.39857.oliver@neukum.org>
+From: Gabriel C <nix.or.die@googlemail.com>
+Subject: Re: acpi=off vs. blacklist
+Date: Tue, 31 Jul 2007 12:36:47 +0200
+Message-ID: <46AF10BF.2090303@googlemail.com>
+References: <200707311235.53302.philipp.marek@bmlv.gv.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57014 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752717AbXGaJwe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 05:52:34 -0400
-In-Reply-To: <200707311116.39857.oliver@neukum.org>
-Content-Disposition: inline
+Received: from nf-out-0910.google.com ([64.233.182.184]:2507 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755044AbXGaKld (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Jul 2007 06:41:33 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so212257nfb
+        for <linux-acpi@vger.kernel.org>; Tue, 31 Jul 2007 03:41:32 -0700 (PDT)
+In-Reply-To: <200707311235.53302.philipp.marek@bmlv.gv.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: linux-pm@lists.linux-foundation.org, Len Brown <lenb@kernel.org>, david@lang.hm, Nigel Cunningham <nigel@nigel.suspend2.net>, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Stefan Richter <stefanr@s5r6.in-berlin.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Ph. Marek" <philipp.marek@bmlv.gv.at>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, 31 July 2007 11:16, Oliver Neukum wrote:
-> Am Dienstag 31 Juli 2007 schrieb Rafael J. Wysocki:
+Ph. Marek wrote:
+[ added linux-acpi to CC ]
+> Hello everybody!
 > 
-> > Well, the people on linux-pm seem to agree that the .suspend() and .resume()
-> > callbacks are not suitable for runtime power management, so having them
-> > built without SUSPEND or HIBERNATION wouldn't be very useful. ;-)
+> I have two machines which freeze during boot; this seems to be ACPI-related, 
+> because with acpi=off they start.
 > 
-> These are what USB runtime power management uses.
-
-To be precise, I think the rule should be that if some code is needed for
-anything else than suspend/hibernation, it should be under plain CONFIG_PM.
-Still, if something is only needed for suspend/hibernation, it should go under
-CONFIG_PM_SLEEP or CONFIG_SUSPEND/HIBERNATION, depending on what it's needed
-for.
-
-Now, AFAICS, for the majority of drivers .suspend() and .resume() are only
-needed for suspend/hibernation and really should be used for suspending
-only (some other callbacks are needed for hibernation).
-
-> How many code paths for power management do you want to introduce?
-
-At least one more, for hibernation.
-
-That also depends on what approach to the runtime power management is widely
-accepted.  For now, USB is in the vanguard. :-)
-
-Greetings,
-Rafael
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+> The first one is the HP DC 7700; some summary can be seen on
+>   http://forums1.itrc.hp.com/service/forums/questionanswer.do?threadId=1081719
+> It hangs after a line
+>   ACPI assume root bridge[\sp_.pci0] bus is 0
+> 
+> The second one is a notebook; a Roda Rocky III+ RK886EX, which just shows a 
+> blank screen.
+> 
+> As we drive many machines from the same kernel image via PXE, I tried to 
+> insert them into drivers/acpi/blacklist.c; but that doesn't help, either - 
+> the notebook hangs as before, no matter whether I set is_critical_error or 
+> not. 
+>  [ I suppose I wrote the entries wrong; is there some HOWTO? I used
+>    acpidump/acpixtract/acpitbl, copied other blacklist entries, and took
+>    "OEM Table ID", "OEMID", "OEM REVISION". Help? ]
+> 
+> 
+> Using the "ACPI debug" kernel option showed no more messages.
+> 
+> 
+> Help, please? What can/should I do now?
+> 
+> 
+> Regards,
+> 
+> Phil
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
