@@ -1,29 +1,49 @@
-From: "Tony Luck" <tony.luck@gmail.com>
-Subject: Re: regression on HP zx1 platform from ACPI autoload modules patches
-Date: Mon, 30 Jul 2007 22:12:51 -0700
-Message-ID: <12c511ca0707302212o3702789bt8d597ec53a389e0a@mail.gmail.com>
-References: <1185836238.31298.36.camel@deimos.americas.hpqcorp.net>
-	 <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: CONFIG_SUSPEND? (was: Re: [GIT PATCH] ACPI patches for 2.6.23-rc1)
+Date: Tue, 31 Jul 2007 08:33:10 +0200
+Message-ID: <20070731063310.GC22419@elf.ucw.cz>
+References: <200707251238.50218.lenb@kernel.org> <alpine.LFD.0.999.0707280921150.3442@woody.linux-foundation.org> <alpine.LFD.0.999.0707280932470.3442@woody.linux-foundation.org> <200707302353.19217.lenb@kernel.org> <Pine.LNX.4.64.0707302102160.6478@asgard.lang.hm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <6bffcb0e0707301607x5484f114q9117007d131f7118@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:58686 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751770AbXGaGdp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 02:33:45 -0400
 Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Doug Chapman <doug.chapman@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, trenn@suse.de
+In-Reply-To: <Pine.LNX.4.64.0707302102160.6478@asgard.lang.hm>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: david@lang.hm
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> > During bootup it panics with:
+On Mon 2007-07-30 21:09:33, david@lang.hm wrote:
+> On Mon, 30 Jul 2007, Len Brown wrote:
+> 
+> >On Saturday 28 July 2007 12:55, Linus Torvalds wrote:
 > >
-> > Kernel panic - not syncing: Unable to find SBA IOMMU: Try a generic or DIG kernel
+> >>So I think the real issue is that we allow that
+> >>"suspend_devices_and_enter()" code to be compiled without HOTPLUG_CPU in
+> >>the first place. It's not supposed to work that way.
+> >
+> >I don't see how CONFIG_HOTPLUG_CPU justifies its own existence.
+> >This e-mail thread would have never happened if it were simply included
+> >in CONFIG_SMP, always.
+> >
+> >I agree, of course, that ACPI should never have had to work-around
+> >this by selecting HOTPLUG_CPU.  But even though it is now done at
+> >the right layer, I don't see why PM should have to
+> >be bothered with selecting HOTPLUG_CPU either --
+> >it should just come with SMP.
+> 
+> why do you need hotplug just becouse you have muliple cpus? if you never 
+> have any intention of useing suspend and your hardware doesn't support 
+> hotplugging, why should you have to include the code for it?
 
-I think that the fix for this has already gone into Linus's tree (on
-Friday).  Commit SHA1
-for the patch that should fix this is:
-8c8eb78f673c07b60f31751e1e47ac367c60c6b7
-
-If latest GIT tree still has this problem, then please let us know.
-
--Tony
+Because otherwise we have way too many config options, and there are
+basically no downsides? Too many options => too little testing of each
+permutation...
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
