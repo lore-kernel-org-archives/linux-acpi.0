@@ -1,67 +1,55 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+From: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
 Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
-Date: Tue, 31 Jul 2007 12:04:31 -0700
-Message-ID: <20070731190431.GA24577@linux-os.sc.intel.com>
-References: <20070731145456.GB25175@alice> <653FFBB4508B9042B5D43DC9E18836F5013588F6@scsmsx415.amr.corp.intel.com> <20070731153808.GC25175@alice>
+Date: Tue, 31 Jul 2007 22:08:25 +0200
+Message-ID: <20070731200825.GB28917@alice>
+References: <20070731145456.GB25175@alice> <653FFBB4508B9042B5D43DC9E18836F5013588F6@scsmsx415.amr.corp.intel.com> <20070731153808.GC25175@alice> <20070731190431.GA24577@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20070731153808.GC25175@alice>
+In-Reply-To: <20070731190431.GA24577@linux-os.sc.intel.com>
 Sender: linux-ide-owner@vger.kernel.org
-To: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 31, 2007 at 05:38:08PM +0200, Eric Sesterhenn / Snakebyte wrote:
-> * Pallipadi, Venkatesh (venkatesh.pallipadi@intel.com) wrote:
-> > This means things should work fine with processor.max_cstate=2 boot
-> > option
-> > as well. Can you please double check that.
-> 
-> yes, system boots fine with this kernel parameter
-> 
-> > Also, please send in the acpidump from your system.
-> 
-> here we go, if you need some parameters to acpidump, just say so.
+* Venki Pallipadi (venkatesh.pallipadi@intel.com) wrote:
+> Can you check the test patch below (over latest git) and let me know whether it
+> resolves the issue.
 > 
 
-Eric,
+the patch fixes the issue for me,
+thanks a lot.
 
-Can you check the test patch below (over latest git) and let me know whether it
-resolves the issue.
+Eric
 
-Thanks,
-Venki
-
-
-Enable C3 without bm control only for CST based C3.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-Index: linux-2.6/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_idle.c	2007-07-31 04:29:26.000000000 -0700
-+++ linux-2.6/drivers/acpi/processor_idle.c	2007-07-31 04:52:50.000000000 -0700
-@@ -969,11 +969,17 @@
- 	}
- 
- 	if (pr->flags.bm_check) {
--		/* bus mastering control is necessary */
- 		if (!pr->flags.bm_control) {
--			/* In this case we enter C3 without bus mastering */
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				"C3 support without bus mastering control\n"));
-+			if (pr->flags.has_cst != 1) {
-+				/* bus mastering control is necessary */
-+				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+					"C3 support requires BM control\n"));
-+				return;
-+			} else {
-+				/* Here we enter C3 without bus mastering */
-+				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+					"C3 support without BM control\n"));
-+			}
- 		}
- 	} else {
- 		/*
+> Enable C3 without bm control only for CST based C3.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> Index: linux-2.6/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_idle.c	2007-07-31 04:29:26.000000000 -0700
+> +++ linux-2.6/drivers/acpi/processor_idle.c	2007-07-31 04:52:50.000000000 -0700
+> @@ -969,11 +969,17 @@
+>  	}
+>  
+>  	if (pr->flags.bm_check) {
+> -		/* bus mastering control is necessary */
+>  		if (!pr->flags.bm_control) {
+> -			/* In this case we enter C3 without bus mastering */
+> -			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -				"C3 support without bus mastering control\n"));
+> +			if (pr->flags.has_cst != 1) {
+> +				/* bus mastering control is necessary */
+> +				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +					"C3 support requires BM control\n"));
+> +				return;
+> +			} else {
+> +				/* Here we enter C3 without bus mastering */
+> +				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> +					"C3 support without BM control\n"));
+> +			}
+>  		}
+>  	} else {
+>  		/*
