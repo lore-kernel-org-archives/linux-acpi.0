@@ -1,92 +1,129 @@
-From: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
-Subject: Re: Time Problems with 2.6.23-rc1-gf695baf2
-Date: Tue, 31 Jul 2007 16:54:57 +0200
-Message-ID: <20070731145456.GB25175@alice>
-References: <20070723221630.GA28951@alice> <6bffcb0e0707241614s7b563b5bu114d2ecb227b1557@mail.gmail.com> <20070725113349.GB5469@alice> <200707251250.22469.lenb@kernel.org> <20070725231714.GA24867@alice> <6bffcb0e0707300732s6a63e63g4622ebfbbe26e479@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] Enable GPEs before _WAK is called
+Date: Tue, 31 Jul 2007 17:09:56 +0200
+Message-ID: <200707311709.57806.rjw@sisk.pl>
+References: <1184670921.8890.2.camel@work> <200707311542.27571.rjw@sisk.pl> <1185891971.18821.196.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35291 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759961AbXGaOzA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 10:55:00 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:58399 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759067AbXGaPA6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 11:00:58 -0400
+In-Reply-To: <1185891971.18821.196.camel@queen.suse.de>
 Content-Disposition: inline
-In-Reply-To: <6bffcb0e0707300732s6a63e63g4622ebfbbe26e479@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, IDE/ATA development list <linux-ide@vger.kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com
+To: trenn@suse.de
+Cc: Richard Hughes <hughsient@gmail.com>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>, linux-input <linux-input@atrey.karlin.mff.cuni.cz>, Kay Sievers <kay.sievers@vrfy.org>, Stefan Seyfried <seife@suse.de>
 
-* Michal Piotrowski (michal.k.k.piotrowski@gmail.com) wrote:
-> Hi Eric,
+On Tuesday, 31 July 2007 16:26, Thomas Renninger wrote:
+> On Tue, 2007-07-31 at 15:42 +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, 31 July 2007 12:42, Thomas Renninger wrote:
+> > > On Tue, 2007-07-31 at 10:07 +0100, Richard Hughes wrote:
+> > > > On Tue, 2007-07-31 at 11:08 +0200, Rafael J. Wysocki wrote:
+> > > > > On Monday, 30 July 2007 17:33, Richard Hughes wrote:
+> > > > > > On Mon, 2007-07-30 at 17:21 +0200, Thomas Renninger wrote:
+> > > > > > > On Tue, 2007-07-17 at 12:15 +0100, Richard Hughes wrote:
+[--snip--]
+> > I wouldn't move that before _BFS, just in case someone actually implements it.
+> Yes you are right, thanks.
+> (ACPI spec):
+> -----------
+> OSPM will execute the _BFS control method before performing any other
+> physical I/O or enabling any interrupt servicing upon returning
+> from a sleeping state.
+> -----------
 > 
-> On 26/07/07, Eric Sesterhenn / Snakebyte <snakebyte@gmx.de> wrote:
-> > * Len Brown (lenb@kernel.org) wrote:
-> > > > > > > [   13.506890] ACPI Exception (processor_throttling-0084): AE_NOT_FOUND, Evaluating _PTC [20070126]
-> > > > > > > [   13.507101] ACPI Exception (processor_throttling-0147): AE_NOT_FOUND, Evaluating _TSS [20070126]
-> > >
-> > > Note that these are just noise -- new code being verbose when looking for an optional feature.
-> > >
-> > > The fact that hitting the power button a bunch of times
-> > > to make the system move along suggests some sort of missing interrupt problem --
-> > > most likely the timer itself.
-> > >
-> > > [   13.868574] Probing IDE interface ide0...
-> > > [  387.279576] Clocksource tsc unstable (delta = 370195339890 ns)
-> > >
-> > > 5-minutes -- a long probe:-)
-> > >
-> > > > CONFIG_NO_HZ=y
-> > >
-> > > does CONFIG_NO_HZ=n make a difference?
-> >
-> > [   41.007654] EXT3 FS on hda1, internal journal
-> > [  322.133656] Clocksource tsc unstable (delta = 276476174785 ns)
-> > Boot went fine but the system got pretty unresponsive later, 2-3 seconds
-> > delay after keypresses on an idle system and a hang during shutdown which i had to resolve by
-> > pressing the power button (not to switch it of the hard way, but to keep it rebooting)
-> >
-> > > > CONFIG_HIGH_RES_TIMERS=y
-> > >
-> > > does CONFIG_HIGH_RES_TIMERS=n make a difference?
-> >
-> > doesnt change anything
-> >
-> > > does "irqpoll" make any difference?
-> > > does "notsc" make any difference?
-> > > does "idle=poll" make any difference?
-> >
-> > I tried these with the HIGH_RES_TIMERS=n, irqpoll and notsc dont change
-> > a thing, idle=poll makes it boot normally
+> Now it makes sense to have _BFS and _WAK, before it had not made a
+> difference from BIOS programmer point of view to use _BFS or _WAK.
 > 
-> Please use git-bisect
+> With some luck this fixes some other things, I remember a weird bug on
+> (X60?) thinkpad:
+> If you suspend to RAM you can wakeup with the blue FN key, after doing a
+> suspend to disk and then doing a suspend to RAM the blue FN key does not
+> wake the machine anymore from STR :)
 > 
-> git-bisect start
-> git-bisect bad
-> git-bisect good 7dcca30a32aadb0520417521b0c44f42d09fe05c
+> Attached an updated patch (Rafael, I added your Acked from comments
+> above. I just moved GPE enabling between _BFS and _WAK as you
+> suggested, pls scream if you still find something bad).
+
+I think the patch (below) is correct.
+
+Greetings,
+Rafael
 
 
-took some time, but i got a scape goat, added venkatesh to the CC list,
+> ------------
+> 
+> 
+> Enable GPEs before calling _WAK on resume
+> 
+> It seems it's required to enable GPEs before _WAK.
+> E.g. X60 triggers a LID related GPE instead of doing a Notify in WAK.
+> Now the GPE reaches the kernel and the Notify for LID status
+> change gets thrown from there.
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> ---
+>  drivers/acpi/hardware/hwsleep.c |   19 +++++++++++--------
+>  1 file changed, 11 insertions(+), 8 deletions(-)
+> 
+> Index: linux-2.6.22.1/drivers/acpi/hardware/hwsleep.c
+> ===================================================================
+> --- linux-2.6.22.1.orig/drivers/acpi/hardware/hwsleep.c
+> +++ linux-2.6.22.1/drivers/acpi/hardware/hwsleep.c
+> @@ -576,13 +576,10 @@ acpi_status acpi_leave_sleep_state(u8 sl
+>  		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
+>  	}
+>  
+> -	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
+> -	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> -		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
+> -	}
+> -	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+> -
+>  	/*
+> +	 * GPEs must be enabled before _WAK is called as GPEs
+> +	 * might get fired there
+> +	 *
+>  	 * Restore the GPEs:
+>  	 * 1) Disable/Clear all GPEs
+>  	 * 2) Enable all runtime GPEs
+> @@ -591,13 +588,19 @@ acpi_status acpi_leave_sleep_state(u8 sl
+>  	if (ACPI_FAILURE(status)) {
+>  		return_ACPI_STATUS(status);
+>  	}
+> -	acpi_gbl_system_awake_and_running = TRUE;
+> -
+>  	status = acpi_hw_enable_all_runtime_gpes();
+>  	if (ACPI_FAILURE(status)) {
+>  		return_ACPI_STATUS(status);
+>  	}
+>  
+> +	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
+> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> +		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
+> +	}
+> +	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+> +
+> +	acpi_gbl_system_awake_and_running = TRUE;
+> +
+>  	/* Enable power button */
+>  
+>  	(void)
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-greetings, Eric
-
-b8550397f1f3d4b8b2c5257c88dae25d58ed is first bad commit
-commit 18eab8550397f1f3d4b8b2c5257c88dae25d58ed
-Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Date:   Fri Jun 15 19:37:00 2007 -0400
-
-    ACPI: Enable C3 even when PM2_control is zero
-    
-    On systems that do not have pm2_control_block, we cannot really use
-    ARB_DISABLE before C3. We used to disable C3 totally on such systems.
-    
-    To be compatible with Windows, we need to enable C3 on such systems now.
-    We just skip ARB_DISABLE step before entering the C3-state and assume
-    hardware is handling things correctly. Also, ACPI spec is not clear
-    about pm2_control is _needed_ for C3 or not.
-    
-    We have atleast one system that need this to enable C3.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
