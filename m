@@ -1,40 +1,60 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: RE: regression on HP zx1 platform from ACPI autoload modulespatches
-Date: Wed, 01 Aug 2007 00:27:53 +0200
-Message-ID: <1185920873.18821.268.camel@queen.suse.de>
-References: <617E1C2C70743745A92448908E030B2A020E3B4F@scsmsx411.amr.corp.intel.com>
-Reply-To: trenn@suse.de
+From: Danny ter Haar <dth@dth.net>
+Subject: Re: Update: ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not:
+Date: Wed, 1 Aug 2007 02:44:23 +0200
+Message-ID: <20070801004423.GA16572@dth.net>
+References: <20070727193832.GA20289@dth.net> <46AC0F6E.2000008@googlemail.com> <20070730025412.GA22888@dth.net> <200707301330.54640.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47038 "EHLO mx2.suse.de"
+Received: from zaphod.dth.net ([85.159.112.68]:45824 "EHLO zaphod.dth.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753150AbXGaW15 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jul 2007 18:27:57 -0400
-In-Reply-To: <617E1C2C70743745A92448908E030B2A020E3B4F@scsmsx411.amr.corp.intel.com>
+	id S1754014AbXHAAo0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2007 20:44:26 -0400
+Content-Disposition: inline
+In-Reply-To: <200707301330.54640.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Doug Chapman <doug.chapman@hp.com>, Tony Luck <tony.luck@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Gabriel C <nix.or.die@googlemail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 2007-07-31 at 09:54 -0700, Luck, Tony wrote:
-> > Tony, it looks like the patch has not hit Linus tree yet:
-> 
-> 
-> Huh?  I can see it in his tree via gitweb.  Here's the patch:
-> 
-> 	http://tinyurl.com/3csnu6
-> 
-> and the raw "blob" for sba_iommu.c:
-> 
-> 	http://tinyurl.com/397cy6
-> 
-> [Scroll down to line 2018 and you'll see the new code in place].
-> 
-> Something very odd is happening.
-My fault. A clean new checkout of the tree has the patch included.
-Sorry for the confusion,
+Quoting Len Brown (lenb@kernel.org):
+> Also, please test with CONFIG_X86_ACPI_CPUFREQ=n
+> to remove the acpi-cpufreq driver (and thus this patch)
+> from your kernel.  If it still fails, then we know
+> that this driver (and this patch) are not related
+> to the failure.
 
-   Thomas
+It wasn't enabled in any of the kernels i ran:
 
+# grep X86_ACPI ../configs/config*
+../configs/config-2.6.22-git14-c3-via5000-firewall:# CONFIG_X86_ACPI_CPUFREQ is not set
+../configs/config-2.6.22-git17-c3-via5000-firewall:# CONFIG_X86_ACPI_CPUFREQ is not set
+../configs/config-2.6.23-rc1-git5:# CONFIG_X86_ACPI_CPUFREQ is not set
+../configs/config-2.6.23-rc1-git6:# CONFIG_X86_ACPI_CPUFREQ is not set
+../configs/config-2.6.23-rc1-git9:# CONFIG_X86_ACPI_CPUFREQ is not set
+../configs/config-2.6.23-rc1-mm1-c3-firewall:# CONFIG_X86_ACPI_CPUFREQ is not set
+
+> Hmmm, okay, the "big hammer" works.  Please see
+> if any of these smaller hammers work:
+> 
+> pnpacpi=off
+> acpi=noirq
+> notsc
+
+_none_ of these options will work. The machine locks up solid.
+And that's what i'm the most surprised about. The last time i withnessed
+a solid kernel lockup without any panic/notification is _years_ ago.
+
+I also tried a kernel without "CPU Frequency scaling", so it is not the
+scaling up/down in Mhz of the cpu.
+I've even just compiled/run a kernel with libata and even that one still 
+locks up.
+
+New round of git bisects i guess (this time powercycle instead of reboot
+and wait few hours before ginving it "bisect good" )
+
+Will report back.
+
+Danny
+
+-- 
