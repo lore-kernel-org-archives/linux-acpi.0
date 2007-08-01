@@ -1,69 +1,67 @@
-From: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
-Subject: Re: 2.6.21-rc1: T60 ACPI issues
-Date: Wed, 1 Aug 2007 17:56:07 +0300
-Message-ID: <20070801145607.GB8480@mellanox.co.il>
-References: <20070801135820.GA8266@mellanox.co.il>
-	<Pine.LNX.4.64.0708011516540.15447@blonde.wat.veritas.com>
-Reply-To: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC PATCH] report acpi video hot key event through input
+	device
+Date: Wed, 1 Aug 2007 11:59:20 -0300
+Message-ID: <20070801145920.GG23111@khazad-dum.debian.net>
+References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com> <20070730005050.GB27398@srcf.ucam.org> <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com> <d120d5000707300555g1e677815s6148d346f0d65e5e@mail.gmail.com> <20070731125817.GD19965@khazad-dum.debian.net> <d120d5000708010652h61028821w7ba869deb9686578@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:36410 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090AbXHAO4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Aug 2007 10:56:07 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so218485ugf
-        for <linux-acpi@vger.kernel.org>; Wed, 01 Aug 2007 07:56:05 -0700 (PDT)
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:54952 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759929AbXHAO70 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Aug 2007 10:59:26 -0400
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0708011516540.15447@blonde.wat.veritas.com>
+In-Reply-To: <d120d5000708010652h61028821w7ba869deb9686578@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hugh Dickins <hugh@veritas.com>
-Cc: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, mingo@redhat.com, linux-pm@linux-foundation.org, Borislav Deianov <borislav@users.sf.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Richard Hughes <hughsient@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-> Quoting Hugh Dickins <hugh@veritas.com>:
-> Subject: Re: 2.6.21-rc1: T60 ACPI issues
+On Wed, 01 Aug 2007, Dmitry Torokhov wrote:
+> On 7/31/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+> > On Mon, 30 Jul 2007, Dmitry Torokhov wrote:
+> > > I have some concerns over this patch. Some of the events reported are
+> > > not the regular key presses that something needs to process and
+> > > perform an action. Consider ACPI_VIDEO_NOTIFY_SWITCH is "Used to
+> > > notify OSPM whenever the state of one of the output devices attached
+> > > to the VGA controller has been switched or toggled." As far as I
+> > > understand the event (whatever it was) was already processed by
+> > > firmware and we getting a notification event of system change. So I am
+> > > not sure that this event should be sent as a key event.
+> >
+> > This is the whole "passive and active input events" crap I went over with
+> > thinkpad-acpi not too long ago.
+> >
+> > Can we please get a formal documentation in input of how it should be done,
+> > and declare anything that doesn't follow it "buggy"?
+> >
+> > You know my position on it: a new event type, or not producing such events
+> > at all.  But I will follow whatever rule the input layer sets.
 > 
-> On Wed, 1 Aug 2007, Michael S. Tsirkin wrote:
-> 
-> > Hi!
-> > ACPI appears to have been broken with 2.6.23-rc1 on my T60
-> > Userspace from ubuntu dapper.
-> 
-> (Whereas I'm using a T43p with openSUSE 10.2.)
-> 
-> > 
-> > 1. During boot, I see a lot of messages like this:
-> > [   41.034204] acpi LNXSYSTM:00: uevent: unsupported action-string; this will be ignored in a future kernel version
-> 
-> (I've not seen those.)
-> 
-> > 
-> > 2. Pressing Fn/F4 does not trigger suspend to ram
-> >    This normally triigers ACPI event which triggers suspend to RAM on Ubuntu
-> >    (echo mem > /sys/power/state works)
-> 
-> I'll bet this is your CONFIG_THINKPAD_ACPI_INPUT_ENABLED=y.
-> I got the same, see my "THINKPAD_ACPI_INPUT_ENABLED seems regressive"
-> mail to Henrique and lkml an hour ago.
+> My position is that generic event reporting (such as something has
+> already switched video output from LCD to CRT, network link lost,
+> battery low, brightness has already been changed) are outside of input
+> layer domain (it would be silly to attach struct input_dev to network
+> cards, wouldn't it?).
 
-This? http://lkml.org/lkml/2007/8/1/176
+Can we get that documented *in-tree*? It is an issue that will keep coming
+back.
 
+Now, for the people who want these notifications (to implement status
+tracking, OSDs, etc), we can setup another way to send them.  Which one?  I
+know thinkpad-acpi has a ton of such notifications that it can issue, and
+that userspace would like to get them for OSDs, and also to tell the user to
+not go around undocking without pressing the undock lever AND waiting for
+the all-clear signal, etc.
 
-> > 
-> > 3. After suspend to RAM, system wakes up but laptop's screen is blank,
-> >    switching VTs etc does not help.
-> >    External screen wakes up OK though.
-> >    dmesg output from boot attached.
-> 
-> (I've not had that.)
-
-Bingo.
-sudo rmmod thinkpad_acpi cures both 2 and 3.
-Thanks for pointing this out.
-
-Henrique, if there's a patch to test, pls let me know.
-Or maybe CONFIG_THINKPAD_ACPI_INPUT_ENABLED should be N by default.
+Matthew, Richard: would generic netlink sockets work for HAL ?  Is that a
+way to make at least part of the messages "generic" (maybe reusing the input
+layer defines?) instead of driver-specific?  Or should we continue using the
+ACPI event mechanism?
 
 -- 
-MST
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
