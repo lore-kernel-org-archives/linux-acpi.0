@@ -1,56 +1,83 @@
-From: "Scott Thompson" <postfail@hushmail.com>
-Subject: [RFC] CONFIG_PM_LEGACY = compiler warnings for deprecation ... solution?
-Date: Wed, 01 Aug 2007 01:08:05 -0400
-Message-ID: <20070801050806.4A8BEDA820@mailserver8.hushmail.com>
-Reply-To: postfail@hushmail.com
-Content-Type: text/plain; charset="UTF-8"
+From: "Michael Chan" <mchan@broadcom.com>
+Subject: Re: [REGRESSION] tg3 dead after s2ram
+Date: Wed, 01 Aug 2007 00:53:31 -0700
+Message-ID: <1185954811.5552.7.camel@dell>
+References: <20070731174522.b141178a.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.hushmail.com ([65.39.178.135]:59609 "EHLO
-	smtp3.hushmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781AbXHAFIF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Aug 2007 01:08:05 -0400
-Received: from smtp3.hushmail.com (localhost.hush.com [127.0.0.1])
-	by smtp3.hushmail.com (Postfix) with SMTP id B285D61C24
-	for <linux-acpi@vger.kernel.org>; Wed,  1 Aug 2007 05:07:41 +0000 (UTC)
-Received: from mailserver8.hushmail.com (mailserver8.hushmail.com [65.39.178.61])
-	by smtp3.hushmail.com (Postfix) with ESMTP
-	for <linux-acpi@vger.kernel.org>; Wed,  1 Aug 2007 05:07:41 +0000 (UTC)
+Received: from mms2.broadcom.com ([216.31.210.18]:4972 "EHLO mms2.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750912AbXHAG7b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Aug 2007 02:59:31 -0400
+In-Reply-To: <20070731174522.b141178a.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Joachim Deguara <joachim.deguara@amd.com>, lkml List <linux-kernel@vger.kernel.org>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-w/ CONFIG_PM_LEGACY .config option set, you get following batch of
-compile errors because it marks the functions as 'deprecated'. w/o 
-it set, it just uses stubs. compiler warnings for refernece (from 
-2.6.23-1, though appears to have been around since at least 2.6.11 
-from another mail list post).
+On Tue, 2007-07-31 at 17:45 -0700, Andrew Morton wrote:
+> On Tue, 31 Jul 2007 11:28:32 +0200 "Joachim Deguara"
+> <joachim.deguara@amd.com> wrote:
+> 
+> > On my Acer Ferrari 1000 the tg3 ethernet no longer is available
+> after a
+> > suspend to ram with the latet 2.6.23-rc1-git9.
 
-However, since these functions are required if you have
-CONFIG_PM_LEGACY option marked...
+It seems to work for me on the same 2.6.23-rc1-git9 kernel with the same
+tg3 hardware.  Can you narrow down the problem some more?  It seems that
+in your case, the chip registers are returning 0xffffffff after resume.
+Can you do lspci -xxxvvv on the tg3 adapter after resume?
 
-I propose that within the include/linux/pm_legacy.h file, functions
-in the CONFIG_PM_LEGACY aren't marked 'deprecated' and functions
-outside the #if are marked deprecated.  Then the handful of calls
-(12 or so) that actually call the pm_legacy apis can get wrapped in
-the CONFIG_PM_LEGACY flag.
+Here's my log:
 
-This is basically already being done in one case since as of
-2.6.20.1 the pm_register function is only used in
-drivers/serial/68328serial.c.
+tg3.c:v3.79 (July 18, 2007)
+ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 16
+eth0: Tigon3 [partno(BCM95755m) rev a002 PHY(5755)] (PCI Express) 10/100/1000Ba1eth0: RXcsums[1] LinkChgREG[0] MIirq[0] ASF[0] WireSpeed[1] TSOcap[1]
+eth0: dma_rwctrl[76180000] dma_mask[64-bit]
+ACPI: PCI Interrupt 0000:40:00.0[A] -> GSI 17 (level, low) -> IRQ 17
+eth1: Tigon3 [partno(BCM95751) rev 4001 PHY(5750)] (PCI Express) 10/100/1000Bas5eth1: RXcsums[1] LinkChgREG[0] MIirq[0] ASF[0] WireSpeed[1] TSOcap[1]
+eth1: dma_rwctrl[76180000] dma_mask[64-bit]
+ACPI: PCI Interrupt 0000:05:09.0[A] -> GSI 18 (level, low) -> IRQ 19
+eth2: Tigon3 [partno(BCM95788A50) rev 3003 PHY(5705)] (PCI:33MHz:32-bit) 10/1008eth2: RXcsums[1] LinkChgREG[0] MIirq[0] ASF[0] WireSpeed[0] TSOcap[1]
+eth2: dma_rwctrl[763f0000] dma_mask[32-bit]
+ADDRCONF(NETDEV_UP): eth0: link is not ready
+ADDRCONF(NETDEV_UP): eth1: link is not ready
+ADDRCONF(NETDEV_UP): eth2: link is not ready
+tg3: eth2: Link is up at 1000 Mbps, full duplex.
+tg3: eth2: Flow control is on for TX and on for RX.
+ADDRCONF(NETDEV_CHANGE): eth2: link becomes ready
+Stopping tasks ... done.
+Suspending console(s)
+ACPI handle has no context!
+pnp: Device 00:08 disabled.
+ACPI handle has no context!
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU0: Intel P4/Xeon Extended MCE MSRs (12) available
+ACPI: PCI Interrupt 0000:00:1f.2[B] -> GSI 19 (level, low) -> IRQ 18
+tg3: eth2: Link is down.
+pnp: Device 00:08 activated.
+Restarting tasks ... hda: status error: status=0x51 { DriveReady SeekComplete E}hda: status error: error=0x04 { DriveStatusError }
+ide: failed opcode was: unknown
+hda: no DRQ after issuing MULTWRITE_EXT
+hda: status error: status=0x51 { DriveReady SeekComplete Error }
+hda: status error: error=0x04 { DriveStatusError }
+ide: failed opcode was: unknown
+hda: no DRQ after issuing MULTWRITE_EXT
+hda: status error: status=0x51 { DriveReady SeekComplete Error }
+hda: status error: error=0x04 { DriveStatusError }
+ide: failed opcode was: unknown
+hda: no DRQ after issuing MULTWRITE_EXT
+hda: status error: status=0x51 { DriveReady SeekComplete Error }
+hda: status error: error=0x04 { DriveStatusError }
+ide: failed opcode was: unknown
+hda: no DRQ after issuing MULTWRITE_EXT
+done.
+ide0: reset: success
+tg3: eth2: Link is up at 1000 Mbps, full duplex.
+tg3: eth2: Flow control is on for TX and on for RX.
 
-The pm_send_all is not wrapped around all uses yet, but that is
-pretty easy to patch.  Then the compile will actually complain
-should someone try to call it and not wrap w/ the CONFIG_PM_LEGACY
-ifdef.
 
-Happy to hear thoughts or other solutions.
-
-------------------------------
-Regards,
-Scott Thompson / postfail@hushmail.com
-------------------------------
-
---
-Free information on vast array of home improvement projects.  Click here.
-http://tagline.hushmail.com/fc/Ioyw6h4eNIBTzslyd6sFcem0DGn1xrajHGmTczUmHzuMeqA2wEMUHS/
 
