@@ -1,49 +1,36 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.21-rc1: T60 ACPI issues
-Date: Wed, 1 Aug 2007 13:18:25 -0300
-Message-ID: <20070801161825.GN23111@khazad-dum.debian.net>
-References: <20070801135820.GA8266@mellanox.co.il> <Pine.LNX.4.64.0708011516540.15447@blonde.wat.veritas.com> <20070801145607.GB8480@mellanox.co.il> <20070801154749.GK23111@khazad-dum.debian.net> <20070801155510.GA11758@mellanox.co.il>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC PATCH] report acpi video hot key event through input device
+Date: Wed, 1 Aug 2007 18:12:27 +0100
+Message-ID: <20070801171227.GA14874@srcf.ucam.org>
+References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com> <20070730005050.GB27398@srcf.ucam.org> <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com> <d120d5000707300555g1e677815s6148d346f0d65e5e@mail.gmail.com> <20070731125817.GD19965@khazad-dum.debian.net> <d120d5000708010652h61028821w7ba869deb9686578@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:44548 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752197AbXHAQSa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Aug 2007 12:18:30 -0400
+Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:41709 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1758407AbXHARMn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Aug 2007 13:12:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20070801155510.GA11758@mellanox.co.il>
+In-Reply-To: <d120d5000708010652h61028821w7ba869deb9686578@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
-Cc: Hugh Dickins <hugh@veritas.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, mingo@redhat.com, linux-pm@linux-foundation.org, ibm-acpi-devel@lists.sourceforge.net
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wed, 01 Aug 2007, Michael S. Tsirkin wrote:
-> My guess is that upon resume, I normally get some other acpi event
-> which gets blocked with CONFIG_THINKPAD_ACPI_INPUT_ENABLED.
+On Wed, Aug 01, 2007 at 09:52:47AM -0400, Dmitry Torokhov wrote:
 
-*Nothing* should be using any such events like that (that is an bug by
-itself), but let's find out if that's what happening first.
+> My position is that generic event reporting (such as something has
+> already switched video output from LCD to CRT, network link lost,
+> battery low, brightness has already been changed) are outside of input
+> layer domain (it would be silly to attach struct input_dev to network
+> cards, wouldn't it?).
 
-acpid logs can probably tell you that.
+I think that's an understandable position, but it's not one which 
+matches reality in some cases (sadly). Most Dells generate an i8042 
+scancode when you hit the brightness keys, even though they'll also 
+change the brightness. They'll do the same for the wireless killswitch.
 
-> > Please open a bug in bugzilla.kernel.org about it, and attach the full debug
-> > output of a suspend+resume cycle with and without thinkpad-acpi loaded.
-> > 
-> > Also, please try the same with thinkpad-acpi loaded, but
-> > CONFIG_THINKPAD_ACPI_INPUT_ENABLED set to N.  If the problem goes away,
-> > please retest, but set hotkey_enable to 1 and do an "cat
-> > /sys/bus/platform/devices/thinkpad_acpi/hotkey_recommended_mask >
-> > /sys/bus/platform/devices/thinkpad_acpi/hotkey_mask" before the sleep.
-> 
-> what's hotkey_enable?
-
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_enable.
-
-Please read the full thinkpad-acpi documentation (it is in
-Documentation/thinkpad-acpi.txt in the kernel tree).
-
+Personally, I think it's logical for physical keys to generate events 
+though the input layer.
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Matthew Garrett | mjg59@srcf.ucam.org
