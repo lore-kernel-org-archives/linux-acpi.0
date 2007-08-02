@@ -1,92 +1,61 @@
-From: Cal Peake <cp@absolutedigital.net>
-Subject: Re: ACPI on Averatec 2370
-Date: Thu, 2 Aug 2007 13:50:56 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
-References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
- <46ACD8DB.2020108@googlemail.com> <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: scripts/mod/file2alias.c cross compile problem
+Date: Thu, 2 Aug 2007 20:09:03 +0200
+Message-ID: <20070802180903.GD2431@uranus.ravnborg.org>
+References: <jewswdvqpt.fsf@sykes.suse.de> <617E1C2C70743745A92448908E030B2A02156CC1@scsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from livid.absolutedigital.net ([66.92.46.173]:44514 "EHLO
-	mx2.absolutedigital.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752553AbXHBRvz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 13:51:55 -0400
-In-Reply-To: <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+Received: from pasmtpa.tele.dk ([80.160.77.114]:37951 "EHLO pasmtpA.tele.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753749AbXHBSHt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Aug 2007 14:07:49 -0400
+Content-Disposition: inline
+In-Reply-To: <617E1C2C70743745A92448908E030B2A02156CC1@scsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriel C <nix.or.die@googlemail.com>
-Cc: Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andreas Schwab <schwab@suse.de>, trenn@suse.de, Adrian Bunk <bunk@stusta.de>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
 
-This problem seems to be getting worse. With the latest linus tree, after 
-the initial hang where the power button is needed to bring the system back 
-to life, the boot process slows to a crawl.
+On Thu, Aug 02, 2007 at 10:40:14AM -0700, Luck, Tony wrote:
+> >>>  struct acpi_device_id {
+> >>>  	__u8 id[ACPI_ID_LEN];
+> >>> +	__u8 dummy[FILLUP_LEN];
+> >>>  	kernel_ulong_t driver_data;
+> >>>  };
+> >>
+> >> What's so special about this structure that we get an error?
+> >
+> > It's special because it's a device_id structure, and those structures
+> > must come out identical using either the host or the target compiler.
+> 
+> That didn't help me understand.  Are device_id structures visible
+> in some user-level API?  If so, then I can see why they'd need to
+> be the same (but then I'd be confused why this structure uses a
+> "kernel_ulong_t" type).
 
-Although if I repeatedly press the shift key it'll help move things along. 
-I'm guessing the keyboard interrupt firing off is doing something to help 
-it. The system seems OK though after booting is finished.
+I second this. For anything visible in userspace from
+include/* we require usage of the kernel specific
+__u8, __u16, __u32, __u64 typedefs but for device_id we accept
+kernel_ulong_t which result in the following crap in
+file2alias.c:
 
-Upon shutdown it actually stalls out without help from the shift key.
+/* We use the ELF typedefs for kernel_ulong_t but bite the bullet and
+ * use either stdint.h or inttypes.h for the rest. */
+#if KERNEL_ELFCLASS == ELFCLASS32
+typedef Elf32_Addr      kernel_ulong_t;
+#define BITS_PER_LONG 32
+#else
+typedef Elf64_Addr      kernel_ulong_t;
+#define BITS_PER_LONG 64
+#endif
 
-Any thoughts on this, or tips to help debug it further?
+And we ought to have __u64 available.
+See for example types.h from asm-i386:
+#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+typedef __signed__ long long __s64;
+typedef unsigned long long __u64;
+#endif
 
-thx, Cal
 
-On Mon, 30 Jul 2007, Cal Peake wrote:
-
-> On Sun, 29 Jul 2007, Gabriel C wrote:
-> 
-> > Frank Hale wrote:
-> > [ added  linux-acpi to CC ]
-> > > I have an Averatec 2370 laptop with the nVidia MCP51. With kernel
-> > > 2.6.20 I had no issues with ACPI however with 2.6.21 and higher the
-> > > kernel will hang on boot until I press the suspend button or the power
-> > > button in which case the kernel wakes up and finishes the boot
-> > > process. Including the following support only causes the issue:
-> > > 
-> > >  [*] ACPI Support
-> > > 
-> > > What I mean by that is every ACPI option has been deactivated and only
-> > > ACPI support checked. The boot process with 2.6.21 and higher hangs at
-> > > the point where the Scheduler is being registered.
-> > > 
-> > > io scheduler cfq registered (default)
-> > > 
-> > > If I allow it to sit there it never comes back to life and finishes
-> > > booting. If I press the power or suspend button it will finish booting
-> > > as expected.
-> > > 
-> > > I've scoured google for quite a while but cannot find any relevant
-> > > information pertaining to this issue. For now I've disabled ACPI
-> > > altogether.
-> 
-> Frank, thanks for the tip about 2.6.20 being good, it gave me a nice place 
-> to start bisecting from.
-> 
-> Thomas, Ingo,
-> 
-> Regarding the issue described above that Frank and I are having, I've 
-> narrowed it down to commit e9e2cdb4[1]: [PATCH] clockevents: i386 drivers
-> 
-> About our systems:
->   Averatec 2370/2371 Laptop
->     AMD Turion 64 X2 TL-50/TL-52
->     nVidia MCP51 chipset
-> 
-> Here a small matrix of my tests:
-> 
-> 2.6.20.15 SMP		: OK
-> 2.6.21.5 SMP		: hang
-> 2.6.21.5 UP w/o APIC	: OK
-> 2.6.22.1 UP		: hang
-> 2.6.22.1 UP w/o IO-APIC	: hang
-> 2.6.22.1 UP w/o APIC	: OK
-> 2.6.22.1 SMP		: hang
-> 2.6.22.1 SMP w/o ACPI	: OK
-> 
-> Please let me know if there's anything else I can provide to help.
-> 
-> thanks!
-> -- 
-> Cal Peake
-> 
-> [1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=e9e2cdb412412326c4827fc78ba27f410d837e6e
+	Sam
