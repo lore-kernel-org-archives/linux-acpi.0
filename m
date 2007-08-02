@@ -1,29 +1,56 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [2.6 patch] make struct sony_nc_ids[] static
-Date: Thu, 2 Aug 2007 15:58:40 +0900
-Message-ID: <20070802065840.GG25969@inferi.kami.home>
-References: <20070729145806.GU16817@stusta.de>
+From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: Re: [REGRESSION] tg3 dead after s2ram
+Date: Thu, 2 Aug 2007 10:05:44 +0200
+Message-ID: <200708021005.45773.joachim.deguara@amd.com>
+References: <20070731174522.b141178a.akpm@linux-foundation.org>
+ <1185990466.5552.34.camel@dell> <1186002023.18322.7.camel@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi13.ns.itscom.net ([219.110.2.183]:47845 "EHLO
-	mtoichi13.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136AbXHBG7I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 02:59:08 -0400
+Received: from outbound-blu.frontbridge.com ([65.55.251.16]:1875 "EHLO
+	outbound3-blu-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751987AbXHBIGl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 04:06:41 -0400
+In-Reply-To: <1186002023.18322.7.camel@dell>
 Content-Disposition: inline
-In-Reply-To: <20070729145806.GU16817@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Michael Chan <mchan@broadcom.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lkml List <linux-kernel@vger.kernel.org>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sun, Jul 29, 2007 at 04:58:06PM +0200, Adrian Bunk wrote:
-> sony_nc_ids[] can become static.
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+On Wednesday 01 August 2007 23:00:23 Michael Chan wrote:
+> On Wed, 2007-08-01 at 10:47 -0700, Michael Chan wrote:
+> > You have 2 Broadcom devices in your system.  07:00.0 is a wireless
+> > device, I think.  8:4.0 is the tg3 device.
+> >
+> > It's clear that the tg3 device is still in D3 state after resume and
+> > that explains why all register accesses fail.  tg3_resume() should put
+> > the device back in D0 state in a very straight forward way and I don't
+> > see how that can fail.  It worked for me when I tested it last night.
+> > Can you add some printk() to tg3_resume() to see what's happening?  Let
+> > me know if you want me to send you some debug patches to do that.
+>
+> I misread the PCI registers below.  The power state was ok.
+>
+> The problem is that memory enable and bus master were not set in PCI
+> register 4 after resume.  This also explains the register access
+> failures.
+>
+> In tg3_resume(), we call pci_restore_state() which should re-enable
+> those 2 bits in PCI register 4.  Can you add some printk() to see why
+> those bits are not restored after pci_restore_state()?
 
-imported locally, I'll send it to Len asap.
-Thanks
--- 
-mattia
-:wq!
+Reading pci_restore_state() it looks already instrumented.  Sorry about the 
+wrong pci device, looking at my BCM5788 it is pci device 08:04.0 and looking 
+at the log from my first post there is nothing restored in the first 64 
+bytes!  Otherwise it would have said "PM: Writing back..."
+
+Is this what you are looking for or should I do other printk instrumentation?
+
+-Joachim
+
+ 
+
+
