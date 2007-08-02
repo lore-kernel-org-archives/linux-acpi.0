@@ -1,33 +1,92 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: scripts/mod/file2alias.c cross compile problem
-Date: Thu, 2 Aug 2007 10:40:14 -0700
-Message-ID: <617E1C2C70743745A92448908E030B2A02156CC1@scsmsx411.amr.corp.intel.com>
-References: <jewswdvqpt.fsf@sykes.suse.de>
+From: Cal Peake <cp@absolutedigital.net>
+Subject: Re: ACPI on Averatec 2370
+Date: Thu, 2 Aug 2007 13:50:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
+References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
+ <46ACD8DB.2020108@googlemail.com> <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <jewswdvqpt.fsf@sykes.suse.de>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Andreas Schwab <schwab@suse.de>
-Cc: trenn@suse.de, Adrian Bunk <bunk@stusta.de>, Sam Ravnborg <sam@ravnborg.org>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from livid.absolutedigital.net ([66.92.46.173]:44514 "EHLO
+	mx2.absolutedigital.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752553AbXHBRvz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 13:51:55 -0400
+In-Reply-To: <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriel C <nix.or.die@googlemail.com>
+Cc: Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
->>>  struct acpi_device_id {
->>>  	__u8 id[ACPI_ID_LEN];
->>> +	__u8 dummy[FILLUP_LEN];
->>>  	kernel_ulong_t driver_data;
->>>  };
->>
->> What's so special about this structure that we get an error?
->
-> It's special because it's a device_id structure, and those structures
-> must come out identical using either the host or the target compiler.
+This problem seems to be getting worse. With the latest linus tree, after 
+the initial hang where the power button is needed to bring the system back 
+to life, the boot process slows to a crawl.
 
-That didn't help me understand.  Are device_id structures visible
-in some user-level API?  If so, then I can see why they'd need to
-be the same (but then I'd be confused why this structure uses a
-"kernel_ulong_t" type).
+Although if I repeatedly press the shift key it'll help move things along. 
+I'm guessing the keyboard interrupt firing off is doing something to help 
+it. The system seems OK though after booting is finished.
 
--Tony
+Upon shutdown it actually stalls out without help from the shift key.
+
+Any thoughts on this, or tips to help debug it further?
+
+thx, Cal
+
+On Mon, 30 Jul 2007, Cal Peake wrote:
+
+> On Sun, 29 Jul 2007, Gabriel C wrote:
+> 
+> > Frank Hale wrote:
+> > [ added  linux-acpi to CC ]
+> > > I have an Averatec 2370 laptop with the nVidia MCP51. With kernel
+> > > 2.6.20 I had no issues with ACPI however with 2.6.21 and higher the
+> > > kernel will hang on boot until I press the suspend button or the power
+> > > button in which case the kernel wakes up and finishes the boot
+> > > process. Including the following support only causes the issue:
+> > > 
+> > >  [*] ACPI Support
+> > > 
+> > > What I mean by that is every ACPI option has been deactivated and only
+> > > ACPI support checked. The boot process with 2.6.21 and higher hangs at
+> > > the point where the Scheduler is being registered.
+> > > 
+> > > io scheduler cfq registered (default)
+> > > 
+> > > If I allow it to sit there it never comes back to life and finishes
+> > > booting. If I press the power or suspend button it will finish booting
+> > > as expected.
+> > > 
+> > > I've scoured google for quite a while but cannot find any relevant
+> > > information pertaining to this issue. For now I've disabled ACPI
+> > > altogether.
+> 
+> Frank, thanks for the tip about 2.6.20 being good, it gave me a nice place 
+> to start bisecting from.
+> 
+> Thomas, Ingo,
+> 
+> Regarding the issue described above that Frank and I are having, I've 
+> narrowed it down to commit e9e2cdb4[1]: [PATCH] clockevents: i386 drivers
+> 
+> About our systems:
+>   Averatec 2370/2371 Laptop
+>     AMD Turion 64 X2 TL-50/TL-52
+>     nVidia MCP51 chipset
+> 
+> Here a small matrix of my tests:
+> 
+> 2.6.20.15 SMP		: OK
+> 2.6.21.5 SMP		: hang
+> 2.6.21.5 UP w/o APIC	: OK
+> 2.6.22.1 UP		: hang
+> 2.6.22.1 UP w/o IO-APIC	: hang
+> 2.6.22.1 UP w/o APIC	: OK
+> 2.6.22.1 SMP		: hang
+> 2.6.22.1 SMP w/o ACPI	: OK
+> 
+> Please let me know if there's anything else I can provide to help.
+> 
+> thanks!
+> -- 
+> Cal Peake
+> 
+> [1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=e9e2cdb412412326c4827fc78ba27f410d837e6e
