@@ -1,107 +1,58 @@
-From: "Michael Chan" <mchan@broadcom.com>
-Subject: Re: [REGRESSION] tg3 dead after s2ram
-Date: Thu, 02 Aug 2007 12:10:29 -0700
-Message-ID: <1186081829.18322.20.camel@dell>
-References: <1186002023.18322.7.camel@dell>
- <200708021005.45773.joachim.deguara@amd.com>
- <200708021115.10812.joachim.deguara@amd.com>
- <20070802.022317.66176729.davem@davemloft.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Problem - disabling IRQ #20 and others
+Date: Thu, 2 Aug 2007 11:31:46 -0700
+Message-ID: <20070802113146.30eb2139.akpm@linux-foundation.org>
+References: <ef8c225f0708010347l2a0a8e4cj4f47a243bba88989@mail.gmail.com>
+	<f24d23310708010711w7cec4718tde8fd33b89fdfcf6@mail.gmail.com>
+	<20070802014819.4760b06a.akpm@linux-foundation.org>
+	<ef8c225f0708020427i6665d486he6a90f1f02823382@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20070802.022317.66176729.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: joachim.deguara@amd.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, michal.k.k.piotrowski@gmail.com, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48962 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753638AbXHBScT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 14:32:19 -0400
+In-Reply-To: <ef8c225f0708020427i6665d486he6a90f1f02823382@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andev Debi <andev.debi@gmail.com>
+Cc: debian developer <debiandev@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rl@hellgate.ch, Dave Airlie <airlied@linux.ie>
 
-On Thu, 2007-08-02 at 02:23 -0700, David Miller wrote:
-> From: "Joachim Deguara" <joachim.deguara@amd.com>
-> Date: Thu, 2 Aug 2007 11:15:05 +0200
+On Thu, 2 Aug 2007 16:57:42 +0530
+"Andev Debi" <andev.debi@gmail.com> wrote:
+
+> On 8/2/07, Andrew Morton <akpm@linux-foundation.org> wrote:
+> >> Please fix the wordwrapping before sending any more stuff - it's truly awful.
+> >
+> Sorry about that. Gmail automatically wraps the line. Will check in the future.
 > 
-> > Seams like even if powersave shuts down the network that the device should 
-> > still work after a suspend to ram, so who is at fault here?
+> > Could be a bug in the via driver, but it's more likely an
+> > acpi/pci/platform/bios thing.
+> >
+> CC'ing VIA Rhine network driver maintainer. May be he has any idea.
+
+Sorry, I meant the VIA DRM driver.
+
+> CC'ing ACPI people too.
+
+I suspect that's getting warmer.
+
+> > Did any previous kernels work OK?  If so, which?
+> >
 > 
-> It's a good question.
-> 
-> The pci_enable() is done on the PCI device at probe time, at least in
-> the tg3 driver, and with such a model restoring and saving of PCI
-> config space should not be dependant upon whether the netdev is
-> running or not.
-> 
+> I booted with the stock ubuntu kernel 2.6.15-28-386, and it is showing
+> a different irq (irq #201)being disabled.
 
-Alternatively, we can also fix it by calling pci_enable_device() again
-in tg3_open().  But I think it is better to just always save and restore
-in suspend/resume.  bnx2.c will also require the same fix.
-
-Thanks Joachim for helping to debug this problem.  Please try this
-patch:
-
-[TG3]: Fix suspend/resume problem.
-
-Joachim Deguara <joachim.deguara@amd.com> reported that tg3 devices
-would not resume properly if the device was shutdown before the system
-was suspended.  In such scenario where the netif_running state is 0,
-tg3_suspend() would not save the PCI state and so the memory enable bit
-and bus master enable bit would be lost.
-
-We fix this by always saving and restoring the PCI state in
-tg3_suspend() and tg3_resume() regardless of netif_running() state.
-
-Signed-off-by: Michael Chan <mchan@broadcom.com>
-
-diff --git a/drivers/net/tg3.c b/drivers/net/tg3.c
-index dc41c05..5874042 100644
---- a/drivers/net/tg3.c
-+++ b/drivers/net/tg3.c
-@@ -64,8 +64,8 @@
- 
- #define DRV_MODULE_NAME		"tg3"
- #define PFX DRV_MODULE_NAME	": "
--#define DRV_MODULE_VERSION	"3.79"
--#define DRV_MODULE_RELDATE	"July 18, 2007"
-+#define DRV_MODULE_VERSION	"3.80"
-+#define DRV_MODULE_RELDATE	"August 2, 2007"
- 
- #define TG3_DEF_MAC_MODE	0
- #define TG3_DEF_RX_MODE		0
-@@ -12111,6 +12111,12 @@ static int tg3_suspend(struct pci_dev *pdev, pm_message_t state)
- 	struct tg3 *tp = netdev_priv(dev);
- 	int err;
- 
-+	/* PCI register 4 needs to be saved whether netif_running() or not.
-+	 * MSI address and data need to be saved if using MSI and
-+	 * netif_running().
-+	 */
-+	pci_save_state(pdev);
-+
- 	if (!netif_running(dev))
- 		return 0;
- 
-@@ -12130,9 +12136,6 @@ static int tg3_suspend(struct pci_dev *pdev, pm_message_t state)
- 	tp->tg3_flags &= ~TG3_FLAG_INIT_COMPLETE;
- 	tg3_full_unlock(tp);
- 
--	/* Save MSI address and data for resume.  */
--	pci_save_state(pdev);
--
- 	err = tg3_set_power_state(tp, pci_choose_state(pdev, state));
- 	if (err) {
- 		tg3_full_lock(tp, 0);
-@@ -12160,11 +12163,11 @@ static int tg3_resume(struct pci_dev *pdev)
- 	struct tg3 *tp = netdev_priv(dev);
- 	int err;
- 
-+	pci_restore_state(tp->pdev);
-+
- 	if (!netif_running(dev))
- 		return 0;
- 
--	pci_restore_state(tp->pdev);
--
- 	err = tg3_set_power_state(tp, PCI_D0);
- 	if (err)
- 		return err;
+OK, that's bad.
 
 
+> Im attaching the dmesg of both stock 2.6.15 and self compiled 2.6.22.1-cfs-v19
+
+For long-term bugs like this one it's best to track it in
+bugzilla.kernel.org.  I'd suggest that you assign it to
+acpi_config-interrupts@kernel-bugs.osdl.org and add airlied@linux.ie to the
+cc.
+
+It'll take a while, but these things often do end up fixed.
