@@ -1,45 +1,46 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: RE: scripts/mod/file2alias.c cross compile problem
-Date: Fri, 03 Aug 2007 08:08:20 +1000
-Message-ID: <1186092501.6131.154.camel@localhost.localdomain>
-References: <617E1C2C70743745A92448908E030B2A0211AFF0@scsmsx411.amr.corp.intel.com>
+From: "Michael Chan" <mchan@broadcom.com>
+Subject: Re: [REGRESSION] tg3 dead after s2ram
+Date: Thu, 02 Aug 2007 16:38:00 -0700
+Message-ID: <1186097880.18322.73.camel@dell>
+References: <200708021115.10812.joachim.deguara@amd.com>
+ <20070802.022317.66176729.davem@davemloft.net>
+ <1186081829.18322.20.camel@dell>
+ <20070802.150636.77057800.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <617E1C2C70743745A92448908E030B2A0211AFF0@scsmsx411.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: trenn@suse.de, Adrian Bunk <bunk@stusta.de>, Sam Ravnborg <sam@ravnborg.org>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20070802.150636.77057800.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: joachim.deguara@amd.com, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, michal.k.k.piotrowski@gmail.com, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2007-08-02 at 09:25 -0700, Luck, Tony wrote:
-> > Adrian Bunk: scripts/mod/file2alias.c is compiled with HOSTCC and ensures that
-> > kernel_ulong_t is correct, but it can't cope with different padding on
-> > different architectures.
+On Thu, 2007-08-02 at 15:06 -0700, David Miller wrote:
+> From: "Michael Chan" <mchan@broadcom.com>
+> Date: Thu, 02 Aug 2007 12:10:29 -0700
+>
+> > Alternatively, we can also fix it by calling pci_enable_device() again
+> > in tg3_open().  But I think it is better to just always save and restore
+> > in suspend/resume.  bnx2.c will also require the same fix.
 > 
-> Surely this is the root cause ... you can't expect that the alignment
-> rules of HOSTCC to make any sense for an arbitraty target.
+> We could do it that way.  But don't you think it's more reliable to
+> save and restore around the event we know will be what clobbers the
+> PCI config space on us? :-)
 > 
-> > +#define FILLUP_LEN	7 /* dirty fix for i386 -> 64bit cross-compilation */
-> >  
-> >  struct acpi_device_id {
-> >  	__u8 id[ACPI_ID_LEN];
-> > +	__u8 dummy[FILLUP_LEN];
-> >  	kernel_ulong_t driver_data;
-> >  };
-> 
-> What's so special about this structure that we get an error?
 
-It's in mod_devicetable.h: see comment at top of that file.  These
-structures serve dual purpose: to describe the capabilities of the
-driver to the kernel probing functions, *and* to export them to
-userspace tables.  The former purpose is why there's a data pointer in
-there.
+Yes for sure when netif state is running and we were already doing that.
 
-scripts/mod/file2alias is the program that reads this: although it can
-be altered to parse 32-vs-64, Adrian's fix is the simplest.
+> Other things might happen between ->resume() and ->open() that could
+> modify PCI config space, and we could overwrite such changes if we do
+> the PCI restore in ->open().
 
-Hope that clarifies,
-Rusty.
+I suggested calling pci_enable_device() in ->open(), not calling
+pci_restore_state() in ->open().  I ultimately decided against it
+because some devices do not enable memory as a workaround and it would
+be messy to deal with it again in tg3_open().
+
+I definitely agree that calling PCI restore in ->open() is a bad idea.
+We used to save PCI state in ->probe() once and restore PCI state after
+every chip reset.  This sequence caused many subtle problems.
 
