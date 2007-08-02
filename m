@@ -1,58 +1,33 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Problem - disabling IRQ #20 and others
-Date: Thu, 2 Aug 2007 11:31:46 -0700
-Message-ID: <20070802113146.30eb2139.akpm@linux-foundation.org>
-References: <ef8c225f0708010347l2a0a8e4cj4f47a243bba88989@mail.gmail.com>
-	<f24d23310708010711w7cec4718tde8fd33b89fdfcf6@mail.gmail.com>
-	<20070802014819.4760b06a.akpm@linux-foundation.org>
-	<ef8c225f0708020427i6665d486he6a90f1f02823382@mail.gmail.com>
+From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Re: ACPI on Averatec 2370
+Date: Thu, 02 Aug 2007 15:09:14 -0400
+Message-ID: <46B22BDA.8090604@redhat.com>
+References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com> <46ACD8DB.2020108@googlemail.com> <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net> <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48962 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753638AbXHBScT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 14:32:19 -0400
-In-Reply-To: <ef8c225f0708020427i6665d486he6a90f1f02823382@mail.gmail.com>
+Received: from mx1.redhat.com ([66.187.233.31]:46124 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753978AbXHBTKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Aug 2007 15:10:08 -0400
+In-Reply-To: <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andev Debi <andev.debi@gmail.com>
-Cc: debian developer <debiandev@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rl@hellgate.ch, Dave Airlie <airlied@linux.ie>
+To: Cal Peake <cp@absolutedigital.net>
+Cc: Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Thu, 2 Aug 2007 16:57:42 +0530
-"Andev Debi" <andev.debi@gmail.com> wrote:
-
-> On 8/2/07, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >> Please fix the wordwrapping before sending any more stuff - it's truly awful.
-> >
-> Sorry about that. Gmail automatically wraps the line. Will check in the future.
+On 08/02/2007 01:50 PM, Cal Peake wrote:
+> This problem seems to be getting worse. With the latest linus tree, after 
+> the initial hang where the power button is needed to bring the system back 
+> to life, the boot process slows to a crawl.
 > 
-> > Could be a bug in the via driver, but it's more likely an
-> > acpi/pci/platform/bios thing.
-> >
-> CC'ing VIA Rhine network driver maintainer. May be he has any idea.
-
-Sorry, I meant the VIA DRM driver.
-
-> CC'ing ACPI people too.
-
-I suspect that's getting warmer.
-
-> > Did any previous kernels work OK?  If so, which?
-> >
+> Although if I repeatedly press the shift key it'll help move things along. 
+> I'm guessing the keyboard interrupt firing off is doing something to help 
+> it. The system seems OK though after booting is finished.
 > 
-> I booted with the stock ubuntu kernel 2.6.15-28-386, and it is showing
-> a different irq (irq #201)being disabled.
+> Upon shutdown it actually stalls out without help from the shift key.
+> 
+> Any thoughts on this, or tips to help debug it further?
 
-OK, that's bad.
-
-
-> Im attaching the dmesg of both stock 2.6.15 and self compiled 2.6.22.1-cfs-v19
-
-For long-term bugs like this one it's best to track it in
-bugzilla.kernel.org.  I'd suggest that you assign it to
-acpi_config-interrupts@kernel-bugs.osdl.org and add airlied@linux.ie to the
-cc.
-
-It'll take a while, but these things often do end up fixed.
+Try the 'nolapic_timer' option.
