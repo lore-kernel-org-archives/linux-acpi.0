@@ -1,44 +1,60 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: ACPI on Averatec 2370
-Date: Fri, 03 Aug 2007 14:19:22 -0400
-Message-ID: <46B371AA.1040906@redhat.com>
-References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>	 <46ACD8DB.2020108@googlemail.com>	 <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>	 <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>	 <46B22BDA.8090604@redhat.com>	 <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net>	 <46B23E08.4070106@redhat.com>	 <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net>	 <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org> <1186156328.8105.72.camel@cunning>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.22 regression: thermal trip points
+Date: Fri, 3 Aug 2007 14:30:26 -0400
+Message-ID: <200708031430.26789.lenb@kernel.org>
+References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org> <46B32561.5070703@t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:42970 "EHLO mx1.redhat.com"
+Received: from hera.kernel.org ([140.211.167.34]:42803 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923AbXHCSTl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 14:19:41 -0400
-In-Reply-To: <1186156328.8105.72.camel@cunning>
+	id S1752771AbXHCSak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 14:30:40 -0400
+In-Reply-To: <46B32561.5070703@t-online.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Collins <ben.collins@ubuntu.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Cal Peake <cp@absolutedigital.net>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
+To: Knut Petersen <Knut_Petersen@t-online.de>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
 
-On 08/03/2007 11:52 AM, Ben Collins wrote:
+On Friday 03 August 2007 08:53, Knut Petersen wrote:
+> Len Brown :
+> >  
+> >
+> > Thanks for the sighting, Knut!
+> > This regression is dramatic when put in the terms of 50% performance hit!
+> > I guess the good news is that thermal throttling is doing the job
+> > we are asking it to:-)
+> >
+> >
+> >   
+> Thermal management by cpufreq is working really fine ;-)
+
+Unfortunately, I a lot of people don't understand that the ";-)"
+after this statement and they really think that cpufreq is a
+solution for thermal management.  It isn't.  Systems still
+need to be thermally sane when they are fully utilized and
+cpufreq helps not.
+
+> My problems are definitely not related to a linux bug. All trip_points
+> are fixed, hardcoded in the system BIOS at address 0x000FF810.
 > 
-> This is the same problem I'm seeing (See Subject: Regression in 2.6.22,
-> clock problems on Turion with 32-bit kernel).
+> Yes, I could hack  and flash a custom BIOS.
 > 
-> This commit is what we bisected to:
-> 
-> commit e9e2cdb412412326c4827fc78ba27f410d837e6e
-> Author: Thomas Gleixner <tglx@linutronix.de>
-> Date:   Fri Feb 16 01:28:04 2007 -0800
-> 
->     [PATCH] clockevents: i386 drivers
-> 
+> After reading a lot I think I even could fix the DSDT.
 
-Yes, and the lapic timer apparently worked okay until then, right?
+No, you should never have to override your BIOS --
+except for debugging.
 
-FWIW when you disable it this appears in the boot messages:
+If Windows works out-of-the-box on this system,
+then Linux should too - even if we have to use a DMI-based
+workaround for a BIOS bug.
 
-Clockevents: could not switch to one-shot mode:<6>Clockevents: could not switch to one-shot mode: lapic is not functional.
-Could not switch to high resolution mode on CPU 0
- lapic is not functional.
-Could not switch to high resolution mode on CPU 1
+I'm looking forward to seeing the bug report that you are
+going to file.  Please include the dmidecode output in addition
+to the acpidump output.
 
-Yet "highres=off" does not fix the problem. Very strange...
-
+thanks,
+-Len
