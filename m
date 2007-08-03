@@ -1,26 +1,66 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH] hook ACPI _PSx method to IDE power on/off
-Date: Fri, 03 Aug 2007 08:44:56 +0800
-Message-ID: <1186101896.25162.0.camel@sli10-conroe.sh.intel.com>
-References: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com>
-	 <20070802123145.GA30304@srcf.ucam.org>
+From: "Andev Debi" <andev.debi@gmail.com>
+Subject: Re: Problem - disabling IRQ #20 and others
+Date: Fri, 3 Aug 2007 14:55:55 +0530
+Message-ID: <ef8c225f0708030225m42805f0cn943b38399dfa32a9@mail.gmail.com>
+References: <ef8c225f0708010347l2a0a8e4cj4f47a243bba88989@mail.gmail.com>
+	 <f24d23310708010711w7cec4718tde8fd33b89fdfcf6@mail.gmail.com>
+	 <20070802014819.4760b06a.akpm@linux-foundation.org>
+	 <ef8c225f0708020427i6665d486he6a90f1f02823382@mail.gmail.com>
+	 <20070802113146.30eb2139.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070802123145.GA30304@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rv-out-0910.google.com ([209.85.198.190]:15649 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756961AbXHCJZ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 05:25:56 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so632063rvb
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Aug 2007 02:25:55 -0700 (PDT)
+In-Reply-To: <20070802113146.30eb2139.akpm@linux-foundation.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: debian developer <debiandev@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rl@hellgate.ch, Dave Airlie <airlied@linux.ie>
 
-On Thu, 2007-08-02 at 13:31 +0100, Matthew Garrett wrote:
-> On Thu, Aug 02, 2007 at 02:14:08PM +0800, Shaohua Li wrote:
-> > ACPI spec defines the sequence of IDE power on/off:
-> 
-> Most distributions seem to be using the libata PATA code now - any plans 
-> to implement it there as well?
-Ok, I'll look at it too.
-
-Thanks,
-Shaohua
+On 8/3/07, Andrew Morton <akpm@linux-foundation.org> wrote:
+> On Thu, 2 Aug 2007 16:57:42 +0530
+> "Andev Debi" <andev.debi@gmail.com> wrote:
+>
+> > On 8/2/07, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > >> Please fix the wordwrapping before sending any more stuff - it's truly awful.
+> > >
+> > Sorry about that. Gmail automatically wraps the line. Will check in the future.
+> >
+> > > Could be a bug in the via driver, but it's more likely an
+> > > acpi/pci/platform/bios thing.
+> > >
+> > CC'ing VIA Rhine network driver maintainer. May be he has any idea.
+>
+> Sorry, I meant the VIA DRM driver.
+>
+> > CC'ing ACPI people too.
+>
+> I suspect that's getting warmer.
+>
+> > > Did any previous kernels work OK?  If so, which?
+> > >
+> >
+> > I booted with the stock ubuntu kernel 2.6.15-28-386, and it is showing
+> > a different irq (irq #201)being disabled.
+>
+> OK, that's bad.
+>
+>
+> > Im attaching the dmesg of both stock 2.6.15 and self compiled 2.6.22.1-cfs-v19
+>
+> For long-term bugs like this one it's best to track it in
+> bugzilla.kernel.org.  I'd suggest that you assign it to
+> acpi_config-interrupts@kernel-bugs.osdl.org and add airlied@linux.ie to the
+> cc.
+>
+> It'll take a while, but these things often do end up fixed.
+>
+OK, done that.
+Bug tracker Number : 8841.
