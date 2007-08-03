@@ -1,70 +1,78 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.22 regression: thermal trip points
-Date: Fri, 3 Aug 2007 14:35:25 -0400
-Message-ID: <200708031435.25416.lenb@kernel.org>
-References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org> <46B314F0.1070503@mandic.com.br>
+Subject: Re: [PATCH] create CONFIG_SUSPEND_UP_POSSIBLE
+Date: Fri, 3 Aug 2007 15:23:19 -0400
+Message-ID: <200708031523.19623.lenb@kernel.org>
+References: <200707251238.50218.lenb@kernel.org> <200707302354.23237.lenb@kernel.org> <20070731063833.GD22419@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46128 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:49927 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751436AbXHCSfm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 14:35:42 -0400
-In-Reply-To: <46B314F0.1070503@mandic.com.br>
+	id S1754006AbXHCTYw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 15:24:52 -0400
+In-Reply-To: <20070731063833.GD22419@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Renato S. Yamane" <renatoyamane@mandic.com.br>
-Cc: Knut Petersen <Knut_Petersen@t-online.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Friday 03 August 2007 07:43, Renato S. Yamane wrote:
-> Len Brown escreveu:
-> > On Thursday 02 August 2007 04:40, Knut Petersen wrote:
-> >> mainboard: AOpen i915GMm-hfs, AWARD BIOS
-> >> cpu: Pentium-M 750 (0.8 to 1.86 MHz)
-> >> openSuSE 10.2 with kernel 2.6.22.1
-> >>
-> >> The cpu fan can not be controled by linux kernel.
-> >> The BIOS will switch on the cpu fan a bit above 50 deg. Celsius.
-> >> The active and passive trip points both are set to 50 deg. Celsius.
-> >> Temperature of the idle cpu at 800 Mhz: 34 to 42 deg. C.
-> >> The BIOS never changes the trip points.
-> >> Cpufreq does work perfectly.
+On Tuesday 31 July 2007 02:38, Pavel Machek wrote:
+> Hi!
 > 
-> On my Toshiba M45-S355 (Toshiba Bios, Pentium M 750 - 0.8 at 1.86GHz, 
-> Debian Etch) I see the same using Kernel 2.6.21.6
+> > Without this change, it is possible to build CONFIG_HIBERNATE
+> > on all !SMP architectures, but not necessarily their SMP versions.
 > 
-> >> Previously there was the possibility  to add something like
-> >>
-> >> echo  "100:0:65:70:0" > /proc/acpi/thermal_zone/THRM/trip_points
-> >> echo  2 > /proc/acpi/thermal_zone/THRM/polling_frequency
-> >> echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-> 
-> I never do that, but see below (Kernel 2.6.21.6):
-> 
-> cat /proc/acpi/thermal_zone/TZCL/trip_points
-> critical (S5):           105 C
-> 
-> cat /proc/acpi/thermal_zone/TZCL/polling_frequency
-> polling frequency:       2 seconds
-> 
-> cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-> ondemand
-> 
+> Did you want to say "CONFIG_SUSPEND"?
 
-Renato,
-I don't understand how your Toshiba is similar to Knut's Aopen.
-You've got a single critical trip point at 105C, but no active or passive
-trip points.
+Yes.
 
-Are you reporting some kind of failure?
+> > I don't know for sure if the architecture list under SUSPEND_UP_POSSIBLE
+> > is correct.  For now it simply matches the list for
+> > SUSPEND_SMP_POSSIBLE.
+> 
+> I do not think it is.
+> 
+> > Signed-off-by: Len Brown <len.brown@intel.com>
+> > ---
+> >  Kconfig |    7 ++++++-
+> >  1 file changed, 6 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+> > index 412859f..ccf6576 100644
+> > --- a/kernel/power/Kconfig
+> > +++ b/kernel/power/Kconfig
+> > @@ -72,6 +72,11 @@ config PM_TRACE
+> >  	CAUTION: this option will cause your machine's real-time clock to be
+> >  	set to an invalid time after a resume.
+> >  
+> > +config SUSPEND_UP_POSSIBLE
+> > +	bool
+> > +	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES ||
+> 
+> At least ARM can do suspend, too... probably others. I was under
+> impression that SUSPEND is "supported" by all the architectures, just
+> some of them veto it at runtime (using pm_ops or how was it renamed).
 
-The only thing wrong with your system is that polling_frequency != 0 --
-but that is probably a distro configuration issue rather than
-a kernel issue.
+The reason this entire thread started is because Linus, Jeff and others
+said that they didn't want code magically compiled into their kernel
+that they did not explicitly ask for -- even if the savings were small
+and that kernel was already something rather beefy, such as ACPI+SMP.
 
-thanks,
+The current code is simply broken, because it allows SUSPEND
+on IA64 if UP, but not on SMP.  It should really be neither.
+
+Further, the only requirement to enable CONFIG_SUSPEND by default
+is PM && CONFIG_SMP=n, and that doesn't make much sense -- particularly
+since many of the non X86 architectures are small and according
+to the logic above, if SUSPEND (and PM_SLEEP, which it enables)
+adds any code to those kernels when they don't need it,
+then it would be a regression.
+
+thus my patch, if there is a list for SMP, there should
+be a list for !SMP.  If the list is incomplete, we need to fix it.
+ 
 -Len
 
