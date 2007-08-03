@@ -1,80 +1,44 @@
-From: Ben Collins <ben.collins@ubuntu.com>
+From: Chuck Ebbert <cebbert@redhat.com>
 Subject: Re: ACPI on Averatec 2370
-Date: Fri, 03 Aug 2007 11:52:08 -0400
-Message-ID: <1186156328.8105.72.camel@cunning>
-References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
-	 <46ACD8DB.2020108@googlemail.com>
-	 <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
-	 <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
-	 <46B22BDA.8090604@redhat.com>
-	 <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net>
-	 <46B23E08.4070106@redhat.com>
-	 <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net>
-	 <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org>
+Date: Fri, 03 Aug 2007 14:19:22 -0400
+Message-ID: <46B371AA.1040906@redhat.com>
+References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>	 <46ACD8DB.2020108@googlemail.com>	 <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>	 <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>	 <46B22BDA.8090604@redhat.com>	 <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net>	 <46B23E08.4070106@redhat.com>	 <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net>	 <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org> <1186156328.8105.72.camel@cunning>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763086AbXHCPwa@vger.kernel.org>
-In-Reply-To: <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Cal Peake <cp@absolutedigital.net>, Chuck Ebbert <cebbert@redhat.com>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([66.187.233.31]:42970 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923AbXHCSTl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 14:19:41 -0400
+In-Reply-To: <1186156328.8105.72.camel@cunning>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Collins <ben.collins@ubuntu.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Cal Peake <cp@absolutedigital.net>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
 
-On Thu, 2007-08-02 at 14:07 -0700, Linus Torvalds wrote:
+On 08/03/2007 11:52 AM, Ben Collins wrote:
 > 
-> On Thu, 2 Aug 2007, Cal Peake wrote:
-> > 
-> > Figured I should have sent that right after I hit the send key...
-> > 
-> > processor	: 0
-> > vendor_id	: AuthenticAMD
-> > cpu family	: 15
-> > model		: 72
-> > model name	: AMD Turion(tm) 64 X2 Mobile Technology TL-52
+> This is the same problem I'm seeing (See Subject: Regression in 2.6.22,
+> clock problems on Turion with 32-bit kernel).
 > 
-> Sadly, this doesn't show the "extended family" stuff from cpuid.
+> This commit is what we bisected to:
 > 
-> So it doesn't show any of the bits we actually care about. Sad.
+> commit e9e2cdb412412326c4827fc78ba27f410d837e6e
+> Author: Thomas Gleixner <tglx@linutronix.de>
+> Date:   Fri Feb 16 01:28:04 2007 -0800
 > 
-> That said, the "AMD Turion(tm) 64 X2 Mobile Technology TL-52" _should_ be 
-> a REV-F CPU afaik, and it should have thus fallen through to the 
-> "ENABLE_C1E_MASK" logic. Afaik that's broken.
+>     [PATCH] clockevents: i386 drivers
 > 
-> Cal - can you
->  (a) test that forcing a "return 1" from that amd_apic_timer_broken() 
->      function fixes it for you.
->  (b) make that function print out the values it uses for debugging (ie the 
->      xtended family and model numbers, and the MSR_K8_ENABLE_C1E MSR 
->      values)?
-> 
-> Andi, can you check with your AMD contacts that those bits are correct.. 
-> Maybe the "Mobile Technology" things *always* have the broken "Enhanced 
-> Halt State", regardless of any MSR settings? That would perhaps be what 
-> makes them "Mobile".
 
-This is the same problem I'm seeing (See Subject: Regression in 2.6.22,
-clock problems on Turion with 32-bit kernel).
+Yes, and the lapic timer apparently worked okay until then, right?
 
-This commit is what we bisected to:
+FWIW when you disable it this appears in the boot messages:
 
-commit e9e2cdb412412326c4827fc78ba27f410d837e6e
-Author: Thomas Gleixner <tglx@linutronix.de>
-Date:   Fri Feb 16 01:28:04 2007 -0800
+Clockevents: could not switch to one-shot mode:<6>Clockevents: could not switch to one-shot mode: lapic is not functional.
+Could not switch to high resolution mode on CPU 0
+ lapic is not functional.
+Could not switch to high resolution mode on CPU 1
 
-    [PATCH] clockevents: i386 drivers
+Yet "highres=off" does not fix the problem. Very strange...
 
-    Add clockevent drivers for i386: lapic (local) and PIT/HPET (global).  Update
-    the timer IRQ to call into the PIT/HPET driver's event handler and the
-    lapic-timer IRQ to call into the lapic clockevent driver.  The assignement of
-    timer functionality is delegated to the core framework code and replaces the
-    compile and runtime evalution in do_timer_interrupt_hook()
-
-    Use the clockevents broadcast support and implement the lapic_broadcast
-    function for ACPI.
-
-    No changes to existing functionality.
-
--- 
-Ubuntu   : http://www.ubuntu.com/
-Linux1394: http://wiki.linux1394.org/
