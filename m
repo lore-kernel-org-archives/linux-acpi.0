@@ -1,38 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/3] sony-laptop and sonypi for 2.6.23-rc2
-Date: Fri, 3 Aug 2007 15:27:05 -0400
-Message-ID: <200708031527.06045.lenb@kernel.org>
-References: <118615455219-git-send-email-malattia@linux.it>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH][ACPI] Let's not gamble that a possible
+	double free will never happen in asus_hotk_get_info()
+Date: Fri, 3 Aug 2007 16:14:09 -0400
+Message-ID: <200708031614.09792.lenb@kernel.org>
+References: <200707290045.59698.jesper.juhl@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35892 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760106AbXHCT1P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 15:27:15 -0400
-In-Reply-To: <118615455219-git-send-email-malattia@linux.it>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200707290045.59698.jesper.juhl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jesper Juhl <jesper.juhl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Karol Kozimor <sziwan-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julien Lerouge <julien.lerouge-GANU6spQydw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>
 
-Applied.
+On Saturday 28 July 2007 18:45, Jesper Juhl wrote:
+> Signed-off-by: Jesper Juhl <jesper.juhl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> =
+
+> =A0drivers/acpi/asus_acpi.c | =A0 =A01 +
+> =A01 files changed, 1 insertions(+), 0 deletions(-)
+> =
+
+> diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+> index 9c4bd22..86fd142 100644
+> --- a/drivers/acpi/asus_acpi.c
+> +++ b/drivers/acpi/asus_acpi.c
+> @@ -1192,6 +1192,7 @@ static int asus_hotk_get_info(void)
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0b=
+reak;
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0default:
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0k=
+free(model);
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0mod=
+el =3D NULL;
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0b=
+reak;
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0}
+> =A0=A0=A0=A0=A0=A0=A0=A0}
+
+applied.
+
+coverity didn't find the bug below this code however.
+we can also leak model in the path that returns  OK.
 
 thanks,
 -Len
-
-On Friday 03 August 2007 11:22, Mattia Dongili wrote:
-> Hi Len,
-> 
-> these 3 patches are aimed at 2.6.23-rc2 if there is time enough.
-> There's only http://bugzilla.kernel.org/show_bug.cgi?id=8803 left,
-> I hope to be able to have it sorted out soon.
-> 
-> Please apply
-> ---
->  drivers/char/sonypi.c      |    8 ++++++--
->  drivers/misc/sony-laptop.c |    9 ++++++---
->  2 files changed, 12 insertions(+), 5 deletions(-)
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >>  http://get.splunk.com/
