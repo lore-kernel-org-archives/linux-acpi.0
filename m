@@ -1,97 +1,180 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 05/12] ACPI: thinkpad-acpi: fix the module init failure path
-Date: Fri,  3 Aug 2007 18:33:38 -0400
-Message-ID: <11861804303949-git-send-email-len.brown@intel.com>
+Subject: [PATCH 09/12] ACPI: Battery: Synchronize battery operations.
+Date: Fri,  3 Aug 2007 18:33:42 -0400
+Message-ID: <11861804344148-git-send-email-len.brown@intel.com>
 References: <11861804251625-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:28479 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763697AbXHCWdv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 18:33:51 -0400
+	id S1763845AbXHCWdz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 18:33:55 -0400
 In-Reply-To: <11861804251625-git-send-email-len.brown@intel.com>
-Message-Id: <ac36393de6034be7266264a435360e7628849005.1186180370.git.len.brown@intel.com>
+Message-Id: <3bd92ba19a89fe61ebf58804f9c8675372f50c1c.1186180370.git.len.brown@intel.com>
 In-Reply-To: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
 References: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikivskiy@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Alexey Starikovskiy <astarikivskiy@suse.de>
 
-Thomas Renninger reports that if one tries to load thinkpad-acpi in a
-non-thinkpad, one gets:
+http://bugzilla.kernel.org/show_bug.cgi?id=8768
 
-Call Trace:
- [<ffffffff802fa57d>] kref_get+0x2f/0x36
- [<ffffffff802f97f7>] kobject_get+0x12/0x17
- [<ffffffff8036dfd7>] get_driver+0x14/0x1a
- [<ffffffff8036dfee>] driver_remove_file+0x11/0x32
- [<ffffffff8823b9be>] :thinkpad_acpi:thinkpad_acpi_module_exit+0xa8/0xfc
- [<ffffffff8824b8a0>] :thinkpad_acpi:thinkpad_acpi_module_init+0x74a/0x776
- [<ffffffff8024f968>] __link_module+0x0/0x25
- [<ffffffff80252269>] sys_init_module+0x162c/0x178f
- [<ffffffff8020bc2e>] system_call+0x7e/0x83
-
-So, track if the platform driver and its driver attributes were registered,
-and only deallocate them in that case.
-
-This patch is based on Thomas Renninger's patch for the issue.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   10 ++++++++--
- drivers/misc/thinkpad_acpi.h |    2 ++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/acpi/battery.c |   47 +++++++++++++++++------------------------------
+ 1 files changed, 17 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index fa80f35..f6cd34a 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -4668,12 +4668,15 @@ static int __init thinkpad_acpi_module_init(void)
- 		thinkpad_acpi_module_exit();
- 		return ret;
- 	}
-+	tp_features.platform_drv_registered = 1;
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 8165103..d7b499f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -113,7 +113,7 @@ struct acpi_battery_info {
+ 	acpi_string oem_info;
+ };
+ 
+-enum acpi_battery_files{
++enum acpi_battery_files {
+ 	ACPI_BATTERY_INFO = 0,
+ 	ACPI_BATTERY_STATE,
+ 	ACPI_BATTERY_ALARM,
+@@ -129,13 +129,14 @@ struct acpi_battery_flags {
+ };
+ 
+ struct acpi_battery {
+-	struct mutex mutex;
+ 	struct acpi_device *device;
+ 	struct acpi_battery_flags flags;
+ 	struct acpi_buffer bif_data;
+ 	struct acpi_buffer bst_data;
++	struct mutex lock;
+ 	unsigned long alarm;
+ 	unsigned long update_time[ACPI_BATTERY_NUMFILES];
 +
- 	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
- 	if (ret) {
- 		printk(IBM_ERR "unable to create sysfs driver attributes\n");
- 		thinkpad_acpi_module_exit();
- 		return ret;
+ };
+ 
+ inline int acpi_battery_present(struct acpi_battery *battery)
+@@ -235,10 +236,10 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 		return 0;
+ 
+ 	/* Evaluate _BIF */
+-
+-	status =
+-	    acpi_evaluate_object(acpi_battery_handle(battery), "_BIF", NULL,
+-				 &buffer);
++	mutex_lock(&battery->lock);
++	status = acpi_evaluate_object(acpi_battery_handle(battery), "_BIF",
++				      NULL, &buffer);
++	mutex_unlock(&battery->lock);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BIF"));
+ 		return -ENODEV;
+@@ -285,10 +286,10 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 		return 0;
+ 
+ 	/* Evaluate _BST */
+-
+-	status =
+-	    acpi_evaluate_object(acpi_battery_handle(battery), "_BST", NULL,
+-				 &buffer);
++	mutex_lock(&battery->lock);
++	status = acpi_evaluate_object(acpi_battery_handle(battery), "_BST",
++				      NULL, &buffer);
++	mutex_unlock(&battery->lock);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BST"));
+ 		return -ENODEV;
+@@ -336,9 +337,10 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery,
+ 
+ 	arg0.integer.value = alarm;
+ 
+-	status =
+-	    acpi_evaluate_object(acpi_battery_handle(battery), "_BTP",
++	mutex_lock(&battery->lock);
++	status = acpi_evaluate_object(acpi_battery_handle(battery), "_BTP",
+ 				 &arg_list, NULL);
++	mutex_unlock(&battery->lock);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+@@ -658,8 +660,6 @@ acpi_battery_write_alarm(struct file *file,
+ 	if (!battery || (count > sizeof(alarm_string) - 1))
+ 		return -EINVAL;
+ 
+-	mutex_lock(&battery->mutex);
+-
+ 	result = acpi_battery_update(battery, 1, &update_result);
+ 	if (result) {
+ 		result = -ENODEV;
+@@ -688,9 +688,7 @@ acpi_battery_write_alarm(struct file *file,
+ 	acpi_battery_check_result(battery, result);
+ 
+ 	if (!result)
+-		result = count;
+-
+-	mutex_unlock(&battery->mutex);
++		return count;
+ 
+ 	return result;
+ }
+@@ -714,8 +712,6 @@ static int acpi_battery_read(int fid, struct seq_file *seq)
+ 	int update_result = ACPI_BATTERY_NONE_UPDATE;
+ 	int update = 0;
+ 
+-	mutex_lock(&battery->mutex);
+-
+ 	update = (get_seconds() - battery->update_time[fid] >= update_time);
+ 	update = (update | battery->flags.update[fid]);
+ 
+@@ -733,7 +729,6 @@ static int acpi_battery_read(int fid, struct seq_file *seq)
+ 	result = acpi_read_funcs[fid].print(seq, result);
+ 	acpi_battery_check_result(battery, result);
+ 	battery->flags.update[fid] = result;
+-	mutex_unlock(&battery->mutex);
+ 	return result;
+ }
+ 
+@@ -897,10 +892,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (!battery)
+ 		return -ENOMEM;
+ 
+-	mutex_init(&battery->mutex);
+-
+-	mutex_lock(&battery->mutex);
+-
++	mutex_init(&battery->lock);
+ 	battery->device = device;
+ 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+@@ -936,7 +928,6 @@ static int acpi_battery_add(struct acpi_device *device)
+ 		kfree(battery);
  	}
-+	tp_features.platform_drv_attrs_registered = 1;
  
+-	mutex_unlock(&battery->mutex);
  
- 	/* Device initialization */
-@@ -4756,8 +4759,11 @@ static void thinkpad_acpi_module_exit(void)
- 	if (tpacpi_pdev)
- 		platform_device_unregister(tpacpi_pdev);
+ 	return result;
+ }
+@@ -951,8 +942,6 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
  
--	tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
--	platform_driver_unregister(&tpacpi_pdriver);
-+	if (tp_features.platform_drv_attrs_registered)
-+		tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
-+
-+	if (tp_features.platform_drv_registered)
-+		platform_driver_unregister(&tpacpi_pdriver);
+ 	battery = acpi_driver_data(device);
  
- 	if (proc_dir)
- 		remove_proc_entry(IBM_PROC_DIR, acpi_root_dir);
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 88af089..eee8809 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -246,6 +246,8 @@ static struct {
- 	u16 wan:1;
- 	u16 fan_ctrl_status_undef:1;
- 	u16 input_device_registered:1;
-+	u16 platform_drv_registered:1;
-+	u16 platform_drv_attrs_registered:1;
- } tp_features;
+-	mutex_lock(&battery->mutex);
+-
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY,
+ 					    acpi_battery_notify);
+@@ -963,9 +952,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
  
- struct thinkpad_id_data {
+ 	kfree(battery->bst_data.pointer);
+ 
+-	mutex_unlock(&battery->mutex);
+-
+-	mutex_destroy(&battery->mutex);
++	mutex_destroy(&battery->lock);
+ 
+ 	kfree(battery);
+ 
 -- 
 1.5.3.rc3.7.gd58e
