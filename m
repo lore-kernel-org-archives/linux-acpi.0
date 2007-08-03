@@ -1,54 +1,58 @@
-From: "Renato S. Yamane" <renatoyamane@mandic.com.br>
+From: Knut Petersen <Knut_Petersen@t-online.de>
 Subject: Re: 2.6.22 regression: thermal trip points
-Date: Fri, 03 Aug 2007 08:43:44 -0300
-Message-ID: <46B314F0.1070503@mandic.com.br>
+Date: Fri, 03 Aug 2007 14:53:53 +0200
+Message-ID: <46B32561.5070703@t-online.de>
 References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-02.mandic.com.br ([200.225.81.133]:50826 "EHLO
-	smtp-02.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760743AbXHCLns (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 07:43:48 -0400
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762022AbXHCMyW@vger.kernel.org>
 In-Reply-To: <200708021756.30776.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Knut Petersen <Knut_Petersen@t-online.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Len Brown escreveu:
-> On Thursday 02 August 2007 04:40, Knut Petersen wrote:
->> mainboard: AOpen i915GMm-hfs, AWARD BIOS
->> cpu: Pentium-M 750 (0.8 to 1.86 MHz)
->> openSuSE 10.2 with kernel 2.6.22.1
->>
->> The cpu fan can not be controled by linux kernel.
->> The BIOS will switch on the cpu fan a bit above 50 deg. Celsius.
->> The active and passive trip points both are set to 50 deg. Celsius.
->> Temperature of the idle cpu at 800 Mhz: 34 to 42 deg. C.
->> The BIOS never changes the trip points.
->> Cpufreq does work perfectly.
+Len Brown :
+> =20
+>
+> Thanks for the sighting, Knut!
+> This regression is dramatic when put in the terms of 50% performance =
+hit!
+> I guess the good news is that thermal throttling is doing the job
+> we are asking it to:-)
+>
+>
+>  =20
+Thermal management by cpufreq is working really fine ;-)
 
-On my Toshiba M45-S355 (Toshiba Bios, Pentium M 750 - 0.8 at 1.86GHz, 
-Debian Etch) I see the same using Kernel 2.6.21.6
+My problems are definitely not related to a linux bug. All trip_points
+are fixed, hardcoded in the system BIOS at address 0x000FF810.
 
->> Previously there was the possibility  to add something like
->>
->> echo  "100:0:65:70:0" > /proc/acpi/thermal_zone/THRM/trip_points
->> echo  2 > /proc/acpi/thermal_zone/THRM/polling_frequency
->> echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+Yes, I could hack  and flash a custom BIOS.
 
-I never do that, but see below (Kernel 2.6.21.6):
+After reading a lot I think I even could fix the DSDT.
 
-cat /proc/acpi/thermal_zone/TZCL/trip_points
-critical (S5):           105 C
+But all that would only be a solution for my system. The principal
+question is, if that hook that allowed to override unreasonable
+trip point definitions is too dangerous to be a part of the linux kerne=
+l.
 
-cat /proc/acpi/thermal_zone/TZCL/polling_frequency
-polling frequency:       2 seconds
+You and some others believed it should not be part of the kernel,
+and so it was eliminated a while ago. Some people want it back,
+either because
+- they need it desperately to allow their machines healthy operation,
+- they need it to restore performance of their machines, or
+- they want a really quiet system.
 
-cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-ondemand
+Root should be allowed to smoke his system - ask him if he really
+wants to do so, ask him to echo "Yes, it=B4s me who is guilty" to
+some file prior to allow trip point changes, but do not eliminate
+hooks useful for the management of buggy machines from our
+kernel.
 
-Regards,
-Renato S. Yamane
+We do need writable trip points again. And, Thomas, some people
+also need to raise the defaults.
+
+cu,
+ Knut
