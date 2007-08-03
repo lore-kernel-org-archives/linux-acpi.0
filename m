@@ -1,39 +1,26 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: scripts/mod/file2alias.c cross compile problem
-Date: Fri, 3 Aug 2007 01:03:56 +0200
-Message-ID: <20070802230355.GA3972@stusta.de>
-References: <617E1C2C70743745A92448908E030B2A0211AFF0@scsmsx411.amr.corp.intel.com> <1186092501.6131.154.camel@localhost.localdomain>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH] hook ACPI _PSx method to IDE power on/off
+Date: Fri, 03 Aug 2007 08:44:56 +0800
+Message-ID: <1186101896.25162.0.camel@sli10-conroe.sh.intel.com>
+References: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com>
+	 <20070802123145.GA30304@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:58787 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756349AbXHBXEP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2007 19:04:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1186092501.6131.154.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20070802123145.GA30304@srcf.ucam.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Luck, Tony" <tony.luck@intel.com>, trenn@suse.de, Sam Ravnborg <sam@ravnborg.org>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
 
-On Fri, Aug 03, 2007 at 08:08:20AM +1000, Rusty Russell wrote:
->...
-> scripts/mod/file2alias is the program that reads this: although it can
-> be altered to parse 32-vs-64, Adrian's fix is the simplest.
+On Thu, 2007-08-02 at 13:31 +0100, Matthew Garrett wrote:
+> On Thu, Aug 02, 2007 at 02:14:08PM +0800, Shaohua Li wrote:
+> > ACPI spec defines the sequence of IDE power on/off:
+> 
+> Most distributions seem to be using the libata PATA code now - any plans 
+> to implement it there as well?
+Ok, I'll look at it too.
 
-s/Adrian/Thomas/
-
-> Hope that clarifies,
-> Rusty.
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+Thanks,
+Shaohua
