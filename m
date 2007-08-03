@@ -1,84 +1,67 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [2/3] 2.6.23-rc1: known regressions v3
-Date: Fri, 3 Aug 2007 17:31:30 -0400
-Message-ID: <200708031731.30720.lenb@kernel.org>
-References: <46AE0F5D.3000500@googlemail.com> <Pine.SOC.4.64.0707302301290.14147@math.ut.ee> <46AEB59B.7030909@gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: ACPI on Averatec 2370
+Date: Fri, 3 Aug 2007 14:56:23 -0700 (PDT)
+Message-ID: <alpine.LFD.0.999.0708031447420.8184@woody.linux-foundation.org>
+References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
+ <46ACD8DB.2020108@googlemail.com> <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+ <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
+ <46B22BDA.8090604@redhat.com> <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net>
+ <46B23E08.4070106@redhat.com> <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net>
+ <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org>
+ <Pine.LNX.4.64.0708021723160.28012@lancer.cnet.absolutedigital.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34374 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761930AbXHCVco convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 17:32:44 -0400
-In-Reply-To: <46AEB59B.7030909@gmail.com>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54729 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763097AbXHCV5B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 17:57:01 -0400
+In-Reply-To: <Pine.LNX.4.64.0708021723160.28012@lancer.cnet.absolutedigital.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Meelis Roos <mroos@linux.ee>, Ismail =?iso-8859-1?q?D=F6nmez?= <ismail@pardus.org.tr>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Cal Peake <cp@absolutedigital.net>
+Cc: Chuck Ebbert <cebbert@redhat.com>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
 
-On Tuesday 31 July 2007 00:07, Alexey Starikovskiy wrote:
-> Meelis Roos wrote:
-> >>> Subject         : New ACPI error/warning with Linus' latest GIT
-> >>> References      : http://lkml.org/lkml/2007/7/26/395
-> >>> Last known good : ?
-> >>> Submitter       : Ismail D=F6nmez <ismail@pardus.org.tr>
-> >>> Caused-By       : ?
-> >>> Handled-By      : ?
-> >>> Status          : unknown
-> >> This started to happen after the second ACPI merge which was for 2=
-=2E6.23-rc2.
-> >=20
-> > It appeared after new Embedded Controller code was merged into ACPI=
-=2E It=20
-> > might as well be just a debug message or a remainder to add support=
- for=20
-> > new queries (whatever these are), but I do not know. The message it=
-self=20
-> > seems harmless.
-> >=20
-> This _is_ a debug message. EC asks us to perform query which was neve=
-r defined in DSDT.
-> Previously I thought it would be rare error report, but now it seems =
-that every machine
-> has at least one unregistered query... It is not a functional regress=
-ion, as we just=20
-> ignored errors from query execution before.
->=20
-> Len already has a patch to remove this printk.
 
-yes, this verbose message has been removed.
 
-thanks,
--Len
+On Thu, 2 Aug 2007, Cal Peake wrote:
+> On Thu, 2 Aug 2007, Linus Torvalds wrote:
+> >
+> > That said, the "AMD Turion(tm) 64 X2 Mobile Technology TL-52" _should_ be 
+> > a REV-F CPU afaik, and it should have thus fallen through to the 
+> > "ENABLE_C1E_MASK" logic. Afaik that's broken.
+> > 
+> > Cal - can you
+> >  (a) test that forcing a "return 1" from that amd_apic_timer_broken() 
+> >      function fixes it for you.
+> 
+> ACK
+> 
+> >  (b) make that function print out the values it uses for debugging (ie the 
+> >      xtended family and model numbers, and the MSR_K8_ENABLE_C1E MSR 
+> >      values)?
+> 
+> eax & CPUID_XFAM == 0x00000000
+> eax & CPUID_XMOD == 0x00040000
 
-commit f1cd1fe61b96e4312312d42c0a9784dfab12e007
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Fri Aug 3 17:28:17 2007 -0400
+Yeah, that's a REV-F
 
-    ACPI: EC: Remove noisy debug printk fron EC driver.
-   =20
-    ACPI: EC: Handler for query 0x57 is not found!
-   =20
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+> MSR_K8_ENABLE_C1E lo == 0x04c14015
+> MSR_K8_ENABLE_C1E hi == 0x00000000
+> lo & ENABLE_C1E_MASK == 0
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 469f3f5..dd384ec 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -471,7 +471,6 @@ static void acpi_ec_gpe_query(void *ec_cxt)
- 		}
- 	}
- 	mutex_unlock(&ec->lock);
--	printk(KERN_ERR PREFIX "Handler for query 0x%x is not found!\n", valu=
-e);
- }
-=20
- static u32 acpi_ec_gpe_handler(void *data)
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And yeah, that claims that C1E is not on, but:
+
+> amd_apic_timer_broken: forcing return value of 1
+
+since this makes it all work for you, it does appear that the AMD local 
+timer stops in C1 even when that isn't true, and as such is not useful.
+
+Sad. It probably means that we have to disable the local timer for *all* 
+modern AMD CPU's.
+
+Thomas/Ingo - did something change in the local apic programming? Or why 
+did this work before? Was it just that we didn't use the local timer apic 
+for some other reason?
+
+			Linus
