@@ -1,43 +1,54 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 03/12] sony-laptop: sony_nc_ids[] can become static.
-Date: Fri,  3 Aug 2007 18:33:36 -0400
-Message-ID: <11861804274061-git-send-email-len.brown@intel.com>
+Subject: [PATCH 04/12] sonypi: fix ids member of struct acpi_driver
+Date: Fri,  3 Aug 2007 18:33:37 -0400
+Message-ID: <11861804292678-git-send-email-len.brown@intel.com>
 References: <11861804251625-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26189 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:28479 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763673AbXHCWdt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 18:33:49 -0400
+	id S1763275AbXHCWdu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 18:33:50 -0400
 In-Reply-To: <11861804251625-git-send-email-len.brown@intel.com>
-Message-Id: <11604ecf6fb9c2ab0152fbddb7ea2724438ef76e.1186180370.git.len.brown@intel.com>
+Message-Id: <f7b88ccb63188e775fe02e746c39ed177741cfc7.1186180370.git.len.brown@intel.com>
 In-Reply-To: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
 References: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Adrian Bunk <bunk@stusta.de>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Eugene Teo <eugeneteo@kernel.sg>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Adrian Bunk <bunk@stusta.de>
+From: Eugene Teo <eugeneteo@kernel.sg>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+ids member of struct acpi_driver is of type struct acpi_device_id, not a
+character array.
+
+Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/char/sonypi.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 9a803e1..91da688 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -845,7 +845,7 @@ static struct sony_nc_event sony_C_events[] = {
- };
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index 73037a4..aeec67e 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -1147,10 +1147,15 @@ static int sonypi_acpi_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
  
- /* SNC-only model map */
--struct dmi_system_id sony_nc_ids[] = {
-+static struct dmi_system_id sony_nc_ids[] = {
- 		{
- 			.ident = "Sony Vaio FE Series",
- 			.callback = sony_nc_C_enable,
++const static struct acpi_device_id sonypi_device_ids[] = {
++	{"SNY6001", 0},
++	{"", 0},
++};
++
+ static struct acpi_driver sonypi_acpi_driver = {
+ 	.name           = "sonypi",
+ 	.class          = "hkey",
+-	.ids            = "SNY6001",
++	.ids            = sonypi_device_ids,
+ 	.ops            = {
+ 		           .add = sonypi_acpi_add,
+ 			   .remove = sonypi_acpi_remove,
 -- 
 1.5.3.rc3.7.gd58e
