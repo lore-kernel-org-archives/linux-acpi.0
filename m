@@ -1,60 +1,70 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: 2.6.22 regression: thermal trip points
-Date: Fri, 3 Aug 2007 14:30:26 -0400
-Message-ID: <200708031430.26789.lenb@kernel.org>
-References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org> <46B32561.5070703@t-online.de>
+Date: Fri, 3 Aug 2007 14:35:25 -0400
+Message-ID: <200708031435.25416.lenb@kernel.org>
+References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org> <46B314F0.1070503@mandic.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42803 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:46128 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752771AbXHCSak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 14:30:40 -0400
-In-Reply-To: <46B32561.5070703@t-online.de>
+	id S1751436AbXHCSfm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 14:35:42 -0400
+In-Reply-To: <46B314F0.1070503@mandic.com.br>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Knut Petersen <Knut_Petersen@t-online.de>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
+To: "Renato S. Yamane" <renatoyamane@mandic.com.br>
+Cc: Knut Petersen <Knut_Petersen@t-online.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
 
-On Friday 03 August 2007 08:53, Knut Petersen wrote:
-> Len Brown :
-> >  
-> >
-> > Thanks for the sighting, Knut!
-> > This regression is dramatic when put in the terms of 50% performance hit!
-> > I guess the good news is that thermal throttling is doing the job
-> > we are asking it to:-)
-> >
-> >
-> >   
-> Thermal management by cpufreq is working really fine ;-)
-
-Unfortunately, I a lot of people don't understand that the ";-)"
-after this statement and they really think that cpufreq is a
-solution for thermal management.  It isn't.  Systems still
-need to be thermally sane when they are fully utilized and
-cpufreq helps not.
-
-> My problems are definitely not related to a linux bug. All trip_points
-> are fixed, hardcoded in the system BIOS at address 0x000FF810.
+On Friday 03 August 2007 07:43, Renato S. Yamane wrote:
+> Len Brown escreveu:
+> > On Thursday 02 August 2007 04:40, Knut Petersen wrote:
+> >> mainboard: AOpen i915GMm-hfs, AWARD BIOS
+> >> cpu: Pentium-M 750 (0.8 to 1.86 MHz)
+> >> openSuSE 10.2 with kernel 2.6.22.1
+> >>
+> >> The cpu fan can not be controled by linux kernel.
+> >> The BIOS will switch on the cpu fan a bit above 50 deg. Celsius.
+> >> The active and passive trip points both are set to 50 deg. Celsius.
+> >> Temperature of the idle cpu at 800 Mhz: 34 to 42 deg. C.
+> >> The BIOS never changes the trip points.
+> >> Cpufreq does work perfectly.
 > 
-> Yes, I could hack  and flash a custom BIOS.
+> On my Toshiba M45-S355 (Toshiba Bios, Pentium M 750 - 0.8 at 1.86GHz, 
+> Debian Etch) I see the same using Kernel 2.6.21.6
 > 
-> After reading a lot I think I even could fix the DSDT.
+> >> Previously there was the possibility  to add something like
+> >>
+> >> echo  "100:0:65:70:0" > /proc/acpi/thermal_zone/THRM/trip_points
+> >> echo  2 > /proc/acpi/thermal_zone/THRM/polling_frequency
+> >> echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> 
+> I never do that, but see below (Kernel 2.6.21.6):
+> 
+> cat /proc/acpi/thermal_zone/TZCL/trip_points
+> critical (S5):           105 C
+> 
+> cat /proc/acpi/thermal_zone/TZCL/polling_frequency
+> polling frequency:       2 seconds
+> 
+> cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> ondemand
+> 
 
-No, you should never have to override your BIOS --
-except for debugging.
+Renato,
+I don't understand how your Toshiba is similar to Knut's Aopen.
+You've got a single critical trip point at 105C, but no active or passive
+trip points.
 
-If Windows works out-of-the-box on this system,
-then Linux should too - even if we have to use a DMI-based
-workaround for a BIOS bug.
+Are you reporting some kind of failure?
 
-I'm looking forward to seeing the bug report that you are
-going to file.  Please include the dmidecode output in addition
-to the acpidump output.
+The only thing wrong with your system is that polling_frequency != 0 --
+but that is probably a distro configuration issue rather than
+a kernel issue.
 
 thanks,
 -Len
+
