@@ -1,67 +1,18 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: ACPI on Averatec 2370
-Date: Fri, 3 Aug 2007 14:56:23 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0708031447420.8184@woody.linux-foundation.org>
-References: <5ebbd9b50707291105w316f98e5h3fa17204c9119a2f@mail.gmail.com>
- <46ACD8DB.2020108@googlemail.com> <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
- <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net>
- <46B22BDA.8090604@redhat.com> <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net>
- <46B23E08.4070106@redhat.com> <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net>
- <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org>
- <Pine.LNX.4.64.0708021723160.28012@lancer.cnet.absolutedigital.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+From: Len Brown <len.brown@intel.com>
+Subject: ACPI patches for 2.6.23-rc2
+Date: Fri,  3 Aug 2007 18:33:33 -0400
+Message-ID: <11861804251625-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54729 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763097AbXHCV5B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 17:57:01 -0400
-In-Reply-To: <Pine.LNX.4.64.0708021723160.28012@lancer.cnet.absolutedigital.net>
+Received: from mga01.intel.com ([192.55.52.88]:12458 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762936AbXHCWdq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 18:33:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cal Peake <cp@absolutedigital.net>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
+To: linux-acpi@vger.kernel.org
 
+As usual, please speak up if you see any issues
+with these patches.
 
-
-On Thu, 2 Aug 2007, Cal Peake wrote:
-> On Thu, 2 Aug 2007, Linus Torvalds wrote:
-> >
-> > That said, the "AMD Turion(tm) 64 X2 Mobile Technology TL-52" _should_ be 
-> > a REV-F CPU afaik, and it should have thus fallen through to the 
-> > "ENABLE_C1E_MASK" logic. Afaik that's broken.
-> > 
-> > Cal - can you
-> >  (a) test that forcing a "return 1" from that amd_apic_timer_broken() 
-> >      function fixes it for you.
-> 
-> ACK
-> 
-> >  (b) make that function print out the values it uses for debugging (ie the 
-> >      xtended family and model numbers, and the MSR_K8_ENABLE_C1E MSR 
-> >      values)?
-> 
-> eax & CPUID_XFAM == 0x00000000
-> eax & CPUID_XMOD == 0x00040000
-
-Yeah, that's a REV-F
-
-> MSR_K8_ENABLE_C1E lo == 0x04c14015
-> MSR_K8_ENABLE_C1E hi == 0x00000000
-> lo & ENABLE_C1E_MASK == 0
-
-And yeah, that claims that C1E is not on, but:
-
-> amd_apic_timer_broken: forcing return value of 1
-
-since this makes it all work for you, it does appear that the AMD local 
-timer stops in C1 even when that isn't true, and as such is not useful.
-
-Sad. It probably means that we have to disable the local timer for *all* 
-modern AMD CPU's.
-
-Thomas/Ingo - did something change in the local apic programming? Or why 
-did this work before? Was it just that we didn't use the local timer apic 
-for some other reason?
-
-			Linus
+thanks,
+-Len
