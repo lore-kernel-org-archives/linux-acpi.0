@@ -1,54 +1,98 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 04/12] sonypi: fix ids member of struct acpi_driver
-Date: Fri,  3 Aug 2007 18:33:37 -0400
-Message-ID: <11861804292678-git-send-email-len.brown@intel.com>
+Subject: [PATCH 01/12] ACPI: add "acpi_no_auto_ssdt" bootparam
+Date: Fri,  3 Aug 2007 18:33:34 -0400
+Message-ID: <11861804261706-git-send-email-len.brown@intel.com>
 References: <11861804251625-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28479 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:12458 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763275AbXHCWdu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 18:33:50 -0400
+	id S1763660AbXHCWdr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2007 18:33:47 -0400
 In-Reply-To: <11861804251625-git-send-email-len.brown@intel.com>
-Message-Id: <f7b88ccb63188e775fe02e746c39ed177741cfc7.1186180370.git.len.brown@intel.com>
-In-Reply-To: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
-References: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
+Message-Id: <67effe8fff32f60bdf51cba484766ba6003005bb.1186180370.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Eugene Teo <eugeneteo@kernel.sg>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Eugene Teo <eugeneteo@kernel.sg>
+"acpi_no_auto_ssdt" prevents Linux from automatically loading
+all the SSDTs listed in the RSDT/XSDT.
 
-ids member of struct acpi_driver is of type struct acpi_device_id, not a
-character array.
+This is needed for debugging.  In particular,
+it allows a DSDT override to optionally be a DSDT+SSDT override.
 
-Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+http://bugzilla.kernel.org/show_bug.cgi?id=3774
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/char/sonypi.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ Documentation/kernel-parameters.txt |    2 ++
+ drivers/acpi/tables/tbxface.c       |   23 +++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
-index 73037a4..aeec67e 100644
---- a/drivers/char/sonypi.c
-+++ b/drivers/char/sonypi.c
-@@ -1147,10 +1147,15 @@ static int sonypi_acpi_remove(struct acpi_device *device, int type)
- 	return 0;
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index fb80e9f..379931e 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -166,6 +166,8 @@ and is between 256 and 4096 characters. It is defined in the file
+ 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
+ 			Format: <irq>,<irq>...
+ 
++	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
++
+ 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+ 			Format: To spoof as Windows 98: ="Microsoft Windows"
+ 
+diff --git a/drivers/acpi/tables/tbxface.c b/drivers/acpi/tables/tbxface.c
+index 5b302c4..a9e3331 100644
+--- a/drivers/acpi/tables/tbxface.c
++++ b/drivers/acpi/tables/tbxface.c
+@@ -52,6 +52,8 @@ ACPI_MODULE_NAME("tbxface")
+ /* Local prototypes */
+ static acpi_status acpi_tb_load_namespace(void);
+ 
++static int no_auto_ssdt;
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_allocate_root_table
+@@ -536,6 +538,10 @@ static acpi_status acpi_tb_load_namespace(void)
+ 
+ 		ACPI_INFO((AE_INFO, "Table DSDT replaced by host OS"));
+ 		acpi_tb_print_table_header(0, table);
++
++		if (no_auto_ssdt == 0) {
++			printk(KERN_WARNING "ACPI: DSDT override uses original SSDTs unless \"acpi_no_auto_ssdt\"");
++		}
+ 	}
+ 
+ 	status =
+@@ -577,6 +583,11 @@ static acpi_status acpi_tb_load_namespace(void)
+ 			continue;
+ 		}
+ 
++		if (no_auto_ssdt) {
++			printk(KERN_WARNING "ACPI: SSDT ignored due to \"acpi_no_auto_ssdt\"\n");
++			continue;
++		}
++
+ 		/* Ignore errors while loading tables, get as many as possible */
+ 
+ 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+@@ -622,3 +633,15 @@ acpi_status acpi_load_tables(void)
  }
  
-+const static struct acpi_device_id sonypi_device_ids[] = {
-+	{"SNY6001", 0},
-+	{"", 0},
-+};
+ ACPI_EXPORT_SYMBOL(acpi_load_tables)
 +
- static struct acpi_driver sonypi_acpi_driver = {
- 	.name           = "sonypi",
- 	.class          = "hkey",
--	.ids            = "SNY6001",
-+	.ids            = sonypi_device_ids,
- 	.ops            = {
- 		           .add = sonypi_acpi_add,
- 			   .remove = sonypi_acpi_remove,
++
++static int __init acpi_no_auto_ssdt_setup(char *s) {
++
++        printk(KERN_NOTICE "ACPI: SSDT auto-load disabled\n");
++
++        no_auto_ssdt = 1;
++
++        return 1;
++}
++
++__setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
 -- 
 1.5.3.rc3.7.gd58e
