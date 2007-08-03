@@ -1,46 +1,54 @@
-From: "Joachim Deguara" <joachim.deguara@amd.com>
-Subject: Re: [REGRESSION] tg3 dead after s2ram
-Date: Fri, 3 Aug 2007 11:47:37 +0200
-Message-ID: <200708031147.38519.joachim.deguara@amd.com>
-References: <1186002023.18322.7.camel@dell>
- <20070802.022317.66176729.davem@davemloft.net>
- <1186081829.18322.20.camel@dell>
+From: "Renato S. Yamane" <renatoyamane@mandic.com.br>
+Subject: Re: 2.6.22 regression: thermal trip points
+Date: Fri, 03 Aug 2007 08:43:44 -0300
+Message-ID: <46B314F0.1070503@mandic.com.br>
+References: <46B1988C.3090302@t-online.de> <200708021756.30776.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-sin.frontbridge.com ([207.46.51.80]:44383 "EHLO
-	outbound6-sin-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757879AbXHCJsA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Aug 2007 05:48:00 -0400
-In-Reply-To: <1186081829.18322.20.camel@dell>
-Content-Disposition: inline
+Received: from smtp-02.mandic.com.br ([200.225.81.133]:50826 "EHLO
+	smtp-02.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760743AbXHCLns (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2007 07:43:48 -0400
+In-Reply-To: <200708021756.30776.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Chan <mchan@broadcom.com>
-Cc: David Miller <davem@davemloft.net>, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, michal.k.k.piotrowski@gmail.com, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Knut Petersen <Knut_Petersen@t-online.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, trenn@suse.de, pavel@ucw.cz, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org
 
-On Thursday 02 August 2007 21:10:29 Michael Chan wrote:
-> Alternatively, we can also fix it by calling pci_enable_device() agai=
-n
-> in tg3_open(). =C2=A0But I think it is better to just always save and=
- restore
-> in suspend/resume. =C2=A0bnx2.c will also require the same fix.
->
-> Thanks Joachim for helping to debug this problem. =C2=A0Please try th=
-is
-> patch:
+Len Brown escreveu:
+> On Thursday 02 August 2007 04:40, Knut Petersen wrote:
+>> mainboard: AOpen i915GMm-hfs, AWARD BIOS
+>> cpu: Pentium-M 750 (0.8 to 1.86 MHz)
+>> openSuSE 10.2 with kernel 2.6.22.1
+>>
+>> The cpu fan can not be controled by linux kernel.
+>> The BIOS will switch on the cpu fan a bit above 50 deg. Celsius.
+>> The active and passive trip points both are set to 50 deg. Celsius.
+>> Temperature of the idle cpu at 800 Mhz: 34 to 42 deg. C.
+>> The BIOS never changes the trip points.
+>> Cpufreq does work perfectly.
 
-Patch works for me.
+On my Toshiba M45-S355 (Toshiba Bios, Pentium M 750 - 0.8 at 1.86GHz, 
+Debian Etch) I see the same using Kernel 2.6.21.6
 
+>> Previously there was the possibility  to add something like
+>>
+>> echo  "100:0:65:70:0" > /proc/acpi/thermal_zone/THRM/trip_points
+>> echo  2 > /proc/acpi/thermal_zone/THRM/polling_frequency
+>> echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 
--Joachim
+I never do that, but see below (Kernel 2.6.21.6):
 
+cat /proc/acpi/thermal_zone/TZCL/trip_points
+critical (S5):           105 C
 
+cat /proc/acpi/thermal_zone/TZCL/polling_frequency
+polling frequency:       2 seconds
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+ondemand
+
+Regards,
+Renato S. Yamane
