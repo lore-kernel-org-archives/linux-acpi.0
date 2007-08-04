@@ -1,55 +1,63 @@
-From: "Jesper Juhl" <jesper.juhl@gmail.com>
-Subject: Re: [PATCH]Let's not gamble that a possible double free will never happen in asus_hotk_get_info()
-Date: Sat, 4 Aug 2007 18:14:05 +0200
-Message-ID: <9a8748490708040914x2959fe0n20c542552120362a@mail.gmail.com>
-References: <200707290045.59698.jesper.juhl@gmail.com>
-	 <200708031614.09792.lenb@kernel.org>
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: Re: [PATCH] hook ACPI _PSx method to IDE power on/off
+Date: Sat, 4 Aug 2007 21:55:24 +0200
+Message-ID: <200708042155.24843.bzolnier@gmail.com>
+References: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:55940 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755954AbXHDQOG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Aug 2007 12:14:06 -0400
-Received: by an-out-0708.google.com with SMTP id d31so206291and
-        for <linux-acpi@vger.kernel.org>; Sat, 04 Aug 2007 09:14:05 -0700 (PDT)
-In-Reply-To: <200708031614.09792.lenb@kernel.org>
+Received: from fk-out-0910.google.com ([209.85.128.189]:51446 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104AbXHDUQB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Aug 2007 16:16:01 -0400
+Received: by fk-out-0910.google.com with SMTP id z23so1014326fkz
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Aug 2007 13:15:59 -0700 (PDT)
+In-Reply-To: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Julien Lerouge <julien.lerouge@free.fr>, Karol Kozimor <sziwan@users.sourceforge.net>, linux-acpi@vger.kernel.org, corentincj@iksaif.net, acpi4asus-user@lists.sourceforge.net
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On 03/08/07, Len Brown <lenb@kernel.org> wrote:
-> On Saturday 28 July 2007 18:45, Jesper Juhl wrote:
-> > Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-> > ---
-> >
-> > drivers/acpi/asus_acpi.c | 1 +
-> > 1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
-> > index 9c4bd22..86fd142 100644
-> > --- a/drivers/acpi/asus_acpi.c
-> > +++ b/drivers/acpi/asus_acpi.c
-> > @@ -1192,6 +1192,7 @@ static int asus_hotk_get_info(void)
-> > break;
-> > default:
-> > kfree(model);
-> > +model = NULL;
-> > break;
-> > }
-> > }
->
-> applied.
->
-> coverity didn't find the bug below this code however.
-> we can also leak model in the path that returns  OK.
->
-Whoops, I should have spotted that.  I assume you've now fixed that locally?
+On Thursday 02 August 2007, Shaohua Li wrote:
+> ACPI spec defines the sequence of IDE power on/off:
+> Powering down:
+> 	Call _GTM.
+> 	Power down drive (calls _PS3 method and turns off power planes).
+> Powering up:
+> 	Power up drive (calls _PS0 method if present and turns on power planes).
+> 	Call _STM passing info from _GTM (possibly modified), with ID data from
+> 	each drive.
+> 	Initialize the channel.
+> 	May modify the results of _GTF.
+> 	For each drive:
+> 		Call _GTF.
+> 		Execute task file (possibly modified).
+> This patch adds the missed _PS0/_PS3 methods call.
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
--- 
-Jesper Juhl <jesper.juhl@gmail.com>
-Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please      http://www.expita.com/nomime.html
+applied, thanks
+
+Len, are you OK with the ACPI part of the patch (below)?
+
+> Index: linux/drivers/acpi/bus.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/bus.c	2007-08-02 13:35:06.000000000 +0800
+> +++ linux/drivers/acpi/bus.c	2007-08-02 13:56:56.000000000 +0800
+> @@ -262,10 +262,12 @@ int acpi_bus_set_power(acpi_handle handl
+>  		printk(KERN_WARNING PREFIX
+>  			      "Transitioning device [%s] to D%d\n",
+>  			      device->pnp.bus_id, state);
+> -	else
+> +	else {
+> +		device->power.state = state;
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  				  "Device [%s] transitioned to D%d\n",
+>  				  device->pnp.bus_id, state));
+> +	}
+>  
+>  	return result;
+>  }
