@@ -1,72 +1,40 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] create CONFIG_SUSPEND_UP_POSSIBLE
-Date: Sun, 5 Aug 2007 20:36:33 +0200
-Message-ID: <20070805183633.GA1758@elf.ucw.cz>
-References: <200707251238.50218.lenb@kernel.org> <200707302354.23237.lenb@kernel.org> <20070731063833.GD22419@elf.ucw.cz> <200708031523.19623.lenb@kernel.org>
+From: Richard Knutsson <ricknu-0@student.ltu.se>
+Subject: [PATCH] sonypi: Fix initialization warning
+Date: Sun, 05 Aug 2007 21:05:20 +0200
+Message-ID: <46B61F70.90005@student.ltu.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:40884 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751699AbXHESgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 5 Aug 2007 14:36:41 -0400
-Content-Disposition: inline
-In-Reply-To: <200708031523.19623.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760661AbXHETGZ@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ben Collins <bcollins@ubuntu.com>
+Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Fri 2007-08-03 15:23:19, Len Brown wrote:
-> On Tuesday 31 July 2007 02:38, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > Without this change, it is possible to build CONFIG_HIBERNATE
-> > > on all !SMP architectures, but not necessarily their SMP versions.
-> > 
-> > Did you want to say "CONFIG_SUSPEND"?
-> 
-> Yes.
-> 
-> > > I don't know for sure if the architecture list under SUSPEND_UP_POSSIBLE
-> > > is correct.  For now it simply matches the list for
-> > > SUSPEND_SMP_POSSIBLE.
-> > 
-> > I do not think it is.
-> > 
-> > > Signed-off-by: Len Brown <len.brown@intel.com>
-> > > ---
-> > >  Kconfig |    7 ++++++-
-> > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-> > > index 412859f..ccf6576 100644
-> > > --- a/kernel/power/Kconfig
-> > > +++ b/kernel/power/Kconfig
-> > > @@ -72,6 +72,11 @@ config PM_TRACE
-> > >  	CAUTION: this option will cause your machine's real-time clock to be
-> > >  	set to an invalid time after a resume.
-> > >  
-> > > +config SUSPEND_UP_POSSIBLE
-> > > +	bool
-> > > +	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES ||
-> > 
-> > At least ARM can do suspend, too... probably others. I was under
-> > impression that SUSPEND is "supported" by all the architectures, just
-> > some of them veto it at runtime (using pm_ops or how was it renamed).
-> 
-> The reason this entire thread started is because Linus, Jeff and others
-> said that they didn't want code magically compiled into their kernel
-> that they did not explicitly ask for -- even if the savings were small
-> and that kernel was already something rather beefy, such as ACPI+SMP.
-> 
-> The current code is simply broken, because it allows SUSPEND
-> on IA64 if UP, but not on SMP.  It should really be neither.
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+---
+Got this from the compiler (gcc (GCC) 4.1.2 20070626 (Red Hat 4.1.2-13)):
+drivers/char/sonypi.c:1153: warning: initialization from incompatible pointer type
 
-Actually, it should be both, AFAICT. Suspend infrastructure should be
-there, just returing -EINVAL... that's how it worked in 2.6.22 IIRC.
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index 73037a4..2dcd519 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -1147,10 +1147,15 @@ static int sonypi_acpi_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
++static const struct acpi_device_id sonypi_acpi_driver_ids[] = {
++        {ACPI_PROCESSOR_HID, 0},
++        {"", 0},
++};
++
+ static struct acpi_driver sonypi_acpi_driver = {
+ 	.name           = "sonypi",
+ 	.class          = "hkey",
+-	.ids            = "SNY6001",
++	.ids            = sonypi_acpi_driver_ids,
+ 	.ops            = {
+ 		           .add = sonypi_acpi_add,
+ 			   .remove = sonypi_acpi_remove,
