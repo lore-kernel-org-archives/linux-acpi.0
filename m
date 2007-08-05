@@ -1,66 +1,72 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: ACPI: thinkpad-acpi: change thinkpad-acpi input default and kconfig help
-Date: Sun,  5 Aug 2007 15:20:45 -0300
-Message-ID: <1186338045352-git-send-email-hmh@hmh.eng.br>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] create CONFIG_SUSPEND_UP_POSSIBLE
+Date: Sun, 5 Aug 2007 20:36:33 +0200
+Message-ID: <20070805183633.GA1758@elf.ucw.cz>
+References: <200707251238.50218.lenb@kernel.org> <200707302354.23237.lenb@kernel.org> <20070731063833.GD22419@elf.ucw.cz> <200708031523.19623.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:35785 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751179AbXHESUr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Aug 2007 14:20:47 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:40884 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751699AbXHESgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 5 Aug 2007 14:36:41 -0400
+Content-Disposition: inline
+In-Reply-To: <200708031523.19623.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Michael S. Tsirkin" <mst@dev.mellanox.co.il>, Hugh Dickins <hugh@veritas.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, david@lang.hm, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, Stefan Richter <stefanr@s5r6.in-berlin.de>, Nigel Cunningham <nigel@nigel.suspend2.net>, pm list <linux-pm@lists.linux-foundation.org>
 
-The current kconfig help text was misleading users.  Also, the default for
-an input-layer-optimized support caused way too many problems without
-up-to-date userspace in place.
+On Fri 2007-08-03 15:23:19, Len Brown wrote:
+> On Tuesday 31 July 2007 02:38, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > Without this change, it is possible to build CONFIG_HIBERNATE
+> > > on all !SMP architectures, but not necessarily their SMP versions.
+> > 
+> > Did you want to say "CONFIG_SUSPEND"?
+> 
+> Yes.
+> 
+> > > I don't know for sure if the architecture list under SUSPEND_UP_POSSIBLE
+> > > is correct.  For now it simply matches the list for
+> > > SUSPEND_SMP_POSSIBLE.
+> > 
+> > I do not think it is.
+> > 
+> > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > > ---
+> > >  Kconfig |    7 ++++++-
+> > >  1 file changed, 6 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+> > > index 412859f..ccf6576 100644
+> > > --- a/kernel/power/Kconfig
+> > > +++ b/kernel/power/Kconfig
+> > > @@ -72,6 +72,11 @@ config PM_TRACE
+> > >  	CAUTION: this option will cause your machine's real-time clock to be
+> > >  	set to an invalid time after a resume.
+> > >  
+> > > +config SUSPEND_UP_POSSIBLE
+> > > +	bool
+> > > +	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES ||
+> > 
+> > At least ARM can do suspend, too... probably others. I was under
+> > impression that SUSPEND is "supported" by all the architectures, just
+> > some of them veto it at runtime (using pm_ops or how was it renamed).
+> 
+> The reason this entire thread started is because Linus, Jeff and others
+> said that they didn't want code magically compiled into their kernel
+> that they did not explicitly ask for -- even if the savings were small
+> and that kernel was already something rather beefy, such as ACPI+SMP.
+> 
+> The current code is simply broken, because it allows SUSPEND
+> on IA64 if UP, but not on SMP.  It should really be neither.
 
-So, rework the help text, and change the default to N.  Note that
-distributions are supposed to enable this option as soon as they update HAL
-to a version that handles the thinkpad-acpi new input layer interface.
+Actually, it should be both, AFAICT. Suspend infrastructure should be
+there, just returing -EINVAL... that's how it worked in 2.6.22 IIRC.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Michael S. Tsirkin <mst@dev.mellanox.co.il>
-Cc: Hugh Dickins <hugh@veritas.com>
----
- drivers/misc/Kconfig |   22 +++++++++++++++-------
- 1 files changed, 15 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index aaaa61e..518d5d3 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -200,14 +200,22 @@ config THINKPAD_ACPI_BAY
- config THINKPAD_ACPI_INPUT_ENABLED
- 	bool "Enable input layer support by default"
- 	depends on THINKPAD_ACPI
--	default y
-+	default n
- 	---help---
--	  Enables hot key handling over the input layer by default.  If unset,
--	  the driver does not enable any hot key handling by default, and also
--	  starts up with a mostly empty keymap.
--
--	  If you are not sure, say Y here.  Say N to retain the deprecated
--	  behavior of ibm-acpi, and thinkpad-acpi for kernels up to 2.6.21.
-+	  This option enables thinkpad-acpi hot key handling over the input
-+	  layer at driver load time.  When it is unset, the driver does not
-+	  enable hot key handling by default, and also starts up with a mostly
-+	  empty keymap.
-+
-+	  This option should be enabled if you have a new enough HAL or other
-+	  userspace support that properly handles the thinkpad-acpi event
-+	  device.  It auto-tunes the hot key support to those reported by the
-+	  firmware and enables it automatically.
-+
-+	  If unsure, say N here to retain the old behaviour of ibm-acpi, and
-+	  thinkpad-acpi up to kernel 2.6.21: userspace will have to enable and
-+	  set up the thinkpad-acpi hot key handling using the sysfs interace
-+	  after loading the driver.
- 
- 
- endif # MISC_DEVICES
+									Pavel
 -- 
-1.5.2.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
