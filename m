@@ -1,44 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: "Maciej Rutecki" <maciej.rutecki@gmail.com>
 Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Tue, 7 Aug 2007 22:41:23 +0200
-Message-ID: <200708072241.24091.rjw@sisk.pl>
-References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no> <8db1092f0708071309h5cf6f68bo80b44d9a2fbeabeb@mail.gmail.com> <200708072233.52500.rjw@sisk.pl>
+Date: Tue, 7 Aug 2007 23:28:00 +0200
+Message-ID: <8db1092f0708071428lde63dc7o2b422ed81797a16e@mail.gmail.com>
+References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>
+	 <8db1092f0708071309h5cf6f68bo80b44d9a2fbeabeb@mail.gmail.com>
+	 <200708072233.52500.rjw@sisk.pl> <200708072241.24091.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34356 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757986AbXHGUbu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Aug 2007 16:31:50 -0400
-In-Reply-To: <200708072233.52500.rjw@sisk.pl>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200708072241.24091.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Michael Sedkowski <sedmich@gmail.com>, trenn@suse.de, Tejun Heo <htejun@gmail.com>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, 7 August 2007 22:33, Rafael J. Wysocki wrote:
-> On Tuesday, 7 August 2007 22:09, Maciej Rutecki wrote:
-> > 2007/8/7, Michael Sedkowski <sedmich@gmail.com>:
-> > > I did some additional checking today...
-> > > On kernels prior to 2.6.22 line, the bug exists and manifests itself
-> > > exactly the same way. However, when I removed the "-h" flag
-> > > from /etc/init.d/halt, the drive spins down only once on "Power down"
-> > > message and there is no sign of the bug and the emergency unload count
-> > > remains constant. I've verified this on kernels 2.6.21.6; 2.6.20.4;
-> > > 2.6.18-4-686-Etch.
-> > > The obvious conclusion is that something must have changed it the 2.6.22
-> > > kernels, so that removing the "-h" has no effect.
-> > > I dunno if my observations are of any value, but I thought You should
-> > > know...
-> > 
-> > I confirm this. First 2.6.21-rcx works OK (if I remember).  In
-> > 2.6.22(.1) remove -h option doesn't help - only warning message
-> > dissapear, and double spin down also exists in suspend to disk.
-> 
-> Well, on my box (nx6325) with the appended (experimental) patch applied
-> on top of 2.6.23-rc1 with the patchset from
+> > Well, on my box (nx6325) with the appended (experimental) patch applied
+> > on top of 2.6.23-rc1 with the patchset from
+>
+> s/2.6.23-rc1/2.6.23-rc2/
+>
 
-s/2.6.23-rc1/2.6.23-rc2/
+HP nx 6310, _old_ shutdown 2.6.23-rc2+above patches:
+
+1. Before:
+rutek:/home/maciek# /usr/sbin/smartctl --all -d ata /dev/sda | grep
+Power-Off_Retract_Count
+192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age
+Always       -       61
+
+2. Try suspend to disk, double spin down doesn't exist
+
+3. Normal shutdown, double spin down exists, BUT NOTE: I have still
+old shutdown utility from Debian package.
+
+4. After:
+rutek:/home/maciek# /usr/sbin/smartctl --all -d ata /dev/sda | grep
+Power-Off_Retract_Count
+192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age
+Always       -       61
+
+(it doesn't change=61).
+
+I wait for Michael, He has new shutdown from Sidux, and the same notebook.
+
+-- 
+Maciej Rutecki
+http://www.maciek.unixy.pl
