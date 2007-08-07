@@ -1,86 +1,42 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI: thinkpad-acpi: change thinkpad-acpi
-	input default and kconfig help
-Date: Tue, 7 Aug 2007 15:10:50 -0400
-Message-ID: <200708071510.50741.lenb@kernel.org>
-References: <1186338045352-git-send-email-hmh@hmh.eng.br>
+From: Michael Sedkowski <sedmich@gmail.com>
+Subject: Re: Disk spin down issue on shut down/suspend to disk
+Date: Tue, 07 Aug 2007 21:23:38 +0200
+Message-ID: <1186514618.5622.9.camel@nx6310>
+References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>
+	 <fa.mg6p0itaOQUo/t8deCaYpyqj6Nk@ifi.uio.no>
+	 <fa.RxWYL8z8KktgL8LGZ/cTB2nI1Yc@ifi.uio.no>
+	 <fa.AyyCtZ2yLjC5noHPHtmzn4ffhhE@ifi.uio.no>
+	 <fa.SuAjism+m0z0haqCRVjkc2S978o@ifi.uio.no>
+	 <fa.QgWcLG2hfRb92g4blN61qYfRjlQ@ifi.uio.no> <46B7AF53.1040307@shaw.ca>
+	 <46B8140E.3000509@gmail.com>  <1186497925.8780.78.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1186338045352-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael S. Tsirkin" <mst-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.171]:63692 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754404AbXHGTXo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2007 15:23:44 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so115592ugf
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Aug 2007 12:23:42 -0700 (PDT)
+In-Reply-To: <1186497925.8780.78.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Tejun Heo <htejun@gmail.com>, Robert Hancock <hancockr@shaw.ca>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Applied.
+I did some additional checking today...
+On kernels prior to 2.6.22 line, the bug exists and manifests itself
+exactly the same way. However, when I removed the "-h" flag
+from /etc/init.d/halt, the drive spins down only once on "Power down"
+message and there is no sign of the bug and the emergency unload count
+remains constant. I've verified this on kernels 2.6.21.6; 2.6.20.4;
+2.6.18-4-686-Etch.
+The obvious conclusion is that something must have changed it the 2.6.22
+kernels, so that removing the "-h" has no effect.
+I dunno if my observations are of any value, but I thought You should
+know...
 
-thanks,
--Len
+Regards,
+Michael
 
-On Sunday 05 August 2007 14:20, Henrique de Moraes Holschuh wrote:
-> The current kconfig help text was misleading users.  Also, the default for
-> an input-layer-optimized support caused way too many problems without
-> up-to-date userspace in place.
-> 
-> So, rework the help text, and change the default to N.  Note that
-> distributions are supposed to enable this option as soon as they update HAL
-> to a version that handles the thinkpad-acpi new input layer interface.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> Cc: Michael S. Tsirkin <mst-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Cc: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/misc/Kconfig |   22 +++++++++++++++-------
->  1 files changed, 15 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> index aaaa61e..518d5d3 100644
-> --- a/drivers/misc/Kconfig
-> +++ b/drivers/misc/Kconfig
-> @@ -200,14 +200,22 @@ config THINKPAD_ACPI_BAY
->  config THINKPAD_ACPI_INPUT_ENABLED
->  	bool "Enable input layer support by default"
->  	depends on THINKPAD_ACPI
-> -	default y
-> +	default n
->  	---help---
-> -	  Enables hot key handling over the input layer by default.  If unset,
-> -	  the driver does not enable any hot key handling by default, and also
-> -	  starts up with a mostly empty keymap.
-> -
-> -	  If you are not sure, say Y here.  Say N to retain the deprecated
-> -	  behavior of ibm-acpi, and thinkpad-acpi for kernels up to 2.6.21.
-> +	  This option enables thinkpad-acpi hot key handling over the input
-> +	  layer at driver load time.  When it is unset, the driver does not
-> +	  enable hot key handling by default, and also starts up with a mostly
-> +	  empty keymap.
-> +
-> +	  This option should be enabled if you have a new enough HAL or other
-> +	  userspace support that properly handles the thinkpad-acpi event
-> +	  device.  It auto-tunes the hot key support to those reported by the
-> +	  firmware and enables it automatically.
-> +
-> +	  If unsure, say N here to retain the old behaviour of ibm-acpi, and
-> +	  thinkpad-acpi up to kernel 2.6.21: userspace will have to enable and
-> +	  set up the thinkpad-acpi hot key handling using the sysfs interace
-> +	  after loading the driver.
->  
->  
->  endif # MISC_DEVICES
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >>  http://get.splunk.com/
