@@ -1,96 +1,45 @@
-From: Robert Hancock <hancockr@shaw.ca>
+From: Tejun Heo <htejun@gmail.com>
 Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Tue, 07 Aug 2007 18:23:29 -0600
-Message-ID: <46B90D01.6010703@shaw.ca>
-References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>
- <fa.SuAjism+m0z0haqCRVjkc2S978o@ifi.uio.no>
- <fa.QgWcLG2hfRb92g4blN61qYfRjlQ@ifi.uio.no>
- <fa.Nj/igOoDE6GHsgyWFEo/9WCtE9c@ifi.uio.no>
- <fa.usmOl3OVQVx3VExwvKiQI5iAX5Q@ifi.uio.no>
- <fa.A9df+SR4FMdI7qZmsXY0xFyurbU@ifi.uio.no>
+Date: Wed, 08 Aug 2007 11:54:53 +0900
+Message-ID: <46B9307D.3000105@gmail.com>
+References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>	 <fa.mg6p0itaOQUo/t8deCaYpyqj6Nk@ifi.uio.no>	 <fa.RxWYL8z8KktgL8LGZ/cTB2nI1Yc@ifi.uio.no>	 <fa.AyyCtZ2yLjC5noHPHtmzn4ffhhE@ifi.uio.no>	 <fa.SuAjism+m0z0haqCRVjkc2S978o@ifi.uio.no>	 <fa.QgWcLG2hfRb92g4blN61qYfRjlQ@ifi.uio.no> <46B7AF53.1040307@shaw.ca>	 <46B8140E.3000509@gmail.com>  <1186497925.8780.78.camel@queen.suse.de> <1186514618.5622.9.camel@nx6310>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from shawidc-mo1.cg.shawcable.net ([24.71.223.10]:48587 "EHLO
-	pd4mo2so.prod.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755978AbXHHAYt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2007 20:24:49 -0400
-In-reply-to: <fa.A9df+SR4FMdI7qZmsXY0xFyurbU@ifi.uio.no>
+Received: from rv-out-0910.google.com ([209.85.198.189]:11855 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758331AbXHHC4C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2007 22:56:02 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so27877rvb
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Aug 2007 19:56:02 -0700 (PDT)
+In-Reply-To: <1186514618.5622.9.camel@nx6310>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Tejun Heo <htejun@gmail.com>, Michael Sedkowski <sedmich@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Michael Sedkowski <sedmich@gmail.com>
+Cc: trenn@suse.de, Robert Hancock <hancockr@shaw.ca>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Henrique de Moraes Holschuh wrote:
-> On Tue, 07 Aug 2007, Tejun Heo wrote:
->> Henrique de Moraes Holschuh wrote:
->>> On Tue, 07 Aug 2007, Tejun Heo wrote:
->>>> Michael Sedkowski wrote:
->>>>>> Hmmm... If the problem only shows up on nx6325, it might be that ACPI is
->>>>>> pulling unnecessary stunt.  Please apply the attached patch and report
->>>>>> when the disk spins down and up.
->>>>> Disk spins down on "Pre-shutdown prepare" and then goes up and down on
->>>>> "Power down".
->>>> Oh... crap, so acpi wants to sync cache on shutdown.  I wonder whether
->>>> it spins down the disk correctly.  Does emergency unload count increase
->>>> after each power down?  Also, please post the result of 'dmidecode'.
->>> You know, this actually make a lot of sense, and one can't even complain
->>> about firmware that pulls that off.
->> Well, I'm complaining.  I think the problem here is that it isn't clear
->> which one is who's responsibility.  There's a Korean saying which
-> 
-> The BIOS *has* to do it when in DOS mode, the HD manuals are very very clear
-> about it.  Doing it through ACPI ATA objects is at least non-broken as far
-> as these things go, as one knows when to do it directly ("non-ACPI mode"),
-> and one doesn't talk to the disk directly.
-> 
->> approximately translates into "if you have too many boatmen on a ship,
->> it goes to mountain".  We also have a bunch of Toshiba laptops which
-> 
-> Yeah, that's a problem.  But we can avoid it if we start snooping what ACPI
-> is asking us to deliver to the disks, which IMO is an extremely good idea
-> anyway.
+Michael Sedkowski wrote:
+> I did some additional checking today...
+> On kernels prior to 2.6.22 line, the bug exists and manifests itself
+> exactly the same way. However, when I removed the "-h" flag
+> from /etc/init.d/halt, the drive spins down only once on "Power down"
+> message and there is no sign of the bug and the emergency unload count
+> remains constant. I've verified this on kernels 2.6.21.6; 2.6.20.4;
+> 2.6.18-4-686-Etch.
+> The obvious conclusion is that something must have changed it the 2.6.22
+> kernels, so that removing the "-h" has no effect.
+> I dunno if my observations are of any value, but I thought You should
+> know...
 
-Problem is I don't think we can do this. As far as I can tell, on my 
-Compaq at least, it's not being done through ACPI AML in the DSDT, like 
-in the _PTS function (which the kernel executes and can snoop), but when 
-we actually do the power-off we write a value to a magic ACPI register. 
-That likely triggers the BIOS to take control in SMM mode and access the 
-controller directly before triggering the power off, which we have no 
-control or knowledge of.
+Yeah, till 2.6.22, libata didn't spindown disks on suspend or power off
+which incremented emergency unload count on all normal systems, so only
+the ACPI S5 routine is spinning down the disk on you system.  The
+problem here is that now that libata is fixed there are two entities
+trying to spin down the disk and the disk is dumb enough to spin back up
+when FLUSH CACHE or STANDBYNOW is received while spun down.  :-(
 
-> 
->> want the ATA controller to be in enabled state when ACPI suspend is
->> invoked because the suspend method apparently wants to execute some
->> commands before going to sleep.
-> 
-> That's just broken, since it is not even using a OS-backed SATA/ATA ACPI
-> method to do it.
-> 
->> I wish ACPI spec carries a big fat sign saying "stay f*** away from
->> anything which isn't essential to the requested operation".
-> 
-> Shutting down disks *is* essential to the power off operation.  ACPI would
-> have to mandate who is to do it, instead (ACPI table or OSI by itself).
-> 
->>> Any chances of changing things
->>> so that we inspect/snoop all tasks sent to the device, and filter them
->>> out, or react to them accordingly?
->> No, we can't unless we snoop ACPI method execution and detect accesses
->> to IO ports or iomem regions.  It's not going through any driver.  This
->> is a gross mess.
-> 
-> I don't mean fixing the stuff clowns like Toshiba did.  The correct fix for
-> that is to blacklist the hell out of that crap and patch their DSDT into
-> something remotely sane.
-> 
-> I do mean snooping the ACPI methods that *return* a taskset to send to the
-> driver, and we send that taskset ourselves in libata and libpata(?).
-> 
+Thanks.
 
 -- 
-Robert Hancock      Saskatoon, SK, Canada
-To email, remove "nospam" from hancockr@nospamshaw.ca
-Home Page: http://www.roberthancock.com/
-
+tejun
