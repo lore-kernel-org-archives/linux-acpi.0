@@ -1,64 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Mark Lord <lkml@rtr.ca>
 Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Wed, 8 Aug 2007 14:27:00 +0200
-Message-ID: <200708081427.00905.rjw@sisk.pl>
-References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no> <fa.A9df+SR4FMdI7qZmsXY0xFyurbU@ifi.uio.no> <46B90D01.6010703@shaw.ca>
+Date: Wed, 08 Aug 2007 10:08:57 -0400
+Message-ID: <46B9CE79.5030307@rtr.ca>
+References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>	 <fa.mg6p0itaOQUo/t8deCaYpyqj6Nk@ifi.uio.no>	 <fa.RxWYL8z8KktgL8LGZ/cTB2nI1Yc@ifi.uio.no>	 <fa.AyyCtZ2yLjC5noHPHtmzn4ffhhE@ifi.uio.no>	 <fa.SuAjism+m0z0haqCRVjkc2S978o@ifi.uio.no>	 <fa.QgWcLG2hfRb92g4blN61qYfRjlQ@ifi.uio.no> <46B7AF53.1040307@shaw.ca>	 <46B8140E.3000509@gmail.com>  <1186497925.8780.78.camel@queen.suse.de> <1186514618.5622.9.camel@nx6310> <46B9307D.3000105@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <46B90D01.6010703@shaw.ca>
-Content-Disposition: inline
+In-Reply-To: <46B9307D.3000105@gmail.com>
 Sender: linux-ide-owner@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Tejun Heo <htejun@gmail.com>, Michael Sedkowski <sedmich@gmail.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: Michael Sedkowski <sedmich@gmail.com>, trenn@suse.de, Robert Hancock <hancockr@shaw.ca>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, 8 August 2007 02:23, Robert Hancock wrote:
-> Henrique de Moraes Holschuh wrote:
-> > On Tue, 07 Aug 2007, Tejun Heo wrote:
-> >> Henrique de Moraes Holschuh wrote:
-> >>> On Tue, 07 Aug 2007, Tejun Heo wrote:
-> >>>> Michael Sedkowski wrote:
-> >>>>>> Hmmm... If the problem only shows up on nx6325, it might be that ACPI is
-> >>>>>> pulling unnecessary stunt.  Please apply the attached patch and report
-> >>>>>> when the disk spins down and up.
-> >>>>> Disk spins down on "Pre-shutdown prepare" and then goes up and down on
-> >>>>> "Power down".
-> >>>> Oh... crap, so acpi wants to sync cache on shutdown.  I wonder whether
-> >>>> it spins down the disk correctly.  Does emergency unload count increase
-> >>>> after each power down?  Also, please post the result of 'dmidecode'.
-> >>> You know, this actually make a lot of sense, and one can't even complain
-> >>> about firmware that pulls that off.
-> >> Well, I'm complaining.  I think the problem here is that it isn't clear
-> >> which one is who's responsibility.  There's a Korean saying which
-> > 
-> > The BIOS *has* to do it when in DOS mode, the HD manuals are very very clear
-> > about it.  Doing it through ACPI ATA objects is at least non-broken as far
-> > as these things go, as one knows when to do it directly ("non-ACPI mode"),
-> > and one doesn't talk to the disk directly.
-> > 
-> >> approximately translates into "if you have too many boatmen on a ship,
-> >> it goes to mountain".  We also have a bunch of Toshiba laptops which
-> > 
-> > Yeah, that's a problem.  But we can avoid it if we start snooping what ACPI
-> > is asking us to deliver to the disks, which IMO is an extremely good idea
-> > anyway.
-> 
-> Problem is I don't think we can do this. As far as I can tell, on my 
-> Compaq at least, it's not being done through ACPI AML in the DSDT, like 
-> in the _PTS function (which the kernel executes and can snoop), but when 
-> we actually do the power-off we write a value to a magic ACPI register. 
-> That likely triggers the BIOS to take control in SMM mode and access the 
-> controller directly before triggering the power off, which we have no 
-> control or knowledge of.
+Tejun Heo wrote:
+> Michael Sedkowski wrote:
+>> Dnia 07-08-2007, Wt o godzinie 03:43 +0900, Tejun Heo napisa=C5=82(a=
+):
+>>> Does emergency unload count increase
+>>> after each power down?=20
+>> I think I got it.
+>> Using smartctl I've done a test and shut down, then repeted the test=
+=2E
+>> The only values that where diffrent are temperatures and
+>> Hardware_ECC_Recovered which rised by 6 points.
+>> However I have no idea which of those is the "emergency count"...
+>> Full results in attachment.
+>>
+>> 192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age   Al=
+ways       -       388
+>=20
+> I think this is the one.  You can test it by forcefully powering off =
+the
+> machine (press power button for several secs or disconnect AC and
+> battery) and see whether the count increases.
 
-Yes, this also is my observation.
+=46WIW, Tejun, with 2.6.22, my new Seagate 160GB SATA drive (notebook)
+increments the "Power-Off_Retract_Count" on each suspend-to-RAM operati=
+on.
+It does not do any double spin-up/spin-down things though.
 
-Greetings,
-Rafael
+What a mess.
 
+-ml
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+=20
+
