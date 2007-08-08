@@ -1,46 +1,56 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Wed, 08 Aug 2007 23:30:18 +0900
-Message-ID: <46B9D37A.4070403@gmail.com>
-References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no>	 <fa.mg6p0itaOQUo/t8deCaYpyqj6Nk@ifi.uio.no>	 <fa.RxWYL8z8KktgL8LGZ/cTB2nI1Yc@ifi.uio.no>	 <fa.AyyCtZ2yLjC5noHPHtmzn4ffhhE@ifi.uio.no>	 <fa.SuAjism+m0z0haqCRVjkc2S978o@ifi.uio.no>	 <fa.QgWcLG2hfRb92g4blN61qYfRjlQ@ifi.uio.no> <46B7AF53.1040307@shaw.ca>	 <46B8140E.3000509@gmail.com>  <1186497925.8780.78.camel@queen.suse.de> <1186514618.5622.9.camel@nx6310> <46B9307D.3000105@gmail.com> <46B9CE79.5030307@rtr.ca> <46B9CFB3.6020402@gmail.com> <46B9D219.6030509@rtr.ca>
+From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: Re: ACPI on Averatec 2370
+Date: Wed, 8 Aug 2007 16:41:59 +0200
+Message-ID: <200708081642.00581.joachim.deguara@amd.com>
+References: <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net>
+ <Pine.LNX.4.64.0708071803570.28199@lancer.cnet.absolutedigital.net>
+ <20070808000631.GB7353@one.firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain;
+ charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.236]:56085 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762336AbXHHOa1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2007 10:30:27 -0400
-Received: by qb-out-0506.google.com with SMTP id e11so246636qbe
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Aug 2007 07:30:26 -0700 (PDT)
-In-Reply-To: <46B9D219.6030509@rtr.ca>
+Received: from outbound-cpk.frontbridge.com ([207.46.163.16]:3906 "EHLO
+	outbound4-cpk-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753582AbXHHOmV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2007 10:42:21 -0400
+In-Reply-To: <20070808000631.GB7353@one.firstfloor.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: Michael Sedkowski <sedmich@gmail.com>, trenn@suse.de, Robert Hancock <hancockr@shaw.ca>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Cal Peake <cp@absolutedigital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Chuck Ebbert <cebbert@redhat.com>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>
 
-Mark Lord wrote:
-> Heh.. I haven't instrumented it yet, but I did discover a bit more about
-> it:
-> 
-> The Power-Off_Retract_Count incrmenents *only* when there's data in the
-> on-drive write-cache.  So if I haven't written anything significantly large
-> before suspending, then it often does NOT increment the retract counter.
-> 
-> But if I copy a couple of multi-MB files around and then suspend (to RAM),
-> the retract count gets incremented.
-> 
-> So I've now just stuck "hdparm -F /dev/sda" into my suspend script,
-> and that cures the problem completely for me.  "-F" does a FLUSH_CACHE,
-> and requires a recent copy of hdparm.
-> 
-> Perhaps libata should also do a FLUSH_CACHE before any STANDBYNOW command,
-> prior to entering STR, which is what my script is currently now doing..
-> 
-> I'll instrument libata and see what the current sequence is.
+On Wednesday 08 August 2007 02:06:31 Andi Kleen wrote:
+> On Tue, Aug 07, 2007 at 06:15:37PM -0400, Cal Peake wrote:
+> > On Fri, 3 Aug 2007, Linus Torvalds wrote:
+> > > > MSR_K8_ENABLE_C1E lo == 0x04c14015
+> > > > MSR_K8_ENABLE_C1E hi == 0x00000000
+> > > > lo & ENABLE_C1E_MASK == 0
+> > >
+> > > And yeah, that claims that C1E is not on, but:
+> > > > amd_apic_timer_broken: forcing return value of 1
+> >
+> > So it seems my initial debugging report was, err, incomplete. I failed to
+> > notice that the amd_apic_timer_broken function was getting called twice,
+> > once for each core.
+> >
+> > The second call shows this:
+> >
+> >   MSR_K8_ENABLE_C1E == 0x14c14015
+>
+> Ah interesting. Ok finally that all starts making sense.
+>
+> Not sure why the MSR varies between cores though.
 
-Hmmmm.. libata should issue FLUSH CACHE on STR too.  sd_suspend() and
-sd_shutdown() are pretty similar after all.
+This is a BIOS bug as the BIOS should have programmed the MSR the same for 
+both cores.  See section 10.2.4 of the Rev F BKDG [1] (10.2.4.1 talks about 
+the SMI case but a newer version of the doc not yet release has similar 
+wording about both cores needing to have the bit set for the chipset case).
 
--- 
-tejun
+-Joachim
+
+[1] 
+http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
+
+
