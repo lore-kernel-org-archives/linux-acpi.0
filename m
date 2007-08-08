@@ -1,67 +1,56 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Tue, 07 Aug 2007 22:26:46 -0600
-Message-ID: <46B94606.9040003@shaw.ca>
-References: <fa.kWUtPRLMmU/fKL6dyOOVKsSM0fg@ifi.uio.no>
- <fa.EbjjD+/NapKvm3jfMLnkxumomC0@ifi.uio.no>
- <fa.dm4O1sGL4RetYq2szbwwJT3cf2c@ifi.uio.no>
- <fa.7tYfpSdE8/lmfK5ulSN+/6TRSbw@ifi.uio.no>
- <fa.R1sVaL6mATofNd18aEZgwlczb8M@ifi.uio.no>
- <fa.Z030SpvZYAHux0f8UtlnJwatsvY@ifi.uio.no> <46B90AE0.2070403@shaw.ca>
- <20070808040607.GA16466@khazad-dum.debian.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC PATCH] report acpi video hot key event through input
+	device
+Date: Wed, 08 Aug 2007 14:07:23 -0400
+Message-ID: <1186596443.19883.9.camel@rzhang-asus.sh.intel.com>
+References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
+	 <20070730005050.GB27398@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from shawidc-mo1.cg.shawcable.net ([24.71.223.10]:31437 "EHLO
-	pd3mo1so.prod.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbXHHE1l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2007 00:27:41 -0400
-In-reply-to: <20070808040607.GA16466@khazad-dum.debian.net>
+Received: from mga09.intel.com ([134.134.136.24]:59699 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750888AbXHHGGK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Aug 2007 02:06:10 -0400
+In-Reply-To: <20070730005050.GB27398@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Tejun Heo <htejun@gmail.com>, Michael Sedkowski <sedmich@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-Henrique de Moraes Holschuh wrote:
-> On Tue, 07 Aug 2007, Robert Hancock wrote:
->>> You *do* have to worry about it in any box you turn off daily.  Desktop
->>> HDs will croak fast in that scenario, laptop HDs less so, but still too
->>> fast.  A very good laptop HD can last about 20k emergency unloads (this
->>> is a unit that can do about 600k normal unloads in its lifetime).
->>> Desktop and server HDs don't even come close to those numbers, last time
->>> I checked.
->> It only matters on hard drives which actually use load-unload heads. Lots
->> of desktop/server drives (perhaps some laptop ones as well) still use
->> contact start/stop, which doesn't remove the heads from the platters on
+On Mon, 2007-07-30 at 01:50 +0100, Matthew Garrett wrote:
+> On Sun, Jul 29, 2007 at 12:40:16PM -0400, Luming Yu wrote:
+> >  	switch (event) {
+> >  	case ACPI_VIDEO_NOTIFY_SWITCH:	/* User requested a switch,
+> >  					 * most likely via hotkey. */
+> >  		acpi_bus_generate_event(device, event, 0);
+> > +		keycode = KEY_UNKNOWN;
 > 
-> I am not so sure about that.
+> KEY_SWITCHVIDEOMODE ?
 > 
-> Please correct me if I am wrong, but contact stop in an emergency retract
-> shakes the head assembly badly as well. It subjects the head assembly to
-> higher acceleration than a normal seek, and a nasty impulse at impact with
-> the stopper.  And I very much doubt it is nice to the heads to slide into
-> the parking zone at high speed and hit the bumper while over it.
+> > 
+> >  	case ACPI_VIDEO_NOTIFY_PROBE:	/* User plugged in or removed a video
+> > @@ -1734,21 +1741,37 @@ static void acpi_video_bus_notify(acpi_h
+> >  		acpi_video_device_rebind(video);
+> >  		acpi_video_switch_output(video, event);
+> >  		acpi_bus_generate_event(device, event, 0);
+> > +		keycode = KEY_UNKNOWN;
+> >  		break;
 > 
-> Unless I missed something, I don't why an emergency retract would not be as
-> big a problem as an emergency unload.
+> Here too.
 > 
-> Maybe we should hunt down some proper datasheets for drives lacking head
-> load/unload technology, and check what they say about emergency unloads...
+> >  	case ACPI_VIDEO_NOTIFY_SWITCH:	/* change in status (cycle output device) */
+> >  	case ACPI_VIDEO_NOTIFY_PROBE:	/* change in status (output device status) */
+> >  		acpi_bus_generate_event(device, event, 0);
+> > +		keycode = KEY_UNKNOWN;
+> >  		break;
+> 
+> And these? I'm not sure in this case, though.
+> 
+ACPI_VIDEO_NOTIFY_SWITCH and ACPI_VIDEO_NOTIFY_PROBE
+are only valid for Display devices.
+Should output devices handle this kind of events?
 
-I did a bit of a look and didn't find any mention of the subject for 
-drives using contact start/stop. I did find mention that the unload 
-torque needed is quite a bit higher on load/unload systems, so I would 
-imagine that having to extract or store that energy for emergency 
-unloads would be more of a demanding task and might be a rougher process.
-
-Just judging from the sound, though, hard power-offs on a desktop 
-Seagate Barracuda 7200.10, for example, which is contact start/stop, 
-don't really sound any different from a commanded standby. On the laptop 
-drives I've seen you can really tell the difference.
-
--- 
-Robert Hancock      Saskatoon, SK, Canada
-To email, remove "nospam" from hancockr@nospamshaw.ca
-Home Page: http://www.roberthancock.com/
-
+Thanks,
+Rui
