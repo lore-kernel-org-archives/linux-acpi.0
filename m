@@ -1,56 +1,60 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH] report acpi video hot key event through input
-	device
-Date: Wed, 08 Aug 2007 14:37:14 +0800
-Message-ID: <1186555034.19883.19.camel@rzhang-asus.sh.intel.com>
-References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
-	 <20070730005050.GB27398@srcf.ucam.org>
-	 <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] sonypi: Fix initialization warning
+Date: Wed, 08 Aug 2007 09:20:07 +0200
+Message-ID: <1186557607.8780.85.camel@queen.suse.de>
+References: <46B61F70.90005@student.ltu.se>
+	 <1186343443.3858.46.camel@fanta4.site> <46B62CFE.2010404@student.ltu.se>
+	 <200708071507.33141.lenb@kernel.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15850 "EHLO mga01.intel.com"
+Received: from ns1.suse.de ([195.135.220.2]:57125 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753955AbXHHGg0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Aug 2007 02:36:26 -0400
-In-Reply-To: <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com>
+	id S932766AbXHHHUL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Aug 2007 03:20:11 -0400
+In-Reply-To: <200708071507.33141.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Richard Knutsson <ricknu-0@student.ltu.se>, Ben Collins <bcollins@ubuntu.com>, linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, linux-kernel@vger.kernel.org
 
-On Mon, 2007-07-30 at 12:47 +0100, Richard Hughes wrote:
-> On 30/07/07, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > On Sun, Jul 29, 2007 at 12:40:16PM -0400, Luming Yu wrote:
-> > >       switch (event) {
-> > >       case ACPI_VIDEO_NOTIFY_SWITCH:  /* User requested a switch,
-> > >                                        * most likely via hotkey. */
-> > >               acpi_bus_generate_event(device, event, 0);
-> > > +             keycode = KEY_UNKNOWN;
-> >
-> > KEY_SWITCHVIDEOMODE ?
+On Tue, 2007-08-07 at 15:07 -0400, Len Brown wrote:
+> On Sunday 05 August 2007 16:03, Richard Knutsson wrote:
+> > Thomas Renninger wrote:
+> > > On Sun, 2007-08-05 at 21:05 +0200, Richard Knutsson wrote:
+> > >   
+> > >> Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+> > >> ---
+> > >> Got this from the compiler (gcc (GCC) 4.1.2 20070626 (Red Hat 4.1.2-13)):
+> > >> drivers/char/sonypi.c:1153: warning: initialization from incompatible pointer type
+> > >>
+> > >>
+> > >> diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+> > >> index 73037a4..2dcd519 100644
+> > >> --- a/drivers/char/sonypi.c
+> > >> +++ b/drivers/char/sonypi.c
+> > >> @@ -1147,10 +1147,15 @@ static int sonypi_acpi_remove(struct acpi_device *device, int type)
+> > >>  	return 0;
+> > >>  }
+> > >>  
+> > >> +static const struct acpi_device_id sonypi_acpi_driver_ids[] = {
+> > >> +        {ACPI_PROCESSOR_HID, 0},
+> > >>     
+> > > This is wrong. You need to take the HID the driver should match for, in
+> > > this case: {"SNY6001", 0 },
+> > >   
 > 
-> Yes, please use this. This is what other ACPI drivers are using.
+> like this?
 > 
-> > What's wrong with the existing KEY_BRIGHTNESSDOWN and KEY_BRIGHTNESSUP?
+> http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=f7b88ccb63188e775fe02e746c39ed177741cfc7;hp=11604ecf6fb9c2ab0152fbddb7ea2724438ef76e
 > 
-> Agree, this matches other drivers like thinkpad_acpi and sony-laptop.
-> 
-> > > +#define KEY_BRIGHTNESS_ZERO  0x1fd
-> > > +#define KEY_BRIGHTNESS_OFF   0x1fe
-> >
-> > You almost certainly want to go via linux-input if you're adding new
-> > keycodes.
-> 
-> Yup - do we have to distinguish between zero and off? Or is off
-> "switch panel backlight off" and zero is "switch to lowest brightness
-> level"?
-> 
-Hmm, I think they are slightly different.
-IMO, "zero" equals _BCM(0), it means to turn off the backlight, but we
-may still see the screen if there is a ambient light.
-"off" means turn off the output device, i.e. set to D1/D2/D3 state. 
+> http://marc.info/?l=linux-acpi&m=118618043526395&w=2
+
+Yes.
 
 Thanks,
-Rui
+
+    Thomas
+
