@@ -1,42 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Wed, 8 Aug 2007 00:30:51 +0200
-Message-ID: <200708080030.52481.rjw@sisk.pl>
-References: <fa.bsWpbo79BZgHoaIGhEMfTEBxs54@ifi.uio.no> <200708072241.24091.rjw@sisk.pl> <8db1092f0708071428lde63dc7o2b422ed81797a16e@mail.gmail.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: ACPI on Averatec 2370
+Date: Wed, 8 Aug 2007 02:06:31 +0200
+Message-ID: <20070808000631.GB7353@one.firstfloor.org>
+References: <Pine.LNX.4.64.0707301048460.5693@lancer.cnet.absolutedigital.net> <Pine.LNX.4.64.0708021335060.28012@lancer.cnet.absolutedigital.net> <46B22BDA.8090604@redhat.com> <Pine.LNX.4.64.0708021512530.28012@lancer.cnet.absolutedigital.net> <46B23E08.4070106@redhat.com> <Pine.LNX.4.64.0708021627590.28012@lancer.cnet.absolutedigital.net> <alpine.LFD.0.999.0708021353320.8184@woody.linux-foundation.org> <Pine.LNX.4.64.0708021723160.28012@lancer.cnet.absolutedigital.net> <alpine.LFD.0.999.0708031447420.8184@woody.linux-foundation.org> <Pine.LNX.4.64.0708071803570.28199@lancer.cnet.absolutedigital.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <8db1092f0708071428lde63dc7o2b422ed81797a16e@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from one.firstfloor.org ([213.235.205.2]:48851 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756708AbXHHAGc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2007 20:06:32 -0400
 Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Michael Sedkowski <sedmich@gmail.com>, trenn@suse.de, Tejun Heo <htejun@gmail.com>, Robert Hancock <hancockr@shaw.ca>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0708071803570.28199@lancer.cnet.absolutedigital.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Cal Peake <cp@absolutedigital.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Chuck Ebbert <cebbert@redhat.com>, Gabriel C <nix.or.die@googlemail.com>, Frank Hale <frankhale@gmail.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel ACPI Mailing List <linux-acpi@vger.kernel.org>, len.brown@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Andi Kleen <andi@firstfloor.org>
 
-On Tuesday, 7 August 2007 23:28, Maciej Rutecki wrote:
-> > > Well, on my box (nx6325) with the appended (experimental) patch applied
-> > > on top of 2.6.23-rc1 with the patchset from
-> >
-> > s/2.6.23-rc1/2.6.23-rc2/
-> >
+On Tue, Aug 07, 2007 at 06:15:37PM -0400, Cal Peake wrote:
+> On Fri, 3 Aug 2007, Linus Torvalds wrote:
 > 
-> HP nx 6310, _old_ shutdown 2.6.23-rc2+above patches:
+> > > MSR_K8_ENABLE_C1E lo == 0x04c14015
+> > > MSR_K8_ENABLE_C1E hi == 0x00000000
+> > > lo & ENABLE_C1E_MASK == 0
+> > 
+> > And yeah, that claims that C1E is not on, but:
+> > 
+> > > amd_apic_timer_broken: forcing return value of 1
 > 
-> 1. Before:
-> rutek:/home/maciek# /usr/sbin/smartctl --all -d ata /dev/sda | grep
-> Power-Off_Retract_Count
-> 192 Power-Off_Retract_Count 0x0032   100   100   000    Old_age
-> Always       -       61
+> So it seems my initial debugging report was, err, incomplete. I failed to 
+> notice that the amd_apic_timer_broken function was getting called twice, 
+> once for each core.
 > 
-> 2. Try suspend to disk, double spin down doesn't exist
+> The second call shows this:
 > 
-> 3. Normal shutdown, double spin down exists, BUT NOTE: I have still
-> old shutdown utility from Debian package.
+>   MSR_K8_ENABLE_C1E == 0x14c14015
 
-I should have said explicitly that my patch only affects hibernation (it
-doesn't touch the normal shutdown code path).
+Ah interesting. Ok finally that all starts making sense.
 
-Greetings,
-Rafael
+Not sure why the MSR varies between cores though.
+
+> which causes our ENABLE_C1E_MASK check to be true and thus properly 
+> return 1 from the function. So when we call the above function from 
+> init_amd we prolly need to do a
+> 
+>   set_bit(X86_FEATURE_LAPIC_TIMER_BROKEN, c->x86_capability);
+> 
+> for each core if any of them happen to return true upon checking for a 
+> broken timer.
+
+It's better to just make it a global instead.
+
+-Andi
