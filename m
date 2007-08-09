@@ -1,96 +1,111 @@
-From: <kernellist@neutrinus.com>
-Subject: toshiba_acpi bluetooth patch
-Date: Thu, 9 Aug 2007 18:13:04 +0200
-Message-ID: <f3274fedc08ac3490fb98b899a0996e4@localhost>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 3/6] ACPI: thermal: create "thermal.psv=" bootparam
+Date: Thu, 9 Aug 2007 13:22:03 -0400
+Message-ID: <200708091322.03640.lenb@kernel.org>
+References: <11866391363162-git-send-email-len.brown@intel.com> <11866391381018-git-send-email-len.brown@intel.com> <11866391391260-git-send-email-len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="=_95b2a0700a09c62288834b6d968de590"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from neutrinus.com ([85.10.192.131]:1970 "EHLO neutrinus.com"
+Received: from hera.kernel.org ([140.211.167.34]:39595 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935859AbXHIRHO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2007 13:07:14 -0400
-Received: from neutrinus.com (localhost [127.0.0.1])
-	by neutrinus.com (Postfix) with ESMTP id 14225303FE82
-	for <linux-acpi@vger.kernel.org>; Thu,  9 Aug 2007 18:13:05 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	(Authenticated sender: kernellist@neutrinus.com)
-	by neutrinus.com (Postfix) with ESMTP id BF575303FE81
-	for <linux-acpi@vger.kernel.org>; Thu,  9 Aug 2007 18:13:04 +0200 (CEST)
+	id S934322AbXHIRWL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2007 13:22:11 -0400
+Received: from d975xbx2 (WPIS-64-140-212-33.worldpath.net [64.140.212.33])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id l79HM4P6023205
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Thu, 9 Aug 2007 17:22:08 GMT
+In-Reply-To: <11866391391260-git-send-email-len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
---=_95b2a0700a09c62288834b6d968de590
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Subject: ACPI: thermal: create "thermal.psv=" to override passive trip points
 
-Hi,
-Some Toshiba Portege laptops needs bluetooth to be enabled, before it can be used. Since some time there are some patches to do it. (see: http://glozer.net/dynabook/dynabook.html)
+From: Len Brown <len.brown@intel.com>
 
-I made some cleanings and make it work with recent kernels. See attatchment - any comments are welcome!
+"thermal.psv=-1" disables passive trip points
+for all ACPI thermal zones.
 
-regards,
-Marek Hobler, 'neutrinus'
---=_95b2a0700a09c62288834b6d968de590
-Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name="toshiba_acpi.patch"
-Content-Disposition: attachment; filename="toshiba_acpi.patch"
+"thermal.psv=C", where 'C' is degrees Celsius,
+overrides all existing passive trip points
+for all ACPI thermal zones.
 
-MzZjMzUKPCAjZGVmaW5lIFRPU0hJQkFfQUNQSV9WRVJTSU9OCSIwLjE4IgotLS0KPiAjZGVmaW5l
-IFRPU0hJQkFfQUNQSV9WRVJTSU9OCSIwLjE4LXA0Igo5MmE5Miw5Ngo+ICNkZWZpbmUgSENJX1dJ
-UkVMRVNTCQkJMHgwMDU2Cj4gI2RlZmluZSBIQ0lfQlRfUE9XRVIJCQkweDAwODAKPiAjZGVmaW5l
-IEhDSV9CVF9BVFRBQ0gJCQkweDAwNDAKPiAjZGVmaW5lIEhDSV9CVF9PUklOT0NPCQkweDAyMDAK
-PiAKMjAzYTIwOCwyMTgKPiAKPiBzdGF0aWMgYWNwaV9zdGF0dXMgaGNpX3dyaXRlMih1MzIgcmVn
-LCB1MzIgaW4xLCB1MzIgaW4yLCB1MzIqIHJlc3VsdCkKPiB7Cj4gCXUzMiBpbltIQ0lfV09SRFNd
-ID0geyBIQ0lfU0VULCByZWcsIGluMSwgaW4yLCAwLCAwIH07Cj4gCXUzMiBvdXRbSENJX1dPUkRT
-XTsKPiAJYWNwaV9zdGF0dXMgc3RhdHVzID0gaGNpX3Jhdyhpbiwgb3V0KTsKPiAJKnJlc3VsdCA9
-IChzdGF0dXMgPT0gQUVfT0spID8gb3V0WzBdIDogSENJX0ZBSUxVUkU7Cj4gCXJldHVybiBzdGF0
-dXM7Cj4gfQo+IAo+IAoyMTNhMjI5LDI0MQo+ICBzdGF0aWMgYWNwaV9zdGF0dXMgaGNpX3JlYWQy
-KHUzMiByZWcsIHUzMiogb3V0MSwgdTMyKiBvdXQyLCB1MzIqIHJlc3VsdCkKPiAgewo+ICAgICAg
-dTMyIGluW0hDSV9XT1JEU10gPSB7IEhDSV9HRVQsIHJlZywgKm91dDEsICpvdXQyLCAwLCAwIH07
-Cj4gICAgICB1MzIgb3V0W0hDSV9XT1JEU107Cj4gICAgICBhY3BpX3N0YXR1cyBzdGF0dXMgPSBo
-Y2lfcmF3KGluLCBvdXQpOwo+ICAgICAgKm91dDEgPSBvdXRbMl07Cj4gICAgICAqb3V0MiA9IG91
-dFszXTsKPiAgICAgICpyZXN1bHQgPSAoc3RhdHVzID09IEFFX09LKSA/IG91dFswXSA6IEhDSV9G
-QUlMVVJFOwo+ICAgICAgcmV0dXJuIHN0YXR1czsKPiAgfQo+IAo+IAo+IAo0ODRhNTEzLDU4MQo+
-IHN0YXRpYyBjaGFyKiByZWFkX3drKGNoYXIqIHApCj4gewo+ICAgICB1MzIgaGNpX3Jlc3VsdDsK
-PiAgICAgdTMyIHZhbHVlID0gMDsKPiAgICAgdTMyIHZhbHVlMiA9IDA7Cj4gCWhjaV9yZWFkMihI
-Q0lfV0lSRUxFU1MsICZ2YWx1ZSwgJnZhbHVlMiwgJmhjaV9yZXN1bHQpOwo+ICAgICBpZiAoaGNp
-X3Jlc3VsdCA9PSBIQ0lfU1VDQ0VTUykgewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsIndpcmVs
-ZXNzIGtleTogICAgICAgICAgICAgICAgICAlZFxuIiwgdmFsdWUgKTsKPiAgICAgfSBlbHNlIHsK
-PiAgICAgICAgIHAgKz0gc3ByaW50ZihwLCAiRVJST1JcbiIpOwo+ICAgICB9Cj4gCj4gICAgIHJl
-dHVybiBwOwo+IH0KPiAKPiBzdGF0aWMgY2hhciogcmVhZF9idChjaGFyKiBwKQo+IHsKPiAgICAg
-dTMyIGhjaV9yZXN1bHQ7Cj4gCXUzMiB2YWx1ZSA9IDA7Cj4gICAgIHUzMiB2YWx1ZTIgPSAwOwo+
-IAo+IAloY2lfcmVhZDIoSENJX1dJUkVMRVNTLCAmdmFsdWUsICZ2YWx1ZTIsICZoY2lfcmVzdWx0
-KTsKPiAgICAgaWYgKGhjaV9yZXN1bHQgPT0gSENJX1NVQ0NFU1MpIHsKPiAgICAgICAgIHAgKz0g
-c3ByaW50ZihwLCJwcmVzZW50OiAgICAgICAgICAgICAgICAgICVkXG4iLCAodmFsdWUgJiAweDBm
-KT8xOjApOwo+ICAgICB9IGVsc2Ugewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsICJFUlJPUlxu
-Iik7Cj4gICAgIH0KPiAgICAgdmFsdWUgPSAwOwo+ICAgICB2YWx1ZTIgPSAweDAwMDE7Cj4gCWhj
-aV9yZWFkMihIQ0lfV0lSRUxFU1MsICZ2YWx1ZSwgJnZhbHVlMiwgJmhjaV9yZXN1bHQpOwo+ICAg
-ICBpZiAoaGNpX3Jlc3VsdCA9PSBIQ0lfU1VDQ0VTUykgewo+ICAgICAgICAgcCArPSBzcHJpbnRm
-KHAsInBvd2VyOiAgICAgICAgICAgICAgICAgICAgJWRcbiIsICh2YWx1ZSAmIDEyOCkgPj4gNyk7
-Cj4gICAgICAgICBwICs9IHNwcmludGYocCwiYXR0YWNoOiAgICAgICAgICAgICAgICAgICAlZFxu
-IiwgKHZhbHVlICYgIDY0KSA+PiA2KTsKPiAgICAgICAgIHAgKz0gc3ByaW50ZihwLCJ3aXJlbGVz
-czogICAgICAgICAgICAgICAgICVkXG4iLCAodmFsdWUgJiA1MTIpID4+IDkpOwo+ICAgICB9IGVs
-c2Ugewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsICJFUlJPUlxuIik7Cj4gICAgIH0KPiAKPiAg
-ICAgcmV0dXJuIHA7Cj4gfQo+IAo+IHN0YXRpYyB1bnNpZ25lZCBsb25nIHdyaXRlX2J0KGNvbnN0
-IGNoYXIqIGJ1ZmZlciwgdW5zaWduZWQgbG9uZyBjb3VudCkKPiB7Cj4gICAgIGludCB2YWx1ZTsK
-PiAgICAgdTMyIGhjaV9yZXN1bHQ7Cj4gCj4gICAgIGlmIChzc2NhbmYoYnVmZmVyLCAiIHBvd2Vy
-IDogJWkiLCAmdmFsdWUpID09IDEgJiYKPiAgICAgICAgICAgICAgICB2YWx1ZSA+PSAwICYmIHZh
-bHVlIDw9IDEpIHsKPiAJCWhjaV93cml0ZTIoSENJX1dJUkVMRVNTLCB2YWx1ZSwgSENJX0JUX1BP
-V0VSLCAmaGNpX3Jlc3VsdCk7Cj4gICAgICAgICBpZiAoaGNpX3Jlc3VsdCAhPSBIQ0lfU1VDQ0VT
-UykKPiAgICAgICAgICAgICByZXR1cm4gLUVGQVVMVDsKPiAgICAgfSBlbHNlIGlmIChzc2NhbmYo
-YnVmZmVyLCAiIGF0dGFjaCA6ICVpIiwgJnZhbHVlKSA9PSAxICYmCj4gICAgICAgICAgICAgICAg
-ICAgICB2YWx1ZSA+PSAwICYmIHZhbHVlIDw9IDEpIHsKPiAJCWhjaV93cml0ZTIoSENJX1dJUkVM
-RVNTLCB2YWx1ZSwgSENJX0JUX0FUVEFDSCwgJmhjaV9yZXN1bHQpOwo+ICAgICAgICAgaWYgKGhj
-aV9yZXN1bHQgIT0gSENJX1NVQ0NFU1MpCj4gICAgICAgICAgICAgcmV0dXJuIC1FRkFVTFQ7Cj4g
-ICAgIH0gZWxzZSBpZiAoc3NjYW5mKGJ1ZmZlciwgIiBvcmlub2NvIDogJWkiLCAmdmFsdWUpID09
-IDEgJiYKPiAgICAgICAgICAgICAgICAgICAgIHZhbHVlID49IDAgJiYgdmFsdWUgPD0gMSkgewo+
-IAkJaGNpX3dyaXRlMihIQ0lfV0lSRUxFU1MsIHZhbHVlLCBIQ0lfQlRfT1JJTk9DTywgJmhjaV9y
-ZXN1bHQpOwo+ICAgICAgICAgaWYgKGhjaV9yZXN1bHQgIT0gSENJX1NVQ0NFU1MpCj4gICAgICAg
-ICAgICAgcmV0dXJuIC1FRkFVTFQ7Cj4gICAgIH0gZWxzZSB7Cj4gICAgICAgICByZXR1cm4gLUVJ
-TlZBTDsKPiAgICAgfQo+IAo+ICAgICByZXR1cm4gY291bnQ7Cj4gfQo+IAo+IAo1MDNhNjAxLDYw
-Mgo+IAl7IndpcmVsZXNzX2tleSIsIHJlYWRfd2ssIE5VTEwgfSwKPiAJeyJibHVldG9vdGgiLCBy
-ZWFkX2J0LCB3cml0ZV9idCB9LAo=
---=_95b2a0700a09c62288834b6d968de590--
+thermal.psv is checked at module load time,
+and in response to trip-point change events.
 
+Note that if the system does not deliver thermal zone
+temperature change events near the new trip-point,
+then it will not be noticed.  To force your custom
+trip point to be noticed, you may need to enable polling:
+eg. thermal.tzp=3000 invokes polling every 5 minutes.
+
+Note that once passive thermal throttling is invoked,
+it has its own internal Thermal Sampling Period (_TSP),
+that is unrelated to _TZP.
+
+WARNING: disabling or raising a thermal trip point
+may result in increased running temperature and
+shorter hardware lifetime on some systems.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+
+This updates the previous version of this patch
+so that -1 disables _PSV (instead of 0),
+and the user's Celsius value is properly converted
+to Kelvin*10 for internal use.
+
+Index: linus/Documentation/kernel-parameters.txt
+===================================================================
+--- linus.orig/Documentation/kernel-parameters.txt
++++ linus/Documentation/kernel-parameters.txt
+@@ -1823,6 +1823,10 @@ and is between 256 and 4096 characters. 
+ 	thermal.off=	[HW,ACPI]
+ 			1: disable ACPI thermal control
+ 
++	thermal.psv=	[HW,ACPI]
++			-1: disable all passive trip points
++			<degrees C>: override all passive trip points to this value
++
+ 	thermal.tzp=	[HW,ACPI]
+ 			Specify global default ACPI thermal zone polling rate
+ 			<deci-seconds>: poll all this frequency
+Index: linus/drivers/acpi/thermal.c
+===================================================================
+--- linus.orig/drivers/acpi/thermal.c
++++ linus/drivers/acpi/thermal.c
+@@ -82,6 +82,10 @@ static int off;
+ module_param(off, int, 0);
+ MODULE_PARM_DESC(off, "Set to disable ACPI thermal support.\n");
+ 
++static int psv;
++module_param(psv, int, 0644);
++MODULE_PARM_DESC(psv, "Disable or override all passive trip points.\n");
++
+ static int acpi_thermal_add(struct acpi_device *device);
+ static int acpi_thermal_remove(struct acpi_device *device, int type);
+ static int acpi_thermal_resume(struct acpi_device *device);
+@@ -343,9 +347,16 @@ static int acpi_thermal_get_trip_points(
+ 
+ 	/* Passive: Processors (optional) */
+ 
+-	status =
+-	    acpi_evaluate_integer(tz->device->handle, "_PSV", NULL,
+-				  &tz->trips.passive.temperature);
++	if (psv == -1) {
++		status = AE_SUPPORT;
++	} else if (psv > 0) {
++		tz->trips.passive.temperature = CELSIUS_TO_KELVIN(psv);
++		status = AE_OK;
++	} else {
++		status = acpi_evaluate_integer(tz->device->handle,
++			"_PSV", NULL, &tz->trips.passive.temperature);
++	}
++
+ 	if (ACPI_FAILURE(status)) {
+ 		tz->trips.passive.flags.valid = 0;
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No passive threshold\n"));
