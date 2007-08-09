@@ -1,12 +1,14 @@
 From: Len Brown <len.brown@intel.com>
 Subject: ACPI Thermal workaround hooks
-Date: Thu,  9 Aug 2007 01:53:56 -0400
-Message-ID: <11866388361593-git-send-email-len.brown@intel.com>
+Date: Thu,  9 Aug 2007 01:58:50 -0400
+Message-ID: <11866391363162-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:21818 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:23487 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933503AbXHIFx6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2007 01:53:58 -0400
+	id S1754190AbXHIF65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2007 01:58:57 -0400
+In-Reply-To: 11866388361593-git-send-email-len.brown@intel.com
+References: 11866388361593-git-send-email-len.brown@intel.com
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
