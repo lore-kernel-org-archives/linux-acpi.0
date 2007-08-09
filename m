@@ -1,64 +1,67 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: ACPI Thermal workaround hooks
-Date: Thu, 09 Aug 2007 19:33:45 +0200
-Message-ID: <1186680825.8780.268.camel@queen.suse.de>
-References: 11866388361593-git-send-email-len.brown@intel.com  <11866391363162-git-send-email-len.brown@intel.com>
-Reply-To: trenn@suse.de
+From: Nico Golde <nion@gmx.net>
+Subject: Re: inconsistency in /proc/acpi directory structure?
+Date: Thu, 9 Aug 2007 19:45:28 +0200
+Message-ID: <20070809174528.GA7282@ngolde.de>
+References: <20070809123943.GD3939@ngolde.de> <200708091202.54943.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:56598 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758459AbXHIRds (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2007 13:33:48 -0400
-In-Reply-To: <11866391363162-git-send-email-len.brown@intel.com>
+Received: from cg-p07-fb.rzone.de ([81.169.146.215]:56377 "EHLO
+	cg-p07-fb.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253AbXHIRqm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Aug 2007 13:46:42 -0400
+Received: from mo-p07-ob.rzone.de (fruni-mo-p07-ob.mail [192.168.63.183])
+	by gibbsson-fb-03.store (RZmta 10.2) with ESMTP id i068c2j79GQiFs
+	for <linux-acpi@vger.kernel.org>; Thu, 9 Aug 2007 19:46:40 +0200 (MEST)
+Content-Disposition: inline
+In-Reply-To: <200708091202.54943.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Thu, 2007-08-09 at 01:58 -0400, Len Brown wrote:
-> In response to the outcry after I deleted the trip-point
-> overrides, here is how I think we can work-around
-> thermal issues in a supportable way.
-> 
-> In particular, this series should address the issues
-> on Knut's AOpen Award system here:
-> http://bugzilla.kernel.org/show_bug.cgi?id=8842
-> and give us the hooks to address analogous issues in
-> other systems.
-> 
-> Please let me know what you think.
 
-Thanks.
-This is very much appreciated.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I like the idea of boot parameters, this avoids the seduction to build
-tools on it and mis-use this as an official interface.
+Hi,
+* Len Brown <lenb@kernel.org> [2007-08-09 19:25]:
+> I have to second what Henrique wrote.
+> Please avoid /proc/acpi/* whenever you can can.
+> We are trying to get rid of it completely,
+> but that is only partly done.
 
-But where I like to see a sysfs interface for, is the passive trip point
-and allow:
-  a) lowering passive trip points
-  b) let user define his own passive trip point if none
-     is provided by BIOS
+I know about that and it's a typical kernel hacker argument,=20
+but don't forget people want to have working software in the=20
+meantime of your switch ;)
 
-I don't remember whether every trip point gets it's own sysfs file. If
-yes, adding a passive_user file, default -1 and the normal passive file
-where the current active passive trip point value is shown, is how I
-think this could be done.
+> I really resist changes to /proc/acpi/* because
+> I consider it legacy and would rather the effort
+> be focused on the new sysfs interfaces.
 
-I know you hate it, because it's not explicitly stated in ACPI spec,
-works around it a bit and so on.
-But this one is:
-  1) safe (in respect to hardware and code)
-  2) a very mighty feature
+I will switch step by step. From what I can see not really=20
+much things apart from the acpi version already switched to=20
+sysfs. Maybe I missed it. I will answer in detail on=20
+Henriques mail hopefully tomorrow.
+Kind regards and thanks for your quick replies
+Nico
+--=20
+Nico Golde - http://ngolde.de - nion@jabber.ccc.de - GPG: 0x73647CFF
+For security reasons, all text in this mail is double-rot13 encrypted.
 
-Please let us implement the spec a little loose at this point, M$ is
-also doing it at other parts. Let's get some fruits not always the
-stones...
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Thanks,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-   Thomas
+iD8DBQFGu1K4HYflSXNkfP8RAlKdAJ9rIi3sWUa7S+Tsudjm4AaWQrowfACfZA0Z
+ew/Ah9Dcsv6Boz3YlblGuko=
+=nG87
+-----END PGP SIGNATURE-----
 
+--C7zPtVaVf+AK4Oqc--
