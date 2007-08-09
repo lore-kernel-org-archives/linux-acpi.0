@@ -1,74 +1,96 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Thu, 09 Aug 2007 17:56:15 +0200
-Message-ID: <1186674976.8780.238.camel@queen.suse.de>
-References: <1186424492.4355.1.camel@nx6310> <46B76BBC.9010107@gmail.com>
-	 <20070806234509.GC27640@khazad-dum.debian.net> <46B816FF.7060303@gmail.com>
-	 <20070807125104.GC30661@khazad-dum.debian.net> <46B86F21.4030805@gmail.com>
-	 <20070807131651.GE30661@khazad-dum.debian.net> <46B87457.4020704@gmail.com>
-	 <1186494328.8780.66.camel@queen.suse.de> <46B87B4A.1020305@gmail.com>
-	 <20070809151610.GD3926@ucw.cz>
-Reply-To: trenn@suse.de
+From: <kernellist@neutrinus.com>
+Subject: toshiba_acpi bluetooth patch
+Date: Thu, 9 Aug 2007 18:13:04 +0200
+Message-ID: <f3274fedc08ac3490fb98b899a0996e4@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="=_95b2a0700a09c62288834b6d968de590"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55213 "EHLO mx2.suse.de"
+Received: from neutrinus.com ([85.10.192.131]:1970 "EHLO neutrinus.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752110AbXHIP4T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2007 11:56:19 -0400
-In-Reply-To: <20070809151610.GD3926@ucw.cz>
+	id S935859AbXHIRHO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2007 13:07:14 -0400
+Received: from neutrinus.com (localhost [127.0.0.1])
+	by neutrinus.com (Postfix) with ESMTP id 14225303FE82
+	for <linux-acpi@vger.kernel.org>; Thu,  9 Aug 2007 18:13:05 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	(Authenticated sender: kernellist@neutrinus.com)
+	by neutrinus.com (Postfix) with ESMTP id BF575303FE81
+	for <linux-acpi@vger.kernel.org>; Thu,  9 Aug 2007 18:13:04 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tejun Heo <htejun@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Michael Sedkowski <sedmich@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, firmwarekit-discuss <firmwarekit-discuss@bughost.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, 2007-08-09 at 15:16 +0000, Pavel Machek wrote:
-> Hi!
-> 
-> > > firmwarekit-discuss <firmwarekit-discuss@bughost.org> (added to CC list)
-> > > see: http://linuxfirmwarekit.org/
-> > > 
-> > > But if I understand this problem right, this won't be easy.
-> > > The ACPI tables are just parsed with system ("iasl ...") and syntactical
-> > > errors/warnings are printed out.
-> > > I also thought about a test, interpreting the DSDT and read out values
-> > > of cpufreq tables and sanity check them. AFAIK the linuxfirmwarekit is
-> > > not designed for that atm. You need to compile in most parts of the
-> > > acpica code and parse and interpret DSDT/SSDT code yourself in the
-> > > firmwarekit core or inside a plugin, then do a walk_namespace call or
-> > > whatever to find the functions/parts you like to examine. This is a lot
-> > > work and needs a proper design (providing an interface to plugins to let
-> > > them easily check specific AML/ASL code).
-> > 
-> > Furthermore, we don't really know what we're looking for.  How can you
-> > tell a given write to an ioport is issuing STANDBYNOW to an ATA disk or
-> > trying to power the machine off?  Adding to the fun, many modern ATA
-> > controller have more than one way to issue a command.  Maybe we can
-> > match accesses inside regions specified by PCI BARs....  :-(
-> 
-> Hmmm... perhaps we should do it the other way. ACPI is allowed to
-> touch the embedded controller, what else? Maybe we should warn as soon
-> as API touches non-EC I/O port?
+--=_95b2a0700a09c62288834b6d968de590
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-This is not working...
-ACPI can and does access all kind of other I/O ports and other
-resources.
-Hmm, are the disk accesses done by ACPI via OperationRegion/Field
-declared variables?
-I try to get a check for those clashing with native drivers (hopefully
-this approach is successful for 2.6.24, can't say for sure yet), I
-wonder whether this one would give a warning like "Libata driver is
-using the same SystemIO/SystemMem resources than ACPI OperationRegion
-declaration XY".
-This would not solve the problem, but at least show the need of such a
-test. Such ACPI vs native driver interference problems are very hard
-nuts (in identifying and solving).
+Hi,
+Some Toshiba Portege laptops needs bluetooth to be enabled, before it can be used. Since some time there are some patches to do it. (see: http://glozer.net/dynabook/dynabook.html)
 
-Can someone post an ASL code snippet how ACPI actually access the disk
-and in which parts/functions, pls.
+I made some cleanings and make it work with recent kernels. See attatchment - any comments are welcome!
 
-Thanks,
+regards,
+Marek Hobler, 'neutrinus'
+--=_95b2a0700a09c62288834b6d968de590
+Content-Transfer-Encoding: base64
+Content-Type: text/x-patch; name="toshiba_acpi.patch"
+Content-Disposition: attachment; filename="toshiba_acpi.patch"
 
-   Thomas
+MzZjMzUKPCAjZGVmaW5lIFRPU0hJQkFfQUNQSV9WRVJTSU9OCSIwLjE4IgotLS0KPiAjZGVmaW5l
+IFRPU0hJQkFfQUNQSV9WRVJTSU9OCSIwLjE4LXA0Igo5MmE5Miw5Ngo+ICNkZWZpbmUgSENJX1dJ
+UkVMRVNTCQkJMHgwMDU2Cj4gI2RlZmluZSBIQ0lfQlRfUE9XRVIJCQkweDAwODAKPiAjZGVmaW5l
+IEhDSV9CVF9BVFRBQ0gJCQkweDAwNDAKPiAjZGVmaW5lIEhDSV9CVF9PUklOT0NPCQkweDAyMDAK
+PiAKMjAzYTIwOCwyMTgKPiAKPiBzdGF0aWMgYWNwaV9zdGF0dXMgaGNpX3dyaXRlMih1MzIgcmVn
+LCB1MzIgaW4xLCB1MzIgaW4yLCB1MzIqIHJlc3VsdCkKPiB7Cj4gCXUzMiBpbltIQ0lfV09SRFNd
+ID0geyBIQ0lfU0VULCByZWcsIGluMSwgaW4yLCAwLCAwIH07Cj4gCXUzMiBvdXRbSENJX1dPUkRT
+XTsKPiAJYWNwaV9zdGF0dXMgc3RhdHVzID0gaGNpX3Jhdyhpbiwgb3V0KTsKPiAJKnJlc3VsdCA9
+IChzdGF0dXMgPT0gQUVfT0spID8gb3V0WzBdIDogSENJX0ZBSUxVUkU7Cj4gCXJldHVybiBzdGF0
+dXM7Cj4gfQo+IAo+IAoyMTNhMjI5LDI0MQo+ICBzdGF0aWMgYWNwaV9zdGF0dXMgaGNpX3JlYWQy
+KHUzMiByZWcsIHUzMiogb3V0MSwgdTMyKiBvdXQyLCB1MzIqIHJlc3VsdCkKPiAgewo+ICAgICAg
+dTMyIGluW0hDSV9XT1JEU10gPSB7IEhDSV9HRVQsIHJlZywgKm91dDEsICpvdXQyLCAwLCAwIH07
+Cj4gICAgICB1MzIgb3V0W0hDSV9XT1JEU107Cj4gICAgICBhY3BpX3N0YXR1cyBzdGF0dXMgPSBo
+Y2lfcmF3KGluLCBvdXQpOwo+ICAgICAgKm91dDEgPSBvdXRbMl07Cj4gICAgICAqb3V0MiA9IG91
+dFszXTsKPiAgICAgICpyZXN1bHQgPSAoc3RhdHVzID09IEFFX09LKSA/IG91dFswXSA6IEhDSV9G
+QUlMVVJFOwo+ICAgICAgcmV0dXJuIHN0YXR1czsKPiAgfQo+IAo+IAo+IAo0ODRhNTEzLDU4MQo+
+IHN0YXRpYyBjaGFyKiByZWFkX3drKGNoYXIqIHApCj4gewo+ICAgICB1MzIgaGNpX3Jlc3VsdDsK
+PiAgICAgdTMyIHZhbHVlID0gMDsKPiAgICAgdTMyIHZhbHVlMiA9IDA7Cj4gCWhjaV9yZWFkMihI
+Q0lfV0lSRUxFU1MsICZ2YWx1ZSwgJnZhbHVlMiwgJmhjaV9yZXN1bHQpOwo+ICAgICBpZiAoaGNp
+X3Jlc3VsdCA9PSBIQ0lfU1VDQ0VTUykgewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsIndpcmVs
+ZXNzIGtleTogICAgICAgICAgICAgICAgICAlZFxuIiwgdmFsdWUgKTsKPiAgICAgfSBlbHNlIHsK
+PiAgICAgICAgIHAgKz0gc3ByaW50ZihwLCAiRVJST1JcbiIpOwo+ICAgICB9Cj4gCj4gICAgIHJl
+dHVybiBwOwo+IH0KPiAKPiBzdGF0aWMgY2hhciogcmVhZF9idChjaGFyKiBwKQo+IHsKPiAgICAg
+dTMyIGhjaV9yZXN1bHQ7Cj4gCXUzMiB2YWx1ZSA9IDA7Cj4gICAgIHUzMiB2YWx1ZTIgPSAwOwo+
+IAo+IAloY2lfcmVhZDIoSENJX1dJUkVMRVNTLCAmdmFsdWUsICZ2YWx1ZTIsICZoY2lfcmVzdWx0
+KTsKPiAgICAgaWYgKGhjaV9yZXN1bHQgPT0gSENJX1NVQ0NFU1MpIHsKPiAgICAgICAgIHAgKz0g
+c3ByaW50ZihwLCJwcmVzZW50OiAgICAgICAgICAgICAgICAgICVkXG4iLCAodmFsdWUgJiAweDBm
+KT8xOjApOwo+ICAgICB9IGVsc2Ugewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsICJFUlJPUlxu
+Iik7Cj4gICAgIH0KPiAgICAgdmFsdWUgPSAwOwo+ICAgICB2YWx1ZTIgPSAweDAwMDE7Cj4gCWhj
+aV9yZWFkMihIQ0lfV0lSRUxFU1MsICZ2YWx1ZSwgJnZhbHVlMiwgJmhjaV9yZXN1bHQpOwo+ICAg
+ICBpZiAoaGNpX3Jlc3VsdCA9PSBIQ0lfU1VDQ0VTUykgewo+ICAgICAgICAgcCArPSBzcHJpbnRm
+KHAsInBvd2VyOiAgICAgICAgICAgICAgICAgICAgJWRcbiIsICh2YWx1ZSAmIDEyOCkgPj4gNyk7
+Cj4gICAgICAgICBwICs9IHNwcmludGYocCwiYXR0YWNoOiAgICAgICAgICAgICAgICAgICAlZFxu
+IiwgKHZhbHVlICYgIDY0KSA+PiA2KTsKPiAgICAgICAgIHAgKz0gc3ByaW50ZihwLCJ3aXJlbGVz
+czogICAgICAgICAgICAgICAgICVkXG4iLCAodmFsdWUgJiA1MTIpID4+IDkpOwo+ICAgICB9IGVs
+c2Ugewo+ICAgICAgICAgcCArPSBzcHJpbnRmKHAsICJFUlJPUlxuIik7Cj4gICAgIH0KPiAKPiAg
+ICAgcmV0dXJuIHA7Cj4gfQo+IAo+IHN0YXRpYyB1bnNpZ25lZCBsb25nIHdyaXRlX2J0KGNvbnN0
+IGNoYXIqIGJ1ZmZlciwgdW5zaWduZWQgbG9uZyBjb3VudCkKPiB7Cj4gICAgIGludCB2YWx1ZTsK
+PiAgICAgdTMyIGhjaV9yZXN1bHQ7Cj4gCj4gICAgIGlmIChzc2NhbmYoYnVmZmVyLCAiIHBvd2Vy
+IDogJWkiLCAmdmFsdWUpID09IDEgJiYKPiAgICAgICAgICAgICAgICB2YWx1ZSA+PSAwICYmIHZh
+bHVlIDw9IDEpIHsKPiAJCWhjaV93cml0ZTIoSENJX1dJUkVMRVNTLCB2YWx1ZSwgSENJX0JUX1BP
+V0VSLCAmaGNpX3Jlc3VsdCk7Cj4gICAgICAgICBpZiAoaGNpX3Jlc3VsdCAhPSBIQ0lfU1VDQ0VT
+UykKPiAgICAgICAgICAgICByZXR1cm4gLUVGQVVMVDsKPiAgICAgfSBlbHNlIGlmIChzc2NhbmYo
+YnVmZmVyLCAiIGF0dGFjaCA6ICVpIiwgJnZhbHVlKSA9PSAxICYmCj4gICAgICAgICAgICAgICAg
+ICAgICB2YWx1ZSA+PSAwICYmIHZhbHVlIDw9IDEpIHsKPiAJCWhjaV93cml0ZTIoSENJX1dJUkVM
+RVNTLCB2YWx1ZSwgSENJX0JUX0FUVEFDSCwgJmhjaV9yZXN1bHQpOwo+ICAgICAgICAgaWYgKGhj
+aV9yZXN1bHQgIT0gSENJX1NVQ0NFU1MpCj4gICAgICAgICAgICAgcmV0dXJuIC1FRkFVTFQ7Cj4g
+ICAgIH0gZWxzZSBpZiAoc3NjYW5mKGJ1ZmZlciwgIiBvcmlub2NvIDogJWkiLCAmdmFsdWUpID09
+IDEgJiYKPiAgICAgICAgICAgICAgICAgICAgIHZhbHVlID49IDAgJiYgdmFsdWUgPD0gMSkgewo+
+IAkJaGNpX3dyaXRlMihIQ0lfV0lSRUxFU1MsIHZhbHVlLCBIQ0lfQlRfT1JJTk9DTywgJmhjaV9y
+ZXN1bHQpOwo+ICAgICAgICAgaWYgKGhjaV9yZXN1bHQgIT0gSENJX1NVQ0NFU1MpCj4gICAgICAg
+ICAgICAgcmV0dXJuIC1FRkFVTFQ7Cj4gICAgIH0gZWxzZSB7Cj4gICAgICAgICByZXR1cm4gLUVJ
+TlZBTDsKPiAgICAgfQo+IAo+ICAgICByZXR1cm4gY291bnQ7Cj4gfQo+IAo+IAo1MDNhNjAxLDYw
+Mgo+IAl7IndpcmVsZXNzX2tleSIsIHJlYWRfd2ssIE5VTEwgfSwKPiAJeyJibHVldG9vdGgiLCBy
+ZWFkX2J0LCB3cml0ZV9idCB9LAo=
+--=_95b2a0700a09c62288834b6d968de590--
 
