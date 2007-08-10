@@ -1,60 +1,43 @@
-From: akpm@linux-foundation.org
-Subject: [patch 4/6] ACPI: move timer broadcast and pmtimer access before C3 arbiter shutdown
-Date: Fri, 10 Aug 2007 13:45:17 -0700
-Message-ID: <200708102045.l7AKjHgD007830@imap1.linux-foundation.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC] [PATCH V2 1/3] ACPI video hotkey: add new input key codes
+	for ACPI video hotkey events
+Date: Sat, 11 Aug 2007 05:07:21 +0800
+Message-ID: <1186780041.6830.57.camel@rzhang-asus.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55170 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936929AbXHJUqm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Aug 2007 16:46:42 -0400
+Received: from mga01.intel.com ([192.55.52.88]:13319 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756763AbXHJVGQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Aug 2007 17:06:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, us15@os.inf.tu-dresden.de, tglx@linutronix.de
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, mjg59@srcf.ucam.org, dmitry.torokhov@gmail.com, hmh@hmh.eng.hr, hughsient@gmail.com, luming.yu@intel.com
 
-From: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+From: Yu Luming <luming.yu@intel.com>
 
-The chipset doc for IHC4 tells us:
+Add keycode for ACPI video hotkey event.
 
-1.In general, software should not attempt any non-posted accesses during
-arbiter disable except to the ICH4's power management registers.  This implies
-that interrupt handlers for any unmasked hardware interrupts and SMI/NMI
-should check ARB_DIS status before reading from ICH devices.
-
-So it's not a good idea to access ICH devices after arbiter shut down.
-
-Signed-off-by: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
+ include/linux/input.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
- drivers/acpi/processor_idle.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
-
-diff -puN drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown
-+++ a/drivers/acpi/processor_idle.c
-@@ -1009,6 +1009,12 @@ static int acpi_idle_enter_c3(struct cpu
- 		return 0;
- 	}
+Index: linux-2.6.23-rc2/include/linux/input.h
+===================================================================
+--- linux-2.6.23-rc2.orig/include/linux/input.h
++++ linux-2.6.23-rc2/include/linux/input.h
+@@ -553,6 +553,11 @@ struct input_absinfo {
+ #define KEY_BRL_DOT7		0x1f7
+ #define KEY_BRL_DOT8		0x1f8
  
-+	/*
-+	 * Must be done before busmaster disable as we might need to
-+	 * access HPET!
-+	 */
-+	acpi_state_timer_broadcast(pr, cx, 1);
++#define KEY_VIDEO_NEXT		0x1f9
++#define KEY_VIDEO_PREV		0x1fa
++#define KEY_BRIGHTNESS_ZERO	0x1fb
++#define KEY_BRIGHTNESS_OFF	0x1fc
 +
- 	/* disable bus master */
- 	if (pr->flags.bm_check) {
- 		spin_lock(&c3_lock);
-@@ -1028,7 +1034,6 @@ static int acpi_idle_enter_c3(struct cpu
- 
- 	/* Get start time (ticks) */
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--	acpi_state_timer_broadcast(pr, cx, 1);
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
-_
+ /* We avoid low common keys in module aliases so they don't get huge. */
+ #define KEY_MIN_INTERESTING	KEY_MUTE
+ #define KEY_MAX			0x1ff
