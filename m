@@ -1,52 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: inconsistency in /proc/acpi directory structure?
-Date: Thu, 9 Aug 2007 18:49:54 -0400
-Message-ID: <200708091849.54850.lenb@kernel.org>
-References: <20070809123943.GD3939@ngolde.de> <200708091202.54943.lenb@kernel.org> <20070809174528.GA7282@ngolde.de>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: 2.6.23-rc2-mm1 -- INFO: possible circular locking dependency
+	detected
+Date: Fri, 10 Aug 2007 11:47:55 +0200
+Message-ID: <1186739275.9771.10.camel@johannes.berg>
+References: <a44ae5cd0708091324w4f990d3fo364e01207d52200a@mail.gmail.com>
+	 <20070809135834.b18ac717.akpm@linux-foundation.org>
+	 <46BB996A.4020605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-4xPKSKGWfGwZ/PMAw5/B"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35729 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757368AbXHIWuA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2007 18:50:00 -0400
-In-Reply-To: <20070809174528.GA7282@ngolde.de>
-Content-Disposition: inline
+Received: from crystal.sipsolutions.net ([195.210.38.204]:50879 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417AbXHJJqD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Aug 2007 05:46:03 -0400
+In-Reply-To: <46BB996A.4020605@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nico Golde <nion@gmx.net>
-Cc: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Miles Lane <miles.lane@gmail.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Oleg Nesterov <oleg@tv-sign.ru>
 
-On Thursday 09 August 2007 13:45, Nico Golde wrote:
-> Hi,
-> * Len Brown <lenb@kernel.org> [2007-08-09 19:25]:
-> > I have to second what Henrique wrote.
-> > Please avoid /proc/acpi/* whenever you can can.
-> > We are trying to get rid of it completely,
-> > but that is only partly done.
-> 
-> I know about that and it's a typical kernel hacker argument, 
-> but don't forget people want to have working software in the 
-> meantime of your switch ;)
-> 
-> > I really resist changes to /proc/acpi/* because
-> > I consider it legacy and would rather the effort
-> > be focused on the new sysfs interfaces.
-> 
-> I will switch step by step. From what I can see not really 
-> much things apart from the acpi version already switched to 
-> sysfs. Maybe I missed it. I will answer in detail on 
-> Henriques mail hopefully tomorrow.
-> Kind regards and thanks for your quick replies
 
-Things which have switched are now under CONFIG_ACPI_PROCFS in 2.6.23.
-When more things switch in the future, they'll go there too.
+--=-4xPKSKGWfGwZ/PMAw5/B
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-If you have a specific suggestion for a bug fix to /proc/acpi/*,
-please let me know, or better yet, send a patch.
+On Fri, 2007-08-10 at 02:47 +0400, Alexey Starikovskiy wrote:
 
--Len
+> > Presumably the new debugging patches in -mm
+> > (workqueue-debug-flushing-deadlocks-with-lockdep.patch and
+> > workqueue-debug-work-related-deadlocks-with-lockdep.patch) think they h=
+ave
+> > found a potential deadlock in ACPI.  I don't have time to pick through =
+the
+> > code to confirm that, but boy I'm good at adding cc's ;)
 
+> Yep, it indeed may lock up... Here is a patch to avoid it
+
+Cool. I'm impressed this stuff actually finds something :)
+
+johannes
+
+--=-4xPKSKGWfGwZ/PMAw5/B
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGvDRK/ETPhpq3jKURAsRcAJwIk8EgfDPnzaeq1pWyE0QXdyOzpQCfdk8D
+nSq9d6tbAp3sl8GNG+iGIc8=
+=6d+j
+-----END PGP SIGNATURE-----
+
+--=-4xPKSKGWfGwZ/PMAw5/B--
 
