@@ -1,203 +1,96 @@
 From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: [PATCH] ACPI: Battery: add sysfs support
-Date: Sat, 11 Aug 2007 23:52:35 +0400
-Message-ID: <46BE1383.8000205@gmail.com>
+Subject: [PATCH] ACPI: AC: add sysfs support
+Date: Sat, 11 Aug 2007 23:57:08 +0400
+Message-ID: <46BE1494.2070305@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060209070202070306080201"
+ boundary="------------030203030003090804070809"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:19427 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.174]:20394 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbXHKTwl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Aug 2007 15:52:41 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so509427ugf
-        for <linux-acpi@vger.kernel.org>; Sat, 11 Aug 2007 12:52:39 -0700 (PDT)
+	with ESMTP id S1752560AbXHKT5R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Aug 2007 15:57:17 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so509497ugf
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Aug 2007 12:57:16 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060209070202070306080201
+--------------030203030003090804070809
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Hi Len,
 
-This is a first try to add sysfs support for ACPI battery.
-It should apply on top of clean up patches I sent earlier.
-It lacks alarm support in sysfs, as power_supply class does not support it.
+This patch adds sysfs support to ACPI AC.
+
 
 Regards,
 Alex.
 
---------------060209070202070306080201
+--------------030203030003090804070809
 Content-Type: text/x-patch;
- name="add_sysfs_support_for_battery.patch"
+ name="add_sysfs_to_ac.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="add_sysfs_support_for_battery.patch"
+ filename="add_sysfs_to_ac.patch"
 
-ACPI: Battery: Add sysfs support
+ACPI: AC: Add sysfs interface
 
 From: Alexey Starikovskiy <astarikivskiy@suse.de>
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/acpi/battery.c |  201 +++++++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 179 insertions(+), 22 deletions(-)
+ drivers/acpi/ac.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 47 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index d93072d..d27c18a 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -30,13 +30,21 @@
- #include <linux/init.h>
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index d8b3509..d13b961 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -29,6 +29,12 @@
  #include <linux/types.h>
- #include <linux/jiffies.h>
-+
-+#ifdef CONFIG_ACPI_PROC
  #include <linux/proc_fs.h>
  #include <linux/seq_file.h>
- #include <asm/uaccess.h>
-+#endif
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
++
 +#if defined(CONFIG_POWER_SUPPLY) || defined(CONFIG_POWER_SUPPLY_MODULE)
 +#define ENABLE_POWER_SUPPLY
 +#include <linux/power_supply.h>
 +#endif
 +
- #define ACPI_BATTERY_VALUE_UNKNOWN 0xFFFFFFFF
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
- #define ACPI_BATTERY_COMPONENT		0x00040000
-@@ -58,9 +66,19 @@ static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
- 
-+#ifdef CONFIG_ACPI_PROC
- extern struct proc_dir_entry *acpi_lock_battery_dir(void);
- extern void *acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
- 
-+enum acpi_battery_files {
-+	info_tag = 0,
-+	state_tag,
-+	alarm_tag,
-+	ACPI_BATTERY_NUMFILES,
-+};
-+
-+#endif
-+
- static const struct acpi_device_id battery_device_ids[] = {
- 	{"PNP0C0A", 0},
- 	{"", 0},
-@@ -68,22 +86,19 @@ static const struct acpi_device_id battery_device_ids[] = {
- 
- MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- 
--enum acpi_battery_files {
--	info_tag = 0,
--	state_tag,
--	alarm_tag,
--	ACPI_BATTERY_NUMFILES,
--};
- 
- struct acpi_battery {
- 	struct mutex lock;
-+#ifdef ENABLE_POWER_SUPPLY
-+	struct power_supply bat;
-+#endif
- 	struct acpi_device *device;
- 	unsigned long update_time;
--	int present_rate;
--	int remaining_capacity;
--	int present_voltage;
-+	int current_now;
-+	int capacity_now;
-+	int voltage_now;
- 	int design_capacity;
--	int last_full_capacity;
-+	int full_charge_capacity;
- 	int technology;
- 	int design_voltage;
- 	int design_capacity_warning;
-@@ -100,15 +115,119 @@ struct acpi_battery {
- 	u8 alarm_present;
+@@ -72,16 +78,42 @@ static struct acpi_driver acpi_ac_driver = {
  };
  
-+#define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
-+
- inline int acpi_battery_present(struct acpi_battery *battery)
- {
- 	return battery->device->status.battery_present;
- }
- 
+ struct acpi_ac {
 +#ifdef ENABLE_POWER_SUPPLY
-+static int acpi_battery_technology(struct acpi_battery *battery)
-+{
-+	if (!strcasecmp("NiCd", battery->type))
-+		return POWER_SUPPLY_TECHNOLOGY_NiCd;
-+	if (!strcasecmp("NiMH", battery->type))
-+		return POWER_SUPPLY_TECHNOLOGY_NiMH;
-+	if (!strcasecmp("LION", battery->type))
-+		return POWER_SUPPLY_TECHNOLOGY_LION;
-+	if (!strcasecmp("LiP", battery->type))
-+		return POWER_SUPPLY_TECHNOLOGY_LIPO;
-+	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
-+}
++	struct power_supply charger;
++#endif
+ 	struct acpi_device * device;
+ 	unsigned long state;
+ };
+ 
++#define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
 +
-+static int acpi_battery_get_property(struct power_supply *psy,
-+				     enum power_supply_property psp,
-+				     union power_supply_propval *val)
+ static const struct file_operations acpi_ac_fops = {
+ 	.open = acpi_ac_open_fs,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#ifdef ENABLE_POWER_SUPPLY
++static int get_ac_property(struct power_supply *psy,
++			   enum power_supply_property psp,
++			   union power_supply_propval *val)
 +{
-+	struct acpi_battery *battery = to_acpi_battery(psy);
-+
-+	if ((!acpi_battery_present(battery)) &&
-+	     psp != POWER_SUPPLY_PROP_PRESENT)
-+		return -ENODEV;
++	struct acpi_ac *ac = to_acpi_ac(psy);
 +	switch (psp) {
-+	case POWER_SUPPLY_PROP_STATUS:
-+		if (battery->state & 0x01)
-+			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-+		else if (battery->state & 0x02)
-+			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-+		else if (battery->state == 0)
-+			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		break;
-+	case POWER_SUPPLY_PROP_PRESENT:
-+		val->intval = acpi_battery_present(battery);
-+		break;
-+	case POWER_SUPPLY_PROP_TECHNOLOGY:
-+		val->intval = acpi_battery_technology(battery);
-+		break;
-+	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-+		val->intval = battery->design_voltage * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+		val->intval = battery->voltage_now * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_CURRENT_NOW:
-+		val->intval = battery->current_now * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
-+	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
-+		val->intval = battery->design_capacity * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_CHARGE_FULL:
-+	case POWER_SUPPLY_PROP_ENERGY_FULL:
-+		val->intval = battery->full_charge_capacity * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_CHARGE_NOW:
-+	case POWER_SUPPLY_PROP_ENERGY_NOW:
-+		val->intval = battery->capacity_now * 1000;
-+		break;
-+	case POWER_SUPPLY_PROP_MODEL_NAME:
-+		val->strval = battery->model_number;
-+		break;
-+	case POWER_SUPPLY_PROP_MANUFACTURER:
-+		val->strval = battery->oem_info;
++	case POWER_SUPPLY_PROP_ONLINE:
++		val->intval = ac->state;
 +		break;
 +	default:
 +		return -EINVAL;
@@ -205,218 +98,51 @@ index d93072d..d27c18a 100644
 +	return 0;
 +}
 +
-+static enum power_supply_property charge_battery_props[] = {
-+	POWER_SUPPLY_PROP_STATUS,
-+	POWER_SUPPLY_PROP_PRESENT,
-+	POWER_SUPPLY_PROP_TECHNOLOGY,
-+	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
-+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-+	POWER_SUPPLY_PROP_CURRENT_NOW,
-+	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
-+	POWER_SUPPLY_PROP_CHARGE_FULL,
-+	POWER_SUPPLY_PROP_CHARGE_NOW,
-+	POWER_SUPPLY_PROP_MODEL_NAME,
-+	POWER_SUPPLY_PROP_MANUFACTURER,
++static enum power_supply_property ac_props[] = {
++	POWER_SUPPLY_PROP_ONLINE,
 +};
 +
-+static enum power_supply_property energy_battery_props[] = {
-+	POWER_SUPPLY_PROP_STATUS,
-+	POWER_SUPPLY_PROP_PRESENT,
-+	POWER_SUPPLY_PROP_TECHNOLOGY,
-+	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
-+	POWER_SUPPLY_PROP_VOLTAGE_NOW,
-+	POWER_SUPPLY_PROP_CURRENT_NOW,
-+	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
-+	POWER_SUPPLY_PROP_ENERGY_FULL,
-+	POWER_SUPPLY_PROP_ENERGY_NOW,
-+	POWER_SUPPLY_PROP_MODEL_NAME,
-+	POWER_SUPPLY_PROP_MANUFACTURER,
-+};
-+#endif
-+
-+#ifdef CONFIG_ACPI_PROC
- inline char *acpi_battery_units(struct acpi_battery *battery)
- {
- 	return (battery->power_unit)?"mA":"mW";
- }
 +#endif
  
  /* --------------------------------------------------------------------------
-                                Battery Management
-@@ -120,15 +239,15 @@ struct acpi_offsets {
- 
- static struct acpi_offsets state_offsets[] = {
- 	{offsetof(struct acpi_battery, state), 0},
--	{offsetof(struct acpi_battery, present_rate), 0},
--	{offsetof(struct acpi_battery, remaining_capacity), 0},
--	{offsetof(struct acpi_battery, present_voltage), 0},
-+	{offsetof(struct acpi_battery, current_now), 0},
-+	{offsetof(struct acpi_battery, capacity_now), 0},
-+	{offsetof(struct acpi_battery, voltage_now), 0},
- };
- 
- static struct acpi_offsets info_offsets[] = {
- 	{offsetof(struct acpi_battery, power_unit), 0},
- 	{offsetof(struct acpi_battery, design_capacity), 0},
--	{offsetof(struct acpi_battery, last_full_capacity), 0},
-+	{offsetof(struct acpi_battery, full_charge_capacity), 0},
- 	{offsetof(struct acpi_battery, technology), 0},
- 	{offsetof(struct acpi_battery, design_voltage), 0},
- 	{offsetof(struct acpi_battery, design_capacity_warning), 0},
-@@ -286,6 +405,17 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		result = acpi_battery_get_info(battery);
- 		if (result)
- 			return result;
+                                AC Adapter Management
+@@ -205,6 +237,9 @@ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		acpi_ac_get_state(ac);
+ 		acpi_bus_generate_event(device, event, (u32) ac->state);
 +#ifdef ENABLE_POWER_SUPPLY
-+		if (battery->power_unit) {
-+			battery->bat.properties = charge_battery_props;
-+			battery->bat.num_properties =
-+				ARRAY_SIZE(charge_battery_props);
-+		} else {
-+			battery->bat.properties = energy_battery_props;
-+			battery->bat.num_properties =
-+				ARRAY_SIZE(energy_battery_props);
-+		}
++		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
 +#endif
- 		acpi_battery_init_alarm(battery);
- 	}
- 	return acpi_battery_get_state(battery);
-@@ -295,6 +425,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- 
-+#ifdef CONFIG_ACPI_PROC
- static struct proc_dir_entry *acpi_battery_dir;
- 
- static int acpi_battery_print_info(struct seq_file *seq, int result)
-@@ -315,11 +446,11 @@ static int acpi_battery_print_info(struct seq_file *seq, int result)
- 			   battery->design_capacity,
- 			   acpi_battery_units(battery));
- 
--	if (battery->last_full_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
-+	if (battery->full_charge_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "last full capacity:      unknown\n");
- 	else
- 		seq_printf(seq, "last full capacity:      %d %sh\n",
--			   battery->last_full_capacity,
-+			   battery->full_charge_capacity,
- 			   acpi_battery_units(battery));
- 
- 	seq_printf(seq, "battery technology:      %srechargeable\n",
-@@ -376,22 +507,22 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
- 	else
- 		seq_printf(seq, "charging state:          charged\n");
- 
--	if (battery->present_rate == ACPI_BATTERY_VALUE_UNKNOWN)
-+	if (battery->current_now == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "present rate:            unknown\n");
- 	else
- 		seq_printf(seq, "present rate:            %d %s\n",
--			   battery->present_rate, acpi_battery_units(battery));
-+			   battery->current_now, acpi_battery_units(battery));
- 
--	if (battery->remaining_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
-+	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "remaining capacity:      unknown\n");
- 	else
- 		seq_printf(seq, "remaining capacity:      %d %sh\n",
--			   battery->remaining_capacity, acpi_battery_units(battery));
--	if (battery->present_voltage == ACPI_BATTERY_VALUE_UNKNOWN)
-+			   battery->capacity_now, acpi_battery_units(battery));
-+	if (battery->voltage_now == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "present voltage:         unknown\n");
- 	else
- 		seq_printf(seq, "present voltage:         %d mV\n",
--			   battery->present_voltage);
-+			   battery->voltage_now);
-       end:
- 	if (result)
- 		seq_printf(seq, "ERROR: Unable to read battery state\n");
-@@ -565,6 +696,7 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
- 	acpi_device_dir(device) = NULL;
- }
- 
-+#endif
- /* --------------------------------------------------------------------------
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
-@@ -577,6 +709,9 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
- 	acpi_battery_update(battery);
- 	acpi_bus_generate_event(battery->device, event,
- 				acpi_battery_present(battery));
-+#ifdef ENABLE_POWER_SUPPLY
-+		kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
-+#endif
- }
- 
- static int acpi_battery_add(struct acpi_device *device)
-@@ -595,9 +730,17 @@ static int acpi_battery_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
- 	acpi_driver_data(device) = battery;
- 	acpi_battery_update(battery);
-+#ifdef CONFIG_ACPI_PROC
- 	result = acpi_battery_add_fs(device);
+ 		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -241,7 +276,14 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	result = acpi_ac_add_fs(device);
  	if (result)
  		goto end;
-+#endif
+-
 +#ifdef ENABLE_POWER_SUPPLY
-+	battery->bat.name = acpi_device_bid(device);
-+	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
-+	battery->bat.get_property = acpi_battery_get_property;
-+	result = power_supply_register(&battery->device->dev, &battery->bat);
++	ac->charger.name = acpi_device_bid(device);
++	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
++	ac->charger.properties = ac_props;
++	ac->charger.num_properties = ARRAY_SIZE(ac_props);
++	ac->charger.get_property = get_ac_property;
++	power_supply_register(&ac->device->dev, &ac->charger);
 +#endif
  	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_ALL_NOTIFY,
- 					     acpi_battery_notify, battery);
-@@ -611,7 +754,9 @@ static int acpi_battery_add(struct acpi_device *device)
- 	       device->status.battery_present ? "present" : "absent");
-       end:
- 	if (result) {
-+#ifdef CONFIG_ACPI_PROC
- 		acpi_battery_remove_fs(device);
-+#endif
- 		kfree(battery);
- 	}
- 	return result;
-@@ -628,7 +773,13 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
- 	status = acpi_remove_notify_handler(device->handle,
- 					    ACPI_ALL_NOTIFY,
- 					    acpi_battery_notify);
-+#ifdef CONFIG_ACPI_PROC
- 	acpi_battery_remove_fs(device);
-+#endif
-+#ifdef ENABLE_POWER_SUPPLY
-+	if (battery->bat.dev)
-+		power_supply_unregister(&battery->bat);
-+#endif
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
- 	return 0;
-@@ -660,11 +811,15 @@ static int __init acpi_battery_init(void)
- {
- 	if (acpi_disabled)
- 		return -ENODEV;
-+#ifdef CONFIG_ACPI_PROC
- 	acpi_battery_dir = acpi_lock_battery_dir();
- 	if (!acpi_battery_dir)
- 		return -ENODEV;
-+#endif
- 	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
-+#ifdef CONFIG_ACPI_PROC
- 		acpi_unlock_battery_dir(acpi_battery_dir);
-+#endif
- 		return -ENODEV;
- 	}
- 	return 0;
-@@ -673,7 +828,9 @@ static int __init acpi_battery_init(void)
- static void __exit acpi_battery_exit(void)
- {
- 	acpi_bus_unregister_driver(&acpi_battery_driver);
-+#ifdef CONFIG_ACPI_PROC
- 	acpi_unlock_battery_dir(acpi_battery_dir);
-+#endif
- }
+ 					     ACPI_ALL_NOTIFY, acpi_ac_notify,
+ 					     ac);
+@@ -276,7 +318,10 @@ static int acpi_ac_remove(struct acpi_device *device, int type)
  
- module_init(acpi_battery_init);
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
+-
++#ifdef ENABLE_POWER_SUPPLY
++	if (ac->charger.dev)
++		power_supply_unregister(&ac->charger);
++#endif
+ 	acpi_ac_remove_fs(device);
+ 
+ 	kfree(ac);
 
---------------060209070202070306080201--
+--------------030203030003090804070809--
