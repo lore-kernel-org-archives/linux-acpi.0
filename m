@@ -1,123 +1,114 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 5/6] ACPI: thermal: add thermal.act= bootparam
-Date: Sat, 11 Aug 2007 00:29:30 -0400
-Message-ID: <200708110029.31032.lenb@kernel.org>
-References: <11866391363162-git-send-email-len.brown@intel.com> <11866391393475-git-send-email-len.brown@intel.com> <11866391402883-git-send-email-len.brown@intel.com>
+Subject: Re: ACPI Thermal workaround hooks
+Date: Sat, 11 Aug 2007 00:41:50 -0400
+Message-ID: <200708110041.51069.lenb@kernel.org>
+References: <11866391363162-git-send-email-len.brown@intel.com> <1186680825.8780.268.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39079 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56786 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750853AbXHKE3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Aug 2007 00:29:35 -0400
-Received: from d975xbx2 (WPIS-64-140-212-33.worldpath.net [64.140.212.33])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id l7B4TWcY000431
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Sat, 11 Aug 2007 04:29:33 GMT
-In-Reply-To: <11866391402883-git-send-email-len.brown@intel.com>
+	id S1750883AbXHKEl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Aug 2007 00:41:57 -0400
+In-Reply-To: <1186680825.8780.268.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org
 
-Subject: ACPI: thermal: create "thermal.act=" to disable or override active trip point
 
-From: Len Brown <len.brown@intel.com>
+Thanks for the feedback, Thomas.
 
-thermal.act=-1 disables all active trip points
-in all ACPI thermal zones.
+On Thursday 09 August 2007 13:33, Thomas Renninger wrote:
+> On Thu, 2007-08-09 at 01:58 -0400, Len Brown wrote:
+> > In response to the outcry after I deleted the trip-point
+> > overrides, here is how I think we can work-around
+> > thermal issues in a supportable way.
+> > 
+> > In particular, this series should address the issues
+> > on Knut's AOpen Award system here:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=8842
+> > and give us the hooks to address analogous issues in
+> > other systems.
+> > 
+> > Please let me know what you think.
+> 
+> Thanks.
+> This is very much appreciated.
+> 
+> I like the idea of boot parameters, this avoids the seduction to build
+> tools on it and mis-use this as an official interface.
+> 
+> But where I like to see a sysfs interface for, is the passive trip point
+> and allow:
+>   a) lowering passive trip points
+>   b) let user define his own passive trip point if none
+>      is provided by BIOS
+>
+> I don't remember whether every trip point gets it's own sysfs file. If
+> yes, adding a passive_user file, default -1 and the normal passive file
+> where the current active passive trip point value is shown, is how I
+> think this could be done.
 
-thermal.act=C, where C > 0, overrides all lowest temperature
-active trip points in all thermal zones to C degrees Celsius.
-Raising this trip-point may allow you to keep your system silent
-up to a higher temperature.  However, it will not allow you to
-raise the lowest temperature trip point above the next higher
-trip point (if there is one).  Lowering this trip point may
-kick in the fan sooner.
+My guess is that those who have active+passive cooling and want
+a system that stays silent more will choose to use thermal.act=
+override to raise their low temp fan trip point
+to stay silent up to a higher temperature.
 
-Note that overriding this trip-point will disable any BIOS attempts
-to implement hysteresis around the lowest temperature trip point.
-This may result in the fan starting and stopping frequently
-if temperature frequently crosses C.
+I think it will be less popular for those w/o active cooling to
+force their passive trip-point lower to maintain a silent system
+at the cost of performance -- but I'm sure there are some people
+who are interested in doing so, and thermal.psv will indeed
+let them do that if a passive trip point already exists
+(and it usually does).
 
-WARNING: raising trip points above the manufacturer's defaults
-may cause the system to run at higher temperature and shorten
-its life.
+> I know you hate it, because it's not explicitly stated in ACPI spec,
+> works around it a bit and so on.
+> But this one is:
+>   1) safe (in respect to hardware and code)
+>   2) a very mighty feature
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
+Don't get me wrong -- I make no assumption that "ACPI spec compliance"
+is the end-goal here -- making users's systems useful & supportable is the end goal.
+However, the reality is that the vast majority of systems are validated
+for Windows, and so to make Linux most supportable on those systems,
+it is usually in our best interest to behave largely like (we imagine)
+Windows does on those systems.  Otherwise we exercise the BIOS where
+it is poorly validated and run into snags.
 
-refreshed to add check to limit trip-point override
-to equal the next higher trip point.
+Note that the thermal.psv in this series is writable by root at run-time.
+But as it requires a trip-point-changed event to get noticed after
+module load time, that will get you almost the feature you are looking for,
+but only on systems with active cooling -- the more common ones with just critical
+and passive will not be implementing hysteresis and thus would not 
+be changing trip-points at run-time.  For those, you'd have to rmmod thermal
+and modprobe thermal to force the new passive trip point to get noticed.
 
-Index: linus/Documentation/kernel-parameters.txt
-===================================================================
---- linus.orig/Documentation/kernel-parameters.txt
-+++ linus/Documentation/kernel-parameters.txt
-@@ -1820,6 +1820,10 @@ and is between 256 and 4096 characters. 
- 	thash_entries=	[KNL,NET]
- 			Set number of hash buckets for TCP connection
- 
-+	thermal.act=	[HW,ACPI]
-+			-1: disable all active trip points in all thermal zones
-+			<degrees C>: override all lowest active trip points
-+
- 	thermal.nocrt=	[HW,ACPI]
- 			Set to disable actions on ACPI thermal zone
- 			critical and hot trip points.
-Index: linus/drivers/acpi/thermal.c
-===================================================================
---- linus.orig/drivers/acpi/thermal.c
-+++ linus/drivers/acpi/thermal.c
-@@ -74,6 +74,10 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI Thermal Zone Driver");
- MODULE_LICENSE("GPL");
- 
-+static int act;
-+module_param(act, int, 0644);
-+MODULE_PARM_DESC(act, "Disable or override all lowest active trip points.\n");
-+
- static int tzp;
- module_param(tzp, int, 0444);
- MODULE_PARM_DESC(tzp, "Thermal zone polling frequency, in 1/10 seconds.\n");
-@@ -405,11 +409,33 @@ static int acpi_thermal_get_trip_points(
- 
- 		char name[5] = { '_', 'A', 'C', ('0' + i), '\0' };
- 
--		status =
--		    acpi_evaluate_integer(tz->device->handle, name, NULL,
--					  &tz->trips.active[i].temperature);
--		if (ACPI_FAILURE(status))
-+		if (act == -1)
-+			break;	/* disable all active trip points */
-+
-+		status = acpi_evaluate_integer(tz->device->handle,
-+			name, NULL, &tz->trips.active[i].temperature);
-+
-+		if (ACPI_FAILURE(status)) {
-+			if (i == 0)	/* no active trip points */
-+				break;
-+			if (act <= 0)	/* no override requested */
-+				break;
-+			if (i == 1) {	/* 1 trip point */
-+				tz->trips.active[0].temperature =
-+					CELSIUS_TO_KELVIN(act);
-+			} else {	/* multiple trips */
-+				/*
-+				 * Don't allow override higher than
-+				 * the next higher trip point
-+				 */
-+				tz->trips.active[i - 1].temperature =
-+				    (tz->trips.active[i - 2].temperature <
-+					CELSIUS_TO_KELVIN(act) ?
-+					tz->trips.active[i - 2].temperature :
-+					CELSIUS_TO_KELVIN(act));
-+			}
- 			break;
-+		}
- 
- 		name[2] = 'L';
- 		status =
+I agree, if a system doesn't have a passive trip point, it would probably
+not be dangerous (from a HW standpoint) to invent one and layer it over
+this mechanism.  However, I stopped short of doing that.  There have been
+various discussions of doing something along those lines by integrating
+throttling with cpufreq p-states, and I wonder if instead,
+a more generic mechanism in that space isn't the way to go.
+
+Note also that thermal.act behaves like thermal.psv above.  Here, however,
+the system, by definition, implements active trip points -- and all the
+functional ones I've seen implement hysteresis and thus implement
+trip point change events -- so you could actually scribble on this
+thermal.act at run-time and it would become effective upon the next trip event.
+Yes, providing this override was a compromise.  I stopped short of overrides
+for all possible active trips b/c I didn't want to get tangled in the
+hysteresis mess, and I figured the lowest trip point is the one of
+of most interest to those trying to run completely silent.  Even
+this single trip-point override is not fool-proof, as there is no
+guarantee that the BIOS will actually send an event at the temperature
+that this gets set to.  However, it does handle the most interesting
+trivial case of allowing us to ignore such an event when we don't want
+to turn the fan on as soon as the BIOS default setting.
+
+thanks,
+-Len
+
