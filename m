@@ -1,490 +1,378 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 32/59] x86_64: get boot_cpu_id as early for k8_scan_nodes
-Date: Sat, 11 Aug 2007 22:42:04 -0400
-Message-ID: <200708112242.04946.lenb@kernel.org>
-References: <200708102200.l7AM019i011880@imap1.linux-foundation.org>
+Subject: Re: [PATCH 2/2] sony-laptop: old Vaio models contain 2 IO port entries
+Date: Sat, 11 Aug 2007 23:27:44 -0400
+Message-ID: <200708112327.44755.lenb@kernel.org>
+References: <1186796587433-git-send-email-malattia@linux.it> <11867965871757-git-send-email-malattia@linux.it> <11867965873858-git-send-email-malattia@linux.it>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42236 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:53289 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757448AbXHLCmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Aug 2007 22:42:19 -0400
-In-Reply-To: <200708102200.l7AM019i011880@imap1.linux-foundation.org>
+	id S1750866AbXHLD2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Aug 2007 23:28:12 -0400
+In-Reply-To: <11867965873858-git-send-email-malattia@linux.it>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org, linux-acpi@vger.kernel.org
-Cc: ak@suse.de, yhlu.kernel@gmail.com, clameter@sgi.com
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>
 
-I hate to burst this bubble,
-but we have evidence that the only reliable way to enumerate
-processors on an ACPI systems is to parse the DSDT.
+On Friday 10 August 2007 21:43, Mattia Dongili wrote:
+> Make the driver aware of this case and manage the existence of a
+> second separate IO port.
+> Fixes http://bugzilla.kernel.org/show_bug.cgi?id=8803
 
-No, this has nothing to do with the actual ACPI specification,
-but "common industry practice".  ie. what the BIOS vendors are
-shipping that works with Windows but confuses Linux.
+Why is this marked as a regression vs 2.6.21?
+Is the problem that sonypi supported this this type of box
+and sony-laptop did not, and that is when the submitter
+started using sony-laptop?
 
-This means that all the "parse the MADT early" stuff
-is basically a waste of effort in the long term
-where we will have to change when Linux enumerates
-(and thus enables) the processors in the boot sequence.
+They can still build and use sonypi in 2.6.22, 3 if they want, yes?
+
+I don't see a huge risk in applying this patch, because it
+seems that it (should) only have an effect on the boxes
+that were not properly supported before.
+
+But, it is pretty big for a post-rc2 type thing,
+particularly if they can still use sonypi per above.
+Probably appropriate to test it till 2.6.24.
 
 -Len
 
-On Friday 10 August 2007 18:00, akpm@linux-foundation.org wrote:
-> From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 > 
-> When acpi=off or there is no SRAT defined, apicid_to_node is got from K8
-> Northbridge PCI configuration space in k8_scan_nodes() in
-> arch/x86_64/mm/k8toplogy.c.
-> 
-> The problem is that it assumes bsp apic id is 0 at that point.
-> 
-> For four socket system with Quad core cpus installed, all cpus apic id is
-> offset by 4, and bsp apic id is 4.
-> 
-> For eight socket system with dual core cpus installed, all cpus apic id is
-> offset by 2, and bsp apic id is 2.
-> 
-> We need get boot_cpu_id --- bsp apic id, before k8_scan_nodes by called.
-> 
-> So create early_acpi_boot_init and early_get_smp_config for get boot_cpu_id.
-> 
-> Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-> Cc: Christoph Lameter <clameter@sgi.com>
-> Cc: Andi Kleen <ak@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Mattia Dongili <malattia@linux.it>
 > ---
+>  drivers/misc/sony-laptop.c |  204 ++++++++++++++++++++++++++++++++------------
+>  1 files changed, 148 insertions(+), 56 deletions(-)
 > 
->  arch/i386/kernel/acpi/boot.c |   70 +++++++++++++++++++++++++
->  arch/x86_64/kernel/apic.c    |   24 ++++++++
->  arch/x86_64/kernel/mpparse.c |   89 ++++++++++++++++++++++++---------
->  arch/x86_64/kernel/setup.c   |   21 +++++++
->  arch/x86_64/mm/k8topology.c  |    8 ++
->  include/asm-x86_64/apic.h    |    1 
->  include/asm-x86_64/mpspec.h  |    2 
->  include/linux/acpi.h         |    5 +
->  8 files changed, 196 insertions(+), 24 deletions(-)
-> 
-> diff -puN arch/i386/kernel/acpi/boot.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes arch/i386/kernel/acpi/boot.c
-> --- a/arch/i386/kernel/acpi/boot.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/arch/i386/kernel/acpi/boot.c
-> @@ -736,6 +736,32 @@ unsigned long __init acpi_find_rsdp(void
->   * Parse LAPIC entries in MADT
->   * returns 0 on success, < 0 on error
->   */
-> +static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
-> +{
-> +	int count;
-> +
-> +	if (!cpu_has_apic)
-> +		return -ENODEV;
-> +
-> +	/*
-> +	 * Note that the LAPIC address is obtained from the MADT (32-bit value)
-> +	 * and (optionally) overriden by a LAPIC_ADDR_OVR entry (64-bit value).
-> +	 */
-> +
-> +	count =
-> +	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
-> +				  acpi_parse_lapic_addr_ovr, 0);
-> +	if (count < 0) {
-> +		printk(KERN_ERR PREFIX
-> +		       "Error parsing LAPIC address override entry\n");
-> +		return count;
-> +	}
-> +
-> +	mp_register_lapic_address(acpi_lapic_addr);
-> +
-> +	return count;
-> +}
-> +
->  static int __init acpi_parse_madt_lapic_entries(void)
+> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+> index 1fd84a5..8f7c9ee 100644
+> --- a/drivers/misc/sony-laptop.c
+> +++ b/drivers/misc/sony-laptop.c
+> @@ -1156,7 +1156,8 @@ static struct acpi_driver sony_nc_driver = {
+>  #define SONYPI_TYPE3_OFFSET	0x12
+>  
+>  struct sony_pic_ioport {
+> -	struct acpi_resource_io	io;
+> +	struct acpi_resource_io	io1;
+> +	struct acpi_resource_io	io2;
+>  	struct list_head	list;
+>  };
+>  
+> @@ -1426,11 +1427,11 @@ static u8 sony_pic_call1(u8 dev)
 >  {
->  	int count;
-> @@ -862,6 +888,33 @@ static inline int acpi_parse_madt_ioapic
+>  	u8 v1, v2;
+>  
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+>  			ITERATIONS_LONG);
+> -	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+> -	v1 = inb_p(spic_dev.cur_ioport->io.minimum + 4);
+> -	v2 = inb_p(spic_dev.cur_ioport->io.minimum);
+> +	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
+> +	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
+> +	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
+>  	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
+>  	return v2;
 >  }
->  #endif	/* !CONFIG_X86_IO_APIC */
->  
-> +static void __init early_acpi_process_madt(void)
-> +{
-> +#ifdef CONFIG_X86_LOCAL_APIC
-> +	int error;
-> +
-> +	if (!acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
-> +
-> +		/*
-> +		 * Parse MADT LAPIC entries
-> +		 */
-> +		error = early_acpi_parse_madt_lapic_addr_ovr();
-> +		if (!error) {
-> +			acpi_lapic = 1;
-> +			smp_found_config = 1;
-> +		}
-> +		if (error == -EINVAL) {
-> +			/*
-> +			 * Dell Precision Workstation 410, 610 come here.
-> +			 */
-> +			printk(KERN_ERR PREFIX
-> +			       "Invalid BIOS MADT, disabling ACPI\n");
-> +			disable_acpi();
-> +		}
-> +	}
-> +#endif
-> +}
-> +
->  static void __init acpi_process_madt(void)
+> @@ -1439,13 +1440,13 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
 >  {
->  #ifdef CONFIG_X86_LOCAL_APIC
-> @@ -1194,6 +1247,23 @@ int __init acpi_boot_table_init(void)
->  	return 0;
+>  	u8 v1;
+>  
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+>  			ITERATIONS_LONG);
+> -	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
+> +	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+>  			ITERATIONS_LONG);
+> -	outb(fn, spic_dev.cur_ioport->io.minimum);
+> -	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
+> +	outb(fn, spic_dev.cur_ioport->io1.minimum);
+> +	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+>  	dprintk("sony_pic_call2: 0x%.4x\n", v1);
+>  	return v1;
 >  }
->  
-> +int __init early_acpi_boot_init(void)
-> +{
-> +	/*
-> +	 * If acpi_disabled, bail out
-> +	 * One exception: acpi=ht continues far enough to enumerate LAPICs
-> +	 */
-> +	if (acpi_disabled && !acpi_ht)
-> +		return 1;
-> +
-> +	/*
-> +	 * Process the Multiple APIC Description Table (MADT), if present
-> +	 */
-> +	early_acpi_process_madt();
-> +
-> +	return 0;
-> +}
-> +
->  int __init acpi_boot_init(void)
+> @@ -1454,13 +1455,13 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
 >  {
->  	/*
-> diff -puN arch/x86_64/kernel/apic.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes arch/x86_64/kernel/apic.c
-> --- a/arch/x86_64/kernel/apic.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/arch/x86_64/kernel/apic.c
-> @@ -689,6 +689,30 @@ static int __init ioapic_insert_resource
->  late_initcall(ioapic_insert_resources);
->  #endif
+>  	u8 v1;
 >  
-> +void __init early_init_lapic_mapping(void)
-> +{
-> +	unsigned long apic_phys;
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+> -	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+> -	outb(fn, spic_dev.cur_ioport->io.minimum);
+> -	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+> -	outb(v, spic_dev.cur_ioport->io.minimum);
+> -	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
+> +	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
+> +	outb(fn, spic_dev.cur_ioport->io1.minimum);
+> +	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
+> +	outb(v, spic_dev.cur_ioport->io1.minimum);
+> +	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+>  	dprintk("sony_pic_call3: 0x%.4x\n", v1);
+>  	return v1;
+>  }
+> @@ -2057,7 +2058,18 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+>  
+>  	switch (resource->type) {
+>  	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+> +		{
+> +			/* start IO enumeration */
+> +			struct sony_pic_ioport *ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
+> +			if (!ioport)
+> +				return AE_ERROR;
 > +
-> +	/*
-> +	 * If no local APIC can be found then go out
-> +	 * : it means there is no mpatable and MADT
-> +	 */
-> +	if (!smp_found_config)
-> +		return;
+> +			list_add(&ioport->list, &dev->ioports);
+> +			return AE_OK;
+> +		}
 > +
-> +	apic_phys = mp_lapic_addr;
-> +
-> +	set_fixmap_nocache(FIX_APIC_BASE, apic_phys);
-> +	apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
-> +				 APIC_BASE, apic_phys);
-> +
-> +	/*
-> +	 * Fetch the APIC ID of the BSP in case we have a
-> +	 * default configuration (or the MP table is broken).
-> +	 */
-> +	boot_cpu_id = GET_APIC_ID(apic_read(APIC_ID));
-> +}
-> +
->  void __init init_apic_mappings(void)
->  {
->  	unsigned long apic_phys;
-> diff -puN arch/x86_64/kernel/mpparse.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes arch/x86_64/kernel/mpparse.c
-> --- a/arch/x86_64/kernel/mpparse.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/arch/x86_64/kernel/mpparse.c
-> @@ -202,8 +202,7 @@ static void __init MP_lintsrc_info (stru
->  /*
->   * Read/parse the MPC
->   */
+>  	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
+> +		/* end IO enumeration */
+>  		return AE_OK;
+>  
+>  	case ACPI_RESOURCE_TYPE_IRQ:
+> @@ -2084,7 +2096,7 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+>  				if (!interrupt)
+>  					return AE_ERROR;
+>  
+> -				list_add_tail(&interrupt->list, &dev->interrupts);
+> +				list_add(&interrupt->list, &dev->interrupts);
+>  				interrupt->irq.triggering = p->triggering;
+>  				interrupt->irq.polarity = p->polarity;
+>  				interrupt->irq.sharable = p->sharable;
+> @@ -2096,18 +2108,27 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+>  	case ACPI_RESOURCE_TYPE_IO:
+>  		{
+>  			struct acpi_resource_io *io = &resource->data.io;
+> -			struct sony_pic_ioport *ioport = NULL;
+> +			struct sony_pic_ioport *ioport =
+> +				list_first_entry(&dev->ioports, struct sony_pic_ioport, list);
+>  			if (!io) {
+>  				dprintk("Blank IO resource\n");
+>  				return AE_OK;
+>  			}
+>  
+> -			ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
+> -			if (!ioport)
+> +			if (!ioport->io1.minimum) {
+> +				memcpy(&ioport->io1, io, sizeof(*io));
+> +				dprintk("IO1 at 0x%.4x (0x%.2x)\n", ioport->io1.minimum,
+> +						ioport->io1.address_length);
+> +			}
+> +			else if (!ioport->io2.minimum) {
+> +				memcpy(&ioport->io2, io, sizeof(*io));
+> +				dprintk("IO2 at 0x%.4x (0x%.2x)\n", ioport->io2.minimum,
+> +						ioport->io2.address_length);
+> +			}
+> +			else {
+> +				printk(KERN_ERR DRV_PFX "Unknown SPIC Type, more than 2 IO Ports\n");
+>  				return AE_ERROR;
 > -
-> -static int __init smp_read_mpc(struct mp_config_table *mpc)
-> +static int __init smp_read_mpc(struct mp_config_table *mpc, unsigned early)
->  {
->  	char str[16];
->  	int count=sizeof(*mpc);
-> @@ -244,6 +243,9 @@ static int __init smp_read_mpc(struct mp
->  	if (!acpi_lapic)
->  		mp_lapic_addr = mpc->mpc_lapic;
->  
-> +	if (early)
-> +		return 1;
-> +
->  	/*
->  	 *	Now process the configuration blocks.
->  	 */
-> @@ -455,27 +457,38 @@ static struct intel_mp_floating *mpf_fou
->  /*
->   * Scan the memory blocks for an SMP configuration block.
->   */
-> -void __init get_smp_config (void)
-> +static void __init __get_smp_config(unsigned early)
->  {
->  	struct intel_mp_floating *mpf = mpf_found;
->  
-> +	if (acpi_lapic && early)
-> +		return;
->  	/*
-> - 	 * ACPI supports both logical (e.g. Hyper-Threading) and physical 
-> - 	 * processors, where MPS only supports physical.
-> - 	 */
-> - 	if (acpi_lapic && acpi_ioapic) {
-> - 		printk(KERN_INFO "Using ACPI (MADT) for SMP configuration information\n");
-> - 		return;
-> -	}
-> - 	else if (acpi_lapic)
-> - 		printk(KERN_INFO "Using ACPI for processor (LAPIC) configuration information\n");
-> +	 * ACPI supports both logical (e.g. Hyper-Threading) and physical
-> +	 * processors, where MPS only supports physical.
-> +	 */
-> +	if (acpi_lapic && acpi_ioapic) {
-> +		printk(KERN_INFO "Using ACPI (MADT) for SMP configuration "
-> +			"information\n");
-> +		return;
-> +	} else if (acpi_lapic)
-> +		printk(KERN_INFO "Using ACPI for processor (LAPIC) "
-> +			"configuration information\n");
->  
-> -	printk("Intel MultiProcessor Specification v1.%d\n", mpf->mpf_specification);
-> +	printk(KERN_INFO "Intel MultiProcessor Specification v1.%d\n",
-> +		mpf->mpf_specification);
->  
->  	/*
->  	 * Now see if we need to read further.
->  	 */
->  	if (mpf->mpf_feature1 != 0) {
-> +		if (early) {
-> +			/*
-> +			 * local APIC has default address
-> +			 */
-> +			mp_lapic_addr = APIC_DEFAULT_PHYS_BASE;
-> +			return;
-> +		}
->  
->  		printk(KERN_INFO "Default MP configuration #%d\n", mpf->mpf_feature1);
->  		construct_default_ISA_mptable(mpf->mpf_feature1);
-> @@ -486,12 +499,15 @@ void __init get_smp_config (void)
->  		 * Read the physical hardware table.  Anything here will
->  		 * override the defaults.
->  		 */
-> -		if (!smp_read_mpc(phys_to_virt(mpf->mpf_physptr))) {
-> +		if (!smp_read_mpc(phys_to_virt(mpf->mpf_physptr), early)) {
->  			smp_found_config = 0;
->  			printk(KERN_ERR "BIOS bug, MP table errors detected!...\n");
->  			printk(KERN_ERR "... disabling SMP support. (tell your hw vendor)\n");
->  			return;
+> -			list_add_tail(&ioport->list, &dev->ioports);
+> -			memcpy(&ioport->io, io, sizeof(*io));
+> +			}
+>  			return AE_OK;
 >  		}
-> +
-> +		if (early)
-> +			return;
->  		/*
->  		 * If there are no explicit MP IRQ entries, then we are
->  		 * broken.  We set up most of the low 16 IO-APIC pins to
-> @@ -513,13 +529,25 @@ void __init get_smp_config (void)
->  	} else
->  		BUG();
->  
-> -	printk(KERN_INFO "Processors: %d\n", num_processors);
-> +	if (!early)
-> +		printk(KERN_INFO "Processors: %d\n", num_processors);
->  	/*
->  	 * Only use the first configuration found.
->  	 */
->  }
->  
-> -static int __init smp_scan_config (unsigned long base, unsigned long length)
-> +void __init early_get_smp_config(void)
-> +{
-> +	__get_smp_config(1);
-> +}
-> +
-> +void __init get_smp_config(void)
-> +{
-> +	__get_smp_config(0);
-> +}
-> +
-> +static int __init smp_scan_config(unsigned long base, unsigned long length,
-> +				  unsigned reserve)
+>  	default:
+> @@ -2182,10 +2203,22 @@ static int sony_pic_enable(struct acpi_device *device,
 >  {
->  	extern void __bad_mpf_size(void); 
->  	unsigned int *bp = phys_to_virt(base);
-> @@ -538,10 +566,15 @@ static int __init smp_scan_config (unsig
->  				|| (mpf->mpf_specification == 4)) ) {
->  
->  			smp_found_config = 1;
-> +			mpf_found = mpf;
-> +
-> +			if (!reserve)
-> +				return 1;
-> +
->  			reserve_bootmem_generic(virt_to_phys(mpf), PAGE_SIZE);
->  			if (mpf->mpf_physptr)
-> -				reserve_bootmem_generic(mpf->mpf_physptr, PAGE_SIZE);
-> -			mpf_found = mpf;
-> +				reserve_bootmem_generic(mpf->mpf_physptr,
-> +							PAGE_SIZE);
->  			return 1;
->  		}
->  		bp += 4;
-> @@ -550,7 +583,7 @@ static int __init smp_scan_config (unsig
->  	return 0;
->  }
->  
-> -void __init find_smp_config(void)
-> +static void __init __find_smp_config(unsigned reserve)
->  {
->  	unsigned int address;
->  
-> @@ -562,9 +595,9 @@ void __init find_smp_config(void)
->  	 * 2) Scan the top 1K of base RAM
->  	 * 3) Scan the 64K of bios
->  	 */
-> -	if (smp_scan_config(0x0,0x400) ||
-> -		smp_scan_config(639*0x400,0x400) ||
-> -			smp_scan_config(0xF0000,0x10000))
-> +	if (smp_scan_config(0x0, 0x400, reserve) ||
-> +		smp_scan_config(639*0x400, 0x400, reserve) ||
-> +			smp_scan_config(0xF0000, 0x10000, reserve))
->  		return;
->  	/*
->  	 * If it is an SMP machine we should know now.
-> @@ -581,13 +614,23 @@ void __init find_smp_config(void)
->  
->  	address = *(unsigned short *)phys_to_virt(0x40E);
->  	address <<= 4;
-> -	if (smp_scan_config(address, 0x1000))
-> +	if (smp_scan_config(address, 0x1000, reserve))
->  		return;
->  
->  	/* If we have come this far, we did not find an MP table  */
->  	 printk(KERN_INFO "No mptable found.\n");
->  }
->  
-> +void __init early_find_smp_config(void)
-> +{
-> +	__find_smp_config(0);
-> +}
-> +
-> +void __init find_smp_config(void)
-> +{
-> +	__find_smp_config(1);
-> +}
-> +
->  /* --------------------------------------------------------------------------
->                              ACPI-based MP Configuration
->     -------------------------------------------------------------------------- */
-> diff -puN arch/x86_64/kernel/setup.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes arch/x86_64/kernel/setup.c
-> --- a/arch/x86_64/kernel/setup.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/arch/x86_64/kernel/setup.c
-> @@ -299,6 +299,27 @@ void __init setup_arch(char **cmdline_p)
->  	acpi_numa_init();
->  #endif
->  
-> +	/*
-> +	 * Find possible boot-time SMP configuration:
+>  	acpi_status status;
+>  	int result = 0;
+> +	/* Type 1 resource layout is:
+> +	 *    IO
+> +	 *    IO
+> +	 *    IRQNoFlags
+> +	 *    End
+> +	 *
+> +	 * Type 2 and 3 resource layout is:
+> +	 *    IO
+> +	 *    IRQNoFlags
+> +	 *    End
 > +	 */
-> +	early_find_smp_config();
-> +#ifdef CONFIG_ACPI
-> +	/*
-> +	 * Read APIC information from ACPI tables.
-> +	 */
-> +	early_acpi_boot_init();
-> +#endif
-> +	/*
-> +	 * get boot-time SMP configuration:
-> +	 */
-> +	if (smp_found_config)
-> +		early_get_smp_config();
-> +	/*
-> +	 * need to get boot_cpu_id so can use that to create apicid_to_node
-> +	 * in k8_scan_nodes() called by numa_initmem_init
-> +	 */
-> +	early_init_lapic_mapping();
-> +
->  #ifdef CONFIG_NUMA
->  	numa_initmem_init(0, end_pfn); 
->  #else
-> diff -puN arch/x86_64/mm/k8topology.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes arch/x86_64/mm/k8topology.c
-> --- a/arch/x86_64/mm/k8topology.c~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/arch/x86_64/mm/k8topology.c
-> @@ -52,6 +52,7 @@ int __init k8_scan_nodes(unsigned long s
->  	unsigned cores;
->  	unsigned bits;
->  	int j;
-> +	unsigned apicid_base;
+>  	struct {
+> -		struct acpi_resource io_res;
+> -		struct acpi_resource irq_res;
+> -		struct acpi_resource end;
+> +		struct acpi_resource res1;
+> +		struct acpi_resource res2;
+> +		struct acpi_resource res3;
+> +		struct acpi_resource res4;
+>  	} *resource;
+>  	struct acpi_buffer buffer = { 0, NULL };
 >  
->  	if (!early_pci_allowed())
->  		return -1;
-> @@ -170,11 +171,16 @@ int __init k8_scan_nodes(unsigned long s
->  	/* use the coreid bits from early_identify_cpu */
->  	bits = boot_cpu_data.x86_coreid_bits;
->  	cores = (1<<bits);
-> +	apicid_base = 0;
-> +	if (boot_cpu_id > 0) {
-> +		printk(KERN_INFO "BSP APIC ID: %02x\n", boot_cpu_id);
-> +		apicid_base = boot_cpu_id;
+> @@ -2200,21 +2233,49 @@ static int sony_pic_enable(struct acpi_device *device,
+>  	buffer.length = sizeof(*resource) + 1;
+>  	buffer.pointer = resource;
+>  
+> -	/* setup io resource */
+> -	resource->io_res.type = ACPI_RESOURCE_TYPE_IO;
+> -	resource->io_res.length = sizeof(struct acpi_resource);
+> -	memcpy(&resource->io_res.data.io, &ioport->io,
+> -			sizeof(struct acpi_resource_io));
+> +	/* setup Type 1 resources */
+> +	if (spic_dev.model == SONYPI_DEVICE_TYPE1) {
+>  
+> -	/* setup irq resource */
+> -	resource->irq_res.type = ACPI_RESOURCE_TYPE_IRQ;
+> -	resource->irq_res.length = sizeof(struct acpi_resource);
+> -	memcpy(&resource->irq_res.data.irq, &irq->irq,
+> -			sizeof(struct acpi_resource_irq));
+> -	/* we requested a shared irq */
+> -	resource->irq_res.data.irq.sharable = ACPI_SHARED;
+> +		/* setup io resources */
+> +		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
+> +		resource->res1.length = sizeof(struct acpi_resource);
+> +		memcpy(&resource->res1.data.io, &ioport->io1,
+> +				sizeof(struct acpi_resource_io));
+>  
+> -	resource->end.type = ACPI_RESOURCE_TYPE_END_TAG;
+> +		resource->res2.type = ACPI_RESOURCE_TYPE_IO;
+> +		resource->res2.length = sizeof(struct acpi_resource);
+> +		memcpy(&resource->res2.data.io, &ioport->io2,
+> +				sizeof(struct acpi_resource_io));
+> +
+> +		/* setup irq resource */
+> +		resource->res3.type = ACPI_RESOURCE_TYPE_IRQ;
+> +		resource->res3.length = sizeof(struct acpi_resource);
+> +		memcpy(&resource->res3.data.irq, &irq->irq,
+> +				sizeof(struct acpi_resource_irq));
+> +		/* we requested a shared irq */
+> +		resource->res3.data.irq.sharable = ACPI_SHARED;
+> +
+> +		resource->res4.type = ACPI_RESOURCE_TYPE_END_TAG;
+> +
+> +	}
+> +	/* setup Type 2/3 resources */
+> +	else {
+> +		/* setup io resource */
+> +		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
+> +		resource->res1.length = sizeof(struct acpi_resource);
+> +		memcpy(&resource->res1.data.io, &ioport->io1,
+> +				sizeof(struct acpi_resource_io));
+> +
+> +		/* setup irq resource */
+> +		resource->res2.type = ACPI_RESOURCE_TYPE_IRQ;
+> +		resource->res2.length = sizeof(struct acpi_resource);
+> +		memcpy(&resource->res2.data.irq, &irq->irq,
+> +				sizeof(struct acpi_resource_irq));
+> +		/* we requested a shared irq */
+> +		resource->res2.data.irq.sharable = ACPI_SHARED;
+> +
+> +		resource->res3.type = ACPI_RESOURCE_TYPE_END_TAG;
 > +	}
 >  
->  	for (i = 0; i < 8; i++) {
->  		if (nodes[i].start != nodes[i].end) { 
->  			nodeid = nodeids[i];
-> -			for (j = 0; j < cores; j++)
-> +			for (j = apicid_base; j < cores + apicid_base; j++)
->  				apicid_to_node[(nodeid << bits) + j] = i;
->  			setup_node_bootmem(i, nodes[i].start, nodes[i].end); 
->  		} 
-> diff -puN include/asm-x86_64/apic.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes include/asm-x86_64/apic.h
-> --- a/include/asm-x86_64/apic.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/include/asm-x86_64/apic.h
-> @@ -73,6 +73,7 @@ extern void cache_APIC_registers (void);
->  extern void sync_Arb_IDs (void);
->  extern void init_bsp_APIC (void);
->  extern void setup_local_APIC (void);
-> +extern void early_init_lapic_mapping(void);
->  extern void init_apic_mappings (void);
->  extern void smp_local_timer_interrupt (void);
->  extern void setup_boot_APIC_clock (void);
-> diff -puN include/asm-x86_64/mpspec.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes include/asm-x86_64/mpspec.h
-> --- a/include/asm-x86_64/mpspec.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/include/asm-x86_64/mpspec.h
-> @@ -164,6 +164,8 @@ extern int mp_bus_id_to_pci_bus [MAX_MP_
+>  	/* Attempt to set the resource */
+>  	dprintk("Evaluating _SRS\n");
+> @@ -2222,7 +2283,7 @@ static int sony_pic_enable(struct acpi_device *device,
 >  
->  extern unsigned int boot_cpu_physical_apicid;
->  extern int smp_found_config;
-> +extern void early_find_smp_config(void);
-> +extern void early_get_smp_config(void);
->  extern void find_smp_config (void);
->  extern void get_smp_config (void);
->  extern int nr_ioapics;
-> diff -puN include/linux/acpi.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes include/linux/acpi.h
-> --- a/include/linux/acpi.h~x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes
-> +++ a/include/linux/acpi.h
-> @@ -80,6 +80,7 @@ typedef int (*acpi_table_entry_handler) 
+>  	/* check for total failure */
+>  	if (ACPI_FAILURE(status)) {
+> -		printk(KERN_ERR DRV_PFX "Error evaluating _SRS");
+> +		printk(KERN_ERR DRV_PFX "Error evaluating _SRS\n");
+>  		result = -ENODEV;
+>  		goto end;
+>  	}
+> @@ -2251,11 +2312,14 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
 >  
->  char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
->  unsigned long acpi_find_rsdp (void);
-> +int early_acpi_boot_init(void);
->  int acpi_boot_init (void);
->  int acpi_boot_table_init (void);
->  int acpi_numa_init (void);
-> @@ -234,6 +235,10 @@ extern int pnpacpi_disabled;
+>  	struct sony_pic_dev *dev = (struct sony_pic_dev *) dev_id;
 >  
->  #else	/* CONFIG_ACPI */
+> -	ev = inb_p(dev->cur_ioport->io.minimum);
+> -	data_mask = inb_p(dev->cur_ioport->io.minimum + dev->evport_offset);
+> +	ev = inb_p(dev->cur_ioport->io1.minimum);
+> +	if (dev->cur_ioport->io2.minimum)
+> +		data_mask = inb_p(dev->cur_ioport->io2.minimum);
+> +	else
+> +		data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->evport_offset);
 >  
-> +static inline int early_acpi_boot_init(void)
-> +{
-> +	return 0;
-> +}
->  static inline int acpi_boot_init(void)
->  {
->  	return 0;
-> _
-> 
+>  	dprintk("event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
+> -			ev, data_mask, dev->cur_ioport->io.minimum, dev->evport_offset);
+> +			ev, data_mask, dev->cur_ioport->io1.minimum, dev->evport_offset);
+>  
+>  	if (ev == 0x00 || ev == 0xff)
+>  		return IRQ_HANDLED;
+> @@ -2308,8 +2372,11 @@ static int sony_pic_remove(struct acpi_device *device, int type)
+>  	}
+>  
+>  	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
+> -	release_region(spic_dev.cur_ioport->io.minimum,
+> -			spic_dev.cur_ioport->io.address_length);
+> +	release_region(spic_dev.cur_ioport->io1.minimum,
+> +			spic_dev.cur_ioport->io1.address_length);
+> +	if (spic_dev.cur_ioport->io2.minimum)
+> +		release_region(spic_dev.cur_ioport->io2.minimum,
+> +				spic_dev.cur_ioport->io2.address_length);
+>  
+>  	sony_laptop_remove_input();
+>  
+> @@ -2377,14 +2444,36 @@ static int sony_pic_add(struct acpi_device *device)
+>  	}
+>  
+>  	/* request io port */
+> -	list_for_each_entry(io, &spic_dev.ioports, list) {
+> -		if (request_region(io->io.minimum, io->io.address_length,
+> +	list_for_each_entry_reverse(io, &spic_dev.ioports, list) {
+> +		if (request_region(io->io1.minimum, io->io1.address_length,
+>  					"Sony Programable I/O Device")) {
+> -			dprintk("I/O port: 0x%.4x (0x%.4x) + 0x%.2x\n",
+> -					io->io.minimum, io->io.maximum,
+> -					io->io.address_length);
+> -			spic_dev.cur_ioport = io;
+> -			break;
+> +			dprintk("I/O port1: 0x%.4x (0x%.4x) + 0x%.2x\n",
+> +					io->io1.minimum, io->io1.maximum,
+> +					io->io1.address_length);
+> +			/* Type 1 have 2 ioports */
+> +			if (io->io2.minimum) {
+> +				if (request_region(io->io2.minimum,
+> +						io->io2.address_length,
+> +						"Sony Programable I/O Device")) {
+> +					dprintk("I/O port2: 0x%.4x (0x%.4x) + 0x%.2x\n",
+> +							io->io2.minimum, io->io2.maximum,
+> +							io->io2.address_length);
+> +					spic_dev.cur_ioport = io;
+> +					break;
+> +				}
+> +				else {
+> +					dprintk("Unable to get I/O port2: "
+> +							"0x%.4x (0x%.4x) + 0x%.2x\n",
+> +							io->io2.minimum, io->io2.maximum,
+> +							io->io2.address_length);
+> +					release_region(io->io1.minimum,
+> +							io->io1.address_length);
+> +				}
+> +			}
+> +			else {
+> +				spic_dev.cur_ioport = io;
+> +				break;
+> +			}
+>  		}
+>  	}
+>  	if (!spic_dev.cur_ioport) {
+> @@ -2394,7 +2483,7 @@ static int sony_pic_add(struct acpi_device *device)
+>  	}
+>  
+>  	/* request IRQ */
+> -	list_for_each_entry(irq, &spic_dev.interrupts, list) {
+> +	list_for_each_entry_reverse(irq, &spic_dev.interrupts, list) {
+>  		if (!request_irq(irq->irq.interrupts[0], sony_pic_irq,
+>  					IRQF_SHARED, "sony-laptop", &spic_dev)) {
+>  			dprintk("IRQ: %d - triggering: %d - "
+> @@ -2445,8 +2534,11 @@ err_free_irq:
+>  	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
+>  
+>  err_release_region:
+> -	release_region(spic_dev.cur_ioport->io.minimum,
+> -			spic_dev.cur_ioport->io.address_length);
+> +	release_region(spic_dev.cur_ioport->io1.minimum,
+> +			spic_dev.cur_ioport->io1.address_length);
+> +	if (spic_dev.cur_ioport->io2.minimum)
+> +		release_region(spic_dev.cur_ioport->io2.minimum,
+> +				spic_dev.cur_ioport->io2.address_length);
+>  
+>  err_remove_input:
+>  	sony_laptop_remove_input();
