@@ -1,58 +1,113 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [patch 32/59] x86_64: get boot_cpu_id as early for k8_scan_nodes
-Date: Sun, 12 Aug 2007 12:16:35 +0200
-Message-ID: <200708121216.36110.ak@suse.de>
-References: <200708102200.l7AM019i011880@imap1.linux-foundation.org> <200708112242.04946.lenb@kernel.org>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: v2.6.23-rc2 locks up during boot (without acpi=off)
+Date: Sun, 12 Aug 2007 14:20:46 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0708121154150.31747@kivilampi-30.cs.helsinki.fi>
+References: <Pine.LNX.4.64.0708012131480.1479@kivilampi-30.cs.helsinki.fi>
+ <20070812012826.cfc9f5bb.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; boundary="-696243703-2095005193-1186909427=:31747"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:49962 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286AbXHLKSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Aug 2007 06:18:30 -0400
-In-Reply-To: <200708112242.04946.lenb@kernel.org>
-Content-Disposition: inline
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:36352 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757673AbXHLLUs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Aug 2007 07:20:48 -0400
+In-Reply-To: <20070812012826.cfc9f5bb.akpm@linux-foundation.org>
+Content-ID: <Pine.LNX.4.64.0708121412480.29120@kivilampi-30.cs.helsinki.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, yhlu.kernel@gmail.com, clameter@sgi.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, john stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
 
-On Sunday 12 August 2007 04:42, Len Brown wrote:
-> I hate to burst this bubble,
-> but we have evidence that the only reliable way to enumerate
-> processors on an ACPI systems is to parse the DSDT.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Yes I agree MADT parsing is in this case significantly simpler
-and likely safer and the MADT has to be already correct anyways.
+---696243703-2095005193-1186909427=:31747
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0708121412481.29120@kivilampi-30.cs.helsinki.fi>
 
-The later fixing up of tables in CPU detect was always not very reliable
-and constant maintenance issue.
+On Sun, 12 Aug 2007, Andrew Morton wrote:
 
+> On Sat, 11 Aug 2007 15:39:30 +0300 (EEST) "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+> 
+> > I noticed that v2.6.23-rc1 locks up during boot, same thing happens now 
+> > with the latest linus' tree (+net-2.6.24 and tcp-2.6 tree stuff on top 
+> > of it; in -rc1 test they weren't though). The exact location of hang
+> > varies a bit though. No OOPS, does not respond to sysrq or anything else 
+> > besides reset. Last known bootable one is something like 2.6.22-rc4 
+> > (I usually run 2.6.21.5 on this machine, haven't tried any 2.6.22 on
+> > this after those rcs). Problem seems to start after this line:
+> > 
+> > Time: acpi_pm clocksource has been installed.
+> > 
+> > ...the power led starts blinking (not periodic cycle but more or less 
+> > varying on-off cycle, never seen that led blink before at all, didn't know 
+> > that one can make it blink :-)) and the machine gets consideably slower 
+> > too. Never have it been able to complete booting all they way up to login 
+> > prompt before lock up.
+> > 
+> > Tried with acpi=off, boots just fine.
 >
-> No, this has nothing to do with the actual ACPI specification,
-> but "common industry practice".  ie. what the BIOS vendors are
-> shipping that works with Windows but confuses Linux.
->
-> This means that all the "parse the MADT early" stuff
-> is basically a waste of effort in the long term
-> where we will have to change when Linux enumerates
-> (and thus enables) the processors in the boot sequence.
+> It'd be great if you could run a git bisection search please.
 
-I think it's because LinuxBIOS which Y.H. is working on is unable/unwilling
-to supply any ACPI tables. So he prefers to kludge around it in the kernel
-to adapt to the ever changing hardware.
+...was already in process... :-)
 
-I already had this argument recently about k8topology.c. It's getting
-messier and messier and I would really like to retire it (it was originally
-only written for a very early BIOS without SRAT); the only
-reason not to is LinuxBIOS.
+Here is the result:
 
-Apparently one problem is that the Linux ACPI code is not very 
-friendly to partial tables (e.g. only SRAT); perhaps that is something
-that could be improved.
+git-bisect start
+# bad: [7d57c74238cdf570bca20b711b2c0b31a553c1e5] Linux 2.6.23-rc1
+git-bisect bad 7d57c74238cdf570bca20b711b2c0b31a553c1e5
+# good: [5b78c77092a64e253fe1fde9fbbe818b49330ffc] Linux 2.6.22-rc4
+git-bisect good 5b78c77092a64e253fe1fde9fbbe818b49330ffc
+# good: [0a6d3a2a3813e7b25267366cfbf9a4a4698dd1c2] uml: fix request->sector update
+git-bisect good 0a6d3a2a3813e7b25267366cfbf9a4a4698dd1c2
+# good: [29a68ee73ec6a5510cbf9d803cbf6190b615e276] Chinese translation of Documentation/stable_api_nonsense.txt
+git-bisect good 29a68ee73ec6a5510cbf9d803cbf6190b615e276
+# good: [7f46e6ca0183568a688e6bfe40e3ab9adb305d03] Merge branch 'linus' of master.kernel.org:/pub/scm/linux/kernel/git/perex/alsa
+git-bisect good 7f46e6ca0183568a688e6bfe40e3ab9adb305d03
+# good: [753811dc82a6a39554c34c13c996c3de9f4aa634] x86_64: arch/x86_64/kernel/aperture.c lower printk severity
+git-bisect good 753811dc82a6a39554c34c13c996c3de9f4aa634
+# bad: [dc79747019b43c28d1f50aad69b8039f8d8db301] Merge branch 'merge' of git://git.kernel.org/pub/scm/linux/kernel/git/paulus/powerpc
+git-bisect bad dc79747019b43c28d1f50aad69b8039f8d8db301
+# bad: [d6da5ce8cc71a13e2f3671361c5a8bd9b82e014d] Pull sony into release branch
+git-bisect bad d6da5ce8cc71a13e2f3671361c5a8bd9b82e014d
+# good: [b43035a5ec4deecd43019728ab9347df82dd121f] Pull sbs into release branch
+git-bisect good b43035a5ec4deecd43019728ab9347df82dd121f
+# good: [e8b495fe09bc793ae26774e7b2667f7f658d56e2] Pull dock-bay into release branch
+git-bisect good e8b495fe09bc793ae26774e7b2667f7f658d56e2
+# bad: [8b8eb7d8cfc6cd95ed00cd58754e8493322505bd] ACPI: update ACPI proc I/F removal schedule
+git-bisect bad 8b8eb7d8cfc6cd95ed00cd58754e8493322505bd
+# good: [33ce2033433195ccc1fbad00d26ad854b2ab68d0] ACPI: suspend: delete toshiba S1 quirk
+git-bisect good 33ce2033433195ccc1fbad00d26ad854b2ab68d0
+# bad: [4ebf83c8cf89ab13bc23e46b0fcb6178ca23b43c] ACPI: fix empty macros found by -Wextra
+git-bisect bad 4ebf83c8cf89ab13bc23e46b0fcb6178ca23b43c
+# bad: [0dc070bb0242481a6100c95e5deaa07b267399a8] ACPI: drivers/acpi/pci_link.c: lower printk severity
+git-bisect bad 0dc070bb0242481a6100c95e5deaa07b267399a8
 
-I skipped these hacks for now because I'm quite sceptical of them.
+...didn't bother to go any further as the other one just deals with printk 
+string... So this is the main suspect:
 
--Andi
+commit 18eab8550397f1f3d4b8b2c5257c88dae25d58ed
+Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Fri Jun 15 19:37:00 2007 -0400
+
+    ACPI: Enable C3 even when PM2_control is zero
+    
+    On systems that do not have pm2_control_block, we cannot really use
+    ARB_DISABLE before C3. We used to disable C3 totally on such systems.
+    
+    To be compatible with Windows, we need to enable C3 on such systems now.
+    We just skip ARB_DISABLE step before entering the C3-state and assume
+    hardware is handling things correctly. Also, ACPI spec is not clear
+    about pm2_control is _needed_ for C3 or not.
+    
+    We have atleast one system that need this to enable C3.
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+
+
+-- 
+ i.
+---696243703-2095005193-1186909427=:31747--
