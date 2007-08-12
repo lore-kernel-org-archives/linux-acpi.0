@@ -1,90 +1,358 @@
 From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 2/3] sony-laptop: call sonypi_compat_init earlier
-Date: Sun, 12 Aug 2007 16:20:27 +0900
-Message-ID: <11869032282373-git-send-email-malattia@linux.it>
+Subject: [PATCH 3/3] sony-laptop: old Vaio models contain 2 IO port entries
+Date: Sun, 12 Aug 2007 16:20:28 +0900
+Message-ID: <1186903229276-git-send-email-malattia@linux.it>
 References: <11869032283795-git-send-email-malattia@linux.it>
  <11869032283577-git-send-email-malattia@linux.it>
+ <11869032282373-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:36174 "EHLO
-	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747AbXHLHUp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Aug 2007 03:20:45 -0400
-In-Reply-To: <11869032283577-git-send-email-malattia@linux.it>
+Received: from mtoichi13.ns.itscom.net ([219.110.2.183]:50689 "EHLO
+	mtoichi13.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019AbXHLHUu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Aug 2007 03:20:50 -0400
+In-Reply-To: <11869032282373-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Mattia Dongili <malattia@linux.it>
 
-sonypi_compat uses a kfifo that needs to be present before _SRS is
-called to be able to cope with the IRQs triggered when setting
-resources.
+Make the driver aware of this case and manage the existence of a
+second separate IO port.
 
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/misc/sony-laptop.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/misc/sony-laptop.c |  204 ++++++++++++++++++++++++++++++++------------
+ 1 files changed, 148 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 7e621c6..e4d8f73 100644
+index e4d8f73..5139af4 100644
 --- a/drivers/misc/sony-laptop.c
 +++ b/drivers/misc/sony-laptop.c
-@@ -2305,8 +2305,6 @@ static int sony_pic_remove(struct acpi_device *device, int type)
- 	struct sony_pic_ioport *io, *tmp_io;
- 	struct sony_pic_irq *irq, *tmp_irq;
+@@ -1161,7 +1161,8 @@ static struct acpi_driver sony_nc_driver = {
+ #define SONYPI_TYPE3_OFFSET	0x12
  
--	sonypi_compat_exit();
--
- 	if (sony_pic_disable(device)) {
- 		printk(KERN_ERR DRV_PFX "Couldn't disable device.\n");
- 		return -ENXIO;
-@@ -2316,6 +2314,8 @@ static int sony_pic_remove(struct acpi_device *device, int type)
- 	release_region(spic_dev.cur_ioport->io.minimum,
- 			spic_dev.cur_ioport->io.address_length);
+ struct sony_pic_ioport {
+-	struct acpi_resource_io	io;
++	struct acpi_resource_io	io1;
++	struct acpi_resource_io	io2;
+ 	struct list_head	list;
+ };
  
-+	sonypi_compat_exit();
+@@ -1431,11 +1432,11 @@ static u8 sony_pic_call1(u8 dev)
+ {
+ 	u8 v1, v2;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum + 4);
+-	v2 = inb_p(spic_dev.cur_ioport->io.minimum);
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
++	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
+ 	return v2;
+ }
+@@ -1444,13 +1445,13 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
+ {
+ 	u8 v1;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(fn, spic_dev.cur_ioport->io.minimum);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
++	outb(fn, spic_dev.cur_ioport->io1.minimum);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call2: 0x%.4x\n", v1);
+ 	return v1;
+ }
+@@ -1459,13 +1460,13 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
+ {
+ 	u8 v1;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(fn, spic_dev.cur_ioport->io.minimum);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(v, spic_dev.cur_ioport->io.minimum);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(fn, spic_dev.cur_ioport->io1.minimum);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(v, spic_dev.cur_ioport->io1.minimum);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call3: 0x%.4x\n", v1);
+ 	return v1;
+ }
+@@ -2062,7 +2063,18 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 
+ 	switch (resource->type) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
++		{
++			/* start IO enumeration */
++			struct sony_pic_ioport *ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
++			if (!ioport)
++				return AE_ERROR;
 +
- 	sony_laptop_remove_input();
++			list_add(&ioport->list, &dev->ioports);
++			return AE_OK;
++		}
++
+ 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
++		/* end IO enumeration */
+ 		return AE_OK;
  
- 	/* pf attrs */
-@@ -2381,6 +2381,9 @@ static int sony_pic_add(struct acpi_device *device)
- 		goto err_free_resources;
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+@@ -2089,7 +2101,7 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 				if (!interrupt)
+ 					return AE_ERROR;
+ 
+-				list_add_tail(&interrupt->list, &dev->interrupts);
++				list_add(&interrupt->list, &dev->interrupts);
+ 				interrupt->irq.triggering = p->triggering;
+ 				interrupt->irq.polarity = p->polarity;
+ 				interrupt->irq.sharable = p->sharable;
+@@ -2101,18 +2113,27 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		{
+ 			struct acpi_resource_io *io = &resource->data.io;
+-			struct sony_pic_ioport *ioport = NULL;
++			struct sony_pic_ioport *ioport =
++				list_first_entry(&dev->ioports, struct sony_pic_ioport, list);
+ 			if (!io) {
+ 				dprintk("Blank IO resource\n");
+ 				return AE_OK;
+ 			}
+ 
+-			ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
+-			if (!ioport)
++			if (!ioport->io1.minimum) {
++				memcpy(&ioport->io1, io, sizeof(*io));
++				dprintk("IO1 at 0x%.4x (0x%.2x)\n", ioport->io1.minimum,
++						ioport->io1.address_length);
++			}
++			else if (!ioport->io2.minimum) {
++				memcpy(&ioport->io2, io, sizeof(*io));
++				dprintk("IO2 at 0x%.4x (0x%.2x)\n", ioport->io2.minimum,
++						ioport->io2.address_length);
++			}
++			else {
++				printk(KERN_ERR DRV_PFX "Unknown SPIC Type, more than 2 IO Ports\n");
+ 				return AE_ERROR;
+-
+-			list_add_tail(&ioport->list, &dev->ioports);
+-			memcpy(&ioport->io, io, sizeof(*io));
++			}
+ 			return AE_OK;
+ 		}
+ 	default:
+@@ -2187,10 +2208,22 @@ static int sony_pic_enable(struct acpi_device *device,
+ {
+ 	acpi_status status;
+ 	int result = 0;
++	/* Type 1 resource layout is:
++	 *    IO
++	 *    IO
++	 *    IRQNoFlags
++	 *    End
++	 *
++	 * Type 2 and 3 resource layout is:
++	 *    IO
++	 *    IRQNoFlags
++	 *    End
++	 */
+ 	struct {
+-		struct acpi_resource io_res;
+-		struct acpi_resource irq_res;
+-		struct acpi_resource end;
++		struct acpi_resource res1;
++		struct acpi_resource res2;
++		struct acpi_resource res3;
++		struct acpi_resource res4;
+ 	} *resource;
+ 	struct acpi_buffer buffer = { 0, NULL };
+ 
+@@ -2205,21 +2238,49 @@ static int sony_pic_enable(struct acpi_device *device,
+ 	buffer.length = sizeof(*resource) + 1;
+ 	buffer.pointer = resource;
+ 
+-	/* setup io resource */
+-	resource->io_res.type = ACPI_RESOURCE_TYPE_IO;
+-	resource->io_res.length = sizeof(struct acpi_resource);
+-	memcpy(&resource->io_res.data.io, &ioport->io,
+-			sizeof(struct acpi_resource_io));
++	/* setup Type 1 resources */
++	if (spic_dev.model == SONYPI_DEVICE_TYPE1) {
+ 
+-	/* setup irq resource */
+-	resource->irq_res.type = ACPI_RESOURCE_TYPE_IRQ;
+-	resource->irq_res.length = sizeof(struct acpi_resource);
+-	memcpy(&resource->irq_res.data.irq, &irq->irq,
+-			sizeof(struct acpi_resource_irq));
+-	/* we requested a shared irq */
+-	resource->irq_res.data.irq.sharable = ACPI_SHARED;
++		/* setup io resources */
++		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res1.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res1.data.io, &ioport->io1,
++				sizeof(struct acpi_resource_io));
+ 
+-	resource->end.type = ACPI_RESOURCE_TYPE_END_TAG;
++		resource->res2.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res2.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res2.data.io, &ioport->io2,
++				sizeof(struct acpi_resource_io));
++
++		/* setup irq resource */
++		resource->res3.type = ACPI_RESOURCE_TYPE_IRQ;
++		resource->res3.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res3.data.irq, &irq->irq,
++				sizeof(struct acpi_resource_irq));
++		/* we requested a shared irq */
++		resource->res3.data.irq.sharable = ACPI_SHARED;
++
++		resource->res4.type = ACPI_RESOURCE_TYPE_END_TAG;
++
++	}
++	/* setup Type 2/3 resources */
++	else {
++		/* setup io resource */
++		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res1.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res1.data.io, &ioport->io1,
++				sizeof(struct acpi_resource_io));
++
++		/* setup irq resource */
++		resource->res2.type = ACPI_RESOURCE_TYPE_IRQ;
++		resource->res2.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res2.data.irq, &irq->irq,
++				sizeof(struct acpi_resource_irq));
++		/* we requested a shared irq */
++		resource->res2.data.irq.sharable = ACPI_SHARED;
++
++		resource->res3.type = ACPI_RESOURCE_TYPE_END_TAG;
++	}
+ 
+ 	/* Attempt to set the resource */
+ 	dprintk("Evaluating _SRS\n");
+@@ -2227,7 +2288,7 @@ static int sony_pic_enable(struct acpi_device *device,
+ 
+ 	/* check for total failure */
+ 	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR DRV_PFX "Error evaluating _SRS");
++		printk(KERN_ERR DRV_PFX "Error evaluating _SRS\n");
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
+@@ -2256,11 +2317,14 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
+ 
+ 	struct sony_pic_dev *dev = (struct sony_pic_dev *) dev_id;
+ 
+-	ev = inb_p(dev->cur_ioport->io.minimum);
+-	data_mask = inb_p(dev->cur_ioport->io.minimum + dev->evport_offset);
++	ev = inb_p(dev->cur_ioport->io1.minimum);
++	if (dev->cur_ioport->io2.minimum)
++		data_mask = inb_p(dev->cur_ioport->io2.minimum);
++	else
++		data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->evport_offset);
+ 
+ 	dprintk("event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
+-			ev, data_mask, dev->cur_ioport->io.minimum, dev->evport_offset);
++			ev, data_mask, dev->cur_ioport->io1.minimum, dev->evport_offset);
+ 
+ 	if (ev == 0x00 || ev == 0xff)
+ 		return IRQ_HANDLED;
+@@ -2311,8 +2375,11 @@ static int sony_pic_remove(struct acpi_device *device, int type)
  	}
  
-+	if (sonypi_compat_init())
-+		goto err_remove_input;
-+
+ 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
+-	release_region(spic_dev.cur_ioport->io.minimum,
+-			spic_dev.cur_ioport->io.address_length);
++	release_region(spic_dev.cur_ioport->io1.minimum,
++			spic_dev.cur_ioport->io1.address_length);
++	if (spic_dev.cur_ioport->io2.minimum)
++		release_region(spic_dev.cur_ioport->io2.minimum,
++				spic_dev.cur_ioport->io2.address_length);
+ 
+ 	sonypi_compat_exit();
+ 
+@@ -2385,14 +2452,36 @@ static int sony_pic_add(struct acpi_device *device)
+ 		goto err_remove_input;
+ 
  	/* request io port */
- 	list_for_each_entry(io, &spic_dev.ioports, list) {
- 		if (request_region(io->io.minimum, io->io.address_length,
-@@ -2395,7 +2398,7 @@ static int sony_pic_add(struct acpi_device *device)
+-	list_for_each_entry(io, &spic_dev.ioports, list) {
+-		if (request_region(io->io.minimum, io->io.address_length,
++	list_for_each_entry_reverse(io, &spic_dev.ioports, list) {
++		if (request_region(io->io1.minimum, io->io1.address_length,
+ 					"Sony Programable I/O Device")) {
+-			dprintk("I/O port: 0x%.4x (0x%.4x) + 0x%.2x\n",
+-					io->io.minimum, io->io.maximum,
+-					io->io.address_length);
+-			spic_dev.cur_ioport = io;
+-			break;
++			dprintk("I/O port1: 0x%.4x (0x%.4x) + 0x%.2x\n",
++					io->io1.minimum, io->io1.maximum,
++					io->io1.address_length);
++			/* Type 1 have 2 ioports */
++			if (io->io2.minimum) {
++				if (request_region(io->io2.minimum,
++						io->io2.address_length,
++						"Sony Programable I/O Device")) {
++					dprintk("I/O port2: 0x%.4x (0x%.4x) + 0x%.2x\n",
++							io->io2.minimum, io->io2.maximum,
++							io->io2.address_length);
++					spic_dev.cur_ioport = io;
++					break;
++				}
++				else {
++					dprintk("Unable to get I/O port2: "
++							"0x%.4x (0x%.4x) + 0x%.2x\n",
++							io->io2.minimum, io->io2.maximum,
++							io->io2.address_length);
++					release_region(io->io1.minimum,
++							io->io1.address_length);
++				}
++			}
++			else {
++				spic_dev.cur_ioport = io;
++				break;
++			}
+ 		}
+ 	}
  	if (!spic_dev.cur_ioport) {
- 		printk(KERN_ERR DRV_PFX "Failed to request_region.\n");
- 		result = -ENODEV;
--		goto err_remove_input;
-+		goto err_remove_compat;
+@@ -2402,7 +2491,7 @@ static int sony_pic_add(struct acpi_device *device)
  	}
  
  	/* request IRQ */
-@@ -2435,9 +2438,6 @@ static int sony_pic_add(struct acpi_device *device)
- 	if (result)
- 		goto err_remove_pf;
+-	list_for_each_entry(irq, &spic_dev.interrupts, list) {
++	list_for_each_entry_reverse(irq, &spic_dev.interrupts, list) {
+ 		if (!request_irq(irq->irq.interrupts[0], sony_pic_irq,
+ 					IRQF_SHARED, "sony-laptop", &spic_dev)) {
+ 			dprintk("IRQ: %d - triggering: %d - "
+@@ -2450,8 +2539,11 @@ err_free_irq:
+ 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
  
--	if (sonypi_compat_init())
--		goto err_remove_pf;
--
- 	return 0;
+ err_release_region:
+-	release_region(spic_dev.cur_ioport->io.minimum,
+-			spic_dev.cur_ioport->io.address_length);
++	release_region(spic_dev.cur_ioport->io1.minimum,
++			spic_dev.cur_ioport->io1.address_length);
++	if (spic_dev.cur_ioport->io2.minimum)
++		release_region(spic_dev.cur_ioport->io2.minimum,
++				spic_dev.cur_ioport->io2.address_length);
  
- err_remove_pf:
-@@ -2453,6 +2453,9 @@ err_release_region:
- 	release_region(spic_dev.cur_ioport->io.minimum,
- 			spic_dev.cur_ioport->io.address_length);
- 
-+err_remove_compat:
-+	sonypi_compat_exit();
-+
- err_remove_input:
- 	sony_laptop_remove_input();
- 
+ err_remove_compat:
+ 	sonypi_compat_exit();
 -- 
 1.5.2.4
 
