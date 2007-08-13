@@ -1,71 +1,57 @@
-From: Christian Leber <christian@leber.de>
-Subject: Re: beeping patch for debugging acpi sleep
-Date: Sun, 12 Aug 2007 23:37:44 +0200
-Message-ID: <20070812213743.GA21199@core>
-References: <20070518213701.GA810@core> <20070520200142.GB5235@ucw.cz> <20070602182014.GB29546@core> <20070609130817.GI27793@elf.ucw.cz> <20070616194634.GA15953@core> <20070624204629.GA28049@core> <20070628140815.GA5339@ucw.cz>
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: Re: [patch 32/59] x86_64: get boot_cpu_id as early for k8_scan_nodes
+Date: Sun, 12 Aug 2007 22:40:27 -0700
+Message-ID: <86802c440708122240l4bd7ea69yc477aec2273755c4@mail.gmail.com>
+References: <200708102200.l7AM019i011880@imap1.linux-foundation.org>
+	 <200708112242.04946.lenb@kernel.org> <200708121216.36110.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ipx20189.ipxserver.de ([80.190.249.56]:3748 "EHLO
-	ipx20189.ipxserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761607AbXHLWMu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Aug 2007 18:12:50 -0400
+Received: from rv-out-0910.google.com ([209.85.198.184]:15649 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383AbXHMFk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2007 01:40:27 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so1094562rvb
+        for <linux-acpi@vger.kernel.org>; Sun, 12 Aug 2007 22:40:27 -0700 (PDT)
+In-Reply-To: <200708121216.36110.ak@suse.de>
 Content-Disposition: inline
-In-Reply-To: <20070628140815.GA5339@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, clameter@sgi.com
 
-On Thu, Jun 28, 2007 at 02:08:15PM +0000, Pavel Machek wrote:
-> > > The results are a bit unclear, I took a 2.6.22-rc4 with beep.
-> > > Logged into KDE.
-> > > (hardware: Dell Latitude D810)
-> > > 
-> > > S = successfull resume
-> > > D = had to resume 2 times, that means when pressing the power button the
-> > > LED goes from blinking to on and after a few seconds it goes back to
-> > > blinking, but without a beep in between; after pressing the power button
-> > > a second time resume is successfull
-> > > F = resume failes, NO beep
-> > > 
-> > > -run 1: D D F
-> > > -run 2: D D D(some X garbadge) F
-> > > -run 3: S S S S S S F
-> > > -run 4: S S F
-> > > -run 5: D F
+On 8/12/07, Andi Kleen <ak@suse.de> wrote:
+> On Sunday 12 August 2007 04:42, Len Brown wrote:
+> I think it's because LinuxBIOS which Y.H. is working on is unable/unwilling
+> to supply any ACPI tables. So he prefers to kludge around it in the kernel
+> to adapt to the ever changing hardware.
+>
+> I already had this argument recently about k8topology.c. It's getting
+> messier and messier and I would really like to retire it (it was originally
+> only written for a very early BIOS without SRAT); the only
+> reason not to is LinuxBIOS.
+>
+> Apparently one problem is that the Linux ACPI code is not very
+> friendly to partial tables (e.g. only SRAT); perhaps that is something
+> that could be improved.
+>
+> I skipped these hacks for now because I'm quite sceptical of them.
 
-[..]
+maybe for intel x86_64, it is hard to make kernel with numa enabled
+with acpi=off.
+but for amd k8 based system (even for later ...), it is rather simple
+and clear to make numa enabled together bus enable... with acpi=off.
 
-> It may well be different problem :-(. 100KB diff and I'm not an acpi
-> expert :-(.
-> 
-> I just discovered I have problems with s2ram, too, but it looks like
-> usermodehelper is responsible.
+i don't think my patch has problem with intel platform.
 
-Now i think it is a userspace problem, more exactly something in KDE.
+I like to make the cluster (with two way above, with two ht chain) to
+work properly with acpi=off.
 
-I got a new laptop(a Dell D830) and
-discovered that suspend works with gnome and when i directly run /etc/acpi/sleep.sh.
-(with KDE running, from a xterm... but so somehow it can't interact with
-the KDE userspace stuff) (i have no remote idea what KDE is doing)
+also we can use that as good debug feature... it is good to verify
+system/hw/bios could work with kernel (acpi=off). So other os without
+acpi support or with broken acpi support still can work...
 
-So i tried sleep.sh also on my old laptop (D810) once again and it works
-reliable, well at least for 13 times.
+BTW: does any intel x86_64 system support numa/bus_numa?
 
-Directly afterwards i tried the suspend to ram button again and it
-failed again as stated above.
-
-
-Can someone else with suspend problems and KDE verify this?
-
-i filled a bug against KDE in ubuntu:
-https://bugs.launchpad.net/ubuntu/+source/kubuntu-meta/+bug/131855
-
-
-Christian Leber
-
--- 
-You are searching some interesting studies?
-http://www.ziti.uni-heidelberg.de/   :-)
-
+YH
