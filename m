@@ -1,53 +1,44 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [patch 32/59] x86_64: get boot_cpu_id as early for k8_scan_nodes
-Date: Mon, 13 Aug 2007 10:47:27 +0200
-Message-ID: <200708131047.27595.ak@suse.de>
-References: <200708102200.l7AM019i011880@imap1.linux-foundation.org> <200708121216.36110.ak@suse.de> <86802c440708122240l4bd7ea69yc477aec2273755c4@mail.gmail.com>
+From: Norbert Preining <preining@logic.at>
+Subject: regression from 2.6.23-rc2 to -rc3 BAT missing
+Date: Mon, 13 Aug 2007 11:43:54 +0200
+Message-ID: <20070813094354.GA4881@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:33140 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S942069AbXHMItj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Aug 2007 04:49:39 -0400
-In-Reply-To: <86802c440708122240l4bd7ea69yc477aec2273755c4@mail.gmail.com>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:40061 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966069AbXHMJn4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2007 05:43:56 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, clameter@sgi.com
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 13 August 2007 07:40, Yinghai Lu wrote:
+Hi all!
 
-> maybe for intel x86_64, it is hard to make kernel with numa enabled
-> with acpi=off.
+Starting with 2.6.23-rc3 the battery from my laptop (Acer TM3012) is
+missing for linux (but not physically):
 
-You would need to write an k8topology.c equivalent for that
-hardware. But fortunately it's not needed because they
-don't have any ACPI less bios.
+ACPI: AC Adapter [ACAD] (on-line)
+ACPI: Battery Slot [BAT1] (battery absent)
 
-> but for amd k8 based system (even for later ...), it is rather simple
-> and clear
+But it is definitely there and running, even when I unplug the AC power.
 
-Sorry I disagree. Most of your APIC patches are neither simple nor clear
-and they're all quite risky and likely to break other systems.
+Any patch I can use to change this?
 
-The big problem with k8topology.c is that it cannot do its work
-on its own,  but needs it to do partly doing CPU setup too. That 
-means it cannot just set up state once, but keeps state continually
-changing. That makes it quite messy. 
+Best wishes
 
-> also we can use that as good debug feature... it is good to verify
-> system/hw/bios could work with kernel (acpi=off). So other os without
-> acpi support or with broken acpi support still can work...
+Norbert
 
-Debug features are ok if they're simple and don't impact the code
-much, but that's not the case here.
-Also more and more systems don't work without ACPI for other
-reasons so it's not very useful. Also typically modern hardware
-doesn't have a mptable so you couldn't use more than one CPU.
-
--Andi (who sometimes feels LinuxBIOS is more a AntiLinuxBIOS if it
-requires such hacks) 
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+GLOSSOP (n.)
+A rouge blob of food. Glossops, which are generally streaming hot and
+highly adhesive invariably fall off your spoon and on to the surface
+of your host's highly polished antique-rosewood dining table. If this
+has not, or may not have, been noticed by the company present, swanage
+(q.v.) may be employed.
+			--- Douglas Adams, The Meaning of Liff
