@@ -1,32 +1,41 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 3/3] sony-laptop: old Vaio models contain 2 IO port
-	entries
-Date: Mon, 13 Aug 2007 21:10:42 +0900
-Message-ID: <20070813121042.GA15835@inferi.kami.home>
-References: <11869032283795-git-send-email-malattia@linux.it> <11869032283577-git-send-email-malattia@linux.it> <11869032282373-git-send-email-malattia@linux.it> <1186903229276-git-send-email-malattia@linux.it>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: regression from 2.6.23-rc2 to -rc3 BAT missing
+Date: Mon, 13 Aug 2007 14:17:01 +0200
+Message-ID: <20070813121701.GA25771@gamma.logic.tuwien.ac.at>
+References: <20070813094354.GA4881@gamma.logic.tuwien.ac.at> <46C02D52.40002@gmail.com> <20070813101009.GB4881@gamma.logic.tuwien.ac.at> <46C030CE.2000406@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:54191 "EHLO
-	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S944917AbXHMMK7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2007 08:10:59 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:34201 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968071AbXHMMRF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2007 08:17:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1186903229276-git-send-email-malattia@linux.it>
+In-Reply-To: <46C030CE.2000406@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Aug 12, 2007 at 04:20:28PM +0900, Mattia Dongili wrote:
-> Make the driver aware of this case and manage the existence of a
-> second separate IO port.
+On Mon, 13 Aug 2007, Alexey Starikovskiy wrote:
+> Please check if the attached patch helps.
 
-definitely too late for this now, sorry for the bad timing.
-Could you push it to acpi-test?
-would you want me to resentd two separate series?
+No, didn't help, same behaviour.
 
-cheers
--- 
-mattia
-:wq!
+Do you need dsdt or anything else?
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+NACTION (n.)
+The 'n' with which cheap advertising copywriters replace the word
+'and' (as in 'fish 'n' chips', 'mix 'n' match', 'assault 'n'
+battery'), in the mistaken belief that this is in some way chummy or
+endearing.
+			--- Douglas Adams, The Meaning of Liff
