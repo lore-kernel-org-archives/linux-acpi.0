@@ -1,28 +1,29 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Valdis.Kletnieks@vt.edu
 Subject: Re: Documentation - How to debug ACPI Problems
-Date: Tue, 14 Aug 2007 18:33:35 +0100
-Message-ID: <20070814183335.67ac0e29@the-village.bc.nu>
-References: <1181140008.28514.259.camel@queen.suse.de>
-	<9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
-	<1181579321.28514.304.camel@queen.suse.de>
-	<200708141140.02233.lenb@kernel.org>
+Date: Tue, 14 Aug 2007 14:03:03 -0400
+Message-ID: <26059.1187114583@turing-police.cc.vt.edu>
+References: <1181140008.28514.259.camel@queen.suse.de> <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com> <1181579321.28514.304.camel@queen.suse.de>
+            <200708141140.02233.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; boundary="==_Exmh_1187114583_21497P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:41350 "EHLO
-	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750888AbXHNR0w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 13:26:52 -0400
-In-Reply-To: <200708141140.02233.lenb@kernel.org>
+Received: from turing-police.cc.vt.edu ([128.173.14.107]:56722 "EHLO
+	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069AbXHNSDQ (ORCPT
+	<RFC822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 14:03:16 -0400
+In-Reply-To: Your message of "Tue, 14 Aug 2007 11:40:01 EDT."
+             <200708141140.02233.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: trenn@suse.de, "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Tue, 14 Aug 2007 11:40:01 -0400
-Len Brown <lenb@kernel.org> wrote:
+--==_Exmh_1187114583_21497P
+Content-Type: text/plain; charset=us-ascii
 
+On Tue, 14 Aug 2007 11:40:01 EDT, Len Brown said:
 > 
 > > +Thomas Renninger <trenn@suse.de>, 2007
 > > +Copyright (C) 2007 SUSE Linux GmbH
@@ -34,5 +35,33 @@ Len Brown <lenb@kernel.org> wrote:
 > 
 > can anybody offer guidance on this?
 
-Its under the GPL so I don't see a problem really. I'd do the same for
-Red Hat for new documents of substance I was adding to be honest.
+Well, if it's a GPL-friendly license on the document, the contributors should
+feel free to change it as needed - that's the point of the GPL.
+
+What it *does* make clear is that the doc was a "work for hire" under
+copyright law, and that if there's infringement, it isn't Thomas that's
+going to come looking for you, it's Suse Linux GmbH.
+> thanks,
+> -Len
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+
+
+--==_Exmh_1187114583_21497P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFGwe5XcC3lWbTT17ARAnmOAJ9oLC3aCZi8aN4sTybW+oqoVDgsvQCgrl+d
+WSmM1bkds86F58xIHMie9ZU=
+=pcy2
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1187114583_21497P--
