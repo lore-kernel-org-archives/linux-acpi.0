@@ -1,24 +1,29 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: Documentation - How to debug ACPI Problems
-Date: Tue, 14 Aug 2007 13:50:11 -0300
-Message-ID: <20070814165011.GB5325@khazad-dum.debian.net>
-References: <1181140008.28514.259.camel@queen.suse.de> <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com> <1181579321.28514.304.camel@queen.suse.de> <200708141140.02233.lenb@kernel.org>
+Date: Tue, 14 Aug 2007 18:33:35 +0100
+Message-ID: <20070814183335.67ac0e29@the-village.bc.nu>
+References: <1181140008.28514.259.camel@queen.suse.de>
+	<9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com>
+	<1181579321.28514.304.camel@queen.suse.de>
+	<200708141140.02233.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:58868 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763829AbXHNQuQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Aug 2007 12:50:16 -0400
-Content-Disposition: inline
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:41350 "EHLO
+	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750888AbXHNR0w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 13:26:52 -0400
 In-Reply-To: <200708141140.02233.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: trenn@suse.de, "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Tue, 14 Aug 2007, Len Brown wrote:
+On Tue, 14 Aug 2007 11:40:01 -0400
+Len Brown <lenb@kernel.org> wrote:
+
+> 
 > > +Thomas Renninger <trenn@suse.de>, 2007
 > > +Copyright (C) 2007 SUSE Linux GmbH
 > 
@@ -29,11 +34,5 @@ On Tue, 14 Aug 2007, Len Brown wrote:
 > 
 > can anybody offer guidance on this?
 
-For docs that specify a friendly license explicitly (GPL, BSD, etc), that
-should not be a problem.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Its under the GPL so I don't see a problem really. I'd do the same for
+Red Hat for new documents of substance I was adding to be honest.
