@@ -1,45 +1,32 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] [446/2many] MAINTAINERS - SONY VAIO CONTROL DEVICE
-	DRIVER
-Date: Tue, 14 Aug 2007 22:07:19 +0900
-Message-ID: <20070814130718.GA1612@inferi.kami.home>
-References: <46bffbdb.CiCc1bB4g9HMdx0f%joe@perches.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Documentation - How to debug ACPI Problems
+Date: Tue, 14 Aug 2007 11:25:02 -0400
+Message-ID: <200708141125.03133.lenb@kernel.org>
+References: <1181140008.28514.259.camel@queen.suse.de> <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com> <1181579321.28514.304.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:35257 "EHLO
-	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756864AbXHNNIE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 09:08:04 -0400
+Received: from hera.kernel.org ([140.211.167.34]:52238 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756254AbXHNPZW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Aug 2007 11:25:22 -0400
+In-Reply-To: <1181579321.28514.304.camel@queen.suse.de>
 Content-Disposition: inline
-In-Reply-To: <46bffbdb.CiCc1bB4g9HMdx0f%joe@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joe@perches.com
-Cc: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: trenn@suse.de
+Cc: "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Sun, Aug 12, 2007 at 11:36:11PM -0700, joe@perches.com wrote:
-> Add file pattern to MAINTAINER entry
+On Monday 11 June 2007 12:28, Thomas Renninger wrote:
+> Thanks a lot for all your input!
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
+> Here is an updated version in patch format.
+> Len, it would be great if you can also add this one to your test tree.
 
-Acked-by: Mattia Dongili <malattia@linux.it>
+Thomas,
+Thanks for doing this.
+I'll apply it, and then hack on it a bit.
 
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 6175c77..ea4d9d9 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4241,6 +4241,8 @@ M:	malattia@linux.it
->  L:	linux-acpi@vger.kernel.org
->  W:	http://www.linux.it/~malattia/wiki/index.php/Sony_drivers
->  S:	Maintained
-> +F:	drivers/char/sonypi.c
-> +F:	drivers/misc/sony-laptop.c
->  
->  SOUND
->  P:	Jaroslav Kysela
-> 
--- 
-mattia
-:wq!
+-Len
