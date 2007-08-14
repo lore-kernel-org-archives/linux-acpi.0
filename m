@@ -1,23 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] [28/2many] MAINTAINERS - ACPI VIDEO DRIVER
-Date: Tue, 14 Aug 2007 01:16:29 -0400
-Message-ID: <200708140116.30199.lenb@kernel.org>
-References: <46bff898.QBRdcCdpCAEm8W02%joe@perches.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCH] [28/2many] MAINTAINERS - ACPI VIDEO DRIVER
+Date: Tue, 14 Aug 2007 13:21:07 +0800
+Message-ID: <823A93EED437D048963A3697DB0E35DE97EC9A@pdsmsx414.ccr.corp.intel.com>
+References: <46bff898.QBRdcCdpCAEm8W02%joe@perches.com> <200708140116.30199.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54547 "EHLO hera.kernel.org"
+Received: from mga09.intel.com ([134.134.136.24]:64713 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S940845AbXHNFQi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:16:38 -0400
-In-Reply-To: <46bff898.QBRdcCdpCAEm8W02%joe@perches.com>
-Content-Disposition: inline
+	id S933080AbXHNFVN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 01:21:13 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200708140116.30199.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joe@perches.com, rui.zhang@intel.com
-Cc: torvalds@linux-foundation.org, luming.yu@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Len Brown <lenb@kernel.org>, joe@perches.com
+Cc: torvalds@linux-foundation.org, "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+
+Hi, Len,
+
+I can take charge of the ACPI video driver.
+
+Thanks,
+Rui
+
+-----Original Message-----
+From: Len Brown [mailto:lenb@kernel.org] 
+Sent: Tuesday, August 14, 2007 1:16 PM
+To: joe@perches.com; Zhang, Rui
+Cc: torvalds@linux-foundation.org; Yu, Luming;
+linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
+akpm@linux-foundation.org
+Subject: Re: [PATCH] [28/2many] MAINTAINERS - ACPI VIDEO DRIVER
 
 On Monday 13 August 2007 02:22, joe@perches.com wrote:
 > Add file pattern to MAINTAINER entry
@@ -50,7 +66,8 @@ thanks,
 >  ADM1025 HARDWARE MONITOR DRIVER
 >  P:	Jean Delvare
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> To unsubscribe from this list: send the line "unsubscribe
+linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > Please read the FAQ at  http://www.tux.org/lkml/
