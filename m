@@ -1,67 +1,40 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: Documentation - How to debug ACPI Problems
-Date: Tue, 14 Aug 2007 14:03:03 -0400
-Message-ID: <26059.1187114583@turing-police.cc.vt.edu>
-References: <1181140008.28514.259.camel@queen.suse.de> <9a8748490706060759s5d8c43bdoc34334fcf56ee96@mail.gmail.com> <1181579321.28514.304.camel@queen.suse.de>
-            <200708141140.02233.lenb@kernel.org>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: [2.6 patch] make drivers/acpi/scan.c:create_modalias() static
+Date: Tue, 14 Aug 2007 23:22:35 +0200
+Message-ID: <20070814212235.GY18945@stusta.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1187114583_21497P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:56722 "EHLO
-	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069AbXHNSDQ (ORCPT
-	<RFC822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 14:03:16 -0400
-In-Reply-To: Your message of "Tue, 14 Aug 2007 11:40:01 EDT."
-             <200708141140.02233.lenb@kernel.org>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:38404 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756305AbXHNVWs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 17:22:48 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: trenn@suse.de, "Brown, Len" <len.brown@intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jesper Juhl <jesper.juhl@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---==_Exmh_1187114583_21497P
-Content-Type: text/plain; charset=us-ascii
+This patch makes the needlessly global create_modalias() static.
 
-On Tue, 14 Aug 2007 11:40:01 EDT, Len Brown said:
-> 
-> > +Thomas Renninger <trenn@suse.de>, 2007
-> > +Copyright (C) 2007 SUSE Linux GmbH
-> 
-> While it seems to be generally customary to identify the authors of Documentation
-> files, it doesn't seem to be customary for them to assert a copyright.
-> Is this really necessary?  My concern is that it could discourage contributors
-> for user or changing the text in any way they see fit.
-> 
-> can anybody offer guidance on this?
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-Well, if it's a GPL-friendly license on the document, the contributors should
-feel free to change it as needed - that's the point of the GPL.
+---
+08005ed26370f24624bc7d88ced619318f4c0f56 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index be74347..64620d6 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -35,8 +35,9 @@ struct acpi_device_bus_id{
+  * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
+  * char *modalias: "acpi:IBM0001:ACPI0001"
+ */
+-int create_modalias(struct acpi_device *acpi_dev, char *modalias, int size){
+-
++static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
++			   int size)
++{
+ 	int len;
+ 
+ 	if (!acpi_dev->flags.hardware_id)
 
-What it *does* make clear is that the doc was a "work for hire" under
-copyright law, and that if there's infringement, it isn't Thomas that's
-going to come looking for you, it's Suse Linux GmbH.
-> thanks,
-> -Len
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
-
---==_Exmh_1187114583_21497P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFGwe5XcC3lWbTT17ARAnmOAJ9oLC3aCZi8aN4sTybW+oqoVDgsvQCgrl+d
-WSmM1bkds86F58xIHMie9ZU=
-=pcy2
------END PGP SIGNATURE-----
-
---==_Exmh_1187114583_21497P--
