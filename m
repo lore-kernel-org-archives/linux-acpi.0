@@ -1,182 +1,161 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] (for review and testing first) Implement dynamic
- allocated array for pnp port/io resources
-Date: Wed, 15 Aug 2007 20:43:44 +0200
-Message-ID: <20070815204344.42658d2b@hyperion.delvare>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] (for review and testing first) Implement dynamic allocated array for pnp port/io resources
+Date: Wed, 15 Aug 2007 16:01:15 -0600
+Message-ID: <200708151601.16136.bjorn.helgaas@hp.com>
 References: <1187186605.8780.669.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S935428AbXHOSn0@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel6.hp.com ([156.153.255.205]:39584 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755591AbXHOWDG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2007 18:03:06 -0400
 In-Reply-To: <1187186605.8780.669.camel@queen.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, abelay@novell.com, Andi Kleen <ak@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, abelay@novell.com, Andi Kleen <ak@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Thomas,
+On Wednesday 15 August 2007 08:03:24 am Thomas Renninger wrote:
+> This is not a real feature, more a fix.
+> Without, PNP IO ports might not get considered. This mainly affects ACPI
+> system board devices with HID PNP0C02 (at least I saw this on my and
+> some other machines, but it may affect more...).
 
-On Wed, 15 Aug 2007 16:03:24 +0200, Thomas Renninger wrote:
+I think this is definitely the way we should go and a great start.
+Thanks a lot for working on this.
+
+> ...
+> I expect this is a bit late for 2.6.23?
+
+I think it is too late for 2.6.23, since the problem is not a
+regression from 2.6.22.
+
+> We have several options here for 2.6.23:
+>   - leave it as it is
+
+I certainly agree that your patch is something we need to do, but
+I vote for leaving it as-is for 2.6.23, because I can't think of a
+specific problem it would fix.
+
+> ...
+>   - Add Bjorn's "Increase statically used IRQ ports from 2 to 4" should
+>     be added anyway IMO. This one is really safe, it's here;
+>     http://lkml.org/lkml/2007/7/17/335
+
+Increasing IRQs is safe, but of less value than the I/O ports.  AFAIK,
+nobody needs more than 2 IRQs at the moment.  I want to increase it so
+I can convert hpet from an ACPI driver to a PNP driver, but there's no
+hurry for that.
+
+> Some parts where a reviewer should have a closer eye on:
+>   - the border limits (got a '>' mixed up with a '>=' or similar)
+>   - I removed or better let pnp_init_resource_table invoke
+>     pnp_clean_resource_table as the only difference between those was 
+>     the additional NULL assignment to the name. Can this really be
+>     removed or was this in any way useful :)
+
+pnp_init_resource_table() used to set resource.name = NULL.  I don't
+see where that will happen now, and since you use kmalloc/krealloc,
+I think we should completely initialize the allocated space.
+
+>   - locking: Andi made me a bit nervous about locking. As I didn't
+>     modify much in the design/structure of how it currently is done,
+>     I don't expect simultaneous access to the port resource data
+>     can happen and additional locking should not be needed,
+>     but I am not sure about it.
+
+It's a good thing to think about, but I agree that I don't think you
+introduced any additional problems here.
+
+>   - Only field tested with pnpacpi
+
+You removed PNP_MAX_PORT, but ISAPNP still needs it.  Unlike PNPBIOS and
+ACPI, the ISAPNP spec does limit the number of resources.  So you might
+want to add an ISAPNP_MAX_PORT or similar when you fix up ISAPNP.
+
 > I saw recent Lindentation patches for pnp. I expect they came in after
 > -rc2?
-> This one is against 2.6.23-rc2 and might not patch with latest git
-> repository changes then.
 
-It applied fine on top of 2.6.23-rc3-git1.
+You patch applies fine against current upstream, which includes the
+Lindent patches you saw (I posted a couple more today, which cause
+one conflict with your patch).  But your patch adds a few more Lindent
+issues :-)  Extra blank lines, spaces between function name and open
+paren, lack of space between function arguments, etc.
 
-I've tested your patch, here are the logs I get if you're interested:
 
-Linux Plug and Play Support v0.97 (c) Adam Belay
-pnp: PnP ACPI init
-ACPI: bus type pnp registered
-pnp: ACPI device : hid PNP0C01
-pnp: ACPI device : hid PNP0A03
-pnp: Adding resource: 0xcf8
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+> +static void pnp_init_port (struct pnp_resource_table *res, int idx)
+> +{
+> +	if (idx < res->allocated_ports) {
+> +		(res->port_resource + idx)->start = 0;
+> +		(res->port_resource + idx)->end = 0;
+> +		(res->port_resource + idx)->flags =
+> +			IORESOURCE_IO | IORESOURCE_AUTO | IORESOURCE_UNSET;
+> +	}
 
-pnp: ACPI device : hid PNP0C02
-pnp: Adding resource: 0x4000
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+How about:
 
-pnp: Adding resource: 0x5000
-pnp: pnpacpi_parse_allocated_ioresource: We want port 1 - We have: 8 free ports
-pnp: ACPI device : hid PNP0C02
-pnp: Adding resource: 0x10
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+  static void pnp_init_port(struct resource *res)
+  {
+	res->start = 0;
+	...
+  }
 
-pnp: Adding resource: 0x22
-pnp: pnpacpi_parse_allocated_ioresource: We want port 1 - We have: 8 free ports
-pnp: Adding resource: 0x44
-pnp: pnpacpi_parse_allocated_ioresource: We want port 2 - We have: 8 free ports
-pnp: Adding resource: 0x62
-pnp: pnpacpi_parse_allocated_ioresource: We want port 3 - We have: 8 free ports
-pnp: Adding resource: 0x65
-pnp: pnpacpi_parse_allocated_ioresource: We want port 4 - We have: 8 free ports
-pnp: Adding resource: 0x74
-pnp: pnpacpi_parse_allocated_ioresource: We want port 5 - We have: 8 free ports
-pnp: Adding resource: 0x91
-pnp: pnpacpi_parse_allocated_ioresource: We want port 6 - We have: 8 free ports
-pnp: Adding resource: 0xa2
-pnp: pnpacpi_parse_allocated_ioresource: We want port 7 - We have: 8 free ports
-pnp: Adding resource: 0xe0
-pnp: pnpacpi_parse_allocated_ioresource: We want port 8 - We have: 8 free ports
-pnp: New ports reallocated, we now have: 16
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+and adjusting the caller?  Then you don't have to check against
+allocated_ports both here and in the caller.  Or maybe just fold
+into the only call site.
 
-pnp: Adding resource: 0x4d0
-pnp: pnpacpi_parse_allocated_ioresource: We want port 9 - We have: 16 free ports
-pnp: Adding resource: 0x800
-pnp: pnpacpi_parse_allocated_ioresource: We want port 10 - We have: 16 free ports
-pnp: Adding resource: 0x290
-pnp: pnpacpi_parse_allocated_ioresource: We want port 11 - We have: 16 free ports
-pnp: ACPI device : hid PNP0200
-pnp: Adding resource: 0x0
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+> +			pnp_err ("%s: Cannot allocate port", __FUNCTION__);
+> +			/* pretend we were successful so at least the manager won't try again */
+> +			return 1;
 
-pnp: Adding resource: 0x80
-pnp: pnpacpi_parse_allocated_ioresource: We want port 1 - We have: 8 free ports
-pnp: Adding resource: 0x94
-pnp: pnpacpi_parse_allocated_ioresource: We want port 2 - We have: 8 free ports
-pnp: Adding resource: 0xc0
-pnp: pnpacpi_parse_allocated_ioresource: We want port 3 - We have: 8 free ports
-pnp: ACPI device : hid PNP0B00
-pnp: Adding resource: 0x70
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+When this fails, it would be nice if the error message included the
+associated device.
 
-pnp: ACPI device : hid PNP0800
-pnp: Adding resource: 0x61
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+>  	/* check if this resource has been manually set, if so skip */
+> -	if (!(dev->res.port_resource[idx].flags & IORESOURCE_AUTO))
+> +	if (!(pnp_port_flags(dev,idx) & IORESOURCE_AUTO))
+>  		return 1;
+>  
+> -	start = &dev->res.port_resource[idx].start;
+> -	end = &dev->res.port_resource[idx].end;
+> -	flags = &dev->res.port_resource[idx].flags;
+> +	start = &pnp_port_start(dev,idx);
+> +	end = &pnp_port_end(dev,idx);
+> +	flags = &pnp_port_flags(dev,idx);
 
-pnp: ACPI device : hid PNP0C04
-pnp: Adding resource: 0xf0
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+I like these changes, but they're really independent of the dynamic
+allocation, aren't they?  Maybe a separate patch.
 
-pnp: ACPI device : hid PNP0501
-pnp: Adding resource: 0x3f8
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+> +#define pnp_port_res_pointer(dev,bar)	((dev->res.allocated_ports > bar) \
+> +	? (dev->res.port_resource + bar) : NULL)
 
-pnp: ACPI device : hid PNP0400
-pnp: Adding resource: 0x378
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+Maybe just "pnp_port_resource(dev,bar)"?
 
-pnp: ACPI device : hid PNP0F13
-pnp: ACPI device : hid PNP0303
-pnp: Adding resource: 0x60
-pnp: pnpacpi_parse_allocated_ioresource: We want port 0 - We have: 0 free ports
-pnp: pnp_port_alloc: Allocated ports: SUCCESS
+> +#define pnp_port_start(dev,bar)		((dev->res.port_resource + bar)->start)
 
-pnp: Adding resource: 0x64
-pnp: pnpacpi_parse_allocated_ioresource: We want port 1 - We have: 8 free ports
-pnp: PnP ACPI: found 12 devices
-ACPI: ACPI bus type pnp unregistered
+Is it safe to remove the parentheses around "dev" and "bar"?  My
+personal preference is for array syntax, e.g.,
+  dev->res.port_resource[bar]->start
 
-pnp: the driver 'system' has been registered
-pnp: match found with the PnP device '00:00' and the driver 'system'
-pnp: match found with the PnP device '00:02' and the driver 'system'
-pnp: 00:02: ioport range 0x4000-0x407f has been reserved
-pnp: 00:02: ioport range 0x5000-0x500f has been reserved
-pnp: match found with the PnP device '00:03' and the driver 'system'
-pnp: 00:03: ioport range 0x4d0-0x4d1 has been reserved
-pnp: 00:03: ioport range 0x800-0x805 has been reserved
-pnp: 00:03: ioport range 0x290-0x297 has been reserved
+> +static inline pnp_port_alloc(struct pnp_resource_table *res_table) { return -ENODEV }
 
-pnp: the driver 'serial' has been registered
-pnp: match found with the PnP device '00:08' and the driver 'serial'
-00:08: ttyS0 at I/O 0x3f8 (irq = 0) is a 16550A
+Missing return type.
 
-pnp: the driver 'i8042 kbd' has been registered
-pnp: match found with the PnP device '00:0b' and the driver 'i8042 kbd'
-pnp: the driver 'i8042 aux' has been registered
-pnp: match found with the PnP device '00:0a' and the driver 'i8042 aux'
-PNP: PS/2 Controller [PNP0303:PS2K,PNP0f13:PS2M] at 0x60,0x64 irq 0,0
-PNP: PS/2 controller doesn't have KBD irq; using default 1
-PNP: PS/2 controller doesn't have AUX irq; using default 12
-serio: i8042 KBD port at 0x60,0x64 irq 1
-serio: i8042 AUX port at 0x60,0x64 irq 12
-mice: PS/2 mouse device common for all mice
-input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input0
-input: ImPS/2 Logitech Wheel Mouse as /devices/platform/i8042/serio1/input/input1
+> --- linux-2.6.23-rc2.orig/drivers/pnp/pnpbios/rsparser.c
+> +++ linux-2.6.23-rc2/drivers/pnp/pnpbios/rsparser.c
+> @@ -97,18 +97,31 @@ static void pnpbios_parse_allocated_iore
+>  {
+>  	int i = 0;
+> ...
 
-pnp: the driver 'parport_pc' has been registered
-pnp: match found with the PnP device '00:09' and the driver 'parport_pc'
-parport_pc 00:09: reported by Plug and Play ACPI
-parport0: PC-style at 0x378 [PCSPP,TRISTATE,EPP]
-lp0: using parport0 (polling).
+These functions (pnpbios_parse_allocated_ioresource() and
+pnpacpi_parse_allocated_ioresource()) are almost identical between
+PNPBIOS and PNPACPI.  What would it take to factor out this
+duplicated code into a pnp_add_port() sort of function?  Maybe
+could be a separate patch.
 
-And here's the diff of /proc/ioports after applying your patch:
 
---- /tmp/ioports.before	2007-08-15 20:08:17.000000000 +0200
-+++ /tmp/ioports.after	2007-08-15 20:36:57.000000000 +0200
-@@ -13,7 +13,8 @@
- 01f0-01f7 : 0000:00:0f.0
-   01f0-01f7 : ide0
- 0290-0297 : f71805f
--  0295-0296 : f71805f
-+  0290-0297 : pnp 00:03
-+    0295-0296 : f71805f
- 0376-0376 : 0000:00:0f.0
-   0376-0376 : ide1
- 0378-037a : parport0
-@@ -21,6 +22,8 @@
- 03f6-03f6 : 0000:00:0f.0
-   03f6-03f6 : ide0
- 03f8-03ff : serial
-+04d0-04d1 : pnp 00:03
-+0800-0805 : pnp 00:03
- 0cf8-0cff : PCI conf1
- 4000-407f : pnp 00:02
-   4000-4003 : ACPI PM1a_EVT_BLK
-
-Let me know if you want me to test anything in particular.
-
--- 
-Jean Delvare
