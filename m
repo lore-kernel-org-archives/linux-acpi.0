@@ -1,46 +1,86 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI SBS redesign
-Date: Wed, 15 Aug 2007 00:56:47 -0400
-Message-ID: <200708150056.47419.lenb@kernel.org>
-References: <46BF7422.6090107@suse.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC PATCH] report acpi video hot key event through inputdevice
+Date: Wed, 15 Aug 2007 16:05:56 +0800
+Message-ID: <1187165156.5404.91.camel@rzhang-asus.sh.intel.com>
+References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
+	 <20070730005050.GB27398@srcf.ucam.org>
+	 <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com>
+	 <1186555034.19883.19.camel@rzhang-asus.sh.intel.com>
+	 <1187092705.2800.9.camel@hughsie-laptop>
+	 <1187088231.5404.45.camel@rzhang-asus.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39621 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:17667 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880AbXHOE4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2007 00:56:53 -0400
-In-Reply-To: <46BF7422.6090107@suse.de>
-Content-Disposition: inline
+	id S1756459AbXHOIEW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2007 04:04:22 -0400
+In-Reply-To: <1187088231.5404.45.camel@rzhang-asus.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-On Sunday 12 August 2007 16:57, Alexey Starikovskiy wrote:
-> Hi Len,
+On Tue, 2007-08-14 at 18:43 +0800, Zhang Rui wrote:
+> On Tue, 2007-08-14 at 19:58 +0800, Richard Hughes wrote:
+> > 
+> > On Wed, 2007-08-08 at 14:37 +0800, Zhang Rui wrote:
+> > > On Mon, 2007-07-30 at 12:47 +0100, Richard Hughes wrote:
+> > > > On 30/07/07, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > > > > On Sun, Jul 29, 2007 at 12:40:16PM -0400, Luming Yu wrote:
+> > > > > >       switch (event) {
+> > > > > >       case ACPI_VIDEO_NOTIFY_SWITCH:  /* User requested a
+> > switch,
+> > > > > >                                        * most likely via
+> > hotkey. */
+> > > > > >               acpi_bus_generate_event(device, event, 0);
+> > > > > > +             keycode = KEY_UNKNOWN;
+> > > > >
+> > > > > KEY_SWITCHVIDEOMODE ?
+> > > >
+> > > > Yes, please use this. This is what other ACPI drivers are using.
+> > > >
+> > > > > What's wrong with the existing KEY_BRIGHTNESSDOWN and
+> > KEY_BRIGHTNESSUP?
+> > > >
+> > > > Agree, this matches other drivers like thinkpad_acpi and
+> > sony-laptop.
+> > > >
+> > > > > > +#define KEY_BRIGHTNESS_ZERO  0x1fd
+> > > > > > +#define KEY_BRIGHTNESS_OFF   0x1fe
+> > > > >
+> > > > > You almost certainly want to go via linux-input if you're adding
+> > new
+> > > > > keycodes.
+> > > >
+> > > > Yup - do we have to distinguish between zero and off? Or is off
+> > > > "switch panel backlight off" and zero is "switch to lowest
+> > brightness
+> > > > level"?
+> > > >
+> > > Hmm, I think they are slightly different.
+> > > IMO, "zero" equals _BCM(0), it means to turn off the backlight, but
+> > we
+> > > may still see the screen if there is a ambient light.
+> > > "off" means turn off the output device, i.e. set to D1/D2/D3 state.
+> > 
+> > Sure, so they are different states, but to a user they are both
+> > effectively the same "screen is off". Is there any use case to
+> I'm not sure of this.
+> But in some cases, I do can still see the screen although it's very dark
+> after I "echo 0 >/sys/class/backlight/acpi_video0/brightness".
+> IMO, this is because the ambient light is on.
 > 
-> Here is the patchset to re-design SBS subsystem.
-> It is a lot simpler, uses notifies from ec, rather then timeouts for
-> operation
-> Finally, notifies on AC removal and alarms are working
-> Last patch adds support for sysfs.
-> SBS was always marked EXPERIMENTAL, so I think it is possible
-> to include these patches in .23
+Oops, I misunderstood what you mean. ;-p
+> >  Is there any use case to removing the backlight without powering down the display?
+I don't know.
+Maybe "brightness zero" and "display device off" mean the same to a
+user, but they are quite different to others, like the Graphics driver.
+It still has to work when "brightness zero" because it's still
+displaying, but it can throttle down/shutdown some parts when the
+display device is off.
+It's reasonable to send them as different input events.
 
-Too late for 2.6.23 for this type/size patch -- we're already post -rc3.
-target is 2.6.24-rc1
-
-note that this series didn't apply the 1st time because
-it has whitespace errors.
-
-ie. I had to run with
-git am --whitespace=warn
-instead of 
-git am --whitespace=strip
-in order for subsequent patches to apply.
-
-thanks,
--Len
+Thanks,
+Rui
