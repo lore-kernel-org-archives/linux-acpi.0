@@ -1,57 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Make pnpacpi_suspend handle errors
-Date: Wed, 15 Aug 2007 15:23:43 +0200
-Message-ID: <200708151523.43921.rjw@sisk.pl>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH] ACPI: Battery: add sysfs support
+Date: Wed, 15 Aug 2007 17:14:10 +0400
+Message-ID: <46C2FC22.60802@gmail.com>
+References: <46BE1383.8000205@gmail.com> <200708150047.55528.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47710 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755604AbXHONOD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2007 09:14:03 -0400
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.175]:33977 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757340AbXHONOS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Aug 2007 09:14:18 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so155919ugf
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Aug 2007 06:14:17 -0700 (PDT)
+In-Reply-To: <200708150047.55528.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Len Brown wrote:
+> On Saturday 11 August 2007 15:52, Alexey Starikovskiy wrote:
+>> Hi Len,
+>>
+>> This is a first try to add sysfs support for ACPI battery.
+>> It should apply on top of clean up patches I sent earlier.
+>> It lacks alarm support in sysfs, as power_supply class does not support it.
+> 
+> The check-in comments should describe the sysfs support.
+> it is an API that is being created here -- after all.
+> 
+> thanks,
+> -len
+> 
+No, we are using standard class power_supply and its API. 
+So all the documentation is already present in kernel.
 
-pnpacpi_suspend() doesn't check the result returned by
-acpi_pm_device_sleep_state() before passing it to acpi_bus_set_power(), which
-may not be desirable.  Make it select the target power state of the device
-using its second argument if acpi_pm_device_sleep_state() fails.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/pnp/pnpacpi/core.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-Index: linux-2.6.23-rc3/drivers/pnp/pnpacpi/core.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/pnp/pnpacpi/core.c	2007-08-15 14:56:58.000000000 +0200
-+++ linux-2.6.23-rc3/drivers/pnp/pnpacpi/core.c	2007-08-15 15:08:36.000000000 +0200
-@@ -130,11 +130,16 @@ static int pnpacpi_disable_resources(str
- #ifdef CONFIG_ACPI_SLEEP
- static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- {
--	return acpi_bus_set_power((acpi_handle) dev->data,
--				  acpi_pm_device_sleep_state(&dev->dev,
--							     device_may_wakeup
--							     (&dev->dev),
--							     NULL));
-+	int power_state;
-+
-+	power_state = acpi_pm_device_sleep_state(&dev->dev,
-+						device_may_wakeup(&dev->dev),
-+						NULL);
-+	if (power_state < 0)
-+		power_state = (state.event == PM_EVENT_ON) ?
-+				ACPI_STATE_D0 : ACPI_STATE_D3;
-+
-+	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
- }
- 
- static int pnpacpi_resume(struct pnp_dev *dev)
+Regards,
+Alex
