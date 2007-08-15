@@ -1,86 +1,51 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH] report acpi video hot key event through inputdevice
-Date: Wed, 15 Aug 2007 16:05:56 +0800
-Message-ID: <1187165156.5404.91.camel@rzhang-asus.sh.intel.com>
-References: <3877989d0707290940k3afa94d5x863599ac7c64662b@mail.gmail.com>
-	 <20070730005050.GB27398@srcf.ucam.org>
-	 <15e53e180707300447g77ed467dm7684184e2af46045@mail.gmail.com>
-	 <1186555034.19883.19.camel@rzhang-asus.sh.intel.com>
-	 <1187092705.2800.9.camel@hughsie-laptop>
-	 <1187088231.5404.45.camel@rzhang-asus.sh.intel.com>
+From: raphaello-mouse@altern.org
+Subject: Packard Bell DSDT issue
+Date: Wed, 15 Aug 2007 11:19:08 +0200
+Message-ID: <200708151119.09045.raphaello-mouse@altern.org>
+References: <46BDBAEF.5030204@suse.de> <200708150044.29820.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:17667 "EHLO mga01.intel.com"
+Received: from smtp23.orange.fr ([193.252.22.126]:21341 "EHLO smtp23.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756459AbXHOIEW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2007 04:04:22 -0400
-In-Reply-To: <1187088231.5404.45.camel@rzhang-asus.sh.intel.com>
+	id S1759694AbXHOKlj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2007 06:41:39 -0400
+Received: from smtp23.orange.fr (mwinf2302 [10.232.4.24])
+	by mwinf2320.orange.fr (SMTP Server) with ESMTP id 7656D1C44E1F
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Aug 2007 11:19:55 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2302.orange.fr (SMTP Server) with ESMTP id B57131C000BB
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Aug 2007 11:19:10 +0200 (CEST)
+Received: from unshared.local (ASt-Lambert-151-1-38-162.w82-120.abo.wanadoo.fr [82.120.228.162])
+	by mwinf2302.orange.fr (SMTP Server) with ESMTP id 8FBC91C000B5
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Aug 2007 11:19:10 +0200 (CEST)
+In-Reply-To: <200708150044.29820.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, 2007-08-14 at 18:43 +0800, Zhang Rui wrote:
-> On Tue, 2007-08-14 at 19:58 +0800, Richard Hughes wrote:
-> > 
-> > On Wed, 2007-08-08 at 14:37 +0800, Zhang Rui wrote:
-> > > On Mon, 2007-07-30 at 12:47 +0100, Richard Hughes wrote:
-> > > > On 30/07/07, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > > > > On Sun, Jul 29, 2007 at 12:40:16PM -0400, Luming Yu wrote:
-> > > > > >       switch (event) {
-> > > > > >       case ACPI_VIDEO_NOTIFY_SWITCH:  /* User requested a
-> > switch,
-> > > > > >                                        * most likely via
-> > hotkey. */
-> > > > > >               acpi_bus_generate_event(device, event, 0);
-> > > > > > +             keycode = KEY_UNKNOWN;
-> > > > >
-> > > > > KEY_SWITCHVIDEOMODE ?
-> > > >
-> > > > Yes, please use this. This is what other ACPI drivers are using.
-> > > >
-> > > > > What's wrong with the existing KEY_BRIGHTNESSDOWN and
-> > KEY_BRIGHTNESSUP?
-> > > >
-> > > > Agree, this matches other drivers like thinkpad_acpi and
-> > sony-laptop.
-> > > >
-> > > > > > +#define KEY_BRIGHTNESS_ZERO  0x1fd
-> > > > > > +#define KEY_BRIGHTNESS_OFF   0x1fe
-> > > > >
-> > > > > You almost certainly want to go via linux-input if you're adding
-> > new
-> > > > > keycodes.
-> > > >
-> > > > Yup - do we have to distinguish between zero and off? Or is off
-> > > > "switch panel backlight off" and zero is "switch to lowest
-> > brightness
-> > > > level"?
-> > > >
-> > > Hmm, I think they are slightly different.
-> > > IMO, "zero" equals _BCM(0), it means to turn off the backlight, but
-> > we
-> > > may still see the screen if there is a ambient light.
-> > > "off" means turn off the output device, i.e. set to D1/D2/D3 state.
-> > 
-> > Sure, so they are different states, but to a user they are both
-> > effectively the same "screen is off". Is there any use case to
-> I'm not sure of this.
-> But in some cases, I do can still see the screen although it's very dark
-> after I "echo 0 >/sys/class/backlight/acpi_video0/brightness".
-> IMO, this is because the ambient light is on.
-> 
-Oops, I misunderstood what you mean. ;-p
-> >  Is there any use case to removing the backlight without powering down the display?
-I don't know.
-Maybe "brightness zero" and "display device off" mean the same to a
-user, but they are quite different to others, like the Graphics driver.
-It still has to work when "brightness zero" because it's still
-displaying, but it can throttle down/shutdown some parts when the
-display device is off.
-It's reasonable to send them as different input events.
+Dear all! 
 
-Thanks,
-Rui
+I submit you this issue with my laptop, a Packard Bell Easynote R1983 W 
+(running an updated Kubuntu 7.04, with updated BIOS). Issue not documented 
+elsewhere I've looked for. 
+Problem: I need to put at boot the option "acpi=force" to kernel (2.6.20-16)  
+in order to have atheros wifi card working. But then, this disables my usb 
+devices! 
+
+More technical details have been posted on: 
+kubuntuforums.net/forums/index.php?topic=3083009.msg68885#msg68885
+
+Some comments made on http://madwifi.org/ticket/1454
+"This is an ACPI error. [...] However, the problem in this case looks like a 
+badly written DSDT. [...] the problem is the fault of your system vendor."
+(I first thought it was a madwifi issue)
+
+Please help, or at least give some hint that allow me to go on (I'm newbie)! 
+Thanks in advance. 
+
+Raf
+
