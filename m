@@ -1,48 +1,44 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [-mm patch] unexport ide_acpi_set_state
-Date: Tue, 14 Aug 2007 23:23:07 +0200
-Message-ID: <20070814212307.GK18945@stusta.de>
-References: <20070809015106.cd0bfc53.akpm@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI battery cleanup.
+Date: Wed, 15 Aug 2007 00:44:29 -0400
+Message-ID: <200708150044.29820.lenb@kernel.org>
+References: <46BDBAEF.5030204@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:38440 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755753AbXHNVXQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Aug 2007 17:23:16 -0400
+Received: from hera.kernel.org ([140.211.167.34]:49686 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750784AbXHOEog (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2007 00:44:36 -0400
+In-Reply-To: <46BDBAEF.5030204@suse.de>
 Content-Disposition: inline
-In-Reply-To: <20070809015106.cd0bfc53.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thu, Aug 09, 2007 at 01:51:06AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.23-rc2-mm1:
->...
-> +ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
->...
->  IDE tree updates
->...
+On Saturday 11 August 2007 09:34, Alexey Starikovskiy wrote:
+> Hi Len,
+> 
+> Here are patches to clean up ACPI battery driver. Please review and add
+> to -mm series.
 
-This patch removes the unused EXPORT_SYMBOL_GPL(ide_acpi_set_state)
+whelp, i got this to apply -- only problem was it added some whitespace errors.
+and it built.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+However, I would prefer....
+More detailed check-in comments (or _any_ check-in comments for that matter)
+saying what changed and why.
 
----
+Series of smaller patches instead of 300-line single patches
 
-83b4e185ad61709d63cb44516b46a343d221d9f9 
-diff --git a/drivers/ide/ide-acpi.c b/drivers/ide/ide-acpi.c
-index 6bff81a..1d5f682 100644
---- a/drivers/ide/ide-acpi.c
-+++ b/drivers/ide/ide-acpi.c
-@@ -649,7 +649,6 @@ void ide_acpi_set_state(ide_hwif_t *hwif, int on)
- 	if (!on)
- 		acpi_bus_set_power(hwif->acpidata->obj_handle, ACPI_STATE_D3);
- }
--EXPORT_SYMBOL_GPL(ide_acpi_set_state);
- 
- /**
-  * ide_acpi_init - initialize the ACPI link for an IDE interface
+series sent as an e-mail series, not an mbox attachment.
+nobody reads mbox attachments.
 
+I don't think these are getting the eyeballs on them that they need
+because of these issues.
+
+thanks,
+-len
