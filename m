@@ -1,51 +1,39 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: RE: scripts/mod/file2alias.c cross compile problem
-Date: Thu, 16 Aug 2007 19:03:37 +0200
-Message-ID: <1187283817.8780.837.camel@queen.suse.de>
-References: <617E1C2C70743745A92448908E030B2A0211AFF0@scsmsx411.amr.corp.intel.com>
-	 <1186092501.6131.154.camel@localhost.localdomain>
-	 <1187274435.8780.780.camel@queen.suse.de>
-	 <617E1C2C70743745A92448908E030B2A022DBC43@scsmsx411.amr.corp.intel.com>
-Reply-To: trenn@suse.de
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH] ACPI: boot correctly with "nosmp" or "maxcpus=0"
+Date: Thu, 16 Aug 2007 21:36:49 +0200
+Message-ID: <20070816193649.GA16680@bingen.suse.de>
+References: <200708160332.30732.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <617E1C2C70743745A92448908E030B2A022DBC43@scsmsx411.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, Adrian Bunk <bunk@stusta.de>, Sam Ravnborg <sam@ravnborg.org>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.suse.de ([195.135.220.2]:35854 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755898AbXHPSmr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 14:42:47 -0400
+Content-Disposition: inline
+In-Reply-To: <200708160332.30732.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, 2007-08-16 at 09:26 -0700, Luck, Tony wrote:
-> > -#define ACPI_ID_LEN	9
-> > +#define ACPI_ID_LEN	16 /* only 9 bytes needed here, 16 bytes are used */
-> 
-> What will happen if someone uses more than 9 bytes?  With the old
-> limit there would be a compile time error it someone initialized
-> with:
-> 
-> 	{"PNP0C0ABCDEFGH", 0},
-> 
-> But if we change ACPI_ID_LEN the error will move to run-time.
+> @@ -157,10 +162,13 @@ early_param("nosmp", nosmp);
+>  static int __init maxcpus(char *str)
+>  {
+>  	get_option(&str, &max_cpus);
+> -	return 1;
+> +	if (max_cpus == 0)
+> +		disable_ioapic_setup();
 
-That should not harm.
->From spec point of view only 8 bytes are needed. Here 9 bytes are used
-as then string functions can be used. The whole rest of the kernel does
-not use ACPI_ID_LEN.
-If someone defines such an id, his driver won't ever get loaded and he
-gets bug reports very soon anyway.
+I must say I never liked that maxcpus=0 ... does disable the APIC
+too. There can be situations where you want only a single CPU,
+but still full APICs because modern systems don't boot without. 
 
-Hmm, I wonder whether this even may come in handy later:
-Some BIOSes have some spec violating strange hids like:
-"*PNP0C0A"
-or
-"_PNP0C0A"
-While I thought the "_" or "*" should be cut away by ACPI parser, it
-might be a hint to the OS to do something special. AFAIK only very
-specific devices (WMI and some graphics?) have such strange hids
-defined, those drivers could explicitly match for the spec violating
-string then.
+It's the old traditional documented semantics though,
+but on the other hand if it never worked with ACPI i guess people are
+not relying on it.
 
-   Thomas
+So perhaps it would be better to change that? 
+Or add a new option to limit CPUs without disabling ACPIC?
 
+-Andi
