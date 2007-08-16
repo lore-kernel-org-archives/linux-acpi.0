@@ -1,50 +1,186 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI issue
-Date: Thu, 16 Aug 2007 03:25:08 -0400
-Message-ID: <200708160325.08515.lenb@kernel.org>
-References: <200708152212.31812.robertg.123@gmail.com>
+Subject: [PATCH] ACPI: boot correctly with "nosmp" or "maxcpus=0"
+Date: Thu, 16 Aug 2007 03:32:30 -0400
+Message-ID: <200708160332.30732.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55527 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:35215 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754988AbXHPHZP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2007 03:25:15 -0400
-In-Reply-To: <200708152212.31812.robertg.123@gmail.com>
+	id S1754477AbXHPHcj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 03:32:39 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Gomulka <robertg.123@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wednesday 15 August 2007 18:12, Robert Gomulka wrote:
-> Hello,
-> I have just bought Compaq 572US laptop with AMD X64 dual core on board. I 
-> installed Debian Etch on it. After first reboot I experienced many problems 
-> with system freeze at many random moments. I had no idea what to do, as a 
-> blind shot I disabled acpi in boot parameters (acpi=off). Those problems 
-> disappeared and my system works for an hour fine (previously it was a 
-> question of minutes).
-> I have read article about ACPI myths and found this e-mail address there. What 
-> steps would you suggest next in order to improve my system situation with 
-> ACPI?
+From: Len Brown <len.brown@intel.com>
 
-Start by upgrading to a 2.6.22.stable kernel.
+In MPS mode, "nosmp" and "maxcpus=0" boot a UP kernel with IOAPIC disabled.
+However, in ACPI mode, these parameters didn't completely disable
+the IO APIC initialization code and boot failed.
 
-If you still have problems with ACPI mode, then open a bug report here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+init/main.c:
+	Disable the IO_APIC if "nosmp" or "maxcpus=0"
+	undefine disable_ioapic_setup() when it doesn't apply.
 
-and attach the output from dmesg -s64000 from the default and acpi=off boots.
-check that the driver to IRQ mapping in /proc/interrupts is the same
-in both cases.
+i386:
+	delete ioapic_setup(), it was a duplicate of parse_noapic()
+	delete undefinition of disable_ioapic_setup()
 
-Look if there is a temperature reported under /proc/acpi/thermal_zone/*/temperature
-and see if perhaps your system is getting hot when it fails.  Make a note
-if you can hear the fans turn on/off, and at what temperature.
+x86_64:
+	rename disable_ioapic_setup() to parse_noapic() to match i386
+	define disable_ioapic_setup() in header to match i386
 
-provide the output from acpidump in the bug report.
+http://bugzilla.kernel.org/show_bug.cgi?id=1641
 
-thanks,
--Len
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ Documentation/kernel-parameters.txt |   15 ++++++---------
+ arch/i386/kernel/io_apic.c          |    8 --------
+ arch/x86_64/kernel/io_apic.c        |    8 +++-----
+ include/asm-i386/io_apic.h          |    1 -
+ include/asm-x86_64/io_apic.h        |    6 ++++++
+ init/main.c                         |   12 ++++++++++--
+ 6 files changed, 25 insertions(+), 25 deletions(-)
+
+Index: linus/Documentation/kernel-parameters.txt
+===================================================================
+--- linus.orig/Documentation/kernel-parameters.txt
++++ linus/Documentation/kernel-parameters.txt
+@@ -952,14 +952,10 @@ and is between 256 and 4096 characters. 
+ 			Format: <1-256>
+ 
+ 	maxcpus=	[SMP] Maximum number of processors that	an SMP kernel
+-			should make use of.
+-			Using "nosmp" or "maxcpus=0" will disable SMP
+-			entirely (the MPS table probe still happens, though).
+-			A command-line option of "maxcpus=<NUM>", where <NUM>
+-			is an integer greater than 0, limits the maximum number
+-			of CPUs activated in SMP mode to <NUM>.
+-			Using "maxcpus=1" on an SMP kernel is the trivial
+-			case of an SMP kernel with only one CPU.
++			should make use of.  maxcpus=n : n >= 0 limits the
++			kernel to using 'n' processors.  n=0 is a special case,
++			it is equivalent to "nosmp", which also disables
++			the IO APIC.
+ 
+ 	max_addr=[KMG]	[KNL,BOOT,ia64] All physical memory greater than or
+ 			equal to this physical address is ignored.
+@@ -1184,7 +1180,8 @@ and is between 256 and 4096 characters. 
+ 
+ 	nosep		[BUGS=X86-32] Disables x86 SYSENTER/SYSEXIT support.
+ 
+-	nosmp		[SMP] Tells an SMP kernel to act as a UP kernel.
++	nosmp		[SMP] Tells an SMP kernel to act as a UP kernel,
++			and disable the IO APIC.  legacy for "maxcpus=0".
+ 
+ 	nosoftlockup	[KNL] Disable the soft-lockup detector.
+ 
+Index: linus/arch/i386/kernel/io_apic.c
+===================================================================
+--- linus.orig/arch/i386/kernel/io_apic.c
++++ linus/arch/i386/kernel/io_apic.c
+@@ -754,14 +754,6 @@ static int pirq_entries [MAX_PIRQS];
+ static int pirqs_enabled;
+ int skip_ioapic_setup;
+ 
+-static int __init ioapic_setup(char *str)
+-{
+-	skip_ioapic_setup = 1;
+-	return 1;
+-}
+-
+-__setup("noapic", ioapic_setup);
+-
+ static int __init ioapic_pirq_setup(char *str)
+ {
+ 	int i, max;
+Index: linus/arch/x86_64/kernel/io_apic.c
+===================================================================
+--- linus.orig/arch/x86_64/kernel/io_apic.c
++++ linus/arch/x86_64/kernel/io_apic.c
+@@ -397,14 +397,12 @@ static void clear_IO_APIC (void)
+ int skip_ioapic_setup;
+ int ioapic_force;
+ 
+-/* dummy parsing: see setup.c */
+-
+-static int __init disable_ioapic_setup(char *str)
++static int __init parse_noapic(char *str)
+ {
+-	skip_ioapic_setup = 1;
++	disable_ioapic_setup();
+ 	return 0;
+ }
+-early_param("noapic", disable_ioapic_setup);
++early_param("noapic", parse_noapic);
+ 
+ /* Actually the next is obsolete, but keep it for paranoid reasons -AK */
+ static int __init disable_timer_pin_setup(char *arg)
+Index: linus/include/asm-i386/io_apic.h
+===================================================================
+--- linus.orig/include/asm-i386/io_apic.h
++++ linus/include/asm-i386/io_apic.h
+@@ -150,7 +150,6 @@ extern int (*ioapic_renumber_irq)(int io
+ 
+ #else  /* !CONFIG_X86_IO_APIC */
+ #define io_apic_assign_pci_irqs 0
+-static inline void disable_ioapic_setup(void) { }
+ #endif
+ 
+ #endif
+Index: linus/include/asm-x86_64/io_apic.h
+===================================================================
+--- linus.orig/include/asm-x86_64/io_apic.h
++++ linus/include/asm-x86_64/io_apic.h
+@@ -109,6 +109,12 @@ extern int mpc_default_type;
+ /* 1 if "noapic" boot option passed */
+ extern int skip_ioapic_setup;
+ 
++static inline void disable_ioapic_setup(void)
++{
++	skip_ioapic_setup = 1;
++}
++
++
+ /*
+  * If we use the IO-APIC for IRQ routing, disable automatic
+  * assignment of PCI IRQ's.
+Index: linus/init/main.c
+===================================================================
+--- linus.orig/init/main.c
++++ linus/init/main.c
+@@ -146,9 +146,14 @@ static unsigned int __initdata max_cpus 
+  * greater than 0, limits the maximum number of CPUs activated in
+  * SMP mode to <NUM>.
+  */
++#ifndef CONFIG_X86_IO_APIC
++static inline void disable_ioapic_setup(void) {};
++#endif
++
+ static int __init nosmp(char *str)
+ {
+ 	max_cpus = 0;
++	disable_ioapic_setup();
+ 	return 0;
+ }
+ 
+@@ -157,10 +162,13 @@ early_param("nosmp", nosmp);
+ static int __init maxcpus(char *str)
+ {
+ 	get_option(&str, &max_cpus);
+-	return 1;
++	if (max_cpus == 0)
++		disable_ioapic_setup();
++
++	return 0;
+ }
+ 
+-__setup("maxcpus=", maxcpus);
++early_param("maxcpus=", maxcpus);
+ #else
+ #define max_cpus NR_CPUS
+ #endif
