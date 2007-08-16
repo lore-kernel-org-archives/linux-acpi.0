@@ -1,184 +1,88 @@
 From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: [PATCH 12/12] ACPI: SBS: Add ACPI_PROCFS around procfs handling code.
-Date: Fri, 17 Aug 2007 00:41:30 +0400
-Message-ID: <46C4B67A.2020302@gmail.com>
-References: <20070816142558.20279.46194.stgit@z61m> <20070816142706.20279.59306.stgit@z61m>
+Subject: ACPI: Battery: Add alarm sysfs support
+Date: Fri, 17 Aug 2007 00:43:29 +0400
+Message-ID: <46C4B6F1.9060301@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.188]:40683 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545AbXHPUlg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 16:41:36 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so214401nfb
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 13:41:34 -0700 (PDT)
-In-Reply-To: <20070816142706.20279.59306.stgit@z61m>
+Received: from ug-out-1314.google.com ([66.249.92.171]:51655 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894AbXHPUne (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 16:43:34 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so291904ugf
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 13:43:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikivskiy@suse.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
+To: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Make procfs support optional under ACPI_PROCFS
+From: Alexey Starikovskiy <astarikivskiy@suse.de>
 
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/acpi/sbs.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+ drivers/acpi/battery.c |   36 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 35 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 87bee1e..abf7b94 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -29,9 +29,11 @@
- #include <linux/moduleparam.h>
- #include <linux/kernel.h>
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 2be9f45..3968d3b 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -697,6 +697,37 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
+ }
  
-+#ifdef CONFIG_ACPI_PROCFS
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <asm/uaccess.h>
-+#endif
- 
- #include <linux/acpi.h>
- #include <linux/timer.h>
-@@ -91,7 +93,9 @@ struct acpi_battery {
- 	struct power_supply bat;
  #endif
- 	struct acpi_sbs *sbs;
-+#ifdef CONFIG_ACPI_PROCFS
- 	struct proc_dir_entry *proc_entry;
-+#endif
- 	unsigned long update_time;
- 	char name[8];
- 	char manufacturer_name[ACPI_SBS_BLOCK_MAX];
-@@ -125,7 +129,9 @@ struct acpi_sbs {
- 	struct acpi_device *device;
- 	struct acpi_smb_hc *hc;
- 	struct mutex lock;
-+#ifdef CONFIG_ACPI_PROCFS
- 	struct proc_dir_entry *charger_entry;
-+#endif
- 	struct acpi_battery battery[MAX_SBS_BAT];
- 	u8 batteries_supported:4;
- 	u8 manager_present:1;
-@@ -389,6 +395,8 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	return result;
- }
- 
-+#ifdef CONFIG_ACPI_PROCFS
 +
- static int acpi_battery_get_alarm(struct acpi_battery *battery)
- {
- 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
-@@ -425,6 +433,8 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
- 	return ret;
- }
- 
-+#endif
++#ifdef ENABLE_POWER_SUPPLY
 +
- static int acpi_ac_get_present(struct acpi_sbs *sbs)
- {
- 	int result;
-@@ -441,6 +451,7 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
-                               FS Interface (/proc/acpi)
-    -------------------------------------------------------------------------- */
- 
-+#ifdef CONFIG_ACPI_PROCFS
- /* Generic Routines */
- static int
- acpi_sbs_add_fs(struct proc_dir_entry **dir,
-@@ -714,6 +725,8 @@ static struct file_operations acpi_ac_state_fops = {
- 	.owner = THIS_MODULE,
- };
- 
-+#endif
++static ssize_t acpi_battery_alarm_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
++	return sprintf(buf, "%d\n", battery->alarm * 1000);
++}
 +
++static ssize_t acpi_battery_alarm_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	unsigned long x;
++	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
++	if (sscanf(buf, "%ld\n", &x) == 1)
++		battery->alarm = x/1000;
++	if (acpi_battery_present(battery))
++		acpi_battery_set_alarm(battery);
++	return count;
++}
++
++static struct device_attribute alarm_attr = {
++	.attr = {.name = "alarm", .mode = 0644, .owner = THIS_MODULE},
++	.show = acpi_battery_alarm_show,
++	.store = acpi_battery_alarm_store,
++};
++
++#endif
  /* --------------------------------------------------------------------------
                                   Driver Interface
     -------------------------------------------------------------------------- */
-@@ -759,10 +772,12 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 		return result;
- 
- 	sprintf(battery->name, ACPI_BATTERY_DIR_NAME, id);
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_sbs_add_fs(&battery->proc_entry, acpi_battery_dir,
- 			battery->name, &acpi_battery_info_fops,
- 			&acpi_battery_state_fops, &acpi_battery_alarm_fops,
- 			battery);
-+#endif
- #ifdef ENABLE_POWER_SUPPLY
- 	battery->bat.name = battery->name;
+@@ -740,6 +771,7 @@ static int acpi_battery_add(struct acpi_device *device)
  	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
-@@ -790,10 +805,12 @@ static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
- 	if (sbs->battery[id].bat.dev)
- 		power_supply_unregister(&sbs->battery[id].bat);
+ 	battery->bat.get_property = acpi_battery_get_property;
+ 	result = power_supply_register(&battery->device->dev, &battery->bat);
++	result = device_create_file(battery->bat.dev, &alarm_attr);
  #endif
-+#ifdef CONFIG_ACPI_PROCFS
- 	if (sbs->battery[id].proc_entry) {
- 		acpi_sbs_remove_fs(&(sbs->battery[id].proc_entry),
- 				   acpi_battery_dir);
- 	}
-+#endif
- }
- 
- static int acpi_charger_add(struct acpi_sbs *sbs)
-@@ -803,11 +820,13 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
- 	result = acpi_ac_get_present(sbs);
- 	if (result)
- 		goto end;
-+#ifdef CONFIG_ACPI_PROCFS
- 	result = acpi_sbs_add_fs(&sbs->charger_entry, acpi_ac_dir,
- 				 ACPI_AC_DIR_NAME, NULL,
- 				 &acpi_ac_state_fops, NULL, sbs);
- 	if (result)
- 		goto end;
-+#endif
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_ALL_NOTIFY,
+@@ -777,8 +809,10 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ 	acpi_battery_remove_fs(device);
+ #endif
  #ifdef ENABLE_POWER_SUPPLY
- 	sbs->charger.name = "sbs-charger";
- 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
-@@ -829,8 +848,10 @@ static void acpi_charger_remove(struct acpi_sbs *sbs)
- 	if (sbs->charger.dev)
- 		power_supply_unregister(&sbs->charger);
+-	if (battery->bat.dev)
++	if (battery->bat.dev) {
++		device_remove_file(battery->bat.dev, &alarm_attr);
+ 		power_supply_unregister(&battery->bat);
++	}
  #endif
-+#ifdef CONFIG_ACPI_PROCFS
- 	if (sbs->charger_entry)
- 		acpi_sbs_remove_fs(&sbs->charger_entry, acpi_ac_dir);
-+#endif
- }
- 
- void acpi_sbs_callback(void *context)
-@@ -933,6 +954,7 @@ static int acpi_sbs_remove(struct acpi_device *device, int type)
- 
- static void acpi_sbs_rmdirs(void)
- {
-+#ifdef CONFIG_ACPI_PROCFS
- 	if (acpi_ac_dir) {
- 		acpi_unlock_ac_dir(acpi_ac_dir);
- 		acpi_ac_dir = NULL;
-@@ -941,6 +963,7 @@ static void acpi_sbs_rmdirs(void)
- 		acpi_unlock_battery_dir(acpi_battery_dir);
- 		acpi_battery_dir = NULL;
- 	}
-+#endif
- }
- 
- static int acpi_sbs_resume(struct acpi_device *device)
-@@ -970,6 +993,7 @@ static int __init acpi_sbs_init(void)
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_ac_dir = acpi_lock_ac_dir();
- 	if (!acpi_ac_dir)
- 		return -ENODEV;
-@@ -978,6 +1002,7 @@ static int __init acpi_sbs_init(void)
- 		acpi_sbs_rmdirs();
- 		return -ENODEV;
- 	}
-+#endif
- 	result = acpi_bus_register_driver(&acpi_sbs_driver);
- 	if (result < 0) {
- 		acpi_sbs_rmdirs();
-
+ 	mutex_destroy(&battery->lock);
+ 	kfree(battery);
