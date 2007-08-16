@@ -1,37 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI: Make pnpacpi_suspend handle errors
-Date: Thu, 16 Aug 2007 10:41:02 +0200
-Message-ID: <20070816084102.GC1283@atrey.karlin.mff.cuni.cz>
-References: <200708151523.43921.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] FS: file name should be unique in the same dir in procfs
+Date: Thu, 16 Aug 2007 18:32:00 +0800
+Message-ID: <1187260320.3278.3.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <200708151523.43921.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:35935 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758064AbXHPK2c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 06:28:32 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-Hi!
+Files name should be unique in the same directory.
 
-> pnpacpi_suspend() doesn't check the result returned by
-> acpi_pm_device_sleep_state() before passing it to acpi_bus_set_power(), which
-> may not be desirable.  Make it select the target power state of the device
-> using its second argument if acpi_pm_device_sleep_state() fails.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Bug is reported here: 
+http://bugzilla.kernel.org/show_bug.cgi?id=8798
 
-Looks ok to me.
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ fs/proc/generic.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+Index: linux-2.6.23-rc3/fs/proc/generic.c
+===================================================================
+--- linux-2.6.23-rc3.orig/fs/proc/generic.c
++++ linux-2.6.23-rc3/fs/proc/generic.c
+@@ -523,6 +523,7 @@ static const struct inode_operations pro
+ 
+ static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
+ {
++	struct proc_dir_entry * tmp = NULL;
+ 	unsigned int i;
+ 	
+ 	i = get_inode_number();
+@@ -547,6 +548,13 @@ static int proc_register(struct proc_dir
+ 	}
+ 
+ 	spin_lock(&proc_subdir_lock);
++	for(tmp = dir->subdir; tmp; tmp = tmp->next)
++		if(!strcmp(dp->name, tmp->name)) {
++			spin_unlock(&proc_subdir_lock);
++			release_inode_number(i);
++			return -EEXIST;
++		}
++
+ 	dp->next = dir->subdir;
+ 	dp->parent = dir;
+ 	dir->subdir = dp;
