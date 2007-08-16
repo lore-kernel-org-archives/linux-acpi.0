@@ -1,87 +1,166 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: RE: scripts/mod/file2alias.c cross compile problem
-Date: Thu, 16 Aug 2007 16:27:15 +0200
-Message-ID: <1187274435.8780.780.camel@queen.suse.de>
-References: <617E1C2C70743745A92448908E030B2A0211AFF0@scsmsx411.amr.corp.intel.com>
-	 <1186092501.6131.154.camel@localhost.localdomain>
-Reply-To: trenn@suse.de
+From: Alexey Starikovskiy <astarikivskiy@suse.de>
+Subject: [PATCH 12/12] ACPI: SBS: Add ACPI_PROCFS around procfs handling code.
+Date: Thu, 16 Aug 2007 18:27:07 +0400
+Message-ID: <20070816142706.20279.59306.stgit@z61m>
+References: <20070816142558.20279.46194.stgit@z61m>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1186092501.6131.154.camel@localhost.localdomain>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Adrian Bunk <bunk@stusta.de>, Sam Ravnborg <sam@ravnborg.org>, Jan Dittmer <jdi@l4x.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:38728 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1761544AbXHPO1f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 10:27:35 -0400
+In-Reply-To: <20070816142558.20279.46194.stgit@z61m>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: astarikovskiy@suse.de
 
-On Fri, 2007-08-03 at 08:08 +1000, Rusty Russell wrote:
-> On Thu, 2007-08-02 at 09:25 -0700, Luck, Tony wrote:
-> > > Adrian Bunk: scripts/mod/file2alias.c is compiled with HOSTCC and ensures that
-> > > kernel_ulong_t is correct, but it can't cope with different padding on
-> > > different architectures.
-> > 
-> > Surely this is the root cause ... you can't expect that the alignment
-> > rules of HOSTCC to make any sense for an arbitraty target.
-> > 
-> > > +#define FILLUP_LEN	7 /* dirty fix for i386 -> 64bit cross-compilation */
-> > >  
-> > >  struct acpi_device_id {
-> > >  	__u8 id[ACPI_ID_LEN];
-> > > +	__u8 dummy[FILLUP_LEN];
-> > >  	kernel_ulong_t driver_data;
-> > >  };
-> > 
-> > What's so special about this structure that we get an error?
-> 
-> It's in mod_devicetable.h: see comment at top of that file.  These
-> structures serve dual purpose: to describe the capabilities of the
-> driver to the kernel probing functions, *and* to export them to
-> userspace tables.  The former purpose is why there's a data pointer in
-> there.
-> 
-> scripts/mod/file2alias is the program that reads this: although it can
-> be altered to parse 32-vs-64, Adrian's fix is the simplest.
+From: Alexey Starikovskiy <aystarik@gmail.com>
 
-Oops, this will cause a lot build warnings, as this struct gets
-initialized like that:
-        ..
-        {"PNP0C0A", 0},
-        ..
-at a lot places. It would be better to bump up the id itself like the
-attached patch does...
+Make procfs support optional under ACPI_PROCFS
 
-Thanks,
-
-    Thomas
-
-----------------------
-
-Cross-compilation between e.g. i386 -> 64bit could break -> work around it
-
-Adrian Bunk: scripts/mod/file2alias.c is compiled with HOSTCC and ensures that
-kernel_ulong_t is correct, but it can't cope with different padding on
-different architectures.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- include/linux/mod_devicetable.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Index: linux-2.6.23-rc3/include/linux/mod_devicetable.h
-===================================================================
---- linux-2.6.23-rc3.orig/include/linux/mod_devicetable.h
-+++ linux-2.6.23-rc3/include/linux/mod_devicetable.h
-@@ -159,7 +159,8 @@ struct ap_device_id {
- 
- #define AP_DEVICE_ID_MATCH_DEVICE_TYPE		0x01
- 
--#define ACPI_ID_LEN	9
-+#define ACPI_ID_LEN	16 /* only 9 bytes needed here, 16 bytes are used */
-+			   /* to workaround crosscompile issues */
- 
- struct acpi_device_id {
- 	__u8 id[ACPI_ID_LEN];
+ drivers/acpi/sbs.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 87bee1e..7db85a9 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -29,9 +29,11 @@
+ #include <linux/moduleparam.h>
+ #include <linux/kernel.h>
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <asm/uaccess.h>
++#endif
+ 
+ #include <linux/acpi.h>
+ #include <linux/timer.h>
+@@ -91,7 +93,9 @@ struct acpi_battery {
+ 	struct power_supply bat;
+ #endif
+ 	struct acpi_sbs *sbs;
++#ifdef CONFIG_ACPI_PROCFS
+ 	struct proc_dir_entry *proc_entry;
++#endif
+ 	unsigned long update_time;
+ 	char name[8];
+ 	char manufacturer_name[ACPI_SBS_BLOCK_MAX];
+@@ -125,7 +129,9 @@ struct acpi_sbs {
+ 	struct acpi_device *device;
+ 	struct acpi_smb_hc *hc;
+ 	struct mutex lock;
++#ifdef CONFIG_ACPI_PROCFS
+ 	struct proc_dir_entry *charger_entry;
++#endif
+ 	struct acpi_battery battery[MAX_SBS_BAT];
+ 	u8 batteries_supported:4;
+ 	u8 manager_present:1;
+@@ -389,6 +395,8 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 	return result;
+ }
+ 
++#ifdef CONFIG_ACPI_PROCFS
++
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+ 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+@@ -424,6 +432,7 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
+       end:
+ 	return ret;
+ }
++#endif
+ 
+ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ {
+@@ -759,10 +768,12 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
+ 		return result;
+ 
+ 	sprintf(battery->name, ACPI_BATTERY_DIR_NAME, id);
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_sbs_add_fs(&battery->proc_entry, acpi_battery_dir,
+ 			battery->name, &acpi_battery_info_fops,
+ 			&acpi_battery_state_fops, &acpi_battery_alarm_fops,
+ 			battery);
++#endif
+ #ifdef ENABLE_POWER_SUPPLY
+ 	battery->bat.name = battery->name;
+ 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
+@@ -790,10 +801,12 @@ static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
+ 	if (sbs->battery[id].bat.dev)
+ 		power_supply_unregister(&sbs->battery[id].bat);
+ #endif
++#ifdef CONFIG_ACPI_PROCFS
+ 	if (sbs->battery[id].proc_entry) {
+ 		acpi_sbs_remove_fs(&(sbs->battery[id].proc_entry),
+ 				   acpi_battery_dir);
+ 	}
++#endif
+ }
+ 
+ static int acpi_charger_add(struct acpi_sbs *sbs)
+@@ -803,11 +816,13 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+ 	result = acpi_ac_get_present(sbs);
+ 	if (result)
+ 		goto end;
++#ifdef CONFIG_ACPI_PROCFS
+ 	result = acpi_sbs_add_fs(&sbs->charger_entry, acpi_ac_dir,
+ 				 ACPI_AC_DIR_NAME, NULL,
+ 				 &acpi_ac_state_fops, NULL, sbs);
+ 	if (result)
+ 		goto end;
++#endif
+ #ifdef ENABLE_POWER_SUPPLY
+ 	sbs->charger.name = "sbs-charger";
+ 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
+@@ -829,8 +844,10 @@ static void acpi_charger_remove(struct acpi_sbs *sbs)
+ 	if (sbs->charger.dev)
+ 		power_supply_unregister(&sbs->charger);
+ #endif
++#ifdef CONFIG_ACPI_PROCFS
+ 	if (sbs->charger_entry)
+ 		acpi_sbs_remove_fs(&sbs->charger_entry, acpi_ac_dir);
++#endif
+ }
+ 
+ void acpi_sbs_callback(void *context)
+@@ -933,6 +950,7 @@ static int acpi_sbs_remove(struct acpi_device *device, int type)
+ 
+ static void acpi_sbs_rmdirs(void)
+ {
++#ifdef CONFIG_ACPI_PROCFS
+ 	if (acpi_ac_dir) {
+ 		acpi_unlock_ac_dir(acpi_ac_dir);
+ 		acpi_ac_dir = NULL;
+@@ -941,6 +959,7 @@ static void acpi_sbs_rmdirs(void)
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
+ 		acpi_battery_dir = NULL;
+ 	}
++#endif
+ }
+ 
+ static int acpi_sbs_resume(struct acpi_device *device)
+@@ -970,6 +989,7 @@ static int __init acpi_sbs_init(void)
+ 
+ 	if (acpi_disabled)
+ 		return -ENODEV;
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_ac_dir = acpi_lock_ac_dir();
+ 	if (!acpi_ac_dir)
+ 		return -ENODEV;
+@@ -978,6 +998,7 @@ static int __init acpi_sbs_init(void)
+ 		acpi_sbs_rmdirs();
+ 		return -ENODEV;
+ 	}
++#endif
+ 	result = acpi_bus_register_driver(&acpi_sbs_driver);
+ 	if (result < 0) {
+ 		acpi_sbs_rmdirs();
 
