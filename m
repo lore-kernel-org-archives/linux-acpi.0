@@ -1,88 +1,60 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: ACPI: Battery: Add alarm sysfs support
-Date: Fri, 17 Aug 2007 00:43:29 +0400
-Message-ID: <46C4B6F1.9060301@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: boot correctly with "nosmp" or "maxcpus=0"
+Date: Thu, 16 Aug 2007 19:06:47 -0400
+Message-ID: <200708161906.47278.lenb@kernel.org>
+References: <200708160332.30732.lenb@kernel.org> <20070816193649.GA16680@bingen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:51655 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894AbXHPUne (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 16:43:34 -0400
-Received: by ug-out-1314.google.com with SMTP id j3so291904ugf
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 13:43:32 -0700 (PDT)
+Received: from hera.kernel.org ([140.211.167.34]:44113 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753491AbXHPXG7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 19:06:59 -0400
+In-Reply-To: <20070816193649.GA16680@bingen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Andi Kleen <ak@suse.de>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Alexey Starikovskiy <astarikivskiy@suse.de>
+On Thursday 16 August 2007 15:36, Andi Kleen wrote:
+> > @@ -157,10 +162,13 @@ early_param("nosmp", nosmp);
+> >  static int __init maxcpus(char *str)
+> >  {
+> >  	get_option(&str, &max_cpus);
+> > -	return 1;
+> > +	if (max_cpus == 0)
+> > +		disable_ioapic_setup();
+> 
+> I must say I never liked that maxcpus=0 ... does disable the APIC
+> too. There can be situations where you want only a single CPU,
+> but still full APICs because modern systems don't boot without. 
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+maxcpus=1 will give you that.
+new kernel-parameters.txt in patch should say this
+(matching what comment in the code says)
 
- drivers/acpi/battery.c |   36 +++++++++++++++++++++++++++++++++++-
- 1 files changed, 35 insertions(+), 1 deletions(-)
+> It's the old traditional documented semantics though,
+> but on the other hand if it never worked with ACPI i guess people are
+> not relying on it.
+> 
+> So perhaps it would be better to change that? 
+> Or add a new option to limit CPUs without disabling ACPIC?
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 2be9f45..3968d3b 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -697,6 +697,37 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
- }
- 
- #endif
-+
-+#ifdef ENABLE_POWER_SUPPLY
-+
-+static ssize_t acpi_battery_alarm_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
-+	return sprintf(buf, "%d\n", battery->alarm * 1000);
-+}
-+
-+static ssize_t acpi_battery_alarm_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	unsigned long x;
-+	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
-+	if (sscanf(buf, "%ld\n", &x) == 1)
-+		battery->alarm = x/1000;
-+	if (acpi_battery_present(battery))
-+		acpi_battery_set_alarm(battery);
-+	return count;
-+}
-+
-+static struct device_attribute alarm_attr = {
-+	.attr = {.name = "alarm", .mode = 0644, .owner = THIS_MODULE},
-+	.show = acpi_battery_alarm_show,
-+	.store = acpi_battery_alarm_store,
-+};
-+
-+#endif
- /* --------------------------------------------------------------------------
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
-@@ -740,6 +771,7 @@ static int acpi_battery_add(struct acpi_device *device)
- 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
- 	battery->bat.get_property = acpi_battery_get_property;
- 	result = power_supply_register(&battery->device->dev, &battery->bat);
-+	result = device_create_file(battery->bat.dev, &alarm_attr);
- #endif
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_ALL_NOTIFY,
-@@ -777,8 +809,10 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
- 	acpi_battery_remove_fs(device);
- #endif
- #ifdef ENABLE_POWER_SUPPLY
--	if (battery->bat.dev)
-+	if (battery->bat.dev) {
-+		device_remove_file(battery->bat.dev, &alarm_attr);
- 		power_supply_unregister(&battery->bat);
-+	}
- #endif
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
+If we cared not for tradition, I'd delete "nosmp",
+maxcpus=0 would be a synonym for maxcpus=1
+and if you didn't want an IOAPIC, you'd use "noapic"
+(heh, don't get me started on the noapic vs. nolapic legacy:-)
+
+The only reason I fixed it instead of changing it per above
+is because people may be used to it in non ACPI configurations
+and get surprised when it doesn't do exactly the same
+thing (or in this case doesn't boot at all) in an ACPI configuration.
+
+Either way is fine with me, but I can't leave it as
+"nosmp" and "maxcpus=0" not booting at all on ACPI boxes.
+
+thanks,
+-Len
