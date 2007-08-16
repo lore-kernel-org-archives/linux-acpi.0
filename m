@@ -1,49 +1,381 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: [PATCH 07/12] ACPI: EC: Add new query handler to list head.
-Date: Thu, 16 Aug 2007 18:03:52 +0400
-Message-ID: <20070816140352.19441.21311.stgit@z61m>
-References: <20070816140322.19441.63139.stgit@z61m>
+From: "Brian ABTrafco" <abtrafco@gmail.com>
+Subject: dmidecode report
+Date: Thu, 16 Aug 2007 16:37:31 +0200
+Message-ID: <756ca4210708160737k3fdca0fat58477488c8e00c45@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [81.5.104.13] ([81.5.104.13]:40427 "EHLO z61m"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760400AbXHPOey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2007 10:34:54 -0400
-In-Reply-To: <20070816140322.19441.63139.stgit@z61m>
+Received: from wr-out-0506.google.com ([64.233.184.237]:28392 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758848AbXHPOhd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 10:37:33 -0400
+Received: by wr-out-0506.google.com with SMTP id 36so191914wra
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 07:37:32 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: astarikovskiy@suse.de
+To: linux-acpi@vger.kernel.org
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+# dmidecode 2.8
+SMBIOS 2.4 present.
+34 structures occupying 1157 bytes.
+Table at 0x000DC010.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Phoenix Technologies LTD
+        Version: NAPA0001.86C.0000.D.0704231854
+        Release Date: 04/23/2007
+        Address: 0xE5850
+        Runtime Size: 108464 bytes
+        ROM Size: 1024 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PC Card (PCMCIA) is supported
+                PNP is supported
+                APM is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                ACPI is supported
+                USB legacy is supported
+                AGP is supported
+                BIOS boot specification is supported
+                Targeted content distribution is supported
 
- drivers/acpi/ec.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Dialogue Technology Corporation
+        Product Name: Flybook V5
+        Version: Not Applicable
+        Serial Number: Not Applicable
+        UUID: 01010101-0101-0101-0101-010101010101
+        Wake-up Type: Power Switch
+        SKU Number: Not Specified
+        Family: Not Specified
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 56bee9e..25a84af 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -425,7 +425,7 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- 	handler->func = func;
- 	handler->data = data;
- 	mutex_lock(&ec->lock);
--	list_add_tail(&handler->node, &ec->list);
-+	list_add(&handler->node, &ec->list);
- 	mutex_unlock(&ec->lock);
- 	return 0;
- }
-@@ -440,7 +440,6 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- 		if (query_bit == handler->query_bit) {
- 			list_del(&handler->node);
- 			kfree(handler);
--			break;
- 		}
- 	}
- 	mutex_unlock(&ec->lock);
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: Dialogue Technology Corporation
+        Product Name: Flybook V5
+        Version: Not Applicable
+        Serial Number: Not Applicable
 
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: No Enclosure
+        Type: Other
+        Lock: Not Present
+        Version: N/A
+        Serial Number: None
+        Asset Tag: No Asset Tag
+        Boot-up State: Safe
+        Power Supply State: Safe
+        Thermal State: Safe
+        Security Status: None
+        OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: U2E1
+        Type: Central Processor
+        Family: <OUT OF SPEC>
+        Manufacturer: Intel
+        ID: E8 06 00 00 FF FB E9 BF
+        Version: A0
+        Voltage: 3.3 V
+        External Clock: Unknown
+        Max Speed: 2048 MHz
+        Current Speed: 1200 MHz
+        Status: Populated, Enabled
+        Upgrade: ZIF Socket
+        L1 Cache Handle: 0x0005
+        L2 Cache Handle: 0x0006
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L1 Cache
+        Configuration: Enabled, Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 64 KB
+        Maximum Size: 64 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Asynchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Socketed, Level 2
+        Operational Mode: Write Back
+        Location: External
+        Installed Size: 2048 KB
+        Maximum Size: 4096 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Burst
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J19
+        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+        External Reference Designator: COM 1
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J1A1
+        Internal Connector Type: None
+        External Reference Designator: Trackpoint
+        External Connector Type: Circular DIN-8 male
+        Port Type: Mouse Port
+
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot J7C1
+        Type: 32-bit PCI Express
+        Current Usage: Available
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot J8C1
+        Type: 32-bit PCI Express
+        Current Usage: Available
+        Length: Long
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000B, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Sound
+        Status: Disabled
+        Description: HD-Audio
+
+Handle 0x000C, DMI type 11, 5 bytes
+OEM Strings
+        String 1: This is the Dialogue Flybook V5
+        String 2: Calistoga CRB Platform
+
+Handle 0x000D, DMI type 12, 5 bytes
+System Configuration Options
+        Option 1: Jumper settings can be described here.
+
+Handle 0x000E, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 16 bytes
+        Header Start Offset: 0x0000
+        Header Length: 16 bytes
+        Data Start Offset: 0x0010
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Valid, Not Full
+        Change Token: 0x00000001
+        Header Format: Type 1
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
+
+Handle 0x000F, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 3 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x0010, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000F
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M1
+        Bank Locator: Bank 0
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0011, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000F
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M2
+        Bank Locator: Bank 1
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0012, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 2 GB
+        Physical Array Handle: 0x000F
+        Partition Width: 0
+
+Handle 0x0013, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0003FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x0010
+        Memory Array Mapped Address Handle: 0x0012
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0014, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00040000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x0011
+        Memory Array Mapped Address Handle: 0x0012
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0015, DMI type 23, 13 bytes
+System Reset
+        Status: Enabled
+        Watchdog Timer: Present
+        Boot Option: Do Not Reboot
+        Boot Option On Limit: Do Not Reboot
+        Reset Count: Unknown
+        Reset Limit: Unknown
+        Timer Interval: Unknown
+        Timeout: Unknown
+
+Handle 0x0016, DMI type 24, 5 bytes
+Hardware Security
+        Power-On Password Status: Disabled
+        Keyboard Password Status: Unknown
+        Administrator Password Status: Disabled
+        Front Panel Reset Status: Unknown
+
+Handle 0x0017, DMI type 25, 9 bytes
+        System Power Controls
+        Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0018, DMI type 26, 20 bytes
+Voltage Probe
+        Description: Voltage Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x0019, DMI type 27, 12 bytes
+Cooling Device
+        Temperature Probe Handle: 0x001A
+        Type: Fan
+        Status: OK
+        OEM-specific Information: 0x00000000
+
+Handle 0x001A, DMI type 28, 20 bytes
+Temperature Probe
+        Description: Temperature Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001B, DMI type 29, 20 bytes
+Electrical Current Probe
+        Description: Electrical Current Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001C, DMI type 30, 6 bytes
+Out-of-band Remote Access
+        Manufacturer Name: Intel
+        Inbound Connection: Enabled
+        Outbound Connection: Disabled
+
+Handle 0x001D, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x001E, DMI type 129, 16 bytes
+OEM-specific Type
+        Header and Data:
+                81 10 1E 00 01 01 02 01 00 00 00 01 00 00 08 01
+        Strings:
+                Intel_ASF_001
+                Intel_ASF_001
+
+Handle 0x001F, DMI type 136, 6 bytes
+OEM-specific Type
+        Header and Data:
+                88 06 1F 00 FF FF
+
+Handle 0x0020, DMI type 150, 14 bytes
+OEM-specific Type
+        Header and Data:
+                96 0E 20 00 01 01 00 00 00 00 00 00 00 00
+        Strings:
+                ABSOLUTE(PHOENIX) CLM
+
+Handle 0x0021, DMI type 127, 4 bytes
+End Of Table
