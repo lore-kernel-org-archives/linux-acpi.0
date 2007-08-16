@@ -1,36 +1,48 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] [-mm] ACPI: use GFP_KERNEL instead of GFP_ATOMIC
-Date: Thu, 16 Aug 2007 20:30:06 +0900
-Message-ID: <20070816113006.GB30890@inferi.kami.home>
-References: <1185922802.3993.4.camel@rzhang-asus.sh.intel.com> <200708152336.39762.lenb@kernel.org> <1187237178.5723.16.camel@rzhang-asus.sh.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: fan problem on new mainboard
+Date: Thu, 16 Aug 2007 15:08:20 +0200
+Message-ID: <1187269700.8780.771.camel@queen.suse.de>
+References: <20070809085429.GA22070@semistable.com>
+	 <1186653689.6830.37.camel@rzhang-asus.sh.intel.com>
+	 <20070811151325.GA17406@semistable.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi15.ns.itscom.net ([219.110.2.185]:58092 "EHLO
-	mtoichi15.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756965AbXHPLai (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Aug 2007 07:30:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1187237178.5723.16.camel@rzhang-asus.sh.intel.com>
+Received: from mx1.suse.de ([195.135.220.2]:57704 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758069AbXHPNIY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 09:08:24 -0400
+In-Reply-To: <20070811151325.GA17406@semistable.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, rjw@sisk.pl
+To: Robert Lemmen <robertle@semistable.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Aug 16, 2007 at 12:06:18PM +0800, Zhang Rui wrote:
-> On Thu, 2007-08-16 at 11:36 +0800, Len Brown wrote:
-> > On Tuesday 31 July 2007 19:00, Zhang Rui wrote:
-> > > Use GFP_KERNEL instead of GFP_ATOMIC.
-> > >
-> > > GFP_ATOMIC is still needed by the sonypi and sony-laptop driver.
-> > 
-> > Why?
-> > Sony can't events from user-context like everybody else does?
-> Mattia has the plan to do this. But it won't be finished recently.
+On Sat, 2007-08-11 at 17:13 +0200, Robert Lemmen wrote:
+> On Thu, Aug 09, 2007 at 06:01:29PM +0800, Zhang Rui wrote:
+> > Hi, Robert,
+> > Please attach the full _dmesg_ output as well as the acpidump.
+> 
+> sorry for the delay, the list seems to eat mails with lareg attachemnts,
+> therefore you can find the files here:
+> 
+> http://www.semistable.com/files/dmesg
+> http://www.semistable.com/files/acpidump
+> 
+> (perhaps) interestingly acpidump also said (on stderr):
+> Wrong checksum for generic table!
+> 
+> as a reminder because it took so long: the problem is that i have
+> nothing in /proc/acpi/thermal_zone or proc/acpi//fan, and my cpu fan is
+> spinning like crazy even though my cpu is ice cold
 
-Hopefully I'll be able to get some more spare time in the next week or
-two.
+Your ACPI DSDT table does not show any thermal/fan control code.
+So you won't be able to do much through ACPI.
+Have you already searched for a BIOS update?
+If you still have problems, maybe you find something in the BIOS
+configuration...
 
--- 
-mattia
-:wq!
+   Thomas
+
