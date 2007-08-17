@@ -1,65 +1,62 @@
-From: Robert Lemmen <robertle@semistable.com>
-Subject: Re: fan problem on new mainboard
-Date: Fri, 17 Aug 2007 12:35:12 +0200
-Message-ID: <20070817103512.GB8363@semistable.com>
-References: <20070809085429.GA22070@semistable.com> <1186653689.6830.37.camel@rzhang-asus.sh.intel.com> <20070811151325.GA17406@semistable.com> <1187269700.8780.771.camel@queen.suse.de>
+From: Peter Clifton <pcjc2@cam.ac.uk>
+Subject: Re: BIOS update breaks HP2125nr backlight keys
+Date: Fri, 17 Aug 2007 12:44:44 +0100
+Message-ID: <1187351084.22480.4.camel@localhost>
+References: <46C4DF04.6020306@ou.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ftEhullJWpWg/VHq"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from debian.semistable.com ([80.237.144.212]:52309 "EHLO
-	debian.semistable.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbXHQKfK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Aug 2007 06:35:10 -0400
-Received: from sandbender (dslb-084-057-042-002.pools.arcor-ip.net [84.57.42.2])
-	by debian.semistable.com (Postfix) with ESMTP id 52DC2405E007
-	for <linux-acpi@vger.kernel.org>; Fri, 17 Aug 2007 12:35:08 +0200 (CEST)
-Received: from robertle by sandbender with local (Exim 4.63)
-	(envelope-from <robertle@semistable.com>)
-	id 1ILzAe-0002Hx-6c
-	for linux-acpi@vger.kernel.org; Fri, 17 Aug 2007 12:35:12 +0200
-Content-Disposition: inline
-In-Reply-To: <1187269700.8780.771.camel@queen.suse.de>
+Received: from ppsw-8.csi.cam.ac.uk ([131.111.8.138]:54752 "EHLO
+	ppsw-8.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897AbXHQMNv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Aug 2007 08:13:51 -0400
+Received: from dsl-217-155-45-158.zen.co.uk ([217.155.45.158]:49590 helo=[192.168.2.8])
+	by ppsw-8.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.158]:465)
+	with esmtpsa (LOGIN:pcjc2) (SSLv3:DHE-RSA-AES256-SHA:256)
+	id 1IM0Fo-00087i-Rf (Exim 4.67) for linux-acpi@vger.kernel.org
+	(return-path <pcjc2@cam.ac.uk>); Fri, 17 Aug 2007 12:44:36 +0100
+In-Reply-To: <46C4DF04.6020306@ou.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
+On Thu, 2007-08-16 at 18:34 -0500, Ryan May wrote:
+> Hi,
+> 
+> I recently updated the BIOS on my HP Pavilion dv2125nr laptop to F.34
+> (to enable the virtualization instructions).  Since I did this, the Fn
+> keys to control brightness have failed to work properly under Linux,
+> though they work fine before booting (ie. at Grub).  Hitting the Fn keys
+> caused the brightness to change to the minimum possible.  In fact,
+> /proc/acpi/video/VGA/LCD/brightness would show that the level was set to
+> 0 (though 20 was the lowest available).  I was still able to control the
+> brightness manually via /proc interface however.
+> 
+> My investigations seem to indicate that HP, in their wisdom, seem to
+> have removed the _BQC method from their BIOS code.  It seems that the
+> ACPI code in Linux that handles the key events to change the brightness
+> use the _BQC method without checking for success, which explains why the
+> level being set was garbage.  However, the /proc interface for
+> brightness seems to only use device->brightness->curr to get the current
+> level.
 
---ftEhullJWpWg/VHq
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Do you happen to see a _BCQ method in the DSDT instead? My HP nc6320 has
+that, and last time I looked, it seemed like it could plausibly be a
+Microsoft induced rename / typo, as this method is mentioned for getting
+brightness on a Windows Vista compatible box.
 
-On Thu, Aug 16, 2007 at 03:08:20PM +0200, Thomas Renninger wrote:
-> Your ACPI DSDT table does not show any thermal/fan control code.
-> So you won't be able to do much through ACPI.
-> Have you already searched for a BIOS update?
-> If you still have problems, maybe you find something in the BIOS
-> configuration...
+Did the bios update also mention any fixes for Vista compatibility?
 
-bios configuration is fine, the bios changelog update doesn't say
-anything about fans or such, but i'll try anyway. this is gonna be a
-drag without a floppy drive or a windows boot disk...
+-- 
+Peter Clifton
 
-anyway, thnks for the info, i'll do the update and see if this improves
-things.
+Electrical Engineering Division,
+Engineering Department,
+University of Cambridge,
+9, JJ Thomson Avenue,
+Cambridge
+CB3 0FA
 
-cu  robert
+Tel: +44 (0)7729 980173 - (No signal in the lab!)
 
---=20
-Robert Lemmen                               http://www.semistable.com=20
-
---ftEhullJWpWg/VHq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGxXngS6AOchRbaWYRAnQkAJ9yGE/xPD4VbHwi6vzwro8QQY7eSQCgqqtx
-PcC99H8DAONSXUw9mCsXXT8=
-=Mdaq
------END PGP SIGNATURE-----
-
---ftEhullJWpWg/VHq--
