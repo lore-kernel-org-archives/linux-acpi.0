@@ -1,62 +1,68 @@
-From: Peter Clifton <pcjc2@cam.ac.uk>
-Subject: Re: BIOS update breaks HP2125nr backlight keys
-Date: Fri, 17 Aug 2007 12:44:44 +0100
-Message-ID: <1187351084.22480.4.camel@localhost>
-References: <46C4DF04.6020306@ou.edu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH -mm] PNP: Make pnpacpi_suspend handle errors
+Date: Fri, 17 Aug 2007 15:30:28 +0200
+Message-ID: <200708171530.29592.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-8.csi.cam.ac.uk ([131.111.8.138]:54752 "EHLO
-	ppsw-8.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbXHQMNv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Aug 2007 08:13:51 -0400
-Received: from dsl-217-155-45-158.zen.co.uk ([217.155.45.158]:49590 helo=[192.168.2.8])
-	by ppsw-8.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.158]:465)
-	with esmtpsa (LOGIN:pcjc2) (SSLv3:DHE-RSA-AES256-SHA:256)
-	id 1IM0Fo-00087i-Rf (Exim 4.67) for linux-acpi@vger.kernel.org
-	(return-path <pcjc2@cam.ac.uk>); Fri, 17 Aug 2007 12:44:36 +0100
-In-Reply-To: <46C4DF04.6020306@ou.edu>
+Received: from ogre.sisk.pl ([217.79.144.158]:57051 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751154AbXHQNUW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Aug 2007 09:20:22 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Jaroslav Kysela <perex@suse.cz>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 2007-08-16 at 18:34 -0500, Ryan May wrote:
-> Hi,
-> 
-> I recently updated the BIOS on my HP Pavilion dv2125nr laptop to F.34
-> (to enable the virtualization instructions).  Since I did this, the Fn
-> keys to control brightness have failed to work properly under Linux,
-> though they work fine before booting (ie. at Grub).  Hitting the Fn keys
-> caused the brightness to change to the minimum possible.  In fact,
-> /proc/acpi/video/VGA/LCD/brightness would show that the level was set to
-> 0 (though 20 was the lowest available).  I was still able to control the
-> brightness manually via /proc interface however.
-> 
-> My investigations seem to indicate that HP, in their wisdom, seem to
-> have removed the _BQC method from their BIOS code.  It seems that the
-> ACPI code in Linux that handles the key events to change the brightness
-> use the _BQC method without checking for success, which explains why the
-> level being set was garbage.  However, the /proc interface for
-> brightness seems to only use device->brightness->curr to get the current
-> level.
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-Do you happen to see a _BCQ method in the DSDT instead? My HP nc6320 has
-that, and last time I looked, it seemed like it could plausibly be a
-Microsoft induced rename / typo, as this method is mentioned for getting
-brightness on a Windows Vista compatible box.
+pnpacpi_suspend() doesn't check the result returned by
+acpi_pm_device_sleep_state() before passing it to acpi_bus_set_power(),=
+ which
+may not be desirable. =A0Make it select the target power state of the d=
+evice
+using its second argument if acpi_pm_device_sleep_state() fails.
 
-Did the bios update also mention any fixes for Vista compatibility?
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Looks-ok-to: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/pnp/pnpacpi/core.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
--- 
-Peter Clifton
-
-Electrical Engineering Division,
-Engineering Department,
-University of Cambridge,
-9, JJ Thomson Avenue,
-Cambridge
-CB3 0FA
-
-Tel: +44 (0)7729 980173 - (No signal in the lab!)
-
+Index: linux-2.6.23-rc3/drivers/pnp/pnpacpi/core.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.23-rc3.orig/drivers/pnp/pnpacpi/core.c	2007-08-15 14:56:5=
+8.000000000 +0200
++++ linux-2.6.23-rc3/drivers/pnp/pnpacpi/core.c	2007-08-15 15:08:36.000=
+000000 +0200
+@@ -130,11 +130,16 @@ static int pnpacpi_disable_resources(str
+ #ifdef CONFIG_ACPI_SLEEP
+ static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
+ {
+-	return acpi_bus_set_power((acpi_handle) dev->data,
+-				  acpi_pm_device_sleep_state(&dev->dev,
+-							     device_may_wakeup
+-							     (&dev->dev),
+-							     NULL));
++	int power_state;
++
++	power_state =3D acpi_pm_device_sleep_state(&dev->dev,
++						device_may_wakeup(&dev->dev),
++						NULL);
++	if (power_state < 0)
++		power_state =3D (state.event =3D=3D PM_EVENT_ON) ?
++				ACPI_STATE_D0 : ACPI_STATE_D3;
++
++	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
+ }
+=20
+ static int pnpacpi_resume(struct pnp_dev *dev)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
