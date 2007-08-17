@@ -1,220 +1,39 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
 Subject: Re: [PATCH 06/12] ACPI: Add acpi_bus_generate_event4() function
-Date: Fri, 17 Aug 2007 10:23:31 +0800
-Message-ID: <1187317411.2920.9.camel@acpi-hp.sh.intel.com>
-References: <20070816140322.19441.63139.stgit@z61m>
-	 <20070816140347.19441.31611.stgit@z61m>
+Date: Fri, 17 Aug 2007 09:11:33 +0400
+Message-ID: <46C52E05.2090404@gmail.com>
+References: <20070816140322.19441.63139.stgit@z61m>	 <20070816140347.19441.31611.stgit@z61m> <1187317411.2920.9.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:56278 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765777AbXHQCUF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2007 22:20:05 -0400
-In-Reply-To: <20070816140347.19441.31611.stgit@z61m>
+Received: from ug-out-1314.google.com ([66.249.92.174]:20546 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755889AbXHQFLm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Aug 2007 01:11:42 -0400
+Received: by ug-out-1314.google.com with SMTP id j3so309314ugf
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 22:11:41 -0700 (PDT)
+In-Reply-To: <1187317411.2920.9.camel@acpi-hp.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
+To: Zhang Rui <rui.zhang@intel.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 
-On Thu, 2007-08-16 at 18:03 +0400, Alexey Starikovskiy wrote:
-> From: Alexey Starikovskiy <astarikovskiy@suse.de>
-> 
-> acpi_bus_generate_event() takes two strings out of passed device object.
-> SBS needs to supply these strings directly.
-> 
-This doesn't make sense.
-acpi_dev->dev.bus_id is the name we are using for ACPI device in sysfs.
-That's why acpi_dev->dev.bus_id is exported via netlink message rather
-than the acpi_dev.pnp.bus_id.
-BTW: what's wrong with the old acpi_sbs_generate_event thing?
+Zhang Rui wrote:
+> On Thu, 2007-08-16 at 18:03 +0400, Alexey Starikovskiy wrote:
+>> From: Alexey Starikovskiy <astarikovskiy@suse.de>
+>>
+>> acpi_bus_generate_event() takes two strings out of passed device object.
+>> SBS needs to supply these strings directly.
+>>
+> This doesn't make sense.
+> acpi_dev->dev.bus_id is the name we are using for ACPI device in sysfs.
+> That's why acpi_dev->dev.bus_id is exported via netlink message rather
+> than the acpi_dev.pnp.bus_id.
+> BTW: what's wrong with the old acpi_sbs_generate_event thing?
+There are up to 5 devices in SBS which could send a message.
+>From ACPI point of view this is one device.
+Copying strings before and after sending event seems to be mess to me.
 
-Thanks,
-Rui
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
-> 
->  drivers/acpi/bus.c      |   25 ++++++++++++++++---------
->  drivers/acpi/event.c    |    7 ++++---
->  drivers/acpi/sbs.c      |   39 ++++++++-------------------------------
->  include/acpi/acpi_bus.h |    6 ++++--
->  4 files changed, 32 insertions(+), 45 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 6b2658c..992bb30 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -283,16 +283,12 @@ DECLARE_WAIT_QUEUE_HEAD(acpi_bus_event_queue);
->  
->  extern int event_is_open;
->  
-> -int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
-> +int acpi_bus_generate_event4(const char *device_class, const char *bus_id, u8 type, int data)
->  {
-> -	struct acpi_bus_event *event = NULL;
-> +	struct acpi_bus_event *event;
->  	unsigned long flags = 0;
->  
-> -
-> -	if (!device)
-> -		return -EINVAL;
-> -
-> -	if (acpi_bus_generate_genetlink_event(device, type, data))
-> +	if (acpi_bus_generate_genetlink_event(device_class, bus_id, type, data))
->  		printk(KERN_WARNING PREFIX
->  			"Failed to generate an ACPI event via genetlink!\n");
->  
-> @@ -304,8 +300,8 @@ int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
->  	if (!event)
->  		return -ENOMEM;
->  
-> -	strcpy(event->device_class, device->pnp.device_class);
-> -	strcpy(event->bus_id, device->pnp.bus_id);
-> +	strcpy(event->device_class, device_class);
-> +	strcpy(event->bus_id, bus_id);
->  	event->type = type;
->  	event->data = data;
->  
-> @@ -316,6 +312,17 @@ int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
->  	wake_up_interruptible(&acpi_bus_event_queue);
->  
->  	return 0;
-> +
-> +}
-> +
-> +EXPORT_SYMBOL_GPL(acpi_bus_generate_event4);
-> +
-> +int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
-> +{
-> +	if (!device)
-> +		return -EINVAL;
-> +	return acpi_bus_generate_event4(device->pnp.device_class,
-> +					device->pnp.bus_id, type, data);
->  }
->  
->  EXPORT_SYMBOL(acpi_bus_generate_event);
-> diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
-> index 95637a4..6529280 100644
-> --- a/drivers/acpi/event.c
-> +++ b/drivers/acpi/event.c
-> @@ -147,7 +147,8 @@ static struct genl_multicast_group acpi_event_mcgrp = {
->  	.name = ACPI_GENL_MCAST_GROUP_NAME,
->  };
->  
-> -int acpi_bus_generate_genetlink_event(struct acpi_device *device,
-> +int acpi_bus_generate_genetlink_event(const char *device_class,
-> +				      const char *bus_id,
->  				      u8 type, int data)
->  {
->  	struct sk_buff *skb;
-> @@ -191,8 +192,8 @@ int acpi_bus_generate_genetlink_event(struct acpi_device *device,
->  
->  	memset(event, 0, sizeof(struct acpi_genl_event));
->  
-> -	strcpy(event->device_class, device->pnp.device_class);
-> -	strcpy(event->bus_id, device->dev.bus_id);
-> +	strcpy(event->device_class, device_class);
-> +	strcpy(event->bus_id, bus_id);
->  	event->type = type;
->  	event->data = data;
->  
-> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> index 82c3a55..88af657 100644
-> --- a/drivers/acpi/sbs.c
-> +++ b/drivers/acpi/sbs.c
-> @@ -427,27 +427,6 @@ static int acpi_check_update_proc(struct acpi_sbs *sbs)
->  	return 0;
->  }
->  
-> -static int acpi_sbs_generate_event(struct acpi_device *device,
-> -				   int event, int state, char *bid, char *class)
-> -{
-> -	char bid_saved[5];
-> -	char class_saved[20];
-> -	int result = 0;
-> -
-> -	strcpy(bid_saved, acpi_device_bid(device));
-> -	strcpy(class_saved, acpi_device_class(device));
-> -
-> -	strcpy(acpi_device_bid(device), bid);
-> -	strcpy(acpi_device_class(device), class);
-> -
-> -	result = acpi_bus_generate_event(device, event, state);
-> -
-> -	strcpy(acpi_device_bid(device), bid_saved);
-> -	strcpy(acpi_device_class(device), class_saved);
-> -
-> -	return result;
-> -}
-> -
->  static int acpi_battery_get_present(struct acpi_battery *battery)
->  {
->  	s16 state;
-> @@ -1451,14 +1430,13 @@ static int acpi_sbs_update_run(struct acpi_sbs *sbs, int id, int data_type)
->  	}
->  
->  	if (do_ac_init) {
-> -		result = acpi_sbs_generate_event(sbs->device,
-> -						 ACPI_SBS_AC_NOTIFY_STATUS,
-> -						 new_ac_present,
-> +		result = acpi_bus_generate_event4(ACPI_AC_CLASS,
->  						 ACPI_AC_DIR_NAME,
-> -						 ACPI_AC_CLASS);
-> +						 ACPI_SBS_AC_NOTIFY_STATUS,
-> +						 new_ac_present);
->  		if (result) {
->  			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-> -					"acpi_sbs_generate_event() failed"));
-> +					"acpi_bus_generate_event4() failed"));
->  		}
->  	}
->  
-> @@ -1567,14 +1545,13 @@ static int acpi_sbs_update_run(struct acpi_sbs *sbs, int id, int data_type)
->  		    old_remaining_capacity !=
->  		    battery->state.remaining_capacity) {
->  			sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
-> -			result = acpi_sbs_generate_event(sbs->device,
-> -							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
-> -							 new_battery_present,
-> +			result = acpi_bus_generate_event4(ACPI_BATTERY_CLASS,
->  							 dir_name,
-> -							 ACPI_BATTERY_CLASS);
-> +							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
-> +							 new_battery_present);
->  			if (result) {
->  				ACPI_EXCEPTION((AE_INFO, AE_ERROR,
-> -						"acpi_sbs_generate_event() "
-> +						"acpi_bus_generate_event4() "
->  						"failed"));
->  			}
->  		}
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 3d0fea2..0878928 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -321,8 +321,9 @@ struct acpi_bus_event {
->  };
->  
->  extern struct kset acpi_subsys;
-> -extern int acpi_bus_generate_genetlink_event(struct acpi_device *device,
-> -						u8 type, int data);
-> +extern int acpi_bus_generate_genetlink_event(const char *device_class,
-> +					     const char *bus_id,
-> +					     u8 type, int data);
->  /*
->   * External Functions
->   */
-> @@ -333,6 +334,7 @@ int acpi_bus_get_status(struct acpi_device *device);
->  int acpi_bus_get_power(acpi_handle handle, int *state);
->  int acpi_bus_set_power(acpi_handle handle, int state);
->  int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data);
-> +int acpi_bus_generate_event4(const char *class, const char *bid, u8 type, int data);
->  int acpi_bus_receive_event(struct acpi_bus_event *event);
->  int acpi_bus_register_driver(struct acpi_driver *driver);
->  void acpi_bus_unregister_driver(struct acpi_driver *driver);
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Alex.
