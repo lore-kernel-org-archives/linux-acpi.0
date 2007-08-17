@@ -1,96 +1,220 @@
-From: Ryan May <rmay@ou.edu>
-Subject: BIOS update breaks HP2125nr backlight keys
-Date: Thu, 16 Aug 2007 18:34:28 -0500
-Message-ID: <46C4DF04.6020306@ou.edu>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 06/12] ACPI: Add acpi_bus_generate_event4() function
+Date: Fri, 17 Aug 2007 10:23:31 +0800
+Message-ID: <1187317411.2920.9.camel@acpi-hp.sh.intel.com>
+References: <20070816140322.19441.63139.stgit@z61m>
+	 <20070816140347.19441.31611.stgit@z61m>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020304040608040003010605"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outgoing-mail.its.caltech.edu ([131.215.239.19]:20364 "EHLO
-	outgoing-mail.its.caltech.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755846AbXHPXpV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2007 19:45:21 -0400
-Received: from earth-dog.its.caltech.edu (earth-dog [192.168.1.3])
-	by fire-ox-postvirus (Postfix) with ESMTP id 4C9A413252
-	for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 16:34:40 -0700 (PDT)
-Received: from [10.1.240.162] (mystic.caltech.edu [131.215.220.112])
-	by water-ox.its.caltech.edu (Postfix) with ESMTP id 903851B220
-	for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2007 16:34:32 -0700 (PDT)
+Received: from mga03.intel.com ([143.182.124.21]:56278 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1765777AbXHQCUF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2007 22:20:05 -0400
+In-Reply-To: <20070816140347.19441.31611.stgit@z61m>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 
-This is a multi-part message in MIME format.
---------------020304040608040003010605
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Hi,
-
-I recently updated the BIOS on my HP Pavilion dv2125nr laptop to F.34
-(to enable the virtualization instructions).  Since I did this, the Fn
-keys to control brightness have failed to work properly under Linux,
-though they work fine before booting (ie. at Grub).  Hitting the Fn keys
-caused the brightness to change to the minimum possible.  In fact,
-/proc/acpi/video/VGA/LCD/brightness would show that the level was set to
-0 (though 20 was the lowest available).  I was still able to control the
-brightness manually via /proc interface however.
-
-My investigations seem to indicate that HP, in their wisdom, seem to
-have removed the _BQC method from their BIOS code.  It seems that the
-ACPI code in Linux that handles the key events to change the brightness
-use the _BQC method without checking for success, which explains why the
-level being set was garbage.  However, the /proc interface for
-brightness seems to only use device->brightness->curr to get the current
-level.
-
-The attached patch, which I'm sure isn't correct, fixes my problems by
-making use of the brightness->curr field to track the current brightness.
-
-I'd love to know your opinion(s) on the problem and a proper fix
-(including perhaps sysfs backlight support?).
+On Thu, 2007-08-16 at 18:03 +0400, Alexey Starikovskiy wrote:
+> From: Alexey Starikovskiy <astarikovskiy@suse.de>
+> 
+> acpi_bus_generate_event() takes two strings out of passed device object.
+> SBS needs to supply these strings directly.
+> 
+This doesn't make sense.
+acpi_dev->dev.bus_id is the name we are using for ACPI device in sysfs.
+That's why acpi_dev->dev.bus_id is exported via netlink message rather
+than the acpi_dev.pnp.bus_id.
+BTW: what's wrong with the old acpi_sbs_generate_event thing?
 
 Thanks,
-
-Ryan
-
--- 
-Ryan May
-Graduate Research Assistant
-School of Meteorology
-University of Oklahoma
-
---------------020304040608040003010605
-Content-Type: text/x-patch;
- name="hp-backlight-fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="hp-backlight-fix.diff"
-
---- video.c.old	2007-08-16 14:20:14.000000000 -0500
-+++ video.c	2007-08-16 18:02:23.000000000 -0500
-@@ -380,7 +380,7 @@
- 
- 	arg0.integer.value = level;
- 	status = acpi_evaluate_object(device->dev->handle, "_BCM", &args, NULL);
--
-+	device->brightness->curr = level;
- 	printk(KERN_DEBUG "set_level status: %x\n", status);
- 	return status;
- }
-@@ -392,7 +392,11 @@
- 	int status;
- 
- 	status = acpi_evaluate_integer(device->dev->handle, "_BQC", NULL, level);
--
-+	if (status)
-+	    *level = device->brightness->curr;
-+	
-+	printk(KERN_DEBUG "get_level status: %x\n", status);
-+	status = 0;
- 	return status;
- }
- 
-
---------------020304040608040003010605--
+Rui
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/bus.c      |   25 ++++++++++++++++---------
+>  drivers/acpi/event.c    |    7 ++++---
+>  drivers/acpi/sbs.c      |   39 ++++++++-------------------------------
+>  include/acpi/acpi_bus.h |    6 ++++--
+>  4 files changed, 32 insertions(+), 45 deletions(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 6b2658c..992bb30 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -283,16 +283,12 @@ DECLARE_WAIT_QUEUE_HEAD(acpi_bus_event_queue);
+>  
+>  extern int event_is_open;
+>  
+> -int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
+> +int acpi_bus_generate_event4(const char *device_class, const char *bus_id, u8 type, int data)
+>  {
+> -	struct acpi_bus_event *event = NULL;
+> +	struct acpi_bus_event *event;
+>  	unsigned long flags = 0;
+>  
+> -
+> -	if (!device)
+> -		return -EINVAL;
+> -
+> -	if (acpi_bus_generate_genetlink_event(device, type, data))
+> +	if (acpi_bus_generate_genetlink_event(device_class, bus_id, type, data))
+>  		printk(KERN_WARNING PREFIX
+>  			"Failed to generate an ACPI event via genetlink!\n");
+>  
+> @@ -304,8 +300,8 @@ int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
+>  	if (!event)
+>  		return -ENOMEM;
+>  
+> -	strcpy(event->device_class, device->pnp.device_class);
+> -	strcpy(event->bus_id, device->pnp.bus_id);
+> +	strcpy(event->device_class, device_class);
+> +	strcpy(event->bus_id, bus_id);
+>  	event->type = type;
+>  	event->data = data;
+>  
+> @@ -316,6 +312,17 @@ int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
+>  	wake_up_interruptible(&acpi_bus_event_queue);
+>  
+>  	return 0;
+> +
+> +}
+> +
+> +EXPORT_SYMBOL_GPL(acpi_bus_generate_event4);
+> +
+> +int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data)
+> +{
+> +	if (!device)
+> +		return -EINVAL;
+> +	return acpi_bus_generate_event4(device->pnp.device_class,
+> +					device->pnp.bus_id, type, data);
+>  }
+>  
+>  EXPORT_SYMBOL(acpi_bus_generate_event);
+> diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+> index 95637a4..6529280 100644
+> --- a/drivers/acpi/event.c
+> +++ b/drivers/acpi/event.c
+> @@ -147,7 +147,8 @@ static struct genl_multicast_group acpi_event_mcgrp = {
+>  	.name = ACPI_GENL_MCAST_GROUP_NAME,
+>  };
+>  
+> -int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+> +int acpi_bus_generate_genetlink_event(const char *device_class,
+> +				      const char *bus_id,
+>  				      u8 type, int data)
+>  {
+>  	struct sk_buff *skb;
+> @@ -191,8 +192,8 @@ int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+>  
+>  	memset(event, 0, sizeof(struct acpi_genl_event));
+>  
+> -	strcpy(event->device_class, device->pnp.device_class);
+> -	strcpy(event->bus_id, device->dev.bus_id);
+> +	strcpy(event->device_class, device_class);
+> +	strcpy(event->bus_id, bus_id);
+>  	event->type = type;
+>  	event->data = data;
+>  
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index 82c3a55..88af657 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -427,27 +427,6 @@ static int acpi_check_update_proc(struct acpi_sbs *sbs)
+>  	return 0;
+>  }
+>  
+> -static int acpi_sbs_generate_event(struct acpi_device *device,
+> -				   int event, int state, char *bid, char *class)
+> -{
+> -	char bid_saved[5];
+> -	char class_saved[20];
+> -	int result = 0;
+> -
+> -	strcpy(bid_saved, acpi_device_bid(device));
+> -	strcpy(class_saved, acpi_device_class(device));
+> -
+> -	strcpy(acpi_device_bid(device), bid);
+> -	strcpy(acpi_device_class(device), class);
+> -
+> -	result = acpi_bus_generate_event(device, event, state);
+> -
+> -	strcpy(acpi_device_bid(device), bid_saved);
+> -	strcpy(acpi_device_class(device), class_saved);
+> -
+> -	return result;
+> -}
+> -
+>  static int acpi_battery_get_present(struct acpi_battery *battery)
+>  {
+>  	s16 state;
+> @@ -1451,14 +1430,13 @@ static int acpi_sbs_update_run(struct acpi_sbs *sbs, int id, int data_type)
+>  	}
+>  
+>  	if (do_ac_init) {
+> -		result = acpi_sbs_generate_event(sbs->device,
+> -						 ACPI_SBS_AC_NOTIFY_STATUS,
+> -						 new_ac_present,
+> +		result = acpi_bus_generate_event4(ACPI_AC_CLASS,
+>  						 ACPI_AC_DIR_NAME,
+> -						 ACPI_AC_CLASS);
+> +						 ACPI_SBS_AC_NOTIFY_STATUS,
+> +						 new_ac_present);
+>  		if (result) {
+>  			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+> -					"acpi_sbs_generate_event() failed"));
+> +					"acpi_bus_generate_event4() failed"));
+>  		}
+>  	}
+>  
+> @@ -1567,14 +1545,13 @@ static int acpi_sbs_update_run(struct acpi_sbs *sbs, int id, int data_type)
+>  		    old_remaining_capacity !=
+>  		    battery->state.remaining_capacity) {
+>  			sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
+> -			result = acpi_sbs_generate_event(sbs->device,
+> -							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
+> -							 new_battery_present,
+> +			result = acpi_bus_generate_event4(ACPI_BATTERY_CLASS,
+>  							 dir_name,
+> -							 ACPI_BATTERY_CLASS);
+> +							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
+> +							 new_battery_present);
+>  			if (result) {
+>  				ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+> -						"acpi_sbs_generate_event() "
+> +						"acpi_bus_generate_event4() "
+>  						"failed"));
+>  			}
+>  		}
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 3d0fea2..0878928 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -321,8 +321,9 @@ struct acpi_bus_event {
+>  };
+>  
+>  extern struct kset acpi_subsys;
+> -extern int acpi_bus_generate_genetlink_event(struct acpi_device *device,
+> -						u8 type, int data);
+> +extern int acpi_bus_generate_genetlink_event(const char *device_class,
+> +					     const char *bus_id,
+> +					     u8 type, int data);
+>  /*
+>   * External Functions
+>   */
+> @@ -333,6 +334,7 @@ int acpi_bus_get_status(struct acpi_device *device);
+>  int acpi_bus_get_power(acpi_handle handle, int *state);
+>  int acpi_bus_set_power(acpi_handle handle, int state);
+>  int acpi_bus_generate_event(struct acpi_device *device, u8 type, int data);
+> +int acpi_bus_generate_event4(const char *class, const char *bid, u8 type, int data);
+>  int acpi_bus_receive_event(struct acpi_bus_event *event);
+>  int acpi_bus_register_driver(struct acpi_driver *driver);
+>  void acpi_bus_unregister_driver(struct acpi_driver *driver);
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
