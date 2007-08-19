@@ -1,50 +1,68 @@
-From: Mark Lord <liml@rtr.ca>
+From: Maciek Rutecki <maciej.rutecki@gmail.com>
 Subject: Re: SATA error while resume
-Date: Sun, 19 Aug 2007 10:25:34 -0400
-Message-ID: <46C852DE.8040701@rtr.ca>
-References: <46C80999.1060700@gmail.com>
+Date: Sun, 19 Aug 2007 17:16:40 +0200
+Message-ID: <46C85ED8.5080801@gmail.com>
+References: <46C80999.1060700@gmail.com> <46C852DE.8040701@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <46C80999.1060700@gmail.com>
+In-Reply-To: <46C852DE.8040701@rtr.ca>
 Sender: linux-ide-owner@vger.kernel.org
-To: Maciek Rutecki <maciej.rutecki@gmail.com>
+To: Mark Lord <liml@rtr.ca>
 Cc: Linux-kernel <linux-kernel@vger.kernel.org>, htejun@gmail.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-Maciek Rutecki wrote:
-> Kernel: 2.6.23-rc2 witch patches [1], but older and stable versions also
-.. 
-> Sometimes (one in ten, or rarely) I have this error while system resume
-> from suspend to disk:
-..
-> ata1.00: exception Emask 0x0 SAct 0x0 SErr 0x0 action 0x0
-> ata1.00: irq_stat 0x40000001
-> ata1.00: cmd 25/00:00:10:0b:f3/00:04:05:00:00/e0 tag 0 cdb 0x0 data
-> 524288 in
->          res 51/40:a4:6c:0b:f3/00:03:05:00:00/e0 Emask 0x9 (media error)
-> ata1.00: configured for UDMA/100
-> sd 0:0:0:0: [sda] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE,SUGGEST_OK
-> sd 0:0:0:0: [sda] Sense Key : Medium Error [current] [descriptor]
-> Descriptor sense data with sense descriptors (in hex):
->         72 03 11 04 00 00 00 0c 00 0a 80 00 00 00 00 00
->         05 f3 0b 6c
-> sd 0:0:0:0: [sda] Add. Sense: Unrecovered read error - auto reallocate
-> failed
-> end_request: I/O error, dev sda, sector 99814252
-> Read-error on swap-device (8:0:99814256)
-...
+Mark Lord pisze:
 
-Looks like a bad sector in the swap partition.
-You can probably repair it by using this sequence of commands:
+>=20
+> Looks like a bad sector in the swap partition.
+> You can probably repair it by using this sequence of commands:
+>=20
+> swapoff /dev/sdX    <--- replace sdX with actual swap partition dev n=
+ame
+> sync
+> cat /dev/zero > /dev/sdX
+> mkswap /dev/sdX
+> swapon /dev/sdX
+>=20
+> If it recurs after doing that, then it's time for a new drive.
+>=20
+> -ml
+> -
 
-swapoff /dev/sdX	<--- replace sdX with actual swap partition dev name
-sync
-cat /dev/zero > /dev/sdX
-mkswap /dev/sdX
-swapon /dev/sdX
+rutek:/home/maciek# swapoff /dev/sda6
+rutek:/home/maciek# sync
+rutek:/home/maciek# cat /dev/zero > /dev/sda6
+cat: b=C5=82=C4=85d zapisu: B=C5=82=C4=85d wej=C5=9Bcia/wyj=C5=9Bcia (w=
+rite error, after few minutes,
+probably sda6 is full)
 
-If it recurs after doing that, then it's time for a new drive.
+rutek:/home/maciek# dd if=3D/dev/zero of=3D/dev/sda6
+dd: zapis do `/dev/sda6': B=C5=82=C4=85d wej=C5=9Bcia/wyj=C5=9Bcia
+5992177+0 przeczytanych record=C3=B3w
+5992176+0 zapisanych record=C3=B3w
+skopiowane 3067994112 bajt=C3=B3w (3,1 GB), 298,159 sekund, 10,3 MB/s
+rutek:/home/maciek# mkswap /dev/sda6
+Setting up swapspace version 1, size =3D 3067990 kB
+no label, UUID=3D2061df6e-d385-4367-9a4c-c8431e57b73a
+rutek:/home/maciek# swapon /dev/sda6
 
--ml
+
+dmesg:
+Adding 2996080k swap on /dev/sda6.  Priority:-2 extents:1 across:299608=
+0k
+
+Also I try:
+dd if=3D=3D/dev/sda... of=3D/dev/null for all partitions
+Test disk with bios utility and smartctl. Use autotest (bash shared
+mapping and disktest). No errors/warnings. Only (sometimes) while syste=
+m
+resume from suspend to disk. Disk 10 months old...
+
+Regards
+--=20
+Maciej Rutecki
+http://www.unixy.pl
+
+
