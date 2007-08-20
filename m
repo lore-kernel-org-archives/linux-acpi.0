@@ -1,45 +1,49 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: GPE block driver
-Date: Mon, 20 Aug 2007 09:03:37 -0600
-Message-ID: <20070820150337.GG30019@parisc-linux.org>
-References: <200708181334.42417.lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] [-mm] FS: file name must be unique in the same dir in
+	procfs
+Date: Mon, 20 Aug 2007 23:50:05 +0800
+Message-ID: <1187625005.2920.167.camel@acpi-hp.sh.intel.com>
+References: <1187605699.2920.147.camel@acpi-hp.sh.intel.com>
+	 <200708201245.17780.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:33052 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757721AbXHTPDi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Aug 2007 11:03:38 -0400
-Content-Disposition: inline
-In-Reply-To: <200708181334.42417.lenb@kernel.org>
+Received: from [192.55.52.93] ([192.55.52.93]:38638 "EHLO mga11.intel.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1759512AbXHTPuE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Aug 2007 11:50:04 -0400
+In-Reply-To: <200708201245.17780.oliver@neukum.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Oliver Neukum <oliver@neukum.org>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, Aug 18, 2007 at 01:34:42PM -0400, Len Brown wrote:
-> Matt,
-> What shall we do with your GPE block driver patch?
-> Will any systems need this?
+Hi, Oliver,
+Thanks for your comments,
 
-Hi Len,
-
-I don't work at HP any more, so I no longer have access to systems which
-use this.
-
-However, we have a horse-and-cart situation here -- if Linux doesn't
-support GPE blocks, BIOS vendors won't be able to use them.  Since they
-are specified in the ACPI standard, we probably *ought* to support them.
-
-> Luming, and then Rui refreshed it a while ago.
-> It could use another refresh at this point...
+On Mon, 2007-08-20 at 18:45 +0800, Oliver Neukum wrote:
+> Am Montag 20 August 2007 schrieb Zhang Rui:
+> > Files name must be unique in the same directory.
+> >
+> > Bug is reported here:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=8798
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=2934
+> Then I'd say fix the callers.
+But at least the callers need to be told that something is wrong first.
 
-I'll have to see if my new employer is willing to let me spend time on
-it ;-)
+>  This will paper over bugs.
+Hmm, what kind of bugs?
+callers always need to check the return value when calling
+proc_mkdir/create_proc_entry, don't they?
 
--- 
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+
+Thanks,
+Rui
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
