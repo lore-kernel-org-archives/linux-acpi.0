@@ -1,38 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: (STA.functional && !STA.present)
-Date: Sat, 18 Aug 2007 17:10:12 -0400
-Message-ID: <200708181710.12550.lenb@kernel.org>
-References: <200703090049.19356.lenb@kernel.org>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Closing lid gives short wakeup from s2ram - APCI related?
+Date: Tue, 21 Aug 2007 14:51:05 +0930 (CST)
+Message-ID: <200708210521.l7L5L58I027885@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56665 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbXHUDqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Aug 2007 23:46:07 -0400
-In-Reply-To: <200703090049.19356.lenb@kernel.org>
-Content-Disposition: inline
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:55211 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750805AbXHUFVI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Aug 2007 01:21:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, castet.matthieu@free.fr, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-On Friday 09 March 2007 00:49, Len Brown wrote:
-> Matthieu,
-> what good things happen if instead of using bjorn's current
-> tweak to simply set STA.present we use your patch here
-> http://bugzilla.kernel.org/show_bug.cgi?id=3358
-> which doesn't re-write the bits?
-> 
-> Bjorn, will the case that provoked your change still work?
-> 
-> it is interesting now to google for:
-> "functional but not present; setting present"
-> it comes up on more than Tiger systems...
+Hi
 
-Shall we discard the patch in this bug report?
-Shall we keep the current code and discard the warning?
+I have noticed that whenever I suspend my laptop to RAM and allow it to
+suspend before closing the lid, the system appears to briefly wake up when
+the lid is finally closed.  By "wake up" I mean that the HDD and CPU fan
+spins up for maybe half a second before stopping again.
 
--Len
+I do not have acpid configured to do anything (special or otherwise) when
+the lid closes (all that happens is the backlight turns off, but that's
+external to Linux AFAIK).  When I subsequently bring the system out of
+suspend (which happens spontaneously when the lid is opened) I don't
+seen anything in the acpid log (or any other log) to indicate what happened
+when the lid is closed.  The behaviour is unchanged if acpid is not running.
+
+If I trigger a s2ram and close the lid before the suspend has happened no
+"wake up" happens.
+
+Does anyone have any idea as to what might be causing this behaviour?  Is it
+ACPI, something hardwired into the system, or something completely separate?
+If fixing this prevents the spontaneous return-from-suspend when the lid is
+opened (which I'd prefer didn't happen) then I'd be happy with that.
+
+The system is a Fujitsu S7020 running Slackware 11.0.  The effect has been
+present since at least 2.6.19 and it possibly predates that.
+
+Regards
+  jonathan
