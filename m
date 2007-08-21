@@ -1,58 +1,72 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [Git Patch] ACPI: Fix a warning of discarding qualifiers from
- pointer target type
-Date: Tue, 21 Aug 2007 19:14:49 +0400
-Message-ID: <46CB0169.7090207@suse.de>
-References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking>
+From: Al Viro <viro@ftp.linux.org.uk>
+Subject: Re: [Git Patch] ACPI: Fix a warning of discarding qualifiers from pointer target type
+Date: Tue, 21 Aug 2007 16:18:20 +0100
+Message-ID: <20070821151820.GB21089@ftp.linux.org.uk>
+References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking> <46CB0169.7090207@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:36906 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760706AbXHUPPM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Aug 2007 11:15:12 -0400
-In-Reply-To: <20070821150714.GA7591@hacking>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:47825 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760295AbXHUPSX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Aug 2007 11:18:23 -0400
+Content-Disposition: inline
+In-Reply-To: <46CB0169.7090207@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Jarek Poplawski <jarkao2@o2.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, Andrew Morton <akpm@osdl.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>, Jarek Poplawski <jarkao2@o2.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, Andrew Morton <akpm@osdl.org>
 
-WANG Cong wrote:
-> Fix this warning:
->
-> drivers/acpi/ec.c: In function `acpi_ec_ecdt_probe':
-> drivers/acpi/ec.c:873: warning: passing arg 1 of `acpi_get_devices' discards qualifiers from pointer target type
->
-> (I don't know whether this fix hits the real problem.)
->   
-It is safe to give acpi_get_devices() const string, as it should not
-modify it in any condition.
-> Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
->
->   
-ACK
+On Tue, Aug 21, 2007 at 07:14:49PM +0400, Alexey Starikovskiy wrote:
+> WANG Cong wrote:
+> > Fix this warning:
+> >
+> > drivers/acpi/ec.c: In function `acpi_ec_ecdt_probe':
+> > drivers/acpi/ec.c:873: warning: passing arg 1 of `acpi_get_devices' discards qualifiers from pointer target type
+> >
+> > (I don't know whether this fix hits the real problem.)
+> >   
+> It is safe to give acpi_get_devices() const string, as it should not
+> modify it in any condition.
 
-Thanks,
-Alex
-> ---
->  drivers/acpi/ec.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> Index: linux-2.6.23-rc3-git3/drivers/acpi/ec.c
-> ===================================================================
-> --- linux-2.6.23-rc3-git3.orig/drivers/acpi/ec.c
-> +++ linux-2.6.23-rc3-git3/drivers/acpi/ec.c
-> @@ -869,8 +869,8 @@ int __init acpi_ec_ecdt_probe(void)
->  		boot_ec->handle = ACPI_ROOT_OBJECT;
->  	} else {
->  		printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
-> -		status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
-> -						boot_ec, NULL);
-> +		status = acpi_get_devices((char *)ec_device_ids[0].id,
-> +						ec_parse_device, boot_ec, NULL);
->  		if (ACPI_FAILURE(status))
->  			goto error;
->  	}
->   
-
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
+index ab65b2c..f39fbc6 100644
+--- a/drivers/acpi/namespace/nsxfeval.c
++++ b/drivers/acpi/namespace/nsxfeval.c
+@@ -540,7 +540,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_get_devices(char *HID,
++acpi_get_devices(const char *HID,
+ 		 acpi_walk_callback user_function,
+ 		 void *context, void **return_value)
+ {
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index b5cca5d..3d7ab9e 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -130,7 +130,7 @@ acpi_walk_namespace(acpi_object_type type,
+ 		    void *context, void **return_value);
+ 
+ acpi_status
+-acpi_get_devices(char *HID,
++acpi_get_devices(const char *HID,
+ 		 acpi_walk_callback user_function,
+ 		 void *context, void **return_value);
+ 
+diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
+index aeb4498..8848265 100644
+--- a/include/acpi/acstruct.h
++++ b/include/acpi/acstruct.h
+@@ -146,7 +146,7 @@ struct acpi_init_walk_info {
+ struct acpi_get_devices_info {
+ 	acpi_walk_callback user_function;
+ 	void *context;
+-	char *hid;
++	const char *hid;
+ };
+ 
+ union acpi_aml_operands {
