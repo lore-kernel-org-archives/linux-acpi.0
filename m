@@ -1,45 +1,50 @@
 From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Closing lid gives short wakeup from s2ram - APCI related?
-Date: Tue, 21 Aug 2007 14:51:05 +0930 (CST)
-Message-ID: <200708210521.l7L5L58I027885@turbo.physics.adelaide.edu.au>
+Subject: ACPI extras for Fujitsu laptops
+Date: Tue, 21 Aug 2007 14:39:59 +0930 (CST)
+Message-ID: <200708210509.l7L59xkE027360@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:55211 "EHLO
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:38619 "EHLO
 	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805AbXHUFVI (ORCPT
+	by vger.kernel.org with ESMTP id S1751061AbXHUF1B (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2007 01:21:08 -0400
+	Tue, 21 Aug 2007 01:27:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Hi
+Hi guys
 
-I have noticed that whenever I suspend my laptop to RAM and allow it to
-suspend before closing the lid, the system appears to briefly wake up when
-the lid is finally closed.  By "wake up" I mean that the HDD and CPU fan
-spins up for maybe half a second before stopping again.
+I own a Fujitsu S7020 laptop, and I have noted in the past that Linux was
+not able to control the LCD brightness via the standard ACPI-video/backlight
+system.  Ordinarily this wouldn't matter except that when coming out of
+suspend-to-ram the screen lamp doesn't turn on.  One can manually trigger it
+using the keyboard keys, but that's a bit clunky.
 
-I do not have acpid configured to do anything (special or otherwise) when
-the lid closes (all that happens is the backlight turns off, but that's
-external to Linux AFAIK).  When I subsequently bring the system out of
-suspend (which happens spontaneously when the lid is opened) I don't
-seen anything in the acpid log (or any other log) to indicate what happened
-when the lid is closed.  The behaviour is unchanged if acpid is not running.
+Just recently I stumbled across a kernel module written several years ago
+which allowed software control of (among other things) the LCD brightness on
+Fujitsu laptops.  I grabbed a copy from
 
-If I trigger a s2ram and close the lid before the suspend has happened no
-"wake up" happens.
+  http://tilos.csl.mech.ntua.gr/~apoikos/fujitsu-acpi-2.6.tar.bz2
 
-Does anyone have any idea as to what might be causing this behaviour?  Is it
-ACPI, something hardwired into the system, or something completely separate?
-If fixing this prevents the spontaneous return-from-suspend when the lid is
-opened (which I'd prefer didn't happen) then I'd be happy with that.
+and tested it against 2.6.22.1 and the brightness control worked as
+advertised.
 
-The system is a Fujitsu S7020 running Slackware 11.0.  The effect has been
-present since at least 2.6.19 and it possibly predates that.
+A note on
+
+  http://tilos.csl.mech.ntua.gr/~apoikos/s7020.html
+
+says that "This patch never made it to the mainline kernel source" but it's
+unclear to me whether it was ever considered.  In any case, beyond the
+obvious integration work what would it take to get this module into the acpi
+system?  I would certainly be willing to do the legwork if any was
+necessary.  We already have toshiba_acpi and ibm_acpi, so it seems to me
+that it's quite reasonable to add fujitsu_acpi.  However, if this is truly
+unnecessary and there is a way of manipulating this corner of my laptop's
+APCI system with a stock kernel I'm all ears.
 
 Regards
   jonathan
