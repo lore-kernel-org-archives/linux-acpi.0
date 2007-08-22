@@ -1,56 +1,52 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 8919] New: Broken hotkeys on ASUS A6Km
- notebook with 2.6.23-rc3.
-Date: Wed, 22 Aug 2007 02:04:04 -0700
-Message-ID: <20070822020404.5a0d5102.akpm@linux-foundation.org>
-References: <bug-8919-10286@http.bugzilla.kernel.org/>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI: Clean up acpi_enter_sleep_state_prep
+Date: Wed, 22 Aug 2007 11:56:35 +0200
+Message-ID: <200708221156.36235.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45012 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762914AbXHVJEM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Aug 2007 05:04:12 -0400
-In-Reply-To: <bug-8919-10286@http.bugzilla.kernel.org/>
+Received: from ogre.sisk.pl ([217.79.144.158]:48870 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752728AbXHVJqe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Aug 2007 05:46:34 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, szczekut@wit.edu.pl
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 22 Aug 2007 01:33:48 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8919
-> 
->            Summary: Broken hotkeys on ASUS A6Km notebook with 2.6.23-rc3.
->            Product: ACPI
->            Version: 2.5
->      KernelVersion: 2.6.23-rc3
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Platform-Drivers
->         AssignedTo: acpi_platform-drivers@kernel-bugs.osdl.org
->         ReportedBy: szczekut@wit.edu.pl
-> 
-> 
-> Most recent kernel where this bug did not occur: 2.6.23-rc2
-> Distribution: Gentoo
-> Hardware Environment: ASUS A6Km-Q017
-> Problem Description:
-> 
->   Hotkeys like: mute, voluem up, volume down, monitor brightness up, monitor
-> brightness down, monitor switch on/off, wireless on/off, sleep button are
-> broken work with new drivers/acpi/ec.c. There is no acpi event from any of
-> those. Also i can't switch monitor off using Fn+F7. Power button, battery, fan,
-> processor and thermal works fine.
-> 
-> Steps to reproduce: always
-> 
-> 
+Remove some redundant code from acpi_enter_sleep_state_prep() and clean up
+a comment in there.
 
-Michal, please track this as a post-2.6.22 regression, thanks.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/hardware/hwsleep.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+Index: linux-2.6.23-rc3/drivers/acpi/hardware/hwsleep.c
+===================================================================
+--- linux-2.6.23-rc3.orig/drivers/acpi/hardware/hwsleep.c	2007-08-22 11:40:30.000000000 +0200
++++ linux-2.6.23-rc3/drivers/acpi/hardware/hwsleep.c	2007-08-22 11:40:53.000000000 +0200
+@@ -234,15 +234,11 @@ acpi_status acpi_enter_sleep_state_prep(
+ 				"While executing method _SST"));
+ 	}
+ 
+-	/*
+-	 * 1) Disable/Clear all GPEs
+-	 */
++	/* Disable/Clear all GPEs */
++
+ 	status = acpi_hw_disable_all_gpes();
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+ 
+-	return_ACPI_STATUS(AE_OK);
++	return_ACPI_STATUS(status);
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
