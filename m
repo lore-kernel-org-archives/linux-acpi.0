@@ -1,447 +1,111 @@
-From: "D. Angelis" <dangelis@mail.beta-cae.gr>
-Subject: dmidecode outpout from my laptop
-Date: Wed, 22 Aug 2007 01:45:35 +0300
-Message-ID: <46CB6B0F.2000804@mail.beta-cae.gr>
+From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: Re: [Git Patch] ACPI: Fix a warning of discarding qualifiers from pointer target type
+Date: Wed, 22 Aug 2007 09:57:58 +0200
+Message-ID: <20070822075758.GC1684@ff.dom.local>
+References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking> <46CB0169.7090207@suse.de> <20070821151820.GB21089@ftp.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050100020308060004040601"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.beta-cae.gr ([213.140.137.115]:40730 "EHLO
-	frida.beta-cae.gr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754967AbXHUXPx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Aug 2007 19:15:53 -0400
-Received: from [192.168.1.109] (unknown [80.245.173.34])
-	by frida.beta-cae.gr (Postfix) with ESMTP id 8508744A0001
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Aug 2007 01:45:36 +0300 (EEST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758164AbXHVH5L@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20070821151820.GB21089@ftp.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Al Viro <viro@ftp.linux.org.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, WANG Cong <xiyou.wangcong@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, Andrew Morton <akpm@osdl.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050100020308060004040601
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, Aug 21, 2007 at 04:18:20PM +0100, Al Viro wrote:
+> On Tue, Aug 21, 2007 at 07:14:49PM +0400, Alexey Starikovskiy wrote:
+> > WANG Cong wrote:
+> > > Fix this warning:
+> > >
+> > > drivers/acpi/ec.c: In function `acpi_ec_ecdt_probe':
+> > > drivers/acpi/ec.c:873: warning: passing arg 1 of `acpi_get_devices' discards qualifiers from pointer target type
+> > >
+> > > (I don't know whether this fix hits the real problem.)
+> > >   
+> > It is safe to give acpi_get_devices() const string, as it should not
+> > modify it in any condition.
+> 
+> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+> ---
+> diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
+> index ab65b2c..f39fbc6 100644
+> --- a/drivers/acpi/namespace/nsxfeval.c
+> +++ b/drivers/acpi/namespace/nsxfeval.c
+> @@ -540,7 +540,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
+>   ******************************************************************************/
+>  
+>  acpi_status
+> -acpi_get_devices(char *HID,
+> +acpi_get_devices(const char *HID,
+>  		 acpi_walk_callback user_function,
+>  		 void *context, void **return_value)
+>  {
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index b5cca5d..3d7ab9e 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -130,7 +130,7 @@ acpi_walk_namespace(acpi_object_type type,
+>  		    void *context, void **return_value);
+>  
+>  acpi_status
+> -acpi_get_devices(char *HID,
+> +acpi_get_devices(const char *HID,
+>  		 acpi_walk_callback user_function,
+>  		 void *context, void **return_value);
+>  
+> diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
+> index aeb4498..8848265 100644
+> --- a/include/acpi/acstruct.h
+> +++ b/include/acpi/acstruct.h
+> @@ -146,7 +146,7 @@ struct acpi_init_walk_info {
+>  struct acpi_get_devices_info {
+>  	acpi_walk_callback user_function;
+>  	void *context;
+> -	char *hid;
+> +	const char *hid;
+>  };
+>  
+>  union acpi_aml_operands {
+> 
 
-dmesg in my laptop prints this :
-ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
+So, it looks like this patch (or at least its -mm version) is working.
 
-So I do.
+Now there is 'only' like this (there could be something new, because
+I've forgotten to mention this yesterday's log was the second make,
+after removing some small testing patch; here it's after make clean;
+.config is the same; gcc 3.2.3):
 
-D. Angelis
+sed: -e expression #1, char 154: Unknown option to 's'
+kernel/power/pm.c:205: warning: `pm_register' is deprecated (declared at kernel/power/pm.c:64)
+kernel/power/pm.c:205: warning: `pm_register' is deprecated (declared at kernel/power/pm.c:64)
+kernel/power/pm.c:206: warning: `pm_send_all' is deprecated (declared at kernel/power/pm.c:180)
+kernel/power/pm.c:206: warning: `pm_send_all' is deprecated (declared at kernel/power/pm.c:180)
+drivers/pci/search.c: In function `pci_find_slot':
+drivers/pci/search.c:99: warning: `pci_find_device' is deprecated (declared at include/linux/pci.h:480)
+drivers/pci/search.c: At top level:
+drivers/pci/search.c:437: warning: `pci_find_device' is deprecated (declared at drivers/pci/search.c:244)
+drivers/pci/search.c:437: warning: `pci_find_device' is deprecated (declared at drivers/pci/search.c:244)
+drivers/pci/search.c:438: warning: `pci_find_slot' is deprecated (declared at drivers/pci/search.c:96)
+drivers/pci/search.c:438: warning: `pci_find_slot' is deprecated (declared at drivers/pci/search.c:96)
+drivers/pci/msi.c:686: warning: weak declaration of `arch_msi_check_device' after first use results in unspecified behavior
+drivers/pci/msi.c:698: warning: weak declaration of `arch_setup_msi_irqs' after first use results in unspecified behavior
+drivers/pci/msi.c:718: warning: weak declaration of `arch_teardown_msi_irqs' after first use results in unspecified behavior
+In file included from drivers/usb/host/ohci-hcd.c:859:
+drivers/usb/host/ohci-pci.c: In function `ohci_pci_start':
+drivers/usb/host/ohci-pci.c:202: warning: unused variable `pdev'
+include/asm/processor.h: In function `native_get_debugreg':
+include/asm/processor.h:524: warning: asm operand 0 probably doesn't match constraints
+include/asm/processor.h: In function `native_set_debugreg':
+include/asm/processor.h:551: warning: asm operand 0 probably doesn't match constraints
+Root device is (8, 1)
+Setup is 11036 bytes (padded to 11264 bytes).
+System is 2428 kB
 
---------------050100020308060004040601
-Content-Type: text/x-log;
- name="dmidec.log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dmidec.log"
+Cheers,
+Jarek P.
 
-# dmidecode 2.7
-SMBIOS 2.4 present.
-38 structures occupying 1226 bytes.
-Table at 0x7FEE6000.
-
-Handle 0x0000, DMI type 0, 24 bytes.
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: NAPA0001.86C.00               
-	Release Date: 11/30/06
-	Address: 0xE7590
-	Runtime Size: 100976 bytes
-	ROM Size: 512 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-
-Handle 0x0001, DMI type 1, 27 bytes.
-System Information
-	Manufacturer: Clevo Co.
-	Product Name: M570U
-	Version: Not Applicable
-	Serial Number: Not Applicable
-	UUID: 0090F558-0E55-0000-0000-000000000000
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes.
-Base Board Information
-	Manufacturer: Clevo Co.
-	Product Name: CAPELL VALLEY(NAPA) CRB
-	Version: Not Applicable
-	Serial Number: Not Applicable
-
-Handle 0x0003, DMI type 3, 17 bytes.
-Chassis Information
-	Manufacturer: Clevo Co.
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag: No Asset Tag
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes.
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Unknown
-	Manufacturer: Intel
-	ID: F6 06 00 00 FF FB EB BF
-	Version:   
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 2330 MHz
-	Current Speed: 2000 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 4096 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes.
-Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes.
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x0009, DMI type 8, 9 bytes.
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Mouse Port
-
-Handle 0x000A, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Slot J8B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Slot J9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PEG Slot J6C1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Express Slot J7C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Express Slot J8C1
-	Type: 32-bit PCI Express
-	Current Usage: Unknown
-	Length: Long
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000F, DMI type 10, 6 bytes.
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: HD-Audio
-
-Handle 0x0010, DMI type 11, 5 bytes.
-OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
-
-Handle 0x0011, DMI type 12, 5 bytes.
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x0012, DMI type 15, 29 bytes.
-System Event Log
-	Area Length: 16 bytes
-	Header Start Offset: 0x0000
-	Header Length: 16 bytes
-	Data Start Offset: 0x0010
-	Access Method: General-purpose non-volatile data functions
-	Access Address: 0x0000
-	Status: Valid, Not Full
-	Change Token: 0x00000002
-	Header Format: Type 1
-	Supported Log Type Descriptors: 3
-	Descriptor 1: POST error
-	Data Format 1: POST results bitmap
-	Descriptor 2: Single-bit ECC memory error
-	Data Format 2: Multiple-event
-	Descriptor 3: Multi-bit ECC memory error
-	Data Format 3: Multiple-event
-
-Handle 0x0013, DMI type 16, 15 bytes.
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0014, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0015, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0016, DMI type 19, 15 bytes.
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x0013
-	Partition Width: 0
-
-Handle 0x0017, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0014
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0018, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0015
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0019, DMI type 23, 13 bytes.
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x001A, DMI type 24, 5 bytes.
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x001B, DMI type 25, 9 bytes.
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x001C, DMI type 26, 20 bytes.
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 27, 12 bytes.
-Cooling Device
-	Temperature Probe Handle: 0x001E
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001E, DMI type 28, 20 bytes.
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001F, DMI type 29, 20 bytes.
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x0020, DMI type 30, 6 bytes.
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x0021, DMI type 32, 20 bytes.
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0022, DMI type 129, 16 bytes.
-OEM-specific Type
-	Header and Data:
-		81 10 22 00 01 01 02 01 00 00 00 01 00 00 08 01
-	Strings:
-		Intel_ASF_001
-		Intel_ASF_001
-
-Handle 0x0023, DMI type 136, 8 bytes.
-OEM-specific Type
-	Header and Data:
-		88 08 23 00 FF FF 00 00
-	Strings:
-		..$
-		..
-
-Handle 0x0024, DMI type 150, 14 bytes.
-OEM-specific Type
-	Header and Data:
-		96 0E 24 00 01 01 00 00 00 00 00 00 00 00
-	Strings:
-		ABSOLUTE(PHOENIX) CLM
-
-Handle 0x0025, DMI type 127, 4 bytes.
-End Of Table
-
-
---------------050100020308060004040601--
+PS: does somebody here remember these old good times:
+real    56m19.454s
+user    53m38.580s
+sys     2m7.610s
