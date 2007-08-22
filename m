@@ -1,111 +1,56 @@
-From: Jarek Poplawski <jarkao2@o2.pl>
-Subject: Re: [Git Patch] ACPI: Fix a warning of discarding qualifiers from pointer target type
-Date: Wed, 22 Aug 2007 09:57:58 +0200
-Message-ID: <20070822075758.GC1684@ff.dom.local>
-References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking> <46CB0169.7090207@suse.de> <20070821151820.GB21089@ftp.linux.org.uk>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 8919] New: Broken hotkeys on ASUS A6Km
+ notebook with 2.6.23-rc3.
+Date: Wed, 22 Aug 2007 02:04:04 -0700
+Message-ID: <20070822020404.5a0d5102.akpm@linux-foundation.org>
+References: <bug-8919-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758164AbXHVH5L@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070821151820.GB21089@ftp.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Viro <viro@ftp.linux.org.uk>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, WANG Cong <xiyou.wangcong@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, Andrew Morton <akpm@osdl.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45012 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762914AbXHVJEM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Aug 2007 05:04:12 -0400
+In-Reply-To: <bug-8919-10286@http.bugzilla.kernel.org/>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, szczekut@wit.edu.pl
 
-On Tue, Aug 21, 2007 at 04:18:20PM +0100, Al Viro wrote:
-> On Tue, Aug 21, 2007 at 07:14:49PM +0400, Alexey Starikovskiy wrote:
-> > WANG Cong wrote:
-> > > Fix this warning:
-> > >
-> > > drivers/acpi/ec.c: In function `acpi_ec_ecdt_probe':
-> > > drivers/acpi/ec.c:873: warning: passing arg 1 of `acpi_get_devices' discards qualifiers from pointer target type
-> > >
-> > > (I don't know whether this fix hits the real problem.)
-> > >   
-> > It is safe to give acpi_get_devices() const string, as it should not
-> > modify it in any condition.
+On Wed, 22 Aug 2007 01:33:48 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=8919
 > 
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-> ---
-> diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
-> index ab65b2c..f39fbc6 100644
-> --- a/drivers/acpi/namespace/nsxfeval.c
-> +++ b/drivers/acpi/namespace/nsxfeval.c
-> @@ -540,7 +540,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
->   ******************************************************************************/
->  
->  acpi_status
-> -acpi_get_devices(char *HID,
-> +acpi_get_devices(const char *HID,
->  		 acpi_walk_callback user_function,
->  		 void *context, void **return_value)
->  {
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index b5cca5d..3d7ab9e 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -130,7 +130,7 @@ acpi_walk_namespace(acpi_object_type type,
->  		    void *context, void **return_value);
->  
->  acpi_status
-> -acpi_get_devices(char *HID,
-> +acpi_get_devices(const char *HID,
->  		 acpi_walk_callback user_function,
->  		 void *context, void **return_value);
->  
-> diff --git a/include/acpi/acstruct.h b/include/acpi/acstruct.h
-> index aeb4498..8848265 100644
-> --- a/include/acpi/acstruct.h
-> +++ b/include/acpi/acstruct.h
-> @@ -146,7 +146,7 @@ struct acpi_init_walk_info {
->  struct acpi_get_devices_info {
->  	acpi_walk_callback user_function;
->  	void *context;
-> -	char *hid;
-> +	const char *hid;
->  };
->  
->  union acpi_aml_operands {
+>            Summary: Broken hotkeys on ASUS A6Km notebook with 2.6.23-rc3.
+>            Product: ACPI
+>            Version: 2.5
+>      KernelVersion: 2.6.23-rc3
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Platform-Drivers
+>         AssignedTo: acpi_platform-drivers@kernel-bugs.osdl.org
+>         ReportedBy: szczekut@wit.edu.pl
+> 
+> 
+> Most recent kernel where this bug did not occur: 2.6.23-rc2
+> Distribution: Gentoo
+> Hardware Environment: ASUS A6Km-Q017
+> Problem Description:
+> 
+>   Hotkeys like: mute, voluem up, volume down, monitor brightness up, monitor
+> brightness down, monitor switch on/off, wireless on/off, sleep button are
+> broken work with new drivers/acpi/ec.c. There is no acpi event from any of
+> those. Also i can't switch monitor off using Fn+F7. Power button, battery, fan,
+> processor and thermal works fine.
+> 
+> Steps to reproduce: always
+> 
 > 
 
-So, it looks like this patch (or at least its -mm version) is working.
-
-Now there is 'only' like this (there could be something new, because
-I've forgotten to mention this yesterday's log was the second make,
-after removing some small testing patch; here it's after make clean;
-.config is the same; gcc 3.2.3):
-
-sed: -e expression #1, char 154: Unknown option to 's'
-kernel/power/pm.c:205: warning: `pm_register' is deprecated (declared at kernel/power/pm.c:64)
-kernel/power/pm.c:205: warning: `pm_register' is deprecated (declared at kernel/power/pm.c:64)
-kernel/power/pm.c:206: warning: `pm_send_all' is deprecated (declared at kernel/power/pm.c:180)
-kernel/power/pm.c:206: warning: `pm_send_all' is deprecated (declared at kernel/power/pm.c:180)
-drivers/pci/search.c: In function `pci_find_slot':
-drivers/pci/search.c:99: warning: `pci_find_device' is deprecated (declared at include/linux/pci.h:480)
-drivers/pci/search.c: At top level:
-drivers/pci/search.c:437: warning: `pci_find_device' is deprecated (declared at drivers/pci/search.c:244)
-drivers/pci/search.c:437: warning: `pci_find_device' is deprecated (declared at drivers/pci/search.c:244)
-drivers/pci/search.c:438: warning: `pci_find_slot' is deprecated (declared at drivers/pci/search.c:96)
-drivers/pci/search.c:438: warning: `pci_find_slot' is deprecated (declared at drivers/pci/search.c:96)
-drivers/pci/msi.c:686: warning: weak declaration of `arch_msi_check_device' after first use results in unspecified behavior
-drivers/pci/msi.c:698: warning: weak declaration of `arch_setup_msi_irqs' after first use results in unspecified behavior
-drivers/pci/msi.c:718: warning: weak declaration of `arch_teardown_msi_irqs' after first use results in unspecified behavior
-In file included from drivers/usb/host/ohci-hcd.c:859:
-drivers/usb/host/ohci-pci.c: In function `ohci_pci_start':
-drivers/usb/host/ohci-pci.c:202: warning: unused variable `pdev'
-include/asm/processor.h: In function `native_get_debugreg':
-include/asm/processor.h:524: warning: asm operand 0 probably doesn't match constraints
-include/asm/processor.h: In function `native_set_debugreg':
-include/asm/processor.h:551: warning: asm operand 0 probably doesn't match constraints
-Root device is (8, 1)
-Setup is 11036 bytes (padded to 11264 bytes).
-System is 2428 kB
-
-Cheers,
-Jarek P.
-
-PS: does somebody here remember these old good times:
-real    56m19.454s
-user    53m38.580s
-sys     2m7.610s
+Michal, please track this as a post-2.6.22 regression, thanks.
