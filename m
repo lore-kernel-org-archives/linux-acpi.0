@@ -1,301 +1,214 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: don't send netlink events for those that go into
-	input layer
-Date: Thu, 23 Aug 2007 01:24:31 +0800
-Message-ID: <1187803471.27227.7.camel@acpi-hp.sh.intel.com>
+From: "Tomaz Borstnar, Siix d.o.o." <tomaz.borstnar@siix.com>
+Subject: Ubuntu Gutsy 2.6.22-10 - [   34.960082] Please send dmidecode to
+ linux-acpi@vger.kernel.org
+Date: Wed, 22 Aug 2007 21:34:42 +0200
+Message-ID: <46CC8FD2.6050000@siix.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------020607030402030700070301"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:33397 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756506AbXHVRYe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Aug 2007 13:24:34 -0400
+Received: from t2-200.ptr.over.net ([84.255.212.200]:62143 "EHLO
+	mail2.over.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758312AbXHVUBp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Aug 2007 16:01:45 -0400
+Received: from [192.168.1.33] (89-212-111-201.static.dsl.t-2.net [89.212.111.201])
+	by mail2.over.net (Postfix) with ESMTP id 7B8027CBE15
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Aug 2007 21:35:48 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, astarikovskiy@suse.de
 
-As a replacement of /prco/acpi/event, all ACPI events are exported to user
-space either via netlink or via input layer.
-Events that go into input layer should not be sent to netlink at the same time.
+This is a multi-part message in MIME format.
+--------------020607030402030700070301
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This patch introduces a new interface acpi_bus_generate_netlink_event which is
-called by devices that want to export events via netlink rather than input layer.
+Sending as per requested...
 
-events that are sent via netlink:
-	ac/battery/sbs events
-	thermal events
-	processor events
-	thinkpad_acpi dock/bay events
+--------------020607030402030700070301
+Content-Type: text/plain;
+ name="dmidecode.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="dmidecode.txt"
 
-events that are sent via input layer:
-	video hotkey events
-	thinkpad_acpi hotkey events
-	button events
-	asus_acpi/asus-laptop hotkey events
-	sonypi/sonylaptop events
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/ac.c                 |    3 +++
- drivers/acpi/battery.c            |    3 +++
- drivers/acpi/bus.c                |    4 ----
- drivers/acpi/event.c              |   13 +++++++++----
- drivers/acpi/processor_core.c     |    7 +++++++
- drivers/acpi/sbs.c                |    1 +
- drivers/acpi/thermal.c            |   12 ++++++++++++
- drivers/misc/thinkpad_acpi.c      |   20 ++++++++++++++------
- drivers/pci/hotplug/acpiphp_ibm.c |    3 +++
- include/acpi/acpi_bus.h           |    3 +--
- 10 files changed, 53 insertions(+), 16 deletions(-)
-
-Index: linux-2.6.23-rc3/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/bus.c
-+++ linux-2.6.23-rc3/drivers/acpi/bus.c
-@@ -292,10 +292,6 @@ int acpi_bus_generate_event(struct acpi_
- 	if (!device)
- 		return -EINVAL;
- 
--	if (acpi_bus_generate_genetlink_event(device, type, data))
--		printk(KERN_WARNING PREFIX
--			"Failed to generate an ACPI event via genetlink!\n");
--
- 	/* drop event on the floor if no one's listening */
- 	if (!event_is_open)
- 		return 0;
-Index: linux-2.6.23-rc3/drivers/acpi/event.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/event.c
-+++ linux-2.6.23-rc3/drivers/acpi/event.c
-@@ -147,7 +147,8 @@ static struct genl_multicast_group acpi_
- 	.name = ACPI_GENL_MCAST_GROUP_NAME,
- };
- 
--int acpi_bus_generate_genetlink_event(struct acpi_device *device,
-+int acpi_bus_generate_netlink_event(const char *device_class,
-+				      const char *bus_id,
- 				      u8 type, int data)
- {
- 	struct sk_buff *skb;
-@@ -191,8 +192,8 @@ int acpi_bus_generate_genetlink_event(st
- 
- 	memset(event, 0, sizeof(struct acpi_genl_event));
- 
--	strcpy(event->device_class, device->pnp.device_class);
--	strcpy(event->bus_id, device->dev.bus_id);
-+	strcpy(event->device_class, device_class);
-+	strcpy(event->bus_id, bus_id);
- 	event->type = type;
- 	event->data = data;
- 
-@@ -211,6 +212,8 @@ int acpi_bus_generate_genetlink_event(st
- 	return 0;
- }
- 
-+EXPORT_SYMBOL(acpi_bus_generate_netlink_event);
-+
- static int acpi_event_genetlink_init(void)
- {
- 	int result;
-@@ -228,12 +231,14 @@ static int acpi_event_genetlink_init(voi
- }
- 
- #else
--int acpi_bus_generate_genetlink_event(struct acpi_device *device, u8 type,
-+int acpi_bus_generate_netlink_event(struct acpi_device *device, u8 type,
- 				      int data)
- {
- 	return 0;
- }
- 
-+EXPORT_SYMBOL(acpi_generate_netlink_event);
-+
- static int acpi_event_genetlink_init(void)
- {
- 	return -ENODEV;
-Index: linux-2.6.23-rc3/drivers/acpi/ac.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/ac.c
-+++ linux-2.6.23-rc3/drivers/acpi/ac.c
-@@ -205,6 +205,9 @@ static void acpi_ac_notify(acpi_handle h
- 	case ACPI_NOTIFY_DEVICE_CHECK:
- 		acpi_ac_get_state(ac);
- 		acpi_bus_generate_event(device, event, (u32) ac->state);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event,
-+						  (u32) ac->state);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-Index: linux-2.6.23-rc3/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.23-rc3.orig/include/acpi/acpi_bus.h
-+++ linux-2.6.23-rc3/include/acpi/acpi_bus.h
-@@ -321,8 +321,7 @@ struct acpi_bus_event {
- };
- 
- extern struct kset acpi_subsys;
--extern int acpi_bus_generate_genetlink_event(struct acpi_device *device,
--						u8 type, int data);
-+extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
- /*
-  * External Functions
-  */
-Index: linux-2.6.23-rc3/drivers/acpi/battery.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/battery.c
-+++ linux-2.6.23-rc3/drivers/acpi/battery.c
-@@ -869,6 +869,9 @@ static void acpi_battery_notify(acpi_han
- 		acpi_battery_notify_update(battery);
- 		acpi_bus_generate_event(device, event,
- 					acpi_battery_present(battery));
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event,
-+						  acpi_battery_present(battery));
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-Index: linux-2.6.23-rc3/drivers/acpi/processor_core.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/processor_core.c
-+++ linux-2.6.23-rc3/drivers/acpi/processor_core.c
-@@ -700,14 +700,21 @@ static void acpi_processor_notify(acpi_h
- 		acpi_processor_ppc_has_changed(pr);
- 		acpi_bus_generate_event(device, event,
- 					pr->performance_platform_limit);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event,
-+						  pr->performance_platform_limit);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_POWER:
- 		acpi_processor_cst_has_changed(pr);
- 		acpi_bus_generate_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event, 0);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
- 		acpi_processor_tstate_has_changed(pr);
- 		acpi_bus_generate_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event, 0);
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
-Index: linux-2.6.23-rc3/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/thermal.c
-+++ linux-2.6.23-rc3/drivers/acpi/thermal.c
-@@ -487,6 +487,10 @@ static int acpi_thermal_critical(struct 
- 	       KELVIN_TO_CELSIUS(tz->temperature));
- 	acpi_bus_generate_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL,
- 				tz->trips.critical.flags.enabled);
-+	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
-+					  tz->device->dev.bus_id,
-+					  ACPI_THERMAL_NOTIFY_CRITICAL,
-+					  tz->trips.critical.flags.enabled);
- 
- 	orderly_poweroff(true);
- 
-@@ -506,6 +510,10 @@ static int acpi_thermal_hot(struct acpi_
- 
- 	acpi_bus_generate_event(tz->device, ACPI_THERMAL_NOTIFY_HOT,
- 				tz->trips.hot.flags.enabled);
-+	acpi_bus_generate_netlink_event(tz->device->pnp.device_class,
-+					  tz->device->dev.bus_id,
-+					  ACPI_THERMAL_NOTIFY_HOT,
-+					  tz->trips.hot.flags.enabled);
- 
- 	/* TBD: Call user-mode "sleep(S4)" function */
- 
-@@ -1150,11 +1158,15 @@ static void acpi_thermal_notify(acpi_han
- 		acpi_thermal_get_trip_points(tz);
- 		acpi_thermal_check(tz);
- 		acpi_bus_generate_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event, 0);
- 		break;
- 	case ACPI_THERMAL_NOTIFY_DEVICES:
- 		if (tz->flags.devices)
- 			acpi_thermal_get_devices(tz);
- 		acpi_bus_generate_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  device->dev.bus_id, event, 0);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-Index: linux-2.6.23-rc3/drivers/misc/thinkpad_acpi.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/misc/thinkpad_acpi.c
-+++ linux-2.6.23-rc3/drivers/misc/thinkpad_acpi.c
-@@ -2162,22 +2162,27 @@ static void dock_notify(struct ibm_struc
- 	int docked = dock_docked();
- 	int pci = ibm->acpi->hid && ibm->acpi->device &&
- 		acpi_match_device_ids(ibm->acpi->device, ibm_pci_device_ids);
-+	int data;
- 
- 	if (event == 1 && !pci)	/* 570 */
--		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
-+		data = 1;	/* button */
- 	else if (event == 1 && pci)	/* 570 */
--		acpi_bus_generate_event(ibm->acpi->device, event, 3);	/* dock */
-+		data = 3;	/* dock */
- 	else if (event == 3 && docked)
--		acpi_bus_generate_event(ibm->acpi->device, event, 1);	/* button */
-+		data = 1;	/* button */
- 	else if (event == 3 && !docked)
--		acpi_bus_generate_event(ibm->acpi->device, event, 2);	/* undock */
-+		data = 2;	/* undock */
- 	else if (event == 0 && docked)
--		acpi_bus_generate_event(ibm->acpi->device, event, 3);	/* dock */
-+		data = 3;	/* dock */
- 	else {
- 		printk(IBM_ERR "unknown dock event %d, status %d\n",
- 		       event, _sta(dock_handle));
--		acpi_bus_generate_event(ibm->acpi->device, event, 0);	/* unknown */
-+		data = 0;	/* unknown */
- 	}
-+	acpi_bus_generate_event(ibm->acpi->device, event, data);
-+	acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+					  ibm->acpi->device->dev.bus_id,
-+					  event, data);
- }
- 
- static int dock_read(char *p)
-@@ -2276,6 +2281,9 @@ static int __init bay_init(struct ibm_in
- static void bay_notify(struct ibm_struct *ibm, u32 event)
- {
- 	acpi_bus_generate_event(ibm->acpi->device, event, 0);
-+	acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+					  ibm->acpi->device->dev.bus_id,
-+					  event, 0);
- }
- 
- #define bay_occupied(b) (_sta(b##_handle) & 1)
-Index: linux-2.6.23-rc3/drivers/pci/hotplug/acpiphp_ibm.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/pci/hotplug/acpiphp_ibm.c
-+++ linux-2.6.23-rc3/drivers/pci/hotplug/acpiphp_ibm.c
-@@ -268,6 +268,9 @@ static void ibm_handle_events(acpi_handl
- 	if (subevent == 0x80) {
- 		dbg("%s: generationg bus event\n", __FUNCTION__);
- 		acpi_bus_generate_event(note->device, note->event, detail);
-+		acpi_bus_generate_netlink_event(note->device->pnp.device_class,
-+						  note->device->dev.bus_id,
-+						  note->event, detail);
- 	} else
- 		note->event = event;
- }
-Index: linux-2.6.23-rc3/drivers/acpi/sbs.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/sbs.c
-+++ linux-2.6.23-rc3/drivers/acpi/sbs.c
-@@ -445,6 +445,7 @@ static int acpi_sbs_generate_event(struc
- 	strcpy(acpi_device_bid(device), bid_saved);
- 	strcpy(acpi_device_class(device), class_saved);
- 
-+	acpi_bus_generate_netlink_event(class, bid, event, state);
- 	return result;
- }
- 
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMzggc3RydWN0dXJlcyBvY2N1
+cHlpbmcgMTQ1NiBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAs
+IERNSSB0eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogTkVDIENv
+bXB1dGVycyBTQVMgICAgICAgICAgICAgICAgICAgICAgCglWZXJzaW9uOiBOT1RFIEJJT1Mg
+VmVyc2lvbiBRM0EyNSAgICAgICAgICAgICAgICAKCVJlbGVhc2UgRGF0ZTogMDMvMDIvMjAw
+NwoJUk9NIFNpemU6IDY0IGtCCglDaGFyYWN0ZXJpc3RpY3M6CgkJSVNBIGlzIHN1cHBvcnRl
+ZAoJCVBDSSBpcyBzdXBwb3J0ZWQKCQlQQyBDYXJkIChQQ01DSUEpIGlzIHN1cHBvcnRlZAoJ
+CVBOUCBpcyBzdXBwb3J0ZWQKCQlBUE0gaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRl
+YWJsZQoJCUJJT1Mgc2hhZG93aW5nIGlzIGFsbG93ZWQKCQlFU0NEIHN1cHBvcnQgaXMgYXZh
+aWxhYmxlCgkJQm9vdCBmcm9tIENEIGlzIHN1cHBvcnRlZAoJCUFDUEkgaXMgc3VwcG9ydGVk
+CgkJVVNCIGxlZ2FjeSBpcyBzdXBwb3J0ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJQklPUyBi
+b290IHNwZWNpZmljYXRpb24gaXMgc3VwcG9ydGVkCgpIYW5kbGUgMHgwMDAxLCBETUkgdHlw
+ZSAxLCAyNyBieXRlcwpTeXN0ZW0gSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogTkVDIENv
+bXB1dGVycyBTQVMgICAgICAgICAgICAgICAKCVByb2R1Y3QgTmFtZTogTkVDIFZFUlNBIE0z
+NjAKCVZlcnNpb246ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCglT
+ZXJpYWwgTnVtYmVyOiAxMTE5MTIyNzAxMzYKCVVVSUQ6IDY0OTQxRThBLTU3QjItREExMS04
+MDAwLTRFNDU0MzVGNDM0OQoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gKCVNLVSBOdW1i
+ZXI6IE5vdCBTcGVjaWZpZWQKCUZhbWlseTogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAw
+MiwgRE1JIHR5cGUgMiwgOCBieXRlcwpCYXNlIEJvYXJkIEluZm9ybWF0aW9uCglNYW51ZmFj
+dHVyZXI6IE5FQyBDb21wdXRlcnMgU0FTICAgICAgICAgICAgICAgICAgICAgCglQcm9kdWN0
+IE5hbWU6IEtXMwoJVmVyc2lvbjogQ0QzQQoJU2VyaWFsIE51bWJlcjogUVBDWUVLNzI3MDEx
+OTEKCkhhbmRsZSAweDAwMDMsIERNSSB0eXBlIDMsIDE3IGJ5dGVzCkNoYXNzaXMgSW5mb3Jt
+YXRpb24KCU1hbnVmYWN0dXJlcjogTkVDIENvbXB1dGVycyBTQVMgICAgICAgICAgICAgICAg
+ICAgIAoJVHlwZTogTm90ZWJvb2sKCUxvY2s6IE5vdCBQcmVzZW50CglWZXJzaW9uOiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCglTZXJpYWwgTnVtYmVyOiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCglBc3NldCBUYWc6ICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCUJvb3QtdXAgU3RhdGU6IFNhZmUKCVBv
+d2VyIFN1cHBseSBTdGF0ZTogU2FmZQoJVGhlcm1hbCBTdGF0ZTogU2FmZQoJU2VjdXJpdHkg
+U3RhdHVzOiBOb25lCglPRU0gSW5mb3JtYXRpb246IDB4MDAwMDEyMzQKCkhhbmRsZSAweDAw
+MDQsIERNSSB0eXBlIDQsIDM1IGJ5dGVzClByb2Nlc3NvciBJbmZvcm1hdGlvbgoJU29ja2V0
+IERlc2lnbmF0aW9uOiBVMkUxCglUeXBlOiBDZW50cmFsIFByb2Nlc3NvcgoJRmFtaWx5OiBP
+dGhlcgoJTWFudWZhY3R1cmVyOiBJbnRlbAoJSUQ6IEY2IDA2IDAwIDAwIEZGIEZCIEVCIEJG
+CglWZXJzaW9uOiBJbnRlbChSKSBDb3JlKFRNKTIgQ1BVICAgICAgICAgVDcKCVZvbHRhZ2U6
+IDMuMyBWCglFeHRlcm5hbCBDbG9jazogVW5rbm93bgoJTWF4IFNwZWVkOiAyMDQ4IE1IegoJ
+Q3VycmVudCBTcGVlZDogMjAwMCBNSHoKCVN0YXR1czogUG9wdWxhdGVkLCBFbmFibGVkCglV
+cGdyYWRlOiBaSUYgU29ja2V0CglMMSBDYWNoZSBIYW5kbGU6IDB4MDAwNQoJTDIgQ2FjaGUg
+SGFuZGxlOiAweDAwMDYKCUwzIENhY2hlIEhhbmRsZTogTm90IFByb3ZpZGVkCglTZXJpYWwg
+TnVtYmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQg
+TnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDA1LCBETUkgdHlwZSA3LCAxOSBi
+eXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBMMSBDYWNoZQoJ
+Q29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQsIExldmVsIDEKCU9wZXJhdGlvbmFs
+IE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNpemU6
+IDE2IEtCCglNYXhpbXVtIFNpemU6IDE2IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlC
+dXJzdAoJCVBpcGVsaW5lIEJ1cnN0CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBU
+eXBlOiBBc3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5
+cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtu
+b3duCgpIYW5kbGUgMHgwMDA2LCBETUkgdHlwZSA3LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1h
+dGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBMMiBDYWNoZQoJQ29uZmlndXJhdGlvbjogRW5h
+YmxlZCwgU29ja2V0ZWQsIExldmVsIDIKCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sK
+CUxvY2F0aW9uOiBFeHRlcm5hbAoJSW5zdGFsbGVkIFNpemU6IDQwOTYgS0IKCU1heGltdW0g
+U2l6ZTogNTEyIEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5l
+IEJ1cnN0CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBCdXJzdAoJU3Bl
+ZWQ6IFVua25vd24KCUVycm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5
+cGU6IFVua25vd24KCUFzc29jaWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAwMDcsIERN
+SSB0eXBlIDgsIDkgYnl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFs
+IFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBKMTkKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiA5
+IFBpbiBEdWFsIElubGluZSAocGluIDEwIGN1dCkKCUV4dGVybmFsIFJlZmVyZW5jZSBEZXNp
+Z25hdG9yOiBDT00gMQoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IERCLTkgbWFsZQoJUG9y
+dCBUeXBlOiBTZXJpYWwgUG9ydCAxNjU1MEEgQ29tcGF0aWJsZQoKSGFuZGxlIDB4MDAwOCwg
+RE1JIHR5cGUgOCwgOSBieXRlcwpQb3J0IENvbm5lY3RvciBJbmZvcm1hdGlvbgoJSW50ZXJu
+YWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IEoxQTEKCUludGVybmFsIENvbm5lY3RvciBUeXBl
+OiBOb25lCglFeHRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogS2V5Ym9hcmQKCUV4dGVy
+bmFsIENvbm5lY3RvciBUeXBlOiBDaXJjdWxhciBESU4tOCBtYWxlCglQb3J0IFR5cGU6IEtl
+eWJvYXJkIFBvcnQKCkhhbmRsZSAweDAwMDksIERNSSB0eXBlIDgsIDkgYnl0ZXMKUG9ydCBD
+b25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBK
+MUExCglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVmZXJlbmNl
+IERlc2lnbmF0b3I6IFBTLzIgTW91c2UKCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBDaXJj
+dWxhciBESU4tOCBtYWxlCglQb3J0IFR5cGU6IE1vdXNlIFBvcnQKCkhhbmRsZSAweDAwMEEs
+IERNSSB0eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25h
+dGlvbjogUENJIFNsb3QgSjhCMQoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTog
+VW5rbm93bgoJTGVuZ3RoOiBMb25nCglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBW
+IGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMEIsIERNSSB0
+eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjog
+UENJIFNsb3QgSjlCMQoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTogVW5rbm93
+bgoJTGVuZ3RoOiBMb25nCglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBWIGlzIHBy
+b3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMEMsIERNSSB0eXBlIDks
+IDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjogUEVHIFNs
+b3QgSjZDMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBBdmFp
+bGFibGUKCUxlbmd0aDogTG9uZwoJSUQ6IDYKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBp
+cyBwcm92aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBELCBETUkgdHlw
+ZSA5LCAxMyBieXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBD
+SSBFeHByZXNzIFNsb3QgSjdDMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50
+IFVzYWdlOiBVbmtub3duCglMZW5ndGg6IExvbmcKCUlEOiAwCglDaGFyYWN0ZXJpc3RpY3M6
+CgkJNS4wIFYgaXMgcHJvdmlkZWQKCQkzLjMgViBpcyBwcm92aWRlZAoKSGFuZGxlIDB4MDAw
+RSwgRE1JIHR5cGUgOSwgMTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KCURlc2ln
+bmF0aW9uOiBQQ0kgRXhwcmVzcyBTbG90IEo4QzEKCVR5cGU6IDMyLWJpdCBQQ0kgRXhwcmVz
+cwoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJTGVuZ3RoOiBMb25nCglJRDogMAoJQ2hhcmFj
+dGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQKCkhh
+bmRsZSAweDAwMEYsIERNSSB0eXBlIDEwLCA2IGJ5dGVzCk9uIEJvYXJkIERldmljZSBJbmZv
+cm1hdGlvbgoJVHlwZTogU291bmQKCVN0YXR1czogRGlzYWJsZWQKCURlc2NyaXB0aW9uOiBI
+RC1BdWRpbwoKSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMKT0VNIFN0cmlu
+Z3MKCVN0cmluZyAxOiBUaGlzIGlzIHRoZSBJbnRlbCBDYWxpc3RvZ2EKCVN0cmluZyAyOiBD
+aGlwc2V0IENSQiBQbGF0Zm9ybQoKSGFuZGxlIDB4MDAxMSwgRE1JIHR5cGUgMTIsIDUgYnl0
+ZXMKU3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0aW9ucwoJT3B0aW9uIDE6IEp1bXBlciBzZXR0
+aW5ncyBjYW4gYmUgZGVzY3JpYmVkIGhlcmUuCgpIYW5kbGUgMHgwMDEyLCBETUkgdHlwZSAx
+NSwgMjkgYnl0ZXMKU3lzdGVtIEV2ZW50IExvZwoJQXJlYSBMZW5ndGg6IDAgYnl0ZXMKCUhl
+YWRlciBTdGFydCBPZmZzZXQ6IDB4MDAwMAoJSGVhZGVyIExlbmd0aDogMTYgYnl0ZXMKCURh
+dGEgU3RhcnQgT2Zmc2V0OiAweDAwMTAKCUFjY2VzcyBNZXRob2Q6IEdlbmVyYWwtcHVycG9z
+ZSBub24tdm9sYXRpbGUgZGF0YSBmdW5jdGlvbnMKCUFjY2VzcyBBZGRyZXNzOiAweDAwMDAK
+CVN0YXR1czogVmFsaWQsIE5vdCBGdWxsCglDaGFuZ2UgVG9rZW46IDB4MDAwMDAwMDAKCUhl
+YWRlciBGb3JtYXQ6IFR5cGUgMQoJU3VwcG9ydGVkIExvZyBUeXBlIERlc2NyaXB0b3JzOiAz
+CglEZXNjcmlwdG9yIDE6IFBPU1QgZXJyb3IKCURhdGEgRm9ybWF0IDE6IFBPU1QgcmVzdWx0
+cyBiaXRtYXAKCURlc2NyaXB0b3IgMjogU2luZ2xlLWJpdCBFQ0MgbWVtb3J5IGVycm9yCglE
+YXRhIEZvcm1hdCAyOiBNdWx0aXBsZS1ldmVudAoJRGVzY3JpcHRvciAzOiBNdWx0aS1iaXQg
+RUNDIG1lbW9yeSBlcnJvcgoJRGF0YSBGb3JtYXQgMzogTXVsdGlwbGUtZXZlbnQKCkhhbmRs
+ZSAweDAwMTMsIERNSSB0eXBlIDE2LCAxNSBieXRlcwpQaHlzaWNhbCBNZW1vcnkgQXJyYXkK
+CUxvY2F0aW9uOiBTeXN0ZW0gQm9hcmQgT3IgTW90aGVyYm9hcmQKCVVzZTogU3lzdGVtIE1l
+bW9yeQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBOb25lCglNYXhpbXVtIENhcGFjaXR5OiAz
+IEdCCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vdCBQcm92aWRlZAoJTnVtYmVyIE9m
+IERldmljZXM6IDIKCkhhbmRsZSAweDAwMTQsIERNSSB0eXBlIDE3LCAyNyBieXRlcwpNZW1v
+cnkgRGV2aWNlCglBcnJheSBIYW5kbGU6IDB4MDAxMwoJRXJyb3IgSW5mb3JtYXRpb24gSGFu
+ZGxlOiBObyBFcnJvcgoJVG90YWwgV2lkdGg6IDMyIGJpdHMKCURhdGEgV2lkdGg6IDMyIGJp
+dHMKCVNpemU6IDEwMjQgTUIKCUZvcm0gRmFjdG9yOiBTT0RJTU0KCVNldDogMQoJTG9jYXRv
+cjogTTEKCUJhbmsgTG9jYXRvcjogQmFuayAwCglUeXBlOiBERFIyCglUeXBlIERldGFpbDog
+U3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglNYW51ZmFjdHVyZXI6IE5vdCBTcGVjaWZp
+ZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNp
+ZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMTUsIERNSSB0
+eXBlIDE3LCAyNyBieXRlcwpNZW1vcnkgRGV2aWNlCglBcnJheSBIYW5kbGU6IDB4MDAxMwoJ
+RXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBObyBFcnJvcgoJVG90YWwgV2lkdGg6IFVua25v
+d24KCURhdGEgV2lkdGg6IFVua25vd24KCVNpemU6IE5vIE1vZHVsZSBJbnN0YWxsZWQKCUZv
+cm0gRmFjdG9yOiBTT0RJTU0KCVNldDogMQoJTG9jYXRvcjogTTIKCUJhbmsgTG9jYXRvcjog
+QmFuayAxCglUeXBlOiBERFIyCglUeXBlIERldGFpbDogU3luY2hyb25vdXMKCVNwZWVkOiBV
+bmtub3duCglNYW51ZmFjdHVyZXI6IE5vdCBTcGVjaWZpZWQKCVNlcmlhbCBOdW1iZXI6IE5v
+dCBTcGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6IE5v
+dCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMTYsIERNSSB0eXBlIDE5LCAxNSBieXRlcwpNZW1v
+cnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAwMDAw
+MDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiAxIEdCCglQ
+aHlzaWNhbCBBcnJheSBIYW5kbGU6IDB4MDAxMwoJUGFydGl0aW9uIFdpZHRoOiAwCgpIYW5k
+bGUgMHgwMDE3LCBETUkgdHlwZSAyMCwgMTkgYnl0ZXMKTWVtb3J5IERldmljZSBNYXBwZWQg
+QWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAwMDAwMAoJRW5kaW5nIEFkZHJl
+c3M6IDB4MDAwM0ZGRkZGRkYKCVJhbmdlIFNpemU6IDEgR0IKCVBoeXNpY2FsIERldmljZSBI
+YW5kbGU6IDB4MDAxNAoJTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzIEhhbmRsZTogMHgw
+MDE2CglQYXJ0aXRpb24gUm93IFBvc2l0aW9uOiAxCgpIYW5kbGUgMHgwMDE4LCBETUkgdHlw
+ZSAyMCwgMTkgYnl0ZXMKTWVtb3J5IERldmljZSBNYXBwZWQgQWRkcmVzcwoJU3RhcnRpbmcg
+QWRkcmVzczogMHgwMDAzRkZGRkMwMAoJRW5kaW5nIEFkZHJlc3M6IDB4MDAwM0ZGRkZGRkYK
+CVJhbmdlIFNpemU6IDEga0IKCVBoeXNpY2FsIERldmljZSBIYW5kbGU6IDB4MDAxNQoJTWVt
+b3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzIEhhbmRsZTogMHgwMDE2CglQYXJ0aXRpb24gUm93
+IFBvc2l0aW9uOiAxCgpIYW5kbGUgMHgwMDE5LCBETUkgdHlwZSAyMywgMTMgYnl0ZXMKU3lz
+dGVtIFJlc2V0CglTdGF0dXM6IEVuYWJsZWQKCVdhdGNoZG9nIFRpbWVyOiBQcmVzZW50CglC
+b290IE9wdGlvbjogRG8gTm90IFJlYm9vdAoJQm9vdCBPcHRpb24gT24gTGltaXQ6IERvIE5v
+dCBSZWJvb3QKCVJlc2V0IENvdW50OiBVbmtub3duCglSZXNldCBMaW1pdDogVW5rbm93bgoJ
+VGltZXIgSW50ZXJ2YWw6IFVua25vd24KCVRpbWVvdXQ6IFVua25vd24KCkhhbmRsZSAweDAw
+MUEsIERNSSB0eXBlIDI0LCA1IGJ5dGVzCkhhcmR3YXJlIFNlY3VyaXR5CglQb3dlci1PbiBQ
+YXNzd29yZCBTdGF0dXM6IERpc2FibGVkCglLZXlib2FyZCBQYXNzd29yZCBTdGF0dXM6IFVu
+a25vd24KCUFkbWluaXN0cmF0b3IgUGFzc3dvcmQgU3RhdHVzOiBEaXNhYmxlZAoJRnJvbnQg
+UGFuZWwgUmVzZXQgU3RhdHVzOiBVbmtub3duCgpIYW5kbGUgMHgwMDFCLCBETUkgdHlwZSAy
+NSwgOSBieXRlcwoJU3lzdGVtIFBvd2VyIENvbnRyb2xzCglOZXh0IFNjaGVkdWxlZCBQb3dl
+ci1vbjogMTItMzEgMjM6NTk6NTkKCkhhbmRsZSAweDAwMUMsIERNSSB0eXBlIDI2LCAyMCBi
+eXRlcwpWb2x0YWdlIFByb2JlCglEZXNjcmlwdGlvbjogVm9sdGFnZSBQcm9iZQoJTG9jYXRp
+b246IFByb2Nlc3NvcgoJU3RhdHVzOiBPSwoJTWF4aW11bSBWYWx1ZTogVW5rbm93bgoJTWlu
+aW11bSBWYWx1ZTogVW5rbm93bgoJUmVzb2x1dGlvbjogVW5rbm93bgoJVG9sZXJhbmNlOiBV
+bmtub3duCglBY2N1cmFjeTogVW5rbm93bgoJT0VNLXNwZWNpZmljIEluZm9ybWF0aW9uOiAw
+eDAwMDAwMDAwCgpIYW5kbGUgMHgwMDFELCBETUkgdHlwZSAyNywgMTIgYnl0ZXMKQ29vbGlu
+ZyBEZXZpY2UKCVRlbXBlcmF0dXJlIFByb2JlIEhhbmRsZTogMHgwMDFFCglUeXBlOiBGYW4K
+CVN0YXR1czogT0sKCU9FTS1zcGVjaWZpYyBJbmZvcm1hdGlvbjogMHgwMDAwMDAwMAoKSGFu
+ZGxlIDB4MDAxRSwgRE1JIHR5cGUgMjgsIDIwIGJ5dGVzClRlbXBlcmF0dXJlIFByb2JlCglE
+ZXNjcmlwdGlvbjogVGVtcGVyYXR1cmUgUHJvYmUKCUxvY2F0aW9uOiBQcm9jZXNzb3IKCVN0
+YXR1czogT0sKCU1heGltdW0gVmFsdWU6IFVua25vd24KCU1pbmltdW0gVmFsdWUgVW5rbm93
+bgoJUmVzb2x1dGlvbjogVW5rbm93bgoJVG9sZXJhbmNlOiBVbmtub3duCglBY2N1cmFjeTog
+VW5rbm93bgoJT0VNLXNwZWNpZmljIEluZm9ybWF0aW9uOiAweDAwMDAwMDAwCgpIYW5kbGUg
+MHgwMDFGLCBETUkgdHlwZSAyOSwgMjAgYnl0ZXMKRWxlY3RyaWNhbCBDdXJyZW50IFByb2Jl
+CglEZXNjcmlwdGlvbjogRWxlY3RyaWNhbCBDdXJyZW50IFByb2JlCglMb2NhdGlvbjogUHJv
+Y2Vzc29yCglTdGF0dXM6IE9LCglNYXhpbXVtIFZhbHVlOiBVbmtub3duCglNaW5pbXVtIFZh
+bHVlOiBVbmtub3duCglSZXNvbHV0aW9uOiBVbmtub3duCglUb2xlcmFuY2U6IFVua25vd24K
+CUFjY3VyYWN5OiBVbmtub3duCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAw
+MDAKCkhhbmRsZSAweDAwMjAsIERNSSB0eXBlIDMwLCA2IGJ5dGVzCk91dC1vZi1iYW5kIFJl
+bW90ZSBBY2Nlc3MKCU1hbnVmYWN0dXJlciBOYW1lOiBJbnRlbAoJSW5ib3VuZCBDb25uZWN0
+aW9uOiBFbmFibGVkCglPdXRib3VuZCBDb25uZWN0aW9uOiBEaXNhYmxlZAoKSGFuZGxlIDB4
+MDAyMSwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzClN5c3RlbSBCb290IEluZm9ybWF0aW9uCglT
+dGF0dXM6IDxPVVQgT0YgU1BFQz4KCkhhbmRsZSAweDAwMjIsIERNSSB0eXBlIDEyOSwgMTYg
+Ynl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQgRGF0YToKCQk4MSAxMCAyMiAw
+MCAwMSAwMSAwMiAwMSAwMCAwMCAwMCAwMSAwMCAwMCAwOCAwMQoJU3RyaW5nczoKCQlJbnRl
+bF9BU0ZfMDAxCgkJSW50ZWxfQVNGXzAwMQoKSGFuZGxlIDB4MDAyMywgRE1JIHR5cGUgMTM2
+LCA4IGJ5dGVzCk9FTS1zcGVjaWZpYyBUeXBlCglIZWFkZXIgYW5kIERhdGE6CgkJODggMDgg
+MjMgMDAgRkYgRkYgMDAgMDAKCVN0cmluZ3M6CgkJLi4kCgkJLi4KCkhhbmRsZSAweDAwMjQs
+IERNSSB0eXBlIDE1MCwgMTQgYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQg
+RGF0YToKCQk5NiAwRSAyNCAwMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoJU3Ry
+aW5nczoKCQlBQlNPTFVURShQSE9FTklYKSBDTE0KCkhhbmRsZSAweDAwMjUsIERNSSB0eXBl
+IDEyNywgNCBieXRlcwpFbmQgT2YgVGFibGUKCg==
+--------------020607030402030700070301--
