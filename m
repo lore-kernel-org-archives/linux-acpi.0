@@ -1,60 +1,67 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH V3 1/3] ACPI video hotkey: add new input key code for ACPI video hotkey events
-Date: Wed, 22 Aug 2007 21:14:27 -0400
-Message-ID: <200708222114.27731.lenb@kernel.org>
-References: <1187605427.2920.140.camel@acpi-hp.sh.intel.com>
+Subject: Re: [PATCH] hook ACPI _PSx method to IDE power on/off
+Date: Wed, 22 Aug 2007 21:26:10 -0400
+Message-ID: <200708222126.11045.lenb@kernel.org>
+References: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com> <200708042155.24843.bzolnier@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <1187605427.2920.140.camel@acpi-hp.sh.intel.com>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200708042155.24843.bzolnier@gmail.com>
 Content-Disposition: inline
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, mjg59@srcf.ucam.org, dmitry.torokhov@gmail.com, hmh@hmh.eng.hr, hughsient@gmail.com, luming.yu@intel.com
+Sender: linux-ide-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dmitry,
-can you ACK these additional key-codes?
-I need to push the 3rd patch in this series which depends on these.
+On Saturday 04 August 2007 15:55, Bartlomiej Zolnierkiewicz wrote:
+> On Thursday 02 August 2007, Shaohua Li wrote:
+> > ACPI spec defines the sequence of IDE power on/off:
+> > Powering down:
+> > 	Call _GTM.
+> > 	Power down drive (calls _PS3 method and turns off power planes).
+> > Powering up:
+> > 	Power up drive (calls _PS0 method if present and turns on power planes).
+> > 	Call _STM passing info from _GTM (possibly modified), with ID data from
+> > 	each drive.
+> > 	Initialize the channel.
+> > 	May modify the results of _GTF.
+> > 	For each drive:
+> > 		Call _GTF.
+> > 		Execute task file (possibly modified).
+> > This patch adds the missed _PS0/_PS3 methods call.
+> > 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> 
+> applied, thanks
+> 
+> Len, are you OK with the ACPI part of the patch (below)?
+
+yes.
+Acked-by: Len Brown <len.brown@intel.com>
 
 thanks,
 -Len
 
-On Monday 20 August 2007 06:23, Zhang Rui wrote:
-> From: Yu Luming <luming.yu@intel.com>
-> 
-> Add keycode for ACPI video driver hotkey events.
-> 
-> Signed-off-by: Yu Luming <luming.yu@intel.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  include/linux/input.h |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> Index: linux-2.6.23-rc3/include/linux/input.h
-> ===================================================================
-> --- linux-2.6.23-rc3.orig/include/linux/input.h
-> +++ linux-2.6.23-rc3/include/linux/input.h
-> @@ -553,6 +553,13 @@ struct input_absinfo {
->  #define KEY_BRL_DOT7		0x1f7
->  #define KEY_BRL_DOT8		0x1f8
->  
-> +#define KEY_DISPLAY_CYCLE	0x1f9
-> +#define KEY_VIDEO_NEXT		0x1fa
-> +#define KEY_VIDEO_PREV		0x1fb
-> +#define KEY_BRIGHTNESS_CYCLE	0x1fc
-> +#define KEY_BRIGHTNESS_ZERO	0x1fd
-> +#define KEY_DISPLAY_OFF		0x1fe
-> +
->  /* We avoid low common keys in module aliases so they don't get huge. */
->  #define KEY_MIN_INTERESTING	KEY_MUTE
->  #define KEY_MAX			0x1ff
+> > Index: linux/drivers/acpi/bus.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/bus.c	2007-08-02 13:35:06.000000000 +0800
+> > +++ linux/drivers/acpi/bus.c	2007-08-02 13:56:56.000000000 +0800
+> > @@ -262,10 +262,12 @@ int acpi_bus_set_power(acpi_handle handl
+> >  		printk(KERN_WARNING PREFIX
+> >  			      "Transitioning device [%s] to D%d\n",
+> >  			      device->pnp.bus_id, state);
+> > -	else
+> > +	else {
+> > +		device->power.state = state;
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >  				  "Device [%s] transitioned to D%d\n",
+> >  				  device->pnp.bus_id, state));
+> > +	}
+> >  
+> >  	return result;
+> >  }
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
