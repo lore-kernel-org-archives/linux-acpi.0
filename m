@@ -1,46 +1,62 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [Git Patch] ACPI: Fix a warning of discarding qualifiers from pointer target type
-Date: Wed, 22 Aug 2007 20:59:48 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB603A760AD@hdsmsx411.amr.corp.intel.com>
-References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking> <46CB0169.7090207@suse.de> <20070821151820.GB21089@ftp.linux.org.uk> <46CB034B.1070904@suse.de> <20070821154750.GC21089@ftp.linux.org.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH V3 1/3] ACPI video hotkey: add new input key code for ACPI video hotkey events
+Date: Wed, 22 Aug 2007 21:14:27 -0400
+Message-ID: <200708222114.27731.lenb@kernel.org>
+References: <1187605427.2920.140.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31002 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753263AbXHWA7w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Aug 2007 20:59:52 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20070821154750.GC21089@ftp.linux.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <1187605427.2920.140.camel@acpi-hp.sh.intel.com>
+Content-Disposition: inline
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, mjg59@srcf.ucam.org, dmitry.torokhov@gmail.com, hmh@hmh.eng.hr, hughsient@gmail.com, luming.yu@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Al Viro <viro@ftp.linux.org.uk>, Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>, Jarek Poplawski <jarkao2@o2.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-
->On Tue, Aug 21, 2007 at 07:22:51PM +0400, Alexey Starikovskiy wrote:
->> Yes, that is the proper solution with a single drawback:
->> it touches ACPICA dual-licensed code and would take ages to commit,
->> and Len would probably ask you to give permission to 
->re-license it under
->> BSD.
->
->The latter is certainly not a problem (assuming that it's non-trivial
->enough to be copyrightable, in the first place).
-
-The dual license is at the top of the file.
-I just need to know when you touch one of these dual-license files
-that Intel has your permission to ship your change to folks we
-send the same file to under the BSD-style non-GPL license.
-eg. BSD, Solaris and HPUX uses this same ACPICA files -- though in a
-different format.
-
-I've actually never had anybody say no when I asked.
-And I've had some people who play laywers on TV tell me
-this is not strictly necessary, but other people who play laywers
-on TV tell me it is best to ask, so I do.
+Dmitry,
+can you ACK these additional key-codes?
+I need to push the 3rd patch in this series which depends on these.
 
 thanks,
 -Len
+
+On Monday 20 August 2007 06:23, Zhang Rui wrote:
+> From: Yu Luming <luming.yu@intel.com>
+> 
+> Add keycode for ACPI video driver hotkey events.
+> 
+> Signed-off-by: Yu Luming <luming.yu@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  include/linux/input.h |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> Index: linux-2.6.23-rc3/include/linux/input.h
+> ===================================================================
+> --- linux-2.6.23-rc3.orig/include/linux/input.h
+> +++ linux-2.6.23-rc3/include/linux/input.h
+> @@ -553,6 +553,13 @@ struct input_absinfo {
+>  #define KEY_BRL_DOT7		0x1f7
+>  #define KEY_BRL_DOT8		0x1f8
+>  
+> +#define KEY_DISPLAY_CYCLE	0x1f9
+> +#define KEY_VIDEO_NEXT		0x1fa
+> +#define KEY_VIDEO_PREV		0x1fb
+> +#define KEY_BRIGHTNESS_CYCLE	0x1fc
+> +#define KEY_BRIGHTNESS_ZERO	0x1fd
+> +#define KEY_DISPLAY_OFF		0x1fe
+> +
+>  /* We avoid low common keys in module aliases so they don't get huge. */
+>  #define KEY_MIN_INTERESTING	KEY_MUTE
+>  #define KEY_MAX			0x1ff
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
