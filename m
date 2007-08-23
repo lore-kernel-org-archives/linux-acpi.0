@@ -1,437 +1,50 @@
-From: Daniel Barkalow <barkalow@iabervon.org>
-Subject: Message from kernel
-Date: Wed, 22 Aug 2007 23:26:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0708222315540.5774@iabervon.org>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: Getting ACPI data like CPU and FBDIMM temperature / fan speeds on ASUS DSBV-DX/SAS
+Date: Thu, 23 Aug 2007 17:08:59 +0800
+Message-ID: <823A93EED437D048963A3697DB0E35DEA1C5D2@pdsmsx414.ccr.corp.intel.com>
+References: <6c18a4f0708191037g500342c7vec14ab2293ed9a2@mail.gmail.com> <823A93EED437D048963A3697DB0E35DE9CAEB5@pdsmsx414.ccr.corp.intel.com> <6c18a4f0708200747j3d38a808vbb87d469fd3a53ba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iabervon.org ([66.92.72.58]:1999 "EHLO iabervon.org"
+Received: from mga02.intel.com ([134.134.136.20]:56528 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123AbXHWDcr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Aug 2007 23:32:47 -0400
+	id S1757767AbXHWJJF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Aug 2007 05:09:05 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <6c18a4f0708200747j3d38a808vbb87d469fd3a53ba@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bernd Bartmann <bernd.bartmann@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Everything works fine (so far as I've noticed), but the kernel says:
+Hmm,
+I found nothing interesting in your acpidump.
+It seems that there are no ACPI fan/thermal devices in your bios.
+In fact, many thermal/fan are ACPI transparent and they are controlled
+by the bios or something else like hardware monitor.
+Is there an obvious overheating problem on your system?
 
-Setting up standard PCI resources
-ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
+Thanks,
+Rui
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-39 structures occupying 1326 bytes.
-Table at 0x000DC010.
+-----Original Message-----
+From: Bernd Bartmann [mailto:bernd.bartmann@gmail.com] 
+Sent: Monday, August 20, 2007 10:48 PM
+To: Zhang, Rui
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: Getting ACPI data like CPU and FBDIMM temperature / fan
+speeds on ASUS DSBV-DX/SAS
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: LENOVO
-	Version: 61ET20WW
-	Release Date: 07/05/06
-	Address: 0xE6F90
-	Runtime Size: 102512 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
+On 8/20/07, Zhang, Rui wrote:
+> First please set the ACPI version to 2.0 and see if there is any
+> difference.
+> And please attach the acpidump output when you are running ACPI 2.0.
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: LENOVO
-	Product Name: 076836U
-	Version: 3000 N100                       
-	Serial Number: L3H0536                                                  
-	UUID: 6747DA31-D471-11DA-901B-000FB0C9A0C9
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
+Still no data in /proc/acpi/thermal_zone after switching to ACPI 2.0
+in the BIOS.
+The requested output of acpidump is attached.
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: LENOVO
-	Product Name: MPAD-MSAE Customer Reference Boards
-	Version: Not Applicable
-	Serial Number: 41W1220Z1ZBUA6551DK                                             
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: No Enclosure
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag:                     
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: E8 06 00 00 FF FB E9 BF
-	Version: Genuine Intel(R) CPU           T2
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 2048 MHz
-	Current Speed: 1660 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 2048 KB
-	Maximum Size: 512 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J23
-	Internal Connector Type: 25 Pin Dual Inline (pin 26 cut)
-	External Reference Designator: Parallel
-	External Connector Type: DB-25 female
-	Port Type: Parallel Port ECP/EPP
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J11
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x000A, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J12
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J11
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J12
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J13
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: HD-Audio
-
-Handle 0x000F, DMI type 11, 5 bytes
-OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
-
-Handle 0x0010, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x0011, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 3 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0012, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0011
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0013, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0011
-	Error Information Handle: No Error
-	Total Width: Unknown
-	Data Width: Unknown
-	Size: No Module Installed
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0014, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Array Handle: 0x0011
-	Partition Width: 0
-
-Handle 0x0015, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0012
-	Memory Array Mapped Address Handle: 0x0014
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0016, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x0001FFFFC00
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0013
-	Memory Array Mapped Address Handle: 0x0014
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0017, DMI type 23, 13 bytes
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x0018, DMI type 24, 5 bytes
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x0019, DMI type 25, 9 bytes
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x001A, DMI type 26, 20 bytes
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001B, DMI type 27, 12 bytes
-Cooling Device
-	Temperature Probe Handle: 0x001C
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001C, DMI type 28, 20 bytes
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 29, 20 bytes
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001E, DMI type 30, 6 bytes
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x001F, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0020, DMI type 129, 16 bytes
-OEM-specific Type
-	Header and Data:
-		81 10 20 00 01 01 02 01 00 00 00 01 06 01 00 01
-	Strings:
-		Intel_ASF_001
-		Intel_ASF_001
-
-Handle 0x0021, DMI type 136, 5 bytes
-OEM-specific Type
-	Header and Data:
-		88 05 21 00 5A
-	Strings:
-		Z
-
-Handle 0x0022, DMI type 131, 22 bytes
-OEM-specific Type
-	Header and Data:
-		83 16 22 00 01 00 00 00 00 00 00 00 00 00 00 00
-		00 00 00 00 00 01
-	Strings:
-		TVT-Enablement
-
-Handle 0x0023, DMI type 131, 22 bytes
-OEM-specific Type
-	Header and Data:
-		83 16 23 00 01 00 00 00 00 00 00 00 00 00 00 00
-		00 00 00 00 00 01
-	Strings:
-		TVT-Enablement
-
-Handle 0x0024, DMI type 133, 5 bytes
-OEM-specific Type
-	Header and Data:
-		85 05 24 00 01
-	Strings:
-		KHOIHGIUCCHHII
-
-Handle 0x0025, DMI type 135, 10 bytes
-OEM-specific Type
-	Header and Data:
-		87 0A 25 00 50 54 07 03 01 04
-
-Handle 0x0026, DMI type 127, 4 bytes
-End Of Table
-
-If I test with "acpi_osi=!Linux" is there anything I should be looking for 
-as different?
-
-Also, earlier I get:
-
-ACPI: BIOS bug: multiple APIC/MADT found, using 0
-ACPI: If "acpi_apic_instance=2" works better, notify linux-acpi@vger.kernel.org
-
-And later I get:
-
-PCI: Transparent bridge - 0000:00:1e.0
-PCI: Bus #06 (-#09) is hidden behind transparent bridge #05 (-#06) (try 'pci=assign-busses')
-Please report the result to linux-kernel to fix this permanently
-
-I don't think I'm missing any functionality that I know of, so I don't 
-know what I should be looking for in either case. Anything specific I 
-should test?
-
-	-Daniel
-*This .sig left intentionally blank*
+Best regards,
+Bernd.
