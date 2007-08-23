@@ -1,69 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] hook ACPI _PSx method to IDE power on/off
-Date: Wed, 22 Aug 2007 21:26:10 -0400
-Message-ID: <200708222126.11045.lenb@kernel.org>
-References: <1186035248.29979.5.camel@sli10-conroe.sh.intel.com> <200708042155.24843.bzolnier@gmail.com>
+From: Al Viro <viro@ftp.linux.org.uk>
+Subject: Re: [Git Patch] ACPI: Fix a warning of discarding qualifiers from pointer target type
+Date: Thu, 23 Aug 2007 02:28:06 +0100
+Message-ID: <20070823012806.GG21089@ftp.linux.org.uk>
+References: <20070821132038.GA22254@ff.dom.local> <20070821150714.GA7591@hacking> <46CB0169.7090207@suse.de> <20070821151820.GB21089@ftp.linux.org.uk> <46CB034B.1070904@suse.de> <20070821154750.GC21089@ftp.linux.org.uk> <CFF307C98FEABE47A452B27C06B85BB603A760AD@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <200708042155.24843.bzolnier@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:37011 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbXHWB2L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Aug 2007 21:28:11 -0400
 Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB603A760AD@hdsmsx411.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, WANG Cong <xiyou.wangcong@gmail.com>, Jarek Poplawski <jarkao2@o2.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-On Saturday 04 August 2007 15:55, Bartlomiej Zolnierkiewicz wrote:
-> On Thursday 02 August 2007, Shaohua Li wrote:
-> > ACPI spec defines the sequence of IDE power on/off:
-> > Powering down:
-> > 	Call _GTM.
-> > 	Power down drive (calls _PS3 method and turns off power planes).
-> > Powering up:
-> > 	Power up drive (calls _PS0 method if present and turns on power planes).
-> > 	Call _STM passing info from _GTM (possibly modified), with ID data from
-> > 	each drive.
-> > 	Initialize the channel.
-> > 	May modify the results of _GTF.
-> > 	For each drive:
-> > 		Call _GTF.
-> > 		Execute task file (possibly modified).
-> > This patch adds the missed _PS0/_PS3 methods call.
-> > 
-> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> 
-> applied, thanks
-> 
-> Len, are you OK with the ACPI part of the patch (below)?
+On Wed, Aug 22, 2007 at 08:59:48PM -0400, Brown, Len wrote:
+> The dual license is at the top of the file.
+> I just need to know when you touch one of these dual-license files
+> that Intel has your permission to ship your change to folks we
+> send the same file to under the BSD-style non-GPL license.
+> eg. BSD, Solaris and HPUX uses this same ACPICA files -- though in a
+> different format.
 
-yes.
-Acked-by: Len Brown <len.brown@intel.com>
-
-thanks,
--Len
-
-> > Index: linux/drivers/acpi/bus.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/bus.c	2007-08-02 13:35:06.000000000 +0800
-> > +++ linux/drivers/acpi/bus.c	2007-08-02 13:56:56.000000000 +0800
-> > @@ -262,10 +262,12 @@ int acpi_bus_set_power(acpi_handle handl
-> >  		printk(KERN_WARNING PREFIX
-> >  			      "Transitioning device [%s] to D%d\n",
-> >  			      device->pnp.bus_id, state);
-> > -	else
-> > +	else {
-> > +		device->power.state = state;
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  				  "Device [%s] transitioned to D%d\n",
-> >  				  device->pnp.bus_id, state));
-> > +	}
-> >  
-> >  	return result;
-> >  }
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+You have it.
