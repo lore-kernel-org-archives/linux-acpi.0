@@ -1,71 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH V3 1/3] ACPI video hotkey: add new input key code for ACPI video hotkey events
-Date: Fri, 24 Aug 2007 00:10:50 -0400
-Message-ID: <200708240010.51111.lenb@kernel.org>
-References: <1187605427.2920.140.camel@acpi-hp.sh.intel.com> <200708231532.42908.lenb@kernel.org> <d120d5000708231310oeb4e365k3108ed55bc230bd1@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: add "Fujitsu laptop extras" module
+Date: Fri, 24 Aug 2007 05:12:27 +0100
+Message-ID: <20070824041227.GA8002@srcf.ucam.org>
+References: <200708240042.l7O0gtEe022838@turbo.physics.adelaide.edu.au> <20070824013220.GA6242@srcf.ucam.org> <1187927741.2691.43.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <d120d5000708231310oeb4e365k3108ed55bc230bd1@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:54925 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542AbXHXEMg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Aug 2007 00:12:36 -0400
 Content-Disposition: inline
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, mjg59@srcf.ucam.org, hmh@hmh.eng.hr, hughsient@gmail.com, luming.yu@intel.com
+In-Reply-To: <1187927741.2691.43.camel@acpi-hp.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org
 
-On Thursday 23 August 2007 16:10, Dmitry Torokhov wrote:
-> On 8/23/07, Len Brown <lenb@kernel.org> wrote:
-> > Thanks for the refreshed patch series, Rui.
-> > I've added it to acpi-test.
-> >
-> > Still waiting on an ACK from Dmitry on the input.h definitions.
-> 
-> Sorry, I am still trying to recover from a hard drive failure...
-> 
-> The keycodes conflict with a pending patch adding KEY_BRL_DOT9 and
-> KEY_BRL_DOT10 and so have to be moved somewhere else.
-> 
+On Fri, Aug 24, 2007 at 11:55:41AM +0800, Zhang Rui wrote:
 
-Okay, I moved them to lower numbers
-(no clue why the 1st part of the list is decimal and the
- later part is hex).
+> I have the same question for ACPI video driver.
+> Take KEY_BRIGHTNESSUP/KEY_BRIGHTNESSDOWN for example, if ACPI video
+> driver gets such a notification, it will change the brightness level
+> first and then send an event to user space.
 
-and I omitted KEY_DISPLAY_CYCLE in favor of re-using
-the existing KEY_SWITCHVIDEOMODE.
+The X people would prefer that the kernel not change the brightness 
+itself, where possible. In the cases where drivers know how to control 
+the backlight hardware themselves (most new Intel hardware, nvidia stuff 
+since 2005ish, that sort of thing) it's likely that they'll be able to 
+provide much more control than the level provided via the ACPI 
+interface.
 
-thanks,
--Len
----
-commit a7ecd1ea913346a72f41a002c365882dc05c9bd5
-Author: Yu Luming <luming.yu@intel.com>
-Date:   Thu Aug 23 23:05:55 2007 -0400
+> I'll send a patch to make ACPI video driver do nothing but export the
+> events to user space in the notify handler if you guys think it's okay.
 
-    ACPI: video: Add keycode for ACPI video driver hotkey events.
-    
-    Signed-off-by: Luming Yu <luming.yu@intel.com>
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+I think that's the right thing to do, but you might want to make it a 
+module option to begin with. That way you can printk that the behaviour 
+will change in the future, and then flip the default in a few months.
 
-diff --git a/include/linux/input.h b/include/linux/input.h
-index e02c6a6..cf2b561 100644
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -363,6 +363,12 @@ struct input_absinfo {
- 
- #define KEY_UNKNOWN		240
- 
-+#define KEY_VIDEO_NEXT		241	/* drive next video source */
-+#define KEY_VIDEO_PREV		242	/* drive previous video source */
-+#define KEY_BRIGHTNESS_CYCLE	243	/* brightness up, after max is min */
-+#define KEY_BRIGHTNESS_ZERO	244	/* brightness off, use ambient */
-+#define KEY_DISPLAY_OFF		245	/* display device to off state */
-+
- #define BTN_MISC		0x100
- #define BTN_0			0x100
- #define BTN_1			0x101
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
