@@ -1,483 +1,58 @@
-From: Klaus Kappel <kappel@campact.de>
-Subject: Lenovo 3000 N100
-Date: Fri, 24 Aug 2007 07:10:40 +0200
-Message-ID: <1187932240.6991.2.camel@leo>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-H05dy8lavYpfuSblH/nY"
+From: Len Brown <len.brown@intel.com>
+Subject: [PATCH 01/25] ACPI: thermal: clean up MODULE_PARM_DESC newlines
+Date: Fri, 24 Aug 2007 03:20:48 -0400
+Message-ID: <11879400762710-git-send-email-len.brown@intel.com>
+References: <11879400723077-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plasma.jpberlin.de ([213.203.238.10]:47089 "EHLO
-	plasma.jpberlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945AbXHXFko (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Aug 2007 01:40:44 -0400
-Received: from localhost (weizen.heinlein-support.de [213.203.238.101])
-	by plasma.jpberlin.de (Postfix) with ESMTP id 6C843F66DF
-	for <linux-acpi@vger.kernel.org>; Fri, 24 Aug 2007 07:11:35 +0200 (CEST)
-Received: from plasma.jpberlin.de ([213.203.238.10])
-	by localhost (weizen.heinlein-support.de [213.203.238.118]) (amavisd-new, port 10030)
-	with ESMTP id qj3Xf3c6HMhf for <linux-acpi@vger.kernel.org>;
-	Fri, 24 Aug 2007 07:11:32 +0200 (CEST)
-Received: from [192.168.84.119] (p3EE0883E.dip0.t-ipconnect.de [62.224.136.62])
-	by plasma.jpberlin.de (Postfix) with ESMTP id 69593F6535
-	for <linux-acpi@vger.kernel.org>; Fri, 24 Aug 2007 07:11:30 +0200 (CEST)
+Received: from mga01.intel.com ([192.55.52.88]:8759 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762218AbXHXHVS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Aug 2007 03:21:18 -0400
+In-Reply-To: <11879400723077-git-send-email-len.brown@intel.com>
+Message-Id: <3c1d36da1d5ed36979340efd233ddaacc45b0a02.1187939442.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/thermal.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
---=-H05dy8lavYpfuSblH/nY
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-System working fine, suspend-to disk crashes on shutdown
-
---=-H05dy8lavYpfuSblH/nY
-Content-Disposition: attachment; filename=lenovo3000N100
-Content-Type: text/plain; name=lenovo3000N100; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-# dmidecode 2.9
-SMBIOS 2.4 present.
-42 structures occupying 1539 bytes.
-Table at 0x000DC010.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: LENOVO
-	Version: 63ET62WW
-	Release Date: 04/30/07
-	Address: 0xE8210
-	Runtime Size: 97776 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-	BIOS Revision: 0.98
-	Firmware Revision: 1.0
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: LENOVO
-	Product Name: 0768BYG
-	Version: 3000 N100                       
-	Serial Number: L3RB927                                                  
-	UUID: 2190EF2F-2EDF-11DC-B316-001B3808B1DC
-	Wake-up Type: Power Switch
-	SKU Number: Intel
-	Family: Lenovo
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: LENOVO
-	Product Name: CAPELL VALLEY(NAPA) CRB
-	Version: Not Applicable
-	Serial Number: 41W8025Z1ZCZ977E8N0                                             
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: No Enclosure
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag:                     
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: EC 06 00 00 FF FB E9 BF
-	Version: Intel(R) Core(TM) Duo CPU      T2
-	Voltage: 3.3 V
-	External Clock: 133 MHz
-	Max Speed: 2048 MHz
-	Current Speed: 2000 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 2048 KB
-	Maximum Size: 2048 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J1A1
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Mouse Port
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J8B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PEG Slot J6C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 6
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J7C1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 8
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8C1
-	Type: 32-bit PCI Express
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000F, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: HD-Audio
-
-Handle 0x0010, DMI type 11, 5 bytes
-OEM Strings
-	String 1: k7VCGaEPzT3+U
-	String 2: pyTrsZ2XENns3
-	String 3: XFGgJvcsMTQcH
-
-Handle 0x0011, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: SMI:00B2C1
-	Option 2: DSN:         NW9ST74299KJ          
-	Option 3: DSN: M4 70T6554EZ3-CE6 E106B25F    
-	Option 4: DSN: SONYLNV-92P1186081E36EE       
-	Option 5: TIM:            
-
-Handle 0x0012, DMI type 15, 29 bytes
-System Event Log
-	Area Length: 16 bytes
-	Header Start Offset: 0x0000
-	Header Length: 16 bytes
-	Data Start Offset: 0x0010
-	Access Method: General-purpose non-volatile data functions
-	Access Address: 0x0000
-	Status: Valid, Not Full
-	Change Token: 0x00000003
-	Header Format: Type 1
-	Supported Log Type Descriptors: 3
-	Descriptor 1: POST error
-	Data Format 1: POST results bitmap
-	Descriptor 2: Single-bit ECC memory error
-	Data Format 2: Multiple-event
-	Descriptor 3: Multi-bit ECC memory error
-	Data Format 3: Multiple-event
-
-Handle 0x0013, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 3 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0014, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0015, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0013
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0016, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Array Handle: 0x0013
-	Partition Width: 0
-
-Handle 0x0017, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0014
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0018, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00020000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0015
-	Memory Array Mapped Address Handle: 0x0016
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0019, DMI type 23, 13 bytes
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x001A, DMI type 24, 5 bytes
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x001B, DMI type 25, 9 bytes
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x001C, DMI type 26, 20 bytes
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 27, 12 bytes
-Cooling Device
-	Temperature Probe Handle: 0x001E
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001E, DMI type 28, 20 bytes
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001F, DMI type 29, 20 bytes
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x0020, DMI type 30, 6 bytes
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x0021, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0022, DMI type 129, 16 bytes
-OEM-specific Type
-	Header and Data:
-		81 10 22 00 01 01 02 01 00 00 00 01 00 00 08 01
-	Strings:
-		Intel_ASF_001
-		Intel_ASF_001
-
-Handle 0x0023, DMI type 136, 5 bytes
-OEM-specific Type
-	Header and Data:
-		88 05 23 00 5A
-	Strings:
-		Z
-
-Handle 0x0024, DMI type 131, 22 bytes
-OEM-specific Type
-	Header and Data:
-		83 16 24 00 01 00 00 00 00 00 00 00 00 00 00 00
-		00 00 00 00 00 01
-	Strings:
-		TVT-Enablement
-
-Handle 0x0025, DMI type 131, 22 bytes
-OEM-specific Type
-	Header and Data:
-		83 16 25 00 01 00 00 00 00 00 00 00 00 00 00 00
-		00 00 00 00 00 01
-	Strings:
-		TVT-Enablement
-
-Handle 0x0026, DMI type 133, 5 bytes
-OEM-specific Type
-	Header and Data:
-		85 05 26 00 01
-	Strings:
-		KHOIHGIUCCHHII
-
-Handle 0x0027, DMI type 135, 10 bytes
-OEM-specific Type
-	Header and Data:
-		87 0A 27 00 50 54 07 03 01 00
-
-Handle 0x0028, DMI type 150, 14 bytes
-OEM-specific Type
-	Header and Data:
-		96 0E 28 00 01 01 00 00 00 00 00 00 00 00
-	Strings:
-		ABSOLUTE(PHOENIX) CLM
-
-Handle 0x0029, DMI type 127, 4 bytes
-End Of Table
-
-
---=-H05dy8lavYpfuSblH/nY--
-
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 1e06159..9b31f36 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -77,23 +77,23 @@ MODULE_LICENSE("GPL");
+ 
+ static int act;
+ module_param(act, int, 0644);
+-MODULE_PARM_DESC(act, "Disable or override all lowest active trip points.\n");
++MODULE_PARM_DESC(act, "Disable or override all lowest active trip points.");
+ 
+ static int tzp;
+ module_param(tzp, int, 0444);
+-MODULE_PARM_DESC(tzp, "Thermal zone polling frequency, in 1/10 seconds.\n");
++MODULE_PARM_DESC(tzp, "Thermal zone polling frequency, in 1/10 seconds.");
+ 
+ static int nocrt;
+ module_param(nocrt, int, 0);
+-MODULE_PARM_DESC(nocrt, "Set to disable action on ACPI thermal zone critical and hot trips.\n");
++MODULE_PARM_DESC(nocrt, "Set to disable action on ACPI thermal zone critical and hot trips.");
+ 
+ static int off;
+ module_param(off, int, 0);
+-MODULE_PARM_DESC(off, "Set to disable ACPI thermal support.\n");
++MODULE_PARM_DESC(off, "Set to disable ACPI thermal support.");
+ 
+ static int psv;
+ module_param(psv, int, 0644);
+-MODULE_PARM_DESC(psv, "Disable or override all passive trip points.\n");
++MODULE_PARM_DESC(psv, "Disable or override all passive trip points.");
+ 
+ static int acpi_thermal_add(struct acpi_device *device);
+ static int acpi_thermal_remove(struct acpi_device *device, int type);
+-- 
+1.5.3.rc6.17.g1911
