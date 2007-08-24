@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 22/25] PNP: remove MODULE infrastructure
-Date: Fri, 24 Aug 2007 03:21:09 -0400
-Message-ID: <11879400984017-git-send-email-len.brown@intel.com>
+Subject: [PATCH 25/25] ACPI: fix ia64 allnoconfig build
+Date: Fri, 24 Aug 2007 03:21:12 -0400
+Message-ID: <1187940102401-git-send-email-len.brown@intel.com>
 References: <11879400723077-git-send-email-len.brown@intel.com>
  <11879400762710-git-send-email-len.brown@intel.com>
  <11879400782033-git-send-email-len.brown@intel.com>
@@ -24,162 +24,57 @@ References: <11879400723077-git-send-email-len.brown@intel.com>
  <11879400951708-git-send-email-len.brown@intel.com>
  <11879400963954-git-send-email-len.brown@intel.com>
  <11879400972603-git-send-email-len.brown@intel.com>
+ <11879400984017-git-send-email-len.brown@intel.com>
+ <11879401002195-git-send-email-len.brown@intel.com>
+ <11879401012161-git-send-email-len.brown@intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:23132 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763584AbXHXHVk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Aug 2007 03:21:40 -0400
-In-Reply-To: <11879400972603-git-send-email-len.brown@intel.com>
-Message-Id: <4f0217e30249ac0eb13b65ef64f2aee627465da2.1187939443.git.len.brown@intel.com>
+	id S1755184AbXHXHVn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Aug 2007 03:21:43 -0400
+In-Reply-To: <11879401012161-git-send-email-len.brown@intel.com>
+Message-Id: <3e069ee0c30d6f28b79e409ef2df1ffa427897ae.1187939443.git.len.brown@intel.com>
 In-Reply-To: <3c1d36da1d5ed36979340efd233ddaacc45b0a02.1187939442.git.len.brown@intel.com>
 References: <3c1d36da1d5ed36979340efd233ddaacc45b0a02.1187939442.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+drivers/acpi/event.c:238: error: conflicting types for =E2=80=98acpi_bu=
+s_generate_netlink_event=E2=80=99
+include/acpi/acpi_bus.h:324: error: previous declaration of =E2=80=98ac=
+pi_bus_generate_netlink_event=E2=80=99 was here
 
-We don't support building any part of PNP as a module (*drivers* can be
-modules, of course, but the PNP infrastructure itself can not).  Since
-MODULE will never be defined, remove the ifdefs and dead code.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Adam Belay <abelay@novell.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/isapnp/proc.c  |   45 --------------------------------------------
- drivers/pnp/pnpbios/core.c |   43 ------------------------------------------
- 2 files changed, 0 insertions(+), 88 deletions(-)
+ drivers/acpi/event.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pnp/isapnp/proc.c b/drivers/pnp/isapnp/proc.c
-index 3fbc0f9..560ccb6 100644
---- a/drivers/pnp/isapnp/proc.c
-+++ b/drivers/pnp/isapnp/proc.c
-@@ -112,33 +112,6 @@ static int isapnp_proc_attach_device(struct pnp_dev *dev)
- 	return 0;
+diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+index cf6d516..a2b9304 100644
+--- a/drivers/acpi/event.c
++++ b/drivers/acpi/event.c
+@@ -233,8 +233,9 @@ static int acpi_event_genetlink_init(void)
  }
- 
--#ifdef MODULE
--static int __exit isapnp_proc_detach_device(struct pnp_dev *dev)
--{
--	struct pnp_card *bus = dev->card;
--	struct proc_dir_entry *de;
--	char name[16];
--
--	if (!(de = bus->procdir))
--		return -EINVAL;
--	sprintf(name, "%02x", dev->number);
--	remove_proc_entry(name, de);
--	return 0;
--}
--
--static int __exit isapnp_proc_detach_bus(struct pnp_card *bus)
--{
--	struct proc_dir_entry *de;
--	char name[16];
--
--	if (!(de = bus->procdir))
--		return -EINVAL;
--	sprintf(name, "%02x", bus->number);
--	remove_proc_entry(name, isapnp_proc_bus_dir);
--	return 0;
--}
--#endif				/* MODULE */
--
- int __init isapnp_proc_init(void)
+=20
+ #else
+-int acpi_bus_generate_netlink_event(struct acpi_device *device, u8 typ=
+e,
+-				      int data)
++int acpi_bus_generate_netlink_event(const char *device_class,
++				      const char *bus_id,
++				      u8 type, int data)
  {
- 	struct pnp_dev *dev;
-@@ -149,21 +122,3 @@ int __init isapnp_proc_init(void)
- 	}
  	return 0;
  }
--
--#ifdef MODULE
--int __exit isapnp_proc_done(void)
--{
--	struct pnp_dev *dev;
--	struct pnp_bus *card;
--
--	isapnp_for_each_dev(dev) {
--		isapnp_proc_detach_device(dev);
--	}
--	isapnp_for_each_card(card) {
--		isapnp_proc_detach_bus(card);
--	}
--	if (isapnp_proc_bus_dir)
--		remove_proc_entry("isapnp", proc_bus);
--	return 0;
--}
--#endif				/* MODULE */
-diff --git a/drivers/pnp/pnpbios/core.c b/drivers/pnp/pnpbios/core.c
-index 9892a6a..0691f47 100644
---- a/drivers/pnp/pnpbios/core.c
-+++ b/drivers/pnp/pnpbios/core.c
-@@ -419,7 +419,6 @@ static void __init build_devlist(void)
- static int pnpbios_disabled;
- int pnpbios_dont_use_current_config;
- 
--#ifndef MODULE
- static int __init pnpbios_setup(char *str)
- {
- 	int invert;
-@@ -443,7 +442,6 @@ static int __init pnpbios_setup(char *str)
- }
- 
- __setup("pnpbios=", pnpbios_setup);
--#endif
- 
- /* PnP BIOS signature: "$PnP" */
- #define PNP_SIGNATURE   (('$' << 0) + ('P' << 8) + ('n' << 16) + ('P' << 24))
-@@ -607,48 +605,7 @@ static int __init pnpbios_thread_init(void)
- 	return 0;
- }
- 
--#ifndef MODULE
--
--/* init/main.c calls pnpbios_init early */
--
- /* Start the kernel thread later: */
- module_init(pnpbios_thread_init);
- 
--#else
--
--/*
-- * N.B.: Building pnpbios as a module hasn't been fully implemented
-- */
--
--MODULE_LICENSE("GPL");
--
--static int __init pnpbios_init_all(void)
--{
--	int r;
--
--	r = pnpbios_init();
--	if (r)
--		return r;
--	r = pnpbios_thread_init();
--	if (r)
--		return r;
--	return 0;
--}
--
--static void __exit pnpbios_exit(void)
--{
--#ifdef CONFIG_HOTPLUG
--	unloading = 1;
--	wait_for_completion(&unload_sem);
--#endif
--	pnpbios_proc_exit();
--	/* We ought to free resources here */
--	return;
--}
--
--module_init(pnpbios_init_all);
--module_exit(pnpbios_exit);
--
--#endif
--
- EXPORT_SYMBOL(pnpbios_protocol);
--- 
+--=20
 1.5.3.rc6.17.g1911
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
