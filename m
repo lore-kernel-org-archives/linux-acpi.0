@@ -1,33 +1,483 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI: Clean up acpi_enter_sleep_state_prep
-Date: Fri, 24 Aug 2007 10:13:05 +0200
-Message-ID: <20070824081305.GA2175@elf.ucw.cz>
-References: <200708221156.36235.rjw@sisk.pl>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: ACPI video extensions - ACPI vendor specific
+	drivers vs. video	module
+Date: Fri, 24 Aug 2007 14:32:53 +0200
+Message-ID: <1187958773.3702.27.camel@prodigy.site>
+References: <1187344606.8780.845.camel@queen.suse.de>
+	<20070817131853.GA5027@khazad-dum.debian.net>
+	<1187941725.3399.32.camel@prodigy.site>
+	<20070824114825.GA12881@srcf.ucam.org>
+	<1187957423.3404.10.camel@prodigy.site>
+	<20070824140911.GA15085@srcf.ucam.org>
+Reply-To: trenn-l3A5Bk7waGM@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46191 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757259AbXHXVBA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:01:00 -0400
-Content-Disposition: inline
-In-Reply-To: <200708221156.36235.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070824140911.GA15085-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user <acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, "Zhang,  Rui" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Starikovskiy,  Alexey Y" <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed 2007-08-22 11:56:35, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+
+On Fri, 2007-08-24 at 15:09 +0100, Matthew Garrett wrote:
+> On Fri, Aug 24, 2007 at 02:10:23PM +0200, Thomas Renninger wrote:
+> > On Fri, 2007-08-24 at 12:48 +0100, Matthew Garrett wrote:
+> > > I'm not sure there's any especially compelling reason. As long as the 
+> > > platform-specific interfaces still work, there's no reason to prefer the 
+> > > ACPI interfaces.
+> > 
+> > There are some reasons:
+> >   - If the platform-specific interfaces do not work anymore, it's
+> >     already too late. E.g. we see this now for 10.3 with the ThinkPad
+> >     driver.
 > 
-> Remove some redundant code from acpi_enter_sleep_state_prep() and clean up
-> a comment in there.
+> The driver shouldn't expose functionality that doesn't work.
+?!? AFAIK Lenovos BIOS updates add some of those, or similar.
+It seems like some Vista compatibility thing and I doubt they add code
+in a BIOS update which does not work. I am not sure whether it's the
+video functions itself, but Henrique told me about BIOS updates breaking
+current ThinkPad brightness control.
+The workaround is a bad hack, reading/writing of some kind of CMOS ACPI
+device far away of any kind of spec if dmi vendor is Lenovo not IBM. If
+the video module is not working there yet, this might be a short term
+solution... But the video functions are there... (I could imagine there
+are problems I am not aware of, but I also could imagine it's just
+because nobody is using the video module on these machines yet. The
+video module is not working well, but IMO that is just because it needs
+some field testing. The ACPI video extensions exist in a lot of (all?)
+current laptop modules and we should start making use of those.)
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> >   - Code cleanup: It would be great to rip out some duplicate code.
+> >     Especially the code size growth of the ThinkPad module which now
+> >     exceeds the 4000 line mark makes me a bit worry how this should
+> >     stay maintainable (imagine Henrique not doing all the good work
+> >     there anymore...).
+> 
+> It's not code duplication. Old Thinkpads (and we're talking 2004 here, 
+> not amazingly old) don't implement the backlight control section of the 
+> video spec, so removing the functionality from thinkpad-acpi would be a 
+> regression.
+Yes. Sorry, this looks like a mis-understanding...
+Of course the ThinkPad, Asus, (don't know much about implementation
+details in the other modules) must still support the models they already
+do.
+I am talking about this change (backported from 2.6.23 to 2.6.22).
+The ACPI video spec functions are there and IMO those should get used
+instead. I also saw an Asus showing the Asus specific ACPI device and
+video functions. Again the video module did not really work (to be
+honest I also haven't had a closer look at that, but it should be
+done...). If this is really a "The one is for XP and older OS providing
+vendor specific applications, the new ones are for Vista and newer OS
+already supported by OS" thing, you can count the days until the vendor
+specific things are going to vanish. Finally this is a great advantage
+for Linux being able to make use of a specified interface. And we should
+think about how to let video and vendor specific modules coexist and
+bringing the video module into a better shape...
 
-ACK.
-								Pavel
+   Thomas
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+If someone finds something bad in this, it would be great if he/she
+could let me know...:
+
+---
+ drivers/misc/thinkpad_acpi.c |  190 +++++++++++++++++++++++++++++++++++--------
+ drivers/misc/thinkpad_acpi.h |   25 +++++
+ include/linux/pci_ids.h      |    2 
+ 3 files changed, 184 insertions(+), 33 deletions(-)
+
+Index: linux-2.6.22/drivers/misc/thinkpad_acpi.c
+===================================================================
+--- linux-2.6.22.orig/drivers/misc/thinkpad_acpi.c
++++ linux-2.6.22/drivers/misc/thinkpad_acpi.c
+@@ -701,9 +701,19 @@ static int __init thinkpad_acpi_driver_i
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
+ 
+-	if (ibm_thinkpad_ec_found)
+-		printk(IBM_INFO "ThinkPad EC firmware %s\n",
+-		       ibm_thinkpad_ec_found);
++	printk(IBM_INFO "ThinkPad BIOS %s, EC %s\n",
++		(thinkpad_id.bios_version_str) ?
++			thinkpad_id.bios_version_str : "unknown",
++		(thinkpad_id.ec_version_str) ?
++			thinkpad_id.ec_version_str : "unknown");
++
++	if (thinkpad_id.vendor && thinkpad_id.model_str)
++		printk(IBM_INFO "%s %s\n",
++			(thinkpad_id.vendor == PCI_VENDOR_ID_IBM) ?
++				"IBM" : ((thinkpad_id.vendor ==
++						PCI_VENDOR_ID_LENOVO) ?
++					"Lenovo" : "Unknown vendor"),
++			thinkpad_id.model_str);
+ 
+ 	return 0;
+ }
+@@ -2424,7 +2434,7 @@ static int __init thermal_init(struct ib
+ 
+ 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
+ 
+-	if (ibm_thinkpad_ec_found && experimental) {
++	if (thinkpad_id.ec_model && experimental) {
+ 		/*
+ 		 * Direct EC access mode: sensors at registers
+ 		 * 0x78-0x7F, 0xC0-0xC7.  Registers return 0x00 for
+@@ -2708,20 +2718,39 @@ static struct ibm_struct ecdump_driver_d
+ 
+ static struct backlight_device *ibm_backlight_device = NULL;
+ 
++static struct backlight_device *ibm_backlight_device;
++
+ static struct backlight_ops ibm_backlight_data = {
+         .get_brightness = brightness_get,
+         .update_status  = brightness_update_status,
+ };
+ 
++static struct mutex brightness_mutex;
++
+ static int __init brightness_init(struct ibm_init_struct *iibm)
+ {
+ 	int b;
+ 
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+ 
++	mutex_init(&brightness_mutex);
++
++	if (!brightness_mode) {
++		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
++			brightness_mode = 2;
++		else
++			brightness_mode = 3;
++
++		dbg_printk(TPACPI_DBG_INIT, "selected brightness_mode=%d\n",
++			brightness_mode);
++	}
++
++	if (brightness_mode > 3)
++		return -EINVAL;
++
+ 	b = brightness_get(NULL);
+ 	if (b < 0)
+-		return b;
++		return 1;
+ 
+ 	ibm_backlight_device = backlight_device_register(
+ 					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
+@@ -2757,34 +2786,76 @@ static int brightness_update_status(stru
+ 				bd->props.brightness : 0);
+ }
+ 
++/*
++ * ThinkPads can read brightness from two places: EC 0x31, or
++ * CMOS NVRAM byte 0x5E, bits 0-3.
++ */
+ static int brightness_get(struct backlight_device *bd)
+ {
+-	u8 level;
+-	if (!acpi_ec_read(brightness_offset, &level))
+-		return -EIO;
+-
+-	level &= 0x7;
++	u8 lec = 0, lcmos = 0, level = 0;
+ 
++	if (brightness_mode & 1) {
++		if (!acpi_ec_read(brightness_offset, &lec))
++			return -EIO;
++		lec &= 7;
++		level = lec;
++	};
++	if (brightness_mode & 2) {
++		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
++			 & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
++			>> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
++		level = lcmos;
++	}
++
++	if (brightness_mode == 3 && lec != lcmos) {
++		printk(IBM_ERR
++			"CMOS NVRAM (%u) and EC (%u) do not agree "
++			"on display brightness level\n",
++			(unsigned int) lcmos,
++			(unsigned int) lec);
++		return -EIO;
++	}
+ 	return level;
+ }
+ 
+ static int brightness_set(int value)
+ {
+-	int cmos_cmd, inc, i;
+-	int current_value = brightness_get(NULL);
++	int cmos_cmd, inc, i, res;
++	int current_value;
+ 
+-	value &= 7;
++	if (value > 7)
++		return -EINVAL;
+ 
+-	cmos_cmd = value > current_value ? TP_CMOS_BRIGHTNESS_UP : TP_CMOS_BRIGHTNESS_DOWN;
++	res = mutex_lock_interruptible(&brightness_mutex);
++	if (res < 0)
++		return res;
++
++	current_value = brightness_get(NULL);
++	if (current_value < 0) {
++		res = current_value;
++		goto errout;
++	}
++
++	cmos_cmd = value > current_value ?
++			TP_CMOS_BRIGHTNESS_UP :
++			TP_CMOS_BRIGHTNESS_DOWN;
+ 	inc = value > current_value ? 1 : -1;
++	res = 0;
+ 	for (i = current_value; i != value; i += inc) {
+-		if (issue_thinkpad_cmos_command(cmos_cmd))
+-			return -EIO;
+-		if (!acpi_ec_write(brightness_offset, i + inc))
+-			return -EIO;
++		if ((brightness_mode & 2) &&
++		    issue_thinkpad_cmos_command(cmos_cmd)) {
++			res = -EIO;
++			goto errout;
++		}
++		if ((brightness_mode & 1) &&
++		    !acpi_ec_write(brightness_offset, i + inc)) {
++			res = -EIO;
++			goto errout;;
++		}
+ 	}
+-
+-	return 0;
++errout:
++	mutex_unlock(&brightness_mutex);
++	return res;
+ }
+ 
+ static int brightness_read(char *p)
+@@ -3308,20 +3379,19 @@ static int __init fan_init(struct ibm_in
+ 			 * Enable for TP-1Y (T43), TP-78 (R51e),
+ 			 * TP-76 (R52), TP-70 (T43, R52), which are known
+ 			 * to be buggy. */
+-			if (fan_control_initial_status == 0x07 &&
+-			    ibm_thinkpad_ec_found &&
+-			    ((ibm_thinkpad_ec_found[0] == '1' &&
+-			      ibm_thinkpad_ec_found[1] == 'Y') ||
+-			     (ibm_thinkpad_ec_found[0] == '7' &&
+-			      (ibm_thinkpad_ec_found[1] == '6' ||
+-			       ibm_thinkpad_ec_found[1] == '8' ||
+-			       ibm_thinkpad_ec_found[1] == '0'))
+-			    )) {
++			if (fan_control_initial_status == 0x07) {
++				switch (thinkpad_id.ec_model) {
++				case 0x5931: /* TP-1Y */
++				case 0x3837: /* TP-78 */
++				case 0x3637: /* TP-76 */
++				case 0x3037: /* TP-70 */
+ 				printk(IBM_NOTICE
+ 				       "fan_init: initial fan status is "
+ 				       "unknown, assuming it is in auto "
+ 				       "mode\n");
+ 				tp_features.fan_ctrl_status_undef = 1;
++				;;
++				}
+ 			}
+ 		} else {
+ 			printk(IBM_ERR
+@@ -4081,6 +4151,61 @@ static char* __init check_dmi_for_ec(voi
+ 	return NULL;
+ }
+ 
++/* Probing */
++
++static void __init get_thinkpad_model_data(struct thinkpad_id_data *tp)
++{
++	struct dmi_device *dev = NULL;
++	char ec_fw_string[18];
++
++	if (!tp)
++		return;
++
++	memset(tp, 0, sizeof(*tp));
++
++	if (dmi_name_in_vendors("IBM"))
++		tp->vendor = PCI_VENDOR_ID_IBM;
++	else if (dmi_name_in_vendors("LENOVO"))
++		tp->vendor = PCI_VENDOR_ID_LENOVO;
++	else
++		return;
++
++	tp->bios_version_str = kstrdup(dmi_get_system_info(DMI_BIOS_VERSION),
++					GFP_KERNEL);
++	if (!tp->bios_version_str)
++		return;
++	tp->bios_model = tp->bios_version_str[0]
++			 | (tp->bios_version_str[1] << 8);
++
++	/*
++	 * ThinkPad T23 or newer, A31 or newer, R50e or newer,
++	 * X32 or newer, all Z series;  Some models must have an
++	 * up-to-date BIOS or they will not be detected.
++	 *
++	 * See http://thinkwiki.org/wiki/List_of_DMI_IDs
++	 */
++	while ((dev = dmi_find_device(DMI_DEV_TYPE_OEM_STRING, NULL, dev))) {
++		if (sscanf(dev->name,
++			   "IBM ThinkPad Embedded Controller -[%17c",
++			   ec_fw_string) == 1) {
++			ec_fw_string[sizeof(ec_fw_string) - 1] = 0;
++			ec_fw_string[strcspn(ec_fw_string, " ]")] = 0;
++
++			tp->ec_version_str = kstrdup(ec_fw_string, GFP_KERNEL);
++			tp->ec_model = ec_fw_string[0]
++					| (ec_fw_string[1] << 8);
++			break;
++		}
++	}
++
++	tp->model_str = kstrdup(dmi_get_system_info(DMI_PRODUCT_VERSION),
++					GFP_KERNEL);
++	if (strnicmp(tp->model_str, "ThinkPad", 8) != 0) {
++		kfree(tp->model_str);
++		tp->model_str = NULL;
++	}
++}
++
+ static int __init probe_for_thinkpad(void)
+ {
+ 	int is_thinkpad;
+@@ -4108,7 +4233,7 @@ static int __init probe_for_thinkpad(voi
+ 	 * false positives a damn great deal
+ 	 */
+ 	if (!is_thinkpad)
+-		is_thinkpad = dmi_name_in_vendors("IBM");
++		is_thinkpad = (thinkpad_id.vendor == PCI_VENDOR_ID_IBM);
+ 
+ 	if (!is_thinkpad && !force_load)
+ 		return -ENODEV;
+@@ -4251,12 +4376,12 @@ static int __init thinkpad_acpi_module_i
+ 	int ret, i;
+ 
+ 	/* Driver-level probe */
++	get_thinkpad_model_data(&thinkpad_id);
+ 	ret = probe_for_thinkpad();
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* Driver initialization */
+-	ibm_thinkpad_ec_found = check_dmi_for_ec();
+ 	IBM_ACPIHANDLE_INIT(ecrd);
+ 	IBM_ACPIHANDLE_INIT(ecwr);
+ 
+@@ -4344,6 +4469,9 @@ static void thinkpad_acpi_module_exit(vo
+ 		remove_proc_entry(IBM_PROC_DIR, acpi_root_dir);
+ 
+ 	kfree(ibm_thinkpad_ec_found);
++	kfree(thinkpad_id.bios_version_str);
++	kfree(thinkpad_id.ec_version_str);
++	kfree(thinkpad_id.model_str);
+ }
+ 
+ module_init(thinkpad_acpi_module_init);
+Index: linux-2.6.22/drivers/misc/thinkpad_acpi.h
+===================================================================
+--- linux-2.6.22.orig/drivers/misc/thinkpad_acpi.h
++++ linux-2.6.22/drivers/misc/thinkpad_acpi.h
+@@ -32,6 +32,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ 
++#include <linux/nvram.h>
+ #include <linux/proc_fs.h>
+ #include <linux/sysfs.h>
+ #include <linux/backlight.h>
+@@ -48,6 +49,7 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acnamesp.h>
+ 
++#include <linux/pci_ids.h>
+ 
+ /****************************************************************************
+  * Main driver
+@@ -78,6 +80,11 @@
+ #define TP_CMOS_BRIGHTNESS_UP	4
+ #define TP_CMOS_BRIGHTNESS_DOWN	5
+ 
++/* ThinkPad CMOS NVRAM constants */
++#define TP_NVRAM_ADDR_BRIGHTNESS       0x5e
++#define TP_NVRAM_MASK_LEVEL_BRIGHTNESS 0x07
++#define TP_NVRAM_POS_LEVEL_BRIGHTNESS 0
++
+ #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
+ #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
+ #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+@@ -168,9 +175,7 @@ static void tpacpi_remove_driver_attribu
+ static int experimental;
+ static u32 dbg_level;
+ static int force_load;
+-static char *ibm_thinkpad_ec_found;
+ 
+-static char* check_dmi_for_ec(void);
+ static int thinkpad_acpi_module_init(void);
+ static void thinkpad_acpi_module_exit(void);
+ 
+@@ -236,6 +241,21 @@ static struct {
+ 	u16 platform_drv_attrs_registered:1;
+ } tp_features;
+ 
++struct thinkpad_id_data {
++	unsigned int vendor;	/* ThinkPad vendor:
++				 * PCI_VENDOR_ID_IBM/PCI_VENDOR_ID_LENOVO */
++
++	char *bios_version_str;	/* Something like 1ZET51WW (1.03z) */
++	char *ec_version_str;	/* Something like 1ZHT51WW-1.04a */
++
++	u16 bios_model;		/* Big Endian, TP-1Y = 0x5931, 0 = unknown */
++	u16 ec_model;
++
++	char *model_str;
++};
++
++static struct thinkpad_id_data thinkpad_id;
++
+ static struct list_head tpacpi_all_drivers;
+ 
+ static struct ibm_init_struct ibms_init[];
+@@ -302,6 +322,7 @@ static int bluetooth_write(char *buf);
+ 
+ static struct backlight_device *ibm_backlight_device;
+ static int brightness_offset = 0x31;
++static int brightness_mode;
+ 
+ static int brightness_init(struct ibm_init_struct *iibm);
+ static void brightness_exit(void);
+Index: linux-2.6.22/include/linux/pci_ids.h
+===================================================================
+--- linux-2.6.22.orig/include/linux/pci_ids.h
++++ linux-2.6.22/include/linux/pci_ids.h
+@@ -2067,6 +2067,8 @@
+ #define PCI_DEVICE_ID_ALTIMA_AC9100	0x03ea
+ #define PCI_DEVICE_ID_ALTIMA_AC1003	0x03eb
+ 
++#define PCI_VENDOR_ID_LENOVO            0x17aa
++
+ #define PCI_VENDOR_ID_ARECA		0x17d3
+ #define PCI_DEVICE_ID_ARECA_1110	0x1110
+ #define PCI_DEVICE_ID_ARECA_1120	0x1120
+
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >>  http://get.splunk.com/
