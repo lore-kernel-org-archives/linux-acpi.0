@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 16/25] asus-laptop: Fix rmmod of asus_laptop
-Date: Fri, 24 Aug 2007 03:21:03 -0400
-Message-ID: <11879400921598-git-send-email-len.brown@intel.com>
+Subject: [PATCH 21/25] ISAPNP: removed unused isapnp_detected and ISAPNP_DEBUG
+Date: Fri, 24 Aug 2007 03:21:08 -0400
+Message-ID: <11879400972603-git-send-email-len.brown@intel.com>
 References: <11879400723077-git-send-email-len.brown@intel.com>
  <11879400762710-git-send-email-len.brown@intel.com>
  <11879400782033-git-send-email-len.brown@intel.com>
@@ -18,57 +18,82 @@ References: <11879400723077-git-send-email-len.brown@intel.com>
  <11879400892741-git-send-email-len.brown@intel.com>
  <11879400903190-git-send-email-len.brown@intel.com>
  <11879400911609-git-send-email-len.brown@intel.com>
+ <11879400921598-git-send-email-len.brown@intel.com>
+ <11879400933976-git-send-email-len.brown@intel.com>
+ <1187940094867-git-send-email-len.brown@intel.com>
+ <11879400951708-git-send-email-len.brown@intel.com>
+ <11879400963954-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7250 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:23132 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753636AbXHXHVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Aug 2007 03:21:33 -0400
-In-Reply-To: <11879400911609-git-send-email-len.brown@intel.com>
-Message-Id: <e1996a69e162b1c99c3d3802684d1c388b54f47d.1187939442.git.len.brown@intel.com>
+	id S1755313AbXHXHVk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Aug 2007 03:21:40 -0400
+In-Reply-To: <11879400963954-git-send-email-len.brown@intel.com>
+Message-Id: <6c504d30a48157b7c05a0dfb6a799c72095e957d.1187939443.git.len.brown@intel.com>
 In-Reply-To: <3c1d36da1d5ed36979340efd233ddaacc45b0a02.1187939442.git.len.brown@intel.com>
 References: <3c1d36da1d5ed36979340efd233ddaacc45b0a02.1187939442.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Guillaume Chazarain <guichaz@yahoo.fr>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Guillaume Chazarain <guichaz@yahoo.fr>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The asus laptop driver conditionnaly registers leds in asus_led_register()
-depending on their availability, but unconditionnaly unregisters them all at
-exit time or when the module fails to load. Unregistering not registered leds
-result in the following Oops. So we should check before unregistering.
+ISAPNP_DEBUG isn't used at all.  isapnp_detected is set but never read.
+So remove them both.
 
- [<c032d2f9>] do_page_fault+0x511/0x5e9
- [<c032bae2>] error_code+0x6a/0x70
- [<c026abf8>] device_unregister+0x26/0x32
- [<f8864218>] led_classdev_unregister+0x58/0x94 [led_class]
- [<f88a90f8>] asus_led_exit+0x17/0x41 [asus_laptop]
- [<f88a91c9>] asus_laptop_exit+0xd/0x3f [asus_laptop]
- [<c013cee1>] sys_delete_module+0x17b/0x1a2
- [<c0106eae>] sysenter_past_esp+0x6b/0xa1
-
-EIP: [<c026a9a3>] device_del+0xb/0x23a SS:ESP 0068:f594ef0c
-
-Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Adam Belay <abelay@novell.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/asus-laptop.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/pnp/isapnp/core.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
-index d0fc4fd..40db9f7 100644
---- a/drivers/misc/asus-laptop.c
-+++ b/drivers/misc/asus-laptop.c
-@@ -1072,7 +1072,8 @@ static void asus_backlight_exit(void)
- }
+diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
+index 32386ce..1a0d33a 100644
+--- a/drivers/pnp/isapnp/core.c
++++ b/drivers/pnp/isapnp/core.c
+@@ -47,9 +47,6 @@
+ #if 0
+ #define ISAPNP_REGION_OK
+ #endif
+-#if 0
+-#define ISAPNP_DEBUG
+-#endif
  
- #define  ASUS_LED_UNREGISTER(object)				\
--	led_classdev_unregister(&object##_led)
-+	if (object##_led.dev)					\
-+		led_classdev_unregister(&object##_led)
+ int isapnp_disable;		/* Disable ISA PnP */
+ static int isapnp_rdp;		/* Read Data Port */
+@@ -93,7 +90,6 @@ MODULE_LICENSE("GPL");
  
- static void asus_led_exit(void)
- {
+ static unsigned char isapnp_checksum_value;
+ static DEFINE_MUTEX(isapnp_cfg_mutex);
+-static int isapnp_detected;
+ static int isapnp_csn_count;
+ 
+ /* some prototypes */
+@@ -1067,7 +1063,6 @@ static int __init isapnp_init(void)
+ 	struct pnp_dev *dev;
+ 
+ 	if (isapnp_disable) {
+-		isapnp_detected = 0;
+ 		printk(KERN_INFO "isapnp: ISA Plug & Play support disabled\n");
+ 		return 0;
+ 	}
+@@ -1115,7 +1110,6 @@ static int __init isapnp_init(void)
+ 		}
+ 		isapnp_set_rdp();
+ 	}
+-	isapnp_detected = 1;
+ 	if (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff) {
+ 		cards = isapnp_isolate();
+ 		if (cards < 0 || (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff)) {
+@@ -1123,7 +1117,6 @@ static int __init isapnp_init(void)
+ 			release_region(_PIDXR, 1);
+ #endif
+ 			release_region(_PNPWRP, 1);
+-			isapnp_detected = 0;
+ 			printk(KERN_INFO
+ 			       "isapnp: No Plug & Play device found\n");
+ 			return 0;
 -- 
 1.5.3.rc6.17.g1911
