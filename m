@@ -1,45 +1,108 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI video extensions - ACPI vendor specific drivers vs. video module
-Date: Fri, 24 Aug 2007 15:09:11 +0100
-Message-ID: <20070824140911.GA15085@srcf.ucam.org>
-References: <1187344606.8780.845.camel@queen.suse.de> <20070817131853.GA5027@khazad-dum.debian.net> <1187941725.3399.32.camel@prodigy.site> <20070824114825.GA12881@srcf.ucam.org> <1187957423.3404.10.camel@prodigy.site>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [2/4] 2.6.23-rc3: known regressions v3
+Date: Fri, 24 Aug 2007 19:38:20 +0200
+Message-ID: <46CF178C.4060506@googlemail.com>
+References: <46CF0DEF.5040107@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 78-32-9-130.no-dns-yet.enta.net ([78.32.9.130]:53040 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1761094AbXHXOJV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Aug 2007 10:09:21 -0400
-Content-Disposition: inline
-In-Reply-To: <1187957423.3404.10.camel@prodigy.site>
+Received: from mu-out-0910.google.com ([209.85.134.185]:58871 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763164AbXHXRif (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Aug 2007 13:38:35 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so1168895mue
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Aug 2007 10:38:34 -0700 (PDT)
+In-Reply-To: <46CF0DEF.5040107@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Holger Macht <hmacht@suse.de>, "Starikovskiy, Alexey Y" <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>, Mattia Dongili <malattia@linux.it>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Plamen Petrov <plamen.petrov@tk.ru.acad.bg>, Michael Sedkowski <sedmich@gmail.com>, dth <dth@dth.net>, linux-fsdevel@vger.kernel.org, nfs@lists.sourceforge.net, Trond Myklebust <Trond.Myklebust@netapp.com>, Andrew Clayton <andrew@digital-domain.net>, Florin Iucha <florin@iucha.net>, Bret Towe <magnade@gmail.com>
 
-On Fri, Aug 24, 2007 at 02:10:23PM +0200, Thomas Renninger wrote:
-> On Fri, 2007-08-24 at 12:48 +0100, Matthew Garrett wrote:
-> > I'm not sure there's any especially compelling reason. As long as the 
-> > platform-specific interfaces still work, there's no reason to prefer the 
-> > ACPI interfaces.
-> 
-> There are some reasons:
->   - If the platform-specific interfaces do not work anymore, it's
->     already too late. E.g. we see this now for 10.3 with the ThinkPad
->     driver.
+Hi all,
 
-The driver shouldn't expose functionality that doesn't work.
+Here is a list of some known regressions in 2.6.23-rc3.
 
->   - Code cleanup: It would be great to rip out some duplicate code.
->     Especially the code size growth of the ThinkPad module which now
->     exceeds the 4000 line mark makes me a bit worry how this should
->     stay maintainable (imagine Henrique not doing all the good work
->     there anymore...).
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-It's not code duplication. Old Thinkpads (and we're talking 2004 here, 
-not amazingly old) don't implement the backlight control section of the 
-video spec, so removing the functionality from thinkpad-acpi would be a 
-regression.
+List of Aces
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            9
+Andi Kleen                             5
+Linus Torvalds                         5
+Andrew Morton                          4
+Al Viro                                3
+Alan Stern                             3
+Cornelia Huck                          3
+Jens Axboe                             3
+Tejun Heo                              3
+
+
+
+ACPI
+
+Subject         : MCFG bug on hp nx6310
+References      : http://lkml.org/lkml/2007/8/8/252
+Last known good : ?
+Submitter       : Michael Sedkowski <sedmich@gmail.com>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+Subject         : 2.6.23-rc1-git10 hangs on boot - needs "acpi=off"
+References      : http://lkml.org/lkml/2007/8/2/24
+Last known good : ?
+Submitter       : Plamen Petrov <plamen.petrov@tk.ru.acad.bg>
+Caused-By       : ?
+Handled-By      : Len Brown <len.brown@intel.com>
+Status          : problem is being debugged
+
+
+
+CPUFREQ
+
+Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
+References      : http://lkml.org/lkml/2007/7/27/298
+                  http://lkml.org/lkml/2007/7/29/371
+Last known good : ?
+Submitter       : dth <dth@dth.net>
+Caused-By       : Len Brown <lenb@kernel.org>
+                  commit f79e3185dd0f8650022518d7624c876d8929061b
+Handled-By      : Len Brown <lenb@kernel.org>
+Status          : problem is being debugged
+
+
+
+FS
+
+Subject         : nfs4 hang/NFS woes again
+                  (was USB-related oops in sysfs with linux v2.6.23-rc3-50-g28e8351)
+References      : http://lkml.org/lkml/2007/8/15/144
+                  http://lkml.org/lkml/2007/8/22/484
+                  http://lkml.org/lkml/2007/8/23/134
+Last known good : ?
+Submitter       : Florin Iucha <florin@iucha.net>
+                  Bret Towe <magnade@gmail.com>
+Caused-By       : Trond Myklebust <Trond.Myklebust@netapp.com>
+                  commit 3d39c691ff486142dd9aaeac12f553f4476b7a62
+Handled-By      : ?
+Status          : problem is being debugged
+
+Subject         : [NFSD OOPS] 2.6.23-rc1-git10
+References      : http://lkml.org/lkml/2007/8/2/462
+Last known good : ?
+Submitter       : Andrew Clayton <andrew@digital-domain.net>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
