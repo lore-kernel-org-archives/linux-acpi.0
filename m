@@ -1,49 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: add "Fujitsu laptop extras" module
-Date: Thu, 23 Aug 2007 22:13:19 -0400
-Message-ID: <200708232213.19204.lenb@kernel.org>
-References: <200708240042.l7O0gtEe022838@turbo.physics.adelaide.edu.au> <20070824013220.GA6242@srcf.ucam.org>
+Subject: Re: [PATCH V3 1/3] ACPI video hotkey: add new input key code for ACPI video hotkey events
+Date: Thu, 23 Aug 2007 21:49:08 -0400
+Message-ID: <200708232149.09015.lenb@kernel.org>
+References: <1187605427.2920.140.camel@acpi-hp.sh.intel.com> <d120d5000708231310oeb4e365k3108ed55bc230bd1@mail.gmail.com> <20070823212200.GA17191@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36223 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765468AbXHXCNn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Aug 2007 22:13:43 -0400
-In-Reply-To: <20070824013220.GA6242@srcf.ucam.org>
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <20070823212200.GA17191@khazad-dum.debian.net>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, mjg59@srcf.ucam.org, hmh@hmh.eng.hr, hughsient@gmail.com, luming.yu@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: linux-acpi@vger.kernel.org
 
-I agree with everything Matthew wrote.
+On Thursday 23 August 2007 17:22, Henrique de Moraes Holschuh wrote:
+> On Thu, 23 Aug 2007, Dmitry Torokhov wrote:
+> > On 8/23/07, Len Brown <lenb@kernel.org> wrote:
+> > > Thanks for the refreshed patch series, Rui.
+> > > I've added it to acpi-test.
+> > >
+> > > Still waiting on an ACK from Dmitry on the input.h definitions.
+> > 
+> > Sorry, I am still trying to recover from a hard drive failure...
+> > 
+> > The keycodes conflict with a pending patch adding KEY_BRL_DOT9 and
+> > KEY_BRL_DOT10 and so have to be moved somewhere else.
+> 
+> Also, this one:
+> +#define KEY_DISPLAY_CYCLE      0x1f9                                                                                                      
+> 
+> Should probably be
+> #define KEY_DISPLAY_CYCLE	KEY_SWITCHVIDEOMODE
+> 
+> According to what was explained to us (thinkpad-acpi and the other laptop
+> hotkey drivers).
 
-Also, please move it to drivers/misc, to keep msi-laptop,
-sony-laptop, asus-laptop, and thinkpad-acpi company.
-
-toshiba-acpi is in drivers/acpi just because it is being neglected --
-but the new scheme is for platform specific drivers that 
-use ACPI is to put them in drivers/misc; and /drivers/acpi
-is for stuff that implements generic ACPI code.
-
-You might consider naming it fujitsu-laptop as well,
-since the driver depends on ACPI, but it really exists
-to provide laptop features, not to implement part of the ACPI spec...
-fuj02b1_acpi.c may be accurate, but nobody will know what it is.
-
-Along those lines, it is generally a good idea to put
-        if (acpi_disabled)
-                return -ENODEV;
-
-in the init function if the driver is worthless without ACPI.
-
-Also, the driver needs somebody to volunteer to be
-its maintainer before it can be merged.
-
-Finally, please run it through scripts/Lindent before the next edition.
+I agree.  I noticed this also
+and I'll send a refreshed patch shortly.
 
 thanks,
 -Len
