@@ -1,35 +1,31 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Something is wrong with acpi_gpe_sleep_prepare
-Date: Fri, 24 Aug 2007 12:50:33 +0200
-Message-ID: <20070824105033.GA2450@elf.ucw.cz>
-References: <20070824095137.GA3159@elf.ucw.cz>
+Subject: Re: [PATCH] ACPI: Clean up acpi_enter_sleep_state_prep
+Date: Fri, 24 Aug 2007 10:13:05 +0200
+Message-ID: <20070824081305.GA2175@elf.ucw.cz>
+References: <200708221156.36235.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46217 "EHLO amd.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46191 "EHLO amd.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1762204AbXHXVBc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:01:32 -0400
+	id S1757259AbXHXVBA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Aug 2007 17:01:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20070824095137.GA3159@elf.ucw.cz>
+In-Reply-To: <200708221156.36235.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, ACPI mailing list <linux-acpi@vger.kernel.org>
-Cc: seife@suse.de
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Fri 2007-08-24 11:51:37, Pavel Machek wrote:
+On Wed 2007-08-22 11:56:35, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> ...AFAICT noone calls it, and I guess that may be why we are seeing
-> some "lid open sometimes wake up x60, sometimes does not" fun?
+> Remove some redundant code from acpi_enter_sleep_state_prep() and clean up
+> a comment in there.
 > 
-> pavel@amd:/data/l/linux/drivers/acpi$ grep -ri  acpi_gpe_sleep_prepare
-> .
-> ./sleep/wakeup.c:void acpi_gpe_sleep_prepare(u32 sleep_state)
-> ./sleep/sleep.h:extern void acpi_gpe_sleep_prepare(u32 sleep_state);
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Sorry, my fault. I found out that removing acpi_gpe_sleep_prepare
-actually _solves_ "thinkpad will not wake by fn key after s2disk"
-problem, and forgot about it.
+ACK.
 								Pavel
 
 -- 
