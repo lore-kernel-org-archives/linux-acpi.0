@@ -1,47 +1,86 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: don't send netlink events for those that go into
-	input layer
-Date: Sat, 25 Aug 2007 02:18:22 -0300
-Message-ID: <20070825051822.GF7434@khazad-dum.debian.net>
-References: <1187803471.27227.7.camel@acpi-hp.sh.intel.com> <200708231430.16887.lenb@kernel.org> <20070823212255.GB17191@khazad-dum.debian.net> <200708232218.38568.lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI patches for Linux-2.6.23-rc3
+Date: Sat, 25 Aug 2007 13:26:09 +0800
+Message-ID: <1188019570.3159.8.camel@acpi-hp.sh.intel.com>
+References: <11879400723077-git-send-email-len.brown@intel.com>
+	 <1187942833.3159.2.camel@acpi-hp.sh.intel.com>
+	 <200708241937.23011.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:43564 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754447AbXHYFS3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:18:29 -0400
-Content-Disposition: inline
-In-Reply-To: <200708232218.38568.lenb@kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:8075 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753621AbXHYFWD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Aug 2007 01:22:03 -0400
+In-Reply-To: <200708241937.23011.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 23 Aug 2007, Len Brown wrote:
-> On Thursday 23 August 2007 17:22, Henrique de Moraes Holschuh wrote:
-> > This calls for (good!) changes in thinkpad-acpi and some issues I had with
-> > exactly the same problem.
-> > 
-> > Len, to which tree is that change targeted?  I will have to target some
-> > thinkpad-acpi changes that depend on it.
+On Sat, 2007-08-25 at 07:37 +0800, Len Brown wrote:
+> On Friday 24 August 2007 04:07, Zhang Rui wrote:
+> > On Fri, 2007-08-24 at 03:20 -0400, Len Brown wrote:
+> > > please speak up if you see any problem with these patches.
+> > > Also, please let me know if I've missed something you
+> > > think needs to make 2.6.23.
+> > >
+> > What about the latest patch in bug 8798?
+> > It can fix the duplicate name problem without changing the
+> > procfs generic code.
 > 
-> Since Rui's patch is an incremental to netlink events,
-> which are new in 2.6.23, I'm going to request Rui's patch
-> for inclusion in 2.6.23.  I'm also going to include
-> "[PATCH] ACPI: Schedule /proc/acpi/event for removal"
-> with it.
+> Do we need to null-terminate bus_id?
+> 
+device->pnp.bus_id[4] = 0 all the time.
 
-Thanks. That means I should start working on the thinkpad-acpi angle, then.
-
-I hope its thinkpad-acpi counterpart can be accepted into -rc4, it will do
-away with that pesky Kconfig INPUT_ENABLE thing I had to add to get some
-measure of backward compatibility when I added the input device to
-thinkpad-acpi.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Rui
+> -Len
+> ----------
+> Subject: hack duplicate name "VID" problem on T61
+> From: Zhang Rui <rui.zhang@intel.com>
+> 
+> This can only fix the problem that more than one video bus device
+> have the same AML name "VID".
+> ie. the proc I/F for the second "VID" video bus device is located
+> under
+> /proc/acpi/video/VID1/...
+> 
+> As this is really rare and the ACPI proc I/F is a legacy feature that
+> we are planning to remove.
+> We won't provide a generic solution for this problem.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/video.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> Index: linux-2.6.23-rc3/drivers/acpi/video.c
+> ===================================================================
+> --- linux-2.6.23-rc3.orig/drivers/acpi/video.c
+> +++ linux-2.6.23-rc3/drivers/acpi/video.c
+> @@ -1833,6 +1833,7 @@ static void acpi_video_device_notify(acp
+>         return;
+>  }
+> 
+> +static int instance;
+>  static int acpi_video_bus_add(struct acpi_device *device)
+>  {
+>         int result = 0;
+> @@ -1847,6 +1848,13 @@ static int acpi_video_bus_add(struct acp
+>         if (!video)
+>                 return -ENOMEM;
+> 
+> +       /* a hack to fix the duplicate name "VID" problem on T61 */
+> +       if (!strcmp(device->pnp.bus_id, "VID")) {
+> +               if (instance)
+> +                       device->pnp.bus_id[3] = '0' + instance;
+> +               instance ++;
+> +       }
+> +
+>         video->device = device;
+>         strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
+>         strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
+> 
+> 
