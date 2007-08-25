@@ -1,168 +1,88 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.23-rc3-mm1
-Date: Fri, 24 Aug 2007 20:30:00 -0700
-Message-ID: <20070824203000.1d710cee.akpm@linux-foundation.org>
-References: <20070822020648.5ea3a612.akpm@linux-foundation.org>
-	<46CF695D.1020008@imap.cc>
-	<20070824170702.a2c51084.akpm@linux-foundation.org>
-	<46CF7C3F.10707@imap.cc>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI video extensions - ACPI vendor specific drivers vs. video
+	module
+Date: Sat, 25 Aug 2007 01:28:05 -0300
+Message-ID: <20070825042805.GA7434@khazad-dum.debian.net>
+References: <1187344606.8780.845.camel@queen.suse.de> <20070817131853.GA5027@khazad-dum.debian.net> <1187941725.3399.32.camel@prodigy.site> <20070824114825.GA12881@srcf.ucam.org> <1187957423.3404.10.camel@prodigy.site> <20070824140911.GA15085@srcf.ucam.org> <1187958773.3702.27.camel@prodigy.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39067 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752288AbXHYDbG (ORCPT
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:35460 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750782AbXHYE2N (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:31:06 -0400
-In-Reply-To: <46CF7C3F.10707@imap.cc>
+	Sat, 25 Aug 2007 00:28:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1187958773.3702.27.camel@prodigy.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tilman Schmidt <tilman@imap.cc>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Andi Kleen <ak@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Dave Jones <davej@codemonkey.org.uk>, Thomas Renninger <trenn@suse.de>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Holger Macht <hmacht@suse.de>, "Starikovskiy, Alexey Y" <astarikovskiy@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>, Mattia Dongili <malattia@linux.it>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, linux-acpi@vger.kernel.org
 
-On Sat, 25 Aug 2007 02:47:59 +0200 Tilman Schmidt <tilman@imap.cc> wrote:
+On Fri, 24 Aug 2007, Thomas Renninger wrote:
+> > The driver shouldn't expose functionality that doesn't work.
+> ?!? AFAIK Lenovos BIOS updates add some of those, or similar.
 
-> Am 25.08.2007 02:07 schrieb Andrew Morton:
-> > On Sat, 25 Aug 2007 01:27:25 +0200
-> > Tilman Schmidt <tilman@imap.cc> wrote:
-> > 
-> >> Am 22.08.2007 11:06 schrieb Andrew Morton:
-> >>> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23-rc3/2.6.23-rc3-mm1/
-> 
-> >> After applying Matthew Wilcox' patch to include/linux/isa.h
-> > 
-> > which patch is that?
-> 
-> The one allowing drivers/scsi/advansys.c to compile with CONFIG_ISA=n:
-> 
-> Date: 	Wed, 22 Aug 2007 10:28:02 -0600
-> From: Matthew Wilcox <matthew@wil.cx>
-> Subject: Re: drivers/scsi/advansys.c - ld error ( Re: 2.6.23-rc3-mm1 )
-> Message-ID: <20070822162802.GJ9163@parisc-linux.org>
-> 
-> When CONFIG_ISA is disabled, the isa_driver support will not be compiled
-> in.  Define stubs so that we don't get link-time errors.
+Lenovo doesn't really care about backwards compatibility like IBM did, and
+they broke it badly when adding Vista ACPI "features".
 
-oh, OK, I have that.
+> It seems like some Vista compatibility thing and I doubt they add code
+> in a BIOS update which does not work. I am not sure whether it's the
 
-> >> this compiles
-> >> and boots on my Intel/openSUSE 10.2 test machine but throws out the
-> >> following messages I don't remember ever seeing with other kernels:
-> >>
-> >> - on console early during boot, also in SuSE's /var/log/boot.msg:
-> >>
-> >> your system time is not correct:
-> >> Wed Jul 13 13:15:31 UTC 1910
-> >> setting system time to:
-> >> Tue Jul 24 00:00:00 UTC 2007
-> > 
-> > What architecture?
-> 
-> i386. The machine is a Pentium D 940 which would be x86_64 capable,
-> but I'm still running 32 bit kernels on it.
+They do. Often. Which is why there are so many updates.
 
-OK.
+> video functions itself, but Henrique told me about BIOS updates breaking
+> current ThinkPad brightness control.
+> The workaround is a bad hack, reading/writing of some kind of CMOS ACPI
 
-> > if x86_64 then perhaps something went wrong with the old x86_64 dynticks
-> > leftovers which were in rc3-mm1.  I've just merged a shiny fresh new series
-> > so perhaps things there got fixed.  Please retest next -mm.
-> 
-> Will do that anyway.
+Actually, that's no hack.  It is how ancient thinkpads did it, and something
+that *all* thinkpads kept alive so far.  It is a compatibility layer that,
+interestingly enough, Lenovo did NOT break when they decided to break the EC
+register compatibility with older models.
 
-It looks like you'll need to :(
+Maybe they moved the LVDS pannel brightness control from the EC to the
+GPU or somesuch, that would explain a lot...
 
-> > Perhaps it would be helpful if you could do a 
-> > 
-> > 	diff -u dmesg-2.6.23-rc3 dmesg-2.6.26-rc3-mm1
-> 
-> I hope the attached helps. I created it by taking /var/log/boot.msg
-> of the two systems, removing everything after "Kernel logging stopped",
-> editing out the printk timestamps and then running diff -u on them,
-> so it should be more or less the dmesg diff. I did not edit out any
-> of the differences because I'm lazy. (And also because I wasn't so sure
-> what would or wouldn't be interesting for you.)
-> 
+> some field testing. The ACPI video extensions exist in a lot of (all?)
+> current laptop modules and we should start making use of those.)
 
---- /tmp/bootmsg-2.6.23-rc3	2007-08-25 02:25:54.000000000 +0200
-> +++ /tmp/bootmsg-2.6.23-rc3-mm1	2007-08-25 02:26:08.000000000 +0200
-> @@ -1,10 +1,10 @@
->
-> ...
->
->  <6>..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
-> -<6>checking TSC synchronization [CPU#0 -> CPU#1]: passed.
-> +<6>checking TSC synchronization [CPU#0 -> CPU#1]:
-> +<4>Measured 32 cycles TSC warp between CPUs, turning off TSC clock.
-> +<4>Marking TSC unstable due to: check_tsc_sync_source failed.
+Agreed.
 
-looky here.
+> > >   - Code cleanup: It would be great to rip out some duplicate code.
 
->  <6>Brought up 2 CPUs
->  <6>Booting paravirtualized kernel on bare hardware
->  <6>NET: Registered protocol family 16
->  <6>ACPI: bus type pci registered
-> -<3>PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
-> -<3>PCI: Not using MMCONFIG.
+Will NOT happen.  I may break it into various sub-modules, but removing
+useful code just won't happen anytime soon.
 
-hm, I wonder if that's related.
+Now, if you were talking about the procfs interface, well, that one is toast
+as soon as I can get rid of it, which will take a while yet. Unfortunately.
 
->  <6>PCI: Using configuration type 1
->  <4>Setting up standard PCI resources
->  <7>ACPI: EC: Look up EC in DSDT
->  <6>ACPI: Interpreter enabled
->  <6>ACPI: (supports S0 S3)
->  <6>ACPI: Using IOAPIC for interrupt routing
-> +<5>PCI: MCFG configuration 0: base 4026531840 segment 0 buses 0 - 127
-> +<5>PCI: MCFG area at f0000000 reserved in ACPI motherboard resources
-> +<6>PCI: Using MMCONFIG
+> The ACPI video spec functions are there and IMO those should get used
+> instead. I also saw an Asus showing the Asus specific ACPI device and
 
-we're using mmconfig
+Actually, sorry but I do intend to fix the brightness interface to work
+fully with the 16-level new thinkpads when I get the time. It is not hard,
+*AND* it has nothing to do with the brightness keys not working fine.  Blame
+that one on userspace dirty tricks, BIOS bugs, and kernel video driver
+(possible?) bugs/missing features.
 
->  <6>ACPI: PCI Root Bridge [PCI0] (0000:00)
-> +<7>PCI: Probing PCI hardware (bus 00)
->  <4>PCI quirk: region 0400-047f claimed by ICH6 ACPI/GPIO/TCO
->  <4>PCI quirk: region 0500-053f claimed by ICH6 GPIO
->  <6>PCI: Transparent bridge - 0000:00:1e.0
-> @@ -285,7 +291,9 @@
->  <6>NetLabel:  protocols = UNLABELED CIPSOv4
->  <6>NetLabel:  unlabeled traffic allowed by default
->  <4>ACPI: RTC can wake from S4
-> -<6>Time: tsc clocksource has been installed.
-> +<6>Time: hpet clocksource has been installed.
-> +<6>Switched to high resolution mode on CPU 0
-> +<6>Switched to high resolution mode on CPU 1
+The fix is simple: add one more bit to the brightness register, to hold
+0..15.  What I haven't bothered to deep-look after yet is how to *detect*
+that a thinkpad has 16 brightness levels, maybe by something in the
+DSDT/SSDTs. I don't want to do it using a model whitelist/blacklist.
 
-No longer using tsc, using hpet instead.  Slower.
+> already supported by OS" thing, you can count the days until the vendor
+> specific things are going to vanish. Finally this is a great advantage
 
-> -<7>hpet_resources: 0xfed00000 is busy
-> +<4>hpet_acpi_add: no address or irqs in _CRS
+I sure hope so...
 
-oh boy
+> for Linux being able to make use of a specified interface. And we should
+> think about how to let video and vendor specific modules coexist and
+> bringing the video module into a better shape...
 
-> +<4>thermal: Unknown symbol acpi_processor_set_thermal_limit
+Agreed.
 
-I think there are acpi fixes in Len's latest tree which will fix this.
-
->  <6>Linux agpgart interface v0.102
-> +<6>rtc_cmos 00:03: rtc core: registered rtc_cmos as rtc0
-> +<4>rtc_cmos: probe of 00:03 failed with error -16
-> +<6>agpgart: suspend/resume problematic: resume with 3D/DRI active may lockup X.Org
-> +<4>on some chipset/BIOS combos (see DEBUG_AGP_PM in intel-agp.c)
->  <6>agpgart: Detected an Intel 965Q Chipset.
->  <6>agpgart: Unknown page table size, assuming 512KB
->  <6>agpgart: Detected 7676K stolen memory.
->  <6>agpgart: AGP aperture is 256M @ 0x40000000
-> -<6>rtc_cmos 00:03: rtc core: registered rtc_cmos as rtc0
-> -<4>rtc_cmos: probe of 00:03 failed with error -16
-
-I wonder if that was supposed to happen.  It's also happening in 2.6.23-rc3
-base.
-
-
-I don't see anything there which would cause you to lose the clock setting,
-but there are obviously a few things going wrong in the time-management
-area here.  Please explicity retest this stuff as the code evolves and kepp
-us informed of the problems.
-
-Thanks.
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
