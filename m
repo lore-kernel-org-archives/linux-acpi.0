@@ -1,86 +1,80 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI patches for Linux-2.6.23-rc3
-Date: Sat, 25 Aug 2007 13:26:09 +0800
-Message-ID: <1188019570.3159.8.camel@acpi-hp.sh.intel.com>
-References: <11879400723077-git-send-email-len.brown@intel.com>
-	 <1187942833.3159.2.camel@acpi-hp.sh.intel.com>
-	 <200708241937.23011.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: add "Fujitsu laptop extras" module
+Date: Sat, 25 Aug 2007 02:05:25 -0400
+Message-ID: <200708250205.25653.lenb@kernel.org>
+References: <200708240042.l7O0gtEe022838@turbo.physics.adelaide.edu.au> <1187927741.2691.43.camel@acpi-hp.sh.intel.com> <20070824041227.GA8002@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8075 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:55436 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753621AbXHYFWD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:22:03 -0400
-In-Reply-To: <200708241937.23011.lenb@kernel.org>
+	id S1754311AbXHYGMt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Aug 2007 02:12:49 -0400
+In-Reply-To: <20070824041227.GA8002@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org
 
-On Sat, 2007-08-25 at 07:37 +0800, Len Brown wrote:
-> On Friday 24 August 2007 04:07, Zhang Rui wrote:
-> > On Fri, 2007-08-24 at 03:20 -0400, Len Brown wrote:
-> > > please speak up if you see any problem with these patches.
-> > > Also, please let me know if I've missed something you
-> > > think needs to make 2.6.23.
-> > >
-> > What about the latest patch in bug 8798?
-> > It can fix the duplicate name problem without changing the
-> > procfs generic code.
+On Friday 24 August 2007 00:12, Matthew Garrett wrote:
+> On Fri, Aug 24, 2007 at 11:55:41AM +0800, Zhang Rui wrote:
 > 
-> Do we need to null-terminate bus_id?
+> > I have the same question for ACPI video driver.
+> > Take KEY_BRIGHTNESSUP/KEY_BRIGHTNESSDOWN for example, if ACPI video
+> > driver gets such a notification, it will change the brightness level
+> > first and then send an event to user space.
 > 
-device->pnp.bus_id[4] = 0 all the time.
+> The X people would prefer that the kernel not change the brightness 
+> itself, where possible. In the cases where drivers know how to control 
+> the backlight hardware themselves (most new Intel hardware, nvidia stuff 
+> since 2005ish, that sort of thing) it's likely that they'll be able to 
+> provide much more control than the level provided via the ACPI 
+> interface.
+> 
+> > I'll send a patch to make ACPI video driver do nothing but export the
+> > events to user space in the notify handler if you guys think it's okay.
+> 
+> I think that's the right thing to do, but you might want to make it a 
+> module option to begin with. That way you can printk that the behaviour 
+> will change in the future, and then flip the default in a few months.
 
-Thanks,
-Rui
-> -Len
-> ----------
-> Subject: hack duplicate name "VID" problem on T61
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> This can only fix the problem that more than one video bus device
-> have the same AML name "VID".
-> ie. the proc I/F for the second "VID" video bus device is located
-> under
-> /proc/acpi/video/VID1/...
-> 
-> As this is really rare and the ACPI proc I/F is a legacy feature that
-> we are planning to remove.
-> We won't provide a generic solution for this problem.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |    8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> Index: linux-2.6.23-rc3/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.23-rc3.orig/drivers/acpi/video.c
-> +++ linux-2.6.23-rc3/drivers/acpi/video.c
-> @@ -1833,6 +1833,7 @@ static void acpi_video_device_notify(acp
->         return;
->  }
-> 
-> +static int instance;
->  static int acpi_video_bus_add(struct acpi_device *device)
->  {
->         int result = 0;
-> @@ -1847,6 +1848,13 @@ static int acpi_video_bus_add(struct acp
->         if (!video)
->                 return -ENOMEM;
-> 
-> +       /* a hack to fix the duplicate name "VID" problem on T61 */
-> +       if (!strcmp(device->pnp.bus_id, "VID")) {
-> +               if (instance)
-> +                       device->pnp.bus_id[3] = '0' + instance;
-> +               instance ++;
-> +       }
-> +
->         video->device = device;
->         strcpy(acpi_device_name(device), ACPI_VIDEO_BUS_NAME);
->         strcpy(acpi_device_class(device), ACPI_VIDEO_CLASS);
-> 
-> 
+We must handle two modes:
+
+1. VGA mode, no X
+
+Control the video in the kernel via ACPI methods to talk to the BIOS.
+This is known to work on multiple laptops today.
+
+I don't see the utility in sending the hotkey events to user-space
+in this mode, but I also don't see the harm, so lets keep them
+as an FYI in case some graphics software doesn't know how to
+control the video but wants the event to re-probe or something.
+
+2. Graphics mode, X is running
+
+While sometimes programming the video behind X's back
+using the kernel and BIOS ACPI entry points works,
+this is generally a bad idea.
+
+Here we need to disable the ACPI entry points that control video,
+and do nothing but send the input events to user-space
+to be picked up by the X server.
+
+Clearly there needs to be a mode bit.
+The mode bit should default to case #1 --
+as that is what we are running today --
+and when X knows to look for the input events
+and has the ability to switch modes natively, it should
+set the mode bit to switch us to case #2.
+
+The mode bit should probably live in the CONFIG_VIDEO_OUTPUT_CONTROL,
+eg. under driers/video/output.c with some generic name that in this
+case the acpi video driver registers for.
+
+Rui, can you follow up on this?
+
+thanks,
+-Len
