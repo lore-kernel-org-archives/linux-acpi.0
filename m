@@ -1,68 +1,52 @@
 From: Tilman Schmidt <tilman@imap.cc>
 Subject: Re: 2.6.23-rc3-mm1
-Date: Sun, 26 Aug 2007 00:39:47 +0200
-Message-ID: <46D0AFB3.5080701@imap.cc>
-References: <20070822020648.5ea3a612.akpm@linux-foundation.org>	 <46CF695D.1020008@imap.cc>	 <20070824170702.a2c51084.akpm@linux-foundation.org> <1188001291.6163.36.camel@localhost.localdomain>
+Date: Sun, 26 Aug 2007 01:26:21 +0200
+Message-ID: <46D0BA9D.1080708@imap.cc>
+References: <20070822020648.5ea3a612.akpm@linux-foundation.org><46CF695D.1020008@imap.cc> <20070824170702.a2c51084.akpm@linux-foundation.org> <653FFBB4508B9042B5D43DC9E18836F5014D954E@scsmsx415.amr.corp.intel.com> <653FFBB4508B9042B5D43DC9E18836F5014D956A@scsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enig594C2F3C21C0AC8070CBEAEE"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934584AbXHYWjq@vger.kernel.org>
-In-Reply-To: <1188001291.6163.36.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: john stultz <johnstul@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Dave Jones <davej@codemonkey.org.uk>, Thomas Renninger <trenn@suse.de>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+ boundary="------------enigFBDB9E1D74636CC399F10C41"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:45462 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934665AbXHYXZ5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Aug 2007 19:25:57 -0400
+In-Reply-To: <653FFBB4508B9042B5D43DC9E18836F5014D956A@scsmsx415.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Andi Kleen <ak@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Dave Jones <davej@codemonkey.org.uk>, Thomas Renninger <trenn@suse.de>, Adam Belay <abelay@novell.com>
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig594C2F3C21C0AC8070CBEAEE
-Content-Type: text/plain; charset=ISO-8859-15
+--------------enigFBDB9E1D74636CC399F10C41
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Am 25.08.2007 02:21 schrieb john stultz:
-
->> Tilman Schmidt <tilman@imap.cc> wrote:
-
->>> - on console early during boot, also in SuSE's /var/log/boot.msg:
->>>
->>> your system time is not correct:
->>> Wed Jul 13 13:15:31 UTC 1910
->>> setting system time to:
->>> Tue Jul 24 00:00:00 UTC 2007
+Am 25.08.2007 02:38 schrieb Pallipadi, Venkatesh:
+>>
+>>>> FATAL: Error inserting processor (/lib/modules/2.6.23-rc3-mm1-testin=
+g/kernel/drivers/acpi/processor.ko): Input/output error
+>>>> WARNING: Error inserting processor (/lib/modules/2.6.23-rc3-mm1-test=
+ing/kernel/drivers/acpi/processor.ko): Input/output error
 >=20
-> Hrmm. I'm not super familiar w/ SuSE's init scripts, but I'm guessing
-> that's the ntpdate call.
-
-Nope. The ntpdate call comes much later, and finally sets the system cloc=
-k
-correctly so that there are no lasting effects of all this.
-
-> And "Tuesday Jul 24th"? Sounds about a month
-> off, is this just stale info?
-
-I have no idea where that might come from.
-
->>> /dev/system/root: Superblock last mount time is in the future.  FIXED=
-=2E
->>> /dev/system/root: Superblock last write time is in the future.  FIXED=
-=2E
+> This is indeed related to CPUIDLE.
 >=20
-> Does this show up before or after the above date stuff?
+> Tilman: Can you configure CONFIG_CPU_IDLE in your config (under Power
+> Management option) and double check that the frequency part works after=
 
-After the "your system time is not correct" messages, and before the
-regular "Try to get initial date and time via NTP" message accompanying
-the ntpdate call.
+> that.
 
-> Does the issue go away using an older kernel (I want to eliminate easy
-> stuff like CMOS batteries giving up)?
+Strangely enough, I do not see that option in "make xconfig".
+The "Power Management" subtree ends with "CPU Frequency scaling".
+In "make menuconfig" the option is there, though.
+After activating it, these two errors are indeed gone, and the
+"thermal: Unknown symbol acpi_processor_set_thermal_limit" one
+as well.
 
-It does. Booting 2.6.23-rc3 after that, the system comes up with none
-of these messages.
-
-> Also you're not using Linus' CMOS corrupting suspend/resume debugging
-> trick, right (I'm forgetting the CONFIG name).
-
-PM_TRACE? No. The entire PM_DEBUG branch is turned off.
+HTH
+T.
 
 --=20
 Tilman Schmidt                          E-Mail: tilman@imap.cc
@@ -71,7 +55,7 @@ Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
 Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
 
 
---------------enig594C2F3C21C0AC8070CBEAEE
+--------------enigFBDB9E1D74636CC399F10C41
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -80,9 +64,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.3rc1 (MingW32)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD8DBQFG0K+7MdB4Whm86/kRAlyEAJ0TCgveTVgHwanWQ7+W97SRYoJIrgCeIZiU
-TzqEU74RnDb9n/Oq0SVN+1o=
-=HDhc
+iD8DBQFG0LqdMdB4Whm86/kRAgBUAJ0Qq4P2qNdQcgwOupw3ITsQDTiA8ACeIcs8
+sXsPB7xe6/sdOhfaEAR/lP4=
+=ctr4
 -----END PGP SIGNATURE-----
 
---------------enig594C2F3C21C0AC8070CBEAEE--
+--------------enigFBDB9E1D74636CC399F10C41--
