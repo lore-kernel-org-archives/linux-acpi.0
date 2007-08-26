@@ -1,237 +1,52 @@
-From: Ron burk <rburk6@earthlink.net>
-Subject: BIOS requesting OSI(Linux)
-Date: Sat, 25 Aug 2007 20:31:26 -0400
-Message-ID: <46D0C9DE.9020408@earthlink.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] Prefix each line of multiline printk(KERN_<level>
+ "foo\nbar") with KERN_<level>
+Date: Sun, 26 Aug 2007 10:30:41 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0708261028120.31149@anakin>
+References: <1187999098.32738.179.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:51165 "EHLO
-	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756916AbXHZAic (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Aug 2007 20:38:32 -0400
-Received: from [24.110.244.167] (helo=[10.1.2.105])
-	by elasmtp-junco.atl.sa.earthlink.net with asmtp (Exim 4.34)
-	id 1IP62L-00074e-5w
-	for linux-acpi@vger.kernel.org; Sat, 25 Aug 2007 20:31:29 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mips-bounce@linux-mips.org>
+In-Reply-To: <1187999098.32738.179.camel@localhost>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, blinux-list@redhat.com, cluster-devel@redhat.com, discuss@x86-64.org, jffs-dev@axis.com, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, linux-mips@linux-mips.org, linux-mm@kvack.org, linux-mtd@lists.infradead.org, linux-scsi@vger.kernel.org, mpt_linux_developer@lsi.com, netdev@vger.kernel.org, osst-users@lists.sourceforge.net, parisc-linux@parisc-linux.org, tpmdd-devel@lists.sourceforge.net, uclinux-dist-devel@blackfin.uclinux.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-> ACPI: Please test with "acpi_osi=!Linux"
-> Please send dmidecode to linux-acpi@vger.kernel.org
+On Fri, 24 Aug 2007, Joe Perches wrote:
+> Corrected printk calls with multiple output lines which
+> did not correctly preface each line with KERN_<level>
+> 
+> Fixed uses of some single lines with too many KERN_<level>
 
-> [root@rb-laptp ~]# dmidecode
-> # dmidecode 2.7
-> SMBIOS 2.4 present.
-> 17 structures occupying 641 bytes.
-> Table at 0x000E3810.
->
-> Handle 0x0000, DMI type 0, 24 bytes.
-> BIOS Information
->         Vendor: Hewlett-Packard
->         Version: F.23
->         Release Date: 04/13/2007
->         Address: 0xE7390
->         Runtime Size: 101488 bytes
->         ROM Size: 1024 kB
->         Characteristics:
->                 PCI is supported
->                 PC Card (PCMCIA) is supported
->                 PNP is supported
->                 BIOS is upgradeable
->                 BIOS shadowing is allowed
->                 ESCD support is available
->                 Boot from CD is supported
->                 Selectable boot is supported
->                 Print screen service is supported (int 5h)
->                 8042 keyboard services are supported (int 9h)
->                 Printer services are supported (int 17h)
->                 CGA/mono video services are supported (int 10h)
->                 ACPI is supported
->                 USB legacy is supported
->                 AGP is supported
->                 Smart battery is supported
->                 BIOS boot specification is supported
->                 Targeted content distribution is supported
->         BIOS Revision: 1.6
->         Firmware Revision: 1.1
->
-> Handle 0x0001, DMI type 1, 27 bytes.
-> System Information
->         Manufacturer: Hewlett-Packard
->         Product Name: HP Pavilion dv8000 (RG475UA#ABA)  
->         Version: F.23
->         Serial Number: CND6470B0Z
->         UUID: 3C625FA2-4725-11DB-92CE-0016D445C56F
->         Wake-up Type: Power Switch
->         SKU Number: RG475UA#ABA
->         Family: 103C_5335KV
->
-> Handle 0x0002, DMI type 2, 8 bytes.
-> Base Board Information
->         Manufacturer: Hewlett-Packard
->         Product Name: 30A6
->         Version: 56.47
->         Serial Number: CND6470B0Z
->
-> Handle 0x0003, DMI type 3, 17 bytes.
-> Chassis Information
->         Manufacturer: Hewlett-Packard
->         Type: Notebook
->         Lock: Not Present
->         Version: N/A
->         Serial Number: None
->         Asset Tag:                     
->         Boot-up State: Safe
->         Power Supply State: Safe
->         Thermal State: Safe
->         Security Status: None
->         OEM Information: 0x00001234
->
-> Handle 0x0004, DMI type 4, 35 bytes.
-> Processor Information
->         Socket Designation: U1
->         Type: Central Processor
->         Family: Other
->         Manufacturer: Intel
->         ID: E8 06 00 00 FF FB E9 BF
->         Version: Genuine Intel(R) CPU T2250
->         Voltage: 3.3 V
->         External Clock: Unknown
->         Max Speed: 1730 MHz
->         Current Speed: 1730 MHz
->         Status: Populated, Enabled
->         Upgrade: ZIF Socket
->         L1 Cache Handle: Not Provided
->         L2 Cache Handle: 0x0005
->         L3 Cache Handle: Not Provided
->         Serial Number: Not Specified
->         Asset Tag: Not Specified
->         Part Number: Not Specified
->
-> Handle 0x0005, DMI type 7, 19 bytes.
-> Cache Information
->         Socket Designation: L2 Cache
->         Configuration: Enabled, Socketed, Level 2
->         Operational Mode: Write Back
->         Location: Internal
->         Installed Size: 2048 KB
->         Maximum Size: 2048 KB
->         Supported SRAM Types:
->                 Burst
->                 Pipeline Burst
->         Installed SRAM Type: Burst
->         Speed: Unknown
->         Error Correction Type: Unknown
->         System Type: Unknown
->         Associativity: Unknown
->
-> Handle 0x0006, DMI type 9, 13 bytes.
-> System Slot Information
->         Designation: PCI Slot J1100
->         Type: 32-bit PCI
->         Current Usage: In Use
->         Length: Long
->         ID: 0
->         Characteristics:
->                 5.0 V is provided
->                 3.3 V is provided
->                 PME signal is supported
->
-> Handle 0x0007, DMI type 9, 13 bytes.
-> System Slot Information
->         Designation: PCI Slot J1101
->         Type: 32-bit PCI
->         Current Usage: In Use
->         Length: Long
->         ID: 0
->         Characteristics:
->                 5.0 V is provided
->                 3.3 V is provided
->                 PME signal is supported
->
-> Handle 0x0008, DMI type 10, 6 bytes.
-> On Board Device Information
->         Type: Video
->         Status: Enabled
->         Description: Intel Calistoga
->
-> Handle 0x0009, DMI type 11, 5 bytes.
-> OEM Strings
->         String 1: $HP$
->
-> Handle 0x000A, DMI type 16, 15 bytes.
-> Physical Memory Array
->         Location: System Board Or Motherboard
->         Use: System Memory
->         Error Correction Type: None
->         Maximum Capacity: 2 GB
->         Error Information Handle: Not Provided
->         Number Of Devices: 2
->
-> Handle 0x000B, DMI type 17, 27 bytes.
-> Memory Device
->         Array Handle: 0x000A
->         Error Information Handle: No Error
->         Total Width: 32 bits
->         Data Width: 32 bits
->         Size: 1024 MB
->         Form Factor: SODIMM
->         Set: 1
->         Locator: M1
->         Bank Locator: Bank 0
->         Type: DDR2
->         Type Detail: Synchronous
->         Speed: Unknown
->         Manufacturer: Not Specified
->         Serial Number: Not Specified
->         Asset Tag: Not Specified
->         Part Number: Not Specified
->
-> Handle 0x000C, DMI type 17, 27 bytes.
-> Memory Device
->         Array Handle: 0x000A
->         Error Information Handle: No Error
->         Total Width: 32 bits
->         Data Width: 32 bits
->         Size: 1024 MB
->         Form Factor: SODIMM
->         Set: 2
->         Locator: M2
->         Bank Locator: Bank 1
->         Type: DDR2
->         Type Detail: Synchronous
->         Speed: Unknown
->         Manufacturer: Not Specified
->         Serial Number: Not Specified
->         Asset Tag: Not Specified
->         Part Number: Not Specified
->
-> Handle 0x000D, DMI type 19, 15 bytes.
-> Memory Array Mapped Address
->         Starting Address: 0x00000000000
->         Ending Address: 0x0007FFFFFFF
->         Range Size: 2 GB
->         Physical Array Handle: 0x000A
->         Partition Width: 0
->
-> Handle 0x000E, DMI type 20, 19 bytes.
-> Memory Device Mapped Address
->         Starting Address: 0x00000000000
->         Ending Address: 0x0007FFFFFFF
->         Range Size: 2 GB
->         Physical Device Handle: 0x000B
->         Memory Array Mapped Address Handle: 0x000D
->         Partition Row Position: 2
->         Interleave Position: 1
->         Interleaved Data Depth: 6
->
-> Handle 0x000F, DMI type 32, 20 bytes.
-> System Boot Information
->         Status: <OUT OF SPEC>
->
-> Handle 0x0010, DMI type 127, 4 bytes.
-> End Of Table
+> --- a/arch/arm/kernel/ecard.c
+> +++ b/arch/arm/kernel/ecard.c
+> @@ -547,7 +547,8 @@ static void ecard_check_lockup(struct irq_desc *desc)
+>  	if (last == jiffies) {
+>  		lockup += 1;
+>  		if (lockup > 1000000) {
+> -			printk(KERN_ERR "\nInterrupt lockup detected - "
+> +			printk(KERN_ERR "\n"
+> +			       KERN_ERR "Interrupt lockup detected - "
+>  			       "disabling all expansion card interrupts\n");
+>  
+>  			desc->chip->mask(IRQ_EXPANSIONCARD);
 
+What's the purpose of having lines printed with e.g. `KERN_ERR "\n"' only?
+Shouldn't these just be removed?
+
+Usually lines starting with `\n' are continuations, but given some other
+module may call printk() in between, there's no guarantee continuations
+appear on the same line.
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
