@@ -1,74 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 1/3] Hibernation: Enter platform hibernation state in a consisten way
-Date: Sun, 26 Aug 2007 15:14:06 +0200
-Message-ID: <200708261514.06716.rjw@sisk.pl>
-References: <200708261509.40118.rjw@sisk.pl>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
+Subject: C3 issues w/ Abit KT7
+Date: Sun, 26 Aug 2007 20:10:09 +0300
+Message-ID: <20070826171009.GA5827@sci.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40543 "EHLO ogre.sisk.pl"
+Received: from smtp4.pp.htv.fi ([213.243.153.38]:36771 "EHLO smtp4.pp.htv.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751983AbXHZNG1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Aug 2007 09:06:27 -0400
-In-Reply-To: <200708261509.40118.rjw@sisk.pl>
+	id S1754941AbXHZR3H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Aug 2007 13:29:07 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Johannes Berg <johannes@sipsolutions.net>, Pavel Machek <pavel@ucw.cz>, Thomas Renninger <trenn@suse.de>
+To: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+I'm having stability issues w/ C3 on Abit KT7 (VIA KT133).
 
-Make hibernation_platform_enter() execute the enter-a-sleep-state sequence
-instead of the mixed shutdown-with-entering-S4 thing.
+Older kernels simply refused to enter C3 on this mobo due to missing
+BM control. Now I'm running 2.6.23-rc1 and noticed that C3 was offered
+but never actually entered after the boot. After rmmoding the culprit
+(ati_remote2) C3 was entered but after a while the system froze totally=
+=2E
 
-Replace the shutting down of devices done by kernel_shutdown_prepare(), before
-entering the ACPI S4 sleep state, with suspending them and the shutting down of
-sysdevs with calling device_power_down(PMSG_SUSPEND) (just like before entering
-S1 or S3, but the target state is now S4).  Also, disable the nonboot CPUs
-before entering the sleep state (S4), which generally always is a good idea.
+I've been doing some investigations on this issue and now it looks like
+BM_STS is broken wrt. real PCI masters. I can see BM activity when
+something is connected to the integrated UHCI controller or when doing
+disk access with the integrated PATA controller, but I see no BM
+activity being reported when using PCI network card or connecting the
+ati_remote2 to PCI EHCI controller. If I keep the ati_remote2 connected
+to the UHCI and then do some heavy network activity BM activity does
+seem
+to include the network BM as well (BM activity stays near 0xffffffff
+instead of the more typical 0x11111111 when just ati_remote2 is in use)=
+,
+but if I remove ati_remote2 bm activity stays at 0x0000000 despite any
+network activity. I even tried swapping the PCI slot of the network car=
+d
+to see if that would help - it didn't.
 
-This is known to fix the "double disk spin down during hibernation" on some
-machines, eg. HPC nx6325 (ref. http://lkml.org/lkml/2007/8/7/316 and the
-following thread).  It also generally causes the hibernation state (ACPI S4) to
-be entered faster.
+To me it looks like broken hw, but I can't be sure if it's just my
+particular mobo or the whole Abit KT7 line. I have done some soldering
+on mine (bad capacitors) so it is possible I've managed to break it
+myself. If it's the whole KT7 line then I guess we'd need some kind of
+C3 black list. Is there anyone else still using an Abit KT7 who would b=
+e
+willing double check my findings?
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/disk.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
-
-Index: linux-2.6.23-rc3/kernel/power/disk.c
-===================================================================
---- linux-2.6.23-rc3.orig/kernel/power/disk.c
-+++ linux-2.6.23-rc3/kernel/power/disk.c
-@@ -223,15 +223,23 @@ int hibernation_platform_enter(void)
- 	int error;
- 
- 	if (hibernation_ops) {
--		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
- 		/*
- 		 * We have cancelled the power transition by running
- 		 * hibernation_ops->finish() before saving the image, so we
- 		 * should let the firmware know that we're going to enter the
- 		 * sleep state after all
- 		 */
--		error = hibernation_ops->prepare();
--		sysdev_shutdown();
-+		error = hibernation_ops->start();
-+		if (!error) {
-+			suspend_console();
-+			error = device_suspend(PMSG_SUSPEND);
-+		}
-+		if (!error)
-+			error = hibernation_ops->prepare();
-+		if (!error)
-+			error = disable_nonboot_cpus();
-+		if (!error)
-+			error = device_power_down(PMSG_SUSPEND);
- 		if (!error)
- 			error = hibernation_ops->enter();
- 	} else {
-
+--=20
+Ville Syrj=E4l=E4
+syrjala@sci.fi
+http://www.sci.fi/~syrjala/
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
