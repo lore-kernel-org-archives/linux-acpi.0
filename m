@@ -1,34 +1,106 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [Bug 8243] Problem with Throttling and CPU power state
-Date: Mon, 27 Aug 2007 16:19:12 -0400
-Message-ID: <20070827201912.GA7452@redhat.com>
-References: <bug-8243-27@http.bugzilla.kernel.org/> <20070827194633.44C5010807D@picon.linux-foundation.org> <20070827130146.e43127dd.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH -mm 1/3] Hibernation: Enter platform hibernation state in a consistent way (rev. 3)
+Date: Mon, 27 Aug 2007 23:49:20 +0200
+Message-ID: <200708272349.21184.rjw@sisk.pl>
+References: <200708272347.45438.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:52709 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758835AbXH0UTS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2007 16:19:18 -0400
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1764386AbXH0Vzy@vger.kernel.org>
+In-Reply-To: <200708272347.45438.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <20070827130146.e43127dd.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 27, 2007 at 01:01:46PM -0700, Andrew Morton wrote:
- > On Mon, 27 Aug 2007 12:46:33 -0700 (PDT)
- > bugme-daemon@bugzilla.kernel.org wrote:
- > 
- > > http://bugzilla.kernel.org/show_bug.cgi?id=8243
- > 
- > This is presently assigned to cpufreq@www.linux.org.uk.  Should it
- > be assigned to acpi instead?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Yes. cpufreq does nothing with c states.
+Make hibernation_platform_enter() execute the enter-a-sleep-state sequence
+instead of the mixed shutdown-with-entering-S4 thing.
 
-	Dave
+Replace the shutting down of devices done by kernel_shutdown_prepare(), before
+entering the ACPI S4 sleep state, with suspending them and the shutting down of
+sysdevs with calling device_power_down(PMSG_SUSPEND) (just like before entering
+S1 or S3, but the target state is now S4).  Also, disable the nonboot CPUs
+before entering the sleep state (S4), which generally always is a good idea.
 
--- 
-http://www.codemonkey.org.uk
+This is known to fix the "double disk spin down during hibernation" on some
+machines, eg. HPC nx6325 (ref. http://lkml.org/lkml/2007/8/7/316 and the
+following thread).  It also generally causes the hibernation state (ACPI S4) to
+be entered faster.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ kernel/power/disk.c |   55 ++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 41 insertions(+), 14 deletions(-)
+
+Index: linux-2.6.23-rc3/kernel/power/disk.c
+===================================================================
+--- linux-2.6.23-rc3.orig/kernel/power/disk.c
++++ linux-2.6.23-rc3/kernel/power/disk.c
+@@ -222,21 +222,48 @@ int hibernation_platform_enter(void)
+ {
+ 	int error;
+ 
+-	if (hibernation_ops) {
+-		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-		/*
+-		 * We have cancelled the power transition by running
+-		 * hibernation_ops->finish() before saving the image, so we
+-		 * should let the firmware know that we're going to enter the
+-		 * sleep state after all
+-		 */
+-		error = hibernation_ops->prepare();
+-		sysdev_shutdown();
+-		if (!error)
+-			error = hibernation_ops->enter();
+-	} else {
+-		error = -ENOSYS;
++	if (!hibernation_ops)
++		return -ENOSYS;
++
++	/*
++	 * We have cancelled the power transition by running
++	 * hibernation_ops->finish() before saving the image, so we should let
++	 * the firmware know that we're going to enter the sleep state after all
++	 */
++	error = hibernation_ops->start();
++	if (error)
++		return error;
++
++	suspend_console();
++	error = device_suspend(PMSG_SUSPEND);
++	if (error)
++		return error;
++
++	error = hibernation_ops->prepare();
++	if (error)
++		goto Resume_devices;
++
++	error = disable_nonboot_cpus();
++	if (error)
++		goto Finish;
++
++	local_irq_disable();
++	error = device_power_down(PMSG_SUSPEND);
++	if (!error) {
++		hibernation_ops->enter();
++		/* We should never get here */
++		while (1);
+ 	}
++	local_irq_enable();
++
++	/*
++	 * We don't need to reenable the nonboot CPUs or resume consoles, since
++	 * the system is going to be halted anyway.
++	 */
++ Finish:
++	hibernation_ops->finish();
++ Resume_devices:
++	device_resume();
+ 	return error;
+ }
+ 
