@@ -1,601 +1,472 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 2/3] PM: More fine grained ACPI handling during suspend and hibernation (rev. 2)
-Date: Mon, 27 Aug 2007 01:54:16 +0200
-Message-ID: <200708270154.16797.rjw@sisk.pl>
-References: <200708270149.52585.rjw@sisk.pl>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: [PATCH] ACPI: add "Fujitsu laptop extras" module, take 2
+Date: Mon, 27 Aug 2007 12:51:40 +0930 (CST)
+Message-ID: <200708270321.l7R3LeD3007658@turbo.physics.adelaide.edu.au>
+References: <200708240023.08757.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42142 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752953AbXHZXp1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Aug 2007 19:45:27 -0400
-In-Reply-To: <200708270149.52585.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:39479 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751244AbXH0DWD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Aug 2007 23:22:03 -0400
+In-Reply-To: <200708240023.08757.lenb@kernel.org> from "Len Brown" at Aug 24, 2007 12:23:08 AM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Johannes Berg <johannes@sipsolutions.net>, Pavel Machek <pavel@ucw.cz>, Thomas Renninger <trenn@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi guys
 
-According to the ACPI specification (eg. ACPI 2.0c, sec. 7.3.1, 7.3.3,
-ACPI 3.0b, sec. 7.3.1, 7.3.3) the _GTS and _BFS global control methods should
-be executed, respectively, right before entering a sleep state (S1-S4) and right
-after leaving it, but we don't follow this reqirement.  Namely, in our
-implementation the nonboot CPUs are disabled after executing _GTS and enabled
-before executing _BFS, which doesn't seem to be correct.  [In fact, the ACPI
-specification requires that no physical I/O and interrupt servicing be performed
-after the sleep state has been left and before _BFS is executed as well as after
-executing _GTS and before the sleep state is entered, but we can't follow this
-requirement literally, since our AML interpreter needs to run with interrupts
-enabled and we need to carry out some operations with interrupts disabled before
-entering the sleep state and after leaving it.]  Moreover, acpi_enable() called
-after restoring the system memory state from a hibernation image should really
-be executed before enabling the nonboot CPUs, since functional ACPI may be
-needed for that.  All of this means that we need to handle ACPI in a more fine
-grained manner during suspend and hibernation.
+Here is a new version of the Fujitsu laptop extras patch for consideration
+and/or comment.  I *think* I've addressed most of what was commented on in
+reply to the previous submission.  Of significant note:
 
-For this reason we can introduce new global platform callbacks prepare_late()
-and finish_early() to be executed, respectively, between disabling the nonboot
-CPUs and entering a sleep state and between leaving the sleep state and enabling
-the nonboot CPUs.  For ACPI systems they can be used to execute the _GTS and
-_BFS global control methods, respectively.
+ * for now the mixer and pointer components of the interface are gone since
+   those buttons don't do anything in hardware on my machine (see below) so
+   I'm not sure what they are meant to do.  In any case I don't need them,
+   so I'd rather get the important infrastructure in place first - the rest
+   can be added over time.
 
-It also seems to be a good idea to introduce new hibernation-related callback
-post_snapshot() to be executed after creating a hibernation image, instead of
-finish() (for now, both these callbacks are defined to point to the same
-function, but that will be changed in the future).
+ * the standard backlight class is now used for the LCD brightness
+   functionality.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/hardware/hwsleep.c |   98 ++++++++++++++++++++++++++++++++--------
- drivers/acpi/sleep/main.c       |   57 +++++++++++++++++++++--
- include/acpi/acpixf.h           |    4 +
- include/linux/suspend.h         |   57 +++++++++++++++++++----
- kernel/power/disk.c             |   50 +++++++++++++++++---
- kernel/power/main.c             |   16 +++++-
- 6 files changed, 241 insertions(+), 41 deletions(-)
+ * at the moment I don't pass the button presses back to userspace because
+   the hardware does the changes.  I note that this whole behavioural area
+   is currently under discussion so this might change in future.
 
-Index: linux-2.6.23-rc3/include/linux/suspend.h
-===================================================================
---- linux-2.6.23-rc3.orig/include/linux/suspend.h
-+++ linux-2.6.23-rc3/include/linux/suspend.h
-@@ -49,7 +49,7 @@ typedef int __bitwise suspend_state_t;
-  *	passed to @enter() is meaningless and should be ignored.
-  *
-  * @prepare: Prepare the platform for entering the system sleep state indicated
-- *	by @set_target().
-+ *	by @set_target() (first stage).
-  *	@prepare() is called right after devices have been suspended (ie. the
-  *	appropriate .suspend() method has been executed for each device) and
-  *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
-@@ -57,12 +57,27 @@ typedef int __bitwise suspend_state_t;
-  *	error code otherwise, in which case the system cannot enter the desired
-  *	sleep state (@enter() and @finish() will not be called in that case).
-  *
-+ * @prepare_late: Prepare the platform for entering the system sleep state
-+ *	indicated by @set_target() (second stage).
-+ *	@prepare_late() is called right after the nonboot CPUs have been
-+ *	disabled (it is executed with on CPU on line and with IRQs enabled).
-+ *	This callback is optional.  It returns 0 on success or a negative
-+ *	error code otherwise, in which case the system cannot enter the desired
-+ *	sleep state (@enter() will not be called in that case).
-+ *
-  * @enter: Enter the system sleep state indicated by @set_target() or
-  *	represented by the argument if @set_target() is not implemented.
-  *	This callback is mandatory.  It returns 0 on success or a negative
-  *	error code otherwise, in which case the system cannot enter the desired
-  *	sleep state.
-  *
-+ * @finish_early: Called when the system has just left a sleep state, right
-+ *	prior to enabling the nonboot CPUs (it is executed with one CPU on line
-+ *	and with IRQs enabled).
-+ *	This callback is optional, but should be implemented by the platforms
-+ *	that implement @prepare_late().  If @enter() fails, this callback will
-+ *	not be executed.
-+ *
-  * @finish: Called when the system has just left a sleep state, right after
-  *	the nonboot CPUs have been enabled and before devices are resumed (it is
-  *	executed with IRQs enabled).
-@@ -74,7 +89,9 @@ struct platform_suspend_ops {
- 	int (*valid)(suspend_state_t state);
- 	int (*set_target)(suspend_state_t state);
- 	int (*prepare)(void);
-+	int (*prepare_late)(void);
- 	int (*enter)(suspend_state_t state);
-+	void (*finish_early)(void);
- 	void (*finish)(void);
- };
+ * the module has been renamed fujitsu-laptop and resides in drivers/misc/.
+
+ * the module creates platform/fujitsu-laptop/ to park platform-specific
+   files.  For now all I do is drop the backlight interface in there (like
+   msi-laptop does) but in time the pointer/volume stuff might also go there
+   if these are implemented.  No new files are created in /proc/.
+
+ * scripts/Lindent has been used.
+
+In relation to the pointer and volume buttons, in contrast to the brightness
+buttons these don't appear to have any hardware effect at all on the S7020. 
+Obviously their implementation on the S7020 is in software which seems to
+differ from previous P- and S-series laptops.  I due course I intend to 
+add these features but they are not my highest priority. 
+
+The new code was tested as a module and loaded/unloaded correctly. 
+Brightness control and feedback was as expected on a Fujitsu S7020.
+
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+
+Regards
+  jonathan
+
+diff -ruN linux-2.6.22.1-rt9-orig/drivers/misc/Kconfig linux-2.6.22.1-rt9-new/drivers/misc/Kconfig
+--- linux-2.6.22.1-rt9-orig/drivers/misc/Kconfig	2007-08-12 09:23:56.000000000 +0930
++++ linux-2.6.22.1-rt9-new/drivers/misc/Kconfig	2007-08-26 21:11:56.000000000 +0930
+@@ -97,6 +97,21 @@
  
-@@ -141,15 +158,32 @@ extern void mark_free_pages(struct zone 
-  *	Called right after devices have been frozen and before the nonboot
-  *	CPUs are disabled (runs with IRQs on).
-  *
-- * @finish: Restore the previous state of the platform after the hibernation
-- *	image has been created *or* put the platform into the normal operation
-- *	mode after the hibernation (the same method is executed in both cases).
-- *	Called right after the nonboot CPUs have been enabled and before
-- *	thawing devices (runs with IRQs on).
-- *
-- * @prepare: Prepare the platform for entering the low power state.
-- *	Called right after the hibernation image has been saved and before
-- *	devices are prepared for entering the low power state.
-+ * @post_snapshot: Prepare the platform for saving the hibernation image.
-+ *	Called right prior to thawing devices in order to save the hibernation
-+ *	image, after the nonboot CPUs have been enabled (runs with IRQs on).
-+ *
-+ * @finish_early: Restore the previous state of the platform putting it into the
-+ *	normal operation mode after hibernation (first stage).
-+ *	Called only during restore, prior to enabling the nonboot CPUs (runs
-+ *	with one CPU on line and with IRQs on).
-+ *
-+ * @finish: Restore the previous state of the platform putting it into the
-+ *	normal operation mode after hibernation (second stage).
-+ *	Called during restore after the nonboot CPUs have been enabled and prior
-+ *	to thawing devices.  Also called during hibernation if there's an error
-+ *	making it impossible to hibernate, but only after @pre_snapshot() have
-+ *	been successfully executed.  Runs with IRQs on.
-+ *
-+ * @prepare: Prepare the platform for entering the hibernation state (first
-+ *	stage).
-+ *	Called right after the hibernation image has been saved and devices have
-+ *	been prepared for entering the low power states.
-+ *
-+ * @prepare_late: Prepare the platform for entering the hibernation state
-+ *	(second stage).
-+ *	Called after the hibernation image has been saved, devices have been
-+ *	prepared for entering the low power states and the nonboot CPUs have
-+ *	been disabled.
-  *
-  * @enter: Put the system into the low power state after the hibernation image
-  *	has been saved to disk.
-@@ -167,8 +201,11 @@ extern void mark_free_pages(struct zone 
- struct platform_hibernation_ops {
- 	int (*start)(void);
- 	int (*pre_snapshot)(void);
-+	void (*post_snapshot)(void);
-+	void (*finish_early)(void);
- 	void (*finish)(void);
- 	int (*prepare)(void);
-+	int (*prepare_late)(void);
- 	int (*enter)(void);
- 	int (*pre_restore)(void);
- 	void (*restore_cleanup)(void);
-Index: linux-2.6.23-rc3/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6.23-rc3/drivers/acpi/sleep/main.c
-@@ -58,7 +58,7 @@ static int acpi_pm_set_target(suspend_st
- }
+ 	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
  
- /**
-- *	acpi_pm_prepare - Do preliminary suspend work.
-+ *	acpi_pm_prepare - Do preliminary suspend work (first stage).
-  *
-  *	If necessary, set the firmware waking vector and do arch-specific
-  *	nastiness to get the wakeup code to the waking vector.
-@@ -75,6 +75,24 @@ static int acpi_pm_prepare(void)
- }
- 
- /**
-+ *	acpi_pm_prepare_late - Do preliminary suspend work (second stage).
++config FUJITSU_LAPTOP
++        tristate "Fujitsu Laptop Extras"
++        depends on X86
++        depends on ACPI
++        depends on BACKLIGHT_CLASS_DEVICE
++        ---help---
++	  This is a driver for laptops built by Fujitsu:
++
++	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
++	    * Possibly other Fujitsu laptop models
++
++	  It adds support for LCD brightness control.
++
++	  If you have a Fujitsu laptop, say Y or M here.
++
+ config MSI_LAPTOP
+         tristate "MSI Laptop Extras"
+         depends on X86
+diff -ruN linux-2.6.22.1-rt9-orig/drivers/misc/Makefile linux-2.6.22.1-rt9-new/drivers/misc/Makefile
+--- linux-2.6.22.1-rt9-orig/drivers/misc/Makefile	2007-08-12 09:23:56.000000000 +0930
++++ linux-2.6.22.1-rt9-new/drivers/misc/Makefile	2007-08-26 21:12:48.000000000 +0930
+@@ -14,3 +14,4 @@
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
+ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
++obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
+diff -ruN linux-2.6.22.1-rt9-orig/drivers/misc/fujitsu-laptop.c linux-2.6.22.1-rt9-new/drivers/misc/fujitsu-laptop.c
+--- linux-2.6.22.1-rt9-orig/drivers/misc/fujitsu-laptop.c	1970-01-01 09:30:00.000000000 +0930
++++ linux-2.6.22.1-rt9-new/drivers/misc/fujitsu-laptop.c	2007-08-26 22:00:48.000000000 +0930
+@@ -0,0 +1,373 @@
++/*-*-linux-c-*-*/
++
++/*
++  Copyright (C) 2007 Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
++  Based on earlier work:
++    Copyright (C) 2003 Shane Spencer <shane@bogomip.com>
++    Adrian Yee <brewt-fujitsu@brewt.org>
++
++  Templated from msi-laptop.c which is copyright by its respective authors.
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++  This program is distributed in the hope that it will be useful, but
++  WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++  02110-1301, USA.
 + */
 +
-+static int acpi_pm_prepare_late(void)
-+{
-+	acpi_status status;
-+
-+	status = acpi_enter_sleep_state_prep_late(acpi_target_sleep_state);
-+
-+	if (ACPI_SUCCESS(status))
-+		return 0;
-+
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+
-+	return -EFAULT;
-+}
-+
-+/**
-  *	acpi_pm_enter - Actually enter a sleep state.
-  *	@pm_state: ignored
-  *
-@@ -139,10 +157,22 @@ static int acpi_pm_enter(suspend_state_t
- }
- 
- /**
-- *	acpi_pm_finish - Finish up suspend sequence.
-+ *	acpi_pm_finish_early - Finish up suspend sequence (first stage).
-  *
-  *	This is called after we wake back up (or if entering the sleep state
-- *	failed). 
-+ *	has failed).
++/*
++ * fujitsu-laptop.c - Fujitsu laptop support, providing access to additional
++ * features made available on a range of Fujitsu laptops including the
++ * P2xxx/P5xxx/S6xxx/S7xxx series.
++ *
++ * This driver exports a few files in /sys/devices/platform/fujitsu-laptop/;
++ * others may be added at a later date.
++ *
++ *   lcd_level - Screen brightness: contains a single integer in the
++ *   range 0..7. (rw)
++ *
++ * In addition to these platform device attributes the driver
++ * registers itself in the Linux backlight control subsystem and is
++ * available to userspace under /sys/class/backlight/fujitsu-laptop/.
++ *
++ * This driver has been tested on a Fujitsu Lifebook S7020.  It should
++ * work on most P-series and S-series Lifebooks, but YMMV.
 + */
 +
-+static void acpi_pm_finish_early(void)
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/backlight.h>
++#include <linux/platform_device.h>
++#include <linux/autoconf.h>
++
++#define FUJITSU_DRIVER_VERSION "0.1"
++
++#define FUJITSU_LCD_N_LEVELS 8
++
++#define ACPI_FUJITSU_CLASS              "fujitsu"
++#define ACPI_FUJITSU_HID                "FUJ02B1"
++#define ACPI_FUJITSU_DRIVER_NAME        "Fujitsu laptop FUJ02B1 ACPI extras driver"
++#define ACPI_FUJITSU_DEVICE_NAME        "Fujitsu FUJ02B1"
++
++static int force;
++module_param(force, bool, 0);
++MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
++
++struct fujitsu_t {
++	acpi_handle acpi_handle;
++	struct backlight_device *bl_device;
++	struct platform_device *pf_device;
++
++	unsigned long fuj02b1_state;
++	unsigned int brightness_changed;
++	unsigned int brightness_level;
++};
++
++static struct fujitsu_t *fujitsu;
++
++/* Hardware access */
++
++static int set_lcd_level(int level)
 +{
-+	acpi_leave_sleep_state_prep(acpi_target_sleep_state);
-+}
++	acpi_status status = AE_OK;
++	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
++	struct acpi_object_list arg_list = { 1, &arg0 };
++	acpi_handle handle = NULL;
 +
-+/**
-+ *	acpi_pm_finish - Finish up suspend sequence (second stage).
-+ *
-+ *	This is called after we wake back up (or if entering the sleep state
-+ *	has failed).
-  */
- 
- static void acpi_pm_finish(void)
-@@ -185,7 +215,9 @@ static struct platform_suspend_ops acpi_
- 	.valid = acpi_pm_state_valid,
- 	.set_target = acpi_pm_set_target,
- 	.prepare = acpi_pm_prepare,
-+	.prepare_late = acpi_pm_prepare_late,
- 	.enter = acpi_pm_enter,
-+	.finish_early = acpi_pm_finish_early,
- 	.finish = acpi_pm_finish,
- };
- 
-@@ -222,6 +254,15 @@ static int acpi_hibernation_prepare(void
- 	return acpi_sleep_prepare(ACPI_STATE_S4);
- }
- 
-+static int acpi_hibernation_prepare_late(void)
-+{
-+	acpi_status status;
++	if (level < 0 || level >= FUJITSU_LCD_N_LEVELS)
++		return -EINVAL;
 +
-+	status = acpi_enter_sleep_state_prep_late(ACPI_STATE_S4);
++	if (!fujitsu)
++		return -EINVAL;
 +
-+	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-+}
-+
- static int acpi_hibernation_enter(void)
- {
- 	acpi_status status = AE_OK;
-@@ -238,13 +279,18 @@ static int acpi_hibernation_enter(void)
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
--static void acpi_hibernation_finish(void)
-+static void acpi_hibernation_finish_early(void)
- {
- 	/*
- 	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
- 	 * enable it here.
- 	 */
- 	acpi_enable();
-+	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
-+}
-+
-+static void acpi_hibernation_finish(void)
-+{
- 	acpi_leave_sleep_state(ACPI_STATE_S4);
- 	acpi_disable_wakeup_device(ACPI_STATE_S4);
- 
-@@ -271,7 +317,10 @@ static void acpi_hibernation_restore_cle
- static struct platform_hibernation_ops acpi_hibernation_ops = {
- 	.start = acpi_hibernation_start,
- 	.pre_snapshot = acpi_hibernation_prepare,
-+	.post_snapshot = acpi_hibernation_finish,
- 	.finish = acpi_hibernation_finish,
-+	.finish_early = acpi_hibernation_finish_early,
-+	.prepare_late = acpi_hibernation_prepare_late,
- 	.prepare = acpi_hibernation_prepare,
- 	.enter = acpi_hibernation_enter,
- 	.pre_restore = acpi_hibernation_pre_restore,
-Index: linux-2.6.23-rc3/kernel/power/main.c
-===================================================================
---- linux-2.6.23-rc3.orig/kernel/power/main.c
-+++ linux-2.6.23-rc3/kernel/power/main.c
-@@ -173,9 +173,21 @@ int suspend_devices_and_enter(suspend_st
- 			goto Resume_devices;
- 	}
- 	error = disable_nonboot_cpus();
--	if (!error)
--		suspend_enter(state);
-+	if (error)
-+		goto Enable_cpus;
-+
-+	if (suspend_ops->prepare_late) {
-+		error = suspend_ops->prepare_late();
-+		if (error)
-+			goto Enable_cpus;
++	status = acpi_get_handle(fujitsu->acpi_handle, "SBLL", &handle);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SBLL not present\n"));
++		return -ENODEV;
 +	}
 +
-+	error = suspend_enter(state);
++	arg0.integer.value = level;
 +
-+	if (!error && suspend_ops->finish_early)
-+		suspend_ops->finish_early();
- 
-+ Enable_cpus:
- 	enable_nonboot_cpus();
- 	if (suspend_ops->finish)
- 		suspend_ops->finish();
-Index: linux-2.6.23-rc3/drivers/acpi/hardware/hwsleep.c
-===================================================================
---- linux-2.6.23-rc3.orig/drivers/acpi/hardware/hwsleep.c
-+++ linux-2.6.23-rc3/drivers/acpi/hardware/hwsleep.c
-@@ -162,8 +162,8 @@ ACPI_EXPORT_SYMBOL(acpi_get_firmware_wak
-  *
-  * DESCRIPTION: Prepare to enter a system sleep state (see ACPI 2.0 spec p 231)
-  *              This function must execute with interrupts enabled.
-- *              We break sleeping into 2 stages so that OSPM can handle
-- *              various OS-specific tasks between the two steps.
-+ *              We break sleeping into 3 stages so that OSPM can handle
-+ *              various OS-specific tasks between the three steps.
-  *
-  ******************************************************************************/
- acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
-@@ -192,18 +192,13 @@ acpi_status acpi_enter_sleep_state_prep(
- 	arg.type = ACPI_TYPE_INTEGER;
- 	arg.integer.value = sleep_state;
- 
--	/* Run the _PTS and _GTS methods */
-+	/* Run the _PTS method */
- 
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		return_ACPI_STATUS(status);
- 	}
- 
--	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		return_ACPI_STATUS(status);
--	}
--
- 	/* Setup the argument to _SST */
- 
- 	switch (sleep_state) {
-@@ -245,6 +240,43 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_enter_sleep_state_prep_late
-+ *
-+ * PARAMETERS:  sleep_state         - Which sleep state to enter
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Execute the _GTS ACPI global control method.
-+ *              This function must execute with interrupts enabled.
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_enter_sleep_state_prep_late(u8 sleep_state)
-+{
-+	acpi_status status;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
++	status = acpi_evaluate_object(handle, NULL, &arg_list, NULL);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
 +
-+	ACPI_FUNCTION_TRACE(acpi_enter_sleep_state_prep_late);
-+
-+	/* Setup parameter object */
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = sleep_state;
-+
-+	/* Run the _GTS method */
-+
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
-+
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		return_ACPI_STATUS(status);
-+	}
-+	return_ACPI_STATUS(AE_OK);
-+}
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_enter_sleep_state
-  *
-  * PARAMETERS:  sleep_state         - Which sleep state to enter
-@@ -478,17 +510,17 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_leave_sleep_state
-+ * FUNCTION:    acpi_leave_sleep_state_prep
-  *
-- * PARAMETERS:  sleep_state         - Which sleep state we just exited
-+ * PARAMETERS:  sleep_state         - Which sleep state we are exiting
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
-+ * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep (first stage)
-  *              Called with interrupts ENABLED.
-  *
-  ******************************************************************************/
--acpi_status acpi_leave_sleep_state(u8 sleep_state)
-+acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
- {
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
-@@ -498,7 +530,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 	u32 PM1Acontrol;
- 	u32 PM1Bcontrol;
- 
--	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
-+	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
- 
- 	/*
- 	 * Set SLP_TYPE and SLP_EN to state S0.
-@@ -560,17 +592,40 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 
- 	/* Ignore any errors from these methods */
- 
-+	arg.integer.value = sleep_state;
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
-+	}
-+
- 	arg.integer.value = ACPI_SST_WAKING;
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
- 	}
- 
--	arg.integer.value = sleep_state;
--	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
--	}
-+	return_ACPI_STATUS(AE_OK);
++	return 0;
 +}
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_leave_sleep_state
-+ *
-+ * PARAMETERS:  sleep_state         - Which sleep state we just exited
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep (second stage)
-+ *              Called with interrupts ENABLED.
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_leave_sleep_state(u8 sleep_state)
++static int get_lcd_level(void)
 +{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
++	unsigned long state = 0;
++	acpi_status status = AE_OK;
 +
-+	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
- 
- 	/*
- 	 * GPEs must be enabled before _WAK is called as GPEs
-@@ -589,6 +644,13 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	/* Setup parameter object */
++	// Get the Brightness
++	status =
++	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
++	if (status < 0)
++		return status;
 +
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = sleep_state;
++	fujitsu->fuj02b1_state = state;
++	fujitsu->brightness_level = state & 0x0fffffff;
 +
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
-Index: linux-2.6.23-rc3/include/acpi/acpixf.h
-===================================================================
---- linux-2.6.23-rc3.orig/include/acpi/acpixf.h
-+++ linux-2.6.23-rc3/include/acpi/acpixf.h
-@@ -329,10 +329,14 @@ acpi_get_sleep_type_data(u8 sleep_state,
- 
- acpi_status acpi_enter_sleep_state_prep(u8 sleep_state);
- 
-+acpi_status acpi_enter_sleep_state_prep_late(u8 sleep_state);
-+
- acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state);
- 
- acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void);
- 
-+acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
-+
- acpi_status acpi_leave_sleep_state(u8 sleep_state);
- 
- #endif				/* __ACXFACE_H__ */
-Index: linux-2.6.23-rc3/kernel/power/disk.c
-===================================================================
---- linux-2.6.23-rc3.orig/kernel/power/disk.c
-+++ linux-2.6.23-rc3/kernel/power/disk.c
-@@ -54,9 +54,10 @@ static struct platform_hibernation_ops *
- 
- void hibernation_set_ops(struct platform_hibernation_ops *ops)
- {
--	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
--	    && ops->prepare && ops->enter && ops->pre_restore
--	    && ops->restore_cleanup)) {
-+	if (ops && !(ops->start && ops->pre_snapshot && ops->post_snapshot
-+	    && ops->finish_early && ops->finish
-+	    && ops->prepare && ops->prepare_late && ops->enter
-+	    && ops->pre_restore && ops->restore_cleanup)) {
- 		WARN_ON(1);
- 		return;
- 	}
-@@ -93,8 +94,32 @@ static int platform_pre_snapshot(int pla
- }
- 
- /**
-+ *	platform_post_snapshot - use the platform driver, if so configured, to
-+ *	prepare the machine for saving the hibernation image.
-+ */
-+
-+static void platform_post_snapshot(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->post_snapshot();
-+}
-+
-+/**
-+ *	platform_finish_early - switch the machine to the normal mode of
-+ *	operation using the platform driver (first stage; called only after
-+ *	image restoration)
-+ */
-+
-+static void platform_finish_early(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->finish_early();
-+}
-+
-+/**
-  *	platform_finish - switch the machine to the normal mode of operation
-- *	using the platform driver (must be called after platform_prepare())
-+ *	using the platform driver (second stage; called only after image
-+ *	restoration)
-  */
- 
- static void platform_finish(int platform_mode)
-@@ -165,14 +190,20 @@ int hibernation_snapshot(int platform_mo
- 			in_suspend = 1;
- 			error = swsusp_suspend();
- 			/* Control returns here after successful restore */
-+			if (!in_suspend)
-+				platform_finish_early(platform_mode);
- 		} else {
- 			printk("swsusp debug: Waiting for 5 seconds.\n");
- 			mdelay(5000);
- 		}
- 	}
- 	enable_nonboot_cpus();
-+
-+	if (in_suspend && !error)
-+		platform_post_snapshot(platform_mode);
++	if (state & 0x80000000)
++		fujitsu->brightness_changed = 1;
 +	else
-+		platform_finish(platform_mode);
-  Resume_devices:
--	platform_finish(platform_mode);
- 	device_resume();
-  Resume_console:
- 	resume_console();
-@@ -227,8 +258,9 @@ int hibernation_platform_enter(void)
- 
- 	/*
- 	 * We have cancelled the power transition by running
--	 * hibernation_ops->finish() before saving the image, so we should let
--	 * the firmware know that we're going to enter the sleep state after all
-+	 * hibernation_ops->post_snapshot() before saving the image, so we
-+	 * should let the firmware know that we're going to enter the sleep
-+	 * state after all
- 	 */
- 	error = hibernation_ops->start();
- 	if (error)
-@@ -247,6 +279,10 @@ int hibernation_platform_enter(void)
- 	if (error)
- 		goto Finish;
- 
-+	error = hibernation_ops->prepare_late();
-+	if (error)
-+		goto Finish;
++		fujitsu->brightness_changed = 0;
 +
- 	local_irq_disable();
- 	error = device_power_down(PMSG_SUSPEND);
- 	if (!error) {
-
++	if (status < 0)
++		return status;
++
++	return fujitsu->brightness_level;
++}
++
++/* Backlight device stuff */
++
++static int bl_get_brightness(struct backlight_device *b)
++{
++	return get_lcd_level();
++}
++
++static int bl_update_status(struct backlight_device *b)
++{
++	return set_lcd_level(b->props.brightness);
++}
++
++static struct backlight_ops fujitsubl_ops = {
++	.get_brightness = bl_get_brightness,
++	.update_status = bl_update_status,
++};
++
++/* Platform device */
++
++static ssize_t show_lcd_level(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++
++	int ret;
++
++	ret = get_lcd_level();
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%i\n", ret);
++}
++
++static ssize_t store_lcd_level(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
++{
++
++	int level, ret;
++
++	if (sscanf(buf, "%i", &level) != 1
++	    || (level < 0 || level >= FUJITSU_LCD_N_LEVELS))
++		return -EINVAL;
++
++	ret = set_lcd_level(level);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
++
++static struct attribute *fujitsupf_attributes[] = {
++	&dev_attr_lcd_level.attr,
++	NULL
++};
++
++static struct attribute_group fujitsupf_attribute_group = {
++	.attrs = fujitsupf_attributes
++};
++
++static struct platform_driver fujitsupf_driver = {
++	.driver = {
++		   .name = "fujitsu-laptop",
++		   .owner = THIS_MODULE,
++		   }
++};
++
++/* ACPI device */
++
++int acpi_fujitsu_add(struct acpi_device *device)
++{
++	int result = 0;
++	int state = 0;
++
++	ACPI_FUNCTION_TRACE("acpi_fujitsu_add");
++
++	if (!device)
++		return -EINVAL;
++
++	fujitsu->acpi_handle = device->handle;
++	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
++	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
++	acpi_driver_data(device) = fujitsu;
++
++	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
++	if (result) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				  "Error reading power state\n"));
++		goto end;
++	}
++
++	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
++	       acpi_device_name(device), acpi_device_bid(device),
++	       !device->power.state ? "on" : "off");
++
++      end:
++
++	return result;
++}
++
++int acpi_fujitsu_remove(struct acpi_device *device, int type)
++{
++	ACPI_FUNCTION_TRACE("acpi_fujitsu_remove");
++
++	if (!device || !acpi_driver_data(device))
++		return -EINVAL;
++	fujitsu->acpi_handle = 0;
++
++	return 0;
++}
++
++static struct acpi_driver acpi_fujitsu_driver = {
++	.name = ACPI_FUJITSU_DRIVER_NAME,
++	.class = ACPI_FUJITSU_CLASS,
++	.ids = ACPI_FUJITSU_HID,
++	.ops = {
++		.add = acpi_fujitsu_add,
++		.remove = acpi_fujitsu_remove,
++		},
++};
++
++/* Initialization */
++
++static struct dmi_system_id __initdata fujitsu_dmi_table[] = {
++	{
++	 .ident = "Fujitsu S7020",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "LifeBook S7020"),
++		     }
++	 },
++	{
++	 .ident = "Fujitsu generic laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU"),
++		     }
++	 },
++	{}
++};
++
++static int __init fujitsu_init(void)
++{
++	int ret, result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	if (!force && !dmi_check_system(fujitsu_dmi_table))
++		return -ENODEV;
++
++	fujitsu = kmalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
++	if (!fujitsu)
++		return -ENOMEM;
++	memset(fujitsu, 0, sizeof(struct fujitsu_t));
++
++	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
++	if (result < 0)
++		return -ENODEV;
++
++	/* Register backlight stuff */
++
++	fujitsu->bl_device =
++	    backlight_device_register("fujitsu-laptop", NULL, NULL,
++				      &fujitsubl_ops);
++	if (IS_ERR(fujitsu->bl_device))
++		return PTR_ERR(fujitsu->bl_device);
++
++	fujitsu->bl_device->props.max_brightness = FUJITSU_LCD_N_LEVELS - 1,
++	    ret = platform_driver_register(&fujitsupf_driver);
++	if (ret)
++		goto fail_backlight;
++
++	/* Register platform stuff */
++
++	fujitsu->pf_device = platform_device_alloc("fujitsu-laptop", -1);
++	if (!fujitsu->pf_device) {
++		ret = -ENOMEM;
++		goto fail_platform_driver;
++	}
++
++	ret = platform_device_add(fujitsu->pf_device);
++	if (ret)
++		goto fail_platform_device1;
++
++	ret =
++	    sysfs_create_group(&fujitsu->pf_device->dev.kobj,
++			       &fujitsupf_attribute_group);
++	if (ret)
++		goto fail_platform_device2;
++
++	printk(KERN_INFO "fujitsu-laptop: driver " FUJITSU_DRIVER_VERSION
++	       " successfully loaded.\n");
++
++	return 0;
++
++      fail_platform_device2:
++
++	platform_device_del(fujitsu->pf_device);
++
++      fail_platform_device1:
++
++	platform_device_put(fujitsu->pf_device);
++
++      fail_platform_driver:
++
++	platform_driver_unregister(&fujitsupf_driver);
++
++      fail_backlight:
++
++	backlight_device_unregister(fujitsu->bl_device);
++
++	kfree(fujitsu);
++
++	return ret;
++}
++
++static void __exit fujitsu_cleanup(void)
++{
++	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
++			   &fujitsupf_attribute_group);
++	platform_device_unregister(fujitsu->pf_device);
++	platform_driver_unregister(&fujitsupf_driver);
++	backlight_device_unregister(fujitsu->bl_device);
++
++	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
++
++	kfree(fujitsu);
++
++	printk(KERN_INFO "fujitsu-laptop: driver unloaded.\n");
++}
++
++module_init(fujitsu_init);
++module_exit(fujitsu_cleanup);
++
++MODULE_AUTHOR("Jonathan Woithe");
++MODULE_DESCRIPTION("Fujitsu laptop extras support");
++MODULE_VERSION(FUJITSU_DRIVER_VERSION);
++MODULE_LICENSE("GPL");
