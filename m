@@ -1,65 +1,69 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 1/3] Hibernation: Enter platform hibernation state in a consisten way (rev. 2)
-Date: Mon, 27 Aug 2007 14:25:22 +0200
-Message-ID: <20070827122522.GA2894@elf.ucw.cz>
-References: <200708270149.52585.rjw@sisk.pl> <200708270151.33307.rjw@sisk.pl> <20070827082405.GE2060@elf.ucw.cz> <200708271431.12482.rjw@sisk.pl>
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: Re: 2.6.23-rc3-mm1
+Date: Mon, 27 Aug 2007 15:35:35 +0200
+Message-ID: <46D2D327.6040307@imap.cc>
+References: <20070822020648.5ea3a612.akpm@linux-foundation.org>	<46CF695D.1020008@imap.cc>	<20070824170702.a2c51084.akpm@linux-foundation.org>	<653FFBB4508B9042B5D43DC9E18836F5014D954E@scsmsx415.amr.corp.intel.com>	<653FFBB4508B9042B5D43DC9E18836F5014D956A@scsmsx415.amr.corp.intel.com>	<46D0BA9D.1080708@imap.cc> <20070825165701.8423f5e6.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:53041 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756151AbXH0MZB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2007 08:25:01 -0400
-Content-Disposition: inline
-In-Reply-To: <200708271431.12482.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig66CAB4E014047B70F6E776D0"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756366AbXH0Nh2@vger.kernel.org>
+In-Reply-To: <20070825165701.8423f5e6.randy.dunlap@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Andi Kleen <ak@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Dave Jones <davej@codemonkey.org.uk>, Thomas Renninger <trenn@suse.de>, Adam Belay <abelay@novell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Johannes Berg <johannes@sipsolutions.net>, Thomas Renninger <trenn@suse.de>
 
-Hi!
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig66CAB4E014047B70F6E776D0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> > > Make hibernation_platform_enter() execute the enter-a-sleep-state sequence
-> > > instead of the mixed shutdown-with-entering-S4 thing.
-> > > 
-> > > Replace the shutting down of devices done by kernel_shutdown_prepare(), before
-> > > entering the ACPI S4 sleep state, with suspending them and the shutting down of
-> > > sysdevs with calling device_power_down(PMSG_SUSPEND) (just like before entering
-> > > S1 or S3, but the target state is now S4).  Also, disable the nonboot CPUs
-> > > before entering the sleep state (S4), which generally always is a good idea.
-> > > 
-> > > This is known to fix the "double disk spin down during hibernation" on some
-> > > machines, eg. HPC nx6325 (ref. http://lkml.org/lkml/2007/8/7/316 and the
-> > > following thread).  It also generally causes the hibernation state (ACPI S4) to
-> > > be entered faster.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > ---
-> > >  kernel/power/disk.c |   55 ++++++++++++++++++++++++++++++++++++++--------------
-> > >  1 file changed, 41 insertions(+), 14 deletions(-)
-> > > 
-> > 
-> > > +	local_irq_disable();
-> > > +	error = device_power_down(PMSG_SUSPEND);
-> > > +	if (!error) {
-> > > +		error = hibernation_ops->enter();
-> > > +		/* We should never get here */
-> > 
-> > Are you sure it is good idea to enable interrupts/power up devices
-> > when this happens?
-> 
-> Hm.  No, I'm not.
-> 
-> > AFAICT image is already on disk an intact at this point, safe thing to do is
-> > while(1);... 
-> 
-> OK
-> 
-> Like this?
+Am 26.08.2007 01:57 schrieb Randy Dunlap:
+> On Sun, 26 Aug 2007 01:26:21 +0200 Tilman Schmidt wrote:
+>=20
+>> Am 25.08.2007 02:38 schrieb Pallipadi, Venkatesh:
+>> >=20
+>> > Tilman: Can you configure CONFIG_CPU_IDLE in your config (under Powe=
+r
+>> > Management option) and double check that the frequency part works af=
+ter
+>> > that.
+>>=20
+>> Strangely enough, I do not see that option in "make xconfig".
+>> The "Power Management" subtree ends with "CPU Frequency scaling".
+>> In "make menuconfig" the option is there, though.
+>=20
+> That sounds strange.  Please share your .config file.
 
-Yes, like this. ACK.
-									Pavel
+I'm sorry but I cannot reproduce the phenomenon anymore. After setting
+CONFIG_CPU_IDLE with "make menuconfig", when I ran "make xconfig" again
+it showed the option too. Moving .config.old back to .config doesn't
+make it disappear again. So it seems "make menuconfig" has elliminated
+whatever caused this.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+If you still want to have a look, both .config and .config.old are
+available at http://gollum.phnxsoft.com/~ts/2.6.23-rc3-mm1/ .
+
+--=20
+Tilman Schmidt                    E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+
+
+--------------enig66CAB4E014047B70F6E776D0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFG0tMnQ3+did9BuFsRAuDKAJ49weU/Xc4BsFtPNeibgRLJTiLSxwCfUkn6
+FzmvYw7iDGLl7kDiiuHjTJ0=
+=TXB+
+-----END PGP SIGNATURE-----
+
+--------------enig66CAB4E014047B70F6E776D0--
