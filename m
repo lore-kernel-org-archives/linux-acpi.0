@@ -1,51 +1,29 @@
-From: Adam Belay <abelay@novell.com>
-Subject: Re: [-mm patch] make "struct menu_governor" static (again)
-Date: Mon, 27 Aug 2007 18:32:56 -0400
-Message-ID: <1188253976.3929.5.camel@callisto.site>
-References: <20070822020648.5ea3a612.akpm@linux-foundation.org>
-	 <20070827212703.GI4121@stusta.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: add "Fujitsu laptop extras" module, take 3
+Date: Wed, 29 Aug 2007 02:13:58 -0400
+Message-ID: <200708290213.58261.lenb@kernel.org>
+References: <200708290031.l7T0VUu3005216@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965051AbXH0WkG@vger.kernel.org>
-In-Reply-To: <20070827212703.GI4121@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Shaohua Li <shaohua.li@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brown@vger.kernel.org, Len <len.brown@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:56458 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732AbXH2GOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Aug 2007 02:14:15 -0400
+In-Reply-To: <200708290031.l7T0VUu3005216@turbo.physics.adelaide.edu.au>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-This is already fixed in the most recent ACPI CPUIDLE tree.
 
-Thanks,
-Adam
+> +	fujitsu->bl_device->props.max_brightness = FUJITSU_LCD_N_LEVELS - 1,
 
-On Mon, 2007-08-27 at 23:27 +0200, Adrian Bunk wrote:
-> On Wed, Aug 22, 2007 at 02:06:48AM -0700, Andrew Morton wrote:
-> >...
-> > Changes since 2.6.23-rc2-mm2:
-> >...
-> >  git-acpi.patch
-> >...
-> >  git trees
-> >...
-> 
-> "struct menu_governor" needlessly again became global.
-> 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
-> 
-> ---
-> cb33b296204127cf50df54b84b2d79e152fb924b 
-> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-> index f5a8865..8d3fdc5 100644
-> --- a/drivers/cpuidle/governors/menu.c
-> +++ b/drivers/cpuidle/governors/menu.c
-> @@ -117,7 +117,7 @@ static int menu_enable_device(struct cpuidle_device *dev)
->  	return 0;
->  }
->  
-> -struct cpuidle_governor menu_governor = {
-> +static struct cpuidle_governor menu_governor = {
->  	.name =		"menu",
->  	.rating =	20,
->  	.enable =	menu_enable_device,
-> 
+did you intend to use a ';' here?
+
+> +	    ret = platform_driver_register(&fujitsupf_driver);
+> +	if (ret)
+> +		goto fail_backlight;
