@@ -1,42 +1,67 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [PATCH] Prefix each line of multiline printk(KERN_<level>
- "foo\nbar") with KERN_<level>
-Date: Wed, 29 Aug 2007 12:22:41 +0100 (BST)
-Message-ID: <Pine.LNX.4.64N.0708291205020.26167@blysk.ds.pg.gda.pl>
-References: <1187999098.32738.179.camel@localhost> <Pine.LNX.4.64.0708261028120.31149@anakin>
- <8bd0f97a0708260354xb4c8546od0cc19a590820f32@mail.gmail.com>
- <Pine.LNX.4.64.0708261305020.31149@anakin>
+From: =?iso-8859-1?q?Ren=E9_Rebe?= <rene@exactcode.de>
+Subject: MacPro (Please send dmidecode to linux-acpi@vger.kernel.org)
+Date: Wed, 29 Aug 2007 13:49:46 +0200
+Message-ID: <200708291349.46987.rene@exactcode.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758792AbXH2LXN@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0708261305020.31149@anakin>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mike Frysinger <vapier.adi@gmail.com>, Joe Perches <joe@perches.com>, linux-kernel@vger.kernel.org, blinux-list@redhat.com, cluster-devel@redhat.com, discuss@x86-64.org, jffs-dev@axis.com, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, linux-mips@linux-mips.org, linux-mm@kvack.org, linux-mtd@lists.infradead.org, linux-scsi@vger.kernel.org, mpt_linux_developer@lsi.com, netdev@vger.kernel.org, osst-users@lists.sourceforge.net, parisc-linux@parisc-linux.org, tpmdd-devel@lists.sourceforge.net, uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx02.qsc.de ([213.148.130.14]:33298 "EHLO mx02.qsc.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933024AbXH2MUU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 08:20:20 -0400
+Received: from exactcode.de (port-212-202-170-151.dynamic.qsc.de [212.202.170.151])
+	by mx02.qsc.de (Postfix) with ESMTP id 6048B16C033F
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 13:49:51 +0200 (CEST)
+Received: from port-83-236-211-226.static.qsc.de ([83.236.211.226] helo=[192.168.2.172])
+	by exactcode.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.54)
+	id 1IQM4n-0004C3-5J
+	for linux-acpi@vger.kernel.org; Wed, 29 Aug 2007 11:51:14 +0000
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, 26 Aug 2007, Geert Uytterhoeven wrote:
+Hi all,
 
-> What I mean is that probably there used to be a printk() call starting with
-> `\n'. Then someone added a `KERN_ERR' in front of it.
+I just post because my dmesg says so:
 
- I gather '\n' at the beginning is to assure the following line is output 
-on a separate line rather than as a continuation of another one which may 
-have been output without a trailing '\n'.  A situation where printk() is 
-called with a string containing no trailing '\n' may be discouraged, but 
-there are some more or less justified exceptions.  For example the SCSI 
-disk spin-up code is one.
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=3D!Linux"
+Please send dmidecode to linux-acpi@vger.kernel.org
 
- Therefore it may be reasonable for more critical messages -- perhaps not 
-ones at KERN_ERR, but certainly KERN_CRIT and higher ones -- that may 
-potentially happen asynchronously to start with '\n'.  In this case a call 
-would look like this:
+Handle 0x003A, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Apple Computer, Inc.
+        Version:     MP21.88Z.007F.B02.0703191612
+        Release Date: 03/19/07
 
-	printk("\n" KERN_CRIT "The actual message.\n");
+Handle 0x003B, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Apple Computer, Inc.
+        Product Name: MacPro2,1
+        Version: 1.0
 
-Of course based on "console_loglevel" and "default_message_level" the 
-leading '\n' may still get swallowed from what gets printed to the console 
-terminal, but in reality I do not think that poses a problem, as these 
-both can be set by a system administrator according to the local policy.
+=2E..
 
-  Maciej
+If you need more let me know. I mostly looked thru the dmesg
+because the box shuts down sometimes, randomly. Maybe too hot?
+But I still investigate.
+
+However, the box (2 Quad-Core CPUs) even awakes from echo mem >
+/sys/power/state (without graphic though, maybe s2ram posting would fix
+that - but I do not really care about the graphic as it is indended to =
+be used
+as server anyway).
+
+Yours,
+
+--=20
+  Ren=E9 Rebe - ExactCODE GmbH - Europe, Germany, Berlin
+  http://exactcode.de | http://t2-project.org | http://rene.rebe.name
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
