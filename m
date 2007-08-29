@@ -1,115 +1,165 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: [1/2] 2.6.23-rc3: known regressions with patches
-Date: Wed, 29 Aug 2007 17:28:01 +0200
-Message-ID: <46D59081.2040605__4284.36297593198$1188401403$gmane$org@googlemail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [1/2] 2.6.23-rc3: known regressions with patches: 8250 claims nonexisting device blocking IO port
+Date: Wed, 29 Aug 2007 10:35:44 -0600
+Message-ID: <200708291035.44244.bjorn.helgaas@hp.com>
+References: <46D59081.2040605@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.191]:61828 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758653AbXH2P2z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 11:28:55 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so197372nfb
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 08:28:54 -0700 (PDT)
+Received: from atlrel8.hp.com ([156.153.255.206]:32904 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480AbXH2QgV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Aug 2007 12:36:21 -0400
+In-Reply-To: <46D59081.2040605@googlemail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Gabriel C <nix.or.die@googlemail.com>, Satyam Sharma <satyam.sharma@gmail.com>, Vitaly Bordug <vitb@kernel.crashing.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Daniel Ritz <daniel.ritz-ml@swissonline.ch>, Tony Luck <tony.luck@intel.com>, John Stultz <johnstul@us.ibm.com>, Paolo Ornati <ornati@fastwebnet.it>, linux-ide@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Mikael Pettersson <mikpe@it.uu.se>, Stephen Ziemba <sziemba@ecn.purdue.edu>
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Hi all,
+On Wednesday 29 August 2007 09:28:01 am Michal Piotrowski wrote:
+> Subject         : 8250 claims non existing device blocking IO port
+> References      : http://lkml.org/lkml/2007/8/18/20
+> Last known good : ?
+> Submitter       : Andrey Borzenkov <arvidjaar@mail.ru>
+> Caused-By       : ?
+> Handled-By      : Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Patch           : http://lkml.org/lkml/2007/8/21/291
+> Status          : patch was suggested
 
-Here is a list of some known regressions in 2.6.23-rc4
-with patches available.
-
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
-
-List of Aces
-
-Name                    Regressions fixed since 21-Jun-2007
-Adrian Bunk                            9
-Andi Kleen                             5
-Linus Torvalds                         5
-Andrew Morton                          4
-Hugh Dickins                           4
-Al Viro                                3
-Alan Stern                             3
-Cornelia Huck                          3
-Jens Axboe                             3
-Tejun Heo                              3
+The following patch fixes this regression (confirmed by Andrey).
+Please queue it for 2.6.23.  I'll come back later for another
+try at sorting this all out.
 
 
+PNP: remove SMCf010 quirk
 
-Unclassified
+If the quirk enables the SIR part of the SMCf010 device, the 8250 driver
+may claim it as a legacy ttyS device, which makes the legacy probe in the
+smsc-ircc2 driver fail.
 
-Subject         : 8250 claims non existing device blocking IO port
-References      : http://lkml.org/lkml/2007/8/18/20
-Last known good : ?
-Submitter       : Andrey Borzenkov <arvidjaar@mail.ru>
-Caused-By       : ?
-Handled-By      : Bjorn Helgaas <bjorn.helgaas@hp.com>
-Patch           : http://lkml.org/lkml/2007/8/21/291
-Status          : patch was suggested
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Subject         : Oops while modprobing phy fixed module
-References      : http://lkml.org/lkml/2007/7/14/63
-Last known good : ?
-Submitter       : Gabriel C <nix.or.die@googlemail.com>
-Caused-By       : ?
-Handled-By      : Satyam Sharma <satyam.sharma@gmail.com>
-                  Vitaly Bordug <vitb@kernel.crashing.org>
-Patch1          : http://lkml.org/lkml/2007/7/18/506
-Status          : patch available
-
-
-
-ACPI
-
-Subject         : the fan doesn't work any more
-References      : http://lkml.org/lkml/2007/8/28/359
-Last known good : ?
-Submitter       : Daniel Ritz <daniel.ritz-ml@swissonline.ch>
-Caused-By       : Alexey Starikovskiy <astarikovskiy@suse.de>
-                  commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
-Handled-By      : Alexey Starikovskiy <astarikovskiy@suse.de>
-Patch           : http://lkml.org/lkml/2007/8/29/15
-Status          : patch was suggested
-
-
-
-Clocks & time
-
-Subject         : "double" hpet clocksource && hard freeze
-References      : http://lkml.org/lkml/2007/8/23/257
-Last known good : ?
-Submitter       : Paolo Ornati <ornati@fastwebnet.it>
-Caused-By       : Tony Luck <tony.luck@intel.com>
-                  commit 0aa366f351d044703e25c8425e508170e80d83b1
-Handled-By      : John Stultz <johnstul@us.ibm.com>
-                  Tony Luck <tony.luck@intel.com>
-Patch           : http://lkml.org/lkml/2007/8/23/285
-Status          : patch available
-
-
-
-SATA/PATA
-
-Subject         : sata_promise 2.09 fails to identify ST3400832AS
-References      : http://bugzilla.kernel.org/show_bug.cgi?id=8936
-Last known good : ?
-Submitter       : Stephen Ziemba <sziemba@ecn.purdue.edu>
-Caused-By       : Mikael Pettersson <mikpe@it.uu.se>
-                  commit a77720ad0a4049e4bc6355e4febf899966a48222
-Handled-By      : Mikael Pettersson <mikpe@it.uu.se>
-Patch           : http://bugzilla.kernel.org/show_bug.cgi?id=8936#c3
-Status          : patch available
-
-
-
-Regards,
-Michal
-
--- 
-LOG
-http://www.stardust.webpages.pl/log/
+Index: w/drivers/pnp/quirks.c
+===================================================================
+--- w.orig/drivers/pnp/quirks.c	2007-08-29 10:23:52.000000000 -0600
++++ w/drivers/pnp/quirks.c	2007-08-29 10:24:01.000000000 -0600
+@@ -107,108 +107,6 @@
+ 		       "pnp: SB audio device quirk - increasing port range\n");
+ }
+ 
+-static int quirk_smc_fir_enabled(struct pnp_dev *dev)
+-{
+-	unsigned long firbase;
+-	u8 bank, high, low, chip;
+-
+-	if (!pnp_port_valid(dev, 1))
+-		return 0;
+-
+-	firbase = pnp_port_start(dev, 1);
+-
+-	/* Select register bank 3 */
+-	bank = inb(firbase + 7);
+-	bank &= 0xf0;
+-	bank |= 3;
+-	outb(bank, firbase + 7);
+-
+-	high = inb(firbase + 0);
+-	low = inb(firbase + 1);
+-	chip = inb(firbase + 2);
+-
+-	/* This corresponds to the check in smsc_ircc_present() */
+-	if (high == 0x10 && low == 0xb8 && (chip == 0xf1 || chip == 0xf2))
+-		return 1;
+-
+-	return 0;
+-}
+-
+-static void quirk_smc_enable(struct pnp_dev *dev)
+-{
+-	struct resource fir, sir, irq;
+-
+-	pnp_activate_dev(dev);
+-	if (quirk_smc_fir_enabled(dev))
+-		return;
+-
+-	/*
+-	 * Sometimes the BIOS claims the device is enabled, but it reports
+-	 * the wrong FIR resources or doesn't properly configure ISA or LPC
+-	 * bridges on the way to the device.
+-	 *
+-	 * HP nc6000 and nc8000/nw8000 laptops have known problems like
+-	 * this.  Fortunately, they do fix things up if we auto-configure
+-	 * the device using its _PRS and _SRS methods.
+-	 */
+-	dev_err(&dev->dev, "%s not responding at SIR 0x%lx, FIR 0x%lx; "
+-		"auto-configuring\n", dev->id->id,
+-		(unsigned long)pnp_port_start(dev, 0),
+-		(unsigned long)pnp_port_start(dev, 1));
+-
+-	pnp_disable_dev(dev);
+-	pnp_init_resource_table(&dev->res);
+-	pnp_auto_config_dev(dev);
+-	pnp_activate_dev(dev);
+-	if (quirk_smc_fir_enabled(dev)) {
+-		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
+-			(unsigned long)pnp_port_start(dev, 0),
+-			(unsigned long)pnp_port_start(dev, 1));
+-		return;
+-	}
+-
+-	/*
+-	 * The Toshiba Portege 4000 _CRS reports the FIR region first,
+-	 * followed by the SIR region.  The BIOS will configure the bridge,
+-	 * but only if we call _SRS with SIR first, then FIR.  It also
+-	 * reports the IRQ as active high, when it is really active low.
+-	 */
+-	dev_err(&dev->dev, "not responding at SIR 0x%lx, FIR 0x%lx; "
+-		"swapping SIR/FIR and reconfiguring\n",
+-		(unsigned long)pnp_port_start(dev, 0),
+-		(unsigned long)pnp_port_start(dev, 1));
+-
+-	/*
+-	 * Clear IORESOURCE_AUTO so pnp_activate_dev() doesn't reassign
+-	 * these resources any more.
+-	 */
+-	fir = dev->res.port_resource[0];
+-	sir = dev->res.port_resource[1];
+-	fir.flags &= ~IORESOURCE_AUTO;
+-	sir.flags &= ~IORESOURCE_AUTO;
+-
+-	irq = dev->res.irq_resource[0];
+-	irq.flags &= ~IORESOURCE_AUTO;
+-	irq.flags &= ~IORESOURCE_BITS;
+-	irq.flags |= IORESOURCE_IRQ_LOWEDGE;
+-
+-	pnp_disable_dev(dev);
+-	dev->res.port_resource[0] = sir;
+-	dev->res.port_resource[1] = fir;
+-	dev->res.irq_resource[0] = irq;
+-	pnp_activate_dev(dev);
+-
+-	if (quirk_smc_fir_enabled(dev)) {
+-		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
+-			(unsigned long)pnp_port_start(dev, 0),
+-			(unsigned long)pnp_port_start(dev, 1));
+-		return;
+-	}
+-
+-	dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\" and "
+-		"email bjorn.helgaas@hp.com\n");
+-}
+-
+ /*
+  *  PnP Quirks
+  *  Cards or devices that need some tweaking due to incomplete resource info
+@@ -229,7 +127,6 @@
+ 	{"CTL0043", quirk_sb16audio_resources},
+ 	{"CTL0044", quirk_sb16audio_resources},
+ 	{"CTL0045", quirk_sb16audio_resources},
+-	{"SMCf010", quirk_smc_enable},
+ 	{""}
+ };
+ 
