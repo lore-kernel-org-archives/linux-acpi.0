@@ -1,329 +1,106 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH -mm 3/3] PM: Improve handling of ACPI system state indicator (rev. 3)
-Date: Wed, 29 Aug 2007 17:26:13 +0200
-Message-ID: <200708291726.14414.rjw@sisk.pl>
-References: <200708272347.45438.rjw@sisk.pl> <200708272353.09380.rjw@sisk.pl>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [2/4] 2.6.23-rc4: known regressions
+Date: Wed, 29 Aug 2007 17:27:14 +0200
+Message-ID: <46D59052.6040609@googlemail.com>
+References: <46D58CC6.4020605@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757457AbXH2PP6@vger.kernel.org>
-In-Reply-To: <200708272353.09380.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.191]:61828 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752982AbXH2P2K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 11:28:10 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so197372nfb
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 08:28:08 -0700 (PDT)
+In-Reply-To: <46D58CC6.4020605@googlemail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Plamen Petrov <plamen.petrov@tk.ru.acad.bg>, Michael Sedkowski <sedmich@gmail.com>, Alexey Dobriyan <adobriyan@sw.ru>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, "Ivan N. Zlatev" <contact@i-nz.net>, Thomas Meyer <thomas@m3y3r.de>, dth <dth@dth.net>
 
-Hi,
+Hi all,
 
-Since I've just sent a new version of the 2/3 patch, below is the alternatove
-version of $subject applying on top of that one.
+Here is a list of some known regressions in 2.6.23-rc4.
 
-Greetings,
-Rafael
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
+List of Aces
 
-To be able to avoid turning off the sleep state indicator during hibernation
-on Thinkpads (currently, it is turned off before saving the image, because we
-need to call finish() before unfreezing devices), we need to move the invocation
-of the _SST global ACPI method from acpi_enter_sleep_state_prep() to a separate
-function, acpi_set_sleep_state_indicator(), that will be called wherever
-necessary by higher-level routines.  Also, once acpi_set_sleep_state_indicator()
-has been introduced, the execution of _SST can be removed from
-acpi_leave_sleep_state_finish().
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            9
+Andi Kleen                             5
+Linus Torvalds                         5
+Andrew Morton                          4
+Hugh Dickins                           4
+Al Viro                                3
+Alan Stern                             3
+Cornelia Huck                          3
+Jens Axboe                             3
+Tejun Heo                              3
 
-acpi_set_sleep_state_indicator() should be called by acpi_pm_prepare() as well
-as by acpi_pm_finish() and by acpi_hibernation_finish().  Moreover, it is
-necessary to introduce a new hibernation callback ->post_snapshot(), that won't
-change the state indicator status and will be executed instead of ->finish()
-after creating a hibernation image.  Of course, the status indicator should be
-set before the hibernation, so the ->pre_snapshot() callback also has to call
-acpi_set_sleep_state_indicator() on ACPI systems.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/hardware/hwsleep.c |   51 +++++++++++++++++++++++++++-------------
- drivers/acpi/sleep/main.c       |   39 ++++++++++++++++++++++++------
- include/acpi/acpixf.h           |    2 +
- include/linux/suspend.h         |   19 ++++++++++----
- kernel/power/disk.c             |   23 ++++++++++++++----
- 5 files changed, 100 insertions(+), 34 deletions(-)
 
-Index: linux-2.6.23-rc4/drivers/acpi/hardware/hwsleep.c
-===================================================================
---- linux-2.6.23-rc4.orig/drivers/acpi/hardware/hwsleep.c
-+++ linux-2.6.23-rc4/drivers/acpi/hardware/hwsleep.c
-@@ -199,15 +199,46 @@ acpi_status acpi_enter_sleep_state_prep(
- 		return_ACPI_STATUS(status);
- 	}
- 
--	/* Setup the argument to _SST */
-+	/* Disable/Clear all GPEs */
-+
-+	status = acpi_hw_disable_all_gpes();
-+
-+	return_ACPI_STATUS(status);
-+}
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_set_sleep_state_indicator
-+ *
-+ * PARAMETERS:  sleep_state         - Which sleep state to enter
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Make the system status indicator reflect the sleep state being
-+ *              entered.
-+ *              This function must execute with interrupts enabled.
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_set_sleep_state_indicator(u8 sleep_state)
-+{
-+	acpi_status status;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+
-+	ACPI_FUNCTION_TRACE(acpi_set_sleep_state_indicator);
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+
-+	arg.type = ACPI_TYPE_INTEGER;
-+
-+	/* Setup the argument to _SST */
- 	switch (sleep_state) {
- 	case ACPI_STATE_S0:
- 		arg.integer.value = ACPI_SST_WORKING;
- 		break;
- 
- 	case ACPI_STATE_S1:
--	case ACPI_STATE_S2:
- 	case ACPI_STATE_S3:
- 		arg.integer.value = ACPI_SST_SLEEPING;
- 		break;
-@@ -217,27 +248,21 @@ acpi_status acpi_enter_sleep_state_prep(
- 		break;
- 
- 	default:
--		arg.integer.value = ACPI_SST_INDICATOR_OFF;	/* Default is off */
-+		/* Default is off */
-+		arg.integer.value = ACPI_SST_INDICATOR_OFF;
- 		break;
- 	}
- 
- 	/* Set the system indicators to show the desired sleep state. */
--
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		ACPI_EXCEPTION((AE_INFO, status,
- 				"While executing method _SST"));
- 	}
- 
--	/* Disable/Clear all GPEs */
--
--	status = acpi_hw_disable_all_gpes();
--
- 	return_ACPI_STATUS(status);
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_enter_sleep_state
-@@ -652,11 +677,5 @@ acpi_status acpi_leave_sleep_state_finis
- 	    acpi_set_register(acpi_gbl_fixed_event_info
- 			      [ACPI_EVENT_POWER_BUTTON].status_register_id, 1);
- 
--	arg.integer.value = ACPI_SST_WORKING;
--	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
--	}
--
- 	return_ACPI_STATUS(status);
- }
-Index: linux-2.6.23-rc4/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.23-rc4.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6.23-rc4/drivers/acpi/sleep/main.c
-@@ -70,6 +70,8 @@ static int acpi_pm_prepare(void)
- 
- 	if (error)
- 		acpi_target_sleep_state = ACPI_STATE_S0;
-+	else
-+		acpi_set_sleep_state_indicator(acpi_target_sleep_state);
- 
- 	return error;
- }
-@@ -159,6 +161,7 @@ static void acpi_pm_finish(void)
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_set_sleep_state_indicator(ACPI_STATE_S0);
- 
- #ifdef CONFIG_X86
- 	if (init_8259A_after_S1) {
-@@ -217,9 +220,33 @@ static struct dmi_system_id __initdata a
- static int acpi_hibernation_start(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
-+
- 	return 0;
- }
- 
-+static int acpi_hibernation_pre_snapshot(void)
-+{
-+	int error = acpi_sleep_prepare(ACPI_STATE_S4);
-+
-+	if (error)
-+		acpi_target_sleep_state = ACPI_STATE_S0;
-+	else
-+		acpi_set_sleep_state_indicator(ACPI_STATE_S4);
-+
-+	return error;
-+}
-+
-+static void acpi_hibernation_post_snapshot(void)
-+{
-+	acpi_leave_sleep_state_finish(ACPI_STATE_S4);
-+	acpi_disable_wakeup_device(ACPI_STATE_S4);
-+
-+	/* reset firmware waking vector */
-+	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
-+
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+
- static int acpi_hibernation_prepare(void)
- {
- 	return acpi_sleep_prepare(ACPI_STATE_S4);
-@@ -253,13 +280,8 @@ static void acpi_hibernation_leave(void)
- 
- static void acpi_hibernation_finish(void)
- {
--	acpi_leave_sleep_state_finish(ACPI_STATE_S4);
--	acpi_disable_wakeup_device(ACPI_STATE_S4);
--
--	/* reset firmware waking vector */
--	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
--
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_hibernation_post_snapshot();
-+	acpi_set_sleep_state_indicator(ACPI_STATE_S0);
- }
- 
- static int acpi_hibernation_pre_restore(void)
-@@ -278,7 +300,8 @@ static void acpi_hibernation_restore_cle
- 
- static struct platform_hibernation_ops acpi_hibernation_ops = {
- 	.start = acpi_hibernation_start,
--	.pre_snapshot = acpi_hibernation_prepare,
-+	.pre_snapshot = acpi_hibernation_pre_snapshot,
-+	.post_snapshot = acpi_hibernation_post_snapshot,
- 	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_hibernation_prepare,
- 	.enter = acpi_hibernation_enter,
-Index: linux-2.6.23-rc4/include/acpi/acpixf.h
-===================================================================
---- linux-2.6.23-rc4.orig/include/acpi/acpixf.h
-+++ linux-2.6.23-rc4/include/acpi/acpixf.h
-@@ -327,6 +327,8 @@ acpi_get_firmware_waking_vector(acpi_phy
- acpi_status
- acpi_get_sleep_type_data(u8 sleep_state, u8 * slp_typ_a, u8 * slp_typ_b);
- 
-+acpi_status acpi_set_sleep_state_indicator(u8 sleep_state);
-+
- acpi_status acpi_enter_sleep_state_prep(u8 sleep_state);
- 
- acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state);
-Index: linux-2.6.23-rc4/include/linux/suspend.h
-===================================================================
---- linux-2.6.23-rc4.orig/include/linux/suspend.h
-+++ linux-2.6.23-rc4/include/linux/suspend.h
-@@ -139,13 +139,19 @@ extern void mark_free_pages(struct zone 
-  *
-  * @pre_snapshot: Prepare the platform for creating the hibernation image.
-  *	Called right after devices have been frozen and before the nonboot
-- *	CPUs are disabled (runs with IRQs on).
-+ *	CPUs are disabled (runs with interrupts enabled).
-  *
-- * @finish: Restore the previous state of the platform after the hibernation
-- *	image has been created *or* put the platform into the normal operation
-- *	mode after the hibernation (the same method is executed in both cases).
-- *	Called right after the nonboot CPUs have been enabled and before
-- *	thawing devices (runs with IRQs on).
-+ * @post_snapshot: Restore the previous state of the platform after creating a
-+ *	hibernation image.
-+ *	Called when the hibernation image has been created, right after the
-+ *	nonboot CPUs have been enabled and before thawing devices (runs with
-+ *	interrupts enabled).
-+ *
-+ * @finish: Put the platform into the normal operation mode after the
-+ *	hibernation.
-+ *	Called only after @leave() has been executed, right after the nonboot
-+ *	CPUs have been enabled and before thawing devices (runs with interrupts
-+ *	enabled).
-  *
-  * @prepare: Prepare the platform for entering the low power state.
-  *	Called right after the hibernation image has been saved and before
-@@ -173,6 +179,7 @@ extern void mark_free_pages(struct zone 
- struct platform_hibernation_ops {
- 	int (*start)(void);
- 	int (*pre_snapshot)(void);
-+	void (*post_snapshot)(void);
- 	void (*finish)(void);
- 	int (*prepare)(void);
- 	int (*enter)(void);
-Index: linux-2.6.23-rc4/kernel/power/disk.c
-===================================================================
---- linux-2.6.23-rc4.orig/kernel/power/disk.c
-+++ linux-2.6.23-rc4/kernel/power/disk.c
-@@ -54,9 +54,9 @@ static struct platform_hibernation_ops *
- 
- void hibernation_set_ops(struct platform_hibernation_ops *ops)
- {
--	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
--	    && ops->prepare && ops->enter && ops->leave && ops->pre_restore
--	    && ops->restore_cleanup)) {
-+	if (ops && !(ops->start && ops->pre_snapshot && ops->post_snapshot
-+	    && ops->finish && ops->prepare && ops->enter && ops->leave
-+	    && ops->pre_restore && ops->restore_cleanup)) {
- 		WARN_ON(1);
- 		return;
- 	}
-@@ -93,6 +93,18 @@ static int platform_pre_snapshot(int pla
- }
- 
- /**
-+ *	platform_post_snapshot - switch the machine to the normal mode of
-+ *	operation using the platform driver after creating the hibernation
-+ *	image
-+ */
-+
-+static void platform_post_snapshot(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->post_snapshot();
-+}
-+
-+/**
-  *	platform_leave - prepare the machine for switching to the normal mode
-  *	of operation using the platform driver (called with interrupts disabled)
-  */
-@@ -228,7 +240,10 @@ int hibernation_snapshot(int platform_mo
- 	}
- 	enable_nonboot_cpus();
-  Resume_devices:
--	platform_finish(platform_mode);
-+	if (!error && !in_suspend)
-+		platform_finish(platform_mode);
-+	else
-+		platform_post_snapshot(platform_mode);
- 	device_resume();
-  Resume_console:
- 	resume_console();
+ACPI
+
+Subject         : 2.6.23-rc4: maxcpus still broken
+References      : http://lkml.org/lkml/2007/8/28/87
+Last known good : ?
+Submitter       : Alexey Dobriyan <adobriyan@sw.ru>
+Caused-By       : Len Brown <len.brown@intel.com>
+                  commit 61ec7567db103d537329b0db9a887db570431ff4
+Handled-By      : Len Brown <len.brown@intel.com>
+Status          : problem is being debugged
+
+Subject         : MCFG bug on hp nx6310
+References      : http://lkml.org/lkml/2007/8/8/252
+Last known good : ?
+Submitter       : Michael Sedkowski <sedmich@gmail.com>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+Subject         : 2.6.23-rc1-git10 hangs on boot - needs "acpi=off"
+References      : http://lkml.org/lkml/2007/8/2/24
+Last known good : ?
+Submitter       : Plamen Petrov <plamen.petrov@tk.ru.acad.bg>
+Caused-By       : ?
+Handled-By      : Len Brown <len.brown@intel.com>
+Status          : problem is being debugged
+
+
+
+ALSA
+
+Subject         : Master volume control broken
+References      : http://lkml.org/lkml/2007/8/18/46
+Last known good : ?
+Submitter       : Thomas Meyer <thomas@m3y3r.de>
+Caused-By       : Ivan N. Zlatev <contact@i-nz.net>
+                  commit 5d5d3bc3eddf2ad97b2cb090b92580e7fed6cee1
+Handled-By      : Ivan N. Zlatev <contact@i-nz.net>
+Status          : problem is being debugged
+
+
+
+CPUFREQ
+
+Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
+References      : http://lkml.org/lkml/2007/7/27/298
+                  http://lkml.org/lkml/2007/7/29/371
+Last known good : ?
+Submitter       : dth <dth@dth.net>
+Caused-By       : Len Brown <lenb@kernel.org>
+                  commit f79e3185dd0f8650022518d7624c876d8929061b
+Handled-By      : Len Brown <lenb@kernel.org>
+Status          : problem is being debugged
+
+
+
+Regards,
+Michal
+
+-- 
+LOG
+http://www.stardust.webpages.pl/log/
