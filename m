@@ -1,165 +1,132 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [1/2] 2.6.23-rc3: known regressions with patches: 8250 claims nonexisting device blocking IO port
-Date: Wed, 29 Aug 2007 10:35:44 -0600
-Message-ID: <200708291035.44244.bjorn.helgaas@hp.com>
-References: <46D59081.2040605@googlemail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH -mm 3/3] PM: Improve handling of ACPI system state indicator (rev. 3)
+Date: Wed, 29 Aug 2007 09:54:43 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4031EFC32@orsmsx415.amr.corp.intel.com>
+References: <200708272347.45438.rjw@sisk.pl> <200708272353.09380.rjw@sisk.pl> <B28E9812BAF6E2498B7EC5C427F293A4031EF65B@orsmsx415.amr.corp.intel.com> <200708290005.12323.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:32904 "EHLO atlrel8.hp.com"
+Received: from mga03.intel.com ([143.182.124.21]:17692 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751480AbXH2QgV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Aug 2007 12:36:21 -0400
-In-Reply-To: <46D59081.2040605@googlemail.com>
-Content-Disposition: inline
+	id S1752497AbXH2Qyq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 12:54:46 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200708290005.12323.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wednesday 29 August 2007 09:28:01 am Michal Piotrowski wrote:
-> Subject         : 8250 claims non existing device blocking IO port
-> References      : http://lkml.org/lkml/2007/8/18/20
-> Last known good : ?
-> Submitter       : Andrey Borzenkov <arvidjaar@mail.ru>
-> Caused-By       : ?
-> Handled-By      : Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Patch           : http://lkml.org/lkml/2007/8/21/291
-> Status          : patch was suggested
+No, it's not safe to run the AML interpreter with interrupts disabled.
 
-The following patch fixes this regression (confirmed by Andrey).
-Please queue it for 2.6.23.  I'll come back later for another
-try at sorting this all out.
+I don't have any problem with introducing finer granularity enter/exit
+sleep interfaces if they are required.
+
+I would suggest that we rename things a bit however.
+
+Currently:
+acpi_enter_sleep_state_prep
+acpi_enter_sleep_state_prep_late
+acpi_enter_sleep_state
+
+acpi_leave_sleep_state_prep
+acpi_leave_sleep_state
+
+I think we can truncate and clarify:
+
+acpi_sleep_setup1
+acpi_sleep_setup2
+acpi_sleep
+
+acpi_wake_setup1
+acpi_wake
 
 
-PNP: remove SMCf010 quirk
+acpi_set_sleep_state_indicator:
 
-If the quirk enables the SIR part of the SMCf010 device, the 8250 driver
-may claim it as a legacy ttyS device, which makes the legacy probe in the
-smsc-ircc2 driver fail.
+I'm not sure if we have any external interfaces that simply execute a
+control method, seems like overkill.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Please give me more information as to why _SSI needs to be moved (other
+than executing it after _BFS)
 
-Index: w/drivers/pnp/quirks.c
-===================================================================
---- w.orig/drivers/pnp/quirks.c	2007-08-29 10:23:52.000000000 -0600
-+++ w/drivers/pnp/quirks.c	2007-08-29 10:24:01.000000000 -0600
-@@ -107,108 +107,6 @@
- 		       "pnp: SB audio device quirk - increasing port range\n");
- }
- 
--static int quirk_smc_fir_enabled(struct pnp_dev *dev)
--{
--	unsigned long firbase;
--	u8 bank, high, low, chip;
--
--	if (!pnp_port_valid(dev, 1))
--		return 0;
--
--	firbase = pnp_port_start(dev, 1);
--
--	/* Select register bank 3 */
--	bank = inb(firbase + 7);
--	bank &= 0xf0;
--	bank |= 3;
--	outb(bank, firbase + 7);
--
--	high = inb(firbase + 0);
--	low = inb(firbase + 1);
--	chip = inb(firbase + 2);
--
--	/* This corresponds to the check in smsc_ircc_present() */
--	if (high == 0x10 && low == 0xb8 && (chip == 0xf1 || chip == 0xf2))
--		return 1;
--
--	return 0;
--}
--
--static void quirk_smc_enable(struct pnp_dev *dev)
--{
--	struct resource fir, sir, irq;
--
--	pnp_activate_dev(dev);
--	if (quirk_smc_fir_enabled(dev))
--		return;
--
--	/*
--	 * Sometimes the BIOS claims the device is enabled, but it reports
--	 * the wrong FIR resources or doesn't properly configure ISA or LPC
--	 * bridges on the way to the device.
--	 *
--	 * HP nc6000 and nc8000/nw8000 laptops have known problems like
--	 * this.  Fortunately, they do fix things up if we auto-configure
--	 * the device using its _PRS and _SRS methods.
--	 */
--	dev_err(&dev->dev, "%s not responding at SIR 0x%lx, FIR 0x%lx; "
--		"auto-configuring\n", dev->id->id,
--		(unsigned long)pnp_port_start(dev, 0),
--		(unsigned long)pnp_port_start(dev, 1));
--
--	pnp_disable_dev(dev);
--	pnp_init_resource_table(&dev->res);
--	pnp_auto_config_dev(dev);
--	pnp_activate_dev(dev);
--	if (quirk_smc_fir_enabled(dev)) {
--		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
--			(unsigned long)pnp_port_start(dev, 0),
--			(unsigned long)pnp_port_start(dev, 1));
--		return;
--	}
--
--	/*
--	 * The Toshiba Portege 4000 _CRS reports the FIR region first,
--	 * followed by the SIR region.  The BIOS will configure the bridge,
--	 * but only if we call _SRS with SIR first, then FIR.  It also
--	 * reports the IRQ as active high, when it is really active low.
--	 */
--	dev_err(&dev->dev, "not responding at SIR 0x%lx, FIR 0x%lx; "
--		"swapping SIR/FIR and reconfiguring\n",
--		(unsigned long)pnp_port_start(dev, 0),
--		(unsigned long)pnp_port_start(dev, 1));
--
--	/*
--	 * Clear IORESOURCE_AUTO so pnp_activate_dev() doesn't reassign
--	 * these resources any more.
--	 */
--	fir = dev->res.port_resource[0];
--	sir = dev->res.port_resource[1];
--	fir.flags &= ~IORESOURCE_AUTO;
--	sir.flags &= ~IORESOURCE_AUTO;
--
--	irq = dev->res.irq_resource[0];
--	irq.flags &= ~IORESOURCE_AUTO;
--	irq.flags &= ~IORESOURCE_BITS;
--	irq.flags |= IORESOURCE_IRQ_LOWEDGE;
--
--	pnp_disable_dev(dev);
--	dev->res.port_resource[0] = sir;
--	dev->res.port_resource[1] = fir;
--	dev->res.irq_resource[0] = irq;
--	pnp_activate_dev(dev);
--
--	if (quirk_smc_fir_enabled(dev)) {
--		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
--			(unsigned long)pnp_port_start(dev, 0),
--			(unsigned long)pnp_port_start(dev, 1));
--		return;
--	}
--
--	dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\" and "
--		"email bjorn.helgaas@hp.com\n");
--}
--
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -229,7 +127,6 @@
- 	{"CTL0043", quirk_sb16audio_resources},
- 	{"CTL0044", quirk_sb16audio_resources},
- 	{"CTL0045", quirk_sb16audio_resources},
--	{"SMCf010", quirk_smc_enable},
- 	{""}
- };
- 
+Thanks,
+Bob
+
+
+
+
+
+-----Original Message-----
+From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
+Sent: Tuesday, August 28, 2007 3:05 PM
+To: Moore, Robert
+Cc: Andrew Morton; ACPI Devel Maling List; Len Brown; LKML; Pavel
+Machek; pm list
+Subject: Re: [PATCH -mm 3/3] PM: Improve handling of ACPI system state
+indicator (rev. 3)
+
+On Tuesday, 28 August 2007 21:57, Moore, Robert wrote:
+> Since these changes appear to affect the ACPICA core in a fairly big
+> way, I would like to see a short, concise description of each change
+and
+> why it is necessary.
+
+All right.  I'll describe the changes made by the current version of the
+patches, but please note that if it's safe to run the AML interpreter
+with
+IRQs disabled, it's better to do some of them in a different way.
+
+1. Remove the execution of _GTS from acpi_enter_sleep_state_prep()
+
+	acpi_enter_sleep_state_prep() is called before disabling the
+nonboot
+	CPUs and _GTS should be executed after that, according to the
+spec.
+
+2. Introduce acpi_enter_sleep_state_prep_late() that will execute _GTS
+
+	Necessary because of 1.
+
+3. Split acpi_leave_sleep_state() into two functions:
+   acpi_leave_sleep_state_prep() and acpi_leave_sleep_state().
+
+	acpi_leave_sleep_state_prep() contains the code that should be
+executed
+	before enabling the nonboot CPUs, most importantly the execution
+of
+	_BFS, and acpi_leave_sleep_state() contains the remaining code
+(the
+	enabling of GPEs, the execution of _WAK and the enabling of
+power
+	buttons)
+
+4. Change the code ordering in acpi_leave_sleep_state_prep() (introduced
+   in 3.) so that _SST is executed after _BFS
+
+	According to the spec, _BFS should be the first ACPI method
+executed
+	after leaving a sleep state
+
+5. Introduce acpi_set_sleep_state_indicator() that will execute _SST for
+given
+   ACPI sleep state
+
+	Needed so that we can set the state indicator independently of
+the
+	other lower-level operations.
+
+6. Remove the execution of _SST from acpi_leave_sleep_state()
+
+	No longer needed, because we can use
+acpi_set_sleep_state_indicator()
+	to set the state indicator appropriately from higher level
+routines.
+
+The other changes affect only drivers/acpi/sleep/main.c and the files in
+kernel/power .
+
+Greetings,
+Rafael
