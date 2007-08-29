@@ -1,27 +1,26 @@
 From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [2/4] 2.6.23-rc4: known regressions
-Date: Wed, 29 Aug 2007 17:27:14 +0200
-Message-ID: <46D59052.6040609@googlemail.com>
-References: <46D58CC6.4020605@googlemail.com>
+Subject: [1/2] 2.6.23-rc3: known regressions with patches
+Date: Wed, 29 Aug 2007 17:28:01 +0200
+Message-ID: <46D59081.2040605__4284.36297593198$1188401403$gmane$org@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from nf-out-0910.google.com ([64.233.182.191]:61828 "EHLO
 	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752982AbXH2P2K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 11:28:10 -0400
+	with ESMTP id S1758653AbXH2P2z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 11:28:55 -0400
 Received: by nf-out-0910.google.com with SMTP id g13so197372nfb
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 08:28:08 -0700 (PDT)
-In-Reply-To: <46D58CC6.4020605@googlemail.com>
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 08:28:54 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Plamen Petrov <plamen.petrov@tk.ru.acad.bg>, Michael Sedkowski <sedmich@gmail.com>, Alexey Dobriyan <adobriyan@sw.ru>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, "Ivan N. Zlatev" <contact@i-nz.net>, Thomas Meyer <thomas@m3y3r.de>, dth <dth@dth.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Gabriel C <nix.or.die@googlemail.com>, Satyam Sharma <satyam.sharma@gmail.com>, Vitaly Bordug <vitb@kernel.crashing.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Daniel Ritz <daniel.ritz-ml@swissonline.ch>, Tony Luck <tony.luck@intel.com>, John Stultz <johnstul@us.ibm.com>, Paolo Ornati <ornati@fastwebnet.it>, linux-ide@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Mikael Pettersson <mikpe@it.uu.se>, Stephen Ziemba <sziemba@ecn.purdue.edu>
 
 Hi all,
 
-Here is a list of some known regressions in 2.6.23-rc4.
+Here is a list of some known regressions in 2.6.23-rc4
+with patches available.
 
 Feel free to add new regressions/remove fixed etc.
 http://kernelnewbies.org/known_regressions
@@ -42,59 +41,69 @@ Tejun Heo                              3
 
 
 
+Unclassified
+
+Subject         : 8250 claims non existing device blocking IO port
+References      : http://lkml.org/lkml/2007/8/18/20
+Last known good : ?
+Submitter       : Andrey Borzenkov <arvidjaar@mail.ru>
+Caused-By       : ?
+Handled-By      : Bjorn Helgaas <bjorn.helgaas@hp.com>
+Patch           : http://lkml.org/lkml/2007/8/21/291
+Status          : patch was suggested
+
+Subject         : Oops while modprobing phy fixed module
+References      : http://lkml.org/lkml/2007/7/14/63
+Last known good : ?
+Submitter       : Gabriel C <nix.or.die@googlemail.com>
+Caused-By       : ?
+Handled-By      : Satyam Sharma <satyam.sharma@gmail.com>
+                  Vitaly Bordug <vitb@kernel.crashing.org>
+Patch1          : http://lkml.org/lkml/2007/7/18/506
+Status          : patch available
+
+
+
 ACPI
 
-Subject         : 2.6.23-rc4: maxcpus still broken
-References      : http://lkml.org/lkml/2007/8/28/87
+Subject         : the fan doesn't work any more
+References      : http://lkml.org/lkml/2007/8/28/359
 Last known good : ?
-Submitter       : Alexey Dobriyan <adobriyan@sw.ru>
-Caused-By       : Len Brown <len.brown@intel.com>
-                  commit 61ec7567db103d537329b0db9a887db570431ff4
-Handled-By      : Len Brown <len.brown@intel.com>
-Status          : problem is being debugged
+Submitter       : Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Caused-By       : Alexey Starikovskiy <astarikovskiy@suse.de>
+                  commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
+Handled-By      : Alexey Starikovskiy <astarikovskiy@suse.de>
+Patch           : http://lkml.org/lkml/2007/8/29/15
+Status          : patch was suggested
 
-Subject         : MCFG bug on hp nx6310
-References      : http://lkml.org/lkml/2007/8/8/252
+
+
+Clocks & time
+
+Subject         : "double" hpet clocksource && hard freeze
+References      : http://lkml.org/lkml/2007/8/23/257
 Last known good : ?
-Submitter       : Michael Sedkowski <sedmich@gmail.com>
-Caused-By       : ?
-Handled-By      : ?
-Status          : unknown
+Submitter       : Paolo Ornati <ornati@fastwebnet.it>
+Caused-By       : Tony Luck <tony.luck@intel.com>
+                  commit 0aa366f351d044703e25c8425e508170e80d83b1
+Handled-By      : John Stultz <johnstul@us.ibm.com>
+                  Tony Luck <tony.luck@intel.com>
+Patch           : http://lkml.org/lkml/2007/8/23/285
+Status          : patch available
 
-Subject         : 2.6.23-rc1-git10 hangs on boot - needs "acpi=off"
-References      : http://lkml.org/lkml/2007/8/2/24
+
+
+SATA/PATA
+
+Subject         : sata_promise 2.09 fails to identify ST3400832AS
+References      : http://bugzilla.kernel.org/show_bug.cgi?id=8936
 Last known good : ?
-Submitter       : Plamen Petrov <plamen.petrov@tk.ru.acad.bg>
-Caused-By       : ?
-Handled-By      : Len Brown <len.brown@intel.com>
-Status          : problem is being debugged
-
-
-
-ALSA
-
-Subject         : Master volume control broken
-References      : http://lkml.org/lkml/2007/8/18/46
-Last known good : ?
-Submitter       : Thomas Meyer <thomas@m3y3r.de>
-Caused-By       : Ivan N. Zlatev <contact@i-nz.net>
-                  commit 5d5d3bc3eddf2ad97b2cb090b92580e7fed6cee1
-Handled-By      : Ivan N. Zlatev <contact@i-nz.net>
-Status          : problem is being debugged
-
-
-
-CPUFREQ
-
-Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
-References      : http://lkml.org/lkml/2007/7/27/298
-                  http://lkml.org/lkml/2007/7/29/371
-Last known good : ?
-Submitter       : dth <dth@dth.net>
-Caused-By       : Len Brown <lenb@kernel.org>
-                  commit f79e3185dd0f8650022518d7624c876d8929061b
-Handled-By      : Len Brown <lenb@kernel.org>
-Status          : problem is being debugged
+Submitter       : Stephen Ziemba <sziemba@ecn.purdue.edu>
+Caused-By       : Mikael Pettersson <mikpe@it.uu.se>
+                  commit a77720ad0a4049e4bc6355e4febf899966a48222
+Handled-By      : Mikael Pettersson <mikpe@it.uu.se>
+Patch           : http://bugzilla.kernel.org/show_bug.cgi?id=8936#c3
+Status          : patch available
 
 
 
