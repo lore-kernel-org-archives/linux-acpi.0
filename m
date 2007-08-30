@@ -1,100 +1,67 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [Bugme-new] [Bug 8958] New: regression: fan doesn't work anymore
-Date: Thu, 30 Aug 2007 01:37:28 +0200
-Message-ID: <6bffcb0e0708291637p22c4e9bej74ed69f3a0e93cb3@mail.gmail.com>
-References: <bug-8958-10286@http.bugzilla.kernel.org/>
-	 <20070829163321.25f5f32d.akpm@linux-foundation.org>
+From: "Russ Dill" <russ.dill@gmail.com>
+Subject: Attempting to patch DSDT to get HPET working
+Date: Wed, 29 Aug 2007 22:20:47 -0700
+Message-ID: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.176]:43633 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754934AbXH2Xh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2007 19:37:29 -0400
-Received: by wa-out-1112.google.com with SMTP id v27so386610wah
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 16:37:28 -0700 (PDT)
-In-Reply-To: <20070829163321.25f5f32d.akpm@linux-foundation.org>
+Received: from mu-out-0910.google.com ([209.85.134.186]:44208 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbXH3FUu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Aug 2007 01:20:50 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so597718mue
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2007 22:20:47 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Daniel Ritz <daniel.ritz@gmx.ch>, bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 30/08/2007, Andrew Morton <akpm@linux-foundation.org> wrote:
-> On Wed, 29 Aug 2007 13:47:36 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
->
-> > http://bugzilla.kernel.org/show_bug.cgi?id=8958
-> >
-> >            Summary: regression: fan doesn't work anymore
-> >            Product: ACPI
-> >            Version: 2.5
-> >      KernelVersion: 2.6.23-rc4
-> >           Platform: All
-> >         OS/Version: Linux
-> >               Tree: Mainline
-> >             Status: NEW
-> >           Severity: blocking
-> >           Priority: P1
-> >          Component: Other
-> >         AssignedTo: acpi_other@kernel-bugs.osdl.org
-> >         ReportedBy: daniel.ritz@gmx.ch
-> >
-> >
-> > Most recent kernel where this bug did not occur: 2.6.23-rc2 (maybe rc3)
-> > Distribution: ubuntu
-> > Hardware Environment: Toshiba Tecra 8000 Laptop (P3)
-> > Software Environment:
-> > Problem Description:
-> > the fan doesn't work any more...isected it to that one:
-> >
-> > cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b is first bad commit
-> > commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
-> > Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > Date:   Fri Aug 3 17:52:48 2007 -0400
-> >
-> >     ACPI: EC: If ECDT is not found, look up EC in DSDT.
-> >
-> >     Some ASUS laptops access EC space from device _INI methods, but do not
-> >     provide ECDT for early EC setup. In order to make them function properly,
-> >     there is a need to find EC is DSDT before any _INI is called.
-> >
-> >     Similar functionality was turned on by acpi_fake_ecdt=1 command line
-> >     before. Now it is on all the time.
-> >
-> >     http://bugzilla.kernel.org/show_bug.cgi?id=8598
-> >
-> >     Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > Steps to reproduce: boot (or try to)
-> >
->
-> I'm not sure that I understand this report ;)
->
-> Michal, pleas track it as a post-2.6.22 regression.
+I have an AMD SB460 southbridge (has HPET), but a BIOS with no HPET
+support. I tried contacting ACER to see if they have plans for this:
 
-I'm tracking this already
+> Thank you for contacting Acer America. I apologize in the delay in
+> responding to your inquiry. At this time, Acer does not have any plans to
+> offer a BIOS update to support HPET. Any BIOS updates for this computer
+>will be posted at www.acerpanam.com, in the Drivers and Downloads section,
+> as they become available.
 
-Subject         : the fan doesn't work any more
-References      : http://lkml.org/lkml/2007/8/28/359
-Last known good : ?
-Submitter       : Daniel Ritz <daniel.ritz-ml@swissonline.ch>
-Caused-By       : Alexey Starikovskiy <astarikovskiy@suse.de>
-                  commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
-Handled-By      : Alexey Starikovskiy <astarikovskiy@suse.de>
-Patch           : http://lkml.org/lkml/2007/8/29/15
-Status          : patch was suggested
+So my two options are to hardcode it into the kernel (requires
+recompilation) or modify my DSDT. Since the ubuntu kernel supports
+loading an updated DSDT.aml in the initramfs, I'm trying this route.
 
->
-> Daniel, if you have a patch which you think is needed for 2.6.23 can
-> you please send it?
->
+I added this:
 
-Status          : patch was suggested
+Device (HPET)
+{
+    Name (_HID, EisaId ("PNP0103"))
+    Name (BUF0, ResourceTemplate ()
+    {
+        IRQNoFlags () {0}
+        IRQNoFlags () {8}
+        Memory32Fixed (ReadOnly, 0xFED00000, 0x00000400)
+    })
 
-Regards,
-Michal
+    Method (_STA, 0, NotSerialized)
+    {
+         Return (0x0F)
+    }
 
--- 
-LOG
-http://www.stardust.webpages.pl/log/
+    Method (_CRS, 0, Serialized)
+    {
+        CreateDWordField (BUF0, 0x0A, HPT0)
+        Store (0xFED01000, HPT0)
+        Return (BUF0)
+    }
+}
+
+between my Device (HMAC) stanza and my Device (MATH) stanza. On boot,
+the kernel indicates that its loading an updated DSDT out of the
+initramfs, and later on down the line, I get the following message:
+
+hpet_acpi_add: no address or irqs in _CRS
+
+So, good news, drivers/char/hpet.c is finding my PNP0103 entry. Bad
+news, its having a problem with the resources. Any clue why?
+
+(Machine is Acer Ferrari 5000, BIOS version 3225, ubuntu linux kernel 2.6.22-10)
