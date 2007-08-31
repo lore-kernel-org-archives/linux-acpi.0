@@ -1,37 +1,41 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [1/2] 2.6.23-rc3: known regressions with patches
-Date: Fri, 31 Aug 2007 17:41:22 -0400
-Message-ID: <200708311741.22863.lenb@kernel.org>
-References: <46D59081.2040605@googlemail.com>
+Subject: Re: [2/4] 2.6.23-rc4: known regressions
+Date: Fri, 31 Aug 2007 18:01:16 -0400
+Message-ID: <200708311801.16899.lenb@kernel.org>
+References: <46D58CC6.4020605@googlemail.com> <46D59052.6040609@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <46D59081.2040605@googlemail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:41891 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750816AbXHaXXS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 Aug 2007 19:23:18 -0400
+In-Reply-To: <46D59052.6040609@googlemail.com>
 Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Gabriel C <nix.or.die@googlemail.com>, Satyam Sharma <satyam.sharma@gmail.com>, Vitaly Bordug <vitb@kernel.crashing.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Daniel Ritz <daniel.ritz-ml@swissonline.ch>, Tony Luck <tony.luck@intel.com>, John Stultz <johnstul@us.ibm.com>, Paolo Ornati <ornati@fastwebnet.it>, linux-ide@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Mikael Pettersson <mikpe@it.uu.se>, Stephen Ziemba <sziemba@ecn.purdue.edu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Plamen Petrov <plamen.petrov@tk.ru.acad.bg>, Michael Sedkowski <sedmich@gmail.com>, Alexey Dobriyan <adobriyan@sw.ru>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, "Ivan N. Zlatev" <contact@i-nz.net>, Thomas Meyer <thomas@m3y3r.de>, dth <dth@dth.net>
 
-On Wednesday 29 August 2007 11:28, Michal Piotrowski wrote:
 
 > ACPI
 > 
-> Subject         : the fan doesn't work any more
-> References      : http://lkml.org/lkml/2007/8/28/359
+> Subject         : 2.6.23-rc4: maxcpus still broken
+> References      : http://lkml.org/lkml/2007/8/28/87
 > Last known good : ?
-> Submitter       : Daniel Ritz <daniel.ritz-ml@swissonline.ch>
-> Caused-By       : Alexey Starikovskiy <astarikovskiy@suse.de>
->                   commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
-> Handled-By      : Alexey Starikovskiy <astarikovskiy@suse.de>
-> Patch           : http://lkml.org/lkml/2007/8/29/15
-> Status          : patch was suggested
+> Submitter       : Alexey Dobriyan <adobriyan@sw.ru>
+> Caused-By       : Len Brown <len.brown@intel.com>
+>                   commit 61ec7567db103d537329b0db9a887db570431ff4
+> Handled-By      : Len Brown <len.brown@intel.com>
+> Status          : problem is being debugged
+> 
 
-I believe that this is gone as of 2.6.23-rc4-git3
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8958
+Hugh debugged and fixed this one, and it is checked into 2.6.23-rc4-git3
+62e6f1e8bb7c48c02b8bdb3085c5f6365682149b 
+fix maxcpus=1 oops in show_stat()
+    
 
 thanks,
 -Len
