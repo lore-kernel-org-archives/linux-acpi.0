@@ -1,84 +1,91 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: Thermal: Drop concurrent thermal checks
-Date: Sat, 01 Sep 2007 00:11:59 +0400
-Message-ID: <20070831201159.27101.58547.stgit@z61m>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI:  Remove code related to dead ACPI_PROCFS_SLEEP config variable.
+Date: Fri, 31 Aug 2007 16:36:16 -0400
+Message-ID: <200708311636.17043.lenb@kernel.org>
+References: <Pine.LNX.4.64.0708310811530.2720@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:48068 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1761653AbXHaUMV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2007 16:12:21 -0400
+Received: from hera.kernel.org ([140.211.167.34]:39384 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933155AbXHaUxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 Aug 2007 16:53:35 -0400
+In-Reply-To: <Pine.LNX.4.64.0708310811530.2720@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Robert P. J. Day" <rpjday@mindspring.com>
+Cc: linux-acpi@vger.kernel.org
 
-Fix for #3686, where get_temperature() may cause thermal notify, which
-causes one more get_temperature().
+Good eye,
+but actually, the real fix is in the queue already, as below.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+thanks,
+-Len
 
- drivers/acpi/thermal.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index bc6d586..cb5ebd8 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -195,6 +195,7 @@ struct acpi_thermal {
- 	struct acpi_thermal_trips trips;
- 	struct acpi_handle_list devices;
- 	struct timer_list timer;
-+	struct mutex lock;
+commit 134c21715ac3cb36db13c8d362cc80ccc87ee48d
+Author: Christian Borntraeger <borntraeger@de.ibm.com>
+Date:   Tue Aug 28 14:58:56 2007 -0400
+
+    ACPI: (more) delete CONFIG_ACPI_PROCFS_SLEEP (again)
+    
+    Commit 2bcf9dddeb8e79a4ba55bf191533f70f39ce
+    ('ACPI: delete CONFIG_ACPI_PROCFS_SLEEP (again)')
+    was incomplete.
+    
+    Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+index 66b62b0..3839efd 100644
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -23,7 +23,7 @@
+  */
+ 
+ ACPI_MODULE_NAME("sleep")
+-#ifdef	CONFIG_ACPI_PROCFS_SLEEP
++#ifdef	CONFIG_ACPI_PROCFS
+ static int acpi_system_sleep_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	int i;
+@@ -76,7 +76,7 @@ acpi_system_write_sleep(struct file *file,
+       Done:
+ 	return error ? error : count;
+ }
+-#endif				/* CONFIG_ACPI_PROCFS_SLEEP */
++#endif				/* CONFIG_ACPI_PROCFS */
+ 
+ #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || !defined(CONFIG_X86)
+ /* use /sys/class/rtc/rtcX/wakealarm instead; it's not ACPI-specific */
+@@ -471,7 +471,7 @@ static const struct file_operations acpi_system_wakeup_device_fops = {
+ 	.release = single_release,
  };
  
- static const struct file_operations acpi_thermal_state_fops = {
-@@ -720,11 +721,15 @@ static void acpi_thermal_check(void *data)
- 		return;
- 	}
+-#ifdef	CONFIG_ACPI_PROCFS_SLEEP
++#ifdef	CONFIG_ACPI_PROCFS
+ static const struct file_operations acpi_system_sleep_fops = {
+ 	.open = acpi_system_sleep_open_fs,
+ 	.read = seq_read,
+@@ -479,7 +479,7 @@ static const struct file_operations acpi_system_sleep_fops = {
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
+-#endif				/* CONFIG_ACPI_PROCFS_SLEEP */
++#endif				/* CONFIG_ACPI_PROCFS */
  
-+	/* Check if someone else is already running */
-+	if (!mutex_trylock(&tz->lock))
-+		return;
-+
- 	state = tz->state;
+ #ifdef	HAVE_ACPI_LEGACY_ALARM
+ static const struct file_operations acpi_system_alarm_fops = {
+@@ -506,7 +506,7 @@ static int __init acpi_sleep_proc_init(void)
+ 	if (acpi_disabled)
+ 		return 0;
  
- 	result = acpi_thermal_get_temperature(tz);
- 	if (result)
--		return;
-+		goto unlock;
- 
- 	memset(&tz->state, 0, sizeof(tz->state));
- 
-@@ -813,8 +818,8 @@ static void acpi_thermal_check(void *data)
- 			add_timer(&(tz->timer));
- 		}
- 	}
--
--	return;
-+      unlock:
-+	mutex_unlock(&tz->lock);
- }
- 
- /* --------------------------------------------------------------------------
-@@ -1251,7 +1256,7 @@ static int acpi_thermal_add(struct acpi_device *device)
- 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
- 	acpi_driver_data(device) = tz;
--
-+	mutex_init(&tz->lock);
- 	result = acpi_thermal_get_info(tz);
- 	if (result)
- 		goto end;
-@@ -1321,7 +1326,7 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
- 	}
- 
- 	acpi_thermal_remove_fs(device);
--
-+	mutex_destroy(&tz->lock);
- 	kfree(tz);
- 	return 0;
- }
+-#ifdef	CONFIG_ACPI_PROCFS_SLEEP
++#ifdef	CONFIG_ACPI_PROCFS
+ 	/* 'sleep' [R/W] */
+ 	entry =
+ 	    create_proc_entry("sleep", S_IFREG | S_IRUGO | S_IWUSR,
 
