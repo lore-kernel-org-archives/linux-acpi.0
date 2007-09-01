@@ -1,55 +1,392 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [1/2] 2.6.23-rc3: known regressions with patches
-Date: Sat, 01 Sep 2007 10:36:51 +0200
-Message-ID: <46D924A3.3070207__47137.5365196311$1188635883$gmane$org@googlemail.com>
-References: <46D59081.2040605@googlemail.com> <200708311741.22863.lenb@kernel.org>
+From: Dmitry Marin <corvax@corvax.ru>
+Subject: dmidecode output from notebook Benq joybook s31
+Date: Sat, 01 Sep 2007 15:52:57 +0400
+Message-ID: <1188647577.7619.2.camel@corvax-laptop>
+Reply-To: corvax@corvax.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:5829 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552AbXIAIhK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Sep 2007 04:37:10 -0400
-Received: by nf-out-0910.google.com with SMTP id f5so862289nfh
-        for <linux-acpi@vger.kernel.org>; Sat, 01 Sep 2007 01:37:09 -0700 (PDT)
-In-Reply-To: <200708311741.22863.lenb@kernel.org>
+Received: from backend13.aha.ru ([62.113.86.202]:38933 "EHLO aha.ru"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751419AbXIAMwZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 1 Sep 2007 08:52:25 -0400
+Received: from [78.106.140.228] (account corvax@corvax.ru HELO [192.168.1.107])
+  by backend13.aha.ru (CommuniGate Pro SMTP 4.3.11)
+  with ESMTPSA id 17968811 for linux-acpi@vger.kernel.org; Sat, 01 Sep 2007 15:52:19 +0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+To: linux-acpi@vger.kernel.org
 
-Len Brown pisze:
-> On Wednesday 29 August 2007 11:28, Michal Piotrowski wrote:
-> 
->> ACPI
->>
->> Subject         : the fan doesn't work any more
->> References      : http://lkml.org/lkml/2007/8/28/359
->> Last known good : ?
->> Submitter       : Daniel Ritz <daniel.ritz-ml@swissonline.ch>
->> Caused-By       : Alexey Starikovskiy <astarikovskiy@suse.de>
->>                   commit cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b
->> Handled-By      : Alexey Starikovskiy <astarikovskiy@suse.de>
->> Patch           : http://lkml.org/lkml/2007/8/29/15
->> Status          : patch was suggested
-> 
-> I believe that this is gone as of 2.6.23-rc4-git3
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8958
+corvax@corvax-laptop:~$ uname -a
+Linux corvax-laptop 2.6.22-10-generic #1 SMP Wed Aug 22 08:11:52 GMT
+2007 i686 GNU/Linux
+corvax@corvax-laptop:~$ sudo dmidecode 
+# dmidecode 2.9
+SMBIOS 2.4 present.
+34 structures occupying 1112 bytes.
+Table at 0x000DF810.
 
-BTW. Maciej Rutecki has said that "MCFG bug on hp nx6310" is not
-a regression, so regression counter for ACPI == 0 (if I didn't
-overlook something :))
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Phoenix Technologies LTD
+        Version: 1.08  
+        Release Date: 09/12/06
+        Address: 0xE8B70
+        Runtime Size: 95376 bytes
+        ROM Size: 1024 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PC Card (PCMCIA) is supported
+                PNP is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                ACPI is supported
+                USB legacy is supported
+                Smart battery is supported
+                BIOS boot specification is supported
 
-> 
-> thanks,
-> -Len
-> 
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: BenQ
+        Product Name: Joybook S31
+        Version:                                   
+        Serial Number: 9H00P11R0364406335DHT300
+        UUID: 80F9339B-D064-0010-B856-00163691CDB5
+        Wake-up Type: Power Switch
+        SKU Number: Not Specified
+        Family: Not Specified
 
-Regards,
-Michal
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: BenQ
+        Product Name: Joybook S31
+        Version: Rev 1.0
+        Serial Number:                                 
 
--- 
-LOG
-http://www.stardust.webpages.pl/log/
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: BenQ
+        Type: Notebook
+        Lock: Not Present
+        Version:                                 
+        Serial Number:                                 
+        Asset Tag:                                 
+        Boot-up State: Unknown
+        Power Supply State: Unknown
+        Thermal State: Unknown
+        Security Status: Unknown
+        OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: U2E1
+        Type: Central Processor
+        Family: Unknown
+        Manufacturer: Intel
+        ID: F6 06 00 00 FF FB EB BF
+        Version:   
+        Voltage: 3.3 V
+        External Clock: 100 MHz
+        Max Speed: 1600 MHz
+        Current Speed: 1600 MHz
+        Status: Populated, Enabled
+        Upgrade: ZIF Socket
+        L1 Cache Handle: 0x0005
+        L2 Cache Handle: 0x0006
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L1 Cache
+        Configuration: Enabled, Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 16 KB
+        Maximum Size: 16 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Asynchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Socketed, Level 2
+        Operational Mode: Write Back
+        Location: External
+        Installed Size: 2048 KB
+        Maximum Size: 512 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Burst
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J19
+        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+        External Reference Designator: COM 1
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J23
+        Internal Connector Type: 25 Pin Dual Inline (pin 26 cut)
+        External Reference Designator: Parallel
+        External Connector Type: DB-25 female
+        Port Type: Parallel Port ECP/EPP
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J11
+        Internal Connector Type: None
+        External Reference Designator: Keyboard
+        External Connector Type: Circular DIN-8 male
+        Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J12
+        Internal Connector Type: None
+        External Reference Designator: PS/2 Mouse
+        External Connector Type: Circular DIN-8 male
+        Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Slot J11
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000C, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Sound
+        Status: Disabled
+        Description: HD-Audio
+
+Handle 0x000D, DMI type 11, 5 bytes
+OEM Strings
+        String 1:  
+        String 2:  
+        String 3:  
+        String 4:  
+        String 5:  
+
+Handle 0x000E, DMI type 12, 5 bytes
+System Configuration Options
+        Option 1: Jumper settings can be described here.
+
+Handle 0x000F, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 16 bytes
+        Header Start Offset: 0x0000
+        Header Length: 16 bytes
+        Data Start Offset: 0x0010
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Valid, Not Full
+        Change Token: 0x00000001
+        Header Format: Type 1
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
+
+Handle 0x0010, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 3 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x0011, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x0010
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M1
+        Bank Locator: Bank 0
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0012, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x0010
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M2
+        Bank Locator: Bank 1
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0013, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 2 GB
+        Physical Array Handle: 0x0010
+        Partition Width: 0
+
+Handle 0x0014, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0003FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x0011
+        Memory Array Mapped Address Handle: 0x0013
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0015, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00040000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x0012
+        Memory Array Mapped Address Handle: 0x0013
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0016, DMI type 23, 13 bytes
+System Reset
+        Status: Enabled
+        Watchdog Timer: Present
+        Boot Option: Do Not Reboot
+        Boot Option On Limit: Do Not Reboot
+        Reset Count: Unknown
+        Reset Limit: Unknown
+        Timer Interval: Unknown
+        Timeout: Unknown
+
+Handle 0x0017, DMI type 24, 5 bytes
+Hardware Security
+        Power-On Password Status: Disabled
+        Keyboard Password Status: Unknown
+        Administrator Password Status: Disabled
+        Front Panel Reset Status: Unknown
+
+Handle 0x0018, DMI type 25, 9 bytes
+        System Power Controls
+        Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0019, DMI type 26, 20 bytes
+Voltage Probe
+        Description: Voltage Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001A, DMI type 27, 12 bytes
+Cooling Device
+        Temperature Probe Handle: 0x001B
+        Type: Fan
+        Status: OK
+        OEM-specific Information: 0x00000000
+
+Handle 0x001B, DMI type 28, 20 bytes
+Temperature Probe
+        Description: Temperature Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001C, DMI type 29, 20 bytes
+Electrical Current Probe
+        Description: Electrical Current Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001D, DMI type 30, 6 bytes
+Out-of-band Remote Access
+        Manufacturer Name: Intel
+        Inbound Connection: Enabled
+        Outbound Connection: Disabled
+
+Handle 0x001E, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x001F, DMI type 129, 16 bytes
+OEM-specific Type
+        Header and Data:
+                81 10 1F 00 01 01 02 01 00 00 00 01 00 00 08 01
+        Strings:
+                Intel_ASF_001
+                Intel_ASF_001
+
+Handle 0x0020, DMI type 136, 8 bytes
+OEM-specific Type
+        Header and Data:
+                88 08 20 00 FF FF 00 00
+        Strings:
+                ..!
+
+Handle 0x0021, DMI type 127, 4 bytes
+End Of Table
+
+
+
