@@ -1,39 +1,42 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] ACPI: event: fix acpi_bus_generate_netlink_event call
-Date: Mon,  3 Sep 2007 00:03:35 -0300
-Message-ID: <11887886153952-git-send-email-hmh@hmh.eng.br>
+Subject: [GIT PATCH] thinkpad-acpi changes targeted at 2.6.23-rc6
+Date: Mon,  3 Sep 2007 00:16:26 -0300
+Message-ID: <1188789388345-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:50402 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:49067 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752679AbXICDDk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2007 23:03:40 -0400
+	by vger.kernel.org with ESMTP id S1752888AbXICDQc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2007 23:16:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Fix for:
-drivers/acpi/event.c:243: error: 'acpi_generate_netlink_event' undeclared
-here (not in a function)
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- drivers/acpi/event.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Len,
 
-diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
-index a2b9304..5c95863 100644
---- a/drivers/acpi/event.c
-+++ b/drivers/acpi/event.c
-@@ -240,7 +240,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
- 	return 0;
- }
- 
--EXPORT_SYMBOL(acpi_generate_netlink_event);
-+EXPORT_SYMBOL(acpi_bus_generate_netlink_event);
- 
- static int acpi_event_genetlink_init(void)
- {
+The two patches that follow this email update thinkpad-acpi userspace
+interface into a much friendlier shape, taking advantage of the new
+netlink functionality in the ACPI core.
+
+Please send them to Linus ASAP for merging, so that they get included in
+2.6.23.  That will make my life (and HAL's, as well as the user's) a lot
+easier...  The solution currently in mainline is not nearly as nice and
+transparent as the one in these patches.
+
+As usual, these patches are available for git pull from:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-release
+
+Shortlog follows:
+
+Henrique de Moraes Holschuh (3):
+      ACPI: event: fix acpi_bus_generate_netlink_event call
+      		(the above patch was sent separately)
+      ACPI: thinkpad-acpi: always enable input layer, add hotkey_report_mode
+      ACPI: thinkpad-acpi: bump up version to 0.16
+
 -- 
-1.5.2.4
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
