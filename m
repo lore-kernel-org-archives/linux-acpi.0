@@ -1,63 +1,39 @@
-From: Len Brown <lenb@kernel.org>
+From: Chuck Ebbert <cebbert@redhat.com>
 Subject: Re: What's happening with the cpuidle code?
-Date: Tue, 4 Sep 2007 17:43:47 -0400
-Message-ID: <200709041743.47837.lenb@kernel.org>
-References: <46DDC462.2040309@redhat.com>
+Date: Tue, 04 Sep 2007 18:15:59 -0400
+Message-ID: <46DDD91F.3050004@redhat.com>
+References: <46DDC462.2040309@redhat.com> <200709041743.47837.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35327 "EHLO hera.kernel.org"
+Received: from mx1.redhat.com ([66.187.233.31]:35402 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754175AbXIDVj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Sep 2007 17:39:58 -0400
-In-Reply-To: <46DDC462.2040309@redhat.com>
-Content-Disposition: inline
+	id S1752773AbXIDWQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Sep 2007 18:16:18 -0400
+In-Reply-To: <200709041743.47837.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Adam Belay <abelay@novell.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Adam Belay <abelay@novell.com>
 
-On Tuesday 04 September 2007 16:47, Chuck Ebbert wrote:
-> A look at the 'cpuidle' branch of git-acpi shows a commit
-> e40cede7d63a029e92712a3fe02faee60cc38fb4, "cpuidle: first
-> round of documentation updates" that doesn't show up in that
-> branch online. The entire Documentation/cpuidle directory
-> is missing from the tree when looking at the web pages, and
-> it's missing from git-acpi.patch in 2.6.23-rc4-mm1 (but the
-> patch shows up in the summary information in the patch
-> header.) Where did it go? And how can -mm be used to test
-> things if its patches don't even match their own headers?
+On 09/04/2007 05:43 PM, Len Brown wrote:
+> On Tuesday 04 September 2007 16:47, Chuck Ebbert wrote:
+>> A look at the 'cpuidle' branch of git-acpi shows a commit
+>> e40cede7d63a029e92712a3fe02faee60cc38fb4, "cpuidle: first
+>> round of documentation updates" that doesn't show up in that
+>> branch online. The entire Documentation/cpuidle directory
+>> is missing from the tree when looking at the web pages, and
+>> it's missing from git-acpi.patch in 2.6.23-rc4-mm1 (but the
+>> patch shows up in the summary information in the patch
+>> header.) Where did it go? And how can -mm be used to test
+>> things if its patches don't even match their own headers?
+> 
+> A later patch in that series, "cpuidle: re-write", reverted
+> the documentation from the intermediate patch that you refer to:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=2305a5920fb8ee6ccec1c62ade05aa8351091d71
 
-A later patch in that series, "cpuidle: re-write", reverted
-the documentation from the intermediate patch that you refer to:
-
-http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=2305a5920fb8ee6ccec1c62ade05aa8351091d71
-
-The cpuidle branch on git.kernel.org looks okay to me:
-
-http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=shortlog;h=cpuidle
-
-the top commit is this one:
-
-commit 8975059a2c1e56cfe83d1bcf031bcf4cb39be743
-Author: Adam Belay <abelay@novell.com>
-Date:   Tue Aug 21 18:27:07 2007 -0400
-
-    CPUIDLE: load ACPI properly when CPUIDLE is disabled
-
-And this top patch is indeed included in the latest acpi test branch,
-as well as the latest ACPI test patch here:
-
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.23/acpi-test-20070126-2.6.23-rc5.diff.gz
-
-Note that there were some merge conflicts when pulling cpuidle into 2.6.23,
-so you are best off running either the acpi patch above on top of 2.6.23-rc5,
-or the acpi test  branch, or the mm tree so you won't have to merge the
-cpuidle branch onto your latest kernel again.
-
-cheers,
--Len
-
+It never occurred to me that a patch would just remove documentation.
+Thanks for looking into that...
 
