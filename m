@@ -1,45 +1,63 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi changes targeted at 2.6.23-rc6 (v2)
-Date: Tue, 4 Sep 2007 17:25:06 -0400
-Message-ID: <200709041725.06516.lenb@kernel.org>
-References: <1188915196931-git-send-email-hmh@hmh.eng.br>
+Subject: Re: What's happening with the cpuidle code?
+Date: Tue, 4 Sep 2007 17:43:47 -0400
+Message-ID: <200709041743.47837.lenb@kernel.org>
+References: <46DDC462.2040309@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46346 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:35327 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755273AbXIDVVR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Sep 2007 17:21:17 -0400
-In-Reply-To: <1188915196931-git-send-email-hmh@hmh.eng.br>
+	id S1754175AbXIDVj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Sep 2007 17:39:58 -0400
+In-Reply-To: <46DDC462.2040309@redhat.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Adam Belay <abelay@novell.com>
 
-On Tuesday 04 September 2007 10:13, you wrote:
-> 
-> Len,
-> 
-> Here is a new version of the patches for thinkpad-acpi that I'd like to
-> see merged in mainline before 2.6.23-rc6 is out.  There were *no* code
-> chages since the last version.  I have updated the patch comments and
-> title as you suggested, and also made some changes to the thinkpad-acpi
-> documentation in the patch.
-> 
-> As usual, it is available at:
-> git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-release                                                                  
-> 
-> Shortlog of the above branch:
-> Henrique de Moraes Holschuh (3):
->       ACPI: event: fix acpi_bus_generate_netlink_event call
->       ACPI: thinkpad-acpi: revert new 2.6.23 CONFIG_THINKPAD_ACPI_INPUT_ENABLED option
->       ACPI: thinkpad-acpi: bump up version to 0.16
-> 
+On Tuesday 04 September 2007 16:47, Chuck Ebbert wrote:
+> A look at the 'cpuidle' branch of git-acpi shows a commit
+> e40cede7d63a029e92712a3fe02faee60cc38fb4, "cpuidle: first
+> round of documentation updates" that doesn't show up in that
+> branch online. The entire Documentation/cpuidle directory
+> is missing from the tree when looking at the web pages, and
+> it's missing from git-acpi.patch in 2.6.23-rc4-mm1 (but the
+> patch shows up in the summary information in the patch
+> header.) Where did it go? And how can -mm be used to test
+> things if its patches don't even match their own headers?
 
-thanks for updating this, Henrique, it is a big improvement.
-I'll apply it to my release branch.
+A later patch in that series, "cpuidle: re-write", reverted
+the documentation from the intermediate patch that you refer to:
 
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commit;h=2305a5920fb8ee6ccec1c62ade05aa8351091d71
+
+The cpuidle branch on git.kernel.org looks okay to me:
+
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=shortlog;h=cpuidle
+
+the top commit is this one:
+
+commit 8975059a2c1e56cfe83d1bcf031bcf4cb39be743
+Author: Adam Belay <abelay@novell.com>
+Date:   Tue Aug 21 18:27:07 2007 -0400
+
+    CPUIDLE: load ACPI properly when CPUIDLE is disabled
+
+And this top patch is indeed included in the latest acpi test branch,
+as well as the latest ACPI test patch here:
+
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.23/acpi-test-20070126-2.6.23-rc5.diff.gz
+
+Note that there were some merge conflicts when pulling cpuidle into 2.6.23,
+so you are best off running either the acpi patch above on top of 2.6.23-rc5,
+or the acpi test  branch, or the mm tree so you won't have to merge the
+cpuidle branch onto your latest kernel again.
+
+cheers,
 -Len
+
+
