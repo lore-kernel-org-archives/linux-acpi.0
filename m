@@ -1,61 +1,46 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH -mm] Hibernation: Check if ACPI is enabled during restore in the right place
-Date: Thu, 6 Sep 2007 01:56:03 +0000
-Message-ID: <20070906015603.GA5097@ucw.cz>
-References: <200709020021.37881.rjw@sisk.pl>
+From: Alan Hourihane <alanh@fairlite.demon.co.uk>
+Subject: obtaining acpi details outside of drivers/acpi
+Date: Thu, 06 Sep 2007 11:16:09 +0100
+Message-ID: <1189073769.7969.32.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:44179 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753541AbXIFJAW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2007 05:00:22 -0400
-Content-Disposition: inline
-In-Reply-To: <200709020021.37881.rjw@sisk.pl>
+Received: from fairlite.demon.co.uk ([80.176.228.186]:54652 "EHLO
+	fairlite.demon.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603AbXIFKtc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2007 06:49:32 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by fairlite.demon.co.uk (Postfix) with ESMTP id B45182A8C296
+	for <linux-acpi@vger.kernel.org>; Thu,  6 Sep 2007 09:46:25 +0000 (UTC)
+Received: from fairlite.demon.co.uk ([127.0.0.1])
+	by localhost (server.demon.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id KyqGtcUAkkgO for <linux-acpi@vger.kernel.org>;
+	Thu,  6 Sep 2007 10:46:25 +0100 (BST)
+Received: from [192.168.0.50] (jetpack.demon.co.uk [192.168.0.50])
+	by fairlite.demon.co.uk (Postfix) with ESMTP id 2ED612A8C2FF
+	for <linux-acpi@vger.kernel.org>; Thu,  6 Sep 2007 10:46:25 +0100 (BST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-On Sun 2007-09-02 00:21:37, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-> The following scenario leads to total confusion of the platform firmw=
-are on
-> some boxes (eg. HPC nx6325):
-> * Hibernate with ACPI enabled
-> * Pass "acpi=3Doff" to the boot kernel
->=20
-> To prevent this from happening it's necessary to check if ACPI is ena=
-bled (and
-> enable it if that's not the case) _right_ _after_ control has been tr=
-ansfered
-> from the boot kernel to the image kernel, before device_power_up() is=
- called
-> (ie. with interrupts disabled). =A0Enabling ACPI after calling device=
-_power_up()
-> turns out to be insufficient.
->=20
-> For this reason, introduce new hibernation callback ->leave() that wi=
-ll be
-> executed before device_power_up() by the restored image kernel. =A0To=
- make it
-> work, it also is necessary to move swsusp_suspend() from swsusp.c to =
-disk.c
-> (it's name is changed to "create_image", which is more up to the poin=
-t).
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+I'm looking at the currently exported function calls to other kernel
+modules to obtain ACPI data.
 
-ACK.
+For example, if I want to access _DOD for graphics, the pathname would
+be something like...
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+\\_SB_.PCI0.GFX0._DOD
+
+And I'm currently doing this...
+
+	status = acpi_evaluate_object(NULL, PATHNAME, NULL, &buffer);
+
+where PATHNAME is the path above.
+
+But there's no guarantees that it's called PCI0, or even GFX0.
+
+What's the best way to search the namespace and get this data ??
+
+Alan.
+
