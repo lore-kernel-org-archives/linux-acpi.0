@@ -1,56 +1,73 @@
-From: Alan Hourihane <alanh@fairlite.demon.co.uk>
-Subject: Re: obtaining acpi details outside of drivers/acpi
-Date: Thu, 06 Sep 2007 15:33:07 +0100
-Message-ID: <1189089187.7969.71.camel@localhost>
-References: <1189073769.7969.32.camel@localhost>
-	 <200709060743.42060.lenb@kernel.org> <1189079221.7969.40.camel@localhost>
-	 <200709060922.50337.lenb@kernel.org> <1189086833.7969.58.camel@localhost>
-	 <46E00C08.4030200@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: Attempting to patch DSDT to get HPET working
+Date: Sat, 8 Sep 2007 13:47:07 -0600
+Message-ID: <200709081347.08174.bjorn.helgaas@hp.com>
+References: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fairlite.demon.co.uk ([80.176.228.186]:55812 "EHLO
-	fairlite.demon.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbXIFOdN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2007 10:33:13 -0400
-In-Reply-To: <46E00C08.4030200@gmail.com>
+Received: from atlrel6.hp.com ([156.153.255.205]:34253 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755501AbXIHTra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Sep 2007 15:47:30 -0400
+In-Reply-To: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Thu, 2007-09-06 at 18:17 +0400, Alexey Starikovskiy wrote:
-> Alan Hourihane wrote:
-> > On Thu, 2007-09-06 at 09:22 -0400, Len Brown wrote:
-> >> On Thursday 06 September 2007 07:47, Alan Hourihane wrote:
-> >>
-> >>> Mmm. It seems acpi_video_bus_check() is static and therefore not
-> >>> available outside of video.c
-> >>>
-> >>>> BTW. I'm curious what you are trying to do.
-> >>>> There is actually quite a bit of movement in this code right now.
-> >>> Think about fbdev drivers (or some video driver).... Rather than
-> >>> bang on the hardware to try and do auto-detection of devices, it's much
-> >>> easier (and sometimes required) to just ask the system BIOS via ACPI to
-> >>> see what devices are available.
-> >>>
-> >>> I want to parse _DOD myself to see what's available in kernel space.
-> >> It would be good to have this code in only one place
-> >> and export it from there to other parts of the kernel that need it.
-> >> I'd like to be able to not have fbdev drivers depend on the acpi video driver,
-> >> so perhaps we could have some generic interface where fbdev is the consumer
-> >> and in this case acpi/video.c is the provider?
-> > 
-> > That sounds good. I'm open to suggestions on interface.
-> > 
-> > But is there anything better available now to scan the namespace in
-> > current released kernels for _DOD ?
-> 2.6.23-rc5 has it...
+On Wednesday 29 August 2007 11:20:47 pm Russ Dill wrote:
+> I have an AMD SB460 southbridge (has HPET), but a BIOS with no HPET
+> support.
+> ...
+> I added this:
+> 
+> Device (HPET)
+> {
+>     Name (_HID, EisaId ("PNP0103"))
+>     Name (BUF0, ResourceTemplate ()
+>     {
+>         IRQNoFlags () {0}
+>         IRQNoFlags () {8}
+>         Memory32Fixed (ReadOnly, 0xFED00000, 0x00000400)
+>     })
+> 
+>     Method (_STA, 0, NotSerialized)
+>     {
+>          Return (0x0F)
+>     }
+> 
+>     Method (_CRS, 0, Serialized)
+>     {
+>         CreateDWordField (BUF0, 0x0A, HPT0)
+>         Store (0xFED01000, HPT0)
+>         Return (BUF0)
+>     }
+> }
+> 
+> ... I get the following message:
+> 
+> hpet_acpi_add: no address or irqs in _CRS
+> 
+> So, good news, drivers/char/hpet.c is finding my PNP0103 entry. Bad
+> news, its having a problem with the resources. Any clue why?
 
-Thanks Alexey,
+If you look at drivers/char/hpet.c:hpet_resources(), you'll see that
+it's fairly simple-minded.  In particular, hpet_acpi_add() requires
+both an address and an IRQ, but hpet_resources() only looks at
+ACPI_RESOURCE_TYPE_EXTENDED_IRQ items.
 
-I'll take a look.
+I'm not an AML expert, but my guess is that your AML generates a
+plain ACPI_RESOURCE_TYPE_IRQ, not an EXTENDED_IRQ item.  If you can
+write AML that generates an EXTENDED_IRQ item, I bet it will work.
 
-Alan.
+This is a bug in the HPET driver.  I think the right way to fix it
+is to convert it from an ACPI driver to a PNP driver and let PNPACPI
+do the resource parsing.  That conversion is held up a bit right now
+because PNP doesn't support enough IRQ descriptors for many HPETs,
+but Thomas Renninger is working on the necessary PNP enhancements.
 
+Bjorn
