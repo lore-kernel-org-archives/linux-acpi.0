@@ -1,73 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Attempting to patch DSDT to get HPET working
-Date: Sat, 8 Sep 2007 13:47:07 -0600
-Message-ID: <200709081347.08174.bjorn.helgaas@hp.com>
-References: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Disk spin down issue on shut down/suspend to disk
+Date: Sat, 8 Sep 2007 23:29:56 +0200
+Message-ID: <200709082329.57811.rjw@sisk.pl>
+References: <838f88840708051428p3d65ff42w627af4bc38f57de3@mail.gmail.com> <838f88840708051433k6deed4bdg8d411e79c629ca49@mail.gmail.com> <6bffcb0e0709080832o30fb21b5vcd09baa8387efcc0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:34253 "EHLO atlrel6.hp.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:55806 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755501AbXIHTra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Sep 2007 15:47:30 -0400
-In-Reply-To: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
+	id S1752699AbXIHVSf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Sep 2007 17:18:35 -0400
+In-Reply-To: <6bffcb0e0709080832o30fb21b5vcd09baa8387efcc0@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: =?iso-8859-2?q?Micha=B3?= sed <sedmich@gmail.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, htejun@gmail.com, hmh@hmh.eng.br, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wednesday 29 August 2007 11:20:47 pm Russ Dill wrote:
-> I have an AMD SB460 southbridge (has HPET), but a BIOS with no HPET
-> support.
-> ...
-> I added this:
-> 
-> Device (HPET)
-> {
->     Name (_HID, EisaId ("PNP0103"))
->     Name (BUF0, ResourceTemplate ()
->     {
->         IRQNoFlags () {0}
->         IRQNoFlags () {8}
->         Memory32Fixed (ReadOnly, 0xFED00000, 0x00000400)
->     })
-> 
->     Method (_STA, 0, NotSerialized)
->     {
->          Return (0x0F)
->     }
-> 
->     Method (_CRS, 0, Serialized)
->     {
->         CreateDWordField (BUF0, 0x0A, HPT0)
->         Store (0xFED01000, HPT0)
->         Return (BUF0)
->     }
-> }
-> 
-> ... I get the following message:
-> 
-> hpet_acpi_add: no address or irqs in _CRS
-> 
-> So, good news, drivers/char/hpet.c is finding my PNP0103 entry. Bad
-> news, its having a problem with the resources. Any clue why?
+On Saturday, 8 September 2007 17:32, Michal Piotrowski wrote:
+> Hi,
+>=20
+> On 05/08/2007, Micha=B3 sed <sedmich@gmail.com> wrote:
+> > Greetings
+> >
+> > I'm experiencing double disk spin down issue on my HP nx6310 laptop
+> > during shut down and suspend to disk. The drive is power down on "W=
+ill
+> > now halt message" then turned back on and off again with the laptop
+> > itself. I'm using the newest bios available F.0D, 2.6.23-rc1-mm ker=
+nel
+> > along with Debian Unstable plus fixes from Sidux repository so I ha=
+ve
+> > the updated shut down script. I have also verified on two other
+> > systems [AMD/Nforce based] that the spin down issue has been resolv=
+ed
+> > by the Sidux update and I'm certain that this is a hp bios bug or a
+> > piix kernel module problem.
+> >
+>=20
+> What is the _actual_ state of this bug? Does anyone work on this?
+>=20
+> I see the report
+> http://lkml.org/lkml/2007/8/5/214
+>=20
+> and a very long thread
+> http://lkml.org/lkml/2007/8/6/4
+>=20
+> dmidecode stuff
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D8855
+>=20
+> and _only_one_fix_ - for Suspend To Disc (thanks Rafael)
+> http://lkml.org/lkml/2007/8/7/316
 
-If you look at drivers/char/hpet.c:hpet_resources(), you'll see that
-it's fairly simple-minded.  In particular, hpet_acpi_add() requires
-both an address and an IRQ, but hpet_resources() only looks at
-ACPI_RESOURCE_TYPE_EXTENDED_IRQ items.
+There's an updated version of that patch at
+http://lkml.org/lkml/2007/8/27/392
+=20
+> Shutdown is completely broken on HP NX6??? laptops.
 
-I'm not an AML expert, but my guess is that your AML generates a
-plain ACPI_RESOURCE_TYPE_IRQ, not an EXTENDED_IRQ item.  If you can
-write AML that generates an EXTENDED_IRQ item, I bet it will work.
+It's not completely broken, it just handles disks incorrectly and we ar=
+e not
+sure whether or not there are any serious consequences of that.  Moreov=
+er,
+it has happened for a long time now, AFAICT, so that's not a regression=
+=2E
 
-This is a bug in the HPET driver.  I think the right way to fix it
-is to convert it from an ACPI driver to a PNP driver and let PNPACPI
-do the resource parsing.  That conversion is held up a bit right now
-because PNP doesn't support enough IRQ descriptors for many HPETs,
-but Thomas Renninger is working on the necessary PNP enhancements.
+BTW, in my opinion, we don't really understand why the patch at
+http://lkml.org/lkml/2007/8/27/392 actually helps and understanding tha=
+t might
+allow us to fix the problem in general.
 
-Bjorn
+Greetings,
+Rafael
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
