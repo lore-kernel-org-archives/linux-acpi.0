@@ -1,79 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Disk spin down issue on shut down/suspend to disk
-Date: Sat, 8 Sep 2007 23:29:56 +0200
-Message-ID: <200709082329.57811.rjw@sisk.pl>
-References: <838f88840708051428p3d65ff42w627af4bc38f57de3@mail.gmail.com> <838f88840708051433k6deed4bdg8d411e79c629ca49@mail.gmail.com> <6bffcb0e0709080832o30fb21b5vcd09baa8387efcc0@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 8995] New: /proc/acpi/alarm worked;
+ update to 2.6.22.2 and /sys/class/rtc/rtc0/wakealarm don't
+Date: Sat, 8 Sep 2007 17:29:11 -0700
+Message-ID: <20070908172911.7f9fc44f.akpm@linux-foundation.org>
+References: <bug-8995-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55806 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752699AbXIHVSf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Sep 2007 17:18:35 -0400
-In-Reply-To: <6bffcb0e0709080832o30fb21b5vcd09baa8387efcc0@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <bug-8995-10286@http.bugzilla.kernel.org/>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: David Brownell <david-b@pacbell.net>, Alessandro Zummo <a.zummo@towertech.it>, linux-acpi@vger.kernel.org, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-fo>
+Cc: huffcslists@gmail.com, bugme-daemon@bugzilla.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: =?iso-8859-2?q?Micha=B3?= sed <sedmich@gmail.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, htejun@gmail.com, hmh@hmh.eng.br, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Saturday, 8 September 2007 17:32, Michal Piotrowski wrote:
-> Hi,
->=20
-> On 05/08/2007, Micha=B3 sed <sedmich@gmail.com> wrote:
-> > Greetings
-> >
-> > I'm experiencing double disk spin down issue on my HP nx6310 laptop
-> > during shut down and suspend to disk. The drive is power down on "W=
-ill
-> > now halt message" then turned back on and off again with the laptop
-> > itself. I'm using the newest bios available F.0D, 2.6.23-rc1-mm ker=
-nel
-> > along with Debian Unstable plus fixes from Sidux repository so I ha=
-ve
-> > the updated shut down script. I have also verified on two other
-> > systems [AMD/Nforce based] that the spin down issue has been resolv=
-ed
-> > by the Sidux update and I'm certain that this is a hp bios bug or a
-> > piix kernel module problem.
-> >
->=20
-> What is the _actual_ state of this bug? Does anyone work on this?
->=20
-> I see the report
-> http://lkml.org/lkml/2007/8/5/214
->=20
-> and a very long thread
-> http://lkml.org/lkml/2007/8/6/4
->=20
-> dmidecode stuff
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D8855
->=20
-> and _only_one_fix_ - for Suspend To Disc (thanks Rafael)
-> http://lkml.org/lkml/2007/8/7/316
+On Sat,  8 Sep 2007 09:29:18 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
 
-There's an updated version of that patch at
-http://lkml.org/lkml/2007/8/27/392
-=20
-> Shutdown is completely broken on HP NX6??? laptops.
+> http://bugzilla.kernel.org/show_bug.cgi?id=8995
+> 
+>            Summary: /proc/acpi/alarm worked; update to 2.6.22.2 and
+>                     /sys/class/rtc/rtc0/wakealarm don't
+>            Product: ACPI
+>            Version: 2.5
+>      KernelVersion: 2.6.22.2
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Power-Sleep-Wake
+>         AssignedTo: acpi_power-sleep-wake@kernel-bugs.osdl.org
+>         ReportedBy: huffcslists@gmail.com
+> 
+> 
+> Most recent kernel where this bug did not occur:2.6.20
+> Distribution: FC6
+> Hardware Environment: ASUS A8N-SLI mobo, Athlon 64 3200+, PATA Disk
+> Software Environment: FC6, MythTV 0.20.2-164
+> Problem Description:
+> Change in kernel code from support for /proc/acpi/alarm to
+> /sys/class/rtc/rtc0/wakealarm and supporting code borked working system.  Will
+> no longer wake at set time.
+> Time set <> time reported by cat /sys.../wakealarm.  Return value off by large
+> constant.  Note: Mobo doesn't support month, day, or year in alarm setting.
+> 
+> Steps to reproduce:
+> Before upgrade from 2.6.20 to 2.6.22.2, suspend-to-disk with powerdown to
+> standby would wake at time echoed into /proc/acpi/alarm.  Change of wakeup time
+> setting code to echo 0 to /sys/class/rtc/rtc0/wakealarm followed by echo of
+> seconds since epoch of desired wakeup time under 2.6.22.2 does not work. 
+> System will not wake up at specified time.  Will wake by keyboard keystroke,
+> such as Ctrl+Esc.  Tried enabling APM (BIOS) alarm setting and all entries
+> under /proc/acpi/wakeup (all on at once), but no improvement.
+> Test sequence:
+> # echo 0 > /sys/class/rtc/rtc0/wakealarm
+> # t=`date +%s`; w=`expr $t + 60`; echo $w > /sys/class/rtc/rtc0/wakealarm
+> # echo $w
+> 1189268800
+> # cat /sys/class/rtc/rtc0/wakealarm
+> 2076101696
+> # expr 2076101696 - 1189268800
+> 886832896
+> <invoke your favorite code to suspend to disk and power down system leaving
+> standby power on>
+> <wait>
+> <wait some more>
+> <hit power on button>
+> 
 
-It's not completely broken, it just handles disks incorrectly and we ar=
-e not
-sure whether or not there are any serious consequences of that.  Moreov=
-er,
-it has happened for a long time now, AFAICT, so that's not a regression=
-=2E
+Guys, can we please work out where the problem lies here?  Is it in the 
+new RTC code, ACPI or what?
 
-BTW, in my opinion, we don't really understand why the patch at
-http://lkml.org/lkml/2007/8/27/392 actually helps and understanding tha=
-t might
-allow us to fix the problem in general.
-
-Greetings,
-Rafael
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
