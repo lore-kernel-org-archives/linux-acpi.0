@@ -1,37 +1,88 @@
-From: =?UTF-8?Q?H=C3=ADrlev=C3=A9l_Szolg=C3=A1lat?= <movie@freemail.hu>
-Subject: Hello
-Date: Sun, 9 Sep 2007 00:03:02 +0200
-Message-ID: <56bf14ba209c60360597cae7761db1b0@hirlevel.ihb.hu>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Attempting to patch DSDT to get HPET working
+Date: Sun, 09 Sep 2007 19:07:05 +0200
+Message-ID: <1189357625.9141.8.camel@prodigy.site>
+References: <f9d2a5e10708292220n78e65f1ci9be27ee42e41ea6f@mail.gmail.com>
+	 <200709081347.08174.bjorn.helgaas@hp.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.ihb.hu ([87.229.102.31]:39011 "EHLO ihb.hu"
+Received: from cantor2.suse.de ([195.135.220.15]:59907 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750988AbXIINc2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Sep 2007 09:32:28 -0400
-Received: from www-data by ihb.hu with local (Exim 4.63)
-	(envelope-from <www-data@ihb.hu>)
-	id 1IU8OM-00056d-NZ
-	for linux-acpi@vger.kernel.org; Sun, 09 Sep 2007 00:03:02 +0200
+	id S1758029AbXIIRHI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Sep 2007 13:07:08 -0400
+In-Reply-To: <200709081347.08174.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russ Dill <russ.dill@gmail.com>, linux-acpi@vger.kernel.org
 
-Szia!
+On Sat, 2007-09-08 at 13:47 -0600, Bjorn Helgaas wrote:
+> On Wednesday 29 August 2007 11:20:47 pm Russ Dill wrote:
+> > I have an AMD SB460 southbridge (has HPET), but a BIOS with no HPET
+> > support.
+> > ...
+> > I added this:
+> > 
+> > Device (HPET)
+> > {
+> >     Name (_HID, EisaId ("PNP0103"))
+> >     Name (BUF0, ResourceTemplate ()
+> >     {
+> >         IRQNoFlags () {0}
+> >         IRQNoFlags () {8}
+> >         Memory32Fixed (ReadOnly, 0xFED00000, 0x00000400)
+> >     })
+> > 
+> >     Method (_STA, 0, NotSerialized)
+> >     {
+> >          Return (0x0F)
+> >     }
+> > 
+> >     Method (_CRS, 0, Serialized)
+> >     {
+> >         CreateDWordField (BUF0, 0x0A, HPT0)
+> >         Store (0xFED01000, HPT0)
+> >         Return (BUF0)
+> >     }
+> > }
+> > 
+> > ... I get the following message:
+> > 
+> > hpet_acpi_add: no address or irqs in _CRS
+> > 
+> > So, good news, drivers/char/hpet.c is finding my PNP0103 entry. Bad
+> > news, its having a problem with the resources. Any clue why?
+> 
+> If you look at drivers/char/hpet.c:hpet_resources(), you'll see that
+> it's fairly simple-minded.  In particular, hpet_acpi_add() requires
+> both an address and an IRQ, but hpet_resources() only looks at
+> ACPI_RESOURCE_TYPE_EXTENDED_IRQ items.
+> 
+> I'm not an AML expert, but my guess is that your AML generates a
+> plain ACPI_RESOURCE_TYPE_IRQ, not an EXTENDED_IRQ item.  If you can
+> write AML that generates an EXTENDED_IRQ item, I bet it will work.
+> 
+> This is a bug in the HPET driver.  I think the right way to fix it
+> is to convert it from an ACPI driver to a PNP driver and let PNPACPI
+> do the resource parsing.  That conversion is held up a bit right now
+> because PNP doesn't support enough IRQ descriptors for many HPETs,
+> but Thomas Renninger is working on the necessary PNP enhancements.
 
-Tal=C3=A1ltam egy j=C3=B3 let=C3=B6lt=C5=91 oldalt legolcs=C3=B3bb, =C3=
-=A9s nagy tartalom van rajta
-=46ilmek, J=C3=A1t=C3=A9kok, Zen=C3=A9k stb...
-http://speed-ware.no-ip.org
+AFAIK AMD provides a separate HPET table normally and Intel makes use of
+an HPET AML device (the later should work, also without PNPACPI, I never
+looked at the code, but I bet Bjorn is right and there can be done some
+cleanups).
+Can you document this matter in a bugzilla.kernel.org entry (also attach
+full acpidump output), add me to CC (or assign it to me) and ping me
+again in some days if I do not answer.
+Whether a separate HPET table is also provided can be checked with:
+acpidump >acpidump
+acpixtract -a acpidump   (with latest acpica/pmtools)
 
-Bocsi a zavar=C3=A1s=C3=A9rt.
-Szia, D=C3=B3ri
+Thanks,
 
-U.i: =C3=A9n m=C3=A1r t=C3=B6lt=C3=B6k!.
+   Thomas
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
