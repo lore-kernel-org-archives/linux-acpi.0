@@ -1,38 +1,84 @@
-From: greg.mythtv@optusnet.com.au
-Subject: ACPI on Dell Optiplex GX240
-Date: Wed, 12 Sep 2007 07:56:37 +1000
-Message-ID: <200709112156.l8BLubId007489@mail07.syd.optusnet.com.au>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: libata not working for sis5533
+Date: Tue, 11 Sep 2007 15:46:58 -0700
+Message-ID: <20070911154658.ab1fe162.akpm@linux-foundation.org>
+References: <46D132C5.5000803@gmail.com>
+	<6bffcb0e0708261627s12e5a9acqef92d0261264a40c@mail.gmail.com>
+	<46D8921E.3010304@gmail.com>
+	<46D89429.7080802@gmail.com>
+	<20070902114032.7dbfb21a@the-village.bc.nu>
+	<Pine.LNX.4.64.0709031957390.24179@fbirervta.pbzchgretzou.qr>
+	<Pine.LNX.4.64.0709061156220.25942@fbirervta.pbzchgretzou.qr>
+	<46E26DAF.9020906@gmail.com>
+	<Pine.LNX.4.64.0709081243050.25942@fbirervta.pbzchgretzou.qr>
+	<46E3DA7E.7060709@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: binary
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fallbackmx02.syd.optusnet.com.au ([211.29.133.72]:49383 "EHLO
-	fallbackmx02.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751035AbXIKWAp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Sep 2007 18:00:45 -0400
-Received: from mail07.syd.optusnet.com.au (mail07.syd.optusnet.com.au [211.29.132.188])
-	by fallbackmx02.syd.optusnet.com.au (8.12.11.20060308/8.12.11) with ESMTP id l8BM0hR0012994
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Sep 2007 08:00:43 +1000
-Received: from localhost.localdomain (webmail07.syd.optusnet.com.au [211.29.133.88])
-	by mail07.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id l8BLubId007489
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Sep 2007 07:56:37 +1000
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <46E3DA7E.7060709@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: patrizio.bassi@gmail.com
+Cc: Jan Engelhardt <jengelh@computergmbh.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, "Kernel," <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, Alan Cox <alan@redhat.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I saw this 
-http://howto.wikia.com/wiki/Howto_get_the_Linux_kernel_to_properly_power_down_the_Dell_Optiplex_GX240_using_ACPI which suggests that a kernel re-compile is needed to get a Dell
-Optiplex GX240 to power down when halted. I started going down that path but then saw this
-comment in the file arch/i386/kernel/acpi/boot.c:
+On Sun, 09 Sep 2007 13:35:26 +0200
+Patrizio Bassi <patrizio.bassi@gmail.com> wrote:
 
-/*
- * If your system is blacklisted here, but you find that acpi=force
- * works for you, please contact acpi-devel@sourceforge.net
- */
+> Patrizio Bassi ha scritto:
+> > Jan Engelhardt ha scritto:
+> >> On Sep 8 2007 11:38, Patrizio Bassi wrote:
+> >>  
+> >>> Jan Engelhardt wrote:
+> >>>    
+> >>>> I shall give this a spin too, since I happen to have sis5513.
+> >>>>
+> >>>> Just booted this fresh ata-enabled system (a matter of mkinitrd).
+> It has
+> >>>> not exploded yet.
+> >>>>      
+> >>> don't you have the "irq 14" issue?
+> >>>    
+> >> No, does not seem so.
+> >>
+> >>  
+> >>> can you post here your .config?
+> >>>    
+> >> http://rafb.net/p/vfTX0966.html
+> >>
+> >> Maybe it is solved in 2.6.22.3? (I don't remember what your version
+> >> was.)
+> >>
+> >>
+> >>     Jan
+> >>  
+> >
+> > For Alan, libata devs...hope can help debug...
+> > this is http://www.patriziobassi.it/downloads/libata_issue.jpg
 
-That prompted my to try adding acpi=force and I found that after doing that, my box actually
-powers down when I halt it, so I am contacting this list as requested.
+Looks more like a platform irq routing issue than an ata issue.
 
-Greg Frost
+Perhaps an x86 or an acpi person can help out with this.
+
+Probably nothing will happen, in which case I'll get back to you later
+and ask you to raise a bugzilla entry, not that this will get it fixed :(
+
+
+> > and this is the relative config i'm using
+> > http://www.patriziobassi.it/downloads/config
+> >
+> > Let me know
+> >
+> > Patrizio
+> 
+> more debug:
+> 
+> I tried as suggested with the irqpoll option, i just get a faster panic
+> as i don't have the 3 xfermode lines...but always impossibile to boot...
+> 
+> Patrizio
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
