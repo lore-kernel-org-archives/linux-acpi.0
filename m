@@ -1,45 +1,112 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 2/2] ia64: add driver for ACPI methods to call native firmware
-Date: Wed, 12 Sep 2007 10:50:27 -0600
-Message-ID: <200709121050.27668.bjorn.helgaas@hp.com>
-References: <200709111714.57095.bjorn.helgaas@hp.com> <200709111716.47194.bjorn.helgaas@hp.com> <20070912085650.GA3015@srcf.ucam.org>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [2/4] 2.6.23-rc6: known regressions
+Date: Wed, 12 Sep 2007 18:58:54 +0200
+Message-ID: <46E81ACE.6030305__20641.8618131012$1189616415$gmane$org@googlemail.com>
+References: <46E8187E.9000006@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20070912085650.GA3015@srcf.ucam.org>
-Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, "Luck, Tony" <tony.luck@intel.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <46E8187E.9000006@googlemail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-fsdevel@vger.kernel.org, nfs@lists.sourceforge.net, Trond Myklebust <Trond.Myklebust@netapp.com>, Andrew Clayton <andrew@digital-domain.net>, Daniel J Blueman <daniel.blueman@gmail.com>, Dave Kleikamp <shaggy@austin.ibm.com>, jfs-discussion@lists.sourceforge.net, Andy Whitcroft <apw@shadowen.org>, sct@redhat.com, adilger@clusterfs.com, linux-ext4@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>, dth <dth@dth.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 12 September 2007 02:56:51 am Matthew Garrett wrote:
-> On Tue, Sep 11, 2007 at 05:16:46PM -0600, Bjorn Helgaas wrote:
-> > +config IA64_HP_AML_NFW
-> > +	tristate "Support ACPI AML calls to native firmware"
-> 
-> The description seems a bit generic for something that's HP specific?
+Hi all,
 
-Thanks, I'll wordsmith the description a bit.  There's actually nothing
-in the implementation that prevents this from working on non-HP firmware.  
+Here is a list of some known regressions in 2.6.23-rc6.
 
-I really want feedback on the best approach of:
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-  1.  Always build the driver static, accept the additional 4600 bytes
-      in everybody's image, not export anything.
+List of Aces
 
-  2.  Allow building driver as a module, export sal_lock.  This would
-      also enable building arch/ia64/kernel/esi.c as a module.
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            10
+Linus Torvalds                         6
+Alan Stern                             5
+Andi Kleen                             5
+Hugh Dickins                           5
+Trond Myklebust                        5
+Andrew Morton                          4
+Al Viro                                3
+Alexey Starikovskiy                    3
+Cornelia Huck                          3
+David S. Miller                        3
+Jens Axboe                             3
+Stephen Hemminger                      3
+Tejun Heo                              3
 
-  3.  Allow building driver as a module, restructure SAL_CALL so we
-      don't have to export sal_lock, but we do export fw_call_lock()
-      (as done in these patches).  This isn't quite sufficient to
-      enable building esi.c as a module.
 
-#1 would be easiest, of course, but I'm not happy about adding stuff
-that is only used on HP hardware.  #2 would be simple, but exporting
-sal_lock has been resisted in the past.
 
-Bjorn
+ACPI
+
+Subject         : 2.6.23-rc5 hangs on boot, apparently when initializing the EC
+References      : http://lkml.org/lkml/2007/9/11/369
+Last known good : ?
+Submitter       : Chuck Ebbert <cebbert@redhat.com>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+CPUFREQ
+
+Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
+References      : http://lkml.org/lkml/2007/7/27/298
+                  http://lkml.org/lkml/2007/7/29/371
+Last known good : ?
+Submitter       : dth <dth@dth.net>
+Caused-By       : Len Brown <lenb@kernel.org>
+                  commit f79e3185dd0f8650022518d7624c876d8929061b
+Handled-By      : Len Brown <lenb@kernel.org>
+Status          : problem is being debugged
+
+
+
+FS
+
+Subject         : hanging ext3 dbench tests
+References      : http://lkml.org/lkml/2007/9/11/176
+Last known good : ?
+Submitter       : Andy Whitcroft <apw@shadowen.org>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+Subject         : umount triggers a warning in jfs and takes almost a minute
+References      : http://lkml.org/lkml/2007/9/4/73
+Last known good : ?
+Submitter       : Oliver Neukum <oliver@neukum.org>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+Subject         : [NFSv4] 2.6.23-rc4 oops in nfs4_cb_recall
+References      : http://lkml.org/lkml/2007/9/4/53
+                  http://bugzilla.kernel.org/show_bug.cgi?id=9003
+Last known good : ?
+Submitter       : Daniel J Blueman <daniel.blueman@gmail.com>
+Caused-By       : ?
+Handled-By      : ?
+Workaround      : http://bugzilla.kernel.org/attachment.cgi?id=12797
+Status          : unknown
+
+Subject         : [NFSD OOPS] 2.6.23-rc1-git10
+References      : http://lkml.org/lkml/2007/8/2/462
+Last known good : ?
+Submitter       : Andrew Clayton <andrew@digital-domain.net>
+Caused-By       : ?
+Handled-By      : ?
+Status          : unknown
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
