@@ -1,17 +1,23 @@
 From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Subject: Re: [2/4] 2.6.23-rc6: known regressions
 Date: Wed, 12 Sep 2007 18:58:54 +0200
-Message-ID: <46E81ACE.6030305__20641.8618131012$1189616415$gmane$org@googlemail.com>
+Message-ID: <46E81ACE.6030305__33119.8144158863$1189616426$gmane$org@googlemail.com>
 References: <46E8187E.9000006@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mu-out-0910.google.com ([209.85.134.190]:4369 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934759AbXILQ7o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Sep 2007 12:59:44 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so413183mue
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Sep 2007 09:59:43 -0700 (PDT)
 In-Reply-To: <46E8187E.9000006@googlemail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-fsdevel@vger.kernel.org, nfs@lists.sourceforge.net, Trond Myklebust <Trond.Myklebust@netapp.com>, Andrew Clayton <andrew@digital-domain.net>, Daniel J Blueman <daniel.blueman@gmail.com>, Dave Kleikamp <shaggy@austin.ibm.com>, jfs-discussion@lists.sourceforge.net, Andy Whitcroft <apw@shadowen.org>, sct@redhat.com, adilger@clusterfs.com, linux-ext4@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>, dth <dth@dth.net>
-List-Id: linux-acpi@vger.kernel.org
 
 Hi all,
 
