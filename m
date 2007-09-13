@@ -1,103 +1,149 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] Configure cpuidle governors by default
-Date: Thu, 13 Sep 2007 14:30:37 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4033A351F@orsmsx415.amr.corp.intel.com>
-References: <20070913203917.GA1183@linux-os.sc.intel.com>
+From: Marek Hobler <kernellist@neutrinus.com>
+Subject: [PATCH] Add bluetooth enabling support for toshiba_acpi
+Date: Thu, 13 Sep 2007 23:45:33 +0200
+Message-ID: <46E9AF7D.9090902@neutrinus.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56524 "EHLO mga02.intel.com"
+Received: from neutrinus.com ([85.10.192.131]:3477 "EHLO neutrinus.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755506AbXIMVaj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2007 17:30:39 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <20070913203917.GA1183@linux-os.sc.intel.com>
+	id S1754274AbXIMVpf (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 13 Sep 2007 17:45:35 -0400
+Received: from neutrinus.com (localhost [127.0.0.1])
+	by neutrinus.com (Postfix) with ESMTP id 1E69B300BB26
+	for <Linux-acpi@vger.kernel.org>; Thu, 13 Sep 2007 23:48:20 +0200 (CEST)
+Received: from [192.168.1.10] (awu106.neoplus.adsl.tpnet.pl [83.27.80.106])
+	(Authenticated sender: kernellist@neutrinus.com)
+	by neutrinus.com (Postfix) with ESMTP id 9ADA7300BB25
+	for <Linux-acpi@vger.kernel.org>; Thu, 13 Sep 2007 23:48:19 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, abelay@novell.com
+To: Linux-acpi@vger.kernel.org
 
->> Quoting Len "Do not give an option to users to shoot themselves in
-the foot".
+Add interface to enable usb-bluetooth device in Toshiba notebook.
 
-Odd, I thought that was a Windows attitude, and Unix/Linux was the
-opposite.
-
-"All the rope and more..."
-
-Bob
-
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org
-[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Venki Pallipadi
-Sent: Thursday, September 13, 2007 1:39 PM
-To: Brown, Len
-Cc: linux-acpi@vger.kernel.org; abelay@novell.com
-Subject: [PATCH] Configure cpuidle governors by default
-
-
-Quoting Len "Do not give an option to users to shoot themselves in the
-foot".
-
-Remove the configurability of ladder and menu governors as they are
-needed for default policy of cpuidle. That way users will not be able to
-have cpuidle without any policy loosing all C-state power savings.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-Index: linux-2.6.23-rc6/drivers/cpuidle/Kconfig
+Index: linux-2.6.23-rc6/drivers/acpi/toshiba_acpi.c
 ===================================================================
---- linux-2.6.23-rc6.orig/drivers/cpuidle/Kconfig
-+++ linux-2.6.23-rc6/drivers/cpuidle/Kconfig
-@@ -1,4 +1,3 @@
--menu "CPU idle PM support"
- 
- config CPU_IDLE
- 	bool "CPU idle PM support"
-@@ -10,30 +9,13 @@ config CPU_IDLE
- 	  If you're using a mobile platform that supports CPU idle PM
-(e.g.
- 	  an ACPI-capable notebook), you should say Y here.
- 
--if CPU_IDLE
--
--comment "Governors"
--
- config CPU_IDLE_GOV_LADDER
--	tristate "'ladder' governor"
-+	bool
- 	depends on CPU_IDLE
- 	default y
--	help
--	  This cpuidle governor promotes and demotes through the
-supported idle
--	  states using residency time and bus master activity as
-metrics.  This
--	  algorithm was originally introduced in the old ACPI processor
-driver.
- 
- config CPU_IDLE_GOV_MENU
--	tristate "'menu' governor"
-+	bool
- 	depends on CPU_IDLE && NO_HZ
- 	default y
--	help
--	  This cpuidle governor evaluates all available states and
-chooses the
--	  deepest state that meets all of the following constraints: BM
-activity,
--	  expected time until next timer interrupt, and last break event
-time
--	  delta.  It is designed to minimize power consumption.
-Currently
--	  dynticks is required.
--
--endif	# CPU_IDLE
- 
--endmenu
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- /usr/src/linux-2.6.23-rc6.orig/drivers/acpi/toshiba_acpi.c  2007-07-09 01:32:17.000000000 +0200
++++ /usr/src/linux-2.6.23-rc6/drivers/acpi/toshiba_acpi.c       2007-09-13 23:43:53.818098802 +0200
+@@ -90,6 +90,10 @@
+ #define HCI_VIDEO_OUT                  0x001c
+ #define HCI_HOTKEY_EVENT               0x001e
+ #define HCI_LCD_BRIGHTNESS             0x002a
++#define HCI_BT                         0x0056
++#define HCI_BT_POWER                   0x0080
++#define HCI_BT_ATTACH                  0x0040
++
+
+ /* field definitions */
+ #define HCI_LCD_BRIGHTNESS_BITS                3
+@@ -201,6 +205,17 @@
+        return status;
+ }
+
++
++static acpi_status hci_write2(u32 reg, u32 in1, u32 in2, u32* result)
++{
++       u32 in[HCI_WORDS] = { HCI_SET, reg, in1, in2, 0, 0 };
++       u32 out[HCI_WORDS];
++       acpi_status status = hci_raw(in, out);
++       *result = (status == AE_OK) ? out[0] : HCI_FAILURE;
++       return status;
++}
++
++
+ static acpi_status hci_read1(u32 reg, u32 * out1, u32 * result)
+ {
+        u32 in[HCI_WORDS] = { HCI_GET, reg, 0, 0, 0, 0 };
+@@ -211,6 +226,19 @@
+        return status;
+ }
+
++ static acpi_status hci_read2(u32 reg, u32* out1, u32* out2, u32* result)
++ {
++     u32 in[HCI_WORDS] = { HCI_GET, reg, *out1, *out2, 0, 0 };
++     u32 out[HCI_WORDS];
++     acpi_status status = hci_raw(in, out);
++     *out1 = out[2];
++     *out2 = out[3];
++     *result = (status == AE_OK) ? out[0] : HCI_FAILURE;
++     return status;
++ }
++
++
++
+ static struct proc_dir_entry *toshiba_proc_dir /*= 0*/ ;
+ static struct backlight_device *toshiba_backlight_device;
+ static int force_fan;
+@@ -482,6 +510,54 @@
+        return count;
+ }
+
++
++static char* read_bt(char* p)
++{
++    u32 hci_result;
++       u32 value = 0;
++    u32 value2 = 0x000;
++       hci_read2(HCI_BT, &value, &value2, &hci_result);
++    if (hci_result == HCI_SUCCESS) {
++        p += sprintf(p,"present:                  %d\n", (value & 0x0f)?1:0);
++    } else {
++        p += sprintf(p, "ERROR\n");
++    }
++
++    value = 0;
++    value2 = 0x0001;
++       hci_read2(HCI_BT, &value, &value2, &hci_result);
++    if (hci_result == HCI_SUCCESS) {
++        p += sprintf(p,"power:                    %d\n", (value & 128) >> 7);
++        p += sprintf(p,"attach:                   %d\n", (value &  64) >> 6);
++        p += sprintf(p,"wireless:                 %d\n", (value & 512) >> 9);
++    } else {
++        p += sprintf(p, "ERROR\n");
++    }
++
++    return p;
++}
++
++static unsigned long write_bt(const char* buffer, unsigned long count)
++{
++    int value;
++    u32 hci_result;
++
++    if (sscanf(buffer, " power : %i", &value) == 1 && ( (value == 0) || (value == 1) ) ) {
++               hci_write2(HCI_BT, value, HCI_BT_POWER, &hci_result);
++        if (hci_result != HCI_SUCCESS)
++            return -EFAULT;
++    } else if (sscanf(buffer, " attach : %i", &value) == 1 && ( (value == 0) || (value == 1) )) {
++               hci_write2(HCI_BT, value, HCI_BT_ATTACH, &hci_result);
++        if (hci_result != HCI_SUCCESS)
++            return -EFAULT;
++    } else {
++        return -EINVAL;
++    }
++
++    return count;
++}
++
++
+ static char *read_version(char *p)
+ {
+        p += sprintf(p, "driver:                  %s\n", TOSHIBA_ACPI_VERSION);
+@@ -501,6 +577,7 @@
+        {"fan", read_fan, write_fan},
+        {"keys", read_keys, write_keys},
+        {"version", read_version, NULL},
++       {"bluetooth", read_bt, write_bt },
+        {NULL}
+ };
+
+
+
+
+
+regards,
+Marek Hobler, 'neutrinus'
+-- 
+GNU/Human
