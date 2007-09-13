@@ -1,38 +1,30 @@
-From: =?UTF-8?Q?Cseng=C5=91_Anna?= <csengo.anna@freemail.hu>
-Subject: Szia,
-Date: Thu, 13 Sep 2007 05:31:54 +0200
-Message-ID: <55728c5ac87ad7c16707597a3e7a4713@hirlevel.team-rmt.com>
+From: "Ken MacLeod" <ken@bitsko.slc.ut.us>
+Subject: blacklisted with no SMBIOS
+Date: Thu, 13 Sep 2007 11:57:37 -0500
+Message-ID: <7ee95fff0709130957v5ff84932odd83ef3b07c1fec7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.team-rmt.com ([87.229.102.32]:51402 "EHLO team-rmt.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758827AbXIMQyP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Sep 2007 12:54:15 -0400
-Received: from www-data by team-rmt.com with local (Exim 4.63)
-	(envelope-from <www-data@team-rmt.com>)
-	id 1IVfQo-0006uU-Gg
-	for linux-acpi@vger.kernel.org; Thu, 13 Sep 2007 05:31:54 +0200
+Received: from fk-out-0910.google.com ([209.85.128.190]:47962 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011AbXIMQ5j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2007 12:57:39 -0400
+Received: by fk-out-0910.google.com with SMTP id z23so525490fkz
+        for <linux-acpi@vger.kernel.org>; Thu, 13 Sep 2007 09:57:37 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Szia!
+What's the way forward if we have a current BIOS with ACPI but no SMBIOS?
 
+acpi=force works as expected.
 
-Bocs a zavarasert, ha erdekel a sexnek egy teljessen mas formaja (brutalis sex)
-akkor itt a helyed: Minosegi filmek, sot extrakent tomerdek animal sex film is van!
+Is SMBIOS a requirement with ACPI?  If not, what would a patch need to
+do to correctly identify a working ACPI without SMBIOS present to
+avoid the blacklist?
 
-http://brutal.vipsms.org/
-http://brutal.vipsms.org/
-http://brutal.vipsms.org/
+Thanks,
 
-Nemsokara rollam is lesznek fenn videok :) Tovabbi szep napot! Anna
-
-u.i: az emailcimedet egy levelezolistarol kaptam ahol elfogadtad hogy kapsz 
-hirlevelet. Ha ez megis zavar, leiratkozhatsz a http://leiratkozas.myip.hu/
-oldalon.
---
-Pussz...
-
+  -- Ken
