@@ -1,262 +1,398 @@
-From: Alessandro Di Marco <dmr@c0nc3pt.com>
-Subject: Please send dmidecode to linux-acpi@vger.kernel.org
-Date: Thu, 13 Sep 2007 11:51:55 +0200
-Message-ID: <87ir6eyjt0.fsf@c0nc3pt.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: Add sysfs support
+Date: Thu, 13 Sep 2007 18:57:15 +0400
+Message-ID: <20070913145714.23813.91351.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bin.disi.unige.it ([130.251.61.176]:40132 "EHLO
-	merlin.c0nc3pt.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152AbXIMKLB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2007 06:11:01 -0400
+Received: from charybdis-ext.suse.de ([195.135.221.2]:49886 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755604AbXIMO52 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2007 10:57:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+From: Alexey Starikovskiy <astarikivskiy@suse.de>
 
-# dmidecode 2.9
-SMBIOS 2.31 present.
-19 structures occupying 915 bytes.
-Table at 0x000DC010.
+Refer to Documentation/power_supply_class.txt for interface description.
 
-Handle 0x0000, DMI type 0, 20 bytes
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: R0091N0
-	Release Date: 07/10/2006
-	Address: 0xE4510
-	Runtime Size: 113392 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		EDD is supported
-		8042 keyboard services are supported (int 9h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		Smart battery is supported
-		BIOS boot specification is supported
-		Function key-initiated network boot is supported
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Handle 0x0001, DMI type 1, 25 bytes
-System Information
-	Manufacturer: Sony Corporation
-	Product Name: VGN-SZ38GP_C
-	Version: J0020Y9W
-	Serial Number: 28247270-7003707
-	UUID: CEBBB8E0-5B3C-11D9-8796-0013A98B94A4
-	Wake-up Type: Power Switch
+ drivers/acpi/battery.c |  201 +++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 179 insertions(+), 22 deletions(-)
 
-Handle 0x0002, DMI type 2, 10 bytes
-Base Board Information
-	Manufacturer: Sony Corporation
-	Product Name: VAIO                            
-	Version: N/A                             
-	Serial Number: N/A                             
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index db725bf..b77180a 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -30,13 +30,21 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/jiffies.h>
++
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <asm/uaccess.h>
++#endif
+ 
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
++#if defined(CONFIG_POWER_SUPPLY) || defined(CONFIG_POWER_SUPPLY_MODULE)
++#define ENABLE_POWER_SUPPLY
++#include <linux/power_supply.h>
++#endif
++
+ #define ACPI_BATTERY_VALUE_UNKNOWN 0xFFFFFFFF
+ 
+ #define ACPI_BATTERY_COMPONENT		0x00040000
+@@ -58,9 +66,19 @@ static unsigned int cache_time = 1000;
+ module_param(cache_time, uint, 0644);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ extern struct proc_dir_entry *acpi_lock_battery_dir(void);
+ extern void *acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
+ 
++enum acpi_battery_files {
++	info_tag = 0,
++	state_tag,
++	alarm_tag,
++	ACPI_BATTERY_NUMFILES,
++};
++
++#endif
++
+ static const struct acpi_device_id battery_device_ids[] = {
+ 	{"PNP0C0A", 0},
+ 	{"", 0},
+@@ -68,22 +86,19 @@ static const struct acpi_device_id battery_device_ids[] = {
+ 
+ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+ 
+-enum acpi_battery_files {
+-	info_tag = 0,
+-	state_tag,
+-	alarm_tag,
+-	ACPI_BATTERY_NUMFILES,
+-};
+ 
+ struct acpi_battery {
+ 	struct mutex lock;
++#ifdef ENABLE_POWER_SUPPLY
++	struct power_supply bat;
++#endif
+ 	struct acpi_device *device;
+ 	unsigned long update_time;
+-	int present_rate;
+-	int remaining_capacity;
+-	int present_voltage;
++	int current_now;
++	int capacity_now;
++	int voltage_now;
+ 	int design_capacity;
+-	int last_full_capacity;
++	int full_charge_capacity;
+ 	int technology;
+ 	int design_voltage;
+ 	int design_capacity_warning;
+@@ -100,15 +115,119 @@ struct acpi_battery {
+ 	u8 alarm_present;
+ };
+ 
++#define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
++
+ inline int acpi_battery_present(struct acpi_battery *battery)
+ {
+ 	return battery->device->status.battery_present;
+ }
+ 
++#ifdef ENABLE_POWER_SUPPLY
++static int acpi_battery_technology(struct acpi_battery *battery)
++{
++	if (!strcasecmp("NiCd", battery->type))
++		return POWER_SUPPLY_TECHNOLOGY_NiCd;
++	if (!strcasecmp("NiMH", battery->type))
++		return POWER_SUPPLY_TECHNOLOGY_NiMH;
++	if (!strcasecmp("LION", battery->type))
++		return POWER_SUPPLY_TECHNOLOGY_LION;
++	if (!strcasecmp("LiP", battery->type))
++		return POWER_SUPPLY_TECHNOLOGY_LIPO;
++	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
++}
++
++static int acpi_battery_get_property(struct power_supply *psy,
++				     enum power_supply_property psp,
++				     union power_supply_propval *val)
++{
++	struct acpi_battery *battery = to_acpi_battery(psy);
++
++	if ((!acpi_battery_present(battery)) &&
++	     psp != POWER_SUPPLY_PROP_PRESENT)
++		return -ENODEV;
++	switch (psp) {
++	case POWER_SUPPLY_PROP_STATUS:
++		if (battery->state & 0x01)
++			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
++		else if (battery->state & 0x02)
++			val->intval = POWER_SUPPLY_STATUS_CHARGING;
++		else if (battery->state == 0)
++			val->intval = POWER_SUPPLY_STATUS_FULL;
++		break;
++	case POWER_SUPPLY_PROP_PRESENT:
++		val->intval = acpi_battery_present(battery);
++		break;
++	case POWER_SUPPLY_PROP_TECHNOLOGY:
++		val->intval = acpi_battery_technology(battery);
++		break;
++	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
++		val->intval = battery->design_voltage * 1000;
++		break;
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		val->intval = battery->voltage_now * 1000;
++		break;
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
++		val->intval = battery->current_now * 1000;
++		break;
++	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
++	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
++		val->intval = battery->design_capacity * 1000;
++		break;
++	case POWER_SUPPLY_PROP_CHARGE_FULL:
++	case POWER_SUPPLY_PROP_ENERGY_FULL:
++		val->intval = battery->full_charge_capacity * 1000;
++		break;
++	case POWER_SUPPLY_PROP_CHARGE_NOW:
++	case POWER_SUPPLY_PROP_ENERGY_NOW:
++		val->intval = battery->capacity_now * 1000;
++		break;
++	case POWER_SUPPLY_PROP_MODEL_NAME:
++		val->strval = battery->model_number;
++		break;
++	case POWER_SUPPLY_PROP_MANUFACTURER:
++		val->strval = battery->oem_info;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static enum power_supply_property charge_battery_props[] = {
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_TECHNOLOGY,
++	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
++	POWER_SUPPLY_PROP_CHARGE_FULL,
++	POWER_SUPPLY_PROP_CHARGE_NOW,
++	POWER_SUPPLY_PROP_MODEL_NAME,
++	POWER_SUPPLY_PROP_MANUFACTURER,
++};
++
++static enum power_supply_property energy_battery_props[] = {
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_TECHNOLOGY,
++	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
++	POWER_SUPPLY_PROP_ENERGY_FULL,
++	POWER_SUPPLY_PROP_ENERGY_NOW,
++	POWER_SUPPLY_PROP_MODEL_NAME,
++	POWER_SUPPLY_PROP_MANUFACTURER,
++};
++#endif
++
++#ifdef CONFIG_ACPI_PROCFS
+ inline char *acpi_battery_units(struct acpi_battery *battery)
+ {
+ 	return (battery->power_unit)?"mA":"mW";
+ }
++#endif
+ 
+ /* --------------------------------------------------------------------------
+                                Battery Management
+@@ -120,15 +239,15 @@ struct acpi_offsets {
+ 
+ static struct acpi_offsets state_offsets[] = {
+ 	{offsetof(struct acpi_battery, state), 0},
+-	{offsetof(struct acpi_battery, present_rate), 0},
+-	{offsetof(struct acpi_battery, remaining_capacity), 0},
+-	{offsetof(struct acpi_battery, present_voltage), 0},
++	{offsetof(struct acpi_battery, current_now), 0},
++	{offsetof(struct acpi_battery, capacity_now), 0},
++	{offsetof(struct acpi_battery, voltage_now), 0},
+ };
+ 
+ static struct acpi_offsets info_offsets[] = {
+ 	{offsetof(struct acpi_battery, power_unit), 0},
+ 	{offsetof(struct acpi_battery, design_capacity), 0},
+-	{offsetof(struct acpi_battery, last_full_capacity), 0},
++	{offsetof(struct acpi_battery, full_charge_capacity), 0},
+ 	{offsetof(struct acpi_battery, technology), 0},
+ 	{offsetof(struct acpi_battery, design_voltage), 0},
+ 	{offsetof(struct acpi_battery, design_capacity_warning), 0},
+@@ -285,6 +404,17 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
++#ifdef ENABLE_POWER_SUPPLY
++		if (battery->power_unit) {
++			battery->bat.properties = charge_battery_props;
++			battery->bat.num_properties =
++				ARRAY_SIZE(charge_battery_props);
++		} else {
++			battery->bat.properties = energy_battery_props;
++			battery->bat.num_properties =
++				ARRAY_SIZE(energy_battery_props);
++		}
++#endif
+ 		acpi_battery_init_alarm(battery);
+ 	}
+ 	return acpi_battery_get_state(battery);
+@@ -294,6 +424,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ static struct proc_dir_entry *acpi_battery_dir;
+ 
+ static int acpi_battery_print_info(struct seq_file *seq, int result)
+@@ -314,11 +445,11 @@ static int acpi_battery_print_info(struct seq_file *seq, int result)
+ 			   battery->design_capacity,
+ 			   acpi_battery_units(battery));
+ 
+-	if (battery->last_full_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
++	if (battery->full_charge_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "last full capacity:      unknown\n");
+ 	else
+ 		seq_printf(seq, "last full capacity:      %d %sh\n",
+-			   battery->last_full_capacity,
++			   battery->full_charge_capacity,
+ 			   acpi_battery_units(battery));
+ 
+ 	seq_printf(seq, "battery technology:      %srechargeable\n",
+@@ -375,22 +506,22 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
+ 	else
+ 		seq_printf(seq, "charging state:          charged\n");
+ 
+-	if (battery->present_rate == ACPI_BATTERY_VALUE_UNKNOWN)
++	if (battery->current_now == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "present rate:            unknown\n");
+ 	else
+ 		seq_printf(seq, "present rate:            %d %s\n",
+-			   battery->present_rate, acpi_battery_units(battery));
++			   battery->current_now, acpi_battery_units(battery));
+ 
+-	if (battery->remaining_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
++	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "remaining capacity:      unknown\n");
+ 	else
+ 		seq_printf(seq, "remaining capacity:      %d %sh\n",
+-			   battery->remaining_capacity, acpi_battery_units(battery));
+-	if (battery->present_voltage == ACPI_BATTERY_VALUE_UNKNOWN)
++			   battery->capacity_now, acpi_battery_units(battery));
++	if (battery->voltage_now == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "present voltage:         unknown\n");
+ 	else
+ 		seq_printf(seq, "present voltage:         %d mV\n",
+-			   battery->present_voltage);
++			   battery->voltage_now);
+       end:
+ 	if (result)
+ 		seq_printf(seq, "ERROR: Unable to read battery state\n");
+@@ -564,6 +695,7 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
+ 	acpi_device_dir(device) = NULL;
+ }
+ 
++#endif
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -581,6 +713,9 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 					device->dev.bus_id, event,
+ 					acpi_battery_present(battery));
++#ifdef ENABLE_POWER_SUPPLY
++	kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
++#endif
+ }
+ 
+ static int acpi_battery_add(struct acpi_device *device)
+@@ -599,9 +734,17 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	acpi_driver_data(device) = battery;
+ 	mutex_init(&battery->lock);
+ 	acpi_battery_update(battery);
++#ifdef CONFIG_ACPI_PROCFS
+ 	result = acpi_battery_add_fs(device);
+ 	if (result)
+ 		goto end;
++#endif
++#ifdef ENABLE_POWER_SUPPLY
++	battery->bat.name = acpi_device_bid(device);
++	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
++	battery->bat.get_property = acpi_battery_get_property;
++	result = power_supply_register(&battery->device->dev, &battery->bat);
++#endif
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_ALL_NOTIFY,
+ 					     acpi_battery_notify, battery);
+@@ -615,7 +758,9 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	       device->status.battery_present ? "present" : "absent");
+       end:
+ 	if (result) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_battery_remove_fs(device);
++#endif
+ 		kfree(battery);
+ 	}
+ 	return result;
+@@ -632,7 +777,13 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY,
+ 					    acpi_battery_notify);
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_battery_remove_fs(device);
++#endif
++#ifdef ENABLE_POWER_SUPPLY
++	if (battery->bat.dev)
++		power_supply_unregister(&battery->bat);
++#endif
+ 	mutex_destroy(&battery->lock);
+ 	kfree(battery);
+ 	return 0;
+@@ -664,11 +815,15 @@ static int __init acpi_battery_init(void)
+ {
+ 	if (acpi_disabled)
+ 		return -ENODEV;
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_battery_dir = acpi_lock_battery_dir();
+ 	if (!acpi_battery_dir)
+ 		return -ENODEV;
++#endif
+ 	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+ 	return 0;
+@@ -677,7 +832,9 @@ static int __init acpi_battery_init(void)
+ static void __exit acpi_battery_exit(void)
+ {
+ 	acpi_bus_unregister_driver(&acpi_battery_driver);
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_unlock_battery_dir(acpi_battery_dir);
++#endif
+ }
+ 
+ module_init(acpi_battery_init);
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Sony Corporation
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: J0020Y9W
-	Asset Tag:                                                   
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00000009
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: N/A
-	Type: Central Processor
-	Family: Other
-	Manufacturer: GenuineIntel
-	ID: F6 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU         T7200  @ 2.00GHz
-	Voltage: 1.3 V
-	External Clock: 166 MHz
-	Max Speed: 2000 MHz
-	Current Speed: 2000 MHz
-	Status: Populated, Enabled
-	Upgrade: None
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: 0x0007
-	Serial Number: N/A
-	Asset Tag: N/A
-	Part Number: N/A
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: None
-	System Type: Other
-	Associativity: 8-way Set-associative
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 4096 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: None
-	System Type: Data
-	Associativity: 8-way Set-associative
-
-Handle 0x0007, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L3 Cache
-	Configuration: Disabled, Not Socketed, Level 3
-	Operational Mode: Unknown
-	Location: Unknown
-	Installed Size: 0 KB
-	Maximum Size: 0 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: None
-	System Type: Data
-	Associativity: 4-way Set-associative
-
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCCARD1
-	Type: 32-bit PC Card (PCMCIA)
-	Current Usage: Available
-	Length: Other
-	ID: Adapter 0, Socket 1
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PC Card-16 is supported
-		Cardbus is supported
-		Modem ring resume is supported
-		PME signal is supported
-		Hot-plug devices are supported
-
-Handle 0x0009, DMI type 11, 5 bytes
-OEM Strings
-	String 1: JPBL-002575
-	String 2: FNC-CCIA0jieHDPW
-	String 3: 6N6P000000005c5ca50ea4a54d24
-	String 4: Reserved              
-	String 5: Reserved              
-
-Handle 0x000A, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: Unknown
-	Maximum Capacity: 2048 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x000B, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: Not Provided
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: None
-	Locator: SODIMM1
-	Bank Locator: Bank 0
-	Type: DDR
-	Type Detail: Unknown
-
-Handle 0x000C, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: Not Provided
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: None
-	Locator: SODIMM2
-	Bank Locator: Bank 1
-	Type: DDR
-	Type Detail: Unknown
-
-Handle 0x000D, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x000A
-	Partition Width: 0
-
-Handle 0x000E, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000B
-	Memory Array Mapped Address Handle: 0x000D
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x000F, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000C
-	Memory Array Mapped Address Handle: 0x000D
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0010, DMI type 32, 11 bytes
-System Boot Information
-	Status: No errors detected
-
-Handle 0x0011, DMI type 136, 6 bytes
-OEM-specific Type
-	Header and Data:
-		88 06 11 00 5A 5A
-
-Handle 0x0012, DMI type 127, 4 bytes
-End Of Table
-
-Regards,
-
--- 
-"In all large corporations, there is a pervasive fear that someone, somewhere
-is having fun with a computer on company time. Networks help alleviate that
-fear." - John C. Dvorak
