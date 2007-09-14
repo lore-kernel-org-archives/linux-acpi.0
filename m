@@ -1,34 +1,60 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [RFC] module to support ACPI AML calls to native firmware
-Date: Thu, 13 Sep 2007 17:11:14 -0600
-Message-ID: <200709131711.15015.bjorn.helgaas@hp.com>
-References: <200709111714.57095.bjorn.helgaas@hp.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] [-mm] FS: file name must be unique in the same dir in
+ procfs
+Date: Thu, 13 Sep 2007 18:37:44 -0700
+Message-ID: <20070913183744.7e074852.akpm@linux-foundation.org>
+References: <1187605699.2920.147.camel@acpi-hp.sh.intel.com>
+	<200708201245.17780.oliver@neukum.org>
+	<1187625005.2920.167.camel@acpi-hp.sh.intel.com>
+	<20070910004927.323763ad.akpm@linux-foundation.org>
+	<1189493003.22038.30.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200709111714.57095.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-ia64@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, "Luck, Tony" <tony.luck@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50176 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752332AbXINBhy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Sep 2007 21:37:54 -0400
+In-Reply-To: <1189493003.22038.30.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Oliver Neukum <oliver@neukum.org>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 11 September 2007 05:14:56 pm Bjorn Helgaas wrote:
-> ...
-> So I'm interested in feedback on the following patches, which do not
-> export sal_lock, but rather export functions that can be used to call
-> SAL or other native firmware interfaces.
+> 
+> From: Zhang Rui <rui.zhang@intel.com>
+> File name should be unique in the same directory.
+> 
+> In order to keep the back-compatibility, only a warning is given
+> currently, but actions must be taken to fix it when such duplicates
+> are detected.
+> 
+> Bug report and a simple fix can be found here: 
+> http://bugzilla.kernel.org/show_bug.cgi?id=8798
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  fs/proc/generic.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> Index: linux-2.6/fs/proc/generic.c
+> ===================================================================
+> --- linux-2.6.orig/fs/proc/generic.c
+> +++ linux-2.6/fs/proc/generic.c
+> @@ -523,6 +523,7 @@ static const struct inode_operations pro
+>  
+>  static int proc_register(struct proc_dir_entry * dir, struct
+> proc_dir_entry * dp)
 
-Hi Tony,
+Your email client is wordwrapping the text.
 
-I haven't heard much feedback, and I couldn't come up with any
-significantly better text for the description.
+>  {
+> +	struct proc_dir_entry *tmp = NULL;
 
-If you don't object to the two patches, can you incorporate them
-as originally posted?  If you'd prefer a different approach, I'd
-be happy to rework them, of course.
+That initialisation is unneeded - I removed it.
 
-Thanks,
-  Bjorn
+`tmp' is always a crappy name for anything.  I renamed it to `de'.
+
+
