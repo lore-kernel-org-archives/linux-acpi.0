@@ -1,33 +1,89 @@
-From: Carlos Corbacho <cathectic@slackadelic.com>
-Subject: Re: wmi.c - Any news?
-Date: Fri, 14 Sep 2007 14:47:06 +0100
-Message-ID: <200709141447.06937.cathectic@slackadelic.com>
-References: <200708301003.41489.cathectic@gmail.com> <200708311423.50178.lenb@kernel.org>
+From: Ryan May <rmay@ou.edu>
+Subject: Re: [PATCH 1/2] [PATCH] ACPI: video: Don't call absent methods
+Date: Fri, 14 Sep 2007 09:01:10 -0500
+Message-ID: <46EA9426.4000404@ou.edu>
+References: <20070903122958.20082.6843.stgit@z61m>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:38816 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751594AbXINNwu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2007 09:52:50 -0400
-In-Reply-To: <200708311423.50178.lenb@kernel.org>
-Content-Disposition: inline
+Received: from rossby.metr.ou.edu ([129.15.192.80]:2936 "EHLO
+	rossby.metr.ou.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbXINOBZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2007 10:01:25 -0400
+Received: from [10.197.12.171] (raman.som.nor.ouint [10.197.12.171])
+	by rossby.metr.ou.edu (8.12.9p2/8.12.9) with ESMTP id l8EE1FYN027094
+	for <linux-acpi@vger.kernel.org>; Fri, 14 Sep 2007 09:01:15 -0500 (CDT)
+	(envelope-from rmay@ou.edu)
+In-Reply-To: <20070903122958.20082.6843.stgit@z61m>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Len,
+What's the status of this particular patch?
 
-On Friday 31 August 2007 19:23:50 Len Brown wrote:
-> I plan to get back to [wmi.c] when i return from the kernel summit.
+Ryan
 
-Are you planning to get back to this still in the next few weeks?
+Alexey Starikovskiy wrote:
+> Signed-off-by: Ryan May <rmay@ou.edu>
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/video.c |   18 ++++++++++--------
+>  1 files changed, 10 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 3c9bb85..83aa41c 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -409,14 +409,16 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
+>  static int
+>  acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
+>  {
+> -	int status;
+> +	int status = AE_OK;
+>  	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+>  	struct acpi_object_list args = { 1, &arg0 };
+>  
+>  
+>  	arg0.integer.value = level;
+> -	status = acpi_evaluate_object(device->dev->handle, "_BCM", &args, NULL);
+> -
+> +	if (device->cap._BCM)
+> +		status = acpi_evaluate_object(device->dev->handle, "_BCM",
+> +					      &args, NULL);
+> +	device->brightness->curr = level;
+>  	printk(KERN_DEBUG "set_level status: %x\n", status);
+>  	return status;
+>  }
+> @@ -425,11 +427,11 @@ static int
+>  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  					unsigned long *level)
+>  {
+> -	int status;
+> -
+> -	status = acpi_evaluate_integer(device->dev->handle, "_BQC", NULL, level);
+> -
+> -	return status;
+> +	if (device->cap._BQC)
+> +		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
+> +					     level);
+> +	*level = device->brightness->curr;
+> +	return AE_OK;
+>  }
+>  
+>  static int
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
--Carlos
+
 -- 
-E-Mail: cathectic@gmail.com
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Ryan May
+Graduate Research Assistant
+School of Meteorology
+University of Oklahoma
