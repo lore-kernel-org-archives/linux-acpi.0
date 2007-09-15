@@ -1,93 +1,54 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version 2
-Date: Sat, 15 Sep 2007 18:06:53 +0100
-Message-ID: <20070915170652.GA25504@srcf.ucam.org>
-References: <20070915030154.GA17655@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH -mm] Hibernation: Resume consoles if hibernation_platform_enter fails
+Date: Sat, 15 Sep 2007 21:17:39 +0200
+Message-ID: <200709152117.40581.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:48292 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbXIORG7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Sep 2007 13:06:59 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:49394 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752204AbXIOTFn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 15 Sep 2007 15:05:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20070915030154.GA17655@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Modern laptops with hotswap bays still tend to utilise a PATA interface 
-on a SATA bridge, generally with the host controller in some legacy 
-emulation mode rather than AHCI. This means that the existing hotplug 
-code in libata is unable to work. The ACPI specification states that 
-these devices can send notifications when hotswapped, which avoids the 
-need to obtain notification from the controller. This patch uses the 
-existing libata-acpi code and simply registers a notification in order 
-to trigger a rescan whenever the firmware signals an event.
-
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-
+[This is a fix on top of
+hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch]
 ---
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Testing on an HP with the hotplug device as the slave on a PATA channel 
-flagged a bug - the notification needs to be tied to the channel handle 
-as well as the device ones. With this version, I can happily hotswap the 
-HP device. It ends up sitting for a few seconds while failing to 
-revalidate, but then recovers with everything working fine.
+If hibernation_platform_enter() fails, consoles should be resumed so that
+diagnostic information related to the failure is available to the user.
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index c059f78..99f3179 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -66,6 +66,17 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
- 	}
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ kernel/power/disk.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.23-rc6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.23-rc6.orig/kernel/power/disk.c
++++ linux-2.6.23-rc6/kernel/power/disk.c
+@@ -293,7 +293,7 @@ int hibernation_platform_enter(void)
+ 	suspend_console();
+ 	error = device_suspend(PMSG_SUSPEND);
+ 	if (error)
+-		return error;
++		goto Resume_console;
+ 
+ 	error = hibernation_ops->prepare();
+ 	if (error)
+@@ -320,6 +320,8 @@ int hibernation_platform_enter(void)
+ 	hibernation_ops->finish();
+  Resume_devices:
+ 	device_resume();
++ Resume_console:
++	resume_console();
+ 	return error;
  }
  
-+static void ata_acpi_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct ata_port *ap = data;
-+	struct ata_eh_info *ehi = &ap->eh_info;
-+
-+	ata_ehi_clear_desc(ehi);
-+	ata_ehi_push_desc(ehi, "ACPI event");
-+	ata_ehi_hotplugged(ehi);
-+	ata_port_freeze(ap);
-+}
-+
- /**
-  * ata_acpi_associate - associate ATA host with ACPI objects
-  * @host: target ATA host
-@@ -81,7 +92,7 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
-  */
- void ata_acpi_associate(struct ata_host *host)
- {
--	int i;
-+	int i, j;
- 
- 	if (!is_pci_dev(host->dev) || libata_noacpi)
- 		return;
-@@ -97,6 +108,22 @@ void ata_acpi_associate(struct ata_host *host)
- 			ata_acpi_associate_sata_port(ap);
- 		else
- 			ata_acpi_associate_ide_port(ap);
-+
-+		if (ap->acpi_handle)
-+			acpi_install_notify_handler (ap->acpi_handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     ata_acpi_notify,
-+						     ap);
-+
-+		for (j = 0; j < ATA_MAX_DEVICES; j++) {
-+			struct ata_device *dev = &ap->device[j];
-+
-+			if (dev->acpi_handle)
-+				acpi_install_notify_handler (ap->device->acpi_handle,
-+							     ACPI_SYSTEM_NOTIFY,
-+							     ata_acpi_notify,
-+							     ap);
-+		}
- 	}
- }
-  
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
