@@ -1,54 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH -mm] Hibernation: Resume consoles if hibernation_platform_enter fails
-Date: Sat, 15 Sep 2007 21:17:39 +0200
-Message-ID: <200709152117.40581.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [RFC] Notification on method execution
+Date: Sat, 15 Sep 2007 21:49:23 +0100
+Message-ID: <20070915204923.GA27604@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49394 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752204AbXIOTFn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Sep 2007 15:05:43 -0400
+Received: from cavan.codon.org.uk ([78.32.9.130]:54444 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493AbXIOUt3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Sep 2007 16:49:29 -0400
+Received: from mjg59 by vavatch.codon.org.uk with local (Exim 4.62)
+	(envelope-from <mjg59@codon.org.uk>)
+	id 1IWeZv-0007BM-GI
+	for linux-acpi@vger.kernel.org; Sat, 15 Sep 2007 21:49:26 +0100
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-[This is a fix on top of
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch]
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
+For certain drivers (such as the Thinkpad ACPI driver[1]), it would be 
+helpful to be able to get notifications when a method is executed. I'd 
+propose adding a call like acpi_method_notify, extending the method 
+field to contain an extra flag for notifications and a callback, having 
+acpi_aml_execute check this before executing the methods and perhaps 
+checking the return code to decide whether to continue executing the 
+method or not (would potentially allow overriding methods, though I'm 
+not convinced it's a good idea). Does this sound basically sane? If so, 
+I'll do a patch.
 
-If hibernation_platform_enter() fails, consoles should be resumed so that
-diagnostic information related to the failure is available to the user.
+[1] Various Thinkpads make predictable method calls when hotkeys are 
+pressed, but make no notifications. Hooking into those methods would 
+allow those keys to be caught without the requirement to repeatedly poll 
+the hardware to see if there's been an update.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/disk.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-Index: linux-2.6.23-rc6/kernel/power/disk.c
-===================================================================
---- linux-2.6.23-rc6.orig/kernel/power/disk.c
-+++ linux-2.6.23-rc6/kernel/power/disk.c
-@@ -293,7 +293,7 @@ int hibernation_platform_enter(void)
- 	suspend_console();
- 	error = device_suspend(PMSG_SUSPEND);
- 	if (error)
--		return error;
-+		goto Resume_console;
- 
- 	error = hibernation_ops->prepare();
- 	if (error)
-@@ -320,6 +320,8 @@ int hibernation_platform_enter(void)
- 	hibernation_ops->finish();
-  Resume_devices:
- 	device_resume();
-+ Resume_console:
-+	resume_console();
- 	return error;
- }
- 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
