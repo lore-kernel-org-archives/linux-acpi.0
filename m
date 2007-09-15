@@ -1,106 +1,71 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: 2.6.23-rc6: known regressions with patches v2
-Date: Sat, 15 Sep 2007 04:29:11 +0200
-Message-ID: <46EB4377.7040200@googlemail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug
+Date: Sat, 15 Sep 2007 04:01:54 +0100
+Message-ID: <20070915030154.GA17655@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:20211 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760158AbXIOC3a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2007 22:29:30 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so589483ugc
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Sep 2007 19:29:30 -0700 (PDT)
+Received: from cavan.codon.org.uk ([78.32.9.130]:48426 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073AbXIODCC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2007 23:02:02 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Gabriel C <nix.or.die@googlemail.com>, Satyam Sharma <satyam.sharma@gmail.com>, Vitaly Bordug <vitb@kernel.crashing.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>, Alexey Starikovskiy <aystarik@gmail.com>, Kay Sievers <kay.sievers@vrfy.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Greg KH <gregkh@suse.de>, Anssi Hannula <anssi.hannula@gmail.com>, Christian Kujau <lists@nerdbynature.de>, jamal <hadi@cyberus.ca>, netdev@vger.kernel.org
+To: linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi all,
+Modern laptops with hotswap bays still tend to utilise a PATA interface 
+on a SATA bridge, generally with the host controller in some legacy 
+emulation mode rather than AHCI. This means that the existing hotplug 
+code in libata is unable to work. The ACPI specification states that 
+these devices can send notifications when hotswapped, which avoids the 
+need to obtain notification from the controller. This patch uses the 
+existing libata-acpi code and simply registers a notification in order 
+to trigger a rescan whenever the firmware signals an event.
 
-Here is a list of some known regressions in 2.6.23-rc6
-with patches available.
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
+---
 
-List of Aces
+I've tested this on the Dell I have here - the removal is a bit chatty 
+(and it spends several seconds attempting to revalidate), but it 
+destroys the device happily enough and handles reinsertion without 
+complaining.
 
-Name                    Regressions fixed since 21-Jun-2007
-Adrian Bunk                            10
-Andi Kleen                             7
-Linus Torvalds                         6
-Alan Stern                             5
-Hugh Dickins                           5
-Trond Myklebust                        5
-Andrew Morton                          4
-David S. Miller                        4
-Al Viro                                3
-Alexey Starikovskiy                    3
-Cornelia Huck                          3
-Jens Axboe                             3
-Stephen Hemminger                      3
-Tejun Heo                              3
-
-
-
-Unclassified
-
-Subject         : Oops while modprobing phy fixed module
-References      : http://lkml.org/lkml/2007/7/14/63
-Last known good : ?
-Submitter       : Gabriel C <nix.or.die@googlemail.com>
-Caused-By       : ?
-Handled-By      : Satyam Sharma <satyam.sharma@gmail.com>
-                  Vitaly Bordug <vitb@kernel.crashing.org>
-Patch1          : http://lkml.org/lkml/2007/7/18/506
-Status          : patch available
-
-
-
-ACPI
-
-Subject         : 2.6.23-rc5 hangs on boot, apparently when initializing the EC
-References      : http://lkml.org/lkml/2007/9/11/369
-Last known good : ?
-Submitter       : Chuck Ebbert <cebbert@redhat.com>
-Caused-By       : ?
-Handled-By      : Alexey Starikovskiy <aystarik@gmail.com>
-Patch           : http://bugzilla.kernel.org/attachment.cgi?id=12673
-Status          : patch was suggested
-
-
-
-Drivercore
-
-Subject         : sysfs change of input/event devices in 2.6.23rc breaks udev
-References      : http://lkml.org/lkml/2007/9/8/86
-Last known good : ?
-Submitter       : Anssi Hannula <anssi.hannula@gmail.com>
-Caused-By       : ?
-Handled-By      : Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Patch           : http://lkml.org/lkml/2007/9/10/3
-Status          : patch available
-
-
-
-Networking
-
-Subject         : 2.6.23-rc5: possible irq lock inversion dependency detected
-References      : http://lkml.org/lkml/2007/9/2/97
-Last known good : ?
-Submitter       : Christian Kujau <lists@nerdbynature.de>
-Caused-By       : ?
-Handled-By      : jamal <hadi@cyberus.ca>
-Patch           : http://lkml.org/lkml/2007/9/11/159
-Status          : patch available
-
-
-
-Farewell!
-Michal
-
---
-LOGOUT
-http://www.stardust.webpages.pl/
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index c059f78..bc6bea6 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -66,6 +66,17 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
+ 	}
+ }
+ 
++static void ata_acpi_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_port *ap = data;
++	struct ata_eh_info *ehi = &ap->eh_info;
++
++	ata_ehi_clear_desc(ehi);
++	ata_ehi_push_desc(ehi, "ACPI event");
++	ata_ehi_hotplugged(ehi);
++	ata_port_freeze(ap);
++}
++
+ /**
+  * ata_acpi_associate - associate ATA host with ACPI objects
+  * @host: target ATA host
+@@ -97,6 +108,12 @@ void ata_acpi_associate(struct ata_host *host)
+ 			ata_acpi_associate_sata_port(ap);
+ 		else
+ 			ata_acpi_associate_ide_port(ap);
++
++		if (ap->device->acpi_handle)
++			acpi_install_notify_handler (ap->device->acpi_handle,
++						     ACPI_SYSTEM_NOTIFY,
++						     ata_acpi_notify,
++						     ap);
+ 	}
+ }
+ 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
