@@ -1,41 +1,64 @@
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
-Subject: Re: PROBLEM: kernel hang in ohci init
-Date: Sun, 16 Sep 2007 18:49:42 +0530
-Message-ID: <a781481a0709160619g312dc334w8c610fc13a9d1ef1@mail.gmail.com>
-References: <4695EC25.6050003@arcor.de>
-	 <a781481a0707122015q48fd8a06m5d0e54b109708757@mail.gmail.com>
-	 <200707122040.36800.david-b@pacbell.net> <4699F9CB.5010407@arcor.de>
-	 <a781481a0707150418o35e4d60fs59cba3f835ebef67@mail.gmail.com>
-	 <a781481a0707150429y22b8b10bv413f5f6ba498d3e4@mail.gmail.com>
-	 <469A09C9.6000608@arcor.de>
-	 <a781481a0709160343l530b067bg55a4679e1cf864ab@mail.gmail.com>
-	 <a781481a0709160347t647fab9fs505dd053f3fe203d@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] Notification on method execution
+Date: Sun, 16 Sep 2007 11:38:24 -0300
+Message-ID: <20070916143824.GA4869@khazad-dum.debian.net>
+References: <20070915204923.GA27604@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.187]:38709 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369AbXIPNTn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Sep 2007 09:19:43 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so1054848rvb
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Sep 2007 06:19:43 -0700 (PDT)
-In-Reply-To: <a781481a0709160347t647fab9fs505dd053f3fe203d@mail.gmail.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59475 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752707AbXIPPFT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Sep 2007 11:05:19 -0400
 Content-Disposition: inline
+In-Reply-To: <20070915204923.GA27604@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timo Lindemann <tlindemann@arcor.de>
-Cc: linux-kernel@vger.kernel.org, David Brownell <david-b@pacbell.net>, Greg Kroah-Hartman <greg@kroah.com>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-Ok, opened up: http://bugzilla.kernel.org/show_bug.cgi?id=9026
-and brought it up to date with the discussion and David's comments on this
-thread. Timo, please feel free to revisit this later and update us when you find
-the time to do so.
+On Sat, 15 Sep 2007, Matthew Garrett wrote:
+> For certain drivers (such as the Thinkpad ACPI driver[1]), it would be 
+> helpful to be able to get notifications when a method is executed. I'd 
+> propose adding a call like acpi_method_notify, extending the method 
+> field to contain an extra flag for notifications and a callback, having 
+> acpi_aml_execute check this before executing the methods and perhaps 
+> checking the return code to decide whether to continue executing the 
+> method or not (would potentially allow overriding methods, though I'm 
+> not convinced it's a good idea). Does this sound basically sane? If so, 
+> I'll do a patch.
 
-[ BTW I think the "add CC:" thing in bugzilla is broken, I was simply unable to
-  add David Brownell, linux-acpi@ and Timo to the CC: for that bug, if somebody
-  knows how to do this, please add them ... ]
+Yes, I could certainly use something like this on thinkpad-acpi.  It is also
+a great way to hot-fix DSDTs, although I don't think any such a hotfix is
+the sort of thing I'd add to a Linux mainline driver.
 
-Thanks,
+However, this idea of yours looks like a hook API for the AML interpretor,
+so I'd suggest you make it complete, and allow for callbacks that are called
+BEFORE, AFTER, and INSTEAD of the AML method.
 
-Satyam
+> [1] Various Thinkpads make predictable method calls when hotkeys are 
+> pressed, but make no notifications. Hooking into those methods would 
+> allow those keys to be caught without the requirement to repeatedly poll 
+> the hardware to see if there's been an update.
+
+I'm afraid the very old ones might lack the embedded controller support you
+need, especially those without ACPI (but we don't support them anyway).
+
+The entire T-series since the T40 (as long as you update the BIOS) support
+all hotkeys in an event-driven fashion in the T43 style.  I am not sure of
+the R5x series, but I'd be surprised if they don't support all hotkeys using
+events, either.  The X-series since the X31 also support all hot keys using
+events in their latest BIOSes.  The *60 and *61 series might have messes on
+the volume and brightness key support due to Vista support changes to the
+BIOS.
+
+BUT it is certainly useful to have the such support. I am all for it, and
+I'd be curious to know how well your trick works on a broad range of
+thinkpads.  We can certainly add it to thinkpad-acpi if it is safe.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
