@@ -1,172 +1,129 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI patches for 2.6.23-rc6
-Date: Mon, 17 Sep 2007 01:06:28 -0400
-Message-ID: <200709170106.28235.lenb@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [ibm-acpi-devel] Some information about setting brightness
+	on	X61 Tablet with 16 levels.
+Date: Mon, 17 Sep 2007 16:31:43 +0200
+Message-ID: <1190039503.3222.30.camel@queen.suse.de>
+References: <20070912151812.GD6339@bart.intergenia.de>
+	 <20070912154947.GE6339@bart.intergenia.de>
+	 <20070912160007.GF6339@bart.intergenia.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:60281 "EHLO hera.kernel.org"
+Received: from ns2.suse.de ([195.135.220.15]:34107 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751113AbXIQFGu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Sep 2007 01:06:50 -0400
-Content-Disposition: inline
+	id S1754597AbXIQObs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Sep 2007 10:31:48 -0400
+In-Reply-To: <20070912160007.GF6339@bart.intergenia.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Maik Broemme <mbroemme@plusserver.de>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+On Wed, 2007-09-12 at 18:00 +0200, Maik Broemme wrote:
+> Hi,
+> 
+> Maik Broemme <mbroemme@plusserver.de> wrote:
+> > Hi,
+> > 
+> > Maik Broemme <mbroemme@plusserver.de> wrote:
+> > > Hi,
+> > > 
+> > > i have a couple of small questions. :) I own an IBM ThinkPad X40 and a
+> > > Lenovo ThinkPad X61 Tablet and just hacked somewhere around in the
+> > > 'thinkpad-acpi-0.16-20070904' sources.
+> > > 
+> > > I started my work on adding support for the brightness setup which has
+> > > 16 level on the newer X61/X61s and X61 Tablet laptops. Well my problem
+> > > is (or i am to stupid to understand) that setting the brightness level
+> > > with TP_CMOS_BRIGHTNESS_UP did not set it until level 16. Is this a
+> > > limitation of the thinkpad-acpi itself or somewhere inside the NVRAM?
+> > > 
+> > > As notice: With brightness mode 1 (which reads data from EC via
+> > > acpi_ec_read) the setting of any brightness level is not working.
+> > > 
+> > > Maybe someone can give me a hint where i can start to track this issue
+> > > and how to solve it. :)
+> > > 
+> > 
+> > okay some other information, i am still able to set at least 15 of the
+> > 16 levels via '/proc/acpi/video/VID/LCD0/brightness' It shows:
+> > 
+> > root@bart:~# cat /proc/acpi/video/VID/LCD0/brightness 
+> > levels:  100 100 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 100
+> > current: 90
+> > 
+> > If i count all values (and the 100 only one time) it are 16 levels.
+> > Well the level 100 i can not set (kernel is stock 2.6.22.6) Well this
+> > looks like an ACPI bug for me, or a broken firmware. If do the
+> > following:
+> > 
+> > root@bart:~# for i in 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 ; do sleep 1s ; echo "${i}" > /proc/acpi/video/VID/LCD0/brightness ; done
+> > 
+> > i can set at least 15 brightness level. I think the best solution would
+> > be to use the ACPI video driver to set the brightness, did anyone agree
+> > or disagree? :)
+> > 
+> > If i am correct thinkpad-acpi should trac the keypress event and then
+> > trigger some acpi function to set the brightness level.
+> > 
+> 
+> Sorry a last thing which should be mentioned. :) The ACPI video driver
+> correctly updates the CMOS NVRAM, but thinkpad-acpi can only handle
+> values until acpi-video value 55, for example:
+> 
+> root@bart:~# echo 20 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          0
+> root@bart:~# echo 25 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          1
+> root@bart:~# echo 30 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          2
+> root@bart:~# echo 35 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          3
+> root@bart:~# echo 40 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          4
+> root@bart:~# echo 45 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          5
+> root@bart:~# echo 50 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          6
+> root@bart:~# echo 55 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          7
+> root@bart:~# echo 60 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          0
+> root@bart:~# echo 65 > /proc/acpi/video/VID/LCD0/brightness 
+> root@bart:~# cat /proc/acpi/ibm/brightness | grep level:
+> level:          1
 
-Before 2.6.23, please pull from: 
+But brightness is set correctly (not the value but the background
+brightness itself)?
+This is a thinkpad_acpi bug and the fact that it can only cope with 8
+brightness levels.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+I have two ideas on how the thinkpad_acpi driver could handle these
+machines:
+  - set brightness levels from current up to max (until it does not
+    change anymore) -> disadvantage: unspecified values are written
+    and a SMI with a undefined value will be fired (e.g. a value of
+    8 for < X61/T61 and a value of 16 for X61/T61...)
+  - Use dmi decode again and set max brightness levels to 0-15 in
+    X61/T61/.. case.
 
-A build fix, a kconfig fix, a typo and a revert for the thinkpad folks.
+Both are really ugly workarounds and should only be added if there is no
+time for doing it right for the next bigger kernel release.
+Doing it right is IMO, ripping out brightness control for *Lenovo*
+ThinkPads only and let the video module do brightness control instead.
+This should also be done for the video ThinkPad extensions or the
+ThinkPad video extensions might interfere with the video driver.
 
-This will update the files shown below.
+   Thomas
 
-thanks!
-
--Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.23/acpi-release-20070126-2.6.23-rc6.diff.gz
-
- Documentation/thinkpad-acpi.txt |   96 ++++++++++++++----
- drivers/acpi/event.c            |    2 
- drivers/acpi/sleep/proc.c       |   10 -
- drivers/misc/Kconfig            |   20 ---
- drivers/misc/msi-laptop.c       |    2 
- drivers/misc/thinkpad_acpi.c    |  144 ++++++++++++++++------------
- drivers/misc/thinkpad_acpi.h    |    1 
- 7 files changed, 172 insertions(+), 103 deletions(-)
-
-through these commits:
-
-Christian Borntraeger (1):
-      ACPI: (more) delete CONFIG_ACPI_PROCFS_SLEEP (again)
-
-Henrique de Moraes Holschuh (3):
-      ACPI: fix CONFIG_NET=n acpi_bus_generate_netlink_event build failure
-      ACPI: thinkpad-acpi: revert new 2.6.23 CONFIG_THINKPAD_ACPI_INPUT_ENABLED option
-      ACPI: thinkpad-acpi: bump up version to 0.16
-
-Jonathan Woithe (1):
-      msi-laptop: replace ',' with ';'
-
-with this log:
-
-commit ecfe7f093768f7af0959f5be8ec039dcc29724af
-Merge: 95e3f66... 3b0c648...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Sep 17 00:58:40 2007 -0400
-
-    Pull thinkpad into release branch
-
-commit 3b0c6485a733f5f0f5c362fb094df1466b18ab93
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Tue Sep 4 11:13:16 2007 -0300
-
-    ACPI: thinkpad-acpi: bump up version to 0.16
-    
-    Name it thinkpad-acpi version 0.16 to avoid any confusion with some 0.15
-    thinkpad-acpi development snapshots and backports that had input layer
-    support, but no hotkey_report_mode support.
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit ff80f1370f2eff7dd7a828cf2416bf7be697247e
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Tue Sep 4 11:13:15 2007 -0300
-
-    ACPI: thinkpad-acpi: revert new 2.6.23 CONFIG_THINKPAD_ACPI_INPUT_ENABLED option
-    
-    Revert new 2.6.23 CONFIG_THINKPAD_ACPI_INPUT_ENABLED Kconfig option because
-    it would create a legacy we don't want to support.
-    
-    CONFIG_THINKPAD_ACPI_INPUT_ENABLED was added to try to fix an issue that is
-    now moot with the addition of the netlink ACPI event report interface to
-    the ACPI core.
-    
-    Now that ACPI core can send events over netlink, we can use a different
-    strategy to keep backwards compatibility with older userspace, without the
-    need for the CONFIG_THINKPAD_ACPI_INPUT_ENABLED games.  And it arrived
-    before CONFIG_THINKPAD_ACPI_INPUT_ENABLED made it to a stable mainline
-    kernel, even, which is Good.
-    
-    This patch is in sync with some changes to thinkpad-acpi backports, that
-    will keep things sane for userspace across different combinations of kernel
-    versions, thinkpad-acpi backports (or the lack thereof), and userspace
-    capabilities:
-    
-    Unless a module parameter is used, thinkpad-acpi will now behave in such a
-    way that it will work well (by default) with userspace that still uses only
-    the old ACPI procfs event interface and doesn't care for thinkpad-acpi
-    input devices.
-    
-    It will also always work well with userspace that has been updated to use
-    both the thinkpad-acpi input devices, and ACPI core netlink event
-    interface, regardless of any module parameter.
-    
-    The module parameter was added to allow thinkpad-acpi to work with
-    userspace that has been partially updated to use thinkpad-acpi input
-    devices, but not the new ACPI core netlink event interface.  To use this
-    mode of hot key reporting, one has to specify the hotkey_report_mode=2
-    module parameter.
-    
-    The thinkpad-acpi driver exports the value of hotkey_report_mode through
-    sysfs, as well.  thinkpad-acpi backports to older kernels, that do not
-    support the new ACPI core netlink interface, have code to allow userspace
-    to switch hotkey_report_mode at runtime through sysfs.  This capability
-    will not be provided in mainline thinkpad-acpi as it is not needed there.
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Cc: Michael S. Tsirkin <mst@dev.mellanox.co.il>
-    Cc: Hugh Dickins <hugh@veritas.com>
-    Cc: Richard Hughes <hughsient@gmail.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 95e3f66fa60a8e573b0b7a58305c5c9fcbca1b70
-Merge: 5e41d0d... 66baf32...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Sep 17 00:28:58 2007 -0400
-
-    Pull misc into release branch
-
-commit 66baf327ae5d4c17e75d1f501145e79eaeeaf649
-Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date:   Mon Sep 3 00:03:35 2007 -0300
-
-    ACPI: fix CONFIG_NET=n acpi_bus_generate_netlink_event build failure
-    
-    drivers/acpi/event.c:243: error: 'acpi_generate_netlink_event' undeclared
-    here (not in a function)
-    
-    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit cb90ab5b424e711390c2ef6f0882b615b042dcb6
-Author: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Date:   Wed Aug 29 15:58:19 2007 +0930
-
-    msi-laptop: replace ',' with ';'
-    
-    Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 134c21715ac3cb36db13c8d362cc80ccc87ee48d
-Author: Christian Borntraeger <borntraeger@de.ibm.com>
-Date:   Tue Aug 28 14:58:56 2007 -0400
-
-    ACPI: (more) delete CONFIG_ACPI_PROCFS_SLEEP (again)
-    
-    Commit 2bcf9dddeb8e79a4ba55bf191533f70f39ce
-    ('ACPI: delete CONFIG_ACPI_PROCFS_SLEEP (again)')
-    was incomplete.
-    
-    Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
