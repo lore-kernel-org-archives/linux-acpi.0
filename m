@@ -1,70 +1,49 @@
 From: Andreas Herrmann <aherrman@arcor.de>
-Subject: [PATCH] sony-laptop/thinkpad-acpi: fix build error
-Date: Mon, 17 Sep 2007 22:54:34 +0200
-Message-ID: <20070917205434.GA22458@devil>
+Subject: [PATCH] acpi_video: kernel build error if !INPUT
+Date: Mon, 17 Sep 2007 23:41:05 +0200
+Message-ID: <20070917214105.GC22458@devil>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:44900 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754047AbXIQUxN (ORCPT
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:39417 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753249AbXIQVjm (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Sep 2007 16:53:13 -0400
+	Mon, 17 Sep 2007 17:39:42 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>
-Cc: Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
+Cc: Yu Luming <luming.yu@intel.com>, linux-acpi@vger.kernel.org
 
-sony-laptop and thinkpad-acpi make use of input-core functions.
-Hence you get link errors if those drivers are built but CONFIG_INPUT
-is not set. Attached patch fixes this minor issue.
+Commit e9dab1960ac9746fa34eff726b81635147615a79 exports ACPI
+video hotkey events via input layer. But this breaks kernel
+build if ACPI_VIDEO && !INPUT:
 
-
-Regards,
-
-Andreas
-
---
-Build errors if CONFIG_SONY_LAPTOP && !INPUT or
-if CONFIG_THINKPAD_ACPI && !INPUT:
-
- LD      vmlinux
-    ...
-drivers/built-in.o: In function `sony_laptop_remove_input':
-sony-laptop.c:(.text+0x768fb): undefined reference to `input_unregister_device'
-    ...
-drivers/built-in.o: In function `thinkpad_acpi_module_exit':
-thinkpad_acpi.c:(.text+0x78c1b): undefined reference to `input_free_device'
+ LD      .tmp_vmlinux1
+drivers/built-in.o: In function `acpi_video_bus_remove':
+drivers/acpi/video.c:2007: undefined reference to `input_unregister_device'
     ...
 
-I suggest to auto-select CONFIG_INPUT for both drivers.
+Add dependency to INPUT for ACPI_VIDEO to prevent this error.
 
 Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
 ---
- drivers/misc/Kconfig |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 73e248f..c077df8 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -134,6 +134,7 @@ config SONY_LAPTOP
- 	tristate "Sony Laptop Extras"
- 	depends on X86 && ACPI
- 	select BACKLIGHT_CLASS_DEVICE
-+	select INPUT
- 	  ---help---
- 	  This mini-driver drives the SNC and SPIC devices present in the ACPI
- 	  BIOS of the Sony Vaio laptops.
-@@ -156,6 +157,7 @@ config THINKPAD_ACPI
- 	select BACKLIGHT_CLASS_DEVICE
- 	select HWMON
- 	select NVRAM
-+	select INPUT
- 	---help---
- 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
- 	  support for Fn-Fx key combinations, Bluetooth control, video
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4875f01..9685b75 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -117,6 +117,7 @@ config ACPI_BUTTON
+ config ACPI_VIDEO
+ 	tristate "Video"
+ 	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
++	depends on INPUT
+ 	help
+ 	  This driver implement the ACPI Extensions For Display Adapters
+ 	  for integrated graphics devices on motherboard, as specified in
 -- 
 1.5.3
 
