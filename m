@@ -1,45 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: git-acpi breaks resume-from-ram on the Vaio
-Date: Tue, 18 Sep 2007 11:21:41 -0400
-Message-ID: <200709181121.41368.lenb@kernel.org>
-References: <20070917211213.8e0372d6.akpm@linux-foundation.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Bissecting acpi merges (was Re: git-acpi breaks resume-from-ram on
+	the Vaio)
+Date: Tue, 18 Sep 2007 12:47:02 -0300
+Message-ID: <20070918154702.GB5655@khazad-dum.debian.net>
+References: <20070917211213.8e0372d6.akpm@linux-foundation.org> <200709181121.41368.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55266 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755822AbXIRPV7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2007 11:21:59 -0400
-In-Reply-To: <20070917211213.8e0372d6.akpm@linux-foundation.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:33990 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759215AbXIRPrH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2007 11:47:07 -0400
 Content-Disposition: inline
+In-Reply-To: <200709181121.41368.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-On Tuesday 18 September 2007 00:12, Andrew Morton wrote:
-> 
-> It suspends OK, then during resume it gets partway through it, then everything
-> just stops.
+On Tue, 18 Sep 2007, Len Brown wrote:
+> bisecting the acpi git three should work well, because it uses topic branches.
+> This includes cpuidle.  ie.  unless the breakage is within the cpuidle branch itself,
+> the whole cpuidle topic can be removed by skipping the single merge commit that
+> pulls it in.
 
-Hmmm, i thought your vaio resume problems were in linus' tree --
-did that go away -- or maybe it was in -mm and not in linus' tree all along?
+The issue I had sometimes while bissecting ACPI commits was that the topic
+branches are often rooted on much earlier versions of the kernel tree.  So
+you are near rcY, and suddenly you are way back to rc(Y-2) while inside one
+of the ACPI merges...  depending on what happened in the large number of
+non-acpi commits this reverts, that can lead to some annoyance with the
+resulting kernel.
 
-> Would prefer not to have to bisect this one - I've done enough bisecting this
-> week to last a lifetime, and bisecting git-acpi is painful due to build bustage
-> at various points (cpuidle).
+I don't recall if those were bissects of acpi-test, or of mainline though.
 
-bisecting the acpi git three should work well, because it uses topic branches.
-This includes cpuidle.  ie.  unless the breakage is within the cpuidle branch itself,
-the whole cpuidle topic can be removed by skipping the single merge commit that
-pulls it in.
+Maybe my git-fu is simply not up to it, and the above is not a problem for
+those with better git skills.
 
-If you like, I can build the topic branch heads and export plain patches
-for you to try.  Also, I'll probably be re-writing the test branch history
-later today -- so let me know if you dig into it and i'll delay that until
-you're done.
-
-thanks,
--Len
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
