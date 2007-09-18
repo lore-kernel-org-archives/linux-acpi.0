@@ -1,52 +1,39 @@
-From: aherrman@arcor.de
-Subject: Re: [PATCH] sony-laptop/thinkpad-acpi: fix build error
-Date: Tue, 18 Sep 2007 21:53:31 +0200
-Message-ID: <20070918195331.GA5279@devil>
-References: <20070917205434.GA22458@devil> <200709181249.14909.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: git-acpi breaks resume-from-ram on the Vaio
+Date: Tue, 18 Sep 2007 15:58:18 -0400
+Message-ID: <200709181558.19063.lenb@kernel.org>
+References: <20070917211213.8e0372d6.akpm@linux-foundation.org> <200709181121.41368.lenb@kernel.org> <20070918100718.3d510356.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:49045 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755958AbXIRTwN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2007 15:52:13 -0400
+Received: from hera.kernel.org ([140.211.167.34]:37881 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755385AbXIRT7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2007 15:59:08 -0400
+In-Reply-To: <20070918100718.3d510356.akpm@linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200709181249.14909.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Len Brown <len.brown@intel.com>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, Sep 18, 2007 at 12:49:14PM -0400, Len Brown wrote:
+On Tuesday 18 September 2007 13:07, Andrew Morton wrote:
+
+> This breakage in git-acpi is new, I think.  Four or five days ago, git-acpi
+> _fixed_ suspend/resume on Linus's tree.  Now it breaks it.
 > 
-> I'd prefer to use "depends on" here, as "select" is sort
-> of a last resort, given its inherent disfunctionalty
-> (is that a word?:-)
+> But I don't think there have been changes in got-acpi since then, so
+> perhaps the breakage is due to interaction with Thomas's recent merge.
 
-Yes, select is evil as it does not take care of "select" and
-"depends on" statements of the selected config option.
+hmmm, maybe.
 
-> yes, I wish "select" worked the way programmers want it to,
-> but it doesn't.  Indeed, the only reason using it here is technically
-> correct is that both these invocations depends on X86 and that
-> avoids the conflict with !s390 INPUT.
+Perhaps if you are including sony-laptop, you can try excluding it --
+since these reverse engineered things are always fraught with peril....
 
-Hmm, wasn't especially aware of that.
+I think the next thing to test is to revert cpuidle --
+let me make sure that my cpuidle branch produces a patch
+that will revert cleanly...
 
-> Also, the reality is that all configs that want these drivers
-> will have INPUT set already -- something that probably could
-> not be said of BACKLIGHT_CLASS_DEVICE etc. -- so this patch
-> is really just to please randconfig.
-
-Right you are. Randconfig found that one.
-
-> Unless you object, I'll just change this to "depends on" when i apply it.
-
-No, I don't object.
-
-
-Regards,
-
-Andreas
-
+-Len
