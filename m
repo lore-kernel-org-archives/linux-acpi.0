@@ -1,31 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: git-acpi breaks resume-from-ram on the Vaio
-Date: Tue, 18 Sep 2007 14:04:56 -0400
-Message-ID: <200709181404.56592.lenb@kernel.org>
-References: <20070917211213.8e0372d6.akpm@linux-foundation.org> <200709181121.41368.lenb@kernel.org> <20070918100718.3d510356.akpm@linux-foundation.org>
+From: mel@skynet.ie (Mel Gorman)
+Subject: Re: 2.6.23-rc6-mm1
+Date: Tue, 18 Sep 2007 19:05:25 +0100
+Message-ID: <20070918180525.GD1804@skynet.ie>
+References: <20070918011841.2381bd93.akpm@linux-foundation.org> <a44ae5cd0709181020p65635567k3ac67f47f852a9b9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46397 "EHLO hera.kernel.org"
+Received: from gir.skynet.ie ([193.1.99.77]:46517 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753809AbXIRSFu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2007 14:05:50 -0400
-In-Reply-To: <20070918100718.3d510356.akpm@linux-foundation.org>
+	id S1756275AbXIRSGa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2007 14:06:30 -0400
 Content-Disposition: inline
+In-Reply-To: <a44ae5cd0709181020p65635567k3ac67f47f852a9b9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, venkatesh.pallipadi@intel.com, Adam Belay <abelay@novell.com>, shaohua.li@intel.com
+To: Miles Lane <miles.lane@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On (18/09/07 13:20), Miles Lane didst pronounce:
+>   LD      .tmp_vmlinux1
+> drivers/built-in.o: In function `acpi_ac_remove':
+> ac.c:(.text+0x3eeec): undefined reference to `power_supply_unregister'
+> drivers/built-in.o: In function `acpi_ac_add':
+> ac.c:(.text+0x3f10b): undefined reference to `power_supply_register'
+> make: *** [.tmp_vmlinux1] Error 1
+> 
 
-> I think what needs to happen is that the commits in the cpuidle code need
-> to be folded together.  iirc the first couple of commits don't compile, and
-> the third one fixes them.  Or something like that.
+Hi Miles,
 
-yes, i think the older history has probably outlived its utility
-and can be folded entirely if it is okay with adam/venki/shaohua.
+The problem appears to be that ACPI_AC is compiled in but POWER_SUPPLY is
+a module. You could workaround it by making them both modules but I believe
+the root cause may be a dependency problem. I've included a patch below that
+when you apply and run make oldconfig should allow you to build your kernel.
 
-cheers,
--Len
+ACPI folks, is this a fix? If so, there may be other dependency issues that
+allow a compiled-in feature to depend on a module.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+
+---
+ Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -rup -X /usr/src/patchset-0.6/bin//dontdiff linux-2.6.23-rc6-mm1-015_fix_ia64_kgdb/drivers/acpi/Kconfig linux-2.6.23-rc6-mm1-020_fix_acpi/drivers/acpi/Kconfig
+--- linux-2.6.23-rc6-mm1-015_fix_ia64_kgdb/drivers/acpi/Kconfig	2007-09-11 03:50:29.000000000 +0100
++++ linux-2.6.23-rc6-mm1-020_fix_acpi/drivers/acpi/Kconfig	2007-09-18 19:03:32.000000000 +0100
+@@ -88,7 +88,7 @@ config ACPI_PROC_EVENT
+ 
+ config ACPI_AC
+ 	tristate "AC Adapter"
+-	depends on X86
++	depends on X86 && POWER_SUPPLY
+ 	default y
+ 	help
+ 	  This driver adds support for the AC Adapter object, which indicates
