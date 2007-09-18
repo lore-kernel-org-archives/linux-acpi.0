@@ -1,48 +1,44 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] sony-laptop/thinkpad-acpi: fix build error
-Date: Tue, 18 Sep 2007 20:03:20 +0900
-Message-ID: <20070918110320.GA32218@inferi.kami.home>
-References: <20070917205434.GA22458@devil>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: git-acpi breaks resume-from-ram on the Vaio
+Date: Tue, 18 Sep 2007 13:54:16 +0200
+Message-ID: <200709181354.16939.rjw@sisk.pl>
+References: <20070917211213.8e0372d6.akpm@linux-foundation.org> <20070917214054.bb622420.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi11.ns.itscom.net ([219.110.2.181]:50068 "EHLO
-	mtoichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754853AbXIRLDb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2007 07:03:31 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:58501 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751187AbXIRLmX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2007 07:42:23 -0400
+In-Reply-To: <20070917214054.bb622420.akpm@linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <20070917205434.GA22458@devil>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Herrmann <aherrman@arcor.de>
-Cc: Len Brown <len.brown@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Mon, Sep 17, 2007 at 10:54:34PM +0200, Andreas Herrmann wrote:
-> sony-laptop and thinkpad-acpi make use of input-core functions.
-> Hence you get link errors if those drivers are built but CONFIG_INPUT
-> is not set. Attached patch fixes this minor issue.
-...
-> Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-> ---
->  drivers/misc/Kconfig |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+On Tuesday, 18 September 2007 06:40, Andrew Morton wrote:
+> On Mon, 17 Sep 2007 21:12:13 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
 > 
-> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> index 73e248f..c077df8 100644
-> --- a/drivers/misc/Kconfig
-> +++ b/drivers/misc/Kconfig
-> @@ -134,6 +134,7 @@ config SONY_LAPTOP
->  	tristate "Sony Laptop Extras"
->  	depends on X86 && ACPI
->  	select BACKLIGHT_CLASS_DEVICE
-> +	select INPUT
->  	  ---help---
->  	  This mini-driver drives the SNC and SPIC devices present in the ACPI
->  	  BIOS of the Sony Vaio laptops.
+> > 
+> > It suspends OK, then during resume it gets partway through it, then everything
+> > just stops.
+> > 
+> > Would prefer not to have to bisect this one - I've done enough bisecting this
+> > week to last a lifetime, and bisecting git-acpi is painful due to build bustage
+> > at various points (cpuidle).
+> 
+> And git-acpi breaks suspend-to-disk as well.  It gets up to "Suspending console(s)"
+> and then the cursor stops blinking at it wedges up.
 
-Acked-by: Mattia Dongili <malattia@linux.it>
+Can you please compile with CONFIG_DISABLE_CONSOLE_SUSPEND set and try:
 
-Thanks
--- 
-mattia
-:wq!
+# echo test > /sys/power/disk
+# echo disk > /sys/power/state
+
+and if that hangs,
+
+# echo testproc > /sys/power/disk
+# echo disk > /sys/power/state
