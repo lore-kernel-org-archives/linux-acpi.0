@@ -1,55 +1,62 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi_video: kernel build error if !INPUT
-Date: Tue, 18 Sep 2007 12:53:54 -0400
-Message-ID: <200709181253.54227.lenb@kernel.org>
-References: <20070917214105.GC22458@devil>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: git-acpi breaks resume-from-ram on the Vaio
+Date: Tue, 18 Sep 2007 10:07:18 -0700
+Message-ID: <20070918100718.3d510356.akpm@linux-foundation.org>
+References: <20070917211213.8e0372d6.akpm@linux-foundation.org>
+	<200709181121.41368.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50166 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759935AbXIRQyN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2007 12:54:13 -0400
-In-Reply-To: <20070917214105.GC22458@devil>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49108 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756050AbXIRRIM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2007 13:08:12 -0400
+In-Reply-To: <200709181121.41368.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Herrmann <aherrman@arcor.de>
-Cc: Yu Luming <luming.yu@intel.com>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-Applied.
+On Tue, 18 Sep 2007 11:21:41 -0400 Len Brown <lenb@kernel.org> wrote:
 
-thanks,
--Len
+> On Tuesday 18 September 2007 00:12, Andrew Morton wrote:
+> > 
+> > It suspends OK, then during resume it gets partway through it, then everything
+> > just stops.
+> 
+> Hmmm, i thought your vaio resume problems were in linus' tree --
+> did that go away -- or maybe it was in -mm and not in linus' tree all along?
 
-On Monday 17 September 2007 17:41, Andreas Herrmann wrote:
-> Commit e9dab1960ac9746fa34eff726b81635147615a79 exports ACPI
-> video hotkey events via input layer. But this breaks kernel
-> build if ACPI_VIDEO && !INPUT:
+It got fixed in Linus's tree by tglx's recent timers merge.
+
+This breakage in git-acpi is new, I think.  Four or five days ago, git-acpi
+_fixed_ suspend/resume on Linus's tree.  Now it breaks it.
+
+But I don't think there have been changes in got-acpi since then, so
+perhaps the breakage is due to interaction with Thomas's recent merge.
+
+> > Would prefer not to have to bisect this one - I've done enough bisecting this
+> > week to last a lifetime, and bisecting git-acpi is painful due to build bustage
+> > at various points (cpuidle).
 > 
->  LD      .tmp_vmlinux1
-> drivers/built-in.o: In function `acpi_video_bus_remove':
-> drivers/acpi/video.c:2007: undefined reference to `input_unregister_device'
->     ...
-> 
-> Add dependency to INPUT for ACPI_VIDEO to prevent this error.
-> 
-> Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-> ---
->  drivers/acpi/Kconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 4875f01..9685b75 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -117,6 +117,7 @@ config ACPI_BUTTON
->  config ACPI_VIDEO
->  	tristate "Video"
->  	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
-> +	depends on INPUT
->  	help
->  	  This driver implement the ACPI Extensions For Display Adapters
->  	  for integrated graphics devices on motherboard, as specified in
+> bisecting the acpi git three should work well, because it uses topic branches.
+> This includes cpuidle.  ie.  unless the breakage is within the cpuidle branch itself,
+> the whole cpuidle topic can be removed by skipping the single merge commit that
+> pulls it in.
+
+The breakage is within the cpuidle branch.
+
+> If you like, I can build the topic branch heads and export plain patches
+> for you to try.  Also, I'll probably be re-writing the test branch history
+> later today -- so let me know if you dig into it and i'll delay that until
+> you're done.
+
+I won't be doing anything here for a day or so.
+
+I think what needs to happen is that the commits in the cpuidle code need
+to be folded together.  iirc the first couple of commits don't compile, and
+the third one fixes them.  Or something like that.
+
+
