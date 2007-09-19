@@ -1,30 +1,237 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [RFC] module to support ACPI AML calls to native firmware
-Date: Tue, 18 Sep 2007 16:53:28 -0700
-Message-ID: <617E1C2C70743745A92448908E030B2A0274F144@scsmsx411.amr.corp.intel.com>
-References: <200709111714.57095.bjorn.helgaas@hp.com> <200709131711.15015.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: Clean-up GPE handling across suspend/resume for
+	wake-up devices
+Date: Wed, 19 Sep 2007 14:47:01 +0800
+Message-ID: <1190184421.10428.108.camel@acpi-hp.sh.intel.com>
+References: <20070912100432.11860.26198.stgit@amd.labs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-reply-to: <200709131711.15015.bjorn.helgaas@hp.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-ia64@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:41961 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498AbXISGmG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Sep 2007 02:42:06 -0400
+In-Reply-To: <20070912100432.11860.26198.stgit@amd.labs>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-> If you don't object to the two patches, can you incorporate them
-> as originally posted?  If you'd prefer a different approach, I'd
-> be happy to rework them, of course.
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-I think that adding 4K to the kernel (about 0.04% increase looking
-at a recent build ... or 0.0001% of total memory on a 4G system) isn't
-really a big deal.  I'd rather do that than export all the fw_call_*()
-functions for all the world to see.
-
-If there is some other reason why the exports are needed, then the
-names may have to change ... these are ia64 specific routines, but
-the fw_call_*() names sound very generic.
-
--Tony
+On Wed, 2007-09-12 at 14:04 +0400, Alexey Starikovskiy wrote:
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/sleep/poweroff.c |    1 
+>  drivers/acpi/sleep/sleep.h    |    1 
+>  drivers/acpi/sleep/wakeup.c   |  117 ++++++++++++++---------------------------
+>  include/acpi/acpi_bus.h       |    1 
+>  4 files changed, 40 insertions(+), 80 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
+> index 39e40d5..2725a60 100644
+> --- a/drivers/acpi/sleep/poweroff.c
+> +++ b/drivers/acpi/sleep/poweroff.c
+> @@ -32,7 +32,6 @@ int acpi_sleep_prepare(u32 acpi_state)
+>  	ACPI_FLUSH_CPU_CACHE();
+>  	acpi_enable_wakeup_device_prep(acpi_state);
+>  #endif
+> -	acpi_gpe_sleep_prepare(acpi_state);
+>  	acpi_enter_sleep_state_prep(acpi_state);
+>  	return 0;
+>  }
+> diff --git a/drivers/acpi/sleep/sleep.h b/drivers/acpi/sleep/sleep.h
+> index ff1f850..a2ea125 100644
+> --- a/drivers/acpi/sleep/sleep.h
+> +++ b/drivers/acpi/sleep/sleep.h
+> @@ -5,6 +5,5 @@ extern int acpi_suspend (u32 state);
+>  extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
+>  extern void acpi_enable_wakeup_device(u8 sleep_state);
+>  extern void acpi_disable_wakeup_device(u8 sleep_state);
+> -extern void acpi_gpe_sleep_prepare(u32 sleep_state);
+>  
+>  extern int acpi_sleep_prepare(u32 acpi_state);
+> diff --git a/drivers/acpi/sleep/wakeup.c b/drivers/acpi/sleep/wakeup.c
+> index 97c27dd..ed8e41b 100644
+> --- a/drivers/acpi/sleep/wakeup.c
+> +++ b/drivers/acpi/sleep/wakeup.c
+> @@ -64,36 +64,29 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+>  	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
+>  	spin_lock(&acpi_device_lock);
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev = container_of(node,
+> -						       struct acpi_device,
+> -						       wakeup_list);
+> -
+> +		struct acpi_device *dev =
+> +			container_of(node, struct acpi_device, wakeup_list);
+> +		if (!dev->wakeup.flags.valid)
+> +			continue;
+>  		/* If users want to disable run-wake GPE,
+>  		 * we only disable it for wake and leave it for runtime
+>  		 */
+> -		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+> -			spin_unlock(&acpi_device_lock);
+> -			acpi_set_gpe_type(dev->wakeup.gpe_device,
+> -					  dev->wakeup.gpe_number,
+> -					  ACPI_GPE_TYPE_RUNTIME);
+> -			/* Re-enable it, since set_gpe_type will disable it */
+> -			acpi_enable_gpe(dev->wakeup.gpe_device,
+> -					dev->wakeup.gpe_number, ACPI_ISR);
+> -			spin_lock(&acpi_device_lock);
+> +		if (!dev->wakeup.state.enabled ||
+> +		    sleep_state > (u32) dev->wakeup.sleep_state) {
+> +			if (dev->wakeup.flags.run_wake) {
+> +				spin_unlock(&acpi_device_lock);
+> +				/* set_gpe_type will disable GPE, leave it like that */
+> +				acpi_set_gpe_type(dev->wakeup.gpe_device,
+> +						  dev->wakeup.gpe_number,
+> +						  ACPI_GPE_TYPE_RUNTIME);
+> +				spin_lock(&acpi_device_lock);
+> +			}
+>  			continue;
+>  		}
+> -
+> -		if (!dev->wakeup.flags.valid ||
+> -		    !dev->wakeup.state.enabled ||
+> -		    (sleep_state > (u32) dev->wakeup.sleep_state))
+> -			continue;
+> -
+>  		spin_unlock(&acpi_device_lock);
+> -		/* run-wake GPE has been enabled */
+>  		if (!dev->wakeup.flags.run_wake)
+>  			acpi_enable_gpe(dev->wakeup.gpe_device,
+>  					dev->wakeup.gpe_number, ACPI_ISR);
+> -		dev->wakeup.state.active = 1;
+>  		spin_lock(&acpi_device_lock);
+>  	}
+>  	spin_unlock(&acpi_device_lock);
+> @@ -112,26 +105,25 @@ void acpi_disable_wakeup_device(u8 sleep_state)
+>  
+>  	spin_lock(&acpi_device_lock);
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev = container_of(node,
+> -						       struct acpi_device,
+> -						       wakeup_list);
+> +		struct acpi_device *dev =
+> +			container_of(node, struct acpi_device, wakeup_list);
+>  
+> -		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+> -			spin_unlock(&acpi_device_lock);
+> -			acpi_set_gpe_type(dev->wakeup.gpe_device,
+> -					  dev->wakeup.gpe_number,
+> -					  ACPI_GPE_TYPE_WAKE_RUN);
+> -			/* Re-enable it, since set_gpe_type will disable it */
+> -			acpi_enable_gpe(dev->wakeup.gpe_device,
+> -					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+> -			spin_lock(&acpi_device_lock);
+> +		if (!dev->wakeup.flags.valid)
+>  			continue;
+> -		}
+> -
+> -		if (!dev->wakeup.flags.valid ||
+> -		    !dev->wakeup.state.active ||
+> -		    (sleep_state > (u32) dev->wakeup.sleep_state))
+> +		if (!dev->wakeup.state.enabled ||
+> +		    sleep_state > (u32) dev->wakeup.sleep_state) {
+> +			if (dev->wakeup.flags.run_wake) {
+> +				spin_unlock(&acpi_device_lock);
+> +				acpi_set_gpe_type(dev->wakeup.gpe_device,
+> +						  dev->wakeup.gpe_number,
+> +						  ACPI_GPE_TYPE_WAKE_RUN);
+> +				/* Re-enable it, since set_gpe_type will disable it */
+> +				acpi_enable_gpe(dev->wakeup.gpe_device,
+> +						dev->wakeup.gpe_number, ACPI_NOT_ISR);
+> +				spin_lock(&acpi_device_lock);
+> +			}
+>  			continue;
+> +		}
+>  
+>  		spin_unlock(&acpi_device_lock);
+>  		acpi_disable_wakeup_device_power(dev);
+> @@ -142,7 +134,6 @@ void acpi_disable_wakeup_device(u8 sleep_state)
+>  			acpi_clear_gpe(dev->wakeup.gpe_device,
+>  				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
+>  		}
+> -		dev->wakeup.state.active = 0;
+>  		spin_lock(&acpi_device_lock);
+>  	}
+>  	spin_unlock(&acpi_device_lock);
+> @@ -160,48 +151,20 @@ static int __init acpi_wakeup_device_init(void)
+>  		struct acpi_device *dev = container_of(node,
+>  						       struct acpi_device,
+>  						       wakeup_list);
+> -
+>  		/* In case user doesn't load button driver */
+> -		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+> -			spin_unlock(&acpi_device_lock);
+> -			acpi_set_gpe_type(dev->wakeup.gpe_device,
+> -					  dev->wakeup.gpe_number,
+> -					  ACPI_GPE_TYPE_WAKE_RUN);
+> -			acpi_enable_gpe(dev->wakeup.gpe_device,
+> -					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+> -			dev->wakeup.state.enabled = 1;
+> -			spin_lock(&acpi_device_lock);
+> -		}
+> +		if (!dev->wakeup.flags.run_wake || dev->wakeup.state.enabled)
+> +			continue;
+> +		spin_unlock(&acpi_device_lock);
+> +		acpi_set_gpe_type(dev->wakeup.gpe_device,
+> +				  dev->wakeup.gpe_number,
+> +				  ACPI_GPE_TYPE_WAKE_RUN);
+> +		acpi_enable_gpe(dev->wakeup.gpe_device,
+> +				dev->wakeup.gpe_number, ACPI_NOT_ISR);
+> +		dev->wakeup.state.enabled = 1;
+> +		spin_lock(&acpi_device_lock);
+>  	}
+>  	spin_unlock(&acpi_device_lock);
+> -
+>  	return 0;
+>  }
+>  
+>  late_initcall(acpi_wakeup_device_init);
+> -
+> -/*
+> - * Disable all wakeup GPEs before entering requested sleep state.
+> - *	@sleep_state:	ACPI state
+> - * Since acpi_enter_sleep_state() will disable all
+> - * RUNTIME GPEs, we simply mark all GPES that
+> - * are not enabled for wakeup from requested state as RUNTIME.
+> - */
+> -void acpi_gpe_sleep_prepare(u32 sleep_state)
+> -{
+> -	struct list_head *node, *next;
+> -
+> -	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+> -		struct acpi_device *dev = container_of(node,
+> -						       struct acpi_device,
+> -						       wakeup_list);
+> -
+> -		/* The GPE can wakeup system from this state, don't touch it */
+> -		if ((u32) dev->wakeup.sleep_state >= sleep_state)
+> -			continue;
+> -		/* acpi_set_gpe_type will automatically disable GPE */
+> -		acpi_set_gpe_type(dev->wakeup.gpe_device,
+> -				  dev->wakeup.gpe_number,
+> -				  ACPI_GPE_TYPE_RUNTIME);
+> -	}
+> -}
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 8a388e7..7b74b60 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -264,7 +264,6 @@ struct acpi_device_wakeup_flags {
+>  
+>  struct acpi_device_wakeup_state {
+>  	u8 enabled:1;
+> -	u8 active:1;
+>  };
+>  
+>  struct acpi_device_wakeup {
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
