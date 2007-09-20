@@ -1,55 +1,81 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: 2.6.23-rc6: S4 and S5 no longer listed as supported on Toshiba
- Satellite A40
-Date: Thu, 20 Sep 2007 22:33:49 +0400
-Message-ID: <46F2BD0D.2010206@gmail.com>
-References: <200709192014.08443.elendil@planet.nl> <46F2A0E9.9000603@gmail.com> <46F2AE16.9080803@gmail.com> <200709202017.50934.elendil@planet.nl>
+From: Jakub =?UTF-8?Q?Ambro=C5=BCewicz?=
+	<jakub.ambrozewicz@googlemail.com>
+Subject: dmidecode of HP Pavilion tx 1000
+Date: Thu, 20 Sep 2007 20:09:11 +0100
+Message-ID: <1190315351.3790.8.camel@lebioda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-HR23faFKL8ODkbamS9y4"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:23021 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbXITSd6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 14:33:58 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so430252ugc
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2007 11:33:57 -0700 (PDT)
-In-Reply-To: <200709202017.50934.elendil@planet.nl>
+Received: from nf-out-0910.google.com ([64.233.182.190]:47604 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbXITTJM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 15:09:12 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so553303nfb
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2007 12:09:09 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Maciek Rutecki <maciej.rutecki@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-Frans Pop wrote:
-> On Thursday 20 September 2007, you wrote:
->> Please try this patch.
-> 
-> Works. All states are now listed again.
-> I've not tested suspend to disk, but suspend to ram and power off work fine.
-> 
->> +printk(KERN_INFO PREFIX "(supports");
->>  #ifdef CONFIG_SUSPEND
->> -       printk(KERN_INFO PREFIX "(supports");
->>         for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
-> 
-> Isn't there a risk now that we now end up printing
->    ACPI: (supports)
-> if CONFIG_SUSPEND is not enabled and >S4 is not supported?
-> 
-> Or, more probably, it would print
->    ACPI: (supports S5)
-Don't know what does it mean to support S0 exactly... :)
-> as it is unlikely that "off" is not supported :-)
-> 
-> Maybe S0 should be taken outside the #ifdef and the loop as that state is 
-> also basically always there?
-Don't think it is worth the trouble. We already have this loop almost completely unrolled,
-let's not make it complete mess...
+
+--=-HR23faFKL8ODkbamS9y4
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Attached.
 
 Regards,
-Alex.
-> 
-> Thanks,
-> FJP
-> 
+-- 
+Jakub Ambrozewicz
+
+--=-HR23faFKL8ODkbamS9y4
+Content-Disposition: attachment; filename=dmidecode.gz
+Content-Type: application/x-gzip; name=dmidecode.gz
+Content-Transfer-Encoding: base64
+
+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
+rzWbfwIU5yCmrhsAAA==
+
+
+--=-HR23faFKL8ODkbamS9y4--
 
