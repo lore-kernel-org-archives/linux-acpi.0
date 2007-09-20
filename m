@@ -1,45 +1,18 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: 2.6.23-rc6: S4 and S5 no longer listed as supported on Toshiba
- Satellite A40
-Date: Thu, 20 Sep 2007 21:29:58 +0400
-Message-ID: <46F2AE16.9080803@gmail.com>
-References: <200709192014.08443.elendil@planet.nl> <20070920105312.GC12157@atrey.karlin.mff.cuni.cz> <200709201437.56431.elendil@planet.nl> <46F2A0E9.9000603@gmail.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: suspend: consolidate handling of Sx states.
+Date: Thu, 20 Sep 2007 21:32:35 +0400
+Message-ID: <20070920173235.7675.6618.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080600040106000202020307"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:64011 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755488AbXITR36 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 13:29:58 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so420236ugc
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2007 10:29:57 -0700 (PDT)
-In-Reply-To: <46F2A0E9.9000603@gmail.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:43558 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754465AbXITRcp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 13:32:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maciek Rutecki <maciej.rutecki@gmail.com>
-Cc: Frans Pop <elendil@planet.nl>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------080600040106000202020307
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Please try this patch.
-
-Regards,
-Alex.
-
---------------080600040106000202020307
-Content-Type: text/x-patch;
- name="consolidate_Sx_handling.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="consolidate_Sx_handling.patch"
-
-ACPI: suspend: consolidate handling of Sx states.
-
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
 
 Recent changes to sleep initialization in ACPI dropped reporting of supported Sx 
 states above S3. Fix that and also move S5 init into same file as other Sx.
@@ -246,4 +219,3 @@ index 39e40d5..0000000
 -
 -#endif				/* CONFIG_PM */
 
---------------080600040106000202020307--
