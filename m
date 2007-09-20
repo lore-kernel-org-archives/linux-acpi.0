@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 1/2] ia64: abstract SAL_CALL wrapper to allow other firmware entry points
-Date: Thu, 20 Sep 2007 14:21:11 -0600
-Message-ID: <200709201421.12094.bjorn.helgaas@hp.com>
+Subject: [patch 2/2] ia64: add driver for ACPI methods to call native firmware
+Date: Thu, 20 Sep 2007 14:22:03 -0600
+Message-ID: <200709201422.03539.bjorn.helgaas@hp.com>
 References: <200709201420.24023.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -15,61 +15,287 @@ To: linux-ia64@vger.kernel.org
 Cc: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SAL_CALL() always calls through the ia64_sal function pointer.  I am adding
-new functionality that needs the same conventions as SAL_CALL (FP regs
-saved/restored, sal_lock acquired, etc), but doesn't use the ia64_sal
-function pointer.
+This driver for HPQ5001 devices installs a global ACPI OpRegion handler.
+AML methods can use this OpRegion to call native firmware entry points.
 
-This patch pulls the body of SAL_CALL out into a new "IA64_FW_CALL" that
-takes care of these calling conventions, but allows the caller to specify
-either ia64_sal or some other firmware entry point.
+ACPI does not define a mechanism for AML methods to call native firmware
+interfaces such as PAL or SAL.  This OpRegion handler adds such a mechanism.
+After the handler is installed, an AML method can call native firmware by
+storing the arguments and firmware entry point to specific offsets in the
+OpRegion.  When AML reads the "return value" offset from the OpRegion, this
+handler loads up the arguments, makes the firmware call, and returns the
+result.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work2/include/asm-ia64/sal.h
+Index: work2/arch/ia64/Kconfig
 ===================================================================
---- work2.orig/include/asm-ia64/sal.h	2007-09-19 10:25:12.000000000 -0600
-+++ work2/include/asm-ia64/sal.h	2007-09-19 10:27:15.000000000 -0600
-@@ -46,25 +46,28 @@
- extern spinlock_t sal_lock;
+--- work2.orig/arch/ia64/Kconfig	2007-09-19 10:09:43.000000000 -0600
++++ work2/arch/ia64/Kconfig	2007-09-19 10:51:15.000000000 -0600
+@@ -461,6 +461,16 @@
+ 	  firmware extensions, such as the ability to inject memory-errors
+ 	  for test-purposes.  If you're unsure, say N.
  
- /* SAL spec _requires_ eight args for each call. */
--#define __SAL_CALL(result,a0,a1,a2,a3,a4,a5,a6,a7)	\
--	result = (*ia64_sal)(a0,a1,a2,a3,a4,a5,a6,a7)
-+#define __IA64_FW_CALL(entry,result,a0,a1,a2,a3,a4,a5,a6,a7)	\
-+	result = (*entry)(a0,a1,a2,a3,a4,a5,a6,a7)
- 
--# define SAL_CALL(result,args...) do {				\
-+# define IA64_FW_CALL(entry,result,args...) do {		\
- 	unsigned long __ia64_sc_flags;				\
- 	struct ia64_fpreg __ia64_sc_fr[6];			\
- 	ia64_save_scratch_fpregs(__ia64_sc_fr);			\
- 	spin_lock_irqsave(&sal_lock, __ia64_sc_flags);		\
--	__SAL_CALL(result, args);				\
-+	__IA64_FW_CALL(entry, result, args);			\
- 	spin_unlock_irqrestore(&sal_lock, __ia64_sc_flags);	\
- 	ia64_load_scratch_fpregs(__ia64_sc_fr);			\
- } while (0)
- 
-+# define SAL_CALL(result,args...)			\
-+	IA64_FW_CALL(ia64_sal, result, args);
++config IA64_HP_AML_NFW
++	bool "Support ACPI AML calls to native firmware"
++	help
++	  This driver installs a global ACPI Operation Region handler for
++	  region 0xA1.  AML methods can use this OpRegion to call arbitrary
++	  native firmware functions.  The driver installs the OpRegion
++	  handler if there is an HPQ5001 device or if the user supplies
++	  the "force" module parameter, e.g., with the "aml_nfw.force"
++	  kernel command line option.
 +
- # define SAL_CALL_NOLOCK(result,args...) do {		\
- 	unsigned long __ia64_scn_flags;			\
- 	struct ia64_fpreg __ia64_scn_fr[6];		\
- 	ia64_save_scratch_fpregs(__ia64_scn_fr);	\
- 	local_irq_save(__ia64_scn_flags);		\
--	__SAL_CALL(result, args);			\
-+	__IA64_FW_CALL(ia64_sal, result, args);		\
- 	local_irq_restore(__ia64_scn_flags);		\
- 	ia64_load_scratch_fpregs(__ia64_scn_fr);	\
- } while (0)
-@@ -73,7 +76,7 @@
- 	struct ia64_fpreg __ia64_scs_fr[6];		\
- 	ia64_save_scratch_fpregs(__ia64_scs_fr);	\
- 	preempt_disable();				\
--	__SAL_CALL(result, args);			\
-+	__IA64_FW_CALL(ia64_sal, result, args);		\
- 	preempt_enable();				\
- 	ia64_load_scratch_fpregs(__ia64_scs_fr);	\
- } while (0)
+ source "drivers/sn/Kconfig"
+ 
+ config KEXEC
+Index: work2/arch/ia64/hp/common/Makefile
+===================================================================
+--- work2.orig/arch/ia64/hp/common/Makefile	2007-09-19 10:09:43.000000000 -0600
++++ work2/arch/ia64/hp/common/Makefile	2007-09-19 10:51:15.000000000 -0600
+@@ -8,3 +8,4 @@
+ obj-y := sba_iommu.o
+ obj-$(CONFIG_IA64_HP_ZX1_SWIOTLB) += hwsw_iommu.o
+ obj-$(CONFIG_IA64_GENERIC) += hwsw_iommu.o
++obj-$(CONFIG_IA64_HP_AML_NFW) += aml_nfw.o
+Index: work2/arch/ia64/hp/common/aml_nfw.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ work2/arch/ia64/hp/common/aml_nfw.c	2007-09-20 14:05:21.000000000 -0600
+@@ -0,0 +1,236 @@
++/*
++ * OpRegion handler to allow AML to call native firmware
++ *
++ * (c) Copyright 2007 Hewlett-Packard Development Company, L.P.
++ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This driver implements HP Open Source Review Board proposal 1842,
++ * which was approved on 9/20/2006.
++ *
++ * For technical documentation, see the HP SPPA Firmware EAS, Appendix F.
++ *
++ * ACPI does not define a mechanism for AML methods to call native firmware
++ * interfaces such as PAL or SAL.  This OpRegion handler adds such a mechanism.
++ * After the handler is installed, an AML method can call native firmware by
++ * storing the arguments and firmware entry point to specific offsets in the
++ * OpRegion.  When AML reads the "return value" offset from the OpRegion, this
++ * handler loads up the arguments, makes the firmware call, and returns the
++ * result.
++ */
++
++#include <linux/module.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++#include <asm/sal.h>
++
++MODULE_AUTHOR("Bjorn Helgaas <bjorn.helgaas@hp.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("ACPI opregion handler for native firmware calls");
++
++static int force_register;
++module_param_named(force, force_register, bool, 0);
++MODULE_PARM_DESC(force, "Install opregion handler even without HPQ5001 device");
++
++#define AML_NFW_SPACE		0xA1
++
++struct ia64_pdesc {
++	void *ip;
++	void *gp;
++};
++
++/*
++ * N.B.  The layout of this structure is defined in the HP SPPA FW EAS, and
++ *	 the member offsets are embedded in AML methods.
++ */
++struct ia64_nfw_context {
++	u64 arg[8];
++	struct ia64_sal_retval ret;
++	u64 ip;
++	u64 gp;
++	u64 pad[2];
++};
++
++static void *virt_map(u64 address)
++{
++	if (address & (1UL << 63))
++		return (void *) (__IA64_UNCACHED_OFFSET | address);
++
++	return __va(address);
++}
++
++static void aml_nfw_execute(struct ia64_nfw_context *c)
++{
++	struct ia64_pdesc virt_entry;
++	ia64_sal_handler entry;
++
++	virt_entry.ip = virt_map(c->ip);
++	virt_entry.gp = virt_map(c->gp);
++
++	entry = (ia64_sal_handler) &virt_entry;
++
++	IA64_FW_CALL(entry, c->ret,
++		     c->arg[0], c->arg[1], c->arg[2], c->arg[3],
++		     c->arg[4], c->arg[5], c->arg[6], c->arg[7]);
++}
++
++static void aml_nfw_read_arg(u8 *offset, u32 bit_width, acpi_integer *value)
++{
++	switch (bit_width) {
++	case 8:
++		*value = *(u8 *)offset;
++		break;
++	case 16:
++		*value = *(u16 *)offset;
++		break;
++	case 32:
++		*value = *(u32 *)offset;
++		break;
++	case 64:
++		*value = *(u64 *)offset;
++		break;
++	}
++}
++
++static void aml_nfw_write_arg(u8 *offset, u32 bit_width, acpi_integer *value)
++{
++	switch (bit_width) {
++	case 8:
++		*(u8 *) offset = *value;
++		break;
++	case 16:
++		*(u16 *) offset = *value;
++		break;
++	case 32:
++		*(u32 *) offset = *value;
++		break;
++	case 64:
++		*(u64 *) offset = *value;
++		break;
++	}
++}
++
++static acpi_status aml_nfw_handler(u32 function, acpi_physical_address address,
++	u32 bit_width, acpi_integer *value, void *handler_context,
++	void *region_context)
++{
++	struct ia64_nfw_context *context = handler_context;
++	u8 *offset = (u8 *) context + address;
++
++	if (bit_width !=  8 && bit_width != 16 &&
++	    bit_width != 32 && bit_width != 64)
++		return AE_BAD_PARAMETER;
++
++	if (address + (bit_width >> 3) > sizeof(struct ia64_nfw_context))
++		return AE_BAD_PARAMETER;
++
++	switch (function) {
++	case ACPI_READ:
++		if (address == offsetof(struct ia64_nfw_context, ret))
++			aml_nfw_execute(context);
++		aml_nfw_read_arg(offset, bit_width, value);
++		break;
++	case ACPI_WRITE:
++		aml_nfw_write_arg(offset, bit_width, value);
++		break;
++	}
++
++	return AE_OK;
++}
++
++static struct ia64_nfw_context global_context;
++static int global_handler_registered;
++
++static int aml_nfw_add_global_handler(void)
++{
++	acpi_status status;
++
++	if (global_handler_registered)
++		return 0;
++
++	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
++		AML_NFW_SPACE, aml_nfw_handler, NULL, &global_context);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	global_handler_registered = 1;
++	printk(KERN_INFO "Global 0x%02X opregion handler registered\n",
++		AML_NFW_SPACE);
++	return 0;
++}
++
++static int aml_nfw_remove_global_handler(void)
++{
++	acpi_status status;
++
++	if (!global_handler_registered)
++		return 0;
++
++	status = acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
++		AML_NFW_SPACE, aml_nfw_handler);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	global_handler_registered = 0;
++	printk(KERN_INFO "Global 0x%02X opregion handler removed\n",
++		AML_NFW_SPACE);
++	return 0;
++}
++
++static int aml_nfw_add(struct acpi_device *device)
++{
++	/*
++	 * We would normally allocate a new context structure and install
++	 * the address space handler for the specific device we found.
++	 * But the HP-UX implementation shares a single global context
++	 * and always puts the handler at the root, so we'll do the same.
++	 */
++	return aml_nfw_add_global_handler();
++}
++
++static int aml_nfw_remove(struct acpi_device *device, int type)
++{
++	return aml_nfw_remove_global_handler();
++}
++
++static const struct acpi_device_id aml_nfw_ids[] = {
++	{"HPQ5001", 0},
++	{"", 0}
++};
++
++static struct acpi_driver acpi_aml_nfw_driver = {
++	.name = "native firmware",
++	.ids = aml_nfw_ids,
++	.ops = {
++		.add = aml_nfw_add,
++		.remove = aml_nfw_remove,
++		},
++};
++
++static int __init aml_nfw_init(void)
++{
++	int result;
++
++	if (force_register)
++		aml_nfw_add_global_handler();
++
++	result = acpi_bus_register_driver(&acpi_aml_nfw_driver);
++	if (result < 0) {
++		aml_nfw_remove_global_handler();
++		return result;
++	}
++
++	return 0;
++}
++
++static void __exit aml_nfw_exit(void)
++{
++	acpi_bus_unregister_driver(&acpi_aml_nfw_driver);
++	aml_nfw_remove_global_handler();
++}
++
++module_init(aml_nfw_init);
++module_exit(aml_nfw_exit);
