@@ -1,73 +1,83 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 7/7] ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
-Date: Thu, 20 Sep 2007 10:51:00 -0300
-Message-ID: <11902962612213-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 3/7] ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
+Date: Thu, 20 Sep 2007 10:50:56 -0300
+Message-ID: <11902962613078-git-send-email-hmh@hmh.eng.br>
 References: <11902962603691-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:43858 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:51911 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751953AbXITNvH (ORCPT
+	by vger.kernel.org with ESMTP id S1754682AbXITNvI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Sep 2007 09:51:07 -0400
+	Thu, 20 Sep 2007 09:51:08 -0400
 In-Reply-To: <11902962603691-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-We were letting ThinkPad-specific LID events through to userspace again,
-instead of dropping them.  Fix it.  We don't want to give userspace the
-option of not using generic LID handling.
+Protect the input device event sending path with a mutex, since hot key
+input events are not atomic and require an cohesive event block to be sent
+together.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index de415fe..24503cc 100644
+index 8aa0f96..0ced9d6 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1197,6 +1197,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	u32 hkey;
- 	unsigned int keycode, scancode;
- 	int send_acpi_ev;
-+	int ignore_acpi_ev;
+@@ -519,6 +519,7 @@ static char *next_cmd(char **cmds)
+ static struct platform_device *tpacpi_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
++static struct mutex tpacpi_inputdev_send_mutex;
  
- 	if (event != 0x80) {
- 		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
-@@ -1220,6 +1221,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
  
- 		send_acpi_ev = 0;
-+		ignore_acpi_ev = 0;
+ static int tpacpi_resume_handler(struct platform_device *pdev)
+@@ -1131,6 +1132,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 				  unsigned int keycode)
+ {
+ 	if (keycode != KEY_RESERVED) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 		input_report_key(tpacpi_inputdev, keycode, 1);
+ 		if (keycode == KEY_UNKNOWN)
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+@@ -1142,6 +1145,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+ 				    scancode);
+ 		input_sync(tpacpi_inputdev);
++
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
+ 	}
+ }
  
- 		switch (hkey >> 12) {
- 		case 1:
-@@ -1245,6 +1247,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 				       "unknown LID-related hotkey event: 0x%04x\n",
- 				       hkey);
- 				send_acpi_ev = 1;
-+			} else {
-+				ignore_acpi_ev = 1;
- 			}
- 			break;
- 		case 7:
-@@ -1264,11 +1268,12 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
+@@ -1149,11 +1154,15 @@ static void tpacpi_input_send_radiosw(void)
+ {
+ 	int wlsw;
  
- 		/* Legacy events */
--		if (send_acpi_ev || hotkey_report_mode < 2)
-+		if (!ignore_acpi_ev && (send_acpi_ev || hotkey_report_mode < 2)) {
- 			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-+		}
++	mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
+ 		input_report_switch(tpacpi_inputdev,
+ 				    SW_RADIO, !!wlsw);
+ 		input_sync(tpacpi_inputdev);
+ 	}
++
++	mutex_unlock(&tpacpi_inputdev_send_mutex);
+ }
  
- 		/* netlink events */
--		if (send_acpi_ev) {
-+		if (!ignore_acpi_ev && send_acpi_ev) {
- 			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
- 							ibm->acpi->device->dev.bus_id,
- 							event, hkey);
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -4737,6 +4746,7 @@ static int __init thinkpad_acpi_module_init(void)
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
+ 	}
++	mutex_init(&tpacpi_inputdev_send_mutex);
+ 	tpacpi_inputdev = input_allocate_device();
+ 	if (!tpacpi_inputdev) {
+ 		printk(IBM_ERR "unable to allocate input device\n");
 -- 
 1.5.3.1
 
