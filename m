@@ -1,221 +1,54 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: suspend: consolidate handling of Sx states.
-Date: Thu, 20 Sep 2007 21:32:35 +0400
-Message-ID: <20070920173235.7675.6618.stgit@samsung>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: 2.6.23-rc6: S4 and S5 no longer listed as supported on Toshiba Satellite A40
+Date: Thu, 20 Sep 2007 20:17:50 +0200
+Message-ID: <200709202017.50934.elendil@planet.nl>
+References: <200709192014.08443.elendil@planet.nl> <46F2A0E9.9000603@gmail.com> <46F2AE16.9080803@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:43558 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754465AbXITRcp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 13:32:45 -0400
+Received: from hpsmtp-eml20.kpnxchange.com ([213.75.38.85]:54598 "EHLO
+	hpsmtp-eml20.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757095AbXITSSA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2007 14:18:00 -0400
+In-Reply-To: <46F2AE16.9080803@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Maciek Rutecki <maciej.rutecki@gmail.com>
 
-Recent changes to sleep initialization in ACPI dropped reporting of supported Sx 
-states above S3. Fix that and also move S5 init into same file as other Sx.
-The only functional change is adding printk() for S4 and S5 cases.
+On Thursday 20 September 2007, you wrote:
+> Please try this patch.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Works. All states are now listed again.
+I've not tested suspend to disk, but suspend to ram and power off work =
+fine.
 
- drivers/acpi/sleep/Makefile   |    2 +
- drivers/acpi/sleep/main.c     |   53 ++++++++++++++++++++++++++---
- drivers/acpi/sleep/poweroff.c |   75 -----------------------------------------
- 3 files changed, 49 insertions(+), 81 deletions(-)
+> +printk(KERN_INFO PREFIX "(supports");
+> =C2=A0#ifdef CONFIG_SUSPEND
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0printk(KERN_INFO PREFIX "(=
+supports");
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0for (i =3D ACPI_STATE=
+_S0; i < ACPI_STATE_S4; i++) {
 
-diff --git a/drivers/acpi/sleep/Makefile b/drivers/acpi/sleep/Makefile
-index 195a4f6..ba9bd40 100644
---- a/drivers/acpi/sleep/Makefile
-+++ b/drivers/acpi/sleep/Makefile
-@@ -1,4 +1,4 @@
--obj-y					:= poweroff.o wakeup.o
-+obj-y					:= wakeup.o
- obj-$(CONFIG_ACPI_SLEEP)		+= main.o
- obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
- 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index c52ade8..638172f 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -15,6 +15,9 @@
- #include <linux/dmi.h>
- #include <linux/device.h>
- #include <linux/suspend.h>
-+
-+#include <asm/io.h>
-+
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include "sleep.h"
-@@ -57,6 +60,27 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
- 	return error;
- }
- 
-+int acpi_sleep_prepare(u32 acpi_state)
-+{
-+#ifdef CONFIG_ACPI_SLEEP
-+	/* do we have a wakeup address for S2 and S3? */
-+	if (acpi_state == ACPI_STATE_S3) {
-+		if (!acpi_wakeup_address) {
-+			return -EFAULT;
-+		}
-+		acpi_set_firmware_waking_vector((acpi_physical_address)
-+						virt_to_phys((void *)
-+							     acpi_wakeup_address));
-+
-+	}
-+	ACPI_FLUSH_CPU_CACHE();
-+	acpi_enable_wakeup_device_prep(acpi_state);
-+#endif
-+	acpi_gpe_sleep_prepare(acpi_state);
-+	acpi_enter_sleep_state_prep(acpi_state);
-+	return 0;
-+}
-+
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-  *	@pm_state: ignored
-@@ -350,6 +374,20 @@ int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
- 	return d_max;
- }
- 
-+static void acpi_power_off_prepare(void)
-+{
-+	/* Prepare to power off the system */
-+	acpi_sleep_prepare(ACPI_STATE_S5);
-+}
-+
-+static void acpi_power_off(void)
-+{
-+	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-+	printk("%s called\n", __FUNCTION__);
-+	local_irq_disable();
-+	acpi_enter_sleep_state(ACPI_STATE_S5);
-+}
-+
- int __init acpi_sleep_init(void)
- {
- 	acpi_status status;
-@@ -363,8 +401,8 @@ int __init acpi_sleep_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+printk(KERN_INFO PREFIX "(supports");
- #ifdef CONFIG_SUSPEND
--	printk(KERN_INFO PREFIX "(supports");
- 	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
- 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
- 		if (ACPI_SUCCESS(status)) {
-@@ -372,7 +410,6 @@ int __init acpi_sleep_init(void)
- 			printk(" S%d", i);
- 		}
- 	}
--	printk(")\n");
- 
- 	pm_set_ops(&acpi_pm_ops);
- #endif
-@@ -382,10 +419,16 @@ int __init acpi_sleep_init(void)
- 	if (ACPI_SUCCESS(status)) {
- 		hibernation_set_ops(&acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
-+		printk(" S4");
- 	}
--#else
--	sleep_states[ACPI_STATE_S4] = 0;
- #endif
--
-+	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
-+	if (ACPI_SUCCESS(status)) {
-+		sleep_states[ACPI_STATE_S5] = 1;
-+		printk(" S5");
-+		pm_power_off_prepare = acpi_power_off_prepare;
-+		pm_power_off = acpi_power_off;
-+	}
-+	printk(")\n");
- 	return 0;
- }
-diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
-deleted file mode 100644
-index 39e40d5..0000000
---- a/drivers/acpi/sleep/poweroff.c
-+++ /dev/null
-@@ -1,75 +0,0 @@
--/*
-- * poweroff.c - ACPI handler for powering off the system.
-- *
-- * AKA S5, but it is independent of whether or not the kernel supports
-- * any other sleep support in the system.
-- *
-- * Copyright (c) 2005 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-- *
-- * This file is released under the GPLv2.
-- */
--
--#include <linux/pm.h>
--#include <linux/init.h>
--#include <acpi/acpi_bus.h>
--#include <linux/sysdev.h>
--#include <asm/io.h>
--#include "sleep.h"
--
--int acpi_sleep_prepare(u32 acpi_state)
--{
--#ifdef CONFIG_ACPI_SLEEP
--	/* do we have a wakeup address for S2 and S3? */
--	if (acpi_state == ACPI_STATE_S3) {
--		if (!acpi_wakeup_address) {
--			return -EFAULT;
--		}
--		acpi_set_firmware_waking_vector((acpi_physical_address)
--						virt_to_phys((void *)
--							     acpi_wakeup_address));
--
--	}
--	ACPI_FLUSH_CPU_CACHE();
--	acpi_enable_wakeup_device_prep(acpi_state);
--#endif
--	acpi_gpe_sleep_prepare(acpi_state);
--	acpi_enter_sleep_state_prep(acpi_state);
--	return 0;
--}
--
--#ifdef CONFIG_PM
--
--static void acpi_power_off_prepare(void)
--{
--	/* Prepare to power off the system */
--	acpi_sleep_prepare(ACPI_STATE_S5);
--}
--
--static void acpi_power_off(void)
--{
--	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
--	printk("%s called\n", __FUNCTION__);
--	local_irq_disable();
--	/* Some SMP machines only can poweroff in boot CPU */
--	acpi_enter_sleep_state(ACPI_STATE_S5);
--}
--
--static int acpi_poweroff_init(void)
--{
--	if (!acpi_disabled) {
--		u8 type_a, type_b;
--		acpi_status status;
--
--		status =
--		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
--		if (ACPI_SUCCESS(status)) {
--			pm_power_off_prepare = acpi_power_off_prepare;
--			pm_power_off = acpi_power_off;
--		}
--	}
--	return 0;
--}
--
--late_initcall(acpi_poweroff_init);
--
--#endif				/* CONFIG_PM */
+Isn't there a risk now that we now end up printing
+   ACPI: (supports)
+if CONFIG_SUSPEND is not enabled and >S4 is not supported?
 
+Or, more probably, it would print
+   ACPI: (supports S5)
+as it is unlikely that "off" is not supported :-)
+
+Maybe S0 should be taken outside the #ifdef and the loop as that state =
+is=20
+also basically always there?
+
+Thanks,
+=46JP
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
