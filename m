@@ -1,54 +1,36 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: 2.6.23-rc6: S4 and S5 no longer listed as supported on Toshiba Satellite A40
-Date: Thu, 20 Sep 2007 23:18:43 +0200
-Message-ID: <200709202318.44676.elendil@planet.nl>
-References: <200709192014.08443.elendil@planet.nl> <200709202207.13101.rjw@sisk.pl> <200709202232.33309.elendil@planet.nl>
+From: Jeff Garzik <jgarzik@pobox.com>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Thu, 20 Sep 2007 18:00:17 -0400
+Message-ID: <46F2ED71.3070603@pobox.com>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hpsmtp-eml16.kpnxchange.com ([213.75.38.116]:15701 "EHLO
-	hpsmtp-eml16.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751937AbXITVSr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:18:47 -0400
-In-Reply-To: <200709202232.33309.elendil@planet.nl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tejun Heo <htejun@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Maciek Rutecki <maciej.rutecki@gmail.com>
 
-On Thursday 20 September 2007, Frans Pop wrote:
-> On Thursday 20 September 2007, Rafael J. Wysocki wrote:
-> > On Thursday, 20 September 2007 20:33, Alexey Starikovskiy wrote:
-> > > Frans Pop wrote:
-> > > > Maybe S0 should be taken outside the #ifdef and the loop as that
-> > > > state is also basically always there?
-> > >
-> > > Don't think it is worth the trouble. We already have this loop almost
-> > > completely unrolled, let's not make it complete mess...
-> >
-> > Well, you could use "(supports S0" instead of just "(supports". ;-)
->
-> After thinking about this a bit more, I think this does make sense for
-> three (admittedly minor) reasons:
-> - consistency between messages with and without CONFIG_SUSPEND
-> - consistency with /proc/acpi/sleep
-> - avoiding unnecessary change from previous versions.
+Shaohua Li wrote:
+> ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
+> methods. As recently most PATA drivers use libata, this patch adds _PSx
+> method support in libata. ACPI spec doesn't mention if SATA requires the
+> same _PSx method, but executing _PSx for SATA should be ok I think.
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-One additional reason...
+ahci and sata_sil24 directly power off components, so it seems quite 
+unwise for "modern" SATA controllers.
 
-With current code, sleep_states(0) will not be set if compiled without 
-CONFIG_SUSPEND, which means that S0 will also disappear from
-/proc/acpi/sleep. With pre-2.6.23 code it would be listed there.
+ISTR Tejun, when he cleaned up libata-acpi, finally figured out a good 
+way to distinguish ACPI's idea of "IDE" -- which sometimes includes the 
+legacy programming mode of SATA controllers, and a controller running a 
+modern programming mode.
 
-I think that is even a more relevant change than the display issue and could 
-possibly even be considered a user-space interface regression.
-My proposed patch fixes that too.
+Your best bet is to use a similar test when deciding when to execute 
+_PSx.  Or, you could simply be conservative and only do it for PATA.
 
-Note that the patch currently does not call acpi_get_sleep_type_data for S0, 
-but (partially from Rafael's comment) I was assuming that for S0 that does 
-not really matter. If it does, then the patch could easily be adjusted to 
-include that.
+outside of those issues, the rest of the patch looks ok.
+
