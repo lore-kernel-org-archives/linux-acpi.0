@@ -1,81 +1,243 @@
-From: Jakub =?UTF-8?Q?Ambro=C5=BCewicz?=
-	<jakub.ambrozewicz@googlemail.com>
-Subject: dmidecode of HP Pavilion tx 1000
-Date: Thu, 20 Sep 2007 20:09:11 +0100
-Message-ID: <1190315351.3790.8.camel@lebioda>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: suspend: consolidate handling of Sx states.
+Date: Thu, 20 Sep 2007 22:00:03 +0200
+Message-ID: <200709202200.04270.rjw@sisk.pl>
+References: <20070920173235.7675.6618.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-HR23faFKL8ODkbamS9y4"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:47604 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbXITTJM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2007 15:09:12 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so553303nfb
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2007 12:09:09 -0700 (PDT)
+Received: from ogre.sisk.pl ([217.79.144.158]:39837 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699AbXITTrY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2007 15:47:24 -0400
+In-Reply-To: <20070920173235.7675.6618.stgit@samsung>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+
+On Thursday, 20 September 2007 19:32, Alexey Starikovskiy wrote:
+> Recent changes to sleep initialization in ACPI dropped reporting of supported Sx 
+> states above S3. Fix that and also move S5 init into same file as other Sx.
+
+Well, that's a result of one of my patches.  Thanks for fixing!
+
+> The only functional change is adding printk() for S4 and S5 cases.
+> 
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
 
---=-HR23faFKL8ODkbamS9y4
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> ---
+> 
+>  drivers/acpi/sleep/Makefile   |    2 +
+>  drivers/acpi/sleep/main.c     |   53 ++++++++++++++++++++++++++---
+>  drivers/acpi/sleep/poweroff.c |   75 -----------------------------------------
+>  3 files changed, 49 insertions(+), 81 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep/Makefile b/drivers/acpi/sleep/Makefile
+> index 195a4f6..ba9bd40 100644
+> --- a/drivers/acpi/sleep/Makefile
+> +++ b/drivers/acpi/sleep/Makefile
+> @@ -1,4 +1,4 @@
+> -obj-y					:= poweroff.o wakeup.o
+> +obj-y					:= wakeup.o
+>  obj-$(CONFIG_ACPI_SLEEP)		+= main.o
+>  obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
+>  
+> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+> index c52ade8..638172f 100644
+> --- a/drivers/acpi/sleep/main.c
+> +++ b/drivers/acpi/sleep/main.c
+> @@ -15,6 +15,9 @@
+>  #include <linux/dmi.h>
+>  #include <linux/device.h>
+>  #include <linux/suspend.h>
+> +
+> +#include <asm/io.h>
+> +
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  #include "sleep.h"
+> @@ -57,6 +60,27 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
+>  	return error;
+>  }
+>  
+> +int acpi_sleep_prepare(u32 acpi_state)
+> +{
+> +#ifdef CONFIG_ACPI_SLEEP
+> +	/* do we have a wakeup address for S2 and S3? */
+> +	if (acpi_state == ACPI_STATE_S3) {
+> +		if (!acpi_wakeup_address) {
+> +			return -EFAULT;
+> +		}
+> +		acpi_set_firmware_waking_vector((acpi_physical_address)
+> +						virt_to_phys((void *)
+> +							     acpi_wakeup_address));
+> +
+> +	}
+> +	ACPI_FLUSH_CPU_CACHE();
+> +	acpi_enable_wakeup_device_prep(acpi_state);
+> +#endif
+> +	acpi_gpe_sleep_prepare(acpi_state);
+> +	acpi_enter_sleep_state_prep(acpi_state);
+> +	return 0;
+> +}
+> +
+>  /**
+>   *	acpi_pm_prepare - Do preliminary suspend work.
+>   *	@pm_state: ignored
+> @@ -350,6 +374,20 @@ int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
+>  	return d_max;
+>  }
+>  
+> +static void acpi_power_off_prepare(void)
+> +{
+> +	/* Prepare to power off the system */
+> +	acpi_sleep_prepare(ACPI_STATE_S5);
+> +}
+> +
+> +static void acpi_power_off(void)
+> +{
+> +	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> +	printk("%s called\n", __FUNCTION__);
+> +	local_irq_disable();
+> +	acpi_enter_sleep_state(ACPI_STATE_S5);
+> +}
+> +
+>  int __init acpi_sleep_init(void)
+>  {
+>  	acpi_status status;
+> @@ -363,8 +401,8 @@ int __init acpi_sleep_init(void)
+>  	if (acpi_disabled)
+>  		return 0;
+>  
+> +printk(KERN_INFO PREFIX "(supports");
+>  #ifdef CONFIG_SUSPEND
+> -	printk(KERN_INFO PREFIX "(supports");
+>  	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
+>  		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+>  		if (ACPI_SUCCESS(status)) {
+> @@ -372,7 +410,6 @@ int __init acpi_sleep_init(void)
+>  			printk(" S%d", i);
+>  		}
+>  	}
+> -	printk(")\n");
+>  
+>  	pm_set_ops(&acpi_pm_ops);
+>  #endif
+> @@ -382,10 +419,16 @@ int __init acpi_sleep_init(void)
+>  	if (ACPI_SUCCESS(status)) {
+>  		hibernation_set_ops(&acpi_hibernation_ops);
+>  		sleep_states[ACPI_STATE_S4] = 1;
+> +		printk(" S4");
+>  	}
+> -#else
+> -	sleep_states[ACPI_STATE_S4] = 0;
+>  #endif
+> -
+> +	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+> +	if (ACPI_SUCCESS(status)) {
+> +		sleep_states[ACPI_STATE_S5] = 1;
+> +		printk(" S5");
+> +		pm_power_off_prepare = acpi_power_off_prepare;
+> +		pm_power_off = acpi_power_off;
+> +	}
+> +	printk(")\n");
+>  	return 0;
+>  }
+> diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
+> deleted file mode 100644
+> index 39e40d5..0000000
+> --- a/drivers/acpi/sleep/poweroff.c
+> +++ /dev/null
+> @@ -1,75 +0,0 @@
+> -/*
+> - * poweroff.c - ACPI handler for powering off the system.
+> - *
+> - * AKA S5, but it is independent of whether or not the kernel supports
+> - * any other sleep support in the system.
+> - *
+> - * Copyright (c) 2005 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+> - *
+> - * This file is released under the GPLv2.
+> - */
+> -
+> -#include <linux/pm.h>
+> -#include <linux/init.h>
+> -#include <acpi/acpi_bus.h>
+> -#include <linux/sysdev.h>
+> -#include <asm/io.h>
+> -#include "sleep.h"
+> -
+> -int acpi_sleep_prepare(u32 acpi_state)
+> -{
+> -#ifdef CONFIG_ACPI_SLEEP
+> -	/* do we have a wakeup address for S2 and S3? */
+> -	if (acpi_state == ACPI_STATE_S3) {
+> -		if (!acpi_wakeup_address) {
+> -			return -EFAULT;
+> -		}
+> -		acpi_set_firmware_waking_vector((acpi_physical_address)
+> -						virt_to_phys((void *)
+> -							     acpi_wakeup_address));
+> -
+> -	}
+> -	ACPI_FLUSH_CPU_CACHE();
+> -	acpi_enable_wakeup_device_prep(acpi_state);
+> -#endif
+> -	acpi_gpe_sleep_prepare(acpi_state);
+> -	acpi_enter_sleep_state_prep(acpi_state);
+> -	return 0;
+> -}
+> -
+> -#ifdef CONFIG_PM
+> -
+> -static void acpi_power_off_prepare(void)
+> -{
+> -	/* Prepare to power off the system */
+> -	acpi_sleep_prepare(ACPI_STATE_S5);
+> -}
+> -
+> -static void acpi_power_off(void)
+> -{
+> -	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> -	printk("%s called\n", __FUNCTION__);
+> -	local_irq_disable();
+> -	/* Some SMP machines only can poweroff in boot CPU */
+> -	acpi_enter_sleep_state(ACPI_STATE_S5);
+> -}
+> -
+> -static int acpi_poweroff_init(void)
+> -{
+> -	if (!acpi_disabled) {
+> -		u8 type_a, type_b;
+> -		acpi_status status;
+> -
+> -		status =
+> -		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+> -		if (ACPI_SUCCESS(status)) {
+> -			pm_power_off_prepare = acpi_power_off_prepare;
+> -			pm_power_off = acpi_power_off;
+> -		}
+> -	}
+> -	return 0;
+> -}
+> -
+> -late_initcall(acpi_poweroff_init);
+> -
+> -#endif				/* CONFIG_PM */
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-Attached.
-
-Regards,
 -- 
-Jakub Ambrozewicz
-
---=-HR23faFKL8ODkbamS9y4
-Content-Disposition: attachment; filename=dmidecode.gz
-Content-Type: application/x-gzip; name=dmidecode.gz
-Content-Transfer-Encoding: base64
-
-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
-rzWbfwIU5yCmrhsAAA==
-
-
---=-HR23faFKL8ODkbamS9y4--
-
+"Premature optimization is the root of all evil." - Donald Knuth
