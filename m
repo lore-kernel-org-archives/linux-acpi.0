@@ -1,127 +1,232 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 6/7] ACPI: thinkpad-acpi: dequeue all
-	pending hot key events at once
-Date: Thu, 20 Sep 2007 20:42:22 -0400
-Message-ID: <200709202042.22724.lenb@kernel.org>
-References: <11902962603691-git-send-email-hmh@hmh.eng.br>
-	<11902962613565-git-send-email-hmh@hmh.eng.br>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: suspend: consolidate handling of Sx states.
+Date: Thu, 20 Sep 2007 20:50:18 -0400
+Message-ID: <200709202050.18990.lenb@kernel.org>
+References: <20070920173235.7675.6618.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11902962613565-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:43132 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752571AbXIUAux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2007 20:50:53 -0400
+In-Reply-To: <20070920173235.7675.6618.stgit@samsung>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org, Rafael Wysocki <rjw@sisk.pl>
 
-On Thursday 20 September 2007 09:50, Henrique de Moraes Holschuh wrote:
-> Receive all pending hot key events at once from a single notification, and
-> don't complain if the queue is empty.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> ---
->  drivers/misc/thinkpad_acpi.c |   52 ++++++++++++++++++++++++++++-------------
->  1 files changed, 35 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-> index 9a61140..de415fe 100644
-> --- a/drivers/misc/thinkpad_acpi.c
-> +++ b/drivers/misc/thinkpad_acpi.c
-> @@ -1196,9 +1196,31 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
->  {
->  	u32 hkey;
->  	unsigned int keycode, scancode;
-> -	int send_acpi_ev = 0;
-> +	int send_acpi_ev;
-> +
-> +	if (event != 0x80) {
-> +		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
-> +		/* forward it to userspace, maybe it knows how to handle it */
-> +		acpi_bus_generate_proc_event(ibm->acpi->device, event, 0);
-> +		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-> +						ibm->acpi->device->dev.bus_id,
-> +						event, 0);
-
-If this is really an event due to an hotkey (emphasis on the word KEY:-),
-why is it being sent via netlink instead of via input?
+Applied.
 
 thanks,
 -Len
 
-> +		return;
-> +	}
-> +
-> +	while (1) {
-> +		if (!acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
-> +			printk(IBM_ERR "failed to retrieve hot key event\n");
-> +			return;
-> +		}
-> +
-> +		if (hkey == 0) {
-> +			/* queue empty */
-> +			return;
-> +		}
-> +
-> +		send_acpi_ev = 0;
+On Thursday 20 September 2007 13:32, Alexey Starikovskiy wrote:
+> Recent changes to sleep initialization in ACPI dropped reporting of supported Sx 
+> states above S3. Fix that and also move S5 init into same file as other Sx.
+> The only functional change is adding printk() for S4 and S5 cases.
+> 
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
+> 
+>  drivers/acpi/sleep/Makefile   |    2 +
+>  drivers/acpi/sleep/main.c     |   53 ++++++++++++++++++++++++++---
+>  drivers/acpi/sleep/poweroff.c |   75 -----------------------------------------
+>  3 files changed, 49 insertions(+), 81 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep/Makefile b/drivers/acpi/sleep/Makefile
+> index 195a4f6..ba9bd40 100644
+> --- a/drivers/acpi/sleep/Makefile
+> +++ b/drivers/acpi/sleep/Makefile
+> @@ -1,4 +1,4 @@
+> -obj-y					:= poweroff.o wakeup.o
+> +obj-y					:= wakeup.o
+>  obj-$(CONFIG_ACPI_SLEEP)		+= main.o
+>  obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
 >  
-> -	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
->  		switch (hkey >> 12) {
->  		case 1:
->  			/* 0x1000-0x1FFF: key presses */
-> @@ -1220,8 +1242,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
->  			 * eat up known LID events */
->  			if (hkey != 0x5001 && hkey != 0x5002) {
->  				printk(IBM_ERR
-> -					"unknown LID-related hotkey event: 0x%04x\n",
-> -					hkey);
-> +				       "unknown LID-related hotkey event: 0x%04x\n",
-> +				       hkey);
->  				send_acpi_ev = 1;
->  			}
->  			break;
-> @@ -1240,21 +1262,17 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
->  			printk(IBM_NOTICE "unhandled HKEY event 0x%04x\n", hkey);
->  			send_acpi_ev = 1;
->  		}
-> -	} else {
-> -		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
-> -		hkey = 0;
-> -		send_acpi_ev = 1;
-> -	}
->  
-> -	/* Legacy events */
-> -	if (send_acpi_ev || hotkey_report_mode < 2)
-> -		acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-> +		/* Legacy events */
-> +		if (send_acpi_ev || hotkey_report_mode < 2)
-> +			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
->  
-> -	/* netlink events */
-> -	if (send_acpi_ev) {
-> -		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-> -						ibm->acpi->device->dev.bus_id,
-> -						event, hkey);
-> +		/* netlink events */
-> +		if (send_acpi_ev) {
-> +			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-> +							ibm->acpi->device->dev.bus_id,
-> +							event, hkey);
-> +		}
->  	}
+> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+> index c52ade8..638172f 100644
+> --- a/drivers/acpi/sleep/main.c
+> +++ b/drivers/acpi/sleep/main.c
+> @@ -15,6 +15,9 @@
+>  #include <linux/dmi.h>
+>  #include <linux/device.h>
+>  #include <linux/suspend.h>
+> +
+> +#include <asm/io.h>
+> +
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  #include "sleep.h"
+> @@ -57,6 +60,27 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
+>  	return error;
 >  }
 >  
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+> +int acpi_sleep_prepare(u32 acpi_state)
+> +{
+> +#ifdef CONFIG_ACPI_SLEEP
+> +	/* do we have a wakeup address for S2 and S3? */
+> +	if (acpi_state == ACPI_STATE_S3) {
+> +		if (!acpi_wakeup_address) {
+> +			return -EFAULT;
+> +		}
+> +		acpi_set_firmware_waking_vector((acpi_physical_address)
+> +						virt_to_phys((void *)
+> +							     acpi_wakeup_address));
+> +
+> +	}
+> +	ACPI_FLUSH_CPU_CACHE();
+> +	acpi_enable_wakeup_device_prep(acpi_state);
+> +#endif
+> +	acpi_gpe_sleep_prepare(acpi_state);
+> +	acpi_enter_sleep_state_prep(acpi_state);
+> +	return 0;
+> +}
+> +
+>  /**
+>   *	acpi_pm_prepare - Do preliminary suspend work.
+>   *	@pm_state: ignored
+> @@ -350,6 +374,20 @@ int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
+>  	return d_max;
+>  }
+>  
+> +static void acpi_power_off_prepare(void)
+> +{
+> +	/* Prepare to power off the system */
+> +	acpi_sleep_prepare(ACPI_STATE_S5);
+> +}
+> +
+> +static void acpi_power_off(void)
+> +{
+> +	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> +	printk("%s called\n", __FUNCTION__);
+> +	local_irq_disable();
+> +	acpi_enter_sleep_state(ACPI_STATE_S5);
+> +}
+> +
+>  int __init acpi_sleep_init(void)
+>  {
+>  	acpi_status status;
+> @@ -363,8 +401,8 @@ int __init acpi_sleep_init(void)
+>  	if (acpi_disabled)
+>  		return 0;
+>  
+> +printk(KERN_INFO PREFIX "(supports");
+>  #ifdef CONFIG_SUSPEND
+> -	printk(KERN_INFO PREFIX "(supports");
+>  	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
+>  		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+>  		if (ACPI_SUCCESS(status)) {
+> @@ -372,7 +410,6 @@ int __init acpi_sleep_init(void)
+>  			printk(" S%d", i);
+>  		}
+>  	}
+> -	printk(")\n");
+>  
+>  	pm_set_ops(&acpi_pm_ops);
+>  #endif
+> @@ -382,10 +419,16 @@ int __init acpi_sleep_init(void)
+>  	if (ACPI_SUCCESS(status)) {
+>  		hibernation_set_ops(&acpi_hibernation_ops);
+>  		sleep_states[ACPI_STATE_S4] = 1;
+> +		printk(" S4");
+>  	}
+> -#else
+> -	sleep_states[ACPI_STATE_S4] = 0;
+>  #endif
+> -
+> +	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+> +	if (ACPI_SUCCESS(status)) {
+> +		sleep_states[ACPI_STATE_S5] = 1;
+> +		printk(" S5");
+> +		pm_power_off_prepare = acpi_power_off_prepare;
+> +		pm_power_off = acpi_power_off;
+> +	}
+> +	printk(")\n");
+>  	return 0;
+>  }
+> diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
+> deleted file mode 100644
+> index 39e40d5..0000000
+> --- a/drivers/acpi/sleep/poweroff.c
+> +++ /dev/null
+> @@ -1,75 +0,0 @@
+> -/*
+> - * poweroff.c - ACPI handler for powering off the system.
+> - *
+> - * AKA S5, but it is independent of whether or not the kernel supports
+> - * any other sleep support in the system.
+> - *
+> - * Copyright (c) 2005 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+> - *
+> - * This file is released under the GPLv2.
+> - */
+> -
+> -#include <linux/pm.h>
+> -#include <linux/init.h>
+> -#include <acpi/acpi_bus.h>
+> -#include <linux/sysdev.h>
+> -#include <asm/io.h>
+> -#include "sleep.h"
+> -
+> -int acpi_sleep_prepare(u32 acpi_state)
+> -{
+> -#ifdef CONFIG_ACPI_SLEEP
+> -	/* do we have a wakeup address for S2 and S3? */
+> -	if (acpi_state == ACPI_STATE_S3) {
+> -		if (!acpi_wakeup_address) {
+> -			return -EFAULT;
+> -		}
+> -		acpi_set_firmware_waking_vector((acpi_physical_address)
+> -						virt_to_phys((void *)
+> -							     acpi_wakeup_address));
+> -
+> -	}
+> -	ACPI_FLUSH_CPU_CACHE();
+> -	acpi_enable_wakeup_device_prep(acpi_state);
+> -#endif
+> -	acpi_gpe_sleep_prepare(acpi_state);
+> -	acpi_enter_sleep_state_prep(acpi_state);
+> -	return 0;
+> -}
+> -
+> -#ifdef CONFIG_PM
+> -
+> -static void acpi_power_off_prepare(void)
+> -{
+> -	/* Prepare to power off the system */
+> -	acpi_sleep_prepare(ACPI_STATE_S5);
+> -}
+> -
+> -static void acpi_power_off(void)
+> -{
+> -	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> -	printk("%s called\n", __FUNCTION__);
+> -	local_irq_disable();
+> -	/* Some SMP machines only can poweroff in boot CPU */
+> -	acpi_enter_sleep_state(ACPI_STATE_S5);
+> -}
+> -
+> -static int acpi_poweroff_init(void)
+> -{
+> -	if (!acpi_disabled) {
+> -		u8 type_a, type_b;
+> -		acpi_status status;
+> -
+> -		status =
+> -		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+> -		if (ACPI_SUCCESS(status)) {
+> -			pm_power_off_prepare = acpi_power_off_prepare;
+> -			pm_power_off = acpi_power_off;
+> -		}
+> -	}
+> -	return 0;
+> -}
+> -
+> -late_initcall(acpi_poweroff_init);
+> -
+> -#endif				/* CONFIG_PM */
+> 
