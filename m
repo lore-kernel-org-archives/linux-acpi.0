@@ -1,61 +1,96 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 6/7] ACPI: thinkpad-acpi: dequeue all
-	pending hot key	events at once
-Date: Fri, 21 Sep 2007 10:53:40 -0300
-Message-ID: <20070921135340.GA11125@khazad-dum.debian.net>
-References: <11902962603691-git-send-email-hmh@hmh.eng.br>
-	<11902962613565-git-send-email-hmh@hmh.eng.br>
-	<200709202042.22724.lenb@kernel.org>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: 2.6.23-rc6: S4 and S5 no longer listed as supported on Toshiba
+ Satellite A40
+Date: Fri, 21 Sep 2007 18:04:56 +0400
+Message-ID: <46F3CF88.4010303@gmail.com>
+References: <200709192014.08443.elendil@planet.nl> <200709202207.13101.rjw@sisk.pl> <200709202232.33309.elendil@planet.nl> <200709202253.07571.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200709202042.22724.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.169]:6729 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757330AbXIUOE6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 10:04:58 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so526176ugc
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Sep 2007 07:04:56 -0700 (PDT)
+In-Reply-To: <200709202253.07571.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Frans Pop <elendil@planet.nl>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Maciek Rutecki <maciej.rutecki@gmail.com>
 
-On Thu, 20 Sep 2007, Len Brown wrote:
-> On Thursday 20 September 2007 09:50, Henrique de Moraes Holschuh wrote:
-> > Receive all pending hot key events at once from a single notification, and
-> > don't complain if the queue is empty.
+Rafael J. Wysocki wrote:
+> On Thursday, 20 September 2007 22:32, Frans Pop wrote:
+>> On Thursday 20 September 2007, Rafael J. Wysocki wrote:
+>>> On Thursday, 20 September 2007 20:33, Alexey Starikovskiy wrote:
+>>>> Frans Pop wrote:
+>>>>> On Thursday 20 September 2007, you wrote:
+>>>>>> Please try this patch.
+>>>>> Works. All states are now listed again.
+>>>>> I've not tested suspend to disk, but suspend to ram and power off
+>>>>> work fine.
+>>>>>
+>>>>>> +printk(KERN_INFO PREFIX "(supports");
+>> Note that this printk should be indented.
+>>
+>>>>>>  #ifdef CONFIG_SUSPEND
+>>>>>> -       printk(KERN_INFO PREFIX "(supports");
+>>>>>>         for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
+>>>>> Isn't there a risk now that we now end up printing
+>>>>>    ACPI: (supports)
+>>>>> if CONFIG_SUSPEND is not enabled and >S4 is not supported?
+>>>>>
+>>>>> Or, more probably, it would print
+>>>>>    ACPI: (supports S5)
+>>>> Don't know what does it mean to support S0 exactly... :)
+>> Agreed, though arguably the same goes for S5. I guess you could say they are 
+>> all states that can be switched to.
+>>
+>>>>> as it is unlikely that "off" is not supported :-)
+>>>>>
+>>>>> Maybe S0 should be taken outside the #ifdef and the loop as that
+>>>>> state is also basically always there?
+>>>> Don't think it is worth the trouble. We already have this loop almost
+>>>> completely unrolled, let's not make it complete mess...
+>>> Well, you could use "(supports S0" instead of just "(supports". ;-)
+>> After thinking about this a bit more, I think this does make sense for three 
+>> (admittedly minor) reasons:
+>> - consistency between messages with and without CONFIG_SUSPEND
+>> - consistency with /proc/acpi/sleep
+>> - avoiding unnecessary change from previous versions.
+>>
+>> Please consider the attached patch which applies on top of Alexey's. Feel 
+>> free to integrate it in his patch.
+>>
+>> Signed-off-by: Frans Pop <elendil@planet.nl>
+> 
+> Alexey, do you agree?
+Yes, was thinking to do it myself, but my ISP died this morning....
 
-Maybe I should have s/hot.?key/HKEY/ throughout this patch.
+Regards,
+Alex.
+> 
+> (patch reproduced below for convenience).
+> 
+> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+> index 638172f..85633c5 100644
+> --- a/drivers/acpi/sleep/main.c
+> +++ b/drivers/acpi/sleep/main.c
+> @@ -401,9 +401,11 @@ int __init acpi_sleep_init(void)
+>         if (acpi_disabled)
+>                 return 0;
+>  
+> -printk(KERN_INFO PREFIX "(supports");
+> +       sleep_states[ACPI_STATE_S0] = 1;
+> +       printk(KERN_INFO PREFIX "(supports S0");
+> +
+>  #ifdef CONFIG_SUSPEND
+> -       for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
+> +       for (i = ACPI_STATE_S1; i < ACPI_STATE_S4; i++) {
+>                 status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+>                 if (ACPI_SUCCESS(status)) {
+>                         sleep_states[i] = 1;
+> 
 
-The HKEY handler is the thinkpad-specific handler to message-pass
-interesting events to the O.S. This include hot key pressing, but also
-inclures: LID open/close, radio switch toggling, what looks like thermal
-alarms, reason for wakeup (bay eject, whatever), notification of impending
-undock (to show a helper to the user explaining how to undock a x40/x60,
-etc)... and only IBM and Lenovo knows what else.  Hot key presses are just
-one of the many things reported through thinkpad HKEY events.
 
-> If this is really an event due to an hotkey (emphasis on the word KEY:-),
-> why is it being sent via netlink instead of via input?
-
-Like I said, if it hit that branch, it is some other notification than a hot
-key press :-)  Yeah, it is non-obvious.
-
-I will rework the patch to use the word HKEY event instead of hotkey event
-where applicable.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
