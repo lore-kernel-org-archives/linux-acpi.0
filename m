@@ -1,232 +1,317 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: suspend: consolidate handling of Sx states.
-Date: Thu, 20 Sep 2007 20:50:18 -0400
-Message-ID: <200709202050.18990.lenb@kernel.org>
-References: <20070920173235.7675.6618.stgit@samsung>
+Subject: Re: [patch 2/2] ia64: add driver for ACPI methods to call native firmware
+Date: Thu, 20 Sep 2007 21:03:11 -0400
+Message-ID: <200709202103.11316.lenb@kernel.org>
+References: <200709201420.24023.bjorn.helgaas@hp.com> <200709201422.03539.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43132 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:35376 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752571AbXIUAux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Sep 2007 20:50:53 -0400
-In-Reply-To: <20070920173235.7675.6618.stgit@samsung>
+	id S1751142AbXIUBDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2007 21:03:32 -0400
+In-Reply-To: <200709201422.03539.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux-acpi@vger.kernel.org, Rafael Wysocki <rjw@sisk.pl>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-ia64@vger.kernel.org, "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 
-Applied.
+I guess x86 does this via SMI,
+I don't see any other way, so it looks reasonable to me.
 
-thanks,
--Len
+Tony,
+Acked-by: Len Brown <len.brown@intel.com>
 
-On Thursday 20 September 2007 13:32, Alexey Starikovskiy wrote:
-> Recent changes to sleep initialization in ACPI dropped reporting of supported Sx 
-> states above S3. Fix that and also move S5 init into same file as other Sx.
-> The only functional change is adding printk() for S4 and S5 cases.
+On Thursday 20 September 2007 16:22, Bjorn Helgaas wrote:
+> This driver for HPQ5001 devices installs a global ACPI OpRegion handler.
+> AML methods can use this OpRegion to call native firmware entry points.
 > 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
+> ACPI does not define a mechanism for AML methods to call native firmware
+> interfaces such as PAL or SAL.  This OpRegion handler adds such a mechanism.
+> After the handler is installed, an AML method can call native firmware by
+> storing the arguments and firmware entry point to specific offsets in the
+> OpRegion.  When AML reads the "return value" offset from the OpRegion, this
+> handler loads up the arguments, makes the firmware call, and returns the
+> result.
 > 
->  drivers/acpi/sleep/Makefile   |    2 +
->  drivers/acpi/sleep/main.c     |   53 ++++++++++++++++++++++++++---
->  drivers/acpi/sleep/poweroff.c |   75 -----------------------------------------
->  3 files changed, 49 insertions(+), 81 deletions(-)
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > 
-> diff --git a/drivers/acpi/sleep/Makefile b/drivers/acpi/sleep/Makefile
-> index 195a4f6..ba9bd40 100644
-> --- a/drivers/acpi/sleep/Makefile
-> +++ b/drivers/acpi/sleep/Makefile
-> @@ -1,4 +1,4 @@
-> -obj-y					:= poweroff.o wakeup.o
-> +obj-y					:= wakeup.o
->  obj-$(CONFIG_ACPI_SLEEP)		+= main.o
->  obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
+> Index: work2/arch/ia64/Kconfig
+> ===================================================================
+> --- work2.orig/arch/ia64/Kconfig	2007-09-19 10:09:43.000000000 -0600
+> +++ work2/arch/ia64/Kconfig	2007-09-19 10:51:15.000000000 -0600
+> @@ -461,6 +461,16 @@
+>  	  firmware extensions, such as the ability to inject memory-errors
+>  	  for test-purposes.  If you're unsure, say N.
 >  
-> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-> index c52ade8..638172f 100644
-> --- a/drivers/acpi/sleep/main.c
-> +++ b/drivers/acpi/sleep/main.c
-> @@ -15,6 +15,9 @@
->  #include <linux/dmi.h>
->  #include <linux/device.h>
->  #include <linux/suspend.h>
+> +config IA64_HP_AML_NFW
+> +	bool "Support ACPI AML calls to native firmware"
+> +	help
+> +	  This driver installs a global ACPI Operation Region handler for
+> +	  region 0xA1.  AML methods can use this OpRegion to call arbitrary
+> +	  native firmware functions.  The driver installs the OpRegion
+> +	  handler if there is an HPQ5001 device or if the user supplies
+> +	  the "force" module parameter, e.g., with the "aml_nfw.force"
+> +	  kernel command line option.
 > +
-> +#include <asm/io.h>
-> +
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  #include "sleep.h"
-> @@ -57,6 +60,27 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
->  	return error;
->  }
+>  source "drivers/sn/Kconfig"
 >  
-> +int acpi_sleep_prepare(u32 acpi_state)
+>  config KEXEC
+> Index: work2/arch/ia64/hp/common/Makefile
+> ===================================================================
+> --- work2.orig/arch/ia64/hp/common/Makefile	2007-09-19 10:09:43.000000000 -0600
+> +++ work2/arch/ia64/hp/common/Makefile	2007-09-19 10:51:15.000000000 -0600
+> @@ -8,3 +8,4 @@
+>  obj-y := sba_iommu.o
+>  obj-$(CONFIG_IA64_HP_ZX1_SWIOTLB) += hwsw_iommu.o
+>  obj-$(CONFIG_IA64_GENERIC) += hwsw_iommu.o
+> +obj-$(CONFIG_IA64_HP_AML_NFW) += aml_nfw.o
+> Index: work2/arch/ia64/hp/common/aml_nfw.c
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ work2/arch/ia64/hp/common/aml_nfw.c	2007-09-20 14:05:21.000000000 -0600
+> @@ -0,0 +1,236 @@
+> +/*
+> + * OpRegion handler to allow AML to call native firmware
+> + *
+> + * (c) Copyright 2007 Hewlett-Packard Development Company, L.P.
+> + *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This driver implements HP Open Source Review Board proposal 1842,
+> + * which was approved on 9/20/2006.
+> + *
+> + * For technical documentation, see the HP SPPA Firmware EAS, Appendix F.
+> + *
+> + * ACPI does not define a mechanism for AML methods to call native firmware
+> + * interfaces such as PAL or SAL.  This OpRegion handler adds such a mechanism.
+> + * After the handler is installed, an AML method can call native firmware by
+> + * storing the arguments and firmware entry point to specific offsets in the
+> + * OpRegion.  When AML reads the "return value" offset from the OpRegion, this
+> + * handler loads up the arguments, makes the firmware call, and returns the
+> + * result.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <acpi/acpi_bus.h>
+> +#include <acpi/acpi_drivers.h>
+> +#include <asm/sal.h>
+> +
+> +MODULE_AUTHOR("Bjorn Helgaas <bjorn.helgaas@hp.com>");
+> +MODULE_LICENSE("GPL");
+> +MODULE_DESCRIPTION("ACPI opregion handler for native firmware calls");
+> +
+> +static int force_register;
+> +module_param_named(force, force_register, bool, 0);
+> +MODULE_PARM_DESC(force, "Install opregion handler even without HPQ5001 device");
+> +
+> +#define AML_NFW_SPACE		0xA1
+> +
+> +struct ia64_pdesc {
+> +	void *ip;
+> +	void *gp;
+> +};
+> +
+> +/*
+> + * N.B.  The layout of this structure is defined in the HP SPPA FW EAS, and
+> + *	 the member offsets are embedded in AML methods.
+> + */
+> +struct ia64_nfw_context {
+> +	u64 arg[8];
+> +	struct ia64_sal_retval ret;
+> +	u64 ip;
+> +	u64 gp;
+> +	u64 pad[2];
+> +};
+> +
+> +static void *virt_map(u64 address)
 > +{
-> +#ifdef CONFIG_ACPI_SLEEP
-> +	/* do we have a wakeup address for S2 and S3? */
-> +	if (acpi_state == ACPI_STATE_S3) {
-> +		if (!acpi_wakeup_address) {
-> +			return -EFAULT;
-> +		}
-> +		acpi_set_firmware_waking_vector((acpi_physical_address)
-> +						virt_to_phys((void *)
-> +							     acpi_wakeup_address));
+> +	if (address & (1UL << 63))
+> +		return (void *) (__IA64_UNCACHED_OFFSET | address);
 > +
+> +	return __va(address);
+> +}
+> +
+> +static void aml_nfw_execute(struct ia64_nfw_context *c)
+> +{
+> +	struct ia64_pdesc virt_entry;
+> +	ia64_sal_handler entry;
+> +
+> +	virt_entry.ip = virt_map(c->ip);
+> +	virt_entry.gp = virt_map(c->gp);
+> +
+> +	entry = (ia64_sal_handler) &virt_entry;
+> +
+> +	IA64_FW_CALL(entry, c->ret,
+> +		     c->arg[0], c->arg[1], c->arg[2], c->arg[3],
+> +		     c->arg[4], c->arg[5], c->arg[6], c->arg[7]);
+> +}
+> +
+> +static void aml_nfw_read_arg(u8 *offset, u32 bit_width, acpi_integer *value)
+> +{
+> +	switch (bit_width) {
+> +	case 8:
+> +		*value = *(u8 *)offset;
+> +		break;
+> +	case 16:
+> +		*value = *(u16 *)offset;
+> +		break;
+> +	case 32:
+> +		*value = *(u32 *)offset;
+> +		break;
+> +	case 64:
+> +		*value = *(u64 *)offset;
+> +		break;
 > +	}
-> +	ACPI_FLUSH_CPU_CACHE();
-> +	acpi_enable_wakeup_device_prep(acpi_state);
-> +#endif
-> +	acpi_gpe_sleep_prepare(acpi_state);
-> +	acpi_enter_sleep_state_prep(acpi_state);
+> +}
+> +
+> +static void aml_nfw_write_arg(u8 *offset, u32 bit_width, acpi_integer *value)
+> +{
+> +	switch (bit_width) {
+> +	case 8:
+> +		*(u8 *) offset = *value;
+> +		break;
+> +	case 16:
+> +		*(u16 *) offset = *value;
+> +		break;
+> +	case 32:
+> +		*(u32 *) offset = *value;
+> +		break;
+> +	case 64:
+> +		*(u64 *) offset = *value;
+> +		break;
+> +	}
+> +}
+> +
+> +static acpi_status aml_nfw_handler(u32 function, acpi_physical_address address,
+> +	u32 bit_width, acpi_integer *value, void *handler_context,
+> +	void *region_context)
+> +{
+> +	struct ia64_nfw_context *context = handler_context;
+> +	u8 *offset = (u8 *) context + address;
+> +
+> +	if (bit_width !=  8 && bit_width != 16 &&
+> +	    bit_width != 32 && bit_width != 64)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	if (address + (bit_width >> 3) > sizeof(struct ia64_nfw_context))
+> +		return AE_BAD_PARAMETER;
+> +
+> +	switch (function) {
+> +	case ACPI_READ:
+> +		if (address == offsetof(struct ia64_nfw_context, ret))
+> +			aml_nfw_execute(context);
+> +		aml_nfw_read_arg(offset, bit_width, value);
+> +		break;
+> +	case ACPI_WRITE:
+> +		aml_nfw_write_arg(offset, bit_width, value);
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static struct ia64_nfw_context global_context;
+> +static int global_handler_registered;
+> +
+> +static int aml_nfw_add_global_handler(void)
+> +{
+> +	acpi_status status;
+> +
+> +	if (global_handler_registered)
+> +		return 0;
+> +
+> +	status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
+> +		AML_NFW_SPACE, aml_nfw_handler, NULL, &global_context);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	global_handler_registered = 1;
+> +	printk(KERN_INFO "Global 0x%02X opregion handler registered\n",
+> +		AML_NFW_SPACE);
 > +	return 0;
 > +}
 > +
->  /**
->   *	acpi_pm_prepare - Do preliminary suspend work.
->   *	@pm_state: ignored
-> @@ -350,6 +374,20 @@ int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
->  	return d_max;
->  }
->  
-> +static void acpi_power_off_prepare(void)
+> +static int aml_nfw_remove_global_handler(void)
 > +{
-> +	/* Prepare to power off the system */
-> +	acpi_sleep_prepare(ACPI_STATE_S5);
+> +	acpi_status status;
+> +
+> +	if (!global_handler_registered)
+> +		return 0;
+> +
+> +	status = acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
+> +		AML_NFW_SPACE, aml_nfw_handler);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	global_handler_registered = 0;
+> +	printk(KERN_INFO "Global 0x%02X opregion handler removed\n",
+> +		AML_NFW_SPACE);
+> +	return 0;
 > +}
 > +
-> +static void acpi_power_off(void)
+> +static int aml_nfw_add(struct acpi_device *device)
 > +{
-> +	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-> +	printk("%s called\n", __FUNCTION__);
-> +	local_irq_disable();
-> +	acpi_enter_sleep_state(ACPI_STATE_S5);
+> +	/*
+> +	 * We would normally allocate a new context structure and install
+> +	 * the address space handler for the specific device we found.
+> +	 * But the HP-UX implementation shares a single global context
+> +	 * and always puts the handler at the root, so we'll do the same.
+> +	 */
+> +	return aml_nfw_add_global_handler();
 > +}
 > +
->  int __init acpi_sleep_init(void)
->  {
->  	acpi_status status;
-> @@ -363,8 +401,8 @@ int __init acpi_sleep_init(void)
->  	if (acpi_disabled)
->  		return 0;
->  
-> +printk(KERN_INFO PREFIX "(supports");
->  #ifdef CONFIG_SUSPEND
-> -	printk(KERN_INFO PREFIX "(supports");
->  	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
->  		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
->  		if (ACPI_SUCCESS(status)) {
-> @@ -372,7 +410,6 @@ int __init acpi_sleep_init(void)
->  			printk(" S%d", i);
->  		}
->  	}
-> -	printk(")\n");
->  
->  	pm_set_ops(&acpi_pm_ops);
->  #endif
-> @@ -382,10 +419,16 @@ int __init acpi_sleep_init(void)
->  	if (ACPI_SUCCESS(status)) {
->  		hibernation_set_ops(&acpi_hibernation_ops);
->  		sleep_states[ACPI_STATE_S4] = 1;
-> +		printk(" S4");
->  	}
-> -#else
-> -	sleep_states[ACPI_STATE_S4] = 0;
->  #endif
-> -
-> +	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
-> +	if (ACPI_SUCCESS(status)) {
-> +		sleep_states[ACPI_STATE_S5] = 1;
-> +		printk(" S5");
-> +		pm_power_off_prepare = acpi_power_off_prepare;
-> +		pm_power_off = acpi_power_off;
+> +static int aml_nfw_remove(struct acpi_device *device, int type)
+> +{
+> +	return aml_nfw_remove_global_handler();
+> +}
+> +
+> +static const struct acpi_device_id aml_nfw_ids[] = {
+> +	{"HPQ5001", 0},
+> +	{"", 0}
+> +};
+> +
+> +static struct acpi_driver acpi_aml_nfw_driver = {
+> +	.name = "native firmware",
+> +	.ids = aml_nfw_ids,
+> +	.ops = {
+> +		.add = aml_nfw_add,
+> +		.remove = aml_nfw_remove,
+> +		},
+> +};
+> +
+> +static int __init aml_nfw_init(void)
+> +{
+> +	int result;
+> +
+> +	if (force_register)
+> +		aml_nfw_add_global_handler();
+> +
+> +	result = acpi_bus_register_driver(&acpi_aml_nfw_driver);
+> +	if (result < 0) {
+> +		aml_nfw_remove_global_handler();
+> +		return result;
 > +	}
-> +	printk(")\n");
->  	return 0;
->  }
-> diff --git a/drivers/acpi/sleep/poweroff.c b/drivers/acpi/sleep/poweroff.c
-> deleted file mode 100644
-> index 39e40d5..0000000
-> --- a/drivers/acpi/sleep/poweroff.c
-> +++ /dev/null
-> @@ -1,75 +0,0 @@
-> -/*
-> - * poweroff.c - ACPI handler for powering off the system.
-> - *
-> - * AKA S5, but it is independent of whether or not the kernel supports
-> - * any other sleep support in the system.
-> - *
-> - * Copyright (c) 2005 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-> - *
-> - * This file is released under the GPLv2.
-> - */
+> +
+> +	return 0;
+> +}
+> +
+> +static void __exit aml_nfw_exit(void)
+> +{
+> +	acpi_bus_unregister_driver(&acpi_aml_nfw_driver);
+> +	aml_nfw_remove_global_handler();
+> +}
+> +
+> +module_init(aml_nfw_init);
+> +module_exit(aml_nfw_exit);
 > -
-> -#include <linux/pm.h>
-> -#include <linux/init.h>
-> -#include <acpi/acpi_bus.h>
-> -#include <linux/sysdev.h>
-> -#include <asm/io.h>
-> -#include "sleep.h"
-> -
-> -int acpi_sleep_prepare(u32 acpi_state)
-> -{
-> -#ifdef CONFIG_ACPI_SLEEP
-> -	/* do we have a wakeup address for S2 and S3? */
-> -	if (acpi_state == ACPI_STATE_S3) {
-> -		if (!acpi_wakeup_address) {
-> -			return -EFAULT;
-> -		}
-> -		acpi_set_firmware_waking_vector((acpi_physical_address)
-> -						virt_to_phys((void *)
-> -							     acpi_wakeup_address));
-> -
-> -	}
-> -	ACPI_FLUSH_CPU_CACHE();
-> -	acpi_enable_wakeup_device_prep(acpi_state);
-> -#endif
-> -	acpi_gpe_sleep_prepare(acpi_state);
-> -	acpi_enter_sleep_state_prep(acpi_state);
-> -	return 0;
-> -}
-> -
-> -#ifdef CONFIG_PM
-> -
-> -static void acpi_power_off_prepare(void)
-> -{
-> -	/* Prepare to power off the system */
-> -	acpi_sleep_prepare(ACPI_STATE_S5);
-> -}
-> -
-> -static void acpi_power_off(void)
-> -{
-> -	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-> -	printk("%s called\n", __FUNCTION__);
-> -	local_irq_disable();
-> -	/* Some SMP machines only can poweroff in boot CPU */
-> -	acpi_enter_sleep_state(ACPI_STATE_S5);
-> -}
-> -
-> -static int acpi_poweroff_init(void)
-> -{
-> -	if (!acpi_disabled) {
-> -		u8 type_a, type_b;
-> -		acpi_status status;
-> -
-> -		status =
-> -		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
-> -		if (ACPI_SUCCESS(status)) {
-> -			pm_power_off_prepare = acpi_power_off_prepare;
-> -			pm_power_off = acpi_power_off;
-> -		}
-> -	}
-> -	return 0;
-> -}
-> -
-> -late_initcall(acpi_poweroff_init);
-> -
-> -#endif				/* CONFIG_PM */
+> To unsubscribe from this list: send the line "unsubscribe linux-ia64" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
