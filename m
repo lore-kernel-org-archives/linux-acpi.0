@@ -1,35 +1,68 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version
- 2
-Date: Fri, 21 Sep 2007 12:19:00 +0900
-Message-ID: <46F33824.6000707@gmail.com>
-References: <20070915030154.GA17655@srcf.ucam.org> <20070915170652.GA25504@srcf.ucam.org> <46F2EE66.9060207@garzik.org> <20070920222138.GA3740@srcf.ucam.org> <46F32DD9.7010509@gmail.com> <20070921024214.GA6317@srcf.ucam.org> <46F3322D.5090407@gmail.com> <20070921025734.GA6434@srcf.ucam.org> <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]:ACPI Using the ACPI status code in function of
+	hpet_resources
+Date: Fri, 21 Sep 2007 12:52:19 +0800
+Message-ID: <1190350339.4102.2.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070921031245.GA6628@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jeff Garzik <jeff@garzik.org>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:21198 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751844AbXIUEq1 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2007 00:46:27 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: Linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Fri, Sep 21, 2007 at 12:08:07PM +0900, Tejun Heo wrote:
-> 
->> Yeah, that's the intended behavior.  SATA PHY link can break from time
->> to time (have ever seen a SATA storage box going through ECC testing?
->> PHY goes offline as soon as you begin to hit it with some EM pulses) and
->> you don't really wanna lose your root partition over power fluctuation.
-> 
-> In this case we explicitly know that it's in response to a hotplug event 
-> (well, either that or the firmware is on impressive crack). Would it be 
-> possible to communicate that in order to avoid the revalidation?
+Subject: ACPI: Using the ACPI status code in function of hpet_resources
+From: Zhao Yakui  <yakui.zhao@intel.com>
 
-No, I don't thinks so && I don't really think trusting firmware that
-much is a good idea.  Also, it's much better to fix the problem in
-general than just fixing it for the firmware case which will be much
-less than the rest.
+If hpet has been initialized before registering hpet driver, the callback 
+function of hpet_resources will return the status code of -EBUSY, which
+is not defined in the ACPI exception table.So when ACPI checks the status
+code of callback function, it will report the unknown exception code.
 
--- 
-tejun
+So the ACPI status code is used instead of the generic error code in
+the ACPI callback function of hpet_resources.
+For example: -EBUSY is replaced by AE_ALREADY_EXISTS
+             -EINVAL is replaced by AE_NO_MEMORY
+
+http://bugzilla.kernel.org/show_bug.cgi?id=8630
+
+Signed-off-by: Zhao Yakui  <yakui.zhao@intel.com>
+---
+ drivers/char/hpet.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: linux-2.6.23-rc6/drivers/char/hpet.c
+===================================================================
+--- linux-2.6.23-rc6.orig/drivers/char/hpet.c
++++ linux-2.6.23-rc6/drivers/char/hpet.c
+@@ -943,14 +943,14 @@ static acpi_status hpet_resources(struct
+ 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
+ 				__FUNCTION__, hdp->hd_phys_address);
+ 			iounmap(hdp->hd_address);
+-			return -EBUSY;
++			return AE_ALREADY_EXISTS;
+ 		}
+ 	} else if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
+ 		struct acpi_resource_fixed_memory32 *fixmem32;
+ 
+ 		fixmem32 = &res->data.fixed_memory32;
+ 		if (!fixmem32)
+-			return -EINVAL;
++			return AE_NO_MEMORY;
+ 
+ 		hdp->hd_phys_address = fixmem32->address;
+ 		hdp->hd_address = ioremap(fixmem32->address,
+@@ -960,7 +960,7 @@ static acpi_status hpet_resources(struct
+ 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
+ 				__FUNCTION__, hdp->hd_phys_address);
+ 			iounmap(hdp->hd_address);
+-			return -EBUSY;
++			return AE_ALREADY_EXISTS;
+ 		}
+ 	} else if (res->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
+ 		struct acpi_resource_extended_irq *irqp;
