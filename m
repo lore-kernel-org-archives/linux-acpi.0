@@ -1,359 +1,433 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/32] sony-laptop: old Vaio models contain 2 IO port entries
-Date: Fri, 21 Sep 2007 23:46:07 -0400
-Message-ID: <11904327991059-git-send-email-lenb@kernel.org>
+Subject: [PATCH 02/32] fujitsu-laptop: create Fujitsu laptop platform specific driver
+Date: Fri, 21 Sep 2007 23:46:08 -0400
+Message-ID: <11904328003655-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
+ <11904327991059-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:26644 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:18967 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753859AbXIVDqk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:40 -0400
-In-Reply-To: <11904327981905-git-send-email-lenb@kernel.org>
-Message-Id: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
+	with ESMTP id S1754211AbXIVDql (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:41 -0400
+In-Reply-To: <11904327991059-git-send-email-lenb@kernel.org>
+Message-Id: <d0482533c73a8685f7ce0951a10280cfd58b8825.1190432418.git.len.brown@intel.com>
+In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
+References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Len Brown <len.brown@intel.com>
 
-From: Mattia Dongili <malattia@linux.it>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Make the driver aware of this case and manage the existence of a
-second separate IO port.
-
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |  204 ++++++++++++++++++++++++++++++++------------
- 1 files changed, 148 insertions(+), 56 deletions(-)
+ drivers/misc/Kconfig          |   15 ++
+ drivers/misc/Makefile         |    1 +
+ drivers/misc/fujitsu-laptop.c |  358 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 374 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/fujitsu-laptop.c
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 7d8bebe..091e035 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1173,7 +1173,8 @@ static struct acpi_driver sony_nc_driver = {
- #define SONYPI_TYPE3_OFFSET	0x12
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index a266558..df89367 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -111,6 +111,21 @@ config ASUS_LAPTOP
  
- struct sony_pic_ioport {
--	struct acpi_resource_io	io;
-+	struct acpi_resource_io	io1;
-+	struct acpi_resource_io	io2;
- 	struct list_head	list;
- };
+ 	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
  
-@@ -1443,11 +1444,11 @@ static u8 sony_pic_call1(u8 dev)
- {
- 	u8 v1, v2;
- 
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
- 			ITERATIONS_LONG);
--	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
--	v1 = inb_p(spic_dev.cur_ioport->io.minimum + 4);
--	v2 = inb_p(spic_dev.cur_ioport->io.minimum);
-+	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
-+	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
-+	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
- 	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
- 	return v2;
- }
-@@ -1456,13 +1457,13 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
- {
- 	u8 v1;
- 
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
- 			ITERATIONS_LONG);
--	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
-+	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
- 			ITERATIONS_LONG);
--	outb(fn, spic_dev.cur_ioport->io.minimum);
--	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
-+	outb(fn, spic_dev.cur_ioport->io1.minimum);
-+	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
- 	dprintk("sony_pic_call2: 0x%.4x\n", v1);
- 	return v1;
- }
-@@ -1471,13 +1472,13 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
- {
- 	u8 v1;
- 
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
--	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
--	outb(fn, spic_dev.cur_ioport->io.minimum);
--	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
--	outb(v, spic_dev.cur_ioport->io.minimum);
--	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
-+	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
-+	outb(fn, spic_dev.cur_ioport->io1.minimum);
-+	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
-+	outb(v, spic_dev.cur_ioport->io1.minimum);
-+	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
- 	dprintk("sony_pic_call3: 0x%.4x\n", v1);
- 	return v1;
- }
-@@ -2074,7 +2075,18 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
- 
- 	switch (resource->type) {
- 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
-+		{
-+			/* start IO enumeration */
-+			struct sony_pic_ioport *ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
-+			if (!ioport)
-+				return AE_ERROR;
++config FUJITSU_LAPTOP
++        tristate "Fujitsu Laptop Extras"
++        depends on X86
++        depends on ACPI
++        depends on BACKLIGHT_CLASS_DEVICE
++        ---help---
++	  This is a driver for laptops built by Fujitsu:
 +
-+			list_add(&ioport->list, &dev->ioports);
-+			return AE_OK;
-+		}
++	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
++	    * Possibly other Fujitsu laptop models
 +
- 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
-+		/* end IO enumeration */
- 		return AE_OK;
- 
- 	case ACPI_RESOURCE_TYPE_IRQ:
-@@ -2101,7 +2113,7 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
- 				if (!interrupt)
- 					return AE_ERROR;
- 
--				list_add_tail(&interrupt->list, &dev->interrupts);
-+				list_add(&interrupt->list, &dev->interrupts);
- 				interrupt->irq.triggering = p->triggering;
- 				interrupt->irq.polarity = p->polarity;
- 				interrupt->irq.sharable = p->sharable;
-@@ -2113,18 +2125,27 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
- 	case ACPI_RESOURCE_TYPE_IO:
- 		{
- 			struct acpi_resource_io *io = &resource->data.io;
--			struct sony_pic_ioport *ioport = NULL;
-+			struct sony_pic_ioport *ioport =
-+				list_first_entry(&dev->ioports, struct sony_pic_ioport, list);
- 			if (!io) {
- 				dprintk("Blank IO resource\n");
- 				return AE_OK;
- 			}
- 
--			ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
--			if (!ioport)
-+			if (!ioport->io1.minimum) {
-+				memcpy(&ioport->io1, io, sizeof(*io));
-+				dprintk("IO1 at 0x%.4x (0x%.2x)\n", ioport->io1.minimum,
-+						ioport->io1.address_length);
-+			}
-+			else if (!ioport->io2.minimum) {
-+				memcpy(&ioport->io2, io, sizeof(*io));
-+				dprintk("IO2 at 0x%.4x (0x%.2x)\n", ioport->io2.minimum,
-+						ioport->io2.address_length);
-+			}
-+			else {
-+				printk(KERN_ERR DRV_PFX "Unknown SPIC Type, more than 2 IO Ports\n");
- 				return AE_ERROR;
--
--			list_add_tail(&ioport->list, &dev->ioports);
--			memcpy(&ioport->io, io, sizeof(*io));
-+			}
- 			return AE_OK;
- 		}
- 	default:
-@@ -2199,10 +2220,22 @@ static int sony_pic_enable(struct acpi_device *device,
- {
- 	acpi_status status;
- 	int result = 0;
-+	/* Type 1 resource layout is:
-+	 *    IO
-+	 *    IO
-+	 *    IRQNoFlags
-+	 *    End
-+	 *
-+	 * Type 2 and 3 resource layout is:
-+	 *    IO
-+	 *    IRQNoFlags
-+	 *    End
-+	 */
- 	struct {
--		struct acpi_resource io_res;
--		struct acpi_resource irq_res;
--		struct acpi_resource end;
-+		struct acpi_resource res1;
-+		struct acpi_resource res2;
-+		struct acpi_resource res3;
-+		struct acpi_resource res4;
- 	} *resource;
- 	struct acpi_buffer buffer = { 0, NULL };
- 
-@@ -2217,21 +2250,49 @@ static int sony_pic_enable(struct acpi_device *device,
- 	buffer.length = sizeof(*resource) + 1;
- 	buffer.pointer = resource;
- 
--	/* setup io resource */
--	resource->io_res.type = ACPI_RESOURCE_TYPE_IO;
--	resource->io_res.length = sizeof(struct acpi_resource);
--	memcpy(&resource->io_res.data.io, &ioport->io,
--			sizeof(struct acpi_resource_io));
-+	/* setup Type 1 resources */
-+	if (spic_dev.model == SONYPI_DEVICE_TYPE1) {
- 
--	/* setup irq resource */
--	resource->irq_res.type = ACPI_RESOURCE_TYPE_IRQ;
--	resource->irq_res.length = sizeof(struct acpi_resource);
--	memcpy(&resource->irq_res.data.irq, &irq->irq,
--			sizeof(struct acpi_resource_irq));
--	/* we requested a shared irq */
--	resource->irq_res.data.irq.sharable = ACPI_SHARED;
-+		/* setup io resources */
-+		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
-+		resource->res1.length = sizeof(struct acpi_resource);
-+		memcpy(&resource->res1.data.io, &ioport->io1,
-+				sizeof(struct acpi_resource_io));
- 
--	resource->end.type = ACPI_RESOURCE_TYPE_END_TAG;
-+		resource->res2.type = ACPI_RESOURCE_TYPE_IO;
-+		resource->res2.length = sizeof(struct acpi_resource);
-+		memcpy(&resource->res2.data.io, &ioport->io2,
-+				sizeof(struct acpi_resource_io));
++	  It adds support for LCD brightness control.
 +
-+		/* setup irq resource */
-+		resource->res3.type = ACPI_RESOURCE_TYPE_IRQ;
-+		resource->res3.length = sizeof(struct acpi_resource);
-+		memcpy(&resource->res3.data.irq, &irq->irq,
-+				sizeof(struct acpi_resource_irq));
-+		/* we requested a shared irq */
-+		resource->res3.data.irq.sharable = ACPI_SHARED;
++	  If you have a Fujitsu laptop, say Y or M here.
 +
-+		resource->res4.type = ACPI_RESOURCE_TYPE_END_TAG;
+ config MSI_LAPTOP
+         tristate "MSI Laptop Extras"
+         depends on X86
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index b5ce0e3..be90d48 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -14,4 +14,5 @@ obj-$(CONFIG_PHANTOM)		+= phantom.o
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
+ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
++obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
+ obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
+diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
+new file mode 100644
+index 0000000..d366a6c
+--- /dev/null
++++ b/drivers/misc/fujitsu-laptop.c
+@@ -0,0 +1,358 @@
++/*-*-linux-c-*-*/
 +
++/*
++  Copyright (C) 2007 Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
++  Based on earlier work:
++    Copyright (C) 2003 Shane Spencer <shane@bogomip.com>
++    Adrian Yee <brewt-fujitsu@brewt.org>
++
++  Templated from msi-laptop.c which is copyright by its respective authors.
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++  This program is distributed in the hope that it will be useful, but
++  WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++  02110-1301, USA.
++ */
++
++/*
++ * fujitsu-laptop.c - Fujitsu laptop support, providing access to additional
++ * features made available on a range of Fujitsu laptops including the
++ * P2xxx/P5xxx/S6xxx/S7xxx series.
++ *
++ * This driver exports a few files in /sys/devices/platform/fujitsu-laptop/;
++ * others may be added at a later date.
++ *
++ *   lcd_level - Screen brightness: contains a single integer in the
++ *   range 0..7. (rw)
++ *
++ * In addition to these platform device attributes the driver
++ * registers itself in the Linux backlight control subsystem and is
++ * available to userspace under /sys/class/backlight/fujitsu-laptop/.
++ *
++ * This driver has been tested on a Fujitsu Lifebook S7020.  It should
++ * work on most P-series and S-series Lifebooks, but YMMV.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/backlight.h>
++#include <linux/platform_device.h>
++#include <linux/autoconf.h>
++
++#define FUJITSU_DRIVER_VERSION "0.3"
++
++#define FUJITSU_LCD_N_LEVELS 8
++
++#define ACPI_FUJITSU_CLASS              "fujitsu"
++#define ACPI_FUJITSU_HID                "FUJ02B1"
++#define ACPI_FUJITSU_DRIVER_NAME        "Fujitsu laptop FUJ02B1 ACPI extras driver"
++#define ACPI_FUJITSU_DEVICE_NAME        "Fujitsu FUJ02B1"
++
++struct fujitsu_t {
++	acpi_handle acpi_handle;
++	struct backlight_device *bl_device;
++	struct platform_device *pf_device;
++
++	unsigned long fuj02b1_state;
++	unsigned int brightness_changed;
++	unsigned int brightness_level;
++};
++
++static struct fujitsu_t *fujitsu;
++
++/* Hardware access */
++
++static int set_lcd_level(int level)
++{
++	acpi_status status = AE_OK;
++	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
++	struct acpi_object_list arg_list = { 1, &arg0 };
++	acpi_handle handle = NULL;
++
++	if (level < 0 || level >= FUJITSU_LCD_N_LEVELS)
++		return -EINVAL;
++
++	if (!fujitsu)
++		return -EINVAL;
++
++	status = acpi_get_handle(fujitsu->acpi_handle, "SBLL", &handle);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SBLL not present\n"));
++		return -ENODEV;
 +	}
-+	/* setup Type 2/3 resources */
-+	else {
-+		/* setup io resource */
-+		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
-+		resource->res1.length = sizeof(struct acpi_resource);
-+		memcpy(&resource->res1.data.io, &ioport->io1,
-+				sizeof(struct acpi_resource_io));
 +
-+		/* setup irq resource */
-+		resource->res2.type = ACPI_RESOURCE_TYPE_IRQ;
-+		resource->res2.length = sizeof(struct acpi_resource);
-+		memcpy(&resource->res2.data.irq, &irq->irq,
-+				sizeof(struct acpi_resource_irq));
-+		/* we requested a shared irq */
-+		resource->res2.data.irq.sharable = ACPI_SHARED;
++	arg0.integer.value = level;
 +
-+		resource->res3.type = ACPI_RESOURCE_TYPE_END_TAG;
-+	}
- 
- 	/* Attempt to set the resource */
- 	dprintk("Evaluating _SRS\n");
-@@ -2239,7 +2300,7 @@ static int sony_pic_enable(struct acpi_device *device,
- 
- 	/* check for total failure */
- 	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR DRV_PFX "Error evaluating _SRS");
-+		printk(KERN_ERR DRV_PFX "Error evaluating _SRS\n");
- 		result = -ENODEV;
- 		goto end;
- 	}
-@@ -2268,11 +2329,14 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
- 
- 	struct sony_pic_dev *dev = (struct sony_pic_dev *) dev_id;
- 
--	ev = inb_p(dev->cur_ioport->io.minimum);
--	data_mask = inb_p(dev->cur_ioport->io.minimum + dev->evport_offset);
-+	ev = inb_p(dev->cur_ioport->io1.minimum);
-+	if (dev->cur_ioport->io2.minimum)
-+		data_mask = inb_p(dev->cur_ioport->io2.minimum);
++	status = acpi_evaluate_object(handle, NULL, &arg_list, NULL);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return 0;
++}
++
++static int get_lcd_level(void)
++{
++	unsigned long state = 0;
++	acpi_status status = AE_OK;
++
++	// Get the Brightness
++	status =
++	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
++	if (status < 0)
++		return status;
++
++	fujitsu->fuj02b1_state = state;
++	fujitsu->brightness_level = state & 0x0fffffff;
++
++	if (state & 0x80000000)
++		fujitsu->brightness_changed = 1;
 +	else
-+		data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->evport_offset);
- 
- 	dprintk("event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
--			ev, data_mask, dev->cur_ioport->io.minimum, dev->evport_offset);
-+			ev, data_mask, dev->cur_ioport->io1.minimum, dev->evport_offset);
- 
- 	if (ev == 0x00 || ev == 0xff)
- 		return IRQ_HANDLED;
-@@ -2323,8 +2387,11 @@ static int sony_pic_remove(struct acpi_device *device, int type)
- 	}
- 
- 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
--	release_region(spic_dev.cur_ioport->io.minimum,
--			spic_dev.cur_ioport->io.address_length);
-+	release_region(spic_dev.cur_ioport->io1.minimum,
-+			spic_dev.cur_ioport->io1.address_length);
-+	if (spic_dev.cur_ioport->io2.minimum)
-+		release_region(spic_dev.cur_ioport->io2.minimum,
-+				spic_dev.cur_ioport->io2.address_length);
- 
- 	sonypi_compat_exit();
- 
-@@ -2397,14 +2464,36 @@ static int sony_pic_add(struct acpi_device *device)
- 		goto err_remove_input;
- 
- 	/* request io port */
--	list_for_each_entry(io, &spic_dev.ioports, list) {
--		if (request_region(io->io.minimum, io->io.address_length,
-+	list_for_each_entry_reverse(io, &spic_dev.ioports, list) {
-+		if (request_region(io->io1.minimum, io->io1.address_length,
- 					"Sony Programable I/O Device")) {
--			dprintk("I/O port: 0x%.4x (0x%.4x) + 0x%.2x\n",
--					io->io.minimum, io->io.maximum,
--					io->io.address_length);
--			spic_dev.cur_ioport = io;
--			break;
-+			dprintk("I/O port1: 0x%.4x (0x%.4x) + 0x%.2x\n",
-+					io->io1.minimum, io->io1.maximum,
-+					io->io1.address_length);
-+			/* Type 1 have 2 ioports */
-+			if (io->io2.minimum) {
-+				if (request_region(io->io2.minimum,
-+						io->io2.address_length,
-+						"Sony Programable I/O Device")) {
-+					dprintk("I/O port2: 0x%.4x (0x%.4x) + 0x%.2x\n",
-+							io->io2.minimum, io->io2.maximum,
-+							io->io2.address_length);
-+					spic_dev.cur_ioport = io;
-+					break;
-+				}
-+				else {
-+					dprintk("Unable to get I/O port2: "
-+							"0x%.4x (0x%.4x) + 0x%.2x\n",
-+							io->io2.minimum, io->io2.maximum,
-+							io->io2.address_length);
-+					release_region(io->io1.minimum,
-+							io->io1.address_length);
-+				}
-+			}
-+			else {
-+				spic_dev.cur_ioport = io;
-+				break;
-+			}
- 		}
- 	}
- 	if (!spic_dev.cur_ioport) {
-@@ -2414,7 +2503,7 @@ static int sony_pic_add(struct acpi_device *device)
- 	}
- 
- 	/* request IRQ */
--	list_for_each_entry(irq, &spic_dev.interrupts, list) {
-+	list_for_each_entry_reverse(irq, &spic_dev.interrupts, list) {
- 		if (!request_irq(irq->irq.interrupts[0], sony_pic_irq,
- 					IRQF_SHARED, "sony-laptop", &spic_dev)) {
- 			dprintk("IRQ: %d - triggering: %d - "
-@@ -2462,8 +2551,11 @@ err_free_irq:
- 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
- 
- err_release_region:
--	release_region(spic_dev.cur_ioport->io.minimum,
--			spic_dev.cur_ioport->io.address_length);
-+	release_region(spic_dev.cur_ioport->io1.minimum,
-+			spic_dev.cur_ioport->io1.address_length);
-+	if (spic_dev.cur_ioport->io2.minimum)
-+		release_region(spic_dev.cur_ioport->io2.minimum,
-+				spic_dev.cur_ioport->io2.address_length);
- 
- err_remove_compat:
- 	sonypi_compat_exit();
++		fujitsu->brightness_changed = 0;
++
++	if (status < 0)
++		return status;
++
++	return fujitsu->brightness_level;
++}
++
++/* Backlight device stuff */
++
++static int bl_get_brightness(struct backlight_device *b)
++{
++	return get_lcd_level();
++}
++
++static int bl_update_status(struct backlight_device *b)
++{
++	return set_lcd_level(b->props.brightness);
++}
++
++static struct backlight_ops fujitsubl_ops = {
++	.get_brightness = bl_get_brightness,
++	.update_status = bl_update_status,
++};
++
++/* Platform device */
++
++static ssize_t show_lcd_level(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++
++	int ret;
++
++	ret = get_lcd_level();
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%i\n", ret);
++}
++
++static ssize_t store_lcd_level(struct device *dev,
++			       struct device_attribute *attr, const char *buf,
++			       size_t count)
++{
++
++	int level, ret;
++
++	if (sscanf(buf, "%i", &level) != 1
++	    || (level < 0 || level >= FUJITSU_LCD_N_LEVELS))
++		return -EINVAL;
++
++	ret = set_lcd_level(level);
++	if (ret < 0)
++		return ret;
++
++	return count;
++}
++
++static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
++
++static struct attribute *fujitsupf_attributes[] = {
++	&dev_attr_lcd_level.attr,
++	NULL
++};
++
++static struct attribute_group fujitsupf_attribute_group = {
++	.attrs = fujitsupf_attributes
++};
++
++static struct platform_driver fujitsupf_driver = {
++	.driver = {
++		   .name = "fujitsu-laptop",
++		   .owner = THIS_MODULE,
++		   }
++};
++
++/* ACPI device */
++
++int acpi_fujitsu_add(struct acpi_device *device)
++{
++	int result = 0;
++	int state = 0;
++
++	ACPI_FUNCTION_TRACE("acpi_fujitsu_add");
++
++	if (!device)
++		return -EINVAL;
++
++	fujitsu->acpi_handle = device->handle;
++	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
++	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
++	acpi_driver_data(device) = fujitsu;
++
++	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
++	if (result) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				  "Error reading power state\n"));
++		goto end;
++	}
++
++	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
++	       acpi_device_name(device), acpi_device_bid(device),
++	       !device->power.state ? "on" : "off");
++
++      end:
++
++	return result;
++}
++
++int acpi_fujitsu_remove(struct acpi_device *device, int type)
++{
++	ACPI_FUNCTION_TRACE("acpi_fujitsu_remove");
++
++	if (!device || !acpi_driver_data(device))
++		return -EINVAL;
++	fujitsu->acpi_handle = 0;
++
++	return 0;
++}
++
++static const struct acpi_device_id fujitsu_device_ids[] = {
++	{ACPI_FUJITSU_HID, 0},
++	{"", 0},
++};
++
++static struct acpi_driver acpi_fujitsu_driver = {
++	.name = ACPI_FUJITSU_DRIVER_NAME,
++	.class = ACPI_FUJITSU_CLASS,
++	.ids = fujitsu_device_ids,
++	.ops = {
++		.add = acpi_fujitsu_add,
++		.remove = acpi_fujitsu_remove,
++		},
++};
++
++/* Initialization */
++
++static int __init fujitsu_init(void)
++{
++	int ret, result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	fujitsu = kmalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
++	if (!fujitsu)
++		return -ENOMEM;
++	memset(fujitsu, 0, sizeof(struct fujitsu_t));
++
++	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
++	if (result < 0) {
++		ret = -ENODEV;
++		goto fail_acpi;
++	}
++
++	/* Register backlight stuff */
++
++	fujitsu->bl_device =
++	    backlight_device_register("fujitsu-laptop", NULL, NULL,
++				      &fujitsubl_ops);
++	if (IS_ERR(fujitsu->bl_device))
++		return PTR_ERR(fujitsu->bl_device);
++
++	fujitsu->bl_device->props.max_brightness = FUJITSU_LCD_N_LEVELS - 1;
++	ret = platform_driver_register(&fujitsupf_driver);
++	if (ret)
++		goto fail_backlight;
++
++	/* Register platform stuff */
++
++	fujitsu->pf_device = platform_device_alloc("fujitsu-laptop", -1);
++	if (!fujitsu->pf_device) {
++		ret = -ENOMEM;
++		goto fail_platform_driver;
++	}
++
++	ret = platform_device_add(fujitsu->pf_device);
++	if (ret)
++		goto fail_platform_device1;
++
++	ret =
++	    sysfs_create_group(&fujitsu->pf_device->dev.kobj,
++			       &fujitsupf_attribute_group);
++	if (ret)
++		goto fail_platform_device2;
++
++	printk(KERN_INFO "fujitsu-laptop: driver " FUJITSU_DRIVER_VERSION
++	       " successfully loaded.\n");
++
++	return 0;
++
++      fail_platform_device2:
++
++	platform_device_del(fujitsu->pf_device);
++
++      fail_platform_device1:
++
++	platform_device_put(fujitsu->pf_device);
++
++      fail_platform_driver:
++
++	platform_driver_unregister(&fujitsupf_driver);
++
++      fail_backlight:
++
++	backlight_device_unregister(fujitsu->bl_device);
++
++      fail_acpi:
++
++	kfree(fujitsu);
++
++	return ret;
++}
++
++static void __exit fujitsu_cleanup(void)
++{
++	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
++			   &fujitsupf_attribute_group);
++	platform_device_unregister(fujitsu->pf_device);
++	platform_driver_unregister(&fujitsupf_driver);
++	backlight_device_unregister(fujitsu->bl_device);
++
++	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
++
++	kfree(fujitsu);
++
++	printk(KERN_INFO "fujitsu-laptop: driver unloaded.\n");
++}
++
++module_init(fujitsu_init);
++module_exit(fujitsu_cleanup);
++
++MODULE_AUTHOR("Jonathan Woithe");
++MODULE_DESCRIPTION("Fujitsu laptop extras support");
++MODULE_VERSION(FUJITSU_DRIVER_VERSION);
++MODULE_LICENSE("GPL");
 -- 
 1.5.3.1.27.g57543
