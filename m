@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 31/32] ACPI: hpet: ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFF0
-Date: Fri, 21 Sep 2007 23:46:37 -0400
-Message-ID: <11904328241904-git-send-email-lenb@kernel.org>
+Subject: [PATCH 29/32] ACPI: thinkpad-acpi: dequeue all pending hot key events at once
+Date: Fri, 21 Sep 2007 23:46:35 -0400
+Message-ID: <11904328221731-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904327991059-git-send-email-lenb@kernel.org>
  <11904328003655-git-send-email-lenb@kernel.org>
@@ -31,71 +31,110 @@ References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904328192862-git-send-email-lenb@kernel.org>
  <1190432820190-git-send-email-lenb@kernel.org>
  <1190432821532-git-send-email-lenb@kernel.org>
- <11904328221731-git-send-email-lenb@kernel.org>
- <1190432823640-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:56179 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:17477 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757726AbXIVDrK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:47:10 -0400
-In-Reply-To: <1190432823640-git-send-email-lenb@kernel.org>
-Message-Id: <8a4b57f787502d9fef5ac7e02f657f801ea15567.1190432418.git.len.brown@intel.com>
+	with ESMTP id S1757612AbXIVDrJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:47:09 -0400
+In-Reply-To: <1190432821532-git-send-email-lenb@kernel.org>
+Message-Id: <245cd52bc6364cd274901cd1fee1ecb36cec8c4f.1190432418.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-If hpet has been initialized before registering hpet driver, the callback
-function of hpet_resources will return the status code of -EBUSY, which is
-not defined in the ACPI exception table.  So when ACPI checks the status
-code of callback function, it will report the unknown exception code.
+Receive all pending hot key events at once from a single notification, and
+don't complain if the queue is empty.
 
-So the status code in ACPI is used instead of the generic error code in the
-ACPI callback function of hpet_resources.
-For example: -EBUSY is replaced by AE_ALREADY_EXISTS
-	     -EINVAL is replaced by AE_NO_MEMORY
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8630
-
-Signed-off-by: Zhao Yakui  <yakui.zhao@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/char/hpet.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   52 ++++++++++++++++++++++++++++-------------
+ 1 files changed, 35 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
-index 7ecffc9..fd51554 100644
---- a/drivers/char/hpet.c
-+++ b/drivers/char/hpet.c
-@@ -943,14 +943,14 @@ static acpi_status hpet_resources(struct acpi_resource *res, void *data)
- 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
- 				__FUNCTION__, hdp->hd_phys_address);
- 			iounmap(hdp->hd_address);
--			return -EBUSY;
-+			return AE_ALREADY_EXISTS;
- 		}
- 	} else if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
- 		struct acpi_resource_fixed_memory32 *fixmem32;
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 9a61140..de415fe 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1196,9 +1196,31 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	u32 hkey;
+ 	unsigned int keycode, scancode;
+-	int send_acpi_ev = 0;
++	int send_acpi_ev;
++
++	if (event != 0x80) {
++		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
++		/* forward it to userspace, maybe it knows how to handle it */
++		acpi_bus_generate_proc_event(ibm->acpi->device, event, 0);
++		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
++						ibm->acpi->device->dev.bus_id,
++						event, 0);
++		return;
++	}
++
++	while (1) {
++		if (!acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
++			printk(IBM_ERR "failed to retrieve hot key event\n");
++			return;
++		}
++
++		if (hkey == 0) {
++			/* queue empty */
++			return;
++		}
++
++		send_acpi_ev = 0;
  
- 		fixmem32 = &res->data.fixed_memory32;
- 		if (!fixmem32)
--			return -EINVAL;
-+			return AE_NO_MEMORY;
- 
- 		hdp->hd_phys_address = fixmem32->address;
- 		hdp->hd_address = ioremap(fixmem32->address,
-@@ -960,7 +960,7 @@ static acpi_status hpet_resources(struct acpi_resource *res, void *data)
- 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
- 				__FUNCTION__, hdp->hd_phys_address);
- 			iounmap(hdp->hd_address);
--			return -EBUSY;
-+			return AE_ALREADY_EXISTS;
+-	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
+ 		switch (hkey >> 12) {
+ 		case 1:
+ 			/* 0x1000-0x1FFF: key presses */
+@@ -1220,8 +1242,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 			 * eat up known LID events */
+ 			if (hkey != 0x5001 && hkey != 0x5002) {
+ 				printk(IBM_ERR
+-					"unknown LID-related hotkey event: 0x%04x\n",
+-					hkey);
++				       "unknown LID-related hotkey event: 0x%04x\n",
++				       hkey);
+ 				send_acpi_ev = 1;
+ 			}
+ 			break;
+@@ -1240,21 +1262,17 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 			printk(IBM_NOTICE "unhandled HKEY event 0x%04x\n", hkey);
+ 			send_acpi_ev = 1;
  		}
- 	} else if (res->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
- 		struct acpi_resource_extended_irq *irqp;
+-	} else {
+-		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
+-		hkey = 0;
+-		send_acpi_ev = 1;
+-	}
+ 
+-	/* Legacy events */
+-	if (send_acpi_ev || hotkey_report_mode < 2)
+-		acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
++		/* Legacy events */
++		if (send_acpi_ev || hotkey_report_mode < 2)
++			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
+ 
+-	/* netlink events */
+-	if (send_acpi_ev) {
+-		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
+-						ibm->acpi->device->dev.bus_id,
+-						event, hkey);
++		/* netlink events */
++		if (send_acpi_ev) {
++			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
++							ibm->acpi->device->dev.bus_id,
++							event, hkey);
++		}
+ 	}
+ }
+ 
 -- 
 1.5.3.1.27.g57543
