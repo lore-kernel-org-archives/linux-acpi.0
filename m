@@ -1,140 +1,401 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 29/32] ACPI: thinkpad-acpi: dequeue all pending hot key events at once
-Date: Fri, 21 Sep 2007 23:46:35 -0400
-Message-ID: <11904328221731-git-send-email-lenb@kernel.org>
-References: <11904327981905-git-send-email-lenb@kernel.org>
- <11904327991059-git-send-email-lenb@kernel.org>
- <11904328003655-git-send-email-lenb@kernel.org>
- <11904328012791-git-send-email-lenb@kernel.org>
- <11904328011699-git-send-email-lenb@kernel.org>
- <1190432802575-git-send-email-lenb@kernel.org>
- <11904328031107-git-send-email-lenb@kernel.org>
- <11904328041498-git-send-email-lenb@kernel.org>
- <11904328052010-git-send-email-lenb@kernel.org>
- <11904328061489-git-send-email-lenb@kernel.org>
- <119043280633-git-send-email-lenb@kernel.org>
- <1190432807843-git-send-email-lenb@kernel.org>
- <1190432808586-git-send-email-lenb@kernel.org>
- <11904328092328-git-send-email-lenb@kernel.org>
- <11904328102889-git-send-email-lenb@kernel.org>
- <1190432811241-git-send-email-lenb@kernel.org>
- <11904328111749-git-send-email-lenb@kernel.org>
- <11904328122495-git-send-email-lenb@kernel.org>
- <1190432813700-git-send-email-lenb@kernel.org>
- <11904328141573-git-send-email-lenb@kernel.org>
- <11904328153830-git-send-email-lenb@kernel.org>
- <11904328151023-git-send-email-lenb@kernel.org>
- <1190432816575-git-send-email-lenb@kernel.org>
- <1190432817158-git-send-email-lenb@kernel.org>
- <1190432818954-git-send-email-lenb@kernel.org>
- <11904328193063-git-send-email-lenb@kernel.org>
- <11904328192862-git-send-email-lenb@kernel.org>
- <1190432820190-git-send-email-lenb@kernel.org>
- <1190432821532-git-send-email-lenb@kernel.org>
+From: "Alexander Zabolotny" <flying.sad@gmail.com>
+Subject: dmidecode
+Date: Sat, 22 Sep 2007 14:07:43 +0300
+Message-ID: <a883fd280709220407v38c578aeyf840cf20668f0c6a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:17477 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757612AbXIVDrJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:47:09 -0400
-In-Reply-To: <1190432821532-git-send-email-lenb@kernel.org>
-Message-Id: <245cd52bc6364cd274901cd1fee1ecb36cec8c4f.1190432418.git.len.brown@intel.com>
-In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
-References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
+Received: from wa-out-1112.google.com ([209.85.146.179]:51929 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252AbXIVLHt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Sep 2007 07:07:49 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so1302728wah
+        for <linux-acpi@vger.kernel.org>; Sat, 22 Sep 2007 04:07:48 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+# dmidecode 2.9
+SMBIOS 2.4 present.
+35 structures occupying 1106 bytes.
+Table at 0x000F1790.
 
-Receive all pending hot key events at once from a single notification, and
-don't complain if the queue is empty.
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Acer
+          Version: v1.3303
+        Release Date: 01/23/07
+        Address: 0xE5230
+        Runtime Size: 110032 bytes
+        ROM Size: 1024 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PC Card (PCMCIA) is supported
+                PNP is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                ACPI is supported
+                USB legacy is supported
+                BIOS boot specification is supported
+                Targeted content distribution is supported
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/misc/thinkpad_acpi.c |   52 ++++++++++++++++++++++++++++-------------
- 1 files changed, 35 insertions(+), 17 deletions(-)
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Acer, inc.
+        Product Name: Aspire 5050
+            Version: Not Applicable
+        Serial Number: LXAV40C0227120E9C42502
+        UUID: 8047A5DB-A992-D811-9897-001636FE0630
+        Wake-up Type: Power Switch
+        SKU Number: Not Specified
+        Family: Not Specified
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 9a61140..de415fe 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1196,9 +1196,31 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- {
- 	u32 hkey;
- 	unsigned int keycode, scancode;
--	int send_acpi_ev = 0;
-+	int send_acpi_ev;
-+
-+	if (event != 0x80) {
-+		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
-+		/* forward it to userspace, maybe it knows how to handle it */
-+		acpi_bus_generate_proc_event(ibm->acpi->device, event, 0);
-+		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+						ibm->acpi->device->dev.bus_id,
-+						event, 0);
-+		return;
-+	}
-+
-+	while (1) {
-+		if (!acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
-+			printk(IBM_ERR "failed to retrieve hot key event\n");
-+			return;
-+		}
-+
-+		if (hkey == 0) {
-+			/* queue empty */
-+			return;
-+		}
-+
-+		send_acpi_ev = 0;
- 
--	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
- 		switch (hkey >> 12) {
- 		case 1:
- 			/* 0x1000-0x1FFF: key presses */
-@@ -1220,8 +1242,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			 * eat up known LID events */
- 			if (hkey != 0x5001 && hkey != 0x5002) {
- 				printk(IBM_ERR
--					"unknown LID-related hotkey event: 0x%04x\n",
--					hkey);
-+				       "unknown LID-related hotkey event: 0x%04x\n",
-+				       hkey);
- 				send_acpi_ev = 1;
- 			}
- 			break;
-@@ -1240,21 +1262,17 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			printk(IBM_NOTICE "unhandled HKEY event 0x%04x\n", hkey);
- 			send_acpi_ev = 1;
- 		}
--	} else {
--		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
--		hkey = 0;
--		send_acpi_ev = 1;
--	}
- 
--	/* Legacy events */
--	if (send_acpi_ev || hotkey_report_mode < 2)
--		acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-+		/* Legacy events */
-+		if (send_acpi_ev || hotkey_report_mode < 2)
-+			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
- 
--	/* netlink events */
--	if (send_acpi_ev) {
--		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
--						ibm->acpi->device->dev.bus_id,
--						event, hkey);
-+		/* netlink events */
-+		if (send_acpi_ev) {
-+			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+							ibm->acpi->device->dev.bus_id,
-+							event, hkey);
-+		}
- 	}
- }
- 
--- 
-1.5.3.1.27.g57543
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: Acer, Inc.
+        Product Name: Prespa M
+               Version: Not Applicable
+        Serial Number: LXAV40C0227120E9C42502
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: Acer, Inc.
+        Type: Other
+        Lock: Not Present
+        Version: N/A
+        Serial Number: None
+        Asset Tag:
+                                         Boot-up State: Safe
+        Power Supply State: Safe
+        Thermal State: Safe
+        Security Status: None
+        OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: Socket M2/S1G1
+        Type: Central Processor
+        Family: Opteron
+        Manufacturer: AMD
+        ID: C2 0F 04 00 FF FB 8B 07
+        Signature: Family 15, Model 76, Stepping 2
+        Flags:
+                FPU (Floating-point unit on-chip)
+                VME (Virtual mode extension)
+                DE (Debugging extension)
+                PSE (Page size extension)
+                TSC (Time stamp counter)
+                MSR (Model specific registers)
+                PAE (Physical address extension)
+                MCE (Machine check exception)
+                CX8 (CMPXCHG8 instruction supported)
+                APIC (On-chip APIC hardware supported)
+                SEP (Fast system call)
+                MTRR (Memory type range registers)
+                PGE (Page global enable)
+                MCA (Machine check architecture)
+                CMOV (Conditional move instruction supported)
+                PAT (Page attribute table)
+                PSE-36 (36-bit page size extension)
+                CLFSH (CLFLUSH instruction supported)
+                MMX (MMX technology supported)
+                FXSR (Fast floating-point save and restore)
+                SSE (Streaming SIMD extensions)
+                SSE2 (Streaming SIMD extensions 2)
+        Version: Engineering Sample
+        Voltage: 1.4 V
+        External Clock: 133 MHz
+        Max Speed: 2200 MHz
+        Current Speed: 2200 MHz
+        Status: Populated, Enabled
+        Upgrade: Other
+        L1 Cache Handle: Not Provided
+        L2 Cache Handle: 0x0005
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Socketed, Level 2
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 512 KB
+        Maximum Size: 1024 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+        Installed SRAM Type: Synchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0006, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J28
+        Internal Connector Type: None
+        External Reference Designator: COM A
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16550A Compatible
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J28
+        Internal Connector Type: None
+        External Reference Designator: Parallel
+        External Connector Type: DB-25 female
+        Port Type: Parallel Port ECP/EPP
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J28
+        Internal Connector Type: None
+        External Reference Designator: Video
+        External Connector Type: DB-15 female
+        Port Type: Video Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J33
+        Internal Connector Type: None
+        External Reference Designator: Keyboard
+        External Connector Type: Circular DIN-8 male
+        Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J33
+        Internal Connector Type: None
+        External Reference Designator: PS/2 Mouse
+        External Connector Type: Circular DIN-8 male
+        Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J31
+        Internal Connector Type: None
+        External Reference Designator: USB 1
+        External Connector Type: Access Bus (USB)
+        Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J32
+        Internal Connector Type: None
+        External Reference Designator: USB 2
+        External Connector Type: Access Bus (USB)
+        Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J32
+        Internal Connector Type: None
+        External Reference Designator: USB 3
+        External Connector Type: Access Bus (USB)
+        Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J31
+        Internal Connector Type: None
+        External Reference Designator: USB 4
+        External Connector Type: Access Bus (USB)
+        Port Type: USB
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J30
+        Internal Connector Type: None
+        External Reference Designator: Microphone In
+        External Connector Type: Mini Jack (headphones)
+        Port Type: Audio Port
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J30
+        Internal Connector Type: None
+        External Reference Designator: Line In
+        External Connector Type: Mini Jack (headphones)
+        Port Type: Audio Port
+
+Handle 0x0011, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J30
+        Internal Connector Type: None
+        External Reference Designator: Speaker Out
+        External Connector Type: Mini Jack (headphones)
+        Port Type: Audio Port
+
+Handle 0x0012, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI1
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+                PME signal is supported
+
+Handle 0x0013, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI2
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+                PME signal is supported
+
+Handle 0x0014, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI3
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+                PME signal is supported
+
+Handle 0x0015, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Video
+        Status: Disabled
+        Description: ATI RS400M
+
+Handle 0x0016, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Sound
+        Status: Disabled
+        Description: ESS 1869
+
+Handle 0x0017, DMI type 11, 5 bytes
+OEM Strings
+        String 1: AMD New Processor Technology
+        String 2: www.amd.com
+        String 3: Have a nice day :)
+
+Handle 0x0018, DMI type 12, 5 bytes
+System Configuration Options
+        Option 1: J13 1-2 Normal Operation, 2-3 Clear CMOS
+
+Handle 0x0019, DMI type 13, 22 bytes
+BIOS Language Information
+        Installable Languages: 1
+                enUS
+        Currently Installed Language: enUS
+
+Handle 0x001A, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 16 bytes
+        Header Start Offset: 0x0000
+        Header Length: 16 bytes
+        Data Start Offset: 0x0010
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Valid, Not Full
+        Change Token: 0x00000001
+        Header Format: Type 1
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
+
+Handle 0x001B, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 4 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x001C, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x001B
+        Error Information Handle: No Error
+        Total Width: 128 bits
+        Data Width: 64 bits
+        Size: 512 MB
+        Form Factor: DIMM
+        Set: 1
+        Locator: S1
+        Bank Locator: DIMM1
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x001D, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x001B
+        Error Information Handle: No Error
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 2
+        Locator: S2
+        Bank Locator: DIMM2
+        Type: DDR2
+        Type Detail: Unknown
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x001E, DMI type 18, 23 bytes
+32-bit Memory Error Information
+        Type: OK
+        Granularity: Unknown
+        Operation: Unknown
+        Vendor Syndrome: Unknown
+        Memory Array Address: Unknown
+        Device Address: Unknown
+        Resolution: Unknown
+
+Handle 0x001F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0001FFFFFFF
+        Range Size: 512 MB
+        Physical Array Handle: 0x001B
+        Partition Width: 0
+
+Handle 0x0020, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0001FFFFFFF
+        Range Size: 512 MB
+        Physical Device Handle: 0x001C
+        Memory Array Mapped Address Handle: 0x001F
+        Partition Row Position: 2
+        Interleave Position: 1
+        Interleaved Data Depth: 6
+
+Handle 0x0021, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x0022, DMI type 127, 4 bytes
+End Of Table
