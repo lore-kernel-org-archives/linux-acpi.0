@@ -1,46 +1,171 @@
 From: Geoffrey Opland <go81816@yahoo.com>
-Subject: dmidecode and bios bug
-Date: Sat, 22 Sep 2007 06:48:29 -0700 (PDT)
-Message-ID: <717147.68391.qm@web52404.mail.re2.yahoo.com>
+Subject: dmidecode and bios bug (w/ attachment)
+Date: Sat, 22 Sep 2007 06:50:28 -0700 (PDT)
+Message-ID: <183580.46909.qm@web52406.mail.re2.yahoo.com>
 Reply-To: go81816@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed; boundary="0-577902673-1190469028=:46909"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web52404.mail.re2.yahoo.com ([206.190.48.167]:44944 "HELO
-	web52404.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751330AbXIVNsa (ORCPT
+Received: from web52406.mail.re2.yahoo.com ([206.190.48.169]:35967 "HELO
+	web52406.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751131AbXIVNua (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Sep 2007 09:48:30 -0400
+	Sat, 22 Sep 2007 09:50:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-On boot of my Compaq Presario C571NR running LFS with kernel 2.6.22.1 I
-receive the following messages:
+--0-577902673-1190469028=:46909
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
-Sep 22 08:38:07 localhost kernel: ACPI: BIOS bug: multiple APIC/MADT
-found, using 0
-Sep 22 08:38:07 localhost kernel: ACPI: If "acpi_apic_instance=2" works
-better, notify linux-acpi@vger.kernel.org
-  << and >>
-Sep 22 08:38:07 localhost kernel: ACPI: System BIOS is requesting
-_OSI(Linux)
-Sep 22 08:38:07 localhost kernel: ACPI: Please test with "acpi_osi=!Linux"
-Sep 22 08:38:07 localhost kernel: Please send dmidecode to
-linux-acpi@vger.kernel.org
 
-I see no obvious usability differences with acpi_apic_instance=2, is there
-something specific I can check for?  I do have intermittent suspend
-problems, but I'm not sure this flag has any effect on suspend code.
-
-Also, attached is the dmidecode output as requested.
-
+ On boot of my Compaq Presario C571NR running LFS with kernel 2.6.22.1 I
+ receive the following messages:
+ 
+ Sep 22 08:38:07 localhost kernel: ACPI: BIOS bug: multiple APIC/MADT
+ found, using 0
+ Sep 22 08:38:07 localhost kernel: ACPI: If "acpi_apic_instance=2" works
+ better, notify linux-acpi@vger.kernel.org
+   << and >>
+ Sep 22 08:38:07 localhost kernel: ACPI: System BIOS is requesting
+ _OSI(Linux)
+ Sep 22 08:38:07 localhost kernel: ACPI: Please test with
+ "acpi_osi=!Linux"
+ Sep 22 08:38:07 localhost kernel: Please send dmidecode to
+ linux-acpi@vger.kernel.org
+ 
+ I see no obvious usability differences with acpi_apic_instance=2, is
+ there
+ something specific I can check for?  I do have intermittent suspend
+ problems, but I'm not sure this flag has any effect on suspend code.
+ 
+ Also, attached is the dmidecode output as requested.
 
 
 
        
 ____________________________________________________________________________________
-Yahoo! oneSearch: Finally, mobile search 
-that gives answers, not web links. 
-http://mobile.yahoo.com/mobileweb/onesearch?refer=1ONXIC
+Moody friends. Drama queens. Your life? Nope! - their life, your story. Play Sims Stories at Yahoo! Games.
+http://sims.yahoo.com/  
+--0-577902673-1190469028=:46909
+Content-Type: application/octet-stream; name="dmidecode.out"
+Content-Transfer-Encoding: base64
+Content-Description: 3970388315-dmidecode.out
+Content-Disposition: attachment; filename="dmidecode.out"
+
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMTcgc3RydWN0
+dXJlcyBvY2N1cHlpbmcgNjQ5IGJ5dGVzLgpUYWJsZSBhdCAweDAwMEUzODEw
+LgoKSGFuZGxlIDB4MDAwMCwgRE1JIHR5cGUgMCwgMjQgYnl0ZXMKQklPUyBJ
+bmZvcm1hdGlvbgoJVmVuZG9yOiBIZXdsZXR0LVBhY2thcmQKCVZlcnNpb246
+IEYuMjQKCVJlbGVhc2UgRGF0ZTogMDQvMjUvMjAwNwoJQWRkcmVzczogMHhF
+NzE1MAoJUnVudGltZSBTaXplOiAxMDIwNjQgYnl0ZXMKCVJPTSBTaXplOiAx
+MDI0IGtCCglDaGFyYWN0ZXJpc3RpY3M6CgkJUENJIGlzIHN1cHBvcnRlZAoJ
+CVBDIENhcmQgKFBDTUNJQSkgaXMgc3VwcG9ydGVkCgkJUE5QIGlzIHN1cHBv
+cnRlZAoJCUJJT1MgaXMgdXBncmFkZWFibGUKCQlCSU9TIHNoYWRvd2luZyBp
+cyBhbGxvd2VkCgkJRVNDRCBzdXBwb3J0IGlzIGF2YWlsYWJsZQoJCUJvb3Qg
+ZnJvbSBDRCBpcyBzdXBwb3J0ZWQKCQlTZWxlY3RhYmxlIGJvb3QgaXMgc3Vw
+cG9ydGVkCgkJUHJpbnQgc2NyZWVuIHNlcnZpY2UgaXMgc3VwcG9ydGVkIChp
+bnQgNWgpCgkJODA0MiBrZXlib2FyZCBzZXJ2aWNlcyBhcmUgc3VwcG9ydGVk
+IChpbnQgOWgpCgkJUHJpbnRlciBzZXJ2aWNlcyBhcmUgc3VwcG9ydGVkIChp
+bnQgMTdoKQoJCUNHQS9tb25vIHZpZGVvIHNlcnZpY2VzIGFyZSBzdXBwb3J0
+ZWQgKGludCAxMGgpCgkJQUNQSSBpcyBzdXBwb3J0ZWQKCQlVU0IgbGVnYWN5
+IGlzIHN1cHBvcnRlZAoJCUFHUCBpcyBzdXBwb3J0ZWQKCQlTbWFydCBiYXR0
+ZXJ5IGlzIHN1cHBvcnRlZAoJCUJJT1MgYm9vdCBzcGVjaWZpY2F0aW9uIGlz
+IHN1cHBvcnRlZAoJCVRhcmdldGVkIGNvbnRlbnQgZGlzdHJpYnV0aW9uIGlz
+IHN1cHBvcnRlZAoJQklPUyBSZXZpc2lvbjogMS42CglGaXJtd2FyZSBSZXZp
+c2lvbjogMS4xCgpIYW5kbGUgMHgwMDAxLCBETUkgdHlwZSAxLCAyNyBieXRl
+cwpTeXN0ZW0gSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogSGV3bGV0dC1Q
+YWNrYXJkCglQcm9kdWN0IE5hbWU6IFByZXNhcmlvIEM1MDAgKEdGNTcyVUEj
+QUJBKSAgICAgICAKCVZlcnNpb246IEYuMjQKCVNlcmlhbCBOdW1iZXI6IENO
+RDcyMTBERlQKCVVVSUQ6IDY5MUEwODE0LUY0RjYtMTFEQi04OTZCLTAwMTZE
+NEVEMEIwRQoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gKCVNLVSBOdW1i
+ZXI6IEdGNTcyVUEjQUJBCglGYW1pbHk6IDEwM0NfNTMzNUtWCgpIYW5kbGUg
+MHgwMDAyLCBETUkgdHlwZSAyLCA4IGJ5dGVzCkJhc2UgQm9hcmQgSW5mb3Jt
+YXRpb24KCU1hbnVmYWN0dXJlcjogSGV3bGV0dC1QYWNrYXJkIAoJUHJvZHVj
+dCBOYW1lOiAzMEM2CglWZXJzaW9uOiA3OC4xMAoJU2VyaWFsIE51bWJlcjog
+Q05ENzIxMERGVAoKSGFuZGxlIDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0
+ZXMKQ2hhc3NpcyBJbmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBIZXdsZXR0
+LVBhY2thcmQgCglUeXBlOiBOb3RlYm9vawoJTG9jazogTm90IFByZXNlbnQK
+CVZlcnNpb246IE4vQQoJU2VyaWFsIE51bWJlcjogTm9uZQoJQXNzZXQgVGFn
+OiAgICAgICAgICAgICAgICAgICAgIAoJQm9vdC11cCBTdGF0ZTogU2FmZQoJ
+UG93ZXIgU3VwcGx5IFN0YXRlOiBTYWZlCglUaGVybWFsIFN0YXRlOiBTYWZl
+CglTZWN1cml0eSBTdGF0dXM6IE5vbmUKCU9FTSBJbmZvcm1hdGlvbjogMHgw
+MDAwMDAwNQoKSGFuZGxlIDB4MDAwNCwgRE1JIHR5cGUgNCwgMzUgYnl0ZXMK
+UHJvY2Vzc29yIEluZm9ybWF0aW9uCglTb2NrZXQgRGVzaWduYXRpb246IFUx
+CglUeXBlOiBDZW50cmFsIFByb2Nlc3NvcgoJRmFtaWx5OiBPdGhlcgoJTWFu
+dWZhY3R1cmVyOiBJbnRlbAoJSUQ6IEVDIDA2IDAwIDAwIEZGIEZCIEU5IEJG
+CglWZXJzaW9uOiBHZW51aW5lIEludGVsKFIpIENQVSBUMjA4MAoJVm9sdGFn
+ZTogMy4zIFYKCUV4dGVybmFsIENsb2NrOiBVbmtub3duCglNYXggU3BlZWQ6
+IDE3MzAgTUh6CglDdXJyZW50IFNwZWVkOiAxNzMwIE1IegoJU3RhdHVzOiBQ
+b3B1bGF0ZWQsIEVuYWJsZWQKCVVwZ3JhZGU6IFpJRiBTb2NrZXQKCUwxIENh
+Y2hlIEhhbmRsZTogTm90IFByb3ZpZGVkCglMMiBDYWNoZSBIYW5kbGU6IDB4
+MDAwNQoJTDMgQ2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQKCVNlcmlhbCBO
+dW1iZXI6IE5vdCBTcGVjaWZpZWQKCUFzc2V0IFRhZzogTm90IFNwZWNpZmll
+ZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMDUs
+IERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0aW9uCglTb2Nr
+ZXQgRGVzaWduYXRpb246IEwyIENhY2hlCglDb25maWd1cmF0aW9uOiBFbmFi
+bGVkLCBTb2NrZXRlZCwgTGV2ZWwgMgoJT3BlcmF0aW9uYWwgTW9kZTogV3Jp
+dGUgQmFjawoJTG9jYXRpb246IEludGVybmFsCglJbnN0YWxsZWQgU2l6ZTog
+MTAyNCBLQgoJTWF4aW11bSBTaXplOiAyMDQ4IEtCCglTdXBwb3J0ZWQgU1JB
+TSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5lIEJ1cnN0CglJbnN0YWxsZWQg
+U1JBTSBUeXBlOiBCdXJzdAoJU3BlZWQ6IFVua25vd24KCUVycm9yIENvcnJl
+Y3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24KCUFz
+c29jaWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAwMDYsIERNSSB0eXBl
+IDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25h
+dGlvbjogUENJIFNsb3QgSjExMDAKCVR5cGU6IDMyLWJpdCBQQ0kKCUN1cnJl
+bnQgVXNhZ2U6IEluIFVzZQoJTGVuZ3RoOiBMb25nCglJRDogMAoJQ2hhcmFj
+dGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJv
+dmlkZWQKCQlQTUUgc2lnbmFsIGlzIHN1cHBvcnRlZAoKSGFuZGxlIDB4MDAw
+NywgRE1JIHR5cGUgOSwgMTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRp
+b24KCURlc2lnbmF0aW9uOiBQQ0kgU2xvdCBKMTEwMQoJVHlwZTogMzItYml0
+IFBDSQoJQ3VycmVudCBVc2FnZTogSW4gVXNlCglMZW5ndGg6IExvbmcKCUlE
+OiAwCglDaGFyYWN0ZXJpc3RpY3M6CgkJNS4wIFYgaXMgcHJvdmlkZWQKCQkz
+LjMgViBpcyBwcm92aWRlZAoJCVBNRSBzaWduYWwgaXMgc3VwcG9ydGVkCgpI
+YW5kbGUgMHgwMDA4LCBETUkgdHlwZSAxMCwgNiBieXRlcwpPbiBCb2FyZCBE
+ZXZpY2UgSW5mb3JtYXRpb24KCVR5cGU6IFZpZGVvCglTdGF0dXM6IEVuYWJs
+ZWQKCURlc2NyaXB0aW9uOiA4ICAgICAgICAgICAgICAKCkhhbmRsZSAweDAw
+MDksIERNSSB0eXBlIDExLCA1IGJ5dGVzCk9FTSBTdHJpbmdzCglTdHJpbmcg
+MTogJEhQJAoJU3RyaW5nIDI6IExPQyNBQkEKCkhhbmRsZSAweDAwMEEsIERN
+SSB0eXBlIDE2LCAxNSBieXRlcwpQaHlzaWNhbCBNZW1vcnkgQXJyYXkKCUxv
+Y2F0aW9uOiBTeXN0ZW0gQm9hcmQgT3IgTW90aGVyYm9hcmQKCVVzZTogU3lz
+dGVtIE1lbW9yeQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBOb25lCglNYXhp
+bXVtIENhcGFjaXR5OiAyIEdCCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6
+IE5vdCBQcm92aWRlZAoJTnVtYmVyIE9mIERldmljZXM6IDIKCkhhbmRsZSAw
+eDAwMEIsIERNSSB0eXBlIDE3LCAyNyBieXRlcwpNZW1vcnkgRGV2aWNlCglB
+cnJheSBIYW5kbGU6IDB4MDAwQQoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxl
+OiBObyBFcnJvcgoJVG90YWwgV2lkdGg6IDMyIGJpdHMKCURhdGEgV2lkdGg6
+IDMyIGJpdHMKCVNpemU6IDUxMiBNQgoJRm9ybSBGYWN0b3I6IFNPRElNTQoJ
+U2V0OiAxCglMb2NhdG9yOiBNMQoJQmFuayBMb2NhdG9yOiBCYW5rIDAKCVR5
+cGU6IEREUjIKCVR5cGUgRGV0YWlsOiBTeW5jaHJvbm91cwoJU3BlZWQ6IFVu
+a25vd24KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZAoJU2VyaWFsIE51
+bWJlcjogTm90IFNwZWNpZmllZAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVk
+CglQYXJ0IE51bWJlcjogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwQywg
+RE1JIHR5cGUgMTcsIDI3IGJ5dGVzCk1lbW9yeSBEZXZpY2UKCUFycmF5IEhh
+bmRsZTogMHgwMDBBCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVy
+cm9yCglUb3RhbCBXaWR0aDogMzIgYml0cwoJRGF0YSBXaWR0aDogMzIgYml0
+cwoJU2l6ZTogNTEyIE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDIK
+CUxvY2F0b3I6IE0yCglCYW5rIExvY2F0b3I6IEJhbmsgMQoJVHlwZTogRERS
+MgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDogVW5rbm93bgoJ
+TWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglTZXJpYWwgTnVtYmVyOiBO
+b3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQg
+TnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDBELCBETUkgdHlw
+ZSAxOSwgMTUgYnl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzCglT
+dGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVz
+czogMHgwMDAzRkZGRkZGRgoJUmFuZ2UgU2l6ZTogMSBHQgoJUGh5c2ljYWwg
+QXJyYXkgSGFuZGxlOiAweDAwMEEKCVBhcnRpdGlvbiBXaWR0aDogMAoKSGFu
+ZGxlIDB4MDAwRSwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZp
+Y2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAw
+MDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCglSYW5nZSBT
+aXplOiAxIEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEIKCU1l
+bW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAwRAoJUGFy
+dGl0aW9uIFJvdyBQb3NpdGlvbjogMgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjog
+MQoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDogNgoKSGFuZGxlIDB4MDAwRiwg
+RE1JIHR5cGUgMzIsIDIwIGJ5dGVzClN5c3RlbSBCb290IEluZm9ybWF0aW9u
+CglTdGF0dXM6IDxPVVQgT0YgU1BFQz4KCkhhbmRsZSAweDAwMTAsIERNSSB0
+eXBlIDEyNywgNCBieXRlcwpFbmQgT2YgVGFibGUKCg==
+
+--0-577902673-1190469028=:46909--
