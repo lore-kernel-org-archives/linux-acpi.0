@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 23/32] ACPI: Battery: add sysfs alarm
-Date: Fri, 21 Sep 2007 23:46:29 -0400
-Message-ID: <1190432817158-git-send-email-lenb@kernel.org>
+Subject: [PATCH 21/32] acpi_video: kernel build error if !INPUT
+Date: Fri, 21 Sep 2007 23:46:27 -0400
+Message-ID: <11904328151023-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904327991059-git-send-email-lenb@kernel.org>
  <11904328003655-git-send-email-lenb@kernel.org>
@@ -23,91 +23,49 @@ References: <11904327981905-git-send-email-lenb@kernel.org>
  <1190432813700-git-send-email-lenb@kernel.org>
  <11904328141573-git-send-email-lenb@kernel.org>
  <11904328153830-git-send-email-lenb@kernel.org>
- <11904328151023-git-send-email-lenb@kernel.org>
- <1190432816575-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:40564 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:59706 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757315AbXIVDrA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:47:00 -0400
-In-Reply-To: <1190432816575-git-send-email-lenb@kernel.org>
-Message-Id: <0b5466f638ab34c816c862802833ea2e465ee58a.1190432418.git.len.brown@intel.com>
+	with ESMTP id S1756832AbXIVDq5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:57 -0400
+In-Reply-To: <11904328153830-git-send-email-lenb@kernel.org>
+Message-Id: <03e2bf261e832abf48d40113ce08a70338dd18c9.1190432418.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikivskiy@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Andreas Herrmann <aherrman@arcor.de>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikivskiy@suse.de>
+From: Andreas Herrmann <aherrman@arcor.de>
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Commit e9dab1960ac9746fa34eff726b81635147615a79
+(ACPI video hotkey: export missing ACPI video hotkey events via input layer)
+exports ACPI video hotkey events via input layer. But this breaks kernel
+build if ACPI_VIDEO && !INPUT:
+
+ LD      .tmp_vmlinux1
+drivers/built-in.o: In function `acpi_video_bus_remove':
+drivers/acpi/video.c:2007: undefined reference to `input_unregister_device'
+    ...
+
+Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c |   36 +++++++++++++++++++++++++++++++++++-
- 1 files changed, 35 insertions(+), 1 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b77180a..4864694 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -696,6 +696,37 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
- }
- 
- #endif
-+
-+#ifdef ENABLE_POWER_SUPPLY
-+
-+static ssize_t acpi_battery_alarm_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
-+	return sprintf(buf, "%d\n", battery->alarm * 1000);
-+}
-+
-+static ssize_t acpi_battery_alarm_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	unsigned long x;
-+	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
-+	if (sscanf(buf, "%ld\n", &x) == 1)
-+		battery->alarm = x/1000;
-+	if (acpi_battery_present(battery))
-+		acpi_battery_set_alarm(battery);
-+	return count;
-+}
-+
-+static struct device_attribute alarm_attr = {
-+	.attr = {.name = "alarm", .mode = 0644, .owner = THIS_MODULE},
-+	.show = acpi_battery_alarm_show,
-+	.store = acpi_battery_alarm_store,
-+};
-+
-+#endif
- /* --------------------------------------------------------------------------
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
-@@ -744,6 +775,7 @@ static int acpi_battery_add(struct acpi_device *device)
- 	battery->bat.type = POWER_SUPPLY_TYPE_BATTERY;
- 	battery->bat.get_property = acpi_battery_get_property;
- 	result = power_supply_register(&battery->device->dev, &battery->bat);
-+	result = device_create_file(battery->bat.dev, &alarm_attr);
- #endif
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_ALL_NOTIFY,
-@@ -781,8 +813,10 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
- 	acpi_battery_remove_fs(device);
- #endif
- #ifdef ENABLE_POWER_SUPPLY
--	if (battery->bat.dev)
-+	if (battery->bat.dev) {
-+		device_remove_file(battery->bat.dev, &alarm_attr);
- 		power_supply_unregister(&battery->bat);
-+	}
- #endif
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4875f01..9685b75 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -117,6 +117,7 @@ config ACPI_BUTTON
+ config ACPI_VIDEO
+ 	tristate "Video"
+ 	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
++	depends on INPUT
+ 	help
+ 	  This driver implement the ACPI Extensions For Display Adapters
+ 	  for integrated graphics devices on motherboard, as specified in
 -- 
 1.5.3.1.27.g57543
