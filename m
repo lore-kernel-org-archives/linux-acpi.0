@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/32] ACPI: Battery: Misc clean-ups, no functional changes
-Date: Fri, 21 Sep 2007 23:46:13 -0400
-Message-ID: <11904328041498-git-send-email-lenb@kernel.org>
+Subject: [PATCH 10/32] ACPI: SBS: Split host controller (ACPI0001) from SBS driver (ACPI0002)
+Date: Fri, 21 Sep 2007 23:46:16 -0400
+Message-ID: <119043280633-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904327991059-git-send-email-lenb@kernel.org>
  <11904328003655-git-send-email-lenb@kernel.org>
@@ -9,678 +9,1029 @@ References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904328011699-git-send-email-lenb@kernel.org>
  <1190432802575-git-send-email-lenb@kernel.org>
  <11904328031107-git-send-email-lenb@kernel.org>
+ <11904328041498-git-send-email-lenb@kernel.org>
+ <11904328052010-git-send-email-lenb@kernel.org>
+ <11904328061489-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:18967 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:2443 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754915AbXIVDqp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:45 -0400
-In-Reply-To: <11904328031107-git-send-email-lenb@kernel.org>
-Message-Id: <89543b032d6a389f7d75e239b1d45b0ce3604a5f.1190432418.git.len.brown@intel.com>
+	with ESMTP id S1754300AbXIVDqs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:48 -0400
+In-Reply-To: <11904328061489-git-send-email-lenb@kernel.org>
+Message-Id: <f0ebb0c2228ebb95b1dc400bcc05d6fe873e2b3f.1190432418.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikivskiy@suse.de>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikivskiy@suse.de>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
+Replace poll-based host controller driver with the notify-based one.
+Split it out of sbs.c.
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c |  342 ++++++++++++++++++------------------------------
- 1 files changed, 125 insertions(+), 217 deletions(-)
+ drivers/acpi/Makefile |    1 +
+ drivers/acpi/sbs.c    |  374 ++++++++++---------------------------------------
+ drivers/acpi/sbshc.c  |  309 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/sbshc.h  |   27 ++++
+ 4 files changed, 412 insertions(+), 299 deletions(-)
+ create mode 100644 drivers/acpi/sbshc.c
+ create mode 100644 drivers/acpi/sbshc.h
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index faa70a5..db725bf 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1,6 +1,8 @@
- /*
-- *  acpi_battery.c - ACPI Battery Driver ($Revision: 37 $)
-+ *  battery.c - ACPI Battery Driver (Revision: 2.0)
-  *
-+ *  Copyright (C) 2007 Alexey Starikovskiy <astarikovskiy@suse.de>
-+ *  Copyright (C) 2004-2007 Vladimir Lebedev <vladimir.p.lebedev@intel.com>
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *
-@@ -48,6 +50,7 @@
- ACPI_MODULE_NAME("battery");
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index d4336f1..54e3ab0 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -60,3 +60,4 @@ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-y				+= cm_sbs.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbs.o
++obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 33ba4bf..7bb8c62 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -34,6 +34,8 @@
+ #include <linux/jiffies.h>
+ #include <linux/delay.h>
  
- MODULE_AUTHOR("Paul Diefenbaugh");
-+MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
- MODULE_DESCRIPTION("ACPI Battery Driver");
++#include "sbshc.h"
++
+ #define ACPI_SBS_COMPONENT		0x00080000
+ #define ACPI_SBS_CLASS			"sbs"
+ #define ACPI_AC_CLASS			"ac_adapter"
+@@ -59,28 +61,6 @@ MODULE_AUTHOR("Rich Townsend");
+ MODULE_DESCRIPTION("Smart Battery System ACPI interface driver");
  MODULE_LICENSE("GPL");
  
-@@ -58,31 +61,17 @@ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
- extern struct proc_dir_entry *acpi_lock_battery_dir(void);
- extern void *acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
- 
--static int acpi_battery_add(struct acpi_device *device);
--static int acpi_battery_remove(struct acpi_device *device, int type);
--static int acpi_battery_resume(struct acpi_device *device);
+-#define	xmsleep(t)	msleep(t)
 -
- static const struct acpi_device_id battery_device_ids[] = {
- 	{"PNP0C0A", 0},
+-#define ACPI_EC_SMB_PRTCL	0x00	/* protocol, PEC */
+-
+-#define ACPI_EC_SMB_STS		0x01	/* status */
+-#define ACPI_EC_SMB_ADDR	0x02	/* address */
+-#define ACPI_EC_SMB_CMD		0x03	/* command */
+-#define ACPI_EC_SMB_DATA	0x04	/* 32 data registers */
+-#define ACPI_EC_SMB_BCNT	0x24	/* number of data bytes */
+-
+-#define ACPI_EC_SMB_STS_DONE	0x80
+-#define ACPI_EC_SMB_STS_STATUS	0x1f
+-
+-#define ACPI_EC_SMB_PRTCL_WRITE		0x00
+-#define ACPI_EC_SMB_PRTCL_READ		0x01
+-#define ACPI_EC_SMB_PRTCL_WORD_DATA	0x08
+-#define ACPI_EC_SMB_PRTCL_BLOCK_DATA	0x0a
+-
+-#define ACPI_EC_SMB_TRANSACTION_SLEEP	1
+-#define ACPI_EC_SMB_ACCESS_SLEEP1	1
+-#define ACPI_EC_SMB_ACCESS_SLEEP2	10
+-
+ #define	DEF_CAPACITY_UNIT	3
+ #define	MAH_CAPACITY_UNIT	1
+ #define	MWH_CAPACITY_UNIT	2
+@@ -103,12 +83,6 @@ extern void acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
+ #define	MAX_SBS_BAT			4
+ #define ACPI_SBS_BLOCK_MAX		32
+ 
+-#define ACPI_SBS_SMBUS_READ		1
+-#define ACPI_SBS_SMBUS_WRITE		2
+-
+-#define ACPI_SBS_WORD_DATA		1
+-#define ACPI_SBS_BLOCK_DATA		2
+-
+ #define	UPDATE_DELAY	10
+ 
+ /* 0 - every time, > 0 - by update_time */
+@@ -124,8 +98,7 @@ static int acpi_sbs_remove(struct acpi_device *device, int type);
+ static int acpi_sbs_resume(struct acpi_device *device);
+ 
+ static const struct acpi_device_id sbs_device_ids[] = {
+-	{"ACPI0001", 0},
+-	{"ACPI0005", 0},
++	{"ACPI0002", 0},
  	{"", 0},
  };
--MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- 
--static struct acpi_driver acpi_battery_driver = {
--	.name = "battery",
--	.class = ACPI_BATTERY_CLASS,
--	.ids = battery_device_ids,
--	.ops = {
--		.add = acpi_battery_add,
--		.resume = acpi_battery_resume,
--		.remove = acpi_battery_remove,
--		},
--};
-+MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- 
- enum acpi_battery_files {
--	ACPI_BATTERY_INFO = 0,
--	ACPI_BATTERY_STATE,
--	ACPI_BATTERY_ALARM,
-+	info_tag = 0,
-+	state_tag,
-+	alarm_tag,
- 	ACPI_BATTERY_NUMFILES,
+ MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
+@@ -182,8 +155,8 @@ struct acpi_battery {
  };
  
-@@ -124,7 +113,6 @@ inline char *acpi_battery_units(struct acpi_battery *battery)
- /* --------------------------------------------------------------------------
-                                Battery Management
-    -------------------------------------------------------------------------- */
--
- struct acpi_offsets {
- 	size_t offset;		/* offset inside struct acpi_sbs_battery */
- 	u8 mode;		/* int or string? */
-@@ -183,19 +171,16 @@ static int extract_package(struct acpi_battery *battery,
+ struct acpi_sbs {
+-	int base;
+ 	struct acpi_device *device;
++	struct acpi_smb_hc *hc;
+ 	struct mutex mutex;
+ 	int sbsm_present;
+ 	int sbsm_batteries_supported;
+@@ -199,190 +172,6 @@ struct acpi_sbs {
+ static int acpi_sbs_update_run(struct acpi_sbs *sbs, int id, int data_type);
+ static void acpi_sbs_update_time(void *data);
  
- static int acpi_battery_get_status(struct acpi_battery *battery)
- {
+-union sbs_rw_data {
+-	u16 word;
+-	u8 block[ACPI_SBS_BLOCK_MAX + 2];
+-};
+-
+-static int acpi_ec_sbs_access(struct acpi_sbs *sbs, u16 addr,
+-			      char read_write, u8 command, int size,
+-			      union sbs_rw_data *data);
+-
+-/* --------------------------------------------------------------------------
+-                               SMBus Communication
+-   -------------------------------------------------------------------------- */
+-
+-static int acpi_ec_sbs_read(struct acpi_sbs *sbs, u8 address, u8 * data)
+-{
+-	u8 val;
+-	int err;
+-
+-	err = ec_read(sbs->base + address, &val);
+-	if (!err) {
+-		*data = val;
+-	}
+-	xmsleep(ACPI_EC_SMB_TRANSACTION_SLEEP);
+-	return (err);
+-}
+-
+-static int acpi_ec_sbs_write(struct acpi_sbs *sbs, u8 address, u8 data)
+-{
+-	int err;
+-
+-	err = ec_write(sbs->base + address, data);
+-	return (err);
+-}
+-
+-static int
+-acpi_ec_sbs_access(struct acpi_sbs *sbs, u16 addr,
+-		   char read_write, u8 command, int size,
+-		   union sbs_rw_data *data)
+-{
+-	unsigned char protocol, len = 0, temp[2] = { 0, 0 };
+-	int i;
+-
+-	if (read_write == ACPI_SBS_SMBUS_READ) {
+-		protocol = ACPI_EC_SMB_PRTCL_READ;
+-	} else {
+-		protocol = ACPI_EC_SMB_PRTCL_WRITE;
+-	}
+-
+-	switch (size) {
+-
+-	case ACPI_SBS_WORD_DATA:
+-		acpi_ec_sbs_write(sbs, ACPI_EC_SMB_CMD, command);
+-		if (read_write == ACPI_SBS_SMBUS_WRITE) {
+-			acpi_ec_sbs_write(sbs, ACPI_EC_SMB_DATA, data->word);
+-			acpi_ec_sbs_write(sbs, ACPI_EC_SMB_DATA + 1,
+-					  data->word >> 8);
+-		}
+-		protocol |= ACPI_EC_SMB_PRTCL_WORD_DATA;
+-		break;
+-	case ACPI_SBS_BLOCK_DATA:
+-		acpi_ec_sbs_write(sbs, ACPI_EC_SMB_CMD, command);
+-		if (read_write == ACPI_SBS_SMBUS_WRITE) {
+-			len = min_t(u8, data->block[0], 32);
+-			acpi_ec_sbs_write(sbs, ACPI_EC_SMB_BCNT, len);
+-			for (i = 0; i < len; i++)
+-				acpi_ec_sbs_write(sbs, ACPI_EC_SMB_DATA + i,
+-						  data->block[i + 1]);
+-		}
+-		protocol |= ACPI_EC_SMB_PRTCL_BLOCK_DATA;
+-		break;
+-	default:
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"unsupported transaction %d", size));
+-		return (-1);
+-	}
+-
+-	acpi_ec_sbs_write(sbs, ACPI_EC_SMB_ADDR, addr << 1);
+-	acpi_ec_sbs_write(sbs, ACPI_EC_SMB_PRTCL, protocol);
+-
+-	acpi_ec_sbs_read(sbs, ACPI_EC_SMB_STS, temp);
+-
+-	if (~temp[0] & ACPI_EC_SMB_STS_DONE) {
+-		xmsleep(ACPI_EC_SMB_ACCESS_SLEEP1);
+-		acpi_ec_sbs_read(sbs, ACPI_EC_SMB_STS, temp);
+-	}
+-	if (~temp[0] & ACPI_EC_SMB_STS_DONE) {
+-		xmsleep(ACPI_EC_SMB_ACCESS_SLEEP2);
+-		acpi_ec_sbs_read(sbs, ACPI_EC_SMB_STS, temp);
+-	}
+-	if ((~temp[0] & ACPI_EC_SMB_STS_DONE)
+-	    || (temp[0] & ACPI_EC_SMB_STS_STATUS)) {
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"transaction %d error", size));
+-		return (-1);
+-	}
+-
+-	if (read_write == ACPI_SBS_SMBUS_WRITE) {
+-		return (0);
+-	}
+-
+-	switch (size) {
+-
+-	case ACPI_SBS_WORD_DATA:
+-		acpi_ec_sbs_read(sbs, ACPI_EC_SMB_DATA, temp);
+-		acpi_ec_sbs_read(sbs, ACPI_EC_SMB_DATA + 1, temp + 1);
+-		data->word = (temp[1] << 8) | temp[0];
+-		break;
+-
+-	case ACPI_SBS_BLOCK_DATA:
+-		len = 0;
+-		acpi_ec_sbs_read(sbs, ACPI_EC_SMB_BCNT, &len);
+-		len = min_t(u8, len, 32);
+-		for (i = 0; i < len; i++)
+-			acpi_ec_sbs_read(sbs, ACPI_EC_SMB_DATA + i,
+-					 data->block + i + 1);
+-		data->block[0] = len;
+-		break;
+-	default:
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"unsupported transaction %d", size));
+-		return (-1);
+-	}
+-
+-	return (0);
+-}
+-
+-static int
+-acpi_sbs_read_word(struct acpi_sbs *sbs, int addr, int func, u16 * word)
+-{
+-	union sbs_rw_data data;
 -	int result = 0;
 -
--	result = acpi_bus_get_status(battery->device);
+-	result = acpi_ec_sbs_access(sbs, addr,
+-				    ACPI_SBS_SMBUS_READ, func,
+-				    ACPI_SBS_WORD_DATA, &data);
 -	if (result) {
-+	if (acpi_bus_get_status(battery->device)) {
- 		ACPI_EXCEPTION((AE_INFO, AE_ERROR, "Evaluating _STA"));
- 		return -ENODEV;
- 	}
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_ec_sbs_access() failed"));
+-	} else {
+-		*word = data.word;
+-	}
+-
 -	return result;
-+	return 0;
- }
+-}
+-
+-static int
+-acpi_sbs_read_str(struct acpi_sbs *sbs, int addr, int func, char *str)
+-{
+-	union sbs_rw_data data;
+-	int result = 0;
+-
+-	result = acpi_ec_sbs_access(sbs, addr,
+-				    ACPI_SBS_SMBUS_READ, func,
+-				    ACPI_SBS_BLOCK_DATA, &data);
+-	if (result) {
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_ec_sbs_access() failed"));
+-	} else {
+-		strncpy(str, (const char *)data.block + 1, data.block[0]);
+-		str[data.block[0]] = 0;
+-	}
+-
+-	return result;
+-}
+-
+-static int
+-acpi_sbs_write_word(struct acpi_sbs *sbs, int addr, int func, int word)
+-{
+-	union sbs_rw_data data;
+-	int result = 0;
+-
+-	data.word = word;
+-
+-	result = acpi_ec_sbs_access(sbs, addr,
+-				    ACPI_SBS_SMBUS_WRITE, func,
+-				    ACPI_SBS_WORD_DATA, &data);
+-	if (result) {
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_ec_sbs_access() failed"));
+-	}
+-
+-	return result;
+-}
+-
+ static int sbs_zombie(struct acpi_sbs *sbs)
+ {
+ 	return (sbs->zombie);
+@@ -433,11 +222,11 @@ static int acpi_battery_get_present(struct acpi_battery *battery)
+ 	int result = 0;
+ 	int is_present = 0;
+ 
+-	result = acpi_sbs_read_word(battery->sbs,
+-				    ACPI_SBSM_SMBUS_ADDR, 0x01, &state);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
++				    ACPI_SBSM_SMBUS_ADDR, 0x01, (u8 *)&state);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 	}
+ 	if (!result) {
+ 		is_present = (state & 0x000f) & (1 << battery->id);
+@@ -461,19 +250,19 @@ static int acpi_battery_select(struct acpi_battery *battery)
+ 		 * it causes charging to halt on SBSELs */
+ 
+ 		result =
+-		    acpi_sbs_read_word(sbs, ACPI_SBSM_SMBUS_ADDR, 0x01, &state);
++		    acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SBSM_SMBUS_ADDR, 0x01, (u8 *)&state);
+ 		if (result) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-					"acpi_sbs_read_word() failed"));
++					"acpi_smbus_read() failed"));
+ 			goto end;
+ 		}
+ 
+ 		foo = (state & 0x0fff) | (1 << (battery->id + 12));
+ 		result =
+-		    acpi_sbs_write_word(sbs, ACPI_SBSM_SMBUS_ADDR, 0x01, foo);
++		    acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD, ACPI_SBSM_SMBUS_ADDR, 0x01, (u8 *)&foo, 2);
+ 		if (result) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-					"acpi_sbs_write_word() failed"));
++					"acpi_smbus_write() failed"));
+ 			goto end;
+ 		}
+ 	}
+@@ -487,11 +276,11 @@ static int acpi_sbsm_get_info(struct acpi_sbs *sbs)
+ 	int result = 0;
+ 	s16 battery_system_info;
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SBSM_SMBUS_ADDR, 0x04,
+-				    &battery_system_info);
++	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBSM_SMBUS_ADDR, 0x04,
++				    (u8 *)&battery_system_info);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 	sbs->sbsm_present = 1;
+@@ -504,50 +293,49 @@ static int acpi_sbsm_get_info(struct acpi_sbs *sbs)
  
  static int acpi_battery_get_info(struct acpi_battery *battery)
  {
--	int result = 0;
-+	int result = -EFAULT;
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_sbs *sbs = battery->sbs;
+ 	int result = 0;
+ 	s16 battery_mode;
+ 	s16 specification_info;
  
-@@ -205,10 +190,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
- 	status = acpi_evaluate_object(battery->device->handle, "_BIF",
- 				      NULL, &buffer);
- 	mutex_unlock(&battery->lock);
-+
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BIF"));
- 		return -ENODEV;
- 	}
-+
- 	result = extract_package(battery, buffer.pointer,
- 				 info_offsets, ARRAY_SIZE(info_offsets));
- 	kfree(buffer.pointer);
-@@ -238,6 +225,7 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BST"));
- 		return -ENODEV;
- 	}
-+
- 	result = extract_package(battery, buffer.pointer,
- 				 state_offsets, ARRAY_SIZE(state_offsets));
- 	battery->update_time = jiffies;
-@@ -245,37 +233,26 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	return result;
- }
- 
--static int acpi_battery_get_alarm(struct acpi_battery *battery)
--{
--	return 0;
--}
--
--static int acpi_battery_set_alarm(struct acpi_battery *battery,
--				  unsigned long alarm)
-+static int acpi_battery_set_alarm(struct acpi_battery *battery)
- {
- 	acpi_status status = 0;
--	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	union acpi_object arg0 = { .type = ACPI_TYPE_INTEGER };
- 	struct acpi_object_list arg_list = { 1, &arg0 };
- 
--	if (!acpi_battery_present(battery))
--		return -ENODEV;
--
--	if (!battery->alarm_present)
-+	if (!acpi_battery_present(battery)|| !battery->alarm_present)
- 		return -ENODEV;
- 
--	arg0.integer.value = alarm;
-+	arg0.integer.value = battery->alarm;
- 
- 	mutex_lock(&battery->lock);
- 	status = acpi_evaluate_object(battery->device->handle, "_BTP",
- 				 &arg_list, NULL);
- 	mutex_unlock(&battery->lock);
-+
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Alarm set to %d\n", (u32) alarm));
--
--	battery->alarm = alarm;
--
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Alarm set to %d\n", battery->alarm));
- 	return 0;
- }
- 
-@@ -293,7 +270,7 @@ static int acpi_battery_init_alarm(struct acpi_battery *battery)
- 	battery->alarm_present = 1;
- 	if (!battery->alarm)
- 		battery->alarm = battery->design_capacity_warning;
--	return acpi_battery_set_alarm(battery, battery->alarm);
-+	return acpi_battery_set_alarm(battery);
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery)
-@@ -322,130 +299,101 @@ static struct proc_dir_entry *acpi_battery_dir;
- static int acpi_battery_print_info(struct seq_file *seq, int result)
- {
- 	struct acpi_battery *battery = seq->private;
--	char *units = "?";
- 
- 	if (result)
- 		goto end;
- 
--	if (acpi_battery_present(battery))
--		seq_printf(seq, "present:                 yes\n");
--	else {
--		seq_printf(seq, "present:                 no\n");
-+	seq_printf(seq, "present:                 %s\n",
-+		   acpi_battery_present(battery)?"yes":"no");
-+	if (!acpi_battery_present(battery))
- 		goto end;
--	}
--
--	/* Battery Units */
--
--	units = acpi_battery_units(battery);
--
- 	if (battery->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "design capacity:         unknown\n");
- 	else
- 		seq_printf(seq, "design capacity:         %d %sh\n",
--			   (u32) battery->design_capacity, units);
-+			   battery->design_capacity,
-+			   acpi_battery_units(battery));
- 
- 	if (battery->last_full_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "last full capacity:      unknown\n");
- 	else
- 		seq_printf(seq, "last full capacity:      %d %sh\n",
--			   (u32) battery->last_full_capacity, units);
--
--	switch ((u32) battery->technology) {
--	case 0:
--		seq_printf(seq, "battery technology:      non-rechargeable\n");
--		break;
--	case 1:
--		seq_printf(seq, "battery technology:      rechargeable\n");
--		break;
--	default:
--		seq_printf(seq, "battery technology:      unknown\n");
--		break;
--	}
-+			   battery->last_full_capacity,
-+			   acpi_battery_units(battery));
-+
-+	seq_printf(seq, "battery technology:      %srechargeable\n",
-+		   (!battery->technology)?"non-":"");
- 
- 	if (battery->design_voltage == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "design voltage:          unknown\n");
- 	else
- 		seq_printf(seq, "design voltage:          %d mV\n",
--			   (u32) battery->design_voltage);
-+			   battery->design_voltage);
- 	seq_printf(seq, "design capacity warning: %d %sh\n",
--		   (u32) battery->design_capacity_warning, units);
-+		   battery->design_capacity_warning,
-+		   acpi_battery_units(battery));
- 	seq_printf(seq, "design capacity low:     %d %sh\n",
--		   (u32) battery->design_capacity_low, units);
-+		   battery->design_capacity_low,
-+		   acpi_battery_units(battery));
- 	seq_printf(seq, "capacity granularity 1:  %d %sh\n",
--		   (u32) battery->capacity_granularity_1, units);
-+		   battery->capacity_granularity_1,
-+		   acpi_battery_units(battery));
- 	seq_printf(seq, "capacity granularity 2:  %d %sh\n",
--		   (u32) battery->capacity_granularity_2, units);
-+		   battery->capacity_granularity_2,
-+		   acpi_battery_units(battery));
- 	seq_printf(seq, "model number:            %s\n", battery->model_number);
- 	seq_printf(seq, "serial number:           %s\n", battery->serial_number);
- 	seq_printf(seq, "battery type:            %s\n", battery->type);
- 	seq_printf(seq, "OEM info:                %s\n", battery->oem_info);
--
-       end:
--
- 	if (result)
- 		seq_printf(seq, "ERROR: Unable to read battery info\n");
--
- 	return result;
- }
- 
- static int acpi_battery_print_state(struct seq_file *seq, int result)
- {
- 	struct acpi_battery *battery = seq->private;
--	char *units = "?";
- 
- 	if (result)
- 		goto end;
- 
--	if (acpi_battery_present(battery))
--		seq_printf(seq, "present:                 yes\n");
--	else {
--		seq_printf(seq, "present:                 no\n");
-+	seq_printf(seq, "present:                 %s\n",
-+		   acpi_battery_present(battery)?"yes":"no");
-+	if (!acpi_battery_present(battery))
- 		goto end;
--	}
--
--	/* Battery Units */
--
--	units = acpi_battery_units(battery);
- 
--	if (!(battery->state & 0x04))
--		seq_printf(seq, "capacity state:          ok\n");
--	else
--		seq_printf(seq, "capacity state:          critical\n");
--
--	if ((battery->state & 0x01) && (battery->state & 0x02)) {
-+	seq_printf(seq, "capacity state:          %s\n",
-+			(battery->state & 0x04)?"critical":"ok");
-+	if ((battery->state & 0x01) && (battery->state & 0x02))
- 		seq_printf(seq,
- 			   "charging state:          charging/discharging\n");
--	} else if (battery->state & 0x01)
-+	else if (battery->state & 0x01)
- 		seq_printf(seq, "charging state:          discharging\n");
- 	else if (battery->state & 0x02)
- 		seq_printf(seq, "charging state:          charging\n");
--	else {
-+	else
- 		seq_printf(seq, "charging state:          charged\n");
--	}
- 
- 	if (battery->present_rate == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "present rate:            unknown\n");
- 	else
- 		seq_printf(seq, "present rate:            %d %s\n",
--			   (u32) battery->present_rate, units);
-+			   battery->present_rate, acpi_battery_units(battery));
- 
- 	if (battery->remaining_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "remaining capacity:      unknown\n");
- 	else
- 		seq_printf(seq, "remaining capacity:      %d %sh\n",
--			   (u32) battery->remaining_capacity, units);
--
-+			   battery->remaining_capacity, acpi_battery_units(battery));
- 	if (battery->present_voltage == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "present voltage:         unknown\n");
- 	else
- 		seq_printf(seq, "present voltage:         %d mV\n",
--			   (u32) battery->present_voltage);
--
-+			   battery->present_voltage);
-       end:
--
--	if (result) {
-+	if (result)
- 		seq_printf(seq, "ERROR: Unable to read battery state\n");
--	}
- 
- 	return result;
- }
-@@ -453,7 +401,6 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
- static int acpi_battery_print_alarm(struct seq_file *seq, int result)
- {
- 	struct acpi_battery *battery = seq->private;
--	char *units = "?";
- 
- 	if (result)
- 		goto end;
-@@ -462,22 +409,15 @@ static int acpi_battery_print_alarm(struct seq_file *seq, int result)
- 		seq_printf(seq, "present:                 no\n");
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x03,
+-				    &battery_mode);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x03,
++				    (u8 *)&battery_mode);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
  		goto end;
  	}
--
--	/* Battery Units */
--
--	units = acpi_battery_units(battery);
--
- 	seq_printf(seq, "alarm:                   ");
- 	if (!battery->alarm)
- 		seq_printf(seq, "unsupported\n");
- 	else
--		seq_printf(seq, "%u %sh\n", battery->alarm, units);
--
-+		seq_printf(seq, "%u %sh\n", battery->alarm,
-+				acpi_battery_units(battery));
-       end:
--
- 	if (result)
- 		seq_printf(seq, "ERROR: Unable to read battery alarm\n");
--
- 	return result;
- }
+ 	battery->info.capacity_mode = (battery_mode & 0x8000) >> 15;
  
-@@ -506,7 +446,7 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x10,
+-				    &battery->info.full_charge_capacity);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x10,
++				    (u8 *)&battery->info.full_charge_capacity);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
  	}
- 	alarm_string[count] = '\0';
- 	battery->alarm = simple_strtol(alarm_string, NULL, 0);
--	result = acpi_battery_set_alarm(battery, battery->alarm);
-+	result = acpi_battery_set_alarm(battery);
-       end:
- 	if (!result)
- 		return count;
-@@ -514,95 +454,76 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
- }
  
- typedef int(*print_func)(struct seq_file *seq, int result);
--typedef int(*get_func)(struct acpi_battery *battery);
--
--static struct acpi_read_mux {
--	print_func print;
--	get_func get;
--} acpi_read_funcs[ACPI_BATTERY_NUMFILES] = {
--	{.get = acpi_battery_get_info, .print = acpi_battery_print_info},
--	{.get = acpi_battery_get_state, .print = acpi_battery_print_state},
--	{.get = acpi_battery_get_alarm, .print = acpi_battery_print_alarm},
-+
-+static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
-+	acpi_battery_print_info,
-+	acpi_battery_print_state,
-+	acpi_battery_print_alarm,
- };
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x18,
+-				    &battery->info.design_capacity);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x18,
++				    (u8 *)&battery->info.design_capacity);
  
- static int acpi_battery_read(int fid, struct seq_file *seq)
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x19,
+-				    &battery->info.design_voltage);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x19,
++				    (u8 *)&battery->info.design_voltage);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x1a,
+-				    &specification_info);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x1a,
++				    (u8 *)&specification_info);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -579,32 +367,32 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 		battery->info.ipscale = 1;
+ 	}
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x1c,
+-				    &battery->info.serial_number);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x1c,
++				    (u8 *)&battery->info.serial_number);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_str(sbs, ACPI_SB_SMBUS_ADDR, 0x20,
+-				   battery->info.manufacturer_name);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_BLOCK, ACPI_SB_SMBUS_ADDR, 0x20,
++				   (u8 *)battery->info.manufacturer_name);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+ 				"acpi_sbs_read_str() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_str(sbs, ACPI_SB_SMBUS_ADDR, 0x21,
+-				   battery->info.device_name);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_BLOCK, ACPI_SB_SMBUS_ADDR, 0x21,
++				   (u8 *)battery->info.device_name);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+ 				"acpi_sbs_read_str() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_str(sbs, ACPI_SB_SMBUS_ADDR, 0x22,
+-				   battery->info.device_chemistry);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_BLOCK, ACPI_SB_SMBUS_ADDR, 0x22,
++				   (u8 *)battery->info.device_chemistry);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+ 				"acpi_sbs_read_str() failed"));
+@@ -617,38 +405,37 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 
+ static int acpi_battery_get_state(struct acpi_battery *battery)
  {
- 	struct acpi_battery *battery = seq->private;
- 	int result = acpi_battery_update(battery);
--	return acpi_read_funcs[fid].print(seq, result);
--}
--
--static int acpi_battery_read_info(struct seq_file *seq, void *offset)
--{
--	return acpi_battery_read(ACPI_BATTERY_INFO, seq);
--}
--
--static int acpi_battery_read_state(struct seq_file *seq, void *offset)
--{
--	return acpi_battery_read(ACPI_BATTERY_STATE, seq);
--}
--
--static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
--{
--	return acpi_battery_read(ACPI_BATTERY_ALARM, seq);
-+	return acpi_print_funcs[fid](seq, result);
- }
+-	struct acpi_sbs *sbs = battery->sbs;
+ 	int result = 0;
  
--static int acpi_battery_info_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_battery_read_info, PDE(inode)->data);
-+#define DECLARE_FILE_FUNCTIONS(_name) \
-+static int acpi_battery_read_##_name(struct seq_file *seq, void *offset) \
-+{ \
-+	return acpi_battery_read(_name##_tag, seq); \
-+} \
-+static int acpi_battery_##_name##_open_fs(struct inode *inode, struct file *file) \
-+{ \
-+	return single_open(file, acpi_battery_read_##_name, PDE(inode)->data); \
- }
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x09,
+-				    &battery->state.voltage);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x09,
++				    (u8 *)&battery->state.voltage);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
  
--static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_battery_read_state, PDE(inode)->data);
--}
-+DECLARE_FILE_FUNCTIONS(info);
-+DECLARE_FILE_FUNCTIONS(state);
-+DECLARE_FILE_FUNCTIONS(alarm);
-+
-+#undef DECLARE_FILE_FUNCTIONS
-+
-+#define FILE_DESCRIPTION_RO(_name) \
-+	{ \
-+	.name = __stringify(_name), \
-+	.mode = S_IRUGO, \
-+	.ops = { \
-+		.open = acpi_battery_##_name##_open_fs, \
-+		.read = seq_read, \
-+		.llseek = seq_lseek, \
-+		.release = single_release, \
-+		.owner = THIS_MODULE, \
-+		}, \
-+	}
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x0a,
+-				    &battery->state.amperage);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x0a,
++				    (u8 *)&battery->state.amperage);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
  
--static int acpi_battery_alarm_open_fs(struct inode *inode, struct file *file)
--{
--	return single_open(file, acpi_battery_read_alarm, PDE(inode)->data);
--}
-+#define FILE_DESCRIPTION_RW(_name) \
-+	{ \
-+	.name = __stringify(_name), \
-+	.mode = S_IFREG | S_IRUGO | S_IWUSR, \
-+	.ops = { \
-+		.open = acpi_battery_##_name##_open_fs, \
-+		.read = seq_read, \
-+		.llseek = seq_lseek, \
-+		.write = acpi_battery_write_##_name, \
-+		.release = single_release, \
-+		.owner = THIS_MODULE, \
-+		}, \
-+	}
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x0f,
+-				    &battery->state.remaining_capacity);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x0f,
++				    (u8 *)&battery->state.remaining_capacity);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
  
- static struct battery_file {
- 	struct file_operations ops;
- 	mode_t mode;
- 	char *name;
- } acpi_battery_file[] = {
--	{
--	.name = "info",
--	.mode = S_IRUGO,
--	.ops = {
--	.open = acpi_battery_info_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--	},
--	},
--	{
--	.name = "state",
--	.mode = S_IRUGO,
--	.ops = {
--	.open = acpi_battery_state_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--	},
--	},
--	{
--	.name = "alarm",
--	.mode = S_IFREG | S_IRUGO | S_IWUSR,
--	.ops = {
--	.open = acpi_battery_alarm_open_fs,
--	.read = seq_read,
--	.write = acpi_battery_write_alarm,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--	},
--	},
-+	FILE_DESCRIPTION_RO(info),
-+	FILE_DESCRIPTION_RO(state),
-+	FILE_DESCRIPTION_RW(alarm),
- };
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x16,
+-				    &battery->state.battery_state);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x16,
++				    (u8 *)&battery->state.battery_state);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
  
-+#undef FILE_DESCRIPTION_RO
-+#undef FILE_DESCRIPTION_RW
-+
- static int acpi_battery_add_fs(struct acpi_device *device)
+@@ -658,14 +445,13 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
  {
- 	struct proc_dir_entry *entry = NULL;
-@@ -627,23 +548,20 @@ static int acpi_battery_add_fs(struct acpi_device *device)
- 			entry->owner = THIS_MODULE;
+-	struct acpi_sbs *sbs = battery->sbs;
+ 	int result = 0;
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x01,
+-				    &battery->alarm.remaining_capacity);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x01,
++				    (u8 *)&battery->alarm.remaining_capacity);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -677,7 +463,6 @@ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ static int acpi_battery_set_alarm(struct acpi_battery *battery,
+ 				  unsigned long alarm)
+ {
+-	struct acpi_sbs *sbs = battery->sbs;
+ 	int result = 0;
+ 	s16 battery_mode;
+ 	int foo;
+@@ -693,29 +478,30 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery,
+ 
+ 	if (alarm > 0) {
+ 		result =
+-		    acpi_sbs_read_word(sbs, ACPI_SB_SMBUS_ADDR, 0x03,
+-				       &battery_mode);
++		    acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x03,
++				       (u8 *)&battery_mode);
+ 		if (result) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-					"acpi_sbs_read_word() failed"));
++					"acpi_smbus_read() failed"));
+ 			goto end;
+ 		}
+ 
++		battery_mode &= 0xbfff;
+ 		result =
+-		    acpi_sbs_write_word(sbs, ACPI_SB_SMBUS_ADDR, 0x01,
+-					battery_mode & 0xbfff);
++		    acpi_smbus_write(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x01,
++					(u8 *)&battery_mode, 2);
+ 		if (result) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-					"acpi_sbs_write_word() failed"));
++					"acpi_smbus_write() failed"));
+ 			goto end;
  		}
  	}
--
- 	return 0;
- }
  
--static int acpi_battery_remove_fs(struct acpi_device *device)
-+static void acpi_battery_remove_fs(struct acpi_device *device)
+ 	foo = alarm / (battery->info.capacity_mode ? 10 : 1);
+-	result = acpi_sbs_write_word(sbs, ACPI_SB_SMBUS_ADDR, 0x01, foo);
++	result = acpi_smbus_write(battery->sbs->hc, SMBUS_READ_WORD, ACPI_SB_SMBUS_ADDR, 0x01, (u8 *)&foo, 2);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_write_word() failed"));
++				"acpi_smbus_write() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -726,7 +512,6 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery,
+ 
+ static int acpi_battery_set_mode(struct acpi_battery *battery)
  {
- 	int i;
--	if (acpi_device_dir(device)) {
--		for (i = 0; i < ACPI_BATTERY_NUMFILES; ++i) {
--			remove_proc_entry(acpi_battery_file[i].name,
-+	if (!acpi_device_dir(device))
-+		return;
-+	for (i = 0; i < ACPI_BATTERY_NUMFILES; ++i)
-+		remove_proc_entry(acpi_battery_file[i].name,
- 				  acpi_device_dir(device));
--		}
--		remove_proc_entry(acpi_device_bid(device), acpi_battery_dir);
--		acpi_device_dir(device) = NULL;
+-	struct acpi_sbs *sbs = battery->sbs;
+ 	int result = 0;
+ 	s16 battery_mode;
+ 
+@@ -734,11 +519,11 @@ static int acpi_battery_set_mode(struct acpi_battery *battery)
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_word(sbs,
+-				    ACPI_SB_SMBUS_ADDR, 0x03, &battery_mode);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
++				    ACPI_SB_SMBUS_ADDR, 0x03, (u8 *)&battery_mode);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -747,19 +532,19 @@ static int acpi_battery_set_mode(struct acpi_battery *battery)
+ 	} else {
+ 		battery_mode |= 0x8000;
+ 	}
+-	result = acpi_sbs_write_word(sbs,
+-				     ACPI_SB_SMBUS_ADDR, 0x03, battery_mode);
++	result = acpi_smbus_write(battery->sbs->hc, SMBUS_READ_WORD,
++				     ACPI_SB_SMBUS_ADDR, 0x03, (u8 *)&battery_mode, 2);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_write_word() failed"));
++				"acpi_smbus_write() failed"));
+ 		goto end;
+ 	}
+ 
+-	result = acpi_sbs_read_word(sbs,
+-				    ACPI_SB_SMBUS_ADDR, 0x03, &battery_mode);
++	result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
++				    ACPI_SB_SMBUS_ADDR, 0x03, (u8 *)&battery_mode);
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -815,12 +600,12 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ 	int result = 0;
+ 	s16 charger_status;
+ 
+-	result = acpi_sbs_read_word(sbs, ACPI_SBC_SMBUS_ADDR, 0x13,
+-				    &charger_status);
++	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBC_SMBUS_ADDR, 0x13,
++				    (u8 *)&charger_status);
+ 
+ 	if (result) {
+ 		ACPI_EXCEPTION((AE_INFO, AE_ERROR,
+-				"acpi_sbs_read_word() failed"));
++				"acpi_smbus_read() failed"));
+ 		goto end;
+ 	}
+ 
+@@ -1614,15 +1399,6 @@ static int acpi_sbs_add(struct acpi_device *device)
+ 	struct acpi_sbs *sbs = NULL;
+ 	int result = 0, remove_result = 0;
+ 	int id;
+-	acpi_status status = AE_OK;
+-	unsigned long val;
+-
+-	status =
+-	    acpi_evaluate_integer(device->handle, "_EC", NULL, &val);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, AE_ERROR, "Error obtaining _EC"));
+-		return -EIO;
 -	}
  
--	return 0;
-+	remove_proc_entry(acpi_device_bid(device), acpi_battery_dir);
-+	acpi_device_dir(device) = NULL;
- }
+ 	sbs = kzalloc(sizeof(struct acpi_sbs), GFP_KERNEL);
+ 	if (!sbs) {
+@@ -1635,8 +1411,8 @@ static int acpi_sbs_add(struct acpi_device *device)
  
- /* --------------------------------------------------------------------------
-@@ -670,14 +588,11 @@ static int acpi_battery_add(struct acpi_device *device)
- 	int result = 0;
- 	acpi_status status = 0;
- 	struct acpi_battery *battery = NULL;
--
- 	if (!device)
- 		return -EINVAL;
--
- 	battery = kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
- 	if (!battery)
- 		return -ENOMEM;
--
- 	battery->device = device;
- 	strcpy(acpi_device_name(device), ACPI_BATTERY_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
-@@ -687,7 +602,6 @@ static int acpi_battery_add(struct acpi_device *device)
- 	result = acpi_battery_add_fs(device);
- 	if (result)
- 		goto end;
--
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_ALL_NOTIFY,
- 					     acpi_battery_notify, battery);
-@@ -696,18 +610,14 @@ static int acpi_battery_add(struct acpi_device *device)
- 		result = -ENODEV;
- 		goto end;
- 	}
--
- 	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
- 	       ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
- 	       device->status.battery_present ? "present" : "absent");
--
-       end:
--
- 	if (result) {
- 		acpi_battery_remove_fs(device);
- 		kfree(battery);
- 	}
--
- 	return result;
- }
+ 	sbs_mutex_lock(sbs);
  
-@@ -718,17 +628,13 @@ static int acpi_battery_remove(struct acpi_device *device, int type)
+-	sbs->base = 0xff & (val >> 8);
+ 	sbs->device = device;
++	sbs->hc = acpi_driver_data(device->parent);
  
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
--
- 	battery = acpi_driver_data(device);
--
- 	status = acpi_remove_notify_handler(device->handle,
- 					    ACPI_ALL_NOTIFY,
- 					    acpi_battery_notify);
--
- 	acpi_battery_remove_fs(device);
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
--
- 	return 0;
- }
- 
-@@ -743,33 +649,35 @@ static int acpi_battery_resume(struct acpi_device *device)
- 	return 0;
- }
- 
-+static struct acpi_driver acpi_battery_driver = {
-+	.name = "battery",
-+	.class = ACPI_BATTERY_CLASS,
-+	.ids = battery_device_ids,
+ 	strcpy(acpi_device_name(device), ACPI_SBS_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_SBS_CLASS);
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+new file mode 100644
+index 0000000..046d7c3
+--- /dev/null
++++ b/drivers/acpi/sbshc.c
+@@ -0,0 +1,309 @@
++/*
++ * SMBus driver for ACPI Embedded Controller (v0.1)
++ *
++ * Copyright (c) 2007 Alexey Starikovskiy
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation version 2.
++ */
++
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++#include <acpi/actypes.h>
++#include <linux/wait.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include "sbshc.h"
++
++#define ACPI_SMB_HC_CLASS	"smbus_host_controller"
++#define ACPI_SMB_HC_DEVICE_NAME	"ACPI SMBus HC"
++
++struct acpi_smb_hc {
++	struct acpi_ec *ec;
++	struct mutex lock;
++	wait_queue_head_t wait;
++	u8 offset;
++	u8 query_bit;
++	smbus_alarm_callback callback;
++	void *context;
++};
++
++static int acpi_smbus_hc_add(struct acpi_device *device);
++static int acpi_smbus_hc_remove(struct acpi_device *device, int type);
++
++static const struct acpi_device_id sbs_device_ids[] = {
++	{"ACPI0001", 0},
++	{"ACPI0005", 0},
++	{"", 0},
++};
++
++MODULE_DEVICE_TABLE(acpi, sbs_device_ids);
++
++static struct acpi_driver acpi_smb_hc_driver = {
++	.name = "smbus_hc",
++	.class = ACPI_SMB_HC_CLASS,
++	.ids = sbs_device_ids,
 +	.ops = {
-+		.add = acpi_battery_add,
-+		.resume = acpi_battery_resume,
-+		.remove = acpi_battery_remove,
++		.add = acpi_smbus_hc_add,
++		.remove = acpi_smbus_hc_remove,
 +		},
 +};
 +
- static int __init acpi_battery_init(void)
- {
--	int result;
--
- 	if (acpi_disabled)
- 		return -ENODEV;
--
- 	acpi_battery_dir = acpi_lock_battery_dir();
- 	if (!acpi_battery_dir)
- 		return -ENODEV;
--
--	result = acpi_bus_register_driver(&acpi_battery_driver);
--	if (result < 0) {
-+	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
- 		acpi_unlock_battery_dir(acpi_battery_dir);
- 		return -ENODEV;
- 	}
--
- 	return 0;
- }
- 
- static void __exit acpi_battery_exit(void)
- {
- 	acpi_bus_unregister_driver(&acpi_battery_driver);
--
- 	acpi_unlock_battery_dir(acpi_battery_dir);
--
--	return;
- }
- 
- module_init(acpi_battery_init);
++union acpi_smb_status {
++	u8 raw;
++	struct {
++		u8 status:5;
++		u8 reserved:1;
++		u8 alarm:1;
++		u8 done:1;
++	} fields;
++};
++
++enum acpi_smb_status_codes {
++	SMBUS_OK = 0,
++	SMBUS_UNKNOWN_FAILURE = 0x07,
++	SMBUS_DEVICE_ADDRESS_NACK = 0x10,
++	SMBUS_DEVICE_ERROR = 0x11,
++	SMBUS_DEVICE_COMMAND_ACCESS_DENIED = 0x12,
++	SMBUS_UNKNOWN_ERROR = 0x13,
++	SMBUS_DEVICE_ACCESS_DENIED = 0x17,
++	SMBUS_TIMEOUT = 0x18,
++	SMBUS_HOST_UNSUPPORTED_PROTOCOL = 0x19,
++	SMBUS_BUSY = 0x1a,
++	SMBUS_PEC_ERROR = 0x1f,
++};
++
++enum acpi_smb_offset {
++	ACPI_SMB_PROTOCOL = 0,	/* protocol, PEC */
++	ACPI_SMB_STATUS = 1,	/* status */
++	ACPI_SMB_ADDRESS = 2,	/* address */
++	ACPI_SMB_COMMAND = 3,	/* command */
++	ACPI_SMB_DATA = 4,	/* 32 data registers */
++	ACPI_SMB_BLOCK_COUNT = 0x24,	/* number of data bytes */
++	ACPI_SMB_ALARM_ADDRESS = 0x25,	/* alarm address */
++	ACPI_SMB_ALARM_DATA = 0x26,	/* 2 bytes alarm data */
++};
++
++static inline int smb_hc_read(struct acpi_smb_hc *hc, u8 address, u8 *data)
++{
++	return ec_read(hc->offset + address, data);
++}
++
++static inline int smb_hc_write(struct acpi_smb_hc *hc, u8 address, u8 data)
++{
++	return ec_write(hc->offset + address, data);
++}
++
++static inline int smb_check_done(struct acpi_smb_hc *hc)
++{
++	union acpi_smb_status status = {.raw = 0};
++	smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw);
++	return status.fields.done && (status.fields.status == SMBUS_OK);
++}
++
++static int wait_transaction_complete(struct acpi_smb_hc *hc, int timeout)
++{
++	if (wait_event_timeout(hc->wait, smb_check_done(hc),
++			       msecs_to_jiffies(timeout)))
++		return 0;
++	else
++		return -ETIME;
++}
++
++int acpi_smbus_transaction(struct acpi_smb_hc *hc, u8 protocol, u8 address,
++		    u8 command, u8 *data, u8 length)
++{
++	int ret = -EFAULT, i;
++	u8 temp, sz = 0;
++
++	mutex_lock(&hc->lock);
++	if (smb_hc_read(hc, ACPI_SMB_PROTOCOL, &temp))
++		goto end;
++	if (temp) {
++		ret = -EBUSY;
++		goto end;
++	}
++	smb_hc_write(hc, ACPI_SMB_COMMAND, command);
++	smb_hc_write(hc, ACPI_SMB_COMMAND, command);
++	if (!(protocol & 0x01)) {
++		smb_hc_write(hc, ACPI_SMB_BLOCK_COUNT, length);
++		for (i = 0; i < length; ++i)
++			smb_hc_write(hc, ACPI_SMB_DATA + i, data[i]);
++	}
++	smb_hc_write(hc, ACPI_SMB_ADDRESS, address << 1);
++	smb_hc_write(hc, ACPI_SMB_PROTOCOL, protocol);
++	/*
++	 * Wait for completion. Save the status code, data size,
++	 * and data into the return package (if required by the protocol).
++	 */
++	ret = wait_transaction_complete(hc, 1000);
++	if (ret || !(protocol & 0x01))
++		goto end;
++	switch (protocol) {
++	case SMBUS_RECEIVE_BYTE:
++	case SMBUS_READ_BYTE:
++		sz = 1;
++		break;
++	case SMBUS_READ_WORD:
++		sz = 2;
++		break;
++	case SMBUS_READ_BLOCK:
++		if (smb_hc_read(hc, ACPI_SMB_BLOCK_COUNT, &sz)) {
++			ret = -EFAULT;
++			goto end;
++		}
++		sz &= 0x1f;
++		break;
++	}
++	for (i = 0; i < sz; ++i)
++		smb_hc_read(hc, ACPI_SMB_DATA + i, &data[i]);
++      end:
++	mutex_unlock(&hc->lock);
++	return ret;
++}
++
++int acpi_smbus_read(struct acpi_smb_hc *hc, u8 protocol, u8 address,
++		    u8 command, u8 *data)
++{
++	return acpi_smbus_transaction(hc, protocol, address, command, data, 0);
++}
++
++EXPORT_SYMBOL_GPL(acpi_smbus_read);
++
++int acpi_smbus_write(struct acpi_smb_hc *hc, u8 protocol, u8 address,
++		     u8 command, u8 *data, u8 length)
++{
++	return acpi_smbus_transaction(hc, protocol, address, command, data, length);
++}
++
++EXPORT_SYMBOL_GPL(acpi_smbus_write);
++
++int acpi_smbus_register_callback(struct acpi_smb_hc *hc,
++			         smbus_alarm_callback callback, void *context)
++{
++	mutex_lock(&hc->lock);
++	hc->callback = callback;
++	hc->context = context;
++	mutex_unlock(&hc->lock);
++	return 0;
++}
++
++EXPORT_SYMBOL_GPL(acpi_smbus_register_callback);
++
++int acpi_smbus_unregister_callback(struct acpi_smb_hc *hc)
++{
++	mutex_lock(&hc->lock);
++	hc->callback = NULL;
++	hc->context = NULL;
++	mutex_unlock(&hc->lock);
++	return 0;
++}
++
++EXPORT_SYMBOL_GPL(acpi_smbus_unregister_callback);
++
++static void acpi_smbus_callback(void *context)
++{
++	struct acpi_smb_hc *hc = context;
++
++	if (hc->callback)
++		hc->callback(hc->context);
++}
++
++static int smbus_alarm(void *context)
++{
++	struct acpi_smb_hc *hc = context;
++	union acpi_smb_status status;
++	if (smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw))
++		return 0;
++	/* Check if it is only a completion notify */
++	if (status.fields.done)
++		wake_up(&hc->wait);
++	if (!status.fields.alarm)
++		return 0;
++	mutex_lock(&hc->lock);
++	smb_hc_write(hc, ACPI_SMB_STATUS, status.raw);
++	if (hc->callback)
++		acpi_os_execute(OSL_GPE_HANDLER, acpi_smbus_callback, hc);
++	mutex_unlock(&hc->lock);
++	return 0;
++}
++
++typedef int (*acpi_ec_query_func) (void *data);
++
++extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
++			      acpi_handle handle, acpi_ec_query_func func,
++			      void *data);
++
++static int acpi_smbus_hc_add(struct acpi_device *device)
++{
++	int status;
++	unsigned long val;
++	struct acpi_smb_hc *hc;
++
++	if (!device)
++		return -EINVAL;
++
++	status = acpi_evaluate_integer(device->handle, "_EC", NULL, &val);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_ERR PREFIX "error obtaining _EC.\n");
++		return -EIO;
++	}
++
++	strcpy(acpi_device_name(device), ACPI_SMB_HC_DEVICE_NAME);
++	strcpy(acpi_device_class(device), ACPI_SMB_HC_CLASS);
++
++	hc = kzalloc(sizeof(struct acpi_smb_hc), GFP_KERNEL);
++	if (!hc)
++		return -ENOMEM;
++	mutex_init(&hc->lock);
++	init_waitqueue_head(&hc->wait);
++
++	hc->ec = acpi_driver_data(device->parent);
++	hc->offset = (val >> 8) & 0xff;
++	hc->query_bit = val & 0xff;
++	acpi_driver_data(device) = hc;
++
++	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
++	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
++		hc->ec, hc->offset, hc->query_bit);
++
++	return 0;
++}
++
++extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
++
++static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
++{
++	struct acpi_smb_hc *hc;
++
++	if (!device)
++		return -EINVAL;
++
++	hc = acpi_driver_data(device);
++	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
++	kfree(hc);
++	return 0;
++}
++
++static int __init acpi_smb_hc_init(void)
++{
++	int result;
++
++	result = acpi_bus_register_driver(&acpi_smb_hc_driver);
++	if (result < 0)
++		return -ENODEV;
++	return 0;
++}
++
++static void __exit acpi_smb_hc_exit(void)
++{
++	acpi_bus_unregister_driver(&acpi_smb_hc_driver);
++}
++
++module_init(acpi_smb_hc_init);
++module_exit(acpi_smb_hc_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Alexey Starikovskiy");
++MODULE_DESCRIPTION("ACPI SMBus HC driver");
+diff --git a/drivers/acpi/sbshc.h b/drivers/acpi/sbshc.h
+new file mode 100644
+index 0000000..3bda349
+--- /dev/null
++++ b/drivers/acpi/sbshc.h
+@@ -0,0 +1,27 @@
++struct acpi_smb_hc;
++enum acpi_smb_protocol {
++	SMBUS_WRITE_QUICK = 2,
++	SMBUS_READ_QUICK = 3,
++	SMBUS_SEND_BYTE = 4,
++	SMBUS_RECEIVE_BYTE = 5,
++	SMBUS_WRITE_BYTE = 6,
++	SMBUS_READ_BYTE = 7,
++	SMBUS_WRITE_WORD  = 8,
++	SMBUS_READ_WORD  = 9,
++	SMBUS_WRITE_BLOCK = 0xa,
++	SMBUS_READ_BLOCK = 0xb,
++	SMBUS_PROCESS_CALL = 0xc,
++	SMBUS_BLOCK_PROCESS_CALL = 0xd,
++};
++
++static const u8 SMBUS_PEC = 0x80;
++
++typedef void (*smbus_alarm_callback)(void *context);
++
++extern int acpi_smbus_read(struct acpi_smb_hc *hc, u8 protocol, u8 address,
++	       u8 command, u8 * data);
++extern int acpi_smbus_write(struct acpi_smb_hc *hc, u8 protocol, u8 slave_address,
++		u8 command, u8 * data, u8 length);
++extern int acpi_smbus_register_callback(struct acpi_smb_hc *hc,
++			         smbus_alarm_callback callback, void *context);
++extern int acpi_smbus_unregister_callback(struct acpi_smb_hc *hc);
 -- 
 1.5.3.1.27.g57543
