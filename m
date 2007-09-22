@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/32] ACPI: EC: Drop ECDT-based boot_ec as soon as we find DSDT-based one.
-Date: Fri, 21 Sep 2007 23:46:25 -0400
-Message-ID: <11904328141573-git-send-email-lenb@kernel.org>
+Subject: [PATCH 17/32] ACPI: video: Don't call absent methods
+Date: Fri, 21 Sep 2007 23:46:23 -0400
+Message-ID: <11904328122495-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904327991059-git-send-email-lenb@kernel.org>
  <11904328003655-git-send-email-lenb@kernel.org>
@@ -19,225 +19,69 @@ References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904328102889-git-send-email-lenb@kernel.org>
  <1190432811241-git-send-email-lenb@kernel.org>
  <11904328111749-git-send-email-lenb@kernel.org>
- <11904328122495-git-send-email-lenb@kernel.org>
- <1190432813700-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:18767 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:60100 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757308AbXIVDqz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:55 -0400
-In-Reply-To: <1190432813700-git-send-email-lenb@kernel.org>
-Message-Id: <4c611060660f0de3e9b8f02df207312bc6f5c331.1190432418.git.len.brown@intel.com>
+	with ESMTP id S1757187AbXIVDqx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:46:53 -0400
+In-Reply-To: <11904328111749-git-send-email-lenb@kernel.org>
+Message-Id: <4500ca8e221e72cc38e7c239b9b1a041031ee450.1190432418.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Ryan May <rmay@ou.edu>, Len Brown <len.brown@intel.com>
 
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-ASUS notebooks have numerous problems with EC initialization
-This patch tries to work around three known issues reported
-in bugzilla 8598, 8709 and 8909/8919.
-
+Signed-off-by: Ryan May <rmay@ou.edu>
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |   90 +++++++++++++++++++++++------------------------------
- 1 files changed, 39 insertions(+), 51 deletions(-)
+ drivers/acpi/video.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 3f7935a..9cd7997 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -121,6 +121,7 @@ static struct acpi_ec {
- 	atomic_t event_count;
- 	wait_queue_head_t wait;
- 	struct list_head list;
-+	u8 handlers_installed;
- } *boot_ec, *first_ec;
- 
- /* --------------------------------------------------------------------------
-@@ -680,32 +681,50 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 	status = acpi_evaluate_integer(handle, "_GPE", NULL, &ec->gpe);
- 	if (ACPI_FAILURE(status))
- 		return status;
--
- 	/* Find and register all query methods */
- 	acpi_walk_namespace(ACPI_TYPE_METHOD, handle, 1,
- 			    acpi_ec_register_query_methods, ec, NULL);
--
- 	/* Use the global lock for all EC transactions? */
- 	acpi_evaluate_integer(handle, "_GLK", NULL, &ec->global_lock);
--
- 	ec->handle = handle;
--
--	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
--			  ec->gpe, ec->command_addr, ec->data_addr);
--
- 	return AE_CTRL_TERMINATE;
- }
- 
-+static void ec_remove_handlers(struct acpi_ec *ec)
-+{
-+	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
-+				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
-+		printk(KERN_ERR PREFIX "failed to remove space handler\n");
-+	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
-+				&acpi_ec_gpe_handler)))
-+		printk(KERN_ERR PREFIX "failed to remove gpe handler\n");
-+	ec->handlers_installed = 0;
-+}
-+
- static int acpi_ec_add(struct acpi_device *device)
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 3c9bb85..83aa41c 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -409,14 +409,16 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
+ static int
+ acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
  {
- 	struct acpi_ec *ec = NULL;
+-	int status;
++	int status = AE_OK;
+ 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+ 	struct acpi_object_list args = { 1, &arg0 };
  
- 	if (!device)
- 		return -EINVAL;
--
- 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
  
-+	/* Check for boot EC */
-+	if (boot_ec) {
-+		if (boot_ec->handle == device->handle) {
-+			/* Pre-loaded EC from DSDT, just move pointer */
-+			ec = boot_ec;
-+			boot_ec = NULL;
-+			goto end;
-+		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
-+			/* ECDT-based EC, time to shut it down */
-+			ec_remove_handlers(boot_ec);
-+			kfree(boot_ec);
-+			first_ec = boot_ec = NULL;
-+		}
-+	}
-+
- 	ec = make_acpi_ec();
- 	if (!ec)
- 		return -ENOMEM;
-@@ -715,25 +734,14 @@ static int acpi_ec_add(struct acpi_device *device)
- 		kfree(ec);
- 		return -EINVAL;
- 	}
+ 	arg0.integer.value = level;
+-	status = acpi_evaluate_object(device->dev->handle, "_BCM", &args, NULL);
 -
--	/* Check if we found the boot EC */
--	if (boot_ec) {
--		if (boot_ec->gpe == ec->gpe) {
--			/* We might have incorrect info for GL at boot time */
--			mutex_lock(&boot_ec->lock);
--			boot_ec->global_lock = ec->global_lock;
--			/* Copy handlers from new ec into boot ec */
--			list_splice(&ec->list, &boot_ec->list);
--			mutex_unlock(&boot_ec->lock);
--			kfree(ec);
--			ec = boot_ec;
--		}
--	} else
--		first_ec = ec;
- 	ec->handle = device->handle;
-+      end:
-+	if (!first_ec)
-+		first_ec = ec;
- 	acpi_driver_data(device) = ec;
--
- 	acpi_ec_add_fs(device);
-+	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
-+			  ec->gpe, ec->command_addr, ec->data_addr);
- 	return 0;
++	if (device->cap._BCM)
++		status = acpi_evaluate_object(device->dev->handle, "_BCM",
++					      &args, NULL);
++	device->brightness->curr = level;
+ 	printk(KERN_DEBUG "set_level status: %x\n", status);
+ 	return status;
  }
- 
-@@ -756,10 +764,7 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
- 	acpi_driver_data(device) = NULL;
- 	if (ec == first_ec)
- 		first_ec = NULL;
--
--	/* Don't touch boot EC */
--	if (boot_ec != ec)
--		kfree(ec);
-+	kfree(ec);
- 	return 0;
- }
- 
-@@ -789,6 +794,8 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
- static int ec_install_handlers(struct acpi_ec *ec)
+@@ -425,11 +427,11 @@ static int
+ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 					unsigned long *level)
  {
- 	acpi_status status;
-+	if (ec->handlers_installed)
-+		return 0;
- 	status = acpi_install_gpe_handler(NULL, ec->gpe,
- 					  ACPI_GPE_EDGE_TRIGGERED,
- 					  &acpi_ec_gpe_handler, ec);
-@@ -807,6 +814,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 		return -ENODEV;
- 	}
- 
-+	ec->handlers_installed = 1;
- 	return 0;
+-	int status;
+-
+-	status = acpi_evaluate_integer(device->dev->handle, "_BQC", NULL, level);
+-
+-	return status;
++	if (device->cap._BQC)
++		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
++					     level);
++	*level = device->brightness->curr;
++	return AE_OK;
  }
  
-@@ -823,41 +831,22 @@ static int acpi_ec_start(struct acpi_device *device)
- 	if (!ec)
- 		return -EINVAL;
- 
--	/* Boot EC is already working */
--	if (ec != boot_ec)
--		ret = ec_install_handlers(ec);
-+	ret = ec_install_handlers(ec);
- 
- 	/* EC is fully operational, allow queries */
- 	atomic_set(&ec->query_pending, 0);
--
- 	return ret;
- }
- 
- static int acpi_ec_stop(struct acpi_device *device, int type)
- {
--	acpi_status status;
- 	struct acpi_ec *ec;
--
- 	if (!device)
- 		return -EINVAL;
--
- 	ec = acpi_driver_data(device);
- 	if (!ec)
- 		return -EINVAL;
--
--	/* Don't touch boot EC */
--	if (ec == boot_ec)
--		return 0;
--
--	status = acpi_remove_address_space_handler(ec->handle,
--						   ACPI_ADR_SPACE_EC,
--						   &acpi_ec_space_handler);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	status = acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	ec_remove_handlers(ec);
- 
- 	return 0;
- }
-@@ -877,7 +866,7 @@ int __init acpi_ec_ecdt_probe(void)
- 	status = acpi_get_table(ACPI_SIG_ECDT, 1,
- 				(struct acpi_table_header **)&ecdt_ptr);
- 	if (ACPI_SUCCESS(status)) {
--		printk(KERN_INFO PREFIX "EC description table is found, configuring boot EC\n\n");
-+		printk(KERN_INFO PREFIX "EC description table is found, configuring boot EC\n");
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
-@@ -899,7 +888,6 @@ int __init acpi_ec_ecdt_probe(void)
-       error:
- 	kfree(boot_ec);
- 	boot_ec = NULL;
--
- 	return -ENODEV;
- }
- 
+ static int
 -- 
 1.5.3.1.27.g57543
