@@ -1,75 +1,61 @@
-From: Hernan G Solari <hgsolari@gmail.com>
-Subject: ACER 5050-4697 ACPI crashes
-Date: Fri, 21 Sep 2007 17:36:13 -0300
-Message-ID: <46F42B3D.1050607@gmail.com>
-Reply-To: hgsolari@gmail.com, solari@df.uba.ar
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: suspend: consolidate handling of Sx states addendum
+Date: Fri, 21 Sep 2007 21:59:14 -0400
+Message-ID: <200709212159.14418.lenb@kernel.org>
+References: <200709211647.24861.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.224]:33581 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756224AbXIUUfc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 16:35:32 -0400
-Received: by wx-out-0506.google.com with SMTP id h31so756693wxd
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Sep 2007 13:35:32 -0700 (PDT)
-Received: from localhost ([127.0.0.1] ident=hernan)
-	by localhost.localdomain with esmtp (Exim 4.50)
-	id 1IYpEU-0001P7-7u
-	for linux-acpi@vger.kernel.org; Fri, 21 Sep 2007 17:36:14 -0300
+Received: from hera.kernel.org ([140.211.167.34]:44035 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755909AbXIVCAA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2007 22:00:00 -0400
+In-Reply-To: <200709211647.24861.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Frans Pop <elendil@planet.nl>, Andrew Morton <akpm@linux-foundation.org>
 
-Hello
-    I have a new laptop, an ACER 5050-4697 that sells "South of the
-border" (from Mexico to
-Argentina) relatively inexpensive...
-    It is new not only in the sense that I just got it, but also it is =
-a
-new model with new chips mostly unsupported under Linux.
-    you can see the log of my attempts at making Linux work on this box=
- at
-http://www.df.uba.ar/~solari/acer.html
-(No shame, Acer can only get the 32bit Visa working on this AMD-64
-machine and
-the BlueTooth device is not supported, although it is there...)
+Applied.
 
-I started with debian Etch 4.0 with kernel 2.6.18.4 and soon updated th=
-e
-kernel to the last stable release 2.6.22 (no patch).
+thanks,
+-Len
 
-With both kernels I have ACPI problems at booting time.
-2.6.18.4
-    does not find the battery
-    hangs when installing the module ac.ko
-    removing the module ac-.ko it hangs later when launching the daemon=
- hald
-    working under acpi=3Doff on boot line
-2.6.22
-    hangs at boot time with last words
-ACPI Exception (processor_core=3D0781): AE_NOT_FOUND,  Processor Device=
- is not
-present [20070126]
-    works with acpi=3Doff or acpi=3Dht
-
-you can find dmesg output at the link provided above.
-ACPI tables downloaded and recompiled without errors or warnings (did I
-miss soemthing?)
-You can find them in a tarball at:
-http://www.df.uba.ar/~solari/ACER/acpidsl.tgz
-
-I hope you can help me, thanks in any case
-                                                                      H=
-ernan
-
-PS: using Linux since version 0.99
-
---=20
-Hern=E1n Gustavo Solari, solari@df.uba.ar, http://www.df.uba.ar/~solari
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Friday 21 September 2007 10:47, Rafael J. Wysocki wrote:
+> From: Frans Pop <elendil@planet.nl>
+> Date:   Thu Sep 20 22:27:44 2007 +0200
+> 
+> Make the S0 state be always reported as supported
+> 
+> Signed-off: Frans Pop <elendil@planet.nl>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/sleep/main.c |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6.23-rc7/drivers/acpi/sleep/main.c
+> ===================================================================
+> --- linux-2.6.23-rc7.orig/drivers/acpi/sleep/main.c
+> +++ linux-2.6.23-rc7/drivers/acpi/sleep/main.c
+> @@ -424,9 +424,11 @@ int __init acpi_sleep_init(void)
+>  	if (acpi_disabled)
+>  		return 0;
+>  
+> -printk(KERN_INFO PREFIX "(supports");
+> +	sleep_states[ACPI_STATE_S0] = 1;
+> +	printk(KERN_INFO PREFIX "(supports S0");
+> +
+>  #ifdef CONFIG_SUSPEND
+> -	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
+> +	for (i = ACPI_STATE_S1; i < ACPI_STATE_S4; i++) {
+>  		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+>  		if (ACPI_SUCCESS(status)) {
+>  			sleep_states[i] = 1;
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
