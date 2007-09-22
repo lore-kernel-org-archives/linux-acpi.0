@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 27/32] ACPI: thinkpad-acpi: keep track of module state
-Date: Fri, 21 Sep 2007 23:46:33 -0400
-Message-ID: <1190432820190-git-send-email-lenb@kernel.org>
+Subject: [PATCH 28/32] ACPI: thinkpad-acpi: check version of hot key firmware
+Date: Fri, 21 Sep 2007 23:46:34 -0400
+Message-ID: <1190432821532-git-send-email-lenb@kernel.org>
 References: <11904327981905-git-send-email-lenb@kernel.org>
  <11904327991059-git-send-email-lenb@kernel.org>
  <11904328003655-git-send-email-lenb@kernel.org>
@@ -29,13 +29,14 @@ References: <11904327981905-git-send-email-lenb@kernel.org>
  <1190432818954-git-send-email-lenb@kernel.org>
  <11904328193063-git-send-email-lenb@kernel.org>
  <11904328192862-git-send-email-lenb@kernel.org>
+ <1190432820190-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:17477 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:53613 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756927AbXIVDrJ (ORCPT
+	with ESMTP id S1757535AbXIVDrJ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2007 23:47:09 -0400
-In-Reply-To: <11904328192862-git-send-email-lenb@kernel.org>
-Message-Id: <bb9267cf59a5419b512a9d100155050e17b037d7.1190432418.git.len.brown@intel.com>
+In-Reply-To: <1190432820190-git-send-email-lenb@kernel.org>
+Message-Id: <5a45e2370d4cb99f8afc48274e4bba0978a089df.1190432418.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1190432417.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -45,88 +46,68 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Keep track of module state (init, running, exit).  This makes it trivially
-easy to avoid running any interrupt handlers, threads, or any other async
-activity before we are ready, or when we want to go away.
+Check the HKEY firmware version (HKEY.MHKV handler), and refuse to load if
+it is unknown.  Use this instead of the presence of HKEY.DHKV to detect hot
+key mask capability.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   28 +++++++++++++++++++++++-----
+ 1 files changed, 23 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 0ced9d6..2155139 100644
+index 2155139..9a61140 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -117,6 +117,12 @@ IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
+@@ -999,6 +999,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
  
- #define __unused __attribute__ ((unused))
+ 	int res, i;
+ 	int status;
++	int hkeyv;
  
-+static enum {
-+	TPACPI_LIFE_INIT = 0,
-+	TPACPI_LIFE_RUNNING,
-+	TPACPI_LIFE_EXITING,
-+} tpacpi_lifecycle;
-+
- /****************************************************************************
-  ****************************************************************************
-  *
-@@ -342,6 +348,9 @@ static void dispatch_acpi_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct ibm_struct *ibm = data;
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
-+	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
-+		return;
-+
- 	if (!ibm || !ibm->acpi || !ibm->acpi->notify)
- 		return;
+@@ -1024,18 +1025,35 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			return res;
  
-@@ -3899,6 +3908,9 @@ static void fan_watchdog_fire(struct work_struct *ignored)
- {
- 	int rc;
+ 		/* mask not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
+-		   A30, R30, R31, T20-22, X20-21, X22-24 */
+-		tp_features.hotkey_mask =
+-			acpi_evalf(hkey_handle, NULL, "DHKN", "qv");
++		   A30, R30, R31, T20-22, X20-21, X22-24.  Detected by checking
++		   for HKEY interface version 0x100 */
++		if (acpi_evalf(hkey_handle, &hkeyv, "MHKV", "qd")) {
++			if ((hkeyv >> 8) != 1) {
++				printk(IBM_ERR "unknown version of the "
++				       "HKEY interface: 0x%x\n", hkeyv);
++				printk(IBM_ERR "please report this to %s\n",
++				       IBM_MAIL);
++			} else {
++				/*
++				 * MHKV 0x100 in A31, R40, R40e,
++				 * T4x, X31, and later
++				 * */
++				tp_features.hotkey_mask = 1;
++			}
++		}
  
-+	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
-+		return;
-+
- 	printk(IBM_NOTICE "fan watchdog: enabling fan\n");
- 	rc = fan_set_enable();
- 	if (rc < 0) {
-@@ -3919,7 +3931,8 @@ static void fan_watchdog_reset(void)
- 	if (fan_watchdog_active)
- 		cancel_delayed_work(&fan_watchdog_task);
+ 		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
+ 			str_supported(tp_features.hotkey_mask));
  
--	if (fan_watchdog_maxinterval > 0) {
-+	if (fan_watchdog_maxinterval > 0 &&
-+	    tpacpi_lifecycle != TPACPI_LIFE_EXITING) {
- 		fan_watchdog_active = 1;
- 		if (!schedule_delayed_work(&fan_watchdog_task,
- 				msecs_to_jiffies(fan_watchdog_maxinterval
-@@ -4685,6 +4698,8 @@ static int __init thinkpad_acpi_module_init(void)
- {
- 	int ret, i;
+ 		if (tp_features.hotkey_mask) {
+-			/* MHKA available in A31, R40, R40e, T4x, X31, and later */
+ 			if (!acpi_evalf(hkey_handle, &hotkey_all_mask,
+-					"MHKA", "qd"))
++					"MHKA", "qd")) {
++				printk(IBM_ERR
++				       "missing MHKA handler, "
++				       "please report this to %s\n",
++				       IBM_MAIL);
+ 				hotkey_all_mask = 0x080cU; /* FN+F12, FN+F4, FN+F3 */
++			}
+ 		}
  
-+	tpacpi_lifecycle = TPACPI_LIFE_INIT;
-+
- 	/* Parameter checking */
- 	if (hotkey_report_mode > 2)
- 		return -EINVAL;
-@@ -4781,6 +4796,7 @@ static int __init thinkpad_acpi_module_init(void)
- 		tp_features.input_device_registered = 1;
- 	}
- 
-+	tpacpi_lifecycle = TPACPI_LIFE_RUNNING;
- 	return 0;
- }
- 
-@@ -4788,6 +4804,8 @@ static void thinkpad_acpi_module_exit(void)
- {
- 	struct ibm_struct *ibm, *itmp;
- 
-+	tpacpi_lifecycle = TPACPI_LIFE_EXITING;
-+
- 	list_for_each_entry_safe_reverse(ibm, itmp,
- 					 &tpacpi_all_drivers,
- 					 all_drivers) {
+ 		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
 -- 
 1.5.3.1.27.g57543
