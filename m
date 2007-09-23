@@ -1,46 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [2.6.23-rc7] main.c: undefined reference to `acpi_sleep_prepare'
-Date: Sun, 23 Sep 2007 15:35:09 +0200
-Message-ID: <200709231535.09759.rjw@sisk.pl>
-References: <200709230152.31120.elendil@planet.nl> <46F60AA2.1060500@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PATCH v3] thinkpad-acpi changes for the merge window (part 1)
+Date: Sun, 23 Sep 2007 11:24:08 -0300
+Message-ID: <1190557457539-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48223 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750756AbXIWNVk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 09:21:40 -0400
-In-Reply-To: <46F60AA2.1060500@gmail.com>
-Content-Disposition: inline
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37285 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754023AbXIWOYV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Sep 2007 10:24:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Sunday, 23 September 2007 08:41, Alexey Starikovskiy wrote:
-> Frans Pop wrote:
-> > I wanted to test 5a50fe709d527f31 and thus created a config with ACPI and 
-> > CONFIG_HIBERNATION, but without CONFIG_SUSPEND, which resulted in (git 
-> > checkout updated to 1f0cff6e4d579ab0):
-> > 
-> >   GEN     .version
-> >   CHK     include/linux/compile.h
-> >   UPD     include/linux/compile.h
-> >   CC      init/version.o
-> >   LD      init/built-in.o
-> >   LD      .tmp_vmlinux1
-> > drivers/built-in.o: In function `acpi_power_off_prepare':
-> > main.c:(.text+0x32282): undefined reference to `acpi_sleep_prepare'
-> > drivers/built-in.o: In function `acpi_hibernation_prepare':
-> > main.c:(.text+0x3228c): undefined reference to `acpi_sleep_prepare'
-> > make[1]: *** [.tmp_vmlinux1] Error 1
-> > make[1]: Leaving directory `/home/fjp/projects/kernel/linux-2.6'
-> > make: *** [debian/stamp-build-kernel] Error 2
-> > 
-> > 
-> yep... acpi_sleep_prepare was put under CONFIG_SUSPEND spanning half of the file...
-> this patch moves it out.
+Len,
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Here is the third version of the first batch of changes for thinkpad-acpi,
+targetted at the next merge window.   They're mostly non-critical fixes.
+
+I have found a stupid bug on v2 of patch 6, and fixed it.  Sorry about
+that.  I have also added two new patches, that were going to be sent as
+part 2, but I might as well just send them in right now.
+
+Patches 8 and 9 *fix* a big ABI problem with the way thinkpad-acpi was
+exporting the hwmon attributes, which precluded it from working with
+lm-sensors(!).  Since I am already touching the ABI, it also prepares
+the thinkpad-acpi sensors ABI for a module split (so I can shunt all the
+hwmon code to a new module later, and userspace won't even notice).
+
+Please merge this batch to acpi-test.  It replaces previous versions of
+"thinkpad-acpi changes for the merge window (part 1)".
+
+As usual, the patch set is available at:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+
+Shortlog of the above branch:
+
+Henrique de Moraes Holschuh (9):
+      ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
+      ACPI: thinkpad-acpi: issue EV_SYNC after EV_SWITCH
+      ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
+      ACPI: thinkpad-acpi: keep track of module state
+      ACPI: thinkpad-acpi: check version of hot key firmware
+      ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2.1)
+      ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
+      ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it
+      ACPI: thinkpad-acpi: duplicate driver attributes to new hwmon pdrv
+
+Thanks.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
