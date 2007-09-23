@@ -1,130 +1,53 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
+From: Frans Pop <elendil@planet.nl>
 Subject: Re: [2.6.23-rc7] main.c: undefined reference to `acpi_sleep_prepare'
-Date: Sun, 23 Sep 2007 10:41:38 +0400
-Message-ID: <46F60AA2.1060500@gmail.com>
-References: <200709230152.31120.elendil@planet.nl>
+Date: Sun, 23 Sep 2007 15:08:06 +0200
+Message-ID: <200709231508.07674.elendil@planet.nl>
+References: <200709230152.31120.elendil@planet.nl> <46F60AA2.1060500@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030704070006050503060301"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:61747 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752926AbXIWGlm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Sep 2007 02:41:42 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so664621ugc
-        for <linux-acpi@vger.kernel.org>; Sat, 22 Sep 2007 23:41:41 -0700 (PDT)
-In-Reply-To: <200709230152.31120.elendil@planet.nl>
+Received: from hpsmtp-eml11.kpnxchange.com ([213.75.38.111]:15470 "EHLO
+	hpsmtp-eml11.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754018AbXIWNIM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Sep 2007 09:08:12 -0400
+In-Reply-To: <46F60AA2.1060500@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
+To: Alexey Starikovskiy <aystarik@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030704070006050503060301
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Sunday 23 September 2007, Alexey Starikovskiy wrote:
+> Frans Pop wrote:
+> > drivers/built-in.o: In function `acpi_power_off_prepare':
+> > main.c:(.text+0x32282): undefined reference to `acpi_sleep_prepare'
+> > drivers/built-in.o: In function `acpi_hibernation_prepare':
+> > main.c:(.text+0x3228c): undefined reference to `acpi_sleep_prepare'
+>
+> yep... acpi_sleep_prepare was put under CONFIG_SUSPEND spanning half of
+> the file... this patch moves it out.
 
-Frans Pop wrote:
-> I wanted to test 5a50fe709d527f31 and thus created a config with ACPI and 
-> CONFIG_HIBERNATION, but without CONFIG_SUSPEND, which resulted in (git 
-> checkout updated to 1f0cff6e4d579ab0):
-> 
->   GEN     .version
->   CHK     include/linux/compile.h
->   UPD     include/linux/compile.h
->   CC      init/version.o
->   LD      init/built-in.o
->   LD      .tmp_vmlinux1
-> drivers/built-in.o: In function `acpi_power_off_prepare':
-> main.c:(.text+0x32282): undefined reference to `acpi_sleep_prepare'
-> drivers/built-in.o: In function `acpi_hibernation_prepare':
-> main.c:(.text+0x3228c): undefined reference to `acpi_sleep_prepare'
-> make[1]: *** [.tmp_vmlinux1] Error 1
-> make[1]: Leaving directory `/home/fjp/projects/kernel/linux-2.6'
-> make: *** [debian/stamp-build-kernel] Error 2
-> 
-> 
-yep... acpi_sleep_prepare was put under CONFIG_SUSPEND spanning half of the file...
-this patch moves it out.
-Thanks,
-Alex.
+Compiles and works fine with that patch applied. Thanks.
 
---------------030704070006050503060301
-Content-Type: text/x-patch;
- name="move_acpi_sleep_prepare_outside_of_CONFIG_SUSPEND.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="move_acpi_sleep_prepare_outside_of_CONFIG_SUSPEND.patch"
 
-ACPI: suspend: move acpi_sleep_prepare outside of CONFIG_SUSPEND
+One thing I noticed after booting with the kernel without CONFIG_SUSPEND.
+/proc/acpi/sleep no longer lists S3 (as expected), but /proc/acpi/wakeup 
+does still list the device status for S3, which seems somewhat 
+inconsistent:
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Device	S-state	  Status   Sysfs node
+VIY0	  S3	 disabled  pci:0000:01:0b.0
+USB1	  S3	 disabled  pci:0000:00:1d.0
+USB2	  S3	 disabled  pci:0000:00:1d.1
+USB4	  S3	 disabled  pci:0000:00:1d.7
+AMDM	  S3	 disabled  pci:0000:00:1f.6
+LID	  S4	*enabled   
+PWRB	  S4	*enabled   
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Not sure if it's worth fixing though.
 
- drivers/acpi/sleep/main.c |   42 +++++++++++++++++++++---------------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 85633c5..c79edcb 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -26,6 +26,27 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
- 
- static u32 acpi_target_sleep_state = ACPI_STATE_S0;
- 
-+int acpi_sleep_prepare(u32 acpi_state)
-+{
-+#ifdef CONFIG_ACPI_SLEEP
-+	/* do we have a wakeup address for S2 and S3? */
-+	if (acpi_state == ACPI_STATE_S3) {
-+		if (!acpi_wakeup_address) {
-+			return -EFAULT;
-+		}
-+		acpi_set_firmware_waking_vector((acpi_physical_address)
-+						virt_to_phys((void *)
-+							     acpi_wakeup_address));
-+
-+	}
-+	ACPI_FLUSH_CPU_CACHE();
-+	acpi_enable_wakeup_device_prep(acpi_state);
-+#endif
-+	acpi_gpe_sleep_prepare(acpi_state);
-+	acpi_enter_sleep_state_prep(acpi_state);
-+	return 0;
-+}
-+
- #ifdef CONFIG_SUSPEND
- static struct pm_ops acpi_pm_ops;
- 
-@@ -60,27 +81,6 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
- 	return error;
- }
- 
--int acpi_sleep_prepare(u32 acpi_state)
--{
--#ifdef CONFIG_ACPI_SLEEP
--	/* do we have a wakeup address for S2 and S3? */
--	if (acpi_state == ACPI_STATE_S3) {
--		if (!acpi_wakeup_address) {
--			return -EFAULT;
--		}
--		acpi_set_firmware_waking_vector((acpi_physical_address)
--						virt_to_phys((void *)
--							     acpi_wakeup_address));
--
--	}
--	ACPI_FLUSH_CPU_CACHE();
--	acpi_enable_wakeup_device_prep(acpi_state);
--#endif
--	acpi_gpe_sleep_prepare(acpi_state);
--	acpi_enter_sleep_state_prep(acpi_state);
--	return 0;
--}
--
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-  *	@pm_state: ignored
-
---------------030704070006050503060301--
+Cheers,
+FJP
