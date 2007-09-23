@@ -1,73 +1,102 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 7/9] ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
-Date: Sun, 23 Sep 2007 11:39:05 -0300
-Message-ID: <1190558348771-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 4/9] ACPI: thinkpad-acpi: keep track of module state
+Date: Sun, 23 Sep 2007 11:39:02 -0300
+Message-ID: <1190558347280-git-send-email-hmh@hmh.eng.br>
 References: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58703 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54830 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754205AbXIWOjN (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbXIWOjL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 10:39:13 -0400
+	Sun, 23 Sep 2007 10:39:11 -0400
 In-Reply-To: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-We were letting ThinkPad-specific LID events through to userspace again,
-instead of dropping them.  Fix it.  We don't want to give userspace the
-option of not using generic LID handling.
+Keep track of module state (init, running, exit).  This makes it trivially
+easy to avoid running any interrupt handlers, threads, or any other async
+activity before we are ready, or when we want to go away.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 3efe81b..0a33c6e 100644
+index 0ced9d6..2155139 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1197,6 +1197,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	u32 hkey;
- 	unsigned int keycode, scancode;
- 	int send_acpi_ev;
-+	int ignore_acpi_ev;
+@@ -117,6 +117,12 @@ IBM_BIOS_MODULE_ALIAS("K[U,X-Z]");
  
- 	if (event != 0x80) {
- 		printk(IBM_ERR "unknown HKEY notification event %d\n", event);
-@@ -1219,6 +1220,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
+ #define __unused __attribute__ ((unused))
  
- 		send_acpi_ev = 0;
-+		ignore_acpi_ev = 0;
++static enum {
++	TPACPI_LIFE_INIT = 0,
++	TPACPI_LIFE_RUNNING,
++	TPACPI_LIFE_EXITING,
++} tpacpi_lifecycle;
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -342,6 +348,9 @@ static void dispatch_acpi_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct ibm_struct *ibm = data;
  
- 		switch (hkey >> 12) {
- 		case 1:
-@@ -1244,6 +1246,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 				       "unknown LID-related HKEY event: 0x%04x\n",
- 				       hkey);
- 				send_acpi_ev = 1;
-+			} else {
-+				ignore_acpi_ev = 1;
- 			}
- 			break;
- 		case 7:
-@@ -1263,11 +1267,12 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
++	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
++		return;
++
+ 	if (!ibm || !ibm->acpi || !ibm->acpi->notify)
+ 		return;
  
- 		/* Legacy events */
--		if (send_acpi_ev || hotkey_report_mode < 2)
-+		if (!ignore_acpi_ev && (send_acpi_ev || hotkey_report_mode < 2)) {
- 			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-+		}
+@@ -3899,6 +3908,9 @@ static void fan_watchdog_fire(struct work_struct *ignored)
+ {
+ 	int rc;
  
- 		/* netlink events */
--		if (send_acpi_ev) {
-+		if (!ignore_acpi_ev && send_acpi_ev) {
- 			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
- 							ibm->acpi->device->dev.bus_id,
- 							event, hkey);
++	if (tpacpi_lifecycle != TPACPI_LIFE_RUNNING)
++		return;
++
+ 	printk(IBM_NOTICE "fan watchdog: enabling fan\n");
+ 	rc = fan_set_enable();
+ 	if (rc < 0) {
+@@ -3919,7 +3931,8 @@ static void fan_watchdog_reset(void)
+ 	if (fan_watchdog_active)
+ 		cancel_delayed_work(&fan_watchdog_task);
+ 
+-	if (fan_watchdog_maxinterval > 0) {
++	if (fan_watchdog_maxinterval > 0 &&
++	    tpacpi_lifecycle != TPACPI_LIFE_EXITING) {
+ 		fan_watchdog_active = 1;
+ 		if (!schedule_delayed_work(&fan_watchdog_task,
+ 				msecs_to_jiffies(fan_watchdog_maxinterval
+@@ -4685,6 +4698,8 @@ static int __init thinkpad_acpi_module_init(void)
+ {
+ 	int ret, i;
+ 
++	tpacpi_lifecycle = TPACPI_LIFE_INIT;
++
+ 	/* Parameter checking */
+ 	if (hotkey_report_mode > 2)
+ 		return -EINVAL;
+@@ -4781,6 +4796,7 @@ static int __init thinkpad_acpi_module_init(void)
+ 		tp_features.input_device_registered = 1;
+ 	}
+ 
++	tpacpi_lifecycle = TPACPI_LIFE_RUNNING;
+ 	return 0;
+ }
+ 
+@@ -4788,6 +4804,8 @@ static void thinkpad_acpi_module_exit(void)
+ {
+ 	struct ibm_struct *ibm, *itmp;
+ 
++	tpacpi_lifecycle = TPACPI_LIFE_EXITING;
++
+ 	list_for_each_entry_safe_reverse(ibm, itmp,
+ 					 &tpacpi_all_drivers,
+ 					 all_drivers) {
 -- 
 1.5.3.1
 
