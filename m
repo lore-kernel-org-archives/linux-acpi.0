@@ -1,69 +1,82 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/9] ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
-Date: Sun, 23 Sep 2007 11:24:09 -0300
-Message-ID: <11905574573718-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 5/9] ACPI: thinkpad-acpi: check version of hot key firmware
+Date: Sun, 23 Sep 2007 11:24:13 -0300
+Message-ID: <1190557457129-git-send-email-hmh@hmh.eng.br>
 References: <1190557457539-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:48487 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55770 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754115AbXIWOYX (ORCPT
+	by vger.kernel.org with ESMTP id S1754218AbXIWOY0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 10:24:23 -0400
+	Sun, 23 Sep 2007 10:24:26 -0400
 In-Reply-To: <1190557457539-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Increase tp_features to 32 bits.  It is too close to running out of room.
+Check the HKEY firmware version (HKEY.MHKV handler), and refuse to load if
+it is unknown.  Use this instead of the presence of HKEY.DHKV to detect hot
+key mask capability.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.h |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   28 +++++++++++++++++++++++-----
+ 1 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 082a1cb..fa64ded 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -233,22 +233,22 @@ struct ibm_init_struct {
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 2155139..9a61140 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -999,6 +999,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
  
- static struct {
- #ifdef CONFIG_THINKPAD_ACPI_BAY
--	u16 bay_status:1;
--	u16 bay_eject:1;
--	u16 bay_status2:1;
--	u16 bay_eject2:1;
-+	u32 bay_status:1;
-+	u32 bay_eject:1;
-+	u32 bay_status2:1;
-+	u32 bay_eject2:1;
- #endif
--	u16 bluetooth:1;
--	u16 hotkey:1;
--	u16 hotkey_mask:1;
--	u16 hotkey_wlsw:1;
--	u16 light:1;
--	u16 light_status:1;
--	u16 wan:1;
--	u16 fan_ctrl_status_undef:1;
--	u16 input_device_registered:1;
--	u16 platform_drv_registered:1;
--	u16 platform_drv_attrs_registered:1;
-+	u32 bluetooth:1;
-+	u32 hotkey:1;
-+	u32 hotkey_mask:1;
-+	u32 hotkey_wlsw:1;
-+	u32 light:1;
-+	u32 light_status:1;
-+	u32 wan:1;
-+	u32 fan_ctrl_status_undef:1;
-+	u32 input_device_registered:1;
-+	u32 platform_drv_registered:1;
-+	u32 platform_drv_attrs_registered:1;
- } tp_features;
+ 	int res, i;
+ 	int status;
++	int hkeyv;
  
- struct thinkpad_id_data {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
+ 
+@@ -1024,18 +1025,35 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			return res;
+ 
+ 		/* mask not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
+-		   A30, R30, R31, T20-22, X20-21, X22-24 */
+-		tp_features.hotkey_mask =
+-			acpi_evalf(hkey_handle, NULL, "DHKN", "qv");
++		   A30, R30, R31, T20-22, X20-21, X22-24.  Detected by checking
++		   for HKEY interface version 0x100 */
++		if (acpi_evalf(hkey_handle, &hkeyv, "MHKV", "qd")) {
++			if ((hkeyv >> 8) != 1) {
++				printk(IBM_ERR "unknown version of the "
++				       "HKEY interface: 0x%x\n", hkeyv);
++				printk(IBM_ERR "please report this to %s\n",
++				       IBM_MAIL);
++			} else {
++				/*
++				 * MHKV 0x100 in A31, R40, R40e,
++				 * T4x, X31, and later
++				 * */
++				tp_features.hotkey_mask = 1;
++			}
++		}
+ 
+ 		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
+ 			str_supported(tp_features.hotkey_mask));
+ 
+ 		if (tp_features.hotkey_mask) {
+-			/* MHKA available in A31, R40, R40e, T4x, X31, and later */
+ 			if (!acpi_evalf(hkey_handle, &hotkey_all_mask,
+-					"MHKA", "qd"))
++					"MHKA", "qd")) {
++				printk(IBM_ERR
++				       "missing MHKA handler, "
++				       "please report this to %s\n",
++				       IBM_MAIL);
+ 				hotkey_all_mask = 0x080cU; /* FN+F12, FN+F4, FN+F3 */
++			}
+ 		}
+ 
+ 		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
 -- 
 1.5.3.1
 
