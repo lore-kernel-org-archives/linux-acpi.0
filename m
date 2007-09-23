@@ -1,46 +1,69 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PATCH v2] thinkpad-acpi changes for the merge window (part 1)
-Date: Sat, 22 Sep 2007 22:10:35 -0300
-Message-ID: <11905098422303-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/7] ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
+Date: Sat, 22 Sep 2007 22:10:36 -0300
+Message-ID: <11905098421004-git-send-email-hmh@hmh.eng.br>
+References: <11905098422303-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44922 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54635 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751571AbXIWBKq (ORCPT
+	by vger.kernel.org with ESMTP id S1751683AbXIWBKs (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Sep 2007 21:10:46 -0400
+	Sat, 22 Sep 2007 21:10:48 -0400
+In-Reply-To: <11905098422303-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Len,
+Increase tp_features to 32 bits.  It is too close to running out of room.
 
-Here is (again) the first batch of changes for thinkpad-acpi, targetted at the
-next merge window.   They're mostly non-critical fixes.
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/misc/thinkpad_acpi.h |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
-I have fixed the hot key / HKEY naming on patch 6 in this second version of the
-batch.
-
-Please merge this batch to acpi-test.
-
-As usual, it is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
-
-Shortlog of the above branch:
-
-Henrique de Moraes Holschuh (7):
-      ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
-      ACPI: thinkpad-acpi: issue EV_SYNC after EV_SWITCH
-      ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
-      ACPI: thinkpad-acpi: keep track of module state
-      ACPI: thinkpad-acpi: check version of hot key firmware
-      ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2)
-      ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
-
-Thanks.
-
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 082a1cb..fa64ded 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -233,22 +233,22 @@ struct ibm_init_struct {
+ 
+ static struct {
+ #ifdef CONFIG_THINKPAD_ACPI_BAY
+-	u16 bay_status:1;
+-	u16 bay_eject:1;
+-	u16 bay_status2:1;
+-	u16 bay_eject2:1;
++	u32 bay_status:1;
++	u32 bay_eject:1;
++	u32 bay_status2:1;
++	u32 bay_eject2:1;
+ #endif
+-	u16 bluetooth:1;
+-	u16 hotkey:1;
+-	u16 hotkey_mask:1;
+-	u16 hotkey_wlsw:1;
+-	u16 light:1;
+-	u16 light_status:1;
+-	u16 wan:1;
+-	u16 fan_ctrl_status_undef:1;
+-	u16 input_device_registered:1;
+-	u16 platform_drv_registered:1;
+-	u16 platform_drv_attrs_registered:1;
++	u32 bluetooth:1;
++	u32 hotkey:1;
++	u32 hotkey_mask:1;
++	u32 hotkey_wlsw:1;
++	u32 light:1;
++	u32 light_status:1;
++	u32 wan:1;
++	u32 fan_ctrl_status_undef:1;
++	u32 input_device_registered:1;
++	u32 platform_drv_registered:1;
++	u32 platform_drv_attrs_registered:1;
+ } tp_features;
+ 
+ struct thinkpad_id_data {
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.3.1
+
