@@ -1,85 +1,130 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 7/7] ACPI: thinkpad-acpi: fix regression on
-	HKEY LID event handling
-Date: Sat, 22 Sep 2007 22:10:42 -0300
-Message-ID: <1190509843444-git-send-email-hmh@hmh.eng.br>
-References: <11905098422303-git-send-email-hmh@hmh.eng.br>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [2.6.23-rc7] main.c: undefined reference to `acpi_sleep_prepare'
+Date: Sun, 23 Sep 2007 10:41:38 +0400
+Message-ID: <46F60AA2.1060500@gmail.com>
+References: <200709230152.31120.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11905098422303-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed;
+ boundary="------------030704070006050503060301"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.174]:61747 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752926AbXIWGlm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Sep 2007 02:41:42 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so664621ugc
+        for <linux-acpi@vger.kernel.org>; Sat, 22 Sep 2007 23:41:41 -0700 (PDT)
+In-Reply-To: <200709230152.31120.elendil@planet.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-We were letting ThinkPad-specific LID events through to userspace again,
-instead of dropping them.  Fix it.  We don't want to give userspace the
-option of not using generic LID handling.
+This is a multi-part message in MIME format.
+--------------030704070006050503060301
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Frans Pop wrote:
+> I wanted to test 5a50fe709d527f31 and thus created a config with ACPI and 
+> CONFIG_HIBERNATION, but without CONFIG_SUSPEND, which resulted in (git 
+> checkout updated to 1f0cff6e4d579ab0):
+> 
+>   GEN     .version
+>   CHK     include/linux/compile.h
+>   UPD     include/linux/compile.h
+>   CC      init/version.o
+>   LD      init/built-in.o
+>   LD      .tmp_vmlinux1
+> drivers/built-in.o: In function `acpi_power_off_prepare':
+> main.c:(.text+0x32282): undefined reference to `acpi_sleep_prepare'
+> drivers/built-in.o: In function `acpi_hibernation_prepare':
+> main.c:(.text+0x3228c): undefined reference to `acpi_sleep_prepare'
+> make[1]: *** [.tmp_vmlinux1] Error 1
+> make[1]: Leaving directory `/home/fjp/projects/kernel/linux-2.6'
+> make: *** [debian/stamp-build-kernel] Error 2
+> 
+> 
+yep... acpi_sleep_prepare was put under CONFIG_SUSPEND spanning half of the file...
+this patch moves it out.
+Thanks,
+Alex.
+
+--------------030704070006050503060301
+Content-Type: text/x-patch;
+ name="move_acpi_sleep_prepare_outside_of_CONFIG_SUSPEND.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="move_acpi_sleep_prepare_outside_of_CONFIG_SUSPEND.patch"
+
+ACPI: suspend: move acpi_sleep_prepare outside of CONFIG_SUSPEND
+
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- drivers/misc/thinkpad_acpi.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index b1db51e..1a77fe4 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1197,6 +1197,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	u32 hkey;
- 	unsigned int keycode, scancode;
- 	int send_acpi_ev;
-+	int ignore_acpi_ev;
+ drivers/acpi/sleep/main.c |   42 +++++++++++++++++++++---------------------
+ 1 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index 85633c5..c79edcb 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -26,6 +26,27 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
  
- 	if (event != 0x80) {
- 		printk(IBM_ERR "unknown HKEY notification event %d\n", event);
-@@ -1218,6 +1219,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
  
- 		send_acpi_ev = 0;
-+		ignore_acpi_ev = 0;
- 
- 		switch (hkey >> 12) {
- 		case 1:
-@@ -1243,6 +1245,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 				       "unknown LID-related HKEY event: 0x%04x\n",
- 				       hkey);
- 				send_acpi_ev = 1;
-+			} else {
-+				ignore_acpi_ev = 1;
- 			}
- 			break;
- 		case 7:
-@@ -1262,11 +1266,12 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		}
- 
- 		/* Legacy events */
--		if (send_acpi_ev || hotkey_report_mode < 2)
-+		if (!ignore_acpi_ev && (send_acpi_ev || hotkey_report_mode < 2)) {
- 			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
++int acpi_sleep_prepare(u32 acpi_state)
++{
++#ifdef CONFIG_ACPI_SLEEP
++	/* do we have a wakeup address for S2 and S3? */
++	if (acpi_state == ACPI_STATE_S3) {
++		if (!acpi_wakeup_address) {
++			return -EFAULT;
 +		}
++		acpi_set_firmware_waking_vector((acpi_physical_address)
++						virt_to_phys((void *)
++							     acpi_wakeup_address));
++
++	}
++	ACPI_FLUSH_CPU_CACHE();
++	acpi_enable_wakeup_device_prep(acpi_state);
++#endif
++	acpi_gpe_sleep_prepare(acpi_state);
++	acpi_enter_sleep_state_prep(acpi_state);
++	return 0;
++}
++
+ #ifdef CONFIG_SUSPEND
+ static struct pm_ops acpi_pm_ops;
  
- 		/* netlink events */
--		if (send_acpi_ev) {
-+		if (!ignore_acpi_ev && send_acpi_ev) {
- 			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
- 							ibm->acpi->device->dev.bus_id,
- 							event, hkey);
--- 
-1.5.3.1
+@@ -60,27 +81,6 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
+ 	return error;
+ }
+ 
+-int acpi_sleep_prepare(u32 acpi_state)
+-{
+-#ifdef CONFIG_ACPI_SLEEP
+-	/* do we have a wakeup address for S2 and S3? */
+-	if (acpi_state == ACPI_STATE_S3) {
+-		if (!acpi_wakeup_address) {
+-			return -EFAULT;
+-		}
+-		acpi_set_firmware_waking_vector((acpi_physical_address)
+-						virt_to_phys((void *)
+-							     acpi_wakeup_address));
+-
+-	}
+-	ACPI_FLUSH_CPU_CACHE();
+-	acpi_enable_wakeup_device_prep(acpi_state);
+-#endif
+-	acpi_gpe_sleep_prepare(acpi_state);
+-	acpi_enter_sleep_state_prep(acpi_state);
+-	return 0;
+-}
+-
+ /**
+  *	acpi_pm_prepare - Do preliminary suspend work.
+  *	@pm_state: ignored
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+--------------030704070006050503060301--
