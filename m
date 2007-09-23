@@ -1,83 +1,82 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 3/9] ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
-Date: Sun, 23 Sep 2007 11:39:01 -0300
-Message-ID: <11905583472108-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 5/9] ACPI: thinkpad-acpi: check version of hot key firmware
+Date: Sun, 23 Sep 2007 11:39:03 -0300
+Message-ID: <11905583482164-git-send-email-hmh@hmh.eng.br>
 References: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:41279 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:58977 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099AbXIWOjN (ORCPT
+	by vger.kernel.org with ESMTP id S1754115AbXIWOjM (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 10:39:13 -0400
+	Sun, 23 Sep 2007 10:39:12 -0400
 In-Reply-To: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Protect the input device event sending path with a mutex, since hot key
-input events are not atomic and require an cohesive event block to be sent
-together.
+Check the HKEY firmware version (HKEY.MHKV handler), and refuse to load if
+it is unknown.  Use this instead of the presence of HKEY.DHKV to detect hot
+key mask capability.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   28 +++++++++++++++++++++++-----
+ 1 files changed, 23 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 8aa0f96..0ced9d6 100644
+index 2155139..9a61140 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -519,6 +519,7 @@ static char *next_cmd(char **cmds)
- static struct platform_device *tpacpi_pdev;
- static struct class_device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
-+static struct mutex tpacpi_inputdev_send_mutex;
+@@ -999,6 +999,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
  
+ 	int res, i;
+ 	int status;
++	int hkeyv;
  
- static int tpacpi_resume_handler(struct platform_device *pdev)
-@@ -1131,6 +1132,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
- 				  unsigned int keycode)
- {
- 	if (keycode != KEY_RESERVED) {
-+		mutex_lock(&tpacpi_inputdev_send_mutex);
-+
- 		input_report_key(tpacpi_inputdev, keycode, 1);
- 		if (keycode == KEY_UNKNOWN)
- 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
-@@ -1142,6 +1145,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
- 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
- 				    scancode);
- 		input_sync(tpacpi_inputdev);
-+
-+		mutex_unlock(&tpacpi_inputdev_send_mutex);
- 	}
- }
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
-@@ -1149,11 +1154,15 @@ static void tpacpi_input_send_radiosw(void)
- {
- 	int wlsw;
+@@ -1024,18 +1025,35 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			return res;
  
-+	mutex_lock(&tpacpi_inputdev_send_mutex);
-+
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
- 		input_report_switch(tpacpi_inputdev,
- 				    SW_RADIO, !!wlsw);
- 		input_sync(tpacpi_inputdev);
- 	}
-+
-+	mutex_unlock(&tpacpi_inputdev_send_mutex);
- }
+ 		/* mask not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
+-		   A30, R30, R31, T20-22, X20-21, X22-24 */
+-		tp_features.hotkey_mask =
+-			acpi_evalf(hkey_handle, NULL, "DHKN", "qv");
++		   A30, R30, R31, T20-22, X20-21, X22-24.  Detected by checking
++		   for HKEY interface version 0x100 */
++		if (acpi_evalf(hkey_handle, &hkeyv, "MHKV", "qd")) {
++			if ((hkeyv >> 8) != 1) {
++				printk(IBM_ERR "unknown version of the "
++				       "HKEY interface: 0x%x\n", hkeyv);
++				printk(IBM_ERR "please report this to %s\n",
++				       IBM_MAIL);
++			} else {
++				/*
++				 * MHKV 0x100 in A31, R40, R40e,
++				 * T4x, X31, and later
++				 * */
++				tp_features.hotkey_mask = 1;
++			}
++		}
  
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
-@@ -4737,6 +4746,7 @@ static int __init thinkpad_acpi_module_init(void)
- 		thinkpad_acpi_module_exit();
- 		return ret;
- 	}
-+	mutex_init(&tpacpi_inputdev_send_mutex);
- 	tpacpi_inputdev = input_allocate_device();
- 	if (!tpacpi_inputdev) {
- 		printk(IBM_ERR "unable to allocate input device\n");
+ 		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
+ 			str_supported(tp_features.hotkey_mask));
+ 
+ 		if (tp_features.hotkey_mask) {
+-			/* MHKA available in A31, R40, R40e, T4x, X31, and later */
+ 			if (!acpi_evalf(hkey_handle, &hotkey_all_mask,
+-					"MHKA", "qd"))
++					"MHKA", "qd")) {
++				printk(IBM_ERR
++				       "missing MHKA handler, "
++				       "please report this to %s\n",
++				       IBM_MAIL);
+ 				hotkey_all_mask = 0x080cU; /* FN+F12, FN+F4, FN+F3 */
++			}
+ 		}
+ 
+ 		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
 -- 
 1.5.3.1
 
