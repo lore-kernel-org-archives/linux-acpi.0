@@ -1,56 +1,95 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PATCH v3] thinkpad-acpi changes for the merge window (part 1)
-Date: Sun, 23 Sep 2007 11:24:08 -0300
-Message-ID: <1190557457539-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37285 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754023AbXIWOYV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 10:24:21 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 3/9] ACPI: thinkpad-acpi: add mutex-based
+	locking to input device event send path
+Date: Sun, 23 Sep 2007 11:24:11 -0300
+Message-ID: <11905574571365-git-send-email-hmh@hmh.eng.br>
+References: <1190557457539-git-send-email-hmh@hmh.eng.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1190557457539-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Len,
+Protect the input device event sending path with a mutex, since hot key
+input events are not atomic and require an cohesive event block to be sent
+together.
 
-Here is the third version of the first batch of changes for thinkpad-acpi,
-targetted at the next merge window.   They're mostly non-critical fixes.
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+---
+ drivers/misc/thinkpad_acpi.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-I have found a stupid bug on v2 of patch 6, and fixed it.  Sorry about
-that.  I have also added two new patches, that were going to be sent as
-part 2, but I might as well just send them in right now.
-
-Patches 8 and 9 *fix* a big ABI problem with the way thinkpad-acpi was
-exporting the hwmon attributes, which precluded it from working with
-lm-sensors(!).  Since I am already touching the ABI, it also prepares
-the thinkpad-acpi sensors ABI for a module split (so I can shunt all the
-hwmon code to a new module later, and userspace won't even notice).
-
-Please merge this batch to acpi-test.  It replaces previous versions of
-"thinkpad-acpi changes for the merge window (part 1)".
-
-As usual, the patch set is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
-
-Shortlog of the above branch:
-
-Henrique de Moraes Holschuh (9):
-      ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
-      ACPI: thinkpad-acpi: issue EV_SYNC after EV_SWITCH
-      ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
-      ACPI: thinkpad-acpi: keep track of module state
-      ACPI: thinkpad-acpi: check version of hot key firmware
-      ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2.1)
-      ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
-      ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it
-      ACPI: thinkpad-acpi: duplicate driver attributes to new hwmon pdrv
-
-Thanks.
-
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 8aa0f96..0ced9d6 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -519,6 +519,7 @@ static char *next_cmd(char **cmds)
+ static struct platform_device *tpacpi_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
++static struct mutex tpacpi_inputdev_send_mutex;
+ 
+ 
+ static int tpacpi_resume_handler(struct platform_device *pdev)
+@@ -1131,6 +1132,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 				  unsigned int keycode)
+ {
+ 	if (keycode != KEY_RESERVED) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 		input_report_key(tpacpi_inputdev, keycode, 1);
+ 		if (keycode == KEY_UNKNOWN)
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+@@ -1142,6 +1145,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+ 				    scancode);
+ 		input_sync(tpacpi_inputdev);
++
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
+ 	}
+ }
+ 
+@@ -1149,11 +1154,15 @@ static void tpacpi_input_send_radiosw(void)
+ {
+ 	int wlsw;
+ 
++	mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
+ 		input_report_switch(tpacpi_inputdev,
+ 				    SW_RADIO, !!wlsw);
+ 		input_sync(tpacpi_inputdev);
+ 	}
++
++	mutex_unlock(&tpacpi_inputdev_send_mutex);
+ }
+ 
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -4737,6 +4746,7 @@ static int __init thinkpad_acpi_module_init(void)
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
+ 	}
++	mutex_init(&tpacpi_inputdev_send_mutex);
+ 	tpacpi_inputdev = input_allocate_device();
+ 	if (!tpacpi_inputdev) {
+ 		printk(IBM_ERR "unable to allocate input device\n");
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.3.1
+
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2005.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
