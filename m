@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 6/7] ACPI: thinkpad-acpi: dequeue all
-	pending hot key events at once (v2)
-Date: Sat, 22 Sep 2007 22:10:41 -0300
-Message-ID: <11905098432533-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 7/7] ACPI: thinkpad-acpi: fix regression on
+	HKEY LID event handling
+Date: Sat, 22 Sep 2007 22:10:42 -0300
+Message-ID: <1190509843444-git-send-email-hmh@hmh.eng.br>
 References: <11905098422303-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,92 +22,59 @@ To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Receive all pending HKEY events at once from a single notification, and don't
-complain if the queue is empty.
+We were letting ThinkPad-specific LID events through to userspace again,
+instead of dropping them.  Fix it.  We don't want to give userspace the
+option of not using generic LID handling.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   50 +++++++++++++++++++++++++++--------------
- 1 files changed, 33 insertions(+), 17 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 9a61140..b1db51e 100644
+index b1db51e..1a77fe4 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1196,9 +1196,29 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- {
+@@ -1197,6 +1197,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
  	u32 hkey;
  	unsigned int keycode, scancode;
--	int send_acpi_ev = 0;
-+	int send_acpi_ev;
-+
-+	if (event != 0x80) {
-+		printk(IBM_ERR "unknown HKEY notification event %d\n", event);
-+		/* forward it to userspace, maybe it knows how to handle it */
-+		acpi_bus_generate_event(ibm->acpi->device, event, 0);
-+
-+		return;
-+	}
-+
-+	while (1) {
-+		if (!acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
-+			printk(IBM_ERR "failed to retrieve HKEY event\n");
-+			return;
-+		}
-+
-+		if (hkey == 0) {
-+			/* queue empty */
-+			return;
-+		}
-+
-+		send_acpi_ev = 0;
+ 	int send_acpi_ev;
++	int ignore_acpi_ev;
  
--	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
+ 	if (event != 0x80) {
+ 		printk(IBM_ERR "unknown HKEY notification event %d\n", event);
+@@ -1218,6 +1219,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 		}
+ 
+ 		send_acpi_ev = 0;
++		ignore_acpi_ev = 0;
+ 
  		switch (hkey >> 12) {
  		case 1:
- 			/* 0x1000-0x1FFF: key presses */
-@@ -1220,8 +1240,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			 * eat up known LID events */
- 			if (hkey != 0x5001 && hkey != 0x5002) {
- 				printk(IBM_ERR
--					"unknown LID-related hotkey event: 0x%04x\n",
--					hkey);
-+				       "unknown LID-related HKEY event: 0x%04x\n",
-+				       hkey);
+@@ -1243,6 +1245,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 				       "unknown LID-related HKEY event: 0x%04x\n",
+ 				       hkey);
  				send_acpi_ev = 1;
++			} else {
++				ignore_acpi_ev = 1;
  			}
  			break;
-@@ -1240,21 +1260,17 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			printk(IBM_NOTICE "unhandled HKEY event 0x%04x\n", hkey);
- 			send_acpi_ev = 1;
+ 		case 7:
+@@ -1262,11 +1266,12 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
  		}
--	} else {
--		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
--		hkey = 0;
--		send_acpi_ev = 1;
--	}
  
--	/* Legacy events */
--	if (send_acpi_ev || hotkey_report_mode < 2)
--		acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-+		/* Legacy events */
-+		if (send_acpi_ev || hotkey_report_mode < 2)
-+			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
- 
--	/* netlink events */
--	if (send_acpi_ev) {
--		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
--						ibm->acpi->device->dev.bus_id,
--						event, hkey);
-+		/* netlink events */
-+		if (send_acpi_ev) {
-+			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+							ibm->acpi->device->dev.bus_id,
-+							event, hkey);
+ 		/* Legacy events */
+-		if (send_acpi_ev || hotkey_report_mode < 2)
++		if (!ignore_acpi_ev && (send_acpi_ev || hotkey_report_mode < 2)) {
+ 			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
 +		}
- 	}
- }
  
+ 		/* netlink events */
+-		if (send_acpi_ev) {
++		if (!ignore_acpi_ev && send_acpi_ev) {
+ 			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
+ 							ibm->acpi->device->dev.bus_id,
+ 							event, hkey);
 -- 
 1.5.3.1
 
