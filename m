@@ -1,32 +1,69 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [GIT PATCH v3] thinkpad-acpi changes for the merge window
-	(part 1)
-Date: Sun, 23 Sep 2007 11:31:59 -0300
-Message-ID: <20070923143159.GA13150@khazad-dum.debian.net>
-References: <1190557457539-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 1/9] ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
+Date: Sun, 23 Sep 2007 11:38:59 -0300
+Message-ID: <11905583472717-git-send-email-hmh@hmh.eng.br>
+References: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34552 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35207 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754084AbXIWOcD (ORCPT
+	by vger.kernel.org with ESMTP id S1753911AbXIWOjL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Sep 2007 10:32:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1190557457539-git-send-email-hmh@hmh.eng.br>
+	Sun, 23 Sep 2007 10:39:11 -0400
+In-Reply-To: <11905583473293-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Sun, 23 Sep 2007, Henrique de Moraes Holschuh wrote:
-> I have found a stupid bug on v2 of patch 6, and fixed it.  Sorry about
+Increase tp_features to 32 bits.  It is too close to running out of room.
 
-Today must not be my day.  There is still an error in patch 6, I will send
-the batch again in a few moments.  I am *really* sorry about this.
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/misc/thinkpad_acpi.h |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 082a1cb..fa64ded 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -233,22 +233,22 @@ struct ibm_init_struct {
+ 
+ static struct {
+ #ifdef CONFIG_THINKPAD_ACPI_BAY
+-	u16 bay_status:1;
+-	u16 bay_eject:1;
+-	u16 bay_status2:1;
+-	u16 bay_eject2:1;
++	u32 bay_status:1;
++	u32 bay_eject:1;
++	u32 bay_status2:1;
++	u32 bay_eject2:1;
+ #endif
+-	u16 bluetooth:1;
+-	u16 hotkey:1;
+-	u16 hotkey_mask:1;
+-	u16 hotkey_wlsw:1;
+-	u16 light:1;
+-	u16 light_status:1;
+-	u16 wan:1;
+-	u16 fan_ctrl_status_undef:1;
+-	u16 input_device_registered:1;
+-	u16 platform_drv_registered:1;
+-	u16 platform_drv_attrs_registered:1;
++	u32 bluetooth:1;
++	u32 hotkey:1;
++	u32 hotkey_mask:1;
++	u32 hotkey_wlsw:1;
++	u32 light:1;
++	u32 light_status:1;
++	u32 wan:1;
++	u32 fan_ctrl_status_undef:1;
++	u32 input_device_registered:1;
++	u32 platform_drv_registered:1;
++	u32 platform_drv_attrs_registered:1;
+ } tp_features;
+ 
+ struct thinkpad_id_data {
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.3.1
+
