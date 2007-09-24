@@ -1,47 +1,132 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 8/9] ACPI: thinkpad-acpi: use a
- separate platform device for hwmon and name it
-Date: Mon, 24 Sep 2007 18:43:28 +0200
-Message-ID: <20070924184328.74bfbb9e@hyperion.delvare>
-References: <1190557457539-git-send-email-hmh@hmh.eng.br>
-	<11905574583315-git-send-email-hmh@hmh.eng.br>
-	<20070924171128.19f91009@hyperion.delvare>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version 3
+Date: Tue, 25 Sep 2007 00:14:36 +0100
+Message-ID: <20070924231436.GA32119@srcf.ucam.org>
+References: <20070915170652.GA25504@srcf.ucam.org> <46F2EE66.9060207@garzik.org> <20070920222138.GA3740@srcf.ucam.org> <46F32DD9.7010509@gmail.com> <20070921024214.GA6317@srcf.ucam.org> <46F3322D.5090407@gmail.com> <20070921025734.GA6434@srcf.ucam.org> <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org> <46F33824.6000707@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20070924171128.19f91009-ig7AzVSIIG7kN2dkZ6Wm7A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: LM-cy1Wll9GaHOsTnJN9+BGXg@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len-MRDXTZLjjMs8G+1z+Pypc6QD96bmaF075NbjCUgZEJk@public.gmane.org, Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <46F33824.6000707@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kristen.c.accardi@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 24 Sep 2007 17:11:28 +0200, Jean Delvare wrote:
-> On Sun, 23 Sep 2007 11:24:16 -0300, Henrique de Moraes Holschuh wrote:
-> > +	tpacpi_sensors_pdev = platform_device_register_simple(
-> > +							IBM_HWMON_DRVR_NAME,
-> > +							-1, NULL, 0);
-> 
-> As explained before, libsensors won't pick this device. You'd need to
-> give it an id of 0 instead of -1. Hmm, I'll see if I can hack something
-> in libsensors4 until that part of the code is reimplemented in a better
-> way.
+Modern laptops with hotswap bays still tend to utilise a PATA interface 
+on a SATA bridge, generally with the host controller in some legacy 
+emulation mode rather than AHCI. This means that the existing hotplug 
+code in libata is unable to work. The ACPI specification states that 
+these devices can send notifications when hotswapped, which avoids the 
+need to obtain notification from the controller. This patch uses the 
+existing libata-acpi code and simply registers a notification in order 
+to trigger a rescan whenever the firmware signals an event.
+                                                                                                                                                                                                        
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>                        
 
-OK, it's fixed in libsensors4 now, the above code will work OK, no need
-to change it.
+---
 
+This makes two changes to the previous patch:
+
+1) It implements the locking suggested by Tejun
+2) It sends a uevent on the device kobject. I've implemented this 
+because grabbing the notification handler means that the bay driver can 
+no longer do it, so it's necessary to generate compatible events. If the 
+event type is 3, it indicates that the user has merely requested an 
+eject - the drive hasn't gone at this point. Sending the notification 
+allows userspace to attempt to unmount the filesystems before sending a 
+command to initiate the eject. 
+
+I'm not especially happy about the chain used to get the scsi device 
+kobject. Is there a cleaner way to do that? Other than that, I've now 
+tested this on multiple systems (a 965-based Thinkpad, a 915-era Dell 
+and even an HP with no SATA whatsoever) without any obvious breakage.
+
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index c059f78..68bb7fa 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -14,6 +14,7 @@
+ #include <linux/acpi.h>
+ #include <linux/libata.h>
+ #include <linux/pci.h>
++#include <scsi/scsi_device.h>
+ #include "libata.h"
+ 
+ #include <acpi/acpi_bus.h>
+@@ -66,6 +67,41 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
+ 	}
+ }
+ 
++static void ata_acpi_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_port *ap = data;
++	struct ata_eh_info *ehi = &ap->eh_info;
++	char event_string[12];
++	char *envp[] = { event_string, NULL };
++	struct kobject *kobj = NULL;
++	int i;
++
++	if (ap->acpi_handle && handle == ap->acpi_handle)
++	        kobj = &ap->dev->kobj;
++	else {
++		for (i = 0; i < ata_port_max_devices(ap); i++) {
++			struct ata_device *dev = &ap->device[i];
++			if (dev->acpi_handle && handle == dev->acpi_handle) 
++			        kobj = &dev->sdev->sdev_gendev.kobj;
++		}
++	}
++
++	if (event == 0 || event == 1) {
++	       unsigned long flags;
++	       spin_lock_irqsave(ap->lock, flags);
++	       ata_ehi_clear_desc(ehi);
++	       ata_ehi_push_desc(ehi, "ACPI event");
++	       ata_ehi_hotplugged(ehi);
++	       ata_port_freeze(ap);
++	       spin_unlock_irqrestore(ap->lock, flags);
++	}
++
++	if (kobj) {
++	        sprintf(event_string, "BAY_EVENT=%d\n", event);
++		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
++	}
++}
++
+ /**
+  * ata_acpi_associate - associate ATA host with ACPI objects
+  * @host: target ATA host
+@@ -81,7 +117,7 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
+  */
+ void ata_acpi_associate(struct ata_host *host)
+ {
+-	int i;
++	int i, j;
+ 
+ 	if (!is_pci_dev(host->dev) || libata_noacpi)
+ 		return;
+@@ -97,6 +133,22 @@ void ata_acpi_associate(struct ata_host *host)
+ 			ata_acpi_associate_sata_port(ap);
+ 		else
+ 			ata_acpi_associate_ide_port(ap);
++
++		if (ap->acpi_handle)
++			acpi_install_notify_handler (ap->acpi_handle,
++						     ACPI_SYSTEM_NOTIFY,
++						     ata_acpi_notify,
++						     ap);
++
++		for (j = 0; j < ata_port_max_devices(ap); j++) {
++			struct ata_device *dev = &ap->device[j];
++
++			if (dev->acpi_handle)
++				acpi_install_notify_handler (dev->acpi_handle,
++							     ACPI_SYSTEM_NOTIFY,
++							     ata_acpi_notify,
++							     ap);
++		}
+ 	}
+ }
+ 
 -- 
-Jean Delvare
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+Matthew Garrett | mjg59@srcf.ucam.org
