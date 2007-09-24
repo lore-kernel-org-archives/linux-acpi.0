@@ -1,303 +1,376 @@
-From: Michael Schon <michael.schon@andromedacomm.com>
-Subject: dmidecode from hp pavilion dv6000 with Slackware Linux 12.0
-Date: Mon, 24 Sep 2007 07:34:38 -0300
-Message-ID: <46F792BE.3080108@andromedacomm.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [lm-sensors] [PATCH 8/9] ACPI: thinkpad-acpi:
+ use a separate platform device for hwmon and name it
+Date: Mon, 24 Sep 2007 17:11:28 +0200
+Message-ID: <20070924171128.19f91009@hyperion.delvare>
+References: <1190557457539-git-send-email-hmh@hmh.eng.br>
+	<11905574583315-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0.andromedacomm.com ([201.54.17.204]:43525 "EHLO
-	cgp.andromeda.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753812AbXIXKdg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2007 06:33:36 -0400
-Received: from [201.74.84.182] (account michael.schon@andromedacomm.com HELO [192.168.0.15])
-  by homologa.cgp.andromeda.com.br (CommuniGate Pro SMTP 5.1.10)
-  with ESMTPA id 131377 for linux-acpi@vger.kernel.org; Mon, 24 Sep 2007 07:34:19 -0300
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <11905574583315-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LM-MRDXTZLjjMs8G+1z+Pypc6QD96bmaF075NbjCUgZEJk@public.gmane.org, Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-root@slack:~# dmidecode
-# dmidecode 2.9
-SMBIOS 2.4 present.
-20 structures occupying 720 bytes.
-Table at 0x000F1F00.
+Hi Henrique,
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Hewlett-Packard
-        Version: F.26
-        Release Date: 12/29/2006
-        Address: 0xE6D00
-        Runtime Size: 103168 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PNP is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                Selectable boot is supported
-                Print screen service is supported (int 5h)
-                8042 keyboard services are supported (int 9h)
-                Serial services are supported (int 14h)
-                Printer services are supported (int 17h)
-                ACPI is supported
-                USB legacy is supported
-                AGP is supported
-                Smart battery is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
+On Sun, 23 Sep 2007 11:24:16 -0300, Henrique de Moraes Holschuh wrote:
+> Use a separate platform device to attach hwmon attributes and class, and
+> add a name attribute of "thinkpad_hwmon" to it.  To do it properly, we
+> also register a new platform driver ("thinkpad_hwmon").
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-        Manufacturer: Hewlett-Packard
-        Product Name: HP Pavilion dv6000 (RK415AV)
-        Version: Rev 1
-        Serial Number: BRB70907PY
-        UUID: 42524237-3039-3037-5059-0019BBF8B1E9
-        Wake-up Type: Power Switch
-        SKU Number: RK415AV)
-        Family: 103C_5335KV
+The name attribute should really read "thinkpad" not "thinkpad_hwmon",
+otherwise "sensors" will present the chip as "thinkpad_hwmon-isa-0000",
+its section in /etc/sensors.conf will be named chip "thinkpad_hwmon-*",
+etc. That's pretty redundant and unaesthetic.
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: Quanta
-        Product Name: 30B7
-        Version: 65.27
-        Serial Number: None
+> This makes thinkpad-acpi compatible with libsensors4 from lm-sensors, and
+> the platform driver and device split will make it much easier to separate
+> hwmon functionality into its own module later on.
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-        Manufacturer: Quanta
-        Type: Notebook
-        Lock: Not Present
-        Version: N/A
-        Serial Number: None
-        Asset Tag: BRB70907PY
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-        OEM Information: 0x00001234
+I'm still not convinced that we want a separate device for this. If you
+have a namespace issue, it's because the hwmon attributes are created
+directly in the device directory (for historical reasons) while they
+should be created in the hwmon class device directory. I'd rather work
+on fixing this now, than use a temporary workaround as you are
+proposing.
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-        Socket Designation: Socket S1
-        Type: Central Processor
-        Family: Opteron
-        Manufacturer: AMD
-        ID: C2 0F 04 00 FF FB 8B 07
-        Signature: Family 15, Model 76, Stepping 2
-        Flags:
-                FPU (Floating-point unit on-chip)
-                VME (Virtual mode extension)
-                DE (Debugging extension)
-                PSE (Page size extension)
-                TSC (Time stamp counter)
-                MSR (Model specific registers)
-                PAE (Physical address extension)
-                MCE (Machine check exception)
-                CX8 (CMPXCHG8 instruction supported)
-                APIC (On-chip APIC hardware supported)
-                SEP (Fast system call)
-                MTRR (Memory type range registers)
-                PGE (Page global enable)
-                MCA (Machine check architecture)
-                CMOV (Conditional move instruction supported)
-                PAT (Page attribute table)
-                PSE-36 (36-bit page size extension)
-                CLFSH (CLFLUSH instruction supported)
-                MMX (MMX technology supported)
-                FXSR (Fast floating-point save and restore)
-                SSE (Streaming SIMD extensions)
-                SSE2 (Streaming SIMD extensions 2)
-        Version: Mobile AMD Sempron(tm) Processor
-        Voltage: 1.6 V
-        External Clock: 200 MHz
-        Max Speed: 1800 MHz
-        Current Speed: 1800 MHz
-        Status: Populated, Enabled
-        Upgrade: None
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+> Cc: LM Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Not Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
+It's pretty pointless to have a mailing list listed here, as the list
+itself can't ack nor nack your patch.
 
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Not Socketed, Level 2
-        Operational Mode: Write Through
-        Location: Internal
-        Installed Size: 256 KB
-        Maximum Size: 256 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Synchronous
-        Installed SRAM Type: Synchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unified
-        Associativity: Unknown
+> ---
+>  Documentation/thinkpad-acpi.txt |   24 +++++++++---
+>  drivers/misc/thinkpad_acpi.c    |   79 +++++++++++++++++++++++++++++++++------
+>  drivers/misc/thinkpad_acpi.h    |    6 ++-
+>  3 files changed, 90 insertions(+), 19 deletions(-)
+> 
+> diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+> index 60953d6..029bb43 100644
+> --- a/Documentation/thinkpad-acpi.txt
+> +++ b/Documentation/thinkpad-acpi.txt
+> @@ -105,10 +105,15 @@ The version of thinkpad-acpi's sysfs interface is exported by the driver
+>  as a driver attribute (see below).
+>  
+>  Sysfs driver attributes are on the driver's sysfs attribute space,
+> -for 2.6.20 this is /sys/bus/platform/drivers/thinkpad_acpi/.
+> +for 2.6.20 this is /sys/bus/platform/drivers/thinkpad_acpi/ and
+> +/sys/bus/platform/drivers/thinkpad_hwmon/
+>  
+> -Sysfs device attributes are on the driver's sysfs attribute space,
+> -for 2.6.20 this is /sys/devices/platform/thinkpad_acpi/.
+> +Sysfs device attributes are on the thinkpad_acpi device sysfs attribute
+> +space, for 2.6.20 this is /sys/devices/platform/thinkpad_acpi/.
 
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot 1
-        Type: 64-bit PCI Express
-        Current Usage: Available
-        Length: Short
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+That's confusing. You keep mentioning version 2.6.20 when your patch
+will not make it into mainline before 2.6.24 at best.
 
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot 2
-        Type: 64-bit PCI Express
-        Current Usage: Available
-        Length: Short
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-                PME signal is supported
-                Hot-plug devices are supported
+> +
+> +Sysfs device attributes for the sensors and fan are on the
+> +thinkpad_hwmon device's sysfs attribute space, but you should locate it
+> +looking for a hwmon device with the name attribute of "thinkpad_hwmon".
+>  
+>  Driver version
+>  --------------
+> @@ -766,7 +771,7 @@ Temperature sensors
+>  -------------------
+>  
+>  procfs: /proc/acpi/ibm/thermal
+> -sysfs device attributes: (hwmon) temp*_input
+> +sysfs device attributes: (hwmon "thinkpad_hwmon") temp*_input
+>  
+>  Most ThinkPads include six or more separate temperature sensors but only
+>  expose the CPU temperature through the standard ACPI methods.  This
+> @@ -989,7 +994,9 @@ Fan control and monitoring: fan speed, fan enable/disable
+>  ---------------------------------------------------------
+>  
+>  procfs: /proc/acpi/ibm/fan
+> -sysfs device attributes: (hwmon) fan_input, pwm1, pwm1_enable
+> +sysfs device attributes: (hwmon "thinkpad_hwmon") fan_input, pwm1,
+> +			  pwm1_enable
 
-Handle 0x0009, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Video
-        Status: Enabled
-        Description:  64
+fan_input is not a valid attribute name, should be fan1_input.
 
-Handle 0x000A, DMI type 11, 5 bytes
-OEM Strings
-        String 1: $HP$
+> +sysfs hwmon driver attributes: fan_watchdog
+>  
+>  NOTE NOTE NOTE: fan control operations are disabled by default for
+>  safety reasons.  To enable them, the module parameter "fan_control=1"
+> @@ -1131,7 +1138,7 @@ hwmon device attribute fan1_input:
+>  	which can take up to two minutes.  May return rubbish on older
+>  	ThinkPads.
+>  
+> -driver attribute fan_watchdog:
+> +hwmon driver attribute fan_watchdog:
+>  	Fan safety watchdog timer interval, in seconds.  Minimum is
+>  	1 second, maximum is 120 seconds.  0 disables the watchdog.
+>  
+> @@ -1233,3 +1240,8 @@ Sysfs interface changelog:
+>  		layer, the radio switch generates input event EV_RADIO,
+>  		and the driver enables hot key handling by default in
+>  		the firmware.
+> +
+> +0x020000:	ABI fix: added a separate hwmon platform device and
+> +		driver, which must be located by name (thinkpad_hwmon)
+> +		and the hwmon class for lm_sensors4 compatibility.
 
-Handle 0x000B, DMI type 15, 29 bytes
-System Event Log
-        Area Length: 16 bytes
-        Header Start Offset: 0x0000
-        Header Length: 16 bytes
-        Data Start Offset: 0x0010
-        Access Method: General-purpose non-volatile data functions
-        Access Address: 0x0000
-        Status: Invalid, Not Full
-        Change Token: 0x00000000
-        Header Format: Type 1
-        Supported Log Type Descriptors: 3
-        Descriptor 1: POST error
-        Data Format 1: POST results bitmap
-        Descriptor 2: Single-bit ECC memory error
-        Data Format 2: Multiple-event
-        Descriptor 3: Multi-bit ECC memory error
-        Data Format 3: Multiple-event
+There's no lm_sensors4. It's either lm-sensors 3, or libsensors4. (I
+know it's confusing, not my fault.)
 
-Handle 0x000C, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 2 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
+> +		Moved all hwmon attributes to this new platform device.
+> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> index 8bd6c83..4a85ede 100644
+> --- a/drivers/misc/thinkpad_acpi.c
+> +++ b/drivers/misc/thinkpad_acpi.c
+> @@ -22,7 +22,7 @@
+>   */
+>  
+>  #define IBM_VERSION "0.16"
+> -#define TPACPI_SYSFS_VERSION 0x010000
+> +#define TPACPI_SYSFS_VERSION 0x020000
+>  
+>  /*
+>   *  Changelog:
+> @@ -526,6 +526,7 @@ static char *next_cmd(char **cmds)
+>   ****************************************************************************/
+>  
+>  static struct platform_device *tpacpi_pdev;
+> +static struct platform_device *tpacpi_sensors_pdev;
+>  static struct class_device *tpacpi_hwmon;
+>  static struct input_dev *tpacpi_inputdev;
+>  static struct mutex tpacpi_inputdev_send_mutex;
+> @@ -553,6 +554,12 @@ static struct platform_driver tpacpi_pdriver = {
+>  	.resume = tpacpi_resume_handler,
+>  };
+>  
+> +static struct platform_driver tpacpi_hwmon_pdriver = {
+> +	.driver = {
+> +		.name = IBM_HWMON_DRVR_NAME,
+> +		.owner = THIS_MODULE,
+> +	},
+> +};
+>  
+>  /*************************************************************************
+>   * thinkpad-acpi driver attributes
+> @@ -2872,7 +2879,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+>  
+>  	switch(thermal_read_mode) {
+>  	case TPACPI_THERMAL_TPEC_16:
+> -		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
+> +		res = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+>  				&thermal_temp_input16_group);
+>  		if (res)
+>  			return res;
+> @@ -2880,7 +2887,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+>  	case TPACPI_THERMAL_TPEC_8:
+>  	case TPACPI_THERMAL_ACPI_TMP07:
+>  	case TPACPI_THERMAL_ACPI_UPDT:
+> -		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
+> +		res = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+>  				&thermal_temp_input8_group);
+>  		if (res)
+>  			return res;
+> @@ -2897,13 +2904,13 @@ static void thermal_exit(void)
+>  {
+>  	switch(thermal_read_mode) {
+>  	case TPACPI_THERMAL_TPEC_16:
+> -		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
+> +		sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj,
+>  				   &thermal_temp_input16_group);
+>  		break;
+>  	case TPACPI_THERMAL_TPEC_8:
+>  	case TPACPI_THERMAL_ACPI_TMP07:
+>  	case TPACPI_THERMAL_ACPI_UPDT:
+> -		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
+> +		sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj,
+>  				   &thermal_temp_input16_group);
+>  		break;
+>  	case TPACPI_THERMAL_NONE:
+> @@ -3686,7 +3693,7 @@ static struct device_attribute dev_attr_fan_fan1_input =
+>  	__ATTR(fan1_input, S_IRUGO,
+>  		fan_fan1_input_show, NULL);
+>  
+> -/* sysfs fan fan_watchdog (driver) ------------------------------------- */
+> +/* sysfs fan fan_watchdog (hwmon driver) ------------------------------- */
+>  static ssize_t fan_fan_watchdog_show(struct device_driver *drv,
+>  				     char *buf)
+>  {
+> @@ -3828,10 +3835,10 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+>  
+>  	if (fan_status_access_mode != TPACPI_FAN_NONE ||
+>  	    fan_control_access_mode != TPACPI_FAN_WR_NONE) {
+> -		rc = sysfs_create_group(&tpacpi_pdev->dev.kobj,
+> +		rc = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+>  					 &fan_attr_group);
+>  		if (!(rc < 0))
+> -			rc = driver_create_file(&tpacpi_pdriver.driver,
+> +			rc = driver_create_file(&tpacpi_hwmon_pdriver.driver,
+>  					&driver_attr_fan_watchdog);
+>  		if (rc < 0)
+>  			return rc;
+> @@ -3914,8 +3921,8 @@ static void fan_exit(void)
+>  	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending fan watchdog tasks\n");
+>  
+>  	/* FIXME: can we really do this unconditionally? */
+> -	sysfs_remove_group(&tpacpi_pdev->dev.kobj, &fan_attr_group);
+> -	driver_remove_file(&tpacpi_pdriver.driver, &driver_attr_fan_watchdog);
+> +	sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj, &fan_attr_group);
+> +	driver_remove_file(&tpacpi_hwmon_pdriver.driver, &driver_attr_fan_watchdog);
+>  
+>  	cancel_delayed_work(&fan_watchdog_task);
+>  	flush_scheduled_work();
+> @@ -4366,6 +4373,19 @@ static struct ibm_struct fan_driver_data = {
+>   ****************************************************************************
+>   ****************************************************************************/
+>  
+> +/* sysfs name ---------------------------------------------------------- */
+> +static ssize_t thinkpad_acpi_pdev_name_show(struct device *dev,
+> +			   struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	return snprintf(buf, PAGE_SIZE, "%s\n", IBM_HWMON_DRVR_NAME);
+> +}
+> +
+> +static struct device_attribute dev_attr_thinkpad_acpi_pdev_name =
+> +	__ATTR(name, S_IRUGO, thinkpad_acpi_pdev_name_show, NULL);
+> +
+> +/* --------------------------------------------------------------------- */
+> +
+>  /* /proc support */
+>  static struct proc_dir_entry *proc_dir;
+>  
+> @@ -4768,12 +4788,20 @@ static int __init thinkpad_acpi_module_init(void)
+>  
+>  	ret = platform_driver_register(&tpacpi_pdriver);
+>  	if (ret) {
+> -		printk(IBM_ERR "unable to register platform driver\n");
+> +		printk(IBM_ERR "unable to register main platform driver\n");
+>  		thinkpad_acpi_module_exit();
+>  		return ret;
+>  	}
+>  	tp_features.platform_drv_registered = 1;
+>  
+> +	ret = platform_driver_register(&tpacpi_hwmon_pdriver);
+> +	if (ret) {
+> +		printk(IBM_ERR "unable to register hwmon platform driver\n");
+> +		thinkpad_acpi_module_exit();
+> +		return ret;
+> +	}
+> +	tp_features.sensors_pdrv_registered = 1;
+> +
+>  	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
+>  	if (ret) {
+>  		printk(IBM_ERR "unable to create sysfs driver attributes\n");
+> @@ -4793,7 +4821,26 @@ static int __init thinkpad_acpi_module_init(void)
+>  		thinkpad_acpi_module_exit();
+>  		return ret;
+>  	}
+> -	tpacpi_hwmon = hwmon_device_register(&tpacpi_pdev->dev);
+> +	tpacpi_sensors_pdev = platform_device_register_simple(
+> +							IBM_HWMON_DRVR_NAME,
+> +							-1, NULL, 0);
 
-Handle 0x000D, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: Unknown
-        Data Width: Unknown
-        Size: No Module Installed
-        Form Factor: DIMM
-        Set: 1
-        Locator: DIMM 1
-        Bank Locator: Bank 0,1
-        Type: Unknown
-        Type Detail: Unknown
-        Speed: Unknown
-        Manufacturer: Not Specified
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
+As explained before, libsensors won't pick this device. You'd need to
+give it an id of 0 instead of -1. Hmm, I'll see if I can hack something
+in libsensors4 until that part of the code is reimplemented in a better
+way.
 
-Handle 0x000E, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 512 MB
-        Form Factor: DIMM
-        Set: 1
-        Locator: DIMM 2
-        Bank Locator: Bank 2,3
-        Type: DDR2
-        Type Detail: Unknown
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Not Specified
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
+> +	if (IS_ERR(tpacpi_sensors_pdev)) {
+> +		ret = PTR_ERR(tpacpi_sensors_pdev);
+> +		tpacpi_sensors_pdev = NULL;
+> +		printk(IBM_ERR "unable to register hwmon platform device\n");
+> +		thinkpad_acpi_module_exit();
+> +		return ret;
+> +	}
+> +	ret = device_create_file(&tpacpi_sensors_pdev->dev,
+> +				 &dev_attr_thinkpad_acpi_pdev_name);
+> +	if (ret) {
+> +		printk(IBM_ERR
+> +			"unable to create sysfs hwmon device attributes\n");
+> +		thinkpad_acpi_module_exit();
+> +		return ret;
+> +	}
+> +	tp_features.sensors_pdev_attrs_registered = 1;
+> +	tpacpi_hwmon = hwmon_device_register(&tpacpi_sensors_pdev->dev);
+>  	if (IS_ERR(tpacpi_hwmon)) {
+>  		ret = PTR_ERR(tpacpi_hwmon);
+>  		tpacpi_hwmon = NULL;
+> @@ -4864,12 +4911,20 @@ static void thinkpad_acpi_module_exit(void)
+>  	if (tpacpi_hwmon)
+>  		hwmon_device_unregister(tpacpi_hwmon);
+>  
+> +	if (tp_features.sensors_pdev_attrs_registered)
+> +		device_remove_file(&tpacpi_sensors_pdev->dev,
+> +				   &dev_attr_thinkpad_acpi_pdev_name);
+> +	if (tpacpi_sensors_pdev)
+> +		platform_device_unregister(tpacpi_sensors_pdev);
+>  	if (tpacpi_pdev)
+>  		platform_device_unregister(tpacpi_pdev);
+>  
+>  	if (tp_features.platform_drv_attrs_registered)
+>  		tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
+>  
+> +	if (tp_features.sensors_pdrv_registered)
+> +		platform_driver_unregister(&tpacpi_hwmon_pdriver);
+> +
+>  	if (tp_features.platform_drv_registered)
+>  		platform_driver_unregister(&tpacpi_pdriver);
+>  
+> diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+> index fa64ded..791b8ca 100644
+> --- a/drivers/misc/thinkpad_acpi.h
+> +++ b/drivers/misc/thinkpad_acpi.h
+> @@ -58,13 +58,14 @@
+>  
+>  #define IBM_NAME "thinkpad"
+>  #define IBM_DESC "ThinkPad ACPI Extras"
+> -#define IBM_FILE "thinkpad_acpi"
+> +#define IBM_FILE IBM_NAME "_acpi"
+>  #define IBM_URL "http://ibm-acpi.sf.net/"
+>  #define IBM_MAIL "ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org"
+>  
+>  #define IBM_PROC_DIR "ibm"
+>  #define IBM_ACPI_EVENT_PREFIX "ibm"
+>  #define IBM_DRVR_NAME IBM_FILE
+> +#define IBM_HWMON_DRVR_NAME IBM_NAME "_hwmon"
+>  
+>  #define IBM_LOG IBM_FILE ": "
+>  #define IBM_ERR	   KERN_ERR    IBM_LOG
+> @@ -171,6 +172,7 @@ static int parse_strtoul(const char *buf, unsigned long max,
+>  
+>  /* Device model */
+>  static struct platform_device *tpacpi_pdev;
+> +static struct platform_device *tpacpi_sensors_pdev;
+>  static struct class_device *tpacpi_hwmon;
+>  static struct platform_driver tpacpi_pdriver;
+>  static struct input_dev *tpacpi_inputdev;
+> @@ -249,6 +251,8 @@ static struct {
+>  	u32 input_device_registered:1;
+>  	u32 platform_drv_registered:1;
+>  	u32 platform_drv_attrs_registered:1;
+> +	u32 sensors_pdrv_registered:1;
+> +	u32 sensors_pdev_attrs_registered:1;
+>  } tp_features;
+>  
+>  struct thinkpad_id_data {
 
-Handle 0x000F, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0001FFFFFFF
-        Range Size: 512 MB
-        Physical Array Handle: 0x000C
-        Partition Width: 0
 
-Handle 0x0010, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x000000007FF
-        Range Size: 2 kB
-        Physical Device Handle: 0x000D
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: 2
-        Interleave Position: 2
-        Interleaved Data Depth: 2
+-- 
+Jean Delvare
 
-Handle 0x0011, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0001FFFFFFF
-        Range Size: 512 MB
-        Physical Device Handle: 0x000E
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: 2
-        Interleave Position: 2
-        Interleaved Data Depth: 2
-
-Handle 0x0012, DMI type 32, 20 bytes
-System Boot Information
-        Status: <OUT OF SPEC>
-
-Handle 0x0013, DMI type 127, 4 bytes
-End Of Table
-
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2005.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
