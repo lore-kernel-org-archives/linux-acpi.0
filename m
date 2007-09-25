@@ -1,34 +1,32 @@
-From: Damien Wyart <damien.wyart@free.fr>
-Subject: Re: ACPI power off regression in 2.6.23-rc8 (NOT in rc7)
-Date: Tue, 25 Sep 2007 11:27:55 +0200
-Message-ID: <20070925092755.GA4553@localhost.localdomain>
-References: <20070925065109.GA3080@localhost.localdomain> <20070925003340.5d6dd7f4.akpm@linux-foundation.org> <46F8C880.1010006@suse.de> <64bb37e0709250208gcbdeb6do6026e138e746bde2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752481AbXIYJ2N@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <64bb37e0709250208gcbdeb6do6026e138e746bde2@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Torsten Kaiser <just.for.lkml@googlemail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PATCH v4] thinkpad-acpi changes for the merge window (part 1)
+Date: Tue, 25 Sep 2007 06:38:02 -0300
+Message-ID: <11907130833895-git-send-email-hmh@hmh.eng.br>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51343 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750955AbXIYJiK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2007 05:38:10 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Hello,
+Len,
 
-> On 9/25/07, Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
-> > Do you have CONFIG_ACPI_SLEEP enabled in your .config?
+Here's the update to the $subject patchset, as per Jean Devalre's comments.
 
-* Torsten Kaiser <just.for.lkml@googlemail.com> [2007-09-25 11:08]:
-> I'm answering that too, because I suspect that my "2.6.23-rc7-mm1 does
-> not power off"-error might have the same cause.
+Just a single patch needed to be modified.  It replaces patch "[PATCH 8/9]
+ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it" from
+the previous patch series.
 
-> No, I do not have CONFIG_ACPI_SLEEP set,
-> because I do not have CONFIG_PM_SLEEP set,
-> because I do not want SUSPEND and/or HIBERNATION.
+I have also updated the git tree accordingly, for what is it worth.
 
-Same answer from my side: I do not have CONFIG_ACPI_SLEEP for the same
-reason (and this worked fine without them in rc7). I do not think these
-settings should have changed between rc7 and rc8.
+Please merge for 2.6.24's merge window.  Thanks!
 
 -- 
-Damien Wyart
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
