@@ -1,179 +1,185 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: ACPI power off regression in 2.6.23-rc8 (NOT in rc7)
-Date: Tue, 25 Sep 2007 00:33:40 -0700
-Message-ID: <20070925003340.5d6dd7f4.akpm@linux-foundation.org>
-References: <20070925065109.GA3080@localhost.localdomain>
+From: TJ <linux@tjworld.net>
+Subject: acpi_scan_rsdp() breaks some PCs by not honouring ACPI
+	specification
+Date: Tue, 25 Sep 2007 08:37:43 +0100
+Message-ID: <1190705863.9409.7.camel@hephaestion.lan.tjworld.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48498 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753386AbXIYHeN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Sep 2007 03:34:13 -0400
-In-Reply-To: <20070925065109.GA3080@localhost.localdomain>
+Received: from [66.6.122.20] ([66.6.122.20]:54468 "EHLO tjworld.net"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751487AbXIYHpJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2007 03:45:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Damien Wyart <damien.wyart@free.fr>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Frans Pop <elendil@planet.nl>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, 25 Sep 2007 08:51:09 +0200 Damien Wyart <damien.wyart@free.fr> wrote:
+I've been debugging an ACPI-disabled-at-boot failure on an Acer
+Travelmate C104TCi (C100) with a Wistron BIOS.
 
-> Hello,
-> 
-> After testing rc8, I noticed that I couldn't power off the computer
-> directly, it only got halted and I had to press the power button
-> manually. Just before displaying "System halted", the following message
-> is displayed:
-> 
->   ACPI : PCI interrupt for device 0000:02:08.0 disabled
-> 
-> I had to first revert 5a50fe709d527f31169263e36601dd83446d5744 then
-> f216cc3748a3a22c2b99390fddcdafa0583791a2 (handling of Sx states) to
-> recover previous behaviour.
+[ 0.000000] DMI 2.3 present.
+[ 0.000000] ACPI: RSDP 000EC2D0, 0014 (r0 Acer )
+[ 0.000000] ACPI: =01 00000000, F000FF5A (r195 Z=C3=BF F000FF57 Z=C3=BF=
+ F000FEA5)
+[ 27.751333] ACPI: Core revision 20070126
+[ 27.751501] ACPI Exception (tbxface-0618): AE_NO_ACPI_TABLES, While
+loading namespace from ACPI tables [20070126]
+[ 27.751654] ACPI: Unable to load the System Description Tables
+[ 27.783596] ACPI: Interpreter disabled.
 
-Let's add some cc's.
+There are several references to this problem around the net and a coupl=
+e
+of invasive kernel patches that don't address the cause.
 
-> Attached are the dmesg for rc7, rc8 and rc8 with the two patches
-> reverted.
+I wrote a user-space application that scans memory using the method
+described in the ACPI specifications. It reports:
 
-"diff -u dmesg.rc8_revert dmesg.rc8" says:
+$ sudo ./find-RSDP
 
---- dmesg.rc8_revert	2007-09-25 00:31:33.000000000 -0700
-+++ dmesg.rc8	2007-09-25 00:31:30.000000000 -0700
-@@ -1,4 +1,4 @@
--Linux version 2.6.23-rc8-25092007dw (root@brouette) (gcc version 4.2.1 (Debian 4.2.1-5)) #2 SMP Tue Sep 25 08:31:09 CEST 2007
-+Linux version 2.6.23-rc8-25092007dw (root@brouette) (gcc version 4.2.1 (Debian 4.2.1-5)) #1 SMP Tue Sep 25 07:27:10 CEST 2007
- BIOS-provided physical RAM map:
-  BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
-  BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
-@@ -72,18 +72,18 @@
- console [tty0] enabled
- Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
- Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
--Memory: 2074780k/2096592k available (2175k kernel code, 20712k reserved, 815k data, 192k init, 1179088k highmem)
-+Memory: 2074780k/2096592k available (2175k kernel code, 20712k reserved, 816k data, 192k init, 1179088k highmem)
- virtual kernel memory layout:
-     fixmap  : 0xfff9b000 - 0xfffff000   ( 400 kB)
-     pkmap   : 0xff800000 - 0xffc00000   (4096 kB)
-     vmalloc : 0xf8800000 - 0xff7fe000   ( 111 MB)
-     lowmem  : 0xc0000000 - 0xf8000000   ( 896 MB)
-       .init : 0xc03f0000 - 0xc0420000   ( 192 kB)
--      .data : 0xc031fd5c - 0xc03ebd04   ( 815 kB)
--      .text : 0xc0100000 - 0xc031fd5c   (2175 kB)
-+      .data : 0xc031fcd4 - 0xc03ebd04   ( 816 kB)
-+      .text : 0xc0100000 - 0xc031fcd4   (2175 kB)
- Checking if this processor honours the WP bit even in supervisor mode... Ok.
- SLUB: Genslabs=22, HWalign=64, Order=0-1, MinObjects=4, CPUs=2, Nodes=1
--Calibrating delay using timer specific routine.. 5987.66 BogoMIPS (lpj=2993833)
-+Calibrating delay using timer specific routine.. 5987.60 BogoMIPS (lpj=2993802)
- Mount-cache hash table entries: 512
- CPU: After generic identify, caps: bfebfbff 00000000 00000000 00000000 0000041d 00000000 00000000 00000000
- monitor/mwait feature present.
-@@ -104,7 +104,7 @@
- Booting processor 1/1 eip 2000
- CPU 1 irqstacks, hard=c0426000 soft=c0424000
- Initializing CPU#1
--Calibrating delay using timer specific routine.. 5984.18 BogoMIPS (lpj=2992093)
-+Calibrating delay using timer specific routine.. 5984.16 BogoMIPS (lpj=2992084)
- CPU: After generic identify, caps: bfebfbff 00000000 00000000 00000000 0000041d 00000000 00000000 00000000
- monitor/mwait feature present.
- CPU: Trace cache: 12K uops, L1 D cache: 16K
-@@ -116,7 +116,7 @@
- CPU1: Intel P4/Xeon Extended MCE MSRs (12) available
- CPU1: Thermal monitoring enabled
- CPU1: Intel(R) Pentium(R) 4 CPU 3.00GHz stepping 03
--Total of 2 processors activated (11971.85 BogoMIPS).
-+Total of 2 processors activated (11971.77 BogoMIPS).
- ENABLING IO-APIC IRQs
- ..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
- checking TSC synchronization [CPU#0 -> CPU#1]: passed.
-@@ -279,6 +279,7 @@
- EXT3-fs: mounted filesystem with ordered data mode.
- VFS: Mounted root (ext3 filesystem) readonly.
- Freeing unused kernel memory: 192k freed
-+input: PC Speaker as /devices/platform/pcspkr/input/input4
- sr0: scsi3-mmc drive: 1x/48x cd/rw xa/form2 cdda tray
- Uniform CD-ROM driver Revision: 3.20
- sr 1:0:0:0: Attached scsi CD-ROM sr0
-@@ -287,7 +288,6 @@
- usbcore: registered new interface driver usbfs
- usbcore: registered new interface driver hub
- usbcore: registered new device driver usb
--input: PC Speaker as /devices/platform/pcspkr/input/input4
- parport_pc 00:0a: reported by Plug and Play ACPI
- parport0: PC-style at 0x378 (0x778), irq 7, using FIFO [PCSPP,TRISTATE,COMPAT,ECP]
- USB Universal Host Controller Interface driver v3.0
-@@ -299,46 +299,42 @@
- usb usb1: configuration #1 chosen from 1 choice
- hub 1-0:1.0: USB hub found
- hub 1-0:1.0: 2 ports detected
--ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 20
--PCI: Setting latency timer of device 0000:00:1d.1 to 64
--uhci_hcd 0000:00:1d.1: UHCI Host Controller
--uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 2
--uhci_hcd 0000:00:1d.1: irq 20, io base 0x0000ff60
-+ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 20
-+PCI: Setting latency timer of device 0000:00:1d.7 to 64
-+ehci_hcd 0000:00:1d.7: EHCI Host Controller
-+ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 2
-+ehci_hcd 0000:00:1d.7: debug port 1
-+PCI: cache line size of 128 is not supported by device 0000:00:1d.7
-+ehci_hcd 0000:00:1d.7: irq 20, io mem 0xffa80800
-+ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
- usb usb2: configuration #1 chosen from 1 choice
- hub 2-0:1.0: USB hub found
--hub 2-0:1.0: 2 ports detected
-+hub 2-0:1.0: 8 ports detected
-+ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 21
-+PCI: Setting latency timer of device 0000:00:1d.1 to 64
-+uhci_hcd 0000:00:1d.1: UHCI Host Controller
-+uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
-+uhci_hcd 0000:00:1d.1: irq 21, io base 0x0000ff60
-+usb usb3: configuration #1 chosen from 1 choice
-+hub 3-0:1.0: USB hub found
-+hub 3-0:1.0: 2 ports detected
- ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 17
- PCI: Setting latency timer of device 0000:00:1d.2 to 64
- uhci_hcd 0000:00:1d.2: UHCI Host Controller
--uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 3
-+uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
- uhci_hcd 0000:00:1d.2: irq 17, io base 0x0000ff40
--usb usb3: configuration #1 chosen from 1 choice
--hub 3-0:1.0: USB hub found
--hub 3-0:1.0: 2 ports detected
--usb 1-1: new full speed USB device using uhci_hcd and address 2
-+usb usb4: configuration #1 chosen from 1 choice
-+hub 4-0:1.0: USB hub found
-+hub 4-0:1.0: 2 ports detected
- ACPI: PCI Interrupt 0000:00:1d.3[A] -> GSI 16 (level, low) -> IRQ 19
- PCI: Setting latency timer of device 0000:00:1d.3 to 64
- uhci_hcd 0000:00:1d.3: UHCI Host Controller
--uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 4
-+uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 5
- uhci_hcd 0000:00:1d.3: irq 19, io base 0x0000ff20
--usb usb4: configuration #1 chosen from 1 choice
--hub 4-0:1.0: USB hub found
--hub 4-0:1.0: 2 ports detected
--ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 21
--PCI: Setting latency timer of device 0000:00:1d.7 to 64
--ehci_hcd 0000:00:1d.7: EHCI Host Controller
--ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 5
--ehci_hcd 0000:00:1d.7: debug port 1
--PCI: cache line size of 128 is not supported by device 0000:00:1d.7
--ehci_hcd 0000:00:1d.7: irq 21, io mem 0xffa80800
--ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
--usb 1-1: configuration #1 chosen from 1 choice
--usb 1-1: can't set config #1, error -71
- usb usb5: configuration #1 chosen from 1 choice
- hub 5-0:1.0: USB hub found
--hub 5-0:1.0: 8 ports detected
--usb 1-1: USB disconnect, address 2
--usb 1-1: new full speed USB device using uhci_hcd and address 3
-+hub 5-0:1.0: 2 ports detected
-+usb 1-1: new full speed USB device using uhci_hcd and address 2
- usb 1-1: configuration #1 chosen from 1 choice
- Adding 1212896k swap on /dev/sdb7.  Priority:-1 extents:1 across:1212896k
- EXT3 FS on sdb2, internal journal
+find-RSDP version 0.1 =C2=A9 2007 TJ
+Licensed on the terms of GPL version 3
 
+=46inds ACPI Root System Descriptor Pointer (for supported BIOS's only)=
+=2E
+
+0x00000000FFFFFFFF Memory size
+0x00000000000EC2D0 "RSD PTR "
+0x00000000000FE030 "RSD PTR " RSDT @ 0FFE0000 OEM: "Acer " sum: 0
+0x0000000005FBFE10 "RSD PTR "
+
+Unfortunately the kernel function
+
+arch/i386/kernel/acpi/boot.c::acpi_scan_rsdp()
+
+doesn't fully implement the ACPI specification - it simply looks for th=
+e
+first "RSD PTR " signature but doesn't check it has found a valid table
+by calculating the checksum.
+
+Because this series of BIOSs happen to have multiple instances of "RSD
+PTR " and an invalid instance appears first in memory, the kernel tries
+to use an invalid pointer to the RSDT, leading to the problems.
+
+I've prepared a simple patch that calculates the checksum and only
+returns an RSDT pointer if the checksum =3D=3D 0.
+
+
+Regards,
+
+TJ.
+Ubuntu Kernel ACPI Team
+
+=3D=3D Results With Patch Applied =3D=3D
+[    0.000000]  BIOS-e820: 000000000ffe0000 - 000000000ffe8000 (ACPI da=
+ta)
+[    0.000000]  BIOS-e820: 000000000ffe8000 - 0000000010000000 (ACPI NV=
+S)
+[    0.000000] ACPI: RSDP signature @ 0xC00EC2D0 checksum 218
+[    0.000000] ACPI: RSDP signature @ 0xC00FE030 checksum 0
+[    0.000000] ACPI: RSDP 000FE030, 0014 (r0 Acer  )
+[    0.000000] ACPI: RSDT 0FFE0000, 002C (r1 Acer   TM100           1 M=
+SFT        1)
+[    0.000000] ACPI: FACP 0FFE0054, 0074 (r1 Acer   TM100           1 M=
+SFT        1)
+[    0.000000] ACPI: DSDT 0FFE00CC, 3E26 (r1   Acer   AN100      1000 M=
+SFT  100000E)
+[    0.000000] ACPI: FACS 0FFE8000, 0040
+[    0.000000] ACPI: BOOT 0FFE002C, 0028 (r1 Acer   TM100           1 M=
+SFT        1)
+[    0.000000] ACPI: PM-Timer IO Port: 0xf008
+[   18.351112] ACPI: Core revision 20070126
+[   18.351387] ACPI: Looking for DSDT in initramfs... successfully read=
+ 13997 bytes from /DSDT.aml.
+[   18.351656] ACPI: Table DSDT replaced by host OS
+[   18.351784] ACPI: DSDT 00000000, 36AD (r1   Acer   AN100      1000 I=
+NTL 20061109)
+[   18.355337] ACPI: setting ELCR to 0200 (from 0c00)
+[   18.407892] ACPI: bus type pci registered
+[   18.438953] ACPI: EC: Look up EC in DSDT
+[   18.445067] ACPI: EC: GPE=3D0x18, ports=3D0x66, 0x62
+[   18.451387] ACPI: Interpreter enabled
+[   18.451446] ACPI: (supports S0 S3 S4 S5)
+[   18.451694] ACPI: Using PIC for interrupt routing
+[   18.472224] ACPI: EC: GPE=3D0x18, ports=3D0x66, 0x62
+[   18.472379] ACPI: PCI Root Bridge [PCI0] (0000:00)
+[   18.473052] PCI quirk: region f000-f03f claimed by PIIX4 ACPI
+[   18.473388] ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+[   18.476877] ACPI: PCI Interrupt Link [PILA] (IRQs *10 15)
+[   18.477341] ACPI: PCI Interrupt Link [PILB] (IRQs *11 15)
+[   18.477796] ACPI: PCI Interrupt Link [PILD] (IRQs *10 15)
+[   18.478266] pnp: PnP ACPI init
+[   18.478338] ACPI: bus type pnp registered
+[   18.489473] pnp: PnP ACPI: found 10 devices
+[   18.489535] ACPI: ACPI bus type pnp unregistered
+[   18.489597] PnPBIOS: Disabled by ACPI PNP
+[   18.489773] PCI: Using ACPI for IRQ routing
+[   18.534358] ACPI: PCI Interrupt Link [PILA] enabled at IRQ 10
+[   18.534429] ACPI: PCI Interrupt 0000:00:03.0[A] -> Link [PILA] -> GS=
+I 10 (level, low) -> IRQ 10
+[   18.534590] ACPI: PCI Interrupt 0000:00:03.1[A] -> Link [PILA] -> GS=
+I 10 (level, low) -> IRQ 10
+[   20.334950] ACPI: PCI Interrupt Link [PILB] enabled at IRQ 11
+[   20.335025] ACPI: PCI Interrupt 0000:00:00.2[B] -> Link [PILB] -> GS=
+I 11 (level, low) -> IRQ 11
+[   20.335180] ACPI: PCI interrupt for device 0000:00:00.2 disabled
+[   20.794419] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3] C4[C3])
+[   20.807239] ACPI: Thermal Zone [THR1] (32 C)
+[   20.817398] ACPI: Thermal Zone [THR2] (30 C)
+[   22.067049] ACPI: PCI Interrupt Link [PILD] enabled at IRQ 10
+[   22.068169] ACPI: PCI Interrupt 0000:00:05.0[A] -> Link [PILD] -> GS=
+I 10 (level, low) -> IRQ 10
+[   22.173209] ACPI: PCI Interrupt 0000:00:04.0[A] -> Link [PILD] -> GS=
+I 10 (level, low) -> IRQ 10
+[   22.474602] ACPI: PCI Interrupt 0000:00:07.2[D] -> Link [PILD] -> GS=
+I 10 (level, low) -> IRQ 10
+[   23.608000] ACPI: PCI Interrupt 0000:00:00.1[B] -> Link [PILB] -> GS=
+I 11 (level, low) -> IRQ 11
+
+=3D=3D Patch =3D=3D
+--- arch/i386/kernel/acpi/boot.c.orig	2007-09-25 02:17:12.000000000 +01=
+00
++++ arch/i386/kernel/acpi/boot.c	2007-09-25 08:31:05.000000000 +0100
+@@ -592,9 +592,25 @@
+ 	 * RSDP signature.
+ 	 */
+ 	for (offset =3D 0; offset < length; offset +=3D 16) {
+-		if (strncmp((char *)(phys_to_virt(start) + offset), "RSD PTR ", sig_=
+len))
+-			continue;
+-		return (start + offset);
++		if (strncmp((char *)(phys_to_virt(start) + offset), "RSD PTR ", sig_=
+len) =3D=3D 0) {
++			/* 2007-09-24 TJ <linux@tjworld.net>
++			 * The ACPI specification states the first 20 bytes of the RSDP tab=
+le
++			 * must have a checksum of 0 (ACPI 1.0b RSDP table is 20 bytes long=
+).
++			 * The signature can appear in multiple memory locations so don't r=
+ely
++			 * on it as the sole proof of a valid table.
++			 * This fixes broken/disabled ACPI problems with Acer Travelmate C1=
+00
++			 * (and others) where the first signature match is accepted without
++			 *  confirming the checksum.
++			 */
++			unsigned int i;
++			unsigned char checksum;
++			unsigned char *table =3D (unsigned char *)(phys_to_virt(start) + of=
+fset);
++			for (checksum =3D 0, i =3D 0; i < 20; i++)
++				checksum +=3D table[i];
++
++		printk(KERN_WARNING PREFIX "RSDP signature @ 0x%0.8lX checksum %d\n"=
+, table, checksum);
++			if (checksum =3D=3D 0) return (start + offset);
++		}
+ 	}
+=20
+ 	return 0;
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
