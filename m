@@ -1,76 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] [PATCH 8/9] ACPI: thinkpad-acpi: use a separate
- platform device for hwmon and name it
-Date: Tue, 25 Sep 2007 18:00:06 +0200
-Message-ID: <20070925180006.74e06c4e@hyperion.delvare>
-References: <1190557457539-git-send-email-hmh@hmh.eng.br>
-	<11905574583315-git-send-email-hmh@hmh.eng.br>
-	<20070924171128.19f91009@hyperion.delvare>
-	<20070925023958.GA15111@khazad-dum.debian.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: ACPI power off regression in 2.6.23-rc8 (NOT in rc7)
+Date: Tue, 25 Sep 2007 09:23:23 -0700
+Message-ID: <20070925092323.17442600.akpm@linux-foundation.org>
+References: <20070925065109.GA3080@localhost.localdomain>
+	<200709251618.06064.rjw@sisk.pl>
+	<46F918F8.1080808@suse.de>
+	<200709251652.05589.rjw@sisk.pl>
+	<46F91EFB.2050802@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:54162 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752397AbXIYQAJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Sep 2007 12:00:09 -0400
-In-Reply-To: <20070925023958.GA15111@khazad-dum.debian.net>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45589 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754213AbXIYQXj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2007 12:23:39 -0400
+In-Reply-To: <46F91EFB.2050802@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, LM Sensors ML <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Torsten Kaiser <just.for.lkml@googlemail.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Frans Pop <elendil@planet.nl>, linux-acpi@vger.kernel.org
 
-On Mon, 24 Sep 2007 23:39:58 -0300, Henrique de Moraes Holschuh wrote:
-> On Mon, 24 Sep 2007, Jean Delvare wrote:
-> > The name attribute should really read "thinkpad" not "thinkpad_hwmon",
-> > otherwise "sensors" will present the chip as "thinkpad_hwmon-isa-0000",
-> > its section in /etc/sensors.conf will be named chip "thinkpad_hwmon-*",
-> > etc. That's pretty redundant and unaesthetic.
+On Tue, 25 Sep 2007 18:45:15 +0400 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+
+> [fix-ACPI_SLEEP_states.patch  text/x-patch (2.0KB)]
+> ACPI: suspend: fix ACPI_SLEEP states
 > 
-> -isa- in platform drivers where there is not even a ISA bus in sight is also
-> very unaesthetic.
-
-It's about I/O addressing space, not bus. OK, technically speaking,
-recent systems' I/O space follows the LPC standard, not ISA, but for the
-user it's essentially the same.
-
-Most applications will only present the prefix of the hardware
-monitoring name (i.e. the contents of the name sysfs attribute), so the
-rest of the naming syntax isn't that important.
-
-> That said, I will change it to "thinkpad", but I still would rather have
-> thinkpad-platform from a cosmetic point of view, than thinkpad-isa-0001.
-
-Great, thanks. thinkpad-platform wouldn't be a valid name for
-libsensors, names have to be in the form $prefix-$bus-$address. And
-again, there's no easy way for libsensors to tell between an ISA or LPC
-device (which have been around for years and named *-isa-*) and a true
-platform device, otherwise I would of course do it.
-
-> > I'm still not convinced that we want a separate device for this. If you
+> From: Alexey Starikovskiy <astarikovskiy@suse.de>
 > 
-> It is there for ease of breaking thinkpad-acpi into many modules.  It makes
-> life easier for me, and also it makes it pretty damn clear to userspace
-> app writers that they better use the proper ABI (libsensors4) or else.
-
-I don't understand what you mean here, sorry.
-
-> (...)
-> > > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> > > Cc: LM Sensors ML <lm-sensors@lm-sensors.org>
-> > 
-> > It's pretty pointless to have a mailing list listed here, as the list
-> > itself can't ack nor nack your patch.
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
 > 
-> People in the list certainly can :-)  But if you'd rather I cc you directly,
-> I will change it.
+>  drivers/acpi/sleep/Makefile |    2 +-
+>  drivers/acpi/sleep/main.c   |    4 ++++
+>  include/acpi/acpi_drivers.h |    4 ----
+>  3 files changed, 5 insertions(+), 5 deletions(-)
 
-Actually you'd rather Cc the hwmon subsystem maintainer, if anyone, and
-that's not me. But I was really only commenting on the Cc: in the
-header of the patch, not the Cc: when sending the patch. Cc'ing the
-lm-sensors list when sending your patch was of course correct. Just
-writing it down in the patch header doesn't make sense.
+I get a reject applying this to current mainline.  Easy enough to fix it,
+but I worry that the fix might be incorrect when applied to some tree other
+than that which you were working on.
 
--- 
-Jean Delvare
