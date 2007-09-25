@@ -1,128 +1,179 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [lm-sensors] [PATCH 8/9] ACPI: thinkpad-acpi:
-	use a separate	platform device for hwmon and name it
-Date: Mon, 24 Sep 2007 23:39:58 -0300
-Message-ID: <20070925023958.GA15111@khazad-dum.debian.net>
-References: <1190557457539-git-send-email-hmh@hmh.eng.br>
-	<11905574583315-git-send-email-hmh@hmh.eng.br>
-	<20070924171128.19f91009@hyperion.delvare>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: ACPI power off regression in 2.6.23-rc8 (NOT in rc7)
+Date: Tue, 25 Sep 2007 00:33:40 -0700
+Message-ID: <20070925003340.5d6dd7f4.akpm@linux-foundation.org>
+References: <20070925065109.GA3080@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20070924171128.19f91009-ig7AzVSIIG7kN2dkZ6Wm7A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, LM Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48498 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753386AbXIYHeN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2007 03:34:13 -0400
+In-Reply-To: <20070925065109.GA3080@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Damien Wyart <damien.wyart@free.fr>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Frans Pop <elendil@planet.nl>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Mon, 24 Sep 2007, Jean Delvare wrote:
-> On Sun, 23 Sep 2007 11:24:16 -0300, Henrique de Moraes Holschuh wrote:
-> > Use a separate platform device to attach hwmon attributes and class, and
-> > add a name attribute of "thinkpad_hwmon" to it.  To do it properly, we
-> > also register a new platform driver ("thinkpad_hwmon").
+On Tue, 25 Sep 2007 08:51:09 +0200 Damien Wyart <damien.wyart@free.fr> wrote:
+
+> Hello,
 > 
-> The name attribute should really read "thinkpad" not "thinkpad_hwmon",
-> otherwise "sensors" will present the chip as "thinkpad_hwmon-isa-0000",
-> its section in /etc/sensors.conf will be named chip "thinkpad_hwmon-*",
-> etc. That's pretty redundant and unaesthetic.
-
--isa- in platform drivers where there is not even a ISA bus in sight is also
-very unaesthetic.
-
-That said, I will change it to "thinkpad", but I still would rather have
-thinkpad-platform from a cosmetic point of view, than thinkpad-isa-0001.
-
-> > This makes thinkpad-acpi compatible with libsensors4 from lm-sensors, and
-> > the platform driver and device split will make it much easier to separate
-> > hwmon functionality into its own module later on.
+> After testing rc8, I noticed that I couldn't power off the computer
+> directly, it only got halted and I had to press the power button
+> manually. Just before displaying "System halted", the following message
+> is displayed:
 > 
-> I'm still not convinced that we want a separate device for this. If you
-
-It is there for ease of breaking thinkpad-acpi into many modules.  It makes
-life easier for me, and also it makes it pretty damn clear to userspace
-app writers that they better use the proper ABI (libsensors4) or else.
-
-> have a namespace issue, it's because the hwmon attributes are created
-> directly in the device directory (for historical reasons) while they
-> should be created in the hwmon class device directory. I'd rather work
-> on fixing this now, than use a temporary workaround as you are
-> proposing.
-
-As I said, I have now another reason for the split.  The major mess of a
-bunch of classes inside the device directory is annoying, but since you want
-to fix that I wouldn't move the attributes to another device just for that
-reason anymore.
-
-> > Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> > Cc: LM Sensors ML <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+>   ACPI : PCI interrupt for device 0000:02:08.0 disabled
 > 
-> It's pretty pointless to have a mailing list listed here, as the list
-> itself can't ack nor nack your patch.
+> I had to first revert 5a50fe709d527f31169263e36601dd83446d5744 then
+> f216cc3748a3a22c2b99390fddcdafa0583791a2 (handling of Sx states) to
+> recover previous behaviour.
 
-People in the list certainly can :-)  But if you'd rather I cc you directly,
-I will change it.
+Let's add some cc's.
 
-> > -Sysfs device attributes are on the driver's sysfs attribute space,
-> > -for 2.6.20 this is /sys/devices/platform/thinkpad_acpi/.
-> > +Sysfs device attributes are on the thinkpad_acpi device sysfs attribute
-> > +space, for 2.6.20 this is /sys/devices/platform/thinkpad_acpi/.
-> 
-> That's confusing. You keep mentioning version 2.6.20 when your patch
-> will not make it into mainline before 2.6.24 at best.
+> Attached are the dmesg for rc7, rc8 and rc8 with the two patches
+> reverted.
 
-I will update it.
+"diff -u dmesg.rc8_revert dmesg.rc8" says:
 
-> > -sysfs device attributes: (hwmon) fan_input, pwm1, pwm1_enable
-> > +sysfs device attributes: (hwmon "thinkpad_hwmon") fan_input, pwm1,
-> > +			  pwm1_enable
-> 
-> fan_input is not a valid attribute name, should be fan1_input.
+--- dmesg.rc8_revert	2007-09-25 00:31:33.000000000 -0700
++++ dmesg.rc8	2007-09-25 00:31:30.000000000 -0700
+@@ -1,4 +1,4 @@
+-Linux version 2.6.23-rc8-25092007dw (root@brouette) (gcc version 4.2.1 (Debian 4.2.1-5)) #2 SMP Tue Sep 25 08:31:09 CEST 2007
++Linux version 2.6.23-rc8-25092007dw (root@brouette) (gcc version 4.2.1 (Debian 4.2.1-5)) #1 SMP Tue Sep 25 07:27:10 CEST 2007
+ BIOS-provided physical RAM map:
+  BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
+  BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+@@ -72,18 +72,18 @@
+ console [tty0] enabled
+ Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+ Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+-Memory: 2074780k/2096592k available (2175k kernel code, 20712k reserved, 815k data, 192k init, 1179088k highmem)
++Memory: 2074780k/2096592k available (2175k kernel code, 20712k reserved, 816k data, 192k init, 1179088k highmem)
+ virtual kernel memory layout:
+     fixmap  : 0xfff9b000 - 0xfffff000   ( 400 kB)
+     pkmap   : 0xff800000 - 0xffc00000   (4096 kB)
+     vmalloc : 0xf8800000 - 0xff7fe000   ( 111 MB)
+     lowmem  : 0xc0000000 - 0xf8000000   ( 896 MB)
+       .init : 0xc03f0000 - 0xc0420000   ( 192 kB)
+-      .data : 0xc031fd5c - 0xc03ebd04   ( 815 kB)
+-      .text : 0xc0100000 - 0xc031fd5c   (2175 kB)
++      .data : 0xc031fcd4 - 0xc03ebd04   ( 816 kB)
++      .text : 0xc0100000 - 0xc031fcd4   (2175 kB)
+ Checking if this processor honours the WP bit even in supervisor mode... Ok.
+ SLUB: Genslabs=22, HWalign=64, Order=0-1, MinObjects=4, CPUs=2, Nodes=1
+-Calibrating delay using timer specific routine.. 5987.66 BogoMIPS (lpj=2993833)
++Calibrating delay using timer specific routine.. 5987.60 BogoMIPS (lpj=2993802)
+ Mount-cache hash table entries: 512
+ CPU: After generic identify, caps: bfebfbff 00000000 00000000 00000000 0000041d 00000000 00000000 00000000
+ monitor/mwait feature present.
+@@ -104,7 +104,7 @@
+ Booting processor 1/1 eip 2000
+ CPU 1 irqstacks, hard=c0426000 soft=c0424000
+ Initializing CPU#1
+-Calibrating delay using timer specific routine.. 5984.18 BogoMIPS (lpj=2992093)
++Calibrating delay using timer specific routine.. 5984.16 BogoMIPS (lpj=2992084)
+ CPU: After generic identify, caps: bfebfbff 00000000 00000000 00000000 0000041d 00000000 00000000 00000000
+ monitor/mwait feature present.
+ CPU: Trace cache: 12K uops, L1 D cache: 16K
+@@ -116,7 +116,7 @@
+ CPU1: Intel P4/Xeon Extended MCE MSRs (12) available
+ CPU1: Thermal monitoring enabled
+ CPU1: Intel(R) Pentium(R) 4 CPU 3.00GHz stepping 03
+-Total of 2 processors activated (11971.85 BogoMIPS).
++Total of 2 processors activated (11971.77 BogoMIPS).
+ ENABLING IO-APIC IRQs
+ ..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
+ checking TSC synchronization [CPU#0 -> CPU#1]: passed.
+@@ -279,6 +279,7 @@
+ EXT3-fs: mounted filesystem with ordered data mode.
+ VFS: Mounted root (ext3 filesystem) readonly.
+ Freeing unused kernel memory: 192k freed
++input: PC Speaker as /devices/platform/pcspkr/input/input4
+ sr0: scsi3-mmc drive: 1x/48x cd/rw xa/form2 cdda tray
+ Uniform CD-ROM driver Revision: 3.20
+ sr 1:0:0:0: Attached scsi CD-ROM sr0
+@@ -287,7 +288,6 @@
+ usbcore: registered new interface driver usbfs
+ usbcore: registered new interface driver hub
+ usbcore: registered new device driver usb
+-input: PC Speaker as /devices/platform/pcspkr/input/input4
+ parport_pc 00:0a: reported by Plug and Play ACPI
+ parport0: PC-style at 0x378 (0x778), irq 7, using FIFO [PCSPP,TRISTATE,COMPAT,ECP]
+ USB Universal Host Controller Interface driver v3.0
+@@ -299,46 +299,42 @@
+ usb usb1: configuration #1 chosen from 1 choice
+ hub 1-0:1.0: USB hub found
+ hub 1-0:1.0: 2 ports detected
+-ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 20
+-PCI: Setting latency timer of device 0000:00:1d.1 to 64
+-uhci_hcd 0000:00:1d.1: UHCI Host Controller
+-uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 2
+-uhci_hcd 0000:00:1d.1: irq 20, io base 0x0000ff60
++ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 20
++PCI: Setting latency timer of device 0000:00:1d.7 to 64
++ehci_hcd 0000:00:1d.7: EHCI Host Controller
++ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 2
++ehci_hcd 0000:00:1d.7: debug port 1
++PCI: cache line size of 128 is not supported by device 0000:00:1d.7
++ehci_hcd 0000:00:1d.7: irq 20, io mem 0xffa80800
++ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+ usb usb2: configuration #1 chosen from 1 choice
+ hub 2-0:1.0: USB hub found
+-hub 2-0:1.0: 2 ports detected
++hub 2-0:1.0: 8 ports detected
++ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 21
++PCI: Setting latency timer of device 0000:00:1d.1 to 64
++uhci_hcd 0000:00:1d.1: UHCI Host Controller
++uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
++uhci_hcd 0000:00:1d.1: irq 21, io base 0x0000ff60
++usb usb3: configuration #1 chosen from 1 choice
++hub 3-0:1.0: USB hub found
++hub 3-0:1.0: 2 ports detected
+ ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 17
+ PCI: Setting latency timer of device 0000:00:1d.2 to 64
+ uhci_hcd 0000:00:1d.2: UHCI Host Controller
+-uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 3
++uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
+ uhci_hcd 0000:00:1d.2: irq 17, io base 0x0000ff40
+-usb usb3: configuration #1 chosen from 1 choice
+-hub 3-0:1.0: USB hub found
+-hub 3-0:1.0: 2 ports detected
+-usb 1-1: new full speed USB device using uhci_hcd and address 2
++usb usb4: configuration #1 chosen from 1 choice
++hub 4-0:1.0: USB hub found
++hub 4-0:1.0: 2 ports detected
+ ACPI: PCI Interrupt 0000:00:1d.3[A] -> GSI 16 (level, low) -> IRQ 19
+ PCI: Setting latency timer of device 0000:00:1d.3 to 64
+ uhci_hcd 0000:00:1d.3: UHCI Host Controller
+-uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 4
++uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 5
+ uhci_hcd 0000:00:1d.3: irq 19, io base 0x0000ff20
+-usb usb4: configuration #1 chosen from 1 choice
+-hub 4-0:1.0: USB hub found
+-hub 4-0:1.0: 2 ports detected
+-ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 21
+-PCI: Setting latency timer of device 0000:00:1d.7 to 64
+-ehci_hcd 0000:00:1d.7: EHCI Host Controller
+-ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 5
+-ehci_hcd 0000:00:1d.7: debug port 1
+-PCI: cache line size of 128 is not supported by device 0000:00:1d.7
+-ehci_hcd 0000:00:1d.7: irq 21, io mem 0xffa80800
+-ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+-usb 1-1: configuration #1 chosen from 1 choice
+-usb 1-1: can't set config #1, error -71
+ usb usb5: configuration #1 chosen from 1 choice
+ hub 5-0:1.0: USB hub found
+-hub 5-0:1.0: 8 ports detected
+-usb 1-1: USB disconnect, address 2
+-usb 1-1: new full speed USB device using uhci_hcd and address 3
++hub 5-0:1.0: 2 ports detected
++usb 1-1: new full speed USB device using uhci_hcd and address 2
+ usb 1-1: configuration #1 chosen from 1 choice
+ Adding 1212896k swap on /dev/sdb7.  Priority:-1 extents:1 across:1212896k
+ EXT3 FS on sdb2, internal journal
 
-Typo, the driver exports it as fan1_input.  Will fix, thanks for noticing
-it.
-
-> > +0x020000:	ABI fix: added a separate hwmon platform device and
-> > +		driver, which must be located by name (thinkpad_hwmon)
-> > +		and the hwmon class for lm_sensors4 compatibility.
-> 
-> There's no lm_sensors4. It's either lm-sensors 3, or libsensors4. (I
-> know it's confusing, not my fault.)
-
-Ok. Will fix.
-
-> > -	tpacpi_hwmon = hwmon_device_register(&tpacpi_pdev->dev);
-> > +	tpacpi_sensors_pdev = platform_device_register_simple(
-> > +							IBM_HWMON_DRVR_NAME,
-> > +							-1, NULL, 0);
-> 
-> As explained before, libsensors won't pick this device. You'd need to
-> give it an id of 0 instead of -1. Hmm, I'll see if I can hack something
-> in libsensors4 until that part of the code is reimplemented in a better
-> way.
-
-It really doesn't matter to me, as I used a new device.  I could change it
-rather easily.  But since other platform drivers might not be in the same
-position and it is more semanthically correct to have a device unique when
-it IS unique...  IMHO it would be best to just keep it at -1, as you changed
-libsensors4 to not care about it already.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
