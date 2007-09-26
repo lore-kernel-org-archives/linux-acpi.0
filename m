@@ -1,75 +1,278 @@
-From: Tim Post <echo@echoreply.us>
-Subject: Re: ACPI power off regression in 2.6.23-rc8 (NOT in rc7)
-Date: Wed, 26 Sep 2007 22:59:56 +0800
-Message-ID: <1190818796.6259.58.camel@localhost.localdomain>
-References: <20070925065109.GA3080@localhost.localdomain>
-	 <20070925003340.5d6dd7f4.akpm@linux-foundation.org>
-	 <alpine.LFD.0.999.0709250830420.3579@woody.linux-foundation.org>
-Reply-To: echo@echoreply.us
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] ACPI: power: don't cache power resource state
+Date: Wed, 26 Sep 2007 23:09:25 +0200
+Message-ID: <200709262309.25334.rjw@sisk.pl>
+References: <20070926202149.20636.34414.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from s1.host3270.com ([216.146.143.173]:55706 "EHLO s1.host3270.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:40386 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757768AbXIZPmy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Sep 2007 11:42:54 -0400
-In-Reply-To: <alpine.LFD.0.999.0709250830420.3579@woody.linux-foundation.org>
+	id S1758460AbXIZUy5 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Wed, 26 Sep 2007 16:54:57 -0400
+In-Reply-To: <20070926202149.20636.34414.stgit@samsung>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Damien Wyart <damien.wyart@free.fr>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Frans Pop <elendil@planet.nl>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-Bah, its too damn stable. Break it and do it again.
-
->From 2.6.20.3 :
-
-Boot time cut in half.
-My PC no longer 'wakes up' angrily. My wife does that, I'm going to
-start sleeping with the P4, its more agreeable now.
-
-P4 HT with generic Intel chipset.
-
-What fun is this when nothing breaks?
-
-Thank you all :)
-
-On Tue, 2007-09-25 at 08:40 -0700, Linus Torvalds wrote:
+On Wednesday, 26 September 2007 22:21, Alexey Starikovskiy wrote:
+> ACPI may change power resource state behind our back, so don't
+> keep our local copy, which may not be valid.
 > 
-> On Tue, 25 Sep 2007 08:51:09 +0200 Damien Wyart <damien.wyart@free.fr> wrote:
-> > 
-> > Hello,
-> > 
-> > After testing rc8, I noticed that I couldn't power off the computer
-> > directly, it only got halted and I had to press the power button
-> > manually. Just before displaying "System halted", the following message
-> > is displayed:
-> > 
-> >   ACPI : PCI interrupt for device 0000:02:08.0 disabled
-> > 
-> > I had to first revert 5a50fe709d527f31169263e36601dd83446d5744 then
-> > f216cc3748a3a22c2b99390fddcdafa0583791a2 (handling of Sx states) to
-> > recover previous behaviour.
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+I'm not as familiar with this code as to be able to review your patches in a
+responsible way, but these changes seem to be important and needed to me.
+
+Greetings,
+Rafael
+
+
+> ---
 > 
-> Hmm. Those things *do* seem to be suspicious.
+>  drivers/acpi/bus.c   |    6 ++---
+>  drivers/acpi/power.c |   63 +++++++++++++++++++-------------------------------
+>  2 files changed, 26 insertions(+), 43 deletions(-)
 > 
-> For example, those commits seem to move code that used to be inside 
-> CONFIG_PM (which pretty much *everybody* has) to be inside 
-> CONFIG_ACPI_SLEEP (which is a totally different thing, and depends on 
-> whether the user asked for suspend support or not!
-> 
-> Damien - does it work if you ask for SUSPEND or HIBERNATION support?
-> 
-> Len - why are you guys moving stuff into CONFIG_PM_SLEEP? I know you seem 
-> to think that absolutely *everybody* should always support suspend and 
-> hibernation, but the fact is, not everybody does. And it's a totally 
-> separate thing for normal ACPI CPU runstate support that people have used 
-> to manage a *running* CPU (and shutting it down).
-> 
-> 		Linus
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a54234d..713e9ef 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -198,11 +198,9 @@ int acpi_bus_set_power(acpi_handle handle, int state)
+>  		return -ENODEV;
+>  	}
+>  	/*
+> -	 * Get device's current power state if it's unknown
+> -	 * This means device power state isn't initialized or previous setting failed
+> +	 * Get device's current power state
+>  	 */
+> -	if ((device->power.state == ACPI_STATE_UNKNOWN) || device->flags.force_power_state)
+> -		acpi_bus_get_power(device->handle, &device->power.state);
+> +	acpi_bus_get_power(device->handle, &device->power.state);
+>  	if ((state == device->power.state) && !device->flags.force_power_state) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
+>  				  state));
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index 57b9a29..af1769a 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -86,7 +86,6 @@ struct acpi_power_resource {
+>  	acpi_bus_id name;
+>  	u32 system_level;
+>  	u32 order;
+> -	int state;
+>  	struct mutex resource_lock;
+>  	struct list_head reference;
+>  };
+> @@ -128,33 +127,31 @@ acpi_power_get_context(acpi_handle handle,
+>  	return 0;
+>  }
+>  
+> -static int acpi_power_get_state(struct acpi_power_resource *resource)
+> +static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
+>  {
+>  	acpi_status status = AE_OK;
+>  	unsigned long sta = 0;
+>  
+>  
+> -	if (!resource)
+> +	if (!resource || !state)
+>  		return -EINVAL;
+>  
+>  	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+>  
+> -	if (sta & 0x01)
+> -		resource->state = ACPI_POWER_RESOURCE_STATE_ON;
+> -	else
+> -		resource->state = ACPI_POWER_RESOURCE_STATE_OFF;
+> +	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
+> +			      ACPI_POWER_RESOURCE_STATE_OFF;
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
+> -			  resource->name, resource->state ? "on" : "off"));
+> +			  resource->name, state ? "on" : "off"));
+>  
+>  	return 0;
+>  }
+>  
+>  static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
+>  {
+> -	int result = 0;
+> +	int result = 0, state1;
+>  	struct acpi_power_resource *resource = NULL;
+>  	u32 i = 0;
+>  
+> @@ -168,11 +165,11 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
+>  		result = acpi_power_get_context(list->handles[i], &resource);
+>  		if (result)
+>  			return result;
+> -		result = acpi_power_get_state(resource);
+> +		result = acpi_power_get_state(resource, &state1);
+>  		if (result)
+>  			return result;
+>  
+> -		*state = resource->state;
+> +		*state = state1;
+>  
+>  		if (*state != ACPI_POWER_RESOURCE_STATE_ON)
+>  			break;
+> @@ -186,7 +183,7 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
+>  
+>  static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+>  {
+> -	int result = 0;
+> +	int result = 0, state;
+>  	int found = 0;
+>  	acpi_status status = AE_OK;
+>  	struct acpi_power_resource *resource = NULL;
+> @@ -224,20 +221,14 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+>  	}
+>  	mutex_unlock(&resource->resource_lock);
+>  
+> -	if (resource->state == ACPI_POWER_RESOURCE_STATE_ON) {
+> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] already on\n",
+> -				  resource->name));
+> -		return 0;
+> -	}
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>  	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+>  
+> -	result = acpi_power_get_state(resource);
+> +	result = acpi_power_get_state(resource, &state);
+>  	if (result)
+>  		return result;
+> -	if (resource->state != ACPI_POWER_RESOURCE_STATE_ON)
+> +	if (state != ACPI_POWER_RESOURCE_STATE_ON)
+>  		return -ENOEXEC;
+>  
+>  	/* Update the power resource's _device_ power state */
+> @@ -250,7 +241,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+>  
+>  static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
+>  {
+> -	int result = 0;
+> +	int result = 0, state;
+>  	acpi_status status = AE_OK;
+>  	struct acpi_power_resource *resource = NULL;
+>  	struct list_head *node, *next;
+> @@ -281,20 +272,14 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
+>  	}
+>  	mutex_unlock(&resource->resource_lock);
+>  
+> -	if (resource->state == ACPI_POWER_RESOURCE_STATE_OFF) {
+> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] already off\n",
+> -				  resource->name));
+> -		return 0;
+> -	}
+> -
+>  	status = acpi_evaluate_object(resource->device->handle, "_OFF", NULL, NULL);
+>  	if (ACPI_FAILURE(status))
+>  		return -ENODEV;
+>  
+> -	result = acpi_power_get_state(resource);
+> +	result = acpi_power_get_state(resource, &state);
+>  	if (result)
+>  		return result;
+> -	if (resource->state != ACPI_POWER_RESOURCE_STATE_OFF)
+> +	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
+>  		return -ENOEXEC;
+>  
+>  	/* Update the power resource's _device_ power state */
+> @@ -494,7 +479,7 @@ static struct proc_dir_entry *acpi_power_dir;
+>  static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+>  {
+>  	int count = 0;
+> -	int result = 0;
+> +	int result = 0, state;
+>  	struct acpi_power_resource *resource = NULL;
+>  	struct list_head *node, *next;
+>  	struct acpi_power_reference *ref;
+> @@ -505,12 +490,12 @@ static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+>  	if (!resource)
+>  		goto end;
+>  
+> -	result = acpi_power_get_state(resource);
+> +	result = acpi_power_get_state(resource, &state);
+>  	if (result)
+>  		goto end;
+>  
+>  	seq_puts(seq, "state:                   ");
+> -	switch (resource->state) {
+> +	switch (state) {
+>  	case ACPI_POWER_RESOURCE_STATE_ON:
+>  		seq_puts(seq, "on\n");
+>  		break;
+> @@ -591,7 +576,7 @@ static int acpi_power_remove_fs(struct acpi_device *device)
+>  
+>  static int acpi_power_add(struct acpi_device *device)
+>  {
+> -	int result = 0;
+> +	int result = 0, state;
+>  	acpi_status status = AE_OK;
+>  	struct acpi_power_resource *resource = NULL;
+>  	union acpi_object acpi_object;
+> @@ -622,11 +607,11 @@ static int acpi_power_add(struct acpi_device *device)
+>  	resource->system_level = acpi_object.power_resource.system_level;
+>  	resource->order = acpi_object.power_resource.resource_order;
+>  
+> -	result = acpi_power_get_state(resource);
+> +	result = acpi_power_get_state(resource, &state);
+>  	if (result)
+>  		goto end;
+>  
+> -	switch (resource->state) {
+> +	switch (state) {
+>  	case ACPI_POWER_RESOURCE_STATE_ON:
+>  		device->power.state = ACPI_STATE_D0;
+>  		break;
+> @@ -643,7 +628,7 @@ static int acpi_power_add(struct acpi_device *device)
+>  		goto end;
+>  
+>  	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
+> -	       acpi_device_bid(device), resource->state ? "on" : "off");
+> +	       acpi_device_bid(device), state ? "on" : "off");
+>  
+>        end:
+>  	if (result)
+> @@ -680,7 +665,7 @@ static int acpi_power_remove(struct acpi_device *device, int type)
+>  
+>  static int acpi_power_resume(struct acpi_device *device)
+>  {
+> -	int result = 0;
+> +	int result = 0, state;
+>  	struct acpi_power_resource *resource = NULL;
+>  	struct acpi_power_reference *ref;
+>  
+> @@ -689,12 +674,12 @@ static int acpi_power_resume(struct acpi_device *device)
+>  
+>  	resource = (struct acpi_power_resource *)acpi_driver_data(device);
+>  
+> -	result = acpi_power_get_state(resource);
+> +	result = acpi_power_get_state(resource, &state);
+>  	if (result)
+>  		return result;
+>  
+>  	mutex_lock(&resource->resource_lock);
+> -	if ((resource->state == ACPI_POWER_RESOURCE_STATE_OFF) &&
+> +	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
+>  	    !list_empty(&resource->reference)) {
+>  		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
+>  		mutex_unlock(&resource->resource_lock);
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> 
 
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
