@@ -1,278 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI: power: don't cache power resource state
-Date: Wed, 26 Sep 2007 23:09:25 +0200
-Message-ID: <200709262309.25334.rjw@sisk.pl>
-References: <20070926202149.20636.34414.stgit@samsung>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Bug: linux/acpi may execute notify handler that has been removed
+Date: Thu, 27 Sep 2007 11:30:33 +0800
+Message-ID: <1190863833.26892.63.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40386 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:36044 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758460AbXIZUy5 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:54:57 -0400
-In-Reply-To: <20070926202149.20636.34414.stgit@samsung>
-Content-Disposition: inline
+	id S1751579AbXI0DZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Sep 2007 23:25:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: rebort.moore@intel.com, astarikovskiy@suse.de
 
-On Wednesday, 26 September 2007 22:21, Alexey Starikovskiy wrote:
-> ACPI may change power resource state behind our back, so don't
-> keep our local copy, which may not be valid.
-> 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Hi, all,
 
-I'm not as familiar with this code as to be able to review your patches in a
-responsible way, but these changes seem to be important and needed to me.
+I found a bug that linux/acpi may execute notify handler that
+has been removed.
 
-Greetings,
-Rafael
+When a system notify(0~0x7f) is received, linux/acpi will
+first invoke the generic system notify handler (acpi_bus_notify)
+and then invoke the per-device notify handler if present.
 
+In my case, I add some code in acpi_bus_notify for battery
+hotplug support, so that the generic system notify handler will
+remove the battery device, including the per-device notify handler
+acpi_battery_notify() when receiving notification
+ACPI_NOTIFY_EJECT_REQUEST.
+But linux/acpi invokes the per-device notify handler soon and
+this breaks the system.
 
-> ---
-> 
->  drivers/acpi/bus.c   |    6 ++---
->  drivers/acpi/power.c |   63 +++++++++++++++++++-------------------------------
->  2 files changed, 26 insertions(+), 43 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index a54234d..713e9ef 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -198,11 +198,9 @@ int acpi_bus_set_power(acpi_handle handle, int state)
->  		return -ENODEV;
->  	}
->  	/*
-> -	 * Get device's current power state if it's unknown
-> -	 * This means device power state isn't initialized or previous setting failed
-> +	 * Get device's current power state
->  	 */
-> -	if ((device->power.state == ACPI_STATE_UNKNOWN) || device->flags.force_power_state)
-> -		acpi_bus_get_power(device->handle, &device->power.state);
-> +	acpi_bus_get_power(device->handle, &device->power.state);
->  	if ((state == device->power.state) && !device->flags.force_power_state) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n",
->  				  state));
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 57b9a29..af1769a 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -86,7 +86,6 @@ struct acpi_power_resource {
->  	acpi_bus_id name;
->  	u32 system_level;
->  	u32 order;
-> -	int state;
->  	struct mutex resource_lock;
->  	struct list_head reference;
->  };
-> @@ -128,33 +127,31 @@ acpi_power_get_context(acpi_handle handle,
->  	return 0;
->  }
->  
-> -static int acpi_power_get_state(struct acpi_power_resource *resource)
-> +static int acpi_power_get_state(struct acpi_power_resource *resource, int *state)
->  {
->  	acpi_status status = AE_OK;
->  	unsigned long sta = 0;
->  
->  
-> -	if (!resource)
-> +	if (!resource || !state)
->  		return -EINVAL;
->  
->  	status = acpi_evaluate_integer(resource->device->handle, "_STA", NULL, &sta);
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	if (sta & 0x01)
-> -		resource->state = ACPI_POWER_RESOURCE_STATE_ON;
-> -	else
-> -		resource->state = ACPI_POWER_RESOURCE_STATE_OFF;
-> +	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
-> +			      ACPI_POWER_RESOURCE_STATE_OFF;
->  
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
-> -			  resource->name, resource->state ? "on" : "off"));
-> +			  resource->name, state ? "on" : "off"));
->  
->  	return 0;
->  }
->  
->  static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
->  {
-> -	int result = 0;
-> +	int result = 0, state1;
->  	struct acpi_power_resource *resource = NULL;
->  	u32 i = 0;
->  
-> @@ -168,11 +165,11 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
->  		result = acpi_power_get_context(list->handles[i], &resource);
->  		if (result)
->  			return result;
-> -		result = acpi_power_get_state(resource);
-> +		result = acpi_power_get_state(resource, &state1);
->  		if (result)
->  			return result;
->  
-> -		*state = resource->state;
-> +		*state = state1;
->  
->  		if (*state != ACPI_POWER_RESOURCE_STATE_ON)
->  			break;
-> @@ -186,7 +183,7 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
->  
->  static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  {
-> -	int result = 0;
-> +	int result = 0, state;
->  	int found = 0;
->  	acpi_status status = AE_OK;
->  	struct acpi_power_resource *resource = NULL;
-> @@ -224,20 +221,14 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  	}
->  	mutex_unlock(&resource->resource_lock);
->  
-> -	if (resource->state == ACPI_POWER_RESOURCE_STATE_ON) {
-> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] already on\n",
-> -				  resource->name));
-> -		return 0;
-> -	}
-> -
->  	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	result = acpi_power_get_state(resource);
-> +	result = acpi_power_get_state(resource, &state);
->  	if (result)
->  		return result;
-> -	if (resource->state != ACPI_POWER_RESOURCE_STATE_ON)
-> +	if (state != ACPI_POWER_RESOURCE_STATE_ON)
->  		return -ENOEXEC;
->  
->  	/* Update the power resource's _device_ power state */
-> @@ -250,7 +241,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  
->  static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
->  {
-> -	int result = 0;
-> +	int result = 0, state;
->  	acpi_status status = AE_OK;
->  	struct acpi_power_resource *resource = NULL;
->  	struct list_head *node, *next;
-> @@ -281,20 +272,14 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
->  	}
->  	mutex_unlock(&resource->resource_lock);
->  
-> -	if (resource->state == ACPI_POWER_RESOURCE_STATE_OFF) {
-> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] already off\n",
-> -				  resource->name));
-> -		return 0;
-> -	}
-> -
->  	status = acpi_evaluate_object(resource->device->handle, "_OFF", NULL, NULL);
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	result = acpi_power_get_state(resource);
-> +	result = acpi_power_get_state(resource, &state);
->  	if (result)
->  		return result;
-> -	if (resource->state != ACPI_POWER_RESOURCE_STATE_OFF)
-> +	if (state != ACPI_POWER_RESOURCE_STATE_OFF)
->  		return -ENOEXEC;
->  
->  	/* Update the power resource's _device_ power state */
-> @@ -494,7 +479,7 @@ static struct proc_dir_entry *acpi_power_dir;
->  static int acpi_power_seq_show(struct seq_file *seq, void *offset)
->  {
->  	int count = 0;
-> -	int result = 0;
-> +	int result = 0, state;
->  	struct acpi_power_resource *resource = NULL;
->  	struct list_head *node, *next;
->  	struct acpi_power_reference *ref;
-> @@ -505,12 +490,12 @@ static int acpi_power_seq_show(struct seq_file *seq, void *offset)
->  	if (!resource)
->  		goto end;
->  
-> -	result = acpi_power_get_state(resource);
-> +	result = acpi_power_get_state(resource, &state);
->  	if (result)
->  		goto end;
->  
->  	seq_puts(seq, "state:                   ");
-> -	switch (resource->state) {
-> +	switch (state) {
->  	case ACPI_POWER_RESOURCE_STATE_ON:
->  		seq_puts(seq, "on\n");
->  		break;
-> @@ -591,7 +576,7 @@ static int acpi_power_remove_fs(struct acpi_device *device)
->  
->  static int acpi_power_add(struct acpi_device *device)
->  {
-> -	int result = 0;
-> +	int result = 0, state;
->  	acpi_status status = AE_OK;
->  	struct acpi_power_resource *resource = NULL;
->  	union acpi_object acpi_object;
-> @@ -622,11 +607,11 @@ static int acpi_power_add(struct acpi_device *device)
->  	resource->system_level = acpi_object.power_resource.system_level;
->  	resource->order = acpi_object.power_resource.resource_order;
->  
-> -	result = acpi_power_get_state(resource);
-> +	result = acpi_power_get_state(resource, &state);
->  	if (result)
->  		goto end;
->  
-> -	switch (resource->state) {
-> +	switch (state) {
->  	case ACPI_POWER_RESOURCE_STATE_ON:
->  		device->power.state = ACPI_STATE_D0;
->  		break;
-> @@ -643,7 +628,7 @@ static int acpi_power_add(struct acpi_device *device)
->  		goto end;
->  
->  	printk(KERN_INFO PREFIX "%s [%s] (%s)\n", acpi_device_name(device),
-> -	       acpi_device_bid(device), resource->state ? "on" : "off");
-> +	       acpi_device_bid(device), state ? "on" : "off");
->  
->        end:
->  	if (result)
-> @@ -680,7 +665,7 @@ static int acpi_power_remove(struct acpi_device *device, int type)
->  
->  static int acpi_power_resume(struct acpi_device *device)
->  {
-> -	int result = 0;
-> +	int result = 0, state;
->  	struct acpi_power_resource *resource = NULL;
->  	struct acpi_power_reference *ref;
->  
-> @@ -689,12 +674,12 @@ static int acpi_power_resume(struct acpi_device *device)
->  
->  	resource = (struct acpi_power_resource *)acpi_driver_data(device);
->  
-> -	result = acpi_power_get_state(resource);
-> +	result = acpi_power_get_state(resource, &state);
->  	if (result)
->  		return result;
->  
->  	mutex_lock(&resource->resource_lock);
-> -	if ((resource->state == ACPI_POWER_RESOURCE_STATE_OFF) &&
-> +	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
->  	    !list_empty(&resource->reference)) {
->  		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
->  		mutex_unlock(&resource->resource_lock);
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Further more, device hot-removal is not the only case to encounter
+this bug. For example, linux/acpi receives a notification and adds it
+in the workqueue, and then the driver(notify handler) is removed
+before kacpid_notify invoke it...
 
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+Attachment is the patch for battery hotplug support.
+Any ideas about this bug?
+
+Thanks,
+Rui
