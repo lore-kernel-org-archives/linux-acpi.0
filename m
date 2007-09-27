@@ -1,32 +1,48 @@
-From: "Jedrzej Solecki" <jedrek.s@gmail.com>
-Subject: Fujitsu notebook hotkeys
-Date: Fri, 28 Sep 2007 19:32:56 +0200
-Message-ID: <233f28a50709281032y37607d0byb4a9071ca0f28973@mail.gmail.com>
+From: Anna Csilla <fifa08@team-rmt.com>
+Subject: Anna, Csilla
+Date: Thu, 27 Sep 2007 16:06:49 +0200
+Message-ID: <723fb777cdf889737220f85b20107295@193.23.136.160>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.177]:46937 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753487AbXI1RdQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2007 13:33:16 -0400
-Received: by el-out-1112.google.com with SMTP id v27so672714ele
-        for <linux-acpi@vger.kernel.org>; Fri, 28 Sep 2007 10:33:15 -0700 (PDT)
-Content-Disposition: inline
+Received: from [193.23.136.160] ([193.23.136.160]:59594 "EHLO team-rmt.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751985AbXI1Uf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Sep 2007 16:35:57 -0400
+Received: from [193.23.136.160] (helo=193.23.136.160)
+	by team-rmt.com with esmtp (Exim 4.63)
+	(envelope-from <fifa08@team-rmt.com>)
+	id 1Iau0v-0005BF-VQ
+	for linux-acpi@vger.kernel.org; Thu, 27 Sep 2007 16:06:50 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hello,
-I have an E8110 Fujitsu-Siemens notebook. There are some hotkeys which
-I'd like to use. You can see them on this picture
-http://www.notebookreview.com/assets/8795.jpg .
-When I press the first one I get the following debug info:
-evmisc-0143 [00] ev_queue_notify_reques: Dispatching Notify(80) on node df60ed88
-evmisc-0151 [00] ev_queue_notify_reques: Notify value: 0x80 **Device Specific**
-evmisc-0222 [00] ev_queue_notify_reques: No notify handler for
-Notify(FEXT, 80) node df60ed88
-Please guide me how can I add the notify handler. If you  need more
-debug info, ACPI tables or something else please let me know.
-Cheers
-J.S.
+Szia! 
+
+
+Oszinte leszek! En egy spam vagyok ... igen megint egy levelszemet.
+Mar akinek szemet ... ha ugy erzed irj vissza, kuldj el a fenebe ...
+de kenyszert erzek hogy tudassam veled az alabbiakat:
+
+Van egy oldal ahol perverz szexfilmek vannak igen perverzek ...
+sot meg allatok is felbukkannak itt ott egy ket filmben ...
+
+ha erdekel klikk ra:
+
+http://xxx.bnh.hu
+
+
+ja igen es ha hiszed hanem tenyleg vannak fenn filmek rollam.
+
+
+Van egy par jo jatek is ami magyar nyelvu es erdekelhet:
+MAGYAR SZINKRONHANGAL!!!! FIFA 08:	http://fifa08.bnh.hu
+World in Conflict:	http://winc.bnh.hu
+MOHA: Airborne:	http://moha.bnh.hu
+
+
+Szia: ahogy ismersz (anna, vagy csilla)
+
+
