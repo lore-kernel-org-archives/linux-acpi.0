@@ -1,424 +1,169 @@
-From: Patrick <acpi@puzzled.xs4all.nl>
-Subject: dmidecode of Acer TM6460
-Date: Thu, 27 Sep 2007 14:03:51 +0200
-Message-ID: <1190894631.3029.3.camel@localhost.localdomain>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug -
+ version 3
+Date: Thu, 27 Sep 2007 10:26:59 -0700
+Message-ID: <20070927102659.2cacae14.kristen.c.accardi@intel.com>
+References: <20070915170652.GA25504@srcf.ucam.org>
+	<46F2EE66.9060207@garzik.org>
+	<20070920222138.GA3740@srcf.ucam.org>
+	<46F32DD9.7010509@gmail.com>
+	<20070921024214.GA6317@srcf.ucam.org>
+	<46F3322D.5090407@gmail.com>
+	<20070921025734.GA6434@srcf.ucam.org>
+	<46F33597.1000307@gmail.com>
+	<20070921031245.GA6628@srcf.ucam.org>
+	<46F33824.6000707@gmail.com>
+	<20070924231436.GA32119@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-VKvouIjzbRdQ1/wvVVnJ"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from puzzled.xs4all.nl ([213.84.38.78]:65123 "EHLO puzzled.xs4all.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752816AbXI0MPI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2007 08:15:08 -0400
-Received: from [10.0.0.105] (luna.puzzled.xs4all.nl [10.0.0.105])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(Client did not present a certificate)
-	by zeus.puzzled.xs4all.nl (Postfix) with ESMTP id BF7C34D901F7
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Sep 2007 14:04:20 +0200 (CEST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20070924231436.GA32119@srcf.ucam.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Tejun Heo <htejun@gmail.com>, Jeff Garzik <jeff@garzik.org>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+On Tue, 25 Sep 2007 00:14:36 +0100
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
---=-VKvouIjzbRdQ1/wvVVnJ
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> Modern laptops with hotswap bays still tend to utilise a PATA interface 
+> on a SATA bridge, generally with the host controller in some legacy 
+> emulation mode rather than AHCI. This means that the existing hotplug 
+> code in libata is unable to work. The ACPI specification states that 
+> these devices can send notifications when hotswapped, which avoids the 
+> need to obtain notification from the controller. This patch uses the 
+> existing libata-acpi code and simply registers a notification in order 
+> to trigger a rescan whenever the firmware signals an event.
+>                                                                                                                                                                                                         
+Hi Matthew,
+While I love the idea of integrating the Bay support with libata, and
+I think this is a good patch, I have 2 concerns which don't seem to be
+addressed here. 
 
-Hi,
+1.  How does it handle things when you have a bay that is located behind
+a dock and the dock ejects?  In the acpi bay driver, I use the mechanism
+that the dock driver exports to get undock notifications so that the bay
+can eject as well.
 
-In /var/log/messages I saw this:
-ACPI: System BIOS is requesting _OSI(Linux)
-ACPI: Please test with "acpi_osi=!Linux"
-Please send dmidecode to linux-acpi@vger.kernel.org
+2.  What if someone wants to use their bay to charge their battery?  While
+I never bothered to implement this in acpi/bay.c, nothing ever prevented
+anyone from adding that support to the driver, where now it is prevented
+since this driver and another cannot coexist.
 
-So I have attached the requested information. Laptop is an Acer
-Travelmate 6460 running Fedora 7. Please send questions/remarks off-list
-as I am not subscribed.
+The basic problem is that there's no way to have multiple drivers register
+a notifier for the same ACPI event on the same object.  So, my solution
+to this in my acpi drivers was to export ways to share from the driver.
 
-Regards,
-Patrick
+Thanks,
+Kristen
 
-
---=-VKvouIjzbRdQ1/wvVVnJ
-Content-Disposition: attachment; filename=dmidecode_Acer_TM6460.txt
-Content-Type: text/plain; name=dmidecode_Acer_TM6460.txt; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-# dmidecode 2.7
-SMBIOS 2.4 present.
-35 structures occupying 1073 bytes.
-Table at 0x000DC010.
-
-Handle 0x0000, DMI type 0, 24 bytes.
-BIOS Information
-	Vendor: Acer
-	Version: 3.02    
-	Release Date: 06/08/07
-	Address: 0xE4B40
-	Runtime Size: 111808 bytes
-	ROM Size: 64 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-
-Handle 0x0001, DMI type 1, 27 bytes.
-System Information
-	Manufacturer: Acer
-	Product Name: TravelMate 6460
-	Version: CSR-000F
-	Serial Number: 12345678901234567
-	UUID: Not Settable
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes.
-Base Board Information
-	Manufacturer: Acer
-	Product Name: Coniston
-	Version: Not Applicable
-	Serial Number: Not Applicable
-
-Handle 0x0003, DMI type 3, 17 bytes.
-Chassis Information
-	Manufacturer: Acer
-	Type: Other
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag:  
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes.
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: F6 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU         T7
-	Voltage: 3.3 V
-	External Clock: 166 MHz
-	Max Speed: 500 MHz
-	Current Speed: 2000 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 4096 KB
-	Maximum Size: 512 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes.
-Port Connector Information
-	Internal Reference Designator: J11
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x0008, DMI type 8, 9 bytes.
-Port Connector Information
-	Internal Reference Designator: J12
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Mouse Port
-
-Handle 0x0009, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Slot J8B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000A, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Slot J9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Slot J13
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 10, 6 bytes.
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: ADI
-
-Handle 0x000D, DMI type 11, 5 bytes.
-OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
-
-Handle 0x000E, DMI type 12, 5 bytes.
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x000F, DMI type 15, 29 bytes.
-System Event Log
-	Area Length: 16 bytes
-	Header Start Offset: 0x0000
-	Header Length: 16 bytes
-	Data Start Offset: 0x0010
-	Access Method: General-purpose non-volatile data functions
-	Access Address: 0x0000
-	Status: Valid, Invalid
-	Change Token: 0x00000026
-	Header Format: Type 1
-	Supported Log Type Descriptors: 3
-	Descriptor 1: POST error
-	Data Format 1: POST results bitmap
-	Descriptor 2: Single-bit ECC memory error
-	Data Format 2: Multiple-event
-	Descriptor 3: Multi-bit ECC memory error
-	Data Format 3: Multiple-event
-
-Handle 0x0010, DMI type 16, 15 bytes.
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0011, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0012, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0013, DMI type 19, 15 bytes.
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x0010
-	Partition Width: 0
-
-Handle 0x0014, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0011
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0015, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0012
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0016, DMI type 23, 13 bytes.
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x0017, DMI type 24, 5 bytes.
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x0018, DMI type 25, 9 bytes.
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x0019, DMI type 26, 20 bytes.
-Voltage Probe
-	Description: Voltage Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001A, DMI type 27, 12 bytes.
-Cooling Device
-	Temperature Probe Handle: 0x001B
-	Type: Fan
-	Status: OK
-	OEM-specific Information: 0x00000000
-
-Handle 0x001B, DMI type 28, 20 bytes.
-Temperature Probe
-	Description: Temperature Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001C, DMI type 29, 20 bytes.
-Electrical Current Probe
-	Description: Electrical Current Probe
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 30, 6 bytes.
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x001E, DMI type 32, 20 bytes.
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x001F, DMI type 129, 16 bytes.
-OEM-specific Type
-	Header and Data:
-		81 10 1F 00 01 01 02 01 00 00 00 01 00 00 08 01
-	Strings:
-		Intel_ASF_001
-		Intel_ASF_001
-
-Handle 0x0020, DMI type 136, 6 bytes.
-OEM-specific Type
-	Header and Data:
-		88 06 20 00 FF FF
-
-Handle 0x0021, DMI type 150, 14 bytes.
-OEM-specific Type
-	Header and Data:
-		96 0E 21 00 01 01 00 00 00 00 00 00 00 00
-	Strings:
-		ABSOLUTE(PHOENIX) CLM
-
-Handle 0x0022, DMI type 127, 4 bytes.
-End Of Table
-
-
---=-VKvouIjzbRdQ1/wvVVnJ--
-
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>                        
+> 
+> ---
+> 
+> This makes two changes to the previous patch:
+> 
+> 1) It implements the locking suggested by Tejun
+> 2) It sends a uevent on the device kobject. I've implemented this 
+> because grabbing the notification handler means that the bay driver can 
+> no longer do it, so it's necessary to generate compatible events. If the 
+> event type is 3, it indicates that the user has merely requested an 
+> eject - the drive hasn't gone at this point. Sending the notification 
+> allows userspace to attempt to unmount the filesystems before sending a 
+> command to initiate the eject. 
+> 
+> I'm not especially happy about the chain used to get the scsi device 
+> kobject. Is there a cleaner way to do that? Other than that, I've now 
+> tested this on multiple systems (a 965-based Thinkpad, a 915-era Dell 
+> and even an HP with no SATA whatsoever) without any obvious breakage.
+> 
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index c059f78..68bb7fa 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/libata.h>
+>  #include <linux/pci.h>
+> +#include <scsi/scsi_device.h>
+>  #include "libata.h"
+>  
+>  #include <acpi/acpi_bus.h>
+> @@ -66,6 +67,41 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
+>  	}
+>  }
+>  
+> +static void ata_acpi_notify(acpi_handle handle, u32 event, void *data)
+> +{
+> +	struct ata_port *ap = data;
+> +	struct ata_eh_info *ehi = &ap->eh_info;
+> +	char event_string[12];
+> +	char *envp[] = { event_string, NULL };
+> +	struct kobject *kobj = NULL;
+> +	int i;
+> +
+> +	if (ap->acpi_handle && handle == ap->acpi_handle)
+> +	        kobj = &ap->dev->kobj;
+> +	else {
+> +		for (i = 0; i < ata_port_max_devices(ap); i++) {
+> +			struct ata_device *dev = &ap->device[i];
+> +			if (dev->acpi_handle && handle == dev->acpi_handle) 
+> +			        kobj = &dev->sdev->sdev_gendev.kobj;
+> +		}
+> +	}
+> +
+> +	if (event == 0 || event == 1) {
+> +	       unsigned long flags;
+> +	       spin_lock_irqsave(ap->lock, flags);
+> +	       ata_ehi_clear_desc(ehi);
+> +	       ata_ehi_push_desc(ehi, "ACPI event");
+> +	       ata_ehi_hotplugged(ehi);
+> +	       ata_port_freeze(ap);
+> +	       spin_unlock_irqrestore(ap->lock, flags);
+> +	}
+> +
+> +	if (kobj) {
+> +	        sprintf(event_string, "BAY_EVENT=%d\n", event);
+> +		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
+> +	}
+> +}
+> +
+>  /**
+>   * ata_acpi_associate - associate ATA host with ACPI objects
+>   * @host: target ATA host
+> @@ -81,7 +117,7 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
+>   */
+>  void ata_acpi_associate(struct ata_host *host)
+>  {
+> -	int i;
+> +	int i, j;
+>  
+>  	if (!is_pci_dev(host->dev) || libata_noacpi)
+>  		return;
+> @@ -97,6 +133,22 @@ void ata_acpi_associate(struct ata_host *host)
+>  			ata_acpi_associate_sata_port(ap);
+>  		else
+>  			ata_acpi_associate_ide_port(ap);
+> +
+> +		if (ap->acpi_handle)
+> +			acpi_install_notify_handler (ap->acpi_handle,
+> +						     ACPI_SYSTEM_NOTIFY,
+> +						     ata_acpi_notify,
+> +						     ap);
+> +
+> +		for (j = 0; j < ata_port_max_devices(ap); j++) {
+> +			struct ata_device *dev = &ap->device[j];
+> +
+> +			if (dev->acpi_handle)
+> +				acpi_install_notify_handler (dev->acpi_handle,
+> +							     ACPI_SYSTEM_NOTIFY,
+> +							     ata_acpi_notify,
+> +							     ap);
+> +		}
+>  	}
+>  }
+>  
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
+> 
