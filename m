@@ -1,90 +1,93 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Bug: linux/acpi may execute notify handler that
-	has	been	removed
-Date: Fri, 28 Sep 2007 11:37:06 +0800
-Message-ID: <1190950626.4129.26.camel@acpi-hp.sh.intel.com>
-References: <1190863833.26892.63.camel@acpi-hp.sh.intel.com>
-	 <1190868847.22470.0.camel@sli10-conroe.sh.intel.com>
-	 <46FB4CAD.7050201@suse.de>
-	 <1190873430.22927.1.camel@sli10-conroe.sh.intel.com>
-	 <46FB4EBC.8030107@suse.de>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: Serial ATA does not find partitions (Hitachi HD, new? ATI controller)
+ where old SATA works
+Date: Fri, 28 Sep 2007 02:45:59 -0700
+Message-ID: <46FCCD57.2020507@gmail.com>
+References: <46FC4384.7080607@df.uba.ar>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23743 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755104AbXI1Dbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2007 23:31:35 -0400
-In-Reply-To: <46FB4EBC.8030107@suse.de>
+Received: from wa-out-1112.google.com ([209.85.146.180]:39435 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755112AbXI1Jrj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2007 05:47:39 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so3465477wah
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Sep 2007 02:47:39 -0700 (PDT)
+In-Reply-To: <46FC4384.7080607@df.uba.ar>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
+To: solari@df.uba.ar, hgsolari@gmail.com
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2007-09-27 at 14:33 +0800, Alexey Starikovskiy wrote:
-> Shaohua Li wrote:
-> > On Thu, 2007-09-27 at 10:24 +0400, Alexey Starikovskiy wrote:
-> >> Shaohua Li wrote:
-> >>> On Thu, 2007-09-27 at 11:30 +0800, Zhang Rui wrote:
-> >>>> Hi, all,
-> >>>>
-> >>>> I found a bug that linux/acpi may execute notify handler that
-> >>>> has been removed.
-> >>>>
-> >>>> When a system notify(0~0x7f) is received, linux/acpi will
-> >>>> first invoke the generic system notify handler (acpi_bus_notify)
-> >>>> and then invoke the per-device notify handler if present.
-> >>>>
-> >>>> In my case, I add some code in acpi_bus_notify for battery
-> >>>> hotplug support, so that the generic system notify handler will
-> >>>> remove the battery device, including the per-device notify
-> handler
-> >>>> acpi_battery_notify() when receiving notification
-> >>>> ACPI_NOTIFY_EJECT_REQUEST.
-> >>>> But linux/acpi invokes the per-device notify handler soon and
-> >>>> this breaks the system.
-> >>>>
-> >>>> Further more, device hot-removal is not the only case to
-> encounter
-> >>>> this bug. For example, linux/acpi receives a notification and
-> adds it
-> >>>> in the workqueue, and then the driver(notify handler) is removed
-> >>>> before kacpid_notify invoke it...
-> >>> For the non-hotplug case, adding a flush work queue just after
-> notify
-> >>> handler is removed should be ok.
-> >> I think, the real problem with ACPI hotplug is that we know which
-> devices might appear --
-> >> they are all enumerated in DSDT, but we don't add them until they
-> appear.
-> >> If we do .add for all devices in DSDT, and then just .start/.stop
-> them as they appear/disappear,
-> >> we will have to do much less work, and avoid a problem described
-> above...
-> > If a device is not present, you can't access any method of it.
-> What is because you didn't call .add() yet, or already
-> called .remove(), yes?
-> >
-Hi, Alexey, sorry that I'm not quite clear about what you mean above.
-IMO, many methods are evaluated to set all kinds of flags during the
-acpi_scan_init(), which may be invalid if the device isn't
-physically present.
+[restoring LKML and cc'ing linux-ide and linux-acpi]
 
-> > The real problem here is ACPICA will call some drivers routines
-> > (notification handler), but doesn't get a reference count of the
-> driver
-> > module.
-> We just should be able to load drivers for declared, but physically
-> absent devices.
-> >
-For the hot-plug case, we can move all the code to the per-device notify
-handler, which is called in the last minute.
-Then in the generic notify handler, we need to send a uevent to load
-the driver dynamically when a new device is inserted.
-Or we can add the hot_add code in generic notify handler and move the
-hot_removal code to the per-device notify handler, this is much easier
-while it's a kind of ugly.
+Hernan Gustavo Solari wrote:
+>     I am replying directly to you since, finding that most of the
+> material in the kernel list is well beyond my understanding, I cancelled
+> my subscription.
+> 
+>     You can forward as much of my replies to the list as you think it suits
 
-Thanks,
-Rui
+You don't have to be subscribed to the list.  Just keep them cc'd.
+
+>> Can you set up netconsole and collect the kernel log from the failing
+>> boot and post it here?
+> 
+> Let me first update you on the issue. I installed the kernel 2.6.22.8
+> when it was the latest stable release (today stable release is 2.6.22.9)
+> Trying to reproduce the problem with this kernel I get a crash but
+> different from that in the 2.6.22 kernel.
+> 
+> The kernel is compiled as it comes, with AMD64 generic option set and
+> the small systems option set by me.
+> 
+> With acpi=off it runs.
+> With acpi=on crashes after lines
+> aer: probe of 0000:00:04.0:pcie01 failed with error 2
+> aer: probe of 0000:00:05.0:pcie01 failed with error 2
+> aer: probe of 0000:00:06.0:pcie01 failed with error 2
+> aer: probe of 0000:00:07.0:pcie01 failed with error 2
+> 
+> With acpi=ht runs and complaints saying
+> aerinit_init: AER service init fails - No ACPI _05C support
+> aer: probe of 0000:00:04.0:pcie01 failed with error 1
+> and the same message for the other probes.
+> 
+> The next line is:
+> Real Time clock driver v1.12ac
+> Linux agpgart interface v0.102 (c) Dave Jones
+> Serial: 8250/16550 driver ....
+> 
+> 
+> I have filled a ticket with respect to the ACPI problems, much of them
+> can be avoided disabling part of the ACPI system.
+> 
+> Options: I can compile the 2.6.22 kernel to get the reported problem
+>      or try to debug the problem in 2.6.22.8 or something else it
+>       fits the kernel-team.
+> 
+> With respect to netconsole, the kernel parameter would be
+> netconsole=[src-port]@[src-ip]/[<dev>],[tgt-port]@<tgt-ip>/[tgt-macaddr]
+> According to
+> http://www.mjmwired.net/kernel/Documentation/networking/netconsole.txt
+> and based on kernel 2.6.22.1
+> 
+> and I cannot figure out what is [tgt-macaddr] "ethernet MAC address for
+> logging agent (broadcast)"
+> is it Internet Hardware address? (here
+> Ethernet  HWaddr 00:0E:A6:5F:13:B2 ) or something else I cannot imagine?
+
+Yes, correct, ethernet hardware address.  Things surrounded by brackets
+are optional, BTW.
+
+> PS: using netconsole may take me a few days since I do not have a
+> network at home, I have to find the network at work available.
+
+I see.  If you have access to a second machine, you can connect the two
+directly.
+
+Thanks.
+
+-- 
+tejun
