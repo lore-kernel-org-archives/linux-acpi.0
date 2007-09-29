@@ -1,48 +1,55 @@
-From: Anna Csilla <fifa08@team-rmt.com>
-Subject: Anna, Csilla
-Date: Thu, 27 Sep 2007 16:06:49 +0200
-Message-ID: <723fb777cdf889737220f85b20107295@193.23.136.160>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: Fujitsu notebook hotkeys
+Date: Sat, 29 Sep 2007 09:17:27 +0800
+Message-ID: <823A93EED437D048963A3697DB0E35DEC3D1A2@pdsmsx414.ccr.corp.intel.com>
+References: <233f28a50709281032y37607d0byb4a9071ca0f28973@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [193.23.136.160] ([193.23.136.160]:59594 "EHLO team-rmt.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751985AbXI1Uf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Sep 2007 16:35:57 -0400
-Received: from [193.23.136.160] (helo=193.23.136.160)
-	by team-rmt.com with esmtp (Exim 4.63)
-	(envelope-from <fifa08@team-rmt.com>)
-	id 1Iau0v-0005BF-VQ
-	for linux-acpi@vger.kernel.org; Thu, 27 Sep 2007 16:06:50 +0200
+Received: from mga02.intel.com ([134.134.136.20]:3817 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756259AbXI2BRe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2007 21:17:34 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <233f28a50709281032y37607d0byb4a9071ca0f28973@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jedrzej Solecki <jedrek.s@gmail.com>, linux-acpi@vger.kernel.org
+
+Hi, Jedrzej,
+
+Please attach the acpidump and dmesg output.:).
+The latest acpidump tools can be found at:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+
+Thanks,
+Rui
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Jedrzej Solecki
+Sent: Saturday, September 29, 2007 1:33 AM
 To: linux-acpi@vger.kernel.org
+Subject: Fujitsu notebook hotkeys
 
-Szia! 
-
-
-Oszinte leszek! En egy spam vagyok ... igen megint egy levelszemet.
-Mar akinek szemet ... ha ugy erzed irj vissza, kuldj el a fenebe ...
-de kenyszert erzek hogy tudassam veled az alabbiakat:
-
-Van egy oldal ahol perverz szexfilmek vannak igen perverzek ...
-sot meg allatok is felbukkannak itt ott egy ket filmben ...
-
-ha erdekel klikk ra:
-
-http://xxx.bnh.hu
-
-
-ja igen es ha hiszed hanem tenyleg vannak fenn filmek rollam.
-
-
-Van egy par jo jatek is ami magyar nyelvu es erdekelhet:
-MAGYAR SZINKRONHANGAL!!!! FIFA 08:	http://fifa08.bnh.hu
-World in Conflict:	http://winc.bnh.hu
-MOHA: Airborne:	http://moha.bnh.hu
-
-
-Szia: ahogy ismersz (anna, vagy csilla)
-
-
+Hello,
+I have an E8110 Fujitsu-Siemens notebook. There are some hotkeys which
+I'd like to use. You can see them on this picture
+http://www.notebookreview.com/assets/8795.jpg .
+When I press the first one I get the following debug info:
+evmisc-0143 [00] ev_queue_notify_reques: Dispatching Notify(80) on node
+df60ed88
+evmisc-0151 [00] ev_queue_notify_reques: Notify value: 0x80 **Device
+Specific**
+evmisc-0222 [00] ev_queue_notify_reques: No notify handler for
+Notify(FEXT, 80) node df60ed88
+Please guide me how can I add the notify handler. If you  need more
+debug info, ACPI tables or something else please let me know.
+Cheers
+J.S.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
