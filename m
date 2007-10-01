@@ -1,58 +1,70 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [Pcihpd-discuss] what is writing to /sys/bus/pci/slot/<slot_no>/power really supposed to do?
-Date: Mon, 1 Oct 2007 11:46:55 -0600
-Message-ID: <20071001174655.GK12049@parisc-linux.org>
-References: <20071001100858.06919a1e.kristen.c.accardi@intel.com> <20071001171932.GA6801@suse.de> <20071001103557.a1252b78.kristen.c.accardi@intel.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] what is writing to
+ /sys/bus/pci/slot/<slot_no>/power really supposed to do?
+Date: Mon, 1 Oct 2007 10:50:07 -0700
+Message-ID: <20071001105007.a3637532.kristen.c.accardi@intel.com>
+References: <20071001100858.06919a1e.kristen.c.accardi@intel.com>
+	<20071001174340.GA10858@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:57563 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906AbXJARq4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2007 13:46:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20071001103557.a1252b78.kristen.c.accardi@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:44423 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752700AbXJARzV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Oct 2007 13:55:21 -0400
+In-Reply-To: <20071001174340.GA10858@us.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <gregkh@suse.de>, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, gregkh@suse.de
 
-On Mon, Oct 01, 2007 at 10:35:57AM -0700, Kristen Carlson Accardi wrote:
-> So - here's where we get to interpret.  The spec says that _EJ0 is
-> used to "eject" the card.  From the spec:
-> 6.3.3 _EJx (Eject)
-> These control methods are optional and are supplied for devices that 
-> support a software-controlled VCR-style ejection mechanism or that 
-> require an action be performed such as isolation of power/data lines 
-> before the device can be removed from the system. 
-> <snip>
-> For hot removal, the device must be immediately ejected when OSPM calls 
-> the _EJ0 control method. The _EJ0 control method does not return until 
-> ejection is complete. After calling _EJ0, OSPM verifies the
-> device no longer exists to determine if the eject succeeded. 
-> For _HID devices, OSPM evaluates the _STA method. For _ADR devices, 
-> OSPM checks with the bus driver for that device.
+On Mon, 1 Oct 2007 10:43:41 -0700
+Gary Hade <garyhade@us.ibm.com> wrote:
+
+> On Mon, Oct 01, 2007 at 10:08:58AM -0700, Kristen Carlson Accardi wrote:
+> > Hi,
+> > I notice in acpiphp that the code path for powering down the slot
+> > via sysfs does not execute the _EJ0 method, but instead simply
+> > looks for _PS3 and of couse disables all the bridges and devices.  
+> > I suppose this could be valid depending on your definition of what 
+> > /sys/bus/pci/slots/<slot_no>/power should do.
+> > 
+> > Is it intended to just power down the adapter that's in the slot, 
+> > or is it intended to make the adapter in the slot able to be removed?
+> > If it's intended to make the adapter able to be removed, shouldn't
+> > we be calling _EJ0?
+> > 
+> > As a comparison, in pciehp when the sysfs power file is written,
+> > we do actually go out and send the commands to the hotplug controller
+> > to physically power off the slot.
 > 
-> So, when I read this, it seems like if a vendor followed the spec,
-> executing _EJ0 would hang until we physically pulled the card out
-> of the system, which seems bad.  So, maybe this is why we don't call
-> _EJ0?  
+> Kristen, This sounds a lot like the problem I was trying to address 
+> with the "fix slot poweroff problem on systems without _PS3" patch 
+> that I posted in June.
+> http://sourceforge.net/mailarchive/forum.php?thread_name=20070604232736.GA3239%40us.ibm.com&forum_name=pcihpd-discuss
+> It seems to be working fine on our systems.
+> 
+> Gary
 
-I think you've misread it.  Follow the other arm of the 'or':
-	"require an action be performed such as isolation of power/data
-	lines before the device can be removed from the system."
-So I interpret "the eject succeeded" as "power/data lines are isolated"
-for PCI cards.
+ok - hum well, I seem to have not merged that patch for some reason, and
+it also isn't anywhere in my inbox.  Can you resend it?  Seems like we
+should get it in there.
 
-> _PS3 apparently is used to put a device into D3.  By "device" here
-> I'm not sure if we are talking about the adapter in the slot, or the
-> slot itself.
+BTW - people should copy me directly when they send their patches otherwise
+they may get overlooked. (not that I'm saying this is what happened here,
+it also happens sometimes that patches get buried in my inbox despite my
+best efforts).
 
-Slots don't have a D3.  If you're talking about the bus, I guess there's
-a B3.  But D is for devices.
+Thanks,
+Kristen
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+> 
+> -- 
+> Gary Hade
+> System x Enablement
+> IBM Linux Technology Center
+> 503-578-4503  IBM T/L: 775-4503
+> garyhade@us.ibm.com
+> http://www.ibm.com/linux/ltc
+> 
