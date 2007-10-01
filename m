@@ -1,36 +1,34 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] what is writing to
- /sys/bus/pci/slot/<slot_no>/power really supposed to do?
-Date: Mon, 1 Oct 2007 11:43:13 -0700
-Message-ID: <20071001114313.e73eeb3a.kristen.c.accardi@intel.com>
-References: <20071001100858.06919a1e.kristen.c.accardi@intel.com>
-	<20071001174340.GA10858@us.ibm.com>
-	<20071001105007.a3637532.kristen.c.accardi@intel.com>
-	<20071001183354.GA12905@us.ibm.com>
+From: Hernan Gustavo Solari <solari@df.uba.ar>
+Subject: Re: Serial ATA does not find partitions (Hitachi HD, new? ATI controller)
+ where old SATA works
+Date: Mon, 01 Oct 2007 16:15:12 -0300
+Message-ID: <47014740.5080002@df.uba.ar>
+References: <46FC4384.7080607@df.uba.ar> <46FCCD57.2020507@gmail.com>
+Reply-To: hgsolari@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:56013 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751859AbXJASs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Oct 2007 14:48:28 -0400
-In-Reply-To: <20071001183354.GA12905@us.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <46FCCD57.2020507@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Gary Hade <garyhade@us.ibm.com>
-Cc: linux-acpi@vger.kernel.org, gregkh@suse.de, pcihpd-discuss@lists.sourceforge.net
 
-On Mon, 1 Oct 2007 11:33:54 -0700
-Gary Hade <garyhade@us.ibm.com> wrote:
-> 
-> In this case, I did send it directly to you with 
-> pcihpd-discuss@lists.sourceforge.net on gregkh@suse.de the
-> CC line.  You and Greg subsequently signed off on it and it 
-> entered mainline at 2.6.23-rc1.
-> 
-> Gary
+Tejun
 
-Yay!  Problem solved, that was easy, thanks!
+    netconsole, pritty nice debunging system... but (yes, there is 
+always a but) it does not get to run.
+    the method was well implemented, adding the acpi=off it sends the 
+information to the receiving machine (I can even see passing a 
+netconsole probing message in the machine under testing), but without 
+turning off acpi it does not reach the point of loading and, 
+consequently, it does not send a byte to the receiving machine.
 
-Kristen
+Hence, result: empty output.
+
+Hernan
+
+
+-- 
+Hernan G. Solari (solari@df.uba.ar http://www.df.uba.ar/~solari)
