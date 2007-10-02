@@ -1,148 +1,96 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version
- 3
-Date: Tue, 02 Oct 2007 11:04:41 -0400
-Message-ID: <47025E09.1030803@garzik.org>
-References: <20070915170652.GA25504@srcf.ucam.org> <46F2EE66.9060207@garzik.org> <20070920222138.GA3740@srcf.ucam.org> <46F32DD9.7010509@gmail.com> <20070921024214.GA6317@srcf.ucam.org> <46F3322D.5090407@gmail.com> <20070921025734.GA6434@srcf.ucam.org> <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org> <46F33824.6000707@gmail.com> <20070924231436.GA32119@srcf.ucam.org>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 1/2] [PATCH] ACPI: video: Don't call absent methods
+Date: Tue, 02 Oct 2007 19:52:53 +0400
+Message-ID: <47026955.9050308@gmail.com>
+References: <20070903122958.20082.6843.stgit@z61m> <4702462F.4070909@ou.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070924231436.GA32119@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kristen.c.accardi@intel.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.172]:44192 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755318AbXJBPxB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2007 11:53:01 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so2136042ugc
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Oct 2007 08:52:59 -0700 (PDT)
+In-Reply-To: <4702462F.4070909@ou.edu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ryan May <rmay@ou.edu>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Tuttle <linux-kernel@ttuttle.net>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Matthew Garrett wrote:
-> Modern laptops with hotswap bays still tend to utilise a PATA interface 
-> on a SATA bridge, generally with the host controller in some legacy 
-> emulation mode rather than AHCI. This means that the existing hotplug 
-> code in libata is unable to work. The ACPI specification states that 
-> these devices can send notifications when hotswapped, which avoids the 
-> need to obtain notification from the controller. This patch uses the 
-> existing libata-acpi code and simply registers a notification in order 
-> to trigger a rescan whenever the firmware signals an event.
->                                                                                                                                                                                                         
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>                        
+Ryan,
+It is in queue for 2.6.24... Too late for .23
+
+Regards,
+Alex.
+Ryan May wrote:
+> Hi,
 > 
-> ---
+> What's the status of this patch?  AFAICT, it hasn't been applied
+> upstream anywhere.  This fixes the problems on my HP dv2125nr with the
+> new BIOS, so I'd really like to see it merged.
 > 
-> This makes two changes to the previous patch:
+> Thanks,
 > 
-> 1) It implements the locking suggested by Tejun
-> 2) It sends a uevent on the device kobject. I've implemented this 
-> because grabbing the notification handler means that the bay driver can 
-> no longer do it, so it's necessary to generate compatible events. If the 
-> event type is 3, it indicates that the user has merely requested an 
-> eject - the drive hasn't gone at this point. Sending the notification 
-> allows userspace to attempt to unmount the filesystems before sending a 
-> command to initiate the eject. 
+> Ryan
 > 
-> I'm not especially happy about the chain used to get the scsi device 
-> kobject. Is there a cleaner way to do that? Other than that, I've now 
-> tested this on multiple systems (a 965-based Thinkpad, a 915-era Dell 
-> and even an HP with no SATA whatsoever) without any obvious breakage.
+> Alexey Starikovskiy wrote:
+>> Signed-off-by: Ryan May <rmay@ou.edu>
+>> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>> ---
+>>
+>>  drivers/acpi/video.c |   18 ++++++++++--------
+>>  1 files changed, 10 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 3c9bb85..83aa41c 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -409,14 +409,16 @@ acpi_video_device_lcd_query_levels(struct acpi_video_device *device,
+>>  static int
+>>  acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
+>>  {
+>> -	int status;
+>> +	int status = AE_OK;
+>>  	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
+>>  	struct acpi_object_list args = { 1, &arg0 };
+>>  
+>>  
+>>  	arg0.integer.value = level;
+>> -	status = acpi_evaluate_object(device->dev->handle, "_BCM", &args, NULL);
+>> -
+>> +	if (device->cap._BCM)
+>> +		status = acpi_evaluate_object(device->dev->handle, "_BCM",
+>> +					      &args, NULL);
+>> +	device->brightness->curr = level;
+>>  	printk(KERN_DEBUG "set_level status: %x\n", status);
+>>  	return status;
+>>  }
+>> @@ -425,11 +427,11 @@ static int
+>>  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>>  					unsigned long *level)
+>>  {
+>> -	int status;
+>> -
+>> -	status = acpi_evaluate_integer(device->dev->handle, "_BQC", NULL, level);
+>> -
+>> -	return status;
+>> +	if (device->cap._BQC)
+>> +		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
+>> +					     level);
+>> +	*level = device->brightness->curr;
+>> +	return AE_OK;
+>>  }
+>>  
+>>  static int
+>>
+>> -
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
 > 
-> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> index c059f78..68bb7fa 100644
-> --- a/drivers/ata/libata-acpi.c
-> +++ b/drivers/ata/libata-acpi.c
-> @@ -14,6 +14,7 @@
->  #include <linux/acpi.h>
->  #include <linux/libata.h>
->  #include <linux/pci.h>
-> +#include <scsi/scsi_device.h>
->  #include "libata.h"
->  
->  #include <acpi/acpi_bus.h>
-> @@ -66,6 +67,41 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
->  	}
->  }
->  
-> +static void ata_acpi_notify(acpi_handle handle, u32 event, void *data)
-> +{
-> +	struct ata_port *ap = data;
-> +	struct ata_eh_info *ehi = &ap->eh_info;
-> +	char event_string[12];
-> +	char *envp[] = { event_string, NULL };
-> +	struct kobject *kobj = NULL;
-> +	int i;
-> +
-> +	if (ap->acpi_handle && handle == ap->acpi_handle)
-> +	        kobj = &ap->dev->kobj;
-> +	else {
-> +		for (i = 0; i < ata_port_max_devices(ap); i++) {
-> +			struct ata_device *dev = &ap->device[i];
-> +			if (dev->acpi_handle && handle == dev->acpi_handle) 
-> +			        kobj = &dev->sdev->sdev_gendev.kobj;
-> +		}
-> +	}
-> +
-> +	if (event == 0 || event == 1) {
-> +	       unsigned long flags;
-> +	       spin_lock_irqsave(ap->lock, flags);
-> +	       ata_ehi_clear_desc(ehi);
-> +	       ata_ehi_push_desc(ehi, "ACPI event");
-> +	       ata_ehi_hotplugged(ehi);
-> +	       ata_port_freeze(ap);
-> +	       spin_unlock_irqrestore(ap->lock, flags);
-> +	}
-> +
-> +	if (kobj) {
-> +	        sprintf(event_string, "BAY_EVENT=%d\n", event);
-> +		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
-> +	}
-> +}
-> +
->  /**
->   * ata_acpi_associate - associate ATA host with ACPI objects
->   * @host: target ATA host
-> @@ -81,7 +117,7 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
->   */
->  void ata_acpi_associate(struct ata_host *host)
->  {
-> -	int i;
-> +	int i, j;
->  
->  	if (!is_pci_dev(host->dev) || libata_noacpi)
->  		return;
-> @@ -97,6 +133,22 @@ void ata_acpi_associate(struct ata_host *host)
->  			ata_acpi_associate_sata_port(ap);
->  		else
->  			ata_acpi_associate_ide_port(ap);
-> +
-> +		if (ap->acpi_handle)
-> +			acpi_install_notify_handler (ap->acpi_handle,
-> +						     ACPI_SYSTEM_NOTIFY,
-> +						     ata_acpi_notify,
-> +						     ap);
-> +
-> +		for (j = 0; j < ata_port_max_devices(ap); j++) {
-> +			struct ata_device *dev = &ap->device[j];
-> +
-> +			if (dev->acpi_handle)
-> +				acpi_install_notify_handler (dev->acpi_handle,
-> +							     ACPI_SYSTEM_NOTIFY,
-> +							     ata_acpi_notify,
-> +							     ap);
-
-Mostly OK.  Notes:
-
-1) Check dev->sdev for NULL
-
-2) remove the unnecessary ata_device loop.  If you know the ata_device 
-pointer, you should not throw it away and then do a search to find it again.
-
-You need two functions, ata_acpi_ap_notify() and ata_acpi_dev_notify(). 
-  Pass 'ap' to the former, and 'dev' to the latter.
-
-Both functions should marshal their arguments, then call a common 
-function (presumably what 95% of current ata_acpi_notify does).
-
-3) Won't this result in a single hotplug event calling 
-ata_ehi_hotplugged() multiple times -- once for the port, and once for 
-each device attached to the port?
-
-
+> 
 
