@@ -1,105 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/8] ACPI: Add reboot mechanism
-Date: Tue, 02 Oct 2007 13:24:08 -0700
-Message-ID: <200710022024.l92KO8gb020459@imap1.linux-foundation.org>
+Subject: [patch 6/8] ACPI: SBS: fix sbs add alarm patch
+Date: Tue, 02 Oct 2007 13:24:09 -0700
+Message-ID: <200710022024.l92KO98H020468@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46164 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416AbXJBUY5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2007 16:24:57 -0400
+	by vger.kernel.org with ESMTP id S1753116AbXJBUY7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2007 16:24:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, adurbin@google.com, ak@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, astarikovskiy@suse.de
 
-From: Aaron Durbin <adurbin@google.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
+drivers/acpi/sbs.c: In function \u2018acpi_battery_alarm_show\u2019:
+drivers/acpi/sbs.c:457: error: implicit declaration of function \u2018acpi_battery_get_alarm\u2019
+drivers/acpi/sbs.c: In function \u2018acpi_battery_alarm_store\u2019:
+drivers/acpi/sbs.c:472: error: implicit declaration of function \u2018acpi_battery_set_alarm\u2019
+drivers/acpi/sbs.c: In function \u2018acpi_battery_add\u2019:
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Aaron Durbin <adurbin@google.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Makefile |    2 -
- drivers/acpi/reboot.c |   44 ++++++++++++++++++++++++++++++++++++++++
- include/acpi/reboot.h |   10 +++++++++
- 3 files changed, 55 insertions(+), 1 deletion(-)
+ drivers/acpi/sbs.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/acpi/Makefile~acpi-add-reboot-mechanism drivers/acpi/Makefile
---- a/drivers/acpi/Makefile~acpi-add-reboot-mechanism
-+++ a/drivers/acpi/Makefile
-@@ -21,7 +21,7 @@ obj-$(CONFIG_X86)		+= blacklist.o
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= osl.o utils.o \
-+obj-y				+= osl.o utils.o reboot.o \
- 				   dispatcher/ events/ executer/ hardware/ \
- 				   namespace/ parser/ resources/ tables/ \
- 				   utilities/
-diff -puN /dev/null drivers/acpi/reboot.c
---- /dev/null
-+++ a/drivers/acpi/reboot.c
-@@ -0,0 +1,44 @@
-+
-+#include <linux/pci.h>
-+#include <acpi/acpi.h>
-+
-+void acpi_reboot(void)
-+{
-+	struct acpi_generic_address *rr;
-+	struct pci_bus *bus0;
-+	u8 reset_value;
-+	unsigned int devfn;
-+
-+	rr = &acpi_gbl_FADT.reset_register;
-+
-+	/* Is the reset register supported? */
-+	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
-+	    rr->bit_width != 8 || rr->bit_offset != 0)
-+		return;
-+
-+	reset_value = acpi_gbl_FADT.reset_value;
-+
-+	/* The reset register can only exist in I/O, Memory or PCI config space
-+	 * on a device on bus 0. */
-+	switch (rr->space_id) {
-+	case ACPI_ADR_SPACE_PCI_CONFIG:
-+		/* The reset register can only live on bus 0. */
-+		bus0 = pci_find_bus(0, 0);
-+		if (!bus0)
-+			return;
-+		/* Form PCI device/function pair. */
-+		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
-+				  (rr->address >> 16) & 0xffff);
-+		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
-+		/* Write the value that resets us. */
-+		pci_bus_write_config_byte(bus0, devfn,
-+				(rr->address & 0xffff), reset_value);
-+		break;
-+
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
-+		acpi_hw_low_level_write(8, reset_value, rr);
-+		break;
-+	}
-+}
-diff -puN /dev/null include/acpi/reboot.h
---- /dev/null
-+++ a/include/acpi/reboot.h
-@@ -0,0 +1,10 @@
-+#ifndef __ACPI_REBOOT_H
-+#define __ACPI_REBOOT_H
-+
-+#ifdef CONFIG_ACPI
-+extern void acpi_reboot(void);
-+#else
-+static inline void acpi_reboot(void) { }
-+#endif
-+
-+#endif
+diff -puN drivers/acpi/sbs.c~acpi-sbs-fix-sbs-add-alarm-patch drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-sbs-fix-sbs-add-alarm-patch
++++ a/drivers/acpi/sbs.c
+@@ -395,8 +395,6 @@ static int acpi_battery_get_state(struct
+ 	return result;
+ }
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+ 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+@@ -433,8 +431,6 @@ static int acpi_battery_set_alarm(struct
+ 	return ret;
+ }
+ 
+-#endif
+-
+ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ {
+ 	int result;
 _
