@@ -1,51 +1,78 @@
-From: akpm@linux-foundation.org
-Subject: [patch 5/8] ACPI: clean up acpi_enter_sleep_state_prep
-Date: Tue, 02 Oct 2007 13:24:09 -0700
-Message-ID: <200710022024.l92KO9KP020465@imap1.linux-foundation.org>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version
+ 4
+Date: Tue, 02 Oct 2007 16:38:19 -0400
+Message-ID: <4702AC3B.2010004@garzik.org>
+References: <20070920222138.GA3740@srcf.ucam.org> <46F32DD9.7010509@gmail.com> <20070921024214.GA6317@srcf.ucam.org> <46F3322D.5090407@gmail.com> <20070921025734.GA6434@srcf.ucam.org> <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org> <46F33824.6000707@gmail.com> <20070924231436.GA32119@srcf.ucam.org> <47025E09.1030803@garzik.org> <20071002184958.GC31251@srcf.ucam.org> <47029423.6030605@garzik.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54755 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753271AbXJBUZH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2007 16:25:07 -0400
+Received: from srv5.dvmed.net ([207.36.208.214]:37380 "EHLO mail.dvmed.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754561AbXJBUiY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Oct 2007 16:38:24 -0400
+In-Reply-To: <47029423.6030605@garzik.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, rjw@sisk.pl, pavel@ucw.cz
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kristen.c.accardi@intel.com
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Jeff Garzik wrote:
+> Matthew Garrett wrote:
+>> Modern laptops with hotswap bays still tend to utilise a PATA=20
+>> interface on a SATA bridge, generally with the host controller in so=
+me=20
+>> legacy emulation mode rather than AHCI. This means that the existing=
+=20
+>> hotplug code in libata is unable to work. The ACPI specification=20
+>> states that these devices can send notifications when hotswapped,=20
+>> which avoids the need to obtain notification from the controller. Th=
+is=20
+>> patch uses the existing libata-acpi code and simply registers a=20
+>> notification in order to trigger a rescan whenever the firmware=20
+>> signals an event.
+>>                                                                     =
+                                                                       =
+                                                            =20
+>> Signed-off-by: Matthew Garrett=20
+>> <mjg59@srcf.ucam.org>                      =20
+>> ---
+>>
+>> This incorporates Jeff's feedback. sdev is checked for NULL, and=20
+>> different notifications are registered for ap-level and dev-level=20
+>> handlers. The core code is split out into a helper function called b=
+y=20
+>> both of these. The other change is the removal of the extraneous=20
+>> newline from the end of the notification event, to match the upstrea=
+m=20
+>> change in the bay driver.
+>=20
+> applied
 
-Remove some redundant code from acpi_enter_sleep_state_prep() and clean up
-a comment in there.
+Come on, dude!  This doesn't even build:
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+   UPD     include/linux/compile.h
+drivers/ata/libata-acpi.c: In function =91ata_acpi_handle_hotplug=92:
+drivers/ata/libata-acpi.c:104: error: =91struct ata_port=92 has no memb=
+er=20
+named =91eh_info=92
+drivers/ata/libata-acpi.c: In function =91ata_acpi_dev_notify=92:
+drivers/ata/libata-acpi.c:130: error: =91struct ata_device=92 has no me=
+mber=20
+named =91ap=92
+drivers/ata/libata-acpi.c: In function =91ata_acpi_associate=92:
+drivers/ata/libata-acpi.c:178: error: implicit declaration of function=20
+=91ata_port_max_devices=92
+drivers/ata/libata-acpi.c:179: error: =91struct ata_port=92 has no memb=
+er=20
+named =91device=92
+make[2]: *** [drivers/ata/libata-acpi.o] Error 1
 
- drivers/acpi/hardware/hwsleep.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwsleep.c~acpi-clean-up-acpi_enter_sleep_state_prep drivers/acpi/hardware/hwsleep.c
---- a/drivers/acpi/hardware/hwsleep.c~acpi-clean-up-acpi_enter_sleep_state_prep
-+++ a/drivers/acpi/hardware/hwsleep.c
-@@ -234,15 +234,11 @@ acpi_status acpi_enter_sleep_state_prep(
- 				"While executing method _SST"));
- 	}
- 
--	/*
--	 * 1) Disable/Clear all GPEs
--	 */
-+	/* Disable/Clear all GPEs */
-+
- 	status = acpi_hw_disable_all_gpes();
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
- 
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
-_
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
