@@ -1,40 +1,70 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version
- 4
-Date: Tue, 02 Oct 2007 14:55:31 -0400
-Message-ID: <47029423.6030605@garzik.org>
-References: <20070920222138.GA3740@srcf.ucam.org> <46F32DD9.7010509@gmail.com> <20070921024214.GA6317@srcf.ucam.org> <46F3322D.5090407@gmail.com> <20070921025734.GA6434@srcf.ucam.org> <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org> <46F33824.6000707@gmail.com> <20070924231436.GA32119@srcf.ucam.org> <47025E09.1030803@garzik.org> <20071002184958.GC31251@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20071002184958.GC31251@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kristen.c.accardi@intel.com
+From: akpm@linux-foundation.org
+Subject: [patch 1/8] Exit ACPI processor module gracefully if acpi is disabled
+Date: Tue, 02 Oct 2007 13:24:06 -0700
+Message-ID: <200710022024.l92KO6ae020453@imap1.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57824 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752129AbXJBUYw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2007 16:24:52 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-Matthew Garrett wrote:
-> Modern laptops with hotswap bays still tend to utilise a PATA interface 
-> on a SATA bridge, generally with the host controller in some legacy 
-> emulation mode rather than AHCI. This means that the existing hotplug 
-> code in libata is unable to work. The ACPI specification states that 
-> these devices can send notifications when hotswapped, which avoids the 
-> need to obtain notification from the controller. This patch uses the 
-> existing libata-acpi code and simply registers a notification in order 
-> to trigger a rescan whenever the firmware signals an event.
->                                                                                                                                                                                                         
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>                        
-> 
-> ---
-> 
-> This incorporates Jeff's feedback. sdev is checked for NULL, and 
-> different notifications are registered for ap-level and dev-level 
-> handlers. The core code is split out into a helper function called by 
-> both of these. The other change is the removal of the extraneous newline 
-> from the end of the notification event, to match the upstream change in 
-> the bay driver.
+From: Thomas Renninger <trenn@suse.de>
 
-applied
+akpm: needs a changelog
 
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ drivers/acpi/processor_core.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -1030,6 +1030,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -1055,6 +1057,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
+ 	}
+ 
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -1068,15 +1072,12 @@ static void __exit acpi_processor_exit(v
+ {
+ 
+ 	acpi_processor_ppc_exit();
+-
+-	acpi_thermal_cpufreq_exit();
+-
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
+-
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-
++	if (processor_driver_registered) {
++		acpi_thermal_cpufreq_exit();
++		acpi_processor_uninstall_hotplug_notify();
++		acpi_bus_unregister_driver(&acpi_processor_driver);
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
+ 
+_
