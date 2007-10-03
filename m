@@ -1,124 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] libata: Integrate ACPI-based PATA/SATA hotplug - version 5
-Date: Wed, 3 Oct 2007 01:24:16 +0100
-Message-ID: <20071003002416.GA3906@srcf.ucam.org>
-References: <46F33597.1000307@gmail.com> <20070921031245.GA6628@srcf.ucam.org> <46F33824.6000707@gmail.com> <20070924231436.GA32119@srcf.ucam.org> <47025E09.1030803@garzik.org> <20071002184958.GC31251@srcf.ucam.org> <47029423.6030605@garzik.org> <4702AC3B.2010004@garzik.org> <20071002212028.GA967@srcf.ucam.org> <4702B6C5.2070903@garzik.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 8/8] acpi: fix BDC handling in drivers/acpi/sleep/proc.c
+Date: Wed, 03 Oct 2007 08:58:18 -0700
+Message-ID: <20071003155818.ED86C219D82@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <200710022024.l92KOBXq020474@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4702B6C5.2070903@garzik.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kristen.c.accardi@intel.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp123.sbc.mail.re3.yahoo.com ([66.196.96.96]:46996 "HELO
+	smtp123.sbc.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752104AbXJCQE4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2007 12:04:56 -0400
+In-Reply-To: <200710022024.l92KOBXq020474@imap1.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: torvalds@linux-foundation.org, lkml@rtr.ca, linux-acpi@vger.kernel.org, borntraeger@de.ibm.com, akpm@linux-foundation.org
 
-Modern laptops with hotswap bays still tend to utilise a PATA interface
-on a SATA bridge, generally with the host controller in some legacy
-emulation mode rather than AHCI. This means that the existing hotplug
-code in libata is unable to work. The ACPI specification states that
-these devices can send notifications when hotswapped, which avoids the
-need to obtain notification from the controller. This patch uses the
-existing libata-acpi code and simply registers a notification in order
-to trigger a rescan whenever the firmware signals an event.
+By the way, another longstanding bug in this /proc/acpi/... code is:
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> @@ -336,11 +328,11 @@ acpi_system_write_alarm(struct file *fil
+>  	 * to the RTC area of memory.
+>  	 */
+>  	if (acpi_gbl_FADT.day_alarm)
+> -		CMOS_WRITE(day, acpi_gbl_FADT.day_alarm);
+> +		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
+>  	if (acpi_gbl_FADT.month_alarm)
+> -		CMOS_WRITE(mo, acpi_gbl_FADT.month_alarm);
+> +		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
+>  	if (acpi_gbl_FADT.century)
+> -		CMOS_WRITE(yr / 100, acpi_gbl_FADT.century);
+> +		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
 
----
+The "century" field is unrelated to the alarm.  It's purely
+a way to distinguish 19xx vs 20xx (and 21xx, etc).
 
-Diffed against #upstream. Fairly sure I've got it right this time...
-
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index a276c06..5ebbf16 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -14,6 +14,7 @@
- #include <linux/acpi.h>
- #include <linux/libata.h>
- #include <linux/pci.h>
-+#include <scsi/scsi_device.h>
- #include "libata.h"
- 
- #include <acpi/acpi_bus.h>
-@@ -95,6 +96,47 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
- 	}
- }
- 
-+static void ata_acpi_handle_hotplug (struct ata_port *ap, struct kobject *kobj,
-+				     u32 event)
-+{
-+	char event_string[12];
-+	char *envp[] = { event_string, NULL };
-+	struct ata_eh_info *ehi = &ap->link.eh_info;
-+
-+	if (event == 0 || event == 1) {
-+	       unsigned long flags;
-+	       spin_lock_irqsave(ap->lock, flags);
-+	       ata_ehi_clear_desc(ehi);
-+	       ata_ehi_push_desc(ehi, "ACPI event");
-+	       ata_ehi_hotplugged(ehi);
-+	       ata_port_freeze(ap);
-+	       spin_unlock_irqrestore(ap->lock, flags);
-+	}
-+
-+	if (kobj) {
-+	        sprintf(event_string, "BAY_EVENT=%d", event);
-+		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
-+	}
-+}
-+
-+static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct ata_device *dev = data;
-+	struct kobject *kobj = NULL;
-+
-+	if (dev->sdev)
-+		kobj = &dev->sdev->sdev_gendev.kobj;
-+
-+	ata_acpi_handle_hotplug (dev->link->ap, kobj, event);
-+}
-+
-+static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct ata_port *ap = data;
-+
-+	ata_acpi_handle_hotplug (ap, &ap->dev->kobj, event);
-+}
-+
- /**
-  * ata_acpi_associate - associate ATA host with ACPI objects
-  * @host: target ATA host
-@@ -110,7 +152,7 @@ static void ata_acpi_associate_ide_port(struct ata_port *ap)
-  */
- void ata_acpi_associate(struct ata_host *host)
- {
--	int i;
-+	int i, j;
- 
- 	if (!is_pci_dev(host->dev) || libata_noacpi)
- 		return;
-@@ -126,6 +168,22 @@ void ata_acpi_associate(struct ata_host *host)
- 			ata_acpi_associate_sata_port(ap);
- 		else
- 			ata_acpi_associate_ide_port(ap);
-+
-+		if (ap->acpi_handle)
-+			acpi_install_notify_handler (ap->acpi_handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     ata_acpi_ap_notify,
-+						     ap);
-+
-+		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
-+			struct ata_device *dev = &ap->link.device[j];
-+
-+			if (dev->acpi_handle)
-+				acpi_install_notify_handler (dev->acpi_handle,
-+							     ACPI_SYSTEM_NOTIFY,
-+							     ata_acpi_dev_notify,
-+							     dev);
-+		}
- 	}
- }
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+>  	/* enable the rtc alarm interrupt */
+>  	rtc_control |= RTC_AIE;
+>  	CMOS_WRITE(rtc_control, RTC_CONTROL);
