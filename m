@@ -1,90 +1,329 @@
-From: Krzysztof Oledzki <olel@ans.pl>
-Subject: Re: [Bug 5243] Very high interrupt rate for IRQ8 (rtc) unless
- pnpacpi=off
-Date: Thu, 4 Oct 2007 00:54:00 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0710040051020.15320@bizon.gios.gov.pl>
-References: <20070928013224.0EDF2108014@picon.linux-foundation.org>
+From: "Robert Pajak" <rob.pajak@gmail.com>
+Subject: Re: Delivery Status Notification (Failure)
+Date: Thu, 4 Oct 2007 01:23:00 +0100
+Message-ID: <c0c30e8b0710031723o773b91e8ndc6abb5653b13575@mail.gmail.com>
+References: <000e0cd299d8043b9fc15979843eaf@googlemail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-631169894-1191452040=:15320"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:41315 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbXJCXUt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2007 19:20:49 -0400
-In-Reply-To: <20070928013224.0EDF2108014@picon.linux-foundation.org>
+Received: from nf-out-0910.google.com ([64.233.182.186]:47750 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031AbXJDAXD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2007 20:23:03 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so4013587nfb
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Oct 2007 17:23:01 -0700 (PDT)
+In-Reply-To: <000e0cd299d8043b9fc15979843eaf@googlemail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: yakui.zhao@intel.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+# dmidecode 2.9
+SMBIOS 2.4 present.
+28 structures occupying 1094 bytes.
+Table at 0x000DC010.
 
----187430788-631169894-1191452040=:15320
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Phoenix Technologies LTD
+	Version: V1.23
+	Release Date: 05/29/2007
+	Address: 0xE5880
+	Runtime Size: 108416 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		APM is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
 
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Acer
+	Product Name: Aspire 9410
+	Version: 0100
+	Serial Number: LXAGM0X2377290CD572000
+	UUID: 133943E0-37B6-11DC-9DC4-DCDF4E75F386
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
 
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Acer
+	Product Name: Myall2
+	Version: Rev
+	Serial Number: LXAGM0X2377290CD572000
 
-On Thu, 27 Sep 2007, bugme-daemon@bugzilla.kernel.org wrote:
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Acer
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag: None
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D5243
->
->
-> ------- Comment #14 from yakui.zhao@intel.com  2007-09-27 18:32 -------
-> (In reply to comment #13)
->> Created an attachment (id=3D12951)
-> --> (http://bugzilla.kernel.org/attachment.cgi?id=3D12951&action=3Dview) =
-[details]
->> Working workaround for this PNP BIOS bug
->>
-> Now it seems that the patch can solve the problem. Will you please send t=
-he
-> patch to the acpi maillist?
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: EC 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU           T2
+	Voltage: 3.3 V
+	External Clock: 133 MHz
+	Max Speed: 1860 MHz
+	Current Speed: 1860 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
 
-Attached.
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 16 KB
+	Maximum Size: 16 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
 
-Best regards,
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 1024 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-631169894-1191452040=:15320
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0710040054000.15320@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename="fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off.patch"
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J19
+	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+	External Reference Designator: COM 1
+	External Connector Type: DB-9 male
+	Port Type: Serial Port 16550A Compatible
 
-RnJvbTogS3J6eXN6dG9mIE9sZWR6a2kgPG9sZWxAYW5zLnBsPg0KDQpXb3Jr
-YXJvdW5kIGZvciBicm9rZW4gc3lzdGVtcyB3aXRoIEJJT1MgdGhhdCBtYWtl
-cyBSVEMgaW50ZXJydXB0IGxldmVsDQp0cmlnZ2VyZWQgYW5kL29yIGFjdGl2
-ZSBsb3cuDQoNClNlZSBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93
-X2J1Zy5jZ2k/aWQ9NTI0Mw0KDQpCYXNlZCBvbiB0aGUgcGF0Y2ggZnJvbSBT
-aGFvaHVhIExpIDxzaGFvaHVhLmxpQGludGVsLmNvbT4NCg0KU2lnbmVkLW9m
-Zi1ieTogS3J6eXN6dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQpD
-YzogIkxpLCBTaGFvaHVhIiA8c2hhb2h1YS5saUBpbnRlbC5jb20+DQpDYzog
-Qmpvcm4gSGVsZ2FhcyA8Ympvcm4uaGVsZ2Fhc0BocC5jb20+DQpDYzogQW5k
-aSBLbGVlbiA8YWtAc3VzZS5kZT4NCkNjOiBBZGFtIEJlbGF5IDxhbWJ4MUBu
-ZW8ucnIuY29tPg0KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtw
-bUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCi0tLQ0KDQoNCmRpZmYgLXB1TiBk
-cml2ZXJzL3BucC9wbnBhY3BpL3JzcGFyc2VyLmN+Zml4LXZlcnktaGlnaC1p
-bnRlcnJ1cHQtcmF0ZS1mb3ItaXJxOC1ydGMtdW5sZXNzLXBucGFjcGk9b2Zm
-IGRyaXZlcnMvcG5wL3BucGFjcGkvcnNwYXJzZXIuYw0KLS0tIGEvZHJpdmVy
-cy9wbnAvcG5wYWNwaS9yc3BhcnNlci5jfmZpeC12ZXJ5LWhpZ2gtaW50ZXJy
-dXB0LXJhdGUtZm9yLWlycTgtcnRjLXVubGVzcy1wbnBhY3BpPW9mZg0KKysr
-IGEvZHJpdmVycy9wbnAvcG5wYWNwaS9yc3BhcnNlci5jDQpAQCAtODUsNiAr
-ODUsMTYgQEAgc3RhdGljIHZvaWQgcG5wYWNwaV9wYXJzZV9hbGxvY2F0ZWRf
-aXJxcg0KIAlpZiAoaSA+PSBQTlBfTUFYX0lSUSkNCiAJCXJldHVybjsNCiAN
-CisjaWZkZWYgQ09ORklHX1g4Ng0KKwlpZiAoZ3NpIDwgMTYgJiYgKHRyaWdn
-ZXJpbmcgIT0gQUNQSV9FREdFX1NFTlNJVElWRSB8fA0KKwkJCQlwb2xhcml0
-eSAhPSBBQ1BJX0FDVElWRV9ISUdIKSkgew0KKwkJcG5wX3dhcm4oIkJJT1Mg
-QlVHOiBsZWdhY3kgUE5QIElSUSAlZCBzaG91bGQgYmUgZWRnZSB0cmlnZ2Vy
-LCAiDQorCQkJCSJhY3RpdmUgaGlnaCIsIGdzaSk7DQorCQl0cmlnZ2VyaW5n
-ID0gQUNQSV9FREdFX1NFTlNJVElWRTsNCisJCXBvbGFyaXR5ID0gQUNQSV9B
-Q1RJVkVfSElHSDsNCisJfQ0KKyNlbmRpZg0KKw0KIAlyZXMtPmlycV9yZXNv
-dXJjZVtpXS5mbGFncyA9IElPUkVTT1VSQ0VfSVJROwkvLyBBbHNvIGNsZWFy
-cyBfVU5TRVQgZmxhZw0KIAlyZXMtPmlycV9yZXNvdXJjZVtpXS5mbGFncyB8
-PSBpcnFfZmxhZ3ModHJpZ2dlcmluZywgcG9sYXJpdHkpOw0KIAlpcnEgPSBh
-Y3BpX3JlZ2lzdGVyX2dzaShnc2ksIHRyaWdnZXJpbmcsIHBvbGFyaXR5KTsN
-Cl8NCg==
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J8B1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
 
----187430788-631169894-1191452040=:15320--
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J9B1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PEG Slot J6C1
+	Type: 32-bit PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 6
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J7C1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 8
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000C, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J8C1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 10
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000D, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x000E, DMI type 11, 5 bytes
+OEM Strings
+	String 1: This is the Intel Calistoga
+	String 2: Chipset CRB Platform
+
+Handle 0x000F, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x0010, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0011, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0010
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0012, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0010
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 1024 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0013, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x0010
+	Partition Width: 0
+
+Handle 0x0014, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0011
+	Memory Array Mapped Address Handle: 0x0013
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0015, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0012
+	Memory Array Mapped Address Handle: 0x0013
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0016, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0017, DMI type 129, 16 bytes
+OEM-specific Type
+	Header and Data:
+		81 10 17 00 01 01 02 01 00 00 00 01 06 01 00 01
+	Strings:
+		Intel_ASF_001
+		Intel_ASF_001
+
+Handle 0x0018, DMI type 136, 6 bytes
+OEM-specific Type
+	Header and Data:
+		88 06 18 00 FF FF
+
+Handle 0x0019, DMI type 150, 14 bytes
+OEM-specific Type
+	Header and Data:
+		96 0E 19 00 01 01 00 00 00 00 00 00 00 00
+	Strings:
+		ABSOLUTE(PHOENIX) CLM
+
+Handle 0x001A, DMI type 200, 7 bytes
+OEM-specific Type
+	Header and Data:
+		C8 07 1A 00 01 02 03
+	Strings:
+		17C0
+		
+		0001
+
+Handle 0x001B, DMI type 127, 4 bytes
+End Of Table
