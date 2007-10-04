@@ -1,329 +1,723 @@
-From: "Robert Pajak" <rob.pajak@gmail.com>
-Subject: Re: Delivery Status Notification (Failure)
-Date: Thu, 4 Oct 2007 01:23:00 +0100
-Message-ID: <c0c30e8b0710031723o773b91e8ndc6abb5653b13575@mail.gmail.com>
-References: <000e0cd299d8043b9fc15979843eaf@googlemail.com>
+From: Michael Sicher <Michael.Sicher@stud.unibas.ch>
+Subject: dmesg
+Date: Thu, 04 Oct 2007 03:53:20 +0200
+Message-ID: <47044790.1010306@stud.unibas.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------020407030201080903020600"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:47750 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbXJDAXD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2007 20:23:03 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so4013587nfb
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Oct 2007 17:23:01 -0700 (PDT)
-In-Reply-To: <000e0cd299d8043b9fc15979843eaf@googlemail.com>
-Content-Disposition: inline
+Received: from mail20.bluewin.ch ([195.186.19.65]:49732 "EHLO
+	mail20.bluewin.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752694AbXJDB71 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2007 21:59:27 -0400
+Received: from localhost.localdomain (83.77.208.90) by mail20.bluewin.ch (Bluewin 7.3.121)
+        id 46F382AC002F6C3D for linux-acpi@vger.kernel.org; Thu, 4 Oct 2007 01:53:27 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-28 structures occupying 1094 bytes.
-Table at 0x000DC010.
+This is a multi-part message in MIME format.
+--------------020407030201080903020600
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: V1.23
-	Release Date: 05/29/2007
-	Address: 0xE5880
-	Runtime Size: 108416 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
+Hello
+This is the content after a dmesg. (Attachment) Somewhere I were pleased 
+to send you this...I hope you will help me eliminate those errors...
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Acer
-	Product Name: Aspire 9410
-	Version: 0100
-	Serial Number: LXAGM0X2377290CD572000
-	UUID: 133943E0-37B6-11DC-9DC4-DCDF4E75F386
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
+michael.sicher@stud.unibas.ch
+Fasanenstrasse 7
+4153 REINACH BL
+CH
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: Acer
-	Product Name: Myall2
-	Version: Rev
-	Serial Number: LXAGM0X2377290CD572000
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Acer
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag: None
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
+--------------020407030201080903020600
+Content-Type: text/plain;
+ name="dmesg.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmesg.txt"
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: EC 06 00 00 FF FB E9 BF
-	Version: Genuine Intel(R) CPU           T2
-	Voltage: 3.3 V
-	External Clock: 133 MHz
-	Max Speed: 1860 MHz
-	Current Speed: 1860 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
+[michi@localhost ~]$ sudo dmesg
+Password:
+Linux version 2.6.22.9-91.fc7 (kojibuilder@xenbuilder2.fedora.redhat.com) (gcc v
+ersion 4.1.2 20070502 (Red Hat 4.1.2-12)) #1 SMP Thu Sep 27 20:47:39 EDT 2007
+Command line: ro root=/dev/VolGroup00/LogVol00 rhgb quiet
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000007fe8cc00 (usable)
+ BIOS-e820: 000000007fe8cc00 - 000000007fe8ec00 (ACPI NVS)
+ BIOS-e820: 000000007fe8ec00 - 000000007fe90c00 (ACPI data)
+ BIOS-e820: 000000007fe90c00 - 0000000080000000 (reserved)
+ BIOS-e820: 00000000d0000000 - 00000000d4000000 (reserved)
+ BIOS-e820: 00000000fec00000 - 00000000fed00400 (reserved)
+ BIOS-e820: 00000000fed20000 - 00000000feda0000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fef00000 (reserved)
+ BIOS-e820: 00000000ffb00000 - 0000000100000000 (reserved)
+Entering add_active_range(0, 0, 160) 0 entries of 3200 used
+Entering add_active_range(0, 256, 523916) 1 entries of 3200 used
+end_pfn_map = 1048576
+DMI 2.3 present.
+ACPI: RSDP 000FEB00, 0024 (r2 DELL  )
+ACPI: XSDT 000FD25F, 005C (r1 DELL    DXP051         7 ASL        61)
+ACPI: FACP 000FD357, 00F4 (r3 DELL    DXP051         7 ASL        61)
+ACPI: DSDT FFFC7B7D, 32B9 (r1   DELL    dt_ex     1000 INTL 20050309)
+ACPI: FACS 7FE8CC00, 0040
+ACPI: SSDT FFFCAF57, 00AC (r1   DELL    st_ex     1000 INTL 20050309)
+ACPI: APIC 000FD44B, 0072 (r1 DELL    DXP051         7 ASL        61)
+ACPI: BOOT 000FD4BD, 0028 (r1 DELL    DXP051         7 ASL        61)
+ACPI: ASF! 000FD4E5, 0067 (r16 DELL    DXP051         7 ASL        61)
+ACPI: MCFG 000FD54C, 003E (r1 DELL    DXP051         7 ASL        61)
+ACPI: HPET 000FD58A, 0038 (r1 DELL    DXP051         7 ASL        61)
+No NUMA configuration found
+Faking a node at 0000000000000000-000000007fe8c000
+Entering add_active_range(0, 0, 160) 0 entries of 3200 used
+Entering add_active_range(0, 256, 523916) 1 entries of 3200 used
+Bootmem setup node 0 0000000000000000-000000007fe8c000
+Zone PFN ranges:
+  DMA             0 ->     4096
+  DMA32        4096 ->  1048576
+  Normal    1048576 ->  1048576
+early_node_map[2] active PFN ranges
+    0:        0 ->      160
+    0:      256 ->   523916
+On node 0 totalpages: 523820
+  DMA zone: 56 pages used for memmap
+  DMA zone: 1300 pages reserved
+  DMA zone: 2644 pages, LIFO batch:0
+  DMA32 zone: 7106 pages used for memmap
+  DMA32 zone: 512714 pages, LIFO batch:31
+  Normal zone: 0 pages used for memmap
+ACPI: PM-Timer IO Port: 0x808
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+Processor #0 (Bootup-CPU)
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
+Processor #1
+ACPI: LAPIC (acpi_id[0x03] lapic_id[0x05] disabled)
+ACPI: LAPIC (acpi_id[0x04] lapic_id[0x07] disabled)
+ACPI: LAPIC_NMI (acpi_id[0xff] high level lint[0x1])
+ACPI: IOAPIC (id[0x08] address[0xfec00000] gsi_base[0])
+IOAPIC[0]: apic_id 8, address 0xfec00000, GSI 0-23
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+ACPI: IRQ9 used by override.
+Setting APIC routing to flat
+ACPI: HPET id: 0x8086a201 base: 0xfed00000
+Using ACPI (MADT) for SMP configuration information
+swsusp: Registered nosave memory region: 00000000000a0000 - 00000000000f0000
+swsusp: Registered nosave memory region: 00000000000f0000 - 0000000000100000
+Allocating PCI resources starting at 88000000 (gap: 80000000:50000000)
+SMP: Allowing 4 CPUs, 2 hotplug CPUs
+PERCPU: Allocating 40968 bytes of per cpu data
+Built 1 zonelists.  Total pages: 515358
+Kernel command line: ro root=/dev/VolGroup00/LogVol00 rhgb quiet
+Initializing CPU#0
+PID hash table entries: 4096 (order: 12, 32768 bytes)
+time.c: Detected 3391.586 MHz processor.
+Console: colour VGA+ 80x25
+Checking aperture...
+Calgary: detecting Calgary via BIOS EBDA area
+Calgary: Unable to locate Rio Grande table in EBDA - bailing!
+Memory: 2057260k/2095664k available (2362k kernel code, 38020k reserved, 1400k d
+ata, 312k init)
+SLUB: Genslabs=23, HWalign=64, Order=0-1, MinObjects=4, CPUs=4, Nodes=1
+Calibrating delay using timer specific routine.. 6787.61 BogoMIPS (lpj=3393808)
+Security Framework v1.0.0 initialized
+SELinux:  Initializing.
+SELinux:  Starting in permissive mode
+selinux_register_security:  Registering secondary module capability
+Capability LSM initialized as secondary
+Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Mount-cache hash table entries: 256
+CPU: Trace cache: 12K uops, L1 D cache: 16K
+CPU: L2 cache: 2048K
+CPU 0/0 -> Node 0
+using mwait in idle threads.
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 0
+CPU0: Thermal monitoring enabled (TM1)
+SMP alternatives: switching to UP code
+ACPI: Core revision 20070126
+Using local APIC timer interrupts.
+result 12468987
+Detected 12.468 MHz APIC timer.
+SMP alternatives: switching to SMP code
+Booting processor 1/2 APIC 0x1
+Initializing CPU#1
+Calibrating delay using timer specific routine.. 6783.18 BogoMIPS (lpj=3391590)
+CPU: Trace cache: 12K uops, L1 D cache: 16K
+CPU: L2 cache: 2048K
+CPU 1/1 -> Node 0
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 1
+CPU1: Thermal monitoring enabled (TM1)
+              Intel(R) Pentium(R) D CPU 3.40GHz stepping 04
+checking TSC synchronization [CPU#0 -> CPU#1]: passed.
+Brought up 2 CPUs
+sizeof(vma)=176 bytes
+sizeof(page)=56 bytes
+sizeof(inode)=560 bytes
+sizeof(dentry)=208 bytes
+sizeof(ext3inode)=760 bytes
+sizeof(buffer_head)=104 bytes
+sizeof(skbuff)=232 bytes
+sizeof(task_struct)=2048 bytes
+NET: Registered protocol family 16
+ACPI: bus type pci registered
+PCI: Found Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub with MMC
+ONFIG support.
+PCI: Using MMCONFIG at d0000000 - d3ffffff
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
+Please send dmidecode to linux-acpi@vger.kernel.org
+ACPI: Interpreter enabled
+ACPI: (supports S0 S1 S3 S4 S5)
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Probing PCI hardware (bus 00)
+PCI: Transparent bridge - 0000:00:1e.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI4._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI2._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI5._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI6._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 *4 5 6 7 9 10 11 12 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 11 12 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 *10 11 12 15)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 *9 10 11 12 15)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 *5 6 7 9 10 11 12 15)
+ACPI: PCI Interrupt Link [LNKH] (IRQs *3 4 5 6 7 9 10 11 12 15)
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI init
+ACPI: bus type pnp registered
+pnp: PnP ACPI: found 8 devices
+ACPI: ACPI bus type pnp unregistered
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+NetLabel: Initializing
+NetLabel:  domain hash size = 128
+NetLabel:  protocols = UNLABELED CIPSOv4
+NetLabel:  unlabeled traffic allowed by default
+PCI-GART: No AMD northbridge found.
+hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+hpet0: 3 64-bit timers, 14318180 Hz
+pnp: 00:01: ioport range 0x800-0x85f has been reserved
+pnp: 00:01: ioport range 0xc00-0xc7f has been reserved
+pnp: 00:01: ioport range 0x860-0x8ff has been reserved
+pnp: 00:06: iomem range 0x0-0x9ffff could not be reserved
+pnp: 00:06: iomem range 0x100000-0xffffff could not be reserved
+pnp: 00:06: iomem range 0x1000000-0x7fe8cbff could not be reserved
+pnp: 00:06: iomem range 0xf0000-0xfffff could not be reserved
+pnp: 00:07: ioport range 0x100-0x1fe could not be reserved
+pnp: 00:07: ioport range 0x200-0x277 has been reserved
+pnp: 00:07: ioport range 0x280-0x2e7 has been reserved
+pnp: 00:07: ioport range 0x2e8-0x2ef has been reserved
+pnp: 00:07: ioport range 0x2f0-0x2f7 has been reserved
+pnp: 00:07: ioport range 0x2f8-0x2ff has been reserved
+pnp: 00:07: ioport range 0x300-0x377 could not be reserved
+pnp: 00:07: ioport range 0x380-0x3bb has been reserved
+pnp: 00:07: iomem range 0xd0000000-0xd3ffffff could not be reserved
+pnp: 00:07: iomem range 0xfeda0000-0xfedacfff has been reserved
+Time: tsc clocksource has been installed.
+PCI: Bridge: 0000:00:01.0
+  IO window: d000-dfff
+  MEM window: fc000000-feafffff
+  PREFETCH window: e0000000-efffffff
+PCI: Bridge: 0000:00:1c.0
+  IO window: disabled.
+  MEM window: fbf00000-fbffffff
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:1c.4
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:1c.5
+  IO window: c000-cfff
+  MEM window: fb800000-fbefffff
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:1e.0
+  IO window: b000-bfff
+  MEM window: f4000000-fb7fffff
+  PREFETCH window: f0000000-f3ffffff
+ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 16 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:01.0 to 64
+ACPI: PCI Interrupt 0000:00:1c.0[A] -> GSI 16 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:1c.0 to 64
+ACPI: PCI Interrupt 0000:00:1c.4[A] -> GSI 16 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:1c.4 to 64
+ACPI: PCI Interrupt 0000:00:1c.5[B] -> GSI 17 (level, low) -> IRQ 17
+PCI: Setting latency timer of device 0000:00:1c.5 to 64
+PCI: Setting latency timer of device 0000:00:1e.0 to 64
+NET: Registered protocol family 2
+IP route cache hash table entries: 65536 (order: 7, 524288 bytes)
+TCP established hash table entries: 262144 (order: 10, 6291456 bytes)
+TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
+TCP: Hash tables configured (established 262144 bind 65536)
+TCP reno registered
+checking if image is initramfs... it is
+Freeing initrd memory: 3777k freed
+Simple Boot Flag at 0x7a set to 0x1
+audit: initializing netlink socket (disabled)
+audit(1191467297.460:1): initialized
+Total HugeTLB memory allocated, 0
+VFS: Disk quotas dquot_6.5.1
+Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+SELinux:  Registering netfilter hooks
+ksign: Installing public key data
+Loading keyring
+- Added public key F49647332066F9
+- User ID: Red Hat, Inc. (Kernel Module GPG key)
+io scheduler noop registered
+io scheduler anticipatory registered
+io scheduler deadline registered
+io scheduler cfq registered (default)
+Boot video device is 0000:01:00.0
+PCI: Setting latency timer of device 0000:00:01.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:01.0:pcie00]
+Allocate Port Service[0000:00:01.0:pcie03]
+PCI: Setting latency timer of device 0000:00:1c.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:1c.0:pcie00]
+Allocate Port Service[0000:00:1c.0:pcie02]
+Allocate Port Service[0000:00:1c.0:pcie03]
+PCI: Setting latency timer of device 0000:00:1c.4 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:1c.4:pcie00]
+Allocate Port Service[0000:00:1c.4:pcie02]
+Allocate Port Service[0000:00:1c.4:pcie03]
+PCI: Setting latency timer of device 0000:00:1c.5 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:1c.5:pcie00]
+Allocate Port Service[0000:00:1c.5:pcie02]
+Allocate Port Service[0000:00:1c.5:pcie03]
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device is not pres
+ent [20070126]
+ACPI Exception (processor_core-0783): AE_NOT_FOUND, Processor Device is not pres
+ent [20070126]
+Real Time Clock Driver v1.12ac
+Non-volatile memory driver v1.2
+Linux agpgart interface v0.102 (c) Dave Jones
+Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing enabled
+RAMDISK driver initialized: 16 RAM disks of 16384K size 4096 blocksize
+input: Macintosh mouse button emulation as /class/input/input0
+PNP: No PS/2 controller found. Probing ports directly.
+serio: i8042 KBD port at 0x60,0x64 irq 1
+serio: i8042 AUX port at 0x60,0x64 irq 12
+mice: PS/2 mouse device common for all mice
+usbcore: registered new interface driver hiddev
+usbcore: registered new interface driver usbhid
+drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
+TCP cubic registered
+Initializing XFRM netlink socket
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+Freeing unused kernel memory: 312k freed
+Write protecting the kernel read-only data: 1060k
+USB Universal Host Controller Interface driver v3.0
+ACPI: PCI Interrupt 0000:00:1d.0[A] -> GSI 21 (level, low) -> IRQ 21
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+uhci_hcd 0000:00:1d.0: UHCI Host Controller
+uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 1
+uhci_hcd 0000:00:1d.0: irq 21, io base 0x0000ff80
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 2 ports detected
+ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 22 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+uhci_hcd 0000:00:1d.1: UHCI Host Controller
+uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 2
+uhci_hcd 0000:00:1d.1: irq 22, io base 0x0000ff60
+usb usb2: configuration #1 chosen from 1 choice
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 2 ports detected
+ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 18
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+uhci_hcd 0000:00:1d.2: UHCI Host Controller
+uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 3
+uhci_hcd 0000:00:1d.2: irq 18, io base 0x0000ff40
+usb usb3: configuration #1 chosen from 1 choice
+hub 3-0:1.0: USB hub found
+hub 3-0:1.0: 2 ports detected
+ACPI: PCI Interrupt 0000:00:1d.3[D] -> GSI 23 (level, low) -> IRQ 23
+PCI: Setting latency timer of device 0000:00:1d.3 to 64
+uhci_hcd 0000:00:1d.3: UHCI Host Controller
+uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 4
+uhci_hcd 0000:00:1d.3: irq 23, io base 0x0000ff20
+usb usb4: configuration #1 chosen from 1 choice
+hub 4-0:1.0: USB hub found
+hub 4-0:1.0: 2 ports detected
+usb 1-1: new low speed USB device using uhci_hcd and address 2
+ohci_hcd: 2006 August 04 USB 1.1 'Open' Host Controller (OHCI) Driver
+ACPI: PCI Interrupt 0000:00:1d.7[A] -> GSI 21 (level, low) -> IRQ 21
+PCI: Setting latency timer of device 0000:00:1d.7 to 64
+ehci_hcd 0000:00:1d.7: EHCI Host Controller
+ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 5
+ehci_hcd 0000:00:1d.7: debug port 1
+PCI: cache line size of 128 is not supported by device 0000:00:1d.7
+ehci_hcd 0000:00:1d.7: irq 21, io mem 0xffa80800
+ehci_hcd 0000:00:1d.7: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+usb usb5: configuration #1 chosen from 1 choice
+hub 5-0:1.0: USB hub found
+hub 5-0:1.0: 8 ports detected
+SCSI subsystem initialized
+libata version 2.21 loaded.
+ata_piix 0000:00:1f.1: version 2.11
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 16 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:1f.1 to 64
+scsi0 : ata_piix
+scsi1 : ata_piix
+ata1: PATA max UDMA/133 cmd 0x00000000000101f0 ctl 0x00000000000103f6 bmdma 0x00
+0000000001ffa0 irq 14
+ata2: PATA max UDMA/133 cmd 0x0000000000010170 ctl 0x0000000000010376 bmdma 0x00
+0000000001ffa8 irq 15
+usb 1-1: device not accepting address 2, error -71
+ata1.00: ATAPI: HL-DT-STDVD+-RW GSA-H21N, A105, max UDMA/33
+ata1.00: configured for UDMA/33
+ata2: port disabled. ignoring.
+scsi 0:0:0:0: CD-ROM            HL-DT-ST DVD+-RW GSA-H21N A105 PQ: 0 ANSI: 5
+ata_piix 0000:00:1f.2: MAP [ P0 P2 P1 P3 ]
+ACPI: PCI Interrupt 0000:00:1f.2[C] -> GSI 20 (level, low) -> IRQ 20
+PCI: Setting latency timer of device 0000:00:1f.2 to 64
+scsi2 : ata_piix
+scsi3 : ata_piix
+ata3: SATA max UDMA/133 cmd 0x000000000001fe00 ctl 0x000000000001fe12 bmdma 0x00
+0000000001fea0 irq 20
+ata4: SATA max UDMA/133 cmd 0x000000000001fe20 ctl 0x000000000001fe32 bmdma 0x00
+0000000001fea8 irq 20
+ata3.00: ATA-7: WDC WD2500JS-75NCB3, 10.02E04, max UDMA/133
+ata3.00: 488281250 sectors, multi 8: LBA48 NCQ (depth 0/32)
+ata3.01: ATA-7: WDC WD2500JS-75NCB3, 10.02E04, max UDMA/133
+ata3.01: 488281250 sectors, multi 8: LBA48 NCQ (depth 0/32)
+ata3.00: configured for UDMA/133
+ata3.01: configured for UDMA/133
+scsi 2:0:0:0: Direct-Access     ATA      WDC WD2500JS-75N 10.0 PQ: 0 ANSI: 5
+sd 2:0:0:0: [sda] 488281250 512-byte hardware sectors (250000 MB)
+sd 2:0:0:0: [sda] Write Protect is off
+sd 2:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 2:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO
+ or FUA
+sd 2:0:0:0: [sda] 488281250 512-byte hardware sectors (250000 MB)
+sd 2:0:0:0: [sda] Write Protect is off
+sd 2:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 2:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO
+ or FUA
+ sda: sda1 sda2 sda3
+sd 2:0:0:0: [sda] Attached SCSI disk
+scsi 2:0:1:0: Direct-Access     ATA      WDC WD2500JS-75N 10.0 PQ: 0 ANSI: 5
+sd 2:0:1:0: [sdb] 488281250 512-byte hardware sectors (250000 MB)
+sd 2:0:1:0: [sdb] Write Protect is off
+sd 2:0:1:0: [sdb] Mode Sense: 00 3a 00 00
+sd 2:0:1:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO
+ or FUA
+sd 2:0:1:0: [sdb] 488281250 512-byte hardware sectors (250000 MB)
+sd 2:0:1:0: [sdb] Write Protect is off
+sd 2:0:1:0: [sdb] Mode Sense: 00 3a 00 00
+sd 2:0:1:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO
+ or FUA
+ sdb: sdb1 sdb2 sdb3
+sd 2:0:1:0: [sdb] Attached SCSI disk
+usb 5-2: new high speed USB device using ehci_hcd and address 3
+usb 5-2: configuration #1 chosen from 1 choice
+hub 5-2:1.0: USB hub found
+hub 5-2:1.0: 4 ports detected
+usb 5-3: new high speed USB device using ehci_hcd and address 4
+usb 5-3: configuration #1 chosen from 1 choice
+usb 5-5: new high speed USB device using ehci_hcd and address 6
+usb 5-5: configuration #1 chosen from 1 choice
+hub 5-5:1.0: USB hub found
+hub 5-5:1.0: 4 ports detected
+usb 1-1: new low speed USB device using uhci_hcd and address 4
+usb 1-1: configuration #1 chosen from 1 choice
+input: Dell Dell USB Keyboard as /class/input/input1
+input: USB HID v1.10 Keyboard [Dell Dell USB Keyboard] on usb-0000:00:1d.0-1
+usb 5-2.1: new high speed USB device using ehci_hcd and address 8
+usb 5-2.1: configuration #1 chosen from 1 choice
+usb 5-2.2: new high speed USB device using ehci_hcd and address 9
+Initializing USB Mass Storage driver...
+usb 5-2.2: configuration #1 chosen from 1 choice
+scsi4 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 4
+usb-storage: waiting for device to settle before scanning
+scsi5 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 8
+usb-storage: waiting for device to settle before scanning
+scsi6 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 9
+usb-storage: waiting for device to settle before scanning
+usbcore: registered new interface driver usb-storage
+USB Mass Storage support registered.
+usb 2-2: new full speed USB device using uhci_hcd and address 2
+usb 2-2: configuration #1 chosen from 1 choice
+usb 5-5.1: new low speed USB device using ehci_hcd and address 10
+usb 5-5.1: configuration #1 chosen from 1 choice
+input: Microsoft Microsoft USB Wireless Mouse as /class/input/input2
+input: USB HID v1.11 Mouse [Microsoft Microsoft USB Wireless Mouse] on usb-0000:
+00:1d.7-5.1
+usb 5-5.3: new high speed USB device using ehci_hcd and address 11
+usb 5-5.3: configuration #1 chosen from 1 choice
+hub 5-5.3:1.0: USB hub found
+hub 5-5.3:1.0: 4 ports detected
+usb 3-2: new full speed USB device using uhci_hcd and address 2
+usb 3-2: configuration #1 chosen from 1 choice
+hub 3-2:1.0: USB hub found
+hub 3-2:1.0: 4 ports detected
+usb-storage: device scan complete
+scsi 6:0:0:0: Direct-Access     HP       Photosmart 2570  1.00 PQ: 0 ANSI: 2
+usb-storage: device scan complete
+scsi 5:0:0:0: Direct-Access     HDS72251 6VLAT20               PQ: 0 ANSI: 0
+sd 6:0:0:0: [sdc] Attached SCSI removable disk
+sd 5:0:0:0: [sdd] 321672960 512-byte hardware sectors (164697 MB)
+sd 5:0:0:0: [sdd] Write Protect is off
+sd 5:0:0:0: [sdd] Mode Sense: 33 00 00 00
+sd 5:0:0:0: [sdd] Assuming drive cache: write through
+sd 5:0:0:0: [sdd] 321672960 512-byte hardware sectors (164697 MB)
+usb-storage: device scan complete
+sd 5:0:0:0: [sdd] Write Protect is off
+sd 5:0:0:0: [sdd] Mode Sense: 33 00 00 00
+sd 5:0:0:0: [sdd] Assuming drive cache: write through
+ sdd:<5>scsi 4:0:0:0: Direct-Access     TEAC     USB   HS-CF Card 4.00 PQ: 0 ANS
+I: 0
+ sdd1
+sd 5:0:0:0: [sdd] Attached SCSI disk
+scsi 4:0:0:1: Direct-Access     TEAC     USB   HS-xD/SM   4.00 PQ: 0 ANSI: 0
+scsi 4:0:0:2: Direct-Access     TEAC     USB   HS-MS Card 4.00 PQ: 0 ANSI: 0
+scsi 4:0:0:3: Direct-Access     TEAC     USB   HS-SD Card 4.00 PQ: 0 ANSI: 0
+sd 4:0:0:0: [sde] Attached SCSI removable disk
+sd 4:0:0:1: [sdf] Attached SCSI removable disk
+sd 4:0:0:2: [sdg] Attached SCSI removable disk
+sd 4:0:0:3: [sdh] Attached SCSI removable disk
+device-mapper: ioctl: 4.11.0-ioctl (2006-10-12) initialised: dm-devel@redhat.com
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: mounted filesystem with ordered data mode.
+audit(1191467316.487:2): enforcing=1 old_enforcing=0 auid=4294967295
+security:  3 users, 6 roles, 1854 types, 84 bools, 1 sens, 1024 cats
+security:  61 classes, 70584 rules
+SELinux:  Completing initialization.
+SELinux:  Setting up existing superblocks.
+SELinux: initialized (dev dm-0, type ext3), uses xattr
+SELinux: initialized (dev usbfs, type usbfs), uses genfs_contexts
+SELinux: initialized (dev tmpfs, type tmpfs), uses transition SIDs
+SELinux: initialized (dev debugfs, type debugfs), uses genfs_contexts
+SELinux: initialized (dev selinuxfs, type selinuxfs), uses genfs_contexts
+SELinux: initialized (dev mqueue, type mqueue), uses transition SIDs
+SELinux: initialized (dev hugetlbfs, type hugetlbfs), uses genfs_contexts
+SELinux: initialized (dev devpts, type devpts), uses transition SIDs
+SELinux: initialized (dev inotifyfs, type inotifyfs), uses genfs_contexts
+SELinux: initialized (dev tmpfs, type tmpfs), uses transition SIDs
+SELinux: initialized (dev futexfs, type futexfs), uses genfs_contexts
+SELinux: initialized (dev anon_inodefs, type anon_inodefs), uses genfs_contexts
+SELinux: initialized (dev pipefs, type pipefs), uses task SIDs
+SELinux: initialized (dev sockfs, type sockfs), uses task SIDs
+SELinux: initialized (dev cpuset, type cpuset), uses genfs_contexts
+SELinux: initialized (dev proc, type proc), uses genfs_contexts
+SELinux: initialized (dev bdev, type bdev), uses genfs_contexts
+SELinux: initialized (dev rootfs, type rootfs), uses genfs_contexts
+SELinux: initialized (dev sysfs, type sysfs), uses genfs_contexts
+audit(1191467316.811:3): policy loaded auid=4294967295
+scsi 0:0:0:0: Attached scsi generic sg0 type 5
+sd 2:0:0:0: Attached scsi generic sg1 type 0
+sd 2:0:1:0: Attached scsi generic sg2 type 0
+sd 6:0:0:0: Attached scsi generic sg3 type 0
+sd 5:0:0:0: Attached scsi generic sg4 type 0
+sd 4:0:0:0: Attached scsi generic sg5 type 0
+sd 4:0:0:1: Attached scsi generic sg6 type 0
+sd 4:0:0:2: Attached scsi generic sg7 type 0
+sd 4:0:0:3: Attached scsi generic sg8 type 0
+sr0: scsi3-mmc drive: 94x/48x writer cd/rw xa/form2 cdda tray
+Uniform CD-ROM driver Revision: 3.20
+sr 0:0:0:0: Attached scsi CD-ROM sr0
+drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 9 if 1 alt 0 pr
+oto 2 vid 0x03F0 pid 0x4E11
+usbcore: registered new interface driver usblp
+drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
+Floppy drive(s): fd0 is 1.44M
+ACPI: PCI Interrupt 0000:00:1f.3[B] -> GSI 17 (level, low) -> IRQ 17
+Linux video capture interface: v2.00
+ivtv:  ==================== START INIT IVTV ====================
+ivtv:  version 1.0.0 (2.6.22.9-91.fc7 SMP mod_unload ) loading
+ivtv0: Autodetected Hauppauge card (cx23416 based)
+ACPI: PCI Interrupt 0000:05:05.0[A] -> GSI 17 (level, low) -> IRQ 17
+ctossrv: module license 'Creative Proprietary License' taints kernel.
+Intel(R) PRO/1000 Network Driver - version 7.3.20-k2-NAPI
+Copyright (c) 1999-2006 Intel Corporation.
+emupia: Unknown symbol InterlockedIncrement
+emupia: Unknown symbol heap_alloc
+emupia: Unknown symbol stack_free_page
+emupia: Unknown symbol stack_alloc
+emupia: Unknown symbol get_ossrv
+emupia: Unknown symbol unload_all_plugins
+emupia: Unknown symbol stack_alloc_page
+emupia: Unknown symbol ioctl_dispatch
+emupia: Unknown symbol heap_free
+emupia: Unknown symbol InterlockedDecrement
+emupia: Unknown symbol stack_free
+ctsfman: Unknown symbol heap_alloc
+ctsfman: Unknown symbol get_ossrv
+ctsfman: Unknown symbol ioctl_dispatch
+ctsfman: Unknown symbol heap_free
+ct20xut: Unknown symbol InterlockedIncrement
+ct20xut: Unknown symbol heap_alloc
+ct20xut: Unknown symbol unregister_plugin
+ct20xut: Unknown symbol heap_free
+ct20xut: Unknown symbol register_plugin
+ct20xut: Unknown symbol InterlockedDecrement
+ivtv0: unable to open firmware v4l-cx2341x-enc.fw (must be 376836 bytes)
+ivtv0: did you put the firmware in the hotplug firmware directory?
+ivtv0: Retry loading firmware
+ctexfifx: Unknown symbol InterlockedDecrement
+ctexfifx: Unknown symbol register_plugin
+ctexfifx: Unknown symbol unregister_plugin
+ctexfifx: Unknown symbol heap_alloc
+ctexfifx: Unknown symbol InterlockedIncrement
+ctexfifx: Unknown symbol heap_free
+cthwiut: Unknown symbol InterlockedIncrement
+cthwiut: Unknown symbol heap_alloc
+cthwiut: Unknown symbol unregister_plugin
+cthwiut: Unknown symbol heap_free
+cthwiut: Unknown symbol register_plugin
+cthwiut: Unknown symbol InterlockedDecrement
+haxfi: Unknown symbol InterlockedDecrement
+haxfi: Unknown symbol get_ossrv
+haxfi: Unknown symbol heap_alloc
+haxfi: Unknown symbol InterlockedIncrement
+haxfi: Unknown symbol heap_free
+ctalsa: Unknown symbol bytes_to_order
+ctalsa: Unknown symbol get_ossrv
+ctalsa: Unknown symbol heap_alloc
+ctalsa: Unknown symbol malloc_sizes
+ctalsa: Unknown symbol ioctl_dispatch
+ctalsa: Unknown symbol heap_free
+ivtv0: unable to open firmware v4l-cx2341x-enc.fw (must be 376836 bytes)
+ivtv0: did you put the firmware in the hotplug firmware directory?
+ivtv0: Error initializing firmware
+ivtv0: Error -19 on initialization
+ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 17 (level, low) -> IRQ 17
+PCI: Setting latency timer of device 0000:04:00.0 to 64
+ivtv:  ====================  END INIT IVTV  ====================
+e1000: 0000:04:00.0: e1000_probe: (PCI Express:2.5Gb/s:Width x1) 00:13:72:2c:ba:
+25
+e1000: eth0: e1000_probe: Intel(R) PRO/1000 Network Connection
+ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:01:00.0 to 64
+NVRM: loading NVIDIA UNIX x86_64 Kernel Module  100.14.19  Wed Sep 12 14:08:38 P
+DT 2007
+usbcore: registered new interface driver snd-usb-audio
+emupia: Unknown symbol InterlockedIncrement
+emupia: Unknown symbol heap_alloc
+emupia: Unknown symbol stack_free_page
+emupia: Unknown symbol stack_alloc
+emupia: Unknown symbol get_ossrv
+emupia: Unknown symbol unload_all_plugins
+emupia: Unknown symbol stack_alloc_page
+emupia: Unknown symbol ioctl_dispatch
+emupia: Unknown symbol heap_free
+emupia: Unknown symbol InterlockedDecrement
+emupia: Unknown symbol stack_free
+ctsfman: Unknown symbol heap_alloc
+ctsfman: Unknown symbol get_ossrv
+ctsfman: Unknown symbol ioctl_dispatch
+ctsfman: Unknown symbol heap_free
+ct20xut: Unknown symbol InterlockedIncrement
+ct20xut: Unknown symbol heap_alloc
+ct20xut: Unknown symbol unregister_plugin
+ct20xut: Unknown symbol heap_free
+ct20xut: Unknown symbol register_plugin
+ct20xut: Unknown symbol InterlockedDecrement
+ctexfifx: Unknown symbol InterlockedDecrement
+ctexfifx: Unknown symbol register_plugin
+ctexfifx: Unknown symbol unregister_plugin
+ctexfifx: Unknown symbol heap_alloc
+ctexfifx: Unknown symbol InterlockedIncrement
+ctexfifx: Unknown symbol heap_free
+cthwiut: Unknown symbol InterlockedIncrement
+cthwiut: Unknown symbol heap_alloc
+cthwiut: Unknown symbol unregister_plugin
+cthwiut: Unknown symbol heap_free
+cthwiut: Unknown symbol register_plugin
+cthwiut: Unknown symbol InterlockedDecrement
+haxfi: Unknown symbol InterlockedDecrement
+haxfi: Unknown symbol get_ossrv
+haxfi: Unknown symbol heap_alloc
+haxfi: Unknown symbol InterlockedIncrement
+haxfi: Unknown symbol heap_free
+ctalsa: Unknown symbol bytes_to_order
+ctalsa: Unknown symbol get_ossrv
+ctalsa: Unknown symbol heap_alloc
+ctalsa: Unknown symbol malloc_sizes
+ctalsa: Unknown symbol ioctl_dispatch
+ctalsa: Unknown symbol heap_free
+floppy0: no floppy controllers found
+Floppy drive(s): fd0 is 1.44M
+SELinux: initialized (dev ramfs, type ramfs), uses genfs_contexts
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+Mobile IPv6
+floppy0: no floppy controllers found
+No dock devices found.
+input: Power Button (FF) as /class/input/input3
+ACPI: Power Button (FF) [PWRF]
+input: Power Button (CM) as /class/input/input4
+ACPI: Power Button (CM) [VBTN]
+device-mapper: multipath: version 1.0.5 loaded
+usb 5-2.2: reset high speed USB device using ehci_hcd and address 9
+EXT3 FS on dm-0, internal journal
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sdb1, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+SELinux: initialized (dev sdb1, type ext3), uses xattr
+SELinux: initialized (dev tmpfs, type tmpfs), uses transition SIDs
+Adding 2031608k swap on /dev/VolGroup00/LogVol01.  Priority:-1 extents:1 across:
+2031608k
+SELinux: initialized (dev binfmt_misc, type binfmt_misc), uses genfs_contexts
+IA-32 Microcode Update Driver: v1.14a <tigran@aivazian.fsnet.co.uk>
+ip6_tables: (C) 2000-2006 Netfilter Core Team
+ip_tables: (C) 2000-2006 Netfilter Core Team
+Netfilter messages via NETLINK v0.30.
+nf_conntrack version 0.5.0 (8192 buckets, 65536 max)
+e1000: eth0: e1000_watchdog: NIC Link is Up 100 Mbps Full Duplex, Flow Control:
+RX
+e1000: eth0: e1000_watchdog: 10/100 speed: disabling TSO
+audit(1191460174.540:4): audit_pid=2119 old=0 by auid=4294967295 subj=system_u:s
+ystem_r:auditd_t:s0
+SELinux: initialized (dev rpc_pipefs, type rpc_pipefs), uses genfs_contexts
+Bluetooth: Core ver 2.11
+NET: Registered protocol family 31
+Bluetooth: HCI device and connection manager initialized
+Bluetooth: HCI socket layer initialized
+Bluetooth: L2CAP ver 2.8
+Bluetooth: L2CAP socket layer initialized
+Bluetooth: RFCOMM socket layer initialized
+Bluetooth: RFCOMM TTY layer initialized
+Bluetooth: RFCOMM ver 1.8
+Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+SELinux: initialized (dev autofs, type autofs), uses genfs_contexts
+SELinux: initialized (dev autofs, type autofs), uses genfs_contexts
+SELinux: initialized (dev autofs, type autofs), uses genfs_contexts
+eth0: no IPv6 routers present
+ppdev: user-space parallel port driver
+ppdev0: claim the port first
+ppdev1: claim the port first
+ppdev2: claim the port first
+ppdev3: claim the port first
+lp: driver loaded but no devices found
+ppdev0: claim the port first
+ppdev1: claim the port first
+ppdev2: claim the port first
+ppdev3: claim the port first
+[michi@localhost ~]$
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 16 KB
-	Maximum Size: 16 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
 
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 1024 KB
-	Maximum Size: 512 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J19
-	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-	External Reference Designator: COM 1
-	External Connector Type: DB-9 male
-	Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J8B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x0009, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PEG Slot J6C1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 6
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J7C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 8
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8C1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 10
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: HD-Audio
-
-Handle 0x000E, DMI type 11, 5 bytes
-OEM Strings
-	String 1: This is the Intel Calistoga
-	String 2: Chipset CRB Platform
-
-Handle 0x000F, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x0010, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0011, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0012, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 32 bits
-	Data Width: 32 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0013, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x0010
-	Partition Width: 0
-
-Handle 0x0014, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0011
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0015, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x0012
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0016, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0017, DMI type 129, 16 bytes
-OEM-specific Type
-	Header and Data:
-		81 10 17 00 01 01 02 01 00 00 00 01 06 01 00 01
-	Strings:
-		Intel_ASF_001
-		Intel_ASF_001
-
-Handle 0x0018, DMI type 136, 6 bytes
-OEM-specific Type
-	Header and Data:
-		88 06 18 00 FF FF
-
-Handle 0x0019, DMI type 150, 14 bytes
-OEM-specific Type
-	Header and Data:
-		96 0E 19 00 01 01 00 00 00 00 00 00 00 00
-	Strings:
-		ABSOLUTE(PHOENIX) CLM
-
-Handle 0x001A, DMI type 200, 7 bytes
-OEM-specific Type
-	Header and Data:
-		C8 07 1A 00 01 02 03
-	Strings:
-		17C0
-		
-		0001
-
-Handle 0x001B, DMI type 127, 4 bytes
-End Of Table
+--------------020407030201080903020600--
