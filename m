@@ -1,64 +1,113 @@
-From: Hernan G Solari <hgsolari@gmail.com>
-Subject: Re: Serial ATA does not find partitions (Hitachi HD, new? ATI controller)
- where old SATA works
-Date: Sat, 06 Oct 2007 22:24:37 -0300
-Message-ID: <47083555.2060605@gmail.com>
-References: <46FC4384.7080607@df.uba.ar> <46FCCD57.2020507@gmail.com> <47014740.5080002@df.uba.ar> <4701EA71.2000609@gmail.com> <470220FE.2090506@gmail.com> <47044C6C.5030905@gmail.com>
-Reply-To: hgsolari@gmail.com
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [PATCH] Fix Oops in toshiba_acpi error return path
+Date: Sun, 7 Oct 2007 20:52:57 +0400
+Message-ID: <200710072053.02865.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753258AbXJGBXW@vger.kernel.org>
-In-Reply-To: <47044C6C.5030905@gmail.com>
+Content-Type: multipart/signed;
+  boundary="nextPart1829313.ShhmVIek1p";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755321AbXJGQxT@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: toshiba_acpi@memebeam.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+--nextPart1829313.ShhmVIek1p
+Content-Type: multipart/mixed;
+  boundary="Boundary-01=_q7QCH7Yru47PWvM"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> If you can set up a serial console, it would be better.  If not, can =
-you
-> please take a photo of the crash and post it?
->  =20
-I am running short of elements, no digital camera o movil phone for the=
+--Boundary-01=_q7QCH7Yru47PWvM
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+This fixes oops when registering backlight device fails. Attached as I stil=
+l=20
+cannot convince kmail to not mangle long lines ...
+
+=2Dandrey
+
+--Boundary-01=_q7QCH7Yru47PWvM
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="toshiba_acpi-oops"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="toshiba_acpi-oops"
+
+Subject: [PATCH] Fix Oops in toshiba_acpi error return path
+=46rom: Andrey Borzenkov <arvidjaar@mail.ru>
+
+When backlight_device_register() fails, return after undo initialization,
+do not try to use pointer that just was reset to NULL
+
+This fixes this oops:
+
+[ 1595.177672]  [<c010480a>] show_trace_log_lvl+0x1a/0x30
+[ 1595.177706]  [<c01052a2>] show_trace+0x12/0x20
+[ 1595.177718]  [<c0105305>] dump_stack+0x15/0x20
+[ 1595.177728]  [<c01c9375>] kobject_shadow_add+0x125/0x1c0
+[ 1595.177754]  [<c01c941a>] kobject_add+0xa/0x10
+[ 1595.177764]  [<c0239a37>] device_add+0x97/0x5d0
+[ 1595.177776]  [<c0239f82>] device_register+0x12/0x20
+[ 1595.177786]  [<dfd912df>] backlight_device_register+0x9f/0x110 [backligh=
+t]
+[ 1595.177814]  [<df861117>] toshiba_acpi_init+0x117/0x15e [toshiba_acpi]
+[ 1595.177834]  [<c013e28d>] sys_init_module+0xfd/0x14e0
+[ 1595.177871]  [<c0104112>] sysenter_past_esp+0x5f/0x99
+[ 1595.177883]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+[ 1595.177890] Could not register toshiba backlight device
+[ 1595.177985] BUG: unable to handle kernel NULL pointer dereference at vir=
+tual address 00000004
+=2E..
+[ 1595.394097] EIP:    0060:[<df861143>]    Not tainted VLI
+[ 1595.394101] EFLAGS: 00010282   (2.6.23-rc9-1avb #24)
+[ 1595.480081] EIP is at toshiba_acpi_init+0x143/0x15e [toshiba_acpi]
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+
+=2D--
+
+ drivers/acpi/toshiba_acpi.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
+index 13369b4..18660cc 100644
+=2D-- a/drivers/acpi/toshiba_acpi.c
++++ b/drivers/acpi/toshiba_acpi.c
+@@ -591,9 +591,12 @@ static int __init toshiba_acpi_init(void)
+ 						NULL,
+ 						&toshiba_backlight_data);
+         if (IS_ERR(toshiba_backlight_device)) {
++		int ret =3D PTR_ERR(toshiba_backlight_device);
++
+ 		printk(KERN_ERR "Could not register toshiba backlight device\n");
+ 		toshiba_backlight_device =3D NULL;
+ 		toshiba_acpi_exit();
++		return ret;
+ 	}
+         toshiba_backlight_device->props.max_brightness =3D HCI_LCD_BRIGHTN=
+ESS_LEVELS - 1;
 =20
-case or serial link.
-However, what it is on the screen when it crashes follows:
 
-KERNEL 2.6.23-rc8
------------------------------------------------------begin screen dump
-PCI: Bridge: 0000:00:14.4
-  IO window: a000-afff
-  MEM window: d0300000-d03fffff
-  PREFETCH window: 50000000-53ffffff
-PCI: Enabling device 0000:00:04.0 (0000 -> 0002)
-PCI: Enabling device 0000:08:01.0 (0000 -> 0003)
-ACPI: PCI Interrupt 0000:08:01.0[A] -> GSI 23 (level, low) -> IRQ 23
-NET: Registered protocol family 2
-IP route cache hash table entries: 32768 (order: 6, 262144 bytes)
-TCP established hash table entries: 131072 (order: 9, 3145728 bytes)
-TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
-TCP: Hash tables configured (established 131072 bind 65536)
-TCP reno registered
-Simple Boot Flag at 0x36 set to 0x1
-Total HugeTLB memory allocated, 0
-Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
-io scheduler noop registered
-io scheduler deadline registered
-io scheduler cfq registered (default)
-PCI: MSI quirk detected. MSI deactivated.
-assign_interrupt_mode Found MSI capability
-assign_interrupt_mode Found MSI capability
-assign_interrupt_mode Found MSI capability
-assign_interrupt_mode Found MSI capability
--------------------------------end screen dump
+--Boundary-01=_q7QCH7Yru47PWvM--
 
-Not so difficult since most of these lines are also in a succesful boot=
-=20
-with some of the ACPI turned off.
+--nextPart1829313.ShhmVIek1p
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Hernan
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
---=20
-Hern=E1n Gustavo Solari, solari@df.uba.ar, http://www.df.uba.ar/~solari
+iD8DBQBHCQ7qR6LMutpd94wRAg3xAKDPdQtXpMGbBHIIaT8Ev3lqM48OZACgpzvs
+cT+P51Pcf3Oo2Jt93hljHzM=
+=daLG
+-----END PGP SIGNATURE-----
+
+--nextPart1829313.ShhmVIek1p--
