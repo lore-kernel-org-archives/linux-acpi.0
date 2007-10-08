@@ -1,53 +1,163 @@
-From: Hernan G Solari <hgsolari@gmail.com>
-Subject: Re: Serial ATA does not find partitions (Hitachi HD, new? ATI controller)
- where old SATA works
-Date: Sun, 07 Oct 2007 23:30:00 -0300
-Message-ID: <47099628.2050108@gmail.com>
-References: <46FC4384.7080607@df.uba.ar> <46FCCD57.2020507@gmail.com> <47014740.5080002@df.uba.ar> <4701EA71.2000609@gmail.com> <470220FE.2090506@gmail.com> <47044C6C.5030905@gmail.com> <47083555.2060605@gmail.com> <470981EE.30103@gmail.com>
-Reply-To: hgsolari@gmail.com
+From: Hans-Joachim Klein <klein.hans@gmx.net>
+Subject: dmidecode-HP-Pavilion-dv9560eg
+Date: Mon, 08 Oct 2007 07:00:01 +0200
+Message-ID: <1191819601.6239.0.camel@Pavilion.famklein.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <470981EE.30103@gmail.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-LHR405knq7eCB8Ym1h3i"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:43295 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750699AbXJHEEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Oct 2007 00:04:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
 
-> Hmmm... and the kernel freezes after this?  libata driver isn't
-> initialized yet.  I don't think libata has anything to do with here.
->
->  =20
-as I told you, the ATA problem was with the 2.6.22 version of the kerne=
-l
-and is not longer related to the freeze with kernel 2.6.23-rc8  I asked=
-=20
-whether you wanted to see the ATA problem in that kernel or the present=
-=20
-crash.
-
-> Options: I can compile the 2.6.22 kernel to get the reported problem
->       or try to debug the problem in 2.6.22.8 or something else it
->        fits the kernel-team.
-
-was my offer.
-
-As you did not answer that point (you answered other points) I thought=20
-it was useless to debug a problem that is not longer there. I still=20
-thing that way.
-The booting is apparently allocating port services at the  point of=20
-freezing but not too close of the disk driver, that much I  knew.
-
-regards
-                Hernan
+--=-LHR405knq7eCB8Ym1h3i
+Content-Type: multipart/mixed; boundary="=-Esnbmw98Mkn/xc2EX1Zz"
 
 
+--=-Esnbmw98Mkn/xc2EX1Zz
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
+As requested in the output of "dmesg" I send you the output of dmidecode.
+See attachment.
 
 --=20
-Hern=E1n Gustavo Solari, solari@df.uba.ar, http://www.df.uba.ar/~solari
+With best regards
+Hans-J. Klein
+---------------------------------------------------------------------------=
+-----
+Pubkic Key: http://gpg-keyserver.de/pks/lookup?op=3Dget&search=3D0x1006E4DA=
+340C1B32
+Key Fingerprint: 0945 2348 CDA7 5792 52D2 824F 1006 E4DA 340C 1B32
 
+--=-Esnbmw98Mkn/xc2EX1Zz
+Content-Disposition: attachment; filename=dmidecode-HP-Pavilion-dv9560eg
+Content-Type: text/plain; name=dmidecode-HP-Pavilion-dv9560eg; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+IyBkbWlkZWNvZGUgMi43DQpTTUJJT1MgMi40IHByZXNlbnQuDQoxOSBzdHJ1Y3R1cmVzIG9jY3Vw
+eWluZyA3MzUgYnl0ZXMuDQpUYWJsZSBhdCAweDdGRURGMDAwLg0KDQpIYW5kbGUgMHgwMDAwLCBE
+TUkgdHlwZSAwLCAyNCBieXRlcy4NCkJJT1MgSW5mb3JtYXRpb24NCglWZW5kb3I6IEhld2xldHQt
+UGFja2FyZA0KCVZlcnNpb246IEYuMDkgICAgIA0KCVJlbGVhc2UgRGF0ZTogMDYvMTEvMjAwNw0K
+CUFkZHJlc3M6IDB4RTY3ODANCglSdW50aW1lIFNpemU6IDEwNDU3NiBieXRlcw0KCVJPTSBTaXpl
+OiAxMDI0IGtCDQoJQ2hhcmFjdGVyaXN0aWNzOg0KCQlJU0EgaXMgc3VwcG9ydGVkDQoJCVBDSSBp
+cyBzdXBwb3J0ZWQNCgkJUE5QIGlzIHN1cHBvcnRlZA0KCQlCSU9TIGlzIHVwZ3JhZGVhYmxlDQoJ
+CUJJT1Mgc2hhZG93aW5nIGlzIGFsbG93ZWQNCgkJRVNDRCBzdXBwb3J0IGlzIGF2YWlsYWJsZQ0K
+CQlCb290IGZyb20gQ0QgaXMgc3VwcG9ydGVkDQoJCVNlbGVjdGFibGUgYm9vdCBpcyBzdXBwb3J0
+ZWQNCgkJUHJpbnQgc2NyZWVuIHNlcnZpY2UgaXMgc3VwcG9ydGVkIChpbnQgNWgpDQoJCTgwNDIg
+a2V5Ym9hcmQgc2VydmljZXMgYXJlIHN1cHBvcnRlZCAoaW50IDloKQ0KCQlTZXJpYWwgc2Vydmlj
+ZXMgYXJlIHN1cHBvcnRlZCAoaW50IDE0aCkNCgkJUHJpbnRlciBzZXJ2aWNlcyBhcmUgc3VwcG9y
+dGVkIChpbnQgMTdoKQ0KCQlBQ1BJIGlzIHN1cHBvcnRlZA0KCQlVU0IgbGVnYWN5IGlzIHN1cHBv
+cnRlZA0KCQlBR1AgaXMgc3VwcG9ydGVkDQoJCVNtYXJ0IGJhdHRlcnkgaXMgc3VwcG9ydGVkDQoJ
+CUJJT1MgYm9vdCBzcGVjaWZpY2F0aW9uIGlzIHN1cHBvcnRlZA0KCQlUYXJnZXRlZCBjb250ZW50
+IGRpc3RyaWJ1dGlvbiBpcyBzdXBwb3J0ZWQNCg0KSGFuZGxlIDB4MDAwMSwgRE1JIHR5cGUgMSwg
+MjcgYnl0ZXMuDQpTeXN0ZW0gSW5mb3JtYXRpb24NCglNYW51ZmFjdHVyZXI6IEhld2xldHQtUGFj
+a2FyZA0KCVByb2R1Y3QgTmFtZTogSFAgUGF2aWxpb24gZHY5NTAwIE5vdGVib29rIFBDICAgIA0K
+CVZlcnNpb246IFJldiAxDQoJU2VyaWFsIE51bWJlcjogQ05GNzMwMVBCNQ0KCVVVSUQ6IDQzNEU0
+NjM3LTMzMzAtMzE1MC00MjM1LTAwMUIyNDZEMEVGRg0KCVdha2UtdXAgVHlwZTogUG93ZXIgU3dp
+dGNoDQoJU0tVIE51bWJlcjogR1A2NTBFQSNBQkQgDQoJRmFtaWx5OiAxMDNDXzUzMzVLVg0KDQpI
+YW5kbGUgMHgwMDAyLCBETUkgdHlwZSAyLCA4IGJ5dGVzLg0KQmFzZSBCb2FyZCBJbmZvcm1hdGlv
+bg0KCU1hbnVmYWN0dXJlcjogUXVhbnRhDQoJUHJvZHVjdCBOYW1lOiAzMENCDQoJVmVyc2lvbjog
+NzkuMTMNCglTZXJpYWwgTnVtYmVyOiBOb25lDQoNCkhhbmRsZSAweDAwMDMsIERNSSB0eXBlIDMs
+IDIxIGJ5dGVzLg0KQ2hhc3NpcyBJbmZvcm1hdGlvbg0KCU1hbnVmYWN0dXJlcjogUXVhbnRhDQoJ
+VHlwZTogTm90ZWJvb2sNCglMb2NrOiBOb3QgUHJlc2VudA0KCVZlcnNpb246IE4vQQ0KCVNlcmlh
+bCBOdW1iZXI6IE5vbmUNCglBc3NldCBUYWc6ICAgICAgICAgICAgICAgICAgICAgDQoJQm9vdC11
+cCBTdGF0ZTogU2FmZQ0KCVBvd2VyIFN1cHBseSBTdGF0ZTogU2FmZQ0KCVRoZXJtYWwgU3RhdGU6
+IFNhZmUNCglTZWN1cml0eSBTdGF0dXM6IE5vbmUNCglPRU0gSW5mb3JtYXRpb246IDB4MDAwMDAw
+MDQNCglIZWlndGg6IDMyIFUNCglOdW1iZXIgT2YgUG93ZXIgQ29yZHM6IDMyDQoNCkhhbmRsZSAw
+eDAwMDQsIERNSSB0eXBlIDQsIDM1IGJ5dGVzLg0KUHJvY2Vzc29yIEluZm9ybWF0aW9uDQoJU29j
+a2V0IERlc2lnbmF0aW9uOiBVMkUxDQoJVHlwZTogQ2VudHJhbCBQcm9jZXNzb3INCglGYW1pbHk6
+IE90aGVyDQoJTWFudWZhY3R1cmVyOiBJbnRlbA0KCUlEOiBGRCAwNiAwMCAwMCBGRiBGQiBFQiBC
+Rg0KCVZlcnNpb246IEludGVsKFIpIENvcmUoVE0pMiBEdW8gQ1BVIFQ3MTAwIA0KCVZvbHRhZ2U6
+IDMuMyBWDQoJRXh0ZXJuYWwgQ2xvY2s6IDgwMCBNSHoNCglNYXggU3BlZWQ6IDE4MDAgTUh6DQoJ
+Q3VycmVudCBTcGVlZDogMTgwMCBNSHoNCglTdGF0dXM6IFBvcHVsYXRlZCwgRW5hYmxlZA0KCVVw
+Z3JhZGU6IFNvY2tldCA0NzgNCglMMSBDYWNoZSBIYW5kbGU6IDB4MDAwNQ0KCUwyIENhY2hlIEhh
+bmRsZTogMHgwMDA2DQoJTDMgQ2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQNCglTZXJpYWwgTnVt
+YmVyOiBOb3QgU3BlY2lmaWVkDQoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkDQoJUGFydCBOdW1i
+ZXI6IE5vdCBTcGVjaWZpZWQNCg0KSGFuZGxlIDB4MDAwNSwgRE1JIHR5cGUgNywgMTkgYnl0ZXMu
+DQpDYWNoZSBJbmZvcm1hdGlvbg0KCVNvY2tldCBEZXNpZ25hdGlvbjogTDEgQ2FjaGUNCglDb25m
+aWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMQ0KCU9wZXJhdGlvbmFsIE1vZGU6
+IFdyaXRlIEJhY2sNCglMb2NhdGlvbjogSW50ZXJuYWwNCglJbnN0YWxsZWQgU2l6ZTogNjQgS0IN
+CglNYXhpbXVtIFNpemU6IDY0IEtCDQoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6DQoJCUJ1cnN0DQoJ
+CVBpcGVsaW5lIEJ1cnN0DQoJCUFzeW5jaHJvbm91cw0KCUluc3RhbGxlZCBTUkFNIFR5cGU6IEFz
+eW5jaHJvbm91cw0KCVNwZWVkOiBVbmtub3duDQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBVbmtu
+b3duDQoJU3lzdGVtIFR5cGU6IFVua25vd24NCglBc3NvY2lhdGl2aXR5OiBVbmtub3duDQoNCkhh
+bmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzLg0KQ2FjaGUgSW5mb3JtYXRpb24NCglT
+b2NrZXQgRGVzaWduYXRpb246IEwyIENhY2hlDQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29j
+a2V0ZWQsIExldmVsIDINCglPcGVyYXRpb25hbCBNb2RlOiBXcml0ZSBCYWNrDQoJTG9jYXRpb246
+IEV4dGVybmFsDQoJSW5zdGFsbGVkIFNpemU6IDIwNDggS0INCglNYXhpbXVtIFNpemU6IDIwNDgg
+S0INCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoNCgkJQnVyc3QNCgkJUGlwZWxpbmUgQnVyc3QNCgkJ
+QXN5bmNocm9ub3VzDQoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QNCglTcGVlZDogVW5rbm93
+bg0KCUVycm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bg0KCVN5c3RlbSBUeXBlOiBVbmtub3du
+DQoJQXNzb2NpYXRpdml0eTogVW5rbm93bg0KDQpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA5LCAx
+MyBieXRlcy4NClN5c3RlbSBTbG90IEluZm9ybWF0aW9uDQoJRGVzaWduYXRpb246IFBDSSBFeHBy
+ZXNzIFNsb3QgMQ0KCVR5cGU6IDY0LWJpdCBQQ0kgRXhwcmVzcw0KCUN1cnJlbnQgVXNhZ2U6IEF2
+YWlsYWJsZQ0KCUxlbmd0aDogTG9uZw0KCUNoYXJhY3RlcmlzdGljczoNCgkJNS4wIFYgaXMgcHJv
+dmlkZWQNCgkJMy4zIFYgaXMgcHJvdmlkZWQNCg0KSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgOSwg
+MTMgYnl0ZXMuDQpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbg0KCURlc2lnbmF0aW9uOiBQQ0kgRXhw
+cmVzcyBTbG90IDINCglUeXBlOiA2NC1iaXQgUENJIEV4cHJlc3MNCglDdXJyZW50IFVzYWdlOiBB
+dmFpbGFibGUNCglMZW5ndGg6IExvbmcNCglDaGFyYWN0ZXJpc3RpY3M6DQoJCTUuMCBWIGlzIHBy
+b3ZpZGVkDQoJCTMuMyBWIGlzIHByb3ZpZGVkDQoJCVBNRSBzaWduYWwgaXMgc3VwcG9ydGVkDQoJ
+CUhvdC1wbHVnIGRldmljZXMgYXJlIHN1cHBvcnRlZA0KDQpIYW5kbGUgMHgwMDA5LCBETUkgdHlw
+ZSA5LCAxMyBieXRlcy4NClN5c3RlbSBTbG90IEluZm9ybWF0aW9uDQoJRGVzaWduYXRpb246IFBD
+SSBFeHByZXNzIFNsb3QgNg0KCVR5cGU6IDY0LWJpdCBQQ0kgRXhwcmVzcw0KCUN1cnJlbnQgVXNh
+Z2U6IEF2YWlsYWJsZQ0KCUxlbmd0aDogTG9uZw0KCUNoYXJhY3RlcmlzdGljczoNCgkJNS4wIFYg
+aXMgcHJvdmlkZWQNCgkJMy4zIFYgaXMgcHJvdmlkZWQNCgkJUE1FIHNpZ25hbCBpcyBzdXBwb3J0
+ZWQNCg0KSGFuZGxlIDB4MDAwQSwgRE1JIHR5cGUgMTAsIDYgYnl0ZXMuDQpPbiBCb2FyZCBEZXZp
+Y2UgSW5mb3JtYXRpb24NCglUeXBlOiBWaWRlbw0KCVN0YXR1czogRW5hYmxlZA0KCURlc2NyaXB0
+aW9uOiAgICANCg0KSGFuZGxlIDB4MDAwQiwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMuDQpPRU0gU3Ry
+aW5ncw0KCVN0cmluZyAxOiAkSFAkDQoJU3RyaW5nIDI6IExPQyNBQkQNCglTdHJpbmcgMzogQUJT
+IDcwLzcxIDc5IDdBIDdCIDdDDQoNCkhhbmRsZSAweDAwMEMsIERNSSB0eXBlIDE2LCAxNSBieXRl
+cy4NClBoeXNpY2FsIE1lbW9yeSBBcnJheQ0KCUxvY2F0aW9uOiBTeXN0ZW0gQm9hcmQgT3IgTW90
+aGVyYm9hcmQNCglVc2U6IFN5c3RlbSBNZW1vcnkNCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IE5v
+bmUNCglNYXhpbXVtIENhcGFjaXR5OiAxMDAwIE1CDQoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxl
+OiBOb3QgUHJvdmlkZWQNCglOdW1iZXIgT2YgRGV2aWNlczogMg0KDQpIYW5kbGUgMHgwMDBELCBE
+TUkgdHlwZSAxNywgMjcgYnl0ZXMuDQpNZW1vcnkgRGV2aWNlDQoJQXJyYXkgSGFuZGxlOiAweDAw
+MEMNCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yDQoJVG90YWwgV2lkdGg6IDY0
+IGJpdHMNCglEYXRhIFdpZHRoOiA2NCBiaXRzDQoJU2l6ZTogMTAyNCBNQg0KCUZvcm0gRmFjdG9y
+OiBESU1NDQoJU2V0OiAxDQoJTG9jYXRvcjogRElNTSAxDQoJQmFuayBMb2NhdG9yOiBCYW5rIDAs
+MQ0KCVR5cGU6IEREUjINCglUeXBlIERldGFpbDogU3luY2hyb25vdXMNCglTcGVlZDogNjY3IE1I
+eiAoMS41IG5zKQ0KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZA0KCVNlcmlhbCBOdW1iZXI6
+IE5vdCBTcGVjaWZpZWQNCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQNCglQYXJ0IE51bWJlcjog
+Tm90IFNwZWNpZmllZA0KDQpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMuDQpN
+ZW1vcnkgRGV2aWNlDQoJQXJyYXkgSGFuZGxlOiAweDAwMEMNCglFcnJvciBJbmZvcm1hdGlvbiBI
+YW5kbGU6IE5vIEVycm9yDQoJVG90YWwgV2lkdGg6IDY0IGJpdHMNCglEYXRhIFdpZHRoOiA2NCBi
+aXRzDQoJU2l6ZTogMTAyNCBNQg0KCUZvcm0gRmFjdG9yOiBESU1NDQoJU2V0OiAxDQoJTG9jYXRv
+cjogRElNTSAyDQoJQmFuayBMb2NhdG9yOiBCYW5rIDIsMw0KCVR5cGU6IEREUjINCglUeXBlIERl
+dGFpbDogU3luY2hyb25vdXMNCglTcGVlZDogNjY3IE1IeiAoMS41IG5zKQ0KCU1hbnVmYWN0dXJl
+cjogTm90IFNwZWNpZmllZA0KCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQNCglBc3NldCBU
+YWc6IE5vdCBTcGVjaWZpZWQNCglQYXJ0IE51bWJlcjogTm90IFNwZWNpZmllZA0KDQpIYW5kbGUg
+MHgwMDBGLCBETUkgdHlwZSAxOSwgMTUgYnl0ZXMuDQpNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJl
+c3MNCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwDQoJRW5kaW5nIEFkZHJlc3M6IDB4
+MDAwN0ZGRkZGRkYNCglSYW5nZSBTaXplOiAyIEdCDQoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAw
+eDAwMEMNCglQYXJ0aXRpb24gV2lkdGg6IDANCg0KSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMjAs
+IDE5IGJ5dGVzLg0KTWVtb3J5IERldmljZSBNYXBwZWQgQWRkcmVzcw0KCVN0YXJ0aW5nIEFkZHJl
+c3M6IDB4MDAwMDAwMDAwMDANCglFbmRpbmcgQWRkcmVzczogMHgwMDAzRkZGRkZGRg0KCVJhbmdl
+IFNpemU6IDEgR0INCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEQNCglNZW1vcnkgQXJy
+YXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMEYNCglQYXJ0aXRpb24gUm93IFBvc2l0aW9u
+OiAyDQoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogMg0KCUludGVybGVhdmVkIERhdGEgRGVwdGg6IDIN
+Cg0KSGFuZGxlIDB4MDAxMSwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzLg0KU3lzdGVtIEJvb3QgSW5m
+b3JtYXRpb24NCglTdGF0dXM6IDxPVVQgT0YgU1BFQz4NCg0KSGFuZGxlIDB4MDAxMiwgRE1JIHR5
+cGUgMTI3LCA0IGJ5dGVzLg0KRW5kIE9mIFRhYmxlDQoNCg==
+
+
+--=-Esnbmw98Mkn/xc2EX1Zz--
+
+--=-LHR405knq7eCB8Ym1h3i
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHCblIEAbk2jQMGzIRAmElAJ9znL2LYzyjGV3/4Q9YgGMjCrkAwQCgqSjr
+zftWoI3YKPSiXTGRxLYVTfU=
+=upwg
+-----END PGP SIGNATURE-----
+
+--=-LHR405knq7eCB8Ym1h3i--
 
