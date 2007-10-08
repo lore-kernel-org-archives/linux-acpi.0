@@ -1,69 +1,57 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 4/4] ACPI: thinkpad-acpi: bump up version
-	to 0.17
-Date: Mon,  8 Oct 2007 10:12:59 -0300
-Message-ID: <1191849179-24087-5-git-send-email-hmh@hmh.eng.br>
-References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1191849179-24087-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PATCH v2] thinkpad-acpi changes for the merge window (part 2)
+Date: Mon,  8 Oct 2007 10:12:55 -0300
+Message-ID: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50182 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753434AbXJHNNH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2007 09:13:07 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-The lm-sensors 3.0.0/libsensors4 compatibility changes are reason enough to
-bump up the version string.  Do it.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
----
- Documentation/thinkpad-acpi.txt |    4 ++--
- drivers/misc/thinkpad_acpi.c    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+(resending, I missed one patch in the series. Sorry about that)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 7ff0183..812ae95 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
- 
--                            Version 0.16
--                          August 2nd, 2007
-+                            Version 0.17
-+                         October 04th, 2007
- 
-                Borislav Deianov <borislav-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
-              Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 29f521b..352d235 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
- 
--#define IBM_VERSION "0.16"
-+#define IBM_VERSION "0.17"
- #define TPACPI_SYSFS_VERSION 0x020000
- 
- /*
+Len,                                                                                                                                                  
+
+Here is the second batch of thinkpad-acpi changes for the merge window (target:
+2.6.24).  There will probably be a third batch later, I am waiting some reports
+from testers.
+
+This batch improves brightness support on Lenovo ThinkPads, and also disables
+said support by default in any notebook that seems to do well without it :-)
+
+Please merge this batch to acpi-test.
+
+As usual, the patch set is available at:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+
+Shortlog of the above branch:
+
+Henrique de Moraes Holschuh (13):
+  (already submitted)
+      ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
+      ACPI: thinkpad-acpi: issue EV_SYNC after EV_SWITCH
+      ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
+      ACPI: thinkpad-acpi: keep track of module state
+      ACPI: thinkpad-acpi: check version of hot key firmware
+      ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2.2)
+      ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
+      ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it (v2)
+      ACPI: thinkpad-acpi: duplicate driver attributes to new hwmon pdrv
+  (new)
+      ACPI: thinkpad-acpi: skip blanks before the data when parsing sysfs
+      ACPI: thinkpad-acpi: support 16 levels of brightness (v2)
+      ACPI: thinkpad-acpi: disable backlight handler if ACPI generic could do it
+      ACPI: thinkpad-acpi: bump up version to 0.17
+
+Thanks.
+
 -- 
-1.5.3.2
-
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >> http://get.splunk.com/
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
