@@ -1,163 +1,90 @@
-From: Hans-Joachim Klein <klein.hans@gmx.net>
-Subject: dmidecode-HP-Pavilion-dv9560eg
-Date: Mon, 08 Oct 2007 07:00:01 +0200
-Message-ID: <1191819601.6239.0.camel@Pavilion.famklein.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: _DOS in video.c
+Date: Mon, 08 Oct 2007 16:43:49 +0800
+Message-ID: <1191833029.17844.21.camel@acpi-hp.sh.intel.com>
+References: <1191621006.23575.9.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-LHR405knq7eCB8Ym1h3i"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43295 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750699AbXJHEEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Oct 2007 00:04:45 -0400
+Received: from mga01.intel.com ([192.55.52.88]:18072 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284AbXJHIhP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Oct 2007 04:37:15 -0400
+In-Reply-To: <1191621006.23575.9.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Peter Clifton <pcjc2@cam.ac.uk>
+Cc: linux-acpi@vger.kernel.org
 
+On Fri, 2007-10-05 at 22:50 +0100, Peter Clifton wrote:
+> Hi,
+> 
+> I've been investigating some backlight vs. lidswitch problems with my HP
+> Compaq nc6432 laptop, and have been digging in video.c
+> 
+> At start of the video driver, the _DOS method is executed, and similarly
+> when the driver is unloaded.
+> (From the Ubuntu Gutsy kernel.. hopefully this isn't disto-patched)
+> 
+> 1706 static int acpi_video_bus_start_devices(struct acpi_video_bus
+> *video)
+> 1707 {
+> 1708 return acpi_video_bus_DOS(video, 1, 0);
+> 1709 }
+> 1710 
+> 1711 static int acpi_video_bus_stop_devices(struct acpi_video_bus
+> *video)
+> 1712 {
+> 1713 return acpi_video_bus_DOS(video, 0, 1);
+> 1714 }
+> 
+> 
+> It seems to me - as I understand the driver, is that we want to tell the
+> BIOS specifically NOT to process AC brightness changes, or display
+> switches (which on my laptop appears to effect LID switch backlight
+> blanking too).
+> 
+acpi_video_bus_DOS(video, 1, 0) means the ACPI video driver want BIOS
+to switch the display/brightness level automatically.
 
---=-LHR405knq7eCB8Ym1h3i
-Content-Type: multipart/mixed; boundary="=-Esnbmw98Mkn/xc2EX1Zz"
+> It seems that the video.c driver has this reversed, and actually lets
+> the BIOS keep doing these things after video.ko is loaded. 
+Yes, that's what the ACPI video driver used to do.
+But this piece of code has been changed recently.
+We set _DOS to 0 in video driver by default, which means we prevent the
+BIOS from handling these events, but send a notification to user space
+instead.
 
+> Similarly,
+> when unloading video.ko, my laptop stops switching the backlight on/off
+> for lid events.
+> 
+Yes, that's a problem. But I think users always need to load ACPI video
+driver for the backlight/display switching.
 
---=-Esnbmw98Mkn/xc2EX1Zz
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I've reversed the sense of the acpi_video_bus_DOS() calls for my own
+> testing, and it seems to be ok. 
+Do you mean call acpi_video_bus_DOS(video, 0, 1) when the device is
+started and call acpi_video_bus_DOS(video, 1, 0) when the device is
+removed?
 
-As requested in the output of "dmesg" I send you the output of dmidecode.
-See attachment.
+> There is unfortunately DSDT brokenness
+> which means it still doesn't work satisfactorily, but I'm debugging that
+> with a DSDT override now. I get lid notifications, but there is a delay
+> before /proc/acpi/button/lid/*/state "catches up" - which breaks
+> userspace that checks this state when it sees an event.
+> 
+So /proc/acpi/button/lid/*/state is still "closed"/"opened" after the
+lid is opened/closed, thus the userspace get the wrong lid state and can
+not turn on/off the backlight properly, right?
 
---=20
-With best regards
-Hans-J. Klein
----------------------------------------------------------------------------=
------
-Pubkic Key: http://gpg-keyserver.de/pks/lookup?op=3Dget&search=3D0x1006E4DA=
-340C1B32
-Key Fingerprint: 0945 2348 CDA7 5792 52D2 824F 1006 E4DA 340C 1B32
+> It very much looks like this delay is due to various sleep statements in
+> the DSDT when not internally handling the backlight etc.. There are also
+> a lot of OS specific paths in the DSDT for this code, making things even
+> more fun to trace.
+> 
+Can you send the acpidump please?
 
---=-Esnbmw98Mkn/xc2EX1Zz
-Content-Disposition: attachment; filename=dmidecode-HP-Pavilion-dv9560eg
-Content-Type: text/plain; name=dmidecode-HP-Pavilion-dv9560eg; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-IyBkbWlkZWNvZGUgMi43DQpTTUJJT1MgMi40IHByZXNlbnQuDQoxOSBzdHJ1Y3R1cmVzIG9jY3Vw
-eWluZyA3MzUgYnl0ZXMuDQpUYWJsZSBhdCAweDdGRURGMDAwLg0KDQpIYW5kbGUgMHgwMDAwLCBE
-TUkgdHlwZSAwLCAyNCBieXRlcy4NCkJJT1MgSW5mb3JtYXRpb24NCglWZW5kb3I6IEhld2xldHQt
-UGFja2FyZA0KCVZlcnNpb246IEYuMDkgICAgIA0KCVJlbGVhc2UgRGF0ZTogMDYvMTEvMjAwNw0K
-CUFkZHJlc3M6IDB4RTY3ODANCglSdW50aW1lIFNpemU6IDEwNDU3NiBieXRlcw0KCVJPTSBTaXpl
-OiAxMDI0IGtCDQoJQ2hhcmFjdGVyaXN0aWNzOg0KCQlJU0EgaXMgc3VwcG9ydGVkDQoJCVBDSSBp
-cyBzdXBwb3J0ZWQNCgkJUE5QIGlzIHN1cHBvcnRlZA0KCQlCSU9TIGlzIHVwZ3JhZGVhYmxlDQoJ
-CUJJT1Mgc2hhZG93aW5nIGlzIGFsbG93ZWQNCgkJRVNDRCBzdXBwb3J0IGlzIGF2YWlsYWJsZQ0K
-CQlCb290IGZyb20gQ0QgaXMgc3VwcG9ydGVkDQoJCVNlbGVjdGFibGUgYm9vdCBpcyBzdXBwb3J0
-ZWQNCgkJUHJpbnQgc2NyZWVuIHNlcnZpY2UgaXMgc3VwcG9ydGVkIChpbnQgNWgpDQoJCTgwNDIg
-a2V5Ym9hcmQgc2VydmljZXMgYXJlIHN1cHBvcnRlZCAoaW50IDloKQ0KCQlTZXJpYWwgc2Vydmlj
-ZXMgYXJlIHN1cHBvcnRlZCAoaW50IDE0aCkNCgkJUHJpbnRlciBzZXJ2aWNlcyBhcmUgc3VwcG9y
-dGVkIChpbnQgMTdoKQ0KCQlBQ1BJIGlzIHN1cHBvcnRlZA0KCQlVU0IgbGVnYWN5IGlzIHN1cHBv
-cnRlZA0KCQlBR1AgaXMgc3VwcG9ydGVkDQoJCVNtYXJ0IGJhdHRlcnkgaXMgc3VwcG9ydGVkDQoJ
-CUJJT1MgYm9vdCBzcGVjaWZpY2F0aW9uIGlzIHN1cHBvcnRlZA0KCQlUYXJnZXRlZCBjb250ZW50
-IGRpc3RyaWJ1dGlvbiBpcyBzdXBwb3J0ZWQNCg0KSGFuZGxlIDB4MDAwMSwgRE1JIHR5cGUgMSwg
-MjcgYnl0ZXMuDQpTeXN0ZW0gSW5mb3JtYXRpb24NCglNYW51ZmFjdHVyZXI6IEhld2xldHQtUGFj
-a2FyZA0KCVByb2R1Y3QgTmFtZTogSFAgUGF2aWxpb24gZHY5NTAwIE5vdGVib29rIFBDICAgIA0K
-CVZlcnNpb246IFJldiAxDQoJU2VyaWFsIE51bWJlcjogQ05GNzMwMVBCNQ0KCVVVSUQ6IDQzNEU0
-NjM3LTMzMzAtMzE1MC00MjM1LTAwMUIyNDZEMEVGRg0KCVdha2UtdXAgVHlwZTogUG93ZXIgU3dp
-dGNoDQoJU0tVIE51bWJlcjogR1A2NTBFQSNBQkQgDQoJRmFtaWx5OiAxMDNDXzUzMzVLVg0KDQpI
-YW5kbGUgMHgwMDAyLCBETUkgdHlwZSAyLCA4IGJ5dGVzLg0KQmFzZSBCb2FyZCBJbmZvcm1hdGlv
-bg0KCU1hbnVmYWN0dXJlcjogUXVhbnRhDQoJUHJvZHVjdCBOYW1lOiAzMENCDQoJVmVyc2lvbjog
-NzkuMTMNCglTZXJpYWwgTnVtYmVyOiBOb25lDQoNCkhhbmRsZSAweDAwMDMsIERNSSB0eXBlIDMs
-IDIxIGJ5dGVzLg0KQ2hhc3NpcyBJbmZvcm1hdGlvbg0KCU1hbnVmYWN0dXJlcjogUXVhbnRhDQoJ
-VHlwZTogTm90ZWJvb2sNCglMb2NrOiBOb3QgUHJlc2VudA0KCVZlcnNpb246IE4vQQ0KCVNlcmlh
-bCBOdW1iZXI6IE5vbmUNCglBc3NldCBUYWc6ICAgICAgICAgICAgICAgICAgICAgDQoJQm9vdC11
-cCBTdGF0ZTogU2FmZQ0KCVBvd2VyIFN1cHBseSBTdGF0ZTogU2FmZQ0KCVRoZXJtYWwgU3RhdGU6
-IFNhZmUNCglTZWN1cml0eSBTdGF0dXM6IE5vbmUNCglPRU0gSW5mb3JtYXRpb246IDB4MDAwMDAw
-MDQNCglIZWlndGg6IDMyIFUNCglOdW1iZXIgT2YgUG93ZXIgQ29yZHM6IDMyDQoNCkhhbmRsZSAw
-eDAwMDQsIERNSSB0eXBlIDQsIDM1IGJ5dGVzLg0KUHJvY2Vzc29yIEluZm9ybWF0aW9uDQoJU29j
-a2V0IERlc2lnbmF0aW9uOiBVMkUxDQoJVHlwZTogQ2VudHJhbCBQcm9jZXNzb3INCglGYW1pbHk6
-IE90aGVyDQoJTWFudWZhY3R1cmVyOiBJbnRlbA0KCUlEOiBGRCAwNiAwMCAwMCBGRiBGQiBFQiBC
-Rg0KCVZlcnNpb246IEludGVsKFIpIENvcmUoVE0pMiBEdW8gQ1BVIFQ3MTAwIA0KCVZvbHRhZ2U6
-IDMuMyBWDQoJRXh0ZXJuYWwgQ2xvY2s6IDgwMCBNSHoNCglNYXggU3BlZWQ6IDE4MDAgTUh6DQoJ
-Q3VycmVudCBTcGVlZDogMTgwMCBNSHoNCglTdGF0dXM6IFBvcHVsYXRlZCwgRW5hYmxlZA0KCVVw
-Z3JhZGU6IFNvY2tldCA0NzgNCglMMSBDYWNoZSBIYW5kbGU6IDB4MDAwNQ0KCUwyIENhY2hlIEhh
-bmRsZTogMHgwMDA2DQoJTDMgQ2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQNCglTZXJpYWwgTnVt
-YmVyOiBOb3QgU3BlY2lmaWVkDQoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkDQoJUGFydCBOdW1i
-ZXI6IE5vdCBTcGVjaWZpZWQNCg0KSGFuZGxlIDB4MDAwNSwgRE1JIHR5cGUgNywgMTkgYnl0ZXMu
-DQpDYWNoZSBJbmZvcm1hdGlvbg0KCVNvY2tldCBEZXNpZ25hdGlvbjogTDEgQ2FjaGUNCglDb25m
-aWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMQ0KCU9wZXJhdGlvbmFsIE1vZGU6
-IFdyaXRlIEJhY2sNCglMb2NhdGlvbjogSW50ZXJuYWwNCglJbnN0YWxsZWQgU2l6ZTogNjQgS0IN
-CglNYXhpbXVtIFNpemU6IDY0IEtCDQoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6DQoJCUJ1cnN0DQoJ
-CVBpcGVsaW5lIEJ1cnN0DQoJCUFzeW5jaHJvbm91cw0KCUluc3RhbGxlZCBTUkFNIFR5cGU6IEFz
-eW5jaHJvbm91cw0KCVNwZWVkOiBVbmtub3duDQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBVbmtu
-b3duDQoJU3lzdGVtIFR5cGU6IFVua25vd24NCglBc3NvY2lhdGl2aXR5OiBVbmtub3duDQoNCkhh
-bmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzLg0KQ2FjaGUgSW5mb3JtYXRpb24NCglT
-b2NrZXQgRGVzaWduYXRpb246IEwyIENhY2hlDQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29j
-a2V0ZWQsIExldmVsIDINCglPcGVyYXRpb25hbCBNb2RlOiBXcml0ZSBCYWNrDQoJTG9jYXRpb246
-IEV4dGVybmFsDQoJSW5zdGFsbGVkIFNpemU6IDIwNDggS0INCglNYXhpbXVtIFNpemU6IDIwNDgg
-S0INCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoNCgkJQnVyc3QNCgkJUGlwZWxpbmUgQnVyc3QNCgkJ
-QXN5bmNocm9ub3VzDQoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QNCglTcGVlZDogVW5rbm93
-bg0KCUVycm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bg0KCVN5c3RlbSBUeXBlOiBVbmtub3du
-DQoJQXNzb2NpYXRpdml0eTogVW5rbm93bg0KDQpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA5LCAx
-MyBieXRlcy4NClN5c3RlbSBTbG90IEluZm9ybWF0aW9uDQoJRGVzaWduYXRpb246IFBDSSBFeHBy
-ZXNzIFNsb3QgMQ0KCVR5cGU6IDY0LWJpdCBQQ0kgRXhwcmVzcw0KCUN1cnJlbnQgVXNhZ2U6IEF2
-YWlsYWJsZQ0KCUxlbmd0aDogTG9uZw0KCUNoYXJhY3RlcmlzdGljczoNCgkJNS4wIFYgaXMgcHJv
-dmlkZWQNCgkJMy4zIFYgaXMgcHJvdmlkZWQNCg0KSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgOSwg
-MTMgYnl0ZXMuDQpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbg0KCURlc2lnbmF0aW9uOiBQQ0kgRXhw
-cmVzcyBTbG90IDINCglUeXBlOiA2NC1iaXQgUENJIEV4cHJlc3MNCglDdXJyZW50IFVzYWdlOiBB
-dmFpbGFibGUNCglMZW5ndGg6IExvbmcNCglDaGFyYWN0ZXJpc3RpY3M6DQoJCTUuMCBWIGlzIHBy
-b3ZpZGVkDQoJCTMuMyBWIGlzIHByb3ZpZGVkDQoJCVBNRSBzaWduYWwgaXMgc3VwcG9ydGVkDQoJ
-CUhvdC1wbHVnIGRldmljZXMgYXJlIHN1cHBvcnRlZA0KDQpIYW5kbGUgMHgwMDA5LCBETUkgdHlw
-ZSA5LCAxMyBieXRlcy4NClN5c3RlbSBTbG90IEluZm9ybWF0aW9uDQoJRGVzaWduYXRpb246IFBD
-SSBFeHByZXNzIFNsb3QgNg0KCVR5cGU6IDY0LWJpdCBQQ0kgRXhwcmVzcw0KCUN1cnJlbnQgVXNh
-Z2U6IEF2YWlsYWJsZQ0KCUxlbmd0aDogTG9uZw0KCUNoYXJhY3RlcmlzdGljczoNCgkJNS4wIFYg
-aXMgcHJvdmlkZWQNCgkJMy4zIFYgaXMgcHJvdmlkZWQNCgkJUE1FIHNpZ25hbCBpcyBzdXBwb3J0
-ZWQNCg0KSGFuZGxlIDB4MDAwQSwgRE1JIHR5cGUgMTAsIDYgYnl0ZXMuDQpPbiBCb2FyZCBEZXZp
-Y2UgSW5mb3JtYXRpb24NCglUeXBlOiBWaWRlbw0KCVN0YXR1czogRW5hYmxlZA0KCURlc2NyaXB0
-aW9uOiAgICANCg0KSGFuZGxlIDB4MDAwQiwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMuDQpPRU0gU3Ry
-aW5ncw0KCVN0cmluZyAxOiAkSFAkDQoJU3RyaW5nIDI6IExPQyNBQkQNCglTdHJpbmcgMzogQUJT
-IDcwLzcxIDc5IDdBIDdCIDdDDQoNCkhhbmRsZSAweDAwMEMsIERNSSB0eXBlIDE2LCAxNSBieXRl
-cy4NClBoeXNpY2FsIE1lbW9yeSBBcnJheQ0KCUxvY2F0aW9uOiBTeXN0ZW0gQm9hcmQgT3IgTW90
-aGVyYm9hcmQNCglVc2U6IFN5c3RlbSBNZW1vcnkNCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IE5v
-bmUNCglNYXhpbXVtIENhcGFjaXR5OiAxMDAwIE1CDQoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxl
-OiBOb3QgUHJvdmlkZWQNCglOdW1iZXIgT2YgRGV2aWNlczogMg0KDQpIYW5kbGUgMHgwMDBELCBE
-TUkgdHlwZSAxNywgMjcgYnl0ZXMuDQpNZW1vcnkgRGV2aWNlDQoJQXJyYXkgSGFuZGxlOiAweDAw
-MEMNCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yDQoJVG90YWwgV2lkdGg6IDY0
-IGJpdHMNCglEYXRhIFdpZHRoOiA2NCBiaXRzDQoJU2l6ZTogMTAyNCBNQg0KCUZvcm0gRmFjdG9y
-OiBESU1NDQoJU2V0OiAxDQoJTG9jYXRvcjogRElNTSAxDQoJQmFuayBMb2NhdG9yOiBCYW5rIDAs
-MQ0KCVR5cGU6IEREUjINCglUeXBlIERldGFpbDogU3luY2hyb25vdXMNCglTcGVlZDogNjY3IE1I
-eiAoMS41IG5zKQ0KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZA0KCVNlcmlhbCBOdW1iZXI6
-IE5vdCBTcGVjaWZpZWQNCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQNCglQYXJ0IE51bWJlcjog
-Tm90IFNwZWNpZmllZA0KDQpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMuDQpN
-ZW1vcnkgRGV2aWNlDQoJQXJyYXkgSGFuZGxlOiAweDAwMEMNCglFcnJvciBJbmZvcm1hdGlvbiBI
-YW5kbGU6IE5vIEVycm9yDQoJVG90YWwgV2lkdGg6IDY0IGJpdHMNCglEYXRhIFdpZHRoOiA2NCBi
-aXRzDQoJU2l6ZTogMTAyNCBNQg0KCUZvcm0gRmFjdG9yOiBESU1NDQoJU2V0OiAxDQoJTG9jYXRv
-cjogRElNTSAyDQoJQmFuayBMb2NhdG9yOiBCYW5rIDIsMw0KCVR5cGU6IEREUjINCglUeXBlIERl
-dGFpbDogU3luY2hyb25vdXMNCglTcGVlZDogNjY3IE1IeiAoMS41IG5zKQ0KCU1hbnVmYWN0dXJl
-cjogTm90IFNwZWNpZmllZA0KCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQNCglBc3NldCBU
-YWc6IE5vdCBTcGVjaWZpZWQNCglQYXJ0IE51bWJlcjogTm90IFNwZWNpZmllZA0KDQpIYW5kbGUg
-MHgwMDBGLCBETUkgdHlwZSAxOSwgMTUgYnl0ZXMuDQpNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJl
-c3MNCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwDQoJRW5kaW5nIEFkZHJlc3M6IDB4
-MDAwN0ZGRkZGRkYNCglSYW5nZSBTaXplOiAyIEdCDQoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAw
-eDAwMEMNCglQYXJ0aXRpb24gV2lkdGg6IDANCg0KSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMjAs
-IDE5IGJ5dGVzLg0KTWVtb3J5IERldmljZSBNYXBwZWQgQWRkcmVzcw0KCVN0YXJ0aW5nIEFkZHJl
-c3M6IDB4MDAwMDAwMDAwMDANCglFbmRpbmcgQWRkcmVzczogMHgwMDAzRkZGRkZGRg0KCVJhbmdl
-IFNpemU6IDEgR0INCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEQNCglNZW1vcnkgQXJy
-YXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMEYNCglQYXJ0aXRpb24gUm93IFBvc2l0aW9u
-OiAyDQoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogMg0KCUludGVybGVhdmVkIERhdGEgRGVwdGg6IDIN
-Cg0KSGFuZGxlIDB4MDAxMSwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzLg0KU3lzdGVtIEJvb3QgSW5m
-b3JtYXRpb24NCglTdGF0dXM6IDxPVVQgT0YgU1BFQz4NCg0KSGFuZGxlIDB4MDAxMiwgRE1JIHR5
-cGUgMTI3LCA0IGJ5dGVzLg0KRW5kIE9mIFRhYmxlDQoNCg==
-
-
---=-Esnbmw98Mkn/xc2EX1Zz--
-
---=-LHR405knq7eCB8Ym1h3i
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQBHCblIEAbk2jQMGzIRAmElAJ9znL2LYzyjGV3/4Q9YgGMjCrkAwQCgqSjr
-zftWoI3YKPSiXTGRxLYVTfU=
-=upwg
------END PGP SIGNATURE-----
-
---=-LHR405knq7eCB8Ym1h3i--
-
+thanks,
+Rui
