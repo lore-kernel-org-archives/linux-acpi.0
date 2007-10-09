@@ -1,56 +1,55 @@
-From: John Sigler <linux.kernel@free.fr>
-Subject: Re: High resolution timers on ACPI-less kernel
-Date: Tue, 09 Oct 2007 12:35:29 +0200
-Message-ID: <470B5971.40601@free.fr>
-References: <470B44A1.7080007@free.fr> <1191921343.13628.0.camel@godzilla.tecnorama.it> <470B49BD.4070506@free.fr> <alpine.LFD.0.9999.0710091131400.25146@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/4] ACPI: thinkpad-acpi: disable backlight handler if
+	ACPI generic could do it
+Date: Tue, 9 Oct 2007 08:14:45 -0300
+Message-ID: <20071009111445.GB24946@khazad-dum.debian.net>
+References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br> <1191849179-24087-4-git-send-email-hmh@hmh.eng.br> <1191910875.9847.79.camel@queen.suse.de> <20071009075914.GA790@srcf.ucam.org> <1191918351.9847.132.camel@queen.suse.de> <20071009083336.GA1099@srcf.ucam.org> <1191923208.9847.169.camel@queen.suse.de> <20071009100418.GA2472@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4-g19.free.fr ([212.27.42.30]:33160 "EHLO smtp4-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752084AbXJIKfa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Oct 2007 06:35:30 -0400
-In-Reply-To: <alpine.LFD.0.9999.0710091131400.25146@localhost.localdomain>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54851 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752520AbXJILOx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2007 07:14:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20071009100418.GA2472@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-rt-users@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Thomas Gleixner wrote:
-> On Tue, 9 Oct 2007, John Sigler wrote:
->> Alessio Igor Bogani wrote: 
->>> On Tue, 2007-10-09 at 11:06 +0200, John Sigler wrote:
->>> 
->>>> I enabled high resolution timer support and disabled ACPI support.
->>> 
->>> http://www.mail-archive.com/linux-rt-users@vger.kernel.org/msg00375.html
->>
->> There are other clock sources on my system.
->> The timestamp counter is reliable (as far as I can tell).
+On Tue, 09 Oct 2007, Matthew Garrett wrote:
+> On Tue, Oct 09, 2007 at 11:46:48AM +0200, Thomas Renninger wrote:
 > 
-> See previous mail.
-> 
->> The LAPIC timer is reliable.
-> 
-> LAPIC timer is a clock event device, not a clock source. It can be
-> used to program the next event, but not to read the time.
-> 
->> (I've just disabled the PM timer.)
-> 
-> Yup, which in turn disables highres.
+> > More important: CONFIG_THINKPAD_ACPI_BACKLIGHT_DESIRED variable is error
+> > prone and should not get introduced, right?
 
-OK. I have two more questions.
+Error prone how?  Please expand, because right now I am not inclined to
+remove that variable.  It is optional, and disabled by default.  Distros are
+not going to enable it unless they have a damn good reason to, and it is not
+even something that one can enable at runtime.
 
-Can the kernel verify the correctness of the TSC with the PIT?
+Should I make the help text stronger against enabling the option? Is it not
+clear enough?
 
-When I enable the ACPI PM timer, the kernel tells me:
+If you look at the patch, you will notice that the backlight changes are
+small, and the biggest part of them affects __init code, which I make
+exactly *zero* effort to optimize for size: it is basically "free" for the
+scenarios I have to bother with (thinkpads).
 
-* The chipset may have PM-Timer Bug. Due to workarounds for a bug,
-* this clock source is slow. If you are sure your timer does not have
-* this bug, please use "acpi_pm_good" to disable the workaround
+> backlight functionality if it can be controlled through the standard 
+> mechanism instead.
 
-How can I tell whether my PM timer has this bug or not?
-(Specific revision? Test app?)
+Well, it is a simple matter of removing the Kconfig option and making that
+code non-optional.  But I am not adding a remove-video-support Kconfig
+option at this time.  It will wait until I break the driver down into
+multiple modules.
 
-Regards.
+I still want a stronger reason to remove the backlight functionality
+possibility on newer thinkpads, though.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
