@@ -1,53 +1,56 @@
-From: John Sigler <linux.kernel@free.fr>
-Subject: Re: High resolution timers on ACPI-less kernel
-Date: Tue, 09 Oct 2007 11:39:08 +0200
-Message-ID: <470B4C3C.3000406@free.fr>
-References: <470B44A1.7080007@free.fr> <alpine.LFD.0.9999.0710091117020.25146@localhost.localdomain>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 3/4] ACPI: thinkpad-acpi: disable backlight handler if
+	ACPI generic could do it
+Date: Tue, 09 Oct 2007 11:46:48 +0200
+Message-ID: <1191923208.9847.169.camel@queen.suse.de>
+References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br>
+	 <1191849179-24087-4-git-send-email-hmh@hmh.eng.br>
+	 <1191910875.9847.79.camel@queen.suse.de>
+	 <20071009075914.GA790@srcf.ucam.org>
+	 <1191918351.9847.132.camel@queen.suse.de>
+	 <20071009083336.GA1099@srcf.ucam.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rt-users-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.0.9999.0710091117020.25146@localhost.localdomain>
-Sender: linux-rt-users-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-rt-users@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:51337 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138AbXJIJq5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Oct 2007 05:46:57 -0400
+In-Reply-To: <20071009083336.GA1099@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Thomas Gleixner wrote:
+On Tue, 2007-10-09 at 09:33 +0100, Matthew Garrett wrote:
+> On Tue, Oct 09, 2007 at 10:25:51AM +0200, Thomas Renninger wrote:
+> > On Tue, 2007-10-09 at 08:59 +0100, Matthew Garrett wrote:
+> > > On Tue, Oct 09, 2007 at 08:21:14AM +0200, Thomas Renninger wrote:
+> > > 
+> > > > IMO a config variable that compiles out brightness control totally makes
+> > > > more sense (and video, is there any functionality in ThinkPad acpi
+> > > > driver that does not get supported by the video driver?).
+> > > 
+> > > No, older Thinkpads don't implement the video extension. It needs to be 
+> > > handled at runtime.
+> > 
+> > Why?
+> > If you have a recent Lenovo you don't need all this compiled in and do
+> > not set it. Otherwise you add it.
+> 
+> If you have a recent Lenovo you don't need to worry about the extra few 
+> hundred bytes of code this is going to take. There's no point in 
+> microoptimising.
 
-> On Tue, 9 Oct 2007, John Sigler wrote:
-> 
->> I'm using a -rt kernel with high resolution timer support.
->> http://rt.wiki.kernel.org/index.php/Main_Page
->> Linux version 2.6.22.1-rt9 (root@venus) (gcc version 3.4.6) #1 PREEMPT RT Tue
->> Oct 9 10:02:45 CEST 2007
->>
->> I enabled high resolution timer support and disabled ACPI support.
->> ...
->> High resolution timers do not work in this configuration.
-> 
-> Correct
-> 
->> Any idea why?
-> 
-> Yes
-> 
->> # cat /sys/devices/system/clocksource/clocksource0/available_clocksource
->> tsc pit jiffies
->>
->> # cat /sys/devices/system/clocksource/clocksource0/current_clocksource
->> tsc
->>
->> My timestamp counter is good. Why do I need ACPI for hrt?
-> 
-> We do not trust TSC at all. Never ever.
-> 
-> The kernel refuses to switch to high resolution mode, when there is no
-> reliable backup clock source available. ACPI enables the acpi_pm
-> timer, which is a trusted clock source and is used by the kernel to
-> verify the correctness of the TSC. You might try to enable HPET.
+I don't care for a CONFIG_THINKPAD_VIDEO config, some people love
+microoptimising, going through the kernel config, disabling everything
+which their hardware does not support. It also structures a bit the
+dozens of functionalities in the thinkpad module.
 
-OK. I seem to remember that you had a patch to enable HPET on ICH4?
-Is it still available somewhere?
+More important: CONFIG_THINKPAD_ACPI_BACKLIGHT_DESIRED variable is error
+prone and should not get introduced, right?
 
-Regards.
+   Thomas
+
