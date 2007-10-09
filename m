@@ -1,96 +1,122 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 2/4] ACPI: thinkpad-acpi: support
-	16	levels of brightness (v2)
-Date: Tue, 9 Oct 2007 08:45:50 -0300
-Message-ID: <20071009114550.GC24946@khazad-dum.debian.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 3/4] ACPI: thinkpad-acpi: disable backlight handler if
+	ACPI generic could do it
+Date: Tue, 09 Oct 2007 15:29:12 +0200
+Message-ID: <1191936552.9847.257.camel@queen.suse.de>
 References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br>
-	<1191849179-24087-3-git-send-email-hmh@hmh.eng.br>
-	<1191907013.9847.69.camel@queen.suse.de>
+	 <1191849179-24087-4-git-send-email-hmh@hmh.eng.br>
+	 <1191910875.9847.79.camel@queen.suse.de>
+	 <20071009075914.GA790@srcf.ucam.org>
+	 <1191918351.9847.132.camel@queen.suse.de>
+	 <20071009083336.GA1099@srcf.ucam.org>
+	 <1191923208.9847.169.camel@queen.suse.de>
+	 <20071009100418.GA2472@srcf.ucam.org>
+	 <20071009111445.GB24946@khazad-dum.debian.net>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1191907013.9847.69.camel-X8wR35IVlAxolqkO4TVVkw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:40644 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752619AbXJIN3U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Oct 2007 09:29:20 -0400
+In-Reply-To: <20071009111445.GB24946@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Tue, 09 Oct 2007, Thomas Renninger wrote:
-> On Mon, 2007-10-08 at 10:12 -0300, Henrique de Moraes Holschuh wrote:
-> > Lenovo ThinkPads with ACPI Video brightness control often have 16
-> > brightness levels in EC, and not just eight levels like older ThinkPads.
+On Tue, 2007-10-09 at 08:14 -0300, Henrique de Moraes Holschuh wrote:
+> On Tue, 09 Oct 2007, Matthew Garrett wrote:
+> > On Tue, Oct 09, 2007 at 11:46:48AM +0200, Thomas Renninger wrote:
 > > 
-> > We detect the number of brightness levels by the presence of a _BCL method
-> > with 18 entries (16 levels plus the on-battery and on-ac recommended
-> > levels).  If _BCL is not there, we assume eight levels (T60, for example).
-> > Otherwise we assume sixteen levels (T61, X61, etc).
-> This is broken by design, pls don't add this to a mainline kernel.
+> > > More important: CONFIG_THINKPAD_ACPI_BACKLIGHT_DESIRED variable is error
+> > > prone and should not get introduced, right?
+> 
+> Error prone how?  Please expand, because right now I am not inclined to
+> remove that variable.  It is optional, and disabled by default.  Distros are
+> not going to enable it unless they have a damn good reason to, and it is not
+> even something that one can enable at runtime.
+> 
+> Should I make the help text stronger against enabling the option? Is it not
+> clear enough?
+No, all the _BCL poking should vanish.
 
-The thinkpad design does not expose the number of levels anywhere else.  It
-is either _BCL, or worse (BCLL, a package used by _BLC/_BCM/_BQC in
-thinkpads).
+Fn keys brightness control shouldn't work on any latest thinkpad with
+this code. As soon as you invoke _BCL a flag gets set in AML code and
+later the AML code (search somewhere in the _QXX functions) checks that
+flag and will send a notify to LCD0 (0x86/0x87) and relies on the OS to
+lower/increase the brightness through _BCM.
 
-> Correct is: If there is _BCL (and other video functions) don't touch any
-> video or brightness functionality.
+> If you look at the patch, you will notice that the backlight changes are
+> small, and the biggest part of them affects __init code, which I make
+> exactly *zero* effort to optimize for size: it is basically "free" for the
+> scenarios I have to bother with (thinkpads).
+>
+> > backlight functionality if it can be controlled through the standard 
+> > mechanism instead.
+> 
+> Well, it is a simple matter of removing the Kconfig option and making that
+> code non-optional.  But I am not adding a remove-video-support Kconfig
+> option at this time.  It will wait until I break the driver down into
+> multiple modules.
 
-There is a later patch that does just that.  Why is it not enough?
+My suggestion:
+static int force_brightness;
+module_param(force_brightness, bool, 0);
 
-> Thinkpad_acpi should try to register for the acpi device with the
-> LNXVIDEO HID. If the probe/add function there is invoked, it can be sure
-> that video module tries to load and is handling the stuff in a defined
-> way and thinkpad_acpi should get its hands off.
+static int do_not_use_brightness;
 
-Far more complicated, and in the *specific* case of thinkpad-acpi, where I
-know exactly what to poke in 100% of the problem space ("thinkpads where
-thinkpad-acpi would handle backlight"), it is probably not the best way to
-go about it.
+static dummy_vid_add(struct acpi_device *device){
+	do_not_use_brightness = 1;
+	return -EINVAL;
+}
 
-> -----------------------------------------------------------
-> ThinkPad has implemented _BCL/_BCM/_BQC method for Vista. 
-> These brightness control methods are not used on Windows XP. 
+static const struct acpi_device_id dummy_vid_device_ids[] = {
+	{"LNXVIDEO", 0},
+	{"", 0},
+};
+static struct acpi_driver dummy_vid_driver = {
+	.ids = dummy_vid_device_ids,
+	.ops = {
+		.add = dummy_vid_add,
+         }
+}
 
-"and Linux did all sort of unspeakable evil things through them not so long
-ago"...
+static int __init brightness_init(struct ibm_init_struct *iibm)
+{
+	if (do_not_use_brightness)
+		return -EINVAL;
+...
+}
+...
+if (!force_brightness){
+	acpi_bus_register_driver(&acpi_dummy_vid_driver);
+}
 
-And still does even with the latest kernel, I suppose, anywhere people is
-feeding back brightness events into thinkpad-acpi's backlight control
-through userspace (something that is *not* recommended, and *not* the right
-thing to do in *any* thinkpad model IMO).
+I am a bit anxious with letting two drivers match against "LNXVIDEO",
+but I don't know why this should not work. Like that the same code
+whether video can register or not is processed and you can be sure
+whether video should get active or not.
+If the double register does not work, a global variable in
+drivers/acpi/scan.c here should do it:
+		if(!(info->valid & (ACPI_VALID_HID | ACPI_VALID_CID))){
+			status = acpi_video_bus_match(device);
+			if(ACPI_SUCCESS(status))
+				hid = ACPI_VIDEO_HID;
 
-Granted, some thinkpad models probably require BIOS updates *and* one of the
-latest kernels (or a video.c backport), to have proper backlight control.
+like that we can be sure (also against modifications at this one place)
+video will load.
+Hmm, maybe the acpi_video_bus_match test should get extended to match
+either against the already tested functions or _BCM/_BCL and maybe only
+set the variable if brightness funcs are there.
+I'd prefer such a test to avoid the walknamespace call but mainly to
+have the matching whether video should be used at one central place.
 
-> Now, I don't understand which point the brightness control is broken. 
-> Does Suse call _BCM , but not handle Notify (video, 0x86/0x87)
-> (Increase/Decrease Brightness) ?
+Also a module parameter to force brightness at module load time should
+be more convenient for letting people try out both. I don't see the need
+for an extra config variable.
 
-I am not sure it is broken anymore, actually.  And I don't have the hardware
-to test it.
+    Thomas
 
-> The BIOSs/Machine Type/Model/Support are too complicated. 
-> Why don't you use assume BIOS supports _BCL/_BCM/_BQC if these methods
-> are found in ACPI name space ?
-
-That's exactly what I do :p
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >> http://get.splunk.com/
