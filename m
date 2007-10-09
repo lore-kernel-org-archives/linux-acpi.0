@@ -1,44 +1,107 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [PATCH 3/4] ACPI: thinkpad-acpi: disable
-	backlight handler if ACPI generic could do it
-Date: Tue, 9 Oct 2007 08:59:14 +0100
-Message-ID: <20071009075914.GA790@srcf.ucam.org>
-References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br>
-	<1191849179-24087-4-git-send-email-hmh@hmh.eng.br>
-	<1191910875.9847.79.camel@queen.suse.de>
+From: John Sigler <linux.kernel@free.fr>
+Subject: Re: halt does not shut the system down
+Date: Tue, 09 Oct 2007 10:06:07 +0200
+Message-ID: <470B366F.4030306@free.fr>
+References: <470A58AF.9080402@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1191910875.9847.79.camel-X8wR35IVlAxolqkO4TVVkw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754957AbXJIIG0@vger.kernel.org>
+In-Reply-To: <470A58AF.9080402@free.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: robert.moore@intel.com, len.brown@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 09, 2007 at 08:21:14AM +0200, Thomas Renninger wrote:
+John Sigler wrote:
 
-> IMO a config variable that compiles out brightness control totally makes
-> more sense (and video, is there any functionality in ThinkPad acpi
-> driver that does not get supported by the video driver?).
+> When I run 'halt' the kernel prints:
+> 
+> Halting.
+> Shutdown: hdc
+> ACPI: PCI interrupt for device 0000:01:05.0 disabled
+> ACPI: PCI interrupt for device 0000:01:04.0 disabled
+> ACPI: PCI interrupt for device 0000:01:03.0 disabled
+> ACPI: PCI interrupt for device 0000:01:02.0 disabled
+> Power down.
+> acpi_power_off called
+> 
+> But the system does not shut down. (The fans keep spinning, the LEDs 
+> keep shining, the LCD keeps displaying.) Basically, the motherboard is 
+> still providing power to every component, as if the power supply had 
+> refused to stop.
 
-No, older Thinkpads don't implement the video extension. It needs to be 
-handled at runtime.
+If I disable the 4 integrated NICs in the BIOS, then the kernel prints:
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Halting.
+Shutdown: hdc
+Power down.
+acpi_power_off called
+  hwsleep-0322 [01] enter_sleep_state     : Entering sleep state [S5]
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >> http://get.splunk.com/
+But the system does not power down.
+
+> Kernel is 2.6.22.1-rt9
+> 
+> I followed the instructions given here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=6431
+> 
+> # cat /sys/module/acpi/parameters/debug_layer
+> Description                     Hex        SET
+> ACPI_UTILITIES                  0x00000001 [*]
+> ACPI_HARDWARE                   0x00000002 [*]
+> ACPI_EVENTS                     0x00000004 [*]
+> ACPI_TABLES                     0x00000008 [*]
+> ACPI_NAMESPACE                  0x00000010 [*]
+> ACPI_PARSER                     0x00000020 [*]
+> ACPI_DISPATCHER                 0x00000040 [*]
+> ACPI_EXECUTER                   0x00000080 [*]
+> ACPI_RESOURCES                  0x00000100 [*]
+> ACPI_CA_DEBUGGER                0x00000200 [*]
+> ACPI_OS_SERVICES                0x00000400 [*]
+> ACPI_CA_DISASSEMBLER            0x00000800 [*]
+> ACPI_COMPILER                   0x00001000 [*]
+> ACPI_TOOLS                      0x00002000 [*]
+> ACPI_ALL_DRIVERS                0xFFFF0000 [*]
+> -- 
+> debug_layer = 0xFFFF3FFF ( * = enabled)
+> 
+> # cat /sys/module/acpi/parameters/debug_level
+> Description                     Hex        SET
+> ACPI_LV_ERROR                   0x00000001 [*]
+> ACPI_LV_WARN                    0x00000002 [*]
+> ACPI_LV_INIT                    0x00000004 [*]
+> ACPI_LV_DEBUG_OBJECT            0x00000008 [*]
+> ACPI_LV_INFO                    0x00000010 [*]
+> ACPI_LV_INIT_NAMES              0x00000020 [*]
+> ACPI_LV_PARSE                   0x00000040 [*]
+> ACPI_LV_LOAD                    0x00000080 [*]
+> ACPI_LV_DISPATCH                0x00000100 [*]
+> ACPI_LV_EXEC                    0x00000200 [*]
+> ACPI_LV_NAMES                   0x00000400 [*]
+> ACPI_LV_OPREGION                0x00000800 [*]
+> ACPI_LV_BFIELD                  0x00001000 [*]
+> ACPI_LV_TABLES                  0x00002000 [*]
+> ACPI_LV_VALUES                  0x00004000 [*]
+> ACPI_LV_OBJECTS                 0x00008000 [*]
+> ACPI_LV_RESOURCES               0x00010000 [*]
+> ACPI_LV_USER_REQUESTS           0x00020000 [*]
+> ACPI_LV_PACKAGE                 0x00040000 [*]
+> ACPI_LV_ALLOCATIONS             0x00100000 [*]
+> ACPI_LV_FUNCTIONS               0x00200000 [*]
+> ACPI_LV_OPTIMIZATIONS           0x00400000 [*]
+> ACPI_LV_MUTEX                   0x01000000 [*]
+> ACPI_LV_THREADS                 0x02000000 [*]
+> ACPI_LV_IO                      0x04000000 [*]
+> ACPI_LV_INTERRUPTS              0x08000000 [*]
+> ACPI_LV_AML_DISASSEMBLE         0x10000000 [*]
+> ACPI_LV_VERBOSE_INFO            0x20000000 [*]
+> ACPI_LV_FULL_TABLES             0x40000000 [*]
+> ACPI_LV_EVENTS                  0x80000000 [*]
+> -- 
+> debug_level = 0xFFFFFFFF (* = enabled)
+> 
+> I've attached my .config and the output of the following commands:
+> dmesg, lspci, acpidump, halt
+> 
+> Do you have any idea what the problem is?
