@@ -1,30 +1,56 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 3/4] ACPI: thinkpad-acpi: disable backlight handler if ACPI generic could do it
-Date: Tue, 9 Oct 2007 11:04:18 +0100
-Message-ID: <20071009100418.GA2472@srcf.ucam.org>
-References: <1191849179-24087-1-git-send-email-hmh@hmh.eng.br> <1191849179-24087-4-git-send-email-hmh@hmh.eng.br> <1191910875.9847.79.camel@queen.suse.de> <20071009075914.GA790@srcf.ucam.org> <1191918351.9847.132.camel@queen.suse.de> <20071009083336.GA1099@srcf.ucam.org> <1191923208.9847.169.camel@queen.suse.de>
+From: John Sigler <linux.kernel@free.fr>
+Subject: Re: High resolution timers on ACPI-less kernel
+Date: Tue, 09 Oct 2007 12:35:29 +0200
+Message-ID: <470B5971.40601@free.fr>
+References: <470B44A1.7080007@free.fr> <1191921343.13628.0.camel@godzilla.tecnorama.it> <470B49BD.4070506@free.fr> <alpine.LFD.0.9999.0710091131400.25146@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:51529 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085AbXJIKEg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2007 06:04:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1191923208.9847.169.camel@queen.suse.de>
+Received: from smtp4-g19.free.fr ([212.27.42.30]:33160 "EHLO smtp4-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084AbXJIKfa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Oct 2007 06:35:30 -0400
+In-Reply-To: <alpine.LFD.0.9999.0710091131400.25146@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-rt-users@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Oct 09, 2007 at 11:46:48AM +0200, Thomas Renninger wrote:
+Thomas Gleixner wrote:
+> On Tue, 9 Oct 2007, John Sigler wrote:
+>> Alessio Igor Bogani wrote: 
+>>> On Tue, 2007-10-09 at 11:06 +0200, John Sigler wrote:
+>>> 
+>>>> I enabled high resolution timer support and disabled ACPI support.
+>>> 
+>>> http://www.mail-archive.com/linux-rt-users@vger.kernel.org/msg00375.html
+>>
+>> There are other clock sources on my system.
+>> The timestamp counter is reliable (as far as I can tell).
+> 
+> See previous mail.
+> 
+>> The LAPIC timer is reliable.
+> 
+> LAPIC timer is a clock event device, not a clock source. It can be
+> used to program the next event, but not to read the time.
+> 
+>> (I've just disabled the PM timer.)
+> 
+> Yup, which in turn disables highres.
 
-> More important: CONFIG_THINKPAD_ACPI_BACKLIGHT_DESIRED variable is error
-> prone and should not get introduced, right?
+OK. I have two more questions.
 
-I agree that I can't see any reason to ever want to use the thinkpad 
-backlight functionality if it can be controlled through the standard 
-mechanism instead.
+Can the kernel verify the correctness of the TSC with the PIT?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+When I enable the ACPI PM timer, the kernel tells me:
+
+* The chipset may have PM-Timer Bug. Due to workarounds for a bug,
+* this clock source is slow. If you are sure your timer does not have
+* this bug, please use "acpi_pm_good" to disable the workaround
+
+How can I tell whether my PM timer has this bug or not?
+(Specific revision? Test app?)
+
+Regards.
