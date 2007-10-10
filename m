@@ -1,432 +1,90 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/37] fujitsu-laptop: create Fujitsu laptop platform specific driver
-Date: Wed, 10 Oct 2007 01:06:09 -0400
-Message-ID: <1191992804-14965-3-git-send-email-lenb@kernel.org>
+Subject: [PATCH 04/37] ACPI: Thermal: Drop concurrent thermal checks
+Date: Wed, 10 Oct 2007 01:06:11 -0400
+Message-ID: <1191992804-14965-5-git-send-email-lenb@kernel.org>
 References: <1191992804-14965-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga10.intel.com ([192.55.52.92]:45224 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750827AbXJJFGr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:47 -0400
+	with ESMTP id S1750981AbXJJFGs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:48 -0400
 In-Reply-To: <1191992804-14965-1-git-send-email-lenb@kernel.org>
-Message-Id: <d0482533c73a8685f7ce0951a10280cfd58b8825.1191992584.git.len.brown@intel.com>
+Message-Id: <6e2157858ac94530fddbf19dc59ab6b392baf1f3.1191992584.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Fix for #3686, where get_temperature() may cause thermal notify, which
+causes one more get_temperature().
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig          |   15 ++
- drivers/misc/Makefile         |    1 +
- drivers/misc/fujitsu-laptop.c |  358 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 374 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/fujitsu-laptop.c
+ drivers/acpi/thermal.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index a266558..df89367 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -111,6 +111,21 @@ config ASUS_LAPTOP
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 15d5fdc..69ec73b 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -195,6 +195,7 @@ struct acpi_thermal {
+ 	struct acpi_thermal_trips trips;
+ 	struct acpi_handle_list devices;
+ 	struct timer_list timer;
++	struct mutex lock;
+ };
  
- 	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
+ static const struct file_operations acpi_thermal_state_fops = {
+@@ -721,11 +722,15 @@ static void acpi_thermal_check(void *data)
+ 		return;
+ 	}
  
-+config FUJITSU_LAPTOP
-+        tristate "Fujitsu Laptop Extras"
-+        depends on X86
-+        depends on ACPI
-+        depends on BACKLIGHT_CLASS_DEVICE
-+        ---help---
-+	  This is a driver for laptops built by Fujitsu:
-+
-+	    * P2xxx/P5xxx/S6xxx/S7xxx series Lifebooks
-+	    * Possibly other Fujitsu laptop models
-+
-+	  It adds support for LCD brightness control.
-+
-+	  If you have a Fujitsu laptop, say Y or M here.
-+
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index b5ce0e3..be90d48 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -14,4 +14,5 @@ obj-$(CONFIG_PHANTOM)		+= phantom.o
- obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
- obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
- obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
-+obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
- obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
-diff --git a/drivers/misc/fujitsu-laptop.c b/drivers/misc/fujitsu-laptop.c
-new file mode 100644
-index 0000000..d366a6c
---- /dev/null
-+++ b/drivers/misc/fujitsu-laptop.c
-@@ -0,0 +1,358 @@
-+/*-*-linux-c-*-*/
-+
-+/*
-+  Copyright (C) 2007 Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-+  Based on earlier work:
-+    Copyright (C) 2003 Shane Spencer <shane@bogomip.com>
-+    Adrian Yee <brewt-fujitsu@brewt.org>
-+
-+  Templated from msi-laptop.c which is copyright by its respective authors.
-+
-+  This program is free software; you can redistribute it and/or modify
-+  it under the terms of the GNU General Public License as published by
-+  the Free Software Foundation; either version 2 of the License, or
-+  (at your option) any later version.
-+
-+  This program is distributed in the hope that it will be useful, but
-+  WITHOUT ANY WARRANTY; without even the implied warranty of
-+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+  General Public License for more details.
-+
-+  You should have received a copy of the GNU General Public License
-+  along with this program; if not, write to the Free Software
-+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+  02110-1301, USA.
-+ */
-+
-+/*
-+ * fujitsu-laptop.c - Fujitsu laptop support, providing access to additional
-+ * features made available on a range of Fujitsu laptops including the
-+ * P2xxx/P5xxx/S6xxx/S7xxx series.
-+ *
-+ * This driver exports a few files in /sys/devices/platform/fujitsu-laptop/;
-+ * others may be added at a later date.
-+ *
-+ *   lcd_level - Screen brightness: contains a single integer in the
-+ *   range 0..7. (rw)
-+ *
-+ * In addition to these platform device attributes the driver
-+ * registers itself in the Linux backlight control subsystem and is
-+ * available to userspace under /sys/class/backlight/fujitsu-laptop/.
-+ *
-+ * This driver has been tested on a Fujitsu Lifebook S7020.  It should
-+ * work on most P-series and S-series Lifebooks, but YMMV.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/dmi.h>
-+#include <linux/backlight.h>
-+#include <linux/platform_device.h>
-+#include <linux/autoconf.h>
-+
-+#define FUJITSU_DRIVER_VERSION "0.3"
-+
-+#define FUJITSU_LCD_N_LEVELS 8
-+
-+#define ACPI_FUJITSU_CLASS              "fujitsu"
-+#define ACPI_FUJITSU_HID                "FUJ02B1"
-+#define ACPI_FUJITSU_DRIVER_NAME        "Fujitsu laptop FUJ02B1 ACPI extras driver"
-+#define ACPI_FUJITSU_DEVICE_NAME        "Fujitsu FUJ02B1"
-+
-+struct fujitsu_t {
-+	acpi_handle acpi_handle;
-+	struct backlight_device *bl_device;
-+	struct platform_device *pf_device;
-+
-+	unsigned long fuj02b1_state;
-+	unsigned int brightness_changed;
-+	unsigned int brightness_level;
-+};
-+
-+static struct fujitsu_t *fujitsu;
-+
-+/* Hardware access */
-+
-+static int set_lcd_level(int level)
-+{
-+	acpi_status status = AE_OK;
-+	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list arg_list = { 1, &arg0 };
-+	acpi_handle handle = NULL;
-+
-+	if (level < 0 || level >= FUJITSU_LCD_N_LEVELS)
-+		return -EINVAL;
-+
-+	if (!fujitsu)
-+		return -EINVAL;
-+
-+	status = acpi_get_handle(fujitsu->acpi_handle, "SBLL", &handle);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SBLL not present\n"));
-+		return -ENODEV;
-+	}
-+
-+	arg0.integer.value = level;
-+
-+	status = acpi_evaluate_object(handle, NULL, &arg_list, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static int get_lcd_level(void)
-+{
-+	unsigned long state = 0;
-+	acpi_status status = AE_OK;
-+
-+	// Get the Brightness
-+	status =
-+	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
-+	if (status < 0)
-+		return status;
-+
-+	fujitsu->fuj02b1_state = state;
-+	fujitsu->brightness_level = state & 0x0fffffff;
-+
-+	if (state & 0x80000000)
-+		fujitsu->brightness_changed = 1;
-+	else
-+		fujitsu->brightness_changed = 0;
-+
-+	if (status < 0)
-+		return status;
-+
-+	return fujitsu->brightness_level;
-+}
-+
-+/* Backlight device stuff */
-+
-+static int bl_get_brightness(struct backlight_device *b)
-+{
-+	return get_lcd_level();
-+}
-+
-+static int bl_update_status(struct backlight_device *b)
-+{
-+	return set_lcd_level(b->props.brightness);
-+}
-+
-+static struct backlight_ops fujitsubl_ops = {
-+	.get_brightness = bl_get_brightness,
-+	.update_status = bl_update_status,
-+};
-+
-+/* Platform device */
-+
-+static ssize_t show_lcd_level(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
-+{
-+
-+	int ret;
-+
-+	ret = get_lcd_level();
-+	if (ret < 0)
-+		return ret;
-+
-+	return sprintf(buf, "%i\n", ret);
-+}
-+
-+static ssize_t store_lcd_level(struct device *dev,
-+			       struct device_attribute *attr, const char *buf,
-+			       size_t count)
-+{
-+
-+	int level, ret;
-+
-+	if (sscanf(buf, "%i", &level) != 1
-+	    || (level < 0 || level >= FUJITSU_LCD_N_LEVELS))
-+		return -EINVAL;
-+
-+	ret = set_lcd_level(level);
-+	if (ret < 0)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
-+
-+static struct attribute *fujitsupf_attributes[] = {
-+	&dev_attr_lcd_level.attr,
-+	NULL
-+};
-+
-+static struct attribute_group fujitsupf_attribute_group = {
-+	.attrs = fujitsupf_attributes
-+};
-+
-+static struct platform_driver fujitsupf_driver = {
-+	.driver = {
-+		   .name = "fujitsu-laptop",
-+		   .owner = THIS_MODULE,
-+		   }
-+};
-+
-+/* ACPI device */
-+
-+int acpi_fujitsu_add(struct acpi_device *device)
-+{
-+	int result = 0;
-+	int state = 0;
-+
-+	ACPI_FUNCTION_TRACE("acpi_fujitsu_add");
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	fujitsu->acpi_handle = device->handle;
-+	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
-+	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
-+	acpi_driver_data(device) = fujitsu;
-+
-+	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
-+	if (result) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "Error reading power state\n"));
-+		goto end;
-+	}
-+
-+	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
-+	       acpi_device_name(device), acpi_device_bid(device),
-+	       !device->power.state ? "on" : "off");
-+
-+      end:
-+
-+	return result;
-+}
-+
-+int acpi_fujitsu_remove(struct acpi_device *device, int type)
-+{
-+	ACPI_FUNCTION_TRACE("acpi_fujitsu_remove");
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+	fujitsu->acpi_handle = 0;
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id fujitsu_device_ids[] = {
-+	{ACPI_FUJITSU_HID, 0},
-+	{"", 0},
-+};
-+
-+static struct acpi_driver acpi_fujitsu_driver = {
-+	.name = ACPI_FUJITSU_DRIVER_NAME,
-+	.class = ACPI_FUJITSU_CLASS,
-+	.ids = fujitsu_device_ids,
-+	.ops = {
-+		.add = acpi_fujitsu_add,
-+		.remove = acpi_fujitsu_remove,
-+		},
-+};
-+
-+/* Initialization */
-+
-+static int __init fujitsu_init(void)
-+{
-+	int ret, result;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	fujitsu = kmalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
-+	if (!fujitsu)
-+		return -ENOMEM;
-+	memset(fujitsu, 0, sizeof(struct fujitsu_t));
-+
-+	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
-+	if (result < 0) {
-+		ret = -ENODEV;
-+		goto fail_acpi;
-+	}
-+
-+	/* Register backlight stuff */
-+
-+	fujitsu->bl_device =
-+	    backlight_device_register("fujitsu-laptop", NULL, NULL,
-+				      &fujitsubl_ops);
-+	if (IS_ERR(fujitsu->bl_device))
-+		return PTR_ERR(fujitsu->bl_device);
-+
-+	fujitsu->bl_device->props.max_brightness = FUJITSU_LCD_N_LEVELS - 1;
-+	ret = platform_driver_register(&fujitsupf_driver);
-+	if (ret)
-+		goto fail_backlight;
-+
-+	/* Register platform stuff */
-+
-+	fujitsu->pf_device = platform_device_alloc("fujitsu-laptop", -1);
-+	if (!fujitsu->pf_device) {
-+		ret = -ENOMEM;
-+		goto fail_platform_driver;
-+	}
-+
-+	ret = platform_device_add(fujitsu->pf_device);
-+	if (ret)
-+		goto fail_platform_device1;
-+
-+	ret =
-+	    sysfs_create_group(&fujitsu->pf_device->dev.kobj,
-+			       &fujitsupf_attribute_group);
-+	if (ret)
-+		goto fail_platform_device2;
-+
-+	printk(KERN_INFO "fujitsu-laptop: driver " FUJITSU_DRIVER_VERSION
-+	       " successfully loaded.\n");
-+
-+	return 0;
-+
-+      fail_platform_device2:
-+
-+	platform_device_del(fujitsu->pf_device);
-+
-+      fail_platform_device1:
-+
-+	platform_device_put(fujitsu->pf_device);
-+
-+      fail_platform_driver:
-+
-+	platform_driver_unregister(&fujitsupf_driver);
-+
-+      fail_backlight:
-+
-+	backlight_device_unregister(fujitsu->bl_device);
-+
-+      fail_acpi:
-+
-+	kfree(fujitsu);
-+
-+	return ret;
-+}
-+
-+static void __exit fujitsu_cleanup(void)
-+{
-+	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
-+			   &fujitsupf_attribute_group);
-+	platform_device_unregister(fujitsu->pf_device);
-+	platform_driver_unregister(&fujitsupf_driver);
-+	backlight_device_unregister(fujitsu->bl_device);
-+
-+	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
-+
-+	kfree(fujitsu);
-+
-+	printk(KERN_INFO "fujitsu-laptop: driver unloaded.\n");
-+}
-+
-+module_init(fujitsu_init);
-+module_exit(fujitsu_cleanup);
-+
-+MODULE_AUTHOR("Jonathan Woithe");
-+MODULE_DESCRIPTION("Fujitsu laptop extras support");
-+MODULE_VERSION(FUJITSU_DRIVER_VERSION);
-+MODULE_LICENSE("GPL");
++	/* Check if someone else is already running */
++	if (!mutex_trylock(&tz->lock))
++		return;
++
+ 	state = tz->state;
+ 
+ 	result = acpi_thermal_get_temperature(tz);
+ 	if (result)
+-		return;
++		goto unlock;
+ 
+ 	memset(&tz->state, 0, sizeof(tz->state));
+ 
+@@ -816,8 +821,8 @@ static void acpi_thermal_check(void *data)
+ 			add_timer(&(tz->timer));
+ 		}
+ 	}
+-
+-	return;
++      unlock:
++	mutex_unlock(&tz->lock);
+ }
+ 
+ /* --------------------------------------------------------------------------
+@@ -1254,7 +1259,7 @@ static int acpi_thermal_add(struct acpi_device *device)
+ 	strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+ 	acpi_driver_data(device) = tz;
+-
++	mutex_init(&tz->lock);
+ 	result = acpi_thermal_get_info(tz);
+ 	if (result)
+ 		goto end;
+@@ -1324,7 +1329,7 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
+ 	}
+ 
+ 	acpi_thermal_remove_fs(device);
+-
++	mutex_destroy(&tz->lock);
+ 	kfree(tz);
+ 	return 0;
+ }
 -- 
 1.5.3.4.206.g58ba4
