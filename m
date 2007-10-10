@@ -1,69 +1,70 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2/4] ACPI: cpuidle: port idle timer suspend/resume workaround to cpuidle
-Date: Wed, 10 Oct 2007 01:07:48 -0400
-Message-ID: <1191992870-15009-3-git-send-email-lenb@kernel.org>
+Subject: [PATCH 4/4] ACPICA: hw: Don't carry spinlock over suspend
+Date: Wed, 10 Oct 2007 01:07:50 -0400
+Message-ID: <1191992870-15009-5-git-send-email-lenb@kernel.org>
 References: <1191992870-15009-1-git-send-email-lenb@kernel.org>
  <1191992870-15009-2-git-send-email-lenb@kernel.org>
+ <1191992870-15009-3-git-send-email-lenb@kernel.org>
+ <1191992870-15009-4-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32478 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35727 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751463AbXJJFHy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Oct 2007 01:07:54 -0400
-In-Reply-To: <1191992870-15009-2-git-send-email-lenb@kernel.org>
-Message-Id: <e196441bdf2dbf0526b28a6829c39557c236d611.1191992618.git.len.brown@intel.com>
+	id S1751463AbXJJFHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Oct 2007 01:07:55 -0400
+In-Reply-To: <1191992870-15009-4-git-send-email-lenb@kernel.org>
+Message-Id: <2d571b33cf7efd6a894e765e3cb45587ec5b834a.1191992618.git.len.brown@intel.com>
 In-Reply-To: <4f86d3a8e297205780cca027e974fd5f81064780.1191992618.git.len.brown@intel.com>
 References: <4f86d3a8e297205780cca027e974fd5f81064780.1191992618.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Some timers stop during C2 and C3, and so there are various
-generations of timer broadcast workarounds to deal with that.
-But that (already complex) code gets confused during suspend.
+ACPI uses acpi_get_register() in order to get into suspend.
+This function is guarded by acpi_gbl_hardware_lock, which will be carried
+into resume phase.
+At resume interrupts are enabled and first ACPI interrupt deadlocks on this
+lock.
+Solution seems to be to not lock register read, as there are no concurrent
+activity at this point.
 
-As it is unlikely that deep C-states would save much power
-during the actual suspend/resume process anyway, deep C-states
-were disabled via the addition of .suspend/.resume hooks
-in to the ACPI processor driver.
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=7499
 
-Here that workaround is ported to the cpuidle version of
-the ACPI idle loop.  Technically, ACPI could un-register
-itself from cpuidle on .suspend, but that code path
-is currently quite cumbersome.  So instead,
-we simply invoke C1 from the C2 and C3 handlers
-for the duration of .suspend/.resume.
-
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/acpi/hardware/hwsleep.c |    3 ++-
+ include/acpi/acpixf.h           |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 99da6a7..0cad56c 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1416,6 +1416,9 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	if (unlikely(!pr))
- 		return 0;
+diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
+index 4d0c677..c0577ca 100644
+--- a/drivers/acpi/hardware/hwsleep.c
++++ b/drivers/acpi/hardware/hwsleep.c
+@@ -398,7 +398,8 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 	/* Wait until we enter sleep state */
  
-+	if (acpi_idle_suspend)
-+		return(acpi_idle_enter_c1(dev, state));
+ 	do {
+-		status = acpi_get_register(ACPI_BITREG_WAKE_STATUS, &in_value);
++		status = acpi_get_register_unlocked(ACPI_BITREG_WAKE_STATUS,
++						    &in_value);
+ 		if (ACPI_FAILURE(status)) {
+ 			return_ACPI_STATUS(status);
+ 		}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 3d7ab9e..9512f04 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -314,6 +314,8 @@ acpi_resource_to_address64(struct acpi_resource *resource,
+  */
+ acpi_status acpi_get_register(u32 register_id, u32 * return_value);
+ 
++acpi_status acpi_get_register_unlocked(u32 register_id, u32 *return_value);
 +
- 	if (pr->flags.bm_check)
- 		acpi_idle_update_bm_rld(pr, cx);
+ acpi_status acpi_set_register(u32 register_id, u32 value);
  
-@@ -1477,6 +1480,9 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	if (unlikely(!pr))
- 		return 0;
- 
-+	if (acpi_idle_suspend)
-+		return(acpi_idle_enter_c1(dev, state));
-+
- 	local_irq_disable();
- 	current_thread_info()->status &= ~TS_POLLING;
- 	/*
+ acpi_status
 -- 
 1.5.3.4.206.g58ba4
