@@ -1,65 +1,81 @@
-From: Grzeniek <grzeniek@gmail.com>
-Subject: Problem with GPRS modem
-Date: Wed, 10 Oct 2007 22:39:50 +0200
-Message-ID: <d4596f280710101339n27d7a42oc0a6a211441e0b2@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] How to distinguish between general ACPI video
+	driver module and brightness/display providing vendor specific ACPI
+	modules
+Date: Wed, 10 Oct 2007 17:46:32 -0300
+Message-ID: <20071010204632.GA509@khazad-dum.debian.net>
+References: <20071009083336.GA1099@srcf.ucam.org> <1191923208.9847.169.camel@queen.suse.de> <20071009100418.GA2472@srcf.ucam.org> <20071009111445.GB24946@khazad-dum.debian.net> <1191936552.9847.257.camel@queen.suse.de> <20071009134711.GA444@khazad-dum.debian.net> <1191939088.9847.274.camel@queen.suse.de> <20071009142934.GB444@khazad-dum.debian.net> <1191963205.3880.58.camel@fanta4.site> <1192016657.9847.319.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.236]:6666 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755993AbXJJUjw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 16:39:52 -0400
-Received: by wx-out-0506.google.com with SMTP id h31so332414wxd
-        for <linux-acpi@vger.kernel.org>; Wed, 10 Oct 2007 13:39:51 -0700 (PDT)
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35057 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756045AbXJJUql (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Oct 2007 16:46:41 -0400
 Content-Disposition: inline
+In-Reply-To: <1192016657.9847.319.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi,
+On Wed, 10 Oct 2007, Thomas Renninger wrote:
+> IMO this should work. Like that there is no need in Thinkpad to fiddle
+> with hardcoded "\\_SB.../_BCL" paths to find out whether brightness is
+> supported. Just check for a global variable video_funcs_supported ->
+> take hands off display switching and brightness_funcs_supported -> take
+> hands off brightness control. This should work out fine for other vendor
+> specific drivers also.
 
-I've got a SonyEricsson GC89 GPRS/EDGE pcmcia card (serial), but I
-can't get to work it (on my laptop Acer TravelMate 4152LMi).
-The problem is that the connection is very, very slow (download rate
-about 0,5KB/s) and I've got more then 20% rx errors on ppp0 interface.
+Well, provided that these drives do work.  I am not sure they do on older
+thinkpads, etc.
 
-The system (I tried FC5, FC7, Ubuntu 6.04, Ubuntu 7.04 and Ubuntu
-7.10) can recognize this card, I can make ppp connection to GPRS/EDGE
-network. But this connection is really very slow, and I think.
+> If I read the thinkpad code right, it always relies on that brightness
+> level can be read through EC at address 0x31?
 
-What I found is when I boot system with acpi=off parameter everything
-works great, I' ve got transfers about 20-25KB/s with no rx errors on
-ppp0 interface.
+No.  It can get it from NVRAM too in the latest code, and it will do the
+right thing on the newer Lenovo BIOSes.
 
-I'm really not sure if this problem is related to acpi subsystem
-(maybe this is pcmcia or pppd problem), but I have to try.
+> I have a T60 here where this does not work, I can switch (only in
+> console) the brightness levels and there is no change in at any ec
+> address. So this really must use _BCM,_BCL?
 
->From dmesg:
-pccard: CardBus card inserted into slot 0
-PCI: Enabling device 0000:03:00.1 (0000 -> 0001)
-ACPI: PCI Interrupt 0000:03:00.1[A] -> GSI 16 (level, low) -> IRQ 16
-0000:03:00.1: ttyS4 at I/O 0xa000 (irq = 16) is a 16550A
+See above.  But you do need a *very* recent thinkpad-acpi.  I.e. what is in
+acpi-test, or what is in my development versions.
 
-lspci -vv:
-03:00.1 Serial controller: Broadcom Corporation EDGE/GPRS data and
-802.11b/g combo cardbus [GC89] (rev 03) (prog-if 02 [16550])
-        Subsystem: Unknown device 18de:0003
-        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort+
-<TAbort- <MAbort- >SERR- <PERR-
-        Interrupt: pin A routed to IRQ 11
-        Region 0: I/O ports at a000 [size=256]
+But it *is* still better to use _BCM, _BCL, _BQC when available.
 
-uname -a
-Linux localhost 2.6.22-12-generic #1 SMP Sun Sep 23 18:11:30 GMT 2007
-i686 GNU/Linux
+> 2)
+> I also found in my X logs on a T60:
+> (WW) NVIDIA(0): Error: Unable to find DOS (Enable/Disable output switching)
+> (WW) NVIDIA(0):     file path under /proc/acpi/video. NVIDIA X driver will not
+> (WW) NVIDIA(0):     be able to respond to  display change hotkey events.
+> Intel graphics drivers and possibly others probably also want to make
+> use of this.
+> So I think switching to video driver here (thinkpad must not touch this
+> then anymore I expect) makes a lot of sense. I wonder how many
+> people/tools made use of /proc/acpi/ibm/video?
 
-I really don't know how to make this card working properly, and I need
-your help.
-If you need more specific info just tell me what do you want.
+Probably not many.  I really, really refrain from touching that because it
+is a rats nest of trouble.
 
-Grzegorz
+But it *does* work for some people, so I am not fine with the idea of just
+ripping it off, unless we know video does at least as well on those
+thinkpads.
 
-PS. Sorry for my English.
+> 3)
+> I think I found a bug in thinkpad_acpi:
+> 	if (!*ibm->acpi->handle)
+> 		return 0;
+> in setup_acpi_notify(..) probably should be:
+> 	if (!ibm->acpi->handle)
+> 		return 0;
+
+I will check that.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
