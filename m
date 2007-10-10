@@ -1,111 +1,331 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 15/37] ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2.2)
-Date: Wed, 10 Oct 2007 01:06:22 -0400
-Message-ID: <1191992804-14965-16-git-send-email-lenb@kernel.org>
+Subject: [PATCH 17/37] ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it (v2)
+Date: Wed, 10 Oct 2007 01:06:24 -0400
+Message-ID: <1191992804-14965-18-git-send-email-lenb@kernel.org>
 References: <1191992804-14965-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:19103 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:20396 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751224AbXJJFG5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:57 -0400
+	with ESMTP id S1751187AbXJJFG6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:58 -0400
 In-Reply-To: <1191992804-14965-1-git-send-email-lenb@kernel.org>
-Message-Id: <3eea123df1637a88d0899626a67b83dca959efff.1191992584.git.len.brown@intel.com>
+Message-Id: <7fd400297978a2cf7a74344fb22020e9479b4f69.1191992584.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jean Delvare <khali@linux-fr.org>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Receive all pending HKEY events at once from a single notification, and don't
-complain if the queue is empty.
+Use a separate platform device and driver ("thinkpad_hwmon") to attach
+hwmon attributes and class, and add a name attribute of "thinkpad" to
+it, which defines the hwmon device name for libsensors4.
+
+This makes thinkpad-acpi compatible with libsensors4 from lm-sensors, and
+the platform driver and device split will make it much easier to separate
+hwmon functionality into its own module later on.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   51 ++++++++++++++++++++++++++++--------------
- 1 files changed, 34 insertions(+), 17 deletions(-)
+ Documentation/thinkpad-acpi.txt |   25 +++++++++---
+ drivers/misc/thinkpad_acpi.c    |   79 +++++++++++++++++++++++++++++++++------
+ drivers/misc/thinkpad_acpi.h    |    6 ++-
+ 3 files changed, 91 insertions(+), 19 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 60953d6..3b95bba 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -105,10 +105,15 @@ The version of thinkpad-acpi's sysfs interface is exported by the driver
+ as a driver attribute (see below).
+ 
+ Sysfs driver attributes are on the driver's sysfs attribute space,
+-for 2.6.20 this is /sys/bus/platform/drivers/thinkpad_acpi/.
++for 2.6.23 this is /sys/bus/platform/drivers/thinkpad_acpi/ and
++/sys/bus/platform/drivers/thinkpad_hwmon/
+ 
+-Sysfs device attributes are on the driver's sysfs attribute space,
+-for 2.6.20 this is /sys/devices/platform/thinkpad_acpi/.
++Sysfs device attributes are on the thinkpad_acpi device sysfs attribute
++space, for 2.6.23 this is /sys/devices/platform/thinkpad_acpi/.
++
++Sysfs device attributes for the sensors and fan are on the
++thinkpad_hwmon device's sysfs attribute space, but you should locate it
++looking for a hwmon device with the name attribute of "thinkpad".
+ 
+ Driver version
+ --------------
+@@ -766,7 +771,7 @@ Temperature sensors
+ -------------------
+ 
+ procfs: /proc/acpi/ibm/thermal
+-sysfs device attributes: (hwmon) temp*_input
++sysfs device attributes: (hwmon "thinkpad") temp*_input
+ 
+ Most ThinkPads include six or more separate temperature sensors but only
+ expose the CPU temperature through the standard ACPI methods.  This
+@@ -989,7 +994,9 @@ Fan control and monitoring: fan speed, fan enable/disable
+ ---------------------------------------------------------
+ 
+ procfs: /proc/acpi/ibm/fan
+-sysfs device attributes: (hwmon) fan_input, pwm1, pwm1_enable
++sysfs device attributes: (hwmon "thinkpad") fan1_input, pwm1,
++			  pwm1_enable
++sysfs hwmon driver attributes: fan_watchdog
+ 
+ NOTE NOTE NOTE: fan control operations are disabled by default for
+ safety reasons.  To enable them, the module parameter "fan_control=1"
+@@ -1131,7 +1138,7 @@ hwmon device attribute fan1_input:
+ 	which can take up to two minutes.  May return rubbish on older
+ 	ThinkPads.
+ 
+-driver attribute fan_watchdog:
++hwmon driver attribute fan_watchdog:
+ 	Fan safety watchdog timer interval, in seconds.  Minimum is
+ 	1 second, maximum is 120 seconds.  0 disables the watchdog.
+ 
+@@ -1233,3 +1240,9 @@ Sysfs interface changelog:
+ 		layer, the radio switch generates input event EV_RADIO,
+ 		and the driver enables hot key handling by default in
+ 		the firmware.
++
++0x020000:	ABI fix: added a separate hwmon platform device and
++		driver, which must be located by name (thinkpad)
++		and the hwmon class for libsensors4 (lm-sensors 3)
++		compatibility.  Moved all hwmon attributes to this
++		new platform device.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 9a61140..3efe81b 100644
+index 0a33c6e..d5fb93e 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1196,9 +1196,30 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -22,7 +22,7 @@
+  */
+ 
+ #define IBM_VERSION "0.16"
+-#define TPACPI_SYSFS_VERSION 0x010000
++#define TPACPI_SYSFS_VERSION 0x020000
+ 
+ /*
+  *  Changelog:
+@@ -526,6 +526,7 @@ static char *next_cmd(char **cmds)
+  ****************************************************************************/
+ 
+ static struct platform_device *tpacpi_pdev;
++static struct platform_device *tpacpi_sensors_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
+ static struct mutex tpacpi_inputdev_send_mutex;
+@@ -553,6 +554,12 @@ static struct platform_driver tpacpi_pdriver = {
+ 	.resume = tpacpi_resume_handler,
+ };
+ 
++static struct platform_driver tpacpi_hwmon_pdriver = {
++	.driver = {
++		.name = IBM_HWMON_DRVR_NAME,
++		.owner = THIS_MODULE,
++	},
++};
+ 
+ /*************************************************************************
+  * thinkpad-acpi driver attributes
+@@ -2872,7 +2879,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+ 
+ 	switch(thermal_read_mode) {
+ 	case TPACPI_THERMAL_TPEC_16:
+-		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++		res = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+ 				&thermal_temp_input16_group);
+ 		if (res)
+ 			return res;
+@@ -2880,7 +2887,7 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+ 	case TPACPI_THERMAL_TPEC_8:
+ 	case TPACPI_THERMAL_ACPI_TMP07:
+ 	case TPACPI_THERMAL_ACPI_UPDT:
+-		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++		res = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+ 				&thermal_temp_input8_group);
+ 		if (res)
+ 			return res;
+@@ -2897,13 +2904,13 @@ static void thermal_exit(void)
  {
- 	u32 hkey;
- 	unsigned int keycode, scancode;
--	int send_acpi_ev = 0;
-+	int send_acpi_ev;
-+
-+	if (event != 0x80) {
-+		printk(IBM_ERR "unknown HKEY notification event %d\n", event);
-+		/* forward it to userspace, maybe it knows how to handle it */
-+		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+						ibm->acpi->device->dev.bus_id,
-+						event, 0);
-+		return;
-+	}
-+
-+	while (1) {
-+		if (!acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
-+			printk(IBM_ERR "failed to retrieve HKEY event\n");
-+			return;
-+		}
-+
-+		if (hkey == 0) {
-+			/* queue empty */
-+			return;
-+		}
-+
-+		send_acpi_ev = 0;
+ 	switch(thermal_read_mode) {
+ 	case TPACPI_THERMAL_TPEC_16:
+-		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++		sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj,
+ 				   &thermal_temp_input16_group);
+ 		break;
+ 	case TPACPI_THERMAL_TPEC_8:
+ 	case TPACPI_THERMAL_ACPI_TMP07:
+ 	case TPACPI_THERMAL_ACPI_UPDT:
+-		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++		sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj,
+ 				   &thermal_temp_input16_group);
+ 		break;
+ 	case TPACPI_THERMAL_NONE:
+@@ -3686,7 +3693,7 @@ static struct device_attribute dev_attr_fan_fan1_input =
+ 	__ATTR(fan1_input, S_IRUGO,
+ 		fan_fan1_input_show, NULL);
  
--	if (event == 0x80 && acpi_evalf(hkey_handle, &hkey, "MHKP", "d")) {
- 		switch (hkey >> 12) {
- 		case 1:
- 			/* 0x1000-0x1FFF: key presses */
-@@ -1220,8 +1241,8 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			 * eat up known LID events */
- 			if (hkey != 0x5001 && hkey != 0x5002) {
- 				printk(IBM_ERR
--					"unknown LID-related hotkey event: 0x%04x\n",
--					hkey);
-+				       "unknown LID-related HKEY event: 0x%04x\n",
-+				       hkey);
- 				send_acpi_ev = 1;
- 			}
- 			break;
-@@ -1240,21 +1261,17 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			printk(IBM_NOTICE "unhandled HKEY event 0x%04x\n", hkey);
- 			send_acpi_ev = 1;
- 		}
--	} else {
--		printk(IBM_ERR "unknown hotkey notification event %d\n", event);
--		hkey = 0;
--		send_acpi_ev = 1;
--	}
+-/* sysfs fan fan_watchdog (driver) ------------------------------------- */
++/* sysfs fan fan_watchdog (hwmon driver) ------------------------------- */
+ static ssize_t fan_fan_watchdog_show(struct device_driver *drv,
+ 				     char *buf)
+ {
+@@ -3828,10 +3835,10 @@ static int __init fan_init(struct ibm_init_struct *iibm)
  
--	/* Legacy events */
--	if (send_acpi_ev || hotkey_report_mode < 2)
--		acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
-+		/* Legacy events */
-+		if (send_acpi_ev || hotkey_report_mode < 2)
-+			acpi_bus_generate_proc_event(ibm->acpi->device, event, hkey);
+ 	if (fan_status_access_mode != TPACPI_FAN_NONE ||
+ 	    fan_control_access_mode != TPACPI_FAN_WR_NONE) {
+-		rc = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++		rc = sysfs_create_group(&tpacpi_sensors_pdev->dev.kobj,
+ 					 &fan_attr_group);
+ 		if (!(rc < 0))
+-			rc = driver_create_file(&tpacpi_pdriver.driver,
++			rc = driver_create_file(&tpacpi_hwmon_pdriver.driver,
+ 					&driver_attr_fan_watchdog);
+ 		if (rc < 0)
+ 			return rc;
+@@ -3914,8 +3921,8 @@ static void fan_exit(void)
+ 	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending fan watchdog tasks\n");
  
--	/* netlink events */
--	if (send_acpi_ev) {
--		acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
--						ibm->acpi->device->dev.bus_id,
--						event, hkey);
-+		/* netlink events */
-+		if (send_acpi_ev) {
-+			acpi_bus_generate_netlink_event(ibm->acpi->device->pnp.device_class,
-+							ibm->acpi->device->dev.bus_id,
-+							event, hkey);
-+		}
+ 	/* FIXME: can we really do this unconditionally? */
+-	sysfs_remove_group(&tpacpi_pdev->dev.kobj, &fan_attr_group);
+-	driver_remove_file(&tpacpi_pdriver.driver, &driver_attr_fan_watchdog);
++	sysfs_remove_group(&tpacpi_sensors_pdev->dev.kobj, &fan_attr_group);
++	driver_remove_file(&tpacpi_hwmon_pdriver.driver, &driver_attr_fan_watchdog);
+ 
+ 	cancel_delayed_work(&fan_watchdog_task);
+ 	flush_scheduled_work();
+@@ -4366,6 +4373,19 @@ static struct ibm_struct fan_driver_data = {
+  ****************************************************************************
+  ****************************************************************************/
+ 
++/* sysfs name ---------------------------------------------------------- */
++static ssize_t thinkpad_acpi_pdev_name_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "%s\n", IBM_NAME);
++}
++
++static struct device_attribute dev_attr_thinkpad_acpi_pdev_name =
++	__ATTR(name, S_IRUGO, thinkpad_acpi_pdev_name_show, NULL);
++
++/* --------------------------------------------------------------------- */
++
+ /* /proc support */
+ static struct proc_dir_entry *proc_dir;
+ 
+@@ -4768,12 +4788,20 @@ static int __init thinkpad_acpi_module_init(void)
+ 
+ 	ret = platform_driver_register(&tpacpi_pdriver);
+ 	if (ret) {
+-		printk(IBM_ERR "unable to register platform driver\n");
++		printk(IBM_ERR "unable to register main platform driver\n");
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
  	}
- }
+ 	tp_features.platform_drv_registered = 1;
  
++	ret = platform_driver_register(&tpacpi_hwmon_pdriver);
++	if (ret) {
++		printk(IBM_ERR "unable to register hwmon platform driver\n");
++		thinkpad_acpi_module_exit();
++		return ret;
++	}
++	tp_features.sensors_pdrv_registered = 1;
++
+ 	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
+ 	if (ret) {
+ 		printk(IBM_ERR "unable to create sysfs driver attributes\n");
+@@ -4793,7 +4821,26 @@ static int __init thinkpad_acpi_module_init(void)
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
+ 	}
+-	tpacpi_hwmon = hwmon_device_register(&tpacpi_pdev->dev);
++	tpacpi_sensors_pdev = platform_device_register_simple(
++							IBM_HWMON_DRVR_NAME,
++							-1, NULL, 0);
++	if (IS_ERR(tpacpi_sensors_pdev)) {
++		ret = PTR_ERR(tpacpi_sensors_pdev);
++		tpacpi_sensors_pdev = NULL;
++		printk(IBM_ERR "unable to register hwmon platform device\n");
++		thinkpad_acpi_module_exit();
++		return ret;
++	}
++	ret = device_create_file(&tpacpi_sensors_pdev->dev,
++				 &dev_attr_thinkpad_acpi_pdev_name);
++	if (ret) {
++		printk(IBM_ERR
++			"unable to create sysfs hwmon device attributes\n");
++		thinkpad_acpi_module_exit();
++		return ret;
++	}
++	tp_features.sensors_pdev_attrs_registered = 1;
++	tpacpi_hwmon = hwmon_device_register(&tpacpi_sensors_pdev->dev);
+ 	if (IS_ERR(tpacpi_hwmon)) {
+ 		ret = PTR_ERR(tpacpi_hwmon);
+ 		tpacpi_hwmon = NULL;
+@@ -4864,12 +4911,20 @@ static void thinkpad_acpi_module_exit(void)
+ 	if (tpacpi_hwmon)
+ 		hwmon_device_unregister(tpacpi_hwmon);
+ 
++	if (tp_features.sensors_pdev_attrs_registered)
++		device_remove_file(&tpacpi_sensors_pdev->dev,
++				   &dev_attr_thinkpad_acpi_pdev_name);
++	if (tpacpi_sensors_pdev)
++		platform_device_unregister(tpacpi_sensors_pdev);
+ 	if (tpacpi_pdev)
+ 		platform_device_unregister(tpacpi_pdev);
+ 
+ 	if (tp_features.platform_drv_attrs_registered)
+ 		tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
+ 
++	if (tp_features.sensors_pdrv_registered)
++		platform_driver_unregister(&tpacpi_hwmon_pdriver);
++
+ 	if (tp_features.platform_drv_registered)
+ 		platform_driver_unregister(&tpacpi_pdriver);
+ 
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index fa64ded..791b8ca 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -58,13 +58,14 @@
+ 
+ #define IBM_NAME "thinkpad"
+ #define IBM_DESC "ThinkPad ACPI Extras"
+-#define IBM_FILE "thinkpad_acpi"
++#define IBM_FILE IBM_NAME "_acpi"
+ #define IBM_URL "http://ibm-acpi.sf.net/"
+ #define IBM_MAIL "ibm-acpi-devel@lists.sourceforge.net"
+ 
+ #define IBM_PROC_DIR "ibm"
+ #define IBM_ACPI_EVENT_PREFIX "ibm"
+ #define IBM_DRVR_NAME IBM_FILE
++#define IBM_HWMON_DRVR_NAME IBM_NAME "_hwmon"
+ 
+ #define IBM_LOG IBM_FILE ": "
+ #define IBM_ERR	   KERN_ERR    IBM_LOG
+@@ -171,6 +172,7 @@ static int parse_strtoul(const char *buf, unsigned long max,
+ 
+ /* Device model */
+ static struct platform_device *tpacpi_pdev;
++static struct platform_device *tpacpi_sensors_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct platform_driver tpacpi_pdriver;
+ static struct input_dev *tpacpi_inputdev;
+@@ -249,6 +251,8 @@ static struct {
+ 	u32 input_device_registered:1;
+ 	u32 platform_drv_registered:1;
+ 	u32 platform_drv_attrs_registered:1;
++	u32 sensors_pdrv_registered:1;
++	u32 sensors_pdev_attrs_registered:1;
+ } tp_features;
+ 
+ struct thinkpad_id_data {
 -- 
 1.5.3.4.206.g58ba4
