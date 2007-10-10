@@ -1,93 +1,359 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/37] ACPI: thermal: use round_jiffies when thermal zone polling is enabled
-Date: Wed, 10 Oct 2007 01:06:10 -0400
-Message-ID: <1191992804-14965-4-git-send-email-lenb@kernel.org>
+Subject: [PATCH 01/37] sony-laptop: old Vaio models contain 2 IO port entries
+Date: Wed, 10 Oct 2007 01:06:08 -0400
+Message-ID: <1191992804-14965-2-git-send-email-lenb@kernel.org>
 References: <1191992804-14965-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga10.intel.com ([192.55.52.92]:45224 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750860AbXJJFGr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:47 -0400
+	with ESMTP id S1750783AbXJJFGq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:46 -0400
 In-Reply-To: <1191992804-14965-1-git-send-email-lenb@kernel.org>
-Message-Id: <21bc42ab852549f4a547d18d77e0e4d1b24ffd96.1191992584.git.len.brown@intel.com>
-In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
-References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
+Message-Id: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Mattia Dongili <malattia@linux.it>
 
-Properly functioning systems do not use thermal zone polling,
-they use event-based notification.
+Make the driver aware of this case and manage the existence of a
+second separate IO port.
 
-However, some users enable periodic thermal zone polling
-to work around bugs on their platforms, and at least one
-platform exists with a real _TZP that requests polling.
-
-While thermal zone polling (_TZP) is specified in units to 0.1 seconds,
-it actually has a maximum granularity of 1 second.  Thus, we can safely
-round up the _TZP timeout to occur on the next 1-second boundary.
-This will batch it with other 1-second-granularity timers in the
-system and thus potentially extend processor idle duration.
-
-Note that the same timer is used both for _TZP
-and for passive processor thermal throttling.
-We can not round up the timeout when it is used
-for passive thermal throttling.
-
-Also, we can not make this a deferrable timer,
-as temperature is just as relevant during idle
-as it is during non-idle.
-
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/thermal.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/misc/sony-laptop.c |  204 ++++++++++++++++++++++++++++++++------------
+ 1 files changed, 148 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index bc6d586..15d5fdc 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -711,6 +711,7 @@ static void acpi_thermal_check(void *data)
- 	int result = 0;
- 	struct acpi_thermal *tz = data;
- 	unsigned long sleep_time = 0;
-+	unsigned long timeout_jiffies = 0;
- 	int i = 0;
- 	struct acpi_thermal_state state;
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 7d8bebe..091e035 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1173,7 +1173,8 @@ static struct acpi_driver sony_nc_driver = {
+ #define SONYPI_TYPE3_OFFSET	0x12
  
-@@ -787,10 +788,13 @@ static void acpi_thermal_check(void *data)
- 	 * a thermal event occurs).  Note that _TSP and _TZD values are
- 	 * given in 1/10th seconds (we must covert to milliseconds).
- 	 */
--	if (tz->state.passive)
-+	if (tz->state.passive) {
- 		sleep_time = tz->trips.passive.tsp * 100;
--	else if (tz->polling_frequency > 0)
-+		timeout_jiffies =  jiffies + (HZ * sleep_time) / 1000;
-+	} else if (tz->polling_frequency > 0) {
- 		sleep_time = tz->polling_frequency * 100;
-+		timeout_jiffies =  round_jiffies(jiffies + (HZ * sleep_time) / 1000);
+ struct sony_pic_ioport {
+-	struct acpi_resource_io	io;
++	struct acpi_resource_io	io1;
++	struct acpi_resource_io	io2;
+ 	struct list_head	list;
+ };
+ 
+@@ -1443,11 +1444,11 @@ static u8 sony_pic_call1(u8 dev)
+ {
+ 	u8 v1, v2;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum + 4);
+-	v2 = inb_p(spic_dev.cur_ioport->io.minimum);
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
++	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
+ 	return v2;
+ }
+@@ -1456,13 +1457,13 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
+ {
+ 	u8 v1;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2,
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2,
+ 			ITERATIONS_LONG);
+-	outb(fn, spic_dev.cur_ioport->io.minimum);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
++	outb(fn, spic_dev.cur_ioport->io1.minimum);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call2: 0x%.4x\n", v1);
+ 	return v1;
+ }
+@@ -1471,13 +1472,13 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
+ {
+ 	u8 v1;
+ 
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(dev, spic_dev.cur_ioport->io.minimum + 4);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(fn, spic_dev.cur_ioport->io.minimum);
+-	wait_on_command(inb_p(spic_dev.cur_ioport->io.minimum + 4) & 2, ITERATIONS_LONG);
+-	outb(v, spic_dev.cur_ioport->io.minimum);
+-	v1 = inb_p(spic_dev.cur_ioport->io.minimum);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(fn, spic_dev.cur_ioport->io1.minimum);
++	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
++	outb(v, spic_dev.cur_ioport->io1.minimum);
++	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+ 	dprintk("sony_pic_call3: 0x%.4x\n", v1);
+ 	return v1;
+ }
+@@ -2074,7 +2075,18 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 
+ 	switch (resource->type) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
++		{
++			/* start IO enumeration */
++			struct sony_pic_ioport *ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
++			if (!ioport)
++				return AE_ERROR;
++
++			list_add(&ioport->list, &dev->ioports);
++			return AE_OK;
++		}
++
+ 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
++		/* end IO enumeration */
+ 		return AE_OK;
+ 
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+@@ -2101,7 +2113,7 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 				if (!interrupt)
+ 					return AE_ERROR;
+ 
+-				list_add_tail(&interrupt->list, &dev->interrupts);
++				list_add(&interrupt->list, &dev->interrupts);
+ 				interrupt->irq.triggering = p->triggering;
+ 				interrupt->irq.polarity = p->polarity;
+ 				interrupt->irq.sharable = p->sharable;
+@@ -2113,18 +2125,27 @@ sony_pic_read_possible_resource(struct acpi_resource *resource, void *context)
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		{
+ 			struct acpi_resource_io *io = &resource->data.io;
+-			struct sony_pic_ioport *ioport = NULL;
++			struct sony_pic_ioport *ioport =
++				list_first_entry(&dev->ioports, struct sony_pic_ioport, list);
+ 			if (!io) {
+ 				dprintk("Blank IO resource\n");
+ 				return AE_OK;
+ 			}
+ 
+-			ioport = kzalloc(sizeof(*ioport), GFP_KERNEL);
+-			if (!ioport)
++			if (!ioport->io1.minimum) {
++				memcpy(&ioport->io1, io, sizeof(*io));
++				dprintk("IO1 at 0x%.4x (0x%.2x)\n", ioport->io1.minimum,
++						ioport->io1.address_length);
++			}
++			else if (!ioport->io2.minimum) {
++				memcpy(&ioport->io2, io, sizeof(*io));
++				dprintk("IO2 at 0x%.4x (0x%.2x)\n", ioport->io2.minimum,
++						ioport->io2.address_length);
++			}
++			else {
++				printk(KERN_ERR DRV_PFX "Unknown SPIC Type, more than 2 IO Ports\n");
+ 				return AE_ERROR;
+-
+-			list_add_tail(&ioport->list, &dev->ioports);
+-			memcpy(&ioport->io, io, sizeof(*io));
++			}
+ 			return AE_OK;
+ 		}
+ 	default:
+@@ -2199,10 +2220,22 @@ static int sony_pic_enable(struct acpi_device *device,
+ {
+ 	acpi_status status;
+ 	int result = 0;
++	/* Type 1 resource layout is:
++	 *    IO
++	 *    IO
++	 *    IRQNoFlags
++	 *    End
++	 *
++	 * Type 2 and 3 resource layout is:
++	 *    IO
++	 *    IRQNoFlags
++	 *    End
++	 */
+ 	struct {
+-		struct acpi_resource io_res;
+-		struct acpi_resource irq_res;
+-		struct acpi_resource end;
++		struct acpi_resource res1;
++		struct acpi_resource res2;
++		struct acpi_resource res3;
++		struct acpi_resource res4;
+ 	} *resource;
+ 	struct acpi_buffer buffer = { 0, NULL };
+ 
+@@ -2217,21 +2250,49 @@ static int sony_pic_enable(struct acpi_device *device,
+ 	buffer.length = sizeof(*resource) + 1;
+ 	buffer.pointer = resource;
+ 
+-	/* setup io resource */
+-	resource->io_res.type = ACPI_RESOURCE_TYPE_IO;
+-	resource->io_res.length = sizeof(struct acpi_resource);
+-	memcpy(&resource->io_res.data.io, &ioport->io,
+-			sizeof(struct acpi_resource_io));
++	/* setup Type 1 resources */
++	if (spic_dev.model == SONYPI_DEVICE_TYPE1) {
+ 
+-	/* setup irq resource */
+-	resource->irq_res.type = ACPI_RESOURCE_TYPE_IRQ;
+-	resource->irq_res.length = sizeof(struct acpi_resource);
+-	memcpy(&resource->irq_res.data.irq, &irq->irq,
+-			sizeof(struct acpi_resource_irq));
+-	/* we requested a shared irq */
+-	resource->irq_res.data.irq.sharable = ACPI_SHARED;
++		/* setup io resources */
++		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res1.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res1.data.io, &ioport->io1,
++				sizeof(struct acpi_resource_io));
+ 
+-	resource->end.type = ACPI_RESOURCE_TYPE_END_TAG;
++		resource->res2.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res2.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res2.data.io, &ioport->io2,
++				sizeof(struct acpi_resource_io));
++
++		/* setup irq resource */
++		resource->res3.type = ACPI_RESOURCE_TYPE_IRQ;
++		resource->res3.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res3.data.irq, &irq->irq,
++				sizeof(struct acpi_resource_irq));
++		/* we requested a shared irq */
++		resource->res3.data.irq.sharable = ACPI_SHARED;
++
++		resource->res4.type = ACPI_RESOURCE_TYPE_END_TAG;
++
++	}
++	/* setup Type 2/3 resources */
++	else {
++		/* setup io resource */
++		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
++		resource->res1.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res1.data.io, &ioport->io1,
++				sizeof(struct acpi_resource_io));
++
++		/* setup irq resource */
++		resource->res2.type = ACPI_RESOURCE_TYPE_IRQ;
++		resource->res2.length = sizeof(struct acpi_resource);
++		memcpy(&resource->res2.data.irq, &irq->irq,
++				sizeof(struct acpi_resource_irq));
++		/* we requested a shared irq */
++		resource->res2.data.irq.sharable = ACPI_SHARED;
++
++		resource->res3.type = ACPI_RESOURCE_TYPE_END_TAG;
 +	}
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "%s: temperature[%lu] sleep[%lu]\n",
- 			  tz->name, tz->temperature, sleep_time));
-@@ -804,12 +808,11 @@ static void acpi_thermal_check(void *data)
- 			del_timer(&(tz->timer));
- 	} else {
- 		if (timer_pending(&(tz->timer)))
--			mod_timer(&(tz->timer),
--					jiffies + (HZ * sleep_time) / 1000);
-+			mod_timer(&(tz->timer), timeout_jiffies);
- 		else {
- 			tz->timer.data = (unsigned long)tz;
- 			tz->timer.function = acpi_thermal_run;
--			tz->timer.expires = jiffies + (HZ * sleep_time) / 1000;
-+			tz->timer.expires = timeout_jiffies;
- 			add_timer(&(tz->timer));
+ 	/* Attempt to set the resource */
+ 	dprintk("Evaluating _SRS\n");
+@@ -2239,7 +2300,7 @@ static int sony_pic_enable(struct acpi_device *device,
+ 
+ 	/* check for total failure */
+ 	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR DRV_PFX "Error evaluating _SRS");
++		printk(KERN_ERR DRV_PFX "Error evaluating _SRS\n");
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
+@@ -2268,11 +2329,14 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
+ 
+ 	struct sony_pic_dev *dev = (struct sony_pic_dev *) dev_id;
+ 
+-	ev = inb_p(dev->cur_ioport->io.minimum);
+-	data_mask = inb_p(dev->cur_ioport->io.minimum + dev->evport_offset);
++	ev = inb_p(dev->cur_ioport->io1.minimum);
++	if (dev->cur_ioport->io2.minimum)
++		data_mask = inb_p(dev->cur_ioport->io2.minimum);
++	else
++		data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->evport_offset);
+ 
+ 	dprintk("event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
+-			ev, data_mask, dev->cur_ioport->io.minimum, dev->evport_offset);
++			ev, data_mask, dev->cur_ioport->io1.minimum, dev->evport_offset);
+ 
+ 	if (ev == 0x00 || ev == 0xff)
+ 		return IRQ_HANDLED;
+@@ -2323,8 +2387,11 @@ static int sony_pic_remove(struct acpi_device *device, int type)
+ 	}
+ 
+ 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
+-	release_region(spic_dev.cur_ioport->io.minimum,
+-			spic_dev.cur_ioport->io.address_length);
++	release_region(spic_dev.cur_ioport->io1.minimum,
++			spic_dev.cur_ioport->io1.address_length);
++	if (spic_dev.cur_ioport->io2.minimum)
++		release_region(spic_dev.cur_ioport->io2.minimum,
++				spic_dev.cur_ioport->io2.address_length);
+ 
+ 	sonypi_compat_exit();
+ 
+@@ -2397,14 +2464,36 @@ static int sony_pic_add(struct acpi_device *device)
+ 		goto err_remove_input;
+ 
+ 	/* request io port */
+-	list_for_each_entry(io, &spic_dev.ioports, list) {
+-		if (request_region(io->io.minimum, io->io.address_length,
++	list_for_each_entry_reverse(io, &spic_dev.ioports, list) {
++		if (request_region(io->io1.minimum, io->io1.address_length,
+ 					"Sony Programable I/O Device")) {
+-			dprintk("I/O port: 0x%.4x (0x%.4x) + 0x%.2x\n",
+-					io->io.minimum, io->io.maximum,
+-					io->io.address_length);
+-			spic_dev.cur_ioport = io;
+-			break;
++			dprintk("I/O port1: 0x%.4x (0x%.4x) + 0x%.2x\n",
++					io->io1.minimum, io->io1.maximum,
++					io->io1.address_length);
++			/* Type 1 have 2 ioports */
++			if (io->io2.minimum) {
++				if (request_region(io->io2.minimum,
++						io->io2.address_length,
++						"Sony Programable I/O Device")) {
++					dprintk("I/O port2: 0x%.4x (0x%.4x) + 0x%.2x\n",
++							io->io2.minimum, io->io2.maximum,
++							io->io2.address_length);
++					spic_dev.cur_ioport = io;
++					break;
++				}
++				else {
++					dprintk("Unable to get I/O port2: "
++							"0x%.4x (0x%.4x) + 0x%.2x\n",
++							io->io2.minimum, io->io2.maximum,
++							io->io2.address_length);
++					release_region(io->io1.minimum,
++							io->io1.address_length);
++				}
++			}
++			else {
++				spic_dev.cur_ioport = io;
++				break;
++			}
  		}
  	}
+ 	if (!spic_dev.cur_ioport) {
+@@ -2414,7 +2503,7 @@ static int sony_pic_add(struct acpi_device *device)
+ 	}
+ 
+ 	/* request IRQ */
+-	list_for_each_entry(irq, &spic_dev.interrupts, list) {
++	list_for_each_entry_reverse(irq, &spic_dev.interrupts, list) {
+ 		if (!request_irq(irq->irq.interrupts[0], sony_pic_irq,
+ 					IRQF_SHARED, "sony-laptop", &spic_dev)) {
+ 			dprintk("IRQ: %d - triggering: %d - "
+@@ -2462,8 +2551,11 @@ err_free_irq:
+ 	free_irq(spic_dev.cur_irq->irq.interrupts[0], &spic_dev);
+ 
+ err_release_region:
+-	release_region(spic_dev.cur_ioport->io.minimum,
+-			spic_dev.cur_ioport->io.address_length);
++	release_region(spic_dev.cur_ioport->io1.minimum,
++			spic_dev.cur_ioport->io1.address_length);
++	if (spic_dev.cur_ioport->io2.minimum)
++		release_region(spic_dev.cur_ioport->io2.minimum,
++				spic_dev.cur_ioport->io2.address_length);
+ 
+ err_remove_compat:
+ 	sonypi_compat_exit();
 -- 
 1.5.3.4.206.g58ba4
