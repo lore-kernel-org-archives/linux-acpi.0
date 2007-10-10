@@ -1,62 +1,95 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI:avoid printing the error message that processor device is not present
-Date: Tue, 9 Oct 2007 23:43:40 -0400
-Message-ID: <200710092343.40843.lenb@kernel.org>
-References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
+Subject: Re: [PATCH] ACPI: idle: delete access to ACPI_BITREG_BUS_MASTER_RLD
+Date: Wed, 10 Oct 2007 00:05:55 -0400
+Message-ID: <200710100005.56059.lenb@kernel.org>
+References: <200710040053.04489.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58495 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:39944 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750856AbXJJDnz (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 9 Oct 2007 23:43:55 -0400
-In-Reply-To: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
+	id S1751361AbXJJEGL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Oct 2007 00:06:11 -0400
+Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id l9A461PN030981
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Oct 2007 04:06:05 GMT
+In-Reply-To: <200710040053.04489.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sunday 07 October 2007 23:35, Zhao Yakui wrote:
-> Subject: ACPI: avoid printing the info that processor device is not present
-> From: Zhao Yakui  <yakui.zhao@intel.com>
-> 
-> Four processors are defined in the DSDT table, which means that quad-core cpu
-> is supported. But dual-core cpu is installed on the system. In the
-> initialization OS will check whether the defined processor exists. If it 
-> doesn't exist, it will print the info that processor device is not present.
-> The above error message has no effect on the system but it will mislead us.
-> So it is unnecessary to print the error message when disabling acpi debug.
+I've been told that BM_RLD is not a NOP in the PIIX4 - ICH4-M generations;
+and that those chips follow the 1st description in the ACPI spec, not
+the second.  (I've also submitted a bug against the ACPI spec:-)
 
-SuSE ships with ACPI_DEBUG enabled by default.
-Can we get smarter about this -- say by checking against
-the processors that we expect to be present?
+So the patch below is no good.
+But the old code still isn't quite right.
+It seems we should just set BM_RLD at initialization and forget about it
+rather than monkeying with it at run-time.
 
-thanks,
+cheers,
 -Len
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8630
+
+On Thursday 04 October 2007 00:53, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
 > 
-> Signed-off-by: Zhao Yakui  <yakui.zhao@intel.com>
-> ---
->  drivers/acpi/processor_core.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> The ACPI specification describes PM1*_CNT_BLK.BM_RLD in two places.
 > 
-> Index: linux-2.6.23-rc7/drivers/acpi/processor_core.c
-> ===================================================================
-> --- linux-2.6.23-rc7.orig/drivers/acpi/processor_core.c
-> +++ linux-2.6.23-rc7/drivers/acpi/processor_core.c
-> @@ -813,7 +813,9 @@ static int is_processor_present(acpi_han
+> The first description says that the OS needs to set BM_RLD
+> to enable bus master activity to wake the processor from C3.
+> 
+> The second description says that the platform sets BM_RLD
+> to indicate whether it was bus master activity that woke the
+> platform from C3 or not.
+> 
+> The first description is erroneous, the second description is correct.
+> Delete Linux's implementation of the first description.
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index f182613..4f004f1 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -192,26 +192,6 @@ acpi_processor_power_activate(struct acpi_processor *pr,
+>  		old->promotion.count = 0;
+>  	new->demotion.count = 0;
 >  
->  	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
->  	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
-> -		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +			"%s :Processor Device is not present",
-> +			acpi_format_exception(status)));
->  		return 0;
+> -	/* Cleanup from old state. */
+> -	if (old) {
+> -		switch (old->type) {
+> -		case ACPI_STATE_C3:
+> -			/* Disable bus master reload */
+> -			if (new->type != ACPI_STATE_C3 && pr->flags.bm_check)
+> -				acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+> -			break;
+> -		}
+> -	}
+> -
+> -	/* Prepare to use new state. */
+> -	switch (new->type) {
+> -	case ACPI_STATE_C3:
+> -		/* Enable bus master reload */
+> -		if (old->type != ACPI_STATE_C3 && pr->flags.bm_check)
+> -			acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 1);
+> -		break;
+> -	}
+> -
+>  	pr->power.state = new;
+>  
+>  	return;
+> @@ -1027,7 +1007,6 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+>  					  " for C3 to be enabled on SMP systems\n"));
+>  			return;
+>  		}
+> -		acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
 >  	}
->  	return 1;
+>  
+>  	/*
 > 
