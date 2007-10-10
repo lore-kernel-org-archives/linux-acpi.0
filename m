@@ -1,63 +1,87 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/37] sony-laptop/thinkpad-acpi: fix INPUT=n build
-Date: Wed, 10 Oct 2007 01:06:15 -0400
-Message-ID: <1191992804-14965-9-git-send-email-lenb@kernel.org>
+Subject: [PATCH 12/37] ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
+Date: Wed, 10 Oct 2007 01:06:19 -0400
+Message-ID: <1191992804-14965-13-git-send-email-lenb@kernel.org>
 References: <1191992804-14965-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:53821 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:19103 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750987AbXJJFGv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:51 -0400
+	with ESMTP id S1751160AbXJJFGy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2007 01:06:54 -0400
 In-Reply-To: <1191992804-14965-1-git-send-email-lenb@kernel.org>
-Message-Id: <8a66074c379cacc79168681bf7dea37ad278f5d1.1191992584.git.len.brown@intel.com>
+Message-Id: <8523ed6fb2ca04973fe759fda8ab4af72492fc7e.1191992584.git.len.brown@intel.com>
 In-Reply-To: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 References: <fd1caaed466de2ee100e250b6c755376eda7ba3b.1191992584.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Andreas Herrmann <aherrman@arcor.de>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Andreas Herrmann <aherrman@arcor.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Build errors if CONFIG_SONY_LAPTOP && !INPUT or
-if CONFIG_THINKPAD_ACPI && !INPUT:
+Protect the input device event sending path with a mutex, since hot key
+input events are not atomic and require an cohesive event block to be sent
+together.
 
- LD      vmlinux
-    ...
-drivers/built-in.o: In function `sony_laptop_remove_input':
-sony-laptop.c:(.text+0x768fb): undefined reference to `input_unregister_device'
-    ...
-drivers/built-in.o: In function `thinkpad_acpi_module_exit':
-thinkpad_acpi.c:(.text+0x78c1b): undefined reference to `input_free_device'
-    ...
-
-Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 73e248f..7b580c3 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -134,6 +134,7 @@ config SONY_LAPTOP
- 	tristate "Sony Laptop Extras"
- 	depends on X86 && ACPI
- 	select BACKLIGHT_CLASS_DEVICE
-+	depends on INPUT
- 	  ---help---
- 	  This mini-driver drives the SNC and SPIC devices present in the ACPI
- 	  BIOS of the Sony Vaio laptops.
-@@ -156,6 +157,7 @@ config THINKPAD_ACPI
- 	select BACKLIGHT_CLASS_DEVICE
- 	select HWMON
- 	select NVRAM
-+	depends on INPUT
- 	---help---
- 	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
- 	  support for Fn-Fx key combinations, Bluetooth control, video
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 8aa0f96..0ced9d6 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -519,6 +519,7 @@ static char *next_cmd(char **cmds)
+ static struct platform_device *tpacpi_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
++static struct mutex tpacpi_inputdev_send_mutex;
+ 
+ 
+ static int tpacpi_resume_handler(struct platform_device *pdev)
+@@ -1131,6 +1132,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 				  unsigned int keycode)
+ {
+ 	if (keycode != KEY_RESERVED) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 		input_report_key(tpacpi_inputdev, keycode, 1);
+ 		if (keycode == KEY_UNKNOWN)
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+@@ -1142,6 +1145,8 @@ static void tpacpi_input_send_key(unsigned int scancode,
+ 			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+ 				    scancode);
+ 		input_sync(tpacpi_inputdev);
++
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
+ 	}
+ }
+ 
+@@ -1149,11 +1154,15 @@ static void tpacpi_input_send_radiosw(void)
+ {
+ 	int wlsw;
+ 
++	mutex_lock(&tpacpi_inputdev_send_mutex);
++
+ 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
+ 		input_report_switch(tpacpi_inputdev,
+ 				    SW_RADIO, !!wlsw);
+ 		input_sync(tpacpi_inputdev);
+ 	}
++
++	mutex_unlock(&tpacpi_inputdev_send_mutex);
+ }
+ 
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -4737,6 +4746,7 @@ static int __init thinkpad_acpi_module_init(void)
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
+ 	}
++	mutex_init(&tpacpi_inputdev_send_mutex);
+ 	tpacpi_inputdev = input_allocate_device();
+ 	if (!tpacpi_inputdev) {
+ 		printk(IBM_ERR "unable to allocate input device\n");
 -- 
 1.5.3.4.206.g58ba4
