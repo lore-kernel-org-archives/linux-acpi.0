@@ -1,41 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] How to distinguish between general ACPI video
-	driver module and brightness/display providing vendor specific ACPI
-	modules
-Date: Wed, 10 Oct 2007 18:23:32 -0300
-Message-ID: <20071010212332.GC509@khazad-dum.debian.net>
-References: <1191923208.9847.169.camel@queen.suse.de> <20071009100418.GA2472@srcf.ucam.org> <20071009111445.GB24946@khazad-dum.debian.net> <1191936552.9847.257.camel@queen.suse.de> <20071009134711.GA444@khazad-dum.debian.net> <1191939088.9847.274.camel@queen.suse.de> <20071009142934.GB444@khazad-dum.debian.net> <1191963205.3880.58.camel@fanta4.site> <1192016657.9847.319.camel@queen.suse.de> <20071010204632.GA509@khazad-dum.debian.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 3/6] PNP: use dev_info(), dev_err(), etc in core
+Date: Wed, 10 Oct 2007 22:47:39 -0700
+Message-ID: <20071010224739.f4ecd5aa.akpm@linux-foundation.org>
+References: <20070928163911.697537922@ldl.fc.hp.com>
+	<20070928164350.079891622@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56655 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755877AbXJJVXn (ORCPT
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48036 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752989AbXJKFr7 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:23:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20071010204632.GA509@khazad-dum.debian.net>
+	Thu, 11 Oct 2007 01:47:59 -0400
+In-Reply-To: <20070928164350.079891622@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Adam Belay <ambx1@neo.rr.com>, linux-acpi@vger.kernel.org
 
-On Wed, 10 Oct 2007, Henrique de Moraes Holschuh wrote:
-> > 3)
-> > I think I found a bug in thinkpad_acpi:
-> > 	if (!*ibm->acpi->handle)
-> > 		return 0;
-> > in setup_acpi_notify(..) probably should be:
-> > 	if (!ibm->acpi->handle)
-> > 		return 0;
-> 
-> I will check that.
+On Fri, 28 Sep 2007 10:39:14 -0600 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-No bug there.  handle is a pointer to the handle, so it has to be
-dereferenced.
+> --- w.orig/include/linux/pnp.h	2007-09-13 16:25:48.000000000 -0600
+> +++ w/include/linux/pnp.h	2007-09-13 16:26:04.000000000 -0600
+> @@ -8,6 +8,10 @@
+>  
+>  #ifdef __KERNEL__
+>  
+> +#ifdef CONFIG_PNP_DEBUG
+> +#define DEBUG
+> +#endif
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+In file included from include/linux/isapnp.h:26,
+                 from drivers/pcmcia/i82365.c:58:
+include/linux/pnp.h:12:1: warning: "DEBUG" redefined
+<command line>:1:1: warning: this is the location of the previous definition
+
+testing problems?
