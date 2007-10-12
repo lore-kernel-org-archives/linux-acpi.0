@@ -1,44 +1,106 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 6/6] PNP: add debug message for adding new device
-Date: Thu, 11 Oct 2007 14:42:04 -0600
-Message-ID: <200710111442.05167.bjorn.helgaas@hp.com>
-References: <20070928163911.697537922@ldl.fc.hp.com> <20070928164350.680575900@ldl.fc.hp.com>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: Invalid PnP ACPI reserved MMIO areas on Supermicro boards
+Date: Thu, 11 Oct 2007 18:05:17 -0600
+Message-ID: <470EBA3D.10705@shaw.ca>
+References: <470C166C.4030502@shaw.ca> <200710100110.25513.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:40173 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755395AbXJKVD2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Oct 2007 17:03:28 -0400
-In-Reply-To: <20070928164350.680575900@ldl.fc.hp.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-reply-to: <200710100110.25513.lenb@kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, ide <linux-ide@vger.kernel.org>, Linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, Adam Belay <ambx1@neo.rr.com>, linux-acpi@vger.kernel.org
 
-Sigh, this isn't my finest hour.  My patch adds an unused variable
-warning when !CONFIG_PNP_DEBUG.  Can you please add this additional
-patch?
+Len Brown wrote:
+> On Tuesday 09 October 2007 20:01, Robert Hancock wrote:
+>> Some people with certain Supermicro boards (at least the H8DCE, it 
+>> seems) have reported that the sata_nv driver fails to attach to some of 
+>> the controllers due to resource conflicts:
+>>
+>> https://bugzilla.redhat.com/show_bug.cgi?id=280641
+>> https://bugzilla.redhat.com/show_bug.cgi?id=313491
+>>
+>> Essentially since about 2.6.22 or so (before which we apparently didn't 
+>> handle PnpACPI reserved MMIO regions?) we get:
+> 
+> So if you boot with "pnpacpi=off" then the board is happy?
+> 
+> -Len
 
+Apparently yes - see new comments in:
 
-PNP: add debug message for adding new device (fix unused var)
+https://bugzilla.redhat.com/show_bug.cgi?id=280641
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+A patch has also been proposed to ignore motherboard resources that 
+overlap PCI BARs here:
 
-Index: w/drivers/pnp/core.c
-===================================================================
---- w.orig/drivers/pnp/core.c	2007-10-11 14:33:31.000000000 -0600
-+++ w/drivers/pnp/core.c	2007-10-11 14:33:40.000000000 -0600
-@@ -141,7 +141,9 @@
- int pnp_add_device(struct pnp_dev *dev)
- {
- 	int ret;
-+#ifdef CONFIG_PNP_DEBUG
- 	struct pnp_id *id;
-+#endif
- 
- 	if (dev->card)
- 		return -EINVAL;
+https://bugzilla.redhat.com/show_bug.cgi?id=313491
+
+> 
+>> pnp: 00:09: iomem range 0xdfefd000-0xdfefd3ff has been reserved
+>> pnp: 00:09: iomem range 0xdfefe000-0xdfefe3ff has been reserved
+>>
+>> when the CK804 SATA controllers have as their BIOS-assigned resources:
+>>
+>> 80:07.0 IDE interface: nVidia Corporation CK804 Serial ATA Controller 
+>> (rev f3) (prog-if 85 [Master SecO PriO])
+>> 	Subsystem: Super Micro Computer Inc Unknown device 1011
+>> 	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- 
+>> Stepping- SERR- FastB2B-
+>> 	Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- 
+>> <MAbort- >SERR- <PERR-
+>> 	Interrupt: pin A routed to IRQ 46
+>> 	Region 0: I/O ports at e400 [size=8]
+>> 	Region 1: I/O ports at e000 [size=4]
+>> 	Region 2: I/O ports at dc00 [size=8]
+>> 	Region 3: I/O ports at d800 [size=4]
+>> 	Region 4: I/O ports at d400 [size=16]
+>> 	Region 5: Memory at dfefd000 (32-bit, non-prefetchable)
+>>
+>> and
+>>
+>> 80:08.0 IDE interface: nVidia Corporation CK804 Serial ATA Controller 
+>> (rev f3) (prog-if 85 [Master SecO PriO])
+>> 	Subsystem: Super Micro Computer Inc Unknown device 1011
+>> 	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- 
+>> Stepping- SERR- FastB2B-
+>> 	Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- 
+>> <MAbort- >SERR- <PERR-
+>> 	Interrupt: pin A routed to IRQ 45
+>> 	Region 0: I/O ports at f800 [size=8]
+>> 	Region 1: I/O ports at f400 [size=4]
+>> 	Region 2: I/O ports at f000 [size=8]
+>> 	Region 3: I/O ports at ec00 [size=4]
+>> 	Region 4: I/O ports at e800 [size=16]
+>> 	Region 5: Memory at dfefe000 (32-bit, non-prefetchable) [size=4K]
+>>
+>> And so of course we get:
+>>
+>> sata_nv 0000:80:07.0: Using ADMA mode
+>> PCI: Unable to reserve mem region #6:1000@dfefd000 for device 0000:80:07.0
+>> ACPI: PCI interrupt for device 0000:80:07.0 disabled
+>> sata_nv: probe of 0000:80:07.0 failed with error -16
+>> ACPI: PCI Interrupt Link [LT2E] enabled at IRQ 45
+>> ACPI: PCI Interrupt 0000:80:08.0[A] -> Link [LT2E] -> GSI 45 (level, 
+>> low) -> IRQ 45
+>> sata_nv 0000:80:08.0: Using ADMA mode
+>> PCI: Unable to reserve mem region #6:1000@dfefe000 for device 0000:80:08.0
+>> ACPI: PCI interrupt for device 0000:80:08.0 disabled
+>> sata_nv: probe of 0000:80:08.0 failed with error -16
+>>
+>> So essentially the BIOS has erroneously reserved the SATA controller's 
+>> BARs in the ACPI motherboard resources, preventing the driver from 
+>> attaching to the device.
+>>
+>> Any ideas on what we can do about this?
+>>
+>> -Get Supermicro to fix the BIOS - already tried, it seems
+>> -System-specific quirk to ignore these resource reservations?
+>> -Try to move the PCI resources if they conflict with the ACPI resource 
+>> reservations?
+>>
+>> I wonder how Windows deals with this, if it even does on these boards?
+>>
+> 
