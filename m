@@ -1,41 +1,29 @@
-From: Danny ter Haar <dth@dth.net>
-Subject: Re: [2/4] 2.6.23-rc4: known regressions
-Date: Fri, 12 Oct 2007 13:10:16 +0200
-Message-ID: <20071012111016.GA25327@dth.net>
-References: <46D58CC6.4020605@googlemail.com> <46D59052.6040609@googlemail.com>
+From: John Sigler <linux.kernel@free.fr>
+Subject: Re: halt does not shut the system down
+Date: Fri, 12 Oct 2007 15:11:00 +0200
+Message-ID: <470F7264.8070205@free.fr>
+References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zaphod.dth.net ([85.159.112.68]:56117 "EHLO zaphod.dth.net"
+Received: from smtp4-g19.free.fr ([212.27.42.30]:36981 "EHLO smtp4-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753672AbXJLLUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Oct 2007 07:20:04 -0400
-Content-Disposition: inline
-In-Reply-To: <46D59052.6040609@googlemail.com>
+	id S1755143AbXJLNLD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2007 09:11:03 -0400
+In-Reply-To: <470F4F58.4080900@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
 
-Quoting Michal Piotrowski (michal.k.k.piotrowski@gmail.com):
-> CPUFREQ
-> Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
-> References      : http://lkml.org/lkml/2007/7/27/298
->                   http://lkml.org/lkml/2007/7/29/371
-> Last known good : ?
-> Submitter       : dth <dth@dth.net>
-> Caused-By       : Len Brown <lenb@kernel.org>
->                   commit f79e3185dd0f8650022518d7624c876d8929061b
-> Handled-By      : Len Brown <lenb@kernel.org>
-> Status          : problem is being debugged
+Alexey Starikovskiy wrote:
 
-Since i dont get _any_ feedback on my reports/emails, 
-i think it's best if we just ignore this problem. 
+> Could you please open bug at bugzilla.kernel.org and put all these
+> files there?
 
+http://bugzilla.kernel.org/show_bug.cgi?id=9148
 
-Danny
+(In my browser, halt output is incorrectly displayed in UTF-8.)
 
---
-Feedback is the breakfast of champions
-
--- 
+Regards.
