@@ -1,20 +1,20 @@
 From: Jan-Simon =?iso-8859-1?q?M=F6ller?= <dl9pf@gmx.de>
 Subject: Fwd: FSC Esprimo Mobile V5505 - info, partly working
-Date: Sat, 13 Oct 2007 00:07:28 +0200
-Message-ID: <200710130007.29014.dl9pf@gmx.de>
+Date: Fri, 12 Oct 2007 23:57:46 +0200
+Message-ID: <200710122357.46851.dl9pf@gmx.de>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_hA/DHTlGxucHl0f"
+  boundary="Boundary-00=_a3+DH3FOcAxw0qF"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49360 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:41209 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759453AbXJLWH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:07:29 -0400
+	id S1758562AbXJLWDy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2007 18:03:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
---Boundary-00=_hA/DHTlGxucHl0f
+--Boundary-00=_a3+DH3FOcAxw0qF
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -24,15 +24,10 @@ Hi !
 
 I got a new FSC Esprimo Mobile V5505 (full system info attached).
 
-When i use "options snd-hda-intel model=3Dfujitsu-c1410 enable=3D1 index=3D=
-0" sound=20
-works, but it sounds not good and smooth. Chip is a conexant afaik.
-
+Sound-buttons are working, WLAN partly (?). Brightness doesn't work here.=20
 
 Attachements:
 *      Full lspci -vv -nn
-
-Whats needed to improve sound and make the mixer available ?
 
 If any other data is needed -> please ping !
 
@@ -47,7 +42,7 @@ dl9pf@gmx.de
 
 =2D------------------------------------------------------
 
---Boundary-00=_hA/DHTlGxucHl0f
+--Boundary-00=_a3+DH3FOcAxw0qF
 Content-Type: application/x-bzip2;
   name="full_lspci.txt.bz2"
 Content-Transfer-Encoding: base64
@@ -113,4 +108,4 @@ ENqvw0TTWG+uhWDOYTc4YU5FNQnIprkzqaIudD1K+Zr2itrfnFweyepPzTsMLsVw1dmszhbUdkb5
 NhnW6o3tE28ZN9eWU6anO47nJH+Y4us+UnAvoWSuWrdW+sVxqYOkvxfZOZk6KjKl3K65OijoU6XH
 lLNVd+sq5HjFpV3F2qwsXsX1CBy9QsELRLI4pZBqJOQppV1Vp61O1D00ucj/8XckU4UJBDV5haA=
 
---Boundary-00=_hA/DHTlGxucHl0f--
+--Boundary-00=_a3+DH3FOcAxw0qF--
