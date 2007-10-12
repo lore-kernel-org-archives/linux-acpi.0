@@ -1,450 +1,137 @@
-From: Su-Jong You <sujongyou@googlemail.com>
-Subject: test with "acpi_osi=!Linux"
-Date: Fri, 12 Oct 2007 03:15:31 +0000
-Message-ID: <470EE6D3.80600@googlemail.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [RFC] [PATCH] ACPI :Modify timer override connection in Some
+	NVIDIA systems
+Date: Fri, 12 Oct 2007 15:04:15 +0800
+Message-ID: <1192172655.27194.29.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080107000406040907030202"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:12442 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757009AbXJLDPi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Oct 2007 23:15:38 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so562704ugc
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Oct 2007 20:15:36 -0700 (PDT)
+Received: from mga11.intel.com ([192.55.52.93]:24993 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753703AbXJLG5K (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2007 02:57:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-This is a multi-part message in MIME format.
---------------080107000406040907030202
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi, All
+    The BIOS of some systems using NVIDIA chipset gives the uncorrect
+timer override connection, which will cause that I/O APIC and timer
+can't be connected and kernel panic.
+    There are two ways to fix this bug. One is to use the following patch and 
+the other is to add a new boot option of acpi_force_timer_override. 
 
-I am on Ubuntu Gutsy amd64(2.6.22-14-generic).
+1. Use the following patch.
+The basic flowchart of patch is that:(unnecessary to add new boot option)
+    a. When NVIDIA chipset is detected and hpet timer exist, 
+acpi_use_timer_override will be set.
+    (Skip this when boot option of acpi_use_timer_override is given).
+    b. Check whether uncorrect timer connection(IRQ0, Pin0) exists when 
+acpi_use_timer_override is set and HPET timer exists. 
+      If error exists, timer will be forced to route to the Pin2.
 
-Tested with  "acpi_osi=!Linux",  I am sending dmidecod attached.
+2. Add a new boot option of acpi_force_timer_override
+    The basic flowchart of this method is that:
+    a. When NVIDIA chipset is detected and HPET timer exists, 
+acpi_force_timer_override will be set.
+       (skip this when boot option of acpi_force_timer_override is given)
+    b. Check whether uncorrect timer connection(IRQ0,Pin0) exists when 
+acpi_force_timer_override is set.
+       If the error exists, modify the timer override connection.
 
-regards,
+Welcome the comments.
+Thanks.
 
-SJY
+Subject: ACPI :Modify timer override connection in Some NVIDIA systems
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
---------------080107000406040907030202
-Content-Type: text/plain;
- name="dmidecode"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dmidecode"
+BIOS defines the uncorrect timeroverride connection in some NVIDIA
+systems
+on which HPET timer exists. When the uncorrect connection is deteced, 
+the timer will be forced to route to the Pin 2 of I/O APIC instead of
+Pin 0.
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-37 structures occupying 1293 bytes.
-Table at 0x000F0420.
+http://bugzilla.kernel.org/show_bug.cgi?id=8956
 
-Handle 0xDA00, DMI type 218, 131 bytes
-OEM-specific Type
-	Header and Data:
-		DA 83 00 DA B0 00 92 1B 07 02 00 7D 00 00 00 00
-		00 80 01 16 00 01 00 7F 01 16 00 00 00 75 01 75
-		01 01 00 76 01 76 01 01 00 2E 00 25 00 00 00 6E
-		00 25 00 01 00 2D 00 25 00 02 00 8A 01 48 00 01
-		00 89 01 48 00 00 00 9B 00 23 00 01 00 9C 00 23
-		00 00 00 14 01 46 00 00 00 15 01 46 00 01 00 16
-		01 46 00 02 00 94 01 47 00 01 00 93 01 47 00 00
-		00 EA 00 67 00 01 00 EB 00 67 00 00 00 FF FF 00
-		00 00 00
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ arch/i386/kernel/acpi/boot.c       |   17 +++++++++++++++++
+ arch/i386/kernel/acpi/earlyquirk.c |    7 ++++++-
+ arch/x86_64/kernel/early-quirks.c  |    2 ++
+ 3 files changed, 25 insertions(+), 1 deletion(-)
 
-Handle 0x0001, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Dell Inc.
-	Version: 2.6.1    
-	Release Date: 08/23/2006
-	Address: 0xE5860
-	Runtime Size: 108448 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		PCI is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		BIOS ROM is socketed
-		EDD is supported
-		5.25"/360 KB floppy services are supported (int 13h)
-		5.25"/1.2 MB floppy services are supported (int 13h)
-		3.5"/720 KB floppy services are supported (int 13h)
-		Print screen service is supported (int 5h)
-		8042 keyboard services are supported (int 9h)
-		Serial services are supported (int 14h)
-		Printer services are supported (int 17h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		LS-120 boot is supported
-		ATAPI Zip drive boot is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-
-Handle 0x0002, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Dell Inc.
-	Product Name: Inspiron 1501 
-	Version: Not Specified                   
-	Serial Number: 8G2QT2J
-	UUID: 44454C4C-4700-1032-8051-B8C04F54324A
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
-
-Handle 0x0003, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: Dell Inc.
-	Product Name: 0UW744
-	Version:    
-	Serial Number: .8G2QT2J.CN4864371CD939.
-
-Handle 0x0004, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Dell Inc.
-	Type: Portable
-	Lock: Not Present
-	Version: Not Specified           
-	Serial Number: 8G2QT2J
-	Asset Tag:                         
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0005, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: Socket M2/S1G1
-	Type: Central Processor
-	Family: Opteron
-	Manufacturer: AMD
-	ID: 82 0F 04 00 FF FB 8B 17
-	Signature: Family 15, Model 72, Stepping 2
-	Flags:
-		FPU (Floating-point unit on-chip)
-		VME (Virtual mode extension)
-		DE (Debugging extension)
-		PSE (Page size extension)
-		TSC (Time stamp counter)
-		MSR (Model specific registers)
-		PAE (Physical address extension)
-		MCE (Machine check exception)
-		CX8 (CMPXCHG8 instruction supported)
-		APIC (On-chip APIC hardware supported)
-		SEP (Fast system call)
-		MTRR (Memory type range registers)
-		PGE (Page global enable)
-		MCA (Machine check architecture)
-		CMOV (Conditional move instruction supported)
-		PAT (Page attribute table)
-		PSE-36 (36-bit page size extension)
-		CLFSH (CLFLUSH instruction supported)
-		MMX (MMX technology supported)
-		FXSR (Fast floating-point save and restore)
-		SSE (Streaming SIMD extensions)
-		SSE2 (Streaming SIMD extensions 2)
-		HTT (Hyper-threading technology)
-	Version: Engineering Sample
-	Voltage: 1.4 V
-	External Clock: 200 MHz
-	Max Speed: 4000 MHz
-	Current Speed: 1600 MHz
-	Status: Populated, Enabled
-	Upgrade: Other
-	L1 Cache Handle: Not Provided
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 512 KB
-	Maximum Size: 1024 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-	Installed SRAM Type: Synchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J28
-	Internal Connector Type: None
-	External Reference Designator: Video
-	External Connector Type: DB-15 female
-	Port Type: Video Port
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J33
-	Internal Connector Type: None
-	External Reference Designator: Keyboard
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J33
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: Circular DIN-8 male
-	Port Type: Keyboard Port
-
-Handle 0x000A, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J31
-	Internal Connector Type: None
-	External Reference Designator: USB 1
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x000B, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J32
-	Internal Connector Type: None
-	External Reference Designator: USB 2
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x000C, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J32
-	Internal Connector Type: None
-	External Reference Designator: USB 3
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x000D, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J31
-	Internal Connector Type: None
-	External Reference Designator: USB 4
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x000E, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J30
-	Internal Connector Type: None
-	External Reference Designator: Microphone In
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x000F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J30
-	Internal Connector Type: None
-	External Reference Designator: Line In
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x0010, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: J30
-	Internal Connector Type: None
-	External Reference Designator: Speaker Out
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x0011, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
-
-Handle 0x0012, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI2
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
-
-Handle 0x0013, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Video
-	Status: Disabled
-	Description: ATI RS485M
-
-Handle 0x0014, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Sound
-	Status: Disabled
-	Description: Sigmatel
-
-Handle 0x0015, DMI type 11, 5 bytes
-OEM Strings
-	String 1: Dell System
-	String 2: 5
-	String 3: 13
-
-Handle 0x0016, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: J13 1-2 Normal Operation, 2-3 Clear CMOS
-
-Handle 0x0017, DMI type 13, 22 bytes
-BIOS Language Information
-	Installable Languages: 1
-		enUS
-	Currently Installed Language: enUS
-
-Handle 0x0018, DMI type 15, 29 bytes
-System Event Log
-	Area Length: 16 bytes
-	Header Start Offset: 0x0000
-	Header Length: 16 bytes
-	Data Start Offset: 0x0010
-	Access Method: General-purpose non-volatile data functions
-	Access Address: 0x0000
-	Status: Valid, Not Full
-	Change Token: 0x00000000
-	Header Format: Type 1
-	Supported Log Type Descriptors: 3
-	Descriptor 1: POST error
-	Data Format 1: POST results bitmap
-	Descriptor 2: Single-bit ECC memory error
-	Data Format 2: Multiple-event
-	Descriptor 3: Multi-bit ECC memory error
-	Data Format 3: Multiple-event
-
-Handle 0x0019, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 4 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x001A, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0019
-	Error Information Handle: No Error
-	Total Width: 128 bits
-	Data Width: 64 bits
-	Size: 512 MB
-	Form Factor: DIMM
-	Set: 1
-	Locator: DIMM_A
-	Bank Locator: <BAD INDEX>
-	Type: DRAM
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x001B, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0019
-	Error Information Handle: No Error
-	Total Width: 128 bits
-	Data Width: 64 bits
-	Size: 512 MB
-	Form Factor: DIMM
-	Set: 2
-	Locator: DIMM_B
-	Bank Locator: <BAD INDEX>
-	Type: DRAM
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x001C, DMI type 18, 23 bytes
-32-bit Memory Error Information
-	Type: OK
-	Granularity: Unknown
-	Operation: Unknown
-	Vendor Syndrome: Unknown
-	Memory Array Address: Unknown
-	Device Address: Unknown
-	Resolution: Unknown
-
-Handle 0x001D, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Array Handle: 0x0019
-	Partition Width: 0
-
-Handle 0x001E, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x001A
-	Memory Array Mapped Address Handle: 0x001D
-	Partition Row Position: 2
-	Interleave Position: 1
-	Interleaved Data Depth: 6
-
-Handle 0x001F, DMI type 22, 26 bytes
-Portable Battery
-	Location: System Battery Bay
-	Manufacturer: Panasonic DELLXU8826
-	Name: Panasonic DELLXU8826
-	Chemistry: Lithium Ion
-	Design Capacity: 30960 mWh
-	Design Voltage: 14400 mV
-	SBDS Version: Bat123
-	Maximum Error: Unknown
-	SBDS Serial Number: 007F
-	SBDS Manufacture Date: 1980-00-00
-	OEM-specific Information: 0x00000000
-
-Handle 0x0020, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0xB100, DMI type 177, 12 bytes
-OEM-specific Type
-	Header and Data:
-		B1 0C 00 B1 02 00 00 00 00 00 00 00
-
-Handle 0xD000, DMI type 208, 10 bytes
-OEM-specific Type
-	Header and Data:
-		D0 0A 00 D0 01 05 FE 00 F5 01
-
-Handle 0xD400, DMI type 212, 17 bytes
-OEM-specific Type
-	Header and Data:
-		D4 11 00 D4 70 00 71 00 00 10 2D 2E FF FF 00 00
-		00
-
-Handle 0x0024, DMI type 127, 4 bytes
-End Of Table
-
-
---------------080107000406040907030202--
+Index: linux-2.6.23-rc9/arch/i386/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.23-rc9.orig/arch/i386/kernel/acpi/boot.c
++++ linux-2.6.23-rc9/arch/i386/kernel/acpi/boot.c
+@@ -351,6 +351,11 @@ static void __init acpi_sci_ioapic_setup
+ 	return;
+ }
+ 
++static int __init acpi_hpet_check(struct acpi_table_header *header)
++{
++	return 0;
++}
++
+ static int __init
+ acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
+ 		       const unsigned long end)
+@@ -371,6 +376,18 @@ acpi_parse_int_src_ovr(struct acpi_subta
+ 		return 0;
+ 	}
+ 
++	if (acpi_use_timer_override &&
++	   intsrc->source_irq == 0 && intsrc->global_irq == 0 &&
++	   !acpi_table_parse(ACPI_SIG_HPET, acpi_hpet_check)) {
++		mp_override_legacy_irq(intsrc->source_irq,
++			intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
++			(intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
++			2);
++		printk(PREFIX "BIOS IRQ0 pin0 override ignored."
++				"Force to use IRQ0 pin2 \n");
++		return 0;
++	}
++
+ 	if (acpi_skip_timer_override &&
+ 	    intsrc->source_irq == 0 && intsrc->global_irq == 2) {
+ 		printk(PREFIX "BIOS IRQ0 pin2 override ignored.\n");
+Index: linux-2.6.23-rc9/arch/i386/kernel/acpi/earlyquirk.c
+===================================================================
+--- linux-2.6.23-rc9.orig/arch/i386/kernel/acpi/earlyquirk.c
++++ linux-2.6.23-rc9/arch/i386/kernel/acpi/earlyquirk.c
+@@ -26,7 +26,8 @@ static int __init check_bridge(int vendo
+ 	/* According to Nvidia all timer overrides are bogus unless HPET
+ 	   is enabled. */
+ 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
+-		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
++		if (!warned) {
++		if (acpi_table_parse(ACPI_SIG_HPET,
+ 						nvidia_hpet_check)) {
+ 			warned = 1;
+ 			acpi_skip_timer_override = 1;
+@@ -36,6 +37,10 @@ static int __init check_bridge(int vendo
+                 printk(KERN_INFO "If you got timer trouble "
+ 			 	 "try acpi_use_timer_override\n");
+ 
++			} else {
++			warned = 1;
++			acpi_use_timer_override = 1;
++			}
+ 		}
+ 	}
+ #endif
+Index: linux-2.6.23-rc9/arch/x86_64/kernel/early-quirks.c
+===================================================================
+--- linux-2.6.23-rc9.orig/arch/x86_64/kernel/early-quirks.c
++++ linux-2.6.23-rc9/arch/x86_64/kernel/early-quirks.c
+@@ -57,6 +57,8 @@ static void __init nvidia_bugs(void)
+ 		       "timer override.\n");
+ 		printk(KERN_INFO "If you got timer trouble "
+ 			"try acpi_use_timer_override\n");
++	} else {
++		acpi_use_timer_override = 1;
+ 	}
+ #endif
+ 	/* RED-PEN skip them on mptables too? */
