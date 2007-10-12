@@ -1,61 +1,41 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: halt does not shut the system down
-Date: Fri, 12 Oct 2007 14:41:28 +0400
-Message-ID: <470F4F58.4080900@gmail.com>
-References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr>
+From: Danny ter Haar <dth@dth.net>
+Subject: Re: [2/4] 2.6.23-rc4: known regressions
+Date: Fri, 12 Oct 2007 13:10:16 +0200
+Message-ID: <20071012111016.GA25327@dth.net>
+References: <46D58CC6.4020605@googlemail.com> <46D59052.6040609@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hu-out-0506.google.com ([72.14.214.228]:37626 "EHLO
-	hu-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbXJLKlf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2007 06:41:35 -0400
-Received: by hu-out-0506.google.com with SMTP id 19so457457hue
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Oct 2007 03:41:33 -0700 (PDT)
-In-Reply-To: <470F4535.3050004@free.fr>
+Received: from zaphod.dth.net ([85.159.112.68]:56117 "EHLO zaphod.dth.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753672AbXJLLUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2007 07:20:04 -0400
+Content-Disposition: inline
+In-Reply-To: <46D59052.6040609@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Sigler <linux.kernel@free.fr>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Could you please open bug at bugzilla.kernel.org and put all these files there?
+Quoting Michal Piotrowski (michal.k.k.piotrowski@gmail.com):
+> CPUFREQ
+> Subject         : ide problems: 2.6.22-git17 working, 2.6.23-rc1* is not
+> References      : http://lkml.org/lkml/2007/7/27/298
+>                   http://lkml.org/lkml/2007/7/29/371
+> Last known good : ?
+> Submitter       : dth <dth@dth.net>
+> Caused-By       : Len Brown <lenb@kernel.org>
+>                   commit f79e3185dd0f8650022518d7624c876d8929061b
+> Handled-By      : Len Brown <lenb@kernel.org>
+> Status          : problem is being debugged
 
-Thanks,
-Alex.
+Since i dont get _any_ feedback on my reports/emails, 
+i think it's best if we just ignore this problem. 
 
-John Sigler wrote:
-> John Sigler wrote:
-> 
->> When I run 'halt' the kernel prints:
->>
->> Halting.
->> Shutdown: hdc
->> ACPI: PCI interrupt for device 0000:01:05.0 disabled
->> ACPI: PCI interrupt for device 0000:01:04.0 disabled
->> ACPI: PCI interrupt for device 0000:01:03.0 disabled
->> ACPI: PCI interrupt for device 0000:01:02.0 disabled
->> Power down.
->> acpi_power_off called
->>
->> But the system does not shut down. (The fans keep spinning, the LEDs 
->> keep shining, the LCD keeps displaying.) Basically, the motherboard is 
->> still providing power to every component, as if the power supply had 
->> refused to stop.
->>
->> http://linux.kernel.free.fr/halt/config-2.6.22.1-rt9
->> http://linux.kernel.free.fr/halt/acpidump.txt
->> http://linux.kernel.free.fr/halt/dmesg.txt
->> http://linux.kernel.free.fr/halt/halt.txt
->> http://linux.kernel.free.fr/halt/lspci.txt
-> 
-> Is there something else I can provide that might help in identifying
-> the problem?
-> 
-> Regards.
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
+Danny
+
+--
+Feedback is the breakfast of champions
+
+-- 
