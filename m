@@ -1,311 +1,46 @@
-From: Witold Krecicki <wpk@dst-labs.com>
-Subject: dmidecode from HP Pavilion DV6150EU
-Date: Sun, 14 Oct 2007 01:01:27 +0200
-Message-ID: <200710140101.28049.wpk@dst-labs.com>
+From: Dave Jones <davej@redhat.com>
+Subject: dmidecode mails.
+Date: Sat, 13 Oct 2007 13:48:36 -0400
+Message-ID: <20071013174835.GF18760@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [83.142.224.43] ([83.142.224.43]:50210 "EHLO mail.dst-labs.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753270AbXJMXW4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 Oct 2007 19:22:56 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.dst-labs.com (Postfix) with ESMTP id D28271587E
-	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2007 23:01:34 +0000 (GMT)
-Received: from pibi.hq.culm.net (centaur.culm.net [83.16.203.166])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.dst-labs.com (Postfix) with ESMTP id 5AB3EF77B
-	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2007 23:01:34 +0000 (GMT)
+Received: from mx2.redhat.com ([66.187.237.31]:36493 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754062AbXJNAPW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Oct 2007 20:15:22 -0400
+Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
+	by mx2.redhat.com (8.13.1/8.13.1) with ESMTP id l9E0E5X3017730
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2007 20:15:22 -0400
+Received: from gelk.kernelslacker.org (vpn-14-8.rdu.redhat.com [10.11.14.8])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id l9DHma4U000634
+	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2007 13:48:36 -0400
+Received: from gelk.kernelslacker.org (localhost.localdomain [127.0.0.1])
+	by gelk.kernelslacker.org (8.14.1/8.13.8) with ESMTP id l9DHmajo031140
+	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2007 13:48:36 -0400
+Received: (from davej@localhost)
+	by gelk.kernelslacker.org (8.14.1/8.14.1/Submit) id l9DHmamG031139
+	for linux-acpi@vger.kernel.org; Sat, 13 Oct 2007 13:48:36 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-20 structures occupying 822 bytes.
-Table at 0x000F1C70.
+The last month or so, we've seen lots of people posting
+their dmidecode output here (in response to seeing requests
+for it in dmesg, if their BIOS requests _OSI(Linux) I guess)
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Hewlett-Packard
-        Version: F.38
-        Release Date: 06/20/2007
-        Address: 0xE6A20
-        Runtime Size: 103904 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PNP is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                Selectable boot is supported
-                Print screen service is supported (int 5h)
-                8042 keyboard services are supported (int 9h)
-                Serial services are supported (int 14h)
-                Printer services are supported (int 17h)
-                ACPI is supported
-                USB legacy is supported
-                AGP is supported
-                Smart battery is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
+I'm wondering if anyone is actually looking at these, because
+I don't think I've seen a single follow up to any of them.
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-        Manufacturer: Hewlett-Packard
-        Product Name: HP Pavilion dv6000 (RR705EA#AKD)
-        Version: Rev 1
-        Serial Number: CNF65119NF
-        UUID: 434E4636-3531-3139-4E46-001B247EF68C
-        Wake-up Type: Power Switch
-        SKU Number: RR705EA#AKD
-        Family: 103C_5335KV
+Given we're about to do a Fedora release with this printk,
+I'm contemplating removing it, because we're going to be
+getting them for a long time after upstream removed the printk
+otherwise.  Unless someone sees value in continuing to get
+the reports ?
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: Quanta
-        Product Name: 30B8
-        Version: 65.28
-        Serial Number: None
+	Dave
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-        Manufacturer: Quanta
-        Type: Notebook
-        Lock: Not Present
-        Version: N/A
-        Serial Number: None
-        Asset Tag:
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: Unknown
-        OEM Information: 0x00000000
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-        Socket Designation: Socket S1
-        Type: Central Processor
-        Family: Opteron
-        Manufacturer: AMD
-        ID: 82 0F 04 00 FF FB 8B 17
-        Signature: Family 15, Model 72, Stepping 2
-        Flags:
-                FPU (Floating-point unit on-chip)
-                VME (Virtual mode extension)
-                DE (Debugging extension)
-                PSE (Page size extension)
-                TSC (Time stamp counter)
-                MSR (Model specific registers)
-                PAE (Physical address extension)
-                MCE (Machine check exception)
-                CX8 (CMPXCHG8 instruction supported)
-                APIC (On-chip APIC hardware supported)
-                SEP (Fast system call)
-                MTRR (Memory type range registers)
-                PGE (Page global enable)
-                MCA (Machine check architecture)
-                CMOV (Conditional move instruction supported)
-                PAT (Page attribute table)
-                PSE-36 (36-bit page size extension)
-                CLFSH (CLFLUSH instruction supported)
-                MMX (MMX technology supported)
-                FXSR (Fast floating-point save and restore)
-                SSE (Streaming SIMD extensions)
-                SSE2 (Streaming SIMD extensions 2)
-                HTT (Hyper-threading technology)
-        Version: AMD Turion(tm) 64 X2 Mobile TL52
-        Voltage: 1.6 V
-        External Clock: 200 MHz
-        Max Speed: 1600 MHz
-        Current Speed: 1600 MHz
-        Status: Populated, Enabled
-        Upgrade: None
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Not Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Not Socketed, Level 2
-        Operational Mode: Write Through
-        Location: Internal
-        Installed Size: 1024 KB
-        Maximum Size: 1024 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Synchronous
-        Installed SRAM Type: Synchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unified
-        Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot 1
-        Type: 64-bit PCI Express
-        Current Usage: Available
-        Length: Short
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot 2
-        Type: 64-bit PCI Express
-        Current Usage: Available
-        Length: Short
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-                PME signal is supported
-                Hot-plug devices are supported
-
-Handle 0x0009, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Video
-        Status: Enabled
-        Description:
-
-Handle 0x000A, DMI type 11, 5 bytes
-OEM Strings
-        String 1: $HP$
-        String 2: LOC#
-
-Handle 0x000B, DMI type 15, 29 bytes
-System Event Log
-        Area Length: 16 bytes
-        Header Start Offset: 0x0000
-        Header Length: 16 bytes
-        Data Start Offset: 0x0010
-        Access Method: General-purpose non-volatile data functions
-        Access Address: 0x0000
-        Status: Valid, Not Full
-        Change Token: 0x000000FC
-        Header Format: Type 1
-        Supported Log Type Descriptors: 3
-        Descriptor 1: POST error
-        Data Format 1: POST results bitmap
-        Descriptor 2: Single-bit ECC memory error
-        Data Format 2: Multiple-event
-        Descriptor 3: Multi-bit ECC memory error
-        Data Format 3: Multiple-event
-
-Handle 0x000C, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 2 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
-
-Handle 0x000D, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 512 MB
-        Form Factor: DIMM
-        Set: 1
-        Locator: DIMM 1
-        Bank Locator: Bank 0,1
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: EC00000000000000
-        Serial Number: 7F950CE2
-        Asset Tag: Not Specified
-        Part Number: M4 70T6554CZ3-CE6
-
-Handle 0x000E, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 512 MB
-        Form Factor: DIMM
-        Set: 1
-        Locator: DIMM 2
-        Bank Locator: Bank 2,3
-        Type: DDR2
-        Type Detail: Unknown
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: EC00000000000000
-        Serial Number: 7F95FB6E
-        Asset Tag: Not Specified
-        Part Number: M4 70T6554CZ3-CE6
-
-Handle 0x000F, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Array Handle: 0x000C
-        Partition Width: 0
-
-Handle 0x0010, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0001FFFFFFF
-        Range Size: 512 MB
-        Physical Device Handle: 0x000D
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: 2
-        Interleave Position: 2
-        Interleaved Data Depth: 2
-
-Handle 0x0011, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00020000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 512 MB
-        Physical Device Handle: 0x000E
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: 2
-        Interleave Position: 2
-        Interleaved Data Depth: 2
-
-Handle 0x0012, DMI type 32, 20 bytes
-System Boot Information
-        Status: <OUT OF SPEC>
-
-Handle 0x0013, DMI type 127, 4 bytes
-End Of Table
-
+-- 
+http://www.codemonkey.org.uk
