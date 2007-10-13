@@ -1,73 +1,131 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PATCH v3] thinkpad-acpi changes for the merge window (part 2 and 3)
-Date: Sat, 13 Oct 2007 17:22:49 -0300
-Message-ID: <1192306979-26886-1-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53045 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753123AbXJMUXH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 Oct 2007 16:23:07 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 03/10] ACPI: thinkpad-acpi: prefer standard
+	ACPI backlight level control
+Date: Sat, 13 Oct 2007 17:22:52 -0300
+Message-ID: <1192306979-26886-4-git-send-email-hmh@hmh.eng.br>
+References: <1192306979-26886-1-git-send-email-hmh@hmh.eng.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1192306979-26886-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Len,                                                                                                                                                  
+Newer Lenovo BIOSes support the standard ACPI backlight brightness
+interface (_BCM, _BQC, _BCL).  It should be used instead of the native
+thinkpad backlight brightness control interface when possible.
 
-Here is the second and third batches of thinkpad-acpi changes for the
-merge window (target: 2.6.24).
+This patch disables the native brightness support in the driver by default
+when we detect that the standard ACPI interface is available.  The local
+admin can still enable it using the module parameter "brightness_enable".
 
-I have taken into account the comments about the brightness levels, and
-now I do the detection without touching _BCL, and allow the user to select
-which kind of backlight interface he wants at runtime.  The default *is*
-the ACPI generic backlight interface.
+Note that we need to detect the standard ACPI backlight interface only in
+boxes for which we would load the native backlight interface in the first
+place, and that no ThinkPad BIOS has _BCL but misses the other methods, so
+the detection routines can be really simple.
 
-There are also a few fixes, and the third batch adds support for NVRAM
-polling of hot keys, needed by older thinkpads.
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+---
+ Documentation/thinkpad-acpi.txt |    8 ++++++--
+ drivers/misc/thinkpad_acpi.c    |   39 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 2 deletions(-)
 
-Please merge this batch to acpi-test.  I have rebased the git tree to
-linus' latest, since there was a change in mainline that touched
-thinkpad-acpi (no conflicts, though).
-
-As usual, the patch set is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
-
-Shortlog of the above branch:
-
-Henrique de Moraes Holschuh (20):
-  (already submitted)
-      ACPI: thinkpad-acpi: make room for more features in tp_features bitfield
-      ACPI: thinkpad-acpi: issue EV_SYNC after EV_SWITCH
-      ACPI: thinkpad-acpi: add mutex-based locking to input device event send path
-      ACPI: thinkpad-acpi: keep track of module state
-      ACPI: thinkpad-acpi: check version of hot key firmware
-      ACPI: thinkpad-acpi: dequeue all pending hot key events at once (v2.2)
-      ACPI: thinkpad-acpi: fix regression on HKEY LID event handling
-      ACPI: thinkpad-acpi: use a separate platform device for hwmon and name it (v2)
-      ACPI: thinkpad-acpi: duplicate driver attributes to new hwmon pdrv
-      ACPI: thinkpad-acpi: skip blanks before the data when parsing sysfs
-  (new or modified)
-      ACPI: thinkpad-acpi: support 16 levels of brightness (v3)
-      ACPI: thinkpad-acpi: add brightness_force parameter
-      ACPI: thinkpad-acpi: prefer standard ACPI backlight level control
-      ACPI: thinkpad-acpi: bump up version to 0.17
-      ACPI: thinkpad-acpi: allow for syscall restart in sysfs handlers
-      ACPI: thinkpad-acpi: fix brightness_set error paths
-      ACPI: thinkpad-acpi: refactor hotkey_get and hotkey_set
-      ACPI: thinkpad-acpi: prepare for NVRAM polling support
-      ACPI: thinkpad-acpi: add CMOS NVRAM polling for hot keys (v6)
-      ACPI: thinkpad-acpi: bump up version to 0.18
-
-Thanks.
-
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 353a1a7..64d1fe9 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -942,11 +942,15 @@ and CMOS.  The driver tries to autodetect which interface to use.
+ 
+ When display backlight brightness controls are available through the
+ standard ACPI interface, it is best to use it instead of this direct
+-ThinkPad-specific interface.
++ThinkPad-specific interface.  The driver will disable its native
++backlight brightness control interface if it detects that the standard
++ACPI interface is available in the ThinkPad.
+ 
+ The brightness_enable module parameter can be used to control whether
+ the LCD brightness control feature will be enabled when available.
+-brightness_enable=0 forces it to be disabled.
++brightness_enable=0 forces it to be disabled.  brightness_enable=1
++forces it to be enabled when available, even if the standard ACPI
++interface is also available.
+ 
+ Procfs notes:
+ 
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index f33758d..a99a40c 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -3174,6 +3174,39 @@ static int __init brightness_check_levels(void)
+ 	return (ACPI_SUCCESS(status) && found_node != NULL);
+ }
+ 
++static acpi_status __init brightness_find_bcl(acpi_handle handle, u32 lvl,
++					void *context, void **rv)
++{
++	char name[ACPI_PATH_SEGMENT_LENGTH];
++	struct acpi_buffer buffer = { sizeof(name), &name };
++
++	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer)) &&
++	    !strncmp("_BCL", name, sizeof(name) - 1)) {
++		*rv = handle;
++		return AE_CTRL_TERMINATE;
++	} else {
++		return AE_OK;
++	}
++}
++
++static int __init brightness_check_std_acpi_support(void)
++{
++	int status;
++	void *found_node = NULL;
++
++	if (!vid_handle) {
++		IBM_ACPIHANDLE_INIT(vid);
++	}
++	if (!vid_handle)
++		return 0;
++
++	/* Search for a _BCL method, but don't execute it */
++	status = acpi_walk_namespace(ACPI_TYPE_METHOD, vid_handle, 3,
++	                             brightness_find_bcl, NULL, &found_node);
++
++	return (ACPI_SUCCESS(status) && found_node != NULL);
++}
++
+ static int __init brightness_init(struct ibm_init_struct *iibm)
+ {
+ 	int b;
+@@ -3186,6 +3219,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 		dbg_printk(TPACPI_DBG_INIT,
+ 		           "brightness support disabled by module parameter\n");
+ 		return 1;
++	} else if (brightness_enable > 1) {
++		if (brightness_check_std_acpi_support()) {
++			printk(IBM_NOTICE
++			       "standard ACPI backlight interface available, not loading native one...\n");
++			return 1;
++		}
+ 	}
+ 
+ 	if (!brightness_mode) {
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.5.3.2
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >> http://get.splunk.com/
