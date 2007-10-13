@@ -1,70 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Fan not working after hibernate but ok after
-	s2ram?
-Date: Sat, 13 Oct 2007 12:34:37 +0200
-Message-ID: <200710131234.38292.rjw@sisk.pl>
-References: <1192224624.7038.9.camel@rukbat> <200710131206.34890.rjw@sisk.pl>
-	<471096C2.4070505@suse.de>
+Subject: Re: [Bugme-new] [Bug 9155] New: No fan control
+	with ATI Radeon display support on HP nx6125.
+Date: Sat, 13 Oct 2007 20:30:20 +0200
+Message-ID: <200710132030.20826.rjw@sisk.pl>
+References: <bug-9155-10286@http.bugzilla.kernel.org/>
+	<20071013105315.accef6aa.akpm@linux-foundation.org>
+Reply-To: linux-fbdev-devel@lists.sourceforge.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <471096C2.4070505@suse.de>
+Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20071013105315.accef6aa.akpm@linux-foundation.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Alexey Starikovskiy <astarikovskiy@suse.de>, Romano Giannetti <romanol@upcomillas.es>
-Cc: suspend-devel@lists.sourceforge.net, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
+List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-fbdev-devel-bounces@lists.sourceforge.net
+Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev-devel@lists.sourceforge.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>, daniel.wuerfel@gmx.net, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, 13 October 2007 11:58, Alexey Starikovskiy wrote:
-> Rafael J. Wysocki wrote:
-> > On Saturday, 13 October 2007 00:38, Alexey Starikovskiy wrote:
-> >> Rafael J. Wysocki wrote:
-> >>> Greetings,
-> >>>
-> >>> On Friday, 12 October 2007 23:30, Romano Giannetti wrote:
-> >>>> Hi,
-> >>>>
-> >>>> 	I have a strange problem. I am running 2.6.23 on a toshiba satellite
-> >>>> 2.6.23, I use s2ram to suspend and echo disk > ... to hibernate. System
-> >>>> is ubuntu Feisty.
-> >>>>
-> >>>> 	Now, both s2ram -f -p -m and hibernte works ok, but after resuming from
-> >>>> hibernation, the fan of the laptop seems never to start again (it is ok
-> >>>> after resuming from s2ram). I rebooted the system now (it arrived at 80
-> >>>> celsius without starting the fan, normally it starts at 60) because I do
-> >>>> not want to have a fried laptop...
-> >>> Sure.
-> >>>
-> >>>> 	Any hints? I tried to rmmod/insmod again fan.ko but it didn't help.
-> >> There is 3 patch series in linux-acpi mail list, which might be related:
-> >> [PATCH 1/3] ACPI: power: don't cache power resource state
-> >> [PATCH 2/3] ACPI: Fan: fan device does not need own structure
-> >> [PATCH 3/3] ACPI: Fan: Drop force_power_state acpi_device option
+On Saturday, 13 October 2007 19:53, Andrew Morton wrote:
+> On Sat, 13 Oct 2007 02:37:35 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
+> 
+> > Most recent kernel where this bug did not occur:2.6.21
+> > Distribution:gentoo
+> > Hardware Environment:HP nx6125 BIOS version F.11
+> > Software Environment:Gnome 2.18, ati-driver 8.40.4
+
+Looks like the binary ATI driver is used.
+
+> > Problem Description:If you enable "support for frame buffer devices", "Vesa vga
+> > graphics support" and "ati radeon display support" under "graphics support" so
+> > you lost fan cantrol on your hp nx6125, that means the fan doens't stop
+> > working.
 > > 
-> > Do they apply on top of vanilla 2.6.23?
-> They do.
+> > Steps to reproduce:Enable "support for frame buffer devices", "Vesa vga
+> > graphics support" and "ati radeon display support" under "graphics support" on
+> > your hp nx6125 and after the next boot the fan will not switched off.
+> > 
+> 
+> Does anyone know whether this is likely to be a radeon driver bug or an
+> acpi bug or something else??
 
-OK, thanks.
-
-Romano, the patches are here:
-
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/38-ACPI-power-don_t-cache-power-resource-state.patch
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/39-ACPI-Fan-fan-device-does-not-need-own-structure.patch
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/40-Fan-Drop-force_power_state-acpi_device-option.patch
-
-Can you please apply them on top of 2.6.23 and see if that helps?
-
-Greetings,
-Rafael
+It looks like a thermal issue to me, so I'd say ACPI or the ATI driver (or the
+combination of the two).
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Splunk Inc.
