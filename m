@@ -1,47 +1,69 @@
-From: "Torsten Kaiser" <just.for.lkml@googlemail.com>
-Subject: Re: [git patches] libata update
-Date: Sun, 14 Oct 2007 12:35:08 +0200
-Message-ID: <64bb37e0710140335g648a86ebmebdf32a6068abcf8@mail.gmail.com>
-References: <20071012194002.GA1545@havoc.gtf.org>
+From: Romano Giannetti <romanol@upcomillas.es>
+Subject: Re: [Suspend-devel] Fan not working after hibernate but ok
+	afters2ram?
+Date: Sun, 14 Oct 2007 13:09:08 +0200
+Message-ID: <1192360148.20668.2.camel@rukbat>
+References: <1192224624.7038.9.camel@rukbat>
+	<200710131206.34890.rjw@sisk.pl> <471096C2.4070505@suse.de>
+	<200710131234.38292.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20071012194002.GA1545@havoc.gtf.org>
-Content-Disposition: inline
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jeff Garzik <jeff@garzik.org>
-Cc: linux-ide@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ic0245.upco.es ([130.206.70.245]:60283 "EHLO
+	antispam.upcomillas.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754087AbXJNLJP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Oct 2007 07:09:15 -0400
+In-Reply-To: <200710131234.38292.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, suspend-devel@lists.sourceforge.net, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 10/12/07, Jeff Garzik <jeff@garzik.org> wrote:
-> [ I just sent this upstream to Andrew and Linus ]
-> * Turn on ACPI by default (watch for bug reports!).  This should make
->   suspend/resume work a lot better.
+On Sat, 2007-10-13 at 12:34 +0200, Rafael J. Wysocki wrote:
+> O
+> OK, thanks.
+>=0D
+> Romano, the patches are here:
+>=0D
+> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/38-A=
+CPI-power-don_t-cache-power-resource-state.patch
+> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/39-A=
+CPI-Fan-fan-device-does-not-need-own-structure.patch
+> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.23/patches/40-F=
+an-Drop-force_power_state-acpi_device-option.patch
+>=0D
+> Can you please apply them on top of 2.6.23 and see if that helps?
 
-Bug report for 2.6.23-mm1:
-scsi8 : pata_amd
-scsi9 : pata_amd
-ata9: PATA max UDMA/133 cmd 0x1f0 ctl 0x3f6 bmdma 0xffa0 irq 14
-ata10: PATA max UDMA/133 cmd 0x170 ctl 0x376 bmdma 0xffa8 irq 15
-ACPI Exception (exoparg2-0442): AE_AML_PACKAGE_LIMIT, Index
-(0FFFFFFFF) is beyond end of object [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed
-[\_SB_.PCI0.IDE0.GTM_] (Node ffff810100318a20), AE_AML_PACKAGE_LIMIT
-ACPI Error (psparse-0537): Method parse/execution failed
-[\_SB_.PCI0.IDE0.CHN0._GTM] (Node ffff8101003187c0),
-AE_AML_PACKAGE_LIMIT
-ata9: ACPI get timing mode failed (AE 0x300d)
-ata9.01: ATA-7: Maxtor 6L250R0, BAH41G10, max UDMA/133
-ata9.01: 490234752 sectors, multi 16: LBA48
-ata9.01: limited to UDMA/33 due to 40-wire cable
-ata9.01: configured for UDMA/33
-ata10: port disabled. ignoring.
+Will try as soon as I have half an hour. Unfortunately, I have to
+prepare a lt of classes for tomorrow; I'll see if I can find a little
+spot... thanks so much. I will be back asap.
 
-libata-Bug, ACPI-Bug or just bad code in the BIOS?
-The detection of the 40-wire cable is correct, also that there is only
-one drive at this IDE port.
+Romano=0D
 
-pata_amd is build as module and is driving the IDE part of a nVidia MCP55.
 
-Torsten
+
+--
+La presente comunicaci=C3=B3n tiene car=C3=A1cter confidencial y es par=
+a el exclusivo uso del destinatario indicado en la misma. Si Ud. no es =
+el destinatario indicado, le informamos que cualquier forma de distribu=
+ci=C3=B3n, reproducci=C3=B3n o uso de esta comunicaci=C3=B3n y/o de la =
+informaci=C3=B3n contenida en la misma est=C3=A1n estrictamente prohibi=
+dos por la ley. Si Ud. ha recibido esta comunicaci=C3=B3n por error, po=
+r favor, notif=C3=ADquelo inmediatamente al remitente contestando a est=
+e mensaje y proceda a continuaci=C3=B3n a destruirlo. Gracias por su co=
+laboraci=C3=B3n.
+
+This communication contains confidential information. It is for the exc=
+lusive use of the intended addressee. If you are not the intended addre=
+ssee, please note that any form of distribution, copying or use of this=
+ communication or the information in it is strictly prohibited by law. =
+If you have received this communication in error, please immediately no=
+tify the sender by reply e-mail and destroy this message. Thank you for=
+ your cooperation.=0D
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
