@@ -1,30 +1,49 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [git patches] libata update
-Date: Sun, 14 Oct 2007 13:21:57 +0100
-Message-ID: <20071014132157.5646ac17@the-village.bc.nu>
-References: <20071012194002.GA1545@havoc.gtf.org>
-	<64bb37e0710140335g648a86ebmebdf32a6068abcf8@mail.gmail.com>
+From: dev <dev.akhawe@gmail.com>
+Subject: Hibernate shuts off comp but shutdown now -h doesn't
+Date: Sun, 14 Oct 2007 18:56:33 +0530
+Message-ID: <ecf35a1b0710140626x214f02c8vd470eb1d76d4264b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <64bb37e0710140335g648a86ebmebdf32a6068abcf8@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Torsten Kaiser <just.for.lkml@googlemail.com>
-Cc: Jeff Garzik <jeff@garzik.org>, linux-ide@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fk-out-0910.google.com ([209.85.128.188]:57935 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbXJNN0e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Oct 2007 09:26:34 -0400
+Received: by fk-out-0910.google.com with SMTP id z23so1262867fkz
+        for <linux-acpi@vger.kernel.org>; Sun, 14 Oct 2007 06:26:33 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: kernelnewbies <kernelnewbies@nl.linux.org>, linux-acpi@vger.kernel.org
 
-> ACPI Exception (exoparg2-0442): AE_AML_PACKAGE_LIMIT, Index
-> (0FFFFFFFF) is beyond end of object [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.IDE0.GTM_] (Node ffff810100318a20), AE_AML_PACKAGE_LIMIT
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.IDE0.CHN0._GTM] (Node ffff8101003187c0),
-> AE_AML_PACKAGE_LIMIT
-> ata9: ACPI get timing mode failed (AE 0x300d)
+Hey,
+ I have a P4 2.8 GHz 915 , ASUS Mobo , Slackware linux 12 running
+kernel 2.6.23 right now , but have used most of the major (2.6.*)
+releases since 2.6.17
 
-Looks like an ACPI BIOS problem. In that situation we'll just give up on
-using ACPI information
+My computer on shutdown now -h never shut down. A "power down" is
+printed on the screen and the monitor goes black, but the comp never
+actually shutdown. I always had to kill power manually. I tried with
+the generic kernel supplied with slackware (everything is a module) as
+well as the huge kernel (everything is compiled in) as well as my own
+kernel builds since 2.6.18. Nothing made by comp actually halt on its
+own. I assumed it was a faulty ACPI on my computer, and didn't think
+much of it.
 
-Not much else we can do as Nvidia don't document how to do a reliable
-40/80 wire test and just told us to use the BIOS.
+I installed the latest 2.6.23 kernel. After installing , the shutdown
+now -h command still doesn't work. But I tested out the
+hibernate/suspend to disk via:
+
+echo shutdown >> /sys/power/disk
+echo disk >> /sys/power/state
+
+In this case, the system halts down.
+
+I want to know : if the hibernate / suspend to disk can halt my
+computer why can't shutdown now -h. Any reasons for this / fix ?
+
+Regards,
+dev
+
+Also , a 'halt' entry in my grub's menu.lst shuts down my computer just fine.
