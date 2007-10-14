@@ -1,62 +1,47 @@
-From: Daniel =?ISO-8859-1?Q?W=FCrfel?= <daniel.wuerfel@gmx.net>
-Subject: Re: [Bugme-new] [Bug 9155] New: No fan control with ATI Radeon
-	display support on HP nx6125.
-Date: Sun, 14 Oct 2007 09:26:57 +0200
-Message-ID: <1192346817.6265.22.camel@localhost>
-References: <bug-9155-10286@http.bugzilla.kernel.org/>
-	 <20071013105315.accef6aa.akpm@linux-foundation.org>
-	 <200710132030.20826.rjw@sisk.pl>
+From: "Torsten Kaiser" <just.for.lkml@googlemail.com>
+Subject: Re: [git patches] libata update
+Date: Sun, 14 Oct 2007 12:35:08 +0200
+Message-ID: <64bb37e0710140335g648a86ebmebdf32a6068abcf8@mail.gmail.com>
+References: <20071012194002.GA1545@havoc.gtf.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49553 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753097AbXJNH0f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Oct 2007 03:26:35 -0400
-In-Reply-To: <200710132030.20826.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20071012194002.GA1545@havoc.gtf.org>
+Content-Disposition: inline
+Sender: linux-scsi-owner@vger.kernel.org
+To: Jeff Garzik <jeff@garzik.org>
+Cc: linux-ide@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>, bugme-daemon@bugzilla.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi there,
+On 10/12/07, Jeff Garzik <jeff@garzik.org> wrote:
+> [ I just sent this upstream to Andrew and Linus ]
+> * Turn on ACPI by default (watch for bug reports!).  This should make
+>   suspend/resume work a lot better.
 
-at first great respect for your fast answers. 
-I don't think, that the binary ati driver is the problem, because:
-1. with switched of "ati radeon display support" in the kernel, the fan
-control works correctly (and i still using the ati-driver)
-2. the fan starts spinning at the boot screen even if the radeon display
-driver was loaded (and the ati driver is not just loaded yet). Here you
-see the difference between 2.6.21, when it all works correctly, and
-2.6.22 and 2.6.23: the screen resolution of the boot screen changed to
-the native resolution 1024x768 (in 2.6.21 it still the default terminal
-resolution) 
+Bug report for 2.6.23-mm1:
+scsi8 : pata_amd
+scsi9 : pata_amd
+ata9: PATA max UDMA/133 cmd 0x1f0 ctl 0x3f6 bmdma 0xffa0 irq 14
+ata10: PATA max UDMA/133 cmd 0x170 ctl 0x376 bmdma 0xffa8 irq 15
+ACPI Exception (exoparg2-0442): AE_AML_PACKAGE_LIMIT, Index
+(0FFFFFFFF) is beyond end of object [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.PCI0.IDE0.GTM_] (Node ffff810100318a20), AE_AML_PACKAGE_LIMIT
+ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.PCI0.IDE0.CHN0._GTM] (Node ffff8101003187c0),
+AE_AML_PACKAGE_LIMIT
+ata9: ACPI get timing mode failed (AE 0x300d)
+ata9.01: ATA-7: Maxtor 6L250R0, BAH41G10, max UDMA/133
+ata9.01: 490234752 sectors, multi 16: LBA48
+ata9.01: limited to UDMA/33 due to 40-wire cable
+ata9.01: configured for UDMA/33
+ata10: port disabled. ignoring.
 
-Am Samstag, den 13.10.2007, 20:30 +0200 schrieb Rafael J. Wysocki:
-> On Saturday, 13 October 2007 19:53, Andrew Morton wrote:
-> > On Sat, 13 Oct 2007 02:37:35 -0700 (PDT) bugme-daemon@bugzilla.kernel.org wrote:
-> > 
-> > > Most recent kernel where this bug did not occur:2.6.21
-> > > Distribution:gentoo
-> > > Hardware Environment:HP nx6125 BIOS version F.11
-> > > Software Environment:Gnome 2.18, ati-driver 8.40.4
-> 
-> Looks like the binary ATI driver is used.
-> 
-> > > Problem Description:If you enable "support for frame buffer devices", "Vesa vga
-> > > graphics support" and "ati radeon display support" under "graphics support" so
-> > > you lost fan cantrol on your hp nx6125, that means the fan doens't stop
-> > > working.
-> > > 
-> > > Steps to reproduce:Enable "support for frame buffer devices", "Vesa vga
-> > > graphics support" and "ati radeon display support" under "graphics support" on
-> > > your hp nx6125 and after the next boot the fan will not switched off.
-> > > 
-> > 
-> > Does anyone know whether this is likely to be a radeon driver bug or an
-> > acpi bug or something else??
-> 
-> It looks like a thermal issue to me, so I'd say ACPI or the ATI driver (or the
-> combination of the two).
+libata-Bug, ACPI-Bug or just bad code in the BIOS?
+The detection of the 40-wire cable is correct, also that there is only
+one drive at this IDE port.
 
+pata_amd is build as module and is driving the IDE part of a nVidia MCP55.
+
+Torsten
