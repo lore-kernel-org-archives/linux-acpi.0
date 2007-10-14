@@ -1,52 +1,68 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Hibernate shuts off comp but shutdown now -h doesn't
-Date: Sun, 14 Oct 2007 15:54:50 +0200
-Message-ID: <200710141554.51082.rjw@sisk.pl>
-References: <ecf35a1b0710140626x214f02c8vd470eb1d76d4264b@mail.gmail.com>
+Subject: Re: [Bugme-new] [Bug 9155] New: No fan control
+	with ATI Radeon display support on HP nx6125.
+Date: Sun, 14 Oct 2007 16:02:47 +0200
+Message-ID: <200710141602.48206.rjw@sisk.pl>
+References: <bug-9155-10286@http.bugzilla.kernel.org/>
+	<200710132030.20826.rjw@sisk.pl>
+	<1192346817.6265.22.camel@localhost>
+Reply-To: linux-fbdev-devel@lists.sourceforge.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54488 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751371AbXJNNj1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Oct 2007 09:39:27 -0400
-In-Reply-To: <ecf35a1b0710140626x214f02c8vd470eb1d76d4264b@mail.gmail.com>
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <1192346817.6265.22.camel@localhost>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
+List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-fbdev-devel-bounces@lists.sourceforge.net
+Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
+To: Daniel =?iso-8859-15?q?W=FCrfel?= <daniel.wuerfel@gmx.net>
+Cc: linux-fbdev-devel@lists.sourceforge.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: dev <dev.akhawe@gmail.com>
-Cc: kernelnewbies <kernelnewbies@nl.linux.org>, linux-acpi@vger.kernel.org
 
-On Sunday, 14 October 2007 15:26, dev wrote:
-> Hey,
->  I have a P4 2.8 GHz 915 , ASUS Mobo , Slackware linux 12 running
-> kernel 2.6.23 right now , but have used most of the major (2.6.*)
-> releases since 2.6.17
-> 
-> My computer on shutdown now -h never shut down. A "power down" is
-> printed on the screen and the monitor goes black, but the comp never
-> actually shutdown. I always had to kill power manually. I tried with
-> the generic kernel supplied with slackware (everything is a module) as
-> well as the huge kernel (everything is compiled in) as well as my own
-> kernel builds since 2.6.18. Nothing made by comp actually halt on its
-> own. I assumed it was a faulty ACPI on my computer, and didn't think
-> much of it.
-> 
-> I installed the latest 2.6.23 kernel. After installing , the shutdown
-> now -h command still doesn't work. But I tested out the
-> hibernate/suspend to disk via:
-> 
-> echo shutdown >> /sys/power/disk
-> echo disk >> /sys/power/state
-> 
-> In this case, the system halts down.
-> 
-> I want to know : if the hibernate / suspend to disk can halt my
-> computer why can't shutdown now -h. Any reasons for this / fix ?
+On Sunday, 14 October 2007 09:26, Daniel W=FCrfel wrote:
+> Hi there,
+> =
 
-What happens if you do "echo shutdown > /sys/power/disk" before hibernation?
+> at first great respect for your fast answers. =
+
+> I don't think, that the binary ati driver is the problem, because:
+> 1. with switched of "ati radeon display support" in the kernel, the fan
+> control works correctly (and i still using the ati-driver)
+
+How do you know, however, that the "ati radeon display support" in the kern=
+el
+does not interfere with the ATI driver in a destructive way?
+
+> 2. the fan starts spinning at the boot screen even if the radeon display
+> driver was loaded (and the ati driver is not just loaded yet).
+
+I'm not sure what you mean exactly.  Can you clarify, please?
+
+> Here you see the difference between 2.6.21, when it all works correctly, =
+and
+> 2.6.22 and 2.6.23: the screen resolution of the boot screen changed to
+> the native resolution 1024x768 (in 2.6.21 it still the default terminal
+> resolution) =
+
+
+This only means that the kernel's radeon driver has changed.
+
+It's difficult to say what's going wrong.
+
+What's the CPU load when the fan is spinning?
 
 Greetings,
 Rafael
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >> http://get.splunk.com/
