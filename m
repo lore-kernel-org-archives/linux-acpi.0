@@ -1,36 +1,37 @@
-From: John Sigler <linux.kernel@free.fr>
-Subject: Re: halt does not shut the system down
-Date: Mon, 15 Oct 2007 12:36:56 +0200
-Message-ID: <471342C8.2030305@free.fr>
-References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com> <470F7264.8070205@free.fr>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Hibernate shuts off comp but shutdown now -h doesn't
+Date: Mon, 15 Oct 2007 12:53:32 +0200
+Message-ID: <200710151253.33210.rjw@sisk.pl>
+References: <ecf35a1b0710140626x214f02c8vd470eb1d76d4264b@mail.gmail.com> <200710142212.08394.rjw@sisk.pl> <ecf35a1b0710150220y48415a21i3053ba521be8ab98@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4-g19.free.fr ([212.27.42.30]:52615 "EHLO smtp4-g19.free.fr"
+Received: from ogre.sisk.pl ([217.79.144.158]:57665 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753761AbXJOKg5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Oct 2007 06:36:57 -0400
-In-Reply-To: <470F7264.8070205@free.fr>
+	id S1758126AbXJOKiG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Oct 2007 06:38:06 -0400
+In-Reply-To: <ecf35a1b0710150220y48415a21i3053ba521be8ab98@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
+To: dev <dev.akhawe@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-John Sigler wrote:
-
-> Alexey Starikovskiy wrote:
+On Monday, 15 October 2007 11:20, dev wrote:
+> Hey,
 > 
->> Could you please open bug at bugzilla.kernel.org and put all these
->> files there?
+> It prints umounting (all my partitions).
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9148
+> Then it prints some messages , but before I can read them the monitor
+> goes blank...
 
-Writing 15361 (i.e. 0x3C01) to ACPI_REGISTER_PM1A_CONTROL appears to 
-hang my system in acpi_os_write_port(). What can I do about that?
+So, the monitor goes blank, but the PSU is not turned off?
 
-Is it a BIOS issue? a kernel issue? a hardware issue?
+> where can I find what was written ?
 
-(All my results are attached to the bug report.)
+Is this possible to use serial console on this box?
 
-Regards.
+Greetings,
+Rafael
