@@ -1,142 +1,267 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: [RFC] [PATCH] ACPI :Modify timer override connection in Some
- NVIDIA systems
-Date: Mon, 15 Oct 2007 12:30:13 -0400
-Message-ID: <47139595.2040505@redhat.com>
-References: <1192172655.27194.29.camel@yakui_zhao.sh.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 1/2] Export a func to find the corresponding PCI
+	bus:seg.func of an ACPI device
+Date: Mon, 15 Oct 2007 18:33:05 +0200
+Message-ID: <1192465985.9847.585.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:42377 "EHLO mx1.redhat.com"
+Received: from ns2.suse.de ([195.135.220.15]:51739 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758776AbXJOQa0 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Mon, 15 Oct 2007 12:30:26 -0400
-In-Reply-To: <1192172655.27194.29.camel@yakui_zhao.sh.intel.com>
+	id S1763187AbXJOQdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Oct 2007 12:33:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Linux-acpi@vger.kernel.org, lenb@kernel.org, Andi Kleen <ak@suse.de>, Thomas Gleixner <tglx@linutronix.de>
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Christian Birchinger <joker@netswarm.net>, "Li, Shaohua" <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, ibm-acpi-devel <ibm-acpi-devel@lists.sourceforge.net>
 
-On 10/12/2007 03:04 AM, Zhao Yakui wrote:
-> Hi, All
->     The BIOS of some systems using NVIDIA chipset gives the uncorrect
-> timer override connection, which will cause that I/O APIC and timer
-> can't be connected and kernel panic.
->     There are two ways to fix this bug. One is to use the following patch and 
-> the other is to add a new boot option of acpi_force_timer_override. 
-> 
-> 1. Use the following patch.
-> The basic flowchart of patch is that:(unnecessary to add new boot option)
->     a. When NVIDIA chipset is detected and hpet timer exist, 
-> acpi_use_timer_override will be set.
->     (Skip this when boot option of acpi_use_timer_override is given).
->     b. Check whether uncorrect timer connection(IRQ0, Pin0) exists when 
-> acpi_use_timer_override is set and HPET timer exists. 
->       If error exists, timer will be forced to route to the Pin2.
-> 
-> 2. Add a new boot option of acpi_force_timer_override
->     The basic flowchart of this method is that:
->     a. When NVIDIA chipset is detected and HPET timer exists, 
-> acpi_force_timer_override will be set.
->        (skip this when boot option of acpi_force_timer_override is given)
->     b. Check whether uncorrect timer connection(IRQ0,Pin0) exists when 
-> acpi_force_timer_override is set.
->        If the error exists, modify the timer override connection.
-> 
-> Welcome the comments.
-> Thanks.
-> 
-> Subject: ACPI :Modify timer override connection in Some NVIDIA systems
->>From : Zhao Yakui <yakui.zhao@intel.com>
-> 
-> BIOS defines the uncorrect timeroverride connection in some NVIDIA
-> systems
-> on which HPET timer exists. When the uncorrect connection is deteced, 
-> the timer will be forced to route to the Pin 2 of I/O APIC instead of
-> Pin 0.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8956
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  arch/i386/kernel/acpi/boot.c       |   17 +++++++++++++++++
->  arch/i386/kernel/acpi/earlyquirk.c |    7 ++++++-
->  arch/x86_64/kernel/early-quirks.c  |    2 ++
->  3 files changed, 25 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6.23-rc9/arch/i386/kernel/acpi/boot.c
-> ===================================================================
-> --- linux-2.6.23-rc9.orig/arch/i386/kernel/acpi/boot.c
-> +++ linux-2.6.23-rc9/arch/i386/kernel/acpi/boot.c
-> @@ -351,6 +351,11 @@ static void __init acpi_sci_ioapic_setup
->  	return;
->  }
->  
-> +static int __init acpi_hpet_check(struct acpi_table_header *header)
-> +{
-> +	return 0;
-> +}
-> +
->  static int __init
->  acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
->  		       const unsigned long end)
-> @@ -371,6 +376,18 @@ acpi_parse_int_src_ovr(struct acpi_subta
->  		return 0;
->  	}
->  
-> +	if (acpi_use_timer_override &&
-> +	   intsrc->source_irq == 0 && intsrc->global_irq == 0 &&
-> +	   !acpi_table_parse(ACPI_SIG_HPET, acpi_hpet_check)) {
-> +		mp_override_legacy_irq(intsrc->source_irq,
-> +			intsrc->inti_flags & ACPI_MADT_POLARITY_MASK,
-> +			(intsrc->inti_flags & ACPI_MADT_TRIGGER_MASK) >> 2,
-> +			2);
-> +		printk(PREFIX "BIOS IRQ0 pin0 override ignored."
-> +				"Force to use IRQ0 pin2 \n");
-> +		return 0;
-> +	}
-> +
->  	if (acpi_skip_timer_override &&
->  	    intsrc->source_irq == 0 && intsrc->global_irq == 2) {
->  		printk(PREFIX "BIOS IRQ0 pin2 override ignored.\n");
-> Index: linux-2.6.23-rc9/arch/i386/kernel/acpi/earlyquirk.c
-> ===================================================================
-> --- linux-2.6.23-rc9.orig/arch/i386/kernel/acpi/earlyquirk.c
-> +++ linux-2.6.23-rc9/arch/i386/kernel/acpi/earlyquirk.c
-> @@ -26,7 +26,8 @@ static int __init check_bridge(int vendo
->  	/* According to Nvidia all timer overrides are bogus unless HPET
->  	   is enabled. */
->  	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
-> -		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
-> +		if (!warned) {
-> +		if (acpi_table_parse(ACPI_SIG_HPET,
->  						nvidia_hpet_check)) {
->  			warned = 1;
->  			acpi_skip_timer_override = 1;
-> @@ -36,6 +37,10 @@ static int __init check_bridge(int vendo
->                  printk(KERN_INFO "If you got timer trouble "
->  			 	 "try acpi_use_timer_override\n");
->  
-> +			} else {
-> +			warned = 1;
-> +			acpi_use_timer_override = 1;
-> +			}
->  		}
->  	}
->  #endif
-> Index: linux-2.6.23-rc9/arch/x86_64/kernel/early-quirks.c
-> ===================================================================
-> --- linux-2.6.23-rc9.orig/arch/x86_64/kernel/early-quirks.c
-> +++ linux-2.6.23-rc9/arch/x86_64/kernel/early-quirks.c
-> @@ -57,6 +57,8 @@ static void __init nvidia_bugs(void)
->  		       "timer override.\n");
->  		printk(KERN_INFO "If you got timer trouble "
->  			"try acpi_use_timer_override\n");
-> +	} else {
-> +		acpi_use_timer_override = 1;
->  	}
->  #endif
->  	/* RED-PEN skip them on mptables too? */
+Hi,
 
-cc: added
+Li: Could you double check and comment on that one please. It works fine
+here on a Lenovo ThinkPad...
+
+These two should avoid the registration of a dummy ACPI device for
+graphics card on recent Lenovo ThinkPads.
+
+Christian: This is why you saw two devices in /proc/acpi/video
+It would be great if you could check if it's working for you.
+
+
+    Thomas
+
+------------------
+
+Export a func to find the corresponding PCI bus:seg.func of an ACPI device
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+---
+ drivers/acpi/pci_root.c |  155 ++++++++++++++++++++++++++++++++++++++----------
+ include/linux/acpi.h    |    2 
+ 2 files changed, 127 insertions(+), 30 deletions(-)
+
+Index: lenb/drivers/acpi/pci_root.c
+===================================================================
+--- lenb.orig/drivers/acpi/pci_root.c
++++ lenb/drivers/acpi/pci_root.c
+@@ -32,6 +32,7 @@
+ #include <linux/pm.h>
+ #include <linux/pci.h>
+ #include <linux/acpi.h>
++#include <linux/mod_devicetable.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -184,31 +185,11 @@ static void acpi_pci_bridge_scan(struct 
+ 		}
+ }
+ 
+-static int acpi_pci_root_add(struct acpi_device *device)
++static int acpi_pci_root_get_seg_bus(struct acpi_device *device, u16 *seg, u16 *bus)
+ {
+-	int result = 0;
+-	struct acpi_pci_root *root = NULL;
+-	struct acpi_pci_root *tmp;
++
+ 	acpi_status status = AE_OK;
+ 	unsigned long value = 0;
+-	acpi_handle handle = NULL;
+-	struct acpi_device *child;
+-
+-
+-	if (!device)
+-		return -EINVAL;
+-
+-	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+-	if (!root)
+-		return -ENOMEM;
+-	INIT_LIST_HEAD(&root->node);
+-
+-	root->device = device;
+-	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+-	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+-	acpi_driver_data(device) = root;
+-
+-	device->ops.bind = acpi_pci_bind;
+ 
+ 	/* 
+ 	 * Segment
+@@ -219,17 +200,16 @@ static int acpi_pci_root_add(struct acpi
+ 				       &value);
+ 	switch (status) {
+ 	case AE_OK:
+-		root->id.segment = (u16) value;
++		*seg = (u16) value;
+ 		break;
+ 	case AE_NOT_FOUND:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Assuming segment 0 (no _SEG)\n"));
+-		root->id.segment = 0;
++		*seg = 0;
+ 		break;
+ 	default:
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _SEG"));
+-		result = -ENODEV;
+-		goto end;
++		return -ENODEV;
+ 	}
+ 
+ 	/* 
+@@ -241,17 +221,48 @@ static int acpi_pci_root_add(struct acpi
+ 				       &value);
+ 	switch (status) {
+ 	case AE_OK:
+-		root->id.bus = (u16) value;
++		*bus = (u16) value;
+ 		break;
+ 	case AE_NOT_FOUND:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Assuming bus 0 (no _BBN)\n"));
+-		root->id.bus = 0;
++		*bus = 0;
+ 		break;
+ 	default:
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BBN"));
+-		result = -ENODEV;
+-		goto end;
++		return -ENODEV;
+ 	}
++	return 0;
++}
++
++static int acpi_pci_root_add(struct acpi_device *device)
++{
++	int result = 0;
++	struct acpi_pci_root *root = NULL;
++	struct acpi_pci_root *tmp;
++	acpi_status status = AE_OK;
++	acpi_handle handle = NULL;
++	struct acpi_device *child;
++
++
++	if (!device)
++		return -EINVAL;
++
++	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
++	if (!root)
++		return -ENOMEM;
++	INIT_LIST_HEAD(&root->node);
++
++	root->device = device;
++	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
++	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
++	acpi_driver_data(device) = root;
++
++	device->ops.bind = acpi_pci_bind;
++
++	result = acpi_pci_root_get_seg_bus(device, &root->id.bus,
++					   &root->id.segment);
++	if (result < 0)
++		goto end;
+ 
+ 	/* Some systems have wrong _BBN */
+ 	list_for_each_entry(tmp, &acpi_pci_roots, node) {
+@@ -392,3 +403,87 @@ static int __init acpi_pci_root_init(voi
+ }
+ 
+ subsys_initcall(acpi_pci_root_init);
++
++/*
++ * Find the struct pci_dev* structure associated to the given ACPI device
++ *
++ * The device might be deeper in the device tree, the function goes until the
++ * PCI root bridge and returns the registered PCI device in the PCI sublayer,
++ * e.g.:
++ *
++ * \_SB
++ *     PCI0
++ *         SATA          S-ATA controller
++ *             _ADR      PCI Address of the SATA controller
++ *             PRT0      Port 0 device
++ *                 _ADR  Physical port and multiplier topology
++ *             PRTn      Port n device
++ *
++ * Whether PRT0 or SATA is passed it will always return the pci_dev
++ * structure of the SATA device.
++ * Be aware that the PCI device could be a PCI root bridge (e.g. in AGP
++ * case). If you want to have the real PCI struct of it, you need PCI sublayer
++ * functions to map the PCI root bridge device to the PCI bus the device has
++ * been set up to.
++ *
++ * Returns:
++ *   - zero on success
++ *   - -EINVAL on a real error -> buggy BIOS...
++ *   - -ENODEV is there is no physicaly PCI device associated/registered
++ */
++
++int acpi_find_pci_device(struct acpi_device *device, struct pci_dev *pci)
++{
++	struct acpi_device *parent, *child;
++	unsigned int devfn;
++	u16 bus, seg;
++	int result;
++	const struct acpi_device_id root_bridge_ids[] = {
++		{PCI_ROOT_HID_STRING, 0},
++		{PCI_EXPRESS_ROOT_HID_STRING, 0},
++		{"", 0},
++	};
++	pci = NULL;
++
++	if (!device || !device->parent) {
++		return -EINVAL;
++	}
++	child = device;
++	parent = device->parent;
++
++	while (acpi_match_device_ids(parent, root_bridge_ids)) {
++		/* Passed device was not under a PCI root bus */
++		if (!parent)
++			return -EINVAL;
++
++		child = parent;
++		parent = parent->parent;
++
++	}
++
++	if (!child->flags.bus_address) {
++		printk (KERN_DEBUG PREFIX "Child device of PCI root bus has no"
++			" _ADR func\n");
++		return -EINVAL;
++	}
++
++	/* _ADR  is lowest 16 bit -> func, highest 16 bit -> slot
++	 * devfn is lowest  3 bit -> func, rest is        -> slot
++	 */
++	devfn = (acpi_device_adr(child) >> 13) |
++		(acpi_device_adr(child) & 0xFFFF);
++
++	result = acpi_pci_root_get_seg_bus(parent, &bus, &seg);
++	if (result < 0)
++		return -EINVAL;
++
++	pci = pci_get_bus_and_slot(bus, devfn);
++
++	/* There is no physical PCI device registered for the ACPI device */
++	if (!pci)
++		return -ENODEV;
++	pci_dev_put(pci);
++
++	return 0;
++}
++EXPORT_SYMBOL(acpi_find_pci_device);
+Index: lenb/include/linux/acpi.h
+===================================================================
+--- lenb.orig/include/linux/acpi.h
++++ lenb/include/linux/acpi.h
+@@ -170,6 +170,8 @@ struct acpi_prt_list {
+ 
+ struct pci_dev;
+ 
++int acpi_find_pci_device(struct acpi_device *device, struct pci_dev *pci);
++
+ int acpi_pci_irq_enable (struct pci_dev *dev);
+ void acpi_penalize_isa_irq(int irq, int active);
+ 
+
+
