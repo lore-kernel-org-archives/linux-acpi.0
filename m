@@ -1,89 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Bugme-new] [Bug 9155] New: No fan control with ATI Radeon display support on HP nx6125.
-Date: Mon, 15 Oct 2007 22:32:34 +0200
-Message-ID: <200710152232.35324.rjw@sisk.pl>
-References: <bug-9155-10286@http.bugzilla.kernel.org/> <200710142155.09345.rjw@sisk.pl> <1192468342.6249.9.camel@localhost>
+Subject: Re: 2.6.23-mm1
+Date: Mon, 15 Oct 2007 22:40:02 +0200
+Message-ID: <200710152240.03543.rjw@sisk.pl>
+References: <20071011213126.cf92efb7.akpm@linux-foundation.org> <200710122332.41944.rjw@sisk.pl> <20071015160914.GA18550@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59864 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:59906 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764845AbXJOUQz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Oct 2007 16:16:55 -0400
-In-Reply-To: <1192468342.6249.9.camel@localhost>
+	id S1754494AbXJOUY2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Oct 2007 16:24:28 -0400
+In-Reply-To: <20071015160914.GA18550@linux.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel =?utf-8?q?W=C3=BCrfel?= <daniel.wuerfel@gmx.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>, bugme-daemon@bugzilla.kernel.org, Len Brown <lenb@kernel.org>
+To: mgross@linux.intel.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@infradead.org>
 
-On Monday, 15 October 2007 19:12, Daniel W=C3=BCrfel wrote:
-> Am Sonntag, den 14.10.2007, 21:55 +0200 schrieb Rafael J. Wysocki:
-> > On Sunday, 14 October 2007 16:18, Daniel W=C3=BCrfel wrote:
-> > > Am Sonntag, den 14.10.2007, 16:02 +0200 schrieb Rafael J. Wysocki=
-:
-> > > > On Sunday, 14 October 2007 09:26, Daniel W=C3=BCrfel wrote:
-> > > > > Hi there,
-> > > > >=20
-> > > > > at first great respect for your fast answers.=20
-> > > > > I don't think, that the binary ati driver is the problem, bec=
-ause:
-> > > > > 1. with switched of "ati radeon display support" in the kerne=
-l, the fan
-> > > > > control works correctly (and i still using the ati-driver)
-> > > >=20
-> > > > How do you know, however, that the "ati radeon display support"=
- in the kernel
-> > > > does not interfere with the ATI driver in a destructive way?
-> > >=20
-> > > I think, but im not sure, that the ati driver is loaded, if X was
-> > > started. But at this moment X was not started.
-> >=20
-> > Well, the kernel module part is probably loaded earlier.
-> > =20
-> > > > > 2. the fan starts spinning at the boot screen even if the rad=
-eon display
-> > > > > driver was loaded (and the ati driver is not just loaded yet)=
-=2E
-> > > >=20
-> > > > I'm not sure what you mean exactly.  Can you clarify, please?da=
-nn
-> > >=20
-> > > Well, i see it looks a little bit confused what i wrote. What i m=
-ean is,
-> > > that the fan at this time starts to rotate, when the "radeon disp=
-lay
-> > > support" is loaded at boot time.
-> >=20
-> > I see.
-> >=20
-> > Can you please check:
-> > - What happens if you don't use the ATI driver at all (please unloa=
-d its kernel
-> >   module before loading the kernel's radeon one)?
-> > - Does the loading of the radeon module trigger the fan automatical=
-ly?
-> > - What happens if the fan module is not loaded at that time?
->=20
-> I think i got the problem:
-> I made some test. The problem is the module radeonfb. If i compile
-> radeonfb as a module there is no problem with the fan control. But if=
- i
-> compile it into the kernel, than fan control will be destroyed and th=
-e
-> fan doesn't stop working from the beginning of the system start.=20
-> The other modules (fglrx, agp_gart) have no influence to the fan
-> behaviour.
+On Monday, 15 October 2007 18:09, Mark Gross wrote:
+> On Fri, Oct 12, 2007 at 11:32:40PM +0200, Rafael J. Wysocki wrote:
+> > On Friday, 12 October 2007 06:31, Andrew Morton wrote:
+> > > 
+> > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/2.6.23-mm1/
+> > > 
+> > > - I've been largely avoiding applying anything since rc8-mm2 in an attempt
+> > >   to stabilise things for the 2.6.23 merge.
+> > > 
+> > >   But that didn't stop all the subsystem maintainers from going nuts, with
+> > >   the usual accuracy.  We're up to a 37MB diff now, but it seems to be working
+> > >   a bit better.
+> > 
+> > I get many traces similar to the one below from it (w/ hotfixes):
+> > 
+> > WARNING: at /home/rafael/src/mm/linux-2.6.23-mm1/arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
+> 
+> This is from : WARN_ON(irqs_disabled()) in the cmp_call_function_mask
+> processor_idle.c is registering a acpi_processor_latency_notify 
+> 
+> my code changed the notifier call from blocking_notifier_call_chain to
+> srcu_notifier_call_chain, because dynamic creation of notifier chains at
+> runtime where easier with the srcu_notifier_call_chain than the
+> blocking_notifier_call_chain.  
+> 
+> As dynamic creation of PM_QOS parameters are no longer needed I can
+> change the notifiers back to match what was in lanency.c
+> 
+> However; looking at the call tree differences between
+> blockin_notifier_call_chain and srcu_notifier_call_chain I cannot see a
+> difference in irq enabling / disabling.  I'm not confident this will
+> address this yet.
 
-Thanks for having narrowed this, good job.
+Well, you can send me a patch to check. :-)
 
-Now, the question is why the radeonfb compiled in statically has this e=
-ffect.
+> I'll change the PM_QOS params patch to use blocking notifiers and test
+> on a 64bit boot and see what happens.  I've been needing to setup my
+> x86_64 dev box for a while now anyway.
 
-Can you please attach your current .config to the bugzilla entry?
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK, thanks.
+
+Greetings,
+Rafael
