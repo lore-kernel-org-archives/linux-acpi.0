@@ -1,55 +1,315 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 09a/10] ACPI: thinkpad-acpi: let threads be
-	frozen
-Date: Mon, 15 Oct 2007 00:46:03 -0200
-Message-ID: <20071015024603.GA20569@khazad-dum.debian.net>
-References: <1192306979-26886-1-git-send-email-hmh@hmh.eng.br>
-	<1192306979-26886-10-git-send-email-hmh@hmh.eng.br>
+From: "Fred Bauer" <fred.w.bauer@gmail.com>
+Subject: dmidecode - HP Pavilion dv9410us
+Date: Mon, 15 Oct 2007 00:17:48 -0400
+Message-ID: <553eb53a0710142117u1e82c642pae8d82d7ae2e31b7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rv-out-0910.google.com ([209.85.198.186]:26220 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbXJOER6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Oct 2007 00:17:58 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so1342626rvb
+        for <linux-acpi@vger.kernel.org>; Sun, 14 Oct 2007 21:17:49 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1192306979-26886-10-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Request that thinkpad-acpi threads be frozen during suspend or hibernate.
+This is from an HP Pavilion dv9410us (dv9000)
+OpenSuse 10.3
+Kernel 2.6.22.5
+Booting with acpi_osi="!Linux" crashes
+Booting with noapic works but with irq7  "nobody cared"
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 
----
+# dmidecode 2.9
+SMBIOS 2.4 present.
+20 structures occupying 822 bytes.
+Table at 0x000F1C80.
 
-Missed this one, sorry.  Here it is in the proper place on the sequence of
-patches (it should come after patch 09 and before patch 10).  I have updated
-the git tree as well.
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Hewlett-Packard
+	Version: F.3A
+	Release Date: 07/19/2007
+	Address: 0xE6A30
+	Runtime Size: 103888 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index ccc0e2f..071129e 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1097,6 +1097,8 @@ static int hotkey_kthread(void *data)
- 	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
- 		goto exit;
- 
-+	set_freezable();
-+
- 	so = 0;
- 	si = 1;
- 	t = 0;
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Hewlett-Packard
+	Product Name: HP Pavilion dv9000 (GA355UA#ABA)
+	Version: Rev 1
+	Serial Number: CNF7282S2L
+	UUID: 434E4637-3238-3253-324C-001B2469B587
+	Wake-up Type: Power Switch
+	SKU Number: GA355UA#ABA
+	Family: 103C_5335KV
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >> http://get.splunk.com/
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Quanta
+	Product Name: 30B9
+	Version: 65.28
+	Serial Number: None
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Quanta
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: Unknown
+	OEM Information: 0x00000001
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: Socket S1
+	Type: Central Processor
+	Family: Opteron
+	Manufacturer: AMD
+	ID: 82 0F 04 00 FF FB 8B 17
+	Signature: Family 15, Model 72, Stepping 2
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+		HTT (Hyper-threading technology)
+	Version: AMD Turion(tm) 64 X2 Mobile TL56
+	Voltage: 1.6 V
+	External Clock: 200 MHz
+	Max Speed: 1800 MHz
+	Current Speed: 1800 MHz
+	Status: Populated, Enabled
+	Upgrade: None
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Through
+	Location: Internal
+	Installed Size: 1024 KB
+	Maximum Size: 1024 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Synchronous
+	Installed SRAM Type: Synchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unified
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 1
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 2
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0009, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description: 128
+
+Handle 0x000A, DMI type 11, 5 bytes
+OEM Strings
+	String 1: $HP$
+	String 2: LOC#
+
+Handle 0x000B, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x000000B0
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000C, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 1
+	Bank Locator: Bank 0,1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: F7F7F7F7F7150000
+	Serial Number: 20989152
+	Asset Tag: Not Specified
+	Part Number: 64T64020EDL3SB2
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 2
+	Bank Locator: Bank 2,3
+	Type: DDR2
+	Type Detail: Unknown
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: F7F7F7F7F7150000
+	Serial Number: 2098F152
+	Asset Tag: Not Specified
+	Part Number: 64T64020EDL3SB2
+
+Handle 0x000F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000C
+	Partition Width: 0
+
+Handle 0x0010, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000D
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0012, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0013, DMI type 127, 4 bytes
+End Of Table
+
+
+-- 
+Fred W. Bauer
+fred.w.bauer@gmail.com
