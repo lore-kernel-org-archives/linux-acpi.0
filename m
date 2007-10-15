@@ -1,49 +1,51 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: Hibernate shuts off comp but shutdown now -h doesn't
-Date: Mon, 15 Oct 2007 17:25:12 +0400
-Message-ID: <47136A38.2010100@gmail.com>
-References: <ecf35a1b0710140626x214f02c8vd470eb1d76d4264b@mail.gmail.com>	 <200710142212.08394.rjw@sisk.pl>	 <ecf35a1b0710150220y48415a21i3053ba521be8ab98@mail.gmail.com>	 <200710151253.33210.rjw@sisk.pl> <ecf35a1b0710150558i335c1edbq81431e4de03573@mail.gmail.com>
+From: John Sigler <linux.kernel@free.fr>
+Subject: Re: halt does not shut the system down
+Date: Mon, 15 Oct 2007 15:29:19 +0200
+Message-ID: <47136B2F.9070904@free.fr>
+References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com> <470F7264.8070205@free.fr> <471342C8.2030305@free.fr> <47134ACF.8040608@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:34805 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760373AbXJONZX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Oct 2007 09:25:23 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so873089ugc
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Oct 2007 06:25:21 -0700 (PDT)
-In-Reply-To: <ecf35a1b0710150558i335c1edbq81431e4de03573@mail.gmail.com>
+Received: from smtp4-g19.free.fr ([212.27.42.30]:40542 "EHLO smtp4-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757109AbXJON3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Oct 2007 09:29:21 -0400
+In-Reply-To: <47134ACF.8040608@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: dev <dev.akhawe@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
 
-dev wrote:
->> So, the monitor goes blank, but the PSU is not turned off?
-PSU is power-supply unit, this is metal box with bunch of colored 
-wires sitting in the corner of your computer case.
-It converts AC from wall outlet into DC used by computer internals.
-> Yes exactly. processor is also ON, I can hear it.
-You can't hear processor, it is not mechanical thing. You probably hear _fan_
-on top of the processor, used to cool it.
-> 
->> Is this possible to use serial console on this box?
-> 
-> What do you mean? I was hoping to know where everything is logged by
-> the kernel!
-> 
-> ofcourse I later realised that as the fs is remounted readonly before
-> remount , no logging to disk is possible . :)
-> 
-> 
-> I don't know what you mean by serial console ...
-He means that if your computer has serial port (9 or 25 pin D-shaped), 
-and you have one more computer with such serial port nearby, you could 
-connect them and have first computer do output over serial connection 
-to second one, which will act as "serial console" in such case. As 
-second computer does not powered-off then first one does, it is possible to see 
-log of powering-off first computer on a second one. 
+Alexey Starikovskiy wrote:
 
-Regards,
-Alex. 
+> John Sigler wrote:
+> 
+>> Alexey Starikovskiy wrote:
+>> 
+>>> Could you please open bug at bugzilla.kernel.org and put all
+>>> these files there?
+>> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=9148
+>> 
+>> Writing 15361 (i.e. 0x3C01) to ACPI_REGISTER_PM1A_CONTROL appears
+>> to hang my system in acpi_os_write_port(). What can I do about that?
+> 
+> That is supposed to turn your machine off. At least we now know that
+> ACPI did try to turn it off. You could also try different kernel or
+> defconfig.
+
+What's defconfig? .config? Which option(s) might have an impact?
+
+>> Is it a BIOS issue? a kernel issue? a hardware issue?
+> 
+> I think _other_ OS could turn your machine off just fine, so the
+> issue is not HW, not BIOS. Probably, first thing to try is 2.6.23.1
+> as it was just released and has some changes in power management
+> section...
+
+I have the same problem in 2.6.23.1 (cf. my bug report in the database)
+
+I'll ask the manufacturer whether they could get poweroff to work.
+
+Regards.
