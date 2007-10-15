@@ -1,72 +1,29 @@
-From: Daniel =?ISO-8859-1?Q?W=FCrfel?= <daniel.wuerfel@gmx.net>
-Subject: Re: [Bugme-new] [Bug 9155] New: No fan control
-	with ATI Radeon	display support on HP nx6125.
-Date: Mon, 15 Oct 2007 19:12:22 +0200
-Message-ID: <1192468342.6249.9.camel@localhost>
-References: <bug-9155-10286@http.bugzilla.kernel.org/>
-	<200710141602.48206.rjw@sisk.pl> <1192371504.6265.46.camel@localhost>
-	<200710142155.09345.rjw@sisk.pl>
-Reply-To: linux-fbdev-devel@lists.sourceforge.net
+From: "Marco Calviani" <marco.calviani@gmail.com>
+Subject: Re: Acer Aspire 5720 thermal issues (CORRECTED MODEL name)
+Date: Mon, 15 Oct 2007 20:38:31 +0200
+Message-ID: <da5cd1900710151138v34c8eccbj9abd91f201c24dcc@mail.gmail.com>
+References: <da5cd1900710121243r3522b706s6143f16ef255477a@mail.gmail.com>
+	 <da5cd1900710130322o20f31e2bw2a083660d139d30@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200710142155.09345.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
-List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: linux-fbdev-devel-bounces@lists.sourceforge.net
-Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-fbdev-devel@lists.sourceforge.net, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.243]:52658 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934270AbXJOSid (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Oct 2007 14:38:33 -0400
+Received: by an-out-0708.google.com with SMTP id d31so144394and
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Oct 2007 11:38:32 -0700 (PDT)
+In-Reply-To: <da5cd1900710130322o20f31e2bw2a083660d139d30@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-QW0gU29ubnRhZywgZGVuIDE0LjEwLjIwMDcsIDIxOjU1ICswMjAwIHNjaHJpZWIgUmFmYWVsIEou
-IFd5c29ja2k6Cj4gT24gU3VuZGF5LCAxNCBPY3RvYmVyIDIwMDcgMTY6MTgsIERhbmllbCBXw7xy
-ZmVsIHdyb3RlOgo+ID4gQW0gU29ubnRhZywgZGVuIDE0LjEwLjIwMDcsIDE2OjAyICswMjAwIHNj
-aHJpZWIgUmFmYWVsIEouIFd5c29ja2k6Cj4gPiA+IE9uIFN1bmRheSwgMTQgT2N0b2JlciAyMDA3
-IDA5OjI2LCBEYW5pZWwgV8O8cmZlbCB3cm90ZToKPiA+ID4gPiBIaSB0aGVyZSwKPiA+ID4gPiAK
-PiA+ID4gPiBhdCBmaXJzdCBncmVhdCByZXNwZWN0IGZvciB5b3VyIGZhc3QgYW5zd2Vycy4gCj4g
-PiA+ID4gSSBkb24ndCB0aGluaywgdGhhdCB0aGUgYmluYXJ5IGF0aSBkcml2ZXIgaXMgdGhlIHBy
-b2JsZW0sIGJlY2F1c2U6Cj4gPiA+ID4gMS4gd2l0aCBzd2l0Y2hlZCBvZiAiYXRpIHJhZGVvbiBk
-aXNwbGF5IHN1cHBvcnQiIGluIHRoZSBrZXJuZWwsIHRoZSBmYW4KPiA+ID4gPiBjb250cm9sIHdv
-cmtzIGNvcnJlY3RseSAoYW5kIGkgc3RpbGwgdXNpbmcgdGhlIGF0aS1kcml2ZXIpCj4gPiA+IAo+
-ID4gPiBIb3cgZG8geW91IGtub3csIGhvd2V2ZXIsIHRoYXQgdGhlICJhdGkgcmFkZW9uIGRpc3Bs
-YXkgc3VwcG9ydCIgaW4gdGhlIGtlcm5lbAo+ID4gPiBkb2VzIG5vdCBpbnRlcmZlcmUgd2l0aCB0
-aGUgQVRJIGRyaXZlciBpbiBhIGRlc3RydWN0aXZlIHdheT8KPiA+IAo+ID4gSSB0aGluaywgYnV0
-IGltIG5vdCBzdXJlLCB0aGF0IHRoZSBhdGkgZHJpdmVyIGlzIGxvYWRlZCwgaWYgWCB3YXMKPiA+
-IHN0YXJ0ZWQuIEJ1dCBhdCB0aGlzIG1vbWVudCBYIHdhcyBub3Qgc3RhcnRlZC4KPiAKPiBXZWxs
-LCB0aGUga2VybmVsIG1vZHVsZSBwYXJ0IGlzIHByb2JhYmx5IGxvYWRlZCBlYXJsaWVyLgo+ICAK
-PiA+ID4gPiAyLiB0aGUgZmFuIHN0YXJ0cyBzcGlubmluZyBhdCB0aGUgYm9vdCBzY3JlZW4gZXZl
-biBpZiB0aGUgcmFkZW9uIGRpc3BsYXkKPiA+ID4gPiBkcml2ZXIgd2FzIGxvYWRlZCAoYW5kIHRo
-ZSBhdGkgZHJpdmVyIGlzIG5vdCBqdXN0IGxvYWRlZCB5ZXQpLgo+ID4gPiAKPiA+ID4gSSdtIG5v
-dCBzdXJlIHdoYXQgeW91IG1lYW4gZXhhY3RseS4gIENhbiB5b3UgY2xhcmlmeSwgcGxlYXNlP2Rh
-bm4KPiA+IAo+ID4gV2VsbCwgaSBzZWUgaXQgbG9va3MgYSBsaXR0bGUgYml0IGNvbmZ1c2VkIHdo
-YXQgaSB3cm90ZS4gV2hhdCBpIG1lYW4gaXMsCj4gPiB0aGF0IHRoZSBmYW4gYXQgdGhpcyB0aW1l
-IHN0YXJ0cyB0byByb3RhdGUsIHdoZW4gdGhlICJyYWRlb24gZGlzcGxheQo+ID4gc3VwcG9ydCIg
-aXMgbG9hZGVkIGF0IGJvb3QgdGltZS4KPiAKPiBJIHNlZS4KPiAKPiBDYW4geW91IHBsZWFzZSBj
-aGVjazoKPiAtIFdoYXQgaGFwcGVucyBpZiB5b3UgZG9uJ3QgdXNlIHRoZSBBVEkgZHJpdmVyIGF0
-IGFsbCAocGxlYXNlIHVubG9hZCBpdHMga2VybmVsCj4gICBtb2R1bGUgYmVmb3JlIGxvYWRpbmcg
-dGhlIGtlcm5lbCdzIHJhZGVvbiBvbmUpPwo+IC0gRG9lcyB0aGUgbG9hZGluZyBvZiB0aGUgcmFk
-ZW9uIG1vZHVsZSB0cmlnZ2VyIHRoZSBmYW4gYXV0b21hdGljYWxseT8KPiAtIFdoYXQgaGFwcGVu
-cyBpZiB0aGUgZmFuIG1vZHVsZSBpcyBub3QgbG9hZGVkIGF0IHRoYXQgdGltZT8KCkkgdGhpbmsg
-aSBnb3QgdGhlIHByb2JsZW06CkkgbWFkZSBzb21lIHRlc3QuIFRoZSBwcm9ibGVtIGlzIHRoZSBt
-b2R1bGUgcmFkZW9uZmIuIElmIGkgY29tcGlsZQpyYWRlb25mYiBhcyBhIG1vZHVsZSB0aGVyZSBp
-cyBubyBwcm9ibGVtIHdpdGggdGhlIGZhbiBjb250cm9sLiBCdXQgaWYgaQpjb21waWxlIGl0IGlu
-dG8gdGhlIGtlcm5lbCwgdGhhbiBmYW4gY29udHJvbCB3aWxsIGJlIGRlc3Ryb3llZCBhbmQgdGhl
-CmZhbiBkb2Vzbid0IHN0b3Agd29ya2luZyBmcm9tIHRoZSBiZWdpbm5pbmcgb2YgdGhlIHN5c3Rl
-bSBzdGFydC4gClRoZSBvdGhlciBtb2R1bGVzIChmZ2xyeCwgYWdwX2dhcnQpIGhhdmUgbm8gaW5m
-bHVlbmNlIHRvIHRoZSBmYW4KYmVoYXZpb3VyLgoKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhpcyBTRi5u
-ZXQgZW1haWwgaXMgc3BvbnNvcmVkIGJ5OiBTcGx1bmsgSW5jLgpTdGlsbCBncmVwcGluZyB0aHJv
-dWdoIGxvZyBmaWxlcyB0byBmaW5kIHByb2JsZW1zPyAgU3RvcC4KTm93IFNlYXJjaCBsb2cgZXZl
-bnRzIGFuZCBjb25maWd1cmF0aW9uIGZpbGVzIHVzaW5nIEFKQVggYW5kIGEgYnJvd3Nlci4KRG93
-bmxvYWQgeW91ciBGUkVFIGNvcHkgb2YgU3BsdW5rIG5vdyA+PiBodHRwOi8vZ2V0LnNwbHVuay5j
-b20vCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LWZiZGV2LWRldmVsIG1haWxpbmcgbGlzdApMaW51eC1mYmRldi1kZXZlbEBsaXN0cy5zb3VyY2Vm
-b3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGluZm8vbGlu
-dXgtZmJkZXYtZGV2ZWwK
+Hi list,
+  i've filed this issue to bugzilla.kernel.org:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=9167
+
+regards,
+m
