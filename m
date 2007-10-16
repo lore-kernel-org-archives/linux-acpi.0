@@ -1,38 +1,80 @@
-From: Lorenz Kiefner <mail@lorenz.kiefner.de>
-Subject: ACPI: Unsupported model
-Date: Tue, 16 Oct 2007 19:55:08 +0200
-Message-ID: <4714FAFC.8090909@lorenz.kiefner.de>
+From: Christian Birchinger <joker@netswarm.net>
+Subject: Re: [PATCH] Current brightness level got not set correctly in
+	video module, fix it.
+Date: Tue, 16 Oct 2007 19:48:40 +0200
+Message-ID: <20071016174840.GA17671@netswarm.net>
+References: <1192549319.9847.623.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:48519 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760570AbXJPRzS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 13:55:18 -0400
-Received: from mail-in-08-z2.arcor-online.net (mail-in-08-z2.arcor-online.net [151.189.8.20])
-	by mail-in-14.arcor-online.net (Postfix) with ESMTP id 48119188FCF
-	for <linux-acpi@vger.kernel.org>; Tue, 16 Oct 2007 19:55:15 +0200 (CEST)
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net [151.189.21.41])
-	by mail-in-08-z2.arcor-online.net (Postfix) with ESMTP id 39359212FAC
-	for <linux-acpi@vger.kernel.org>; Tue, 16 Oct 2007 19:55:15 +0200 (CEST)
-Received: from [192.168.0.119] (dslb-084-056-141-130.pools.arcor-ip.net [84.56.141.130])
-	by mail-in-01.arcor-online.net (Postfix) with ESMTP id 0139D19B335
-	for <linux-acpi@vger.kernel.org>; Tue, 16 Oct 2007 19:55:10 +0200 (CEST)
+Received: from netswarm.net ([212.55.200.138]:53558 "EHLO netswarm.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934784AbXJPSAj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2007 14:00:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1192549319.9847.623.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: inux-acpi <linux-acpi@vger.kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>
 
-Hello!
-I've got a new notebook and kernel 2.6.23 complains, I should send the 
-DSDT to "the developers". It would be nice to see an eMail-address there 
-- I hope this mail gets to the right persons...
+On Tue, Oct 16, 2007 at 05:41:58PM +0200, Thomas Renninger wrote:
+> Len, this should be a rather safe and obvious one. Can you apply it,
+> pls.
+> 
+> Without this one, one should get NULL pointer when cap.BQC is not set as
+> device->brightness should not be allocated then.
+> 
+> Christian: This should fix up the wrong initial 0 entry for the current
+> brightness you saw.
+> 
+> Patch is against Len's git test tree and compile tested only.
+> 
+> Thanks,
+> 
+>    Thomas
+> 
+> ------------
+> 
+> Current brightness level got not set correctly in video module, fix it.
+> 
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> ---
+>  drivers/acpi/video.c |   14 +++++++++-----
+>  1 file changed, 9 insertions(+), 5 deletions(-)
+> 
+> Index: lenb/drivers/acpi/video.c
+> ===================================================================
+> --- lenb.orig/drivers/acpi/video.c
+> +++ lenb/drivers/acpi/video.c
+> @@ -428,11 +428,15 @@ static int
+>  acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+>  					unsigned long *level)
+>  {
+> -	if (device->cap._BQC)
+> -		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
+> -					     level);
+> -	*level = device->brightness->curr;
+> -	return AE_OK;
+> +	acpi_status status = AE_OK;
+> +
+> +	if (device->cap._BQC){
+> +		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
+> +					       NULL, level);
+> +		if (ACPI_SUCCESS(status) && device->brightness)
+> +			device->brightness->curr = *level;
+> +	}
+> +	return status;
+>  }
+>  
+>  static int
+> 
 
-The notebook is a ASUS S37E barebone with a "Santa Rosa"-chipset.
+Looks fine here so far. Status is not 0 anymore on init and gets
+updated when the brightness level changes.
 
-You can download the DSDT and other ACPI-tables at 
-http://irmhil.de/~lorenz/asus-S37E-acpitables.tar.bz2
+I've put the function manualy into the 2.6.23.1 video.c because
+the function was to different compared to the latest git.
 
-Thank you!
-Lorenz Kiefner
+Christian
