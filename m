@@ -1,39 +1,82 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: Brightness buttons broken on Toshiba Satellite Proc A100 in kernel
- 2.6.23 (Fedora8)
-Date: Tue, 16 Oct 2007 10:30:50 -0400
-Message-ID: <4714CB1A.7010300@redhat.com>
-References: <loom.20071016T122903-517@post.gmane.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 1/1] Recent Lenovo ThinkPads define a dummy grahpics
+	device, find it and ignore it
+Date: Tue, 16 Oct 2007 16:39:01 +0200
+Message-ID: <1192545541.9847.600.camel@queen.suse.de>
+References: <1192465985.9847.585.camel@queen.suse.de>
+	 <20071015164816.GA5021@srcf.ucam.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:35058 "EHLO mx1.redhat.com"
+Received: from cantor.suse.de ([195.135.220.2]:36456 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758354AbXJPOax (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 10:30:53 -0400
-In-Reply-To: <loom.20071016T122903-517@post.gmane.org>
+	id S932132AbXJPOjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2007 10:39:10 -0400
+In-Reply-To: <20071015164816.GA5021@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Baumann <dannybaumann@web.de>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Christian Birchinger <joker@netswarm.net>, "Li, Shaohua" <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, ibm-acpi-devel <ibm-acpi-devel@lists.sourceforge.net>
 
-On 10/16/2007 08:49 AM, Danny Baumann wrote:
-> Hi,
-> 
-> after upgrading to Fedora 8 which brought kernel 2.6.23 with it I can no longer
-> use the brightness buttons (Fn+F6/F7) on my above mentioned laptop. Pressing
-> them generates F6 and F7 key events instead of ACPI events. This used to work
-> fine in Fedora 7's 2.6.22.9 kernel.
-> 
-> Is there anything I can do to debug this? Writing a value to
-> /proc/acpi/video/VGA/LCD/brightness still works fine, so it's just a matter of
-> the key mapping.
-> I would try to debug this myself, if I just knew where to look at; so any
-> pointers in this direction would be appreciated, too.
-> 
+On Mon, 2007-10-15 at 17:48 +0100, Matthew Garrett wrote:
+> Why not just call acpi_get_pyhsical_device() on the appropriate handle 
+> and look at the struct device you get back? Remember to put_device() it 
+> once you're done.
 
-Did you look here? I think all you need is keyboard quirks for those keys...
+Yep, works great. I should have asked earlier for such a thing...
 
-http://people.freedesktop.org/~hughsient/quirk/
+Len can you apply this one, pls.
+
+Thanks,
+
+   Thomas
+
+Recent Lenovo ThinkPads define a dummy grahpics device, ignore it.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+---
+ drivers/acpi/video.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+Index: lenb/drivers/acpi/video.c
+===================================================================
+--- lenb.orig/drivers/acpi/video.c
++++ lenb/drivers/acpi/video.c
+@@ -34,6 +34,7 @@
+ #include <linux/input.h>
+ #include <linux/backlight.h>
+ #include <linux/video_output.h>
++#include <linux/acpi.h>
+ #include <asm/uaccess.h>
+ 
+ #include <acpi/acpi_bus.h>
+@@ -1901,11 +1902,24 @@ static int acpi_video_bus_add(struct acp
+ 	acpi_status status = 0;
+ 	struct acpi_video_bus *video = NULL;
+ 	struct input_dev *input;
++	struct device *dev;
+ 
+ 
+ 	if (!device)
+ 		return -EINVAL;
+ 
++	/*
++	 *	Check whether we have really  a graphics device physically
++	 *      in the slot and registered at the system.
++	 */
++	dev = acpi_get_physical_device(device->handle);
++	if (!dev) {
++		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
++			" connected, ignoring\n", acpi_device_bid(device),
++			device->parent ? acpi_device_bid(device->parent) : "");
++		return -ENODEV;
++	}
++
+ 	video = kzalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
+ 	if (!video)
+ 		return -ENOMEM;
+
 
