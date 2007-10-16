@@ -1,79 +1,73 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 1/1] Recent Lenovo ThinkPads define a
-	dummy grahpics	device, find it and ignore it
-Date: Tue, 16 Oct 2007 17:11:03 +0200
-Message-ID: <1192547463.9847.611.camel@queen.suse.de>
-References: <1192465985.9847.585.camel@queen.suse.de>
-	<20071015164816.GA5021@srcf.ucam.org>
-	<1192545541.9847.600.camel@queen.suse.de>
-	<20071016144901.GB21749@srcf.ucam.org>
-Reply-To: trenn-l3A5Bk7waGM@public.gmane.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] Current brightness level got not set correctly in video
+	module, fix it.
+Date: Tue, 16 Oct 2007 17:41:58 +0200
+Message-ID: <1192549319.9847.623.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20071016144901.GB21749-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: linux-acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Li,  Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ibm-acpi-devel <ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christian Birchinger <joker-vQrvfurPyUjk1uMJSBkQmQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns.suse.de ([195.135.220.2]:41525 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932984AbXJPPmI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2007 11:42:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Christian Birchinger <joker@netswarm.net>, Len Brown <lenb@kernel.org>
 
-On Tue, 2007-10-16 at 15:49 +0100, Matthew Garrett wrote:
-> On Tue, Oct 16, 2007 at 04:39:01PM +0200, Thomas Renninger wrote:
-> 
-> > +	/*
-> > +	 *	Check whether we have really  a graphics device physically
-> > +	 *      in the slot and registered at the system.
-> > +	 */
-> > +	dev = acpi_get_physical_device(device->handle);
-> > +	if (!dev) {
-> > +		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
-> > +			" connected, ignoring\n", acpi_device_bid(device),
-> > +			device->parent ? acpi_device_bid(device->parent) : "");
-> > +		return -ENODEV;
-> > +	}
-> > +
-> 
-> I suspect this will break other machines. Not all video extension 
-> implementations are directly associated with the PCI ID. The Toshiba 
-> M200 (for example) has
-> 
->             Device (PCI1)
->             {
->                 Name (_ADR, 0x00010000)
->                 Device (VGA)
->                 {
->                     Name (_ADR, 0x00)
-> 
-> which will result in VGA not having a physical device. You might be able 
-> to get away with walking the parents until you find a pci ID and then 
-> checking whether it matches the graphics adaptor, but I'm not certain of 
-> that.
-You mean like I did in my previous approach?
+Hi,
 
-> To make things more entertaining, Dell tend to implement a video 
-> extension for both the 00:02.0 and 00:02.1 devices on Intel systems. We 
-> need to be smarter about this, but I don't think simply looking for a 
-> physical device is the solution.
+Len, this should be a rather safe and obvious one. Can you apply it,
+pls.
 
-Li, could you help here, pls.
-I don't know enough about different possible PCI setups...
+Without this one, one should get NULL pointer when cap.BQC is not set as
+device->brightness should not be allocated then.
+
+Christian: This should fix up the wrong initial 0 entry for the current
+brightness you saw.
+
+Patch is against Len's git test tree and compile tested only.
 
 Thanks,
 
    Thomas
 
+------------
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc.
-Still grepping through log files to find problems?  Stop.
-Now Search log events and configuration files using AJAX and a browser.
-Download your FREE copy of Splunk now >> http://get.splunk.com/
+Current brightness level got not set correctly in video module, fix it.
+
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/acpi/video.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+Index: lenb/drivers/acpi/video.c
+===================================================================
+--- lenb.orig/drivers/acpi/video.c
++++ lenb/drivers/acpi/video.c
+@@ -428,11 +428,15 @@ static int
+ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 					unsigned long *level)
+ {
+-	if (device->cap._BQC)
+-		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
+-					     level);
+-	*level = device->brightness->curr;
+-	return AE_OK;
++	acpi_status status = AE_OK;
++
++	if (device->cap._BQC){
++		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
++					       NULL, level);
++		if (ACPI_SUCCESS(status) && device->brightness)
++			device->brightness->curr = *level;
++	}
++	return status;
+ }
+ 
+ static int
+
+
