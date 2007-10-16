@@ -1,78 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.23-mm1
-Date: Tue, 16 Oct 2007 22:28:13 +0200
-Message-ID: <200710162228.14136.rjw@sisk.pl>
-References: <20071011213126.cf92efb7.akpm@linux-foundation.org> <200710152240.03543.rjw@sisk.pl> <20071016195834.GA23157@linux.intel.com>
+From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Re: [RFC] [PATCH] ACPI :Modify timer override connection in Some
+ NVIDIA systems
+Date: Tue, 16 Oct 2007 17:07:29 -0400
+Message-ID: <47152811.7010103@redhat.com>
+References: <1192172655.27194.29.camel@yakui_zhao.sh.intel.com> <47139595.2040505@redhat.com> <200710151832.59472.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36709 "EHLO ogre.sisk.pl"
+Received: from mx1.redhat.com ([66.187.233.31]:49470 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759529AbXJPUM1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:12:27 -0400
-In-Reply-To: <20071016195834.GA23157@linux.intel.com>
-Content-Disposition: inline
+	id S935856AbXJPVIR (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2007 17:08:17 -0400
+In-Reply-To: <200710151832.59472.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mgross@linux.intel.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@infradead.org>
+To: Andi Kleen <ak@suse.de>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Linux-acpi@vger.kernel.org, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On Tuesday, 16 October 2007 21:58, Mark Gross wrote:
-> On Mon, Oct 15, 2007 at 10:40:02PM +0200, Rafael J. Wysocki wrote:
-> > On Monday, 15 October 2007 18:09, Mark Gross wrote:
-> > > On Fri, Oct 12, 2007 at 11:32:40PM +0200, Rafael J. Wysocki wrote:
-> > > > On Friday, 12 October 2007 06:31, Andrew Morton wrote:
-> > > > > 
-> > > > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/2.6.23-mm1/
-> > > > > 
-> > > > > - I've been largely avoiding applying anything since rc8-mm2 in an attempt
-> > > > >   to stabilise things for the 2.6.23 merge.
-> > > > > 
-> > > > >   But that didn't stop all the subsystem maintainers from going nuts, with
-> > > > >   the usual accuracy.  We're up to a 37MB diff now, but it seems to be working
-> > > > >   a bit better.
-> > > > 
-> > > > I get many traces similar to the one below from it (w/ hotfixes):
-> > > > 
-> > > > WARNING: at /home/rafael/src/mm/linux-2.6.23-mm1/arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
-> > > 
-> > > This is from : WARN_ON(irqs_disabled()) in the cmp_call_function_mask
-> > > processor_idle.c is registering a acpi_processor_latency_notify 
-> > > 
-> > > my code changed the notifier call from blocking_notifier_call_chain to
-> > > srcu_notifier_call_chain, because dynamic creation of notifier chains at
-> > > runtime where easier with the srcu_notifier_call_chain than the
-> > > blocking_notifier_call_chain.  
-> > > 
-> > > As dynamic creation of PM_QOS parameters are no longer needed I can
-> > > change the notifiers back to match what was in lanency.c
-> > > 
-> > > However; looking at the call tree differences between
-> > > blockin_notifier_call_chain and srcu_notifier_call_chain I cannot see a
-> > > difference in irq enabling / disabling.  I'm not confident this will
-> > > address this yet.
-> > 
-> > Well, you can send me a patch to check. :-)
+On 10/15/2007 12:32 PM, Andi Kleen wrote:
+> On Monday 15 October 2007 18:30:13 Chuck Ebbert wrote:
+>> On 10/12/2007 03:04 AM, Zhao Yakui wrote:
+>>> Hi, All
+>>>     The BIOS of some systems using NVIDIA chipset gives the uncorrect
+>>> timer override connection, which will cause that I/O APIC and timer
+>>> can't be connected and kernel panic.
+>>>     There are two ways to fix this bug. One is to use the following patch and 
+>>> the other is to add a new boot option of acpi_force_timer_override. 
 > 
-> I think I'll have to send you a patch that changes the notifiers but I
-> doubt it will fix it.  
+> This is already fixed in the firstfloor tree. 
 > 
-> After a bit of messing around I have the 2.6.23-mm1 running on my core-2
-> box  note: Ubuntu's make-kpkg on the mm1 tree resulted in a system that
-> wouldn't boot past the intrd.  Looks like the pivot root failed or
-> something.
-> 
-> Anyway, I'm not reproducing your experience, snd_pcm is loaded.  I don't
-> know none of the WARN's are not hitting on my box.
-> 
-> do you have some configuration information that could help me reproduce
-> the issue?
 
-Well, I can send you the .config, but the box is AMD-based (Turion 64 X2),
-with an ATI chipset and an HP BIOS, so it seems to be much different from
-yours.
+Do I need something more than early-quirks-unification and nvidia-timer-quirk?
+Because those two don't fix anything; I have to manually force
+acpi_use_timer_override to get things to work right. The RFC patch seems to
+be doing the right thing automatically.
 
-Greetings,
-Rafael
+Hardware: nVidia MCP51/C51 (with HPET)
+Host Bridge PCI ID: 10de:02f0
