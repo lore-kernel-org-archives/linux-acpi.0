@@ -1,83 +1,57 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 1/1] Recent Lenovo ThinkPads define a dummy grahpics
-	device, find it and ignore it
-Date: Tue, 16 Oct 2007 16:43:51 +0200
-Message-ID: <1192545831.9847.604.camel@queen.suse.de>
-References: <1192465985.9847.585.camel@queen.suse.de>
-	 <20071015164816.GA5021@srcf.ucam.org>
-	 <1192545541.9847.600.camel@queen.suse.de>
-Reply-To: trenn@suse.de
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/1] Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+Date: Tue, 16 Oct 2007 15:49:01 +0100
+Message-ID: <20071016144901.GB21749@srcf.ucam.org>
+References: <1192465985.9847.585.camel@queen.suse.de> <20071015164816.GA5021@srcf.ucam.org> <1192545541.9847.600.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:36731 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758000AbXJPOn7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 10:43:59 -0400
+Received: from cavan.codon.org.uk ([78.32.9.130]:46392 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932549AbXJPOtR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Oct 2007 10:49:17 -0400
+Content-Disposition: inline
 In-Reply-To: <1192545541.9847.600.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Thomas Renninger <trenn@suse.de>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Christian Birchinger <joker@netswarm.net>, "Li, Shaohua" <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, ibm-acpi-devel <ibm-acpi-devel@lists.sourceforge.net>
 
-On Tue, 2007-10-16 at 16:39 +0200, Thomas Renninger wrote:
-> On Mon, 2007-10-15 at 17:48 +0100, Matthew Garrett wrote:
-> > Why not just call acpi_get_pyhsical_device() on the appropriate handle 
-> > and look at the struct device you get back? 
+On Tue, Oct 16, 2007 at 04:39:01PM +0200, Thomas Renninger wrote:
 
-> Remember to put_device() it once you're done.
-First read, then post..., forgot the put_device...
-This one is better.
-> Len can you apply this one, pls.
+> +	/*
+> +	 *	Check whether we have really  a graphics device physically
+> +	 *      in the slot and registered at the system.
+> +	 */
+> +	dev = acpi_get_physical_device(device->handle);
+> +	if (!dev) {
+> +		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
+> +			" connected, ignoring\n", acpi_device_bid(device),
+> +			device->parent ? acpi_device_bid(device->parent) : "");
+> +		return -ENODEV;
+> +	}
+> +
 
-    Thomas
+I suspect this will break other machines. Not all video extension 
+implementations are directly associated with the PCI ID. The Toshiba 
+M200 (for example) has
 
-Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+            Device (PCI1)
+            {
+                Name (_ADR, 0x00010000)
+                Device (VGA)
+                {
+                    Name (_ADR, 0x00)
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+which will result in VGA not having a physical device. You might be able 
+to get away with walking the parents until you find a pci ID and then 
+checking whether it matches the graphics adaptor, but I'm not certain of 
+that.
 
----
- drivers/acpi/video.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+To make things more entertaining, Dell tend to implement a video 
+extension for both the 00:02.0 and 00:02.1 devices on Intel systems. We 
+need to be smarter about this, but I don't think simply looking for a 
+physical device is the solution.
 
-Index: lenb/drivers/acpi/video.c
-===================================================================
---- lenb.orig/drivers/acpi/video.c
-+++ lenb/drivers/acpi/video.c
-@@ -34,6 +34,7 @@
- #include <linux/input.h>
- #include <linux/backlight.h>
- #include <linux/video_output.h>
-+#include <linux/acpi.h>
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_bus.h>
-@@ -1901,11 +1902,25 @@ static int acpi_video_bus_add(struct acp
- 	acpi_status status = 0;
- 	struct acpi_video_bus *video = NULL;
- 	struct input_dev *input;
-+	struct device *dev;
- 
- 
- 	if (!device)
- 		return -EINVAL;
- 
-+	/*
-+	 *	Check whether we have really  a graphics device physically
-+	 *      in the slot and registered at the system.
-+	 */
-+	dev = acpi_get_physical_device(device->handle);
-+	if (!dev) {
-+		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
-+			" connected, ignoring\n", acpi_device_bid(device),
-+			device->parent ? acpi_device_bid(device->parent) : "");
-+		return -ENODEV;
-+	}
-+	put_device(dev);
-+
- 	video = kzalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
- 	if (!video)
- 		return -ENOMEM;
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
