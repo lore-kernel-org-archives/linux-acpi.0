@@ -1,82 +1,43 @@
-From: John Sigler <linux.kernel@free.fr>
-Subject: Re: halt does not shut the system down
-Date: Tue, 16 Oct 2007 15:08:39 +0200
-Message-ID: <4714B7D7.7090005@free.fr>
-References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com> <470F7264.8070205@free.fr> <471342C8.2030305@free.fr> <4714979C.5010103@free.fr> <Pine.LNX.4.61.0710160835160.11232@chaos.analogic.com>
+From: Danny Baumann <dannybaumann@web.de>
+Subject: Brightness buttons broken on Toshiba Satellite Proc A100 in kernel 2.6.23 (Fedora8)
+Date: Tue, 16 Oct 2007 12:49:17 +0000 (UTC)
+Message-ID: <loom.20071016T122903-517@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4-g19.free.fr ([212.27.42.30]:36070 "EHLO smtp4-g19.free.fr"
+Received: from main.gmane.org ([80.91.229.2]:59981 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932141AbXJPNIm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 09:08:42 -0400
-In-Reply-To: <Pine.LNX.4.61.0710160835160.11232@chaos.analogic.com>
+	id S932507AbXJPOQ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2007 10:16:29 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1IhmeQ-0001Lj-Sa
+	for linux-acpi@vger.kernel.org; Tue, 16 Oct 2007 13:40:02 +0000
+Received: from 154.250.80.212.static.versanetonline.de ([212.80.250.154])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Oct 2007 13:40:02 +0000
+Received: from dannybaumann by 154.250.80.212.static.versanetonline.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Oct 2007 13:40:02 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dick Johnson <linux-os@analogic.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
+To: linux-acpi@vger.kernel.org
 
-Dick Johnson wrote:
+Hi,
 
-> John Sigler wrote:
-> 
->> http://bugzilla.kernel.org/show_bug.cgi?id=9148
->>
->> Writing 15361 (i.e. 0x3C01) to ACPI_REGISTER_PM1A_CONTROL appears to
->> hang my system in acpi_os_write_port(). What can I do about that?
->>
->> Another observation: if I connect a screen to the system's VGA port,
->> when I call 'poweroff' the screen goes into power saving mode. This
->> seems to indicate that the integrated video card is properly shut down.
->>
->> So the fans keep spinning, the LEDs keep shining, the LCD keeps
->> displaying, but the video card is shut down?
->>
->> Might this help pinpoint the problem?
-> 
-> Check the BIOS to see if the "Power Button" is configured to
-> shut the system down. Some BIOS configure APM to do what
-> the power button does!
+after upgrading to Fedora 8 which brought kernel 2.6.23 with it I can no longer
+use the brightness buttons (Fn+F6/F7) on my above mentioned laptop. Pressing
+them generates F6 and F7 key events instead of ACPI events. This used to work
+fine in Fedora 7's 2.6.22.9 kernel.
 
-Here is the relevant BIOS menu.
+Is there anything I can do to debug this? Writing a value to
+/proc/acpi/video/VGA/LCD/brightness still works fine, so it's just a matter of
+the key mapping.
+I would try to debug this myself, if I just knew where to look at; so any
+pointers in this direction would be appreciated, too.
 
-         Phoenix - AwardBIOS CMOS Setup Utility
-                 Power Management Setup
-+=====================================================+
-|    ACPI Function             [Enabled]              |
-|    MODEM Use IRQ             [NA]                   |
-|    Soft-Off by PWR-BTTN      [Instant-Off]          |
-|    CPU THRM-Throttling       [50.0%]                |
-|    Resume by Alarm           [Disabled]             |
-|  x  Date(of Month) Alarm       0                    |
-|  x  Time(hh:mm:ss) Alarm       0 :  0 :  0          |
-|                                                     |
-|    ** Reload Global Timer Events **                 |
-|    Primary IDE 0             [Disabled]             |
-|    Primary IDE 1             [Disabled]             |
-|    Secondary IDE 0           [Disabled]             |
-|    Secondary IDE 1           [Disabled]             |
-|    FDD,COM,LPT Port          [Disabled]             |
-|    PCI PIRQ[A-D]#            [Disabled]             |
-|                                                     |
-+=====================================================+
+Thanks,
 
-          +===================================+
-          | Soft-Off by PWR-BTTN              |
-          |-----------------------------------|
-          | Instant-Off  ..... [v]            |
-          | Delay 4 Sec. ..... [ ]            |
-          |                                   |
-          |-----------------------------------|
-          |  ^V:Move ENTER:Accept ESC:Abort   |
-          +===================================+
+Danny
 
-'Instant-Off' is the appropriate setting, right?
-
-In a different menu, there are two other (relevant?) options:
-
-     PWRON After PWR-Fail      [On]
-     Watch Dog Timer Select    [Disabled]
-
-Regards.
