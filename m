@@ -1,46 +1,66 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: halt does not shut the system down
-Date: Wed, 17 Oct 2007 12:11:10 +0400
-Message-ID: <4715C39E.7070603@gmail.com>
-References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com> <470F7264.8070205@free.fr> <471342C8.2030305@free.fr> <4714979C.5010103@free.fr> <Pine.LNX.4.61.0710160835160.11232@chaos.analogic.com> <4714B7D7.7090005@free.fr> <4714EF81.2070405@gmail.com> <4715C337.6050705@free.fr>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 2/2] Recent Lenovo ThinkPads define a dummy grahpics
+	device, find it and ignore it
+Date: Wed, 17 Oct 2007 10:25:37 +0200
+Message-ID: <1192609537.9847.630.camel@queen.suse.de>
+References: <1192465995.9847.587.camel@queen.suse.de>
+	 <20071016175053.GB17671@netswarm.net>
+	 <20071016180919.GH7262@bart.intergenia.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:3470 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbXJQILT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2007 04:11:19 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so218884ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Oct 2007 01:11:18 -0700 (PDT)
-In-Reply-To: <4715C337.6050705@free.fr>
+Received: from ns2.suse.de ([195.135.220.15]:58173 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754059AbXJQIZq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Oct 2007 04:25:46 -0400
+In-Reply-To: <20071016180919.GH7262@bart.intergenia.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Sigler <linux.kernel@free.fr>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com, len.brown@intel.com
+To: Maik Broemme <mbroemme@plusserver.de>
+Cc: Christian Birchinger <joker@netswarm.net>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, ibm-acpi-devel <ibm-acpi-devel@lists.sourceforge.net>
 
-John Sigler wrote:
-> Alexey Starikovskiy wrote:
+On Tue, 2007-10-16 at 20:09 +0200, Maik Broemme wrote:
+> Hi,
 > 
->> John Sigler wrote:
->>
->>>          +===================================+
->>>          | Soft-Off by PWR-BTTN              |
->>>          |-----------------------------------|
->>>          | Instant-Off  ..... [v]            |
->>>          | Delay 4 Sec. ..... [ ]            |
->>>          |                                   |
->>>          |-----------------------------------|
->>>          |  ^V:Move ENTER:Accept ESC:Abort   |
->>>          +===================================+
->>>
->>> 'Instant-Off' is the appropriate setting, right?
->>
->> Actually, default should be 4 sec delay. OS should have a chance to
->> shut down the system...
+> Christian Birchinger <joker@netswarm.net> wrote:
+> > On Mon, Oct 15, 2007 at 06:33:15PM +0200, Thomas Renninger wrote:
+> > > Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
+> > 
+> > I think it's ok. dmesg says:
+> > 
+> > ACPI: Video device VID not physically connected, ignoring
+> > input: Video Bus as /devices/virtual/input/input11
+> > ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
+> > 
 > 
-> I don't see why this setting would have an impact on the outcome
-> of the 'halt' and 'poweroff' commands.
+> No i think thats not enough because not everyone is using the ACPI video
+> extension at this moment and at least for my ThinkPad X61 i got:
 > 
-Well, it is not possible to tell, what BIOS writer have connected to this flag...
+> babyface@bart:~$ ls /proc/acpi/video/VID
+> CRT0  DOS  DVI0  LCD0  POST  POST_info  ROM  info
+> babyface@bart:~$ ls /proc/acpi/video/VID1
+> CRT0  DOS  DVI0  LCD0  POST  POST_info  ROM  info
+> 
+> input: Video Bus as /devices/virtual/input/input3
+> ACPI: Video Device [VID] (multi-head: yes rom: no  post: no)
+> input: Video Bus as /devices/virtual/input/input4
+> ACPI: Video Device [VID1] (multi-head: yes rom: no  post: no)
+> 
+> Anyway, also tools like lspci should show you the fake vga device and
+> the X.org will complaint about it like:
+> 
+> (WW) intel: No matching Device section for instance (BusID PCI:0:2:1) found
+> 
+> And if you add this section (just for people who want to fix those
+> warnings) your X server will no longer start. :) Can someone correct me if
+> i am wrong?
+Can you send lspci output and check your BIOS version (dmidecode |less,
+there should be a string like KEWWT456 and a version, not sure, AFAIK
+2.01 should be about the latest...).
+
+Thanks,
+
+    Thomas
 
