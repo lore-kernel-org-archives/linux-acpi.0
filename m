@@ -1,76 +1,66 @@
 From: Mark Gross <mgross@linux.intel.com>
-Subject: [PATCH] static initialization and blocking notification for pm_qos... was Re: 2.6.23-mm1
-Date: Wed, 17 Oct 2007 10:21:15 -0700
-Message-ID: <20071017172115.GB26535@linux.intel.com>
-References: <20071011213126.cf92efb7.akpm@linux-foundation.org> <200710122332.41944.rjw@sisk.pl>
+Subject: [PATCH] static initialization with blocking notifiers.  was :wqRe: 2.6.23-mm1
+Date: Wed, 17 Oct 2007 14:15:53 -0700
+Message-ID: <20071017211553.GA27026@linux.intel.com>
+References: <20071011213126.cf92efb7.akpm@linux-foundation.org> <200710152240.03543.rjw@sisk.pl> <20071016195834.GA23157@linux.intel.com> <200710162228.14136.rjw@sisk.pl>
 Reply-To: mgross@linux.intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:17491 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758029AbXJQRV4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2007 13:21:56 -0400
+Received: from mga06.intel.com ([134.134.136.21]:49444 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756430AbXJQVWy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2007 17:22:54 -0400
 Content-Disposition: inline
-In-Reply-To: <200710122332.41944.rjw@sisk.pl>
+In-Reply-To: <200710162228.14136.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@infradead.org>
 
-On Fri, Oct 12, 2007 at 11:32:40PM +0200, Rafael J. Wysocki wrote:
-> On Friday, 12 October 2007 06:31, Andrew Morton wrote:
-> > 
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/2.6.23-mm1/
-> > 
-> > - I've been largely avoiding applying anything since rc8-mm2 in an attempt
-> >   to stabilise things for the 2.6.23 merge.
-> > 
-> >   But that didn't stop all the subsystem maintainers from going nuts, with
-> >   the usual accuracy.  We're up to a 37MB diff now, but it seems to be working
-> >   a bit better.
-> 
-> I get many traces similar to the one below from it (w/ hotfixes):
-> 
-> WARNING: at /home/rafael/src/mm/linux-2.6.23-mm1/arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
-> 
-> Call Trace:
->  [<ffffffff8021b290>] smp_call_function_mask+0x4b/0x82
->  [<ffffffff8021b2ea>] smp_call_function+0x23/0x25
->  [<ffffffff884a0b80>] :processor:acpi_processor_latency_notify+0x19/0x20
->  [<ffffffff80437ace>] notifier_call_chain+0x33/0x65
->  [<ffffffff8024f32f>] __srcu_notifier_call_chain+0x4b/0x69
->  [<ffffffff8024f07c>] pm_qos_add_requirement+0x24/0xd2
->  [<ffffffff8024f35c>] srcu_notifier_call_chain+0xf/0x11
->  [<ffffffff8024ee6d>] update_target+0x71/0x76
->  [<ffffffff8024f101>] pm_qos_add_requirement+0xa9/0xd2
->  [<ffffffff88160bf9>] :snd_pcm:snd_pcm_hw_params+0x349/0x382
->  [<ffffffff80291110>] kmem_cache_alloc+0x8a/0xbc
->  [<ffffffff88160d75>] :snd_pcm:snd_pcm_hw_params_user+0x50/0x87
->  [<ffffffff88160fe1>] :snd_pcm:snd_pcm_common_ioctl1+0x1ae/0xd4f
->  [<ffffffff8815f755>] :snd_pcm:snd_pcm_open+0xd6/0x1f2
->  [<ffffffff8028fc17>] cache_alloc_debugcheck_after+0x11a/0x199
->  [<ffffffff8024b514>] remove_wait_queue+0x40/0x45
->  [<ffffffff8815f7bd>] :snd_pcm:snd_pcm_open+0x13e/0x1f2
->  [<ffffffff8022f18e>] default_wake_function+0x0/0xf
->  [<ffffffff8030b24d>] prio_tree_insert+0x18c/0x231
->  [<ffffffff8027b5fb>] vma_prio_tree_insert+0x23/0x39
->  [<ffffffff80282e91>] vma_link+0xdd/0x10b
->  [<ffffffff8816206f>] :snd_pcm:snd_pcm_playback_ioctl1+0x24d/0x26a
->  [<ffffffff8816292c>] :snd_pcm:snd_pcm_playback_ioctl+0x2e/0x36
->  [<ffffffff802a0896>] do_ioctl+0x2a/0x77
->  [<ffffffff802a0b34>] vfs_ioctl+0x251/0x26e
->  [<ffffffff802a0ba8>] sys_ioctl+0x57/0x7b
->  [<ffffffff8020bfde>] system_call+0x7e/0x83
-> 
-> Full dmesg attached.
->
+I didn't see my patch show up on the list so I'm resending it.
 
 
-ubject: [PATCH] static initialization and blocking notification for pm_qos... was Re: 2.6.23-mm1
 
-please try this patch and let me know if the warnings go away.  (I have
-not been able to reproduce your issue.)
+On Wed, Oct 17, 2007 at 01:53:48AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, 17 October 2007 01:31, Mark Gross wrote:
+> > On Tue, Oct 16, 2007 at 10:28:13PM +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, 16 October 2007 21:58, Mark Gross wrote:
+> > > > On Mon, Oct 15, 2007 at 10:40:02PM +0200, Rafael J. Wysocki wrote:
+> > > > > On Monday, 15 October 2007 18:09, Mark Gross wrote:
+> > > > > > On Fri, Oct 12, 2007 at 11:32:40PM +0200, Rafael J. Wysocki wrote:
+> > > > > > > On Friday, 12 October 2007 06:31, Andrew Morton wrote:
+> > > > > > > > 
+> > > > > > > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/2.6.23-mm1/
+> > > > > > > > 
+> > > > > > > > - I've been largely avoiding applying anything since rc8-mm2 in an attempt
+> > > > > > > >   to stabilise things for the 2.6.23 merge.
+> > > > > > > > 
+> > > > > > > >   But that didn't stop all the subsystem maintainers from going nuts, with
+> > > > > > > >   the usual accuracy.  We're up to a 37MB diff now, but it seems to be working
+> > > > > > > >   a bit better.
+> > > > > > > 
+> > > > > > > I get many traces similar to the one below from it (w/ hotfixes):
+> > > > > > > 
+> > > > > > > WARNING: at /home/rafael/src/mm/linux-2.6.23-mm1/arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
+> > > > > > 
+> > > > > > This is from : WARN_ON(irqs_disabled()) in the cmp_call_function_mask
+> > > > > > processor_idle.c is registering a acpi_processor_latency_notify 
+> > > > > > 
+> > > > > > my code changed the notifier call from blocking_notifier_call_chain to
+> > > > > > srcu_notifier_call_chain, because dynamic creation of notifier chains at
+> > > > > > runtime where easier with the srcu_notifier_call_chain than the
+> > > > > > blocking_notifier_call_chain.  
+> > > > > > 
+> > > > > > As dynamic creation of PM_QOS parameters are no longer needed I can
+> > > > > > change the notifiers back to match what was in lanency.c
+> > > > > > 
+> > > > > > However; looking at the call tree differences between
+> > > > > > blockin_notifier_call_chain and srcu_notifier_call_chain I cannot see a
+> > > > > > difference in irq enabling / disabling.  I'm not confident this will
+> > > > > > address this yet.
+> > > > > 
+> > > > > Well, you can send me a patch to check. :-)
 
 The following is a patch to update the pm_qos code in the mm1 tree.  It
 removes the PM_QOS_CPUIDLE parameter (replacing it with
@@ -433,3 +423,4 @@ diff -urN -X linux-2.6.23-mm1/Documentation/dontdiff linux-2.6.23-mm1/kernel/pm_
  	if (ret < 0)
  		printk(KERN_ERR
  			"pm_qos_param: network_throughput setup failed\n");
+
