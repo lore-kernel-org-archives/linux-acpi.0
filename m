@@ -1,39 +1,41 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Tue, 16 Oct 2007 19:46:10 -0700 (PDT)
-Message-ID: <alpine.LFD.0.999.0710161943440.26902@woody.linux-foundation.org>
-References: <200611011323.14830.rjw@sisk.pl> <200705111121.51704.rjw@sisk.pl>
-  <alpine.LFD.0.98.0705110912290.3986@woody.linux-foundation.org>
- <200705112208.53971.rjw@sisk.pl>  <alpine.LFD.0.98.0705111550540.3986@woody.linux-foundation.org>
-  <20070514075045.GA10238@suse.de>
- <2cd57c900710161935l2121bffex78475ca33f0574ca@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Fix to "All wake-up devices are disabled after suspend-to disk"
+ isn't yet included in mainline
+Date: Tue, 16 Oct 2007 20:48:02 -0700
+Message-ID: <20071016204802.9036ad96.akpm@linux-foundation.org>
+References: <200710170439.30359.maximlevitsky@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59671 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756398AbXJQCr1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753406AbXJQDsW (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2007 22:47:27 -0400
-In-Reply-To: <2cd57c900710161935l2121bffex78475ca33f0574ca@mail.gmail.com>
+	Tue, 16 Oct 2007 23:48:22 -0400
+In-Reply-To: <200710170439.30359.maximlevitsky@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Qi Yong <qiiyoong@gmail.com>
-Cc: Stefan Seyfried <seife@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
+On Wed, 17 Oct 2007 04:39:30 +0200 Maxim Levitsky <maximlevitsky@gmail.com> wrote:
 
-
-On Wed, 17 Oct 2007, Qi Yong wrote:
+> A while ago I asked on LKML about the problem of loosing all wake device capabilities, after a suspend to disk
+> (eg: I can't wake the system from keyboard if I suspend to disk and then to ram)
 > 
-> The key point is "fall back to shutdown _only_ if !ops, otherwise
-> don't touch hibernation_mode". And that solves my problem.
+> I was provided with the patch that fixes this problem completely.
+> The merge window is open, but I still don't see it in the kernel.
+> Due to changes it doesn't anymore apply to latest git.
+> 
+> Was it missed?
 
-Please, when resurrecting a five-month-old discussion, give more of the 
-old context.
+No, it's in Len's git tree.
 
-I don't know about anybody else, but I get enough email that "five months" 
-might as well be "last century" when it comes to email discussions, and I 
-have long since forgotten the details of whatever caused the issue to 
-begin with ;)
+Len's git-pull request from a few days ago didn't work, perhaps because I
+wanted to know if a recent -mm regression had been fixed and that hasn't
+been answered yet.  I assume that Len is offline.  Other acpi developers
+could presumably have answered that question but for some reason chose not to.
 
-			Linus
+I'm presently holding off 20-odd power management patches due to their
+dependency upon an acpi merge...
