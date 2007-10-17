@@ -1,63 +1,59 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [RFC] [PATCH] ACPI :Modify timer override connection in Some NVIDIA systems
-Date: Wed, 17 Oct 2007 11:58:19 +0200
-Message-ID: <200710171158.19578.ak@suse.de>
-References: <1192172655.27194.29.camel@yakui_zhao.sh.intel.com> <200710162351.32953.ak@suse.de> <1192611639.15762.7.camel@yakui_zhao.sh.intel.com>
+From: John Sigler <linux.kernel@free.fr>
+Subject: Re: halt does not shut the system down
+Date: Wed, 17 Oct 2007 11:59:13 +0200
+Message-ID: <4715DCF1.30507@free.fr>
+References: <470A58AF.9080402@free.fr> <470C9731.6030200@free.fr> <470F4535.3050004@free.fr> <470F4F58.4080900@gmail.com> <470F7264.8070205@free.fr> <471342C8.2030305@free.fr> <4714979C.5010103@free.fr> <Pine.LNX.4.61.0710160835160.11232@chaos.analogic.com> <4714B7D7.7090005@free.fr> <4714EF81.2070405@gmail.com> <4715C337.6050705@free.fr> <4715C39E.7070603@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35828 "EHLO mx2.suse.de"
+Received: from smtp4-g19.free.fr ([212.27.42.30]:38610 "EHLO smtp4-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756288AbXJQJ60 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 17 Oct 2007 05:58:26 -0400
-In-Reply-To: <1192611639.15762.7.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+	id S1757021AbXJQJ7P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Oct 2007 05:59:15 -0400
+In-Reply-To: <4715C39E.7070603@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Linux-acpi@vger.kernel.org, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Alexey Starikovskiy <aystarik@gmail.com>, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com
 
-On Wednesday 17 October 2007 11:00:39 Zhao Yakui wrote:
-> On Tue, 2007-10-16 at 23:51 +0200, Andi Kleen wrote:
-> > On Tuesday 16 October 2007 23:07:29 Chuck Ebbert wrote:
-> > 
-> > > Do I need something more than early-quirks-unification and nvidia-timer-quirk?
-> > > Because those two don't fix anything; I have to manually force
-> > > acpi_use_timer_override to get things to work right. The RFC patch seems to
-> > > be doing the right thing automatically.
-> > > 
-> > > Hardware: nVidia MCP51/C51 (with HPET)
-> > > Host Bridge PCI ID: 10de:02f0
-> > 
-> > Do you see the "Nvidia board detected. Ignoring ACPI timer override." message?
-> When booted with acpi=off, the system will print the message ---Nvidia
-> board detected .Ignoring ACPI timer override. 
-> But when booted with acpi on, the system won't print the above message. 
+Alexey Starikovskiy wrote:
 
-That was a NF5 system right? If yes the nvidia-timer-quirk patch should
-work on it.
+> John Sigler wrote:
+> 
+>> Alexey Starikovskiy wrote:
+>>
+>>> John Sigler wrote:
+>>>
+>>>>          +===================================+
+>>>>          | Soft-Off by PWR-BTTN              |
+>>>>          |-----------------------------------|
+>>>>          | Instant-Off  ..... [v]            |
+>>>>          | Delay 4 Sec. ..... [ ]            |
+>>>>          |                                   |
+>>>>          |-----------------------------------|
+>>>>          |  ^V:Move ENTER:Accept ESC:Abort   |
+>>>>          +===================================+
+>>>>
+>>>> 'Instant-Off' is the appropriate setting, right?
+>>>
+>>> Actually, default should be 4 sec delay. OS should have a chance to
+>>> shut down the system...
+>>
+>> I don't see why this setting would have an impact on the outcome
+>> of the 'halt' and 'poweroff' commands.
+>>
+> Well, it is not possible to tell, what BIOS writer have connected to this flag...
 
-It didn't work on Chuck's system because that wasn't a NF5.
-The main change nvidia-timer-quirk adds is to run the override ignore logic 
-only on NF4 and NF3.
+(It sucks to be stuck with a closed proprietary BIOS.)
 
-His system seems to be in a new situation: a NF4 system which needs
-a timer override (that wasn't the case before!) and since most NF4 overrides
-are wrong and Linux is ignoring them it won't work.
+I tested the other setting, and it didn't change anything.
+The system remains powered on after executing poweroff.
 
-I don't really see how to handle this short of a DMI quirk for the board.
-Your patch essentially hard codes the timer override for all of Nvidia which is surely
-not the correct thing to do -- we have lots of evidence that those varies 
-widely. Or at least if you really want to hard code you should only do it with a 
-explicit DMI entry for a specific board.
+Len: the system is 100% Intel (Intel CPU, Intel north bridge, Intel 
+south bridge, Intel integrated network controllers). Have Intel 
+engineers run into the same problem on a similar platform?
 
-> The chipset of NVIDIA is used and HPET exists. So the timer_override is
-> required. But unfortunately the timer override info provided by BIOS is
-> uncorrect. 
+http://bugzilla.kernel.org/show_bug.cgi?id=9148
 
-Most NF5 systems need timer override -- if some of them supply the wrong
-one I don't see how to detect this short of a DMI quirk.
-
--Andi
+Regards.
