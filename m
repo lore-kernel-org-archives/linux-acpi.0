@@ -1,47 +1,99 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Oops removing thinkpad_acpi and video on git:linux-acpi-2.6
-Date: Fri, 19 Oct 2007 11:02:45 -0200
-Message-ID: <20071019130245.GB20188@khazad-dum.debian.net>
-References: <87lka1ffwc.fsf@gismo.pca.it> <20071018012106.GA24821@khazad-dum.debian.net> <87tzoo2q3x.fsf@gismo.pca.it> <20071018230334.GD4483@khazad-dum.debian.net> <871wbr2u1r.fsf@gismo.pca.it>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH RFC] Expose _SUN in /proc/acpi/processor/<...>/info
+Date: Fri, 19 Oct 2007 13:38:44 -0600
+Message-ID: <20071019193844.GL8122@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34749 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752952AbXJSNCt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2007 09:02:49 -0400
+Received: from atlrel7.hp.com ([156.153.255.213]:52327 "EHLO atlrel7.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1764747AbXJSTjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2007 15:39:11 -0400
 Content-Disposition: inline
-In-Reply-To: <871wbr2u1r.fsf@gismo.pca.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Capello <luca@pca.it>
-Cc: ML Linux-ACPI <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, 19 Oct 2007, Luca Capello wrote:
-> I tested 2.6.23.1 + 0.18-20071013, oops still there.  Should I test it
-> with the latest linux-acpi-2.6 git tree, also?  I don't think it's
-> necessary, but I can do it in case (but please read below).
+Hello,
 
-It is probably not liking something in 2.6.23.  I will test that and get
-back to you as soon as I have an answer (might take a few days).
+I'm looking for comments on the following patch that exposes _SUN
+on processor objects in /proc/acpi/processor/<...>/info.
 
-> Sorry, I'm quite lost with the git tree: in release/ there's nothing
-> about the latest linux-acpi-2.6 tree, what I can see is the different
+I notice that acpiphp exposes _SUN for PCI slots in
+/sys/bus/pci/slots/N/, where N is the value of _SUN. I'm not so
+sure we want to go *exactly* in the same direction for CPUs,
+because:
 
-That tree is just for thinkpad-acpi, it usually has nothing related to other
-linux-acpi changes, unless they actually are required for something
-thinkpad-acpi needs to do.
+  - x86 systems might not implement _SUN for processors
+  - ia64 systems that implement ACPI 2.x do not have unique
+    values for _SUN across the entire system
 
-> Is it OK to wait to upgrade the BIOS until the bug has been fixed?
-> Because if the bug won't be present anymore with the new BIOS, we
-> don't have a way to be sure it's fixed.
+Nonetheless, even non-unique values of _SUN are still helpful for
+userspace to figure out which physical socket a CPU might be in,
+especially when combined with information from /proc/cpuinfo.
 
-Sure, it is OK to wait to upgrade the BIOS.  As I said, I am certain there
-is a driver bug somewhere, regardless of any possible BIOS problems.
+Thoughts?
 
+Thanks.
+
+/ac
+
+From: Alex Chiang <achiang@hp.com>
+
+On platforms that provide _SUN for the processor object, higher
+level software can consume the data to learn physical topology
+information, so let's expose it.
+
+Platforms that do not implement _SUN will see <not supported>.
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
+---
+ drivers/acpi/processor_core.c |   11 +++++++++++
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 9f11dc2..b44d733 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -301,6 +301,11 @@ static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
+ 		   pr->flags.throttling ? "yes" : "no",
+ 		   pr->flags.limit ? "yes" : "no");
+ 
++	if (pr->sun == -1)
++		seq_printf(seq, "slot user number:        <not supported>\n");
++	else
++		seq_printf(seq, "slot user number:        %d\n", pr->sun);
++
+       end:
+ 	return 0;
+ }
+@@ -595,6 +600,12 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
+ 			  pr->acpi_id));
+ 
++	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		object.integer.value = -1;
++
++	pr->sun = object.integer.value;
++
+ 	if (!object.processor.pblk_address)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+ 	else if (object.processor.pblk_length != 6)
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 99934a9..326a3da 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -206,6 +206,7 @@ struct acpi_processor {
+ 	u32 acpi_id;
+ 	u32 id;
+ 	u32 pblk;
++	u32 sun;
+ 	int performance_platform_limit;
+ 	int throttling_platform_limit;
+ 	/* 0 - states 0..n-th state available */
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.3.1.1.g1e61
+
