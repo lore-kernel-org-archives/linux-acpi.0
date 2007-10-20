@@ -1,50 +1,33 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Oops removing thinkpad_acpi and video on git:linux-acpi-2.6
-Date: Fri, 19 Oct 2007 22:27:20 -0200
-Message-ID: <20071020002720.GA21173@khazad-dum.debian.net>
-References: <87lka1ffwc.fsf@gismo.pca.it> <20071018012106.GA24821@khazad-dum.debian.net> <87tzoo2q3x.fsf@gismo.pca.it> <20071018230334.GD4483@khazad-dum.debian.net> <871wbr2u1r.fsf@gismo.pca.it>
+From: "Serkan Kilic" <kilic@fh-coburg.de>
+Subject: DSDT-Fix for Fujitsu-Siemens Amilo M3438G
+Date: Sat, 20 Oct 2007 05:53:38 +0200
+Message-ID: <1192852418.a303febckilic@fh-coburg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37308 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759035AbXJTA10 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2007 20:27:26 -0400
-Content-Disposition: inline
-In-Reply-To: <871wbr2u1r.fsf@gismo.pca.it>
+Received: from Meon.fh-coburg.de ([192.129.26.7]:9128 "EHLO fh-coburg.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750859AbXJTEjO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Oct 2007 00:39:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Capello <luca@pca.it>
-Cc: ML Linux-ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Fri, 19 Oct 2007, Luca Capello wrote:
-> On Fri, 19 Oct 2007 01:03:34 +0200, Henrique de Moraes Holschuh wrote:
-> > On Thu, 18 Oct 2007, Luca Capello wrote:
-> >> Since I experienced the oops after having changed the LCD
-> >> brightness, I pressed several times the brightness up/down Fn keys,
-> >> then removed only the thinkpad_acpi module and voila, I got the
-> >> oops again.
-> [...]
-> >
-> > Hmm, I will see if I can reproduce it.
-> 
-> Thank you.
+Dear Sir or Medam,
 
-Unfortunately, I can't reproduce it.  Might be a 32/64 bit issue, since I
-can only test x86-32, or I could not duplicate exactly what is causing the
-problem, but...
+first of all, sorry for my bad english, I'm from Germany.
 
-Please compile thinkpad-acpi and ACPI with the debug modes enabled, and load
-thinkpad-acpi with the debug=0xffff parameter.  Then reproduce the oops, and
-send me the entire kernel output since driver load until the oops.
+I got a notebook (Fujitsu Siemens Amilo M 3438 G ) with Ubuntu Linux installed on it.
 
-You could also try turning on some of the ACPI debug bits, one of them
-(sorry, I don't know which) will tell you exactly which device's notify
-handler it is calling.
+My Problem is that the notebook fan is running all the time and its noise is driving me crazy !
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Now i wanted to know, if you have any DSDT-Fix for my notebook or could write on for me ??? (PLEASE !)
+
+I whould be the happiest man on planet, if my notebook whould be so quiet as in windows xp !
+
+Thank you very much !
+
+Regards
+Kilic
+
