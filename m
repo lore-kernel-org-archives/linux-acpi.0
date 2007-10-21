@@ -1,127 +1,217 @@
-From: Luca Capello <luca@pca.it>
-Subject: Re: Oops removing thinkpad_acpi and video on git:linux-acpi-2.6
-Date: Sun, 21 Oct 2007 19:45:52 +0200
-Message-ID: <87myuccqen.fsf@gismo.pca.it>
-References: <87lka1ffwc.fsf@gismo.pca.it>
- <20071018012106.GA24821@khazad-dum.debian.net> <87tzoo2q3x.fsf@gismo.pca.it>
- <20071018230334.GD4483@khazad-dum.debian.net> <871wbr2u1r.fsf@gismo.pca.it>
- <20071020002720.GA21173@khazad-dum.debian.net>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: [PATCH] Add bluetooth support to toshiba-acpi driver
+Date: Sun, 21 Oct 2007 18:35:29 +0100
+Message-ID: <20071021173529.GH1880@earth.li>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_gjCpAhmOb1X+jgGTG8FDIg)"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mbox.unige.ch ([129.194.9.209]:49954 "EHLO mbox.unige.ch"
+Received: from the.earth.li ([193.201.200.66]:45128 "EHLO the.earth.li"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751534AbXJURp6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Oct 2007 13:45:58 -0400
-Received: from gismo.pca.it (233-71.203-62.cust.bluewin.ch [62.203.71.233])
- by mbox.unige.ch
- (Sun Java(tm) System Messaging Server 6.3-1.04 (built May  9 2007; 32bit))
- with ESMTPSA id <0JQ900G9DW0J2D00@mbox.unige.ch> for
- linux-acpi@vger.kernel.org; Sun, 21 Oct 2007 19:45:56 +0200 (CEST)
-In-reply-to: <20071020002720.GA21173@khazad-dum.debian.net>
+	id S1751616AbXJUSTt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Oct 2007 14:19:49 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ML Linux-ACPI <linux-acpi@vger.kernel.org>
+To: John Belmonte <toshiba_acpi@memebeam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+This patch adds bluetooth support to the toshiba-acpi driver. I have
+tried to follow the same format for the /proc/acpi/toshiba/bluetooth
+file as followed in the thinkpad-acpi driver. In the long term the
+rfkill infrastructure looks like the way forward for this functionality=
+,
+but at present it doesn't seem to be suitable.
 
---Boundary_(ID_gjCpAhmOb1X+jgGTG8FDIg)
-Content-type: TEXT/PLAIN; CHARSET=us-ascii
-Content-transfer-encoding: 7BIT
+Traditionally the userland "toshset" program would have been used to
+enable bluetooth, but this requires either CONFIG_TOSHIBA or a patched
+toshiba-acpi to emulate the /dev/toshiba device. Also toshset doesn't
+currently run in 64bit mode.
 
-Hi Henrique!
+Patch has been successfully tested on a Port=E9g=E9 R200 (in 32bit mode=
+) and
+an R500 (in 64bit mode).
 
-On Sat, 20 Oct 2007 02:27:20 +0200, Henrique de Moraes Holschuh wrote:
-> On Fri, 19 Oct 2007, Luca Capello wrote:
->> On Fri, 19 Oct 2007 01:03:34 +0200, Henrique de Moraes Holschuh wrote:
->>> Hmm, I will see if I can reproduce it.
->> 
->> Thank you.
->
-> Unfortunately, I can't reproduce it.
-[...]
-> Please compile thinkpad-acpi and ACPI with the debug modes enabled,
-> and load thinkpad-acpi with the debug=0xffff parameter.  Then
-> reproduce the oops, and send me the entire kernel output since
-> driver load until the oops.
+Signed-Off-By: Jonathan McDowell <noodles@earth.li>
 
-Done (and dmesg attached). Disabling CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-doesn't change anything (and the dmesg attached is with that option
-enabled).
+-----
+--- drivers/acpi/toshiba_acpi.c.orig	2007-10-21 18:29:01.000000000 +010=
+0
++++ drivers/acpi/toshiba_acpi.c	2007-10-21 18:15:34.000000000 +0100
+@@ -33,7 +33,7 @@
+  *
+  */
+=20
+-#define TOSHIBA_ACPI_VERSION	"0.18"
++#define TOSHIBA_ACPI_VERSION	"0.19"
+ #define PROC_INTERFACE_VERSION	1
+=20
+ #include <linux/kernel.h>
+@@ -55,6 +55,7 @@ MODULE_LICENSE("GPL");
+ #define MY_ERR KERN_ERR MY_LOGPREFIX
+ #define MY_NOTICE KERN_NOTICE MY_LOGPREFIX
+ #define MY_INFO KERN_INFO MY_LOGPREFIX
++#define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+=20
+ /* Toshiba ACPI method paths */
+ #define METHOD_LCD_BRIGHTNESS	"\\_SB_.PCI0.VGA_.LCD_._BCM"
+@@ -90,6 +91,7 @@ MODULE_LICENSE("GPL");
+ #define HCI_VIDEO_OUT			0x001c
+ #define HCI_HOTKEY_EVENT		0x001e
+ #define HCI_LCD_BRIGHTNESS		0x002a
++#define HCI_BLUETOOTH			0x0056
+=20
+ /* field definitions */
+ #define HCI_LCD_BRIGHTNESS_BITS		3
+@@ -482,6 +484,129 @@ static unsigned long write_keys(const ch
+ 	return count;
+ }
+=20
++static int toshiba_bluetooth_present(void)
++{
++	u32 hci_result;
++	u32 value;
++
++	hci_read1(HCI_BLUETOOTH, &value, &hci_result);
++	if (hci_result =3D=3D HCI_SUCCESS) {
++		return (value & 0x0f) =3D=3D 0x0f;
++	} else
++		return -EFAULT;
++}
++
++static int toshiba_bluetooth_get(void)
++{
++	u32 in[HCI_WORDS];
++	u32 out[HCI_WORDS];
++	acpi_status status;
++
++	in[0] =3D HCI_GET;
++	in[1] =3D HCI_BLUETOOTH;
++	in[2] =3D 0;
++	in[3] =3D 1;
++	status =3D hci_raw(in, out);
++	if (status !=3D AE_OK) {
++		printk(MY_ERR "Error checking Bluetooth device status.\n");
++		return -EIO;
++	}
++
++	/* 0x1 =3D=3D switch on, 0x40 =3D=3D attached, 0x80 =3D=3D power on *=
+/
++	return (out[2] & 0xC1) =3D=3D 0xC1;
++}
++
++static int toshiba_bluetooth_set(int state)
++{
++	u32 in[HCI_WORDS];
++	u32 out[HCI_WORDS];
++	acpi_status status;
++=09
++	switch (state) {
++	case 0:
++		in[0] =3D HCI_SET;
++		in[1] =3D HCI_BLUETOOTH;
++		in[2] =3D 0;
++		in[3] =3D 0x40;
++		status =3D hci_raw(in, out);
++		if (status !=3D AE_OK) {
++			printk(MY_ERR "Error detaching Bluetooth device.\n");
++			return -EIO;
++		}
++
++		in[0] =3D HCI_SET;
++		in[1] =3D HCI_BLUETOOTH;
++		in[2] =3D 0;
++		in[3] =3D 0x80;
++		status =3D hci_raw(in, out);
++		if (status !=3D AE_OK) {
++			printk(MY_ERR "Error deactivating Bluetooth device.\n");
++			return -EIO;
++		}
++		break;
++	case 1:
++		in[0] =3D HCI_SET;
++		in[1] =3D HCI_BLUETOOTH;
++		in[2] =3D 1;
++		in[3] =3D 0x80;
++		status =3D hci_raw(in, out);
++		if (status !=3D AE_OK) {
++			printk(MY_ERR "Error activating Bluetooth device.\n");
++			return -EIO;
++		}
++=09
++		in[0] =3D HCI_SET;
++		in[1] =3D HCI_BLUETOOTH;
++		in[2] =3D 1;
++		in[3] =3D 0x40;
++		status =3D hci_raw(in, out);
++		if (status !=3D AE_OK) {
++			printk(MY_ERR "Error attaching Bluetooth device.\n");
++			return -EIO;
++		}
++		break;
++	default:
++		printk(MY_ERR "Unknown state for Bluetooth.\n");
++	};
++
++	return 0;
++}
++
++static char *read_bluetooth(char *p)
++{
++	int value =3D toshiba_bluetooth_get();
++
++	if (!toshiba_bluetooth_present()) {
++		p +=3D sprintf(p, "status:\t\tnot supported\n");
++	} else if (value >=3D 0) {
++		p +=3D sprintf(p, "status:\t\t%s\n",=20
++				value ? "enabled" : "disabled");
++		p +=3D sprintf(p, "commands:\tenable, disable\n");
++	} else {
++		printk(MY_ERR "Error reading bluetooth status.\n");
++	}
++
++	return p;
++}
++
++static unsigned long write_bluetooth(const char *buffer, unsigned long=
+ count)
++{
++	int ret ;
++
++	if (!toshiba_bluetooth_present()) {
++		ret =3D -ENODEV;
++	} else if (strlencmp(buffer, "enable") =3D=3D 0) {
++		toshiba_bluetooth_set(1);
++		ret =3D count;
++	} else if (strlencmp(buffer, "disable") =3D=3D 0) {
++		toshiba_bluetooth_set(0);
++		ret =3D count;
++	} else {
++		ret =3D -EINVAL;
++	}
++	return ret;
++}
++
+ static char *read_version(char *p)
+ {
+ 	p +=3D sprintf(p, "driver:                  %s\n", TOSHIBA_ACPI_VERSI=
+ON);
+@@ -496,6 +621,7 @@ static char *read_version(char *p)
+ #define PROC_TOSHIBA		"toshiba"
+=20
+ static ProcItem proc_items[] =3D {
++	{"bluetooth", read_bluetooth, write_bluetooth},
+ 	{"lcd", read_lcd, write_lcd},
+ 	{"video", read_video, write_video},
+ 	{"fan", read_fan, write_fan},
+-----
 
-BTW, I needed to play a bit with module loading/unloading, since the
-first time I removed the thinkpad_acpi module the oops wasn't
-triggered.
+J.
 
-Please let me know if you want my .config as well.
-
-> You could also try turning on some of the ACPI debug bits, one of
-> them (sorry, I don't know which) will tell you exactly which
-> device's notify handler it is calling.
-
-Well, I think I've all the ACPI debug options already on, since
-CONFIG_ACPI_DEBUG=y and CONFIG_ACPI_DEBUG_FUNC_TRACE=y, as well as
-CONFIG_PM_DEBUG=y (and CONFIG_THINKPAD_ACPI_DEBUG=y, obviously).
-
-Thx, bye,
-Gismo / Luca
-
-
---Boundary_(ID_gjCpAhmOb1X+jgGTG8FDIg)
-Content-type: application/octet-stream;
- NAME=dmesg-2.6.23.1_thinkpad-acpi-0.18-oops_gismo-20071021.log.gz
-Content-transfer-encoding: base64
-Content-disposition: attachment;
- filename=dmesg-2.6.23.1_thinkpad-acpi-0.18-oops_gismo-20071021.log.gz
-Content-description: 2.6.23.1 kernel and thinkpad_acpi-0.18 oops
-
-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
-BZNrNsggMAAA
-
---Boundary_(ID_gjCpAhmOb1X+jgGTG8FDIg)--
+--=20
+One-seventh of your life is spent on Monday.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
