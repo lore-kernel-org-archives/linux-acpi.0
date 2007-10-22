@@ -1,50 +1,102 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Oops removing thinkpad_acpi and video on git:linux-acpi-2.6
-Date: Mon, 22 Oct 2007 15:00:21 -0200
-Message-ID: <20071022170021.GA30584@khazad-dum.debian.net>
-References: <87lka1ffwc.fsf@gismo.pca.it> <20071018012106.GA24821@khazad-dum.debian.net> <87tzoo2q3x.fsf@gismo.pca.it> <20071018230334.GD4483@khazad-dum.debian.net> <871wbr2u1r.fsf@gismo.pca.it> <20071020002720.GA21173@khazad-dum.debian.net> <87myuccqen.fsf@gismo.pca.it> <20071022013204.GA13019@khazad-dum.debian.net> <87prz7myq9.fsf@gismo.pca.it>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Resume problems
+Date: Tue, 23 Oct 2007 00:35:32 +0200
+Message-ID: <200710230035.32924.rjw@sisk.pl>
+References: <471CCC98.10101@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33919 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751102AbXJVRA0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Oct 2007 13:00:26 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:34199 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064AbXJVWTg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Oct 2007 18:19:36 -0400
+In-Reply-To: <471CCC98.10101@googlemail.com>
 Content-Disposition: inline
-In-Reply-To: <87prz7myq9.fsf@gismo.pca.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Capello <luca@pca.it>
-Cc: ML Linux-ACPI <linux-acpi@vger.kernel.org>
+To: Gabriel C <nix.or.die@googlemail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Mon, 22 Oct 2007, Luca Capello wrote:
-> Sorry, my fault.  It should be OK now.
+On Monday, 22 October 2007 18:15, Gabriel C wrote:
+> Hi all ,
+> 
+> I'm running current git + aic7xxx suspend patch from  http://bugzilla.kernel.org/show_bug.cgi?id=3062
+> on a Dell Precision WorkStation 530 MT SMP box ( HT enabled ).
+> 
+> Suspend works fine but on resume I have some problems. 
+> All CPU's but boot CPU won't come back , everything else seems fine.
 
-I was afraid of that, the OOPs happens entirely after the thinkpad-acpi
-module unloaded.
+Can you please try to disable HT and suspend?
 
-And we *did* unregister all notification functions in thinkpad-acpi, so it
-might well be a problem in the ACPI core, and not thinkpad-acpi.
+> ...
+> 
+> Oct 22 15:02:28 lara [   49.618795] Enabling non-boot CPUs ...
+> Oct 22 15:02:28 lara [   49.622211] PM: Adding info for No Bus:msr1
+> Oct 22 15:02:28 lara [   49.622259] PM: Adding info for No Bus:cpu1
+> Oct 22 15:02:28 lara [   49.622302] SMP alternatives: switching to SMP code
+> Oct 22 15:02:28 lara [   49.623536] Booting processor 1/1 eip 3000
+> Oct 22 15:02:28 lara [   54.638093] Not responding.
+> Oct 22 15:02:28 lara [   54.638096] Inquiring remote APIC #1...
+> Oct 22 15:02:28 lara [   54.638099] ... APIC #1 ID: failed
+> Oct 22 15:02:28 lara [   54.638204] ... APIC #1 VERSION: failed
+> Oct 22 15:02:28 lara [   54.638307] ... APIC #1 SPIV: failed
+> Oct 22 15:02:28 lara [   54.638427] skipping cpu1, didn't come online
+> Oct 22 15:02:28 lara [   54.638602] PM: Removing info for No Bus:msr1
+> Oct 22 15:02:28 lara [   54.638643] PM: Removing info for No Bus:cpu1
+> Oct 22 15:02:28 lara [   54.638678] Error taking CPU1 up: -5
+> Oct 22 15:02:28 lara [   54.640908] PM: Adding info for No Bus:msr2
+> Oct 22 15:02:28 lara [   54.640939] PM: Adding info for No Bus:cpu2
+> Oct 22 15:02:28 lara [   54.640976] SMP alternatives: switching to SMP code
+> Oct 22 15:02:28 lara [   54.641961] Booting processor 2/2 eip 3000
+> Oct 22 15:02:28 lara [   59.656795] Not responding.
+> Oct 22 15:02:28 lara [   59.656799] Inquiring remote APIC #2...
+> Oct 22 15:02:28 lara [   59.656803] ... APIC #2 ID: failed
+> Oct 22 15:02:28 lara [   59.656907] ... APIC #2 VERSION: failed
+> Oct 22 15:02:28 lara [   59.657011] ... APIC #2 SPIV: failed
+> Oct 22 15:02:28 lara [   59.657131] skipping cpu2, didn't come online
+> Oct 22 15:02:28 lara [   59.657300] PM: Removing info for No Bus:msr2
+> Oct 22 15:02:28 lara [   59.657343] PM: Removing info for No Bus:cpu2
+> Oct 22 15:02:28 lara [   59.657379] Error taking CPU2 up: -5
+> Oct 22 15:02:28 lara [   59.659605] PM: Adding info for No Bus:msr3
+> Oct 22 15:02:28 lara [   59.659637] PM: Adding info for No Bus:cpu3
+> Oct 22 15:02:28 lara [   59.659673] SMP alternatives: switching to SMP code
+> Oct 22 15:02:28 lara [   59.660725] Booting processor 3/3 eip 3000
+> Oct 22 15:02:28 lara [   64.675517] Not responding.
+> Oct 22 15:02:28 lara [   64.675520] Inquiring remote APIC #3...
+> Oct 22 15:02:28 lara [   64.675524] ... APIC #3 ID: failed
+> Oct 22 15:02:28 lara [   64.675628] ... APIC #3 VERSION: failed
+> Oct 22 15:02:28 lara [   64.675731] ... APIC #3 SPIV: failed
+> Oct 22 15:02:28 lara [   64.675859] skipping cpu3, didn't come online
+> Oct 22 15:02:28 lara [   64.676017] PM: Removing info for No Bus:msr3
+> Oct 22 15:02:28 lara [   64.676059] PM: Removing info for No Bus:cpu3
+> Oct 22 15:02:28 lara [   64.676092] Error taking CPU3 up: -5
+> Oct 22 15:02:28 lara [   64.676326] evxfevnt-0079 [00] enable                : System is already in ACPI mode
+> 
+> ...
+> 
+> After I've played with a lot boot options I found out booting with ' acpi=ht ' will make the CPU's work again but now
+> I have a problem on Suspend. Everything seems to just go down disks etc but the box itself is for some reason still on.
+> So I've tested reboot=<> options with no luck.
+> ( after waiting 5 minutes to be sure everything is really off I can just hit power button). On resume now everything is fine.
+> 
+> I'm not really sure what is wrong here acpi/hibernation/cpu-hotplug or a mix of all so I'm CC'ing linux-acpi as well.
+> The only thing I noticed is the 'Breaking affinity for irq XX' on suspend without acpi=ht messages.
+> 
+> I can't even tell whatever other kernel versions are working because aic7xxx driver didn't got suspend support till now 
+> ( or at least never worked here ). I know suspend worked fine on windows with that box.
+> 
+> There is my config and dmesg ( good and bad one ) :
+> 
+> 
+> http://194.231.229.228/suspend/acpi=ht_working_dmesg.txt
+> http://194.231.229.228/suspend/dmesg_broken_cpus_on_resume.txt
+> http://194.231.229.228/suspend/config
 
-Please try again, this time do this beforehand (warning: will generate a lot
-of debug output):
+Well, I think we have a problem with the CPU hotplug.
 
-echo 0x4 > /proc/acpi/debug_layer
-echo 0xfffffff > /proc/acpi/debug_level
+Can you try to offline-online CPUs (without suspending) and see if that works?
 
-Maybe we will be lucky and give us more info on what the ACPI layer is
-calling that causes the oops.
-
-You could also try adding a sleep() call of a second or so in
-thinkpad-acpi's thinkpad_acpi_module_exit function, after the loop that
-calls ibm_exit.  It is one of those ibm_exit calls that unregister the
-notify handler for hotkey (the only one active in your thinkpad-acpi
-install).  If it is a race, that might eliminate it and give us further
-information.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Greetings,
+Rafael
