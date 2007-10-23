@@ -1,53 +1,41 @@
-From: Gabriel C <nix.or.die@googlemail.com>
-Subject: Re: Resume problems
-Date: Tue, 23 Oct 2007 03:01:06 +0200
-Message-ID: <471D47D2.2070707@googlemail.com>
-References: <471CCC98.10101@googlemail.com> <200710230035.32924.rjw@sisk.pl> <471D2B7F.40604@googlemail.com> <200710230131.10917.rjw@sisk.pl> <471D30C0.4050606@googlemail.com> <471D3C26.3090602@googlemail.com>
+From: Enno Fennema <e.fennema@tiscali.nl>
+Subject: No halt after RTC wakeup
+Date: Tue, 23 Oct 2007 11:44:25 +0200
+Message-ID: <471DC279.7040605@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:62294 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbXJWBBd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Oct 2007 21:01:33 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so49203ugc
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Oct 2007 18:01:32 -0700 (PDT)
-In-Reply-To: <471D3C26.3090602@googlemail.com>
+Received: from smtp-out3.tiscali.nl ([195.241.79.178]:56216 "EHLO
+	smtp-out3.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682AbXJWKMr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Oct 2007 06:12:47 -0400
+Received: from [82.170.14.150] (helo=[192.168.1.35])
+	by smtp-out3.tiscali.nl with esmtp (Tiscali http://www.tiscali.nl)
+	id 1IkGJs-0005MO-La
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Oct 2007 11:45:04 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+I am using Linux SuSE 9.2 64 bit with ASUS A8V motherboard and AMD 
+Athlon. Every night when I am watching television RTC wakes up the 
+machine at 21:55, at 22:00 cron runs a few programs and 'halt' puts the 
+computer back to S5. Fine.
 
-> Also box just froze on level 3 but I got a ACPI error at least which I didn't got in any other dmesg till now :
-> ( also patch was tested with HT disabled and Suspend and Hibernation enabled in kernel and BIOS )
-> 
-> ...
-> 
-> Oct 23 01:51:05 lara [  273.512374] PM: Removing info for No Bus:input0
-> Oct 23 01:51:05 lara [  274.545158] PM: Removing info for No Bus:mouse0
-> Oct 23 01:51:05 lara [  274.551435] PM: Removing info for No Bus:event1
-> Oct 23 01:51:05 lara [  274.559493] PM: Removing info for No Bus:input1
-> Oct 23 01:53:06 lara [  394.869468] ACPI Error (evevent-0303): No installed handler for fixed event [00000002] [20070126]
-> 
-> ....
-> 
-> ( I hard reseted after that ) 
-> 
-> I try level 2 and 1 now I just wanted to let you know.
-> 
+However, when I start working on my machine at say 21:00 the RTC raises 
+a wakeup (I assume), cron runs its jobs at 22:00 and my program having 
+noticed that someone is logged in does not halt the computer.
 
-Same issues with level 2 and 1.
+At 23:00 I wish to go to bed and press the power button (which normally 
+works fine). A shutdown proces starts right up to 'The system will halt 
+immediately' message. Then the display looses its signal, the keyboard 
+appears to go dead BUT the machine does not switch to S5. Also the 
+disk-access LED goes on. The only way I can stop is user the powerbutton 
+override ( press > 4secs).
 
-BTW I found out why my box does not shutdown with acpi=ht. It seems like libata does not like that 
-acpi mode =) dropping the '... read http://linux-ata.org/shutdown.html , power down manually' message.
+Would apprciates any ideas/suggestions how to convince the power button 
+to behave normally.
 
-That works perfectly with full acpi here.
-
-After all I think all this problems may be some who ACPI related 
-but the question is why they get triggered by Suspend/Hibernation.
-
-If you want me to test something else just let me know.
-
-Gabriel
+Thanks,
+Enno Fennema
