@@ -1,75 +1,70 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: PNP: simplify pnp_activate_dev() and pnp_disable_dev() return values
-Date: Tue, 23 Oct 2007 14:46:18 -0600
-Message-ID: <200710231446.18771.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Resume problems
+Date: Wed, 24 Oct 2007 00:57:09 +0200
+Message-ID: <200710240057.10131.rjw@sisk.pl>
+References: <471CCC98.10101@googlemail.com> <471D3C26.3090602@googlemail.com>
+	<471D47D2.2070707@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:32774 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546AbXJWUqv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Oct 2007 16:46:51 -0400
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <471D47D2.2070707@googlemail.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Gabriel C <nix.or.die@googlemail.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Belay <ambx1@neo.rr.com>
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Make pnp_activate_dev() and pnp_disable_dev() return only 0 (success) or a
-negative error value, as pci_enable_device() and pci_disable_device() do.
+On Tuesday, 23 October 2007 03:01, Gabriel C wrote:
+> 
+> > Also box just froze on level 3 but I got a ACPI error at least which I didn't got in any other dmesg till now :
+> > ( also patch was tested with HT disabled and Suspend and Hibernation enabled in kernel and BIOS )
+> > 
+> > ...
+> > 
+> > Oct 23 01:51:05 lara [  273.512374] PM: Removing info for No Bus:input0
+> > Oct 23 01:51:05 lara [  274.545158] PM: Removing info for No Bus:mouse0
+> > Oct 23 01:51:05 lara [  274.551435] PM: Removing info for No Bus:event1
+> > Oct 23 01:51:05 lara [  274.559493] PM: Removing info for No Bus:input1
+> > Oct 23 01:53:06 lara [  394.869468] ACPI Error (evevent-0303): No installed handler for fixed event [00000002] [20070126]
+> > 
+> > ....
+> > 
+> > ( I hard reseted after that ) 
+> > 
+> > I try level 2 and 1 now I just wanted to let you know.
+> > 
+> 
+> Same issues with level 2 and 1.
 
-Previously they returned:
+Yes.  If you have a problem at level n, it should always reappear for n-1 etc.
 
-    0:	device was already active (or disabled)
-    1:	we just activated (or disabled) device
-    <0:	-EBUSY or error from pnp_start_dev() (or pnp_stop_dev())
+> BTW I found out why my box does not shutdown with acpi=ht. It seems like libata does not like that 
+> acpi mode =) dropping the '... read http://linux-ata.org/shutdown.html , power down manually' message.
+> 
+> That works perfectly with full acpi here.
+> 
+> After all I think all this problems may be some who ACPI related 
+> but the question is why they get triggered by Suspend/Hibernation.
 
-Now we return only 0 (device is active or disabled) or <0 (error).
+They certainly are ACPI-related, because the only difference between level 4
+and level 3 suspend testing is that some global ACPI methods are executed
+at level 3 (in addition to level 4).
 
-All in-tree callers either ignore the return values or check only for
-errors (negative values).
+Unfortunately, I have no idea what to do next, for now.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+I think you can file a bug report at http://bugzilla.kernel.org and put a link
+to this thread in there (against ACPI and please add my address to the CC
+list).
 
-Index: w/drivers/pnp/manager.c
-===================================================================
---- w.orig/drivers/pnp/manager.c	2007-10-23 09:59:34.000000000 -0600
-+++ w/drivers/pnp/manager.c	2007-10-23 10:45:32.000000000 -0600
-@@ -513,7 +513,7 @@
- 	int error;
- 
- 	if (dev->active)
--		return 0;	/* the device is already active */
-+		return 0;
- 
- 	/* ensure resources are allocated */
- 	if (pnp_auto_config_dev(dev))
-@@ -524,7 +524,7 @@
- 		return error;
- 
- 	dev->active = 1;
--	return 1;
-+	return 0;
- }
- 
- /**
-@@ -538,7 +538,7 @@
- 	int error;
- 
- 	if (!dev->active)
--		return 0;	/* the device is already disabled */
-+		return 0;
- 
- 	error = pnp_stop_dev(dev);
- 	if (error)
-@@ -551,7 +551,7 @@
- 	pnp_clean_resource_table(&dev->res);
- 	up(&pnp_res_mutex);
- 
--	return 1;
-+	return 0;
- }
- 
- /**
+Greetings,
+Rafael
