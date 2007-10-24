@@ -1,78 +1,56 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI
-	Operation Region resources
-Date: Wed, 24 Oct 2007 16:31:59 +0200
-Message-ID: <1193236319.4590.225.camel@queen.suse.de>
+Subject: [PATCH 1/5] Small ACPICA extension to be able to store the name of
+	operation regions in osl.c later
+Date: Wed, 24 Oct 2007 16:32:51 +0200
+Message-ID: <1193236371.4590.228.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:48410 "EHLO mx1.suse.de"
+Received: from mx1.suse.de ([195.135.220.2]:48470 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755744AbXJXOcB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2007 10:32:01 -0400
+	id S1758409AbXJXOcw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 10:32:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi <linux-acpi@vger.kernel.org>
 Cc: linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-Hi,
+---
+ drivers/acpi/dispatcher/dsopcode.c |    4 +++-
+ include/acpi/acpiosxf.h            |    4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-it seems Len's test tree and Linus tree diverged a bit, at least with
-this patch set things do not apply cleanly.
-
-Therefore I post these for discussion whether and in which kernel tree
-they should end up before doing work for nothing.
-If they are still a candidate for 2.6.24 (rather unintrusive), pls tell
-me whether and when I should base them against Len's test/release branch
-or whatever other tree.
-If not, it would be great if they can be included into the -mm tree and
-I can rebase them against this one.
-
-Be aware that there is a small change in ACPICA (first patch, that's
-also the reason why this one would not compile on its own).
-
-Many thanks for detailed review, testing and a lot implementation help
-go to Jean Delvare, without his help I would not be able to post
-anything right now.
-
-Thanks for any help/advise,
-
-  Thomas
-
---------------
-Short general description:
-
-In ACPI, AML can define accesses to IO ports and System Memory by
-Operation Regions. Those are not registered as done by PNPACPI using
-resource templates (and _CRS/_SRS methods).
-The IO ports and System Memory regions may get accessed by arbitrary AML
-code. When native drivers are accessing the same resources bad things
-can happen (e.g. a critical shutdown temperature of 3000 C every 2
-months or so).
-It is not really possible to register the operation regions via
-request_resource, as they often overlap with pnp or other resources
-(e.g. statically setup IO resources below 0x100).
-This approach stores all Operation Region declarations (IO and System
-Memory only) at ACPI table parse time. It offers a similar functionality
-like request_region and let drivers which are known to possibly use the
-same IO ports and Memory which are also often used by ACPI (hwmon and
-i2c) check for ACPI interference.
-
-A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
-is default set to lax:
-  - strict: let conflicting drivers fail to load with an error message
-  - lax:    let conflicting driver work normal with a warning message
-  - no:     no functional change at all
-Depending on the feedback and the kind of interferences we see, this
-should be set to strict at later time.
-
-Goal of this patch set is:
-  - Identify ACPI interferences in bug reports (very hard to reproduce
-    and to identify)
-  - Find BIOSes for that an ACPI driver should exist for specific HW
-    instead of a native one.
-  - stability in general
+Index: lenb/drivers/acpi/dispatcher/dsopcode.c
+===================================================================
+--- lenb.orig/drivers/acpi/dispatcher/dsopcode.c
++++ lenb/drivers/acpi/dispatcher/dsopcode.c
+@@ -359,7 +359,9 @@ acpi_status acpi_ds_get_region_arguments
+ 
+ 	status = acpi_os_validate_address(obj_desc->region.space_id,
+ 					  obj_desc->region.address,
+-					  (acpi_size) obj_desc->region.length);
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
++
+ 	if (ACPI_FAILURE(status)) {
+ 		/*
+ 		 * Invalid address/length. We will emit an error message and mark
+Index: lenb/include/acpi/acpiosxf.h
+===================================================================
+--- lenb.orig/include/acpi/acpiosxf.h
++++ lenb/include/acpi/acpiosxf.h
+@@ -239,8 +239,8 @@ acpi_status acpi_os_validate_interface(c
+ acpi_status acpi_osi_invalidate(char* interface);
+ 
+ acpi_status
+-acpi_os_validate_address(u8 space_id,
+-			 acpi_physical_address address, acpi_size length);
++acpi_os_validate_address(u8 space_id, acpi_physical_address address,
++			 acpi_size length, char *name);
+ 
+ u64 acpi_os_get_timer(void);
+ 
 
 
