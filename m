@@ -1,275 +1,391 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/5] Provide acpi_check_{mem_}region.
-Date: Wed, 24 Oct 2007 16:32:59 +0200
-Message-ID: <1193236379.4590.229.camel@queen.suse.de>
+Subject: [Fwd: [PATCH 4/5] Check for ACPI resource conflicts in hwmon
+	drivers]
+Date: Wed, 24 Oct 2007 16:33:15 +0200
+Message-ID: <1193236395.4590.231.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:48485 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:46172 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759388AbXJXOdA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2007 10:33:00 -0400
+	id S1759623AbXJXOdR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 10:33:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi <linux-acpi@vger.kernel.org>
 Cc: linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-Provide acpi_check_{mem_}region.
+Check for ACPI resource conflicts in hwmon drivers. I've included
+all Super-I/O and PCI drivers.
 
-Drivers can additionally check against possible ACPI interference by also
-invoking this shortly before they call request_region.
-If -EBUSY is returned, the driver must not load.
-Use acpi_enforce_resources=strict/lax/no options to:
-  - strict: let conflicting drivers fail to load with an error message
-  - lax:    let conflicting driver work normal with a warning message
-  - no:     no functional change at all
+I've voluntarily left out:
+* Laptop specific and vendor-specific drivers: if they conflicted
+  on any system, this would pretty much mean that they conflict on all
+  systems, and we would know by now.
+* Legacy ISA drivers (lm78 and w83781d): they only support chips found
+  on old designs were ACPI either wasn't supported or didn't deal with
+  thermal management.
+* Drivers accessing the I/O resources indirectly (e.g. through SMBus):
+  the check will be added where it belongs, i.e. in the bus drivers.
 
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 ---
- drivers/acpi/osl.c   |  175 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/acpi.h |   13 +++
- 2 files changed, 186 insertions(+), 2 deletions(-)
+ drivers/hwmon/dme1737.c    |    5 +++++
+ drivers/hwmon/f71805f.c    |    5 +++++
+ drivers/hwmon/f71882fg.c   |    5 +++++
+ drivers/hwmon/it87.c       |    5 +++++
+ drivers/hwmon/pc87360.c    |    6 ++++++
+ drivers/hwmon/pc87427.c    |    5 +++++
+ drivers/hwmon/sis5595.c    |    5 +++++
+ drivers/hwmon/smsc47b397.c |    5 +++++
+ drivers/hwmon/smsc47m1.c   |    5 +++++
+ drivers/hwmon/via686a.c    |    5 +++++
+ drivers/hwmon/vt1211.c     |    5 +++++
+ drivers/hwmon/vt8231.c     |    5 +++++
+ drivers/hwmon/w83627ehf.c  |    6 ++++++
+ drivers/hwmon/w83627hf.c   |    5 +++++
+ 14 files changed, 72 insertions(+)
 
-Index: lenb/drivers/acpi/osl.c
-===================================================================
---- lenb.orig/drivers/acpi/osl.c
-+++ lenb/drivers/acpi/osl.c
-@@ -44,6 +44,8 @@
- #include <asm/uaccess.h>
- 
- #include <linux/efi.h>
-+#include <linux/ioport.h>
-+#include <linux/list.h>
- 
- #define _COMPONENT		ACPI_OS_SERVICES
- ACPI_MODULE_NAME("osl");
-@@ -74,6 +76,18 @@ static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
- 
-+struct acpi_res_list {
-+	resource_size_t start;
-+	resource_size_t end;
-+	acpi_adr_space_type resource_type; /* IO port, System memory, ...*/
-+	char name[5];   /* only can have a length of 4 chars, make use of this
-+			   one instead of res->name, no need to kalloc then */
-+	struct list_head resource_list;
-+};
+--- linux-2.6.24-rc0.orig/drivers/hwmon/dme1737.c	2007-10-21 14:21:50.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/dme1737.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ /* ISA device, if found */
+@@ -2227,6 +2228,10 @@ static int __init dme1737_isa_device_add
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
 +
-+static LIST_HEAD(resource_list_head);
-+static DEFINE_SPINLOCK(acpi_res_lock);
+ 	if (!(pdev =3D platform_device_alloc("dme1737", addr))) {
+ 		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/f71805f.c	2007-10-21 14:21:50.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/f71805f.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -39,6 +39,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static struct platform_device *pdev;
+@@ -1451,6 +1452,10 @@ static int __init f71805f_device_add(uns
+ 	}
+=20
+ 	res.name =3D pdev->name;
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit_device_put;
 +
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
- 
-@@ -1042,6 +1056,127 @@ static int __init acpi_wake_gpes_always_
- 
- __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
- 
-+/* Check of resource interference between native drivers and ACPI
-+ * OperationRegions (SystemIO and System Memory only).
-+ * IO ports and memory declared in ACPI might be used by the ACPI subsystem
-+ * in arbitrary AML code and can interfere with legacy drivers.
-+ * acpi_enforce_resources= can be set to:
-+ *
-+ *   - strict           (2)
-+ *     -> further driver trying to access the resources will not load
-+ *   - lax (default)    (1)
-+ *     -> further driver trying to access the resources will load, but you
-+ *     get a system message that something might go wrong...
-+ *
-+ *   - no               (0)
-+ *     -> ACPI Operation Region resources will not be registered
-+ *
-+ */
-+#define ENFORCE_RESOURCES_STRICT 2
-+#define ENFORCE_RESOURCES_LAX    1
-+#define ENFORCE_RESOURCES_NO     0
+ 	err =3D platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+--- linux-2.6.24-rc0.orig/drivers/hwmon/it87.c	2007-10-21 14:21:50.0000=
+00000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/it87.c	2007-10-21 14:35:29.000000000=
+ +0200
+@@ -38,6 +38,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ #define DRVNAME "it87"
+@@ -1409,6 +1410,10 @@ static int __init it87_device_add(unsign
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
 +
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+ 	pdev =3D platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/pc87360.c	2007-10-21 14:21:50.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/pc87360.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -43,6 +43,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static u8 devid;
+@@ -1421,6 +1422,11 @@ static int __init pc87360_device_add(uns
+ 			continue;
+ 		res.start =3D extra_isa[i];
+ 		res.end =3D extra_isa[i] + PC87360_EXTENT - 1;
 +
-+static int __init acpi_enforce_resources_setup(char *str)
-+{
-+	if (str == NULL || *str == '\0')
-+		return 0;
++		err =3D acpi_check_resource_conflict(&res);
++		if (err)
++			goto exit_device_put;
 +
-+	if (!strcmp("strict", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-+	else if (!strcmp("lax", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+	else if (!strcmp("no", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_NO;
+ 		err =3D platform_device_add_resources(pdev, &res, 1);
+ 		if (err) {
+ 			printk(KERN_ERR "pc87360: Device resource[%d] "
+--- linux-2.6.24-rc0.orig/drivers/hwmon/pc87427.c	2007-10-21 14:21:50.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/pc87427.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -32,6 +32,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static struct platform_device *pdev;
+@@ -520,6 +521,10 @@ static int __init pc87427_device_add(uns
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
 +
-+	return 1;
-+}
-+
-+__setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
-+
-+/* Check for resource conflicts between ACPI OperationRegions and native
-+ * drivers */
-+static int acpi_check_resource_conflict(struct resource *res)
-+{
-+	struct acpi_res_list *res_list_elem;
-+	int ioport;
-+	int clash = 0;
-+
-+	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-+		return 0;
-+	if (!(res->flags & IORESOURCE_IO) && !(res->flags & IORESOURCE_MEM))
-+		return 0;
-+
-+	ioport = res->flags & IORESOURCE_IO;
-+
-+	spin_lock(&acpi_res_lock);
-+	list_for_each_entry(res_list_elem, &resource_list_head,
-+			    resource_list) {
-+		if (ioport && (res_list_elem->resource_type
-+			       != ACPI_ADR_SPACE_SYSTEM_IO))
-+			continue;
-+		if (!ioport && (res_list_elem->resource_type
-+				!= ACPI_ADR_SPACE_SYSTEM_MEMORY))
-+			continue;
-+
-+		if (res->end < res_list_elem->start
-+		    || res_list_elem->end < res->start)
-+			continue;
-+		clash = 1;
-+		break;
-+	}
-+	spin_unlock(&acpi_res_lock);
-+
-+	if (clash) {
-+		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
-+			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
-+			       " conflicts with ACPI region %s"
-+			       " [0x%llx-0x%llx]\n",
-+			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
-+			       ? KERN_WARNING : KERN_ERR,
-+			       ioport ? "I/O" : "Memory", res->name,
-+			       (long long) res->start, (long long) res->end,
-+			       res_list_elem->name,
-+			       (long long) res_list_elem->start,
-+			       (long long) res_list_elem->end);
-+			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
-+		}
-+		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
-+			return -EBUSY;
-+	}
-+	return 0;
-+}
-+
-+int acpi_check_region(resource_size_t start, resource_size_t n,
-+		      const char *name)
-+{
-+	struct resource res = {
-+		.start = start,
-+		.end   = start + n - 1,
-+		.name  = name,
-+		.flags = IORESOURCE_IO,
-+	};
-+
-+	return acpi_check_resource_conflict(&res);
-+}
-+EXPORT_SYMBOL(acpi_check_region);
-+
-+int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-+		      const char *name)
-+{
-+	struct resource res = {
-+		.start = start,
-+		.end   = start + n - 1,
-+		.name  = name,
-+		.flags = IORESOURCE_MEM,
-+	};
-+
-+	return acpi_check_resource_conflict(&res);
-+
-+}
-+EXPORT_SYMBOL(acpi_check_mem_region);
-+
- /*
-  * Acquire a spinlock.
-  *
-@@ -1199,10 +1334,46 @@ acpi_status
- acpi_os_validate_address (
-     u8                   space_id,
-     acpi_physical_address   address,
--    acpi_size               length)
-+    acpi_size               length,
-+    char *name)
- {
-+	struct acpi_res_list *res;
-+	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-+		return AE_OK;
- 
--    return AE_OK;
-+	switch (space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+		/* Only interference checks against SystemIO and SytemMemory
-+		   are needed */
-+		res = kzalloc(sizeof(struct acpi_res_list), GFP_KERNEL);
-+		if (!res)
-+			return AE_OK;
-+		/* ACPI names are fixed to 4 bytes, still better use strlcpy */
-+		strlcpy(res->name, name, 5);
-+		res->start = address;
-+		res->end = address + length - 1;
-+		res->resource_type = space_id;
-+		spin_lock(&acpi_res_lock);
-+		list_add(&res->resource_list, &resource_list_head);
-+		spin_unlock(&acpi_res_lock);
-+		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
-+			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+			 ? "SystemIO" : "System Memory",
-+			 res->start,
-+			 (unsigned long)res->end,
-+			 (unsigned long)res->name);
-+		break;
-+	case ACPI_ADR_SPACE_PCI_CONFIG:
-+	case ACPI_ADR_SPACE_EC:
-+	case ACPI_ADR_SPACE_SMBUS:
-+	case ACPI_ADR_SPACE_CMOS:
-+	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
-+	case ACPI_ADR_SPACE_DATA_TABLE:
-+	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-+		break;
-+	}
-+	return AE_OK;
- }
- 
- #ifdef CONFIG_DMI
-Index: lenb/include/linux/acpi.h
-===================================================================
---- lenb.orig/include/linux/acpi.h
-+++ lenb/include/linux/acpi.h
-@@ -123,10 +123,23 @@ extern int pci_mmcfg_config_num;
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
- 
-+int acpi_check_region(resource_size_t start, resource_size_t n,
-+		      const char *name);
-+int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-+		      const char *name);
-+
- #else	/* !CONFIG_ACPI */
- 
- #define acpi_mp_config	0
- 
-+static inline int acpi_check_region(resource_size_t start, resource_size_t n,
-+				    const char *name)
-+{ return 0; }
-+
-+static inline int acpi_check_mem_region(resource_size_t start,
-+					resource_size_t n, const char *name)
-+{ return 0; }
-+
- #endif 	/* !CONFIG_ACPI */
- 
- int acpi_register_gsi (u32 gsi, int triggering, int polarity);
+ 	pdev =3D platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/sis5595.c	2007-10-21 14:21:51.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/sis5595.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -62,6 +62,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
 
+@@ -702,6 +703,10 @@ static int __devinit sis5595_device_add(
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc("sis5595", address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/smsc47b397.c	2007-10-21 14:21:5=
+0.000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/smsc47b397.c	2007-10-21 14:35:29.000=
+000000 +0200
+@@ -36,6 +36,7 @@
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static struct platform_device *pdev;
+@@ -299,6 +300,10 @@ static int __init smsc47b397_device_add(
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/smsc47m1.c	2007-10-21 14:21:50.=
+000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/smsc47m1.c	2007-10-21 14:35:29.00000=
+0000 +0200
+@@ -37,6 +37,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static struct platform_device *pdev;
+@@ -682,6 +683,10 @@ static int __init smsc47m1_device_add(un
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/via686a.c	2007-10-21 14:21:50.0=
+00000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/via686a.c	2007-10-21 14:35:29.000000=
+000 +0200
+@@ -41,6 +41,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
 
+@@ -755,6 +756,10 @@ static int __devinit via686a_device_add(
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc("via686a", address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/vt1211.c	2007-10-21 14:21:50.00=
+0000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/vt1211.c	2007-10-21 14:35:29.0000000=
+00 +0200
+@@ -32,6 +32,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static int uch_config =3D -1;
+@@ -1255,6 +1256,10 @@ static int __init vt1211_device_add(unsi
+ 	}
+=20
+ 	res.name =3D pdev->name;
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto EXIT;
++
+ 	err =3D platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+--- linux-2.6.24-rc0.orig/drivers/hwmon/vt8231.c	2007-10-21 14:21:50.00=
+0000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/vt8231.c	2007-10-21 14:35:29.0000000=
+00 +0200
+@@ -35,6 +35,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static int force_addr;
+@@ -858,6 +859,10 @@ static int __devinit vt8231_device_add(u
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc("vt8231", address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/w83627ehf.c	2007-10-21 14:21:50=
+=2E000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/w83627ehf.c	2007-10-21 14:35:29.0000=
+00000 +0200
+@@ -48,6 +48,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ #include "lm75.h"
+=20
+@@ -1531,6 +1532,11 @@ static int __init sensors_w83627ehf_init
+ 	res.start =3D address + IOREGION_OFFSET;
+ 	res.end =3D address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
+ 	res.flags =3D IORESOURCE_IO;
++
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	err =3D platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+--- linux-2.6.24-rc0.orig/drivers/hwmon/w83627hf.c	2007-10-21 14:21:51.=
+000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/w83627hf.c	2007-10-21 14:35:29.00000=
+0000 +0200
+@@ -50,6 +50,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ #include "lm75.h"
+=20
+@@ -1668,6 +1669,10 @@ static int __init w83627hf_device_add(un
+ 	};
+ 	int err;
+=20
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev =3D platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err =3D -ENOMEM;
+--- linux-2.6.24-rc0.orig/drivers/hwmon/f71882fg.c	2007-10-21 14:21:50.=
+000000000 +0200
++++ linux-2.6.24-rc0/drivers/hwmon/f71882fg.c	2007-10-21 14:35:29.00000=
+0000 +0200
+@@ -27,6 +27,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ #define DRVNAME "f71882fg"
+@@ -894,6 +895,10 @@ static int __init f71882fg_device_add(un
+ 		return -ENOMEM;
+=20
+ 	res.name =3D f71882fg_pdev->name;
++	err =3D acpi_check_resource_conflict(&res);
++	if (err)
++		return err;
++
+ 	err =3D platform_device_add_resources(f71882fg_pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
+
+--=20
+Thomas Renninger
+
+Research and Developement Departement
+SUSE LINUX Products GmbH,
+Maxfeldstr. 5, D - 90409 N=C3=BCrnberg
+Phone: +49 (0)911 - 740 53 675
+e-mail: trenn@suse.de
+
+SUSE LINUX Products GmbH, GF: Markus Rex, HRB 16746 (AG N=C3=BCrnberg)
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
