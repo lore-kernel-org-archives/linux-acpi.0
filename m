@@ -1,96 +1,38 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [2.6 patch] acpi/ec.c: fix use-after-free
-Date: Wed, 24 Oct 2007 21:30:19 +0400
-Message-ID: <471F812B.2020005@suse.de>
-References: <20071024162600.GD30533@stusta.de> <471F7DA6.2060907@gmail.com> <20071024172604.GD30533@stusta.de>
+From: "Ash Milsted" <thatistosayiseenem@gawab.com>
+Subject: 2.6.24-rc1 acpi battery driver -> sysfs interface does not update correctly
+Date: Wed, 24 Oct 2007 20:14:42 +0200
+Message-ID: <3e7b9f4b0710241114u73ad1d4bl34070b4fd2b18d63@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:34731 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754440AbXJXRat (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2007 13:30:49 -0400
-In-Reply-To: <20071024172604.GD30533@stusta.de>
+Received: from wx-out-0506.google.com ([66.249.82.239]:35420 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755928AbXJXSOn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2007 14:14:43 -0400
+Received: by wx-out-0506.google.com with SMTP id h31so287703wxd
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Oct 2007 11:14:42 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@kernel.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Adrian Bunk wrote:
-> On Wed, Oct 24, 2007 at 09:15:18PM +0400, Alexey Starikovskiy wrote:
->> Adrian,
->>
->> commit 30c08574da0ead1a47797ce028218ce5b2de61c7 can not introduce use-after-free.
->>
->> Please check...
-> 
-> 
-> Commit 30c08574da0ead1a47797ce028218ce5b2de61c7 did:
-> 
-> <--  snip  -->
-> 
->  	list_for_each_entry(handler, &ec->list, node) {
->                 if (query_bit == handler->query_bit) {
->                         list_del(&handler->node);
->                         kfree(handler);
-> -                       break;
->                 }
-> 	}
-> 
-> <--  snip  -->
-> 
-> 
-> If you look at the definition of list_for_each_entry() in 
-> include/linux/list.h:
-> 
-> <--  snip  -->
-> 
-> #define list_for_each_entry(pos, head, member)                          \
->         for (pos = list_entry((head)->next, typeof(*pos), member);      \
->              prefetch(pos->member.next), &pos->member != (head);        \
->              pos = list_entry(pos->member.next, typeof(*pos), member))
->                               ^^^^^^^^^^^^^^^^
-> 
-> <--  snip  -->
-> 
-> 
-> Without the "break", "handler" is being dereferenced after it was freed.
-Yes, found it minute before :( 
-Acked, thanks.
-> 
-> 
->> Regards,
->> Alex.
->> Adrian Bunk wrote:
->>> This patch fixes a use-after-free introduced by
->>> commit 30c08574da0ead1a47797ce028218ce5b2de61c7.
->>>
->>> Spotted by the Coverity checker.
->>>
->>> Signed-off-by: Adrian Bunk <bunk@kernel.org>
->>>
->>> ---
->>> --- linux-2.6/drivers/acpi/ec.c.old	2007-10-23 19:39:47.000000000 +0200
->>> +++ linux-2.6/drivers/acpi/ec.c	2007-10-23 19:34:55.000000000 +0200
->>> @@ -434,11 +442,11 @@
->>>  EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
->>>  
->>>  void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
->>>  {
->>> -	struct acpi_ec_query_handler *handler;
->>> +	struct acpi_ec_query_handler *handler, *tmp;
->>>  	mutex_lock(&ec->lock);
->>> -	list_for_each_entry(handler, &ec->list, node) {
->>> +	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
->>>  		if (query_bit == handler->query_bit) {
->>>  			list_del(&handler->node);
->>>  			kfree(handler);
->>>  		}
->>>
-> 
-> 
-> cu
-> Adrian
-> 
+Hello,
 
+I just tried out the new RC on my laptop system, initially neglecting
+to enable ACPI_PROCFS support. Thus I was thrust into using the new
+sysfs interface for the battery.c driver. ..
+
+Unfortunately the charge values etc do not seem to update periodically
+- only (un)plugging the AC power updates the status if ACPI_PROCFS is
+disabled.
+If ACPI_PROCFS is enabled then a read to /proc/acpi/battery/state gets
+the up-to-date data, and a subsequent read to the sysfs equivalents
+gives the same results - otherwise sysfs stays stale.
+
+If you need any more info please say so - this is on an ageing Toshiba
+Satellite 1110.
+
+Thanks,
+
+Ash
