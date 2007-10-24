@@ -1,70 +1,377 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Resume problems
-Date: Wed, 24 Oct 2007 00:57:09 +0200
-Message-ID: <200710240057.10131.rjw@sisk.pl>
-References: <471CCC98.10101@googlemail.com> <471D3C26.3090602@googlemail.com>
-	<471D47D2.2070707@googlemail.com>
+From: Luis Carlos =?ISO-8859-1?Q?Su=E1rez_M=E1rquez?=
+	<luiscsuarezm@yahoo.es>
+Subject: dmidecode file
+Date: Wed, 24 Oct 2007 01:25:17 -0500
+Message-ID: <1193207117.11763.2.camel@Toshiba-P105s921.gatway.2wire.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <471D47D2.2070707@googlemail.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Gabriel C <nix.or.die@googlemail.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="=-iFNPD93tcjBbGJqcZ8IQ"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp106.plus.mail.mud.yahoo.com ([68.142.206.239]:40143 "HELO
+	smtp106.plus.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753498AbXJXGcB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 02:32:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Tuesday, 23 October 2007 03:01, Gabriel C wrote:
-> 
-> > Also box just froze on level 3 but I got a ACPI error at least which I didn't got in any other dmesg till now :
-> > ( also patch was tested with HT disabled and Suspend and Hibernation enabled in kernel and BIOS )
-> > 
-> > ...
-> > 
-> > Oct 23 01:51:05 lara [  273.512374] PM: Removing info for No Bus:input0
-> > Oct 23 01:51:05 lara [  274.545158] PM: Removing info for No Bus:mouse0
-> > Oct 23 01:51:05 lara [  274.551435] PM: Removing info for No Bus:event1
-> > Oct 23 01:51:05 lara [  274.559493] PM: Removing info for No Bus:input1
-> > Oct 23 01:53:06 lara [  394.869468] ACPI Error (evevent-0303): No installed handler for fixed event [00000002] [20070126]
-> > 
-> > ....
-> > 
-> > ( I hard reseted after that ) 
-> > 
-> > I try level 2 and 1 now I just wanted to let you know.
-> > 
-> 
-> Same issues with level 2 and 1.
 
-Yes.  If you have a problem at level n, it should always reappear for n-1 etc.
+--=-iFNPD93tcjBbGJqcZ8IQ
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-> BTW I found out why my box does not shutdown with acpi=ht. It seems like libata does not like that 
-> acpi mode =) dropping the '... read http://linux-ata.org/shutdown.html , power down manually' message.
-> 
-> That works perfectly with full acpi here.
-> 
-> After all I think all this problems may be some who ACPI related 
-> but the question is why they get triggered by Suspend/Hibernation.
+Hello.
+I've been having  sound issues with a toshiba p105/sp921 and previous to
+kernel 2.6.22.9 was released, I had to use a custom DSDT.aml file fixed
+by
+me.
+In Mandriva 2008.0 the way I had sound was using "acpi_osi=!Linux" in
+kernel
+command line at boot time and in openSuSE 10.3 I used the same way to
+get
+sound. On Ubuntu 7.10 this hack seems not to work although I've not
+tried it
+personally (this seems a flag problem I guess).
+I'm using BIOS version 3.80 and have not tried with version 4.0 yet,
+however, as soon as I try, I'll give you the results,
+Enclosed you will find my dmidecode text file
+Thanks and
+Kind Regards.
+Luis C. Suárez
 
-They certainly are ACPI-related, because the only difference between level 4
-and level 3 suspend testing is that some global ACPI methods are executed
-at level 3 (in addition to level 4).
+--=-iFNPD93tcjBbGJqcZ8IQ
+Content-Disposition: attachment; filename=dmidecode.txt
+Content-Type: text/plain; name=dmidecode.txt; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Unfortunately, I have no idea what to do next, for now.
+# dmidecode 2.9
+SMBIOS 2.4 present.
+30 structures occupying 1028 bytes.
+Table at 0x000DF010.
 
-I think you can file a bug report at http://bugzilla.kernel.org and put a link
-to this thread in there (against ACPI and please add my address to the CC
-list).
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: TOSHIBA
+	Version: V3.80   
+	Release Date: 04/24/2007
+	Address: 0xE8F00
+	Runtime Size: 94464 bytes
+	ROM Size: 64 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
 
-Greetings,
-Rafael
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: TOSHIBA
+	Product Name: Satellite P105
+	Version: PSPA6U-006005
+	Serial Number: 36078015W                       
+	UUID: 00FB35B3-A889-D811-B811-001636317620
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: TOSHIBA
+	Product Name: Satellite P105
+	Version: Not Applicable                  
+	Serial Number: 1234567890                      
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: TOSHIBA
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:                                  
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x42443120
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU           T2
+	Voltage: 3.3 V
+	External Clock: 166 MHz
+	Max Speed: 1833 MHz
+	Current Speed: 1833 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 16 KB
+	Maximum Size: 16 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J11
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0008, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x0009, DMI type 11, 5 bytes
+OEM Strings
+	String 1: PSPA6U-006005,SQ004028P03,41H
+
+Handle 0x000A, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x000B, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x00000019
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000C, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 3 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000C
+	Partition Width: 0
+
+Handle 0x0010, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000D
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0012, DMI type 23, 13 bytes
+System Reset
+	Status: Enabled
+	Watchdog Timer: Present
+	Boot Option: Do Not Reboot
+	Boot Option On Limit: Do Not Reboot
+	Reset Count: Unknown
+	Reset Limit: Unknown
+	Timer Interval: Unknown
+	Timeout: Unknown
+
+Handle 0x0013, DMI type 24, 5 bytes
+Hardware Security
+	Power-On Password Status: Disabled
+	Keyboard Password Status: Unknown
+	Administrator Password Status: Disabled
+	Front Panel Reset Status: Unknown
+
+Handle 0x0014, DMI type 25, 9 bytes
+	System Power Controls
+	Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0015, DMI type 26, 20 bytes
+Voltage Probe
+	Description: Voltage Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0016, DMI type 27, 12 bytes
+Cooling Device
+	Temperature Probe Handle: 0x0017
+	Type: Fan
+	Status: OK
+	OEM-specific Information: 0x00000000
+
+Handle 0x0017, DMI type 28, 20 bytes
+Temperature Probe
+	Description: Temperature Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0018, DMI type 29, 20 bytes
+Electrical Current Probe
+	Description: Electrical Current Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0019, DMI type 30, 6 bytes
+Out-of-band Remote Access
+	Manufacturer Name: Intel
+	Inbound Connection: Enabled
+	Outbound Connection: Disabled
+
+Handle 0x001A, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x001B, DMI type 129, 16 bytes
+OEM-specific Type
+	Header and Data:
+		81 10 1B 00 01 01 02 01 00 00 00 01 00 00 08 01
+	Strings:
+		Intel_ASF_001
+		Intel_ASF_001
+
+Handle 0x001C, DMI type 136, 6 bytes
+OEM-specific Type
+	Header and Data:
+		88 06 1C 00 5A 5A
+
+Handle 0x001D, DMI type 127, 4 bytes
+End Of Table
+
+
+--=-iFNPD93tcjBbGJqcZ8IQ--
+
