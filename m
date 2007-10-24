@@ -1,68 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 07/12] ACPI: EC: Don't re-enable GPE for each transaction.
-Date: Thu, 25 Oct 2007 00:05:14 +0200
-Message-ID: <200710250005.15279.rjw@sisk.pl>
-References: <20071022101535.2937.79385.stgit@samsung> <20071022101850.2937.81791.stgit@samsung>
+Subject: Re: [PATCH 09/12] ACPI: EC: Output changes to operational mode
+Date: Wed, 24 Oct 2007 23:59:53 +0200
+Message-ID: <200710242359.54409.rjw@sisk.pl>
+References: <20071022101535.2937.79385.stgit@samsung> <20071022101903.2937.29352.stgit@samsung>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43720 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:43711 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755936AbXJXV70 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:59:26 -0400
-In-Reply-To: <20071022101850.2937.81791.stgit@samsung>
+	id S1754898AbXJXV7W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 17:59:22 -0400
+In-Reply-To: <20071022101903.2937.29352.stgit@samsung>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Monday, 22 October 2007 12:18, Alexey Starikovskiy wrote:
-> With the auto selection of operation mode, absence of GPEs does not 
-> really degrade performance, so let PM code to handle 
-> enabling/disabling GPEs.
-> This is a revert of 5d57a6a55ec0bdcb952dbcd3f8ffcde8a3ee9413,
-> which was meant to be temporary.
-> 
-> Reference: http://bugzilla.kernel.org/show_bug.cgi?id=7977
+On Monday, 22 October 2007 12:19, Alexey Starikovskiy wrote:
+> Insert printk() for every change in operational mode.
 > 
 > Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 > ---
 
+This has been requested by Len, IIRC.
+
 Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-[I'm not sure about the resolution of the above bug, though.]
- 
->  drivers/acpi/ec.c |    5 -----
->  1 files changed, 0 insertions(+), 5 deletions(-)
+>  drivers/acpi/ec.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
 > 
 > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 50d55fe..41a21fc 100644
+> index 202db57..bf60b24 100644
 > --- a/drivers/acpi/ec.c
 > +++ b/drivers/acpi/ec.c
-> @@ -258,9 +258,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
+> @@ -173,12 +173,17 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+>  			return 0;
+>  		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+>  		if (acpi_ec_check_status(ec, event)) {
+> -			if (event == ACPI_EC_EVENT_OBF_1)
+> +			if (event == ACPI_EC_EVENT_OBF_1) {
+>  				/* miss OBF = 1 GPE, don't expect it anymore */
+> +				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
+> +					"switching to degraded mode.\n");
+>  				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
+> -			else
+> +			} else {
+>  				/* missing GPEs, switch back to poll mode */
+> +				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
+> +					"switch off interrupt mode.\n");
+>  				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+> +			}
+>  			return 0;
 >  		}
->  	}
+>  	} else {
+> @@ -491,8 +496,12 @@ static u32 acpi_ec_gpe_handler(void *data)
+>  		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+>  			status = acpi_os_execute(OSL_EC_BURST_HANDLER,
+>  				acpi_ec_gpe_query, ec);
+> -	} else if (unlikely(!test_bit(EC_FLAGS_GPE_MODE, &ec->flags)))
+> +	} else if (unlikely(!test_bit(EC_FLAGS_GPE_MODE, &ec->flags))) {
+> +		/* this is non-query, must be confirmation */
+> +		printk(KERN_INFO PREFIX "non-query interrupt received,"
+> +			" switching to interrupt mode\n");
+>  		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+> +	}
 >  
-> -	/* Make sure GPE is enabled before doing transaction */
-> -	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-> -
->  	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0);
->  	if (status) {
->  		printk(KERN_ERR PREFIX
-> @@ -638,12 +635,10 @@ static struct acpi_ec *make_acpi_ec(void)
->  	struct acpi_ec *ec = kzalloc(sizeof(struct acpi_ec), GFP_KERNEL);
->  	if (!ec)
->  		return NULL;
-> -
->  	ec->flags = 1 << EC_FLAGS_QUERY_PENDING;
->  	mutex_init(&ec->lock);
->  	init_waitqueue_head(&ec->wait);
->  	INIT_LIST_HEAD(&ec->list);
-> -
->  	return ec;
+>  	return ACPI_SUCCESS(status) ?
+>  	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+> @@ -740,6 +749,8 @@ static int acpi_ec_add(struct acpi_device *device)
+>  	acpi_ec_add_fs(device);
+>  	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
+>  			  ec->gpe, ec->command_addr, ec->data_addr);
+> +	printk(KERN_INFO PREFIX "driver started in %s mode\n",
+> +		(test_bit(EC_FLAGS_GPE_MODE, &ec->flags))?"interrupt":"poll");
+>  	return 0;
 >  }
 >  
 > 
