@@ -1,85 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 09/12] ACPI: EC: Output changes to operational mode
-Date: Wed, 24 Oct 2007 23:59:53 +0200
-Message-ID: <200710242359.54409.rjw@sisk.pl>
-References: <20071022101535.2937.79385.stgit@samsung> <20071022101903.2937.29352.stgit@samsung>
+Subject: Re: [PATCH 01/12] ACPI: sleep: Fix GPE suspend cleanup
+Date: Thu, 25 Oct 2007 00:10:36 +0200
+Message-ID: <200710250010.37185.rjw@sisk.pl>
+References: <20071022101535.2937.79385.stgit@samsung> <20071022101805.2937.92527.stgit@samsung>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43711 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:43728 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754898AbXJXV7W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:59:22 -0400
-In-Reply-To: <20071022101903.2937.29352.stgit@samsung>
+	id S1756708AbXJXV7f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 17:59:35 -0400
+In-Reply-To: <20071022101805.2937.92527.stgit@samsung>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Monday, 22 October 2007 12:19, Alexey Starikovskiy wrote:
-> Insert printk() for every change in operational mode.
+On Monday, 22 October 2007 12:18, Alexey Starikovskiy wrote:
+> Commit 9b039330808b83acac3597535da26f47ad1862ce removed 
+> acpi_gpe_sleep_prepare(), the only function used at S5 transition
+> Add call to generic acpi_enable_wake_device().
+> 
+> Reference: https://bugzilla.novell.com/show_bug.cgi?id=299882
 > 
 > Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 > ---
 
-This has been requested by Len, IIRC.
-
 Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
->  drivers/acpi/ec.c |   17 ++++++++++++++---
->  1 files changed, 14 insertions(+), 3 deletions(-)
+>  drivers/acpi/sleep/main.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 202db57..bf60b24 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -173,12 +173,17 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
->  			return 0;
->  		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
->  		if (acpi_ec_check_status(ec, event)) {
-> -			if (event == ACPI_EC_EVENT_OBF_1)
-> +			if (event == ACPI_EC_EVENT_OBF_1) {
->  				/* miss OBF = 1 GPE, don't expect it anymore */
-> +				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
-> +					"switching to degraded mode.\n");
->  				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
-> -			else
-> +			} else {
->  				/* missing GPEs, switch back to poll mode */
-> +				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
-> +					"switch off interrupt mode.\n");
->  				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-> +			}
->  			return 0;
->  		}
->  	} else {
-> @@ -491,8 +496,12 @@ static u32 acpi_ec_gpe_handler(void *data)
->  		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
->  			status = acpi_os_execute(OSL_EC_BURST_HANDLER,
->  				acpi_ec_gpe_query, ec);
-> -	} else if (unlikely(!test_bit(EC_FLAGS_GPE_MODE, &ec->flags)))
-> +	} else if (unlikely(!test_bit(EC_FLAGS_GPE_MODE, &ec->flags))) {
-> +		/* this is non-query, must be confirmation */
-> +		printk(KERN_INFO PREFIX "non-query interrupt received,"
-> +			" switching to interrupt mode\n");
->  		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-> +	}
->  
->  	return ACPI_SUCCESS(status) ?
->  	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
-> @@ -740,6 +749,8 @@ static int acpi_ec_add(struct acpi_device *device)
->  	acpi_ec_add_fs(device);
->  	printk(KERN_INFO PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
->  			  ec->gpe, ec->command_addr, ec->data_addr);
-> +	printk(KERN_INFO PREFIX "driver started in %s mode\n",
-> +		(test_bit(EC_FLAGS_GPE_MODE, &ec->flags))?"interrupt":"poll");
->  	return 0;
+> diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+> index f3d3867..2f9d3c1 100644
+> --- a/drivers/acpi/sleep/main.c
+> +++ b/drivers/acpi/sleep/main.c
+> @@ -410,6 +410,7 @@ static void acpi_power_off(void)
+>  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+>  	printk("%s called\n", __FUNCTION__);
+>  	local_irq_disable();
+> +	acpi_enable_wakeup_device(ACPI_STATE_S5);
+>  	acpi_enter_sleep_state(ACPI_STATE_S5);
 >  }
 >  
 > 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > 
 
