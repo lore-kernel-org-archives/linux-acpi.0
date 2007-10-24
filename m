@@ -1,77 +1,336 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [Fwd: [PATCH 3/5] Export acpi_check_resource_conflict]
-Date: Wed, 24 Oct 2007 16:33:07 +0200
-Message-ID: <1193236387.4590.230.camel@queen.suse.de>
+Subject: [Fwd: [PATCH 5/5] Check for ACPI resource conflicts in i2c bus
+	drivers]
+Date: Wed, 24 Oct 2007 16:33:17 +0200
+Message-ID: <1193236397.4590.232.camel@queen.suse.de>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46160 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:46178 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759897AbXJXOdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2007 10:33:09 -0400
+	id S1759777AbXJXOdS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2007 10:33:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@osdl.org>, Len Brown <lenb@kernel.org>
 
-Export acpi_check_resource_conflict(), sometimes drivers already have
-a struct resource at hand so no need to use the wrappers to build a new
-one.
+-------- Forwarded Message --------
+=46rom: Jean Delvare <jdelvare@suse.de>
+To: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 3/3] Check for ACPI resource conflicts in i2c bus
+drivers
+Date: Sun, 21 Oct 2007 15:11:12 +0200
+
+Check for ACPI resource conflicts in i2c bus drivers. I've included
+all recent SMBus master drivers for PC hardware.
+
+I've voluntarily left out:
+* Drivers that don't run on PCs: they can't conflict with ACPI.
+* Bit-banged bus device drivers: it's very unlikely that ACPI would
+  deal with such buses.
 
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
 ---
- drivers/acpi/osl.c   |    3 ++-
- include/linux/acpi.h |    5 +++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-ali1535.c |    6 ++++++
+ drivers/i2c/busses/i2c-ali1563.c |    5 +++++
+ drivers/i2c/busses/i2c-ali15x3.c |    5 +++++
+ drivers/i2c/busses/i2c-amd756.c  |    6 ++++++
+ drivers/i2c/busses/i2c-amd8111.c |    5 +++++
+ drivers/i2c/busses/i2c-i801.c    |    5 +++++
+ drivers/i2c/busses/i2c-nforce2.c |    6 ++++++
+ drivers/i2c/busses/i2c-piix4.c   |    4 ++++
+ drivers/i2c/busses/i2c-sis5595.c |    6 ++++++
+ drivers/i2c/busses/i2c-sis630.c  |    6 ++++++
+ drivers/i2c/busses/i2c-sis96x.c  |    5 +++++
+ drivers/i2c/busses/i2c-viapro.c  |    5 +++++
+ 12 files changed, 64 insertions(+)
 
---- linux-2.6.24-rc0.orig/drivers/acpi/osl.c	2007-10-21 14:36:08.000000=
-000 +0200
-+++ linux-2.6.24-rc0/drivers/acpi/osl.c	2007-10-21 14:36:13.000000000 +=
-0200
-@@ -1097,7 +1097,7 @@ __setup("acpi_enforce_resources=3D", acpi_
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-ali1535.c	2007-10-21 1=
+4:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-ali1535.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -61,6 +61,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
 =20
- /* Check for resource conflicts between ACPI OperationRegions and nati=
-ve
-  * drivers */
--static int acpi_check_resource_conflict(struct resource *res)
-+int acpi_check_resource_conflict(struct resource *res)
- {
- 	struct acpi_res_list *res_list_elem;
- 	int ioport;
-@@ -1147,6 +1147,7 @@ static int acpi_check_resource_conflict(
+
+@@ -159,6 +160,11 @@ static int ali1535_setup(struct pci_dev=20
+ 		goto exit;
  	}
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_check_resource_conflict);
 =20
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name)
---- linux-2.6.24-rc0.orig/include/linux/acpi.h	2007-10-21 14:36:00.0000=
-00000 +0200
-+++ linux-2.6.24-rc0/include/linux/acpi.h	2007-10-21 14:36:13.000000000=
- +0200
-@@ -123,6 +123,8 @@ extern int pci_mmcfg_config_num;
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
-=20
-+int acpi_check_resource_conflict(struct resource *res);
++	retval =3D acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
++				   ali1535_driver.name);
++	if (retval)
++		goto exit;
 +
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
- int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-@@ -131,6 +133,9 @@ int acpi_check_mem_region(resource_size_
+ 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 			    ali1535_driver.name)) {
+ 		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-ali1563.c	2007-10-21 1=
+4:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-ali1563.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
 =20
- #define acpi_mp_config	0
+ #define ALI1563_MAX_TIMEOUT	500
+ #define	ALI1563_SMBBA		0x80
+@@ -345,6 +346,10 @@ static int __devinit ali1563_setup(struc
+ 		}
+ 	}
 =20
-+static inline int acpi_check_resource_conflict(struct resource *res)
-+{ return 0; }
++	if (acpi_check_region(ali1563_smba, ALI1563_SMB_IOSIZE,
++			      ali1563_pci_driver.name))
++		goto Err;
 +
- static inline int acpi_check_region(resource_size_t start, resource_si=
-ze_t n,
- 				    const char *name) { return 0 };
+ 	if (!request_region(ali1563_smba, ALI1563_SMB_IOSIZE,
+ 			    ali1563_pci_driver.name)) {
+ 		dev_err(&dev->dev, "Could not allocate I/O space at 0x%04x\n",
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-ali15x3.c	2007-10-21 1=
+4:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-ali15x3.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -68,6 +68,7 @@
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
 =20
+ /* ALI15X3 SMBus address offsets */
+@@ -166,6 +167,10 @@ static int ali15x3_setup(struct pci_dev=20
+ 	if(force_addr)
+ 		ali15x3_smba =3D force_addr & ~(ALI15X3_SMB_IOSIZE - 1);
+=20
++	if (acpi_check_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
++			      ali15x3_driver.name))
++		return -EBUSY;
++
+ 	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
+ 			    ali15x3_driver.name)) {
+ 		dev_err(&ALI15X3_dev->dev,
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-amd756.c	2007-10-21 14=
+:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-amd756.c	2007-10-21 14:44:4=
+6.000000000 +0200
+@@ -45,6 +45,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ /* AMD756 SMBus address offsets */
+@@ -364,6 +365,11 @@ static int __devinit amd756_probe(struct
+ 		amd756_ioport +=3D SMB_ADDR_OFFSET;
+ 	}
+=20
++	error =3D acpi_check_region(amd756_ioport, SMB_IOSIZE,
++				  amd756_driver.name);
++	if (error)
++		return error;
++
+ 	if (!request_region(amd756_ioport, SMB_IOSIZE, amd756_driver.name)) {
+ 		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
+ 			amd756_ioport);
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-amd8111.c	2007-10-21 1=
+4:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-amd8111.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ MODULE_LICENSE("GPL");
+@@ -359,6 +360,10 @@ static int __devinit amd8111_probe(struc
+ 	smbus->base =3D pci_resource_start(dev, 0);
+ 	smbus->size =3D pci_resource_len(dev, 0);
+=20
++	error =3D acpi_check_resource_conflict(&dev->resource[0]);
++	if (error)
++		goto out_kfree;
++
+ 	if (!request_region(smbus->base, smbus->size, amd8111_driver.name)) {
+ 		error =3D -EBUSY;
+ 		goto out_kfree;
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-i801.c	2007-10-21 14:2=
+1:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-i801.c	2007-10-21 14:44:46.=
+000000000 +0200
+@@ -52,6 +52,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ /* I801 SMBus address offsets */
+@@ -588,6 +589,10 @@ static int __devinit i801_probe(struct p
+ 		goto exit;
+ 	}
+=20
++	err =3D acpi_check_resource_conflict(&dev->resource[SMBBAR]);
++	if (err)
++		goto exit;
++
+ 	err =3D pci_request_region(dev, SMBBAR, i801_driver.name);
+ 	if (err) {
+ 		dev_err(&dev->dev, "Failed to request SMBus region "
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-nforce2.c	2007-10-21 1=
+4:21:51.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-nforce2.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -50,6 +50,7 @@
+ #include <linux/init.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ MODULE_LICENSE("GPL");
+@@ -315,6 +316,11 @@ static int __devinit nforce2_probe_smb (
+ 		smbus->size =3D 64;
+ 	}
+=20
++	error =3D acpi_check_region(smbus->base, smbus->size,
++				  nforce2_driver.name);
++	if (error)
++		return -1;
++
+ 	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
+ 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X f=
+or %s\n",
+ 			smbus->base, smbus->base+smbus->size-1, name);
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-piix4.c	2007-10-21 14:=
+21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-piix4.c	2007-10-21 14:44:46=
+=2E000000000 +0200
+@@ -40,6 +40,7 @@
+ #include <linux/init.h>
+ #include <linux/apm_bios.h>
+ #include <linux/dmi.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+
+@@ -151,6 +152,9 @@ static int __devinit piix4_setup(struct=20
+ 		}
+ 	}
+=20
++	if (acpi_check_region(piix4_smba, SMBIOSIZE, piix4_driver.name))
++		return -EBUSY;
++
+ 	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
+ 		dev_err(&PIIX4_dev->dev, "SMB region 0x%x already in use!\n",
+ 			piix4_smba);
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-sis5595.c	2007-10-21 1=
+4:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-sis5595.c	2007-10-21 14:44:=
+46.000000000 +0200
+@@ -62,6 +62,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static int blacklist[] =3D {
+@@ -174,6 +175,11 @@ static int sis5595_setup(struct pci_dev=20
+=20
+ 	/* NB: We grab just the two SMBus registers here, but this may still
+ 	 * interfere with ACPI :-(  */
++	retval =3D acpi_check_region(sis5595_base + SMB_INDEX, 2,
++				   sis5595_driver.name);
++	if (retval)
++		return retval;
++
+ 	if (!request_region(sis5595_base + SMB_INDEX, 2,
+ 			    sis5595_driver.name)) {
+ 		dev_err(&SIS5595_dev->dev, "SMBus registers 0x%04x-0x%04x already in=
+ use!\n",
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-sis630.c	2007-10-21 14=
+:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-sis630.c	2007-10-21 14:44:4=
+6.000000000 +0200
+@@ -55,6 +55,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ /* SIS630 SMBus registers */
+@@ -433,6 +434,11 @@ static int sis630_setup(struct pci_dev *
+=20
+ 	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
+=20
++	retval =3D acpi_check_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION=
+,
++				   sis630_driver.name);
++	if (retval)
++		goto exit;
++
+ 	/* Everything is happy, let's grab the memory and set things up. */
+ 	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
+ 			    sis630_driver.name)) {
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-sis96x.c	2007-10-21 14=
+:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-sis96x.c	2007-10-21 14:44:4=
+6.000000000 +0200
+@@ -40,6 +40,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ /* base address register in PCI config space */
+@@ -286,6 +287,10 @@ static int __devinit sis96x_probe(struct
+ 	dev_info(&dev->dev, "SiS96x SMBus base address: 0x%04x\n",
+ 			sis96x_smbus_base);
+=20
++	retval =3D acpi_check_resource_conflict(&dev->resource[SIS96x_BAR]);
++	if (retval)
++		return retval;
++
+ 	/* Everything is happy, let's grab the memory and set things up. */
+ 	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
+ 			    sis96x_driver.name)) {
+--- linux-2.6.24-rc0.orig/drivers/i2c/busses/i2c-viapro.c	2007-10-21 14=
+:21:50.000000000 +0200
++++ linux-2.6.24-rc0/drivers/i2c/busses/i2c-viapro.c	2007-10-21 14:44:4=
+6.000000000 +0200
+@@ -49,6 +49,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+=20
+ static struct pci_dev *vt596_pdev;
+@@ -349,6 +350,10 @@ static int __devinit vt596_probe(struct=20
+ 	}
+=20
+ found:
++	error =3D acpi_check_region(vt596_smba, 8, vt596_driver.name);
++	if (error)
++		return error;
++
+ 	if (!request_region(vt596_smba, 8, vt596_driver.name)) {
+ 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
+ 			vt596_smba);
 
 --=20
 Thomas Renninger
