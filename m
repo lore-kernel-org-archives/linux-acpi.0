@@ -1,59 +1,99 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [2.6 patch] acpi/battery.c: remove dead code
-Date: Wed, 24 Oct 2007 21:18:53 +0400
-Message-ID: <471F7E7D.1080501@gmail.com>
-References: <20071024162537.GA30533@stusta.de>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: Re: [2.6 patch] acpi/ec.c: fix use-after-free
+Date: Wed, 24 Oct 2007 19:26:04 +0200
+Message-ID: <20071024172604.GD30533@stusta.de>
+References: <20071024162600.GD30533@stusta.de> <471F7DA6.2060907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:37644 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953AbXJXRTD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2007 13:19:03 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so361829ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Oct 2007 10:19:01 -0700 (PDT)
-In-Reply-To: <20071024162537.GA30533@stusta.de>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:60875 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755253AbXJXRZg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2007 13:25:36 -0400
+Content-Disposition: inline
+In-Reply-To: <471F7DA6.2060907@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@kernel.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Adrian Bunk wrote:
-> After commit f1d4661abe05d0a2c014166042d15ed8b69ae8f2 this was dead 
-> code.
+On Wed, Oct 24, 2007 at 09:15:18PM +0400, Alexey Starikovskiy wrote:
+> Adrian,
 > 
-> Spotted by the Coverity checker.
+> commit 30c08574da0ead1a47797ce028218ce5b2de61c7 can not introduce use-after-free.
 > 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked. Thanks.
-> 
-> ---
-> --- linux-2.6/drivers/acpi/battery.c.old	2007-10-23 18:44:13.000000000 +0200
-> +++ linux-2.6/drivers/acpi/battery.c	2007-10-23 18:44:43.000000000 +0200
-> @@ -550,18 +550,14 @@ static ssize_t acpi_battery_write_alarm(
->  	int result = 0;
->  	char alarm_string[12] = { '\0' };
->  	struct seq_file *m = file->private_data;
->  	struct acpi_battery *battery = m->private;
->  
->  	if (!battery || (count > sizeof(alarm_string) - 1))
->  		return -EINVAL;
-> -	if (result) {
-> -		result = -ENODEV;
-> -		goto end;
-> -	}
->  	if (!acpi_battery_present(battery)) {
->  		result = -ENODEV;
->  		goto end;
->  	}
->  	if (copy_from_user(alarm_string, buffer, count)) {
->  		result = -EFAULT;
->  		goto end;
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Please check...
+
+
+Commit 30c08574da0ead1a47797ce028218ce5b2de61c7 did:
+
+<--  snip  -->
+
+ 	list_for_each_entry(handler, &ec->list, node) {
+                if (query_bit == handler->query_bit) {
+                        list_del(&handler->node);
+                        kfree(handler);
+-                       break;
+                }
+	}
+
+<--  snip  -->
+
+
+If you look at the definition of list_for_each_entry() in 
+include/linux/list.h:
+
+<--  snip  -->
+
+#define list_for_each_entry(pos, head, member)                          \
+        for (pos = list_entry((head)->next, typeof(*pos), member);      \
+             prefetch(pos->member.next), &pos->member != (head);        \
+             pos = list_entry(pos->member.next, typeof(*pos), member))
+                              ^^^^^^^^^^^^^^^^
+
+<--  snip  -->
+
+
+Without the "break", "handler" is being dereferenced after it was freed.
+
+
+> Regards,
+> Alex.
+> Adrian Bunk wrote:
+> > This patch fixes a use-after-free introduced by
+> > commit 30c08574da0ead1a47797ce028218ce5b2de61c7.
+> > 
+> > Spotted by the Coverity checker.
+> > 
+> > Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> > 
+> > ---
+> > --- linux-2.6/drivers/acpi/ec.c.old	2007-10-23 19:39:47.000000000 +0200
+> > +++ linux-2.6/drivers/acpi/ec.c	2007-10-23 19:34:55.000000000 +0200
+> > @@ -434,11 +442,11 @@
+> >  EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
+> >  
+> >  void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+> >  {
+> > -	struct acpi_ec_query_handler *handler;
+> > +	struct acpi_ec_query_handler *handler, *tmp;
+> >  	mutex_lock(&ec->lock);
+> > -	list_for_each_entry(handler, &ec->list, node) {
+> > +	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
+> >  		if (query_bit == handler->query_bit) {
+> >  			list_del(&handler->node);
+> >  			kfree(handler);
+> >  		}
+> > 
+
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
