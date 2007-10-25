@@ -1,69 +1,79 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [Fwd: [PATCH 3/5] Export acpi_check_resource_conflict]
-Date: Thu, 25 Oct 2007 16:13:47 +0200
-Message-ID: <1193321627.4590.278.camel@queen.suse.de>
-References: <1193236387.4590.230.camel@queen.suse.de>
-	 <20071024205347.6948c081.akpm@linux-foundation.org>
-	 <20071025154833.0240b8a2@hyperion.delvare>
-Reply-To: trenn@suse.de
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
+Date: Thu, 25 Oct 2007 09:06:22 -0600
+Message-ID: <200710250906.23003.bjorn.helgaas@hp.com>
+References: <1193236319.4590.225.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:42352 "EHLO mx1.suse.de"
+Received: from atlrel8.hp.com ([156.153.255.206]:46675 "EHLO atlrel8.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760157AbXJYONt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Oct 2007 10:13:49 -0400
-In-Reply-To: <20071025154833.0240b8a2@hyperion.delvare>
+	id S1760502AbXJYPHB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Oct 2007 11:07:01 -0400
+In-Reply-To: <1193236319.4590.225.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: trenn@suse.de
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-On Thu, 2007-10-25 at 15:48 +0200, Jean Delvare wrote:
-> Hi Andrew,
+On Wednesday 24 October 2007 08:31:59 am Thomas Renninger wrote:
+> In ACPI, AML can define accesses to IO ports and System Memory by
+> Operation Regions. Those are not registered as done by PNPACPI using
+> resource templates (and _CRS/_SRS methods).
+> The IO ports and System Memory regions may get accessed by arbitrary AML
+> code. When native drivers are accessing the same resources bad things
+> can happen (e.g. a critical shutdown temperature of 3000 C every 2
+> months or so).
+
+> It is not really possible to register the operation regions via
+> request_resource, as they often overlap with pnp or other resources
+> (e.g. statically setup IO resources below 0x100).
+
+But we really *should* reserve things used by opregions, shouldn't
+we?  After all, the whole point of resource reservation is to prevent
+conflicts.
+
+If these opregion resources aren't reserved, but are only put in the
+ACPI resource_list, we will only find conflicts with drivers that use
+acpi_check_resource_conflict().  Any driver unmodified by your changeset
+could still have a conflict, and we'd never find it.
+
+Isn't the real problem that we have a bunch of drivers that use some of
+the same resources, and if ACPI reserved all the right resources, all
+those drivers would break?
+
+I think it would be better to:
+
+  - Make ACPI reserve resources used by opregions unless
+    acpi_enforce_resources == no.
+
+  - Change the drivers so if their request_region() fails, they
+    check acpi_enforce_resources and either fail (in strict mode)
+    or print the warning and continue (in lax mode).
+
+Admittedly, this is harder for the drivers that use the shiny new
+platform device stuff.
+
+> This approach stores all Operation Region declarations (IO and System
+> Memory only) at ACPI table parse time. It offers a similar functionality
+> like request_region and let drivers which are known to possibly use the
+> same IO ports and Memory which are also often used by ACPI (hwmon and
+> i2c) check for ACPI interference.
 > 
-> On Wed, 24 Oct 2007 20:53:47 -0700, Andrew Morton wrote:
-> > On Wed, 24 Oct 2007 16:33:07 +0200 Thomas Renninger <trenn@suse.de> wrote:
-> > 
-> > > From: Thomas Renninger <trenn@suse.de>
-> > > To: linux-acpi <linux-acpi@vger.kernel.org>
-> > > Cc: linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <khali@linux-fr.org>
-> > > Reply-To: trenn@suse.de
-> > > Subject: [Fwd: [PATCH 3/5] Export acpi_check_resource_conflict]
-> > > Date: Wed, 24 Oct 2007 16:33:07 +0200
-> > > Organization: Novell/SUSE
-> > > X-Mailer: Evolution 2.8.2 
-> > > 
-> > > Export acpi_check_resource_conflict(), sometimes drivers already have
-> > > a struct resource at hand so no need to use the wrappers to build a new
-> > > one.
-> > > 
-> > > Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> > > ---
-> > 
-> > The attributions on this are all mucked up.
-> > 
-> > I _think_ it was written by Jean, in which case the changlog should
-> > have had From:him right at the start to indicate this.  And as you
-> > were in the delivery path, it should have had your signoff.
-> > 
-> > I'll make those changes - please let me know if I misguessed.
+> A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
+> is default set to lax:
+>   - strict: let conflicting drivers fail to load with an error message
+>   - lax:    let conflicting driver work normal with a warning message
+>   - no:     no functional change at all
+> Depending on the feedback and the kind of interferences we see, this
+> should be set to strict at later time.
 > 
-> You are correct, patches 3/5, 4/5 and 5/5 of this patchset were written
-> by me (as in: I'm the one to blame if something breaks). I expected
-> Thomas to add a From: header and add his own Signed-off-by line but
-> instead he forwarded my mails directly. Thanks for fixing up the mess,
-> we'll try to make it better next time.
-
-As said, I wasn't sure against what I should base all this.
-I would had cleaned it up, depending on what you told me. I also didn't
-know about the From: tag if you send patches not from your own, the next
-time...
-Anyways, it's nice to see how things can move on right away without much
-delay and discussion.
-
-Thanks,
-
-   Thomas
-
+> Goal of this patch set is:
+>   - Identify ACPI interferences in bug reports (very hard to reproduce
+>     and to identify)
+>   - Find BIOSes for that an ACPI driver should exist for specific HW
+>     instead of a native one.
+>   - stability in general
