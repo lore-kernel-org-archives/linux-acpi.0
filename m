@@ -1,57 +1,51 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
-Date: Thu, 25 Oct 2007 08:04:38 -0400
-Message-ID: <20071025120438.GJ30546@jupiter.solarsys.private>
-References: <1193236319.4590.225.camel@queen.suse.de>
+From: Gabriel C <nix.or.die@googlemail.com>
+Subject: Re: Resume problems
+Date: Thu, 25 Oct 2007 15:09:50 +0200
+Message-ID: <4720959E.3030805@googlemail.com>
+References: <471CCC98.10101@googlemail.com> <471D3C26.3090602@googlemail.com> <471D47D2.2070707@googlemail.com> <200710240057.10131.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759494AbXJYMGV@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1193236319.4590.225.camel@queen.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.186]:21858 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752083AbXJYNK5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2007 09:10:57 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so478330nfb
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Oct 2007 06:10:55 -0700 (PDT)
+In-Reply-To: <200710240057.10131.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Hi Thomas:
-
-I recently told someone in private that ACPI vs. hwmon conflicts are the
-biggest open problems for the hwmon subsystem.  Thank you (and Jean) for
-doing this.
-
-* Thomas Renninger <trenn@suse.de> [2007-10-24 16:31:59 +0200]:
-> Hi,
+Rafael J. Wysocki wrote:
+>>
+>> After all I think all this problems may be some who ACPI related 
+>> but the question is why they get triggered by Suspend/Hibernation.
 > 
-> it seems Len's test tree and Linus tree diverged a bit, at least with
-> this patch set things do not apply cleanly.
+> They certainly are ACPI-related, because the only difference between level 4
+> and level 3 suspend testing is that some global ACPI methods are executed
+> at level 3 (in addition to level 4).
 > 
-> Therefore I post these for discussion whether and in which kernel tree
-> they should end up before doing work for nothing.
-> If they are still a candidate for 2.6.24 (rather unintrusive), pls tell
-> me whether and when I should base them against Len's test/release branch
-> or whatever other tree.
-> If not, it would be great if they can be included into the -mm tree and
-> I can rebase them against this one.
+> Unfortunately, I have no idea what to do next, for now.
+> 
+> I think you can file a bug report at http://bugzilla.kernel.org and put a link
+> to this thread in there (against ACPI and please add my address to the CC
+> list).
 
-Andrew has already picked this series; I vote for extended time in -mm.  On the
-hwmon side, there is almost guaranteed to be fallout from this that may take
-time to resolve.
+Also I patched 2.6.23 with that patch and Hibernation works out of box , Suspend to Ram seems to work
+fine , just my video card is acting up ( old nvidia card ) I'll play with vbe tool on weekend.
 
-> (...)
+Also I can reproduce that bug in 2.6.23 when I use standby.
 
-> A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
-> is default set to lax:
->   - strict: let conflicting drivers fail to load with an error message
->   - lax:    let conflicting driver work normal with a warning message
->   - no:     no functional change at all
-> Depending on the feedback and the kind of interferences we see, this
-> should be set to strict at later time.
+I've started to bisect but it will take some time. When I'm done I will post an bug report.
 
-As long as it's in -mm, you may as well default to =strict right away.  This
-will force people to report.  Open the floodgates; I hope I don't drown.
+Thanks for your help so far.
 
-Regards,
+> 
+> Greetings,
+> Rafael
+> 
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Gabriel
