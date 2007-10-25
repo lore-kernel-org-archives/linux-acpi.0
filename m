@@ -1,54 +1,111 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: new Linux/ACPI home page
-Date: Thu, 25 Oct 2007 16:29:18 -0400
-Message-ID: <200710251629.19006.lenb@kernel.org>
-References: <200710251507.56335.lenb@kernel.org> <4720ED77.6090109@gmail.com>
+Subject: Re: [2.6 patch] acpi/ec.c: fix use-after-free
+Date: Thu, 25 Oct 2007 16:38:24 -0400
+Message-ID: <200710251638.24282.lenb@kernel.org>
+References: <20071024162600.GD30533@stusta.de> <20071024172604.GD30533@stusta.de> <471F812B.2020005@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55001 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56778 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753923AbXJYU3j (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:29:39 -0400
-In-Reply-To: <4720ED77.6090109@gmail.com>
+	id S1752093AbXJYUir (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Oct 2007 16:38:47 -0400
+In-Reply-To: <471F812B.2020005@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Adrian Bunk <bunk@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 25 October 2007 15:24, Alexey Starikovskiy wrote:
-> Len Brown wrote:
-
-> > and going away), and the DSDT databse -- which I believe
-> > is also somewhat of a historical artifact.
-
-> DSDT database or better acpidump.out database might be very useful,
-> if could be searched for particular feature -- absence of EC, use of SBS, etc.
-
-True.
-
-I don't like the original DSDT database -- it was from an era
-when people thought that it was a good idea to hack a DSDT
-to workaround Linux failures and share the hacked DSDT
-with others.  That was a bad strategy and it should be abandoned.
-DSDT hacking is for Linux debugging only -- Linux should
-always be made to work with an un-modified DSDT.
-
-yes, acpidump would be more useful than just the DSDT --
-as we get all kinds of issues with all the tables.
-
-One problem is that shipping around BIOS images, particularly
-modified ones, is sort of a touchy area.  This is the code
-of the manufacturer, who may or may not be happy that the
-community is hacking their code.  If any of those manufactureres
-got mad at Intel for mucking with their BIOS code,
-that would be a bad day for we Intel employees.
-
-lesswatts.org is hosted by Intel.  So we'd need to
-sort though this issue before adding an acpidump database.
+Applied.
 
 thanks,
 -Len
+
+
+On Wednesday 24 October 2007 13:30, Alexey Starikovskiy wrote:
+> Adrian Bunk wrote:
+> > On Wed, Oct 24, 2007 at 09:15:18PM +0400, Alexey Starikovskiy wrote:
+> >> Adrian,
+> >>
+> >> commit 30c08574da0ead1a47797ce028218ce5b2de61c7 can not introduce use-after-free.
+> >>
+> >> Please check...
+> > 
+> > 
+> > Commit 30c08574da0ead1a47797ce028218ce5b2de61c7 did:
+> > 
+> > <--  snip  -->
+> > 
+> >  	list_for_each_entry(handler, &ec->list, node) {
+> >                 if (query_bit == handler->query_bit) {
+> >                         list_del(&handler->node);
+> >                         kfree(handler);
+> > -                       break;
+> >                 }
+> > 	}
+> > 
+> > <--  snip  -->
+> > 
+> > 
+> > If you look at the definition of list_for_each_entry() in 
+> > include/linux/list.h:
+> > 
+> > <--  snip  -->
+> > 
+> > #define list_for_each_entry(pos, head, member)                          \
+> >         for (pos = list_entry((head)->next, typeof(*pos), member);      \
+> >              prefetch(pos->member.next), &pos->member != (head);        \
+> >              pos = list_entry(pos->member.next, typeof(*pos), member))
+> >                               ^^^^^^^^^^^^^^^^
+> > 
+> > <--  snip  -->
+> > 
+> > 
+> > Without the "break", "handler" is being dereferenced after it was freed.
+> Yes, found it minute before :( 
+> Acked, thanks.
+> > 
+> > 
+> >> Regards,
+> >> Alex.
+> >> Adrian Bunk wrote:
+> >>> This patch fixes a use-after-free introduced by
+> >>> commit 30c08574da0ead1a47797ce028218ce5b2de61c7.
+> >>>
+> >>> Spotted by the Coverity checker.
+> >>>
+> >>> Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> >>>
+> >>> ---
+> >>> --- linux-2.6/drivers/acpi/ec.c.old	2007-10-23 19:39:47.000000000 +0200
+> >>> +++ linux-2.6/drivers/acpi/ec.c	2007-10-23 19:34:55.000000000 +0200
+> >>> @@ -434,11 +442,11 @@
+> >>>  EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
+> >>>  
+> >>>  void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+> >>>  {
+> >>> -	struct acpi_ec_query_handler *handler;
+> >>> +	struct acpi_ec_query_handler *handler, *tmp;
+> >>>  	mutex_lock(&ec->lock);
+> >>> -	list_for_each_entry(handler, &ec->list, node) {
+> >>> +	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
+> >>>  		if (query_bit == handler->query_bit) {
+> >>>  			list_del(&handler->node);
+> >>>  			kfree(handler);
+> >>>  		}
+> >>>
+> > 
+> > 
+> > cu
+> > Adrian
+> > 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
