@@ -1,79 +1,91 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
-Date: Thu, 25 Oct 2007 09:06:22 -0600
-Message-ID: <200710250906.23003.bjorn.helgaas@hp.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with
+ ACPI Operation Region resources
+Date: Thu, 25 Oct 2007 17:54:01 +0200
+Message-ID: <20071025175401.6a5ac8cc@hyperion.delvare>
 References: <1193236319.4590.225.camel@queen.suse.de>
+	<20071025120438.GJ30546@jupiter.solarsys.private>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:46675 "EHLO atlrel8.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760502AbXJYPHB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Oct 2007 11:07:01 -0400
-In-Reply-To: <1193236319.4590.225.camel@queen.suse.de>
-Content-Disposition: inline
+Received: from smtp-104-thursday.noc.nerim.net ([62.4.17.104]:4109 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760390AbXJYPyE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2007 11:54:04 -0400
+In-Reply-To: <20071025120438.GJ30546@jupiter.solarsys.private>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>, Andrew Morton <akpm@osdl.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wednesday 24 October 2007 08:31:59 am Thomas Renninger wrote:
-> In ACPI, AML can define accesses to IO ports and System Memory by
-> Operation Regions. Those are not registered as done by PNPACPI using
-> resource templates (and _CRS/_SRS methods).
-> The IO ports and System Memory regions may get accessed by arbitrary AML
-> code. When native drivers are accessing the same resources bad things
-> can happen (e.g. a critical shutdown temperature of 3000 C every 2
-> months or so).
+Hi Mark,
 
-> It is not really possible to register the operation regions via
-> request_resource, as they often overlap with pnp or other resources
-> (e.g. statically setup IO resources below 0x100).
-
-But we really *should* reserve things used by opregions, shouldn't
-we?  After all, the whole point of resource reservation is to prevent
-conflicts.
-
-If these opregion resources aren't reserved, but are only put in the
-ACPI resource_list, we will only find conflicts with drivers that use
-acpi_check_resource_conflict().  Any driver unmodified by your changeset
-could still have a conflict, and we'd never find it.
-
-Isn't the real problem that we have a bunch of drivers that use some of
-the same resources, and if ACPI reserved all the right resources, all
-those drivers would break?
-
-I think it would be better to:
-
-  - Make ACPI reserve resources used by opregions unless
-    acpi_enforce_resources == no.
-
-  - Change the drivers so if their request_region() fails, they
-    check acpi_enforce_resources and either fail (in strict mode)
-    or print the warning and continue (in lax mode).
-
-Admittedly, this is harder for the drivers that use the shiny new
-platform device stuff.
-
-> This approach stores all Operation Region declarations (IO and System
-> Memory only) at ACPI table parse time. It offers a similar functionality
-> like request_region and let drivers which are known to possibly use the
-> same IO ports and Memory which are also often used by ACPI (hwmon and
-> i2c) check for ACPI interference.
+On Thu, 25 Oct 2007 08:04:38 -0400, Mark M. Hoffman wrote:
+> Hi Thomas:
 > 
-> A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
-> is default set to lax:
->   - strict: let conflicting drivers fail to load with an error message
->   - lax:    let conflicting driver work normal with a warning message
->   - no:     no functional change at all
-> Depending on the feedback and the kind of interferences we see, this
-> should be set to strict at later time.
+> I recently told someone in private that ACPI vs. hwmon conflicts are the
+> biggest open problems for the hwmon subsystem.  Thank you (and Jean) for
+> doing this.
 > 
-> Goal of this patch set is:
->   - Identify ACPI interferences in bug reports (very hard to reproduce
->     and to identify)
->   - Find BIOSes for that an ACPI driver should exist for specific HW
->     instead of a native one.
->   - stability in general
+> * Thomas Renninger <trenn@suse.de> [2007-10-24 16:31:59 +0200]:
+> > Hi,
+> > 
+> > it seems Len's test tree and Linus tree diverged a bit, at least with
+> > this patch set things do not apply cleanly.
+> > 
+> > Therefore I post these for discussion whether and in which kernel tree
+> > they should end up before doing work for nothing.
+> > If they are still a candidate for 2.6.24 (rather unintrusive), pls tell
+> > me whether and when I should base them against Len's test/release branch
+> > or whatever other tree.
+> > If not, it would be great if they can be included into the -mm tree and
+> > I can rebase them against this one.
+> 
+> Andrew has already picked this series; I vote for extended time in -mm.  On the
+> hwmon side, there is almost guaranteed to be fallout from this that may take
+> time to resolve.
+
+Of course, otherwise we wouldn't have done it ;)
+
+> > A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
+> > is default set to lax:
+> >   - strict: let conflicting drivers fail to load with an error message
+> >   - lax:    let conflicting driver work normal with a warning message
+> >   - no:     no functional change at all
+> > Depending on the feedback and the kind of interferences we see, this
+> > should be set to strict at later time.
+> 
+> As long as it's in -mm, you may as well default to =strict right away.  This
+> will force people to report.  Open the floodgates; I hope I don't drown.
+
+Good point. Here's a patch. Andrew, can you please apply this on top of
+the other patches? Thanks.
+
+Subject: Enforce ACPI resource conflict checks
+
+In -mm, enforce ACPI resource conflict checks, so that users will report
+to us.
+
+This patch is NOT meant to go to Linus at this point.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.24-rc1.orig/drivers/acpi/osl.c	2007-10-24 10:01:16.000000000 +0200
++++ linux-2.6.24-rc1/drivers/acpi/osl.c	2007-10-25 17:13:58.000000000 +0200
+@@ -1076,7 +1076,7 @@ __setup("acpi_wake_gpes_always_on", acpi
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
+ 
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ 
+ static int __init acpi_enforce_resources_setup(char *str)
+ {
+
+
+-- 
+Jean Delvare
