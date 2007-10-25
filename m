@@ -1,51 +1,53 @@
-From: Gabriel C <nix.or.die@googlemail.com>
-Subject: Re: Resume problems
-Date: Thu, 25 Oct 2007 15:09:50 +0200
-Message-ID: <4720959E.3030805@googlemail.com>
-References: <471CCC98.10101@googlemail.com> <471D3C26.3090602@googlemail.com> <471D47D2.2070707@googlemail.com> <200710240057.10131.rjw@sisk.pl>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [Fwd: [PATCH 3/5] Export acpi_check_resource_conflict]
+Date: Thu, 25 Oct 2007 15:48:33 +0200
+Message-ID: <20071025154833.0240b8a2@hyperion.delvare>
+References: <1193236387.4590.230.camel@queen.suse.de>
+	<20071024205347.6948c081.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:21858 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083AbXJYNK5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2007 09:10:57 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so478330nfb
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Oct 2007 06:10:55 -0700 (PDT)
-In-Reply-To: <200710240057.10131.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759003AbXJYNsp@vger.kernel.org>
+In-Reply-To: <20071024205347.6948c081.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Rafael J. Wysocki wrote:
->>
->> After all I think all this problems may be some who ACPI related 
->> but the question is why they get triggered by Suspend/Hibernation.
+Hi Andrew,
+
+On Wed, 24 Oct 2007 20:53:47 -0700, Andrew Morton wrote:
+> On Wed, 24 Oct 2007 16:33:07 +0200 Thomas Renninger <trenn@suse.de> wrote:
 > 
-> They certainly are ACPI-related, because the only difference between level 4
-> and level 3 suspend testing is that some global ACPI methods are executed
-> at level 3 (in addition to level 4).
+> > From: Thomas Renninger <trenn@suse.de>
+> > To: linux-acpi <linux-acpi@vger.kernel.org>
+> > Cc: linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <khali@linux-fr.org>
+> > Reply-To: trenn@suse.de
+> > Subject: [Fwd: [PATCH 3/5] Export acpi_check_resource_conflict]
+> > Date: Wed, 24 Oct 2007 16:33:07 +0200
+> > Organization: Novell/SUSE
+> > X-Mailer: Evolution 2.8.2 
+> > 
+> > Export acpi_check_resource_conflict(), sometimes drivers already have
+> > a struct resource at hand so no need to use the wrappers to build a new
+> > one.
+> > 
+> > Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> > ---
 > 
-> Unfortunately, I have no idea what to do next, for now.
+> The attributions on this are all mucked up.
 > 
-> I think you can file a bug report at http://bugzilla.kernel.org and put a link
-> to this thread in there (against ACPI and please add my address to the CC
-> list).
-
-Also I patched 2.6.23 with that patch and Hibernation works out of box , Suspend to Ram seems to work
-fine , just my video card is acting up ( old nvidia card ) I'll play with vbe tool on weekend.
-
-Also I can reproduce that bug in 2.6.23 when I use standby.
-
-I've started to bisect but it will take some time. When I'm done I will post an bug report.
-
-Thanks for your help so far.
-
+> I _think_ it was written by Jean, in which case the changlog should
+> have had From:him right at the start to indicate this.  And as you
+> were in the delivery path, it should have had your signoff.
 > 
-> Greetings,
-> Rafael
-> 
+> I'll make those changes - please let me know if I misguessed.
 
-Gabriel
+You are correct, patches 3/5, 4/5 and 5/5 of this patchset were written
+by me (as in: I'm the one to blame if something breaks). I expected
+Thomas to add a From: header and add his own Signed-off-by line but
+instead he forwarded my mails directly. Thanks for fixing up the mess,
+we'll try to make it better next time.
+
+-- 
+Jean Delvare
