@@ -1,60 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: new Linux/ACPI home page
-Date: Thu, 25 Oct 2007 23:23:44 +0200
-Message-ID: <200710252323.45234.rjw@sisk.pl>
-References: <200710251507.56335.lenb@kernel.org> <4720ED77.6090109@gmail.com> <200710251629.19006.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
+Date: Thu, 25 Oct 2007 17:36:07 -0400
+Message-ID: <200710251736.07868.lenb@kernel.org>
+References: <1193236319.4590.225.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48879 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:60640 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455AbXJYVH0 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:07:26 -0400
-In-Reply-To: <200710251629.19006.lenb@kernel.org>
+	id S1752723AbXJYVgb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Oct 2007 17:36:31 -0400
+In-Reply-To: <1193236319.4590.225.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: trenn@suse.de
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-On Thursday, 25 October 2007 22:29, Len Brown wrote:
-> On Thursday 25 October 2007 15:24, Alexey Starikovskiy wrote:
-> > Len Brown wrote:
-> 
-> > > and going away), and the DSDT databse -- which I believe
-> > > is also somewhat of a historical artifact.
-> 
-> > DSDT database or better acpidump.out database might be very useful,
-> > if could be searched for particular feature -- absence of EC, use of SBS, etc.
-> 
-> True.
-> 
-> I don't like the original DSDT database -- it was from an era
-> when people thought that it was a good idea to hack a DSDT
-> to workaround Linux failures and share the hacked DSDT
-> with others.  That was a bad strategy and it should be abandoned.
-> DSDT hacking is for Linux debugging only -- Linux should
-> always be made to work with an un-modified DSDT.
+This is one of the most imortant issues with ACPI in Linux,
+and I too thank you, Thomas and Jean, for your hard work
+seeking the right solution.
 
-I violently agree.
+1, 2 and 3 of 5 applied to acpi-test.
 
-> yes, acpidump would be more useful than just the DSDT --
-> as we get all kinds of issues with all the tables.
+thanks,
+-Len
+
+On Wednesday 24 October 2007 10:31, Thomas Renninger wrote:
+> Hi,
 > 
-> One problem is that shipping around BIOS images, particularly
-> modified ones, is sort of a touchy area.  This is the code
-> of the manufacturer, who may or may not be happy that the
-> community is hacking their code.  If any of those manufactureres
-> got mad at Intel for mucking with their BIOS code,
-> that would be a bad day for we Intel employees.
+> it seems Len's test tree and Linus tree diverged a bit, at least with
+> this patch set things do not apply cleanly.
 > 
-> lesswatts.org is hosted by Intel.  So we'd need to
-> sort though this issue before adding an acpidump database.
-
-Well, we have suspend.sf.net and the acpidump database can safely be put in
-there, I think. ;-)
-
-Greetings,
-Rafael
+> Therefore I post these for discussion whether and in which kernel tree
+> they should end up before doing work for nothing.
+> If they are still a candidate for 2.6.24 (rather unintrusive), pls tell
+> me whether and when I should base them against Len's test/release branch
+> or whatever other tree.
+> If not, it would be great if they can be included into the -mm tree and
+> I can rebase them against this one.
+> 
+> Be aware that there is a small change in ACPICA (first patch, that's
+> also the reason why this one would not compile on its own).
+> 
+> Many thanks for detailed review, testing and a lot implementation help
+> go to Jean Delvare, without his help I would not be able to post
+> anything right now.
+> 
+> Thanks for any help/advise,
+> 
+>   Thomas
+> 
+> --------------
+> Short general description:
+> 
+> In ACPI, AML can define accesses to IO ports and System Memory by
+> Operation Regions. Those are not registered as done by PNPACPI using
+> resource templates (and _CRS/_SRS methods).
+> The IO ports and System Memory regions may get accessed by arbitrary AML
+> code. When native drivers are accessing the same resources bad things
+> can happen (e.g. a critical shutdown temperature of 3000 C every 2
+> months or so).
+> It is not really possible to register the operation regions via
+> request_resource, as they often overlap with pnp or other resources
+> (e.g. statically setup IO resources below 0x100).
+> This approach stores all Operation Region declarations (IO and System
+> Memory only) at ACPI table parse time. It offers a similar functionality
+> like request_region and let drivers which are known to possibly use the
+> same IO ports and Memory which are also often used by ACPI (hwmon and
+> i2c) check for ACPI interference.
+> 
+> A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
+> is default set to lax:
+>   - strict: let conflicting drivers fail to load with an error message
+>   - lax:    let conflicting driver work normal with a warning message
+>   - no:     no functional change at all
+> Depending on the feedback and the kind of interferences we see, this
+> should be set to strict at later time.
+> 
+> Goal of this patch set is:
+>   - Identify ACPI interferences in bug reports (very hard to reproduce
+>     and to identify)
+>   - Find BIOSes for that an ACPI driver should exist for specific HW
+>     instead of a native one.
+>   - stability in general
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
