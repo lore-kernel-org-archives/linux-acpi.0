@@ -1,53 +1,72 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with
-  ACPI Operation Region resources
-Date: Fri, 26 Oct 2007 21:23:06 +0200
-Message-ID: <20071026212306.40b4a12d@hyperion.delvare>
-References: <1193236319.4590.225.camel@queen.suse.de>
-	<20071024205723.458fab97.akpm@linux-foundation.org>
-	<20071025155135.019baca3@hyperion.delvare>
-	<20071025132410.7ae184a8.akpm@linux-foundation.org>
+From: Jan Ries <yannek@web.de>
+Subject: no C States on Asus L3D with 2.6.22.9
+Date: Fri, 26 Oct 2007 22:27:34 +0200
+Message-ID: <200710262227.48928.yannek@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed;
+  boundary="nextPart1913542.6LqqmNex3d";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:3305 "EHLO
-	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757678AbXJZTXJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 15:23:09 -0400
-In-Reply-To: <20071025132410.7ae184a8.akpm@linux-foundation.org>
+Received: from fmmailgate01.web.de ([217.72.192.221]:37020 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308AbXJZU16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 16:27:58 -0400
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 968C5AAA1DF6
+	for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2007 22:27:57 +0200 (CEST)
+Received: from [89.49.96.50] (helo=sam)
+	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.108 #208)
+	id 1IlVmf-00088G-00
+	for linux-acpi@vger.kernel.org; Fri, 26 Oct 2007 22:27:57 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+--nextPart1913542.6LqqmNex3d
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-On Thu, 25 Oct 2007 13:24:10 -0700, Andrew Morton wrote:
-> On Thu, 25 Oct 2007 15:51:35 +0200, Jean Delvare wrote:
-> > Thanks for picking these patches, having them in -mm for some time is
-> > exactly what we need. Let's see how many systems are affected by the
-> > resource conflicts and how we can fix them
-> 
-> No probs.  The main thing is to ensure that we have sufficient debug
-> support in that patch so that if a tester does report a problem, we (ie:
-> you ;) can resolve it on the first pass.  So feel free to make it really
-> noisy - we can always drop the debug stuff later on.
+Hello to the list.
 
-Well, I'm not exactly sure what we can do when people report conflicts,
-except telling them "don't do that". I guess each case will be
-different. We will have to ask reporters for their DSDT table, look at
-it and... do something. I'll need (much) help from the ACPI developers.
-At this point we are mainly trying to gather enough data to fully
-understand how big the problem is. Solutions will come later.
+I stumbled over erratic behavior with a 2.6.22-14 (Ubuntu) Kernel.
+The computer is an Asus L3D (L3000D) with an Athlon XP-M 2500+ processor.
+The content of /proc/acpi/processor/power reads:
+=2D-snip--
+active state: C0
+max_cstate: C8
+bus master activity: 00000000
+maximum allowed latency: 8000 usec
+states:
+=2D-snap--
+This is reproducible with a vanilla 2.6.22.9 kernel.
 
-> Also, please try to avoid adding anythig which would disrupt that tester
-> from going on and testing all the other new code.  ie: try to fail
-> gracefully and fall back to the old behaviour.
+Older kernelversions (e.g. 2.6.17) showed only the C1 state as available wh=
+at=20
+is quite few, yet more than the current state.
 
-User will simply miss their SMBus controller or their hardware
-monitoring device, it wont prevent them from using their systems, but
-that should be enough to get them to report (I hope).
+I would be thankful for any hint what to do to investigate this further.
 
--- 
-Jean Delvare
+Thank you, and with best regards,
+
+	Jan Ries
+
+=09
+
+--nextPart1913542.6LqqmNex3d
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBHIk3ESOWITABwaJQRAuv+AJ9GtP4QhEb8BSKnv09903aPHIXXlwCcD5BF
+NJRSI8ru9AcVnYlWfd+914o=
+=KWWH
+-----END PGP SIGNATURE-----
+
+--nextPart1913542.6LqqmNex3d--
