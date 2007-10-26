@@ -1,43 +1,72 @@
-From: "Andrew" <andrew@nelless.net>
-Subject: Re: ACPI Exception triggered by pata_amd driver in 2.6.24,
-      is this an ACPI bug?
-Date: Fri, 26 Oct 2007 13:34:16 +0100 (BST)
-Message-ID: <35888.86.7.220.119.1193402056.squirrel@wmbeta.mxes.net>
-References: <35314.86.7.220.119.1193248814.squirrel@wmbeta.mxes.net>
-    <1193309591.4590.271.camel@queen.suse.de>
-    <47213FFD.8060507@gmail.com>
-Reply-To: "Andrew" <andrew@nelless.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
+Date: Fri, 26 Oct 2007 07:09:19 -0600
+Message-ID: <200710260709.20716.bjorn.helgaas@hp.com>
+References: <1193236319.4590.225.camel@queen.suse.de> <200710252159.11594.bjorn.helgaas@hp.com> <1193395520.4590.349.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout-04.mxes.net ([216.86.168.179]:2040 "EHLO
-	mxout-04.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259AbXJZMeS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 08:34:18 -0400
-In-Reply-To: <47213FFD.8060507@gmail.com>
+Received: from atlrel7.hp.com ([156.153.255.213]:35703 "EHLO atlrel7.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752042AbXJZNL0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Oct 2007 09:11:26 -0400
+In-Reply-To: <1193395520.4590.349.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-On Fri, October 26, 2007 02:16, Tejun Heo wrote:
+On Friday 26 October 2007 4:45:20 am Thomas Renninger wrote:
+> On Thu, 2007-10-25 at 21:59 -0600, Bjorn Helgaas wrote:
+> > On Thursday 25 October 2007 4:55:07 pm Thomas Renninger wrote:
+
+> > > Also the BIOS developers seem to choose the regions in a very dump way
+> > > sometimes.
+> > > Just some imaginary values, but I saw similar (overlapping):
+> > >  - For a PNP device IO ports from 0x400-0x410 are reserved
+> > >  - A operation region is declared from 0x399-0x401
+> >
+> > If we know the resources the opregion can use, we can at least
+> > reserve the union of those used by the opregion and by other
+> > PNP devices.  A little messy to deal with overlapping areas, I
+> > agree, but it should still be possible by shrinking the region
+> > or allocating a port at a time or something.
 >
-> ATA ACPI is now turned on by default.  It's quite likely that ATA part
-> of the ACPI table on that machine is broken.  Can you try to update the BIOS?
->
->
-> --
-> tejun
->
+> You mean merging them together to something like:
+>   0x400-0x410 pnp device
+>   0x399       ACPI Op region's name
+> This needs touching of kernel/resource.c and modification in a very ugly
+> way affecting all architectures...
 
-The BIOS is already up to date and I don't think the mobo manufacturer
-has any intention of ever bringing out a new version. I guess I will
-just disable ATA_ACPI.
+Right, that's what I was thinking.  But I haven't tried it, so I'll
+take your word for it that it's ugly.
 
---
-Andrew
+> Maybe the list set up by this patch set should be similarly exported
+> like /proc/ioports /proc/iomem
+> to where ever appropriate (maybe /sys/devices/system/acpi/opreg_io
+> and /sys/devices/system/acpi/opreg_mem?) to get a better overview what
+> kind of devices are served by the Op regions on different machines.
 
+I want to try hard to avoid making ACPI a special case in this way.
+The current /proc/io{ports,mem} contains reservations for everything
+else.  I'd hate to have to look two places just because of ACPI.
 
+> I think I worked on something else.
+> Do I get this right:
+> This one is to request all active resources of all ACPI devices that
+> export resources via _CRS/_SRS?
+> As this is currently done for the motherboard devices only by
+> pnp/system.c?
 
+Right.  Actually my patch requests resources of all active PNP devices,
+not just ACPI.  Glad we didn't do overlapping work here :-)
 
+> If you are interested I can try to fast cleanup and send you a
+> pre-version of all patches (but not before beginning of next week).
+
+Thanks for the preview.  No hurry as far as I'm concerned.
+
+Bjorn
