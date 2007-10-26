@@ -1,72 +1,45 @@
-From: Jan Ries <yannek@web.de>
-Subject: no C States on Asus L3D with 2.6.22.9
-Date: Fri, 26 Oct 2007 22:27:34 +0200
-Message-ID: <200710262227.48928.yannek@web.de>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with
+ ACPI Operation Region resources
+Date: Fri, 26 Oct 2007 22:39:42 +0200
+Message-ID: <20071026223942.6dbfebe0@hyperion.delvare>
+References: <1193236319.4590.225.camel@queen.suse.de>
+	<200710252159.11594.bjorn.helgaas@hp.com>
+	<1193395520.4590.349.camel@queen.suse.de>
+	<200710260709.20716.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1913542.6LqqmNex3d";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:37020 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbXJZU16 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 16:27:58 -0400
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 968C5AAA1DF6
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2007 22:27:57 +0200 (CEST)
-Received: from [89.49.96.50] (helo=sam)
-	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.108 #208)
-	id 1IlVmf-00088G-00
-	for linux-acpi@vger.kernel.org; Fri, 26 Oct 2007 22:27:57 +0200
+Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:1149 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757327AbXJZUjp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 16:39:45 -0400
+In-Reply-To: <200710260709.20716.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>
 
---nextPart1913542.6LqqmNex3d
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi Bjorn,
 
-Hello to the list.
+On Fri, 26 Oct 2007 07:09:19 -0600, Bjorn Helgaas wrote:
+> On Friday 26 October 2007 4:45:20 am Thomas Renninger wrote:
+> > Maybe the list set up by this patch set should be similarly exported
+> > like /proc/ioports /proc/iomem
+> > to where ever appropriate (maybe /sys/devices/system/acpi/opreg_io
+> > and /sys/devices/system/acpi/opreg_mem?) to get a better overview what
+> > kind of devices are served by the Op regions on different machines.
+> 
+> I want to try hard to avoid making ACPI a special case in this way.
+> The current /proc/io{ports,mem} contains reservations for everything
+> else.  I'd hate to have to look two places just because of ACPI.
 
-I stumbled over erratic behavior with a 2.6.22-14 (Ubuntu) Kernel.
-The computer is an Asus L3D (L3000D) with an Athlon XP-M 2500+ processor.
-The content of /proc/acpi/processor/power reads:
-=2D-snip--
-active state: C0
-max_cstate: C8
-bus master activity: 00000000
-maximum allowed latency: 8000 usec
-states:
-=2D-snap--
-This is reproducible with a vanilla 2.6.22.9 kernel.
+I agree. I consider the patches Thomas and myself just posted as a
+temporary workaround (even though we can't say how long this
+"temporary" will last). Ideally, we should register the I/O ports
+declared in ACPI OpRegions - just not now as it would break too many
+drivers. Time we tell how "clean" we manage to go.
 
-Older kernelversions (e.g. 2.6.17) showed only the C1 state as available wh=
-at=20
-is quite few, yet more than the current state.
-
-I would be thankful for any hint what to do to investigate this further.
-
-Thank you, and with best regards,
-
-	Jan Ries
-
-=09
-
---nextPart1913542.6LqqmNex3d
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQBHIk3ESOWITABwaJQRAuv+AJ9GtP4QhEb8BSKnv09903aPHIXXlwCcD5BF
-NJRSI8ru9AcVnYlWfd+914o=
-=KWWH
------END PGP SIGNATURE-----
-
---nextPart1913542.6LqqmNex3d--
+-- 
+Jean Delvare
