@@ -1,51 +1,117 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Subject: [PATCH] fujitsu-laptop: kzalloc and autoload
-Date: Thu, 25 Oct 2007 22:34:06 -0700
-Message-ID: <20071025223406.664c17c9@shemminger-laptop>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [RFC] [PATCH]:Obtain FSB ratio from model string
+Date: Fri, 26 Oct 2007 13:43:48 +0800
+Message-ID: <1193377428.5254.19.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34450 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750747AbXJZFeX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Oct 2007 01:34:23 -0400
+Received: from mga11.intel.com ([192.55.52.93]:24955 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750911AbXJZFfI (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Fri, 26 Oct 2007 01:35:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com
 
-A couple of minor changes to the fujitsu laptop acpi driver.
-1. use kzalloc.
-2. add dmi aliases to get the driver to autoload.
-    note: use both spellings since different fujtisu laptop's seem to capitialize
-    differently.
+Hi, all
+        According to the document of 253369(intel), the ratio is
+undefined in MSR_FBC_REGSITER_ID. The following calculation is
+inappropriate.
+if (c->x86_model < 2)
+        mult = msr_lo >> 27;
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+There are two ways to fix this problem.
+a. use the following patch. the ratio is obtained from model string.
+b. revert the commit until the proper patch is available.
+
+http://git.kernel.org/?p=linux/kernel/git/torvalds/old-2.6-bkcvs.git;a=commit;h=3e4159ab35c88aef5e063ba78796b277b762a30a
 
 
---- a/drivers/misc/fujitsu-laptop.c	2007-10-22 15:06:02.000000000 -0700
-+++ b/drivers/misc/fujitsu-laptop.c	2007-10-22 15:07:15.000000000 -0700
-@@ -61,6 +61,9 @@
- #define ACPI_FUJITSU_DRIVER_NAME        "Fujitsu laptop FUJ02B1 ACPI extras driver"
- #define ACPI_FUJITSU_DEVICE_NAME        "Fujitsu FUJ02B1"
+Subject: ACPI :Obtain FSB ratio from model string when model is less than 2
+>From : Zhao Yakui <yakui.zhao@intel.com>
+
+The ratio is undefined in the register of MSR_FBC_REGSITER_ID 
+when the model for P4 is less than 2. The following calculation is 
+inappropriate.
+if (c->x86_model < 2)
+	mult = msr_lo >> 27;
+In order to support the speedstep , the FSb ratio can be obtained from 
+the model_id string. 
+For example:
+The ratio is 13 for model string:"Intel(R) Pentium(R) 4 CPU 1300MHz"
+
+http://bugzilla.kernel.org/show_bug.cgi?id=7186
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ arch/i386/kernel/cpu/cpufreq/speedstep-lib.c |   40 +++++++++++++++++++++++++--
+ 1 file changed, 38 insertions(+), 2 deletions(-)
+
+Index: linux-2.6.23-rc9/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+===================================================================
+--- linux-2.6.23-rc9.orig/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
++++ linux-2.6.23-rc9/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+@@ -17,6 +17,7 @@
  
-+MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifeBook*:pvr*:rvnFUJITSU:*");
-+MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifebook*:pvr*:rvnFUJITSU:*");
+ #include <asm/msr.h>
+ #include "speedstep-lib.h"
++#include <linux/ctype.h>
+ 
+ #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, "speedstep-lib", msg)
+ 
+@@ -151,7 +152,40 @@ static unsigned int pentium_core_get_fre
+ 
+ 	return (msr_tmp * fsb);
+ }
+-
++/* When Model_id is less than 2, the FSB ratio is
++obtained from the string of model_id */
++static unsigned int p4_01_get_fsb_ratio(void)
++{
++	struct cpuinfo_x86 *c = &boot_cpu_data;
++	unsigned int fsb_m;
++	char model_id[64];
++	unsigned int  freq_mhz;
++	unsigned int max_ratio;
++	char *ptr;
++	int i = 0;
 +
- struct fujitsu_t {
- 	acpi_handle acpi_handle;
- 	struct backlight_device *bl_device;
-@@ -264,10 +267,9 @@ static int __init fujitsu_init(void)
- 	if (acpi_disabled)
- 		return -ENODEV;
++	ptr = model_id;
++	strncpy(ptr, c->x86_model_id, strlen(c->x86_model_id));
++	for (i = 0; i < strlen(model_id); i++)
++		model_id[i] = tolower(model_id[i]);
++	if (strstr(model_id, "mhz"))
++		fsb_m = 100;
++	else
++		fsb_m = 0;
++	if (!fsb_m) {
++		printk(KERN_DEBUG "CPU doesn't support speedstep\n");
++		return 0;
++	}
++	ptr = strstr(model_id, "hz");
++	if (ptr)
++		*ptr = '\0';
++	freq_mhz = 0;
++	ptr = strrchr(model_id, ' ');
++	if (ptr)
++		sscanf(ptr, "%d", &freq_mhz);
++	max_ratio = freq_mhz / fsb_m;
++	return max_ratio;
++}
  
--	fujitsu = kmalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
-+	fujitsu = kzalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
- 	if (!fujitsu)
- 		return -ENOMEM;
--	memset(fujitsu, 0, sizeof(struct fujitsu_t));
+ static unsigned int pentium4_get_frequency(void)
+ {
+@@ -189,8 +223,10 @@ static unsigned int pentium4_get_frequen
+ 		printk(KERN_DEBUG "speedstep-lib: couldn't detect FSB speed. Please send an e-mail to <linux@brodo.de>\n");
  
- 	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
- 	if (result < 0) {
+ 	/* Multiplier. */
++	/* if Model is less than 2 , the ratio is obtained from the
++	 * string of model_id */
+ 	if (c->x86_model < 2)
+-		mult = msr_lo >> 27;
++		mult = p4_01_get_fsb_ratio();
+ 	else
+ 		mult = msr_lo >> 24;
+ 
