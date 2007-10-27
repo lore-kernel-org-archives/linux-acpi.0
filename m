@@ -1,359 +1,756 @@
-From: "=?BIG5?B?s6+k/a5p?=" <cwz0522@gmail.com>
-Subject: acpi_osi=!Linux work better than acpi_osi=Linux
-Date: Sat, 27 Oct 2007 09:13:19 +0800
-Message-ID: <e859aabc0710261813t468447e7ue074bd5c7974cfee@mail.gmail.com>
+From: Carlos Corbacho <cathectic@slackadelic.com>
+Subject: [PATCH v3] ACPI: WMI: Add WMI-ACPI mapper driver
+Date: Sat, 27 Oct 2007 04:05:18 +0100
+Message-ID: <200710270405.18602.cathectic@slackadelic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.185]:58183 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754775AbXJ0BNU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 21:13:20 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so941322rvb
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2007 18:13:19 -0700 (PDT)
+Received: from slackadelic.com ([65.196.224.53]:35142 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796AbXJ0DEl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2007 23:04:41 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>
 
-Dear all,
-after trying all the combinations from en.opensuse.org/S2ram, the
-s2ram still hang or immediately shutdown the system.
-But, I try to pass the acpi_osi=!Linux to the kernel, it work well!
+From: Carlos Corbacho <cathectic@gmail.com>
 
-the following settings is ok for me.
-s2ram --force  --vbe_post
+The following is an implementation of the Windows Management
+Instrumentation (WMI) ACPI interface mapper (PNP0C14).
 
-If you still need any further information, please contact to me.
+What it does:
 
-PS. I don't known how to set the gnome-power-manager to use the
-settings above, is there anyone can give me some advices?  I only can
-use root to use the s2ram command to STR. Thanks
-PS. s2disk is ok whether or not I pass the acpi_osi=Linux to the kernel.
+Parses the _WDG method and exports functions to process WMI method calls,
+data block query/ set commands (both based on GUID) and does basic event
+handling.
 
-Best Regards,
-Peter Chen
+i.e.
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-28 structures occupying 1179 bytes.
-Table at 0x7FEDF000.
+wmi_evaluate_method(const char *guid, u32 instance, u32 method_id,
+const struct acpi_buffer *in, struct acpi_buffer *out)
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Phoenix Technologies LTD
-        Version: V1.06
-        Release Date: 07/11/2007
-        Address: 0xE5F80
-        Runtime Size: 106624 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PC Card (PCMCIA) is supported
-                PNP is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                ACPI is supported
-                USB legacy is supported
-                AGP is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
+wmi_query_block(const char *guid, u32 instance,
+struct acpi_buffer *out)
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-        Manufacturer: Acer
-        Product Name: Aspire 4920
-        Version: 0100
-        Serial Number: LXAHP0X2197320E23A2000
-        UUID: CA6FCD60-47AE-11DC-93AB-D523380A14EA
-        Wake-up Type: Power Switch
-        SKU Number: Not Specified
-        Family: Not Specified
+wmi_set_block(const char *guid, u32 instance,
+const struct acpi_buffer *in)
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: Acer
-        Product Name: Tahoe
-        Version: Rev
-        Serial Number: LXAHP0X2197320E23A2000
+It also provides a helper method to find if a GUID exists or not on the
+system (a quick and easy way for WMI dependant drivers to see if the
+the method/ block they want exists, since GUIDs are supposed to be unique).
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-        Manufacturer: Acer
-        Type: Notebook
-        Lock: Not Present
-        Version: N/A
-        Serial Number: None
-        Asset Tag: None
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-        OEM Information: 0x00001234
+i.e.
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-        Socket Designation: U2E1
-        Type: Central Processor
-        Family: Other
-        Manufacturer: Intel
-        ID: FD 06 00 00 FF FB EB BF
-        Version: CPU Version
-        Voltage: 3.3 V
-        External Clock: 166 MHz
-        Max Speed: 1500 MHz
-        Current Speed: 1500 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
+bool wmi_has_guid(const char guid*)
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
+Where guid is the text encoding of the guid, e.g.:
 
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Socketed, Level 2
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 2048 KB
-        Maximum Size: 4096 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Burst
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
+"67C3371D-95A3-4C37-BB61-DD47B491DAAB"
 
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Slot J8B3
-        Type: 32-bit PCI
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+What it might be able to do:
 
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Slot S9B1
-        Type: 32-bit PCI
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+Handle reading data block GUIDs marked as "expensive" (e.g. calling WCxx with
+the correct arguments, before and after querying the block in question). My
+DSDT does not have any such marked block methods, so this is untested.
 
-Handle 0x0009, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PEG Slot J6B2
-        Type: 32-bit PCI Express
-        Current Usage: In Use
-        Length: Long
-        ID: 6
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+What it can't do:
 
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J6B1
-        Type: 32-bit PCI Express
-        Current Usage: In Use
-        Length: Long
-        ID: 7
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+Event data - Whilst the driver relays events over proc and netlink, it
+currently does not send any data with them.
 
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J6D1
-        Type: 32-bit PCI Express
-        Current Usage: In Use
-        Length: Long
-        ID: 8
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+(The MS article[1] talks about "firing a WMI event", in conjunction
+with the data from the _WED method - however, proc/ netlink expects an int
+for the data, whilst _WED can return anything - even a string).
 
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J8B4
-        Type: 32-bit PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 9
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+Unicode - The MS article calls for converting between ASCII and Unicode (or
+vice versa) if a GUID is marked as "string". There is also another problem
+in that given this specification revolves around Windows, Unicode in this
+context likely means UTF-16. Since Linux doesn't use this, and since this
+driver will only be called by other Linux drivers, it may make more sense
+to treat Unicode here as UTF-8 instead.
 
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J8D1
-        Type: 32-bit PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 9
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+What it doesn't do:
 
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J7B1
-        Type: 32-bit PCI Express
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+Try to enforce any kind of MOF 'types' on the data - it just takes and returns
+acpi_buffer - interpretation is left to the caller.
 
-Handle 0x000F, DMI type 11, 5 bytes
-OEM Strings
-        String 1: This is the Intel Crestline
-        String 2: Chipset CRB Platform
+[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
 
-Handle 0x0010, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 4 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
+===
+ChangeLog
+==
 
-Handle 0x0011, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x0010
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M1
-        Bank Locator: Bank 0
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 0
-        Serial Number: 1234-B0
-        Asset Tag: Not Specified
-        Part Number: SODIMM000
+v1 (2007-10-02):
 
-Handle 0x0012, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x0010
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M2
-        Bank Locator: Bank 1
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 1
-        Serial Number: 1234-B1
-        Asset Tag: Not Specified
-        Part Number: SODIMM001
+Initial release
 
-Handle 0x0013, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 2 GB
-        Physical Array Handle: 0x0010
-        Partition Width: 0
+v2 (2007-10-05):
 
-Handle 0x0014, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x0011
-        Memory Array Mapped Address Handle: 0x0013
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
+Cleaned up code - split up super "wmi_evaluate_block" -> each external
+symbol now handles its own ACPI calls, rather than handing off to
+a "super" method (and in turn, is a lot simpler to read)
 
-Handle 0x0015, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00040000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x0012
-        Memory Array Mapped Address Handle: 0x0013
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
+Added a find_guid() symbol - return true if a given GUID exists on
+the system
 
-Handle 0x0016, DMI type 32, 20 bytes
-System Boot Information
-        Status: <OUT OF SPEC>
+wmi_* functions now return type acpi_status (since they are just
+fancy wrappers around acpi_evaluate_object())
 
-Handle 0x0017, DMI type 129, 10 bytes
-OEM-specific Type
-        Header and Data:
-                81 0A 17 00 01 01 02 01 01 02
-        Strings:
-                Intel_ASF
-                Intel_ASF_001
+Removed extra debug code
 
-Handle 0x0018, DMI type 136, 6 bytes
-OEM-specific Type
-        Header and Data:
-                88 06 18 00 FF FF
+v3 (2007-10-27)
 
-Handle 0x0019, DMI type 150, 14 bytes
-OEM-specific Type
-        Header and Data:
-                96 0E 19 00 01 01 00 00 00 00 00 00 00 00
-        Strings:
-                ABSOLUTE(PHOENIX) CLM
+More code clean up - now passes checkpatch.pl
 
-Handle 0x001A, DMI type 200, 7 bytes
-OEM-specific Type
-        Header and Data:
-                C8 07 1A 00 01 02 03
-        Strings:
-                17C0
+Change data block calls - ref MS spec, method ID is not required for
+them, so drop it from the function parameters.
 
-                0001
+Const'ify guid in the function call parameters.
 
-Handle 0x001B, DMI type 127, 4 bytes
-End Of Table
+Fix _WDG buffer handling - copy the data to our own private structure.
+
+Change WMI from tristate to bool - otherwise the external functions are
+not exported in linux/acpi.h if you try to build WMI as a module.
+
+Fix more flag comparisons.
+
+Add a maintainers entry - since I wrote this, I should take the blame
+for it.
+
+Signed-off-by: Carlos Corbacho <cathectic@gmail.com>
+---
+ MAINTAINERS           |    7 +
+ drivers/acpi/Kconfig  |   11 +
+ drivers/acpi/Makefile |    1 +
+ drivers/acpi/wmi.c    |  537 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h  |   14 ++
+ 5 files changed, 570 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/acpi/wmi.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3ceeb56..1f4fda5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -261,6 +261,13 @@ L:	linux-acpi@vger.kernel.org
+ W:	http://acpi.sourceforge.net/
+ S:	Supported
+ 
++ACPI WMI DRIVER
++P:      Carlos Corbacho
++M:      cathectic@gmail.com
++L:      linux-acpi@vger.kernel.org
++W:      http://www.lesswatts.org/projects/acpi/
++S:      Supported
++
+ ADM1025 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5d0e26a..ff9cf2a 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -179,6 +179,17 @@ config ACPI_NUMA
+ 	depends on (X86 || IA64)
+ 	default y if IA64_GENERIC || IA64_SGI_SN2
+ 
++config ACPI_WMI
++	bool "WMI (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	default y
++	help
++	  This driver adds support for the WMI ACPI mapper device (PNP0C14)
++	  found on some systems.
++
++	  NOTE: You will need another driver on top of this to actually use
++	  anything defined in the WMI ACPI device.
++
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 54e3ab0..9e9aa39 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
++obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+new file mode 100644
+index 0000000..ee5d292
+--- /dev/null
++++ b/drivers/acpi/wmi.c
+@@ -0,0 +1,537 @@
++/*
++ *  WMI to ACPI mapping driver
++ *
++ *  Copyright (C) 2007 Carlos Corbacho <cathectic@gmail.com>
++ *
++ *  GUID parsing code from ldm.c is:
++ *   Copyright (C) 2001,2002 Richard Russon <ldm@flatcap.org>
++ *   Copyright (c) 2001-2007 Anton Altaparmakov
++ *   Copyright (C) 2001,2002 Jakob Kemi <jakob.kemi@telia.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ * TODO:
++ *
++ * 1) Handle method & data blocks flagged as WMIACPI_FLAG_STRING
++ *
++ * The MS spec says that we should translate the input from "UNICODE to ASCIIZ"
++ * and the output from "ASCIIZ to UNICODE". But by UNICODE, they probably mean
++ * UTF-16, where as we are using UTF-8/ ASCII here - so, what to do? Converting
++ * to UTF-16 is probably pointless, since most of the clients of this mapper
++ * will be Linux drivers using UTF-8/ ASCII anyway, not UTF-16.
++ *
++ * So, for the moment, the mapper should just convert input from UTF-8 to ASCII
++ *
++ * 2) WMIACPI_FLAG_EVENT - We currently don't send the contents of _WED with a
++ * fired event, since _WED is not guaranteed to be an int.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <acpi/acpi_drivers.h>
++
++#define ACPI_WMI_CLASS			"wmi"
++
++#undef PREFIX
++#define PREFIX "ACPI: WMI: "
++
++MODULE_AUTHOR("Carlos Corbacho");
++MODULE_DESCRIPTION("WMI ACPI Interface Driver");
++MODULE_LICENSE("GPL");
++
++struct guid_block_t
++{
++	char guid[16];
++	union
++	{
++		char object_id[2];
++		struct
++		{
++			unsigned char notification_value;
++			unsigned char reserved;
++		};
++	};
++	u8 instance_count;
++	u8 flags;
++};
++
++struct guid_list
++{
++	struct guid_block_t *pointer;
++	int total;
++};
++
++static struct guid_list guids;
++static acpi_handle acpi_wmi_handle;
++
++/*
++ * If the GUID marked expensive: if it is a data block, we must enable and
++ * explicitily disable data collection. If the GUID is an event, we must arm and
++ * reenable the event if required
++ */
++#define WMIACPI_FLAG_EXPENSIVE   0x1
++#define WMIACPI_FLAG_METHOD      0x2	/* GUID is a method */
++
++/*
++ * Data block is a string, and must be converted from ASCII to Unicode (output)
++ * or Unicode to Ascii (input)
++ */
++#define WMIACPI_FLAG_STRING      0x4
++#define WMIACPI_FLAG_EVENT       0x8	/* GUID is an event */
++
++static int acpi_wmi_remove(struct acpi_device *device, int type);
++static int acpi_wmi_add(struct acpi_device *device);
++
++const static struct acpi_device_id wmi_device_ids[] = {
++	{"PNP0C14", 0},
++	{"pnp0c14", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
++
++static struct acpi_driver acpi_wmi_driver = {
++	.name = "wmi",
++	.class = ACPI_WMI_CLASS,
++	.ids = wmi_device_ids,
++	.ops = {
++		.add = acpi_wmi_add,
++		.remove = acpi_wmi_remove,
++		},
++};
++
++/*
++ * GUID parsing functions
++ */
++
++/**
++ * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
++ * @src:  Pointer to at least 2 characters to convert.
++ *
++ * Convert a two character ASCII hex string to a number.
++ *
++ * Return:  0-255  Success, the byte was parsed correctly
++ *          -1     Error, an invalid character was supplied
++ */
++static int wmi_parse_hexbyte(const u8 *src)
++{
++	unsigned int x; /* For correct wrapping */
++	int h;
++
++	/* high part */
++	x = src[0];
++	if (x - '0' <= '9' - '0') {
++		h = x - '0';
++	} else if (x - 'a' <= 'f' - 'a') {
++		h = x - 'a' + 10;
++	} else if (x - 'A' <= 'F' - 'A') {
++		h = x - 'A' + 10;
++	} else {
++		return -1;
++	}
++	h <<= 4;
++
++	/* low part */
++	x = src[1];
++	if (x - '0' <= '9' - '0')
++		return h | (x - '0');
++	if (x - 'a' <= 'f' - 'a')
++		return h | (x - 'a' + 10);
++	if (x - 'A' <= 'F' - 'A')
++		return h | (x - 'A' + 10);
++	return -1;
++}
++
++/**
++ * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
++ * @src:   Memory block holding binary GUID (16 bytes)
++ * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
++ *
++ * Byte swap a binary GUID to match it's real GUID value
++ */
++static void wmi_swap_bytes(u8 *src, u8 *dest)
++{
++	int i;
++
++	for (i = 0; i <= 3; i++)
++		memcpy(dest + i, src + (3 - i), 1);
++
++	for (i = 0; i <= 1; i++)
++		memcpy(dest + 4 + i, src + (5 - i), 1);
++
++	for (i = 0; i <= 1; i++)
++		memcpy(dest + 6 + i, src + (7 - i), 1);
++
++	memcpy(dest + 8, src + 8, 8);
++}
++
++/**
++ * wmi_parse_guid - Convert GUID from ASCII to binary
++ * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @dest:  Memory block to hold binary GUID (16 bytes)
++ *
++ * N.B. The GUID need not be NULL terminated.
++ *
++ * Return:  'true'   @dest contains binary GUID
++ *          'false'  @dest contents are undefined
++ */
++static bool wmi_parse_guid(const u8 *src, u8 *dest)
++{
++	static const int size[] = { 4, 2, 2, 2, 6 };
++	int i, j, v;
++
++	if (src[8]  != '-' || src[13] != '-' ||
++		src[18] != '-' || src[23] != '-')
++		return false;
++
++	for (j = 0; j < 5; j++, src++) {
++		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
++			v = wmi_parse_hexbyte(src);
++			if (v < 0)
++				return false;
++		}
++
++	return true;
++}
++
++static bool find_guid(const char *guid_string, struct guid_block_t **out)
++{
++	char tmp[16], guid_input[16];
++	struct guid_block_t *block;
++	int i;
++
++	wmi_parse_guid(guid_string, tmp);
++	wmi_swap_bytes(tmp, guid_input);
++
++	for (i = 0; i < guids.total; i++) {
++		block = guids.pointer + i;
++
++		if (memcmp(block->guid, guid_input, 16) == 0) {
++			if (out != NULL)
++				*out = block;
++			return 1;
++		}
++	}
++	return 0;
++}
++
++/*
++ * Externally callable WMI functions
++ */
++/**
++ * wmi_evaluate_method - Evaluate a WMI method
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * @method_id: Method ID to call
++ * &in: Buffer containing input for the method call
++ * &out: Empty buffer to return the method results
++ *
++ * Convert a WMI method call to an ACPI one, and return the results
++ */
++acpi_status wmi_evaluate_method(const char *guid_string, u32 instance,
++u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
++{
++	struct guid_block_t *block = NULL;
++	acpi_status status;
++	struct acpi_object_list input;
++	union acpi_object wm_params[3];
++	char method[4] = "WM";
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (!block->flags & WMIACPI_FLAG_METHOD)
++		return AE_BAD_DATA;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	input.count = 2;
++	input.pointer = wm_params;
++	wm_params[0].type = ACPI_TYPE_INTEGER;
++	wm_params[0].integer.value = instance;
++	wm_params[1].type = ACPI_TYPE_INTEGER;
++	wm_params[1].integer.value = method_id;
++
++	if (in != NULL) {
++		input.count = 3;
++		wm_params[2].type = ACPI_TYPE_BUFFER;
++		wm_params[2].buffer.length = in->length;
++		wm_params[2].buffer.pointer = in->pointer;
++	}
++
++	strncat(method, block->object_id, 2);
++
++	status = acpi_evaluate_object(acpi_wmi_handle, method, &input, out);
++
++	if ((block->flags & WMIACPI_FLAG_STRING) > 0) {
++		/* Convert output from ASCIIZ to Unicode */
++		return AE_NOT_IMPLEMENTED;
++	}
++
++	return status;
++}
++EXPORT_SYMBOL(wmi_evaluate_method);
++
++/**
++ * wmi_query_block - Return contents of a WMI block
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * &out: Empty buffer to return the contents of the data block to
++ *
++ * Return the contents of a data block to a buffer
++ */
++acpi_status wmi_query_block(const char *guid_string, u32 instance,
++struct acpi_buffer *out)
++{
++	struct guid_block_t *block = NULL;
++	acpi_status status;
++	struct acpi_object_list input, wc_input;
++	union acpi_object wc_params[1], wq_params[1];
++	char method[4] = "WQ";
++	char wc_method[4] = "WC";
++
++	if (guid_string == NULL || out == NULL)
++		return AE_BAD_PARAMETER;
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	/* Check GUID is a data block */
++	if ((block->flags & (WMIACPI_FLAG_EVENT | WMIACPI_FLAG_METHOD)) > 0)
++		return AE_BAD_ADDRESS;
++
++	input.count = 1;
++	input.pointer = wq_params;
++	wq_params[0].type = ACPI_TYPE_INTEGER;
++	wq_params[0].integer.value = instance;
++
++	/*
++	 * If WMIACPI_FLAG_EXPENSIVE, call the relevant WCxx method first to
++	 * enable collection
++	 */
++	/* FIXME - should INTEGER be STRING? */
++	if ((block->flags & WMIACPI_FLAG_EXPENSIVE) > 0) {
++		wc_input.count = 1;
++		wc_input.pointer = wc_params;
++		wc_params[0].type = ACPI_TYPE_INTEGER;
++		wc_params[0].integer.value = 1;
++
++		strncat(wc_method, block->object_id, 2);
++
++		status = acpi_evaluate_object(acpi_wmi_handle, wc_method,
++			&wc_input, NULL);
++
++		if (ACPI_FAILURE(status))
++			return AE_ERROR;
++	}
++
++	strncat(method, block->object_id, 2);
++
++	status = acpi_evaluate_object(acpi_wmi_handle, method, NULL, out);
++
++	/*
++	 * If WMIACPI_FLAG_EXPENSIVE, call the relevant WCxx method, even if
++	 * the WQxx method failed - we should disable collection anyway
++	 */
++	if ((block->flags & WMIACPI_FLAG_EXPENSIVE) > 0) {
++		wc_params[0].integer.value = 0;
++		status = acpi_evaluate_object(acpi_wmi_handle,
++		wc_method, &wc_input, NULL);
++	}
++
++	if (ACPI_SUCCESS(status)) {
++		/* Convert output from ASCIIZ to Unicode */
++		if ((block->flags & WMIACPI_FLAG_STRING) > 0)
++			return AE_NOT_IMPLEMENTED;
++	}
++
++	return status;
++}
++EXPORT_SYMBOL(wmi_query_block);
++
++/**
++ * wmi_set_block - Write to a WMI block
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * &in: Buffer containing new values for the data block
++ *
++ * Write the contents of the input buffer to ACPI
++ */
++acpi_status wmi_set_block(const char *guid_string, u32 instance,
++const struct acpi_buffer *in)
++{
++	struct guid_block_t *block = NULL;
++	struct acpi_object_list input;
++	union acpi_object params[2];
++	char method[4] = "WS";
++
++	if (guid_string == NULL || in == NULL)
++		return AE_BAD_DATA;
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	/* Check GUID is a data block */
++	if ((block->flags & (WMIACPI_FLAG_EVENT | WMIACPI_FLAG_METHOD)) > 0)
++		return AE_BAD_ADDRESS;
++
++	input.count = 2;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = instance;
++	params[1].type = ACPI_TYPE_BUFFER;
++	params[1].buffer.length = in->length;
++	params[1].buffer.pointer = in->pointer;
++
++	/* Convert input from Unicode to ASCIIZ */
++	if ((block->flags & WMIACPI_FLAG_STRING) > 0)
++		return AE_NOT_IMPLEMENTED;
++
++	strncat(method, block->object_id, 2);
++
++	return acpi_evaluate_object(acpi_wmi_handle, method, &input, NULL);
++}
++EXPORT_SYMBOL(wmi_set_block);
++
++/**
++ * wmi_has_guid - Check if a GUID is available
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ *
++ * Check if a given GUID is defined by _WDG
++ */
++bool wmi_has_guid(const char *guid_string)
++{
++	return find_guid(guid_string, NULL);
++}
++EXPORT_SYMBOL(wmi_has_guid);
++
++/**
++ * parse_wdg - Parse the _WDG method for the GUID data blocks
++ */
++static acpi_status parse_wdg(void)
++{
++	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
++	union acpi_object *obj;
++	acpi_status status;
++
++	status = acpi_evaluate_object(acpi_wmi_handle, "_WDG", NULL, &out);
++
++	if (ACPI_FAILURE(status))
++		return status;
++
++	obj = (union acpi_object *) out.pointer;
++
++	if (obj->type != ACPI_TYPE_BUFFER)
++		return AE_ERROR;
++
++	guids.pointer = kzalloc(obj->buffer.length, GFP_KERNEL);
++	memcpy(guids.pointer, obj->buffer.pointer, obj->buffer.length);
++	guids.total = obj->buffer.length / sizeof(struct guid_block_t);
++
++	kfree(out.pointer);
++
++	return status;
++}
++
++static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
++{
++	int i;
++	struct guid_block_t *block;
++	struct acpi_device *device = data;
++
++	for (i = 0; i < guids.total; i++) {
++		block = guids.pointer + i;
++
++		if ((block->flags & WMIACPI_FLAG_EVENT) > 0 &&
++			block->notification_value == event) {
++			/* How do we pass the results of _WED? */
++			acpi_bus_generate_proc_event(device, event, 0);
++			acpi_bus_generate_netlink_event(
++				device->pnp.device_class, device->dev.bus_id,
++				event, 0);
++		}
++	}
++}
++
++static int acpi_wmi_add(struct acpi_device *device)
++{
++	acpi_status status;
++
++	acpi_wmi_handle = device->handle;
++
++	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++		acpi_wmi_notify, device);
++
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				  "Error installing notify handler\n"));
++		return -ENODEV;
++	}
++
++	status = parse_wdg();
++
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return 0;
++}
++
++static int acpi_wmi_remove(struct acpi_device *device, int type)
++{
++	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++		acpi_wmi_notify);
++
++	return 0;
++}
++
++static int __init acpi_wmi_init(void)
++{
++	acpi_status result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	result = acpi_bus_register_driver(&acpi_wmi_driver);
++
++	if (ACPI_FAILURE(result))
++		return -ENODEV;
++
++	printk(KERN_INFO PREFIX "Interface device found\n");
++	printk(KERN_INFO PREFIX "Mapper loaded\n");
++
++	return 0;
++}
++
++static void __exit acpi_wmi_exit(void)
++{
++	kfree(guids.pointer);
++	acpi_bus_unregister_driver(&acpi_wmi_driver);
++	printk(KERN_INFO PREFIX "Mapper unloaded\n");
++}
++
++module_init(acpi_wmi_init);
++module_exit(acpi_wmi_exit);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 8ccedf7..b1fb82f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -186,6 +186,20 @@ extern int ec_transaction(u8 command,
+ 
+ #endif /*CONFIG_ACPI_EC*/
+ 
++#ifdef CONFIG_ACPI_WMI
++
++extern acpi_status wmi_evaluate_method(const char *guid, u32 instance,
++					u32 method_id,
++					const struct acpi_buffer *in,
++					struct acpi_buffer *out);
++extern acpi_status wmi_query_block(const char *guid, u32 instance,
++					struct acpi_buffer *out);
++extern acpi_status wmi_set_block(const char *guid, u32 instance,
++					const struct acpi_buffer *in);
++extern bool wmi_has_guid(const char *guid);
++
++#endif	/* CONFIG_ACPI_WMI */
++
+ extern int acpi_blacklisted(void);
+ extern void acpi_bios_year(char *s);
+ 
+-- 
+1.5.3.4
+
