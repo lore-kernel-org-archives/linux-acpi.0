@@ -1,44 +1,60 @@
-From: Peter Clifton <pcjc2@cam.ac.uk>
+From: =?UTF-8?B?UmHDumwgU8OhbmNoZXogU2lsZXM=?= <rasasi78@gmail.com>
 Subject: Re: System hard lock when closing lid(2nd try)
-Date: Sat, 27 Oct 2007 12:17:28 +0100
-Message-ID: <1193483848.7171.3.camel@pcjc2lap>
-References: <200710261741.50531.rasasi78@gmail.com>
+Date: Sat, 27 Oct 2007 14:20:56 +0200
+Message-ID: <ffvaf8$99k$1@ger.gmane.org>
+References: <200710261741.50531.rasasi78@gmail.com> <1193483848.7171.3.camel@pcjc2lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-2.csi.cam.ac.uk ([131.111.8.132]:60257 "EHLO
-	ppsw-2.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894AbXJ0LRe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Oct 2007 07:17:34 -0400
-In-Reply-To: <200710261741.50531.rasasi78@gmail.com>
+Received: from main.gmane.org ([80.91.229.2]:52877 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752440AbXJ0MVN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 27 Oct 2007 08:21:13 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Ilkf1-00035k-SC
+	for linux-acpi@vger.kernel.org; Sat, 27 Oct 2007 12:21:03 +0000
+Received: from 213.pool85-53-181.dynamic.orange.es ([85.53.181.213])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 27 Oct 2007 12:21:03 +0000
+Received: from rasasi78 by 213.pool85-53-181.dynamic.orange.es with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 27 Oct 2007 12:21:03 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Ra=FAl_S=E1nchez?= Siles <rasasi78@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hello:
 
-On Fri, 2007-10-26 at 17:41 +0200, Ra=C3=BAl S=C3=A1nchez Siles wrote:
->   Hello All:
+Peter Clifton wrote:
+
 >=20
->   Some time ago(2007/09/17) I wrote this e-mail:
->=20
-> Ra=C3=BAl S=C3=A1nchez Siles wrote:
->=20
-> >   Hello all:
-> >=20
-> >   I've searched for a more user related ML, but this is the closest=
- I've
-> > found. I own a Dell inspiron 510m laptop which include the HW liste=
-d at
-> > [1]
-> >=20
-> >   As you can see there the graphics card is an intel 855GM. The new=
-er xorg
+> On Fri, 2007-10-26 at 17:41 +0200, Ra=C3=BAl S=C3=A1nchez Siles wrote=
+:
+>> =C2=A0 Hello All:
+>>=20
+>> =C2=A0 Some time ago(2007/09/17) I wrote this e-mail:
+>>=20
+>> Ra=C3=BAl S=C3=A1nchez Siles wrote:
+>>=20
+>> > =C2=A0 Hello all:
+>> >=20
+>> > =C2=A0 I've searched for a more user related ML, but this is the c=
+losest
+>> > =C2=A0 I've
+>> > found. I own a Dell inspiron 510m laptop which include the HW list=
+ed at
+>> > [1]
+>> >=20
+> > =C2=A0 As you can see there the graphics card is an intel 855GM. Th=
+e newer
+xorg
 > > intel driver tries to save power by disabling one of the video outp=
 ut
 > > pipes of the card, the one that could drive an external VGA monitor=
-=2E As a
+=2E As
+a
 > > result, someone told me that the system enters in SMM (System Manag=
 ement
 > > Mode), leaves the system in such a state that the system ends up lo=
@@ -47,119 +63,59 @@ cking
 ower
 > > off. More details at https://bugs.freedesktop.org/show_bug.cgi?id=3D=
 11432
-> >=20
-> >   This result is the same no matter what Linux version I use, tried
-> > 2.6.20,21 and 22. I have done some research as to know if this coul=
-d be
-> > avoided some way in Linux. I ran the linux firmwarekit, I checked t=
-he dsdl
-> > table, I upgraded bios, tried different boot parameters but no valu=
-able
-> > results I got. This information is available, so feel free to ask f=
-or it.
-> >=20
-> >   I'd like to know if there's anything that could be done with rega=
-rd to
-> > Linux kernel to soothe or solve the issue. Of course, I'm at your d=
-isposal
-> > to do whatever test is needed.
-> >=20
-> >   Just in case, I also attach a dmesg output, maybe not the latest =
-stable
-> > kernel, but still 2.6.22.
-> >=20
-> >   Thanks a lot.
-> >=20
-> > [1]
-> > lspci -nn
-> > 00:00.0 Host bridge [0600]: Intel Corporation 82852/82855 GM/GME/PM=
-/GMV
-> > Processor to I/O Controller [8086:3580] (rev 02)
-> > 00:00.1 System peripheral [0880]: Intel Corporation 82852/82855
-> > GM/GME/PM/GMV Processor to I/O Controller [8086:3584] (rev 02)
-> > 00:00.3 System peripheral [0880]: Intel Corporation 82852/82855
-> > GM/GME/PM/GMV Processor to I/O Controller [8086:3585] (rev 02)
-> > 00:02.0 VGA compatible controller [0300]: Intel Corporation 82852/8=
-55GM
-> > Integrated Graphics Device [8086:3582] (rev 02)
-> > 00:02.1 Display controller [0380]: Intel Corporation 82852/855GM
-> > Integrated Graphics Device [8086:3582] (rev 02)
-> > 00:1d.0 USB Controller [0c03]: Intel Corporation 82801DB/DBL/DBM
-> > (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 [8086:24c2] (rev 01)
-> > 00:1d.1 USB Controller [0c03]: Intel Corporation 82801DB/DBL/DBM
-> > (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 [8086:24c4] (rev 01)
-> > 00:1d.2 USB Controller [0c03]: Intel Corporation 82801DB/DBL/DBM
-> > (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 [8086:24c7] (rev 01)
-> > 00:1d.7 USB Controller [0c03]: Intel Corporation 82801DB/DBM (ICH4/=
-ICH4-M)
-> > USB2 EHCI Controller [8086:24cd] (rev 01)
-> > 00:1e.0 PCI bridge [0604]: Intel Corporation 82801 Mobile PCI Bridg=
-e
-> > [8086:2448] (rev 81)
-> > 00:1f.0 ISA bridge [0601]: Intel Corporation 82801DBM (ICH4-M) LPC
-> > Interface Bridge [8086:24cc] (rev 01)
-> > 00:1f.1 IDE interface [0101]: Intel Corporation 82801DBM (ICH4-M) I=
-DE
-> > Controller [8086:24ca] (rev 01)
-> > 00:1f.5 Multimedia audio controller [0401]: Intel Corporation
-> > 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller [8086:2=
-4c5]
-> > (rev 01)
-> > 00:1f.6 Modem [0703]: Intel Corporation 82801DB/DBL/DBM
-> > (ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller [8086:24c6] (rev 01)
-> > 01:01.0 CardBus bridge [0607]: Texas Instruments PCI4510 PC card Ca=
-rdbus
-> > Controller [104c:ac44] (rev 02)
-> > 01:01.1 FireWire (IEEE 1394) [0c00]: Texas Instruments PCI4510 IEEE=
--1394
-> > Controller [104c:8029]
-> > 01:03.0 Network controller [0280]: Intel Corporation PRO/Wireless 2=
-200BG
-> > Network Connection [8086:4220] (rev 05)
-> > 01:08.0 Ethernet controller [0200]: Intel Corporation 82801DB PRO/1=
-00 VE
-> > (MOB) Ethernet Controller [8086:103d] (rev 81)
-> >=20
+>>=20
+>> =C2=A0 The lid problem stills exist on a current Xorg version, even =
+with intel
+>> video driver git version. I'm not surprised since I suspect heavily =
+on a
+>> BIOS problem. I'm coming back with more attached info:
 >=20
->   Maybe by that date there was nobody avaible for considering this is=
-sue so
-> I'm trying again.
+=C2=A0 Thanks a lot for your reply, Peter. :)
+
+> There is probably a BIOS issue (from reports I've seen on this issue)=
+,
+> however the git version of the xserver-xorg-video-intel driver does n=
+ot
+> address a couple of crashes with 855 hardware which are caused by the=
+ X
+> driver writing registers in the card.
 >=20
->   The lid problem stills exist on a current Xorg version, even with i=
-ntel
-> video driver git version. I'm not surprised since I suspect heavily o=
-n a
-> BIOS problem. I'm coming back with more attached info:
-
-There is probably a BIOS issue (from reports I've seen on this issue),
-however the git version of the xserver-xorg-video-intel driver does not
-address a couple of crashes with 855 hardware which are caused by the X
-driver writing registers in the card.
-
+>
 http://www2.eng.cam.ac.uk/~pcjc2/ubuntu/xserver-xorg-video-intel_2.1.1-=
 0ubuntu10~pcjc2.2.diff.gz
 
-Shows the diff applied to a (yet unreleased) Ubuntu package for the
-drivers. (Applies against 2.1.1 release version). You should be able to
-find the patches in the debian/patches/ dir which the diff creates.
+>=20
+> Shows the diff applied to a (yet unreleased) Ubuntu package for the
+> drivers. (Applies against 2.1.1 release version). You should be able =
+to
+> find the patches in the debian/patches/ dir which the diff creates.
+>=20
+I've been following this thread on the xorg-devel ML, and I have those
+patches queued for testing ;)
 
-It might be worth looking at these, and revisiting the BIOS issue if (a=
-s
-is unfortunately likely) if there remains an issue.
+> It might be worth looking at these, and revisiting the BIOS issue if =
+(as
+> is unfortunately likely) if there remains an issue.
+>=20
+
+If you pay attention to https://bugs.freedesktop.org/show_bug.cgi?id=3D=
+11432 I
+had published there a patch (comment #23) there that has been happily
+working for me since I post it (yet it works). But what it does is ugly=
+ and
+has drawbacks as explained there so I still consider it a workaround an=
+d
+not a final solution.
+
+That's the reason I came here, to check out wether the Linux kernel cou=
+ld
+address the issue.
 
 Regards,
 
---=20
-Peter Clifton
-
-Electrical Engineering Division,
-Engineering Department,
-University of Cambridge,
-9, JJ Thomson Avenue,
-Cambridge
-CB3 0FA
-
-Tel: +44 (0)7729 980173 - (No signal in the lab!)
+=C2=A0 =C2=A0 =C2=A0Ra=C3=BAl S=C3=A1nchez Siles
+----->Proud Debian user<-----
+Linux registered user #416098
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
