@@ -1,40 +1,49 @@
-From: Frans Pop <elendil@planet.nl>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 Subject: Re: [2.624-rc1 regression] lost battery information
-Date: Sat, 27 Oct 2007 18:16:44 +0200
-Message-ID: <200710271816.44978.elendil@planet.nl>
+Date: Sat, 27 Oct 2007 20:49:10 +0400
+Message-ID: <200710272049.11969.arvidjaar@mail.ru>
 References: <200710262024.06012.arvidjaar@mail.ru> <200710271855.52866.arvidjaar@mail.ru> <47235727.30808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: multipart/signed;
+  boundary="nextPart2516943.8kO8jsetPJ";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hpsmtp-eml15.KPNXCHANGE.COM ([213.75.38.115]:42279 "EHLO
-	hpsmtp-eml15.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753134AbXJ0QQr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 27 Oct 2007 12:16:47 -0400
+Received: from mx34.mail.ru ([194.67.23.200]:20598 "EHLO mx34.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753357AbXJ0QtR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 27 Oct 2007 12:49:17 -0400
 In-Reply-To: <47235727.30808@gmail.com>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Frans Pop <elendil@planet.nl>
 
-Hmm. Things seem to have progressed since I was last online :-)
-
-With Alexey's original patch I also get a number of times:
-ACPI: element[12]->type = 1, expected string
+--nextPart2516943.8kO8jsetPJ
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 On Saturday 27 October 2007, Alexey Starikovskiy wrote:
 > As you wish... :) Please check the attached patch.
+>
 
-With 'battery_allow_extract_string_from_integer.patch' all info in /proc is 
-back and I now also see the new files in /sys/class/power_supply.
+Not sure why you need to reimplement acpi_extract_package, but ...
 
-The "OEM info" field (line 13 in BAT1/info) is empty, just as it was empty 
-in 2.6.23 too.
+Tested-by: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Tested-by: Frans Pop <elendil@planet.nl>
+--nextPart2516943.8kO8jsetPJ
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Cheers,
-Frans Pop
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHI2wHR6LMutpd94wRAprvAJ4wX4OVrjqYEfqEyJJpc+ZksinWlgCeL8Ly
+GnV7/diYr7hk8BJTInEmxuI=
+=u/P7
+-----END PGP SIGNATURE-----
+
+--nextPart2516943.8kO8jsetPJ--
