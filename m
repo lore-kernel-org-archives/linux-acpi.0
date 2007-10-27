@@ -1,93 +1,34 @@
-From: Anton Vorontsov <cbou@mail.ru>
+From: David Woodhouse <dwmw2@infradead.org>
 Subject: Re: [PATCH] 2.6.24-rc1: ensure "present" sysfs attribute even if
 	battery is absent
-Date: Sat, 27 Oct 2007 22:42:49 +0400
-Message-ID: <20071027184249.GA2982@zarina>
+Date: Sat, 27 Oct 2007 15:32:04 -0400
+Message-ID: <1193513524.2915.18.camel@shinybook.infradead.org>
 References: <200710272054.31160.arvidjaar@mail.ru>
-Reply-To: cbou@mail.ru
+	 <20071027184249.GA2982@zarina>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf8
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757505AbXJ0Sox@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200710272054.31160.arvidjaar@mail.ru>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dwmw2@infradead.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pentafluge.infradead.org ([213.146.154.40]:58494 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737AbXJ0Tby (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Oct 2007 15:31:54 -0400
+In-Reply-To: <20071027184249.GA2982@zarina>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: cbou@mail.ru
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, davidz@redhat.com, rhughes@redhat.com
 
-On Sat, Oct 27, 2007 at 08:54:30PM +0400, Andrey Borzenkov wrote:
-> I am not exactly sure about this one ... what other power_supply class drivers 
-> do? Should I fix HAL instead (but then, I do not know whether HAL is the only 
-> application that is using this interface).
+On Sat, 2007-10-27 at 22:42 +0400, Anton Vorontsov wrote:
+> Well, PROP_PRESENT wasn't my idea, currently it's used by pmu and
+> olpc drivers becuase it's not trivial to register/unregister their
+> batteries on physical insertion/removal. I have some plans to teach
+> at least pmu batteries to not use PROP_PRESENT. I don't have any
+> OLPC, thus I can't convert it.
 
-Well, PROP_PRESENT wasn't my idea, currently it's used by pmu and
-olpc drivers becuase it's not trivial to register/unregister their
-batteries on physical insertion/removal. I have some plans to teach
-at least pmu batteries to not use PROP_PRESENT. I don't have any
-OLPC, thus I can't convert it.
-
-To sum this: the good way to handle "missing" batteries is to
-unregister them, so they'll not show up in the /sys/class/power_supply.
-Is that possible with the ACPI?
-
-The good example is ds2760 batteries:
-
-drivers/power/ds2760_battery.c - is platform device
-drivers/w1/slaves/w1_ds2760.c - is w1 slave, which
-registers/unregisters pdevs on the detection/removal.
-
-> Subject: [PATCH] 2.6.24-rc1: ensure "present" sysfs attribute even if battery is absent
-
-Bad idea. Don't use present attribute, if possible.
-
-> From: Andrey Borzenkov <arvidjaar@mail.ru>
-> 
-> Ensure that we always have "present" attribute in sysfs. This is compatible
-> with procfs case where we had "present: no" if battery was not available.
-> 
-> This fixes HAL battery detection where it does pretend battery is present
-> but canot provide any value for it.
-> 
-> Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-> 
-> ---
-> 
->  drivers/acpi/battery.c |   11 ++++++++++-
->  1 files changed, 10 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 681e26b..6e67fcd 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -187,6 +187,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
->  	return 0;
->  }
->  
-> +static enum power_supply_property missing_battery_props[] = {
-> +	POWER_SUPPLY_PROP_PRESENT,
-> +};
-> +
->  static enum power_supply_property charge_battery_props[] = {
->  	POWER_SUPPLY_PROP_STATUS,
->  	POWER_SUPPLY_PROP_PRESENT,
-> @@ -389,8 +393,13 @@ static int acpi_battery_update(struct acpi_battery *battery)
->  {
->  	int saved_present = acpi_battery_present(battery);
->  	int result = acpi_battery_get_status(battery);
-> -	if (result || !acpi_battery_present(battery))
-> +	if (result)
->  		return result;
-> +	if (!acpi_battery_present(battery)) {
-> +		battery->bat.properties = missing_battery_props;
-> +		battery->bat.num_properties = ARRAY_SIZE(missing_battery_props);
-> +		return result;
-> +	}
->  	if (saved_present != acpi_battery_present(battery) ||
->  	    !battery->update_time) {
->  		battery->update_time = 0;
+Actually it's not hard to do that. It was done this way in response to a
+request from the userspace side. IIRC.
 
 -- 
-Anton Vorontsov
-email: cbou@mail.ru
-backup email: ya-cbou@yandex.ru
-irc://irc.freenode.net/bd2
+dwmw2
+
