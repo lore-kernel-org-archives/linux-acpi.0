@@ -1,63 +1,149 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: 2.6.24-rc1 acpi battery driver -> sysfs interface does not update
- correctly
-Date: Sun, 28 Oct 2007 15:58:20 +0300
-Message-ID: <4724876C.40608@gmail.com>
-References: <3e7b9f4b0710241114u73ad1d4bl34070b4fd2b18d63@mail.gmail.com>	 <471FABF5.1030406@gmail.com>	 <3e7b9f4b0710241417i7f0edeel6d11b8a3e4048243@mail.gmail.com>	 <471FBDF5.7000906@gmail.com>	 <3e7b9f4b0710241528j403e2ecboc29e03438034349a@mail.gmail.com>	 <3e7b9f4b0710241537i1d3db590u2220900e30ae0d1b@mail.gmail.com>	 <472008C5.8030906@gmail.com>	 <3e7b9f4b0710250231p2e562989s97033ee50d2e5ec2@mail.gmail.com>	 <3e7b9f4b0710270952r3e7ff889qe628cf9ff0c8361e@mail.gmail.com>	 <472373E9.3040207@gmail.com> <3e7b9f4b0710280506g18b9ec61h8cadc491877dd533@mail.gmail.com>
+From: Peter Clifton <pcjc2@cam.ac.uk>
+Subject: Re: System hard lock when closing lid(2nd try)
+Date: Sun, 28 Oct 2007 13:18:39 +0000
+Message-ID: <1193577519.6402.9.camel@pcjc2lap>
+References: <200710261741.50531.rasasi78@gmail.com>
+	 <1193483848.7171.3.camel@pcjc2lap>   <ffvaf8$99k$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:31227 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbXJ1M6q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2007 08:58:46 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so877821ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 28 Oct 2007 05:58:44 -0700 (PDT)
-In-Reply-To: <3e7b9f4b0710280506g18b9ec61h8cadc491877dd533@mail.gmail.com>
+Received: from ppsw-6.csi.cam.ac.uk ([131.111.8.136]:56246 "EHLO
+	ppsw-6.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330AbXJ1NSr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2007 09:18:47 -0400
+In-Reply-To: <ffvaf8$99k$1@ger.gmane.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ash Milsted <thatistosayiseenem@gawab.com>
+To: =?ISO-8859-1?Q?Ra=FAl_S=E1nchez?= Siles <rasasi78@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-Ash Milsted wrote:
-> On 27/10/2007, Alexey Starikovskiy <aystarik@gmail.com> wrote:
->> Ash Milsted wrote:
->>> Hi again,
->>> I just thought I'd say that this is still occuring with the current
->>> linux-acpi-2.6 git tree on top of Linus' latest.. I don't get
->>> (dis)charge uevents and, oddly, the sysfs charge_now value is
->> As I remember, you did not found uevents in 2.6.23 as well?
-> 
-> Yeah, no uevents for (dis)charges or (un)plugs in 2.6.23.
-> 
->>> initially wrong on boot-up. For some reason it gives a value of about
->>> half the full charge of the battery (no matter what the true value is)
->>> until I read it a couple of times, at which point it corrects itself.
-> 
-> Reading the sysfs value is, it turns out, not necessary to trigger
-> this single update (which also sends a change uevent). I guess this is
-> just the battery driver grabbing the initial value - after that there
-> are no more change uevents.
-> 
->>> I attach a few extra details, in case they help.
->> your acpidump output might be usefull at this point.
-> 
-> Attached.
-> 
-Ok, it seems to be related with ECDY variable of your DSDT.
-It is equal to 5 by default, but could be set to 0 or 3 if _OS string matches 
-some magic length (guess Linux does not match).
-BST (method for reading state out of memory) may send notify event if ECDY 
-is 1 (it will become this only uevent you see at very start).
-I do not see how battery driver could help in this situation.
-What you could do is try to play with acpi_os variable so that ECDY becomes 0.
-You also could patch your DSDT to have ECDY=0 always (or try to update BIOS, it might be done already).
 
+On Sat, 2007-10-27 at 14:20 +0200, Ra=C3=BAl S=C3=A1nchez Siles wrote:
+> Hello:
+>=20
+> Peter Clifton wrote:
+>=20
+> >=20
+> > On Fri, 2007-10-26 at 17:41 +0200, Ra=C3=BAl S=C3=A1nchez Siles wro=
+te:
+> >>   Hello All:
+> >>=20
+> >>   Some time ago(2007/09/17) I wrote this e-mail:
+> >>=20
+> >> Ra=C3=BAl S=C3=A1nchez Siles wrote:
+> >>=20
+> >> >   Hello all:
+> >> >=20
+> >> >   I've searched for a more user related ML, but this is the clos=
+est
+> >> >   I've
+> >> > found. I own a Dell inspiron 510m laptop which include the HW li=
+sted at
+> >> > [1]
+> >> >=20
+> > >   As you can see there the graphics card is an intel 855GM. The n=
+ewer
+> xorg
+> > > intel driver tries to save power by disabling one of the video ou=
+tput
+> > > pipes of the card, the one that could drive an external VGA monit=
+or. As
+> a
+> > > result, someone told me that the system enters in SMM (System Man=
+agement
+> > > Mode), leaves the system in such a state that the system ends up =
+locking
+> > > totally: no ssh connection or sys-rq combination works, just hard=
+ power
+> > > off. More details at https://bugs.freedesktop.org/show_bug.cgi?id=
+=3D11432
+> >>=20
+> >>   The lid problem stills exist on a current Xorg version, even wit=
+h intel
+> >> video driver git version. I'm not surprised since I suspect heavil=
+y on a
+> >> BIOS problem. I'm coming back with more attached info:
+> >=20
+>   Thanks a lot for your reply, Peter. :)
+>=20
+> > There is probably a BIOS issue (from reports I've seen on this issu=
+e),
+> > however the git version of the xserver-xorg-video-intel driver does=
+ not
+> > address a couple of crashes with 855 hardware which are caused by t=
+he X
+> > driver writing registers in the card.
+> >=20
+> >
+> http://www2.eng.cam.ac.uk/~pcjc2/ubuntu/xserver-xorg-video-intel_2.1.=
+1-0ubuntu10~pcjc2.2.diff.gz
+>=20
+> >=20
+> > Shows the diff applied to a (yet unreleased) Ubuntu package for the
+> > drivers. (Applies against 2.1.1 release version). You should be abl=
+e to
+> > find the patches in the debian/patches/ dir which the diff creates.
+> >=20
+> I've been following this thread on the xorg-devel ML, and I have thos=
+e
+> patches queued for testing ;)
+>=20
+> > It might be worth looking at these, and revisiting the BIOS issue i=
+f (as
+> > is unfortunately likely) if there remains an issue.
+> >=20
+>=20
+> If you pay attention to https://bugs.freedesktop.org/show_bug.cgi?id=3D=
+11432 I
+> had published there a patch (comment #23) there that has been happily
+> working for me since I post it (yet it works). But what it does is ug=
+ly and
+> has drawbacks as explained there so I still consider it a workaround =
+and
+> not a final solution.
+>=20
+> That's the reason I came here, to check out wether the Linux kernel c=
+ould
+> address the issue.
 
+I guess this depends on whether it turns out to be ACPI code which is
+poking the video chip when you close / open the lid. Please try the
+above patches without the patch from comment #23, as there is a chance
+it will still improve things. (It'd be good to identify which cases it
+does help in).
 
+There might of course be a similar test required in the display
+detection code which enables PipeA temporarily, as in the Video overlay
+enable code. If it still crashes with the patches I wrote, it would be
+good to find out exactly what line in the driver locks the system up in
+your case. I guess it might be a register access to PIPEACONF somewhere=
+=2E
 
+=46or the patches I made, I added lots of driver print messages, before
+and after suspect register accesses, added a sync(); call after each
+message, and got my tester to work with hard-drive write-caching
+switched off. (This got the log entries previous to the hang to disk.)
 
+Please let us know on the xorg mailing-list if you discover anything
+interesting!
 
+Regards,
 
- 
+--=20
+Peter Clifton
+
+Electrical Engineering Division,
+Engineering Department,
+University of Cambridge,
+9, JJ Thomson Avenue,
+Cambridge
+CB3 0FA
+
+Tel: +44 (0)7729 980173 - (No signal in the lab!)
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
