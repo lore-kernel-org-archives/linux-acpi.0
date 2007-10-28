@@ -1,43 +1,42 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: System hard lock when closing lid(2nd try)
-Date: Sun, 28 Oct 2007 10:16:01 +0100
-Message-ID: <20071028091601.GM2301@gamma.logic.tuwien.ac.at>
-References: <200710261741.50531.rasasi78@gmail.com> <1193483848.7171.3.camel@pcjc2lap>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: new Linux/ACPI home page
+Date: Sun, 28 Oct 2007 12:17:16 +0100
+Message-ID: <20071028111716.GF14485@elf.ucw.cz>
+References: <200710251507.56335.lenb@kernel.org> <4720ED77.6090109@gmail.com> <200710251629.19006.lenb@kernel.org> <200710252323.45234.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:48590 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbXJ1KFF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2007 06:05:05 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:38135 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390AbXJ1LRH (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 28 Oct 2007 07:17:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1193483848.7171.3.camel@pcjc2lap>
+In-Reply-To: <200710252323.45234.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Clifton <pcjc2@cam.ac.uk>
-Cc: =?iso-8859-15?Q?Ra=FAl_S=E1nchez?= Siles <rasasi78@gmail.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, Linux-acpi@vger.kernel.org
 
-On Sa, 27 Okt 2007, Peter Clifton wrote:
-> http://www2.eng.cam.ac.uk/~pcjc2/ubuntu/xserver-xorg-video-intel_2.1.1-0ubuntu10~pcjc2.2.diff.gz
+Hi!
 
-Any chances that all these patches (there are quite a lot in there!) are
-included in the Debian packages, too? It seems that several of these
-patches might be of interest for us, too.
+> > yes, acpidump would be more useful than just the DSDT --
+> > as we get all kinds of issues with all the tables.
+> > 
+> > One problem is that shipping around BIOS images, particularly
+> > modified ones, is sort of a touchy area.  This is the code
+> > of the manufacturer, who may or may not be happy that the
+> > community is hacking their code.  If any of those manufactureres
+> > got mad at Intel for mucking with their BIOS code,
+> > that would be a bad day for we Intel employees.
+> > 
+> > lesswatts.org is hosted by Intel.  So we'd need to
+> > sort though this issue before adding an acpidump database.
+> 
+> Well, we have suspend.sf.net and the acpidump database can safely be put in
+> there, I think. ;-)
 
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-DORRIDGE (n.)
-Technical term for one of the lame excuses written in very small print
-on the side of packets of food or washing powder to explain why
-there's hardly anything inside. Examples include 'Contents may have
-settled in transit' and 'To keep each biscuit fresh they have been
-individually wrapped in silver paper and cellophane and separated with
-corrugated lining, a cardboard flap, and heavy industrial tyres'.
-			--- Douglas Adams, The Meaning of Liff
+Agreed.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
