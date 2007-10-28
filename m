@@ -1,62 +1,81 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: acpi problems on a medion 8800 desktop pc
-Date: Sun, 28 Oct 2007 02:58:36 +0200
-Message-ID: <1193533116.3974.11.camel@fanta4.site>
-References: <200710272055.27056.bart.van.rillaer@gmail.com>
-	 <472398C4.1030308@gmail.com>
-Reply-To: trenn@suse.de
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] 2.6.24-rc1: ensure "present" sysfs attribute even if battery is absent
+Date: Sun, 28 Oct 2007 10:50:45 +0400
+Message-ID: <200710280950.46779.arvidjaar@mail.ru>
+References: <200710272054.31160.arvidjaar@mail.ru> <20071027184249.GA2982@zarina>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart3230126.ZlRjpxZkLj";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:49655 "EHLO mx2.suse.de"
+Received: from mx30.mail.ru ([194.67.23.238]:11791 "EHLO mx30.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792AbXJ1A6i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 27 Oct 2007 20:58:38 -0400
-In-Reply-To: <472398C4.1030308@gmail.com>
+	id S1750740AbXJ1Guv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Oct 2007 02:50:51 -0400
+In-Reply-To: <20071027184249.GA2982@zarina>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Bart <bart.van.rillaer@gmail.com>, linux-acpi@vger.kernel.org
+To: cbou@mail.ru
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dwmw2@infradead.org, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Sun, 2007-10-28 at 00:00 +0400, Alexey Starikovskiy wrote:
-> Bart wrote:
-> > Hi,
-> >=20
-> > Currently I'm having two acpi problems on linux.
-> >=20
-> > 1. My temperature is reported as -47=C2=B0C (THRM/temperature).
-> > 2. And sometimes the pc is automatically shutdown due to a critical=
+--nextPart3230126.ZlRjpxZkLj
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Saturday 27 October 2007, Anton Vorontsov wrote:
+> On Sat, Oct 27, 2007 at 08:54:30PM +0400, Andrey Borzenkov wrote:
+> > I am not exactly sure about this one ... what other power_supply class
+> > drivers do? Should I fix HAL instead (but then, I do not know whether H=
+AL
+> > is the only application that is using this interface).
+>
+> Well, PROP_PRESENT wasn't my idea, currently it's used by pmu and
+> olpc drivers becuase it's not trivial to register/unregister their
+> batteries on physical insertion/removal. I have some plans to teach
+> at least pmu batteries to not use PROP_PRESENT. I don't have any
+> OLPC, thus I can't convert it.
+>
+> To sum this: the good way to handle "missing" batteries is to
+> unregister them, so they'll not show up in the /sys/class/power_supply.
+
+Well, in this case HAL behaviour makes sense (default to present =3D=3D tru=
+e=20
+if "present" attribute is missing)
+
+> Is that possible with the ACPI?
+>
+
+At least looking in ACPI specs, this looks possible. What currently is=20
+presented as battery object is actually battery bay according to ACPI spec:
+
+Unlike most other devices, when a battery is inserted or removed from the=20
+system, the device itself (the
+battery bay) is still considered to be present in the system.
+
+When battery is inserted/removed, ACPI notifies us and we can check whether=
 =20
-> > temperature event (not often).
-> First, check if you use lm_sensors.
-> They work with the same hardware as ACPI, and might cause wrong readi=
-ngs.
+battery is actually present and update registration accordingly. From the=20
+sysfs structure POV probably nothing has to be changed; just when and how=20
+power_supply is registered=20
+under /sys/devices/LNXSYSTM:00/device:00/PNP0C0A:0n
 
-Yep, it's probably that.
-Temperature is read through these ports:
-    OperationRegion (SEN1, SystemIO, 0x0295, 0x02)
-    Field (SEN1, ByteAcc, NoLock, Preserve)
-    {
-        SEI0,   8,
-        SED0,   8
-    }
+Alexey, does it make sense (or doable)?
 
-There was another bug report where these were also accessed via sensor
-modules...
-This should be caught by the acpi vs native interference checker in
-future.
-Bart: Those patches will pop up in next -mm release, it would be great
-if you can give them a try. You should see a message in your syslog the=
-n
-that a module failed to load...
 
-Thanks,
+--nextPart3230126.ZlRjpxZkLj
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-    Thomas
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iD8DBQBHJDFGR6LMutpd94wRAqqkAJ9nX27iHO3qWc1pC5L21TJjAm2nWwCfemi3
+f2od9RViOmueN4E3Sl+67KI=
+=UncZ
+-----END PGP SIGNATURE-----
+
+--nextPart3230126.ZlRjpxZkLj--
