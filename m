@@ -1,263 +1,34 @@
-From: Mauricio Pretto <mauricio@projetofedora.org>
-Subject: DMIDECODE , HP Pavilion dv9540US
-Date: Sun, 28 Oct 2007 22:33:13 -0200
-Message-ID: <47252A49.4020108@projetofedora.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
+Date: Sun, 28 Oct 2007 20:50:33 -0600
+Message-ID: <200710282050.34166.bjorn.helgaas@hp.com>
+References: <1193236319.4590.225.camel@queen.suse.de> <200710250906.23003.bjorn.helgaas@hp.com> <20071027150947.GA1568@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from server129.chihost.com ([69.65.26.29]:38398 "EHLO
-	server129.chihost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbXJ2BH5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2007 21:07:57 -0400
-Received: from localhost ([127.0.0.1] helo=[192.168.1.253])
-	by server129.chihost.com with esmtpa (Exim 4.68)
-	(envelope-from <mauricio@projetofedora.org>)
-	id 1ImIb4-0007yR-Mw
-	for linux-acpi@vger.kernel.org; Sun, 28 Oct 2007 19:35:15 -0500
+Received: from atlrel8.hp.com ([156.153.255.206]:48223 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750848AbXJ2Cww (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Oct 2007 22:52:52 -0400
+In-Reply-To: <20071027150947.GA1568@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
 
-# dmidecode 2.7
-SMBIOS 2.4 present.
-19 structures occupying 735 bytes.
-Table at 0x7FEDF000.
+On Saturday 27 October 2007 9:09:47 am Matthew Garrett wrote:
+> On Thu, Oct 25, 2007 at 09:06:22AM -0600, Bjorn Helgaas wrote:
+> > But we really *should* reserve things used by opregions, shouldn't
+> > we?  After all, the whole point of resource reservation is to prevent
+> > conflicts.
+>
+> Only if you're happy to lose functionality like IDE, sadly.
 
-Handle 0x0000, DMI type 0, 24 bytes.
-BIOS Information
-         Vendor: Hewlett-Packard
-         Version: F.09
-         Release Date: 06/11/2007
-         Address: 0xE6780
-         Runtime Size: 104576 bytes
-         ROM Size: 1024 kB
-         Characteristics:
-                 ISA is supported
-                 PCI is supported
-                 PNP is supported
-                 BIOS is upgradeable
-                 BIOS shadowing is allowed
-                 ESCD support is available
-                 Boot from CD is supported
-                 Selectable boot is supported
-                 Print screen service is supported (int 5h)
-                 8042 keyboard services are supported (int 9h)
-                 Serial services are supported (int 14h)
-                 Printer services are supported (int 17h)
-                 ACPI is supported
-                 USB legacy is supported
-                 AGP is supported
-                 Smart battery is supported
-                 BIOS boot specification is supported
-                 Targeted content distribution is supported
+That's a simplistic answer to a complex problem.  I don't think
+we should just ignore the whole problem, cross our fingers, and
+hope that firmware stays out of our way.
 
-Handle 0x0001, DMI type 1, 27 bytes.
-System Information
-         Manufacturer: Hewlett-Packard
-         Product Name: HP Pavilion dv9500 Notebook PC
-         Version: Rev 1
-         Serial Number: CNF7301MNP
-         UUID: 434E4637-3330-314D-4E50-001B24718C0D
-         Wake-up Type: Power Switch
-         SKU Number: GA336UA#ABA
-         Family: 103C_5335KV
-
-Handle 0x0002, DMI type 2, 8 bytes.
-Base Board Information
-         Manufacturer: Quanta
-         Product Name: 30CB
-         Version: 79.13
-         Serial Number: None
-
-Handle 0x0003, DMI type 3, 21 bytes.
-Chassis Information
-         Manufacturer: Quanta
-         Type: Notebook
-         Lock: Not Present
-         Version: N/A
-         Serial Number: None
-         Asset Tag:
-         Boot-up State: Safe
-         Power Supply State: Safe
-         Thermal State: Safe
-         Security Status: None
-         OEM Information: 0x00000004
-         Heigth: 32 U
-         Number Of Power Cords: 32
-
-Handle 0x0004, DMI type 4, 35 bytes.
-Processor Information
-         Socket Designation: U2E1
-         Type: Central Processor
-         Family: Other
-         Manufacturer: Intel
-         ID: FD 06 00 00 FF FB EB BF
-         Version: Intel(R) Core(TM)2 Duo CPU T5250
-         Voltage: 3.3 V
-         External Clock: 667 MHz
-         Max Speed: 1500 MHz
-         Current Speed: 1500 MHz
-         Status: Populated, Enabled
-         Upgrade: Socket 478
-         L1 Cache Handle: 0x0005
-         L2 Cache Handle: 0x0006
-         L3 Cache Handle: Not Provided
-         Serial Number: Not Specified
-         Asset Tag: Not Specified
-         Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes.
-Cache Information
-         Socket Designation: L1 Cache
-         Configuration: Enabled, Socketed, Level 1
-         Operational Mode: Write Back
-         Location: Internal
-         Installed Size: 64 KB
-         Maximum Size: 64 KB
-         Supported SRAM Types:
-                 Burst
-                 Pipeline Burst
-                 Asynchronous
-         Installed SRAM Type: Asynchronous
-         Speed: Unknown
-         Error Correction Type: Unknown
-         System Type: Unknown
-         Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes.
-Cache Information
-         Socket Designation: L2 Cache
-         Configuration: Enabled, Socketed, Level 2
-         Operational Mode: Write Back
-         Location: External
-         Installed Size: 2048 KB
-         Maximum Size: 2048 KB
-         Supported SRAM Types:
-                 Burst
-                 Pipeline Burst
-                 Asynchronous
-         Installed SRAM Type: Burst
-         Speed: Unknown
-         Error Correction Type: Unknown
-         System Type: Unknown
-         Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCI Express Slot 1
-         Type: 64-bit PCI Express
-         Current Usage: Available
-         Length: Long
-         Characteristics:
-                 5.0 V is provided
-                 3.3 V is provided
-
-Handle 0x0008, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCI Express Slot 2
-         Type: 64-bit PCI Express
-         Current Usage: Available
-         Length: Long
-         Characteristics:
-                 5.0 V is provided
-                 3.3 V is provided
-                 PME signal is supported
-                 Hot-plug devices are supported
-
-Handle 0x0009, DMI type 9, 13 bytes.
-System Slot Information
-         Designation: PCI Express Slot 6
-         Type: 64-bit PCI Express
-         Current Usage: Available
-         Length: Long
-         Characteristics:
-                 5.0 V is provided
-                 3.3 V is provided
-                 PME signal is supported
-
-Handle 0x000A, DMI type 10, 6 bytes.
-On Board Device Information
-         Type: Video
-         Status: Enabled
-         Description:
-
-Handle 0x000B, DMI type 11, 5 bytes.
-OEM Strings
-         String 1: $HP$
-         String 2: LOC#ABA
-         String 3: ABS 70/71 79 7A 7B 7C
-
-Handle 0x000C, DMI type 16, 15 bytes.
-Physical Memory Array
-         Location: System Board Or Motherboard
-         Use: System Memory
-         Error Correction Type: None
-         Maximum Capacity: 1000 MB
-         Error Information Handle: Not Provided
-         Number Of Devices: 2
-
-Handle 0x000D, DMI type 17, 27 bytes.
-Memory Device
-         Array Handle: 0x000C
-         Error Information Handle: No Error
-         Total Width: 64 bits
-         Data Width: 64 bits
-         Size: 1024 MB
-         Form Factor: DIMM
-         Set: 1
-         Locator: DIMM 1
-         Bank Locator: Bank 0,1
-         Type: DDR2
-         Type Detail: Synchronous
-         Speed: 667 MHz (1.5 ns)
-         Manufacturer: Not Specified
-         Serial Number: Not Specified
-         Asset Tag: Not Specified
-         Part Number: Not Specified
-
-Handle 0x000E, DMI type 17, 27 bytes.
-Memory Device
-         Array Handle: 0x000C
-         Error Information Handle: No Error
-         Total Width: 64 bits
-         Data Width: 64 bits
-         Size: 1024 MB
-         Form Factor: DIMM
-         Set: 1
-         Locator: DIMM 2
-         Bank Locator: Bank 2,3
-         Type: DDR2
-         Type Detail: Synchronous
-         Speed: 667 MHz (1.5 ns)
-         Manufacturer: Not Specified
-         Serial Number: Not Specified
-         Asset Tag: Not Specified
-         Part Number: Not Specified
-
-Handle 0x000F, DMI type 19, 15 bytes.
-Memory Array Mapped Address
-         Starting Address: 0x00000000000
-         Ending Address: 0x0007FFFFFFF
-         Range Size: 2 GB
-         Physical Array Handle: 0x000C
-         Partition Width: 0
-
-Handle 0x0010, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-         Starting Address: 0x00000000000
-         Ending Address: 0x0003FFFFFFF
-         Range Size: 1 GB
-         Physical Device Handle: 0x000D
-         Memory Array Mapped Address Handle: 0x000F
-         Partition Row Position: 2
-         Interleave Position: 2
-         Interleaved Data Depth: 2
-
-Handle 0x0011, DMI type 32, 20 bytes.
-System Boot Information
-         Status: <OUT OF SPEC>
-
-Handle 0x0012, DMI type 127, 4 bytes.
-End Of Table
-
+Bjorn
