@@ -1,40 +1,70 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with ACPI Operation Region resources
-Date: Mon, 29 Oct 2007 13:11:59 +0000
-Message-ID: <20071029131159.GA27283@srcf.ucam.org>
-References: <1193236319.4590.225.camel@queen.suse.de> <200710250906.23003.bjorn.helgaas@hp.com> <20071027150947.GA1568@srcf.ucam.org> <200710282050.34166.bjorn.helgaas@hp.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: Allow extract string from integer
+Date: Mon, 29 Oct 2007 23:29:40 +0300
+Message-ID: <20071029202938.16515.24421.stgit@samsung>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:44516 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbXJ2NVG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Oct 2007 09:21:06 -0400
-Content-Disposition: inline
-In-Reply-To: <200710282050.34166.bjorn.helgaas@hp.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:36610 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754661AbXJ2UaE (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 29 Oct 2007 16:30:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, Jean Delvare <khali@linux-fr.org>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Sun, Oct 28, 2007 at 08:50:33PM -0600, Bjorn Helgaas wrote:
-> On Saturday 27 October 2007 9:09:47 am Matthew Garrett wrote:
-> > On Thu, Oct 25, 2007 at 09:06:22AM -0600, Bjorn Helgaas wrote:
-> > > But we really *should* reserve things used by opregions, shouldn't
-> > > we?  After all, the whole point of resource reservation is to prevent
-> > > conflicts.
-> >
-> > Only if you're happy to lose functionality like IDE, sadly.
-> 
-> That's a simplistic answer to a complex problem.  I don't think
-> we should just ignore the whole problem, cross our fingers, and
-> hope that firmware stays out of our way.
+Some machines return integer instead of expected string.
 
-Right now, there's not really any other way of handling it. The firmware 
-may screw with pretty much everything, and it might even be safe for it 
-to do so in many cases. In any case, you don't necessarily win that much 
-by registering all the opregions, since SMI can go behind your back and 
-write to stuff that's not declared in the DSDT anyway.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+ drivers/acpi/battery.c |   25 +++++++++++++++----------
+ 1 files changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 02a396d..6c06879 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -260,7 +260,7 @@ static int extract_package(struct acpi_battery *battery,
+ 			   union acpi_object *package,
+ 			   struct acpi_offsets *offsets, int num)
+ {
+-	int i, *x;
++	int i;
+ 	union acpi_object *element;
+ 	if (package->type != ACPI_TYPE_PACKAGE)
+ 		return -EFAULT;
+@@ -269,16 +269,21 @@ static int extract_package(struct acpi_battery *battery,
+ 			return -EFAULT;
+ 		element = &package->package.elements[i];
+ 		if (offsets[i].mode) {
+-			if (element->type != ACPI_TYPE_STRING &&
+-			    element->type != ACPI_TYPE_BUFFER)
+-				return -EFAULT;
+-			strncpy((u8 *)battery + offsets[i].offset,
+-				element->string.pointer, 32);
++			u8 *ptr = (u8 *)battery + offsets[i].offset;
++			if (element->type == ACPI_TYPE_STRING ||
++			    element->type == ACPI_TYPE_BUFFER)
++				strncpy(ptr, element->string.pointer, 32);
++			else if (element->type == ACPI_TYPE_INTEGER) {
++				strncpy(ptr, (u8 *)&element->integer.value,
++					sizeof(acpi_integer));
++				ptr[sizeof(acpi_integer)] = 0;
++			} else return -EFAULT;
+ 		} else {
+-			if (element->type != ACPI_TYPE_INTEGER)
+-				return -EFAULT;
+-			x = (int *)((u8 *)battery + offsets[i].offset);
+-			*x = element->integer.value;
++			if (element->type == ACPI_TYPE_INTEGER) {
++				int *x = (int *)((u8 *)battery +
++						offsets[i].offset);
++				*x = element->integer.value;
++			} else return -EFAULT;
+ 		}
+ 	}
+ 	return 0;
+
