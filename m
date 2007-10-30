@@ -1,138 +1,52 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 6/7] ACPI: thinkpad-acpi: allow for syscall restart in sysfs handlers
-Date: Tue, 30 Oct 2007 17:46:24 -0200
-Message-ID: <1193773585-17202-7-git-send-email-hmh@hmh.eng.br>
-References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
+Subject: [GIT PATCH] thinkpad-acpi patches for 2.6.24-rc
+Date: Tue, 30 Oct 2007 17:46:18 -0200
+Message-ID: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44855 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44102 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756558AbXJ3Tqd (ORCPT
+	by vger.kernel.org with ESMTP id S1755880AbXJ3Tqb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:46:33 -0400
-In-Reply-To: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
+	Tue, 30 Oct 2007 15:46:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jean Delvare <khali@linux-fr.org>, Peter Jordan <usernetwork@gmx.info>, Richard Neill <rn214@hermes.cam.ac.uk>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Map an mutex_lock_interruptible() error return into ERESTARTSYS, as the
-only possible error from mutex_lock_interruptible is EINTR, and that will
-only happen if signal_pending() causes the mutex lock attempt to abort.
+Len,
 
-This still allows signals to be delivered ASAP, which is much nicer than
-just doing mutex_lock, and still shadows userspace from EINTR when
-SA_RESTART is active.
+Here is a bunch of thinkpad-acpi changes that fixes some bugs and add key
+thinkpad models support that should, if at all possible, be merged for
+2.6.24.
 
-Problem reported by Peter Jordan.
+They are really important for ThinkPad X60, T61 and R61 users, and the
+first patch unbreaks the ThinkPad ACPI hotkey map in all IBM ThinkPads on
+several distros.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Peter Jordan <usernetwork@gmx.info>
-Cc: Richard Neill <rn214@hermes.cam.ac.uk>
----
- drivers/misc/thinkpad_acpi.c |   40 ++++++++++++++++------------------------
- 1 files changed, 16 insertions(+), 24 deletions(-)
+Please consider sending this patch set to Linus for merging after -rc2 is
+out.
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 251110d..306daa5 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1342,9 +1342,8 @@ static int hotkey_read(char *p)
- 		return len;
- 	}
- 
--	res = mutex_lock_interruptible(&hotkey_mutex);
--	if (res < 0)
--		return res;
-+	if (mutex_lock_interruptible(&hotkey_mutex))
-+		return -ERESTARTSYS;
- 	res = hotkey_get(&status, &mask);
- 	mutex_unlock(&hotkey_mutex);
- 	if (res)
-@@ -1373,9 +1372,8 @@ static int hotkey_write(char *buf)
- 	if (!tp_features.hotkey)
- 		return -ENODEV;
- 
--	res = mutex_lock_interruptible(&hotkey_mutex);
--	if (res < 0)
--		return res;
-+	if (mutex_lock_interruptible(&hotkey_mutex))
-+		return -ERESTARTSYS;
- 
- 	res = hotkey_get(&status, &mask);
- 	if (res)
-@@ -3768,9 +3766,8 @@ static ssize_t fan_pwm1_store(struct device *dev,
- 	/* scale down from 0-255 to 0-7 */
- 	newlevel = (s >> 5) & 0x07;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 
- 	rc = fan_get_status(&status);
- 	if (!rc && (status &
-@@ -4020,9 +4017,8 @@ static int fan_get_status_safe(u8 *status)
- 	int rc;
- 	u8 s;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 	rc = fan_get_status(&s);
- 	if (!rc)
- 		fan_update_desired_level(s);
-@@ -4156,9 +4152,8 @@ static int fan_set_level_safe(int level)
- 	if (!fan_control_allowed)
- 		return -EPERM;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 
- 	if (level == TPACPI_FAN_LAST_LEVEL)
- 		level = fan_control_desired_level;
-@@ -4179,9 +4174,8 @@ static int fan_set_enable(void)
- 	if (!fan_control_allowed)
- 		return -EPERM;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 
- 	switch (fan_control_access_mode) {
- 	case TPACPI_FAN_WR_ACPI_FANS:
-@@ -4235,9 +4229,8 @@ static int fan_set_disable(void)
- 	if (!fan_control_allowed)
- 		return -EPERM;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 
- 	rc = 0;
- 	switch (fan_control_access_mode) {
-@@ -4274,9 +4267,8 @@ static int fan_set_speed(int speed)
- 	if (!fan_control_allowed)
- 		return -EPERM;
- 
--	rc = mutex_lock_interruptible(&fan_mutex);
--	if (rc < 0)
--		return rc;
-+	if (mutex_lock_interruptible(&fan_mutex))
-+		return -ERESTARTSYS;
- 
- 	rc = 0;
- 	switch (fan_control_access_mode) {
+All patches in it have been tested, and all comments the individual patches
+received (some of them are not new) have been addressed.
+
+As usual, the patch set is available at:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-release
+
+Shortlog of the above branch:
+
+Henrique de Moraes Holschuh (7):
+      ACPI: thinkpad-acpi: revert keymap changes
+      ACPI: thinkpad-acpi: support 16 levels of brightness (v3)
+      ACPI: thinkpad-acpi: add brightness_force parameter
+      ACPI: thinkpad-acpi: prefer standard ACPI backlight level control
+      ACPI: thinkpad-acpi: bump up version to 0.17
+      ACPI: thinkpad-acpi: allow for syscall restart in sysfs handlers
+      ACPI: thinkpad-acpi: fix brightness_set error paths
+
+Thanks.
+
 -- 
-1.5.3.4
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
