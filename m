@@ -1,255 +1,306 @@
-From: "C. Tsiafou" <ctsiafou@gmail.com>
-Subject: #Please send dmidecode to linux-acpi@vger.kernel.org
-Date: Tue, 30 Oct 2007 10:33:42 +0200
-Message-ID: <79e95b430710300133n30c6bdeevbd6a42ebd2e99720@mail.gmail.com>
+From: Mateusz Jedrasik <m.jedrasik@gmail.com>
+Subject: compal el80 dmidecode
+Date: Tue, 30 Oct 2007 10:53:41 +0100
+Message-ID: <200710301053.41701.m.jedrasik@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_1042_16832108.1193733227783"
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_l8vJHrrduluO2H3"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:34037 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753929AbXJ3Idu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 04:33:50 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so1554036nfb
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2007 01:33:48 -0700 (PDT)
+Received: from ug-out-1314.google.com ([66.249.92.169]:42776 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752993AbXJ3Jx5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 05:53:57 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so75343ugc
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2007 02:53:53 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-------=_Part_1042_16832108.1193733227783
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+--Boundary-00=_l8vJHrrduluO2H3
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-Dear Sir,Madam
-During the boot of my suse10.3 system I have a message (attached --
-bootmsg-part). I also send you the dmidecode
-Please advice.
-Thank you in advance.
+ACPI: If "acpi_osi=3DLinux" works better,
+Please send dmidecode to linux-acpi@vger.kernel.org
 
-Sincerely,
+Sending, accordingly. My laptop's a compal EL80. Very common machine.
 
-Costas
+Cheers!
+=2D-=20
+Mateusz J=C4=99drasik <m.jedrasik@gmail.com>
+http://imachine.szklo.eu.org
 
-------=_Part_1042_16832108.1193733227783
-Content-Type: application/octet-stream; name=bootmsg-part
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f8e5npx10
-Content-Disposition: attachment; filename=bootmsg-part
+--Boundary-00=_l8vJHrrduluO2H3
+Content-Type: text/plain;
+  charset="us-ascii";
+  name="compal_el80.dmi"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="compal_el80.dmi"
 
-PDQ+SW5pdGlhbGl6aW5nIERldmljZS9Qcm9jZXNzb3IvVGhlcm1hbCBvYmplY3RzIGJ5IGV4ZWN1
-dGluZyBfSU5JCm1ldGhvZHM6PDQ+QUNQSTogU3lzdGVtIEJJT1MgaXMgcmVxdWVzdGluZyBfT1NJ
-KExpbnV4KQo8ND5BQ1BJOiBQbGVhc2UgdGVzdCB3aXRoICJhY3BpX29zaT0hTGludXgiCjw0PlBs
-ZWFzZSBzZW5kIGRtaWRlY29kZSB0byBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw==
-------=_Part_1042_16832108.1193733227783
-Content-Type: application/octet-stream; name=dmidecode
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f8e5pxxv1
-Content-Disposition: attachment; filename=dmidecode
+# dmidecode 2.9
+SMBIOS 2.4 present.
+22 structures occupying 970 bytes.
+Table at 0x000DC010.
 
-cGMtMjEwOi9ob21lL2Nvc3RhcyAjIGRtaWRlY29kZSAKIyBkbWlkZWNvZGUgMi45ClNNQklPUyAy
-LjQgcHJlc2VudC4KMzcgc3RydWN0dXJlcyBvY2N1cHlpbmcgMTIxNyBieXRlcy4KVGFibGUgYXQg
-MHgzRkVFQTAwMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5m
-b3JtYXRpb24KICAgICAgICBWZW5kb3I6IEZVSklUU1UgU0lFTUVOUwogICAgICAgIFZlcnNpb246
-IDEuMTcKICAgICAgICBSZWxlYXNlIERhdGU6IDA5LzI5LzIwMDYKICAgICAgICBST00gU2l6ZTog
-NjQga0IKICAgICAgICBDaGFyYWN0ZXJpc3RpY3M6CiAgICAgICAgICAgICAgICBJU0EgaXMgc3Vw
-cG9ydGVkCiAgICAgICAgICAgICAgICBQQ0kgaXMgc3VwcG9ydGVkCiAgICAgICAgICAgICAgICBQ
-QyBDYXJkIChQQ01DSUEpIGlzIHN1cHBvcnRlZAogICAgICAgICAgICAgICAgUE5QIGlzIHN1cHBv
-cnRlZAogICAgICAgICAgICAgICAgQVBNIGlzIHN1cHBvcnRlZAogICAgICAgICAgICAgICAgQklP
-UyBpcyB1cGdyYWRlYWJsZQogICAgICAgICAgICAgICAgQklPUyBzaGFkb3dpbmcgaXMgYWxsb3dl
-ZAogICAgICAgICAgICAgICAgRVNDRCBzdXBwb3J0IGlzIGF2YWlsYWJsZQogICAgICAgICAgICAg
-ICAgQm9vdCBmcm9tIENEIGlzIHN1cHBvcnRlZAogICAgICAgICAgICAgICAgQUNQSSBpcyBzdXBw
-b3J0ZWQKICAgICAgICAgICAgICAgIFVTQiBsZWdhY3kgaXMgc3VwcG9ydGVkCiAgICAgICAgICAg
-ICAgICBBR1AgaXMgc3VwcG9ydGVkCiAgICAgICAgICAgICAgICBCSU9TIGJvb3Qgc3BlY2lmaWNh
-dGlvbiBpcyBzdXBwb3J0ZWQKCkhhbmRsZSAweDAwMDEsIERNSSB0eXBlIDEsIDI3IGJ5dGVzClN5
-c3RlbSBJbmZvcm1hdGlvbgogICAgICAgIE1hbnVmYWN0dXJlcjogRlVKSVRTVSBTSUVNRU5TCiAg
-ICAgICAgUHJvZHVjdCBOYW1lOiBBTUlMTyBQaSAxNTM2CiAgICAgICAgVmVyc2lvbjogTm90IEFw
-cGxpY2FibGUKICAgICAgICBTZXJpYWwgTnVtYmVyOiA1MzExQjE3RgogICAgICAgIFVVSUQ6IDgw
-NjY3QTUyLUNENjMtMDAxMC04MTgwLTlENTkyNzA1MjdEMQogICAgICAgIFdha2UtdXAgVHlwZTog
-UG93ZXIgU3dpdGNoCiAgICAgICAgU0tVIE51bWJlcjogTm90IFNwZWNpZmllZAogICAgICAgIEZh
-bWlseTogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwMiwgRE1JIHR5cGUgMiwgOCBieXRlcwpC
-YXNlIEJvYXJkIEluZm9ybWF0aW9uCiAgICAgICAgTWFudWZhY3R1cmVyOiBGVUpJVFNVIFNJRU1F
-TlMKICAgICAgICBQcm9kdWN0IE5hbWU6IEFNSUxPIFBpIDE1MzYKICAgICAgICBWZXJzaW9uOiBO
-b3QgQXBwbGljYWJsZQogICAgICAgIFNlcmlhbCBOdW1iZXI6IE5vdCBBcHBsaWNhYmxlCgpIYW5k
-bGUgMHgwMDAzLCBETUkgdHlwZSAzLCAxNyBieXRlcwpDaGFzc2lzIEluZm9ybWF0aW9uCiAgICAg
-ICAgTWFudWZhY3R1cmVyOiBGVUpJVFNVIFNJRU1FTlMKICAgICAgICBUeXBlOiBOb3RlYm9vawog
-ICAgICAgIExvY2s6IE5vdCBQcmVzZW50CiAgICAgICAgVmVyc2lvbjogTm90IEFwcGxpY2FibGUK
-ICAgICAgICBTZXJpYWwgTnVtYmVyOiBOb3QgQXBwbGljYWJsZQogICAgICAgIEFzc2V0IFRhZzog
-Tm90IEFwcGxpY2FibGUKICAgICAgICBCb290LXVwIFN0YXRlOiBTYWZlCiAgICAgICAgUG93ZXIg
-U3VwcGx5IFN0YXRlOiBTYWZlCiAgICAgICAgVGhlcm1hbCBTdGF0ZTogU2FmZQogICAgICAgIFNl
-Y3VyaXR5IFN0YXR1czogTm9uZQogICAgICAgIE9FTSBJbmZvcm1hdGlvbjogMHgwMDAwMTIzNAoK
-SGFuZGxlIDB4MDAwNCwgRE1JIHR5cGUgNCwgMzUgYnl0ZXMKUHJvY2Vzc29yIEluZm9ybWF0aW9u
-CiAgICAgICAgU29ja2V0IERlc2lnbmF0aW9uOiBVMkUxCiAgICAgICAgVHlwZTogQ2VudHJhbCBQ
-cm9jZXNzb3IKICAgICAgICBGYW1pbHk6IE90aGVyCiAgICAgICAgTWFudWZhY3R1cmVyOiBJbnRl
-bAogICAgICAgIElEOiBGNiAwNiAwMCAwMCBGRiBGQiBFQiBCRgogICAgICAgIFZlcnNpb246IElu
-dGVsKFIpIENvcmUoVE0pMiBDUFUgICAgICAgICBUNwogICAgICAgIFZvbHRhZ2U6IDMuMyBWCiAg
-ICAgICAgRXh0ZXJuYWwgQ2xvY2s6IFVua25vd24KICAgICAgICBNYXggU3BlZWQ6IDIwNDggTUh6
-CiAgICAgICAgQ3VycmVudCBTcGVlZDogMjAwMCBNSHoKICAgICAgICBTdGF0dXM6IFBvcHVsYXRl
-ZCwgRW5hYmxlZAogICAgICAgIFVwZ3JhZGU6IFpJRiBTb2NrZXQKICAgICAgICBMMSBDYWNoZSBI
-YW5kbGU6IDB4MDAwNQogICAgICAgIEwyIENhY2hlIEhhbmRsZTogMHgwMDA2CiAgICAgICAgTDMg
-Q2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQKICAgICAgICBTZXJpYWwgTnVtYmVyOiBOb3QgU3Bl
-Y2lmaWVkCiAgICAgICAgQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVkCiAgICAgICAgUGFydCBOdW1i
-ZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAweDAwMDUsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNh
-Y2hlIEluZm9ybWF0aW9uCiAgICAgICAgU29ja2V0IERlc2lnbmF0aW9uOiBMMSBDYWNoZQogICAg
-ICAgIENvbmZpZ3VyYXRpb246IEVuYWJsZWQsIFNvY2tldGVkLCBMZXZlbCAxCiAgICAgICAgT3Bl
-cmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawogICAgICAgIExvY2F0aW9uOiBJbnRlcm5hbAogICAg
-ICAgIEluc3RhbGxlZCBTaXplOiAxNiBLQgogICAgICAgIE1heGltdW0gU2l6ZTogMTYgS0IKICAg
-ICAgICBTdXBwb3J0ZWQgU1JBTSBUeXBlczoKICAgICAgICAgICAgICAgIEJ1cnN0CiAgICAgICAg
-ICAgICAgICBQaXBlbGluZSBCdXJzdAogICAgICAgICAgICAgICAgQXN5bmNocm9ub3VzCiAgICAg
-ICAgSW5zdGFsbGVkIFNSQU0gVHlwZTogQXN5bmNocm9ub3VzCiAgICAgICAgU3BlZWQ6IFVua25v
-d24KICAgICAgICBFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KICAgICAgICBTeXN0ZW0g
-VHlwZTogVW5rbm93bgogICAgICAgIEFzc29jaWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAw
-MDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0aW9uCiAgICAgICAgU29ja2V0
-IERlc2lnbmF0aW9uOiBMMiBDYWNoZQogICAgICAgIENvbmZpZ3VyYXRpb246IEVuYWJsZWQsIFNv
-Y2tldGVkLCBMZXZlbCAyCiAgICAgICAgT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawogICAg
-ICAgIExvY2F0aW9uOiBFeHRlcm5hbAogICAgICAgIEluc3RhbGxlZCBTaXplOiA0MDk2IEtCCiAg
-ICAgICAgTWF4aW11bSBTaXplOiA1MTIgS0IKICAgICAgICBTdXBwb3J0ZWQgU1JBTSBUeXBlczoK
-ICAgICAgICAgICAgICAgIEJ1cnN0CiAgICAgICAgICAgICAgICBQaXBlbGluZSBCdXJzdAogICAg
-ICAgICAgICAgICAgQXN5bmNocm9ub3VzCiAgICAgICAgSW5zdGFsbGVkIFNSQU0gVHlwZTogQnVy
-c3QKICAgICAgICBTcGVlZDogVW5rbm93bgogICAgICAgIEVycm9yIENvcnJlY3Rpb24gVHlwZTog
-VW5rbm93bgogICAgICAgIFN5c3RlbSBUeXBlOiBVbmtub3duCiAgICAgICAgQXNzb2NpYXRpdml0
-eTogVW5rbm93bgoKSGFuZGxlIDB4MDAwNywgRE1JIHR5cGUgOCwgOSBieXRlcwpQb3J0IENvbm5l
-Y3RvciBJbmZvcm1hdGlvbgogICAgICAgIEludGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBK
-MTkKICAgICAgICBJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogOSBQaW4gRHVhbCBJbmxpbmUgKHBp
-biAxMCBjdXQpCiAgICAgICAgRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IENPTSAxCiAg
-ICAgICAgRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IERCLTkgbWFsZQogICAgICAgIFBvcnQgVHlw
-ZTogU2VyaWFsIFBvcnQgMTY1NTBBIENvbXBhdGlibGUKCkhhbmRsZSAweDAwMDgsIERNSSB0eXBl
-IDgsIDkgYnl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KICAgICAgICBJbnRlcm5hbCBS
-ZWZlcmVuY2UgRGVzaWduYXRvcjogSjFBMQogICAgICAgIEludGVybmFsIENvbm5lY3RvciBUeXBl
-OiBOb25lCiAgICAgICAgRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IEtleWJvYXJkCiAg
-ICAgICAgRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IENpcmN1bGFyIERJTi04IG1hbGUKICAgICAg
-ICBQb3J0IFR5cGU6IEtleWJvYXJkIFBvcnQKCkhhbmRsZSAweDAwMDksIERNSSB0eXBlIDgsIDkg
-Ynl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KICAgICAgICBJbnRlcm5hbCBSZWZlcmVu
-Y2UgRGVzaWduYXRvcjogSjFBMQogICAgICAgIEludGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25l
-CiAgICAgICAgRXh0ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IFBTLzIgTW91c2UKICAgICAg
-ICBFeHRlcm5hbCBDb25uZWN0b3IgVHlwZTogQ2lyY3VsYXIgRElOLTggbWFsZQogICAgICAgIFBv
-cnQgVHlwZTogTW91c2UgUG9ydAoKSGFuZGxlIDB4MDAwQSwgRE1JIHR5cGUgOSwgMTMgYnl0ZXMK
-U3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KICAgICAgICBEZXNpZ25hdGlvbjogUENJIFNsb3QgSjhC
-MQogICAgICAgIFR5cGU6IDMyLWJpdCBQQ0kKICAgICAgICBDdXJyZW50IFVzYWdlOiBVbmtub3du
-CiAgICAgICAgTGVuZ3RoOiBMb25nCiAgICAgICAgSUQ6IDAKICAgICAgICBDaGFyYWN0ZXJpc3Rp
-Y3M6CiAgICAgICAgICAgICAgICA1LjAgViBpcyBwcm92aWRlZAogICAgICAgICAgICAgICAgMy4z
-IFYgaXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMEIsIERNSSB0eXBlIDksIDEzIGJ5dGVzClN5c3Rl
-bSBTbG90IEluZm9ybWF0aW9uCiAgICAgICAgRGVzaWduYXRpb246IFBDSSBTbG90IEo5QjEKICAg
-ICAgICBUeXBlOiAzMi1iaXQgUENJCiAgICAgICAgQ3VycmVudCBVc2FnZTogVW5rbm93bgogICAg
-ICAgIExlbmd0aDogTG9uZwogICAgICAgIElEOiAwCiAgICAgICAgQ2hhcmFjdGVyaXN0aWNzOgog
-ICAgICAgICAgICAgICAgNS4wIFYgaXMgcHJvdmlkZWQKICAgICAgICAgICAgICAgIDMuMyBWIGlz
-IHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBDLCBETUkgdHlwZSA5LCAxMyBieXRlcwpTeXN0ZW0gU2xv
-dCBJbmZvcm1hdGlvbgogICAgICAgIERlc2lnbmF0aW9uOiBQRUcgU2xvdCBKNkMxCiAgICAgICAg
-VHlwZTogMzItYml0IFBDSSBFeHByZXNzCiAgICAgICAgQ3VycmVudCBVc2FnZTogSW4gVXNlCiAg
-ICAgICAgTGVuZ3RoOiBMb25nCiAgICAgICAgSUQ6IDYKICAgICAgICBDaGFyYWN0ZXJpc3RpY3M6
-CiAgICAgICAgICAgICAgICA1LjAgViBpcyBwcm92aWRlZAogICAgICAgICAgICAgICAgMy4zIFYg
-aXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMEQsIERNSSB0eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBT
-bG90IEluZm9ybWF0aW9uCiAgICAgICAgRGVzaWduYXRpb246IFBDSSBFeHByZXNzIFNsb3QgSjdD
-MQogICAgICAgIFR5cGU6IDMyLWJpdCBQQ0kgRXhwcmVzcwogICAgICAgIEN1cnJlbnQgVXNhZ2U6
-IEF2YWlsYWJsZQogICAgICAgIExlbmd0aDogTG9uZwogICAgICAgIElEOiA3CiAgICAgICAgQ2hh
-cmFjdGVyaXN0aWNzOgogICAgICAgICAgICAgICAgNS4wIFYgaXMgcHJvdmlkZWQKICAgICAgICAg
-ICAgICAgIDMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSA5LCAxMyBi
-eXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgogICAgICAgIERlc2lnbmF0aW9uOiBQQ0kgRXhw
-cmVzcyBTbG90IEo4QzEKICAgICAgICBUeXBlOiAzMi1iaXQgUENJIEV4cHJlc3MKICAgICAgICBD
-dXJyZW50IFVzYWdlOiBBdmFpbGFibGUKICAgICAgICBMZW5ndGg6IExvbmcKICAgICAgICBJRDog
-NwogICAgICAgIENoYXJhY3RlcmlzdGljczoKICAgICAgICAgICAgICAgIDUuMCBWIGlzIHByb3Zp
-ZGVkCiAgICAgICAgICAgICAgICAzLjMgViBpcyBwcm92aWRlZAoKSGFuZGxlIDB4MDAwRiwgRE1J
-IHR5cGUgMTAsIDYgYnl0ZXMKT24gQm9hcmQgRGV2aWNlIEluZm9ybWF0aW9uCiAgICAgICAgVHlw
-ZTogU291bmQKICAgICAgICBTdGF0dXM6IERpc2FibGVkCiAgICAgICAgRGVzY3JpcHRpb246IEhE
-LUF1ZGlvCgpIYW5kbGUgMHgwMDEwLCBETUkgdHlwZSAxMSwgNSBieXRlcwpPRU0gU3RyaW5ncwog
-ICAgICAgIFN0cmluZyAxOiBUaGlzIGlzIHRoZSBJbnRlbCBDYWxpc3RvZ2EKICAgICAgICBTdHJp
-bmcgMjogQ2hpcHNldCBDUkIgUGxhdGZvcm0KCkhhbmRsZSAweDAwMTEsIERNSSB0eXBlIDEyLCA1
-IGJ5dGVzClN5c3RlbSBDb25maWd1cmF0aW9uIE9wdGlvbnMKICAgICAgICBPcHRpb24gMTogSnVt
-cGVyIHNldHRpbmdzIGNhbiBiZSBkZXNjcmliZWQgaGVyZS4KCkhhbmRsZSAweDAwMTIsIERNSSB0
-eXBlIDE1LCAyOSBieXRlcwpTeXN0ZW0gRXZlbnQgTG9nCiAgICAgICAgQXJlYSBMZW5ndGg6IDE2
-IGJ5dGVzCiAgICAgICAgSGVhZGVyIFN0YXJ0IE9mZnNldDogMHgwMDAwCiAgICAgICAgSGVhZGVy
-IExlbmd0aDogMTYgYnl0ZXMKICAgICAgICBEYXRhIFN0YXJ0IE9mZnNldDogMHgwMDEwCiAgICAg
-ICAgQWNjZXNzIE1ldGhvZDogR2VuZXJhbC1wdXJwb3NlIG5vbi12b2xhdGlsZSBkYXRhIGZ1bmN0
-aW9ucwogICAgICAgIEFjY2VzcyBBZGRyZXNzOiAweDAwMDAKICAgICAgICBTdGF0dXM6IFZhbGlk
-LCBOb3QgRnVsbAogICAgICAgIENoYW5nZSBUb2tlbjogMHgwMDAwMDAwMwogICAgICAgIEhlYWRl
-ciBGb3JtYXQ6IFR5cGUgMQogICAgICAgIFN1cHBvcnRlZCBMb2cgVHlwZSBEZXNjcmlwdG9yczog
-MwogICAgICAgIERlc2NyaXB0b3IgMTogUE9TVCBlcnJvcgogICAgICAgIERhdGEgRm9ybWF0IDE6
-IFBPU1QgcmVzdWx0cyBiaXRtYXAKICAgICAgICBEZXNjcmlwdG9yIDI6IFNpbmdsZS1iaXQgRUND
-IG1lbW9yeSBlcnJvcgogICAgICAgIERhdGEgRm9ybWF0IDI6IE11bHRpcGxlLWV2ZW50CiAgICAg
-ICAgRGVzY3JpcHRvciAzOiBNdWx0aS1iaXQgRUNDIG1lbW9yeSBlcnJvcgogICAgICAgIERhdGEg
-Rm9ybWF0IDM6IE11bHRpcGxlLWV2ZW50CgpIYW5kbGUgMHgwMDEzLCBETUkgdHlwZSAxNiwgMTUg
-Ynl0ZXMKUGh5c2ljYWwgTWVtb3J5IEFycmF5CiAgICAgICAgTG9jYXRpb246IFN5c3RlbSBCb2Fy
-ZCBPciBNb3RoZXJib2FyZAogICAgICAgIFVzZTogU3lzdGVtIE1lbW9yeQogICAgICAgIEVycm9y
-IENvcnJlY3Rpb24gVHlwZTogTm9uZQogICAgICAgIE1heGltdW0gQ2FwYWNpdHk6IDMgR0IKICAg
-ICAgICBFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vdCBQcm92aWRlZAogICAgICAgIE51bWJl
-ciBPZiBEZXZpY2VzOiAyCgpIYW5kbGUgMHgwMDE0LCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVt
-b3J5IERldmljZQogICAgICAgIEFycmF5IEhhbmRsZTogMHgwMDEzCiAgICAgICAgRXJyb3IgSW5m
-b3JtYXRpb24gSGFuZGxlOiBObyBFcnJvcgogICAgICAgIFRvdGFsIFdpZHRoOiAzMiBiaXRzCiAg
-ICAgICAgRGF0YSBXaWR0aDogMzIgYml0cwogICAgICAgIFNpemU6IDUxMiBNQgogICAgICAgIEZv
-cm0gRmFjdG9yOiBTT0RJTU0KICAgICAgICBTZXQ6IDEKICAgICAgICBMb2NhdG9yOiBNMQogICAg
-ICAgIEJhbmsgTG9jYXRvcjogQmFuayAwCiAgICAgICAgVHlwZTogRERSMgogICAgICAgIFR5cGUg
-RGV0YWlsOiBTeW5jaHJvbm91cwogICAgICAgIFNwZWVkOiBVbmtub3duCiAgICAgICAgTWFudWZh
-Y3R1cmVyOiBOb3QgU3BlY2lmaWVkCiAgICAgICAgU2VyaWFsIE51bWJlcjogTm90IFNwZWNpZmll
-ZAogICAgICAgIEFzc2V0IFRhZzogTm90IFNwZWNpZmllZAogICAgICAgIFBhcnQgTnVtYmVyOiBO
-b3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDE1LCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVtb3J5
-IERldmljZQogICAgICAgIEFycmF5IEhhbmRsZTogMHgwMDEzCiAgICAgICAgRXJyb3IgSW5mb3Jt
-YXRpb24gSGFuZGxlOiBObyBFcnJvcgogICAgICAgIFRvdGFsIFdpZHRoOiAzMiBiaXRzCiAgICAg
-ICAgRGF0YSBXaWR0aDogMzIgYml0cwogICAgICAgIFNpemU6IDUxMiBNQgogICAgICAgIEZvcm0g
-RmFjdG9yOiBTT0RJTU0KICAgICAgICBTZXQ6IDEKICAgICAgICBMb2NhdG9yOiBNMgogICAgICAg
-IEJhbmsgTG9jYXRvcjogQmFuayAxCiAgICAgICAgVHlwZTogRERSMgogICAgICAgIFR5cGUgRGV0
-YWlsOiBTeW5jaHJvbm91cwogICAgICAgIFNwZWVkOiBVbmtub3duCiAgICAgICAgTWFudWZhY3R1
-cmVyOiBOb3QgU3BlY2lmaWVkCiAgICAgICAgU2VyaWFsIE51bWJlcjogTm90IFNwZWNpZmllZAog
-ICAgICAgIEFzc2V0IFRhZzogTm90IFNwZWNpZmllZAogICAgICAgIFBhcnQgTnVtYmVyOiBOb3Qg
-U3BlY2lmaWVkCgpIYW5kbGUgMHgwMDE2LCBETUkgdHlwZSAxOSwgMTUgYnl0ZXMKTWVtb3J5IEFy
-cmF5IE1hcHBlZCBBZGRyZXNzCiAgICAgICAgU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAwMDAw
-MAogICAgICAgIEVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCiAgICAgICAgUmFuZ2UgU2l6
-ZTogMSBHQgogICAgICAgIFBoeXNpY2FsIEFycmF5IEhhbmRsZTogMHgwMDEzCiAgICAgICAgUGFy
-dGl0aW9uIFdpZHRoOiAwCgpIYW5kbGUgMHgwMDE3LCBETUkgdHlwZSAyMCwgMTkgYnl0ZXMKTWVt
-b3J5IERldmljZSBNYXBwZWQgQWRkcmVzcwogICAgICAgIFN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAw
-MDAwMDAwMDAKICAgICAgICBFbmRpbmcgQWRkcmVzczogMHgwMDAxRkZGRkZGRgogICAgICAgIFJh
-bmdlIFNpemU6IDUxMiBNQgogICAgICAgIFBoeXNpY2FsIERldmljZSBIYW5kbGU6IDB4MDAxNAog
-ICAgICAgIE1lbW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxNgogICAgICAg
-IFBhcnRpdGlvbiBSb3cgUG9zaXRpb246IFVua25vd24KICAgICAgICBJbnRlcmxlYXZlIFBvc2l0
-aW9uOiBVbmtub3duCiAgICAgICAgSW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDogVW5rbm93bgoKSGFu
-ZGxlIDB4MDAxOCwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFk
-ZHJlc3MKICAgICAgICBTdGFydGluZyBBZGRyZXNzOiAweDAwMDIwMDAwMDAwCiAgICAgICAgRW5k
-aW5nIEFkZHJlc3M6IDB4MDAwM0ZGRkZGRkYKICAgICAgICBSYW5nZSBTaXplOiA1MTIgTUIKICAg
-ICAgICBQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMTUKICAgICAgICBNZW1vcnkgQXJyYXkg
-TWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTYKICAgICAgICBQYXJ0aXRpb24gUm93IFBvc2l0
-aW9uOiBVbmtub3duCiAgICAgICAgSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgogICAgICAg
-IEludGVybGVhdmVkIERhdGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTksIERNSSB0eXBl
-IDIzLCAxMyBieXRlcwpTeXN0ZW0gUmVzZXQKICAgICAgICBTdGF0dXM6IEVuYWJsZWQKICAgICAg
-ICBXYXRjaGRvZyBUaW1lcjogUHJlc2VudAogICAgICAgIEJvb3QgT3B0aW9uOiBEbyBOb3QgUmVi
-b290CiAgICAgICAgQm9vdCBPcHRpb24gT24gTGltaXQ6IERvIE5vdCBSZWJvb3QKICAgICAgICBS
-ZXNldCBDb3VudDogVW5rbm93bgogICAgICAgIFJlc2V0IExpbWl0OiBVbmtub3duCiAgICAgICAg
-VGltZXIgSW50ZXJ2YWw6IFVua25vd24KICAgICAgICBUaW1lb3V0OiBVbmtub3duCgpIYW5kbGUg
-MHgwMDFBLCBETUkgdHlwZSAyNCwgNSBieXRlcwpIYXJkd2FyZSBTZWN1cml0eQogICAgICAgIFBv
-d2VyLU9uIFBhc3N3b3JkIFN0YXR1czogRGlzYWJsZWQKICAgICAgICBLZXlib2FyZCBQYXNzd29y
-ZCBTdGF0dXM6IFVua25vd24KICAgICAgICBBZG1pbmlzdHJhdG9yIFBhc3N3b3JkIFN0YXR1czog
-RGlzYWJsZWQKICAgICAgICBGcm9udCBQYW5lbCBSZXNldCBTdGF0dXM6IFVua25vd24KCkhhbmRs
-ZSAweDAwMUIsIERNSSB0eXBlIDI1LCA5IGJ5dGVzCiAgICAgICAgU3lzdGVtIFBvd2VyIENvbnRy
-b2xzCiAgICAgICAgTmV4dCBTY2hlZHVsZWQgUG93ZXItb246IDEyLTMxIDIzOjU5OjU5CgpIYW5k
-bGUgMHgwMDFDLCBETUkgdHlwZSAyNiwgMjAgYnl0ZXMKVm9sdGFnZSBQcm9iZQogICAgICAgIERl
-c2NyaXB0aW9uOiBWb2x0YWdlIFByb2JlCiAgICAgICAgTG9jYXRpb246IFByb2Nlc3NvcgogICAg
-ICAgIFN0YXR1czogT0sKICAgICAgICBNYXhpbXVtIFZhbHVlOiBVbmtub3duCiAgICAgICAgTWlu
-aW11bSBWYWx1ZTogVW5rbm93bgogICAgICAgIFJlc29sdXRpb246IFVua25vd24KICAgICAgICBU
-b2xlcmFuY2U6IFVua25vd24KICAgICAgICBBY2N1cmFjeTogVW5rbm93bgogICAgICAgIE9FTS1z
-cGVjaWZpYyBJbmZvcm1hdGlvbjogMHgwMDAwMDAwMAoKSGFuZGxlIDB4MDAxRCwgRE1JIHR5cGUg
-MjcsIDEyIGJ5dGVzCkNvb2xpbmcgRGV2aWNlCiAgICAgICAgVGVtcGVyYXR1cmUgUHJvYmUgSGFu
-ZGxlOiAweDAwMUUKICAgICAgICBUeXBlOiBGYW4KICAgICAgICBTdGF0dXM6IE9LCiAgICAgICAg
-T0VNLXNwZWNpZmljIEluZm9ybWF0aW9uOiAweDAwMDAwMDAwCgpIYW5kbGUgMHgwMDFFLCBETUkg
-dHlwZSAyOCwgMjAgYnl0ZXMKVGVtcGVyYXR1cmUgUHJvYmUKICAgICAgICBEZXNjcmlwdGlvbjog
-VGVtcGVyYXR1cmUgUHJvYmUKICAgICAgICBMb2NhdGlvbjogUHJvY2Vzc29yCiAgICAgICAgU3Rh
-dHVzOiBPSwogICAgICAgIE1heGltdW0gVmFsdWU6IFVua25vd24KICAgICAgICBNaW5pbXVtIFZh
-bHVlIFVua25vd24KICAgICAgICBSZXNvbHV0aW9uOiBVbmtub3duCiAgICAgICAgVG9sZXJhbmNl
-OiBVbmtub3duCiAgICAgICAgQWNjdXJhY3k6IFVua25vd24KICAgICAgICBPRU0tc3BlY2lmaWMg
-SW5mb3JtYXRpb246IDB4MDAwMDAwMDAKCkhhbmRsZSAweDAwMUYsIERNSSB0eXBlIDI5LCAyMCBi
-eXRlcwpFbGVjdHJpY2FsIEN1cnJlbnQgUHJvYmUKICAgICAgICBEZXNjcmlwdGlvbjogRWxlY3Ry
-aWNhbCBDdXJyZW50IFByb2JlCiAgICAgICAgTG9jYXRpb246IFByb2Nlc3NvcgogICAgICAgIFN0
-YXR1czogT0sKICAgICAgICBNYXhpbXVtIFZhbHVlOiBVbmtub3duCiAgICAgICAgTWluaW11bSBW
-YWx1ZTogVW5rbm93bgogICAgICAgIFJlc29sdXRpb246IFVua25vd24KICAgICAgICBUb2xlcmFu
-Y2U6IFVua25vd24KICAgICAgICBBY2N1cmFjeTogVW5rbm93bgogICAgICAgIE9FTS1zcGVjaWZp
-YyBJbmZvcm1hdGlvbjogMHgwMDAwMDAwMAoKSGFuZGxlIDB4MDAyMCwgRE1JIHR5cGUgMzAsIDYg
-Ynl0ZXMKT3V0LW9mLWJhbmQgUmVtb3RlIEFjY2VzcwogICAgICAgIE1hbnVmYWN0dXJlciBOYW1l
-OiBJbnRlbAogICAgICAgIEluYm91bmQgQ29ubmVjdGlvbjogRW5hYmxlZAogICAgICAgIE91dGJv
-dW5kIENvbm5lY3Rpb246IERpc2FibGVkCgpIYW5kbGUgMHgwMDIxLCBETUkgdHlwZSAzMiwgMjAg
-Ynl0ZXMKU3lzdGVtIEJvb3QgSW5mb3JtYXRpb24KICAgICAgICBTdGF0dXM6IDxPVVQgT0YgU1BF
-Qz4KCkhhbmRsZSAweDAwMjIsIERNSSB0eXBlIDEyOSwgMTYgYnl0ZXMKT0VNLXNwZWNpZmljIFR5
-cGUKICAgICAgICBIZWFkZXIgYW5kIERhdGE6CiAgICAgICAgICAgICAgICA4MSAxMCAyMiAwMCAw
-MSAwMSAwMiAwMSAwMCAwMCAwMCAwMSAwMCAwMCAwOCAwMQogICAgICAgIFN0cmluZ3M6CiAgICAg
-ICAgICAgICAgICBJbnRlbF9BU0ZfMDAxCiAgICAgICAgICAgICAgICBJbnRlbF9BU0ZfMDAxCgpI
-YW5kbGUgMHgwMDIzLCBETUkgdHlwZSAxMzYsIDggYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKICAg
-ICAgICBIZWFkZXIgYW5kIERhdGE6CiAgICAgICAgICAgICAgICA4OCAwOCAyMyAwMCBGRiBGRiAw
-MCAwMAogICAgICAgIFN0cmluZ3M6CiAgICAgICAgICAgICAgICAuLiQKCkhhbmRsZSAweDAwMjQs
-IERNSSB0eXBlIDEyNywgNCBieXRlcwpFbmQgT2YgVGFibGUK
-------=_Part_1042_16832108.1193733227783--
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: COMPAL
+	Version: 123B
+	Release Date: 08/24/2007
+	Address: 0xE63F0
+	Runtime Size: 105488 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+	BIOS Revision: 1.21
+	Firmware Revision: 1.0
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: COMPAL          
+	Product Name: HEL80I          
+	Version: -
+	Serial Number: 2054228700233   
+	UUID: 158F767F-3E9F-11DB-B7EC-0016D41DF7E7
+	Wake-up Type: Power Switch
+	SKU Number:                                                                                               
+	Family: Intel
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: COMPAL
+	Product Name: HEL8X
+	Version: Null
+	Serial Number: 0123456789AB
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: COMPAL
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag: -
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: F6 06 00 00 FF FB EB BF
+	Version: Intel(R) Core(TM)2 CPU         T5
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 2330 MHz
+	Current Speed: 1600 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 4096 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J11
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J12
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+	Designation: ENE CB-714
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000A, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x000B, DMI type 11, 5 bytes
+OEM Strings
+	String 1: -
+
+Handle 0x000C, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x000D, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 3 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000D
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x000F, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000D
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0010, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000D
+	Partition Width: 0
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x0010
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0012, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000F
+	Memory Array Mapped Address Handle: 0x0010
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0013, DMI type 22, 26 bytes
+Portable Battery
+	Location: 1st Battery
+	Manufacturer: COMPAL
+	Manufacture Date: 12/01/2005
+	Serial Number: 3658Q
+	Name: PA3395U 
+	Chemistry: Lithium Ion
+	Design Capacity: 31500 mWh
+	Design Voltage: 14800 mV
+	SBDS Version: Not Specified
+	Maximum Error: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0014, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0015, DMI type 127, 4 bytes
+End Of Table
+
+
+--Boundary-00=_l8vJHrrduluO2H3--
