@@ -1,88 +1,99 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 3/7] ACPI: thinkpad-acpi: add brightness_force parameter
-Date: Tue, 30 Oct 2007 17:46:21 -0200
-Message-ID: <1193773585-17202-4-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 7/7] ACPI: thinkpad-acpi: fix brightness_set error paths
+Date: Tue, 30 Oct 2007 17:46:25 -0200
+Message-ID: <1193773585-17202-8-git-send-email-hmh@hmh.eng.br>
 References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60775 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56792 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756020AbXJ3Tqb (ORCPT
+	by vger.kernel.org with ESMTP id S1756648AbXJ3Tqe (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:46:31 -0400
+	Tue, 30 Oct 2007 15:46:34 -0400
 In-Reply-To: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add a "brightness_force" module parameter that allows the local admin to
-force the backlight support to not be enabled.
+The code calling brightness_set() can't handle EINTR/ERESTARTSYS well, nor
+is it checking brightness_set() return status properly.
 
-It can also be used to force the backlight support to be enabled, but that
-is currently a no-op as the backlight support is enabled by default when
-available.  This will be changed by a different patch.
+Fix it.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/thinkpad-acpi.txt |    4 ++++
- drivers/misc/thinkpad_acpi.c    |    9 +++++++++
- drivers/misc/thinkpad_acpi.h    |    1 +
- 3 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   34 +++++++++++++++++++++-------------
+ 1 files changed, 21 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index a743bfa..f877c13 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -944,6 +944,10 @@ When display backlight brightness controls are available through the
- standard ACPI interface, it is best to use it instead of this direct
- ThinkPad-specific interface.
- 
-+The brightness_enable module parameter can be used to control whether
-+the LCD brightness control feature will be enabled when available.
-+brightness_enable=0 forces it to be disabled.
-+
- Procfs notes:
- 
- 	The available commands are:
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 322ba25..56a21e6 100644
+index 306daa5..8c94307 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -3182,6 +3182,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+@@ -3278,6 +3278,8 @@ static void brightness_exit(void)
  
- 	mutex_init(&brightness_mutex);
+ static int brightness_update_status(struct backlight_device *bd)
+ {
++	/* it is the backlight class's job (caller) to handle
++	 * EINTR and other errors properly */
+ 	return brightness_set(
+ 		(bd->props.fb_blank == FB_BLANK_UNBLANK &&
+ 		 bd->props.power == FB_BLANK_UNBLANK) ?
+@@ -3318,6 +3320,7 @@ static int brightness_get(struct backlight_device *bd)
+ 	return level;
+ }
  
-+	if (!brightness_enable) {
-+		dbg_printk(TPACPI_DBG_INIT,
-+		           "brightness support disabled by module parameter\n");
-+		return 1;
-+	}
-+
- 	if (!brightness_mode) {
- 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
- 			brightness_mode = 2;
-@@ -4803,6 +4809,9 @@ module_param_named(fan_control, fan_control_allowed, bool, 0);
- static int brightness_mode;
- module_param_named(brightness_mode, brightness_mode, int, 0);
++/* May return EINTR which can always be mapped to ERESTARTSYS */
+ static int brightness_set(int value)
+ {
+ 	int cmos_cmd, inc, i, res;
+@@ -3381,29 +3384,34 @@ static int brightness_read(char *p)
+ static int brightness_write(char *buf)
+ {
+ 	int level;
+-	int new_level;
++	int rc;
+ 	char *cmd;
+ 	int max_level = (tp_features.bright_16levels) ? 15 : 7;
  
-+static unsigned int brightness_enable = 2; /* 2 = auto, 0 = no, 1 = yes */
-+module_param(brightness_enable, uint, 0);
-+
- static unsigned int hotkey_report_mode;
- module_param(hotkey_report_mode, uint, 0);
+-	while ((cmd = next_cmd(&buf))) {
+-		if ((level = brightness_get(NULL)) < 0)
+-			return level;
++	level = brightness_get(NULL);
++	if (level < 0)
++		return level;
  
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 8ca19c3..8fba2bb 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -339,6 +339,7 @@ static int bluetooth_write(char *buf);
- static struct backlight_device *ibm_backlight_device;
- static int brightness_offset = 0x31;
- static int brightness_mode;
-+static unsigned int brightness_enable;	/* 0 = no, 1 = yes, 2 = auto */
++	while ((cmd = next_cmd(&buf))) {
+ 		if (strlencmp(cmd, "up") == 0) {
+-			new_level = level == (max_level)?
+-						max_level : level + 1;
++			if (level < max_level)
++				level++;
+ 		} else if (strlencmp(cmd, "down") == 0) {
+-			new_level = level == 0? 0 : level - 1;
+-		} else if (sscanf(cmd, "level %d", &new_level) == 1 &&
+-			   new_level >= 0 && new_level <= max_level) {
+-			/* new_level set */
++			if (level > 0)
++				level--;
++		} else if (sscanf(cmd, "level %d", &level) == 1 &&
++			   level >= 0 && level <= max_level) {
++			/* new level set */
+ 		} else
+ 			return -EINVAL;
+-
+-		brightness_set(new_level);
+ 	}
  
- static int brightness_init(struct ibm_init_struct *iibm);
- static void brightness_exit(void);
+-	return 0;
++	/*
++	 * Now we know what the final level should be, so we try to set it.
++	 * Doing it this way makes the syscall restartable in case of EINTR
++	 */
++	rc = brightness_set(level);
++	return (rc == -EINTR)? ERESTARTSYS : rc;
+ }
+ 
+ static struct ibm_struct brightness_driver_data = {
 -- 
 1.5.3.4
 
