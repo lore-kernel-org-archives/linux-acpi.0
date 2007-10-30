@@ -1,53 +1,63 @@
-From: Danny Baumann <dannybaumann@web.de>
-Subject: Re: Brightness buttons broken on Toshiba Satellite Proc A100
-	in	kernel 2.6.23 (Fedora8)
-Date: Tue, 30 Oct 2007 18:21:21 +0100
-Message-ID: <1193764882.6380.1.camel@rechenknecht.peppercon.de>
-References: <loom.20071016T122903-517@post.gmane.org>
-	 <4714CB1A.7010300@redhat.com>
-	 <1193746910.18110.1.camel@rechenknecht.peppercon.de>
-	 <472737BB.2000609@gmail.com>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH] fujitsu-laptop: kzalloc and autoload
+Date: Tue, 30 Oct 2007 16:25:37 +1030 (CST)
+Message-ID: <200710300555.l9U5tbxh021802@sprite.physics.adelaide.edu.au>
+References: <20071025223406.664c17c9@shemminger-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:40254 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992AbXJ3RVY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 13:21:24 -0400
-In-Reply-To: <472737BB.2000609@gmail.com>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:59169 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752818AbXJ3GVu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Oct 2007 02:21:50 -0400
+In-Reply-To: <20071025223406.664c17c9@shemminger-laptop> from "Stephen Hemminger" at Oct 25, 2007 10:34:06 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Hi,
+> A couple of minor changes to the fujitsu laptop acpi driver.
+> 1. use kzalloc.
+> 2. add dmi aliases to get the driver to autoload.
+>     note: use both spellings since different fujtisu laptop's seem to capitialize
+>     differently.
+> 
+> Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 
-> > Ok, I played around with it some more. It seems that on my Laptop the
-> > firmware sends out notifications on Fn+F6/7 press.
-> > Kernel 2.6.23-rc2 worked fine, -rc3 is broken. Reverting ec.c in the
-> > current Fedora kernel to the version in 2.6.23-rc2 makes brightness
-> > control work again. After finding that, I tried the current HEAD version
-> > of ec.c - unfortunately to no avail.
-> > 2.6.23-rc3 doesn't show up the (unwanted) key events for Fn+F6/7 though
-> > - this behaviour was introduced in -rc4.
-> > 
-> > Is it possible to fix the problem with the amount of information
-> > provided? If no, what additional information can I provide?
-> Please check if attached patch changes situation.
+Looks sensible to me.
 
-Yes, it does. With that patch, everything works as intended.
-Gnome-power-manager doesn't seem to work properly with it, but that's a
-different story ;-)
+Ack.
 
-> Also, please open a new bug entry in bugzilla.kernel.org and put all the data you've collected there.
-> Please also attach full output from acpidump.
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Done: http://bugzilla.kernel.org/show_bug.cgi?id=9262 .
-Sorry I didn't open it in the first place, but I wasn't sure if it was a
-distro kernel problem, a hardware problem or a vanilla kernel problem.
+Regards
+  jonathan
 
-Thanks,
 
-Danny
-
+--- a/drivers/misc/fujitsu-laptop.c	2007-10-22 15:06:02.000000000 -0700
++++ b/drivers/misc/fujitsu-laptop.c	2007-10-22 15:07:15.000000000 -0700
+@@ -61,6 +61,9 @@
+ #define ACPI_FUJITSU_DRIVER_NAME        "Fujitsu laptop FUJ02B1 ACPI extras driver"
+ #define ACPI_FUJITSU_DEVICE_NAME        "Fujitsu FUJ02B1"
+ 
++MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifeBook*:pvr*:rvnFUJITSU:*");
++MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifebook*:pvr*:rvnFUJITSU:*");
++
+ struct fujitsu_t {
+ 	acpi_handle acpi_handle;
+ 	struct backlight_device *bl_device;
+@@ -264,10 +267,9 @@ static int __init fujitsu_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	fujitsu = kmalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
++	fujitsu = kzalloc(sizeof(struct fujitsu_t), GFP_KERNEL);
+ 	if (!fujitsu)
+ 		return -ENOMEM;
+-	memset(fujitsu, 0, sizeof(struct fujitsu_t));
+ 
+ 	result = acpi_bus_register_driver(&acpi_fujitsu_driver);
+ 	if (result < 0) {
+-
