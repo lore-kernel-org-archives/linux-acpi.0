@@ -1,56 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
-Date: Tue, 30 Oct 2007 14:18:22 -0400
-Message-ID: <200710301418.22639.lenb@kernel.org>
-References: <200710300336.43696.cathectic@slackadelic.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 0/5] Detect hwmon and i2c bus drivers interfering with
+ ACPI Operation Region resources
+Date: Tue, 30 Oct 2007 19:43:07 +0100
+Message-ID: <20071030194307.0f8e8ddc@hyperion.delvare>
+References: <1193236319.4590.225.camel@queen.suse.de>
+	<200710250906.23003.bjorn.helgaas@hp.com>
+	<20071027150947.GA1568@srcf.ucam.org>
+	<200710282050.34166.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38570 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752433AbXJ3SSk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:18:40 -0400
-In-Reply-To: <200710300336.43696.cathectic@slackadelic.com>
-Content-Disposition: inline
+Received: from smtp-102-tuesday.noc.nerim.net ([62.4.17.102]:3243 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753156AbXJ3SnL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 14:43:11 -0400
+In-Reply-To: <200710282050.34166.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <cathectic@slackadelic.com>
-Cc: linux-acpi@vger.kernel.org, "Nashif, Anas" <anas.nashif@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>
 
-When I consulted Anas about WMI, he recommended that Linux
-expose WMI via CIMOM.  I think that this means we'd need
-to invent a sysfs interface for this acpi->wmi driver
-to expose the hooks to a user-space daemon, which
-would then make sense of it in Linux's management framework.
+On Sun, 28 Oct 2007 20:50:33 -0600, Bjorn Helgaas wrote:
+> On Saturday 27 October 2007 9:09:47 am Matthew Garrett wrote:
+> > On Thu, Oct 25, 2007 at 09:06:22AM -0600, Bjorn Helgaas wrote:
+> > > But we really *should* reserve things used by opregions, shouldn't
+> > > we?  After all, the whole point of resource reservation is to prevent
+> > > conflicts.
+> >
+> > Only if you're happy to lose functionality like IDE, sadly.
+> 
+> That's a simplistic answer to a complex problem.  I don't think
+> we should just ignore the whole problem, cross our fingers, and
+> hope that firmware stays out of our way.
 
-Anas provided the references below.
+I agree that something must be done, but the problem underlined by
+Matthew explains the approach Thomas and myself are pursuing at the
+moment. Rather than plain requesting the resources at ACPI level and
+see everything else break, we rely on cooperation by individual drivers
+(or actually families of drivers) and try to fix the problems seen with
+these specific drivers. This is more realistic.
 
-thanks,
--Len
-
-
-http://developer.novell.com/wiki/index.php/OMC
-
-This is a Novell project with many providers dealing will many aspects
-of the OS. They also provide RPMs for OpenSUSE and is the main source
-for the OpenWBEM CIMOM binaries for SUSE.
-
-http://sblim.wiki.sourceforge.net/
-
-Is the IBM project dealing with instrumentation and home of the SFCB
-CIMOM targeting embedded environments and only supports CMPI providers.
-
-http://sblim.wiki.sourceforge.net/ProviderCmpiSysfs is a sysfs provider.
-Seems to be old but is a good example.
-
-http://openpegasus.org/
-
-This is the home of the OpenPeagsus CIMOM, supported by multiple
-vendors.
-
-http://www.dmtf.org/standards/wbem/ is about the WBEM protocol. Also the
-tutorial is good: http://www.wbemsolutions.com/tutorials/CIM/wbem.html
-
-http://cimple.org/ tries to make writing providers easy.
+-- 
+Jean Delvare
