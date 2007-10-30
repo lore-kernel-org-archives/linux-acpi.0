@@ -1,96 +1,201 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 3/7 v2] ACPI: thinkpad-acpi: add brightness_force parameter
-Date: Tue, 30 Oct 2007 18:02:07 -0200
-Message-ID: <20071030200207.GB17225@khazad-dum.debian.net>
-References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br> <1193773585-17202-4-git-send-email-hmh@hmh.eng.br> <20071030195514.GA17225@khazad-dum.debian.net>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [PATCH] 2.6.24: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+Date: Tue, 30 Oct 2007 23:21:18 +0300
+Message-ID: <200710302321.19497.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart6710902.Byjeafhgg4";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54366 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757045AbXJ3UCL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:02:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20071030195514.GA17225@khazad-dum.debian.net>
+Received: from mx33.mail.ru ([194.67.23.194]:29550 "EHLO mx33.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757536AbXJ3UVZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Oct 2007 16:21:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add a "brightness_enable" module parameter that allows the local admin to
-force the backlight support to not be enabled.
+--nextPart6710902.Byjeafhgg4
+Content-Type: multipart/mixed;
+  boundary="Boundary-01=_/I5JHY9F5ppequm"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-It can also be used to force the backlight support to be enabled, but that
-is currently a no-op as the backlight support is enabled by default when
-available.  This will be changed by a different patch.
+--Boundary-01=_/I5JHY9F5ppequm
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- Documentation/thinkpad-acpi.txt |    4 ++++
- drivers/misc/thinkpad_acpi.c    |    9 +++++++++
- drivers/misc/thinkpad_acpi.h    |    1 +
- 3 files changed, 14 insertions(+), 0 deletions(-)
+Let's make it consistent with battery code; also it fixes HAL case of=20
+duplicated adapters. Somebody will have to sort out HAL with ACPI_PROCFS=20
+case ...
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index a743bfa..f877c13 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -944,6 +944,10 @@ When display backlight brightness controls are available through the
- standard ACPI interface, it is best to use it instead of this direct
- ThinkPad-specific interface.
- 
-+The brightness_enable module parameter can be used to control whether
-+the LCD brightness control feature will be enabled when available.
-+brightness_enable=0 forces it to be disabled.
+=2Dandrey
+
+--Boundary-01=_/I5JHY9F5ppequm
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="ac_adapter-without-procfs"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="ac_adapter-without-procfs"
+
+Subject: [PATCH] 2.6.24: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+=46rom: Andrey Borzenkov <arvidjaar@mail.ru>
+
+Do not provide /proc/acpi/ac_adapter if ACPI_PROCFS is not defined.
+This eliminates duplicated power adapters in HAL and makes it consistent
+with battery module
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+
+=2D--
+
+ drivers/acpi/ac.c |   23 ++++++++++++++++++++++-
+ 1 files changed, 22 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index e03de37..1461dc9 100644
+=2D-- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -27,8 +27,10 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#endif
+ #include <linux/power_supply.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -49,12 +51,14 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
+ MODULE_LICENSE("GPL");
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+ extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
++static int acpi_ac_open_fs(struct inode *inode, struct file *file);
++#endif
+=20
+ static int acpi_ac_add(struct acpi_device *device);
+ static int acpi_ac_remove(struct acpi_device *device, int type);
+=2Dstatic int acpi_ac_open_fs(struct inode *inode, struct file *file);
+=20
+ const static struct acpi_device_id ac_device_ids[] =3D {
+ 	{"ACPI0003", 0},
+@@ -80,12 +84,15 @@ struct acpi_ac {
+=20
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ static const struct file_operations acpi_ac_fops =3D {
+ 	.open =3D acpi_ac_open_fs,
+ 	.read =3D seq_read,
+ 	.llseek =3D seq_lseek,
+ 	.release =3D single_release,
+ };
++#endif
 +
- Procfs notes:
- 
- 	The available commands are:
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 322ba25..56a21e6 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -3182,6 +3182,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 
- 	mutex_init(&brightness_mutex);
- 
-+	if (!brightness_enable) {
-+		dbg_printk(TPACPI_DBG_INIT,
-+		           "brightness support disabled by module parameter\n");
-+		return 1;
-+	}
-+
- 	if (!brightness_mode) {
- 		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
- 			brightness_mode = 2;
-@@ -4803,6 +4809,9 @@ module_param_named(fan_control, fan_control_allowed, bool, 0);
- static int brightness_mode;
- module_param_named(brightness_mode, brightness_mode, int, 0);
- 
-+static unsigned int brightness_enable = 2; /* 2 = auto, 0 = no, 1 = yes */
-+module_param(brightness_enable, uint, 0);
-+
- static unsigned int hotkey_report_mode;
- module_param(hotkey_report_mode, uint, 0);
- 
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 8ca19c3..8fba2bb 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -339,6 +339,7 @@ static int bluetooth_write(char *buf);
- static struct backlight_device *ibm_backlight_device;
- static int brightness_offset = 0x31;
- static int brightness_mode;
-+static unsigned int brightness_enable;	/* 0 = no, 1 = yes, 2 = auto */
- 
- static int brightness_init(struct ibm_init_struct *iibm);
- static void brightness_exit(void);
--- 
-1.5.3.4
+ static int get_ac_property(struct power_supply *psy,
+ 			   enum power_supply_property psp,
+ 			   union power_supply_propval *val)
+@@ -127,6 +134,7 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ 	return 0;
+ }
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ /* -----------------------------------------------------------------------=
+=2D--
+                               FS Interface (/proc)
+    -----------------------------------------------------------------------=
+=2D-- */
+@@ -206,6 +214,7 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
+=20
+ 	return 0;
+ }
++#endif
+=20
+ /* -----------------------------------------------------------------------=
+=2D--
+                                    Driver Model
+@@ -264,7 +273,9 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	if (result)
+ 		goto end;
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ 	result =3D acpi_ac_add_fs(device);
++#endif
+ 	if (result)
+ 		goto end;
+ 	ac->charger.name =3D acpi_device_bid(device);
+@@ -287,7 +298,9 @@ static int acpi_ac_add(struct acpi_device *device)
+=20
+       end:
+ 	if (result) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_ac_remove_fs(device);
++#endif
+ 		kfree(ac);
+ 	}
+=20
+@@ -309,7 +322,9 @@ static int acpi_ac_remove(struct acpi_device *device, i=
+nt type)
+ 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_ac_remove_fs(device);
++#endif
+=20
+ 	kfree(ac);
+=20
+@@ -323,13 +338,17 @@ static int __init acpi_ac_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_ac_dir =3D acpi_lock_ac_dir();
+ 	if (!acpi_ac_dir)
+ 		return -ENODEV;
++#endif
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_ac_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_unlock_ac_dir(acpi_ac_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+=20
+@@ -341,7 +360,9 @@ static void __exit acpi_ac_exit(void)
+=20
+ 	acpi_bus_unregister_driver(&acpi_ac_driver);
+=20
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_unlock_ac_dir(acpi_ac_dir);
++#endif
+=20
+ 	return;
+ }
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--Boundary-01=_/I5JHY9F5ppequm--
+
+--nextPart6710902.Byjeafhgg4
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHJ5I/R6LMutpd94wRAjC5AJ0RdGsb1Roz+zGXvW0kwRV0KWxhkQCdFxOk
+4iqK8ity1gbCC5NQrx9/szc=
+=3quH
+-----END PGP SIGNATURE-----
+
+--nextPart6710902.Byjeafhgg4--
