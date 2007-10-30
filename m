@@ -1,108 +1,56 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Battery: Allow extract string from integer
-Date: Tue, 30 Oct 2007 11:12:57 -0400
-Message-ID: <200710301112.57534.lenb@kernel.org>
-References: <20071029202938.16515.24421.stgit@samsung> <200710291657.12962.lenb@kernel.org> <200710292337.06021.rjw@sisk.pl>
+Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
+Date: Tue, 30 Oct 2007 14:18:22 -0400
+Message-ID: <200710301418.22639.lenb@kernel.org>
+References: <200710300336.43696.cathectic@slackadelic.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:33706 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:38570 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753810AbXJ3POg (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 11:14:36 -0400
-In-Reply-To: <200710292337.06021.rjw@sisk.pl>
+	id S1752433AbXJ3SSk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Oct 2007 14:18:40 -0400
+In-Reply-To: <200710300336.43696.cathectic@slackadelic.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Frans Pop <elendil@planet.nl>, Andrey Borzenkov <arvidjaar@mail.ru>, Linux-acpi@vger.kernel.org
+To: Carlos Corbacho <cathectic@slackadelic.com>
+Cc: linux-acpi@vger.kernel.org, "Nashif, Anas" <anas.nashif@intel.com>
 
-On Monday 29 October 2007 18:37, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Monday, 29 October 2007 21:57, Len Brown wrote:
-> > Applied.
-> > 
-> > Andrey, Frans,
-> > thanks for helping with Alexey's patch this weekend.
-> 
-> Please let me know when it goes to Linus.
+When I consulted Anas about WMI, he recommended that Linux
+expose WMI via CIMOM.  I think that this means we'd need
+to invent a sysfs interface for this acpi->wmi driver
+to expose the hooks to a user-space daemon, which
+would then make sense of it in Linux's management framework.
 
-It went up last night, so it is included in 2.6.24-rc1-git6
+Anas provided the references below.
 
 thanks,
 -Len
 
->  
-> > On Monday 29 October 2007 16:29, Alexey Starikovskiy wrote:
-> > > Some machines return integer instead of expected string.
-> > > 
-> > > Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > > ---
-> > > 
-> > >  drivers/acpi/battery.c |   25 +++++++++++++++----------
-> > >  1 files changed, 15 insertions(+), 10 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> > > index 02a396d..6c06879 100644
-> > > --- a/drivers/acpi/battery.c
-> > > +++ b/drivers/acpi/battery.c
-> > > @@ -260,7 +260,7 @@ static int extract_package(struct acpi_battery *battery,
-> > >  			   union acpi_object *package,
-> > >  			   struct acpi_offsets *offsets, int num)
-> > >  {
-> > > -	int i, *x;
-> > > +	int i;
-> > >  	union acpi_object *element;
-> > >  	if (package->type != ACPI_TYPE_PACKAGE)
-> > >  		return -EFAULT;
-> > > @@ -269,16 +269,21 @@ static int extract_package(struct acpi_battery *battery,
-> > >  			return -EFAULT;
-> > >  		element = &package->package.elements[i];
-> > >  		if (offsets[i].mode) {
-> > > -			if (element->type != ACPI_TYPE_STRING &&
-> > > -			    element->type != ACPI_TYPE_BUFFER)
-> > > -				return -EFAULT;
-> > > -			strncpy((u8 *)battery + offsets[i].offset,
-> > > -				element->string.pointer, 32);
-> > > +			u8 *ptr = (u8 *)battery + offsets[i].offset;
-> > > +			if (element->type == ACPI_TYPE_STRING ||
-> > > +			    element->type == ACPI_TYPE_BUFFER)
-> > > +				strncpy(ptr, element->string.pointer, 32);
-> > > +			else if (element->type == ACPI_TYPE_INTEGER) {
-> > > +				strncpy(ptr, (u8 *)&element->integer.value,
-> > > +					sizeof(acpi_integer));
-> > > +				ptr[sizeof(acpi_integer)] = 0;
-> > > +			} else return -EFAULT;
-> > >  		} else {
-> > > -			if (element->type != ACPI_TYPE_INTEGER)
-> > > -				return -EFAULT;
-> > > -			x = (int *)((u8 *)battery + offsets[i].offset);
-> > > -			*x = element->integer.value;
-> > > +			if (element->type == ACPI_TYPE_INTEGER) {
-> > > +				int *x = (int *)((u8 *)battery +
-> > > +						offsets[i].offset);
-> > > +				*x = element->integer.value;
-> > > +			} else return -EFAULT;
-> > >  		}
-> > >  	}
-> > >  	return 0;
-> > > 
-> > > -
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > -
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+http://developer.novell.com/wiki/index.php/OMC
+
+This is a Novell project with many providers dealing will many aspects
+of the OS. They also provide RPMs for OpenSUSE and is the main source
+for the OpenWBEM CIMOM binaries for SUSE.
+
+http://sblim.wiki.sourceforge.net/
+
+Is the IBM project dealing with instrumentation and home of the SFCB
+CIMOM targeting embedded environments and only supports CMPI providers.
+
+http://sblim.wiki.sourceforge.net/ProviderCmpiSysfs is a sysfs provider.
+Seems to be old but is a good example.
+
+http://openpegasus.org/
+
+This is the home of the OpenPeagsus CIMOM, supported by multiple
+vendors.
+
+http://www.dmtf.org/standards/wbem/ is about the WBEM protocol. Also the
+tutorial is good: http://www.wbemsolutions.com/tutorials/CIM/wbem.html
+
+http://cimple.org/ tries to make writing providers easy.
