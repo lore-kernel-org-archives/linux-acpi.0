@@ -1,118 +1,79 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 4/7] ACPI: thinkpad-acpi: prefer standard ACPI backlight level control
-Date: Tue, 30 Oct 2007 17:46:22 -0200
-Message-ID: <1193773585-17202-5-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/7] ACPI: thinkpad-acpi: revert keymap changes
+Date: Tue, 30 Oct 2007 17:46:19 -0200
+Message-ID: <1193773585-17202-2-git-send-email-hmh@hmh.eng.br>
 References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33904 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59691 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756768AbXJ3Tqf (ORCPT
+	by vger.kernel.org with ESMTP id S1756683AbXJ3Tqe (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:46:35 -0400
+	Tue, 30 Oct 2007 15:46:34 -0400
 In-Reply-To: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jeremy Katz <katzj@redhat.com>
 
-Newer Lenovo BIOSes support the standard ACPI backlight brightness
-interface (_BCM, _BQC, _BCL).  It should be used instead of the native
-thinkpad backlight brightness control interface when possible.
+Revert commit fba956c46a72f9e7503fd464ffee43c632307e31, "Map volume and
+brightness events on thinkpads".
 
-This patch disables the native brightness support in the driver by default
-when we detect that the standard ACPI interface is available.  The local
-admin can still enable it using the module parameter "brightness_enable".
+That commit made some modifications to the default keymaps that cause bad
+behaviour on all IBM ThinkPads if HAL doesn't know to change them into
+passive (on-screen-display only) events.
 
-Note that we need to detect the standard ACPI backlight interface only in
-boxes for which we would load the native backlight interface in the first
-place, and that no ThinkPad BIOS has _BCL but misses the other methods, so
-the detection routines can be really simple.
+The proper solution for IBM ThinkPads is to use the _NOTIFY version of the
+key codes for the IBM default map (which are not available in mainline
+yet), and for the Lenovo keymap, it will take some studying of the various
+DSDTs and testing to know the best path (which I will do shortly).
+
+For more data, refer to:
+http://thread.gmane.org/gmane.linux.kernel/591037/focus=591045
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jeremy Katz <katzj@redhat.com>
 ---
- Documentation/thinkpad-acpi.txt |    8 ++++++--
- drivers/misc/thinkpad_acpi.c    |   39 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+), 2 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index f877c13..bb1c7a6 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -942,11 +942,15 @@ and CMOS.  The driver tries to autodetect which interface to use.
- 
- When display backlight brightness controls are available through the
- standard ACPI interface, it is best to use it instead of this direct
--ThinkPad-specific interface.
-+ThinkPad-specific interface.  The driver will disable its native
-+backlight brightness control interface if it detects that the standard
-+ACPI interface is available in the ThinkPad.
- 
- The brightness_enable module parameter can be used to control whether
- the LCD brightness control feature will be enabled when available.
--brightness_enable=0 forces it to be disabled.
-+brightness_enable=0 forces it to be disabled.  brightness_enable=1
-+forces it to be enabled when available, even if the standard ACPI
-+interface is also available.
- 
- Procfs notes:
- 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 56a21e6..109bd27 100644
+index e953276..63b1e26 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -3174,6 +3174,39 @@ static int __init brightness_check_levels(void)
- 	return (ACPI_SUCCESS(status) && found_node != NULL);
- }
- 
-+static acpi_status __init brightness_find_bcl(acpi_handle handle, u32 lvl,
-+					void *context, void **rv)
-+{
-+	char name[ACPI_PATH_SEGMENT_LENGTH];
-+	struct acpi_buffer buffer = { sizeof(name), &name };
-+
-+	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer)) &&
-+	    !strncmp("_BCL", name, sizeof(name) - 1)) {
-+		*rv = handle;
-+		return AE_CTRL_TERMINATE;
-+	} else {
-+		return AE_OK;
-+	}
-+}
-+
-+static int __init brightness_check_std_acpi_support(void)
-+{
-+	int status;
-+	void *found_node = NULL;
-+
-+	if (!vid_handle) {
-+		IBM_ACPIHANDLE_INIT(vid);
-+	}
-+	if (!vid_handle)
-+		return 0;
-+
-+	/* Search for a _BCL method, but don't execute it */
-+	status = acpi_walk_namespace(ACPI_TYPE_METHOD, vid_handle, 3,
-+	                             brightness_find_bcl, NULL, &found_node);
-+
-+	return (ACPI_SUCCESS(status) && found_node != NULL);
-+}
-+
- static int __init brightness_init(struct ibm_init_struct *iibm)
- {
- 	int b;
-@@ -3186,6 +3219,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 		dbg_printk(TPACPI_DBG_INIT,
- 		           "brightness support disabled by module parameter\n");
- 		return 1;
-+	} else if (brightness_enable > 1) {
-+		if (brightness_check_std_acpi_support()) {
-+			printk(IBM_NOTICE
-+			       "standard ACPI backlight interface available, not loading native one...\n");
-+			return 1;
-+		}
- 	}
- 
- 	if (!brightness_mode) {
+@@ -964,15 +964,15 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+ 		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
+ 		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
+-		KEY_BRIGHTNESSUP,	/* 0x0F: FN+HOME (brightness up) */
++		KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
+ 		/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
+-		KEY_BRIGHTNESSDOWN,	/* 0x10: FN+END (brightness down) */
++		KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
+ 		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
+ 		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
+ 		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
+-		KEY_VOLUMEUP,	/* 0x14: VOLUME UP */
+-		KEY_VOLUMEDOWN,	/* 0x15: VOLUME DOWN */
+-		KEY_MUTE,	/* 0x16: MUTE */
++		KEY_RESERVED,	/* 0x14: VOLUME UP */
++		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
++		KEY_RESERVED,	/* 0x16: MUTE */
+ 		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
+ 		/* (assignments unknown, please report if found) */
+ 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
+@@ -993,9 +993,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
+ 		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
+ 		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
+-		KEY_VOLUMEUP,	/* 0x14: VOLUME UP */
+-		KEY_VOLUMEDOWN,	/* 0x15: VOLUME DOWN */
+-		KEY_MUTE,	/* 0x16: MUTE */
++		KEY_RESERVED,	/* 0x14: VOLUME UP */
++		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
++		KEY_RESERVED,	/* 0x16: MUTE */
+ 		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
+ 		/* (assignments unknown, please report if found) */
+ 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
 -- 
 1.5.3.4
 
