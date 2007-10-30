@@ -1,471 +1,814 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI paches for 2.6.24-rc1
-Date: Mon, 29 Oct 2007 23:00:36 -0400
-Message-ID: <200710292300.36854.lenb@kernel.org>
+From: Carlos Corbacho <cathectic@slackadelic.com>
+Subject: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
+Date: Tue, 30 Oct 2007 03:36:43 +0000
+Message-ID: <200710300336.43696.cathectic@slackadelic.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43669 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751803AbXJ3DAy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Oct 2007 23:00:54 -0400
+Received: from slackadelic.com ([65.196.224.53]:41295 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011AbXJ3DgH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Oct 2007 23:36:07 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-Hi Linus,
-
-please pull from: 
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-This will update the files shown below.
-
-thanks!
-
--Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.24/acpi-release-20070126-2.6.24-rc1.diff.gz
-
- Documentation/kernel-parameters.txt |    5 
- MAINTAINERS                         |   18 +-
- drivers/acpi/Kconfig                |   10 -
- drivers/acpi/battery.c              |  164 +++++++++++++-----------
- drivers/acpi/bus.c                  |    8 -
- drivers/acpi/button.c               |   37 ++++-
- drivers/acpi/ec.c                   |  146 ++++++++++-----------
- drivers/acpi/fan.c                  |   72 +---------
- drivers/acpi/power.c                |   63 +++------
- drivers/acpi/sleep/main.c           |    5 
- drivers/cpuidle/cpuidle.c           |    1 
- drivers/cpuidle/governor.c          |    3 
- drivers/misc/fujitsu-laptop.c       |    7 -
- include/acpi/acpi_bus.h             |    3 
- 14 files changed, 250 insertions(+), 292 deletions(-)
-
-through these commits:
-
-Adrian Bunk (6):
-      ACPI: battery: remove dead code
-      ACPI: EC: fix use-after-free
-      fujitsu-laptop: make 2 functions static
-      cpuidle: unexport tick_nohz_get_sleep_length
-      fujitsu-laptop.c: remove dead code
-      cpuidle: remove unused exports
-
-Alexey Starikovskiy (16):
-      ACPI: sleep: Fix GPE suspend cleanup
-      ACPI: suspend: Wrong order of GPE restore.
-      ACPI: button: send initial lid state after add and resume
-      ACPI: EC: Replace atomic variables with bits
-      ACPI: EC: Don't expect interrupt after last read
-      ACPI: EC: auto select interrupt mode
-      ACPI: EC: Don't re-enable GPE for each transaction.
-      ACPI: EC: Add workaround for "optimized" controllers
-      ACPI: EC: Output changes to operational mode
-      ACPI: power: don't cache power resource state
-      ACPI: Fan: fan device does not need own structure
-      ACPI: Fan: Drop force_power_state acpi_device option
-      ACPI: battery: Update battery information upon sysfs read.
-      ACPI: battery: Support for non-spec name for LiIon technology
-      ACPI: Battery: Allow extract string from integer
-      ACPI: use select POWER_SUPPLY for AC, BATTERY and SBS
-
-Andrey Borzenkov (1):
-      ACPI: battery: register power_supply subdevice only when battery is present
-
-Frans Pop (1):
-      acpi: remove double mention of Support for ACPI option
-
-Len Brown (2):
-      ACPI: update MAINTAINERS
-      suspend: MAINTAINERS update
-
-with this log:
-
-commit 1942971b20817def5fd1142248307c7c3c51fc8a
-Merge: 37e58df... 355ee5e...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Oct 29 17:31:01 2007 -0400
-
-    Pull documentation into release branch
-
-commit 37e58df30063e229ee5157f9d1c1fa1d749917c2
-Merge: b2451e4... 83788c0...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Oct 29 17:30:55 2007 -0400
-
-    Pull cpuidle into release branch
-
-commit b2451e4399d7233cd0008823872f51112d18f8d0
-Merge: 14f7d72... b023b43...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Oct 29 17:30:48 2007 -0400
-
-    Pull fujitsu into release branch
-
-commit 14f7d720bb6cc60be8931ea1a0f547dc1e475b88
-Merge: 6a22c57... 5527c8b...
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Oct 29 17:30:21 2007 -0400
-
-    Pull alexey-fixes into release branch
-
-commit 83788c0caed3a425f64fa88fde7c78746b9cdd76
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Mon Oct 29 13:49:13 2007 +0100
-
-    cpuidle: remove unused exports
-    
-    This patch removes the following unused exports:
-    - cpuidle_devices
-    - cpuidle_register_governor
-    - cpuidle_unregister_governor
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 355ee5eb60e7ce5b5379788c56d36ab162771f7d
-Author: Frans Pop <elendil@planet.nl>
-Date:   Mon Oct 29 17:20:38 2007 -0400
-
-    acpi: remove double mention of Support for ACPI option
-    
-    Current description for CONFIG_ACPI includes the word "Support" twice.  One
-    effect of this is that in menuconfig the "--->" that indicates the presence
-    of sub-options will not show up unless you have a very wide console.
-    
-    Signed-off-by: Frans Pop <elendil@planet.nl>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 5527c8bee27fa063dcec0e020fb8c242ba4270c2
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 29 17:08:59 2007 -0400
-
-    ACPI: use select POWER_SUPPLY for AC, BATTERY and SBS
-    
-    POWER_SUPPLY is needed for AC, battery, and SBS sysfs support.  Use
-    'select' instead of 'depends on', as it is will not be selected by anything
-    else, leading to confusion.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Tested-by: Frans Pop <elendil@planet.nl>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 106449e870b3069c049a3486ae7b47995351270c
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 29 23:29:40 2007 +0300
-
-    ACPI: Battery: Allow extract string from integer
-    
-    Some machines return integer instead of expected string.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Tested-by: Andrey Borzenkov <arvidjaar@mail.ru>
-    Tested-by: Frans Pop <elendil@planet.nl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 0bde7eee9489cc7cce08cf6eba05b4f42a6b2334
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Sun Oct 28 15:33:10 2007 +0300
-
-    ACPI: battery: Support for non-spec name for LiIon technology
-    
-    Support Li-Ion as possible name for technology.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 508df92d1f8d1921013cb4f45bb547d0eaff912a
-Author: Andrey Borzenkov <arvidjaar@mail.ru>
-Date:   Sun Oct 28 12:50:09 2007 +0300
-
-    ACPI: battery: register power_supply subdevice only when battery is present
-    
-    Make sure no power_supply object is present unless we actualy detect
-    presence of battery. This fixes ghost batteries detected by HAL
-    
-    Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit a0ce317ae7d8ea99aea2c3f1a8ef0a99bab99a30
-Author: Len Brown <len.brown@intel.com>
-Date:   Thu Oct 25 18:05:49 2007 -0400
-
-    suspend: MAINTAINERS update
-    
-    > I guess it is time to clarify that suspend and hibernation are separate
-    > things, and add Rafael as a maintainer.  Plus, people blame us for suspend
-    > problems, anyway, I guess it is fair to mark us as suspend maintainers, too.
-    
-    If blame is the qualification, I guess I'm already part of this merry band:-)
-    
-    Change to Supported from Maintained, as the folks that sign my paycheck
-    agree it is a good idea for me to help out on suspend.
-    
-    Acked-by: Pavel Machek <pavel@suse.cz>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 38e09d83e99b6c7ceb03c42046e0c2ec4850c94d
-Author: Len Brown <len.brown@intel.com>
-Date:   Thu Oct 25 17:55:59 2007 -0400
-
-    ACPI: update MAINTAINERS
-    
-    Newly minted project home page -- http://www.lesswatts.org/projects/acpi/
-    Konstantin moved on, so default back to Len for Thermal/Fan.
-    Rui replaces Luming on video.
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit b023b43a83d231d1f3d36ac9e3ce4831b5ec2e7b
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Wed Oct 24 18:25:49 2007 +0200
-
-    fujitsu-laptop.c: remove dead code
-    
-    This patch removes dead code spotted by the Coverity checker.
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 4d8b4e1e02b4bb200e81b2efc915da6ce59d5d72
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Wed Oct 24 18:24:22 2007 +0200
-
-    cpuidle: unexport tick_nohz_get_sleep_length
-    
-    This patch removes the unused
-    EXPORT_SYMBOL_GPL(tick_nohz_get_sleep_length),
-    which we no long user b/c we no longer build optional modules.
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Acked-by: Thomas Gleixner <tglx@linutronix.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit b19073a0be5e317d626b3b404e0039b59383891c
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Thu Oct 25 17:10:47 2007 -0400
-
-    ACPI: battery: Update battery information upon sysfs read.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit b6f03ae6defb61bb4b8e7a8e4b9081a1dd1d3ef9
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Wed Oct 24 18:23:16 2007 +0200
-
-    fujitsu-laptop: make 2 functions static
-    
-    acpi_fujitsu_{add,remove}() can become static.
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 1544fdbc857cbe8afca16a521d3254346befeb06
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Wed Oct 24 18:26:00 2007 +0200
-
-    ACPI: EC: fix use-after-free
-    
-    This patch fixes a use-after-free introduced by
-    commit 30c08574da0ead1a47797ce028218ce5b2de61c7
-    (ACPI: EC: Add new query handler to list head)
-    
-    Spotted by the Coverity checker.
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit c9e4172cde0f793dbf48c99bdfd0abe7d18e4b09
-Author: Adrian Bunk <bunk@kernel.org>
-Date:   Wed Oct 24 18:25:37 2007 +0200
-
-    ACPI: battery: remove dead code
-    
-    After commit f1d4661abe05d0a2c014166042d15ed8b69ae8f2 this was dead
-    code.
-    
-    Spotted by the Coverity checker.
-    
-    Signed-off-by: Adrian Bunk <bunk@kernel.org>
-    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 93ad7c07ad487b036add8760dabcc35666a550ef
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:19:21 2007 +0400
-
-    ACPI: Fan: Drop force_power_state acpi_device option
-    
-    force_power_state was used as a workaround for invalid cached
-    power state of the device. We do not cache power state, so no need for
-    workaround.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 968fc5dc2699434ea1cbddaf189f19c4eb4dbe55
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:19:15 2007 +0400
-
-    ACPI: Fan: fan device does not need own structure
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit c35923bc558074d4f5e6f9706e4cb9811ae55775
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:19:09 2007 +0400
-
-    ACPI: power: don't cache power resource state
-    
-    ACPI may change power resource state behind our back, so don't
-    keep our local copy, which may not be valid.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 95b937e3f52a7f5546c4bffe29886fe400bad1d1
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:19:03 2007 +0400
-
-    ACPI: EC: Output changes to operational mode
-    
-    Insert printk() for every change in operational mode.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 66c5f4e7367b0085652931b2f3366de29e7ff5ec
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:56 2007 +0400
-
-    ACPI: EC: Add workaround for "optimized" controllers
-    
-    Some controllers do not send interrupts for OBF=1 event, but send
-    them for IBF=0. Add workaround for them.
-    
-    Reference: http://bugzilla.kernel.org/show_bug.cgi?id=8459
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 1c55053c21706ccf1fdb26b4bb6d05c4a2782ffe
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:50 2007 +0400
-
-    ACPI: EC: Don't re-enable GPE for each transaction.
-    
-    With the auto selection of operation mode, absence of GPEs does not
-    really degrade performance, so let PM code to handle
-    enabling/disabling GPEs.
-    This is a revert of 5d57a6a55ec0bdcb952dbcd3f8ffcde8a3ee9413,
-    which was meant to be temporary.
-    
-    Reference: http://bugzilla.kernel.org/show_bug.cgi?id=7977
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 7843932ac42899b936085beaea8620d4489b8b3f
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:43 2007 +0400
-
-    ACPI: EC: auto select interrupt mode
-    
-    Start in POLL mode, and if we receive confirmation GPE,
-    switch to INT mode.
-    If confirmations are not sent, switch back to POLL.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 0c5d31f48e54b2e56e9cef8d49ffedaef1e0ea52
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:36 2007 +0400
-
-    ACPI: EC: Don't expect interrupt after last read
-    
-    There is no interrupt after last read according to spec, so
-    don't set bit that we are expecting one.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 080e412cc0bdb9ef8e7a983d5e008537e1c4d36c
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:30 2007 +0400
-
-    ACPI: EC: Replace atomic variables with bits
-    
-    Number of flags is about to be increased, so it is better to
-    put them all into bits.
-    No functional changes.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 23de5d9ef2a4bbc4f733f58311bcb7cf6239c813
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:18 2007 +0400
-
-    ACPI: button: send initial lid state after add and resume
-    
-    Input layer should know about initial state of lid switch,
-    even before first notify.
-    
-    Reference: https://bugzilla.novell.com/show_bug.cgi?id=326814
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 1dbc1fda5d8ca907f320b806005d4a447977d26a
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:12 2007 +0400
-
-    ACPI: suspend: Wrong order of GPE restore.
-    
-    acpi_leave_sleep_state() should have correct list of wake and
-    runtime GPEs, which is available only after disable_wakeup_device()
-    is called.
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 9c1c6a1ba786d58bd03e27ee49f89a5685e8e07b
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Mon Oct 22 14:18:06 2007 +0400
-
-    ACPI: sleep: Fix GPE suspend cleanup
-    
-    Commit 9b039330808b83acac3597535da26f47ad1862ce removed
-    acpi_gpe_sleep_prepare(), the only function used at S5 transition
-    Add call to generic acpi_enable_wake_device().
-    
-    Reference: https://bugzilla.novell.com/show_bug.cgi?id=299882
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>
+
+From: Carlos Corbacho <cathectic@gmail.com>
+
+The following is an implementation of the Windows Management
+Instrumentation (WMI) ACPI interface mapper (PNP0C14).
+
+What it does:
+
+Parses the _WDG method and exports functions to process WMI method calls,
+data block query/ set commands (both based on GUID) and does basic event
+handling.
+
+i.e.
+
+wmi_evaluate_method(const char *guid, u32 instance, u32 method_id,
+const struct acpi_buffer *in, struct acpi_buffer *out)
+
+wmi_query_block(const char *guid, u32 instance,
+struct acpi_buffer *out)
+
+wmi_set_block(const char *guid, u32 instance,
+const struct acpi_buffer *in)
+
+It also provides a helper method to find if a GUID exists or not on the
+system (a quick and easy way for WMI dependant drivers to see if the
+the method/ block they want exists, since GUIDs are supposed to be unique).
+
+i.e.
+
+bool wmi_has_guid(const char guid*)
+
+Where guid is the text encoding of the guid, e.g.:
+
+"67C3371D-95A3-4C37-BB61-DD47B491DAAB"
+
+Event handling - allow a WMI based driver to register a notifier handler
+with WMI. When a notification is sent to WMI, WMI will execute _WED and
+then pass the results and the event to the external handler (since WMI
+does not know the meaning of an event, it is left to the external drivers
+to deal with, rather than WMI exporting the event to userspace).
+
+What it might be able to do:
+
+Handle reading data block GUIDs marked as "expensive" (e.g. calling WCxx with
+the correct arguments, before and after querying the block in question). My
+DSDT does not have any such marked block methods, so this is untested.
+
+What it can't do:
+
+Unicode - The MS article[1] calls for converting between ASCII and Unicode (or
+vice versa) if a GUID is marked as "string". There is also another problem
+in that given this specification revolves around Windows, Unicode in this
+context likely means UTF-16. Since Linux doesn't use this, and since this
+driver will only be called by other Linux drivers, it may make more sense
+to treat Unicode here as UTF-8 instead.
+
+What it won't do:
+
+Handle a MOF[1] - the WMI mapper just implements simple calls that are
+wrappers around ACPI functions. Also, MOFs are based around the Windows WMI
+API, so they make little sense on Linux.
+
+Userspace - the WMI mapper disregards the WMI-ACPI spec on this point, and
+does _not_ try to export to userspace, since WMI does not exist on Linux.
+All callers of the WMI mapper are assumed to be kernel space drivers.
+
+[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
+
+===
+ChangeLog
+==
+
+v1 (2007-10-02):
+
+* Initial release
+
+v2 (2007-10-05):
+
+* Cleaned up code - split up super "wmi_evaluate_block" -> each external
+  symbol now handles its own ACPI calls, rather than handing off to
+  a "super" method (and in turn, is a lot simpler to read)
+* Added a find_guid() symbol - return true if a given GUID exists on
+  the system
+* wmi_* functions now return type acpi_status (since they are just
+  fancy wrappers around acpi_evaluate_object())
+* Removed extra debug code
+
+v3 (2007-10-27)
+
+* More code clean up - now passes checkpatch.pl
+* Change data block calls - ref MS spec, method ID is not required for
+  them, so drop it from the function parameters.
+* Const'ify guid in the function call parameters.
+* Fix _WDG buffer handling - copy the data to our own private structure.
+* Change WMI from tristate to bool - otherwise the external functions are
+  not exported in linux/acpi.h if you try to build WMI as a module.
+* Fix more flag comparisons.
+* Add a maintainers entry - since I wrote this, I should take the blame
+  for it.
+
+v4 (2007-10-30)
+
+* Add missing brace from after fixing checkpatch errors.
+* Rewrote event handling - allow external drivers to register with WMI to
+  handle WMI events
+* Clean up flags and sanitise flag handling
+
+Signed-off-by: Carlos Corbacho <cathectic@gmail.com>
+---
+ MAINTAINERS           |    7 +
+ drivers/acpi/Kconfig  |   11 +
+ drivers/acpi/Makefile |    1 +
+ drivers/acpi/wmi.c    |  590 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h  |   17 ++
+ 5 files changed, 626 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/acpi/wmi.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3ceeb56..1f4fda5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -261,6 +261,13 @@ L:	linux-acpi@vger.kernel.org
+ W:	http://acpi.sourceforge.net/
+ S:	Supported
+ 
++ACPI WMI DRIVER
++P:      Carlos Corbacho
++M:      cathectic@gmail.com
++L:      linux-acpi@vger.kernel.org
++W:      http://www.lesswatts.org/projects/acpi/
++S:      Supported
++
+ ADM1025 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5d0e26a..ff9cf2a 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -179,6 +179,17 @@ config ACPI_NUMA
+ 	depends on (X86 || IA64)
+ 	default y if IA64_GENERIC || IA64_SGI_SN2
+ 
++config ACPI_WMI
++	bool "WMI (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	default y
++	help
++	  This driver adds support for the WMI ACPI mapper device (PNP0C14)
++	  found on some systems.
++
++	  NOTE: You will need another driver on top of this to actually use
++	  anything defined in the WMI ACPI device.
++
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 54e3ab0..9e9aa39 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
++obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+new file mode 100644
+index 0000000..77078fd
+--- /dev/null
++++ b/drivers/acpi/wmi.c
+@@ -0,0 +1,590 @@
++/*
++ *  WMI to ACPI mapping driver
++ *
++ *  Copyright (C) 2007 Carlos Corbacho <cathectic@gmail.com>
++ *
++ *  GUID parsing code from ldm.c is:
++ *   Copyright (C) 2001,2002 Richard Russon <ldm@flatcap.org>
++ *   Copyright (c) 2001-2007 Anton Altaparmakov
++ *   Copyright (C) 2001,2002 Jakob Kemi <jakob.kemi@telia.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ * TODO:
++ *
++ * Handle method & data blocks flagged as ACPI_WMI_STRING:
++ *
++ * The MS spec says that we should translate the input from "UNICODE to ASCIIZ"
++ * and the output from "ASCIIZ to UNICODE". But by UNICODE, they probably mean
++ * UTF-16, where as we are using UTF-8/ ASCII here - so, what to do? Converting
++ * to UTF-16 is probably pointless, since most of the clients of this mapper
++ * will be Linux drivers using UTF-8/ ASCII anyway, not UTF-16.
++ *
++ * So, for the moment, the mapper should just convert input from UTF-8 to ASCII
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <acpi/acpi_drivers.h>
++
++#define ACPI_WMI_CLASS			"wmi"
++
++#undef PREFIX
++#define PREFIX "ACPI: WMI: "
++
++MODULE_AUTHOR("Carlos Corbacho");
++MODULE_DESCRIPTION("WMI ACPI Interface Driver");
++MODULE_LICENSE("GPL");
++
++struct guid_block_t
++{
++	char guid[16];
++	union
++	{
++		char object_id[2];
++		struct
++		{
++			unsigned char notification_value;
++			unsigned char reserved;
++		};
++	};
++	u8 instance_count;
++	u8 flags;
++};
++
++struct guid_list
++{
++	struct guid_block_t *pointer;
++	int total;
++};
++
++static struct guid_list guids;
++static acpi_handle acpi_wmi_handle;
++static struct acpi_buffer *wed_buffer;
++static acpi_notify_handler wmi_external_handler;
++
++/*
++ * If the GUID data block is marked as expensive, we must enable and
++ * explicitily disable data collection.
++ */
++#define ACPI_WMI_EXPENSIVE   0x1
++#define ACPI_WMI_METHOD      0x2	/* GUID is a method */
++
++/*
++ * Data block is a string, and must be converted from ASCII to Unicode (output)
++ * or Unicode to ASCII (input)
++ */
++#define ACPI_WMI_STRING      0x4
++#define ACPI_WMI_EVENT       0x8	/* GUID is an event */
++
++static int acpi_wmi_remove(struct acpi_device *device, int type);
++static int acpi_wmi_add(struct acpi_device *device);
++
++const static struct acpi_device_id wmi_device_ids[] = {
++	{"PNP0C14", 0},
++	{"pnp0c14", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
++
++static struct acpi_driver acpi_wmi_driver = {
++	.name = "wmi",
++	.class = ACPI_WMI_CLASS,
++	.ids = wmi_device_ids,
++	.ops = {
++		.add = acpi_wmi_add,
++		.remove = acpi_wmi_remove,
++		},
++};
++
++/*
++ * GUID parsing functions
++ */
++
++/**
++ * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
++ * @src:  Pointer to at least 2 characters to convert.
++ *
++ * Convert a two character ASCII hex string to a number.
++ *
++ * Return:  0-255  Success, the byte was parsed correctly
++ *          -1     Error, an invalid character was supplied
++ */
++static int wmi_parse_hexbyte(const u8 *src)
++{
++	unsigned int x; /* For correct wrapping */
++	int h;
++
++	/* high part */
++	x = src[0];
++	if (x - '0' <= '9' - '0') {
++		h = x - '0';
++	} else if (x - 'a' <= 'f' - 'a') {
++		h = x - 'a' + 10;
++	} else if (x - 'A' <= 'F' - 'A') {
++		h = x - 'A' + 10;
++	} else {
++		return -1;
++	}
++	h <<= 4;
++
++	/* low part */
++	x = src[1];
++	if (x - '0' <= '9' - '0')
++		return h | (x - '0');
++	if (x - 'a' <= 'f' - 'a')
++		return h | (x - 'a' + 10);
++	if (x - 'A' <= 'F' - 'A')
++		return h | (x - 'A' + 10);
++	return -1;
++}
++
++/**
++ * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
++ * @src:   Memory block holding binary GUID (16 bytes)
++ * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
++ *
++ * Byte swap a binary GUID to match it's real GUID value
++ */
++static void wmi_swap_bytes(u8 *src, u8 *dest)
++{
++	int i;
++
++	for (i = 0; i <= 3; i++)
++		memcpy(dest + i, src + (3 - i), 1);
++
++	for (i = 0; i <= 1; i++)
++		memcpy(dest + 4 + i, src + (5 - i), 1);
++
++	for (i = 0; i <= 1; i++)
++		memcpy(dest + 6 + i, src + (7 - i), 1);
++
++	memcpy(dest + 8, src + 8, 8);
++}
++
++/**
++ * wmi_parse_guid - Convert GUID from ASCII to binary
++ * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @dest:  Memory block to hold binary GUID (16 bytes)
++ *
++ * N.B. The GUID need not be NULL terminated.
++ *
++ * Return:  'true'   @dest contains binary GUID
++ *          'false'  @dest contents are undefined
++ */
++static bool wmi_parse_guid(const u8 *src, u8 *dest)
++{
++	static const int size[] = { 4, 2, 2, 2, 6 };
++	int i, j, v;
++
++	if (src[8]  != '-' || src[13] != '-' ||
++		src[18] != '-' || src[23] != '-')
++		return false;
++
++	for (j = 0; j < 5; j++, src++) {
++		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
++			v = wmi_parse_hexbyte(src);
++			if (v < 0)
++				return false;
++		}
++	}
++
++	return true;
++}
++
++static bool find_guid(const char *guid_string, struct guid_block_t **out)
++{
++	char tmp[16], guid_input[16];
++	struct guid_block_t *block;
++	int i;
++
++	wmi_parse_guid(guid_string, tmp);
++	wmi_swap_bytes(tmp, guid_input);
++
++	for (i = 0; i < guids.total; i++) {
++		block = guids.pointer + i;
++
++		if (memcmp(block->guid, guid_input, 16) == 0) {
++			if (out != NULL)
++				*out = block;
++			return 1;
++		}
++	}
++	return 0;
++}
++
++static acpi_status wmi_get_event_data(u32 event)
++{
++	struct acpi_object_list input;
++	union acpi_object params[1];
++
++	input.count = 1;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = event;
++
++	return acpi_evaluate_object(acpi_wmi_handle, "_WED", &input,
++		wed_buffer);
++}
++
++/*
++ * Externally callable WMI functions
++ */
++/**
++ * wmi_evaluate_method - Evaluate a WMI method
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * @method_id: Method ID to call
++ * &in: Buffer containing input for the method call
++ * &out: Empty buffer to return the method results
++ *
++ * Convert a WMI method call to an ACPI one, and return the results
++ */
++acpi_status wmi_evaluate_method(const char *guid_string, u32 instance,
++u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
++{
++	struct guid_block_t *block = NULL;
++	acpi_status status;
++	struct acpi_object_list input;
++	union acpi_object wm_params[3];
++	char method[4] = "WM";
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (!block->flags & ACPI_WMI_METHOD)
++		return AE_BAD_DATA;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	input.count = 2;
++	input.pointer = wm_params;
++	wm_params[0].type = ACPI_TYPE_INTEGER;
++	wm_params[0].integer.value = instance;
++	wm_params[1].type = ACPI_TYPE_INTEGER;
++	wm_params[1].integer.value = method_id;
++
++	if (in != NULL) {
++		input.count = 3;
++		wm_params[2].type = ACPI_TYPE_BUFFER;
++		wm_params[2].buffer.length = in->length;
++		wm_params[2].buffer.pointer = in->pointer;
++	}
++
++	strncat(method, block->object_id, 2);
++
++	status = acpi_evaluate_object(acpi_wmi_handle, method, &input, out);
++
++	if ((block->flags & ACPI_WMI_STRING) > 0) {
++		/* Convert output from ASCIIZ to Unicode */
++		return AE_NOT_IMPLEMENTED;
++	}
++
++	return status;
++}
++EXPORT_SYMBOL(wmi_evaluate_method);
++
++/**
++ * wmi_query_block - Return contents of a WMI block
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * &out: Empty buffer to return the contents of the data block to
++ *
++ * Return the contents of a data block to a buffer
++ */
++acpi_status wmi_query_block(const char *guid_string, u32 instance,
++struct acpi_buffer *out)
++{
++	struct guid_block_t *block = NULL;
++	acpi_status status;
++	struct acpi_object_list input, wc_input;
++	union acpi_object wc_params[1], wq_params[1];
++	char method[4] = "WQ";
++	char wc_method[4] = "WC";
++
++	if (guid_string == NULL || out == NULL)
++		return AE_BAD_PARAMETER;
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	/* Check GUID is a data block */
++	if ((block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD)) > 0)
++		return AE_BAD_ADDRESS;
++
++	input.count = 1;
++	input.pointer = wq_params;
++	wq_params[0].type = ACPI_TYPE_INTEGER;
++	wq_params[0].integer.value = instance;
++
++	/*
++	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method first to
++	 * enable collection
++	 */
++	if ((block->flags & ACPI_WMI_EXPENSIVE) > 0) {
++		wc_input.count = 1;
++		wc_input.pointer = wc_params;
++		wc_params[0].type = ACPI_TYPE_INTEGER;
++		wc_params[0].integer.value = 1;
++
++		strncat(wc_method, block->object_id, 2);
++
++		status = acpi_evaluate_object(acpi_wmi_handle, wc_method,
++			&wc_input, NULL);
++
++		if (ACPI_FAILURE(status))
++			return AE_ERROR;
++	}
++
++	strncat(method, block->object_id, 2);
++
++	status = acpi_evaluate_object(acpi_wmi_handle, method, NULL, out);
++
++	/*
++	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method, even if
++	 * the WQxx method failed - we should disable collection anyway
++	 */
++	if ((block->flags & ACPI_WMI_EXPENSIVE) > 0) {
++		wc_params[0].integer.value = 0;
++		status = acpi_evaluate_object(acpi_wmi_handle,
++		wc_method, &wc_input, NULL);
++	}
++
++	if (ACPI_SUCCESS(status)) {
++		/* Convert output from ASCIIZ to Unicode */
++		if ((block->flags & ACPI_WMI_STRING) > 0)
++			return AE_NOT_IMPLEMENTED;
++	}
++
++	return status;
++}
++EXPORT_SYMBOL(wmi_query_block);
++
++/**
++ * wmi_set_block - Write to a WMI block
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ * @instance: Instance index of the instance
++ * &in: Buffer containing new values for the data block
++ *
++ * Write the contents of the input buffer to ACPI
++ */
++acpi_status wmi_set_block(const char *guid_string, u32 instance,
++const struct acpi_buffer *in)
++{
++	struct guid_block_t *block = NULL;
++	struct acpi_object_list input;
++	union acpi_object params[2];
++	char method[4] = "WS";
++
++	if (guid_string == NULL || in == NULL)
++		return AE_BAD_DATA;
++
++	if (!find_guid(guid_string, &block))
++		return AE_BAD_ADDRESS;
++
++	if (block->instance_count < instance)
++		return AE_BAD_PARAMETER;
++
++	/* Check GUID is a data block */
++	if (block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD))
++		return AE_BAD_ADDRESS;
++
++	input.count = 2;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_INTEGER;
++	params[0].integer.value = instance;
++	params[1].type = ACPI_TYPE_BUFFER;
++	params[1].buffer.length = in->length;
++	params[1].buffer.pointer = in->pointer;
++
++	/* Convert input from Unicode to ASCIIZ */
++	if (block->flags & ACPI_WMI_STRING)
++		return AE_NOT_IMPLEMENTED;
++
++	strncat(method, block->object_id, 2);
++
++	return acpi_evaluate_object(acpi_wmi_handle, method, &input, NULL);
++}
++EXPORT_SYMBOL(wmi_set_block);
++
++/**
++ * wmi_install_notify_handler - Register handler for WMI events
++ * @handler: Function to handle notifications
++ * &data: Buffer to return data associated with event
++ *
++ * Register a handler for events sent to the WMI-ACPI mapper device.
++ */
++acpi_status wmi_install_notify_handler(acpi_notify_handler handler,
++struct acpi_buffer *data)
++{
++	if (!data)
++		return AE_BAD_PARAMETER;
++
++	if (!wed_buffer)
++		wed_buffer = data;
++	else
++		return AE_ERROR;
++
++	wmi_external_handler = handler;
++
++	return AE_OK;
++}
++EXPORT_SYMBOL(wmi_install_notify_handler);
++
++/**
++ * wmi_uninstall_notify_handler - Unregister handler for WMI events
++ *
++ * Unregister handler for events sent to the WMI-ACPI mapper device.
++ */
++acpi_status wmi_remove_notify_handler(void)
++{
++	if (wmi_external_handler) {
++		wmi_external_handler = NULL;
++		wed_buffer = NULL;
++		return AE_OK;
++	}
++	return AE_ERROR;
++}
++EXPORT_SYMBOL(wmi_remove_notify_handler);
++
++/**
++ * wmi_has_guid - Check if a GUID is available
++ * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
++ *
++ * Check if a given GUID is defined by _WDG
++ */
++bool wmi_has_guid(const char *guid_string)
++{
++	return find_guid(guid_string, NULL);
++}
++EXPORT_SYMBOL(wmi_has_guid);
++
++/**
++ * parse_wdg - Parse the _WDG method for the GUID data blocks
++ */
++static acpi_status parse_wdg(void)
++{
++	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
++	union acpi_object *obj;
++	acpi_status status;
++
++	status = acpi_evaluate_object(acpi_wmi_handle, "_WDG", NULL, &out);
++
++	if (ACPI_FAILURE(status))
++		return status;
++
++	obj = (union acpi_object *) out.pointer;
++
++	if (obj->type != ACPI_TYPE_BUFFER)
++		return AE_ERROR;
++
++	guids.pointer = kzalloc(obj->buffer.length, GFP_KERNEL);
++	memcpy(guids.pointer, obj->buffer.pointer, obj->buffer.length);
++	guids.total = obj->buffer.length / sizeof(struct guid_block_t);
++
++	kfree(out.pointer);
++
++	return status;
++}
++
++static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
++{
++	int i;
++	struct guid_block_t *block;
++
++	for (i = 0; i < guids.total; i++) {
++		block = guids.pointer + i;
++
++		if ((block->flags & ACPI_WMI_EVENT) &&
++		block->notification_value == event &&
++		wmi_external_handler && wed_buffer) {
++			/*
++			 * Get data for the event, and pass it to the associated
++			 * external caller
++			 */
++			wmi_get_event_data(event);
++			wmi_external_handler(handle, event, wed_buffer);
++		}
++	}
++}
++
++static int acpi_wmi_add(struct acpi_device *device)
++{
++	acpi_status status;
++
++	acpi_wmi_handle = device->handle;
++
++	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++		acpi_wmi_notify, device);
++
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				  "Error installing notify handler\n"));
++		return -ENODEV;
++	}
++
++	status = parse_wdg();
++
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return 0;
++}
++
++static int acpi_wmi_remove(struct acpi_device *device, int type)
++{
++	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
++		acpi_wmi_notify);
++
++	return 0;
++}
++
++static int __init acpi_wmi_init(void)
++{
++	acpi_status result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	result = acpi_bus_register_driver(&acpi_wmi_driver);
++
++	if (ACPI_FAILURE(result))
++		return -ENODEV;
++
++	printk(KERN_INFO PREFIX "Interface device found\n");
++	printk(KERN_INFO PREFIX "Mapper loaded\n");
++
++	return 0;
++}
++
++static void __exit acpi_wmi_exit(void)
++{
++	kfree(guids.pointer);
++	acpi_bus_unregister_driver(&acpi_wmi_driver);
++	printk(KERN_INFO PREFIX "Mapper unloaded\n");
++}
++
++module_init(acpi_wmi_init);
++module_exit(acpi_wmi_exit);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 8ccedf7..070d175 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -186,6 +186,23 @@ extern int ec_transaction(u8 command,
+ 
+ #endif /*CONFIG_ACPI_EC*/
+ 
++#ifdef CONFIG_ACPI_WMI
++
++extern acpi_status wmi_evaluate_method(const char *guid, u32 instance,
++					u32 method_id,
++					const struct acpi_buffer *in,
++					struct acpi_buffer *out);
++extern acpi_status wmi_query_block(const char *guid, u32 instance,
++					struct acpi_buffer *out);
++extern acpi_status wmi_set_block(const char *guid, u32 instance,
++					const struct acpi_buffer *in);
++extern acpi_status wmi_install_notify_handler(acpi_notify_handler handler,
++struct acpi_buffer *data);
++extern acpi_status wmi_remove_notify_handler(void);
++extern bool wmi_has_guid(const char *guid);
++
++#endif	/* CONFIG_ACPI_WMI */
++
+ extern int acpi_blacklisted(void);
+ extern void acpi_bios_year(char *s);
+ 
+-- 
+1.5.3.4
+
