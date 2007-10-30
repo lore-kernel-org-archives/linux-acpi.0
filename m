@@ -1,81 +1,57 @@
-From: Richard Knutsson <ricknu-0@student.ltu.se>
-Subject: [PATCH] acpi: 'acpi_gbl_system_awake_and_running' is no longer used, only assigned.
-Date: Tue, 30 Oct 2007 11:54:07 +0100 (MET)
-Message-ID: <20071030104750.30935.5409.sendpatchset@thinktank.campus.ltu.se>
+From: Danny Baumann <dannybaumann@web.de>
+Subject: Re: Brightness buttons broken on Toshiba Satellite Proc A100 in
+	kernel 2.6.23 (Fedora8)
+Date: Tue, 30 Oct 2007 13:21:50 +0100
+Message-ID: <1193746910.18110.1.camel@rechenknecht.peppercon.de>
+References: <loom.20071016T122903-517@post.gmane.org>
+	 <4714CB1A.7010300@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gepetto.dc.ltu.se ([130.240.42.40]:46743 "EHLO
-	gepetto.dc.ltu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbXJ3KyN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 06:54:13 -0400
+Received: from fmmailgate01.web.de ([217.72.192.221]:41315 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbXJ3MVw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 08:21:52 -0400
+Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 42028ABA4893
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2007 13:21:51 +0100 (CET)
+Received: from [212.80.250.154] (helo=[192.168.1.26])
+	by smtp07.web.de with asmtp (TLSv1:RC4-MD5:128)
+	(WEB.DE 4.108 #208)
+	id 1Imq6R-0001Uk-00
+	for linux-acpi@vger.kernel.org; Tue, 30 Oct 2007 13:21:51 +0100
+In-Reply-To: <4714CB1A.7010300@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Richard Knutsson <ricknu-0@student.ltu.se>
+To: linux-acpi@vger.kernel.org
 
-'acpi_gbl_system_awake_and_running' is no longer used, only assigned.
+Hi,
 
-Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
----
-Diffed against linus-git
-Checked with script/checkpatch.pl
+> > after upgrading to Fedora 8 which brought kernel 2.6.23 with it I can no longer
+> > use the brightness buttons (Fn+F6/F7) on my above mentioned laptop. Pressing
+> > them generates F6 and F7 key events instead of ACPI events. This used to work
+> > fine in Fedora 7's 2.6.22.9 kernel.
+> > 
+> > Is there anything I can do to debug this? Writing a value to
+> > /proc/acpi/video/VGA/LCD/brightness still works fine, so it's just a matter of
+> > the key mapping.
+> > I would try to debug this myself, if I just knew where to look at; so any
+> > pointers in this direction would be appreciated, too.
 
- drivers/acpi/hardware/hwsleep.c   |    5 -----
- drivers/acpi/utilities/utglobal.c |    1 -
- include/acpi/acglobal.h           |    1 -
- 3 files changed, 7 deletions(-)
+Ok, I played around with it some more. It seems that on my Laptop the
+firmware sends out notifications on Fn+F6/7 press.
+Kernel 2.6.23-rc2 worked fine, -rc3 is broken. Reverting ec.c in the
+current Fedora kernel to the version in 2.6.23-rc2 makes brightness
+control work again. After finding that, I tried the current HEAD version
+of ec.c - unfortunately to no avail.
+2.6.23-rc3 doesn't show up the (unwanted) key events for Fn+F6/7 though
+- this behaviour was introduced in -rc4.
 
+Is it possible to fix the problem with the amount of information
+provided? If no, what additional information can I provide?
 
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index 81b2484..e020e50 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -300,8 +300,6 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
- 		return_ACPI_STATUS(status);
- 	}
- 
--	acpi_gbl_system_awake_and_running = FALSE;
--
- 	status = acpi_hw_enable_all_wakeup_gpes();
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
-@@ -446,7 +444,6 @@ acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void)
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
--	acpi_gbl_system_awake_and_running = FALSE;
- 
- 	status = acpi_hw_enable_all_wakeup_gpes();
- 	if (ACPI_FAILURE(status)) {
-@@ -587,8 +584,6 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
- 	}
- 	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
- 
--	acpi_gbl_system_awake_and_running = TRUE;
--
- 	/* Enable power button */
- 
- 	(void)
-diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index 93ea829..f2ba315 100644
---- a/drivers/acpi/utilities/utglobal.c
-+++ b/drivers/acpi/utilities/utglobal.c
-@@ -709,7 +709,6 @@ void acpi_ut_init_globals(void)
- 	/* Hardware oriented */
- 
- 	acpi_gbl_events_initialized = FALSE;
--	acpi_gbl_system_awake_and_running = TRUE;
- 
- 	/* Namespace */
- 
-diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
-index 347a911..ae0fc0a 100644
---- a/include/acpi/acglobal.h
-+++ b/include/acpi/acglobal.h
-@@ -236,7 +236,6 @@ ACPI_EXTERN u8 acpi_gbl_step_to_next_call;
- ACPI_EXTERN u8 acpi_gbl_acpi_hardware_present;
- ACPI_EXTERN u8 acpi_gbl_global_lock_present;
- ACPI_EXTERN u8 acpi_gbl_events_initialized;
--ACPI_EXTERN u8 acpi_gbl_system_awake_and_running;
- 
- extern u8 acpi_gbl_shutdown;
- extern u32 acpi_gbl_startup_flags;
+Thanks,
+
+Danny
+
