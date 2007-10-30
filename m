@@ -1,99 +1,138 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 7/7] ACPI: thinkpad-acpi: fix brightness_set error paths
-Date: Tue, 30 Oct 2007 17:46:25 -0200
-Message-ID: <1193773585-17202-8-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 6/7] ACPI: thinkpad-acpi: allow for syscall restart in sysfs handlers
+Date: Tue, 30 Oct 2007 17:46:24 -0200
+Message-ID: <1193773585-17202-7-git-send-email-hmh@hmh.eng.br>
 References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56792 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44855 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756648AbXJ3Tqe (ORCPT
+	by vger.kernel.org with ESMTP id S1756558AbXJ3Tqd (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:46:34 -0400
+	Tue, 30 Oct 2007 15:46:33 -0400
 In-Reply-To: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jean Delvare <khali@linux-fr.org>, Peter Jordan <usernetwork@gmx.info>, Richard Neill <rn214@hermes.cam.ac.uk>
 
-The code calling brightness_set() can't handle EINTR/ERESTARTSYS well, nor
-is it checking brightness_set() return status properly.
+Map an mutex_lock_interruptible() error return into ERESTARTSYS, as the
+only possible error from mutex_lock_interruptible is EINTR, and that will
+only happen if signal_pending() causes the mutex lock attempt to abort.
 
-Fix it.
+This still allows signals to be delivered ASAP, which is much nicer than
+just doing mutex_lock, and still shadows userspace from EINTR when
+SA_RESTART is active.
+
+Problem reported by Peter Jordan.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Peter Jordan <usernetwork@gmx.info>
+Cc: Richard Neill <rn214@hermes.cam.ac.uk>
 ---
- drivers/misc/thinkpad_acpi.c |   34 +++++++++++++++++++++-------------
- 1 files changed, 21 insertions(+), 13 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   40 ++++++++++++++++------------------------
+ 1 files changed, 16 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 306daa5..8c94307 100644
+index 251110d..306daa5 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -3278,6 +3278,8 @@ static void brightness_exit(void)
- 
- static int brightness_update_status(struct backlight_device *bd)
- {
-+	/* it is the backlight class's job (caller) to handle
-+	 * EINTR and other errors properly */
- 	return brightness_set(
- 		(bd->props.fb_blank == FB_BLANK_UNBLANK &&
- 		 bd->props.power == FB_BLANK_UNBLANK) ?
-@@ -3318,6 +3320,7 @@ static int brightness_get(struct backlight_device *bd)
- 	return level;
- }
- 
-+/* May return EINTR which can always be mapped to ERESTARTSYS */
- static int brightness_set(int value)
- {
- 	int cmos_cmd, inc, i, res;
-@@ -3381,29 +3384,34 @@ static int brightness_read(char *p)
- static int brightness_write(char *buf)
- {
- 	int level;
--	int new_level;
-+	int rc;
- 	char *cmd;
- 	int max_level = (tp_features.bright_16levels) ? 15 : 7;
- 
--	while ((cmd = next_cmd(&buf))) {
--		if ((level = brightness_get(NULL)) < 0)
--			return level;
-+	level = brightness_get(NULL);
-+	if (level < 0)
-+		return level;
- 
-+	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "up") == 0) {
--			new_level = level == (max_level)?
--						max_level : level + 1;
-+			if (level < max_level)
-+				level++;
- 		} else if (strlencmp(cmd, "down") == 0) {
--			new_level = level == 0? 0 : level - 1;
--		} else if (sscanf(cmd, "level %d", &new_level) == 1 &&
--			   new_level >= 0 && new_level <= max_level) {
--			/* new_level set */
-+			if (level > 0)
-+				level--;
-+		} else if (sscanf(cmd, "level %d", &level) == 1 &&
-+			   level >= 0 && level <= max_level) {
-+			/* new level set */
- 		} else
- 			return -EINVAL;
--
--		brightness_set(new_level);
+@@ -1342,9 +1342,8 @@ static int hotkey_read(char *p)
+ 		return len;
  	}
  
--	return 0;
-+	/*
-+	 * Now we know what the final level should be, so we try to set it.
-+	 * Doing it this way makes the syscall restartable in case of EINTR
-+	 */
-+	rc = brightness_set(level);
-+	return (rc == -EINTR)? ERESTARTSYS : rc;
- }
+-	res = mutex_lock_interruptible(&hotkey_mutex);
+-	if (res < 0)
+-		return res;
++	if (mutex_lock_interruptible(&hotkey_mutex))
++		return -ERESTARTSYS;
+ 	res = hotkey_get(&status, &mask);
+ 	mutex_unlock(&hotkey_mutex);
+ 	if (res)
+@@ -1373,9 +1372,8 @@ static int hotkey_write(char *buf)
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
  
- static struct ibm_struct brightness_driver_data = {
+-	res = mutex_lock_interruptible(&hotkey_mutex);
+-	if (res < 0)
+-		return res;
++	if (mutex_lock_interruptible(&hotkey_mutex))
++		return -ERESTARTSYS;
+ 
+ 	res = hotkey_get(&status, &mask);
+ 	if (res)
+@@ -3768,9 +3766,8 @@ static ssize_t fan_pwm1_store(struct device *dev,
+ 	/* scale down from 0-255 to 0-7 */
+ 	newlevel = (s >> 5) & 0x07;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 
+ 	rc = fan_get_status(&status);
+ 	if (!rc && (status &
+@@ -4020,9 +4017,8 @@ static int fan_get_status_safe(u8 *status)
+ 	int rc;
+ 	u8 s;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 	rc = fan_get_status(&s);
+ 	if (!rc)
+ 		fan_update_desired_level(s);
+@@ -4156,9 +4152,8 @@ static int fan_set_level_safe(int level)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 
+ 	if (level == TPACPI_FAN_LAST_LEVEL)
+ 		level = fan_control_desired_level;
+@@ -4179,9 +4174,8 @@ static int fan_set_enable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+@@ -4235,9 +4229,8 @@ static int fan_set_disable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+ 	switch (fan_control_access_mode) {
+@@ -4274,9 +4267,8 @@ static int fan_set_speed(int speed)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	rc = mutex_lock_interruptible(&fan_mutex);
+-	if (rc < 0)
+-		return rc;
++	if (mutex_lock_interruptible(&fan_mutex))
++		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+ 	switch (fan_control_access_mode) {
 -- 
 1.5.3.4
 
