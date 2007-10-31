@@ -1,93 +1,121 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: [PATCH] sony-laptop: fit input devices into sysfs tree
-Date: Wed, 31 Oct 2007 00:36:52 -0400
-Message-ID: <200710310036.52791.dtor@insightbb.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [2.6.24-rc1 regression] AC adapter state does not change after
+ resume
+Date: Wed, 31 Oct 2007 09:27:33 +0300
+Message-ID: <47282055.2000409@gmail.com>
+References: <200710302324.52822.arvidjaar@mail.ru> <47279D8C.5040708@gmail.com> <200710310709.06621.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------060108090007090604040507"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxsf06.insightbb.com ([74.128.0.76]:61504 "EHLO
-	mxsf06.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbXJaEqd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 00:46:33 -0400
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.174]:6757 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499AbXJaG1j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 02:27:39 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so250605ugc
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2007 23:27:38 -0700 (PDT)
+In-Reply-To: <200710310709.06621.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi Mattia,
+This is a multi-part message in MIME format.
+--------------060108090007090604040507
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Here is a small patch for sony-laptop. Untested since I don't
-have the hardware.
+Andrey Borzenkov wrote:
+> On Wednesday 31 October 2007, Alexey Starikovskiy wrote:
+>> Andrey Borzenkov wrote:
+>>> I suspect new ACPI AC adapter code but have to add some printk's to be
+>>> sure.
+>>>
+>>> To reproduce - plug in AC cord, suspend, unplug, resume - kpowersave and
+>>> sysfs still show AC adapter online. Or other way round.
+>>>
+>>> -andrey
+>> Please check if this patch helps.
+>>
+> 
+> It does not even compile :)
+> 
+> On serious note (after adding forward declaration) - patch half works. It does 
+> make "online" return true value (which confirms that underlying ACPI works 
+> correctly) but HAL still does not notice it.
+> 
+> The problem is, with power_supply interface HAL does not use polling, it 
+> relies on CHANGE event. This event is apparently never generated if AC 
+> adapter state changes on resume. So the obvious fix is to compare AC state 
+> before and after suspend in ->resume function and generate synthetic CHANGE 
+> event if something has changed.
+> 
+> This will also make superfluous polling redundant.
+Ok, here. This one compiles :)
 
--- 
-Dmitry
+Regards,
+Alex.
 
-Subject: sony-laptop: fit input devices into sysfs tree
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+--------------060108090007090604040507
+Content-Type: text/x-diff;
+ name="update_ac_state_on_sysfs_read.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="update_ac_state_on_sysfs_read.patch"
 
-Properly set up parent on input devices registered by sony-laptop.
+ACPI: AC: Update AC state on resume
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+Check if AC state has changed across resume and notify userspace if so.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- drivers/misc/sony-laptop.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Index: linux/drivers/misc/sony-laptop.c
-===================================================================
---- linux.orig/drivers/misc/sony-laptop.c
-+++ linux/drivers/misc/sony-laptop.c
-@@ -338,7 +338,7 @@ static void sony_laptop_report_input_eve
- 		dprintk("unknown input event %.2x\n", event);
+ drivers/acpi/ac.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index e03de37..06308ff 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -54,6 +54,7 @@ extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
+ 
+ static int acpi_ac_add(struct acpi_device *device);
+ static int acpi_ac_remove(struct acpi_device *device, int type);
++static int acpi_ac_resume(struct acpi_device *device);
+ static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+ 
+ const static struct acpi_device_id ac_device_ids[] = {
+@@ -69,6 +70,7 @@ static struct acpi_driver acpi_ac_driver = {
+ 	.ops = {
+ 		.add = acpi_ac_add,
+ 		.remove = acpi_ac_remove,
++		.resume = acpi_ac_resume,
+ 		},
+ };
+ 
+@@ -294,6 +296,21 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	return result;
  }
  
--static int sony_laptop_setup_input(void)
-+static int sony_laptop_setup_input(struct acpi_device *acpi_device)
++static int acpi_ac_resume(struct acpi_device *device)
++{
++	struct acpi_ac *ac;
++	unsigned old_state;
++	if (!device || !acpi_driver_data(device))
++		return -EINVAL;
++	ac = acpi_driver_data(device);
++	old_state = ac->state;
++	if (acpi_ac_get_state(ac))
++		return 0;
++	if (old_state != ac->state)
++		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
++	return 0;
++}
++
+ static int acpi_ac_remove(struct acpi_device *device, int type)
  {
- 	struct input_dev *jog_dev;
- 	struct input_dev *key_dev;
-@@ -379,6 +379,7 @@ static int sony_laptop_setup_input(void)
- 	key_dev->name = "Sony Vaio Keys";
- 	key_dev->id.bustype = BUS_ISA;
- 	key_dev->id.vendor = PCI_VENDOR_ID_SONY;
-+	key_dev->dev.parent = &acpi_device->dev;
- 
- 	/* Initialize the Input Drivers: special keys */
- 	set_bit(EV_KEY, key_dev->evbit);
-@@ -410,6 +411,7 @@ static int sony_laptop_setup_input(void)
- 	jog_dev->name = "Sony Vaio Jogdial";
- 	jog_dev->id.bustype = BUS_ISA;
- 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
-+	key_dev->dev.parent = &acpi_device->dev;
- 
- 	jog_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
- 	jog_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_MIDDLE);
-@@ -1006,7 +1008,7 @@ static int sony_nc_add(struct acpi_devic
- 	}
- 
- 	/* setup input devices and helper fifo */
--	result = sony_laptop_setup_input();
-+	result = sony_laptop_setup_input(device);
- 	if (result) {
- 		printk(KERN_ERR DRV_PFX
- 				"Unabe to create input devices.\n");
-@@ -1034,7 +1036,7 @@ static int sony_nc_add(struct acpi_devic
- 			sony_backlight_device->props.brightness =
- 			    sony_backlight_get_brightness
- 			    (sony_backlight_device);
--			sony_backlight_device->props.max_brightness = 
-+			sony_backlight_device->props.max_brightness =
- 			    SONY_MAX_BRIGHTNESS - 1;
- 		}
- 
-@@ -2453,7 +2455,7 @@ static int sony_pic_add(struct acpi_devi
- 	}
- 
- 	/* setup input devices and helper fifo */
--	result = sony_laptop_setup_input();
-+	result = sony_laptop_setup_input(device);
- 	if (result) {
- 		printk(KERN_ERR DRV_PFX
- 				"Unabe to create input devices.\n");
+ 	acpi_status status = AE_OK;
+
+--------------060108090007090604040507--
