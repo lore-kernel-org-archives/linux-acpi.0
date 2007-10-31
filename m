@@ -1,28 +1,54 @@
-From: "Kurt H Maier" <karmaflux@gmail.com>
-Subject: Notifying userspace of ACPI events
-Date: Wed, 31 Oct 2007 11:21:23 -0500
-Message-ID: <1aa1410a0710310921xad50692p5281640e0a6994e@mail.gmail.com>
+From: Carlos Corbacho <cathectic@slackadelic.com>
+Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
+Date: Wed, 31 Oct 2007 16:24:38 +0000
+Message-ID: <200710311624.39428.cathectic@slackadelic.com>
+References: <200710300336.43696.cathectic@slackadelic.com> <200710310018.19689.cathectic@slackadelic.com> <200710311221.11137.cathectic@slackadelic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.183]:17306 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061AbXJaQV3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 12:21:29 -0400
-Received: by el-out-1112.google.com with SMTP id j27so49094elf
-        for <linux-acpi@vger.kernel.org>; Wed, 31 Oct 2007 09:21:28 -0700 (PDT)
+Received: from slackadelic.com ([65.196.224.53]:32891 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755965AbXJaQXx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 12:23:53 -0400
+In-Reply-To: <200710311221.11137.cathectic@slackadelic.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "Nashif, Anas" <anas.nashif@intel.com>
 
-Hello,
+On Wednesday 31 October 2007 12:21:10 Carlos Corbacho wrote:
+> On Wednesday 31 October 2007 00:18:19 Carlos Corbacho wrote:
+> > On Tuesday 30 October 2007 22:52:30 Carlos Corbacho wrote:
+> > > On Tuesday 30 October 2007 18:18:22 Len Brown wrote:
+> > > > When I consulted Anas about WMI, he recommended that Linux
+> > > > expose WMI via CIMOM.  I think that this means we'd need
+> > > > to invent a sysfs interface for this acpi->wmi driver
+> > > > to expose the hooks to a user-space daemon, which
+> > > > would then make sense of it in Linux's management framework.
+> > >
+> > > The main problem to overcome with a sysfs interface is that a
+> > > WMI-ACPI call takes multiple values.
+> >
+> > So, thinking this over more carefully, whilst sysfs can probably be used
+> > to export data, I'm not entirely convinced for using it to input
+> > arbitrary data types, unless there's some way we can get round this?
+>
+> After sleeping on the matter, I'm now certain that sysfs is the wrong way
+> to go for allowing userspace to access WMI-ACPI - we're trying to pass and
+> return too much data for sysfs to handle.
 
-What's the proper method of notifying userpace processes that an ACPI
-event has triggered?  I'm working on scripts and programs for laptops,
-and I'm trying to avoid simply polling the acpid logs, which the users
-may not even have permissions to access.
+On second thoughts, my other proposal won't work either - we'd end up with a 
+mess of either ioctl's or sysctl's to call from userspace (I really should 
+read up on my userspace interaction a bit more).
 
+The sysfs proposal could be made to work, it will just be a little cumbersome 
+(I'll have a go at implementing it and see how it works out).
+
+-Carlos
 -- 
-# Kurt H Maier
+E-Mail: cathectic@gmail.com
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
