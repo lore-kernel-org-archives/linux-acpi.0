@@ -1,79 +1,183 @@
-From: Carlos Corbacho <cathectic@slackadelic.com>
-Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
-Date: Wed, 31 Oct 2007 12:21:10 +0000
-Message-ID: <200710311221.11137.cathectic@slackadelic.com>
-References: <200710300336.43696.cathectic@slackadelic.com> <200710302252.30659.cathectic@slackadelic.com> <200710310018.19689.cathectic@slackadelic.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Wed, 31 Oct 2007 14:26:24 +0100
+Message-ID: <200710311426.25099.rjw@sisk.pl>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com> <1190341023.16930.5.camel@sli10-conroe.sh.intel.com> <200710302227.40310.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:48074 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757105AbXJaMU0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 08:20:26 -0400
-In-Reply-To: <200710310018.19689.cathectic@slackadelic.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:45216 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756465AbXJaNKR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Oct 2007 09:10:17 -0400
+In-Reply-To: <200710302227.40310.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, "Nashif, Anas" <anas.nashif@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Wednesday 31 October 2007 00:18:19 Carlos Corbacho wrote:
-> On Tuesday 30 October 2007 22:52:30 Carlos Corbacho wrote:
-> > On Tuesday 30 October 2007 18:18:22 Len Brown wrote:
-> > > When I consulted Anas about WMI, he recommended that Linux
-> > > expose WMI via CIMOM.  I think that this means we'd need
-> > > to invent a sysfs interface for this acpi->wmi driver
-> > > to expose the hooks to a user-space daemon, which
-> > > would then make sense of it in Linux's management framework.
-> >
-> > The main problem to overcome with a sysfs interface is that a
-> > WMI-ACPI call takes multiple values.
->
-> So, thinking this over more carefully, whilst sysfs can probably be used to
-> export data, I'm not entirely convinced for using it to input arbitrary
-> data types, unless there's some way we can get round this?
+On Wednesday, 31 October 2007 03:27, Len Brown wrote:
+> It would be interseting if any of the folks having power consumption
+> problems when suspended see an improvement with this patch.
+> 
+> Are there plans to refresh this patch and get it upstream?
+> 
+> Acked-by: Len Brown <len.brown@intel.com>
 
-After sleeping on the matter, I'm now certain that sysfs is the wrong way to 
-go for allowing userspace to access WMI-ACPI - we're trying to pass and 
-return too much data for sysfs to handle.
+There was a discussion regarding this patch, IIRC, and it was argued that
+_PSx are only applicable to IDE/PATA devices.
 
-So, what we can do is modify the proposed internal kernel calls for userspace 
-(since a little sleep is a wonderful thing) to something like:
+I wonder if this has been addressed.
 
-wmi_evaluate_method(const char* guid, __u32 instance, __u32 method id, void 
-*input, __u32 input_size, void *output, __u32 output_size)
+Greetings,
+Rafael
 
-(wmi_evaluate_method could be shrunk to just _one_ buffer, since the WMI-ACPI 
-spec suggests the mapper should only take & return one buffer).
 
-wmi_query_data(const char* guid, __u32 instance, void *output, __u32 
-output_size)
+> On Thursday 20 September 2007 22:17, Shaohua Li wrote:
+> > On Fri, 2007-09-21 at 11:20 +0900, Tejun Heo wrote:
+> > > Hello,
+> > > 
+> > > Shaohua Li wrote:
+> > > > +	/* channel first and then drives for power on and verse versa for power off */
+> > > > +	if (state.event == PM_EVENT_ON)
+> > > > +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
+> > > > +
+> > > > +	if (ap->flags & ATA_FLAG_SLAVE_POSS)
+> > > > +		max_devices++;
+> > > 
+> > > ata_port_max_devices()?
+> > ok, fixed.
+> > > 
+> > > > Index: linux/drivers/ata/libata-eh.c
+> > > > ===================================================================
+> > > > --- linux.orig/drivers/ata/libata-eh.c	2007-09-14 10:28:25.000000000 +0800
+> > > > +++ linux/drivers/ata/libata-eh.c	2007-09-21 08:56:40.000000000 +0800
+> > > > @@ -2349,6 +2349,7 @@ static void ata_eh_handle_port_suspend(s
+> > > >  	if (ap->ops->port_suspend)
+> > > >  		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+> > > >  
+> > > > +	ata_acpi_set_state(ap, PMSG_SUSPEND);
+> > > >   out:
+> > > >  	/* report result */
+> > > >  	spin_lock_irqsave(ap->lock, flags);
+> > > > @@ -2394,6 +2395,8 @@ static void ata_eh_handle_port_resume(st
+> > > >  
+> > > >  	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
+> > > >  
+> > > > +	ata_acpi_set_state(ap, PMSG_ON);
+> > > > +
+> > > >  	if (ap->ops->port_resume)
+> > > >  		rc = ap->ops->port_resume(ap);
+> > > 
+> > > Can these be moved into ata_acpi_on_suspend() and ata_acpi_on_resume()?
+> > >  Or do they have to be placed on the other side of ->port_suspend/resume
+> > > callbacks?
+> > I suppose _PSx will shutdown ports. So I want to do PS3 as later as
+> > possible in suspend, and vice versa in resume.
+> > 
+> > Thanks,
+> > Shaohua
+> > 
+> > 
+> > ---
+> >  drivers/ata/libata-acpi.c |   34 ++++++++++++++++++++++++++++++++++
+> >  drivers/ata/libata-eh.c   |    3 +++
+> >  drivers/ata/libata.h      |    2 ++
+> >  3 files changed, 39 insertions(+)
+> > 
+> > Index: linux/drivers/ata/libata-acpi.c
+> > ===================================================================
+> > --- linux.orig/drivers/ata/libata-acpi.c	2007-09-21 09:23:13.000000000 +0800
+> > +++ linux/drivers/ata/libata-acpi.c	2007-09-21 10:13:32.000000000 +0800
+> > @@ -523,6 +523,39 @@ void ata_acpi_on_resume(struct ata_port 
+> >  }
+> >  
+> >  /**
+> > + * ata_acpi_set_state - set the port power state
+> > + * @ap: target ATA port
+> > + * @state: state, on/off
+> > + *
+> > + * This function executes the _PS0/_PS3 ACPI method to set the power state.
+> > + * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
+> > + */
+> > +void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+> > +{
+> > +	int max_devices, i;
+> > +
+> > +	if (!ap->acpi_handle || (ap->flags & ATA_FLAG_ACPI_SATA))
+> > +		return;
+> > +
+> > +	/* channel first and then drives for power on and verse versa for power off */
+> > +	if (state.event == PM_EVENT_ON)
+> > +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
+> > +
+> > +	max_devices = ata_port_max_devices(ap);
+> > +
+> > +	for (i = 0; i < max_devices; ++i) {
+> > +		struct ata_device *dev = &ap->device[i];
+> > +
+> > +		if (dev->acpi_handle)
+> > +			acpi_bus_set_power(dev->acpi_handle,
+> > +				state.event == PM_EVENT_ON ?
+> > +				ACPI_STATE_D0: ACPI_STATE_D3);
+> > +	}
+> > +	if (state.event != PM_EVENT_ON)
+> > +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D3);
+> > +}
+> > +
+> > +/**
+> >   * ata_acpi_on_devcfg - ATA ACPI hook called on device donfiguration
+> >   * @dev: target ATA device
+> >   *
+> > Index: linux/drivers/ata/libata-eh.c
+> > ===================================================================
+> > --- linux.orig/drivers/ata/libata-eh.c	2007-09-21 09:23:13.000000000 +0800
+> > +++ linux/drivers/ata/libata-eh.c	2007-09-21 10:09:10.000000000 +0800
+> > @@ -2349,6 +2349,7 @@ static void ata_eh_handle_port_suspend(s
+> >  	if (ap->ops->port_suspend)
+> >  		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+> >  
+> > +	ata_acpi_set_state(ap, PMSG_SUSPEND);
+> >   out:
+> >  	/* report result */
+> >  	spin_lock_irqsave(ap->lock, flags);
+> > @@ -2394,6 +2395,8 @@ static void ata_eh_handle_port_resume(st
+> >  
+> >  	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
+> >  
+> > +	ata_acpi_set_state(ap, PMSG_ON);
+> > +
+> >  	if (ap->ops->port_resume)
+> >  		rc = ap->ops->port_resume(ap);
+> >  
+> > Index: linux/drivers/ata/libata.h
+> > ===================================================================
+> > --- linux.orig/drivers/ata/libata.h	2007-09-21 09:23:13.000000000 +0800
+> > +++ linux/drivers/ata/libata.h	2007-09-21 10:09:10.000000000 +0800
+> > @@ -102,11 +102,13 @@ extern void ata_acpi_associate(struct at
+> >  extern int ata_acpi_on_suspend(struct ata_port *ap);
+> >  extern void ata_acpi_on_resume(struct ata_port *ap);
+> >  extern int ata_acpi_on_devcfg(struct ata_device *adev);
+> > +extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
+> >  #else
+> >  static inline void ata_acpi_associate(struct ata_host *host) { }
+> >  static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
+> >  static inline void ata_acpi_on_resume(struct ata_port *ap) { }
+> >  static inline int ata_acpi_on_devcfg(struct ata_device *adev) { return 0; }
+> > +static inline void ata_acpi_set_state(struct ata_port *ap, pm_message_t state) { }
+> >  #endif
+> >  
+> >  /* libata-scsi.c */
+> > 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-wmi_set_data(const char* guid, __u32 instance, void *input, __u32 input_size)
-
-(Event handling is a little more tricky - we could create a 
-new 'wmi_event_handler', and allow userspace or in kernel drivers to register 
-this handler with the WMI-ACPI mapper, and avoid polling).
-
-Then, we leave it up to OpenWBEM, etc to write their own backend to handle 
-WMI-ACPI (I'm not sure if "provider" is the right terminology to use with 
-WMI-ACPI, since we're just converting WMI calls to ACPI). This backend would 
-take a WMI-ACPI method call, and convert that to the correct kernel function 
-call (the kernel function then handles making the ACPI call and returning the 
-results). Interpretation is left to the backend and its associated MOF.
-
-(For the case of WMI not being built in, we define all the functions to return 
-an error, or if WMI is enabled but there is no WMI-ACPI mapping device, wmi.c 
-would return the errors instead).
-
-Would this be an acceptable solution? (Len - If this is the case, where do we 
-expose the wmi_* functions to userspace? linux/acpi.h, or create a new 
-include file?)
-
--Carlos
 -- 
-E-Mail: cathectic@gmail.com
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+"Premature optimization is the root of all evil." - Donald Knuth
