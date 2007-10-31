@@ -1,62 +1,163 @@
-From: Carlos Corbacho <cathectic@slackadelic.com>
-Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
-Date: Wed, 31 Oct 2007 00:18:19 +0000
-Message-ID: <200710310018.19689.cathectic@slackadelic.com>
-References: <200710300336.43696.cathectic@slackadelic.com> <200710301418.22639.lenb@kernel.org> <200710302252.30659.cathectic@slackadelic.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Tue, 30 Oct 2007 22:27:39 -0400
+Message-ID: <200710302227.40310.lenb@kernel.org>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com> <46F32A81.8030508@gmail.com> <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:55099 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752037AbXJaARd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2007 20:17:33 -0400
-In-Reply-To: <200710302252.30659.cathectic@slackadelic.com>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, "Nashif, Anas" <anas.nashif@intel.com>
 
-On Tuesday 30 October 2007 22:52:30 Carlos Corbacho wrote:
-> On Tuesday 30 October 2007 18:18:22 Len Brown wrote:
-> > When I consulted Anas about WMI, he recommended that Linux
-> > expose WMI via CIMOM.  I think that this means we'd need
-> > to invent a sysfs interface for this acpi->wmi driver
-> > to expose the hooks to a user-space daemon, which
-> > would then make sense of it in Linux's management framework.
->
-> The main problem to overcome with a sysfs interface is that a
-> WMI-ACPI call takes multiple values (worst case scenario is a
-> method, which takes three arguments - method id, instance and
-> an input buffer).
+It would be interseting if any of the folks having power consumption
+problems when suspended see an improvement with this patch.
 
-Also, for input, I don't know how to handle the size/ type problem[1] - only 
-this user-space daemon would know what size/ type of buffer the input 
-requires (via the relevant MOF in the management framework) - this 
-information would also need to be conveyed through the sysfs interface to the 
-mapper somehow.
+Are there plans to refresh this patch and get it upstream?
 
-e.g. If we write '1' (assume we have already set the method id somehow) 
-to /sys/firmware/acpi/wmi/<guid>/<instance>/data
+Acked-by: Len Brown <len.brown@intel.com>
 
-What type/ size is the correct size of the buffer parameter to be passed to 
-ACPI - u8 (1 byte), u16 (2 bytes), u32 (4 bytes), etc?
+thanks,
+-Len
 
-So, thinking this over more carefully, whilst sysfs can probably be used to 
-export data, I'm not entirely convinced for using it to input arbitrary data 
-types, unless there's some way we can get round this?
-
--Carlos
-
-[1] For a buffer to be passed to acpi_evaluate_object() as a parameter, we 
-must know the size in bytes to use beforehand when we create the buffer - 
-otherwise, if we pass an incorrectly sized buffer as a parameter, the 
-acpi_evaluate_object() call will fail. However, WMI-ACPI does not specify 
-this - so this information is known only to the MOF writer, or caller of the 
-WMI method/ data set.
--- 
-E-Mail: cathectic@gmail.com
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+On Thursday 20 September 2007 22:17, Shaohua Li wrote:
+> On Fri, 2007-09-21 at 11:20 +0900, Tejun Heo wrote:
+> > Hello,
+> > 
+> > Shaohua Li wrote:
+> > > +	/* channel first and then drives for power on and verse versa for power off */
+> > > +	if (state.event == PM_EVENT_ON)
+> > > +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
+> > > +
+> > > +	if (ap->flags & ATA_FLAG_SLAVE_POSS)
+> > > +		max_devices++;
+> > 
+> > ata_port_max_devices()?
+> ok, fixed.
+> > 
+> > > Index: linux/drivers/ata/libata-eh.c
+> > > ===================================================================
+> > > --- linux.orig/drivers/ata/libata-eh.c	2007-09-14 10:28:25.000000000 +0800
+> > > +++ linux/drivers/ata/libata-eh.c	2007-09-21 08:56:40.000000000 +0800
+> > > @@ -2349,6 +2349,7 @@ static void ata_eh_handle_port_suspend(s
+> > >  	if (ap->ops->port_suspend)
+> > >  		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+> > >  
+> > > +	ata_acpi_set_state(ap, PMSG_SUSPEND);
+> > >   out:
+> > >  	/* report result */
+> > >  	spin_lock_irqsave(ap->lock, flags);
+> > > @@ -2394,6 +2395,8 @@ static void ata_eh_handle_port_resume(st
+> > >  
+> > >  	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
+> > >  
+> > > +	ata_acpi_set_state(ap, PMSG_ON);
+> > > +
+> > >  	if (ap->ops->port_resume)
+> > >  		rc = ap->ops->port_resume(ap);
+> > 
+> > Can these be moved into ata_acpi_on_suspend() and ata_acpi_on_resume()?
+> >  Or do they have to be placed on the other side of ->port_suspend/resume
+> > callbacks?
+> I suppose _PSx will shutdown ports. So I want to do PS3 as later as
+> possible in suspend, and vice versa in resume.
+> 
+> Thanks,
+> Shaohua
+> 
+> 
+> ---
+>  drivers/ata/libata-acpi.c |   34 ++++++++++++++++++++++++++++++++++
+>  drivers/ata/libata-eh.c   |    3 +++
+>  drivers/ata/libata.h      |    2 ++
+>  3 files changed, 39 insertions(+)
+> 
+> Index: linux/drivers/ata/libata-acpi.c
+> ===================================================================
+> --- linux.orig/drivers/ata/libata-acpi.c	2007-09-21 09:23:13.000000000 +0800
+> +++ linux/drivers/ata/libata-acpi.c	2007-09-21 10:13:32.000000000 +0800
+> @@ -523,6 +523,39 @@ void ata_acpi_on_resume(struct ata_port 
+>  }
+>  
+>  /**
+> + * ata_acpi_set_state - set the port power state
+> + * @ap: target ATA port
+> + * @state: state, on/off
+> + *
+> + * This function executes the _PS0/_PS3 ACPI method to set the power state.
+> + * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
+> + */
+> +void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+> +{
+> +	int max_devices, i;
+> +
+> +	if (!ap->acpi_handle || (ap->flags & ATA_FLAG_ACPI_SATA))
+> +		return;
+> +
+> +	/* channel first and then drives for power on and verse versa for power off */
+> +	if (state.event == PM_EVENT_ON)
+> +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
+> +
+> +	max_devices = ata_port_max_devices(ap);
+> +
+> +	for (i = 0; i < max_devices; ++i) {
+> +		struct ata_device *dev = &ap->device[i];
+> +
+> +		if (dev->acpi_handle)
+> +			acpi_bus_set_power(dev->acpi_handle,
+> +				state.event == PM_EVENT_ON ?
+> +				ACPI_STATE_D0: ACPI_STATE_D3);
+> +	}
+> +	if (state.event != PM_EVENT_ON)
+> +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D3);
+> +}
+> +
+> +/**
+>   * ata_acpi_on_devcfg - ATA ACPI hook called on device donfiguration
+>   * @dev: target ATA device
+>   *
+> Index: linux/drivers/ata/libata-eh.c
+> ===================================================================
+> --- linux.orig/drivers/ata/libata-eh.c	2007-09-21 09:23:13.000000000 +0800
+> +++ linux/drivers/ata/libata-eh.c	2007-09-21 10:09:10.000000000 +0800
+> @@ -2349,6 +2349,7 @@ static void ata_eh_handle_port_suspend(s
+>  	if (ap->ops->port_suspend)
+>  		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+>  
+> +	ata_acpi_set_state(ap, PMSG_SUSPEND);
+>   out:
+>  	/* report result */
+>  	spin_lock_irqsave(ap->lock, flags);
+> @@ -2394,6 +2395,8 @@ static void ata_eh_handle_port_resume(st
+>  
+>  	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
+>  
+> +	ata_acpi_set_state(ap, PMSG_ON);
+> +
+>  	if (ap->ops->port_resume)
+>  		rc = ap->ops->port_resume(ap);
+>  
+> Index: linux/drivers/ata/libata.h
+> ===================================================================
+> --- linux.orig/drivers/ata/libata.h	2007-09-21 09:23:13.000000000 +0800
+> +++ linux/drivers/ata/libata.h	2007-09-21 10:09:10.000000000 +0800
+> @@ -102,11 +102,13 @@ extern void ata_acpi_associate(struct at
+>  extern int ata_acpi_on_suspend(struct ata_port *ap);
+>  extern void ata_acpi_on_resume(struct ata_port *ap);
+>  extern int ata_acpi_on_devcfg(struct ata_device *adev);
+> +extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
+>  #else
+>  static inline void ata_acpi_associate(struct ata_host *host) { }
+>  static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
+>  static inline void ata_acpi_on_resume(struct ata_port *ap) { }
+>  static inline int ata_acpi_on_devcfg(struct ata_device *adev) { return 0; }
+> +static inline void ata_acpi_set_state(struct ata_port *ap, pm_message_t state) { }
+>  #endif
+>  
+>  /* libata-scsi.c */
+> 
