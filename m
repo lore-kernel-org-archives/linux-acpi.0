@@ -1,55 +1,44 @@
-From: Tomas Salfischberger <tomas@salfischberger.nl>
-Subject: Acpi suspend to ram on Acer Aspire 5672
-Date: Wed, 31 Oct 2007 10:15:14 +0100
-Message-ID: <472847A2.9020901@salfischberger.nl>
+From: Carlos Corbacho <cathectic@slackadelic.com>
+Subject: Re: [PATCH v4] ACPI: WMI: Add WMI-ACPI mapper driver
+Date: Wed, 31 Oct 2007 10:56:00 +0000
+Message-ID: <200710311056.00741.cathectic@slackadelic.com>
+References: <200710300336.43696.cathectic@slackadelic.com> <20071030134701.GA11877@srcf.ucam.org> <200710301428.11471.cathectic@slackadelic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rs6.shcomputers.nl ([88.198.238.124]:60611 "EHLO
-	rs6.shcomputers.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757769AbXJaKac (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 06:30:32 -0400
-Received: from [192.168.1.5] (53533D4E.cable.casema.nl [83.83.61.78])
-	(Authenticated sender: tomas@shcomputers.nl)
-	by rs6.shcomputers.nl (Postfix) with ESMTP id C5E78E000F
-	for <linux-acpi@vger.kernel.org>; Wed, 31 Oct 2007 09:56:53 +0000 (UTC)
+Received: from slackadelic.com ([65.196.224.53]:55881 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755014AbXJaKzP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2007 06:55:15 -0400
+In-Reply-To: <200710301428.11471.cathectic@slackadelic.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi list,
+On Tuesday 30 October 2007 14:28:10 Carlos Corbacho wrote:
+> There are also other technical problems with this, beyond my own personal
+> disagreement - since WMI relies so heavily on ACPI (well, the driver here
+> is really just a simple wrapper), then you would have to start exporting
+> bits of ACPI to userspace to access WMI. As mentioned in the original
+> patches - the mapper knows nothing about "types", this knowledge is known
+> only by the caller - WMI just deals in acpi_buffer. My understanding is
+> that ACPI would have to export the required functions and data structures
+> so that userspace could provide then translate from acpi_buffer to the
+> known type (unless there is another way round this to import and export the
+> data to/ from userspace?)
 
-I don't know what the correct approach to this is, but I need some help :-)
+To backtrack slightly - I'm wrong on this point; after sleeping on this for 
+the night (and/ or application of cluebat), I can modify the functions to let 
+userspace call them without exporting half of ACPI in the process.
 
-I have been trying to get my Acer Aspire 5672 to suspend to ram, using
-kernel version 2.6.22 patched by Gentoo (r8). The ACPI functions work
-for shutting down the machine, and (but I'm not sure of this) for
-suspend to disk. When I set /sys/power/state to "disk" the power-led
-switches to orange (which it also does when switching to suspend in
-Windows).
+However, I still believe that HAL is the wrong application to deal with WMI.
 
->From the above I think that ACPI is working as it should, but when I try
-to suspend to ram the machine switches to the correct state (orange
-power-led) but is unable to resume. When resuming the machine hangs,
-disk spins up but it's not reacting to for example the num-lock key.
-
-I've read a lot about how suspend to ram is supposed to work, and if I
-understand it correctly the ACPI functions from the BIOS are supposed to
-jump to kernel code when resuming and the kernel should initialize all
-hardware correct? Is there some way to check whether it is actually
-reaching kernel-code, and thus if this might be fixable in kernel?
-
-I have already tried to patch the DSDT, but to no avail. The errors:
-Some reserved symbols being used and some methods that didn't return a
-value for all controlpaths (notably _WAK which I changed to return
-0x00,0x00 on the last line).
-
-Is there anything else I can try?
-
-Regards,
-Tomas
-
-P.S. I'm not a native English speaker, so sorry for some weird grammar
-choices.
-
+-Carlos
+-- 
+E-Mail: cathectic@gmail.com
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
