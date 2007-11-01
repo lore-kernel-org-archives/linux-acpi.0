@@ -1,55 +1,47 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH] x86: check boundary in count/setup_resource called by get_current_resources
-Date: Thu, 1 Nov 2007 13:10:40 -0700
-Message-ID: <20071101201040.GA22247@us.ibm.com>
-References: <200711010120.30410.yinghai.lu@sun.com> <20071101013239.992840bd.akpm@linux-foundation.org> <472A159A.6080106@sun.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI: Fix mismerge in acpi_hibernation_finish
+Date: Thu, 1 Nov 2007 23:50:19 +0100
+Message-ID: <200711012350.20574.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e34.co.us.ibm.com ([32.97.110.152]:53556 "EHLO
-	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636AbXKAUKs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2007 16:10:48 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:50747 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753296AbXKAWdd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Nov 2007 18:33:33 -0400
 Content-Disposition: inline
-In-Reply-To: <472A159A.6080106@sun.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, Nov 01, 2007 at 11:06:18AM -0700, Yinghai Lu wrote:
-> Andrew Morton wrote:
-> >On Thu, 01 Nov 2007 01:20:29 -0700 Yinghai Lu <Yinghai.Lu@Sun.COM> wrote:
-> >
-> >>[PATCH] x86: check boundary in count/setup_resource called by 
-> >>get_current_resources
-> >>
-> >>need to check info->res_num less than PCI_BUS_NUM_RESOURCES, so
-> >>info->bus->resource[info->res_num] = res will not beyond of bus resource 
-> >>array
-> >>when acpi resutrn too many resource entries.
-> >>
-> >
-> >Isn't this a bit of a problem?  It sounds like PCI_BUS_NUM_RESOURCES is to
-> >small for that system?  If so, some sort of dynamic allocation might be
-> >needed.
-> 
-> sound reasonable...
-> i have one local patch for amd64 that will get resources from pci conf. and 
-> it will use all 8 slots for bus 0.
-> and transparent bus under it only can copy 5 of them.
+[Len, please send Linuswards.]
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Yea, with the current fixed size pci_bus resource array
-I believe you would need to increase PCI_BUS_NUM_RESOURCES
-from 8 to 11 for the transparent bridge child bus to get
-all 8 _CRS returned resources.
+Some code in acpi_hibernation_finish() was moved to acpi_hibernation_leave(),
+but the old copy had been left (it's harmless, but also useless).  Remove it.
 
-Gary
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/sleep/main.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -267,11 +267,6 @@ static void acpi_hibernation_leave(void)
+ 
+ static void acpi_hibernation_finish(void)
+ {
+-	/*
+-	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
+-	 * enable it here.
+-	 */
+-	acpi_enable();
+ 	acpi_disable_wakeup_device(ACPI_STATE_S4);
+ 	acpi_leave_sleep_state(ACPI_STATE_S4);
+ 
