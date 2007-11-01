@@ -1,43 +1,121 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
-Date: Thu, 1 Nov 2007 10:04:35 +0000
-Message-ID: <20071101100435.7c80785e@the-village.bc.nu>
-References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
-	<1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
-	<200710302227.40310.lenb@kernel.org>
-	<200710311426.25099.rjw@sisk.pl>
-	<1193885429.6872.2.camel@sli10-conroe.sh.intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: ACPI home page updates
+Date: Thu, 1 Nov 2007 11:50:46 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB604029F11@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:35898 "EHLO
-	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753281AbXKAKFB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2007 06:05:01 -0400
-In-Reply-To: <1193885429.6872.2.camel@sli10-conroe.sh.intel.com>
+Received: from mga03.intel.com ([143.182.124.21]:15792 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555AbXKAPvV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2007 11:51:21 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: "Yu, Ling L" <ling.l.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
+Yu-Ling,
 
-> +	max_devices = ata_link_max_devices(&ap->link);
-> +
-> +	for (i = 0; i < max_devices; ++i) {
-> +		struct ata_device *dev = &ap->link.device[i];
+Now that the new Linux/ACPI project home page is up at
+http://www.lesswatts.org/projects/acpi/, and MAINTAINERS
+points to it, it is time to update the legacy home page.
 
-Better to use:
+The principle of "two copies of the truth" tells us that
+we should delete the redundant info from the old page
+and refer to the (properly maintained) new one.
 
-	ata_link_for_each_dev(dev, &ap->link) {		
+However, we should retain (and properly label) the
+content on the old page that will continue to live there.
 
-> +
-> +		if (dev->acpi_handle)
-> +			acpi_bus_set_power(dev->acpi_handle,
-> +				state.event == PM_EVENT_ON ?
-> +				ACPI_STATE_D0: ACPI_STATE_D3);
-> +	}
+http://acpi.sourceforge.net/index.html
 
-Also should you not check ata_dev_enabled(dev) ?
+replace all content with this text:
 
-Alan
+"The Linux/ACPI project home page has moved to
+http://www.lesswatts.org/projects/acpi/.
+This legacy home page contains only legacy information
+that is useful for historical reference."
+
+maybe "Documentation" should be re-named "Legacy Documentation"...
+
+http://acpi.sourceforge.net/documentation/index.html
+Warn again that this is legacy documentation.
+
+http://acpi.sourceforge.net/documentation/alarm.html
+retain, but warn that /proc/acpi is being replaced
+by interfaces in /sys and new software should not
+look in /proc.
+
+http://acpi.sourceforge.net/documentation/blacklist.html
+delete -- this blacklist is stale -- the one copy
+of the truth is the list in the kernel source.
+
+"FAQ (extern)" link
+delete
+
+http://acpi.sourceforge.net/documentation/howto.html
+retain, but maybe a good idea to note that the
+newest of these documents is 2 years old...
+
+http://acpi.sourceforge.net/documentation/processor.html
+retain, but warn that /proc/acpi is being replaced
+by interfaces in /sys and new software should not
+look in /proc.
+
+http://acpi.sourceforge.net/documentation/sleep.html
+retain, but warn that /proc/acpi is being replaced
+by interfaces in /sys and new software should not
+look in /proc.
+
+http://acpi.sourceforge.net/documentation/thermal.html
+retain, but warn that /proc/acpi is being replaced
+by interfaces in /sys and new software should not
+look in /proc.
+
+http://acpi.sourceforge.net/wiki/index.php
+
+This looks extremely stale and I'm inclined to delete it.
+But I'd like some feedback from the list on
+1. Is there anything there that isn't covered elsewhere?
+2. is a Wiki necessary?  (lesswatts.org will not have one)
+
+http://acpi.sourceforge.net/download.html
+
+delete
+
+http://acpi.sourceforge.net/validation/index.html
+
+Verify that contents are intact at new site, and delete old copy.
+
+http://acpi.sourceforge.net/dsdt/index.php
+
+As I've made clear by now, I believe the existence of the DSDT
+database works AGAINST our cause, not FOR it.  However,
+I think this database should to be retained for historical reference
+and labeled with the proper warnings.
+
+I would advocate that it become read-only, but others may disagree.
+
+http://acpi.sourceforge.net/mailinglists.html
+
+delete
+
+http://acpi.sourceforge.net/links.html
+
+this one is nearly all stale.
+is there anything here that is still useful that isn't on
+thew new page?
+
+(BTW. I want to create a new page for pmtools rather than
+ having it in my home directory on kernel.org)
+
+http://acpi.sourceforge.net/contact.html
+
+webmaster is the only unique contact for this page,
+everything else should be on the new site.
+
+thanks,
+-Len
