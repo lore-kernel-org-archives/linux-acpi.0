@@ -1,130 +1,166 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
-Date: Thu, 01 Nov 2007 10:50:29 +0800
-Message-ID: <1193885429.6872.2.camel@sli10-conroe.sh.intel.com>
-References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
-	 <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
-	 <200710302227.40310.lenb@kernel.org>  <200710311426.25099.rjw@sisk.pl>
+From: "Perry G" <psglenn@gmail.com>
+Subject: dmidecode
+Date: Wed, 31 Oct 2007 22:05:33 -0700
+Message-ID: <2b32b76e0710312205j6bd6ffdds8bfc6d2a15ffd7f6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <200710311426.25099.rjw@sisk.pl>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_5655_18312246.1193893534044"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rv-out-0910.google.com ([209.85.198.188]:42875 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbXKAFFg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2007 01:05:36 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so351579rvb
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Oct 2007 22:05:34 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, 2007-10-31 at 14:26 +0100, Rafael J. Wysocki wrote:
-> On Wednesday, 31 October 2007 03:27, Len Brown wrote:
-> > It would be interseting if any of the folks having power consumption
-> > problems when suspended see an improvement with this patch.
-> > 
-> > Are there plans to refresh this patch and get it upstream?
-> > 
-> > Acked-by: Len Brown <len.brown@intel.com>
-> 
-> There was a discussion regarding this patch, IIRC, and it was argued that
-> _PSx are only applicable to IDE/PATA devices.
-> 
-> I wonder if this has been addressed.
-Sure, there is a check for PATA. I refreshed the patch to against latest
-git tree.
+------=_Part_5655_18312246.1193893534044
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
-methods. As recently most PATA drivers use libata, this patch adds _PSx
-method support in libata. ACPI spec doesn't mention if SATA requires the
-same _PSx method.
+Thank you.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Len Brown <len.brown@intel.com>
----
- drivers/ata/libata-acpi.c |   33 +++++++++++++++++++++++++++++++++
- drivers/ata/libata-eh.c   |    3 +++
- drivers/ata/libata.h      |    2 ++
- 3 files changed, 38 insertions(+)
+------=_Part_5655_18312246.1193893534044
+Content-Type: application/octet-stream; name=dmidecode_toshibaA135-s2276
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f8gtdkv5
+Content-Disposition: attachment; filename=dmidecode_toshibaA135-s2276
 
-Index: linux/drivers/ata/libata-acpi.c
-===================================================================
---- linux.orig/drivers/ata/libata-acpi.c	2007-10-26 08:49:07.000000000 +0800
-+++ linux/drivers/ata/libata-acpi.c	2007-11-01 09:17:12.000000000 +0800
-@@ -652,6 +652,39 @@ void ata_acpi_on_resume(struct ata_port 
- }
- 
- /**
-+ * ata_acpi_set_state - set the port power state
-+ * @ap: target ATA port
-+ * @state: state, on/off
-+ *
-+ * This function executes the _PS0/_PS3 ACPI method to set the power state.
-+ * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
-+ */
-+void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
-+{
-+	int max_devices, i;
-+
-+	if (!ap->acpi_handle || (ap->flags & ATA_FLAG_ACPI_SATA))
-+		return;
-+
-+	/* channel first and then drives for power on and verse versa for power off */
-+	if (state.event == PM_EVENT_ON)
-+		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
-+
-+	max_devices = ata_link_max_devices(&ap->link);
-+
-+	for (i = 0; i < max_devices; ++i) {
-+		struct ata_device *dev = &ap->link.device[i];
-+
-+		if (dev->acpi_handle)
-+			acpi_bus_set_power(dev->acpi_handle,
-+				state.event == PM_EVENT_ON ?
-+				ACPI_STATE_D0: ACPI_STATE_D3);
-+	}
-+	if (state.event != PM_EVENT_ON)
-+		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D3);
-+}
-+
-+/**
-  * ata_acpi_on_devcfg - ATA ACPI hook called on device donfiguration
-  * @dev: target ATA device
-  *
-Index: linux/drivers/ata/libata-eh.c
-===================================================================
---- linux.orig/drivers/ata/libata-eh.c	2007-10-31 09:14:06.000000000 +0800
-+++ linux/drivers/ata/libata-eh.c	2007-11-01 08:55:05.000000000 +0800
-@@ -2796,6 +2796,7 @@ static void ata_eh_handle_port_suspend(s
- 	if (ap->ops->port_suspend)
- 		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
- 
-+	ata_acpi_set_state(ap, PMSG_SUSPEND);
-  out:
- 	/* report result */
- 	spin_lock_irqsave(ap->lock, flags);
-@@ -2841,6 +2842,8 @@ static void ata_eh_handle_port_resume(st
- 
- 	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
- 
-+	ata_acpi_set_state(ap, PMSG_ON);
-+
- 	if (ap->ops->port_resume)
- 		rc = ap->ops->port_resume(ap);
- 
-Index: linux/drivers/ata/libata.h
-===================================================================
---- linux.orig/drivers/ata/libata.h	2007-10-30 14:17:14.000000000 +0800
-+++ linux/drivers/ata/libata.h	2007-11-01 08:55:05.000000000 +0800
-@@ -111,12 +111,14 @@ extern void ata_acpi_associate(struct at
- extern int ata_acpi_on_suspend(struct ata_port *ap);
- extern void ata_acpi_on_resume(struct ata_port *ap);
- extern int ata_acpi_on_devcfg(struct ata_device *adev);
-+extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
- #else
- static inline void ata_acpi_associate_sata_port(struct ata_port *ap) { }
- static inline void ata_acpi_associate(struct ata_host *host) { }
- static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
- static inline void ata_acpi_on_resume(struct ata_port *ap) { }
- static inline int ata_acpi_on_devcfg(struct ata_device *adev) { return 0; }
-+static inline void ata_acpi_set_state(struct ata_port *ap, pm_message_t state) { }
- #endif
- 
- /* libata-scsi.c */
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjggc3RydWN0dXJlcyBvY2N1cHlp
+bmcgMTEzMiBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
+eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogVE9TSElCQQoJVmVyc2lv
+bjogVjEuMTAKCVJlbGVhc2UgRGF0ZTogMTIvMDgvMjAwNgoJQWRkcmVzczogMHhFNEQ4MAoJUnVu
+dGltZSBTaXplOiAxMTEyMzIgYnl0ZXMKCVJPTSBTaXplOiAxMDI0IGtCCglDaGFyYWN0ZXJpc3Rp
+Y3M6CgkJUENJIGlzIHN1cHBvcnRlZAoJCVBDIENhcmQgKFBDTUNJQSkgaXMgc3VwcG9ydGVkCgkJ
+UE5QIGlzIHN1cHBvcnRlZAoJCUJJT1MgaXMgdXBncmFkZWFibGUKCQlCSU9TIHNoYWRvd2luZyBp
+cyBhbGxvd2VkCgkJQm9vdCBmcm9tIENEIGlzIHN1cHBvcnRlZAoJCVNlbGVjdGFibGUgYm9vdCBp
+cyBzdXBwb3J0ZWQKCQlQcmludCBzY3JlZW4gc2VydmljZSBpcyBzdXBwb3J0ZWQgKGludCA1aCkK
+CQk4MDQyIGtleWJvYXJkIHNlcnZpY2VzIGFyZSBzdXBwb3J0ZWQgKGludCA5aCkKCQlTZXJpYWwg
+c2VydmljZXMgYXJlIHN1cHBvcnRlZCAoaW50IDE0aCkKCQlQcmludGVyIHNlcnZpY2VzIGFyZSBz
+dXBwb3J0ZWQgKGludCAxN2gpCgkJQ0dBL21vbm8gdmlkZW8gc2VydmljZXMgYXJlIHN1cHBvcnRl
+ZCAoaW50IDEwaCkKCQlBQ1BJIGlzIHN1cHBvcnRlZAoJCVVTQiBsZWdhY3kgaXMgc3VwcG9ydGVk
+CgkJSUVFRSAxMzk0IGJvb3QgaXMgc3VwcG9ydGVkCgkJU21hcnQgYmF0dGVyeSBpcyBzdXBwb3J0
+ZWQKCQlCSU9TIGJvb3Qgc3BlY2lmaWNhdGlvbiBpcyBzdXBwb3J0ZWQKCQlUYXJnZXRlZCBjb250
+ZW50IGRpc3RyaWJ1dGlvbiBpcyBzdXBwb3J0ZWQKCUJJT1MgUmV2aXNpb246IDEuMTYKCUZpcm13
+YXJlIFJldmlzaW9uOiAxLjE2CgpIYW5kbGUgMHgwMDAxLCBETUkgdHlwZSAxLCAyNyBieXRlcwpT
+eXN0ZW0gSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogVE9TSElCQQoJUHJvZHVjdCBOYW1lOiBT
+YXRlbGxpdGUgQTEzNQoJVmVyc2lvbjogUFNBRDZVLTAwUjAwRAoJU2VyaWFsIE51bWJlcjogMTcy
+NjUzODRLCglVVUlEOiA3NzJFOEU2NC1BMzRBLTExREItQjk5Ny0wMDE2RDQ5MEYwNzAKCVdha2Ut
+dXAgVHlwZTogUG93ZXIgU3dpdGNoCglTS1UgTnVtYmVyOiAwMTIzNDU2Nzg5MTIzNDU2Nzg5MTIz
+NDU2NzgKCUZhbWlseTogQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoKCkhhbmRsZSAweDAwMDIs
+IERNSSB0eXBlIDIsIDggYnl0ZXMKQmFzZSBCb2FyZCBJbmZvcm1hdGlvbgoJTWFudWZhY3R1cmVy
+OiBUT1NISUJBCglQcm9kdWN0IE5hbWU6IElBWUFBCglWZXJzaW9uOiAxLjAwCglTZXJpYWwgTnVt
+YmVyOiAwMTIzNDU2Nzg5QUIKCkhhbmRsZSAweDAwMDMsIERNSSB0eXBlIDMsIDE3IGJ5dGVzCkNo
+YXNzaXMgSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogVE9TSElCQQoJVHlwZTogTm90ZWJvb2sK
+CUxvY2s6IE5vdCBQcmVzZW50CglWZXJzaW9uOiBOL0EKCVNlcmlhbCBOdW1iZXI6IE5vbmUKCUFz
+c2V0IFRhZzogKgoJQm9vdC11cCBTdGF0ZTogU2FmZQoJUG93ZXIgU3VwcGx5IFN0YXRlOiBTYWZl
+CglUaGVybWFsIFN0YXRlOiBTYWZlCglTZWN1cml0eSBTdGF0dXM6IE5vbmUKCU9FTSBJbmZvcm1h
+dGlvbjogMHgwMDAwMTIzNAoKSGFuZGxlIDB4MDAwNCwgRE1JIHR5cGUgNCwgMzUgYnl0ZXMKUHJv
+Y2Vzc29yIEluZm9ybWF0aW9uCglTb2NrZXQgRGVzaWduYXRpb246IFUxCglUeXBlOiBDZW50cmFs
+IFByb2Nlc3NvcgoJRmFtaWx5OiBPdGhlcgoJTWFudWZhY3R1cmVyOiBJTlRFTAoJSUQ6IEVDIDA2
+IDAwIDAwIEZGIEZCIEU5IEJGCglWZXJzaW9uOiBHZW51aW5lIEludGVsKFIpIENQVSAgICAgICAg
+ICAgVDIKCVZvbHRhZ2U6IDEuNiBWCglFeHRlcm5hbCBDbG9jazogVW5rbm93bgoJTWF4IFNwZWVk
+OiAyMDAgTUh6CglDdXJyZW50IFNwZWVkOiAxNjAwIE1IegoJU3RhdHVzOiBQb3B1bGF0ZWQsIEVu
+YWJsZWQKCVVwZ3JhZGU6IE90aGVyCglMMSBDYWNoZSBIYW5kbGU6IDB4MDAwNQoJTDIgQ2FjaGUg
+SGFuZGxlOiAweDAwMDYKCUwzIENhY2hlIEhhbmRsZTogTm90IFByb3ZpZGVkCglTZXJpYWwgTnVt
+YmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQgTnVtYmVy
+OiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDA1LCBETUkgdHlwZSA3LCAxOSBieXRlcwpDYWNo
+ZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBMMSBDYWNoZQoJQ29uZmlndXJhdGlv
+bjogRW5hYmxlZCwgU29ja2V0ZWQsIExldmVsIDEKCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJh
+Y2sKCUxvY2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNpemU6IDE2IEtCCglNYXhpbXVtIFNp
+emU6IDE2IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5lIEJ1cnN0
+CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBBc3luY2hyb25vdXMKCVNwZWVk
+OiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBV
+bmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUgMHgwMDA2LCBETUkgdHlwZSA3
+LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBMMiBDYWNo
+ZQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQsIExldmVsIDIKCU9wZXJhdGlvbmFs
+IE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNpemU6IDEw
+MjQgS0IKCU1heGltdW0gU2l6ZTogMTAyNCBLQgoJU3VwcG9ydGVkIFNSQU0gVHlwZXM6CgkJQnVy
+c3QKCQlQaXBlbGluZSBCdXJzdAoJSW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QKCVNwZWVkOiBV
+bmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBVbmtu
+b3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA4LCA5
+IGJ5dGVzClBvcnQgQ29ubmVjdG9yIEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVz
+aWduYXRvcjogSlAxCglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVm
+ZXJlbmNlIERlc2lnbmF0b3I6IFNWR0EtT3V0CglFeHRlcm5hbCBDb25uZWN0b3IgVHlwZTogREIt
+MTUgZmVtYWxlCglQb3J0IFR5cGU6IFZpZGVvIFBvcnQKCkhhbmRsZSAweDAwMDgsIERNSSB0eXBl
+IDgsIDkgYnl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5j
+ZSBEZXNpZ25hdG9yOiBKUDcKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25lCglFeHRlcm5h
+bCBSZWZlcmVuY2UgRGVzaWduYXRvcjogUy1WaWRlbwoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6
+IE1pbmkgRElOCglQb3J0IFR5cGU6IFZpZGVvIFBvcnQKCkhhbmRsZSAweDAwMDksIERNSSB0eXBl
+IDgsIDkgYnl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5j
+ZSBEZXNpZ25hdG9yOiBKUDE0CglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJu
+YWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IFVTQgoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IEFj
+Y2VzcyBCdXMgKFVTQikKCVBvcnQgVHlwZTogVVNCCgpIYW5kbGUgMHgwMDBBLCBETUkgdHlwZSA4
+LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9yIEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2Ug
+RGVzaWduYXRvcjogSlAxOAoJSW50ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IE5vbmUKCUV4dGVybmFs
+IFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBNSUNfSU4KCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBS
+Si0xMQoJUG9ydCBUeXBlOiBNSURJIFBvcnQKCkhhbmRsZSAweDAwMEIsIERNSSB0eXBlIDgsIDkg
+Ynl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBEZXNp
+Z25hdG9yOiBKUDE3CglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVm
+ZXJlbmNlIERlc2lnbmF0b3I6IEhFQURQSE9ORQoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IFJK
+LTExCglQb3J0IFR5cGU6IE1JREkgUG9ydAoKSGFuZGxlIDB4MDAwQywgRE1JIHR5cGUgOCwgOSBi
+eXRlcwpQb3J0IENvbm5lY3RvciBJbmZvcm1hdGlvbgoJSW50ZXJuYWwgUmVmZXJlbmNlIERlc2ln
+bmF0b3I6IEpQMgoJSW50ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IE5vbmUKCUV4dGVybmFsIFJlZmVy
+ZW5jZSBEZXNpZ25hdG9yOiBUZWxlcGhvbmUgTGluZQoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6
+IFJKLTExCglQb3J0IFR5cGU6IE1vZGVtIFBvcnQKCkhhbmRsZSAweDAwMEQsIERNSSB0eXBlIDgs
+IDkgYnl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBE
+ZXNpZ25hdG9yOiBKUDIKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25lCglFeHRlcm5hbCBS
+ZWZlcmVuY2UgRGVzaWduYXRvcjogTmV0d29yawoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IFJK
+LTQ1CglQb3J0IFR5cGU6IE5ldHdvcmsgUG9ydAoKSGFuZGxlIDB4MDAwRSwgRE1JIHR5cGUgOSwg
+MTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KCURlc2lnbmF0aW9uOiBUSSBQQ0kxNDEw
+CglUeXBlOiAzMi1iaXQgUEMgQ2FyZCAoUENNQ0lBKQoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJ
+TGVuZ3RoOiBPdGhlcgoJSUQ6IEFkYXB0ZXIgMCwgU29ja2V0IDAKCUNoYXJhY3RlcmlzdGljczoK
+CQk1LjAgViBpcyBwcm92aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgkJUEMgQ2FyZC0xNiBpcyBz
+dXBwb3J0ZWQKCQlDYXJkYnVzIGlzIHN1cHBvcnRlZAoJCUhvdC1wbHVnIGRldmljZXMgYXJlIHN1
+cHBvcnRlZAoKSGFuZGxlIDB4MDAwRiwgRE1JIHR5cGUgMTAsIDggYnl0ZXMKT24gQm9hcmQgRGV2
+aWNlIDEgSW5mb3JtYXRpb24KCVR5cGU6IFNvdW5kCglTdGF0dXM6IERpc2FibGVkCglEZXNjcmlw
+dGlvbjogUmVhbHRlayBBQ0w4NjEKT24gQm9hcmQgRGV2aWNlIDIgSW5mb3JtYXRpb24KCVR5cGU6
+IEV0aGVybmV0CglTdGF0dXM6IERpc2FibGVkCglEZXNjcmlwdGlvbjogUmVhbHRlayBSVEw4MTAw
+TAoKSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMKT0VNIFN0cmluZ3MKCVN0cmlu
+ZyAxOiBQU0FENlUtMDBSMDBELFNRMDA0MjQ0VjA3LDExQQoKSGFuZGxlIDB4MDAxMSwgRE1JIHR5
+cGUgMTIsIDUgYnl0ZXMKU3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0aW9ucwoKSGFuZGxlIDB4MDAx
+MiwgRE1JIHR5cGUgMTYsIDE1IGJ5dGVzClBoeXNpY2FsIE1lbW9yeSBBcnJheQoJTG9jYXRpb246
+IFN5c3RlbSBCb2FyZCBPciBNb3RoZXJib2FyZAoJVXNlOiBTeXN0ZW0gTWVtb3J5CglFcnJvciBD
+b3JyZWN0aW9uIFR5cGU6IE5vbmUKCU1heGltdW0gQ2FwYWNpdHk6IDEgR0IKCUVycm9yIEluZm9y
+bWF0aW9uIEhhbmRsZTogTm90IFByb3ZpZGVkCglOdW1iZXIgT2YgRGV2aWNlczogNAoKSGFuZGxl
+IDB4MDAxMywgRE1JIHR5cGUgMTcsIDI3IGJ5dGVzCk1lbW9yeSBEZXZpY2UKCUFycmF5IEhhbmRs
+ZTogMHgwMDEyCglFcnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yCglUb3RhbCBXaWR0
+aDogNjQgYml0cwoJRGF0YSBXaWR0aDogNjQgYml0cwoJU2l6ZTogMTAyNCBNQgoJRm9ybSBGYWN0
+b3I6IERJTU0KCVNldDogMQoJTG9jYXRvcjogSjQwMQoJQmFuayBMb2NhdG9yOiBDaGFubmVsIEIw
+CglUeXBlOiBEUkFNCglUeXBlIERldGFpbDogU3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglN
+YW51ZmFjdHVyZXI6IE5vdCBTcGVjaWZpZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQK
+CUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhh
+bmRsZSAweDAwMTQsIERNSSB0eXBlIDE3LCAyNyBieXRlcwpNZW1vcnkgRGV2aWNlCglBcnJheSBI
+YW5kbGU6IDB4MDAxMgoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBObyBFcnJvcgoJVG90YWwg
+V2lkdGg6IDY0IGJpdHMKCURhdGEgV2lkdGg6IDY0IGJpdHMKCVNpemU6IDEwMjQgTUIKCUZvcm0g
+RmFjdG9yOiBESU1NCglTZXQ6IDIKCUxvY2F0b3I6IEo0MDAKCUJhbmsgTG9jYXRvcjogQ2hhbm5l
+bCBCMQoJVHlwZTogRFJBTQoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDogVW5rbm93
+bgoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglTZXJpYWwgTnVtYmVyOiBOb3QgU3BlY2lm
+aWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVk
+CgpIYW5kbGUgMHgwMDE1LCBETUkgdHlwZSAxOCwgMjMgYnl0ZXMKMzItYml0IE1lbW9yeSBFcnJv
+ciBJbmZvcm1hdGlvbgoJVHlwZTogT0sKCUdyYW51bGFyaXR5OiBVbmtub3duCglPcGVyYXRpb246
+IFVua25vd24KCVZlbmRvciBTeW5kcm9tZTogVW5rbm93bgoJTWVtb3J5IEFycmF5IEFkZHJlc3M6
+IFVua25vd24KCURldmljZSBBZGRyZXNzOiBVbmtub3duCglSZXNvbHV0aW9uOiBVbmtub3duCgpI
+YW5kbGUgMHgwMDE2LCBETUkgdHlwZSAxOSwgMTUgYnl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBB
+ZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczog
+MHgwMDA3RkZGRkZGRgoJUmFuZ2UgU2l6ZTogMiBHQgoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAw
+eDAwMTIKCVBhcnRpdGlvbiBXaWR0aDogMAoKSGFuZGxlIDB4MDAxNywgRE1JIHR5cGUgMjAsIDE5
+IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4
+MDAwMDAwMDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiAx
+IEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMTMKCU1lbW9yeSBBcnJheSBNYXBwZWQg
+QWRkcmVzcyBIYW5kbGU6IDB4MDAxNgoJUGFydGl0aW9uIFJvdyBQb3NpdGlvbjogMgoJSW50ZXJs
+ZWF2ZSBQb3NpdGlvbjogMQoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDogNgoKSGFuZGxlIDB4MDAx
+OCwgRE1JIHR5cGUgMjIsIDI2IGJ5dGVzClBvcnRhYmxlIEJhdHRlcnkKCUxvY2F0aW9uOiAxc3Qg
+QmF0dGVyeQoJTWFudWZhY3R1cmVyOiBUT1NISUJBICAgCglOYW1lOiBUT1NISUJBICAgCglDaGVt
+aXN0cnk6IExpdGhpdW0gSW9uCglEZXNpZ24gQ2FwYWNpdHk6IDMxNTAwIG1XaAoJRGVzaWduIFZv
+bHRhZ2U6IDE0ODAwIG1WCglTQkRTIFZlcnNpb246IE5vdCBTcGVjaWZpZWQKCU1heGltdW0gRXJy
+b3I6IFVua25vd24KCVNCRFMgU2VyaWFsIE51bWJlcjogMDAwMAoJU0JEUyBNYW51ZmFjdHVyZSBE
+YXRlOiAxOTgwLTAwLTAwCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAwMDAKCkhh
+bmRsZSAweDAwMTksIERNSSB0eXBlIDMyLCAyMCBieXRlcwpTeXN0ZW0gQm9vdCBJbmZvcm1hdGlv
+bgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpIYW5kbGUgMHgwMDFBLCBETUkgdHlwZSAxMjYsIDQg
+Ynl0ZXMKSW5hY3RpdmUKCkhhbmRsZSAweDAwMUIsIERNSSB0eXBlIDEyNywgNCBieXRlcwpFbmQg
+T2YgVGFibGUKCg==
+------=_Part_5655_18312246.1193893534044--
