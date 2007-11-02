@@ -1,57 +1,302 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: Battery: remove cycle from battery removal.
-Date: Fri, 02 Nov 2007 18:32:02 +0300
-Message-ID: <20071102153202.28440.90045.stgit@localhost.localdomain>
-References: <200711021520.26126.eike-kernel@sf-tec.de>
+From: "Olle Englund" <realdiskdoc@gmail.com>
+Subject: dmidecode output
+Date: Fri, 2 Nov 2007 17:35:38 +0200
+Message-ID: <75611cce0711020835w2ea36795wb250c38d254fc7a3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:39959 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752980AbXKBPcJ (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 2 Nov 2007 11:32:09 -0400
-In-Reply-To: <200711021520.26126.eike-kernel@sf-tec.de>
+Received: from nf-out-0910.google.com ([64.233.182.185]:58251 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220AbXKBPfl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Nov 2007 11:35:41 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so854045nfb
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Nov 2007 08:35:39 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-get_property() should not call battery_update() on absent battery to
-avoid cycle and oops.
+# dmidecode 2.9
+SMBIOS 2.4 present.
+20 structures occupying 822 bytes.
+Table at 0x000F1C80.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
----
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Hewlett-Packard
+	Version: F.3A
+	Release Date: 07/19/2007
+	Address: 0xE6A30
+	Runtime Size: 103888 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		Selectable boot is supported
+		Print screen service is supported (int 5h)
+		8042 keyboard services are supported (int 9h)
+		Serial services are supported (int 14h)
+		Printer services are supported (int 17h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
 
- drivers/acpi/battery.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Hewlett-Packard
+	Product Name: HP Pavilion dv6000 (RR716EA#UUW)
+	Version: Rev 1
+	Serial Number: CNF6502G1Q
+	UUID: 434E4636-3530-3247-3151-001636BEAF60
+	Wake-up Type: Power Switch
+	SKU Number: RR716EA#UUW
+	Family: 103C_5335KV
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index c2ce0ad..ca37db4 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
- {
- 	struct acpi_battery *battery = to_acpi_battery(psy);
- 
--	if ((!acpi_battery_present(battery)) &&
--	     psp != POWER_SUPPLY_PROP_PRESENT)
-+	if (acpi_battery_present(battery)) {
-+		/* run battery update only if it is present */
-+		acpi_battery_update(battery);
-+	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
- 		return -ENODEV;
--	acpi_battery_update(battery);
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
- 		if (battery->state & 0x01)
-@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
- 		return;
- 	device_remove_file(battery->bat.dev, &alarm_attr);
- 	power_supply_unregister(&battery->bat);
-+	battery->bat.dev = NULL;
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery)
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Quanta
+	Product Name: 30B7
+	Version: 65.28
+	Serial Number: None
 
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: Quanta
+	Type: Notebook
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag:
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: Unknown
+	OEM Information: 0x00000000
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: Socket S1
+	Type: Central Processor
+	Family: Opteron
+	Manufacturer: AMD
+	ID: C2 0F 04 00 FF FB 8B 07
+	Signature: Family 15, Model 76, Stepping 2
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+	Version: Mobile AMD Sempron(tm) Processor
+	Voltage: 1.6 V
+	External Clock: 200 MHz
+	Max Speed: 1800 MHz
+	Current Speed: 1800 MHz
+	Status: Populated, Enabled
+	Upgrade: None
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Through
+	Location: Internal
+	Installed Size: 256 KB
+	Maximum Size: 256 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Synchronous
+	Installed SRAM Type: Synchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unified
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 1
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot 2
+	Type: 64-bit PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0009, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description:  64
+
+Handle 0x000A, DMI type 11, 5 bytes
+OEM Strings
+	String 1: $HP$
+	String 2: LOC#
+
+Handle 0x000B, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x000000AF
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x000C, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 1
+	Bank Locator: Bank 0,1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: DA00000000000000
+	Serial Number: 30001455
+	Asset Tag: Not Specified
+	Part Number: HYMP564S64CP6-Y5
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x000C
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 512 MB
+	Form Factor: DIMM
+	Set: 1
+	Locator: DIMM 2
+	Bank Locator: Bank 2,3
+	Type: DDR2
+	Type Detail: Unknown
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: DA00000000000000
+	Serial Number: 00001554
+	Asset Tag: Not Specified
+	Part Number: HYMP564S64CP6-Y5
+
+Handle 0x000F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x000C
+	Partition Width: 0
+
+Handle 0x0010, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000D
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x000E
+	Memory Array Mapped Address Handle: 0x000F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 2
+
+Handle 0x0012, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0013, DMI type 127, 4 bytes
+End Of Table
