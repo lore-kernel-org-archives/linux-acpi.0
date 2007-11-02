@@ -1,138 +1,137 @@
-From: "Yu, Ling L" <ling.l.yu@intel.com>
-Subject: RE: ACPI home page updates
-Date: Fri, 2 Nov 2007 09:29:51 +0800
-Message-ID: <14B8575781A1414FA0D4F6649C4D71909D6FAD@pdsmsx415.ccr.corp.intel.com>
-References: <CFF307C98FEABE47A452B27C06B85BB604029F11@hdsmsx411.amr.corp.intel.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Fri, 02 Nov 2007 09:32:38 +0800
+Message-ID: <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
+	 <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
+	 <200710302227.40310.lenb@kernel.org> <200710311426.25099.rjw@sisk.pl>
+	 <1193885429.6872.2.camel@sli10-conroe.sh.intel.com>
+	 <20071101100435.7c80785e@the-village.bc.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:11268 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:12069 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752771AbXKBBaB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2007 21:30:01 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB604029F11@hdsmsx411.amr.corp.intel.com>
+	id S1753350AbXKBBfv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Nov 2007 21:35:51 -0400
+In-Reply-To: <20071101100435.7c80785e@the-village.bc.nu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Okey. I will work for it and reply again once I finish it.
+On Thu, 2007-11-01 at 10:04 +0000, Alan Cox wrote:
+> > +	max_devices = ata_link_max_devices(&ap->link);
+> > +
+> > +	for (i = 0; i < max_devices; ++i) {
+> > +		struct ata_device *dev = &ap->link.device[i];
+> 
+> Better to use:
+ok.
+> 	ata_link_for_each_dev(dev, &ap->link) {		
+> 
+> > +
+> > +		if (dev->acpi_handle)
+> > +			acpi_bus_set_power(dev->acpi_handle,
+> > +				state.event == PM_EVENT_ON ?
+> > +				ACPI_STATE_D0: ACPI_STATE_D3);
+> > +	}
+> 
+> Also should you not check ata_dev_enabled(dev) ?
+Not sure, this is just to call a BIOS routine, but a check should be
+safer. Thanks!
 
-Thanks
--Ling
->-----Original Message-----
->From: Brown, Len
->Sent: 2007=C4=EA11=D4=C21=C8=D5 23:51
->To: Yu, Ling L
->Cc: linux-acpi@vger.kernel.org
->Subject: ACPI home page updates
->
->Yu-Ling,
->
->Now that the new Linux/ACPI project home page is up at
->http://www.lesswatts.org/projects/acpi/, and MAINTAINERS
->points to it, it is time to update the legacy home page.
->
->The principle of "two copies of the truth" tells us that
->we should delete the redundant info from the old page
->and refer to the (properly maintained) new one.
->
->However, we should retain (and properly label) the
->content on the old page that will continue to live there.
->
->http://acpi.sourceforge.net/index.html
->
->replace all content with this text:
->
->"The Linux/ACPI project home page has moved to
->http://www.lesswatts.org/projects/acpi/.
->This legacy home page contains only legacy information
->that is useful for historical reference."
->
->maybe "Documentation" should be re-named "Legacy Documentation"...
->
->http://acpi.sourceforge.net/documentation/index.html
->Warn again that this is legacy documentation.
->
->http://acpi.sourceforge.net/documentation/alarm.html
->retain, but warn that /proc/acpi is being replaced
->by interfaces in /sys and new software should not
->look in /proc.
->
->http://acpi.sourceforge.net/documentation/blacklist.html
->delete -- this blacklist is stale -- the one copy
->of the truth is the list in the kernel source.
->
->"FAQ (extern)" link
->delete
->
->http://acpi.sourceforge.net/documentation/howto.html
->retain, but maybe a good idea to note that the
->newest of these documents is 2 years old...
->
->http://acpi.sourceforge.net/documentation/processor.html
->retain, but warn that /proc/acpi is being replaced
->by interfaces in /sys and new software should not
->look in /proc.
->
->http://acpi.sourceforge.net/documentation/sleep.html
->retain, but warn that /proc/acpi is being replaced
->by interfaces in /sys and new software should not
->look in /proc.
->
->http://acpi.sourceforge.net/documentation/thermal.html
->retain, but warn that /proc/acpi is being replaced
->by interfaces in /sys and new software should not
->look in /proc.
->
->http://acpi.sourceforge.net/wiki/index.php
->
->This looks extremely stale and I'm inclined to delete it.
->But I'd like some feedback from the list on
->1. Is there anything there that isn't covered elsewhere?
->2. is a Wiki necessary?  (lesswatts.org will not have one)
->
->http://acpi.sourceforge.net/download.html
->
->delete
->
->http://acpi.sourceforge.net/validation/index.html
->
->Verify that contents are intact at new site, and delete old copy.
->
->http://acpi.sourceforge.net/dsdt/index.php
->
->As I've made clear by now, I believe the existence of the DSDT
->database works AGAINST our cause, not FOR it.  However,
->I think this database should to be retained for historical reference
->and labeled with the proper warnings.
->
->I would advocate that it become read-only, but others may disagree.
->
->http://acpi.sourceforge.net/mailinglists.html
->
->delete
->
->http://acpi.sourceforge.net/links.html
->
->this one is nearly all stale.
->is there anything here that is still useful that isn't on
->thew new page?
->
->(BTW. I want to create a new page for pmtools rather than
-> having it in my home directory on kernel.org)
->
->http://acpi.sourceforge.net/contact.html
->
->webmaster is the only unique contact for this page,
->everything else should be on the new site.
->
->thanks,
->-Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
+methods. As recently most PATA drivers use libata, this patch adds _PSx
+method support in libata. ACPI spec doesn't mention if SATA requires the
+same _PSx method.
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Len Brown <len.brown@intel.com>
+---
+ drivers/ata/libata-acpi.c |   29 +++++++++++++++++++++++++++++
+ drivers/ata/libata-eh.c   |    3 +++
+ drivers/ata/libata.h      |    2 ++
+ 3 files changed, 34 insertions(+)
+
+Index: linux/drivers/ata/libata-acpi.c
+===================================================================
+--- linux.orig/drivers/ata/libata-acpi.c	2007-11-01 10:54:25.000000000 +0800
++++ linux/drivers/ata/libata-acpi.c	2007-11-02 09:14:12.000000000 +0800
+@@ -652,6 +652,35 @@ void ata_acpi_on_resume(struct ata_port 
+ }
+ 
+ /**
++ * ata_acpi_set_state - set the port power state
++ * @ap: target ATA port
++ * @state: state, on/off
++ *
++ * This function executes the _PS0/_PS3 ACPI method to set the power state.
++ * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
++ */
++void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
++{
++	struct ata_device *dev;
++
++	if (!ap->acpi_handle || (ap->flags & ATA_FLAG_ACPI_SATA))
++		return;
++
++	/* channel first and then drives for power on and verse versa for power off */
++	if (state.event == PM_EVENT_ON)
++		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
++
++	ata_link_for_each_dev(dev, &ap->link) {
++		if (dev->acpi_handle && ata_dev_enabled(dev))
++			acpi_bus_set_power(dev->acpi_handle,
++				state.event == PM_EVENT_ON ?
++				ACPI_STATE_D0: ACPI_STATE_D3);
++	}
++	if (state.event != PM_EVENT_ON)
++		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D3);
++}
++
++/**
+  * ata_acpi_on_devcfg - ATA ACPI hook called on device donfiguration
+  * @dev: target ATA device
+  *
+Index: linux/drivers/ata/libata-eh.c
+===================================================================
+--- linux.orig/drivers/ata/libata-eh.c	2007-11-01 10:54:25.000000000 +0800
++++ linux/drivers/ata/libata-eh.c	2007-11-02 09:01:41.000000000 +0800
+@@ -2796,6 +2796,7 @@ static void ata_eh_handle_port_suspend(s
+ 	if (ap->ops->port_suspend)
+ 		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+ 
++	ata_acpi_set_state(ap, PMSG_SUSPEND);
+  out:
+ 	/* report result */
+ 	spin_lock_irqsave(ap->lock, flags);
+@@ -2841,6 +2842,8 @@ static void ata_eh_handle_port_resume(st
+ 
+ 	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
+ 
++	ata_acpi_set_state(ap, PMSG_ON);
++
+ 	if (ap->ops->port_resume)
+ 		rc = ap->ops->port_resume(ap);
+ 
+Index: linux/drivers/ata/libata.h
+===================================================================
+--- linux.orig/drivers/ata/libata.h	2007-11-01 10:54:25.000000000 +0800
++++ linux/drivers/ata/libata.h	2007-11-02 09:01:41.000000000 +0800
+@@ -111,12 +111,14 @@ extern void ata_acpi_associate(struct at
+ extern int ata_acpi_on_suspend(struct ata_port *ap);
+ extern void ata_acpi_on_resume(struct ata_port *ap);
+ extern int ata_acpi_on_devcfg(struct ata_device *adev);
++extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
+ #else
+ static inline void ata_acpi_associate_sata_port(struct ata_port *ap) { }
+ static inline void ata_acpi_associate(struct ata_host *host) { }
+ static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
+ static inline void ata_acpi_on_resume(struct ata_port *ap) { }
+ static inline int ata_acpi_on_devcfg(struct ata_device *adev) { return 0; }
++static inline void ata_acpi_set_state(struct ata_port *ap, pm_message_t state) { }
+ #endif
+ 
+ /* libata-scsi.c */
