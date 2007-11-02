@@ -1,88 +1,36 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [ACPICA PATCH] fixed event counters
-Date: Fri, 2 Nov 2007 11:29:58 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4039D10B6@orsmsx415.amr.corp.intel.com>
-References: <200711021304.37251.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Oops removing thinkpad_acpi and video on git:linux-acpi-2.6
+Date: Fri, 2 Nov 2007 17:42:47 -0200
+Message-ID: <20071102194247.GA32647@khazad-dum.debian.net>
+References: <20071018012106.GA24821@khazad-dum.debian.net> <87tzoo2q3x.fsf@gismo.pca.it> <20071018230334.GD4483@khazad-dum.debian.net> <871wbr2u1r.fsf@gismo.pca.it> <20071020002720.GA21173@khazad-dum.debian.net> <87myuccqen.fsf@gismo.pca.it> <20071022013204.GA13019@khazad-dum.debian.net> <87prz7myq9.fsf@gismo.pca.it> <20071022170021.GA30584@khazad-dum.debian.net> <87d4ushgw8.fsf@gismo.pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19135 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754068AbXKBSad convert rfc822-to-8bit (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 2 Nov 2007 14:30:33 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200711021304.37251.lenb@kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37308 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752648AbXKBTmw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Nov 2007 15:42:52 -0400
+Content-Disposition: inline
+In-Reply-To: <87d4ushgw8.fsf@gismo.pca.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Luca Capello <luca@pca.it>
+Cc: ML Linux-ACPI <linux-acpi@vger.kernel.org>
 
-We can roll this into the base code.
+On Fri, 02 Nov 2007, Luca Capello wrote:
+> The oops removing ACPI's video module occurred both in 2.6.23.1 (with
+> thinkpad-acpi-0.18) or today's git pull for linux-acpi-2.6.
 
-Then, I would like to see a new interface to get these things, rather
-than have upper code poking around in ACPICA globals.
+Yeah, it is as I feared. Something is broken in 2.6.23.1 and later
+(actually, LOTs of things are broken in 2.6.24-rc :p).
 
-Like: AcpiGetStatistics
+> the laptop with the BIOS upgraded.  So, if any urgent test is needed,
+> I can perform it during the week-end.
 
-We could return event counts, gpe counts, total SCI count, # methods
-executed, etc., etc.
+Don't worry about it.
 
-Bob
-
-
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Friday, November 02, 2007 10:05 AM
->To: Moore, Robert
->Cc: Linux-acpi@vger.kernel.org
->Subject: [ACPICA PATCH] fixed event counters
->
->Bob,
->I'm planning to add the following counters to the ACPICA code in Linux.
->
->thanks,
->-Len
->
->diff --git a/drivers/acpi/events/evevent.c
-b/drivers/acpi/events/evevent.c
->index a1f87b5..8bf4dbe 100644
->--- a/drivers/acpi/events/evevent.c
->+++ b/drivers/acpi/events/evevent.c
->@@ -261,7 +261,7 @@ u32 acpi_ev_fixed_event_detect(void)
-> 			enable_bit_mask)) {
->
-> 			/* Found an active (signalled) event */
->-
->+			acpi_fixed_event_count[i]++;
-> 			int_status |= acpi_ev_fixed_event_dispatch((u32)
-i);
-> 		}
-> 	}
->diff --git a/drivers/acpi/utilities/utglobal.c
->b/drivers/acpi/utilities/utglobal.c
->index af33358..fbb9bec 100644
->--- a/drivers/acpi/utilities/utglobal.c
->+++ b/drivers/acpi/utilities/utglobal.c
->@@ -673,6 +673,8 @@ void acpi_ut_init_globals(void)
-> 	/* GPE support */
->
-> 	acpi_gpe_count = 0;
->+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++)
->+		acpi_fixed_event_count[i] = 0;
-> 	acpi_gbl_gpe_xrupt_list_head = NULL;
-> 	acpi_gbl_gpe_fadt_blocks[0] = NULL;
-> 	acpi_gbl_gpe_fadt_blocks[1] = NULL;
->diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
->index 24c3f05..a27ba06 100644
->--- a/include/acpi/acglobal.h
->+++ b/include/acpi/acglobal.h
->@@ -120,6 +120,7 @@ extern u32 acpi_gbl_nesting_level;
-> /* Event counters */
->
-> ACPI_EXTERN u32 acpi_gpe_count;
->+ACPI_EXTERN u32 acpi_fixed_event_count[ACPI_NUM_FIXED_EVENTS];
->
-> /* Support for dynamic control method tracing mechanism */
->
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
