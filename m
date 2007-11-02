@@ -1,76 +1,57 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: [2.6.24-rc1][BUG] Oops on battery removal
-Date: Fri, 2 Nov 2007 15:20:16 +0100
-Message-ID: <200711021520.26126.eike-kernel@sf-tec.de>
-References: <200711020803.49608.eike-kernel@sf-tec.de> <200711021426.40728.eike-kernel@sf-tec.de> <472B2924.1050700@suse.de>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: remove cycle from battery removal.
+Date: Fri, 02 Nov 2007 18:32:02 +0300
+Message-ID: <20071102153202.28440.90045.stgit@localhost.localdomain>
+References: <200711021520.26126.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4917228.XQJj9LPXIp";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756362AbXKBOXW@vger.kernel.org>
-In-Reply-To: <472B2924.1050700@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:39959 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752980AbXKBPcJ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 2 Nov 2007 11:32:09 -0400
+In-Reply-To: <200711021520.26126.eike-kernel@sf-tec.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
---nextPart4917228.XQJj9LPXIp
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+get_property() should not call battery_update() on absent battery to
+avoid cycle and oops.
 
-Alexey Starikovskiy wrote:
-> Rolf Eike Beer wrote:
-> > Alexey Starikovskiy wrote:
-> >> Rolf Eike Beer wrote:
-> >>> Alexey Starikovskiy wrote:
-> >>>> Rolf Eike Beer wrote:
-> >>>>> Rolf Eike Beer wrote:
-> >>>>>> Hi,
-> >>>>>>
-> >>>>>> this happened while I removed my battery on bootup. Complete dmesg
-> >>>>>> is attached. Kernel is 2.6.24-rc1-git of yesterday (last commit was
-> >>>>>> d919fd433b5823d1cf9d0688eb2eec183de9b74c).
-> >>>>>
-> >>>>> Ok, I found out that it has nothing to do with the actual removal as
-> >>>>> it seems. When I start the laptop with battery already detached I g=
-et
-> >>>>> the same error.
-> >>>>
-> >>>> Please check if this patch helps.
-> >>>
-> >>> It made things worse:
-> >>
-> >> How about this patch?
-> >
-> > Ehm, that is the same patch as before!
->
-> Yes, sorry... Two patches in parallel -- not good.
-
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+---
 
-It makes the crash go away. But there is something weird going on. Before I=
-=20
-logged into X I did an "cat /proc/acpi/battery/BAT1/*" and it showed the=20
-battery as present with some (random?) values. Now I'm in X and everything=
-=20
-looks fine there (as in "not present").
+ drivers/acpi/battery.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-Eike
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..ca37db4 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if ((!acpi_battery_present(battery)) &&
+-	     psp != POWER_SUPPLY_PROP_PRESENT)
++	if (acpi_battery_present(battery)) {
++		/* run battery update only if it is present */
++		acpi_battery_update(battery);
++	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+-	acpi_battery_update(battery);
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+ 		if (battery->state & 0x01)
+@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
++	battery->bat.dev = NULL;
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
 
---nextPart4917228.XQJj9LPXIp
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.4-svn0 (GNU/Linux)
-
-iD8DBQBHKzIqXKSJPmm5/E4RAobqAJ4omUya+dXIl0FJKScgZZjeZYRbmgCeJOw5
-H0+o/7q8yvdd9oMRpJ24WaM=
-=9z1/
------END PGP SIGNATURE-----
-
---nextPart4917228.XQJj9LPXIp--
