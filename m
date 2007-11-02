@@ -1,151 +1,137 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
-Date: Fri, 2 Nov 2007 12:16:01 +0100
-Message-ID: <200711021216.03088.rjw@sisk.pl>
-References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com> <20071101100435.7c80785e@the-village.bc.nu> <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: Re: [2.6.24-rc1][BUG] Oops on battery removal
+Date: Fri, 2 Nov 2007 12:49:57 +0100
+Message-ID: <200711021250.03555.eike-kernel@sf-tec.de>
+References: <200711020803.49608.eike-kernel@sf-tec.de> <200711020937.33672.eike-kernel@sf-tec.de> <472AEDEC.1090606@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: multipart/signed;
+  boundary="nextPart4937473.g82rgmyeHN";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
-Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.sf-mail.de ([62.27.20.61]:41241 "EHLO mail.sf-mail.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752946AbXKBLuK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Nov 2007 07:50:10 -0400
+In-Reply-To: <472AEDEC.1090606@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>
 
-On Friday, 2 November 2007 02:32, Shaohua Li wrote:
-> On Thu, 2007-11-01 at 10:04 +0000, Alan Cox wrote:
-> > > +	max_devices = ata_link_max_devices(&ap->link);
-> > > +
-> > > +	for (i = 0; i < max_devices; ++i) {
-> > > +		struct ata_device *dev = &ap->link.device[i];
-> > 
-> > Better to use:
-> ok.
-> > 	ata_link_for_each_dev(dev, &ap->link) {		
-> > 
-> > > +
-> > > +		if (dev->acpi_handle)
-> > > +			acpi_bus_set_power(dev->acpi_handle,
-> > > +				state.event == PM_EVENT_ON ?
-> > > +				ACPI_STATE_D0: ACPI_STATE_D3);
-> > > +	}
-> > 
-> > Also should you not check ata_dev_enabled(dev) ?
-> Not sure, this is just to call a BIOS routine, but a check should be
-> safer. Thanks!
-> 
-> ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
-> methods. As recently most PATA drivers use libata, this patch adds _PSx
-> method support in libata. ACPI spec doesn't mention if SATA requires the
-> same _PSx method.
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> Acked-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/ata/libata-acpi.c |   29 +++++++++++++++++++++++++++++
->  drivers/ata/libata-eh.c   |    3 +++
->  drivers/ata/libata.h      |    2 ++
->  3 files changed, 34 insertions(+)
-> 
-> Index: linux/drivers/ata/libata-acpi.c
-> ===================================================================
-> --- linux.orig/drivers/ata/libata-acpi.c	2007-11-01 10:54:25.000000000 +0800
-> +++ linux/drivers/ata/libata-acpi.c	2007-11-02 09:14:12.000000000 +0800
-> @@ -652,6 +652,35 @@ void ata_acpi_on_resume(struct ata_port 
->  }
->  
->  /**
-> + * ata_acpi_set_state - set the port power state
-> + * @ap: target ATA port
-> + * @state: state, on/off
-> + *
-> + * This function executes the _PS0/_PS3 ACPI method to set the power state.
-> + * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
-> + */
-> +void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+--nextPart4937473.g82rgmyeHN
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I wouldn't use pm_message_t here.
+Alexey Starikovskiy wrote:
+> Rolf Eike Beer wrote:
+> > Rolf Eike Beer wrote:
+> >> Hi,
+> >>
+> >> this happened while I removed my battery on bootup. Complete dmesg is
+> >> attached. Kernel is 2.6.24-rc1-git of yesterday (last commit was
+> >> d919fd433b5823d1cf9d0688eb2eec183de9b74c).
+> >
+> > Ok, I found out that it has nothing to do with the actual removal as it
+> > seems. When I start the laptop with battery already detached I get the
+> > same error.
 
-We're seriously considering removing it in the future and the caller passes
-constants explicitly anyway.
+> Please check if this patch helps.
 
-IMO, it might be cleaner to define two separate functions, one for switching
-to D0 and one for switching to D3, and call them as appropriate.  Then, you
-could get rid of some conditionals below.
+It made things worse:
 
-> +{
-> +	struct ata_device *dev;
-> +
-> +	if (!ap->acpi_handle || (ap->flags & ATA_FLAG_ACPI_SATA))
-> +		return;
-> +
-> +	/* channel first and then drives for power on and verse versa for power off */
-> +	if (state.event == PM_EVENT_ON)
-> +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D0);
-> +
-> +	ata_link_for_each_dev(dev, &ap->link) {
-> +		if (dev->acpi_handle && ata_dev_enabled(dev))
-> +			acpi_bus_set_power(dev->acpi_handle,
-> +				state.event == PM_EVENT_ON ?
-> +				ACPI_STATE_D0: ACPI_STATE_D3);
-> +	}
-> +	if (state.event != PM_EVENT_ON)
-> +		acpi_bus_set_power(ap->acpi_handle, ACPI_STATE_D3);
-> +}
-> +
-> +/**
->   * ata_acpi_on_devcfg - ATA ACPI hook called on device donfiguration
->   * @dev: target ATA device
->   *
-> Index: linux/drivers/ata/libata-eh.c
-> ===================================================================
-> --- linux.orig/drivers/ata/libata-eh.c	2007-11-01 10:54:25.000000000 +0800
-> +++ linux/drivers/ata/libata-eh.c	2007-11-02 09:01:41.000000000 +0800
-> @@ -2796,6 +2796,7 @@ static void ata_eh_handle_port_suspend(s
->  	if (ap->ops->port_suspend)
->  		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
->  
-> +	ata_acpi_set_state(ap, PMSG_SUSPEND);
->   out:
->  	/* report result */
->  	spin_lock_irqsave(ap->lock, flags);
-> @@ -2841,6 +2842,8 @@ static void ata_eh_handle_port_resume(st
->  
->  	WARN_ON(!(ap->pflags & ATA_PFLAG_SUSPENDED));
->  
-> +	ata_acpi_set_state(ap, PMSG_ON);
-> +
->  	if (ap->ops->port_resume)
->  		rc = ap->ops->port_resume(ap);
->  
-> Index: linux/drivers/ata/libata.h
-> ===================================================================
-> --- linux.orig/drivers/ata/libata.h	2007-11-01 10:54:25.000000000 +0800
-> +++ linux/drivers/ata/libata.h	2007-11-02 09:01:41.000000000 +0800
-> @@ -111,12 +111,14 @@ extern void ata_acpi_associate(struct at
->  extern int ata_acpi_on_suspend(struct ata_port *ap);
->  extern void ata_acpi_on_resume(struct ata_port *ap);
->  extern int ata_acpi_on_devcfg(struct ata_device *adev);
-> +extern void ata_acpi_set_state(struct ata_port *ap, pm_message_t state);
->  #else
->  static inline void ata_acpi_associate_sata_port(struct ata_port *ap) { }
->  static inline void ata_acpi_associate(struct ata_host *host) { }
->  static inline int ata_acpi_on_suspend(struct ata_port *ap) { return 0; }
->  static inline void ata_acpi_on_resume(struct ata_port *ap) { }
->  static inline int ata_acpi_on_devcfg(struct ata_device *adev) { return 0; }
-> +static inline void ata_acpi_set_state(struct ata_port *ap, pm_message_t state) { }
->  #endif
->  
->  /* libata-scsi.c */
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Nov  2 12:37:20 donald kernel: ACPI: EC: non-query interrupt received,=20
+switching to interrupt mode
+Nov  2 12:37:20 donald acpid: received event "battery BAT1 00000080 0000000=
+0"
+Nov  2 12:37:20 donald acpid: notifying client 2856[101:102]
+Nov  2 12:37:20 donald acpid: notifying client 2911[0:0]
+Nov  2 12:37:20 donald acpid: notifying client 3048[0:0]
+Nov  2 12:37:20 donald acpid: completed event "battery BAT1 00000080 000000=
+00"
+Nov  2 12:37:20 donald kernel: WARNING:=20
+at /home/eike/repos/linux-2.6/lib/kref.c:33 kref_get()
+Nov  2 12:37:20 donald kernel:  [<c0104edd>] show_trace_log_lvl+0x1a/0x2f
+Nov  2 12:37:20 donald kernel:  [<c010576e>] show_trace+0x12/0x14
+Nov  2 12:37:20 donald kernel:  [<c010585b>] dump_stack+0x16/0x18
+Nov  2 12:37:20 donald kernel:  [<c01d1d3c>] kref_get+0x37/0x43
+Nov  2 12:37:20 donald kernel:  [<c01d10af>] kobject_get+0x12/0x17
+Nov  2 12:37:20 donald kernel:  [<c0231509>] get_device+0x13/0x1d
+Nov  2 12:37:20 donald kernel:  [<c02319e8>] device_remove_file+0xe/0x2a
+Nov  2 12:37:20 donald kernel:  [<f8be7043>] sysfs_remove_battery+0x17/0x22=
+=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<f8be71a2>] acpi_battery_update+0x3f/0x255=
+=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<f8be73ed>] acpi_battery_read+0x11/0x20=20
+[battery]
+Nov  2 12:37:20 donald powersaved[3048]: WARNING (filter_function:201) Hal=
+=20
+service stopped. Battery information no longer available
+Nov  2 12:37:20 donald kernel:  [<f8be741c>] acpi_battery_read_state+0xf/0x=
+11=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<c01889ca>] seq_read+0xea/0x264
+Nov  2 12:37:20 donald kernel:  [<c019fddb>] proc_reg_read+0x63/0x76
+Nov  2 12:37:20 donald kernel:  [<c0172631>] vfs_read+0xa6/0x12f
+Nov  2 12:37:20 donald kernel:  [<c0172a2a>] sys_read+0x3d/0x61
+Nov  2 12:37:20 donald kernel:  [<c0103f12>] sysenter_past_esp+0x5f/0x85
+Nov  2 12:37:20 donald kernel:  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Nov  2 12:37:20 donald kernel: WARNING:=20
+at /home/eike/repos/linux-2.6/lib/kref.c:33 kref_get()
+Nov  2 12:37:20 donald kernel:  [<c0104edd>] show_trace_log_lvl+0x1a/0x2f
+Nov  2 12:37:20 donald kernel:  [<c010576e>] show_trace+0x12/0x14
+Nov  2 12:37:20 donald kernel:  [<c010585b>] dump_stack+0x16/0x18
+Nov  2 12:37:20 donald kernel:  [<c01d1d3c>] kref_get+0x37/0x43
+Nov  2 12:37:20 donald kernel:  [<c01d10af>] kobject_get+0x12/0x17
+Nov  2 12:37:20 donald kernel:  [<c0231509>] get_device+0x13/0x1d
+Nov  2 12:37:20 donald kernel:  [<c02319e8>] device_remove_file+0xe/0x2a
+Nov  2 12:37:20 donald kernel:  [<f8b9b3dd>]=20
+power_supply_remove_attrs+0x16/0x37 [power_supply]
+Nov  2 12:37:20 donald kernel:  [<f8b9b012>] power_supply_unregister+0x12/0=
+x1d=20
+[power_supply]
+Nov  2 12:37:20 donald kernel:  [<f8be704b>] sysfs_remove_battery+0x1f/0x22=
+=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<f8be71a2>] acpi_battery_update+0x3f/0x255=
+=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<f8be73ed>] acpi_battery_read+0x11/0x20=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<f8be741c>] acpi_battery_read_state+0xf/0x=
+11=20
+[battery]
+Nov  2 12:37:20 donald kernel:  [<c01889ca>] seq_read+0xea/0x264
+Nov  2 12:37:20 donald kernel:  [<c019fddb>] proc_reg_read+0x63/0x76
+Nov  2 12:37:20 donald kernel:  [<c0172631>] vfs_read+0xa6/0x12f
+Nov  2 12:37:20 donald kernel:  [<c0172a2a>] sys_read+0x3d/0x61
+Nov  2 12:37:20 donald kernel:  [<c0103f12>] sysenter_past_esp+0x5f/0x85
+Nov  2 12:37:20 donald kernel:  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-Greetings,
-Rafael
+tons more of stuff like this, system us unusable with this kernel now. In t=
+he=20
+meantime I upgraded to current git, last commit is now=20
+b4d367fb20ed19be4a53fa88b407248aeb8bd461
+
+Eike
+
+--nextPart4937473.g82rgmyeHN
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.4-svn0 (GNU/Linux)
+
+iD8DBQBHKw7rXKSJPmm5/E4RAnnTAJ0Yd4IAwHwEQT5o9PmFko2ca7MqHQCcCs3e
+kL9Kq7VIC2/NNW+L+9IEz6U=
+=j933
+-----END PGP SIGNATURE-----
+
+--nextPart4937473.g82rgmyeHN--
