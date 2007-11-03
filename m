@@ -1,31 +1,34 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [regression] v2.6.24-rc1-497-gb1d08ac: kde battery icon gone
-Date: Sat, 3 Nov 2007 09:28:08 +0100
-Message-ID: <20071103082808.GB10760@elte.hu>
-References: <472B5C01.7090508@m3y3r.de> <20071103063520.13EA59AFABF@smtp05.mtu.ru>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH] 2.6.24: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+Date: Sat, 03 Nov 2007 13:09:00 +0300
+Message-ID: <472C48BC.30809@gmail.com>
+References: <200710302321.19497.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:45924 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755922AbXKCI2Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Nov 2007 04:28:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20071103063520.13EA59AFABF@smtp05.mtu.ru>
+Received: from ug-out-1314.google.com ([66.249.92.172]:64446 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756469AbXKCKJH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Nov 2007 06:09:07 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so719096ugc
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Nov 2007 03:09:05 -0700 (PDT)
+In-Reply-To: <200710302321.19497.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Thomas Meyer <thomas@m3y3r.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Andrey Borzenkov wrote:
+> Let's make it consistent with battery code; also it fixes HAL case of 
+> duplicated adapters. Somebody will have to sort out HAL with ACPI_PROCFS 
+> case ...
+>
+> -andrey
+>   
+Andrey,
+Please excuse me, I mis-understood your comment, and thought that you 
+are trying to
+do AC adapter register/unregister at on/off.
 
-* Andrey Borzenkov <arvidjaar@mail.ru> wrote:
-
-> > # CONFIG_ACPI_PROCFS is not set
-> 
-> And if you enable it (ACPI_PROCFS)?
-
-ACPI_PROCFS was newly introduced i think but without a 'default y' 
-Kconfig entry. That was a mistake i think - it broke some power 
-management tools on my laptop too.
-
-	Ingo
+Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
