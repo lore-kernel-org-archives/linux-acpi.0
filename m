@@ -1,53 +1,56 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Don't init EC early if it has no _INI
-Date: Sat, 03 Nov 2007 13:12:57 +0300
-Message-ID: <20071103101257.6536.73851.stgit@localhost.localdomain>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [regression] v2.6.24-rc1-497-gb1d08ac: kde battery icon gone
+Date: Sat, 3 Nov 2007 13:19:00 +0300
+Message-ID: <200711031319.04664.arvidjaar@mail.ru>
+References: <472B5C01.7090508@m3y3r.de> <20071103063520.13EA59AFABF@smtp05.mtu.ru> <20071103082808.GB10760@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: multipart/signed;
+  boundary="nextPart1710816.yTvNyEqPkc";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:51084 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751691AbXKCKNM (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 3 Nov 2007 06:13:12 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757772AbXKCKTV@vger.kernel.org>
+In-Reply-To: <20071103082808.GB10760@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Meyer <thomas@m3y3r.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
 
-Option to init EC early inserted to handle #8598 ASUS problem,
-introduced several others. 
-EC driver in this particular case has fake _INI method, not present on
-other machines, which don't need or break from this workaround, so lets use
-its presence as a flag for early init.
+--nextPart1710816.yTvNyEqPkc
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9262
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=8598
-Reference: https://bugzilla.novell.com/show_bug.cgi?id=334806
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+On Saturday 03 November 2007, Ingo Molnar wrote:
+> * Andrey Borzenkov <arvidjaar@mail.ru> wrote:
+> > > # CONFIG_ACPI_PROCFS is not set
+> >
+> > And if you enable it (ACPI_PROCFS)?
+>
+> ACPI_PROCFS was newly introduced i think but without a 'default y'
+> Kconfig entry. That was a mistake i think - it broke some power
+> management tools on my laptop too.
+>
 
- drivers/acpi/ec.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+It is not that new but battery started to make use of it only now. It provi=
+des=20
+replacement interface via sysfs power_supply object; this should be support=
+ed=20
+by modern power tools - at least hal/kpowersave do not have any issues.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 06b78e5..d4dc38f 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -881,12 +881,15 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->gpe = ecdt_ptr->gpe;
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
- 	} else {
-+		acpi_handle x;
- 		printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
- 		status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
- 						boot_ec, NULL);
- 		/* Check that acpi_get_devices actually find something */
- 		if (ACPI_FAILURE(status) || !boot_ec->handle)
- 			goto error;
-+		if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &x)))
-+			goto error;
- 	}
- 
- 	ret = ec_install_handlers(boot_ec);
+=2Dandrey
 
+--nextPart1710816.yTvNyEqPkc
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHLEsVR6LMutpd94wRArBrAJ9tusYx8Jr9NRUEV6pGhUW0ZvE2bACgrGhL
+tP5M1OttYhsfRyTb4KypO4E=
+=xinj
+-----END PGP SIGNATURE-----
+
+--nextPart1710816.yTvNyEqPkc--
