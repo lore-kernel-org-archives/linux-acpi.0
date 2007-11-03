@@ -1,39 +1,40 @@
-From: Mikhail Gusarov <dottedmag@dottedmag.net>
-Subject: Re: Asus M6*, A6*, L5D - can't reboot after suspend/resume
-Date: Sat, 03 Nov 2007 18:02:17 +0600
-Message-ID: <87r6j7y1ti.fsf@vertex.dottedmag.net>
-References: <87myyjdcp6.fsf@vertex.dottedmag.net>
-	<200706282323.21340.rjw@sisk.pl>
-	<3877989d0706281451j6ed47793u27d0855532106991@mail.gmail.com>
-	<200706290006.52333.rjw@sisk.pl>
-	<3877989d0706281508wa281ff0j735f684cb5c40de2@mail.gmail.com>
+From: Jeff Garzik <jgarzik@pobox.com>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Sat, 03 Nov 2007 09:00:53 -0400
+Message-ID: <472C7105.8030804@pobox.com>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>	 <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>	 <200710302227.40310.lenb@kernel.org> <200710311426.25099.rjw@sisk.pl>	 <1193885429.6872.2.camel@sli10-conroe.sh.intel.com>	 <20071101100435.7c80785e@the-village.bc.nu> <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foreigner.dottedmag.net ([208.78.98.26]:44116 "EHLO
-	dottedmag.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752838AbXKCMWe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Nov 2007 08:22:34 -0400
+Received: from srv5.dvmed.net ([207.36.208.214]:47600 "EHLO mail.dvmed.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753690AbXKCNBS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Nov 2007 09:01:18 -0400
+In-Reply-To: <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-"Luming Yu" <luming.yu@gmail.com> writes:
+Shaohua Li wrote:
+> Not sure, this is just to call a BIOS routine, but a check should be
+> safer. Thanks!
+> 
+> ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
+> methods. As recently most PATA drivers use libata, this patch adds _PSx
+> method support in libata. ACPI spec doesn't mention if SATA requires the
+> same _PSx method.
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Acked-by: Len Brown <len.brown@intel.com>
 
-> OK, let's try linuxfirmware tool to see if it is Linux problem or probably
-> bios problem.  you can grab the tool kit from http://www.linuxfirmwarekit.org/
-> then please do a suspend-resume cycle, then try reboot from the command line.
-> Let's see the results. :-)
 
-Sorry for the, hm, long delay. Finally found the time to do this.
+What is the safety factor on this patch?  :)
 
-Grabbed the firmwaretoolkit r3, boot it, suspend-resume from menu and then exit
-it (reboot from the command line did not work due to missing /dev/initctl).
+Since we are into 2.6.24-rc, my preference would be to let this get some 
+testing in -mm, and push it upstream for 2.6.25.  Comments?
 
-Reboot hung exactly as it hungs on regular system.
+	Jeff
 
-Exiting from toolkit without suspend/resume works fine.
 
--- 
-JID: dottedmag@jabber.dottedmag.net
