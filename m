@@ -1,56 +1,39 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [regression] v2.6.24-rc1-497-gb1d08ac: kde battery icon gone
-Date: Sat, 3 Nov 2007 13:19:00 +0300
-Message-ID: <200711031319.04664.arvidjaar@mail.ru>
-References: <472B5C01.7090508@m3y3r.de> <20071103063520.13EA59AFABF@smtp05.mtu.ru> <20071103082808.GB10760@elte.hu>
+From: Mikhail Gusarov <dottedmag@dottedmag.net>
+Subject: Re: Asus M6*, A6*, L5D - can't reboot after suspend/resume
+Date: Sat, 03 Nov 2007 18:02:17 +0600
+Message-ID: <87r6j7y1ti.fsf@vertex.dottedmag.net>
+References: <87myyjdcp6.fsf@vertex.dottedmag.net>
+	<200706282323.21340.rjw@sisk.pl>
+	<3877989d0706281451j6ed47793u27d0855532106991@mail.gmail.com>
+	<200706290006.52333.rjw@sisk.pl>
+	<3877989d0706281508wa281ff0j735f684cb5c40de2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1710816.yTvNyEqPkc";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757772AbXKCKTV@vger.kernel.org>
-In-Reply-To: <20071103082808.GB10760@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Meyer <thomas@m3y3r.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foreigner.dottedmag.net ([208.78.98.26]:44116 "EHLO
+	dottedmag.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752838AbXKCMWe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Nov 2007 08:22:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
---nextPart1710816.yTvNyEqPkc
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+"Luming Yu" <luming.yu@gmail.com> writes:
 
-On Saturday 03 November 2007, Ingo Molnar wrote:
-> * Andrey Borzenkov <arvidjaar@mail.ru> wrote:
-> > > # CONFIG_ACPI_PROCFS is not set
-> >
-> > And if you enable it (ACPI_PROCFS)?
->
-> ACPI_PROCFS was newly introduced i think but without a 'default y'
-> Kconfig entry. That was a mistake i think - it broke some power
-> management tools on my laptop too.
->
+> OK, let's try linuxfirmware tool to see if it is Linux problem or probably
+> bios problem.  you can grab the tool kit from http://www.linuxfirmwarekit.org/
+> then please do a suspend-resume cycle, then try reboot from the command line.
+> Let's see the results. :-)
 
-It is not that new but battery started to make use of it only now. It provi=
-des=20
-replacement interface via sysfs power_supply object; this should be support=
-ed=20
-by modern power tools - at least hal/kpowersave do not have any issues.
+Sorry for the, hm, long delay. Finally found the time to do this.
 
-=2Dandrey
+Grabbed the firmwaretoolkit r3, boot it, suspend-resume from menu and then exit
+it (reboot from the command line did not work due to missing /dev/initctl).
 
---nextPart1710816.yTvNyEqPkc
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Reboot hung exactly as it hungs on regular system.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
+Exiting from toolkit without suspend/resume works fine.
 
-iD8DBQBHLEsVR6LMutpd94wRArBrAJ9tusYx8Jr9NRUEV6pGhUW0ZvE2bACgrGhL
-tP5M1OttYhsfRyTb4KypO4E=
-=xinj
------END PGP SIGNATURE-----
-
---nextPart1710816.yTvNyEqPkc--
+-- 
+JID: dottedmag@jabber.dottedmag.net
