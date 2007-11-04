@@ -1,96 +1,67 @@
-From: "Iacopo Masi" <iacopo.masi.list@gmail.com>
-Subject: Re: fan control amilo m1425
-Date: Sat, 3 Nov 2007 21:19:22 +0100
-Message-ID: <1eca66a80711031319m72993710taeec7f2733f7109e@mail.gmail.com>
-References: <1eca66a80711031316q1b133cafg20d2d84eabb93b47@mail.gmail.com>
+From: Romano Giannetti <romanol@upcomillas.es>
+Subject: Re: *SPAM* Re: 2.6.24-rc1: OOPS at  acpi_battery_update
+Date: Sun, 04 Nov 2007 10:34:13 +0100
+Message-ID: <1194168853.10245.18.camel@rukbat>
+References: <1193652664.22149.4.camel@localhost>
+	 <20071101161459.d5f9abc0.akpm@linux-foundation.org>
+	 <200711021708.42370.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.186]:44302 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141AbXKCUTY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Nov 2007 16:19:24 -0400
-Received: by fk-out-0910.google.com with SMTP id z23so1129621fkz
-        for <linux-acpi@vger.kernel.org>; Sat, 03 Nov 2007 13:19:23 -0700 (PDT)
-In-Reply-To: <1eca66a80711031316q1b133cafg20d2d84eabb93b47@mail.gmail.com>
-Content-Disposition: inline
+Received: from antispam.upcomillas.es ([130.206.70.245]:48196 "EHLO
+	antispam.upcomillas.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237AbXKDJeQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2007 04:34:16 -0500
+In-Reply-To: <200711021708.42370.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hello linux-acpi user and developers,
-
-I'm using Ubuntu Linux 7.10 with kernel 2.6.22-14-generic and I have
-some strange problem with ACPI, therm and fan control.
-I use ubuntu since Warty 4.10 and is the same from that distro (and so
-that kernel), I think it's a bug in linux kernel or acpi to control
-the fan speed of a lots of amilo fujitsu siemens laptop
-so I think it is very important to solve.
-
-=46irst of all, after CPU makes some works, the fan is at max speed
-making a horrible noise and the /proc fs tells me that the CPU
-thempertaure is
-always 75=B0C; that is too for a CPU started from 10 min to work: in
-Windows with particulare software tool and the right acpi the CPU tmp
-goes from 46=B0C to 55=B0C max.
-
-So how could I make the acpi tell the right temp. and to control the
-speed of the fan?
-I read to decompile that DSTD table via intel compiler. I did it, but
-I am not able to rewirte the right DSTD.
-
-=46or more details see my ubuntu post in ubuntuforums [1]
-and also a post in amilo-forum [2]
-
-I also think that this bug (of all amilo) is the same as that
-launchpad bug #57617 [3]
-or the closed kernel linux bug [4]
-
-Here some listings:
-
-$ ls /proc/acpi/
-ac_adapter  button               event  info            sleep         w=
-akeup
-alarm       dsdt                 fadt   power_resource  thermal_zone
-battery     embedded_controller  fan    processor       video
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
-$ ls /proc/acpi/fan
-$
+On Fri, 2007-11-02 at 17:08 +0100, Rafael J. Wysocki wrote:
+> On Friday, 2 November 2007 00:14, Andrew Morton wrote:
+> > On Mon, 29 Oct 2007 11:11:04 +0100
+[OOPS removed]
+> >=20
+> > Did any earlier kernels do this?  In other words, do you believe th=
+at this
+> > is a bug which we added after 2.6.23 was released?
 
-In fan proc it is not  presente notghins so I CAN'T force fan speed lik=
-e
+Never noticed it before. But it's happening just sometime (I've had it
+just two times), so I cannot be sure.
 
-echo -n 3 > /proc/acpi/fan/FAN/state
+> This might be the same as http://bugzilla.kernel.org/show_bug.cgi?id=3D=
+9283
 
-or like scripts as this found in the net
+Hmmm... there is too little info for my level in that bug report to
+understand if it's the same.=20
 
-$ acpi -V
-     Thermal 1: ok, 75.0 degrees C
-  AC Adapter 1: on-line
-
-$ ls /proc/acpi/thermal_zone/THRM/*
-/proc/acpi/thermal_zone/THRM
-/cooling_mode
-/proc/acpi/thermal_zone/THRM/polling_frequency
-/proc/acpi/thermal_zone/THRM/state
-/proc/acpi/thermal_zone/THRM/temperature
-/proc/acpi/thermal_zone/THRM/trip_points
-
-$ cat /proc/acpi/thermal_zone/THRM/cooling_mode
-<setting not supported>
-
-If you want to ask me some ls or dmesg
-
-[1] http://ubuntuforums.org/showthread.php?t=3D600891
-[2] http://www.amilo-forum.com/topic,1223,b9d6c29641ad7caaf81b94d5e16f1=
-469,-fan-control-on-amilo-series-with-linux.html
-[3] https://bugs.edge.launchpad.net/ubuntu/+source/acpi/+bug/57617
-[4] http://bugzilla.kernel.org/show_bug.cgi?id=3D5670
+Romano=20
 
 --=20
-Iacopo Masi
+Sorry for the disclaimer --- =A1I cannot stop it!
+
+
+
+--
+La presente comunicaci=F3n tiene car=E1cter confidencial y es para el e=
+xclusivo uso del destinatario indicado en la misma. Si Ud. no es el des=
+tinatario indicado, le informamos que cualquier forma de distribuci=F3n=
+, reproducci=F3n o uso de esta comunicaci=F3n y/o de la informaci=F3n c=
+ontenida en la misma est=E1n estrictamente prohibidos por la ley. Si Ud=
+=2E ha recibido esta comunicaci=F3n por error, por favor, notif=EDquelo=
+ inmediatamente al remitente contestando a este mensaje y proceda a con=
+tinuaci=F3n a destruirlo. Gracias por su colaboraci=F3n.
+
+This communication contains confidential information. It is for the exc=
+lusive use of the intended addressee. If you are not the intended addre=
+ssee, please note that any form of distribution, copying or use of this=
+ communication or the information in it is strictly prohibited by law. =
+If you have received this communication in error, please immediately no=
+tify the sender by reply e-mail and destroy this message. Thank you for=
+ your cooperation.=20
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
