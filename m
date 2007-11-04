@@ -1,54 +1,35 @@
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-Subject: Writing to the EC
-Date: Sun, 04 Nov 2007 20:55:40 +0100
-Message-ID: <472E23BC.2010909@gmail.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: Writing to the EC
+Date: Sun, 04 Nov 2007 21:23:08 +0000
+Message-ID: <1194211388.2866.12.camel@hughsie-laptop>
+References: <472E23BC.2010909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pne-smtpout2-sn1.fre.skanova.net ([81.228.11.159]:50021 "EHLO
-	pne-smtpout2-sn1.fre.skanova.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752866AbXKDTzm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2007 14:55:42 -0500
-Received: from [192.168.0.102] (90.224.104.93) by pne-smtpout2-sn1.fre.skanova.net (7.3.129)
-        id 471EF804002F6359 for linux-acpi@vger.kernel.org; Sun, 4 Nov 2007 20:55:27 +0100
+Received: from ug-out-1314.google.com ([66.249.92.173]:52106 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752771AbXKDVXn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2007 16:23:43 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so820209ugc
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Nov 2007 13:23:42 -0800 (PST)
+In-Reply-To: <472E23BC.2010909@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hello,
-
-I'm currently in the process of trying to write routines for controllin=
+On Sun, 2007-11-04 at 20:55 +0100, Erik Andr=C3=A9n wrote:
+> The bad part is that writing to the EC using the ec_write function
+> doesn't work at all. Sure it completes the operation, but when probin=
 g
-the backlight on my Clevo M72R.
+> the register afterwards, no change of value is seen.
 
-Pressing the hotkeys do work but I do belive this is the result of that
-the embedded controller is hardwired to the keyboard.
+This sounds the same as my Lenovo 3000 N100. If you find out how to do
+it - yell - and it's worth many beers.
 
-To make a long story short, I've hacked up a kernel module that dumps
-the EC (with inspiration from the ibm acpi driver) using the exported
-ec_read and ec_write symbols from the ec.c in the kernel acpi source an=
-d
-I've been able to locate a register which change when I manually push
-the brightness hotkey buttons (0xC9).
+Richard.
 
-The bad part is that writing to the EC using the ec_write function
-doesn't work at all. Sure it completes the operation, but when probing
-the register afterwards, no change of value is seen.
-
-My questions to you ACPI and EC gurus are:
-
-1. Is it possible that the EC is read-only from the OS perspective?
-
-2. Are there any common quirks / initialization that is needed to
-getting the EC to register commands?
-
-3. Does anyone have a recommendation of programs to use for snooping I/=
-O
-accesses in windows?
-
-With kind regards
-Erik Andr=E9n
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
