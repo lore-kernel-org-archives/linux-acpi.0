@@ -1,363 +1,105 @@
-From: Roman =?utf-8?q?Rum=C3=AD=C5=A1ek?= <romanr@medialine.cz>
-Subject: ACER Extensa 5220
-Date: Sun, 4 Nov 2007 15:15:23 +0100
-Message-ID: <200711041515.23732.romanr@medialine.cz>
-Reply-To: romrum@cbox.cz
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] Fix Oops in toshiba_acpi error return path
+Date: Sun, 4 Nov 2007 19:15:23 +0300
+Message-ID: <200711041915.28883.arvidjaar@mail.ru>
+References: <200710072053.02865.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_7PdLHK1JjYeCweh"
+Content-Type: multipart/signed;
+  boundary="nextPart2196261.t2e0JdY9dG";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.medialine.cz ([82.114.192.2]:2746 "EHLO mail.medialine.cz"
+Received: from mx5.mail.ru ([194.67.23.25]:9075 "EHLO mx5.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755034AbXKDOeB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Nov 2007 09:34:01 -0500
-Received: from rrdml.rrd.org (ipn230.customer.medialine.cz [82.114.206.230])
-	by mail.medialine.cz (8.13.3/) with ESMTP id lA4EEfr3021041
-	for <linux-acpi@vger.kernel.org>; Sun, 4 Nov 2007 15:14:41 +0100
+	id S1751292AbXKDQPd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 4 Nov 2007 11:15:33 -0500
+In-Reply-To: <200710072053.02865.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: toshiba_acpi@memebeam.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Boundary-00=_7PdLHK1JjYeCweh
+--nextPart2196261.t2e0JdY9dG
 Content-Type: text/plain;
   charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-I sending acpi bios.
+On Sunday 07 October 2007, Andrey Borzenkov wrote:
+> This fixes oops when registering backlight device fails. Attached as I
+> still cannot convince kmail to not mangle long lines ...
+>
+> -andrey
 
-Roman
+ping ...=20
 
---Boundary-00=_7PdLHK1JjYeCweh
-Content-Type: text/plain;
-  charset="utf-8";
-  name="acer_extensa_5220.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="acer_extensa_5220.txt"
+Subject: [PATCH] Fix Oops in toshiba_acpi error return path
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-28 structures occupying 1179 bytes.
-Table at 0x3F6E0000.
+When backlight_device_register() fails, return after undo initialization,
+do not try to use pointer that just was reset to NULL
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: V1.16          
-	Release Date: 08/07/2007
-	Address: 0xE5880
-	Runtime Size: 108416 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
+This fixes this oops:
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Acer           
-	Product Name: Extensa 5220                   
-	Version: 0100           
-	Serial Number: LXE870C0017341C55E2000        
-	UUID: 3183EB40-5424-11DC-A792-B694B30EAEF3
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
+[ 1595.177672]  [<c010480a>] show_trace_log_lvl+0x1a/0x30
+[ 1595.177706]  [<c01052a2>] show_trace+0x12/0x20
+[ 1595.177718]  [<c0105305>] dump_stack+0x15/0x20
+[ 1595.177728]  [<c01c9375>] kobject_shadow_add+0x125/0x1c0
+[ 1595.177754]  [<c01c941a>] kobject_add+0xa/0x10
+[ 1595.177764]  [<c0239a37>] device_add+0x97/0x5d0
+[ 1595.177776]  [<c0239f82>] device_register+0x12/0x20
+[ 1595.177786]  [<dfd912df>] backlight_device_register+0x9f/0x110 [backligh=
+t]
+[ 1595.177814]  [<df861117>] toshiba_acpi_init+0x117/0x15e [toshiba_acpi]
+[ 1595.177834]  [<c013e28d>] sys_init_module+0xfd/0x14e0
+[ 1595.177871]  [<c0104112>] sysenter_past_esp+0x5f/0x99
+[ 1595.177883]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+[ 1595.177890] Could not register toshiba backlight device
+[ 1595.177985] BUG: unable to handle kernel NULL pointer dereference at=20
+virtual address 00000004
+=2E..
+[ 1595.394097] EIP:    0060:[<df861143>]    Not tainted VLI
+[ 1595.394101] EFLAGS: 00010282   (2.6.23-rc9-1avb #24)
+[ 1595.480081] EIP is at toshiba_acpi_init+0x143/0x15e [toshiba_acpi]
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: Acer           
-	Product Name: Columbia                       
-	Version: Rev            
-	Serial Number: LXE870C0017341C55E2000        
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Acer           
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A            
-	Serial Number: None           
-	Asset Tag: None                            
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
+=2D--
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: 61 06 01 00 FF FB EB AF
-	Version: CPU Version
-	Voltage: 3.3 V
-	External Clock: 133 MHz
-	Max Speed: 1730 MHz
-	Current Speed: 1730 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
+ drivers/acpi/toshiba_acpi.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 64 KB
-	Maximum Size: 64 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 1024 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot J8B3
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Slot S9B1
-	Type: 32-bit PCI
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x0009, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PEG Slot J6B2
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 6
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J6B1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 7
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J6D1
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Long
-	ID: 8
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8B4
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 9
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J8D1
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Long
-	ID: 9
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI Express Slot J7B1
-	Type: 32-bit PCI Express
-	Current Usage: Unknown
-	Length: Long
-	ID: 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x000F, DMI type 11, 5 bytes
-OEM Strings
-	String 1: This is the Intel Crestline
-	String 2: Chipset CRB Platform
-
-Handle 0x0010, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x0011, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 533 MHz (1.9 ns)
-	Manufacturer: Mfg 0
-	Serial Number: 1234-B0
-	Asset Tag: Not Specified
-	Part Number: SODIMM000
-
-Handle 0x0012, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x0010
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 512 MB
-	Form Factor: SODIMM
-	Set: 1
-	Locator: M2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 533 MHz (1.9 ns)
-	Manufacturer: Mfg 1
-	Serial Number: 1234-B1
-	Asset Tag: Not Specified
-	Part Number: SODIMM001
-
-Handle 0x0013, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Array Handle: 0x0010
-	Partition Width: 0
-
-Handle 0x0014, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0001FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0011
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0015, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00020000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 512 MB
-	Physical Device Handle: 0x0012
-	Memory Array Mapped Address Handle: 0x0013
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0016, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0017, DMI type 129, 10 bytes
-OEM-specific Type
-	Header and Data:
-		81 0A 17 00 01 01 02 01 01 02
-	Strings:
-		Intel_ASF
-		Intel_ASF_001
-
-Handle 0x0018, DMI type 136, 6 bytes
-OEM-specific Type
-	Header and Data:
-		88 06 18 00 FF FF
-
-Handle 0x0019, DMI type 150, 14 bytes
-OEM-specific Type
-	Header and Data:
-		96 0E 19 00 01 01 00 00 00 00 00 00 00 00
-	Strings:
-		ABSOLUTE(PHOENIX) CLM
-
-Handle 0x001A, DMI type 200, 7 bytes
-OEM-specific Type
-	Header and Data:
-		C8 07 1A 00 01 02 03
-	Strings:
-		17C0
-		             
-		0001
-
-Handle 0x001B, DMI type 127, 4 bytes
-End Of Table
+diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
+index 13369b4..18660cc 100644
+=2D-- a/drivers/acpi/toshiba_acpi.c
++++ b/drivers/acpi/toshiba_acpi.c
+@@ -591,9 +591,12 @@ static int __init toshiba_acpi_init(void)
+ 						NULL,
+ 						&toshiba_backlight_data);
+         if (IS_ERR(toshiba_backlight_device)) {
++		int ret =3D PTR_ERR(toshiba_backlight_device);
++
+ 		printk(KERN_ERR "Could not register toshiba backlight device\n");
+ 		toshiba_backlight_device =3D NULL;
+ 		toshiba_acpi_exit();
++		return ret;
+ 	}
+         toshiba_backlight_device->props.max_brightness =3D=20
+HCI_LCD_BRIGHTNESS_LEVELS - 1;
+=20
 
 
---Boundary-00=_7PdLHK1JjYeCweh--
+--nextPart2196261.t2e0JdY9dG
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHLfAcR6LMutpd94wRAmZ4AJ0fq9rYFjsxqJvRYDR0TZQCcyoZngCdG9bY
+pTcn5oZ/UMXyB+/w+9G7X0c=
+=v1cR
+-----END PGP SIGNATURE-----
+
+--nextPart2196261.t2e0JdY9dG--
