@@ -1,46 +1,30 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [Bugme-new] [Bug 8995] New: /proc/acpi/alarm worked;
-	update to 2.6.22.2 and /sys/class/rtc/rtc0/wakealarm don't
-Date: Mon, 5 Nov 2007 08:11:17 -0800
-Message-ID: <200711050811.18256.david-b@pacbell.net>
-References: <bug-8995-10286@http.bugzilla.kernel.org/>
-	<200711041125.35163.david-b@pacbell.net>
-	<200711042056.56763.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200711042056.56763.rjw@sisk.pl>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, Andrew Morton <akpm@linux-foundation.org>, huffcslists@gmail.com, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [patch 0/8] ACPI Video various cleanups & fixes
+Date: Mon, 05 Nov 2007 11:43:28 -0500
+Message-ID: <20071105164328.982283020@anvil.corenet.prv>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wa-out-1112.google.com ([209.85.146.179]:36139 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999AbXKEQwa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2007 11:52:30 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so2045458wah
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2007 08:52:29 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Rui Zhang <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday 04 November 2007, Rafael J. Wysocki wrote:
-> On Sunday, 4 of November 2007, David Brownell wrote:
-> >
-> > So what's the status of this now ... are we back to having
-> > the /sys/class/rtc/rtc0/wakealarm work with ACPI again
-> 
-> Yes, it should work now.
+Hi Len, Rui,
 
-A current git kernel seemed to work for me on at least one
-system that had previously misbehaved ... both "standby" and
-"disk" suspend now let the wakealarm do its thing.  (And STR
-has the usual unrelated framebuffer issues.)  And I'm told 
-another person has seen it work again on his hardware.  I'll
-try it on a few other systems too, just to be sure.
+Here is a group of cleanups and patches to the acpi video driver.
+Originally I just wanted to fix sysfs placement of input devices
+created by the driver, but then I saw some more potential issues.
 
-Thanks for the bugfix, and update!
+The patches are against Linus's tree, please let me know if you
+want them redone against something else.
 
-- Dave
+Thanks.
+
+-- 
+Dmitry
+
