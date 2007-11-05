@@ -1,83 +1,86 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI home page updates
-Date: Mon, 5 Nov 2007 13:40:02 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB60406F083@hdsmsx411.amr.corp.intel.com>
-References: <CFF307C98FEABE47A452B27C06B85BB604029F11@hdsmsx411.amr.corp.intel.com> <14B8575781A1414FA0D4F6649C4D71909D7CBA@pdsmsx415.ccr.corp.intel.com>
+From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Subject: Re: Writing to the EC
+Date: Mon, 5 Nov 2007 19:00:06 +0000
+Message-ID: <20071105190006.04e31cc5.miknix@gmail.com>
+References: <472E23BC.2010909@gmail.com>
+	<200711050055.37904.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16693 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756461AbXKESnV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2007 13:43:21 -0500
-Content-class: urn:content-classes:message
-In-reply-to: <14B8575781A1414FA0D4F6649C4D71909D7CBA@pdsmsx415.ccr.corp.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.168]:11768 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755426AbXKESwO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2007 13:52:14 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so960704ugc
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2007 10:52:12 -0800 (PST)
+In-Reply-To: <200711050055.37904.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Ling L" <ling.l.yu@intel.com>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Cc: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+On Mon, 5 Nov 2007 00:55:37 +0000
+Carlos Corbacho <carlos@strangeworlds.co.uk> wrote:
 
+> On Sunday 04 November 2007 19:55:40 Erik Andr?n wrote:
+> > To make a long story short, I've hacked up a kernel module that dumps
+> > the EC
+> 
+> For acer_acpi, we have a Perl script that can do this from userspace (but
+> it should run on any other machine, since there's nothing Acer specific
+> about dumping the EC registers).
+> 
+> http://aceracpi.googlecode.com/svn/trunk/acer_ec/acer_ec.pl
+> 
+> ./acer_ec.pl regs
+> 
+> (ACPI throws a few warnings in dmesg, because we're stepping on it's turf
+> a bit here, but it's far simpler than having to write a kernel module
+> just to get a few registers).
+>  
+Awesome! I found the EC register for changing the backlight on my laptop using acer_ec.pl.
 
->>http://acpi.sourceforge.net/documentation/howto.html
->>retain, but maybe a good idea to note that the
->>newest of these documents is 2 years old...
->[[Yu, Ling L]] Done
+Register 0xE2 - Set screen brightness to <value>
+                Min: 0x00 Max: unknown
+                Windows Brightness key Min: 0x14 Max: 0x5F
 
-heh, I guess we can delete the phrase "Recently published" as well:-)
-probably also a good idea to put the red warning at the top
-of the page like you did on other pages,
-rather then at the bottom.
+Register 0xE3 - Fade out screen brightness from <value>
 
->>http://acpi.sourceforge.net/wiki/index.php
->>
->>This looks extremely stale and I'm inclined to delete it.
->>But I'd like some feedback from the list on
->>1. Is there anything there that isn't covered elsewhere?
->>2. is a Wiki necessary?  (lesswatts.org will not have one)
->
->[[Yu, Ling L]] I removed the urls from the web pages, but keep 
->the content in the server. If there is anything useful, we can 
->find it back.
+This is for HP dv6535ep laptop which should be similar to any other HP laptop in the 6xxx series.
 
-sounds good.
+I'll look at other backlight drivers if I can do something..
 
->>http://acpi.sourceforge.net/validation/index.html
->>
->>Verify that contents are intact at new site, and delete old copy.
->[[Yu, Ling L]] Done, but some urls at lesswatts don't point to 
->the correct places:
->"testplan.html" should be 
->"http://acpi.sourceforge.net/validation/ACPI_TestPlan.htm" 
->"Test Framework" should be 
->"http://acpi.sourceforge.net/validation/test_framework.htm" 
->"Download" should be 
->"http://acpi.sourceforge.net/validation/testcases/"
+> 
+> -Carlos
+> -- 
+> E-Mail: carlos@strangeworlds.co.uk
+> Web: strangeworlds.co.uk
+> GPG Key ID: 0x23EE722D
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-yes, the links on lesswatts look broken.
-I'll read through that web site and get back to you and Noel
-on the issues -- I've seen a few broken links on my last scan....
+Thanks!!!
+- -- 
+Angelo Arrifano AKA MiKNiX
+CSE Student at UBI, Portugal
+Gentoo Linux AMD64 Arch Tester
+miknix@gmail.com
+http://miknix.homelinux.com
+PGP Pubkey online
 
-When we are done, the links are supposed to point to contents on
-lesswatts,
-not point to content on sf.net.
+- - -
+The only thing that experience teaches us is that experience teaches us nothing.
+		-- Andre Maurois (Emile Herzog)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
->>
->>http://acpi.sourceforge.net/dsdt/index.php
->>
->>As I've made clear by now, I believe the existence of the DSDT
->>database works AGAINST our cause, not FOR it.  However,
->>I think this database should to be retained for historical reference
->>and labeled with the proper warnings.
->[[Yu, Ling L]] I added the warning to the DSDT pages and made 
->them be read-only by disabling the submit button.
-
-okay, thanks.
-
->>(BTW. I want to create a new page for pmtools rather than
->> having it in my home directory on kernel.org)
->[[Yu, Ling L]] What do you think add a page labeled "PM tools" 
->below the "Overview" label and put all pmtools on the server of sf.net?
+iD8DBQFHL2gzNahyoD2SuwsRAnqXAKCcWxVvXy4AudRvRPgqkYn8Oybo4wCffpn5
+NkU/v5/HZFgqYc0GhEBzGi4=
+=uPxz
+-----END PGP SIGNATURE-----
