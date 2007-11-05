@@ -1,86 +1,71 @@
-From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
-Subject: Re: Writing to the EC
-Date: Mon, 5 Nov 2007 19:00:06 +0000
-Message-ID: <20071105190006.04e31cc5.miknix@gmail.com>
-References: <472E23BC.2010909@gmail.com>
-	<200711050055.37904.carlos@strangeworlds.co.uk>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi patches for 2.6.24-rc
+Date: Mon, 5 Nov 2007 14:32:27 -0500
+Message-ID: <200711051432.27840.lenb@kernel.org>
+References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:11768 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755426AbXKESwO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2007 13:52:14 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so960704ugc
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2007 10:52:12 -0800 (PST)
-In-Reply-To: <200711050055.37904.carlos@strangeworlds.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1193773585-17202-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I agree that these look post1rc1 worthy,
+lets see if the boss thinks so too.
 
-On Mon, 5 Nov 2007 00:55:37 +0000
-Carlos Corbacho <carlos@strangeworlds.co.uk> wrote:
+applied.
 
-> On Sunday 04 November 2007 19:55:40 Erik Andr?n wrote:
-> > To make a long story short, I've hacked up a kernel module that dumps
-> > the EC
+thanks,
+-Len
+
+On Tuesday 30 October 2007 15:46, Henrique de Moraes Holschuh wrote:
+> Len,
 > 
-> For acer_acpi, we have a Perl script that can do this from userspace (but
-> it should run on any other machine, since there's nothing Acer specific
-> about dumping the EC registers).
+> Here is a bunch of thinkpad-acpi changes that fixes some bugs and add key
+> thinkpad models support that should, if at all possible, be merged for
+> 2.6.24.
 > 
-> http://aceracpi.googlecode.com/svn/trunk/acer_ec/acer_ec.pl
+> They are really important for ThinkPad X60, T61 and R61 users, and the
+> first patch unbreaks the ThinkPad ACPI hotkey map in all IBM ThinkPads on
+> several distros.
 > 
-> ./acer_ec.pl regs
+> Please consider sending this patch set to Linus for merging after -rc2 is
+> out.
 > 
-> (ACPI throws a few warnings in dmesg, because we're stepping on it's turf
-> a bit here, but it's far simpler than having to write a kernel module
-> just to get a few registers).
->  
-Awesome! I found the EC register for changing the backlight on my laptop using acer_ec.pl.
-
-Register 0xE2 - Set screen brightness to <value>
-                Min: 0x00 Max: unknown
-                Windows Brightness key Min: 0x14 Max: 0x5F
-
-Register 0xE3 - Fade out screen brightness from <value>
-
-This is for HP dv6535ep laptop which should be similar to any other HP laptop in the 6xxx series.
-
-I'll look at other backlight drivers if I can do something..
-
+> All patches in it have been tested, and all comments the individual patches
+> received (some of them are not new) have been addressed.
 > 
-> -Carlos
-> -- 
-> E-Mail: carlos@strangeworlds.co.uk
-> Web: strangeworlds.co.uk
-> GPG Key ID: 0x23EE722D
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> As usual, the patch set is available at:
+> git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-release
+> 
+> Shortlog of the above branch:
+> 
+> Henrique de Moraes Holschuh (7):
+>       ACPI: thinkpad-acpi: revert keymap changes
+>       ACPI: thinkpad-acpi: support 16 levels of brightness (v3)
+>       ACPI: thinkpad-acpi: add brightness_force parameter
+>       ACPI: thinkpad-acpi: prefer standard ACPI backlight level control
+>       ACPI: thinkpad-acpi: bump up version to 0.17
+>       ACPI: thinkpad-acpi: allow for syscall restart in sysfs handlers
+>       ACPI: thinkpad-acpi: fix brightness_set error paths
+> 
+> Thanks.
+> 
 
-Thanks!!!
-- -- 
-Angelo Arrifano AKA MiKNiX
-CSE Student at UBI, Portugal
-Gentoo Linux AMD64 Arch Tester
-miknix@gmail.com
-http://miknix.homelinux.com
-PGP Pubkey online
-
-- - -
-The only thing that experience teaches us is that experience teaches us nothing.
-		-- Andre Maurois (Emile Herzog)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFHL2gzNahyoD2SuwsRAnqXAKCcWxVvXy4AudRvRPgqkYn8Oybo4wCffpn5
-NkU/v5/HZFgqYc0GhEBzGi4=
-=uPxz
------END PGP SIGNATURE-----
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >> http://get.splunk.com/
