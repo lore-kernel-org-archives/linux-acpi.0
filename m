@@ -1,67 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
-Date: Mon, 5 Nov 2007 01:18:34 +0100
-Message-ID: <200711050118.34610.rjw@sisk.pl>
-References: <1193652664.22149.4.camel@localhost> <200711041417.23920.rjw@sisk.pl> <200711050029.09768.listen@selfservix.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: Writing to the EC
+Date: Mon, 5 Nov 2007 00:55:37 +0000
+Message-ID: <200711050055.37904.carlos@strangeworlds.co.uk>
+References: <472E23BC.2010909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33109 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754288AbXKEABe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 Nov 2007 19:01:34 -0500
-In-Reply-To: <200711050029.09768.listen@selfservix.org>
+Received: from slackadelic.com ([65.196.224.53]:54051 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168AbXKEAzl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2007 19:55:41 -0500
+In-Reply-To: <472E23BC.2010909@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael (rabenkind) Brandstetter" <listen@selfservix.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Erik =?iso-8859-1?q?Andr=E9n?= <erik.andren@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday, 5 of November 2007, Michael (rabenkind) Brandstetter wrote:
-> Am Sonntag, 4. November 2007 14:17:23 schrieben Sie:
-> > On Sunday, 4 of November 2007, Romano Giannetti wrote:
-> > > On Fri, 2007-11-02 at 17:08 +0100, Rafael J. Wysocki wrote:
-> > > > On Friday, 2 November 2007 00:14, Andrew Morton wrote:
-> > > > > On Mon, 29 Oct 2007 11:11:04 +0100
-> 
-> Hello!
-> 
-> > > [OOPS removed]
-> > >
-> > > > > Did any earlier kernels do this?  In other words, do you believe that
-> > > > > this is a bug which we added after 2.6.23 was released?
-> 
-> Yes the kernels prior to 2.6.24-rc1 did not have this bug.
-> 
-> The oops always appear when i plug in or remove the battery.
-> 
-> > > Never noticed it before. But it's happening just sometime (I've had it
-> > > just two times), so I cannot be sure.
-> > >
-> > > > This might be the same as
-> > > > http://bugzilla.kernel.org/show_bug.cgi?id=9283
-> > >
-> > > Hmmm... there is too little info for my level in that bug report to
-> > > understand if it's the same.
-> >
-> > Then, please apply the patch from
-> >
-> > http://bugzilla.kernel.org/attachment.cgi?id=13376&action=view
-> >
-> > and see if the problem goes away.
-> 
-> The bug went away on my Dell Latitude C610. I applied the patch on two boxes 
-> (2.6.24-rc1-git12) and the haldaemon is not killed and no oops when i remove 
-> the battery or plug it in. 
-> 
-> But on the Portege 3110CT the bug remains.
+On Sunday 04 November 2007 19:55:40 Erik Andr=E9n wrote:
+> To make a long story short, I've hacked up a kernel module that dumps
+> the EC
 
-Well, please create a bug report at http://bugzilla.kernel.org regarding this
-bug and place all of the relevant information in there (including what boxes
-are fixed by the above patch etc.) Also please add my address to the report's
-CC list.
+=46or acer_acpi, we have a Perl script that can do this from userspace =
+(but
+it should run on any other machine, since there's nothing Acer specific
+about dumping the EC registers).
 
-Thanks,
-Rafael
+http://aceracpi.googlecode.com/svn/trunk/acer_ec/acer_ec.pl
+
+=2E/acer_ec.pl regs
+
+(ACPI throws a few warnings in dmesg, because we're stepping on it's tu=
+rf
+a bit here, but it's far simpler than having to write a kernel module
+just to get a few registers).
+=20
+> My questions to you ACPI and EC gurus are:
+>=20
+> 1. Is it possible that the EC is read-only from the OS perspective?
+
+=46rom the acer_acpi perspective, we've found that some EC registers ar=
+e
+read-only (e.g. on some laptops, there is a register to read the status
+of the touchpad, but writes to it are ignored).
+
+I imagine this is defined at the hardware level though, not by the OS.
+
+> 3. Does anyone have a recommendation of programs to use for snooping =
+I/O
+> accesses in windows?
+
+I did try playing around with writing my own simple application to acce=
+ss
+the I/O ports, and then dump the EC data - unfortunately, I/O port prog=
+ramming
+in Windows is "painful", to say the least.
+
+-Carlos
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
