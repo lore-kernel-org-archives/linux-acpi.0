@@ -1,69 +1,47 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Writing to the EC
-Date: Mon, 5 Nov 2007 00:55:37 +0000
-Message-ID: <200711050055.37904.carlos@strangeworlds.co.uk>
-References: <472E23BC.2010909@gmail.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
+Date: Mon, 05 Nov 2007 09:12:44 +0800
+Message-ID: <1194225164.32766.2.camel@sli10-conroe.sh.intel.com>
+References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
+	 <1190341023.16930.5.camel@sli10-conroe.sh.intel.com>
+	 <200710302227.40310.lenb@kernel.org> <200710311426.25099.rjw@sisk.pl>
+	 <1193885429.6872.2.camel@sli10-conroe.sh.intel.com>
+	 <20071101100435.7c80785e@the-village.bc.nu>
+	 <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
+	 <472C7105.8030804@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:54051 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbXKEAzl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2007 19:55:41 -0500
-In-Reply-To: <472E23BC.2010909@gmail.com>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:34877 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755867AbXKEBSz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 4 Nov 2007 20:18:55 -0500
+In-Reply-To: <472C7105.8030804@pobox.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Erik =?iso-8859-1?q?Andr=E9n?= <erik.andren@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Sunday 04 November 2007 19:55:40 Erik Andr=E9n wrote:
-> To make a long story short, I've hacked up a kernel module that dumps
-> the EC
+On Sat, 2007-11-03 at 09:00 -0400, Jeff Garzik wrote:
+> Shaohua Li wrote:
+> > Not sure, this is just to call a BIOS routine, but a check should be
+> > safer. Thanks!
+> > 
+> > ACPI spec (ver 3.0a, p289) requires IDE power on/off executes ACPI _PSx
+> > methods. As recently most PATA drivers use libata, this patch adds _PSx
+> > method support in libata. ACPI spec doesn't mention if SATA requires the
+> > same _PSx method.
+> > 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > Acked-by: Len Brown <len.brown@intel.com>
+> 
+> 
+> What is the safety factor on this patch?  :)
+Not sure, but it depends on BIOS, I just guess ignoring disabled device might be safe :)
+> Since we are into 2.6.24-rc, my preference would be to let this get some 
+> testing in -mm, and push it upstream for 2.6.25.  Comments?
+Sure, Thanks, taking either this patch or previous patch is ok to me.
 
-=46or acer_acpi, we have a Perl script that can do this from userspace =
-(but
-it should run on any other machine, since there's nothing Acer specific
-about dumping the EC registers).
-
-http://aceracpi.googlecode.com/svn/trunk/acer_ec/acer_ec.pl
-
-=2E/acer_ec.pl regs
-
-(ACPI throws a few warnings in dmesg, because we're stepping on it's tu=
-rf
-a bit here, but it's far simpler than having to write a kernel module
-just to get a few registers).
-=20
-> My questions to you ACPI and EC gurus are:
->=20
-> 1. Is it possible that the EC is read-only from the OS perspective?
-
-=46rom the acer_acpi perspective, we've found that some EC registers ar=
-e
-read-only (e.g. on some laptops, there is a register to read the status
-of the touchpad, but writes to it are ignored).
-
-I imagine this is defined at the hardware level though, not by the OS.
-
-> 3. Does anyone have a recommendation of programs to use for snooping =
-I/O
-> accesses in windows?
-
-I did try playing around with writing my own simple application to acce=
-ss
-the I/O ports, and then dump the EC data - unfortunately, I/O port prog=
-ramming
-in Windows is "painful", to say the least.
-
--Carlos
---=20
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Shaohua
