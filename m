@@ -1,50 +1,74 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH]libata-acpi: add ACPI _PSx method
-Date: Mon, 05 Nov 2007 09:26:12 +0800
-Message-ID: <1194225972.32766.6.camel@sli10-conroe.sh.intel.com>
-References: <1189737938.6330.7.camel@sli10-conroe.sh.intel.com>
-	 <20071101100435.7c80785e@the-village.bc.nu>
-	 <1193967158.13603.4.camel@sli10-conroe.sh.intel.com>
-	 <200711021216.03088.rjw@sisk.pl>
+From: Roman Rumisek <romrum@cbox.cz>
+Subject: Re: Acpi suspend to ram on Acer Aspire 5672
+Date: Mon, 05 Nov 2007 10:27:24 +0100
+Message-ID: <fgmnkg$9eu$1@ger.gmane.org>
+References: <472847A2.9020901@salfischberger.nl> <fgktis$ra8$1@ger.gmane.org> <472E40DE.4090001@salfischberger.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <200711021216.03088.rjw@sisk.pl>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Len Brown <lenb@kernel.org>, Tejun Heo <htejun@gmail.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide <linux-ide@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:39956 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752393AbXKEJ0s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Nov 2007 04:26:48 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1IoyEI-0007Ns-DH
+	for linux-acpi@vger.kernel.org; Mon, 05 Nov 2007 09:26:46 +0000
+Received: from ipn230.customer.medialine.cz ([82.114.206.230])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2007 09:26:46 +0000
+Received: from romrum by ipn230.customer.medialine.cz with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2007 09:26:46 +0000
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, 2007-11-02 at 12:16 +0100, Rafael J. Wysocki wrote:
-> > 
-> > Index: linux/drivers/ata/libata-acpi.c
-> > ===================================================================
-> > --- linux.orig/drivers/ata/libata-acpi.c	2007-11-01 10:54:25.000000000 +0800
-> > +++ linux/drivers/ata/libata-acpi.c	2007-11-02 09:14:12.000000000 +0800
-> > @@ -652,6 +652,35 @@ void ata_acpi_on_resume(struct ata_port 
-> >  }
-> >  
-> >  /**
-> > + * ata_acpi_set_state - set the port power state
-> > + * @ap: target ATA port
-> > + * @state: state, on/off
-> > + *
-> > + * This function executes the _PS0/_PS3 ACPI method to set the power state.
-> > + * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
-> > + */
-> > +void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
-> 
-> I wouldn't use pm_message_t here.
-> 
-> We're seriously considering removing it in the future and the caller passes
-> constants explicitly anyway.
-> 
-> IMO, it might be cleaner to define two separate functions, one for switching
-> to D0 and one for switching to D3, and call them as appropriate.  Then, you
-> could get rid of some conditionals below.
-It doesn't make sense to add a new one just for ata_acpi and we don't
-misuse pm_message_t here. If you will remove it, lets clean up it then.
+Hi,
 
-Thanks,
-Shaohua
+Tomas Salfischberger wrote:
+
+> Hi,
+> 
+> Roman Rumisek wrote:
+>> I have this problem on ACER Extensa 5220.
+>> The "save to disk" is OK,but after "save to RAM" the notebook hangs
+>> and seems (for example when i press CapsLock key - nothing) one is dead.
+>>   
+> 
+> I also received an off-list reply from Peter Pregler about his Acer TM
+> 3200 having the same issues.
+> 
+> What we need to debug this is some method of first finding out whether
+> the kernel-code is actually reached during the resume process. If it is
+> actually executing kernel-code, we need to debug at which point in
+> hardware initialization it gets stuck.
+> 
+> Peter mentioned we need serial-port access (or a special firewire-cable)
+> to debug. Do you have a docking-station?
+
+No, only notebook.
+
+> 
+> An other approach would be to patch the kernel to use the system-speaker
+> to output some debug beeps. I'll look into that the next moment I have a
+> few spare hours, probably Thursday.
+> 
+> Just to get more details: Is the "Acer Extensa 5220" a dual core model?
+
+May be, but I have notebook with D530 Celeron.
+
+Roman
+
+
+> 
+> Thanks for your reply,
+> 
+> Tomas
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
