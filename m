@@ -1,40 +1,37 @@
 From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [patch 2.6.24-rc1-git] properly hookup acpi buttons to driver model tree
-Date: Tue, 6 Nov 2007 15:45:10 -0500
-Message-ID: <d120d5000711061245h9e69d6ck744a5ba19c02d322@mail.gmail.com>
-References: <200711061207.46939.david-b@pacbell.net>
+Subject: Re: [PATCH] ACPI: Put button input devices in correct place in sysfs
+Date: Tue, 6 Nov 2007 15:47:13 -0500
+Message-ID: <d120d5000711061247l5102875bg9d9b841086dd77b5@mail.gmail.com>
+References: <200711062051.59884.arvidjaar@mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:37534 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbXKFUpO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2007 15:45:14 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so14693ugc
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Nov 2007 12:45:10 -0800 (PST)
-In-Reply-To: <200711061207.46939.david-b@pacbell.net>
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <200711062051.59884.arvidjaar@mail.ru>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, David Brownell <david-b@pacbell.net>
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi David,
+Hi Andrey,
 
-On Nov 6, 2007 3:07 PM, David Brownell <david-b@pacbell.net> wrote:
-> --- g26.orig/drivers/acpi/button.c      2007-11-04 11:47:40.000000000 -0800
-> +++ g26/drivers/acpi/button.c   2007-11-04 11:48:50.000000000 -0800
-> @@ -395,6 +395,7 @@ static int acpi_button_add(struct acpi_d
->                error = -ENOMEM;
->                goto err_free_button;
->        }
-> +       input->cdev.dev = &device->dev;
+On Nov 6, 2007 12:51 PM, Andrey Borzenkov <arvidjaar@mail.ru> wrote:
+> Properly set up parent on input device registered by the button driver.
 >
 
-Don't use cdev, I will be gone as of 2.6.25. Use input_dev->dev.parent
-please. Actually I sent a bunch of patches to ACPI/video to Len/ACPI
-list a couple of days ago.
+Seems to be a popular topic today :)
+
+>
+> +       input->cdev.dev = &device->dev;
+
+Please don't use cdev, but rather input_dev->dev.parent. cdev is going
+away soon.
+I sent a patch a couple of days ago to teh acpi list...
 
 -- 
 Dmitry
