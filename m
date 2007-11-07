@@ -1,82 +1,153 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH_2/4] : Modify the ACPI I/O Access width
-Date: Wed, 07 Nov 2007 20:34:46 +0800
-Message-ID: <1194438886.4039.27.camel@yakui_zhao.sh.intel.com>
+Subject: [Patch_4/4] :Add MSR support for T-States
+Date: Wed, 07 Nov 2007 20:35:08 +0800
+Message-ID: <1194438908.4039.30.camel@yakui_zhao.sh.intel.com>
 References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
 	 <200710092343.40843.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58875 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:52358 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753833AbXKGMZD (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 7 Nov 2007 07:25:03 -0500
+	id S1751267AbXKGMZZ (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2007 07:25:25 -0500
 In-Reply-To: <200710092343.40843.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-Subject: ACPI : Modify the ACPI I/O Access width
+Subject: ACPI : Add MSR support for T-States
 >From : Zhao Yakui <yakui.zhao@intel.com>
  
-When the argument width is not the multiple of eight, the acpi I/O access
-will fail. Modify the acpi I/O access width to the multiple of eight.
- 
+Add throttling control via MSR when T-states uses the FixHW Control/
+Status registers.
+
+
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 
 ---
- drivers/acpi/osl.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ arch/x86/kernel/acpi/processor.c    |    3 +
+ drivers/acpi/processor_throttling.c |   72 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 71 insertions(+), 4 deletions(-)
 
-Index: linux-2.6.24-rc1/drivers/acpi/osl.c
+Index: linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
 ===================================================================
---- linux-2.6.24-rc1.orig/drivers/acpi/osl.c
-+++ linux-2.6.24-rc1/drivers/acpi/osl.c
-@@ -387,17 +387,14 @@ acpi_status acpi_os_read_port(acpi_io_ad
- 	if (!value)
- 		value = &dummy;
+--- linux-2.6.24-rc1.orig/drivers/acpi/processor_throttling.c
++++ linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
+@@ -391,6 +391,71 @@ static int acpi_processor_get_throttling
  
--	switch (width) {
--	case 8:
-+	*value = 0;
-+	if (width <= 8) {
- 		*(u8 *) value = inb(port);
--		break;
--	case 16:
-+	} else if (width <= 16) {
- 		*(u16 *) value = inw(port);
--		break;
--	case 32:
-+	} else if (width <= 32) {
- 		*(u32 *) value = inl(port);
--		break;
--	default:
+ 	return 0;
+ }
++#ifdef CONFIG_X86
++static int acpi_throttling_rdmsr(struct acpi_processor *pr,
++                                        acpi_integer * value)
++{
++        struct cpuinfo_x86 *c;
++        u64 msr_high, msr_low;
++        unsigned int cpu;
++        u64 msr = 0;
++        int ret = -1;
++
++	cpu = pr->id;
++	c = &cpu_data(cpu);
++
++	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
++		!cpu_has(c, X86_FEATURE_ACPI)) {
++		printk(KERN_ERR PREFIX
++			"HARDWARE addr space,NOT supported yet\n");
 +	} else {
- 		BUG();
- 	}
- 
-@@ -408,17 +405,13 @@ EXPORT_SYMBOL(acpi_os_read_port);
- 
- acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
- {
--	switch (width) {
--	case 8:
-+	if (width <= 8) {
- 		outb(value, port);
--		break;
--	case 16:
-+	} else if (width <= 16) {
- 		outw(value, port);
--		break;
--	case 32:
-+	} else if (width <= 32) {
- 		outl(value, port);
--		break;
--	default:
++		msr_low = 0;
++		msr_high = 0;
++		rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++			(u32 *)&msr_low , (u32 *) &msr_high);
++		msr = (msr_high << 32) | msr_low;
++		*value = (acpi_integer) msr;
++		ret = 0;
++	}
++	return ret;
++}
++static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
++{
++	struct cpuinfo_x86 *c;
++	unsigned int cpu;
++	int ret = -1;
++	u64 msr;
++
++	cpu = pr->id;
++	c = &cpu_data(cpu);
++
++	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
++		!cpu_has(c, X86_FEATURE_ACPI)) {
++		printk(KERN_ERR PREFIX
++			"HARDWARE addr space,NOT supported yet\n");
 +	} else {
- 		BUG();
- 	}
++		msr = value;
++		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++			msr & 0xffffffff, msr >> 32);
++		ret = 0;
++	}
++	return ret;
++}
++#else
++static int acpi_throttling_rdmsr(struct acpi_processor *pr,
++				acpi_integer * value)
++{
++	printk(KERN_ERR PREFIX
++		"HARDWARE addr space,NOT supported yet\n");
++	return -1;
++}
++static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
++{
++	printk(KERN_ERR PREFIX
++		"HARDWARE addr space,NOT supported yet\n");
++	return -1;
++}
++#endif
  
+ static int acpi_read_throttling_status(struct acpi_processor *pr,
+ 						acpi_integer *value)
+@@ -415,8 +480,7 @@ static int acpi_read_throttling_status(s
+ 		ret = 0;
+ 		break;
+ 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+-		printk(KERN_ERR PREFIX
+-		       "HARDWARE addr space,NOT supported yet\n");
++		ret = acpi_throttling_rdmsr(pr, value);
+ 		break;
+ 	default:
+ 		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
+@@ -449,8 +513,7 @@ static int acpi_write_throttling_state(s
+ 		ret = 0;
+ 		break;
+ 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+-		printk(KERN_ERR PREFIX
+-		       "HARDWARE addr space,NOT supported yet\n");
++		ret = acpi_throttling_wrmsr(pr, value);
+ 		break;
+ 	default:
+ 		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
+@@ -504,6 +567,7 @@ static int acpi_processor_get_throttling
+ 
+ 	pr->throttling.state = 0;
+ 	local_irq_disable();
++	value = 0;
+ 	ret = acpi_read_throttling_status(pr, &value);
+ 	if (ret >= 0) {
+ 		state = acpi_get_throttling_state(pr, value);
+Index: linux-2.6.24-rc1/arch/x86/kernel/acpi/processor.c
+===================================================================
+--- linux-2.6.24-rc1.orig/arch/x86/kernel/acpi/processor.c
++++ linux-2.6.24-rc1/arch/x86/kernel/acpi/processor.c
+@@ -49,6 +49,9 @@ static void init_intel_pdc(struct acpi_p
+ 	if (cpu_has(c, X86_FEATURE_EST))
+ 		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+ 
++	if (cpu_has(c, X86_FEATURE_ACPI))
++		buf[2] |= ACPI_PDC_T_FFH;
++
+ 	obj->type = ACPI_TYPE_BUFFER;
+ 	obj->buffer.length = 12;
+ 	obj->buffer.pointer = (u8 *) buf;
