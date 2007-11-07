@@ -1,52 +1,316 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [RFC] [PATCH] PNP: request ioport and iomem resources used by
- active devices
-Date: Wed, 7 Nov 2007 13:22:48 +0000 (GMT)
-Message-ID: <Pine.LNX.4.64N.0711071252500.14970@blysk.ds.pg.gda.pl>
-References: <200710291525.31475.bjorn.helgaas@hp.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: [PATCH] Provide acpi_check_{mem_}region (update)
+Date: Wed, 7 Nov 2007 14:56:45 +0100
+Message-ID: <200711071456.45565.jdelvare@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cerber.ds.pg.gda.pl ([153.19.208.18]:51799 "EHLO
-	cerber.ds.pg.gda.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753602AbXKGNXA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Nov 2007 08:23:00 -0500
-In-Reply-To: <200710291525.31475.bjorn.helgaas@hp.com>
+Received: from cantor.suse.de ([195.135.220.2]:41731 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754121AbXKGNzD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2007 08:55:03 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Mon, 29 Oct 2007, Bjorn Helgaas wrote:
+From: Thomas Renninger <trenn@suse.de>
 
->     0000-001f : dma1		<-- built-in resource includes 2 controllers
->       0000-000f : 00:02		<-- PNP reports only one DMA controller
-[...]
->     0060-006f : keyboard	<-- built-in resource groups several things
->       0060-0060 : 00:04		<-- PNP reports 8042 controller data register
->       0061-0061 : 00:03		<-- PNP reports AT-style speaker
->       0064-0064 : 00:04		<-- PNP reports 8042 controller status register
+Provide acpi_check_{mem_}region.
 
- Note that the built-in resources are requested according to how the PC/AT 
-architecture defined address decoding for the relevant subsystems.  In 
-particular, there was always a single DMA controller at 0x0000 and the 
-8042 controller was decoded at 0x0060.  No full decoding was done and 
-unused locations aliased to the corresponding ones with the don't-care 
-bits set to the other value.  I do not recall all the details of the port 
-B (named after the original from the 8255 as used in the PC/XT) at 0x0061 
-as implemented in the PC/AT and I do not have a reference handy, but it is 
-a bunch of GPIO bits, some being r/o and some r/w, possibly with 
-side-effects.  I believe it was a set of additional latches sub-decoded 
-from the 8042 controller range for compatibility with how the 8255 was 
-wired and programmed.
+Drivers can additionally check against possible ACPI interference by also
+invoking this shortly before they call request_region.
+If -EBUSY is returned, the driver must not load.
+Use acpi_enforce_resources=strict/lax/no options to:
+  - strict: let conflicting drivers fail to load with an error message
+  - lax:    let conflicting driver work normal with a warning message
+  - no:     no functional change at all
 
- Anyway, PNP may provide a more accurate picture of the address ranges in 
-a particular system... if it gets it right!  Which is a lost hope, I 
-suppose, as even the above is questionable -- "AT-style speaker" is a 
-misnomer as most of the GPIO bits involved deal with the handling of 
-system error interrupts normally routed to NMI.
 
- The patch itself is useful and makes sense though.  Have you passed it 
-through `scripts/checkpatch.pl'?
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-  Maciej
+---
+This is an updated version of Thomas' patch, that applies after
+the <linux/acpi.h> cleanup patch I've just sent. Andrew, this
+replaces small-acpica-extension-to-be-able-to-store-the-name-of.pach
+in your tree (including your fix thereto.)
+
+ drivers/acpi/dispatcher/dsopcode.c |    4 
+ drivers/acpi/osl.c                 |  175 +++++++++++++++++++++++++++++++++++-
+ include/acpi/acpiosxf.h            |    4 
+ include/linux/acpi.h               |   18 +++
+ 4 files changed, 196 insertions(+), 5 deletions(-)
+
+--- linux-2.6.24-rc2.orig/drivers/acpi/dispatcher/dsopcode.c	2007-11-07 13:22:12.000000000 +0100
++++ linux-2.6.24-rc2/drivers/acpi/dispatcher/dsopcode.c	2007-11-07 14:19:50.000000000 +0100
+@@ -359,7 +359,9 @@ acpi_status acpi_ds_get_region_arguments
+ 
+ 	status = acpi_os_validate_address(obj_desc->region.space_id,
+ 					  obj_desc->region.address,
+-					  (acpi_size) obj_desc->region.length);
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
++
+ 	if (ACPI_FAILURE(status)) {
+ 		/*
+ 		 * Invalid address/length. We will emit an error message and mark
+--- linux-2.6.24-rc2.orig/include/acpi/acpiosxf.h	2007-11-07 13:22:12.000000000 +0100
++++ linux-2.6.24-rc2/include/acpi/acpiosxf.h	2007-11-07 14:19:50.000000000 +0100
+@@ -239,8 +239,8 @@ acpi_status acpi_os_validate_interface(c
+ acpi_status acpi_osi_invalidate(char* interface);
+ 
+ acpi_status
+-acpi_os_validate_address(u8 space_id,
+-			 acpi_physical_address address, acpi_size length);
++acpi_os_validate_address(u8 space_id, acpi_physical_address address,
++			 acpi_size length, char *name);
+ 
+ u64 acpi_os_get_timer(void);
+ 
+--- linux-2.6.24-rc2.orig/drivers/acpi/osl.c	2007-11-07 13:22:12.000000000 +0100
++++ linux-2.6.24-rc2/drivers/acpi/osl.c	2007-11-07 14:25:11.000000000 +0100
+@@ -44,6 +44,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <linux/efi.h>
++#include <linux/ioport.h>
++#include <linux/list.h>
+ 
+ #define _COMPONENT		ACPI_OS_SERVICES
+ ACPI_MODULE_NAME("osl");
+@@ -74,6 +76,18 @@ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+ 
++struct acpi_res_list {
++	resource_size_t start;
++	resource_size_t end;
++	acpi_adr_space_type resource_type; /* IO port, System memory, ...*/
++	char name[5];   /* only can have a length of 4 chars, make use of this
++			   one instead of res->name, no need to kalloc then */
++	struct list_head resource_list;
++};
++
++static LIST_HEAD(resource_list_head);
++static DEFINE_SPINLOCK(acpi_res_lock);
++
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+ 
+@@ -1042,6 +1056,127 @@ static int __init acpi_wake_gpes_always_
+ 
+ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+ 
++/* Check of resource interference between native drivers and ACPI
++ * OperationRegions (SystemIO and System Memory only).
++ * IO ports and memory declared in ACPI might be used by the ACPI subsystem
++ * in arbitrary AML code and can interfere with legacy drivers.
++ * acpi_enforce_resources= can be set to:
++ *
++ *   - strict           (2)
++ *     -> further driver trying to access the resources will not load
++ *   - lax (default)    (1)
++ *     -> further driver trying to access the resources will load, but you
++ *     get a system message that something might go wrong...
++ *
++ *   - no               (0)
++ *     -> ACPI Operation Region resources will not be registered
++ *
++ */
++#define ENFORCE_RESOURCES_STRICT 2
++#define ENFORCE_RESOURCES_LAX    1
++#define ENFORCE_RESOURCES_NO     0
++
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++
++static int __init acpi_enforce_resources_setup(char *str)
++{
++	if (str == NULL || *str == '\0')
++		return 0;
++
++	if (!strcmp("strict", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
++	else if (!strcmp("lax", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++	else if (!strcmp("no", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_NO;
++
++	return 1;
++}
++
++__setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
++
++/* Check for resource conflicts between ACPI OperationRegions and native
++ * drivers */
++static int acpi_check_resource_conflict(struct resource *res)
++{
++	struct acpi_res_list *res_list_elem;
++	int ioport;
++	int clash = 0;
++
++	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
++		return 0;
++	if (!(res->flags & IORESOURCE_IO) && !(res->flags & IORESOURCE_MEM))
++		return 0;
++
++	ioport = res->flags & IORESOURCE_IO;
++
++	spin_lock(&acpi_res_lock);
++	list_for_each_entry(res_list_elem, &resource_list_head,
++			    resource_list) {
++		if (ioport && (res_list_elem->resource_type
++			       != ACPI_ADR_SPACE_SYSTEM_IO))
++			continue;
++		if (!ioport && (res_list_elem->resource_type
++				!= ACPI_ADR_SPACE_SYSTEM_MEMORY))
++			continue;
++
++		if (res->end < res_list_elem->start
++		    || res_list_elem->end < res->start)
++			continue;
++		clash = 1;
++		break;
++	}
++	spin_unlock(&acpi_res_lock);
++
++	if (clash) {
++		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
++			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
++			       " conflicts with ACPI region %s"
++			       " [0x%llx-0x%llx]\n",
++			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
++			       ? KERN_WARNING : KERN_ERR,
++			       ioport ? "I/O" : "Memory", res->name,
++			       (long long) res->start, (long long) res->end,
++			       res_list_elem->name,
++			       (long long) res_list_elem->start,
++			       (long long) res_list_elem->end);
++			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
++		}
++		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
++			return -EBUSY;
++	}
++	return 0;
++}
++
++int acpi_check_region(resource_size_t start, resource_size_t n,
++		      const char *name)
++{
++	struct resource res = {
++		.start = start,
++		.end   = start + n - 1,
++		.name  = name,
++		.flags = IORESOURCE_IO,
++	};
++
++	return acpi_check_resource_conflict(&res);
++}
++EXPORT_SYMBOL(acpi_check_region);
++
++int acpi_check_mem_region(resource_size_t start, resource_size_t n,
++		      const char *name)
++{
++	struct resource res = {
++		.start = start,
++		.end   = start + n - 1,
++		.name  = name,
++		.flags = IORESOURCE_MEM,
++	};
++
++	return acpi_check_resource_conflict(&res);
++
++}
++EXPORT_SYMBOL(acpi_check_mem_region);
++
+ /*
+  * Acquire a spinlock.
+  *
+@@ -1199,10 +1334,46 @@ acpi_status
+ acpi_os_validate_address (
+     u8                   space_id,
+     acpi_physical_address   address,
+-    acpi_size               length)
++    acpi_size               length,
++    char *name)
+ {
++	struct acpi_res_list *res;
++	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
++		return AE_OK;
+ 
+-    return AE_OK;
++	switch (space_id) {
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++		/* Only interference checks against SystemIO and SytemMemory
++		   are needed */
++		res = kzalloc(sizeof(struct acpi_res_list), GFP_KERNEL);
++		if (!res)
++			return AE_OK;
++		/* ACPI names are fixed to 4 bytes, still better use strlcpy */
++		strlcpy(res->name, name, 5);
++		res->start = address;
++		res->end = address + length - 1;
++		res->resource_type = space_id;
++		spin_lock(&acpi_res_lock);
++		list_add(&res->resource_list, &resource_list_head);
++		spin_unlock(&acpi_res_lock);
++		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
++			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++			 ? "SystemIO" : "System Memory",
++			 (unsigned long long)res->start,
++			 (unsigned long long)res->end,
++			 res->name);
++		break;
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++	case ACPI_ADR_SPACE_EC:
++	case ACPI_ADR_SPACE_SMBUS:
++	case ACPI_ADR_SPACE_CMOS:
++	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
++	case ACPI_ADR_SPACE_DATA_TABLE:
++	case ACPI_ADR_SPACE_FIXED_HARDWARE:
++		break;
++	}
++	return AE_OK;
+ }
+ 
+ #ifdef CONFIG_DMI
+--- linux-2.6.24-rc2.orig/include/linux/acpi.h	2007-11-07 14:09:30.000000000 +0100
++++ linux-2.6.24-rc2/include/linux/acpi.h	2007-11-07 14:25:16.000000000 +0100
+@@ -195,6 +195,12 @@ extern int pnpacpi_disabled;
+ #define PXM_INVAL	(-1)
+ #define NID_INVAL	(-1)
+ 
++int acpi_check_region(resource_size_t start, resource_size_t n,
++		      const char *name);
++
++int acpi_check_mem_region(resource_size_t start, resource_size_t n,
++			  const char *name);
++
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int acpi_boot_init(void)
+@@ -207,5 +213,17 @@ static inline int acpi_boot_table_init(v
+ 	return 0;
+ }
+ 
++static inline int acpi_check_region(resource_size_t start, resource_size_t n,
++				    const char *name)
++{
++	return 0;
++}
++
++static inline int acpi_check_mem_region(resource_size_t start,
++					resource_size_t n, const char *name)
++{
++	return 0;
++}
++
+ #endif	/* CONFIG_ACPI */
+ #endif	/*_LINUX_ACPI_H*/
+
+-- 
+Jean Delvare
+Suse L3
