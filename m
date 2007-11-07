@@ -1,29 +1,61 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v5] ACPI: WMI: Add WMI-ACPI mapper driver
-Date: Wed, 7 Nov 2007 04:54:22 +0000
-Message-ID: <20071107045421.GA8294@srcf.ucam.org>
-References: <200711030217.40814.carlos@strangeworlds.co.uk>
+From: "Yu, Ling L" <ling.l.yu@intel.com>
+Subject: RE: ACPI home page updates
+Date: Wed, 7 Nov 2007 17:13:41 +0800
+Message-ID: <14B8575781A1414FA0D4F6649C4D7190A12EB8@pdsmsx415.ccr.corp.intel.com>
+References: <CFF307C98FEABE47A452B27C06B85BB604029F11@hdsmsx411.amr.corp.intel.com> <14B8575781A1414FA0D4F6649C4D71909D7CBA@pdsmsx415.ccr.corp.intel.com>  <CFF307C98FEABE47A452B27C06B85BB60406F08C@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:57914 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724AbXKGEyf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2007 23:54:35 -0500
-Content-Disposition: inline
-In-Reply-To: <200711030217.40814.carlos@strangeworlds.co.uk>
+Received: from mga09.intel.com ([134.134.136.24]:62846 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754765AbXKGJNq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Nov 2007 04:13:46 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB60406F08C@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Nashif, Anas" <anas.nashif@intel.com>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, Nov 03, 2007 at 02:17:39AM +0000, Carlos Corbacho wrote:
+Len,
+Update is done. Please check again.
 
-> Handle a MOF[1] - the WMI mapper just exports methods, data and events to
-> userspace. MOF handling is down to userspace.
-
-
-How does userspace obtain the MOF from the ACPI tables?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks
+-Ling
+>-----Original Message-----
+>From: Brown, Len
+>Sent: 2007=C4=EA11=D4=C26=C8=D5 2:43
+>To: Yu, Ling L
+>Cc: 'linux-acpi@vger.kernel.org'
+>Subject: RE: ACPI home page updates
+>
+>also, (sorry, I didn't finish editing previous message before sending)
+>
+>http://acpi.sourceforge.net/contact.html
+>
+>Please delete _everything_ except the webmaster link, as all the
+>contacts are on the new page and the sf member list is not useful.
+>indeed, you can put a webmaster link on the home page w/o
+>a special Contacts page.
+>
+>while we're at it, http://acpi.sourceforge.net/
+>latest news can probably be deleted -- unless you want
+>one new news item that points to the new web page:-)
+>
+>>>>(BTW. I want to create a new page for pmtools rather than
+>>>> having it in my home directory on kernel.org)
+>
+>>>[[Yu, Ling L]] What do you think add a page labeled "PM tools"
+>>>below the "Overview" label and put all pmtools on the server
+>>of sf.net?
+>
+>no, pmtools will be on lesswatts, not on sf.
+>
+>thanks,
+>-Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
