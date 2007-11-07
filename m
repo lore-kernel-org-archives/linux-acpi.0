@@ -1,89 +1,166 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH] ACPI: Export acpi_check_resource_conflict() (update #2)
-Date: Wed, 7 Nov 2007 19:49:30 +0100
-Message-ID: <200711071949.30279.jdelvare@suse.de>
-References: <200711071501.49241.jdelvare@suse.de>
+From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
+Subject: [PATCH] acpi: remove nested "ifdef CONFIG_ACPI"
+Date: Wed, 7 Nov 2007 19:48:02 +0100
+Message-ID: <20071107184802.GA18373@alberich.amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+ charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:43944 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751414AbXKGSrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Nov 2007 13:47:45 -0500
-In-Reply-To: <200711071501.49241.jdelvare@suse.de>
+Received: from outbound-blu.frontbridge.com ([65.55.251.16]:35108 "EHLO
+	outbound6-blu-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753749AbXKGSsR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Nov 2007 13:48:17 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Export acpi_check_resource_conflict(), sometimes drivers already have
-a struct resource at hand so no need to use the wrappers to build a new
-one.
+In include/linux/acpi.h we have following ifdefs:
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
+  #ifndef _LINUX_ACPI_H
+  #define _LINUX_ACPI_H
+
+
+  #ifdef  CONFIG_ACPI    <===
+
+  #ifndef _LINUX
+  #define _LINUX
+  #endif
+
+  #include <linux/list.h>
+  #include <linux/mod_devicetable.h>
+
+  #include <acpi/acpi.h>
+  #include <acpi/acpi_bus.h>
+  #include <acpi/acpi_drivers.h>
+  #include <acpi/acpi_numa.h>
+  #include <asm/acpi.h>
+
+
+  #ifdef CONFIG_ACPI     <===
+
+The nesting of "ifdef CONFIG_ACPI" is kind of interesting.
+But I guess this was not intentional.(Or did I miss something?)
+
+Attached is a patch to remove that nesting and to clean up
+this header a little bit.
+
+
+Regards,
+
+Andreas
+--
+[PATCH] acpi: remove nested "ifdef CONFIG_ACPI"
+
+ - Remove nested ifdef CONFIG_ACPI which required minor changes of the header.
+ - Remove unused function declaration for acpi_paddr_to_node. grep didn't
+   find a usage of that function.
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
 ---
-Resending, I had forgotten to "quilt refresh". Sorry for the noise.
-A missing include was causing warnings with CONFIG_ACPI=n.
+ include/acpi/acpi_drivers.h |    3 +++
+ include/linux/acpi.h        |   38 ++++++++++++++++++--------------------
+ 2 files changed, 21 insertions(+), 20 deletions(-)
 
- drivers/acpi/osl.c   |    3 ++-
- include/linux/acpi.h |    8 ++++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
-
---- linux-2.6.24-rc2.orig/drivers/acpi/osl.c	2007-11-07 19:30:53.000000000 +0100
-+++ linux-2.6.24-rc2/drivers/acpi/osl.c	2007-11-07 19:31:58.000000000 +0100
-@@ -1097,7 +1097,7 @@ __setup("acpi_enforce_resources=", acpi_
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index f85f77a..8420ff7 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -29,6 +29,8 @@
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
  
- /* Check for resource conflicts between ACPI OperationRegions and native
-  * drivers */
--static int acpi_check_resource_conflict(struct resource *res)
-+int acpi_check_resource_conflict(struct resource *res)
- {
- 	struct acpi_res_list *res_list_elem;
- 	int ioport;
-@@ -1147,6 +1147,7 @@ static int acpi_check_resource_conflict(
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_check_resource_conflict);
++#ifdef CONFIG_ACPI
++
+ #define ACPI_MAX_STRING			80
  
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name)
---- linux-2.6.24-rc2.orig/include/linux/acpi.h	2007-11-07 19:30:53.000000000 +0100
-+++ linux-2.6.24-rc2/include/linux/acpi.h	2007-11-07 19:36:59.000000000 +0100
-@@ -25,6 +25,7 @@
- #ifndef _LINUX_ACPI_H
+ #define ACPI_BUS_COMPONENT		0x00010000
+@@ -149,4 +151,5 @@ static inline void unregister_hotplug_dock_device(acpi_handle handle)
+   -------------------------------------------------------------------------- */
+ extern int acpi_sleep_init(void);
+ 
++#endif /* CONFIG_ACPI */
+ #endif /*__ACPI_DRIVERS_H__*/
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 8ccedf7..0546684 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -26,8 +26,6 @@
  #define _LINUX_ACPI_H
  
-+#include <linux/ioport.h>	/* for struct resource */
  
- #ifdef	CONFIG_ACPI
+-#ifdef	CONFIG_ACPI
+-
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
+@@ -125,6 +123,16 @@ extern unsigned long acpi_realmode_flags;
  
-@@ -195,6 +196,8 @@ extern int pnpacpi_disabled;
- #define PXM_INVAL	(-1)
- #define NID_INVAL	(-1)
+ #else	/* !CONFIG_ACPI */
  
-+int acpi_check_resource_conflict(struct resource *res);
-+
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
- 
-@@ -213,6 +216,11 @@ static inline int acpi_boot_table_init(v
- 	return 0;
- }
- 
-+static inline int acpi_check_resource_conflict(struct resource *res)
++static inline int acpi_boot_init(void)
 +{
 +	return 0;
 +}
 +
- static inline int acpi_check_region(resource_size_t start, resource_size_t n,
- 				    const char *name)
++static inline int acpi_boot_table_init(void)
++{
++	return 0;
++}
++
+ #define acpi_mp_config	0
+ 
+ #endif 	/* !CONFIG_ACPI */
+@@ -190,36 +198,26 @@ extern int acpi_blacklisted(void);
+ extern void acpi_bios_year(char *s);
+ 
+ #ifdef CONFIG_ACPI_NUMA
++
+ int acpi_get_pxm(acpi_handle handle);
+ int acpi_get_node(acpi_handle *handle);
+-#else
+-static inline int acpi_get_pxm(acpi_handle handle)
+-{
+-	return 0;
+-}
+-static inline int acpi_get_node(acpi_handle *handle)
+-{
+-	return 0;
+-}
+-#endif
+-extern int acpi_paddr_to_node(u64 start_addr, u64 size);
+-
+-extern int pnpacpi_disabled;
+ 
+ #define PXM_INVAL	(-1)
+ #define NID_INVAL	(-1)
+ 
+-#else	/* CONFIG_ACPI */
++#else
+ 
+-static inline int acpi_boot_init(void)
++static inline int acpi_get_pxm(acpi_handle handle)
  {
-
-
+ 	return 0;
+ }
+-
+-static inline int acpi_boot_table_init(void)
++static inline int acpi_get_node(acpi_handle *handle)
+ {
+ 	return 0;
+ }
+ 
+-#endif	/* CONFIG_ACPI */
++#endif /* !CONFIG_ACPI_NUMA */
++
++extern int pnpacpi_disabled;
++
+ #endif	/*_LINUX_ACPI_H*/
 -- 
-Jean Delvare
-Suse L3
+1.5.3.4
+
+
+
+
