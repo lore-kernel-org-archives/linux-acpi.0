@@ -1,34 +1,89 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v5] ACPI: WMI: Add WMI-ACPI mapper driver
-Date: Wed, 7 Nov 2007 17:55:08 +0000
-Message-ID: <20071107175507.GA18433@srcf.ucam.org>
-References: <200711030217.40814.carlos@strangeworlds.co.uk> <20071107045421.GA8294@srcf.ucam.org> <200711071151.00852.carlos@strangeworlds.co.uk>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: [PATCH] ACPI: Export acpi_check_resource_conflict() (update #2)
+Date: Wed, 7 Nov 2007 19:49:30 +0100
+Message-ID: <200711071949.30279.jdelvare@suse.de>
+References: <200711071501.49241.jdelvare@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:42827 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757491AbXKGRzV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Nov 2007 12:55:21 -0500
+Received: from ns2.suse.de ([195.135.220.15]:43944 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751414AbXKGSrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2007 13:47:45 -0500
+In-Reply-To: <200711071501.49241.jdelvare@suse.de>
 Content-Disposition: inline
-In-Reply-To: <200711071151.00852.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Nashif, Anas" <anas.nashif@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Wed, Nov 07, 2007 at 11:51:00AM +0000, Carlos Corbacho wrote:
-> On Wednesday 07 November 2007 04:54:22 Matthew Garrett wrote:
+Export acpi_check_resource_conflict(), sometimes drivers already have
+a struct resource at hand so no need to use the wrappers to build a new
+one.
 
-> 1) A method in the WMI-ACPI implementation - _some_ (very few) implementations 
-> have a method in WMI-ACPI that will return a binary MOF (since the MS spec 
-> suggests this is just one _possible_ way to provide the MOF, but that it is 
-> not required).
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+---
+Resending, I had forgotten to "quilt refresh". Sorry for the noise.
+A missing include was causing warnings with CONFIG_ACPI=n.
 
-Ah, sorry, I'd misread the spec - I thought the MOF was at a defined 
-name rather than just being returned via a normal WMI method. The 
-functionality in this version looks fine, so I'll try to find time to 
-test it this week.
+ drivers/acpi/osl.c   |    3 ++-
+ include/linux/acpi.h |    8 ++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+--- linux-2.6.24-rc2.orig/drivers/acpi/osl.c	2007-11-07 19:30:53.000000000 +0100
++++ linux-2.6.24-rc2/drivers/acpi/osl.c	2007-11-07 19:31:58.000000000 +0100
+@@ -1097,7 +1097,7 @@ __setup("acpi_enforce_resources=", acpi_
+ 
+ /* Check for resource conflicts between ACPI OperationRegions and native
+  * drivers */
+-static int acpi_check_resource_conflict(struct resource *res)
++int acpi_check_resource_conflict(struct resource *res)
+ {
+ 	struct acpi_res_list *res_list_elem;
+ 	int ioport;
+@@ -1147,6 +1147,7 @@ static int acpi_check_resource_conflict(
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL(acpi_check_resource_conflict);
+ 
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name)
+--- linux-2.6.24-rc2.orig/include/linux/acpi.h	2007-11-07 19:30:53.000000000 +0100
++++ linux-2.6.24-rc2/include/linux/acpi.h	2007-11-07 19:36:59.000000000 +0100
+@@ -25,6 +25,7 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+ 
++#include <linux/ioport.h>	/* for struct resource */
+ 
+ #ifdef	CONFIG_ACPI
+ 
+@@ -195,6 +196,8 @@ extern int pnpacpi_disabled;
+ #define PXM_INVAL	(-1)
+ #define NID_INVAL	(-1)
+ 
++int acpi_check_resource_conflict(struct resource *res);
++
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ 
+@@ -213,6 +216,11 @@ static inline int acpi_boot_table_init(v
+ 	return 0;
+ }
+ 
++static inline int acpi_check_resource_conflict(struct resource *res)
++{
++	return 0;
++}
++
+ static inline int acpi_check_region(resource_size_t start, resource_size_t n,
+ 				    const char *name)
+ {
+
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jean Delvare
+Suse L3
