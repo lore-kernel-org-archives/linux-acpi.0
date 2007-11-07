@@ -1,7 +1,7 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH_1/4] :Add the _TPC throttling limit for TSS
-Date: Wed, 07 Nov 2007 20:34:42 +0800
-Message-ID: <1194438882.4039.26.camel@yakui_zhao.sh.intel.com>
+Subject: [PATCH_2/4] : Modify the ACPI I/O Access width
+Date: Wed, 07 Nov 2007 20:34:46 +0800
+Message-ID: <1194438886.4039.27.camel@yakui_zhao.sh.intel.com>
 References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
 	 <200710092343.40843.lenb@kernel.org>
 Mime-Version: 1.0
@@ -10,85 +10,73 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:58875 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753105AbXKGMY7 (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Wed, 7 Nov 2007 07:24:59 -0500
+	id S1753833AbXKGMZD (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2007 07:25:03 -0500
 In-Reply-To: <200710092343.40843.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Linux-acpi@vger.kernel.org
 
-Subject: ACPI :Add the _TPC throttling limit for TSS
+Subject: ACPI : Modify the ACPI I/O Access width
 >From : Zhao Yakui <yakui.zhao@intel.com>
-
-When T-state limit change notification is received, OSPM should 
-evaluate the _TPC object and change the current T-State according to the new
-limit. 
-
+ 
+When the argument width is not the multiple of eight, the acpi I/O access
+will fail. Modify the acpi I/O access width to the multiple of eight.
+ 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 
 ---
- drivers/acpi/processor_throttling.c |   49 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
+ drivers/acpi/osl.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-Index: linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
+Index: linux-2.6.24-rc1/drivers/acpi/osl.c
 ===================================================================
---- linux-2.6.24-rc1.orig/drivers/acpi/processor_throttling.c
-+++ linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
-@@ -70,7 +70,54 @@ static int acpi_processor_get_platform_l
+--- linux-2.6.24-rc1.orig/drivers/acpi/osl.c
++++ linux-2.6.24-rc1/drivers/acpi/osl.c
+@@ -387,17 +387,14 @@ acpi_status acpi_os_read_port(acpi_io_ad
+ 	if (!value)
+ 		value = &dummy;
  
- int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
- {
--	return acpi_processor_get_platform_limit(pr);
-+	int result = 0;
-+	int throttling_limit;
-+	int current_state;
-+	struct acpi_processor_limit *limit;
-+	int target_state;
-+
-+	result = acpi_processor_get_platform_limit(pr);
-+	if (result) {
-+		/* Throttling Limit is unsupported */
-+		return result;
-+	}
-+
-+	throttling_limit = pr->throttling_platform_limit;
-+	if (throttling_limit >= pr->throttling.state_count) {
-+		/* Uncorrect Throttling Limit */
-+		return -EINVAL;
-+	}
-+
-+	current_state = pr->throttling.state;
-+	if (current_state >= throttling_limit) {
-+		/*
-+		 * The current state can meet with the requirement of
-+		 * _TPC limit. But it is reasonable that OSPM changes
-+		 * t-states from high to low for better performance.
-+		 * Of course the limit condition of thermal
-+		 * and user should be considered.
-+		 */
-+		limit = &pr->limit;
-+		target_state = throttling_limit;
-+		if (limit->thermal.tx > target_state)
-+			target_state = limit->thermal.tx;
-+		if (limit->user.tx > target_state)
-+			target_state = limit->user.tx;
-+		if (target_state == current_state) {
-+			/* unnecessary to change T-state */
-+			return 0;
-+		}
+-	switch (width) {
+-	case 8:
++	*value = 0;
++	if (width <= 8) {
+ 		*(u8 *) value = inb(port);
+-		break;
+-	case 16:
++	} else if (width <= 16) {
+ 		*(u16 *) value = inw(port);
+-		break;
+-	case 32:
++	} else if (width <= 32) {
+ 		*(u32 *) value = inl(port);
+-		break;
+-	default:
 +	} else {
-+		/*
-+		 * If the current state is lower than the limit of _TPC, it
-+		 * will be forced to switch to the throttling state defined
-+		 * by throttling_platfor_limit.
-+		 * Because the previous state meets with the limit condition
-+		 * of thermal and user, it is unnecessary to check it again.
-+		 */
-+		target_state = throttling_limit;
-+	}
-+	return acpi_processor_set_throttling(pr, target_state);
- }
+ 		BUG();
+ 	}
  
- /*
+@@ -408,17 +405,13 @@ EXPORT_SYMBOL(acpi_os_read_port);
+ 
+ acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
+ {
+-	switch (width) {
+-	case 8:
++	if (width <= 8) {
+ 		outb(value, port);
+-		break;
+-	case 16:
++	} else if (width <= 16) {
+ 		outw(value, port);
+-		break;
+-	case 32:
++	} else if (width <= 32) {
+ 		outl(value, port);
+-		break;
+-	default:
++	} else {
+ 		BUG();
+ 	}
+ 
