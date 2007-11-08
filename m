@@ -1,55 +1,69 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI: Always return valid 'status' from acpi_battery_get_property()
-Date: Thu, 08 Nov 2007 11:29:07 +0300
-Message-ID: <4732C8D3.605@suse.de>
-References: <87640d1wmi.fsf@shaolin.home.digitalvampire.org>
+From: Romano Giannetti <romanol@upcomillas.es>
+Subject: 2.6.24-rc2 (esthetic?) regression: auto select interrupt spams my
+	logs
+Date: Thu, 08 Nov 2007 10:55:44 +0100
+Message-ID: <1194515744.7115.12.camel@rukbat>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:57611 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750708AbXKHI3d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 03:29:33 -0500
-In-Reply-To: <87640d1wmi.fsf@shaolin.home.digitalvampire.org>
+Received: from ic0245.upco.es ([130.206.70.245]:45924 "EHLO
+	antispam.upcomillas.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758465AbXKHJzq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 04:55:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roland Dreier <roland@digitalvampire.org>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: astarikovskiy@suse.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Thanks,
-Alex.
 
-Roland Dreier wrote:
-> If a battery is at a critical charge level and not being charged or
-> discharged, then the ACPI _BST method will return a state of 4, and
-> the current acpi_battery_get_property() code will not set any property
-> value for POWER_SUPPLY_PROP_STATUS.  This will cause an oops in
-> power_supply_show_property() when it reads off the end of the
-> status_text array.  This actually was causing a 100% reproducible
-> crash on boot on my laptop with two batteries, when one battery was
-> completely drained and the laptop was not plugged in.
-> 
-> Fix this by making sure acpi_battery_get_property() returns
-> POWER_SUPPLY_STATUS_UNKNOWN for any battery state it doesn't already
-> handle explicitly.  There doesn't seem to be any status enum value
-> defined that makes more sense than 'unknown' for a battery at a
-> critical charge level.
-> 
-> Signed-off-by: Roland Dreier <roland@digitalvampire.org>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index c2ce0ad..cbb27b4 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -152,6 +152,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
->  			val->intval = POWER_SUPPLY_STATUS_CHARGING;
->  		else if (battery->state == 0)
->  			val->intval = POWER_SUPPLY_STATUS_FULL;
-> +		else
-> +			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
->  		break;
->  	case POWER_SUPPLY_PROP_PRESENT:
->  		val->intval = acpi_battery_present(battery);
+Hi,
 
+After the ACPI changes between 2.6.24-rc1 and -rc2 I have my logs
+"spammed" (every 2-3 seconds) by:=20
+
+[  423.112903] ACPI: EC: missing IBF_1 confirmations,switch off interru=
+pt mode.
+[  423.113020] ACPI: EC: non-query interrupt received, switching to int=
+errupt mode
+[  426.078972] ACPI: EC: missing IBF_1 confirmations,switch off interru=
+pt mode.
+[  426.079645] ACPI: EC: non-query interrupt received, switching to int=
+errupt mode
+[  426.622773] ACPI: EC: missing IBF_1 confirmations,switch off interru=
+pt mode.
+[  426.622889] ACPI: EC: non-query interrupt received, switching to int=
+errupt mode
+
+It seems that no harm is done, apart (but it could be another thing)
+that gnome-panel is much slower on startup.=20
+
+Romano =20
+
+
+--=20
+Sorry for the disclaimer --- =A1I cannot stop it!
+
+
+
+--
+La presente comunicaci=F3n tiene car=E1cter confidencial y es para el e=
+xclusivo uso del destinatario indicado en la misma. Si Ud. no es el des=
+tinatario indicado, le informamos que cualquier forma de distribuci=F3n=
+, reproducci=F3n o uso de esta comunicaci=F3n y/o de la informaci=F3n c=
+ontenida en la misma est=E1n estrictamente prohibidos por la ley. Si Ud=
+=2E ha recibido esta comunicaci=F3n por error, por favor, notif=EDquelo=
+ inmediatamente al remitente contestando a este mensaje y proceda a con=
+tinuaci=F3n a destruirlo. Gracias por su colaboraci=F3n.
+
+This communication contains confidential information. It is for the exc=
+lusive use of the intended addressee. If you are not the intended addre=
+ssee, please note that any form of distribution, copying or use of this=
+ communication or the information in it is strictly prohibited by law. =
+If you have received this communication in error, please immediately no=
+tify the sender by reply e-mail and destroy this message. Thank you for=
+ your cooperation.=20
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
