@@ -1,32 +1,21 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI: Always return valid 'status' from
-	acpi_battery_get_property()
-Date: Thu, 8 Nov 2007 12:42:07 -0200
-Message-ID: <20071108144207.GA8814@khazad-dum.debian.net>
-References: <87640d1wmi.fsf@shaolin.home.digitalvampire.org> <4732C8D3.605@suse.de>
+From: Johannes Weiner <hannes-kernel@saeurebad.de>
+Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
+Date: Thu, 8 Nov 2007 16:53:44 +0100
+Message-ID: <20071108155344.GA12231@cataract>
+References: <1193652664.22149.4.camel@localhost> <200711041417.23920.rjw@sisk.pl> <200711050029.09768.listen@selfservix.org> <200711050118.34610.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50691 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754105AbXKHOmM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 09:42:12 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761315AbXKHPzY@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4732C8D3.605@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200711050118.34610.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Michael (rabenkind) Brandstetter" <listen@selfservix.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Roland Dreier <roland@digitalvampire.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Thu, 08 Nov 2007, Alexey Starikovskiy wrote:
->> handle explicitly.  There doesn't seem to be any status enum value
->> defined that makes more sense than 'unknown' for a battery at a
->> critical charge level.
+Hi,
 
-Maybe one should be added?
+is there any reason, why acpi_battery_get_property() should call
+acpi_battery_update() at all?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+	Hannes
