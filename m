@@ -1,21 +1,26 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
-Date: Thu, 08 Nov 2007 19:11:53 +0300
-Message-ID: <47333549.90505@suse.de>
+Date: Thu, 08 Nov 2007 19:35:23 +0300
+Message-ID: <47333ACB.6070408@suse.de>
 References: <1193652664.22149.4.camel@localhost> <200711050118.34610.rjw@sisk.pl> <20071108155344.GA12231@cataract> <200711081717.00421.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------070208020201070007060406"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:60212 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:36874 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759587AbXKHQMB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 11:12:01 -0500
+	with ESMTP id S1753417AbXKHQfo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 11:35:44 -0500
 In-Reply-To: <200711081717.00421.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Johannes Weiner <hannes-kernel@saeurebad.de>, "Michael (rabenkind) Brandstetter" <listen@selfservix.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------070208020201070007060406
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Rafael J. Wysocki wrote:
 > On Thursday, 8 of November 2007, Johannes Weiner wrote:
@@ -25,7 +30,68 @@ Rafael J. Wysocki wrote:
 >> acpi_battery_update() at all?
 > 
 > Alex?
-If someone wants to read stale values, he could comment out acpi_battery_update.
+Do you mean "why should it call _whole_ battery update?" ?
+get_state should be sufficient in order to not get stale data.
 
 Regards,
 Alex.
+
+--------------070208020201070007060406
+Content-Type: text/x-patch;
+ name="remove_cycle_at_battery_removal.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="remove_cycle_at_battery_removal.patch"
+
+ACPI: Battery: remove cycle from battery removal.
+
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+get_property() should not call battery_update() on absent battery to
+avoid cycle and oops.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+---
+
+ drivers/acpi/battery.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..192c244 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -132,7 +132,7 @@ static int acpi_battery_technology(struct acpi_battery *battery)
+ 	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery);
++static int acpi_battery_get_state(struct acpi_battery *battery);
+ 
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if ((!acpi_battery_present(battery)) &&
+-	     psp != POWER_SUPPLY_PROP_PRESENT)
++	if (acpi_battery_present(battery)) {
++		/* run battery update only if it is present */
++		acpi_battery_get_state(battery);
++	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+-	acpi_battery_update(battery);
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+ 		if (battery->state & 0x01)
+@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
++	battery->bat.dev = NULL;
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
+
+--------------070208020201070007060406--
