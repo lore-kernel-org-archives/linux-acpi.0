@@ -1,74 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] Don't fail ata device revalidation for bad _GTF methods
-Date: Thu, 8 Nov 2007 18:37:07 +0000
-Message-ID: <20071108183707.GA3008@srcf.ucam.org>
-References: <4731C86B.1040704@infracomspa.it> <20071107121355.5eaf4496.akpm@linux-foundation.org> <47333CCF.1050403@infracomspa.it> <20071108094958.5c9b1b22.akpm@linux-foundation.org> <20071108180256.GB3491@havoc.gtf.org> <20071108101341.6c4f88d4.akpm@linux-foundation.org> <20071108182217.GA2685@srcf.ucam.org>
+From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Subject: Re: *New* HP dv6000 series backlight driver.
+Date: Thu, 8 Nov 2007 19:10:59 +0000
+Message-ID: <20071108191059.d527c870.miknix@gmail.com>
+References: <20070911171927.572087e0.miknix@gmail.com>
+	<20071022004144.6e4240de.miknix@gmail.com>
+	<20071107195619.8599c6a5.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20071108182217.GA2685@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jeff Garzik <jeff@garzik.org>, roppedisano@infracomspa.it, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.172]:34997 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761004AbXKHTCm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 14:02:42 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so405692ugc
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2007 11:02:40 -0800 (PST)
+In-Reply-To: <20071107195619.8599c6a5.miknix@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Experience suggests that the _GTF method may be bad. We currently fail 
-device revalidation in that case, which seems excessive.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Hello all,
 
----
+After getting more into it, I've added support to some more stuff on the HP dv6500 laptops.
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index 08a52dd..545ea86 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -312,7 +312,7 @@ EXPORT_SYMBOL_GPL(ata_acpi_stm);
-  *
-  * RETURNS:
-  * Number of taskfiles on success, 0 if _GTF doesn't exist or doesn't
-- * contain valid data.  -errno on other errors.
-+ * contain valid data.
-  */
- static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 			   void **ptr_to_free)
-@@ -339,7 +339,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 			ata_dev_printk(dev, KERN_WARNING,
- 				       "_GTF evaluation failed (AE 0x%x)\n",
- 				       status);
--			rc = -EIO;
- 		}
- 		goto out_free;
- 	}
-@@ -359,7 +358,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "_GTF unexpected object type 0x%x\n",
- 			       out_obj->type);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
- 
-@@ -367,7 +365,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "unexpected _GTF length (%d)\n",
- 			       out_obj->buffer.length);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
- 
-@@ -511,10 +508,7 @@ static int ata_acpi_exec_tfs(struct ata_device *dev)
- 	int gtf_count, i, rc;
- 
- 	/* get taskfiles */
--	rc = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
--	if (rc < 0)
--		return rc;
--	gtf_count = rc;
-+	gtf_count = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
- 
- 	/* execute them */
- 	for (i = 0, rc = 0; i < gtf_count; i++) {
+SUPORTED DEVICES:
+* This is known to work on the dv6535ep (I think it may work on other dv6500 models):
+  - CPU Temperature reading.
+  - Backlight driver (hotkeys not working, yet).
+  - LID status.
+  - WIFI button status.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I've uploaded the driver and some information to my personal server (very bandwidth limited):
+http://miknix.homelinux.com/dv6k_laptop/
+
+I hope other HP dv6500 users like it :)
+- -- 
+Angelo Arrifano AKA MiKNiX
+CSE Student at UBI, Portugal
+Gentoo Linux AMD64 Arch Tester
+miknix@gmail.com
+http://miknix.homelinux.com
+PGP Pubkey online
+
+- - -
+Why won't you let me kiss you goodnight?  Is it something I said?
+		-- Tom Ryan
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHM18/NahyoD2SuwsRAvFrAKCJ6a9q07hDneUK4ifPmqr2g20DFgCdFWvY
+od9gzT7RJG8QNsuzCrh047Q=
+=oXKG
+-----END PGP SIGNATURE-----
