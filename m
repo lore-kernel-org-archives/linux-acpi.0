@@ -1,35 +1,60 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] x86_64: remove acpi_pci_link_exit()
-Date: Fri, 9 Nov 2007 07:03:13 +0100
-Message-ID: <20071109060313.GS26163@stusta.de>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: GPE handling
+Date: Fri, 9 Nov 2007 15:50:48 +0800
+Message-ID: <FC1D1B23302A22499C60C967336B2AE001FF2CA9@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:52859 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755062AbXKIGDh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 01:03:37 -0500
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:3554 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751081AbXKIHw4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 02:52:56 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-acpi_pci_link_exit() is both unused and empty.
+Bob & Ming,
+I'm working on adding wakeup GPE support at system runtime, this
+capability can help us
+Identify which device invokes a wakeup event at runtime, this is
+required for runtime device
+Power management.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Below is the ASL code. For example, _L0c, USB3 will send a wakeup GPE
+and invoke
+a notify. In the notify handler, OS will clear USB3's PCI PME status to
+avoid wakeup
+event flood. But in current code, acpi_ev_asynch_execute_gpe_method will
+start an asynchronous
+execution of notify and return soon. Just before the return,
+acpi_ev_asynch_execute_gpe_method
+will reenable GPE 0C. That means GPE is enabled before OS execute
+notification handler and USB3's
+PCI PME status is cleared, and cause GPE flood. Ideally, I think we
+should delay GPE enable
+of _L0c till notification handler is finished or simply the method _L0c
+is really finished.
+What do you think?
 
----
-16d6853a1facb9bcb7a4bc19daad6d3b852cace3 
-diff --git a/arch/x86/kernel/acpi/sleep_64.c b/arch/x86/kernel/acpi/sleep_64.c
-index 79475d2..da42de2 100644
---- a/arch/x86/kernel/acpi/sleep_64.c
-+++ b/arch/x86/kernel/acpi/sleep_64.c
-@@ -115,6 +115,3 @@ static int __init acpi_sleep_setup(char *str)
- 
- __setup("acpi_sleep=", acpi_sleep_setup);
- 
--void acpi_pci_link_exit(void)
--{
--}
+Thanks,
+Shaohua
 
+
+        Method (_L0C, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB3, 0x02)
+        }
+
+        Method (_L0D, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB7, 0x02)
+        }
+
+        Method (_L0E, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB4, 0x02)
+        }
