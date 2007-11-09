@@ -1,80 +1,54 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: GPE handling
-Date: Fri, 09 Nov 2007 12:45:10 +0300
-Message-ID: <47342C26.2040505@gmail.com>
-References: <FC1D1B23302A22499C60C967336B2AE001FF2CA9@pdsmsx411.ccr.corp.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
+Date: Fri, 9 Nov 2007 01:49:44 -0800
+Message-ID: <20071109014944.26adf4e0.akpm@linux-foundation.org>
+References: <1193652664.22149.4.camel@localhost>
+	<200711050118.34610.rjw@sisk.pl>
+	<20071108155344.GA12231@cataract>
+	<200711081717.00421.rjw@sisk.pl>
+	<47333ACB.6070408@suse.de>
+	<20071108203451.1b7f28c0.akpm@linux-foundation.org>
+	<47342A2B.5020006@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:31276 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbXKIJpQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 04:45:16 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so500604ugc
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Nov 2007 01:45:14 -0800 (PST)
-In-Reply-To: <FC1D1B23302A22499C60C967336B2AE001FF2CA9@pdsmsx411.ccr.corp.intel.com>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41097 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751440AbXKIJud (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 04:50:33 -0500
+In-Reply-To: <47342A2B.5020006@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: rjw@sisk.pl, hannes-kernel@saeurebad.de, listen@selfservix.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Shaohua,
-There is cond_resched() before the exit from deferred execution routine,
-specifically to let notify thread a chance to execute.
-Thus by the time deferred execution is exited, notify should be already 
-done,
-and we could safely enable _Lxx again.
-Do you think it is not sufficient?
+On Fri, 09 Nov 2007 12:36:43 +0300 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
 
-Regards,
-Alex.
+> Andrew Morton wrote:
+> > A> On Thu, 08 Nov 2007 19:35:23 +0300 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+> >> [remove_cycle_at_battery_removal.patch  text/x-patch (1.7KB)]
+> >> ACPI: Battery: remove cycle from battery removal.
+> >>
+> >> From: Alexey Starikovskiy <astarikovskiy@suse.de>
+> >>
+> >> get_property() should not call battery_update() on absent battery to
+> >> avoid cycle and oops.
+> >>
+> >> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> >> Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+> > 
+> > A patch similar to this one but with an identical changelog was merged into
+> > Len's tree on November 2.
+> > 
+> > If it had been promptly merged into mainline then quite a lot of people's
+> > time would not have been wasted.
+> > 
+> Andrew,
+> should I send such patches directly to you/Linus?
+> 
 
-Li, Shaohua wrote:
-> Bob & Ming,
-> I'm working on adding wakeup GPE support at system runtime, this
-> capability can help us
-> Identify which device invokes a wakeup event at runtime, this is
-> required for runtime device
-> Power management.
->
-> Below is the ASL code. For example, _L0c, USB3 will send a wakeup GPE
-> and invoke
-> a notify. In the notify handler, OS will clear USB3's PCI PME status to
-> avoid wakeup
-> event flood. But in current code, acpi_ev_asynch_execute_gpe_method will
-> start an asynchronous
-> execution of notify and return soon. Just before the return,
-> acpi_ev_asynch_execute_gpe_method
-> will reenable GPE 0C. That means GPE is enabled before OS execute
-> notification handler and USB3's
-> PCI PME status is cleared, and cause GPE flood. Ideally, I think we
-> should delay GPE enable
-> of _L0c till notification handler is finished or simply the method _L0c
-> is really finished.
-> What do you think?
->
-> Thanks,
-> Shaohua
->
->
->         Method (_L0C, 0, NotSerialized)
->         {
->             Notify (\_SB.PCI0.USB3, 0x02)
->         }
->
->         Method (_L0D, 0, NotSerialized)
->         {
->             Notify (\_SB.PCI0.USB7, 0x02)
->         }
->
->         Method (_L0E, 0, NotSerialized)
->         {
->             Notify (\_SB.PCI0.USB4, 0x02)
->         }
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+Well if Len doesn't object and you're confident in the changes, why not? 
+Any time we leave bugs unfixed we drive away testers and that impacts all
+parts of the kernel.
 
