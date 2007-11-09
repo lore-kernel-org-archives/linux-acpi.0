@@ -1,83 +1,77 @@
-From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
-Subject: Re: 2.6.24-rc1 and 2.6.24.rc2 hangs while running udev on my
- laptop
-Date: Fri, 9 Nov 2007 13:10:52 +0100
-Message-ID: <20071109121052.GA30799@alberich.amd.com>
-References: <2C8305E0BE090E47A2BAD52A48AC911D17BCE242@exchange1.lloyd.com>
- <20071109020321.b26b293f.akpm@linux-foundation.org>
+From: Roberto Oppedisano <roppedisano@infracomspa.it>
+Subject: Re: [PATCH] Don't fail ata device revalidation for bad _GTF methods
+Date: Fri, 09 Nov 2007 13:29:30 +0100
+Message-ID: <473452AA.7080503@infracomspa.it>
+References: <4731C86B.1040704@infracomspa.it> <20071107121355.5eaf4496.akpm@linux-foundation.org> <47333CCF.1050403@infracomspa.it> <20071108094958.5c9b1b22.akpm@linux-foundation.org> <20071108180256.GB3491@havoc.gtf.org> <20071108101341.6c4f88d4.akpm@linux-foundation.org> <20071108182217.GA2685@srcf.ucam.org> <20071108183707.GA3008@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-blu.frontbridge.com ([65.55.251.16]:32806 "EHLO
-	outbound9-blu-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753398AbXKIMM5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 07:12:57 -0500
-In-Reply-To: <20071109020321.b26b293f.akpm@linux-foundation.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20071108183707.GA3008@srcf.ucam.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jeff Garzik <jeff@garzik.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: SANGOI DINO LEONARDO <dino.leonardo.sangoi@allianz.it>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-> On Fri, 9 Nov 2007 09:47:02 +0100  SANGOI DINO LEONARDO <dino.leonardo.sangoi@allianz.it> wrote:
-> > Hi,
-> >  
-> > My laptop (an HP nx6125) doesn't boot with kernels 2.6.24-rc1 and
-> > 2.6.24.rc2. 
-> > It works fine with 2.6.23 and older.
-> > 
-> > I seen this bug first while running fedora rawhide, so you can find hardware
-> > 
-> > info and boot logs at https://bugzilla.redhat.com/show_bug.cgi?id=312201.
-> > 
-> > I did a git bisect, and got this:
-> > 
-> > $ git bisect bad
-> > 4f86d3a8e297205780cca027e974fd5f81064780 is first bad commit
-> > commit 4f86d3a8e297205780cca027e974fd5f81064780
-> > Author: Len Brown <len.brown@intel.com>
-> > Date:   Wed Oct 3 18:58:00 2007 -0400
-> > 
-> >     cpuidle: consolidate 2.6.22 cpuidle branch into one patch
+I can confirm that this patch solves the problem with s2ram on my laptop.
 
-    ... snip ...
+R
 
-> > Config is taken from Fedora kernel. CONFIG_CPU_IDLE is set to y (tell me if
-> > full config is needed).
-> > 
-> > If I use 'nolapic' parameter, kernel 2.6.24-rc1 boots fine. 
-> > Setting CONFIG_CPU_IDLE=n also gives me a working kernel.
-
-I am just thinking aloud ...
-
-Boot log in the bugzilla shows:
-
-  CPU0: AMD Turion(tm) 64 Mobile ML-34 stepping 02
-
-So it seems that the hardware just dislikes CONFIG_CPU_IDLE.
-
-I haven't dealt with that cpuidle stuff in the past.
-Now I am wondering with which platforms that code was verified.
-And yes, I know the code was in -mm for a while.
-But maybe the test coverage on AMD platforms was not that high?
-
-What about making CONFIG_CPU_IDLE dependent on EXPERIMENTAL for
-the time being and remove EXPERIMENTAL when some more testing has
-been done?
-
-
-Regards,
-
-Andreas
-
--- 
-Operating | AMD Saxony Limited Liability Company & Co. KG,
-  System  | Wilschdorfer Landstr. 101, 01109 Dresden, Germany
- Research | Register Court Dresden: HRA 4896, General Partner authorized
-  Center  | to represent: AMD Saxony LLC (Wilmington, Delaware, US)
-  (OSRC)  | General Manager of AMD Saxony LLC: Dr. Hans-R. Deppe, Thomas McCoy
-
-
-
+Matthew Garrett wrote:
+> Experience suggests that the _GTF method may be bad. We currently fail 
+> device revalidation in that case, which seems excessive.
+>
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+>
+> ---
+>
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index 08a52dd..545ea86 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -312,7 +312,7 @@ EXPORT_SYMBOL_GPL(ata_acpi_stm);
+>   *
+>   * RETURNS:
+>   * Number of taskfiles on success, 0 if _GTF doesn't exist or doesn't
+> - * contain valid data.  -errno on other errors.
+> + * contain valid data.
+>   */
+>  static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
+>  			   void **ptr_to_free)
+> @@ -339,7 +339,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
+>  			ata_dev_printk(dev, KERN_WARNING,
+>  				       "_GTF evaluation failed (AE 0x%x)\n",
+>  				       status);
+> -			rc = -EIO;
+>  		}
+>  		goto out_free;
+>  	}
+> @@ -359,7 +358,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
+>  		ata_dev_printk(dev, KERN_WARNING,
+>  			       "_GTF unexpected object type 0x%x\n",
+>  			       out_obj->type);
+> -		rc = -EINVAL;
+>  		goto out_free;
+>  	}
+>  
+> @@ -367,7 +365,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
+>  		ata_dev_printk(dev, KERN_WARNING,
+>  			       "unexpected _GTF length (%d)\n",
+>  			       out_obj->buffer.length);
+> -		rc = -EINVAL;
+>  		goto out_free;
+>  	}
+>  
+> @@ -511,10 +508,7 @@ static int ata_acpi_exec_tfs(struct ata_device *dev)
+>  	int gtf_count, i, rc;
+>  
+>  	/* get taskfiles */
+> -	rc = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
+> -	if (rc < 0)
+> -		return rc;
+> -	gtf_count = rc;
+> +	gtf_count = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
+>  
+>  	/* execute them */
+>  	for (i = 0, rc = 0; i < gtf_count; i++) {
+>   
