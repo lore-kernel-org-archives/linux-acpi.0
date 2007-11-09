@@ -1,77 +1,35 @@
-From: Roberto Oppedisano <roppedisano@infracomspa.it>
-Subject: Re: [PATCH] Don't fail ata device revalidation for bad _GTF methods
-Date: Fri, 09 Nov 2007 13:29:30 +0100
-Message-ID: <473452AA.7080503@infracomspa.it>
-References: <4731C86B.1040704@infracomspa.it> <20071107121355.5eaf4496.akpm@linux-foundation.org> <47333CCF.1050403@infracomspa.it> <20071108094958.5c9b1b22.akpm@linux-foundation.org> <20071108180256.GB3491@havoc.gtf.org> <20071108101341.6c4f88d4.akpm@linux-foundation.org> <20071108182217.GA2685@srcf.ucam.org> <20071108183707.GA3008@srcf.ucam.org>
+From: Nicolas Kaiser <nikai@nikai.net>
+Subject: [PATCH] drivers/misc/sony-laptop.c: remove duplicated define
+Date: Fri, 9 Nov 2007 14:08:32 +0100
+Message-ID: <20071109140832.4f2a145c@lucky.kitzblitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20071108183707.GA3008@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jeff Garzik <jeff@garzik.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ensim03.bon.m2soft.com ([195.38.20.12]:49645 "EHLO
+	ensim03.bon.m2soft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758344AbXKINUP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 08:20:15 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-I can confirm that this patch solves the problem with s2ram on my laptop.
+Remove duplicated define.
 
-R
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+---
 
-Matthew Garrett wrote:
-> Experience suggests that the _GTF method may be bad. We currently fail 
-> device revalidation in that case, which seems excessive.
->
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
->
-> ---
->
-> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> index 08a52dd..545ea86 100644
-> --- a/drivers/ata/libata-acpi.c
-> +++ b/drivers/ata/libata-acpi.c
-> @@ -312,7 +312,7 @@ EXPORT_SYMBOL_GPL(ata_acpi_stm);
->   *
->   * RETURNS:
->   * Number of taskfiles on success, 0 if _GTF doesn't exist or doesn't
-> - * contain valid data.  -errno on other errors.
-> + * contain valid data.
->   */
->  static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
->  			   void **ptr_to_free)
-> @@ -339,7 +339,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
->  			ata_dev_printk(dev, KERN_WARNING,
->  				       "_GTF evaluation failed (AE 0x%x)\n",
->  				       status);
-> -			rc = -EIO;
->  		}
->  		goto out_free;
->  	}
-> @@ -359,7 +358,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
->  		ata_dev_printk(dev, KERN_WARNING,
->  			       "_GTF unexpected object type 0x%x\n",
->  			       out_obj->type);
-> -		rc = -EINVAL;
->  		goto out_free;
->  	}
->  
-> @@ -367,7 +365,6 @@ static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
->  		ata_dev_printk(dev, KERN_WARNING,
->  			       "unexpected _GTF length (%d)\n",
->  			       out_obj->buffer.length);
-> -		rc = -EINVAL;
->  		goto out_free;
->  	}
->  
-> @@ -511,10 +508,7 @@ static int ata_acpi_exec_tfs(struct ata_device *dev)
->  	int gtf_count, i, rc;
->  
->  	/* get taskfiles */
-> -	rc = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
-> -	if (rc < 0)
-> -		return rc;
-> -	gtf_count = rc;
-> +	gtf_count = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
->  
->  	/* execute them */
->  	for (i = 0, rc = 0; i < gtf_count; i++) {
->   
+ drivers/misc/sony-laptop.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/misc/sony-laptop.c	2007-11-07 11:26:12.000000000 +0100
++++ b/drivers/misc/sony-laptop.c	2007-11-09 13:56:36.000000000 +0100
+@@ -1504,7 +1504,6 @@
+ #define SONYPI_CAMERA_SHUTTER_MASK 		0x7
+ 
+ #define SONYPI_CAMERA_SHUTDOWN_REQUEST		7
+-#define SONYPI_CAMERA_CONTROL			0x10
+ 
+ #define SONYPI_CAMERA_STATUS 			7
+ #define SONYPI_CAMERA_STATUS_READY 		0x2
