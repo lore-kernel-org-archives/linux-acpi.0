@@ -1,41 +1,42 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
-Date: Thu, 8 Nov 2007 20:34:51 -0800
-Message-ID: <20071108203451.1b7f28c0.akpm@linux-foundation.org>
-References: <1193652664.22149.4.camel@localhost>
-	<200711050118.34610.rjw@sisk.pl>
-	<20071108155344.GA12231@cataract>
-	<200711081717.00421.rjw@sisk.pl>
-	<47333ACB.6070408@suse.de>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: [2.6 patch] x86: acpi_pciprobe_dmi_table[] must be __devinitdata
+Date: Fri, 9 Nov 2007 07:02:11 +0100
+Message-ID: <20071109060211.GP26163@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47349 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbXKIEfg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2007 23:35:36 -0500
-In-Reply-To: <47333ACB.6070408@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751603AbXKIGDV@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: rjw@sisk.pl, hannes-kernel@saeurebad.de, listen@selfservix.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-A> On Thu, 08 Nov 2007 19:35:23 +0300 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
-> [remove_cycle_at_battery_removal.patch  text/x-patch (1.7KB)]
-> ACPI: Battery: remove cycle from battery removal.
-> 
-> From: Alexey Starikovskiy <astarikovskiy@suse.de>
-> 
-> get_property() should not call battery_update() on absent battery to
-> avoid cycle and oops.
-> 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+This patch fixes the following section mismatches with CONFIG_HOTPLUG=n:
 
-A patch similar to this one but with an identical changelog was merged into
-Len's tree on November 2.
+<--  snip  -->
 
-If it had been promptly merged into mainline then quite a lot of people's
-time would not have been wasted.
+...
+WARNING: vmlinux.o(.data+0x23640): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
+WARNING: vmlinux.o(.data+0x2366c): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
+WARNING: vmlinux.o(.data+0x23698): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
+...
 
+<--  snip  -->
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+
+---
+3225b3c19396e0e45f496dfe82e85ebc86951d91 
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 2d88f7c..a7536dc 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -13,7 +13,7 @@ static int __devinit can_skip_ioresource_align(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
+-static struct dmi_system_id acpi_pciprobe_dmi_table[] = {
++static struct dmi_system_id acpi_pciprobe_dmi_table[] __devinitdata = {
+ /*
+  * Systems where PCI IO resource ISA alignment can be skipped
+  * when the ISA enable bit in the bridge control is not set
