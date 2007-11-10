@@ -1,138 +1,159 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: Re: 2.6.24-rc1 and 2.6.24.rc2 hangs while running udev on my laptop
-Date: Fri, 9 Nov 2007 16:52:47 -0800
-Message-ID: <20071110005247.GA1898@linux-os.sc.intel.com>
-References: <2C8305E0BE090E47A2BAD52A48AC911D17BCE242@exchange1.lloyd.com> <20071109020321.b26b293f.akpm@linux-foundation.org> <B5B0CFF685D7DF46A05CF1678CFB42ED20E0093D@orsmsx423.amr.corp.intel.com>
+From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Subject: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32
+Date: Sat, 10 Nov 2007 01:44:48 +0000
+Message-ID: <20071110014448.471e384b.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28857 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754793AbXKJA4c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Nov 2007 19:56:32 -0500
-Content-Disposition: inline
-In-Reply-To: <B5B0CFF685D7DF46A05CF1678CFB42ED20E0093D@orsmsx423.amr.corp.intel.com>
+Received: from nf-out-0910.google.com ([64.233.182.187]:33849 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751442AbXKJBg0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 20:36:26 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so666867nfb
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Nov 2007 17:36:24 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: SANGOI DINO LEONARDO <dino.leonardo.sangoi@allianz.it>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
-
-On Fri, Nov 09, 2007 at 10:10:43AM -0800, Pallipadi, Venkatesh wrote:
->  
-> 
-> >-----Original Message-----
-> >From: Andrew Morton [mailto:akpm@linux-foundation.org] 
-> >Sent: Friday, November 09, 2007 2:03 AM
-> >To: SANGOI DINO LEONARDO
-> >Cc: linux-kernel@vger.kernel.org; Rafael J. Wysocki; Brown, 
-> >Len; Pallipadi, Venkatesh; linux-acpi@vger.kernel.org
-> >Subject: Re: 2.6.24-rc1 and 2.6.24.rc2 hangs while running 
-> >udev on my laptop
-> >
-> >
-> >(cc's added)
-> >
-> >On Fri, 9 Nov 2007 09:47:02 +0100  SANGOI DINO LEONARDO 
-> ><dino.leonardo.sangoi@allianz.it> wrote:
-> >
-> >> Hi,
-> >>  
-> >> My laptop (an HP nx6125) doesn't boot with kernels 2.6.24-rc1 and
-> >> 2.6.24.rc2. 
-> >> It works fine with 2.6.23 and older.
-> >> 
-> >> I seen this bug first while running fedora rawhide, so you 
-> >can find hardware
-> >> 
-> >> info and boot logs at 
-> >https://bugzilla.redhat.com/show_bug.cgi?id=312201.
-> >> 
-> >> I did a git bisect, and got this:
-> >> 
-> >> $ git bisect bad
-> >> 4f86d3a8e297205780cca027e974fd5f81064780 is first bad commit
-> >> commit 4f86d3a8e297205780cca027e974fd5f81064780
-> >> Author: Len Brown <len.brown@intel.com>
-> >> Date:   Wed Oct 3 18:58:00 2007 -0400
-> >> 
-> >>     cpuidle: consolidate 2.6.22 cpuidle branch into one patch
-> >> [SNIP full commit log]
-> >> 
-> <snip>
-> > --------
-> >> 
-> >> Config is taken from Fedora kernel. CONFIG_CPU_IDLE is set 
-> >to y (tell me if
-> >> full config is needed).
-> >> 
-> >> If I use 'nolapic' parameter, kernel 2.6.24-rc1 boots fine. 
-> >> Setting CONFIG_CPU_IDLE=n also gives me a working kernel.
-> >> 
-> >> Ask me if more info is needed (please CC me).
-> >> 
-> >> Thanks,
-> >> 
-> >> Dino
-> 
-> 
-
-Dino,
-
-Can you try the patch below over rc2 and see whether it fixes the problem.
-Looking at the code, it should fix the problem. If it does not, can you send
-me the output of acpidump from your system. That will help to look further
-into this. You can get acpidump from latest pmtools package here.
-www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-Thanks,
-Venki
+To: linux-acpi@vger.kernel.org
 
 
-Test patch for the bug report at
-https://bugzilla.redhat.com/show_bug.cgi?id=312201
+--Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
-+++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
-@@ -1502,23 +1502,28 @@ static int acpi_idle_enter_bm(struct cpu
- 	} else {
- 		acpi_idle_update_bm_rld(pr, cx);
- 
--		spin_lock(&c3_lock);
--		c3_cpu_count++;
--		/* Disable bus master arbitration when all CPUs are in C3 */
--		if (c3_cpu_count == num_online_cpus())
--			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
--		spin_unlock(&c3_lock);
-+		if (pr->flags.bm_check && pr->flags.bm_control) {
-+			spin_lock(&c3_lock);
-+			c3_cpu_count++;
-+			/* Disable bus master arbitration when all CPUs are in C3 */
-+			if (c3_cpu_count == num_online_cpus())
-+				acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
-+			spin_unlock(&c3_lock);
-+		} else if (!pr->flags.bm_check) {
-+			ACPI_FLUSH_CPU_CACHE();
-+		}
- 
- 		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 		acpi_idle_do_entry(cx);
- 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--		spin_lock(&c3_lock);
- 		/* Re-enable bus master arbitration */
--		if (c3_cpu_count == num_online_cpus())
-+		if (pr->flags.bm_check && pr->flags.bm_control) {
-+			spin_lock(&c3_lock);
- 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
--		c3_cpu_count--;
--		spin_unlock(&c3_lock);
-+			c3_cpu_count--;
-+			spin_unlock(&c3_lock);
-+		}
- 	}
- 
- #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
+Hello everyone,
+
+I made a driver to allow booting into specific apps by pressing
+hot buttons. This functionality is provided by PNP0C32 which all
+Vista capable laptops should have.
+
+If the laptop is turned off and a hot button is pressed, the
+computer turns on and boots. This module gets a notification from
+ACPI which button was pressed. Then the driver writes to the proc
+fs which button was pressed allowing userspace apps to read that
+files and behave accordingly. Proc files are also writable.
+
+Eg:
+ls /proc/acpi/hotstart/
+DBTN  LVBN  MUBN  PIBN  QBTN  VOBN  WEBN
+
+DBTN is DVD Button
+WEBN is WWW Button
+
+I've uploaded everything to my personal server (very bandwidth limited).
+http://miknix.homelinux.com/hotstart/
+
+It's also attached here, just in case my ISP might do the usual...
+
+I did only test on my own laptop.
+I hope you like it.
+- -- 
+Angelo Arrifano AKA MiKNiX
+CSE Student at UBI, Portugal
+Gentoo Linux AMD64 Arch Tester
+miknix@gmail.com
+http://miknix.homelinux.com
+PGP Pubkey online
+
+- - -
+Abstainer, n.:
+	A weak person who yields to the temptation of denying himself a
+	pleasure.
+		-- Ambrose Bierce, "The Devil's Dictionary"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHNQ0NNahyoD2SuwsRAlvPAJ0XEB+iOVsHhZ6HsVQ+a2Jjqe9qfwCgnuO8
+JOigajLDRR20vF8sNDeY2FY=
+=Gwau
+-----END PGP SIGNATURE-----
+
+--Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT
+Content-Type: application/x-bzip;
+ name="hotstart-001.tar.bz2"
+Content-Disposition: attachment;
+ filename="hotstart-001.tar.bz2"
+Content-Transfer-Encoding: base64
+
+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
+
+--Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT--
