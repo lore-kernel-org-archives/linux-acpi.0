@@ -1,28 +1,45 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH] Don't fail ata device revalidation for bad _GTF methods
-Date: Sat, 10 Nov 2007 00:32:08 -0500
-Message-ID: <47354258.30501@garzik.org>
-References: <4731C86B.1040704@infracomspa.it> <20071107121355.5eaf4496.akpm@linux-foundation.org> <47333CCF.1050403@infracomspa.it> <20071108094958.5c9b1b22.akpm@linux-foundation.org> <20071108180256.GB3491@havoc.gtf.org> <20071108101341.6c4f88d4.akpm@linux-foundation.org> <20071108182217.GA2685@srcf.ucam.org> <20071108183707.GA3008@srcf.ucam.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH] drivers/misc/sony-laptop.c: remove duplicated define
+Date: Sat, 10 Nov 2007 11:46:33 +0900
+Message-ID: <20071110024632.GA22417@inferi.kami.home>
+References: <20071109140832.4f2a145c@lucky.kitzblitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv5.dvmed.net ([207.36.208.214]:36656 "EHLO mail.dvmed.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751007AbXKJFcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Nov 2007 00:32:18 -0500
-In-Reply-To: <20071108183707.GA3008@srcf.ucam.org>
+Received: from mfbichi11.ns.itscom.net ([219.110.2.189]:33832 "EHLO
+	mfbichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbXKJIaW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2007 03:30:22 -0500
+Content-Disposition: inline
+In-Reply-To: <20071109140832.4f2a145c@lucky.kitzblitz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, roppedisano@infracomspa.it, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org
+To: Nicolas Kaiser <nikai@nikai.net>
+Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Matthew Garrett wrote:
-> Experience suggests that the _GTF method may be bad. We currently fail 
-> device revalidation in that case, which seems excessive.
+On Fri, Nov 09, 2007 at 02:08:32PM +0100, Nicolas Kaiser wrote:
+> Remove duplicated define.
 > 
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
 
-applied
+Acked-by: Mattia Dongili <malattia@linux.it>
 
-
+> ---
+> 
+>  drivers/misc/sony-laptop.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> --- a/drivers/misc/sony-laptop.c	2007-11-07 11:26:12.000000000 +0100
+> +++ b/drivers/misc/sony-laptop.c	2007-11-09 13:56:36.000000000 +0100
+> @@ -1504,7 +1504,6 @@
+>  #define SONYPI_CAMERA_SHUTTER_MASK 		0x7
+>  
+>  #define SONYPI_CAMERA_SHUTDOWN_REQUEST		7
+> -#define SONYPI_CAMERA_CONTROL			0x10
+>  
+>  #define SONYPI_CAMERA_STATUS 			7
+>  #define SONYPI_CAMERA_STATUS_READY 		0x2
+> 
+-- 
+mattia
+:wq!
