@@ -1,115 +1,71 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 3/3][RFC] ACPI: WMI: Add locking to sysfs files for methods and data
-Date: Sat, 10 Nov 2007 15:35:34 +0000
-Message-ID: <200711101535.35552.carlos@strangeworlds.co.uk>
-References: <200711101532.07531.carlos@strangeworlds.co.uk>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [PATCH] 2.6.24-rc: fix ACPI battery technology reporting
+Date: Sat, 10 Nov 2007 20:02:49 +0300
+Message-ID: <200711102002.56951.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: multipart/signed;
+  boundary="nextPart1507032.5ndqm5vjuy";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:43891 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbXKJPf6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2007 10:35:58 -0500
-In-Reply-To: <200711101532.07531.carlos@strangeworlds.co.uk>
-Content-Disposition: inline
+Received: from mx6.mail.ru ([194.67.23.26]:14280 "EHLO mx6.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752776AbXKJRDB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Nov 2007 12:03:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Nashif, Anas" <anas.nashif@intel.com>
+To: linux-acpi@vger.kernel.org, Alexey Starikovskiy <aystarik@gmail.com>
 
-From: Carlos Corbacho <cathectic@gmail.com>
+--nextPart1507032.5ndqm5vjuy
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-To ensure that we don't start overwriting the method_id or input data
-when executing methods, or handling data GUID's, add a mutex lock
-around data read/ write and method_id write sysfs functions.
+Subject: [PATCH] 2.6.24-rc: fix ACPI battery technology reporting
+=46rom: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Signed-off-by: Carlos Corbacho <cathectic@gmail.com>
----
- drivers/acpi/wmi.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+At least some systems report technology information with trailing spaces:
 
-diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
-index 59c3d76..e210973 100644
---- a/drivers/acpi/wmi.c
-+++ b/drivers/acpi/wmi.c
-@@ -43,6 +43,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/sysfs.h>
-+#include <linux/mutex.h>
- #include <acpi/acpi_drivers.h>
- 
- #define ACPI_WMI_CLASS "wmi"
-@@ -50,6 +51,8 @@
- #undef PREFIX
- #define PREFIX "ACPI: WMI: "
- 
-+static DEFINE_MUTEX(wmi_data_lock);
-+
- struct guid_block
- {
- 	char guid[16];
-@@ -577,6 +580,8 @@ static ssize_t wmi_data_read(struct kobject *kobj, struct bin_attribute
- 
- 	guid = kobject_name(kobj->parent);
- 
-+	mutex_lock(&wmi_data_lock);
-+
- 	for (i = 0; i < guids.total; i++) {
- 		gkobj = &wmi_guid_kobj[i];
- 		if (memcmp(kobject_name(&gkobj->guid_kobj), guid, 36) == 0) {
-@@ -605,6 +610,8 @@ static ssize_t wmi_data_read(struct kobject *kobj, struct bin_attribute
- 	obj = (union acpi_object *) out.pointer;
- 	buf = obj->buffer.pointer;
- 
-+	mutex_unlock(&wmi_data_lock);
-+
- 	return 0;
- }
- 
-@@ -612,6 +619,8 @@ static ssize_t wmi_data_write(struct kobject *kobj, struct bin_attribute
- 			*bin_attr, char *buf, loff_t offset, size_t count){
- 	int i;
- 
-+	mutex_lock(&wmi_data_lock);
-+
- 	for (i = 0; i < guids.total; i++) {
- 		if (memcmp(kobject_name(&wmi_guid_kobj[i].guid_kobj),
- 				kobject_name(kobj->parent), 36) == 0) {
-@@ -619,9 +628,11 @@ static ssize_t wmi_data_write(struct kobject *kobj, struct bin_attribute
- 			wmi_guid_kobj[i].data = kzalloc(count, GFP_KERNEL);
- 			memcpy(wmi_guid_kobj[i].data, buf, count);
- 			wmi_guid_kobj[i].data_size = count;
-+			mutex_unlock(&wmi_data_lock);
- 			return count;
- 		}
- 	}
-+	mutex_unlock(&wmi_data_lock);
- 	return -EINVAL;
- }
- 
-@@ -698,13 +709,19 @@ static ssize_t set_guid_method_id(struct kobject *kobj, const char *buf,
- 
- 	method_id = simple_strtoul(buf, NULL, 10);
- 
-+	mutex_lock(&wmi_data_lock);
-+
- 	for (i = 0; i < guids.total; i++) {
- 		if (memcmp(kobject_name(&wmi_guid_kobj[i].guid_kobj),
- 			kobject_name(kobj->parent), 36) == 0) {
- 			wmi_guid_kobj[i].method_id = method_id;
-+			mutex_unlock(&wmi_data_lock);
- 			return count;
- 		}
- 	}
-+
-+	mutex_unlock(&wmi_data_lock);
-+
- 	return -EINVAL;
- }
- static WMI_ATTR(method_id, S_IWUGO | S_IRUGO, show_guid_method_id,
--- 
-1.5.3.4
+{pts/1}% cat -E /var/tmp/bat/2.6.23 | grep type
+battery type:            Li-ION  $
 
+Use strncasecmp to compare model string to skip trailing part
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+
+=2D--
+
+ drivers/acpi/battery.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..1905b88 100644
+=2D-- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -125,7 +125,7 @@ static int acpi_battery_technology(struct acpi_battery=
+=20
+*battery)
+ 		return POWER_SUPPLY_TECHNOLOGY_NiMH;
+ 	if (!strcasecmp("LION", battery->type))
+ 		return POWER_SUPPLY_TECHNOLOGY_LION;
+=2D	if (!strcasecmp("LI-ION", battery->type))
++	if (!strncasecmp("LI-ION", battery->type, 6))
+ 		return POWER_SUPPLY_TECHNOLOGY_LION;
+ 	if (!strcasecmp("LiP", battery->type))
+ 		return POWER_SUPPLY_TECHNOLOGY_LIPO;
+
+--nextPart1507032.5ndqm5vjuy
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHNeQ7R6LMutpd94wRAnk3AJ0VN6zIfwNd46gEbgGJgxcUZDuyZACdERqe
+SKxbEFqVuGVDqo+TUM/0DKI=
+=Ym//
+-----END PGP SIGNATURE-----
+
+--nextPart1507032.5ndqm5vjuy--
