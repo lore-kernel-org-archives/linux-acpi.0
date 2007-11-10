@@ -1,159 +1,44 @@
-From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
-Subject: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32
-Date: Sat, 10 Nov 2007 01:44:48 +0000
-Message-ID: <20071110014448.471e384b.miknix@gmail.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32
+Date: Sat, 10 Nov 2007 03:21:21 +0000
+Message-ID: <200711100321.22500.carlos@strangeworlds.co.uk>
+References: <20071110014448.471e384b.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.187]:33849 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbXKJBg0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 20:36:26 -0500
-Received: by nf-out-0910.google.com with SMTP id g13so666867nfb
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Nov 2007 17:36:24 -0800 (PST)
+Received: from slackadelic.com ([65.196.224.53]:34439 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbXKJDVn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2007 22:21:43 -0500
+In-Reply-To: <20071110014448.471e384b.miknix@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: =?iso-8859-15?q?=C2ngelo_Miguel_Arrifano?= <miknix@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
+=C2ngelo,
 
---Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+On Saturday 10 November 2007 01:44:48 =C2ngelo Miguel Arrifano wrote:
+> If the laptop is turned off and a hot button is pressed, the
+> computer turns on and boots. This module gets a notification from
+> ACPI which button was pressed. Then the driver writes to the proc
+> fs which button was pressed allowing userspace apps to read that
+> files and behave accordingly. Proc files are also writable.
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Please use sysfs, not proc (even if you aren't considering submitting t=
+his=20
+upstream) - /proc/acpi is deprecated and going away (slowly but surely)=
+=2E
 
-Hello everyone,
-
-I made a driver to allow booting into specific apps by pressing
-hot buttons. This functionality is provided by PNP0C32 which all
-Vista capable laptops should have.
-
-If the laptop is turned off and a hot button is pressed, the
-computer turns on and boots. This module gets a notification from
-ACPI which button was pressed. Then the driver writes to the proc
-fs which button was pressed allowing userspace apps to read that
-files and behave accordingly. Proc files are also writable.
-
-Eg:
-ls /proc/acpi/hotstart/
-DBTN  LVBN  MUBN  PIBN  QBTN  VOBN  WEBN
-
-DBTN is DVD Button
-WEBN is WWW Button
-
-I've uploaded everything to my personal server (very bandwidth limited).
-http://miknix.homelinux.com/hotstart/
-
-It's also attached here, just in case my ISP might do the usual...
-
-I did only test on my own laptop.
-I hope you like it.
-- -- 
-Angelo Arrifano AKA MiKNiX
-CSE Student at UBI, Portugal
-Gentoo Linux AMD64 Arch Tester
-miknix@gmail.com
-http://miknix.homelinux.com
-PGP Pubkey online
-
-- - -
-Abstainer, n.:
-	A weak person who yields to the temptation of denying himself a
-	pleasure.
-		-- Ambrose Bierce, "The Devil's Dictionary"
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFHNQ0NNahyoD2SuwsRAlvPAJ0XEB+iOVsHhZ6HsVQ+a2Jjqe9qfwCgnuO8
-JOigajLDRR20vF8sNDeY2FY=
-=Gwau
------END PGP SIGNATURE-----
-
---Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT
-Content-Type: application/x-bzip;
- name="hotstart-001.tar.bz2"
-Content-Disposition: attachment;
- filename="hotstart-001.tar.bz2"
-Content-Transfer-Encoding: base64
-
-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
-
---Multipart=_Sat__10_Nov_2007_01_44_48_+0000_oyYwNGd5aYfAncLT--
+-Carlos
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
