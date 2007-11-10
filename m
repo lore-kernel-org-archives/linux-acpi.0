@@ -1,45 +1,61 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] drivers/misc/sony-laptop.c: remove duplicated define
-Date: Sat, 10 Nov 2007 11:46:33 +0900
-Message-ID: <20071110024632.GA22417@inferi.kami.home>
-References: <20071109140832.4f2a145c@lucky.kitzblitz>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/3 v6] ACPI: WMI: Driver for review
+Date: Sat, 10 Nov 2007 15:32:06 +0000
+Message-ID: <200711101532.07531.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mfbichi11.ns.itscom.net ([219.110.2.189]:33832 "EHLO
-	mfbichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbXKJIaW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2007 03:30:22 -0500
+Received: from slackadelic.com ([65.196.224.53]:53553 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbXKJPca (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2007 10:32:30 -0500
 Content-Disposition: inline
-In-Reply-To: <20071109140832.4f2a145c@lucky.kitzblitz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
-Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Nashif, Anas" <anas.nashif@intel.com>
 
-On Fri, Nov 09, 2007 at 02:08:32PM +0100, Nicolas Kaiser wrote:
-> Remove duplicated define.
-> 
-> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+As the previous 'super patch' is:
 
-Acked-by: Mattia Dongili <malattia@linux.it>
+A) Pretty big
+B) And because of A), hard to review
 
-> ---
-> 
->  drivers/misc/sony-laptop.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> --- a/drivers/misc/sony-laptop.c	2007-11-07 11:26:12.000000000 +0100
-> +++ b/drivers/misc/sony-laptop.c	2007-11-09 13:56:36.000000000 +0100
-> @@ -1504,7 +1504,6 @@
->  #define SONYPI_CAMERA_SHUTTER_MASK 		0x7
->  
->  #define SONYPI_CAMERA_SHUTDOWN_REQUEST		7
-> -#define SONYPI_CAMERA_CONTROL			0x10
->  
->  #define SONYPI_CAMERA_STATUS 			7
->  #define SONYPI_CAMERA_STATUS_READY 		0x2
-> 
+I've split it into three patches -
+
+1) The initial WMI driver + in kernel interface
+2) The sysfs interface
+3) Proposed locking for sysfs (RFC)
+
+Hopefully, it should be a bit easier to review now (there are only a few minor 
+cleanups between this patch and the previous superpatch).
+
+The main outstanding issues (that I know of so far - more suggestions are 
+welcome) are:
+
+1) Handling GUID's marked as type 'String' - The MS spec says that when this 
+flag is set, we are supposed to change input to a method from Unicode to 
+ASCII, and output from such a marked method from ASCII to Unicode.
+
+What does Unicode mean in this context? I've tried reading around on the 
+subject, but I'm not entirely clear - UCS-2 or UTF-8?
+
+I'm also wondering if it might be better to just drop this entirely - let 
+wmi.c only handle ASCII, and leave it up to userspace to convert to/ from 
+whatever Unicode encoding they choose when talking to WMI-ACPI?
+
+2) sysfs interface - is this interface acceptable as is? If not, how could it 
+be improved?
+
+In particular, the handling for calling a WMI method is a bit clunky, as the 
+current interface uses two files to call a method (method_id and data) - this 
+could be rewritten to drop the 'method' file, and assume that userspace will 
+write a u32 with the method id followed by the rest of the input data in one 
+go to the 'data' file?
+
+-Carlos
 -- 
-mattia
-:wq!
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
