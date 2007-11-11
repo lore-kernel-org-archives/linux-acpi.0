@@ -1,47 +1,88 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: cd/dvd inaccessible in 2.6.24-rc2
-Date: Sat, 10 Nov 2007 16:13:01 -0800
-Message-ID: <20071110161301.4d50676f.akpm@linux-foundation.org>
-References: <1194668831.3436.14.camel@Athas>
-	<20071110144923.beb7bbae.akpm@linux-foundation.org>
-	<20071110230553.1a935ec6@the-village.bc.nu>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] ACPI: Put button input devices in correct place in sysfs
+Date: Sun, 11 Nov 2007 11:42:45 +0300
+Message-ID: <200711111142.52346.arvidjaar@mail.ru>
+References: <200711062051.59884.arvidjaar@mail.ru> <d120d5000711061247l5102875bg9d9b841086dd77b5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed;
+  boundary="nextPart1650336.XjCWlIMpJ9";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48860 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755433AbXKKANY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Nov 2007 19:13:24 -0500
-In-Reply-To: <20071110230553.1a935ec6@the-village.bc.nu>
+Received: from mx40.mail.ru ([194.67.23.36]:62781 "EHLO mx40.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753189AbXKKIm5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Nov 2007 03:42:57 -0500
+In-Reply-To: <d120d5000711061247l5102875bg9d9b841086dd77b5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Will Trives <will@trivescon.com.au>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, David Brownell <david-b@pacbell.net>
 
-On Sat, 10 Nov 2007 23:05:53 +0000 Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+--nextPart1650336.XjCWlIMpJ9
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> > > ata9.00: qc timeout (cmd 0xa0)
-> > > ata9.00: exception Emask 0x0 SAct 0x0 SErr 0x0 action 0x2 frozen
-> > > ata9.00: cmd a0/00:00:00:02:00/00:00:00:00:00/a0 tag 0 cdb 0x5a data 2
-> > > in
-> > >          res 51/54:03:00:02:00/00:00:00:00:00/a0 Emask 0x5 (timeout)
-> > > ata9.00: status: { DRDY ERR }
-> 
-> Could be an IRQ/ACPI regression, and in fact to me it looks more like
-> that, than an IDE one.
+On Tuesday 06 November 2007, Dmitry Torokhov wrote:
+> Hi Andrey,
+>=20
+> On Nov 6, 2007 12:51 PM, Andrey Borzenkov <arvidjaar@mail.ru> wrote:
+> > Properly set up parent on input device registered by the button driver.
+> >
+>=20
+> Seems to be a popular topic today :)
+>=20
+> >
+> > +       input->cdev.dev =3D &device->dev;
+>=20
+> Please don't use cdev, but rather input_dev->dev.parent. cdev is going
+> away soon.
+> I sent a patch a couple of days ago to teh acpi list...
+>=20
 
-Drat.  Seems that once we break that sort of thing we never fix it again.
+You mean button patch? I could find only video one.
 
-> Probably worth trying the various IRQ routing
-> options and seeing if they help.
+Just in case, here is updated version.
 
-Yup.
+Subject: [PATCH] Make real parent for ACPI button input devices
+=46rom: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Please, if you have time, bisect it down to the offending commit?
 
-There's info at http://www.kernel.org/doc/local/git-quick.html which should
-help.
 
-Thanks.
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+
+=2D--
+
+ drivers/acpi/button.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 24a7865..6c5da83 100644
+=2D-- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -449,6 +449,7 @@ static int acpi_button_add(struct acpi_device *device)
+ 	input->phys =3D button->phys;
+ 	input->id.bustype =3D BUS_HOST;
+ 	input->id.product =3D button->type;
++	input->dev.parent =3D &device->dev;
+=20
+ 	switch (button->type) {
+ 	case ACPI_BUTTON_TYPE_POWER:
+
+
+--nextPart1650336.XjCWlIMpJ9
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHNsCGR6LMutpd94wRAiaHAJ4uCnnrt9k/f+S3JSXUyNquVos0UQCgnlBj
+RW06nempKiKp5ovI2IadW8k=
+=OJEQ
+-----END PGP SIGNATURE-----
+
+--nextPart1650336.XjCWlIMpJ9--
