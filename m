@@ -1,59 +1,40 @@
-From: =?ISO-8859-15?Q?Thomas_B=E4chler?= <thomas@archlinux.org>
-Subject: Re: 2.6.24-rc1-g74521c28: oops during boot [<ffffffff881c03e4>]
- :power_supply:power_supply_show_property+0x94/0x150
-Date: Sun, 11 Nov 2007 20:06:29 +0100
-Message-ID: <473752B5.4050304@archlinux.org>
-References: <472C5C2D.9010700@archlinux.org> <4736EE1C.3010500@archlinux.org>
- <473750B2.4060208@archlinux.org> <200711112019.21853.rjw@sisk.pl>
+From: "Jim Qode" <jimqode@gmail.com>
+Subject: Sony VGN-N395E incompatibility
+Date: Sun, 11 Nov 2007 21:22:40 +0200
+Message-ID: <c421c8de0711111122r73b22d84rb2c087747849c690@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary=------------enigF52A8B1000F5A8E6856CFC36
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta-1.ms.rz.RWTH-Aachen.DE ([134.130.7.72]:58238 "EHLO
-	mta-1.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753603AbXKKTGe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Nov 2007 14:06:34 -0500
-In-reply-to: <200711112019.21853.rjw@sisk.pl>
+Received: from wx-out-0506.google.com ([66.249.82.228]:4238 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754341AbXKKTWq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Nov 2007 14:22:46 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so1095546wxd
+        for <linux-acpi@vger.kernel.org>; Sun, 11 Nov 2007 11:22:40 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?ISO-8859-15?Q?Thomas_B=E4chler?= <thomas@archlinux.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigF52A8B1000F5A8E6856CFC36
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+I recently bought a Sony VGN-N395E Laptop. I'm using Ubuntu Gutsy as
+the operating system. Laptop runs too hot (about 65-69C) and fan never
+kicks in.
+Spicctrl does not run correctly. All readings return 0 (zero).
 
-Rafael J. Wysocki schrieb:
->> Replying to myself again. Apparently, a fix for this bug was applied t=
-o
->> the linux-acpi tree independently of my bug report, see here:
->> http://git.kernel.org/?p=3Dlinux/kernel/git/lenb/linux-acpi-2.6.git;a=3D=
-commit;h=3D4c41d3ad6544f1c9aec37c441af04f5d0ad3a731
->=20
-> I'm having some problems with accessing git.kernel.org right now.  I'll=
- have a
-> look when it works again.
+/proc/acpi/fan is empty. There is no fan control
+/proc/acpi/thermal_zone has two zones. temperature files always read
+49-51 C no matter how hot laptop runs. I assume lmsensors show the
+correct reading. trip_points file show only passive cooling option and
+tripping point is set to 80C, way too high.
+I can't write to tripping_points, i get "bash: echo: write error:
+Invalid argument".
 
-Same problem here, it took me some time until I could view it. I forgot
-to mention that the patch actually fixes the bug in my case, I can boot
-2.6.24 without oopses now.
+I think this laptop has a different variant of the chip Mattia reverse
+engineered. This is a really big headache for me, can it be fixed? I
+can provide any information you want about the laptop.
 
+Here is the dmesg output => http://paste.ubuntu-nl.org/44159/
+And dmidecode output => http://paste.ubuntu-nl.org/44160/
 
---------------enigF52A8B1000F5A8E6856CFC36
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHN1K1Eda5KzHP/VARCFZQAJwL4L2Z/Udr7qHLbPyq7GqZO18oBwCdFU24
-eD4qVmATkva/uMNhpNp+mvg=
-=D9CO
------END PGP SIGNATURE-----
-
---------------enigF52A8B1000F5A8E6856CFC36--
+Please let me know if you need anything else.
