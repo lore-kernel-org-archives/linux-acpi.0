@@ -1,62 +1,53 @@
-From: =?ISO-8859-15?Q?Thomas_B=E4chler?= <thomas@archlinux.org>
-Subject: Re: 2.6.24-rc1-g74521c28: oops during boot [<ffffffff881c03e4>]
- :power_supply:power_supply_show_property+0x94/0x150
-Date: Sun, 11 Nov 2007 19:57:54 +0100
-Message-ID: <473750B2.4060208@archlinux.org>
-References: <472C5C2D.9010700@archlinux.org> <200711031926.01665.rjw@sisk.pl>
- <472CC005.4070609@archlinux.org> <4736EE1C.3010500@archlinux.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.24-rc1-g74521c28: oops during boot [<ffffffff881c03e4>] :power_supply:power_supply_show_property+0x94/0x150
+Date: Sun, 11 Nov 2007 20:19:21 +0100
+Message-ID: <200711112019.21853.rjw@sisk.pl>
+References: <472C5C2D.9010700@archlinux.org> <4736EE1C.3010500@archlinux.org> <473750B2.4060208@archlinux.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary=------------enigE959CCE834E498A157A35761
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta-1.ms.rz.RWTH-Aachen.DE ([134.130.7.72]:53724 "EHLO
-	mta-1.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752944AbXKKS55 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Nov 2007 13:57:57 -0500
-In-reply-to: <4736EE1C.3010500@archlinux.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:34898 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752543AbXKKTCS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Nov 2007 14:02:18 -0500
+In-Reply-To: <473750B2.4060208@archlinux.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-15?Q?Thomas_B=E4chler?= <thomas@archlinux.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Thomas =?iso-8859-15?q?B=E4chler?= <thomas@archlinux.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE959CCE834E498A157A35761
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
->>> http://bugzilla.kernel.org/show_bug.cgi?id=3D9299
+On Sunday, 11 of November 2007, Thomas B=E4chler wrote:
+> >>> http://bugzilla.kernel.org/show_bug.cgi?id=3D9299
+> >=20
+> > I just tested again (with 2.6.24-rc2-gecd744ee). If I only load the=
+ 'ac'
+> > kernel module and not the 'battery' kernel module, then the system =
+boots
+> > fine. However, if I load the 'battery' module during boot or later,=
+ I
+> > still get the oops.
+> >=20
+> > I am running 2.6.24-rc2-gecd744ee right now, but without the batter=
+y
+> > module. I am forwarding this to the ACPI list as well.
+> >=20
 >=20
-> I just tested again (with 2.6.24-rc2-gecd744ee). If I only load the 'ac=
-'
-> kernel module and not the 'battery' kernel module, then the system boot=
-s
-> fine. However, if I load the 'battery' module during boot or later, I
-> still get the oops.
->=20
-> I am running 2.6.24-rc2-gecd744ee right now, but without the battery
-> module. I am forwarding this to the ACPI list as well.
->=20
+> Replying to myself again. Apparently, a fix for this bug was applied =
+to
+> the linux-acpi tree independently of my bug report, see here:
+> http://git.kernel.org/?p=3Dlinux/kernel/git/lenb/linux-acpi-2.6.git;a=
+=3Dcommit;h=3D4c41d3ad6544f1c9aec37c441af04f5d0ad3a731
 
-Replying to myself again. Apparently, a fix for this bug was applied to
-the linux-acpi tree independently of my bug report, see here:
-http://git.kernel.org/?p=3Dlinux/kernel/git/lenb/linux-acpi-2.6.git;a=3Dc=
-ommit;h=3D4c41d3ad6544f1c9aec37c441af04f5d0ad3a731
+I'm having some problems with accessing git.kernel.org right now.  I'll=
+ have a
+look when it works again.
 
-
---------------enigE959CCE834E498A157A35761
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHN1CyEda5KzHP/VARCBymAJ4uepr2VPU487E2ir0wK5LwhHHWjACeM+UI
-v87KwP053+vyPml53qnTYZA=
-=tQJ+
------END PGP SIGNATURE-----
-
---------------enigE959CCE834E498A157A35761--
+Thanks,
+Rafael
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
