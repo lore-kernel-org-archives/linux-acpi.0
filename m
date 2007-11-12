@@ -1,88 +1,43 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: GPE handling
-Date: Mon, 12 Nov 2007 08:42:26 +0800
-Message-ID: <1194828146.32662.3.camel@sli10-conroe.sh.intel.com>
-References: <FC1D1B23302A22499C60C967336B2AE001FF2CA9@pdsmsx411.ccr.corp.intel.com>
-	 <47342C26.2040505@gmail.com>
+From: SANGOI DINO LEONARDO <dino.leonardo.sangoi@allianz.it>
+Subject: RE: 2.6.24-rc1 and 2.6.24.rc2 hangs while running udev on my lapt
+	op
+Date: Mon, 12 Nov 2007 11:57:19 +0100
+Message-ID: <2C8305E0BE090E47A2BAD52A48AC911D17BCEB92@exchange1.lloyd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41191 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758070AbXKLAs0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Nov 2007 19:48:26 -0500
-In-Reply-To: <47342C26.2040505@gmail.com>
+Received: from relay.lloydadriatico.it ([194.185.101.20]:28857 "EHLO
+	relay.lloydadriatico.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757014AbXKLLHu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Nov 2007 06:07:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>, SANGOI DINO LEONARDO <dino.leonardo.sangoi@allianz.it>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2007-11-09 at 12:45 +0300, Alexey Starikovskiy wrote:
-> Shaohua,
-> There is cond_resched() before the exit from deferred execution routine,
-> specifically to let notify thread a chance to execute.
-> Thus by the time deferred execution is exited, notify should be already 
-> done,
-> and we could safely enable _Lxx again.
-> Do you think it is not sufficient?
-Certainly not. A resched() can help to give a chance for other threads
-to execute, but it's very unreliable. If it works, just because of luck.
-We should add a wait there to guarantee.
+On Saturday, November 10, 2007 1:53 AM, Venki Pallipadi
+[mailto:venkatesh.pallipadi@intel.com] wrote:
+> 
+> Dino,
+> 
+> Can you try the patch below over rc2 and see whether it fixes 
+> the problem.
+> Looking at the code, it should fix the problem. If it does 
+> not, can you send me the output of acpidump from your system. 
+> That will help to look further into this. You can get 
+> acpidump from latest pmtools package here.
+> www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+> 
+Venki,
+
+Thanks, but sadly your patch does not fix the problem.
+
+I have created a new bugzilla bug in the kernel bugtraker
+(http://bugzilla.kernel.org/show_bug.cgi?id=9355), where you can find the
+acpi dump and config.
+
+Ask me if I can try something else.
 
 Thanks,
-Shaohua
 
-> 
-> Li, Shaohua wrote:
-> > Bob & Ming,
-> > I'm working on adding wakeup GPE support at system runtime, this
-> > capability can help us
-> > Identify which device invokes a wakeup event at runtime, this is
-> > required for runtime device
-> > Power management.
-> >
-> > Below is the ASL code. For example, _L0c, USB3 will send a wakeup GPE
-> > and invoke
-> > a notify. In the notify handler, OS will clear USB3's PCI PME status to
-> > avoid wakeup
-> > event flood. But in current code, acpi_ev_asynch_execute_gpe_method will
-> > start an asynchronous
-> > execution of notify and return soon. Just before the return,
-> > acpi_ev_asynch_execute_gpe_method
-> > will reenable GPE 0C. That means GPE is enabled before OS execute
-> > notification handler and USB3's
-> > PCI PME status is cleared, and cause GPE flood. Ideally, I think we
-> > should delay GPE enable
-> > of _L0c till notification handler is finished or simply the method _L0c
-> > is really finished.
-> > What do you think?
-> >
-> > Thanks,
-> > Shaohua
-> >
-> >
-> >         Method (_L0C, 0, NotSerialized)
-> >         {
-> >             Notify (\_SB.PCI0.USB3, 0x02)
-> >         }
-> >
-> >         Method (_L0D, 0, NotSerialized)
-> >         {
-> >             Notify (\_SB.PCI0.USB7, 0x02)
-> >         }
-> >
-> >         Method (_L0E, 0, NotSerialized)
-> >         {
-> >             Notify (\_SB.PCI0.USB4, 0x02)
-> >         }
-> > -
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >   
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dino
