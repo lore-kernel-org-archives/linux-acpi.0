@@ -1,67 +1,43 @@
-From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32
-Date: Mon, 12 Nov 2007 00:05:34 +0000
-Message-ID: <20071112000534.e0489eca.miknix@gmail.com>
-References: <20071110014448.471e384b.miknix@gmail.com>
-	<200711100321.22500.carlos@strangeworlds.co.uk>
+Date: Mon, 12 Nov 2007 00:02:23 +0000
+Message-ID: <200711120002.24474.carlos@strangeworlds.co.uk>
+References: <20071110014448.471e384b.miknix@gmail.com> <200711100321.22500.carlos@strangeworlds.co.uk> <20071112000534.e0489eca.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:43569 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754496AbXKKX5K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Nov 2007 18:57:10 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so666799ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Nov 2007 15:57:09 -0800 (PST)
-In-Reply-To: <200711100321.22500.carlos@strangeworlds.co.uk>
+Received: from slackadelic.com ([65.196.224.53]:44131 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752814AbXKLACz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Nov 2007 19:02:55 -0500
+In-Reply-To: <20071112000534.e0489eca.miknix@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: =?iso-8859-1?q?=C2ngelo_Miguel_Arrifano?= <miknix@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Angelo,
 
-On Sat, 10 Nov 2007 03:21:21 +0000
-Carlos Corbacho <carlos@strangeworlds.co.uk> wrote:
+On Monday 12 November 2007 00:05:34 =C2ngelo Miguel Arrifano wrote:
+> Thanks! The driver is now using sysfs.
+> What should I do to submit the driver properly to upstream?
 
-> Angelo,
-> 
-> On Saturday 10 November 2007 01:44:48 Angelo Miguel Arrifano wrote:
-> > If the laptop is turned off and a hot button is pressed, the
-> > computer turns on and boots. This module gets a notification from
-> > ACPI which button was pressed. Then the driver writes to the proc
-> > fs which button was pressed allowing userspace apps to read that
-> > files and behave accordingly. Proc files are also writable.
-> 
-> Please use sysfs, not proc (even if you aren't considering submitting this 
-> upstream) - /proc/acpi is deprecated and going away (slowly but surely).
-> 
-> -Carlos
-> -- 
-> E-Mail: carlos@strangeworlds.co.uk
-> Web: strangeworlds.co.uk
-> GPG Key ID: 0x23EE722D
+See http://www.lesswatts.org/projects/acpi/submitting-patches.php
 
-Thanks! The driver is now using sysfs.
-What should I do to submit the driver properly to upstream?
+and
 
-Best regards,
-- -- 
-Angelo Arrifano AKA MiKNiX
-CSE Student at UBI, Portugal
-Gentoo Linux AMD64 Arch Tester
-miknix@gmail.com
-http://miknix.homelinux.com
-PGP Pubkey online
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.=
+ACPI
 
-- - -
-Boys, you have ALL been selected to LEAVE th' PLANET in 15 minutes!!
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQFHN5jONahyoD2SuwsRAnz4AKDlpmU8geaaR27s/gXX1KaE3/CFMACg4i9B
-842nLwYkmvcH9FlmydSngjU=
-=UtSO
------END PGP SIGNATURE-----
+-Carlos
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
