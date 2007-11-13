@@ -1,76 +1,87 @@
-From: Alex Chiang <achiang@hp.com>
+From: Matt Domsch <Matt_Domsch@dell.com>
 Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 13:59:39 -0700
-Message-ID: <20071113205939.GC22812@ldl.fc.hp.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202424.GE8421@austin.ibm.com>
+Date: Tue, 13 Nov 2007 15:15:09 -0600
+Message-ID: <20071113211509.GB19146@auslistsprd01.us.dell.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113183353.GE17785@parisc-linux.org> <20071113185122.GA22536@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palrel13.hp.com ([156.153.255.238]:49580 "EHLO palrel13.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757874AbXKMU7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:59:41 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762511AbXKMVPs@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20071113202424.GE8421@austin.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20071113185122.GA22536@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Matthew Wilcox <matthew@wil.cx>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linas Vepstas <linas@austin.ibm.com>
-Cc: Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-* Linas Vepstas <linas@austin.ibm.com>:
-> On Tue, Nov 13, 2007 at 09:01:29AM -0800, Greg KH wrote:
+On Tue, Nov 13, 2007 at 10:51:22AM -0800, Greg KH wrote:
+> On Tue, Nov 13, 2007 at 11:33:53AM -0700, Matthew Wilcox wrote:
+> > On Tue, Nov 13, 2007 at 09:01:29AM -0800, Greg KH wrote:
+> > > I'm still not sold on this idea at all.  I'm really betting that there
+> > > is a lot of incorrect acpi slot information floating around in machines
+> > > and odd things will show up in these slot entries.
 > > 
-> > Also, some companies already provide userspace tools to get
-> > all of this information about the different slots in a system
-> > and what is where, from userspace, no kernel changes are
-> > needed.  So, why add all this extra complexity to the kernel
-> > if it is not needed?
+> > Is that the end of the world?  Instead of having no information, we'll
+> > end up with odd information.  If people complain, we can always
+> > blacklist (indeed, won't the ACPI rolling blacklist catch the majority
+> > of these machines?)
 > 
-> Second that motion.... I don't get it. What are the goals of
-> this patch, really?  Just to get a "slot geographical location"
-> from the kernel?  
+> I don't think the rolling blacklist will catch this, as the rest of the
+> ACPI code is "correct".
+> 
+> And yes, incorrect information exported by the kernel is not good at
+> all, especially if a user expects it to work properly :)
+> 
+> > > I say this because for a long time there was no "standard" acpi entries
+> > > for hotplug slots and different companies did different things.  Hence
+> > > the "odd" IBM acpi hotplug implementation as one example.  If this is
+> > > going to go anywhere, you need to get IBM to agree that it works
+> > > properly with all their machines...
+> > 
+> > Not in terms of slot names.  There were various things that ACPI didn't
+> > specify, like attention and latches, but the description of _SUN hasn't
+> > changed.
+> 
+> Ok, again, I want to see the IBM people sign off on this, after testing
+> on all of their machines, before I'll consider this, as I know the IBM
+> acpi tables are "odd".
+> 
+> Also, how about Dell machines?  I know they are probably not expecting
+> this information to show up and who knows if the numbering of their
+> slots match up with their physical diagrams (I say this based on all of
+> the eth0/eth1 "issues" with Dell machines over the years...)
 
-Yes, plus some general cleanups in the PCI hotplug space (more
-patches queued up, pending the results of this series ;)
 
-But to use the word "just" kinda implies that this is a trivial
-feature that no one really cares about, which I'm not really sure
-I agree with. Slot geographical location is important for
-managability folks, who want to know which slot out of 192 (on a
-big HP ia64 system, e.g.) that their failing network card might
-be sitting in.
+The only reported _SUN problems on Dell systems were on the PE6800 and
+PE6850 systems, which we've fixed with an updated BIOS several months
+ago.  IIRC the values weren't always unique which kind of defeated the
+purpose.
 
-And again, we (HP ia64) need to get this information from the
-kernel.
+The eth0/eth1 "issues" are completely separate, with no relation to
+ACPI.  That's purely a PCI tree depth-first discovery
+vs. breadth-first discovery (where it indeed seems everyone except
+Linux 2.6 uses and expects breadth-first).  We looked at extending
+ACPI to export device naming preference, but instead extended SMBIOS
+tables because we could get that change in far easier.
 
-> I'm balancing the intellectual appeal of having a kernel struct
-> for representing physical objects, against the headache of
-> reading (debugging, modifying) code that has yet another struct
-> doing yet another thing.  So far, the dread of future headaches
-> is winning.
+The other bit that looks at slot numbers is the old PCI IRQ Routing
+Table, which still exists on Dell systems.
 
-Well, hopefully, the future is cleaner, rather than messier. ;)
+> > We should, IMO, be improving the way we tell users which device has
+> > a problem.  'tulip7', 'eth4', 'pci 0000:04:1e.3' ... all the user wants
+> > to know is which damn card it is so they can replace it.  And slot name
+> > tells them that.
+> 
+> Not if the slot information is incorrect :)
+> 
+> That's my main concern.
 
-> On pseries systems, I deal with something called the
-> "partitionable endpoint", which I think probably usually
-> corresponds to physical slots, but I don't really know.  
->
-> So, naively, the physical slot concept doesn't really map to
-> what I have to work with; it just adds one more appendix to it
-> all, one more thing to get confused about.
+Again, I've only seen this be incorrect on those two models of Dell
+servers with outdated BIOS versions.
 
-Sorry, I'm a bit ignorant about pseries -- what kind of name does
-your PCI hotplug driver give to those slots? What shows up in
-/sys/bus/pci/slots/?
+Thanks,
+Matt
 
-> To be clear: above remarks are for the PowerPC boxes. I have no
-> clue about how things work on the IBM Intel-based boxes.  And
-> Greg's original "get IBM to agree" remark is about the
-> Intel-based boxes.
-
-A split house. I have no idea how Proliants work either. :)
-
-Thanks.
-
-/ac
-
+-- 
+Matt Domsch
+Linux Technology Strategist, Dell Office of the CTO
+linux.dell.com & www.dell.com/linux
