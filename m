@@ -1,42 +1,61 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [RFC] [PATCH] PNP: request ioport and iomem resources used by
- active devices
-Date: Mon, 12 Nov 2007 17:06:31 +0000 (GMT)
-Message-ID: <Pine.LNX.4.64N.0711121700070.30102@blysk.ds.pg.gda.pl>
-References: <200710291525.31475.bjorn.helgaas@hp.com>
- <Pine.LNX.4.64N.0711071252500.14970@blysk.ds.pg.gda.pl>
- <200711070915.35743.bjorn.helgaas@hp.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Mon, 12 Nov 2007 17:08:53 -0700
+Message-ID: <20071113000853.GA13341@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cerber.ds.pg.gda.pl ([153.19.208.18]:41214 "EHLO
-	cerber.ds.pg.gda.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754277AbXKLRGp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Nov 2007 12:06:45 -0500
-In-Reply-To: <200711070915.35743.bjorn.helgaas@hp.com>
+Received: from palrel13.hp.com ([156.153.255.238]:49608 "EHLO palrel13.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752779AbXKMAJF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Nov 2007 19:09:05 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: achiang@hp.com, matthew@wil.cx, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, 7 Nov 2007, Bjorn Helgaas wrote:
+Hello,
 
-> There will undoubtedly be errors in what the firmware reports.  But if
-> firmware tells us about some non PC/AT device, we should believe it at
-> least enough to avoid placing some other device on top of it.
-> 
-> If we have PNPBIOS or ACPI, the built-in stuff reserved in
-> request_standard_resources() should be superfluous.  In theory.
-> But I doubt there's any benefit in skipping request_standard_resources().
-> Possibly it could be done *after* the PNP reservations, so the
-> hierarchy would make more sense, but I don't know if even that
-> is worth the trouble.
+[this patch series touches a few subsystems; hopefully I got all
+the right maintainers]
 
- In practice it is resources above 0x00ff that really matter here as using 
-the motherboard range for device allocation is unsafe anyway (the whole 
-range may be actively decoded by the south bridge).  So whatever is 
-reported between 0x0000 and 0x00ff is mostly informational; with some 
-protection against driver bugs perhaps (that assuming they have got error 
-handling right for reservations).  I second it is not worth the hassle.
+Recently, Matthew Wilcox sent out the following mail about PCI
+slots:
 
-  Maciej
+  http://marc.info/?l=linux-pci&m=119432330418980&w=2
+
+The following patch series is a rough first cut at implementing
+the ideas he outlined, namely, that PCI slots are physical
+objects that we care about, independent of their hotplug
+capabilities.
+
+We introduce a struct pci_slot as a first-class citizen, and turn
+hotplug_slot into a subsidiary structure. A brief glimpse at the
+potential for cleanup is given, as we modify the existing hotplug
+drivers and remove the multiple get_address() methods. Certainly
+more cleanup can be done with this new structure.
+
+Additionally, we introduce an ACPI PCI slot driver, which will
+detect all physical PCI slots in the system (as described by
+ACPI). De-coupling the notion of a physical slot from its hotplug
+capability allows users to understand the physical geography of
+their machines, whether their slots are hotpluggable or not.
+
+This patch series builds heavily on Willy's prior work (with a
+bit of the typical refresh needed when aiming at the moving
+target of the kernel). The ACPI PCI slot driver is new.
+
+I have tested this series on both ia64 (hp rx6600) and x86 (hp
+dl380g). On ia64, system firmware provides _SUN methods for the
+PCI slots and we get entries in /sys/bus/pci/slots/. On my x86
+machine, firmware didn't seem to provide a _SUN, so we don't get
+any entries in /sys/bus/pci/slots/, but nothing really bad
+happens either. ;)
+
+Comments/feedback are appreciated.
+
+Thanks.
+
+/ac
+
