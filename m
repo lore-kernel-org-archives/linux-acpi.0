@@ -1,64 +1,74 @@
 From: Alex Chiang <achiang@hp.com>
 Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 13:36:45 -0700
-Message-ID: <20071113203645.GB22812@ldl.fc.hp.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113183353.GE17785@parisc-linux.org> <20071113185122.GA22536@kroah.com>
+Date: Tue, 13 Nov 2007 13:59:39 -0700
+Message-ID: <20071113205939.GC22812@ldl.fc.hp.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202424.GE8421@austin.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palrel13.hp.com ([156.153.255.238]:45279 "EHLO palrel13.hp.com"
+Received: from palrel13.hp.com ([156.153.255.238]:49580 "EHLO palrel13.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757912AbXKMUgs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:36:48 -0500
+	id S1757874AbXKMU7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Nov 2007 15:59:41 -0500
 Content-Disposition: inline
-In-Reply-To: <20071113185122.GA22536@kroah.com>
+In-Reply-To: <20071113202424.GE8421@austin.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Linas Vepstas <linas@austin.ibm.com>
+Cc: Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-* Greg KH <greg@kroah.com>:
+* Linas Vepstas <linas@austin.ibm.com>:
+> On Tue, Nov 13, 2007 at 09:01:29AM -0800, Greg KH wrote:
+> > 
+> > Also, some companies already provide userspace tools to get
+> > all of this information about the different slots in a system
+> > and what is where, from userspace, no kernel changes are
+> > needed.  So, why add all this extra complexity to the kernel
+> > if it is not needed?
 > 
-> Ok, again, I want to see the IBM people sign off on this, after
-> testing on all of their machines, before I'll consider this, as
-> I know the IBM acpi tables are "odd".
+> Second that motion.... I don't get it. What are the goals of
+> this patch, really?  Just to get a "slot geographical location"
+> from the kernel?  
 
-Who would be a good contact at IBM to get some eyes / machine
-time on this?
+Yes, plus some general cleanups in the PCI hotplug space (more
+patches queued up, pending the results of this series ;)
 
-> Also, how about Dell machines?  I know they are probably not
-> expecting this information to show up and who knows if the
-> numbering of their slots match up with their physical diagrams 
+But to use the word "just" kinda implies that this is a trivial
+feature that no one really cares about, which I'm not really sure
+I agree with. Slot geographical location is important for
+managability folks, who want to know which slot out of 192 (on a
+big HP ia64 system, e.g.) that their failing network card might
+be sitting in.
 
-Who would be a good contact at Dell for the same?
+And again, we (HP ia64) need to get this information from the
+kernel.
 
-I don't have as much experience with oddball firmware from
-various vendors as others on this list, but given the rather
-stable definition of _SUN in the ACPI spec, I'd be surprised to
-see vendors abusing that method. [I fully accept the possibility
-that I'm just naive ;)]
+> I'm balancing the intellectual appeal of having a kernel struct
+> for representing physical objects, against the headache of
+> reading (debugging, modifying) code that has yet another struct
+> doing yet another thing.  So far, the dread of future headaches
+> is winning.
 
-More likely, a vendor will do what the HP Proliant folks did,
-that being simply omitting a _SUN method altogether.
+Well, hopefully, the future is cleaner, rather than messier. ;)
 
-One more thought on that -- at *worst* my patch series will do no
-worse than the status quo of what the acpiphp module is doing
-today. That module walks through the namespace looking for _SUN
-methods, and when it finds them, it creates an entry in exactly
-the same spot (/sys/bus/pci/slots/N) that my patch series does.
+> On pseries systems, I deal with something called the
+> "partitionable endpoint", which I think probably usually
+> corresponds to physical slots, but I don't really know.  
+>
+> So, naively, the physical slot concept doesn't really map to
+> what I have to work with; it just adds one more appendix to it
+> all, one more thing to get confused about.
 
-What this series adds beyond acpiphp is adding entries for slots
-that aren't hotpluggable.
+Sorry, I'm a bit ignorant about pseries -- what kind of name does
+your PCI hotplug driver give to those slots? What shows up in
+/sys/bus/pci/slots/?
 
-> IBM sells a program that does this for server rooms.  It's
-> probably part of some Tivoli package somewhere, sorry I don't
-> remember the name.  I did see it working many years ago and it
-> required no kernel changes at all to work properly.
+> To be clear: above remarks are for the PowerPC boxes. I have no
+> clue about how things work on the IBM Intel-based boxes.  And
+> Greg's original "get IBM to agree" remark is about the
+> Intel-based boxes.
 
-Like I said in an earlier email, HP ia64 systems will require a
-kernel change to get this information. Whether it comes via a
-generic ACPI access layer like dev_acpi, or something like this
-patch series, the kernel will still get touched.
+A split house. I have no idea how Proliants work either. :)
 
 Thanks.
 
