@@ -1,56 +1,49 @@
-From: "Tim Hockin" <thockin@google.com>
-Subject: Re: acpid and /proc/acpi/events
-Date: Tue, 13 Nov 2007 14:27:30 -0800
-Message-ID: <cc96a5040711131427s6cb1d2d9x1d1ddc1226282665@mail.gmail.com>
-References: <47370E4F.5040101@dbservice.com>
-	 <8b5805ff0711131355w3007b22ch808649a45fffdb6d@mail.gmail.com>
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Tue, 13 Nov 2007 14:51:13 -0800
+Message-ID: <473A2A61.7030303@hp.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com>	<20071113170129.GA20185@kroah.com>	<20071113202154.GA22812@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:26197 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761231AbXKMW1g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 17:27:36 -0500
-Received: from zps77.corp.google.com (zps77.corp.google.com [172.25.146.77])
-	by smtp-out.google.com with ESMTP id lADMRW8R012981
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:32 -0800
-Received: from wr-out-0506.google.com (wri71.prod.google.com [10.54.9.71])
-	by zps77.corp.google.com with ESMTP id lADMQxq0022153
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:31 -0800
-Received: by wr-out-0506.google.com with SMTP id 71so1180736wri
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:31 -0800 (PST)
-In-Reply-To: <8b5805ff0711131355w3007b22ch808649a45fffdb6d@mail.gmail.com>
-Content-Disposition: inline
+Received: from palrel13.hp.com ([156.153.255.238]:43250 "EHLO palrel13.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761610AbXKMWvR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Nov 2007 17:51:17 -0500
+In-Reply-To: <20071113202632.GA3227@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Jung-Ik (John) Lee" <jilee@google.com>
-Cc: linux-acpi@vger.kernel.org, tom@dbservice.com
+To: Greg KH <greg@kroah.com>
+Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, Richard Jones <rick.jones2@hp.com>
 
-Short answer: yes
-Longer answer: yes, but I've been swamped, and will happily consider patches
+Greg KH wrote:
+> Doesn't /sys/firmware/acpi give you raw access to the correct tables
+> already?
+> 
+> And isn't there some other tool that dumps the raw ACPI tables?  I
+> thought the acpi developers used it all the time when debugging things
+> with users.
 
-Tim
+I'm neither an acpi developer (well I don't think that I am :) nor an
+end-user, but here are the two things for which I was going to use the
+information being presented by Alex's patch:
 
+1) a not-yet, but on track to be released tool to be used by end-users
+to diagnose I/O bottlenecks - the information in
+/sys/bus/pci/slot/<foo>/address would be used to associated interfaces
+and/or pci busses etc with something the end user would grok - the
+number next to the slot.
 
-On Nov 13, 2007 1:55 PM, Jung-Ik (John) Lee <jilee@google.com> wrote:
->
->
-> ---------- Forwarded message ----------
-> From: Tomas Carnecky <tom@dbservice.com>
-> Date: Nov 11, 2007 6:14 AM
-> Subject: acpid and /proc/acpi/events
-> To: linux-acpi@vger.kernel.org
->
->
-> Now that /proc/acpi/events will soon be removed, are there any plans to
-> port acpid to the evdev/netlink interfaces?
->
-> thanks
-> tom
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at   http://vger.kernel.org/majordomo-info.html
->
->
+2) I was also going to get the folks doing installers to make use of the
+"end-user" slot ID. Even without going to the extreme of the
+aforementioned 192 slot system, an 8 slot system with a bunch of
+dual-port NICs in it (for example) is going to present this huge list of
+otherwise identical entries. Even if the installers show the MAC for a
+NIC (or I guess a WWN for an HBA or whatnot) that still doesn't tell one
+without prior knowledge of what MACs were installed in which slot, which
+slot is associated with a given ethN. Having the end-user slot ID
+visible is then going to be a great help to that poor admin who is doing
+the install.
+
+rick jones
