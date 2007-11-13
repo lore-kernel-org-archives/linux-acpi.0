@@ -1,38 +1,68 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
-Date: Tue, 13 Nov 2007 00:59:26 -0800
-Message-ID: <20071113005926.ce4b0c58.akpm@linux-foundation.org>
-References: <1193652664.22149.4.camel@localhost>
-	<200711050118.34610.rjw@sisk.pl>
-	<20071108155344.GA12231@cataract>
-	<200711081717.00421.rjw@sisk.pl>
-	<47333ACB.6070408@suse.de>
-	<20071108203451.1b7f28c0.akpm@linux-foundation.org>
-	<47342A2B.5020006@suse.de>
-	<20071109014944.26adf4e0.akpm@linux-foundation.org>
-	<473961C6.4090407@gmail.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: remove cycle from battery removal.
+Date: Tue, 13 Nov 2007 12:23:06 +0300
+Message-ID: <20071113092306.6242.1237.stgit@localhost.localdomain>
+References: <473961C6.4090407@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60857 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172AbXKMI77 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 03:59:59 -0500
+Received: from charybdis-ext.suse.de ([195.135.221.2]:57715 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750853AbXKMJXR (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 04:23:17 -0500
 In-Reply-To: <473961C6.4090407@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, rjw@sisk.pl, hannes-kernel@saeurebad.de, listen@selfservix.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: torvalds@linux-foundation.org
+Cc: Linux-acpi@vger.kernel.orgLinux-acpi@vger.kernel.org
 
-On Tue, 13 Nov 2007 11:35:18 +0300 Alexey Starikovskiy <aystarik@gmail.com> wrote:
+get_property() should not call battery_update(),
+it also should call get_status() only if battery is present to
+avoid cycle and oops.
 
-> I can not contact with Len for several days, while the oops on battery 
-> seems quite important.
-> It also seem to behave well in -mm tree (as part of Len's acpi-test).
-> Will you send this patch to Linus without approval from Len or should I?
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Acked-by: Johannes Weiner <hannes@saeurebad.de>
+---
 
-Please send it yourself - your latest version seems a little different
-from the one in git-acpi and I'd just be dangerous trying to work out
-which one is needed.
+ drivers/acpi/battery.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..192c244 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -132,7 +132,7 @@ static int acpi_battery_technology(struct acpi_battery *battery)
+ 	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery);
++static int acpi_battery_get_state(struct acpi_battery *battery);
+ 
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if ((!acpi_battery_present(battery)) &&
+-	     psp != POWER_SUPPLY_PROP_PRESENT)
++	if (acpi_battery_present(battery)) {
++		/* run battery update only if it is present */
++		acpi_battery_get_state(battery);
++	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+-	acpi_battery_update(battery);
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+ 		if (battery->state & 0x01)
+@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
++	battery->bat.dev = NULL;
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
+
