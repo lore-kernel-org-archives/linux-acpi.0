@@ -1,49 +1,49 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 09:01:29 -0800
-Message-ID: <20071113170129.GA20185@kroah.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [RFC] EC registers - Adding sysfs interface?
+Date: Tue, 13 Nov 2007 17:24:31 +0000
+Message-ID: <200711131724.31868.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759395AbXKMRF0@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from slackadelic.com ([65.196.224.53]:56147 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558AbXKMRZD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 12:25:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20071113000853.GA13341@ldl.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2007 at 05:08:53PM -0700, Alex Chiang wrote:
-> Hello,
-> 
-> [this patch series touches a few subsystems; hopefully I got all
-> the right maintainers]
-> 
-> Recently, Matthew Wilcox sent out the following mail about PCI
-> slots:
-> 
->   http://marc.info/?l=linux-pci&m=119432330418980&w=2
-> 
-> The following patch series is a rough first cut at implementing
-> the ideas he outlined, namely, that PCI slots are physical
-> objects that we care about, independent of their hotplug
-> capabilities.
+Alexey,
 
-I'm still not sold on this idea at all.  I'm really betting that there
-is a lot of incorrect acpi slot information floating around in machines
-and odd things will show up in these slot entries.
+I'm considering writing a sysfs interface for the EC registers, and was 
+wondering if you would be ok with such a patch (before I start work on it)?
 
-I say this because for a long time there was no "standard" acpi entries
-for hotplug slots and different companies did different things.  Hence
-the "odd" IBM acpi hotplug implementation as one example.  If this is
-going to go anywhere, you need to get IBM to agree that it works
-properly with all their machines...
+I'd like to expose the registers to userspace, as it is already possible to 
+access the EC registers in userspace via /dev/ports (and quite a few of us 
+would like to access them) - however, the problem with doing this is that 
+ACPI throws quite a few warnings/ errors in dmesg whilst doing this; it would 
+therefore be far preferable to expose the registers through sysfs, which 
+would in turn be based on the ec_{read,write} calls, so we don't end up 
+stepping on ACPI's toes.
 
-Also, some companies already provide userspace tools to get all of this
-information about the different slots in a system and what is where,
-from userspace, no kernel changes are needed.  So, why add all this
-extra complexity to the kernel if it is not needed?
+So, basically, I'm proposing something like:
 
-thanks,
+/sys/firmware/acpi/ec/ecX
+|
+|-> 0
+|-> 1
+|-> 2
+|-> etc... (up to 255)
 
-greg k-h
+Where each file returns the contents of the EC register in question (via 
+ec_read()), and writing to the file calls ec_write().
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
