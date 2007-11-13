@@ -1,62 +1,54 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: [RFC] EC registers - Adding sysfs interface?
-Date: Tue, 13 Nov 2007 21:46:17 +0300
-Message-ID: <4739F0F9.2030701@suse.de>
+Date: Tue, 13 Nov 2007 18:49:56 +0000
+Message-ID: <200711131849.56964.carlos@strangeworlds.co.uk>
 References: <200711131724.31868.carlos@strangeworlds.co.uk> <4739EFB0.7080507@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:56288 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755281AbXKMSql (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 13:46:41 -0500
+Received: from slackadelic.com ([65.196.224.53]:58482 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759308AbXKMSu3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 13:50:29 -0500
 In-Reply-To: <4739EFB0.7080507@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Carlos Corbacho wrote:
->> Alexey,
->>
->> I'm considering writing a sysfs interface for the EC registers, and 
->> was wondering if you would be ok with such a patch (before I start 
->> work on it)?
-> What do you need that for?
->>
->> I'd like to expose the registers to userspace, as it is already 
->> possible to access the EC registers in userspace via /dev/ports (and 
->> quite a few of us 
-> Well, this is not an argument. You have access to all memory through 
-> /dev/mem, so what?
->> would like to access them) - however, the problem with doing this is 
->> that ACPI throws quite a few warnings/ errors in dmesg whilst doing 
->> this; it would therefore be far preferable to expose the registers 
->> through sysfs, which would in turn be based on the ec_{read,write} 
->> calls, so we don't end up stepping on ACPI's toes.
-> I think it is better to do it in file system that allows seek(). So you 
-> could do with 1 file instead of 256 of them.
->>
->> So, basically, I'm proposing something like:
->>
->> /sys/firmware/acpi/ec/ecX
->> |
->> |-> 0
->> |-> 1
->> |-> 2
->> |-> etc... (up to 255)
->>
->> Where each file returns the contents of the EC register in question 
->> (via ec_read()), and writing to the file calls ec_write().
-> Carlos, I don't like the idea of 256 files. This will consume too many 
-> resources and will not bring much value.
-> If you want to have something permanent, it should be slim and fast.
-How about character /dev/ec0?
-> If we talk about some debug/research/RE, do it as you like, but don't 
-> ask for submission into kernel :)
-> Regards,
-> Alex.
-> 
+Alexey,
 
+On Tuesday 13 November 2007 18:40:48 Alexey Starikovskiy wrote:
+> I think it is better to do it in file system that allows seek(). So you
+> could do with 1 file instead of 256 of them.
+
+Fair enough.
+
+> Carlos, I don't like the idea of 256 files. This will consume too many
+> resources and will not bring much value. If you want to have something
+> permanent, it should be slim and fast. If we talk about some
+> debug/research/RE, do it as you like, but don't ask for submission into
+> kernel :)
+
+Two reasons:
+
+1) Yes, the obvious reverse engineering (being well behaved when reading EC 
+registers, without doing strange things to ACPI when it also wants to call 
+the EC - I've had at least one report where going through /dev/ports on an 
+Acer laptop managed to cause the keyboard to lockup, until the system was 
+reset).
+
+2) I'm toying with the idea of re-implementing acer_acpi as a userspace 
+application (which also requires EC access for certain functions - I don't 
+mind poking /dev/ports for the odd bit of reverse engineering, but for any 
+other kind of normal usage access to the EC, I really wouldn't want to be 
+poking in /dev/ports and tripping over the EC kernel driver).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
