@@ -1,61 +1,56 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 14:16:23 -0800
-Message-ID: <20071113221623.GA5965@suse.de>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113203645.GB22812@ldl.fc.hp.com> <20071113213049.GA4194@kroah.com> <200711131501.01320.bjorn.helgaas@hp.com>
+From: "Tim Hockin" <thockin@google.com>
+Subject: Re: acpid and /proc/acpi/events
+Date: Tue, 13 Nov 2007 14:27:30 -0800
+Message-ID: <cc96a5040711131427s6cb1d2d9x1d1ddc1226282665@mail.gmail.com>
+References: <47370E4F.5040101@dbservice.com>
+	 <8b5805ff0711131355w3007b22ch808649a45fffdb6d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:37750 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754080AbXKMWQp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 17:16:45 -0500
+Received: from smtp-out.google.com ([216.239.45.13]:26197 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761231AbXKMW1g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 17:27:36 -0500
+Received: from zps77.corp.google.com (zps77.corp.google.com [172.25.146.77])
+	by smtp-out.google.com with ESMTP id lADMRW8R012981
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:32 -0800
+Received: from wr-out-0506.google.com (wri71.prod.google.com [10.54.9.71])
+	by zps77.corp.google.com with ESMTP id lADMQxq0022153
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:31 -0800
+Received: by wr-out-0506.google.com with SMTP id 71so1180736wri
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 14:27:31 -0800 (PST)
+In-Reply-To: <8b5805ff0711131355w3007b22ch808649a45fffdb6d@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200711131501.01320.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, Matthew Wilcox <matthew@wil.cx>, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: "Jung-Ik (John) Lee" <jilee@google.com>
+Cc: linux-acpi@vger.kernel.org, tom@dbservice.com
 
-On Tue, Nov 13, 2007 at 03:01:01PM -0700, Bjorn Helgaas wrote:
-> On Tuesday 13 November 2007 02:30:49 pm Greg KH wrote:
-> > On Tue, Nov 13, 2007 at 01:36:45PM -0700, Alex Chiang wrote:
-> > > * Greg KH <greg@kroah.com>:
-> > > > IBM sells a program that does this for server rooms.  It's
-> > > > probably part of some Tivoli package somewhere, sorry I don't
-> > > > remember the name.  I did see it working many years ago and it
-> > > > required no kernel changes at all to work properly.
-> 
-> Do you know how this Tivoli package works or where it gets the
-> information?
+Short answer: yes
+Longer answer: yes, but I've been swamped, and will happily consider patches
 
-I was told it was just reading the ACPI tables from userspace.  As I saw
-it running on a machine without a modified kernel, I had no reason to
-doubt this, but it might be doing something else for all I know.
+Tim
 
-What I do know is that it somehow does work without any kernel changes
-needed, and is in use today by very large data centers without any
-problems.
 
-> > > Like I said in an earlier email, HP ia64 systems will require a
-> > > kernel change to get this information. Whether it comes via a
-> > > generic ACPI access layer like dev_acpi, or something like this
-> > > patch series, the kernel will still get touched.
-> > 
-> > And like I said, I'm pretty sure you don't need to touch the kernel
-> > today as there are people doing this just fine from userspace without
-> > any kernel changes needed :)
-> 
-> I think you are assuming userspace can just dump the raw ACPI tables
-> and extract this information from them.  But I don't think that's
-> possible because _SUN is a method that can contain arbitrary AML.
-> That AML has to be *executed*, and you can't do that safely in
-> userspace.
-
-Yes, I was assuming that based on the above running code, if this is
-somehow impossible to do from userspace, I don't know what the code is
-doing.
-
-thanks,
-
-greg k-h
+On Nov 13, 2007 1:55 PM, Jung-Ik (John) Lee <jilee@google.com> wrote:
+>
+>
+> ---------- Forwarded message ----------
+> From: Tomas Carnecky <tom@dbservice.com>
+> Date: Nov 11, 2007 6:14 AM
+> Subject: acpid and /proc/acpi/events
+> To: linux-acpi@vger.kernel.org
+>
+>
+> Now that /proc/acpi/events will soon be removed, are there any plans to
+> port acpid to the evdev/netlink interfaces?
+>
+> thanks
+> tom
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at   http://vger.kernel.org/majordomo-info.html
+>
+>
