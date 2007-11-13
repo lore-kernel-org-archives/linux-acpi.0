@@ -1,36 +1,31 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH 2/5] Construct one fakephp slot per pci slot
-Date: Tue, 13 Nov 2007 12:52:49 -0700
-Message-ID: <20071113195249.GI17785@parisc-linux.org>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113001336.GC13341@ldl.fc.hp.com> <20071113194815.GC8421@austin.ibm.com>
+From: linas@austin.ibm.com (Linas Vepstas)
+Subject: Re: [PATCH 3/5, RFC] Introduce pci_slot
+Date: Tue, 13 Nov 2007 13:56:46 -0600
+Message-ID: <20071113195646.GD8421@austin.ibm.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113001447.GD13341@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:37783 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756829AbXKMTww (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 14:52:52 -0500
+Received: from e35.co.us.ibm.com ([32.97.110.153]:34245 "EHLO
+	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487AbXKMT4s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 14:56:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20071113194815.GC8421@austin.ibm.com>
+In-Reply-To: <20071113001447.GD13341@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linas Vepstas <linas@austin.ibm.com>
-Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Tue, Nov 13, 2007 at 01:48:15PM -0600, Linas Vepstas wrote:
-> On Mon, Nov 12, 2007 at 05:13:36PM -0700, Alex Chiang wrote:
-> > +	slot->name = kmalloc(8, GFP_KERNEL);
-> > +	sprintf(slot->name, "fake%d", count++);
-> 
-> Please use snprintf to avoid buffer overruns!
+On Mon, Nov 12, 2007 at 05:14:47PM -0700, Alex Chiang wrote:
+> +/* pci_slot represents a physical slot */
+> +struct pci_slot {
+> +	struct pci_bus *bus;		/* The bus this slot is on */
+> +	struct pci_slot *next;		/* Next slot on this bus */
+> +	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
 
-Or, since kmalloc can return a 32-byte object at smallest, just allocate
-32 bytes and continue using sprintf.  fake%d would overflow after
-999,999,999,999,999,999,999,999,999 pci devices, by which time we've
-run the machine out of memory anyway.
+How much migration do you expect?  Some of it? All of it? If the
+answer is "all of it", wouldn't it just be easier to rename 
+struct hotplug_slot, and go from there?
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+--linas
