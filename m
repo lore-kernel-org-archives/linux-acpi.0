@@ -1,53 +1,65 @@
-From: linas@austin.ibm.com (Linas Vepstas)
+From: Greg KH <greg@kroah.com>
 Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 14:24:24 -0600
-Message-ID: <20071113202424.GE8421@austin.ibm.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com>
+Date: Tue, 13 Nov 2007 12:26:32 -0800
+Message-ID: <20071113202632.GA3227@kroah.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202154.GA22812@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e1.ny.us.ibm.com ([32.97.182.141]:59513 "EHLO e1.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754698AbXKMUYh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:24:37 -0500
+Received: from pentafluge.infradead.org ([213.146.154.40]:60681 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755899AbXKMUaY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 15:30:24 -0500
 Content-Disposition: inline
-In-Reply-To: <20071113170129.GA20185@kroah.com>
+In-Reply-To: <20071113202154.GA22812@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mf
 
-On Tue, Nov 13, 2007 at 09:01:29AM -0800, Greg KH wrote:
+On Tue, Nov 13, 2007 at 01:21:54PM -0700, Alex Chiang wrote:
+> * Greg KH <greg@kroah.com>:
+> > On Mon, Nov 12, 2007 at 05:08:53PM -0700, Alex Chiang wrote:
+> > > 
+> > > Recently, Matthew Wilcox sent out the following mail about
+> > > PCI slots:
+> > > 
+> > >   http://marc.info/?l=linux-pci&m=119432330418980&w=2
+> > > 
+> > > The following patch series is a rough first cut at
+> > > implementing the ideas he outlined, namely, that PCI slots
+> > > are physical objects that we care about, independent of their
+> > > hotplug capabilities.
+> > 
+> > Also, some companies already provide userspace tools to get all
+> > of this information about the different slots in a system and
+> > what is where, from userspace, no kernel changes are needed.
+> > So, why add all this extra complexity to the kernel if it is
+> > not needed?
 > 
-> Also, some companies already provide userspace tools to get all of this
-> information about the different slots in a system and what is where,
-> from userspace, no kernel changes are needed.  So, why add all this
-> extra complexity to the kernel if it is not needed?
+> On HP ia64 systems, that information is locked away in ACPI, and
+> there's no easy way to get at it. Alex Williamson tried providing
+> a generic dev_acpi driver, so that userspace could do whatever
+> they wanted to with the information:
+> 
+>   http://lkml.org/lkml/2004/8/3/106
+> 
+> And that effort kinda died. I'm of mixed feelings on that driver,
+> since it would be really nice to get unfettered access to the
+> ACPI namespace, but it's pretty dangerous, since any interesting
+> thing you might want to do is actually a method (aka, it calls
+> into firmware) and who knows what side effects there might be.
+> 
+> So from my point of view, if ia64 customers want to know about
+> the slots they have in their systems, we're gonna have to do
+> something kernel-intrusive anyhow.
 
-Second that motion.... I don't get it. What are the goals of this
-patch, really?  Just to get a "slot geographical location" from the
-kernel?  I'm balancing the intellectual appeal of having a kernel
-struct for representing physical objects, against the headache of 
-reading (debugging, modifying) code that has yet another struct 
-doing yet another thing.  So far, the dread of future headaches 
-is winning.
+Doesn't /sys/firmware/acpi give you raw access to the correct tables
+already?
 
-On pseries systems, I deal with something called the "partitionable
-endpoint", which I think probably usually corresponds to physical 
-slots, but I don't really know.  The hardware guys pitch changeups 
-all the time.  Some of these are soldered onto the planar, 
-so the are not physical slots. But they are, um, "hotpluggable"
-in that you can dynamically add & remove them from the system
-(even though you cannot physically unplug the ones that are 
-soldered on -- you can only assign them to other hardware partitions
-(think hardware VM or hardware Xen)).  So, naively, the physical 
-slot concept doesn't really map to what I have to work with; 
-it just adds one more appendix to it all, one more thing to 
-get confused about.
+And isn't there some other tool that dumps the raw ACPI tables?  I
+thought the acpi developers used it all the time when debugging things
+with users.
 
-To be clear: above remarks are for the PowerPC boxes. I have
-no clue about how things work on the IBM Intel-based boxes.
-And Greg's original "get IBM to agree" remark is about the
-Intel-based boxes.
+thanks,
 
---linas
+greg k-h
