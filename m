@@ -1,54 +1,133 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch] remove debug info in acpi video
-Date: Tue, 13 Nov 2007 10:36:50 +0800
-Message-ID: <1194921410.2969.1.camel@localhost.localdomain>
-References: <20071113005047.GA27837@zhen-devel.sh.intel.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: 2.6.24-rc1: OOPS at  acpi_battery_update
+Date: Tue, 13 Nov 2007 11:35:18 +0300
+Message-ID: <473961C6.4090407@gmail.com>
+References: <1193652664.22149.4.camel@localhost>	<200711050118.34610.rjw@sisk.pl>	<20071108155344.GA12231@cataract>	<200711081717.00421.rjw@sisk.pl>	<47333ACB.6070408@suse.de>	<20071108203451.1b7f28c0.akpm@linux-foundation.org>	<47342A2B.5020006@suse.de> <20071109014944.26adf4e0.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------090004060908070208070501"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5368 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753484AbXKMC1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Nov 2007 21:27:08 -0500
-In-Reply-To: <20071113005047.GA27837@zhen-devel.sh.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.172]:7503 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbXKMIfY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 03:35:24 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so49024ugc
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Nov 2007 00:35:23 -0800 (PST)
+In-Reply-To: <20071109014944.26adf4e0.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, rjw@sisk.pl, hannes-kernel@saeurebad.de, listen@selfservix.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tue, 2007-11-13 at 08:50 +0800, Zhenyu Wang wrote:
-> 
-> Remove acpi video debug message.
-> 
-> Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+This is a multi-part message in MIME format.
+--------------090004060908070208070501
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> ---
->  drivers/acpi/video.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index bac956b..9c8c8e6 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1782,9 +1782,6 @@ static void acpi_video_bus_notify(acpi_handle
-> handle, u32 event, void *data)
->         struct input_dev *input;
->         int keycode;
-> 
-> -
-> -       printk("video bus notify\n");
-> -
->         if (!video)
->                 return;
-> 
-> --
-> 1.5.3.3
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Andrew,
+
+I can not contact with Len for several days, while the oops on battery 
+seems quite important.
+It also seem to behave well in -mm tree (as part of Len's acpi-test).
+Will you send this patch to Linus without approval from Len or should I?
+
+Thanks,
+Alex.
+
+Andrew Morton wrote:
+> On Fri, 09 Nov 2007 12:36:43 +0300 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+>
+>   
+>> Andrew Morton wrote:
+>>     
+>>> A> On Thu, 08 Nov 2007 19:35:23 +0300 Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+>>>       
+>>>> [remove_cycle_at_battery_removal.patch  text/x-patch (1.7KB)]
+>>>> ACPI: Battery: remove cycle from battery removal.
+>>>>
+>>>> From: Alexey Starikovskiy <astarikovskiy@suse.de>
+>>>>
+>>>> get_property() should not call battery_update() on absent battery to
+>>>> avoid cycle and oops.
+>>>>
+>>>> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>>>> Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+>>>>         
+>>> A patch similar to this one but with an identical changelog was merged into
+>>> Len's tree on November 2.
+>>>
+>>> If it had been promptly merged into mainline then quite a lot of people's
+>>> time would not have been wasted.
+>>>
+>>>       
+>> Andrew,
+>> should I send such patches directly to you/Linus?
+>>
+>>     
+>
+> Well if Len doesn't object and you're confident in the changes, why not? 
+> Any time we leave bugs unfixed we drive away testers and that impacts all
+> parts of the kernel.
+>
+>   
+
+
+--------------090004060908070208070501
+Content-Type: text/x-patch;
+ name="remove_cycle_at_battery_removal.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="remove_cycle_at_battery_removal.patch"
+
+ACPI: Battery: remove cycle from battery removal.
+
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+get_property() should not call battery_update() on absent battery to
+avoid cycle and oops.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+---
+
+ drivers/acpi/battery.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..192c244 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -132,7 +132,7 @@ static int acpi_battery_technology(struct acpi_battery *battery)
+ 	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery);
++static int acpi_battery_get_state(struct acpi_battery *battery);
+ 
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if ((!acpi_battery_present(battery)) &&
+-	     psp != POWER_SUPPLY_PROP_PRESENT)
++	if (acpi_battery_present(battery)) {
++		/* run battery update only if it is present */
++		acpi_battery_get_state(battery);
++	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+-	acpi_battery_update(battery);
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+ 		if (battery->state & 0x01)
+@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
++	battery->bat.dev = NULL;
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
+
+--------------090004060908070208070501--
