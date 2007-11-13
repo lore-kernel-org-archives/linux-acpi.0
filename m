@@ -1,52 +1,55 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 11:33:53 -0700
-Message-ID: <20071113183353.GE17785@parisc-linux.org>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [RFC] EC registers - Adding sysfs interface?
+Date: Tue, 13 Nov 2007 21:40:48 +0300
+Message-ID: <4739EFB0.7080507@suse.de>
+References: <200711131724.31868.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760861AbXKMSeS@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20071113170129.GA20185@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:55437 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751947AbXKMSkz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2007 13:40:55 -0500
+In-Reply-To: <200711131724.31868.carlos@strangeworlds.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Nov 13, 2007 at 09:01:29AM -0800, Greg KH wrote:
-> I'm still not sold on this idea at all.  I'm really betting that there
-> is a lot of incorrect acpi slot information floating around in machines
-> and odd things will show up in these slot entries.
+Carlos Corbacho wrote:
+> Alexey,
+> 
+> I'm considering writing a sysfs interface for the EC registers, and was 
+> wondering if you would be ok with such a patch (before I start work on it)?
+What do you need that for?
+> 
+> I'd like to expose the registers to userspace, as it is already possible to 
+> access the EC registers in userspace via /dev/ports (and quite a few of us 
+Well, this is not an argument. You have access to all memory through /dev/mem, 
+so what?
+> would like to access them) - however, the problem with doing this is that 
+> ACPI throws quite a few warnings/ errors in dmesg whilst doing this; it would 
+> therefore be far preferable to expose the registers through sysfs, which 
+> would in turn be based on the ec_{read,write} calls, so we don't end up 
+> stepping on ACPI's toes.
+I think it is better to do it in file system that allows seek(). So you could do with 
+1 file instead of 256 of them. 
+> 
+> So, basically, I'm proposing something like:
+> 
+> /sys/firmware/acpi/ec/ecX
+> |
+> |-> 0
+> |-> 1
+> |-> 2
+> |-> etc... (up to 255)
+> 
+> Where each file returns the contents of the EC register in question (via 
+> ec_read()), and writing to the file calls ec_write().
+Carlos, I don't like the idea of 256 files. This will consume too many resources and will not bring much value.
+If you want to have something permanent, it should be slim and fast.
+If we talk about some debug/research/RE, do it as you like, but don't ask for submission into kernel :) 
 
-Is that the end of the world?  Instead of having no information, we'll
-end up with odd information.  If people complain, we can always
-blacklist (indeed, won't the ACPI rolling blacklist catch the majority
-of these machines?)
-
-> I say this because for a long time there was no "standard" acpi entries
-> for hotplug slots and different companies did different things.  Hence
-> the "odd" IBM acpi hotplug implementation as one example.  If this is
-> going to go anywhere, you need to get IBM to agree that it works
-> properly with all their machines...
-
-Not in terms of slot names.  There were various things that ACPI didn't
-specify, like attention and latches, but the description of _SUN hasn't
-changed.
-
-> Also, some companies already provide userspace tools to get all of this
-> information about the different slots in a system and what is where,
-> from userspace, no kernel changes are needed.  So, why add all this
-> extra complexity to the kernel if it is not needed?
-
-Do you have any examples of this?
-
-We should, IMO, be improving the way we tell users which device has
-a problem.  'tulip7', 'eth4', 'pci 0000:04:1e.3' ... all the user wants
-to know is which damn card it is so they can replace it.  And slot name
-tells them that.
-
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+Regards,
+Alex.
