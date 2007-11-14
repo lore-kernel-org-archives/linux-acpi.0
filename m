@@ -1,39 +1,69 @@
-From: Matthew Wilcox <matthew@wil.cx>
+From: Alex Chiang <achiang@hp.com>
 Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 08:12:32 -0700
-Message-ID: <20071114151232.GW17785@parisc-linux.org>
+Date: Wed, 14 Nov 2007 08:20:58 -0700
+Message-ID: <20071114152058.GE7523@ldl.fc.hp.com>
 References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de> <20071114141751.GS17785@parisc-linux.org> <20071114143533.GF17145@one.firstfloor.org> <20071114150025.GU17785@parisc-linux.org> <20071114150801.GH17145@one.firstfloor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:55175 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618AbXKNPMe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:12:34 -0500
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:39440 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755097AbXKNP3U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:29:20 -0500
 Content-Disposition: inline
 In-Reply-To: <20071114150801.GH17145@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andi Kleen <andi@firstfloor.org>
-Cc: Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2007 at 04:08:01PM +0100, Andi Kleen wrote:
+* Andi Kleen <andi@firstfloor.org>:
+> On Wed, Nov 14, 2007 at 08:00:25AM -0700, Matthew Wilcox wrote:
+> > On Wed, Nov 14, 2007 at 03:35:33PM +0100, Andi Kleen wrote:
+> > > It becomes much more when someone does a find /sys.
+> > > dentries are expensive. They eventually can get pruned
+> > > again, but it's still costly to do that.
+> > 
+> > Again, if this is a big concern for you, there are better
+> > places to look at for savings.
+> 
 > Whoever is proposing a feature has the burden to justify that
 > its usefulness is larger than the overhead/cost it adds.
 > 
 > Doesn't seem to be the case with this one so far.
 
-Huh?  There are half a dozen people who think it does, and half a dozen
-people who think it doesn't.  Fine, you're on the side which sees no use
-for it.
+I'm a bit confused where you're going with this. I thought the
+main point of contention wasn't around the utility of the
+patchset, it was around getting the actual information correct.
 
-> And in general ignoring overhead in new features is a pretty sad
-> approach. Big bloat does come in small steps with each new feature.
+We've already mentioned several uses that this patchset adds:
 
-A very generic argument which could be used to shoot down any new feature.
+  1. allowing managability folks to determine which physical slot
+  their failing card might be sitting in (independent of hotplug
+  capability).
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+  2. giving installers a method of presenting the physical slot
+  to the user so that the user can choose to, say, do a network
+  install off of the card in slot N, vs having to guess based on
+  MAC address or something else unfriendly
+
+  3. performance monitoring tools based on slot addresses/numbers
+
+I believe that userspace cares more about those sorts of things
+compared to consuming extra bytes when creating sysfs entries.
+
+> And in general ignoring overhead in new features is a pretty
+> sad approach. Big bloat does come in small steps with each new
+> feature.
+
+I'm kinda new to the Linux kernel, so I don't really get what
+you're saying. Are you saying that the approved method of
+exposing kernel information to the user via sysfs is actually
+bloat? Even if that information has utility?
+
+Feel free to educate me; I'm here to learn.
+
+Thanks.
+
+/ac
+
