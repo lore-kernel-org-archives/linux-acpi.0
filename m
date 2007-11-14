@@ -1,47 +1,37 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [patch 6/8] ACPI: video - properly handle errors when registering proc elements
-Date: Wed, 14 Nov 2007 10:06:53 -0500
-Message-ID: <d120d5000711140706m4a311175i89081c36fb439a5@mail.gmail.com>
-References: <20071105164328.982283020@anvil.corenet.prv>
-	 <20071105165012.564676221@anvil.corenet.prv>
-	 <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
-	 <20071114133617.GA12655@khazad-dum.debian.net>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 16:08:01 +0100
+Message-ID: <20071114150801.GH17145@one.firstfloor.org>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de> <20071114141751.GS17785@parisc-linux.org> <20071114143533.GF17145@one.firstfloor.org> <20071114150025.GU17785@parisc-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.188]:41720 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754312AbXKNPG4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:06:56 -0500
-Received: by nf-out-0910.google.com with SMTP id g13so181557nfb
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Nov 2007 07:06:54 -0800 (PST)
-In-Reply-To: <20071114133617.GA12655@khazad-dum.debian.net>
+Received: from one.firstfloor.org ([213.235.205.2]:53117 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754257AbXKNPIF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:08:05 -0500
 Content-Disposition: inline
+In-Reply-To: <20071114150025.GU17785@parisc-linux.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: Andi Kleen <andi@firstfloor.org>, Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On 11/14/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> On Wed, 14 Nov 2007, Zhang Rui wrote:
-> > On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
-> > > ACPI: video - properly handle errors when registering proc elements
-> > >
-> > > Have acpi_video_device_add_fs() and acpi_video_bus_add_fs()
-> > > properly unwind proc creation after error.
-> > Hi, Dmitry,
-> >
-> > The patch is good.
-> > But I'm afraid we don't need this patch while we are trying to remove
-> > the proc I/F for all ACPI device drivers.
->
-> IMHO, until procfs is gone for good, it is best to make sure it works
-> perfectly.
->
+On Wed, Nov 14, 2007 at 08:00:25AM -0700, Matthew Wilcox wrote:
+> On Wed, Nov 14, 2007 at 03:35:33PM +0100, Andi Kleen wrote:
+> > It becomes much more when someone does a find /sys. dentries are 
+> > expensive. They eventually can get pruned again, but it's still
+> > costly to do that.
+> 
+> Again, if this is a big concern for you, there are better places to look
+> at for savings.
 
-That is my position as well. The removal is scheduled for July 2008
-which is 9 months out.
+Whoever is proposing a feature has the burden to justify that
+its usefulness is larger than the overhead/cost it adds.
 
--- 
-Dmitry
+Doesn't seem to be the case with this one so far.
+
+And in general ignoring overhead in new features is a pretty sad
+approach. Big bloat does come in small steps with each new feature.
+
+-Andi
