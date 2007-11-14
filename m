@@ -1,165 +1,131 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch 5/8] ACPI: video - simplify handling of attached devices
-Date: Wed, 14 Nov 2007 15:17:57 +0800
-Message-ID: <1195024677.1262.46.camel@acpi-hp.sh.intel.com>
+Subject: Re: [patch 4/8] ACPI: video - convert semaphore to a mutex
+Date: Wed, 14 Nov 2007 15:17:55 +0800
+Message-ID: <1195024675.1262.45.camel@acpi-hp.sh.intel.com>
 References: <20071105164328.982283020@anvil.corenet.prv>
-	 <20071105165012.325585770@anvil.corenet.prv>
+	 <20071105165012.066394463@anvil.corenet.prv>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15364 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:26413 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759054AbXKNHIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 02:08:10 -0500
-In-Reply-To: <20071105165012.325585770@anvil.corenet.prv>
+	id S1759054AbXKNHIH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 02:08:07 -0500
+In-Reply-To: <20071105165012.066394463@anvil.corenet.prv>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
 On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
-> ACPI: video - simplify handling of attached devices
-> 
-> The old code needlessly stored invalid entries in attached_array list.
+> ACPI: video - convert semaphore to a mutex
 > 
 > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Acked-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/video.c |   58
-> +++++++++++++++++++++++----------------------------
->  1 file changed, 27 insertions(+), 31 deletions(-)
+>  drivers/acpi/video.c |   21 +++++++++++----------
+>  1 file changed, 11 insertions(+), 10 deletions(-)
 > 
 > Index: work/drivers/acpi/video.c
 > ===================================================================
 > --- work.orig/drivers/acpi/video.c
 > +++ work/drivers/acpi/video.c
-> @@ -56,8 +56,6 @@
->  #define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS      0x88
->  #define ACPI_VIDEO_NOTIFY_DISPLAY_OFF          0x89
-> 
-> -#define ACPI_VIDEO_HEAD_INVALID                (~0u - 1)
-> -#define ACPI_VIDEO_HEAD_END            (~0u)
->  #define MAX_NAME_LEN   20
-> 
->  #define ACPI_VIDEO_DISPLAY_CRT 1
-> @@ -1359,11 +1357,15 @@ static int acpi_video_bus_remove_fs(stru
->  static struct acpi_video_device_attrib*
->  acpi_video_get_device_attr(struct acpi_video_bus *video, unsigned
-> long device_id)
->  {
-> -       int count;
-> +       struct acpi_video_enumerated_device *ids;
-> +       int i;
-> +
-> +       for (i = 0; i < video->attached_count; i++) {
-> +               ids = &video->attached_array[i];
-> +               if ((ids->value.int_val & 0xffff) == device_id)
-> +                       return &ids->value.attrib;
-> +       }
-> 
-> -       for(count = 0; count < video->attached_count; count++)
-> -               if((video->attached_array[count].value.int_val &
-> 0xffff) == device_id)
-> -                       return
-> &(video->attached_array[count].value.attrib);
->         return NULL;
->  }
-> 
-> @@ -1490,20 +1492,16 @@ static void
->  acpi_video_device_bind(struct acpi_video_bus *video,
->                        struct acpi_video_device *device)
->  {
-> +       struct acpi_video_enumerated_device *ids;
->         int i;
-> 
-> -#define IDS_VAL(i) video->attached_array[i].value.int_val
-> -#define IDS_BIND(i) video->attached_array[i].bind_info
-> -
-> -       for (i = 0; IDS_VAL(i) != ACPI_VIDEO_HEAD_INVALID &&
-> -            i < video->attached_count; i++) {
-> -               if (device->device_id == (IDS_VAL(i) & 0xffff)) {
-> -                       IDS_BIND(i) = device;
-> +       for (i = 0; i < video->attached_count; i++) {
-> +               ids = &video->attached_array[i];
-> +               if (device->device_id == (ids->value.int_val &
-> 0xffff)) {
-> +                       ids->bind_info = device;
->                         ACPI_DEBUG_PRINT((ACPI_DB_INFO, "device_bind %
-> d\n", i));
+> @@ -29,6 +29,7 @@
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+>  #include <linux/list.h>
+> +#include <linux/mutex.h>
+>  #include <linux/proc_fs.h>
+>  #include <linux/seq_file.h>
+>  #include <linux/input.h>
+> @@ -135,8 +136,8 @@ struct acpi_video_bus {
+>         u8 attached_count;
+>         struct acpi_video_bus_cap cap;
+>         struct acpi_video_bus_flags flags;
+> -       struct semaphore sem;
+>         struct list_head video_device_list;
+> +       struct mutex device_list_lock;  /* protects video_device_list
+> */
+>         struct proc_dir_entry *dir;
+>         struct input_dev *input;
+>         char phys[32];  /* for input device */
+> @@ -1436,9 +1437,9 @@ acpi_video_bus_get_one_device(struct acp
+>                         return -ENODEV;
 >                 }
->         }
-> -#undef IDS_VAL
-> -#undef IDS_BIND
+> 
+> -               down(&video->sem);
+> +               mutex_lock(&video->device_list_lock);
+>                 list_add_tail(&data->entry,
+> &video->video_device_list);
+> -               up(&video->sem);
+> +               mutex_unlock(&video->device_list_lock);
+> 
+>                 acpi_video_device_add_fs(device);
+> 
+> @@ -1464,12 +1465,12 @@ static void acpi_video_device_rebind(str
+>  {
+>         struct acpi_video_device *dev;
+> 
+> -       down(&video->sem);
+> +       mutex_lock(&video->device_list_lock);
+> 
+>         list_for_each_entry(dev, &video->video_device_list, entry)
+>                 acpi_video_device_bind(video, dev);
+> 
+> -       up(&video->sem);
+> +       mutex_unlock(&video->device_list_lock);
 >  }
 > 
 >  /*
-> @@ -1522,7 +1520,7 @@ static int acpi_video_device_enumerate(s
+> @@ -1601,7 +1602,7 @@ static int acpi_video_switch_output(stru
+>         unsigned long state;
+>         int status = 0;
+> 
+> -       down(&video->sem);
+> +       mutex_lock(&video->device_list_lock);
+> 
+>         list_for_each(node, &video->video_device_list) {
+>                 dev = container_of(node, struct acpi_video_device,
+> entry);
+> @@ -1619,7 +1620,7 @@ static int acpi_video_switch_output(stru
+>         dev_prev = container_of(node->prev, struct acpi_video_device,
+> entry);
+> 
+>   out:
+> -       up(&video->sem);
+> +       mutex_unlock(&video->device_list_lock);
+> 
+>         switch (event) {
+>         case ACPI_VIDEO_NOTIFY_CYCLE:
+> @@ -1738,7 +1739,7 @@ static int acpi_video_bus_put_devices(st
 >         int status;
->         int count;
->         int i;
-> -       struct acpi_video_enumerated_device *active_device_list;
-> +       struct acpi_video_enumerated_device *active_list;
->         struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->         union acpi_object *dod = NULL;
->         union acpi_object *obj;
-> @@ -1543,13 +1541,10 @@ static int acpi_video_device_enumerate(s
->         ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d video heads in _DOD
-> \n",
->                           dod->package.count));
+>         struct acpi_video_device *dev, *next;
 > 
-> -       active_device_list = kmalloc((1 +
-> -                                     dod->package.count) *
-> -                                    sizeof(struct
-> -
-> acpi_video_enumerated_device),
-> -                                    GFP_KERNEL);
-> -
-> -       if (!active_device_list) {
-> +       active_list = kcalloc(1 + dod->package.count,
-> +                             sizeof(struct
-> acpi_video_enumerated_device),
-> +                             GFP_KERNEL);
-> +       if (!active_list) {
->                 status = -ENOMEM;
->                 goto out;
+> -       down(&video->sem);
+> +       mutex_lock(&video->device_list_lock);
+> 
+>         list_for_each_entry_safe(dev, next, &video->video_device_list,
+> entry) {
+> 
+> @@ -1755,7 +1756,7 @@ static int acpi_video_bus_put_devices(st
+>                 kfree(dev);
 >         }
-> @@ -1559,23 +1554,24 @@ static int acpi_video_device_enumerate(s
->                 obj = &dod->package.elements[i];
 > 
->                 if (obj->type != ACPI_TYPE_INTEGER) {
-> -                       printk(KERN_ERR PREFIX "Invalid _DOD data\n");
-> -                       active_device_list[i].value.int_val =
-> -                           ACPI_VIDEO_HEAD_INVALID;
-> +                       printk(KERN_ERR PREFIX
-> +                               "Invalid _DOD data in element %d\n",
-> i);
-> +                       continue;
->                 }
-> -               active_device_list[i].value.int_val =
-> obj->integer.value;
-> -               active_device_list[i].bind_info = NULL;
-> +
-> +               active_list[count].value.int_val = obj->integer.value;
-> +               active_list[count].bind_info = NULL;
->                 ACPI_DEBUG_PRINT((ACPI_DB_INFO, "dod element[%d] = %d
-> \n", i,
->                                   (int)obj->integer.value));
->                 count++;
->         }
-> -       active_device_list[count].value.int_val = ACPI_VIDEO_HEAD_END;
+> -       up(&video->sem);
+> +       mutex_unlock(&video->device_list_lock);
 > 
->         kfree(video->attached_array);
-> 
-> -       video->attached_array = active_device_list;
-> +       video->attached_array = active_list;
->         video->attached_count = count;
-> -      out:
-> +
-> + out:
->         kfree(buffer.pointer);
->         return status;
+>         return 0;
 >  }
+> @@ -1924,7 +1925,7 @@ static int acpi_video_bus_add(struct acp
+>         if (error)
+>                 goto err_free_video;
+> 
+> -       init_MUTEX(&video->sem);
+> +       mutex_init(&video->device_list_lock);
+>         INIT_LIST_HEAD(&video->video_device_list);
+> 
+>         acpi_video_bus_get_devices(video, device);
 > 
 > --
 > Dmitry
