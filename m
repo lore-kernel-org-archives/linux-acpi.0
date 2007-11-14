@@ -1,47 +1,47 @@
 From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [patch 0/8] ACPI Video various cleanups & fixes
-Date: Wed, 14 Nov 2007 10:04:26 -0500
-Message-ID: <d120d5000711140704v447b7604xfb2aeada6410bf2a@mail.gmail.com>
+Subject: Re: [patch 6/8] ACPI: video - properly handle errors when registering proc elements
+Date: Wed, 14 Nov 2007 10:06:53 -0500
+Message-ID: <d120d5000711140706m4a311175i89081c36fb439a5@mail.gmail.com>
 References: <20071105164328.982283020@anvil.corenet.prv>
-	 <1195024662.1262.41.camel@acpi-hp.sh.intel.com>
+	 <20071105165012.564676221@anvil.corenet.prv>
+	 <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
+	 <20071114133617.GA12655@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:18122 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585AbXKNPE3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:04:29 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so310306ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Nov 2007 07:04:27 -0800 (PST)
-In-Reply-To: <1195024662.1262.41.camel@acpi-hp.sh.intel.com>
+Received: from nf-out-0910.google.com ([64.233.182.188]:41720 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754312AbXKNPG4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:06:56 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so181557nfb
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Nov 2007 07:06:54 -0800 (PST)
+In-Reply-To: <20071114133617.GA12655@khazad-dum.debian.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On 11/14/07, Zhang Rui <rui.zhang@intel.com> wrote:
-> On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
-> > Hi Len, Rui,
+On 11/14/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+> On Wed, 14 Nov 2007, Zhang Rui wrote:
+> > On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
+> > > ACPI: video - properly handle errors when registering proc elements
+> > >
+> > > Have acpi_video_device_add_fs() and acpi_video_bus_add_fs()
+> > > properly unwind proc creation after error.
+> > Hi, Dmitry,
 > >
-> > Here is a group of cleanups and patches to the acpi video driver.
-> > Originally I just wanted to fix sysfs placement of input devices
-> > created by the driver, but then I saw some more potential issues.
-> >
-> > The patches are against Linus's tree, please let me know if you
-> > want them redone against something else.
-> >
-> Hi, Dmitry,
+> > The patch is good.
+> > But I'm afraid we don't need this patch while we are trying to remove
+> > the proc I/F for all ACPI device drivers.
 >
-> Thanks for your patches and sorry for the delay.
+> IMHO, until procfs is gone for good, it is best to make sure it works
+> perfectly.
 >
-> The patches are good and I'm okay with most of them.
-> Detailed comments are inline.
 
-Thank you very much for reviewing them.
+That is my position as well. The removal is scheduled for July 2008
+which is 9 months out.
 
-Len, it would be nice if the very first patch (sysfs one) made in 2.6.24.
-
-Thank you,
+-- 
 Dmitry
