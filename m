@@ -1,35 +1,63 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 17:44:01 +0000
-Message-ID: <20071114174401.GA4265@srcf.ucam.org>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202154.GA22812@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 7/8] ACPI: video - more cleanups
+Date: Wed, 14 Nov 2007 12:47:44 -0500
+Message-ID: <200711141247.44425.lenb@kernel.org>
+References: <20071105164328.982283020@anvil.corenet.prv> <1195024691.1262.48.camel@acpi-hp.sh.intel.com> <200711141242.06801.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:50908 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751832AbXKNRqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 12:46:47 -0500
+Received: from hera.kernel.org ([140.211.167.34]:35264 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751807AbXKNRr6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 12:47:58 -0500
+In-Reply-To: <200711141242.06801.lenb@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20071113202632.GA3227@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tue, Nov 13, 2007 at 12:26:32PM -0800, Greg KH wrote:
 
-> Doesn't /sys/firmware/acpi give you raw access to the correct tables
-> already?
+> > > -       printk("video bus notify\n");
+> > > +       printk(KERN_DEBUG "video bus notify\n");
+> > This debug message should be removed.
 > 
-> And isn't there some other tool that dumps the raw ACPI tables?  I
-> thought the acpi developers used it all the time when debugging things
-> with users.
+> wups, yes I remember that one...
+> I'll delete that in .24 and queue the rest of Dmitry's cleanup for .25.
+> 
 
-Dumping raw ACPI tables isn't adequate - _SUN might be a complex ACPI 
-method with multiple reads and writes to raw hardware, and we really 
-don't want to do that in userspace. The only way to do this reliably is 
-in the kernel.
+Hmmm, looks like another stray printk down below -- should I nuke that too?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
+static int acpi_video_bus_POST_info_seq_show(struct seq_file *seq, void *offset)
+{
+        struct acpi_video_bus *video = seq->private;
+        unsigned long options;
+        int status;
+
+
+        if (!video)
+                goto end;
+
+        status = acpi_video_bus_POST_options(video, &options);
+        if (ACPI_SUCCESS(status)) {
+                if (!(options & 1)) {
+                        printk(KERN_WARNING PREFIX
+                               "The motherboard VGA device is not listed as a possible POST device.\n");
+                        printk(KERN_WARNING PREFIX
+                               "This indicates a BIOS bug. Please contact the manufacturer.\n");
+                }
+-->>>           printk("%lx\n", options);
+                seq_printf(seq, "can POST: <integrated video>");
+                if (options & 2)
+                        seq_printf(seq, " <PCI video>");
+                if (options & 4)
+                        seq_printf(seq, " <AGP video>");
+                seq_putc(seq, '\n');
+        } else
+                seq_printf(seq, "<not supported>\n");
+      end:
+        return 0;
+}
