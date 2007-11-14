@@ -1,200 +1,368 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch 3/8] ACPI: video - remove unsafe uses of
-	list_for_each_safe()
-Date: Wed, 14 Nov 2007 15:17:53 +0800
-Message-ID: <1195024673.1262.44.camel@acpi-hp.sh.intel.com>
+Subject: Re: [patch 6/8] ACPI: video - properly handle errors when
+	registering proc elements
+Date: Wed, 14 Nov 2007 15:18:04 +0800
+Message-ID: <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
 References: <20071105164328.982283020@anvil.corenet.prv>
-	 <20071105165011.953107289@anvil.corenet.prv>
+	 <20071105165012.564676221@anvil.corenet.prv>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26413 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:15364 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757110AbXKNHIF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 02:08:05 -0500
-In-Reply-To: <20071105165011.953107289@anvil.corenet.prv>
+	id S1757110AbXKNHIQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 02:08:16 -0500
+In-Reply-To: <20071105165012.564676221@anvil.corenet.prv>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
 On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
-> ACPI: video - remove unsafe uses of list_for_each_safe()
+> ACPI: video - properly handle errors when registering proc elements
 > 
-> list_for_each_safe() only protects list from list alterations
-> performed by the same thread. One still needs to implement
-> proper locking when list is being accessed from several threads.
-> 
+> Have acpi_video_device_add_fs() and acpi_video_bus_add_fs()
+> properly unwind proc creation after error.
+Hi, Dmitry,
+
+The patch is good.
+But I'm afraid we don't need this patch while we are trying to remove
+the proc I/F for all ACPI device drivers.
+
+Thanks,
+Rui
+
 > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/video.c |   71
-> ++++++++++++++++++++++++---------------------------
->  1 file changed, 34 insertions(+), 37 deletions(-)
+>  drivers/acpi/video.c |  230
+> +++++++++++++++++++++++++--------------------------
+>  1 file changed, 115 insertions(+), 115 deletions(-)
 > 
 > Index: work/drivers/acpi/video.c
 > ===================================================================
 > --- work.orig/drivers/acpi/video.c
 > +++ work/drivers/acpi/video.c
-> @@ -1462,12 +1462,14 @@ acpi_video_bus_get_one_device(struct acp
+> @@ -967,87 +967,90 @@ acpi_video_device_EDID_open_fs(struct in
 > 
->  static void acpi_video_device_rebind(struct acpi_video_bus *video)
+>  static int acpi_video_device_add_fs(struct acpi_device *device)
 >  {
-> -       struct list_head *node, *next;
-> -       list_for_each_safe(node, next, &video->video_device_list) {
-> -               struct acpi_video_device *dev =
-> -                   container_of(node, struct acpi_video_device,
-> entry);
-> +       struct acpi_video_device *dev;
-> +
-> +       down(&video->sem);
-> +
-> +       list_for_each_entry(dev, &video->video_device_list, entry)
->                 acpi_video_device_bind(video, dev);
+> -       struct proc_dir_entry *entry = NULL;
+> +       struct proc_dir_entry *entry, *device_dir;
+>         struct acpi_video_device *vid_dev;
+> 
+> -
+> -       if (!device)
+> -               return -ENODEV;
+> -
+>         vid_dev = acpi_driver_data(device);
+>         if (!vid_dev)
+>                 return -ENODEV;
+> 
+> -       if (!acpi_device_dir(device)) {
+> -               acpi_device_dir(device) =
+> proc_mkdir(acpi_device_bid(device),
+> -
+> vid_dev->video->dir);
+> -               if (!acpi_device_dir(device))
+> -                       return -ENODEV;
+> -               acpi_device_dir(device)->owner = THIS_MODULE;
 > -       }
+> +       device_dir = proc_mkdir(acpi_device_bid(device),
+> +                               vid_dev->video->dir);
+> +       if (!device_dir)
+> +               return -ENOMEM;
 > +
-> +       up(&video->sem);
->  }
+> +       device_dir->owner = THIS_MODULE;
 > 
->  /*
-> @@ -1592,30 +1594,33 @@ static int acpi_video_device_enumerate(s
-> 
->  static int acpi_video_switch_output(struct acpi_video_bus *video, int
-> event)
->  {
-> -       struct list_head *node, *next;
-> +       struct list_head *node;
->         struct acpi_video_device *dev = NULL;
->         struct acpi_video_device *dev_next = NULL;
->         struct acpi_video_device *dev_prev = NULL;
->         unsigned long state;
->         int status = 0;
-> 
-> +       down(&video->sem);
-> 
-> -       list_for_each_safe(node, next, &video->video_device_list) {
-> +       list_for_each(node, &video->video_device_list) {
->                 dev = container_of(node, struct acpi_video_device,
-> entry);
->                 status = acpi_video_device_get_state(dev, &state);
->                 if (state & 0x2) {
-> -                       dev_next =
-> -                           container_of(node->next, struct
-> acpi_video_device,
-> -                                        entry);
-> -                       dev_prev =
-> -                           container_of(node->prev, struct
-> acpi_video_device,
-> -                                        entry);
-> +                       dev_next = container_of(node->next,
-> +                                       struct acpi_video_device,
-> entry);
-> +                       dev_prev = container_of(node->prev,
-> +                                       struct acpi_video_device,
-> entry);
->                         goto out;
->                 }
->         }
+>         /* 'info' [R] */
+> -       entry = create_proc_entry("info", S_IRUGO,
+> acpi_device_dir(device));
+> +       entry = create_proc_entry("info", S_IRUGO, device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               entry->proc_fops = &acpi_video_device_info_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_dir;
 > +
->         dev_next = container_of(node->next, struct acpi_video_device,
-> entry);
->         dev_prev = container_of(node->prev, struct acpi_video_device,
-> entry);
-> -      out:
+> +       entry->proc_fops = &acpi_video_device_info_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'state' [R/W] */
+> -       entry =
+> -           create_proc_entry("state", S_IFREG | S_IRUGO | S_IWUSR,
+> -                             acpi_device_dir(device));
+> +       entry = create_proc_entry("state", S_IFREG | S_IRUGO |
+> S_IWUSR,
+> +                                 device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               acpi_video_device_state_fops.write =
+> acpi_video_device_write_state;
+> -               entry->proc_fops = &acpi_video_device_state_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_info;
 > +
-> + out:
-> +       up(&video->sem);
+> +       acpi_video_device_state_fops.write =
+> acpi_video_device_write_state;
+> +       entry->proc_fops = &acpi_video_device_state_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'brightness' [R/W] */
+> -       entry =
+> -           create_proc_entry("brightness", S_IFREG | S_IRUGO |
+> S_IWUSR,
+> -                             acpi_device_dir(device));
+> +       entry = create_proc_entry("brightness", S_IFREG | S_IRUGO |
+> S_IWUSR,
+> +                                 device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               acpi_video_device_brightness_fops.write =
+> acpi_video_device_write_brightness;
+> -               entry->proc_fops = &acpi_video_device_brightness_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_state;
 > +
->         switch (event) {
->         case ACPI_VIDEO_NOTIFY_CYCLE:
->         case ACPI_VIDEO_NOTIFY_NEXT_OUTPUT:
-> @@ -1691,24 +1696,17 @@ acpi_video_bus_get_devices(struct acpi_v
->                            struct acpi_device *device)
->  {
->         int status = 0;
-> -       struct list_head *node, *next;
-> -
-> +       struct acpi_device *dev;
+> +       acpi_video_device_brightness_fops.write =
+> +                       acpi_video_device_write_brightness;
+> +       entry->proc_fops = &acpi_video_device_brightness_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
 > 
->         acpi_video_device_enumerate(video);
+>         /* 'EDID' [R] */
+> -       entry = create_proc_entry("EDID", S_IRUGO,
+> acpi_device_dir(device));
+> +       entry = create_proc_entry("EDID", S_IRUGO, device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               entry->proc_fops = &acpi_video_device_EDID_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_brightness;
 > 
-> -       list_for_each_safe(node, next, &device->children) {
-> -               struct acpi_device *dev =
-> -                   list_entry(node, struct acpi_device, node);
-> -
-> -               if (!dev)
-> -                       continue;
-> +       list_for_each_entry(dev, &device->children, node) {
-> 
->                 status = acpi_video_bus_get_one_device(dev, video);
->                 if (ACPI_FAILURE(status)) {
->                         ACPI_EXCEPTION((AE_INFO, status, "Cant attach
-> device"));
->                         continue;
->                 }
-> -
->         }
->         return status;
->  }
-> @@ -1724,9 +1722,6 @@ static int acpi_video_bus_put_one_device
-> 
->         video = device->video;
-> 
-> -       down(&video->sem);
-> -       list_del(&device->entry);
-> -       up(&video->sem);
->         acpi_video_device_remove_fs(device->dev);
-> 
->         status = acpi_remove_notify_handler(device->dev->handle,
-> @@ -1734,32 +1729,34 @@ static int acpi_video_bus_put_one_device
->                                             acpi_video_device_notify);
->         backlight_device_unregister(device->backlight);
->         video_output_unregister(device->output_dev);
+> +       entry->proc_fops = &acpi_video_device_EDID_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
 > +
+> +       acpi_device_dir(device) = device_dir;
 >         return 0;
->  }
-> 
->  static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
->  {
->         int status;
-> -       struct list_head *node, *next;
-> +       struct acpi_video_device *dev, *next;
-> 
-> +       down(&video->sem);
-> 
-> -       list_for_each_safe(node, next, &video->video_device_list) {
-> -               struct acpi_video_device *data =
-> -                   list_entry(node, struct acpi_video_device, entry);
-> -               if (!data)
-> -                       continue;
-> +       list_for_each_entry_safe(dev, next, &video->video_device_list,
-> entry) {
-> 
-> -               status = acpi_video_bus_put_one_device(data);
-> +               status = acpi_video_bus_put_one_device(dev);
->                 if (ACPI_FAILURE(status))
->                         printk(KERN_WARNING PREFIX
->                                "hhuuhhuu bug in acpi video
-> driver.\n");
-> 
-> -               if (data->brightness)
-> -                       kfree(data->brightness->levels);
-> -               kfree(data->brightness);
-> -               kfree(data);
-> +               if (dev->brightness) {
-> +                       kfree(dev->brightness->levels);
-> +                       kfree(dev->brightness);
-> +               }
-> +               list_del(&dev->entry);
-> +               kfree(dev);
->         }
-> 
-> +       up(&video->sem);
 > +
->         return 0;
+> + err_remove_brightness:
+> +       remove_proc_entry("brightness", device_dir);
+> + err_remove_state:
+> +       remove_proc_entry("state", device_dir);
+> + err_remove_info:
+> +       remove_proc_entry("info", device_dir);
+> + err_remove_dir:
+> +       remove_proc_entry(acpi_device_bid(device),
+> vid_dev->video->dir);
+> +       return -ENOMEM;
 >  }
 > 
+>  static int acpi_video_device_remove_fs(struct acpi_device *device)
+>  {
+>         struct acpi_video_device *vid_dev;
+> +       struct proc_dir_entry *device_dir;
+> 
+>         vid_dev = acpi_driver_data(device);
+>         if (!vid_dev || !vid_dev->video || !vid_dev->video->dir)
+>                 return -ENODEV;
+> 
+> -       if (acpi_device_dir(device)) {
+> -               remove_proc_entry("info", acpi_device_dir(device));
+> -               remove_proc_entry("state", acpi_device_dir(device));
+> -               remove_proc_entry("brightness",
+> acpi_device_dir(device));
+> -               remove_proc_entry("EDID", acpi_device_dir(device));
+> +       device_dir = acpi_device_dir(device);
+> +       if (device_dir) {
+> +               remove_proc_entry("info", device_dir);
+> +               remove_proc_entry("state", device_dir);
+> +               remove_proc_entry("brightness", device_dir);
+> +               remove_proc_entry("EDID", device_dir);
+>                 remove_proc_entry(acpi_device_bid(device),
+> vid_dev->video->dir);
+>                 acpi_device_dir(device) = NULL;
+>         }
+> @@ -1254,94 +1257,91 @@ acpi_video_bus_write_DOS(struct file *fi
+> 
+>  static int acpi_video_bus_add_fs(struct acpi_device *device)
+>  {
+> -       struct proc_dir_entry *entry = NULL;
+> -       struct acpi_video_bus *video;
+> +       struct acpi_video_bus *video = acpi_driver_data(device);
+> +       struct proc_dir_entry *device_dir;
+> +       struct proc_dir_entry *entry;
+> 
+> +       device_dir = proc_mkdir(acpi_device_bid(device),
+> acpi_video_dir);
+> +       if (!device_dir)
+> +               return -ENOMEM;
+> 
+> -       video = acpi_driver_data(device);
+> -
+> -       if (!acpi_device_dir(device)) {
+> -               acpi_device_dir(device) =
+> proc_mkdir(acpi_device_bid(device),
+> -                                                    acpi_video_dir);
+> -               if (!acpi_device_dir(device))
+> -                       return -ENODEV;
+> -               video->dir = acpi_device_dir(device);
+> -               acpi_device_dir(device)->owner = THIS_MODULE;
+> -       }
+> +       device_dir->owner = THIS_MODULE;
+> 
+>         /* 'info' [R] */
+> -       entry = create_proc_entry("info", S_IRUGO,
+> acpi_device_dir(device));
+> +       entry = create_proc_entry("info", S_IRUGO, device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               entry->proc_fops = &acpi_video_bus_info_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_dir;
+> +
+> +       entry->proc_fops = &acpi_video_bus_info_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'ROM' [R] */
+> -       entry = create_proc_entry("ROM", S_IRUGO,
+> acpi_device_dir(device));
+> +       entry = create_proc_entry("ROM", S_IRUGO, device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               entry->proc_fops = &acpi_video_bus_ROM_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_info;
+> +
+> +       entry->proc_fops = &acpi_video_bus_ROM_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'POST_info' [R] */
+> -       entry =
+> -           create_proc_entry("POST_info", S_IRUGO,
+> acpi_device_dir(device));
+> +       entry = create_proc_entry("POST_info", S_IRUGO, device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               entry->proc_fops = &acpi_video_bus_POST_info_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_rom;
+> +
+> +       entry->proc_fops = &acpi_video_bus_POST_info_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'POST' [R/W] */
+> -       entry =
+> -           create_proc_entry("POST", S_IFREG | S_IRUGO | S_IRUSR,
+> -                             acpi_device_dir(device));
+> +       entry = create_proc_entry("POST", S_IFREG | S_IRUGO | S_IRUSR,
+> +                                 device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               acpi_video_bus_POST_fops.write =
+> acpi_video_bus_write_POST;
+> -               entry->proc_fops = &acpi_video_bus_POST_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_post_info;
+> +
+> +       acpi_video_bus_POST_fops.write = acpi_video_bus_write_POST;
+> +       entry->proc_fops = &acpi_video_bus_POST_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+>         /* 'DOS' [R/W] */
+> -       entry =
+> -           create_proc_entry("DOS", S_IFREG | S_IRUGO | S_IRUSR,
+> -                             acpi_device_dir(device));
+> +       entry = create_proc_entry("DOS", S_IFREG | S_IRUGO | S_IRUSR,
+> +                             device_dir);
+>         if (!entry)
+> -               return -ENODEV;
+> -       else {
+> -               acpi_video_bus_DOS_fops.write =
+> acpi_video_bus_write_DOS;
+> -               entry->proc_fops = &acpi_video_bus_DOS_fops;
+> -               entry->data = acpi_driver_data(device);
+> -               entry->owner = THIS_MODULE;
+> -       }
+> +               goto err_remove_post;
+> +
+> +       acpi_video_bus_DOS_fops.write = acpi_video_bus_write_DOS;
+> +       entry->proc_fops = &acpi_video_bus_DOS_fops;
+> +       entry->data = acpi_driver_data(device);
+> +       entry->owner = THIS_MODULE;
+> 
+> +       video->dir = acpi_device_dir(device) = device_dir;
+>         return 0;
+> +
+> + err_remove_post:
+> +       remove_proc_entry("POST", device_dir);
+> + err_remove_post_info:
+> +       remove_proc_entry("POST_info", device_dir);
+> + err_remove_rom:
+> +       remove_proc_entry("ROM", device_dir);
+> + err_remove_info:
+> +       remove_proc_entry("info", device_dir);
+> + err_remove_dir:
+> +       remove_proc_entry(acpi_device_bid(device), acpi_video_dir);
+> +       return -ENOMEM;
+>  }
+> 
+>  static int acpi_video_bus_remove_fs(struct acpi_device *device)
+>  {
+> -       struct acpi_video_bus *video;
+> -
+> -
+> -       video = acpi_driver_data(device);
+> +       struct proc_dir_entry *device_dir = acpi_device_dir(device);
+> 
+> -       if (acpi_device_dir(device)) {
+> -               remove_proc_entry("info", acpi_device_dir(device));
+> -               remove_proc_entry("ROM", acpi_device_dir(device));
+> -               remove_proc_entry("POST_info",
+> acpi_device_dir(device));
+> -               remove_proc_entry("POST", acpi_device_dir(device));
+> -               remove_proc_entry("DOS", acpi_device_dir(device));
+> +       if (device_dir) {
+> +               remove_proc_entry("info", device_dir);
+> +               remove_proc_entry("ROM", device_dir);
+> +               remove_proc_entry("POST_info", device_dir);
+> +               remove_proc_entry("POST", device_dir);
+> +               remove_proc_entry("DOS", device_dir);
+>                 remove_proc_entry(acpi_device_bid(device),
+> acpi_video_dir);
+>                 acpi_device_dir(device) = NULL;
+>         }
 > 
 > --
 > Dmitry
