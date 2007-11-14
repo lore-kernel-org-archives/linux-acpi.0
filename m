@@ -1,41 +1,36 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [patch 6/8] ACPI: video - properly handle errors when
-	registering proc elements
-Date: Wed, 14 Nov 2007 11:36:17 -0200
-Message-ID: <20071114133617.GA12655@khazad-dum.debian.net>
-References: <20071105164328.982283020@anvil.corenet.prv> <20071105165012.564676221@anvil.corenet.prv> <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 07:17:51 -0700
+Message-ID: <20071114141751.GS17785@parisc-linux.org>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44880 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477AbXKNNgW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 08:36:22 -0500
+Received: from palinux.external.hp.com ([192.25.206.14]:44864 "EHLO
+	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754056AbXKNORx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 09:17:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
+In-Reply-To: <p73sl39y6qb.fsf@bingen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, 14 Nov 2007, Zhang Rui wrote:
-> On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
-> > ACPI: video - properly handle errors when registering proc elements
-> > 
-> > Have acpi_video_device_add_fs() and acpi_video_bus_add_fs()
-> > properly unwind proc creation after error.
-> Hi, Dmitry,
-> 
-> The patch is good.
-> But I'm afraid we don't need this patch while we are trying to remove
-> the proc I/F for all ACPI device drivers.
+On Wed, Nov 14, 2007 at 02:07:56AM +0100, Andi Kleen wrote:
+> It's not only complexity. Each new sysfs entry costs memory.
+> Memory is not free. There should be always a good reason for those.
 
-IMHO, until procfs is gone for good, it is best to make sure it works
-perfectly.
+It's not a lot of memory; it's one directory and a couple of files for
+each PCI slot in the system.  Even huge systems have maybe 200 slots.
+In order for this to take up as much as one page of ram on a typical PC
+with six slots, this would have to consume 680 bytes per directory.  I
+don't think sysfs is that inefficient (and if it is, maybe this feature
+is not where the problem is, given the 'power' directory per device, the
+19 files per scsi device, the huge numbers of symlinks, etc).
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Intel are signing my paycheques ... these opinions are still mine
+"Bill, look, we understand that you're interested in selling us this
+operating system, but compare it to ours.  We can't possibly take such
+a retrograde step."
