@@ -1,117 +1,61 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Tue, 13 Nov 2007 18:37:32 -0700
-Message-ID: <20071114013732.GB31301@ldl.fc.hp.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113183353.GE17785@parisc-linux.org> <20071113185122.GA22536@kroah.com> <20071113201102.GK17785@parisc-linux.org> <20071113230804.GA14570@us.ibm.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [RFC] EC registers - Adding sysfs interface?
+Date: Wed, 14 Nov 2007 00:40:49 -0200
+Message-ID: <20071114024049.GA10677@khazad-dum.debian.net>
+References: <200711131724.31868.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palrel12.hp.com ([156.153.255.237]:60201 "EHLO palrel12.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757834AbXKNBhf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2007 20:37:35 -0500
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:35746 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755082AbXKNDBG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Nov 2007 22:01:06 -0500
 Content-Disposition: inline
-In-Reply-To: <20071113230804.GA14570@us.ibm.com>
+In-Reply-To: <200711131724.31868.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gary Hade <garyhade@us.ibm.com>
-Cc: Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: astarikovskiy@suse.de, linux-acpi@vger.kernel.org
 
-Hi Gary,
+On Tue, 13 Nov 2007, Carlos Corbacho wrote:
+> I'm considering writing a sysfs interface for the EC registers, and was 
+> wondering if you would be ok with such a patch (before I start work on it)?
 
-* Gary Hade <garyhade@us.ibm.com>:
-> On Tue, Nov 13, 2007 at 01:11:02PM -0700, Matthew Wilcox wrote:
-> > On Tue, Nov 13, 2007 at 10:51:22AM -0800, Greg KH wrote:
-> > > Ok, again, I want to see the IBM people sign off on this, after testing
-> > > on all of their machines, before I'll consider this, as I know the IBM
-> > > acpi tables are "odd".
-> > 
-> > That seems a little higher standard than patches are normally held to.
-> > How about the patches get sent to the appropriate people at IBM (who are
-> > they?) 
-> 
-> I be one of them. :)  I have been involved in many (but not all)
-> of IBM's x86 based (IBM System x) servers with hotplug capable
-> PCI slots.  I have mostly worked on 'acpiphp' associated issues.
+I have exactly such a beast in thinkpad-acpi (using /proc, though),
+inherited from ibm-acpi who has had it for a LONG while.  So, I feel
+entitled to share some of my experiences with it...
 
-Thanks for testing the series. It's much appreciated.
+To make it short:
 
-> Have you possibly considered a kernel option as a kinder and
-> gentler way of introducing the changes?
+1. It is dangerous.  There is no other way to look at it.  Even reads can
+   have side-effects on some boxes.   Writing can do *very* dangerous
+   things.  So, it is a "use it only when told to by someone who actually
+   knows what it does" tool for the vast majority out there.
 
-That is a good idea. I will work on that.
+2. Users will enable it even if they don't know what they're doing, and they
+   will use it as if it were just yet another toy, no matter how many
+   warnings you give them.  They will place scripts using it on Wikis, and
+   you will get to hear about it for a long, long time.
 
-> ====
-> IBM x3850
-> Slots 1-2: PCI-X under PCI root bridges
-> Slots 3-6: PCIe under transparent P2P bridges
-> Slot 1: PCI-X - populated
-> Slot 2: PCI-X - !populated
-> Slot 3: PCIe -  populated
-> Slot 4: PCIe -  !populated
-> Slot 5: PCIe -  !populated
-> Slot 6: PCIe -  populated
-> 
-> result is with 2.6.24-rc2 plus all 4 proposed patches
+3. Unless you stick *heavy* warnings, and require explicit enabling through
+   module parameters/kernel command line, distros will enable it and *you*
+   will get the blame and complains when it blows up something.
 
-Silly question, but I have to ask. :)
+4. A binary attribute that can handle mmap() is a much better interface
+   IMHO (or just use a plain UNIX char device).
 
-I sent out 5 patches -- is this simply a typo on your part, or
-did you only apply 4/5 patches?
+So, while I am *for* adding such a thing (it has proved to be useful on
+thinkpads), I'd say you should at least require a lot of steps to enable it,
+and I do NOT mean a sysfs "write 1 here to enable" attribute.
 
-> problem: acpiphp failed to register empty PCIe slots 4 and 5
+I am against the idea of providing this as a regular (non-debug) tool for
+usespace to poke at, for the simple reason that once you have "userspace
+drivers" messing with it, all hope is lost to track the hardware state on
+write-only registers.
 
-Ok, so acpiphp wasn't going to register those slots anyway, since
-they are empty. It would have bailed out after not seeing _ADR or
-_EJ0 on those slots.
-
-The acpi-pci-slot driver created those slots anyway, which is one
-of the points of the patch -- to create sysfs entries even for
-empty slots.
-
-> acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:0f:00.0
-
-This is the real address of slot 4.
-
-> acpiphp_glue: found ACPI PCI Hotplug slot 4 at PCI 0000:10:00
-> acpiphp: pci_hp_register failed with error -17
-> acpiphp_glue: acpiphp_register_hotplug_slot failed(err code = 0xffffffef)
-[repeated 7x]
-
-We saw this message 8x, once for each SxFy object under your p2p
-bridge. I actually somewhat did expect to see this error message
-(hence the RFC part of my patch ;)
-
-I currently don't have a good way to determine if we've already
-seen an empty slot under a p2p bridge, so we try to register
-every SxFy object. Of course, a /sys/bus/pci/slots/4/ entry
-already exists, so that's why we're getting -17 (-EEXIST).
-
-> acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:14:00.0
-> acpiphp_glue: found ACPI PCI Hotplug slot 5 at PCI 0000:15:00
-> acpiphp: pci_hp_register failed with error -17
-> acpiphp_glue: acpiphp_register_hotplug_slot failed(err code = 0xffffffef)
-
-Same explanation as above.
-
-> # find /sys/bus/pci/slots
-> /sys/bus/pci/slots
-
-[snip]
-
-> /sys/bus/pci/slots/4
-> /sys/bus/pci/slots/4/address
-> /sys/bus/pci/slots/5
-> /sys/bus/pci/slots/5/address
-
-Arguably, the right thing happened here. We got entries for empty
-slots, and we know their addresses.
-
-If anyone can clue me in on a better way to implement patch 4/5
-in my series so that we're not seeing those multiple attempts to
-register slots under p2p bridges, I'd love to hear your ideas.
-
-Thanks again for testing.
-
-/ac
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
