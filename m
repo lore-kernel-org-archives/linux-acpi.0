@@ -1,72 +1,66 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 09:53:17 -0800
-Message-ID: <20071114175317.GB14994@kroah.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071113145936.7e1c58fb.kristen.c.accardi@intel.com> <200711141037.09228.bjorn.helgaas@hp.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: Battery: remove cycle from battery removal.
+Date: Wed, 14 Nov 2007 20:54:16 +0300
+Message-ID: <20071114175416.17650.71659.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:52249 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762034AbXKNRxj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 12:53:39 -0500
-Content-Disposition: inline
-In-Reply-To: <200711141037.09228.bjorn.helgaas@hp.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:33757 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1762601AbXKNRyP (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 12:54:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2007 at 10:37:08AM -0700, Bjorn Helgaas wrote:
-> On Tuesday 13 November 2007 03:59:36 pm Kristen Carlson Accardi wrote:
-> > On Tue, 13 Nov 2007 12:26:32 -0800 Greg KH <greg@kroah.com> wrote:
-> > > And isn't there some other tool that dumps the raw ACPI tables?  I
-> > > thought the acpi developers used it all the time when debugging things
-> > > with users.
-> > 
-> > There are - people should take a look at the Intel Linux Firmware Kit
-> > for an example of how to parse ACPI tables in userspace - the code
-> > is also GPL'd, so you are free to use it in another GPL application.
-> > 
-> > http://www.linuxfirmwarekit.org/download.php#source
-> > 
-> > In many DSDTs I've seen, _SUN is hardcoded anyway and can be found
-> > by reading the DSDT from userspace.  This is what the firmwarekit
-> > does to check for duplicate _SUN in one of it's tests.
-> 
-> I see three relevant things in the firmware kit:
-> 
->   1) ExecuteAmlMethod() in amlpoke/amlpoke.c.  This uses
->      /proc/acpi/hotkey/event_config to cause the kernel to
->      execute an AML method.  This looks similar to what dev_acpi
->      does and is unsafe for the same reasons (the method may have
->      side effects that interfere with kernel drivers).  The kernel
->      support for this was removed in 2.6.21:
-> 
->        http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=5ee6edbcde4d3b14e4e03d4b331df1099a34aa8d
-> 
->   2) execute_aml_method() in acpitable.c.  Similar to above.
-> 
->   3) parse_SUN_name() in SUN/SUN.c.  This uses acpidump, acpixtract,
->      and iasl -d to disassemble the DSDT and SSDTs, then looks for
->      things like "Name (_SUN, 0x0000012C)".  That works well if _SUN
->      merely returns a constant, and many DSDTs do that.
-> 
->      But _SUN can be implemented as a control method, and then we have
->      a problem because we can't determine the _SUN value by inspecting
->      the DSDT.  We have to evaluate the method, and that may require
->      operation regions, semaphores, etc., so it can only be done in the
->      kernel.
-> 
-> So I agree that the firmware kit has a clever hack that works on much
-> existing x86 firmware, and it sounds like Tivoli might even rely on
-> it.  But I don't feel good about it, and it could easily break when
-> some BIOS writer needs to make _SUN slightly more complicated.
+get_property() should not call battery_update(),
+it also should call get_status() only if battery is present to
+avoid cycle and oops.
 
-Do you know of such BIOSes out there that do this?  Will the above
-scheme not work for the ia64 boxes that you know of that are out in the
-world today?
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Acked-by: Johannes Weiner <hannes@saeurebad.de>
+---
 
-thanks,
+ drivers/acpi/battery.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-greg k-h
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c2ce0ad..192c244 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -132,7 +132,7 @@ static int acpi_battery_technology(struct acpi_battery *battery)
+ 	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+ }
+ 
+-static int acpi_battery_update(struct acpi_battery *battery);
++static int acpi_battery_get_state(struct acpi_battery *battery);
+ 
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ {
+ 	struct acpi_battery *battery = to_acpi_battery(psy);
+ 
+-	if ((!acpi_battery_present(battery)) &&
+-	     psp != POWER_SUPPLY_PROP_PRESENT)
++	if (acpi_battery_present(battery)) {
++		/* run battery update only if it is present */
++		acpi_battery_get_state(battery);
++	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+-	acpi_battery_update(battery);
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+ 		if (battery->state & 0x01)
+@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
++	battery->bat.dev = NULL;
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery)
+
