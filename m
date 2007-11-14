@@ -1,51 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 3/8] ACPI: video - remove unsafe uses of list_for_each_safe()
-Date: Wed, 14 Nov 2007 12:46:12 -0500
-Message-ID: <200711141246.12928.lenb@kernel.org>
-References: <20071105164328.982283020@anvil.corenet.prv> <20071105165011.953107289@anvil.corenet.prv>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 17:44:01 +0000
+Message-ID: <20071114174401.GA4265@srcf.ucam.org>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202154.GA22812@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35209 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755348AbXKNRq0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 12:46:26 -0500
-In-Reply-To: <20071105165011.953107289@anvil.corenet.prv>
+Received: from cavan.codon.org.uk ([78.32.9.130]:50908 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbXKNRqr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 12:46:47 -0500
 Content-Disposition: inline
+In-Reply-To: <20071113202632.GA3227@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Monday 05 November 2007 11:43, Dmitry Torokhov wrote:
-> ACPI: video - remove unsafe uses of list_for_each_safe()
-> 
-> list_for_each_safe() only protects list from list alterations
-> performed by the same thread. One still needs to implement
-> proper locking when list is being accessed from several threads.
-> 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
->  drivers/acpi/video.c |   71 ++++++++++++++++++++++++---------------------------
->  1 file changed, 34 insertions(+), 37 deletions(-)
-> 
-> Index: work/drivers/acpi/video.c
-> ===================================================================
-> --- work.orig/drivers/acpi/video.c
-> +++ work/drivers/acpi/video.c
-> @@ -1462,12 +1462,14 @@ acpi_video_bus_get_one_device(struct acp
->  
->  static void acpi_video_device_rebind(struct acpi_video_bus *video)
->  {
-> -	struct list_head *node, *next;
-> -	list_for_each_safe(node, next, &video->video_device_list) {
+On Tue, Nov 13, 2007 at 12:26:32PM -0800, Greg KH wrote:
 
-yeah, these were mis-used -- they're just for the case
-where we delete the node inside the loop and don't
-want to test the node->next.
+> Doesn't /sys/firmware/acpi give you raw access to the correct tables
+> already?
+> 
+> And isn't there some other tool that dumps the raw ACPI tables?  I
+> thought the acpi developers used it all the time when debugging things
+> with users.
 
-applied.
-thanks,
--Len
+Dumping raw ACPI tables isn't adequate - _SUN might be a complex ACPI 
+method with multiple reads and writes to raw hardware, and we really 
+don't want to do that in userspace. The only way to do this reliably is 
+in the kernel.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
