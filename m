@@ -1,69 +1,27 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 08:20:58 -0700
-Message-ID: <20071114152058.GE7523@ldl.fc.hp.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de> <20071114141751.GS17785@parisc-linux.org> <20071114143533.GF17145@one.firstfloor.org> <20071114150025.GU17785@parisc-linux.org> <20071114150801.GH17145@one.firstfloor.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 1/8] ACPI: video - fit input device into sysfs tree
+Date: Wed, 14 Nov 2007 11:49:11 -0500
+Message-ID: <200711141149.11850.lenb@kernel.org>
+References: <20071105164328.982283020@anvil.corenet.prv> <20071105165011.688931555@anvil.corenet.prv> <1195024667.1262.42.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:39440 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097AbXKNP3U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:29:20 -0500
+Received: from hera.kernel.org ([140.211.167.34]:50982 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754892AbXKNQte (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 11:49:34 -0500
+In-Reply-To: <1195024667.1262.42.camel@acpi-hp.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20071114150801.GH17145@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-* Andi Kleen <andi@firstfloor.org>:
-> On Wed, Nov 14, 2007 at 08:00:25AM -0700, Matthew Wilcox wrote:
-> > On Wed, Nov 14, 2007 at 03:35:33PM +0100, Andi Kleen wrote:
-> > > It becomes much more when someone does a find /sys.
-> > > dentries are expensive. They eventually can get pruned
-> > > again, but it's still costly to do that.
-> > 
-> > Again, if this is a big concern for you, there are better
-> > places to look at for savings.
-> 
-> Whoever is proposing a feature has the burden to justify that
-> its usefulness is larger than the overhead/cost it adds.
-> 
-> Doesn't seem to be the case with this one so far.
+On Wednesday 14 November 2007 02:17, Zhang Rui wrote:
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-I'm a bit confused where you're going with this. I thought the
-main point of contention wasn't around the utility of the
-patchset, it was around getting the actual information correct.
-
-We've already mentioned several uses that this patchset adds:
-
-  1. allowing managability folks to determine which physical slot
-  their failing card might be sitting in (independent of hotplug
-  capability).
-
-  2. giving installers a method of presenting the physical slot
-  to the user so that the user can choose to, say, do a network
-  install off of the card in slot N, vs having to guess based on
-  MAC address or something else unfriendly
-
-  3. performance monitoring tools based on slot addresses/numbers
-
-I believe that userspace cares more about those sorts of things
-compared to consuming extra bytes when creating sysfs entries.
-
-> And in general ignoring overhead in new features is a pretty
-> sad approach. Big bloat does come in small steps with each new
-> feature.
-
-I'm kinda new to the Linux kernel, so I don't really get what
-you're saying. Are you saying that the approved method of
-exposing kernel information to the user via sysfs is actually
-bloat? Even if that information has utility?
-
-Feel free to educate me; I'm here to learn.
-
-Thanks.
-
-/ac
-
+applied.
+thanks,
+-len
