@@ -1,66 +1,34 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: Battery: remove cycle from battery removal.
-Date: Wed, 14 Nov 2007 20:54:16 +0300
-Message-ID: <20071114175416.17650.71659.stgit@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 18:03:56 +0000
+Message-ID: <20071114180355.GB4265@srcf.ucam.org>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113202154.GA22812@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071114174401.GA4265@srcf.ucam.org> <20071114175151.GA14994@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:33757 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1762601AbXKNRyP (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 12:54:15 -0500
+Received: from cavan.codon.org.uk ([78.32.9.130]:60492 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807AbXKNSHr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 13:07:47 -0500
+Content-Disposition: inline
+In-Reply-To: <20071114175151.GA14994@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-get_property() should not call battery_update(),
-it also should call get_status() only if battery is present to
-avoid cycle and oops.
+On Wed, Nov 14, 2007 at 09:51:51AM -0800, Greg KH wrote:
+> On Wed, Nov 14, 2007 at 05:44:01PM +0000, Matthew Garrett wrote:
+> > Dumping raw ACPI tables isn't adequate - _SUN might be a complex ACPI 
+> > method with multiple reads and writes to raw hardware, and we really 
+> > don't want to do that in userspace. The only way to do this reliably is 
+> > in the kernel.
+> 
+> But it really isn't, as the firmware kit has proven...
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Acked-by: Johannes Weiner <hannes@saeurebad.de>
----
+The firmware toolkit will only work if the _SUN method merely returns a 
+hardcoded value. The spec doesn't require that that be the case, and 
+it's easy to imagine situations where it won't.
 
- drivers/acpi/battery.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index c2ce0ad..192c244 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -132,7 +132,7 @@ static int acpi_battery_technology(struct acpi_battery *battery)
- 	return POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
- }
- 
--static int acpi_battery_update(struct acpi_battery *battery);
-+static int acpi_battery_get_state(struct acpi_battery *battery);
- 
- static int acpi_battery_get_property(struct power_supply *psy,
- 				     enum power_supply_property psp,
-@@ -140,10 +140,11 @@ static int acpi_battery_get_property(struct power_supply *psy,
- {
- 	struct acpi_battery *battery = to_acpi_battery(psy);
- 
--	if ((!acpi_battery_present(battery)) &&
--	     psp != POWER_SUPPLY_PROP_PRESENT)
-+	if (acpi_battery_present(battery)) {
-+		/* run battery update only if it is present */
-+		acpi_battery_get_state(battery);
-+	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
- 		return -ENODEV;
--	acpi_battery_update(battery);
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
- 		if (battery->state & 0x01)
-@@ -457,6 +458,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
- 		return;
- 	device_remove_file(battery->bat.dev, &alarm_attr);
- 	power_supply_unregister(&battery->bat);
-+	battery->bat.dev = NULL;
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery)
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
