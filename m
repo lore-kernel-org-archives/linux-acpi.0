@@ -1,32 +1,47 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 08:00:25 -0700
-Message-ID: <20071114150025.GU17785@parisc-linux.org>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de> <20071114141751.GS17785@parisc-linux.org> <20071114143533.GF17145@one.firstfloor.org>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Subject: Re: [patch 0/8] ACPI Video various cleanups & fixes
+Date: Wed, 14 Nov 2007 10:04:26 -0500
+Message-ID: <d120d5000711140704v447b7604xfb2aeada6410bf2a@mail.gmail.com>
+References: <20071105164328.982283020@anvil.corenet.prv>
+	 <1195024662.1262.41.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:48522 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767AbXKNPA1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:00:27 -0500
+Received: from ug-out-1314.google.com ([66.249.92.173]:18122 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585AbXKNPE3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 10:04:29 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so310306ugc
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Nov 2007 07:04:27 -0800 (PST)
+In-Reply-To: <1195024662.1262.41.camel@acpi-hp.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20071114143533.GF17145@one.firstfloor.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2007 at 03:35:33PM +0100, Andi Kleen wrote:
-> It becomes much more when someone does a find /sys. dentries are 
-> expensive. They eventually can get pruned again, but it's still
-> costly to do that.
+On 11/14/07, Zhang Rui <rui.zhang@intel.com> wrote:
+> On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
+> > Hi Len, Rui,
+> >
+> > Here is a group of cleanups and patches to the acpi video driver.
+> > Originally I just wanted to fix sysfs placement of input devices
+> > created by the driver, but then I saw some more potential issues.
+> >
+> > The patches are against Linus's tree, please let me know if you
+> > want them redone against something else.
+> >
+> Hi, Dmitry,
+>
+> Thanks for your patches and sorry for the delay.
+>
+> The patches are good and I'm okay with most of them.
+> Detailed comments are inline.
 
-Again, if this is a big concern for you, there are better places to look
-at for savings.
+Thank you very much for reviewing them.
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+Len, it would be nice if the very first patch (sysfs one) made in 2.6.24.
+
+Thank you,
+Dmitry
