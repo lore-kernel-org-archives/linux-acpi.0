@@ -1,84 +1,41 @@
-From: Rolf Eike Beer <eike-hotplug@sf-tec.de>
-Subject: Re: [Pcihpd-discuss] [PATCH 2/5] Construct one fakephp slot per pci slot
-Date: Wed, 14 Nov 2007 13:39:26 +0100
-Message-ID: <200711141339.31839.eike-hotplug@sf-tec.de>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113001336.GC13341@ldl.fc.hp.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [patch 6/8] ACPI: video - properly handle errors when
+	registering proc elements
+Date: Wed, 14 Nov 2007 11:36:17 -0200
+Message-ID: <20071114133617.GA12655@khazad-dum.debian.net>
+References: <20071105164328.982283020@anvil.corenet.prv> <20071105165012.564676221@anvil.corenet.prv> <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1206831.H0q6VCQRHC";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sf-mail.de ([62.27.20.61]:37630 "EHLO mail.sf-mail.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755140AbXKNMjg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 07:39:36 -0500
-In-Reply-To: <20071113001336.GC13341@ldl.fc.hp.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44880 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754477AbXKNNgW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 08:36:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1195024684.1262.47.camel@acpi-hp.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pcihpd-discuss@lists.sourceforge.net
-Cc: Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
---nextPart1206831.H0q6VCQRHC
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Wed, 14 Nov 2007, Zhang Rui wrote:
+> On Tue, 2007-11-06 at 00:43 +0800, Dmitry Torokhov wrote:
+> > ACPI: video - properly handle errors when registering proc elements
+> > 
+> > Have acpi_video_device_add_fs() and acpi_video_bus_add_fs()
+> > properly unwind proc creation after error.
+> Hi, Dmitry,
+> 
+> The patch is good.
+> But I'm afraid we don't need this patch while we are trying to remove
+> the proc I/F for all ACPI device drivers.
 
-Alex Chiang wrote:
-> Register one slot per slot, rather than one slot per function.
-> Change the name of the slot to fake%d instead of the pci address.
->
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> Signed-off-by: Matthew Wilcox <matthew@wil.cx>
-> ---
->  drivers/pci/hotplug/fakephp.c |   75
-> +++++++++++++++-------------------------- 1 files changed, 27
-> insertions(+), 48 deletions(-)
->
-> diff --git a/drivers/pci/hotplug/fakephp.c b/drivers/pci/hotplug/fakephp.c
-> index 027f686..828335e 100644
-> --- a/drivers/pci/hotplug/fakephp.c
-> +++ b/drivers/pci/hotplug/fakephp.c
-> @@ -93,6 +93,7 @@ static int add_slot(struct pci_dev *dev)
->  	struct dummy_slot *dslot;
->  	struct hotplug_slot *slot;
->  	int retval =3D -ENOMEM;
-> +	static int count =3D 1;
->
->  	slot =3D kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
->  	if (!slot)
-> @@ -106,7 +107,8 @@ static int add_slot(struct pci_dev *dev)
->  	slot->info->max_bus_speed =3D PCI_SPEED_UNKNOWN;
->  	slot->info->cur_bus_speed =3D PCI_SPEED_UNKNOWN;
->
-> -	slot->name =3D &dev->dev.bus_id[0];
-> +	slot->name =3D kmalloc(8, GFP_KERNEL);
-> +	sprintf(slot->name, "fake%d", count++);
->  	dbg("slot->name =3D %s\n", slot->name);
->
->  	dslot =3D kmalloc(sizeof(struct dummy_slot), GFP_KERNEL);
+IMHO, until procfs is gone for good, it is best to make sure it works
+perfectly.
 
-This is ugly. Please do it the way we already do e.g. for acpiphp: add a=20
-char[8] to "struct dummy_slot" and just reference that here. Or better do=20
-what this name suggests: kill fakephp completely and use dummyphp[1] instea=
-d.
-
-Eike
-
-1) http://opensource.sf-tec.de/kernel/
-
---nextPart1206831.H0q6VCQRHC
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.4-svn0 (GNU/Linux)
-
-iD8DBQBHOuyDXKSJPmm5/E4RAkxCAJ9RdALyQDDbvh0KLyl8zHRqDiK4fwCglC6S
-zUbLhcwUg92z/D2QV/hdWds=
-=ZVtV
------END PGP SIGNATURE-----
-
---nextPart1206831.H0q6VCQRHC--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
