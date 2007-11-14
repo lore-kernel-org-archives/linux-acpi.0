@@ -1,55 +1,32 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 12:53:11 -0700
-Message-ID: <20071114195311.GG25002@ldl.fc.hp.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071113145936.7e1c58fb.kristen.c.accardi@intel.com> <200711141037.09228.bjorn.helgaas@hp.com> <20071114175317.GB14994@kroah.com>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [PATCH 2/5] Construct one fakephp slot per pci slot
+Date: Wed, 14 Nov 2007 13:12:47 -0700
+Message-ID: <20071114201246.GZ17785@parisc-linux.org>
+References: <20071114193605.GA25002@ldl.fc.hp.com> <20071114193729.GC25002@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palrel11.hp.com ([156.153.255.246]:43648 "EHLO palrel11.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756065AbXKNTxN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 14:53:13 -0500
+Received: from palinux.external.hp.com ([192.25.206.14]:57413 "EHLO
+	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752736AbXKNUMu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 15:12:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20071114175317.GB14994@kroah.com>
+In-Reply-To: <20071114193729.GC25002@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-pci@atrey.karlin.mff.cuni.cz, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, gregkh@suse.de, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel
 
-Hi Greg,
+On Wed, Nov 14, 2007 at 12:37:29PM -0700, Alex Chiang wrote:
+> Register one slot per slot, rather than one slot per function.
+> Change the name of the slot to fake%d instead of the pci address.
 
-* Greg KH <greg@kroah.com>:
-> On Wed, Nov 14, 2007 at 10:37:08AM -0700, Bjorn Helgaas wrote:
-> > 
-> > So I agree that the firmware kit has a clever hack that works
-> > on much existing x86 firmware, and it sounds like Tivoli
-> > might even rely on it.  But I don't feel good about it, and
-> > it could easily break when some BIOS writer needs to make
-> > _SUN slightly more complicated.
-> 
-> Do you know of such BIOSes out there that do this?  Will the
-> above scheme not work for the ia64 boxes that you know of that
-> are out in the world today?
+> +#define SLOT_NAME_SIZE KOBJ_NAME_LEN
 
-Matthew and Bjorn have already been hinting at this, but I'd like
-to voice my concern as well.
+Defined, then never used ... how about s/KOBJ_NAME_LEN/8/, then use
+SLOT_NAME_SIZE throughout?
 
-Even if no one is implementing _SUN as a complicated AML control
-method today, that is no guarantee that prevents future firmware
-vendors from doing so. The spec allows it, so in my opinion,
-pointing to existing implementations and claiming that it all
-just works is somewhat unfair (and scary).
-
-If/when the first vendor implements an AML version of _SUN, the
-firmware kit will break, and Tivoli will have to react.
-
-I was initially intrigued with you and Kristen pointed out this
-tool, but after thinking about it some more, I am not convinced
-it is a viable alternative, due to the unknown nature of future
-firmware implementations.
-
-Thanks.
-
-/ac
-
+-- 
+Intel are signing my paycheques ... these opinions are still mine
+"Bill, look, we understand that you're interested in selling us this
+operating system, but compare it to ours.  We can't possibly take such
+a retrograde step."
