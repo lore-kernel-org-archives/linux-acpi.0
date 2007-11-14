@@ -1,55 +1,67 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] ACPI: Put button input devices in correct place in sysfs
-Date: Wed, 14 Nov 2007 12:32:52 -0500
-Message-ID: <d120d5000711140932w40898cabo527bb1315740635b@mail.gmail.com>
-References: <200711062051.59884.arvidjaar@mail.ru>
-	 <d120d5000711061247l5102875bg9d9b841086dd77b5@mail.gmail.com>
-	 <200711111142.52346.arvidjaar@mail.ru>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 10:37:08 -0700
+Message-ID: <200711141037.09228.bjorn.helgaas@hp.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071113145936.7e1c58fb.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <200711111142.52346.arvidjaar@mail.ru>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from palrel13.hp.com ([156.153.255.238]:40966 "EHLO palrel13.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756125AbXKNRhQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2007 12:37:16 -0500
+In-Reply-To: <20071113145936.7e1c58fb.kristen.c.accardi@intel.com>
 Content-Disposition: inline
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz, David Brownell <david-b@pacbell.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@atrey.karlin.mff.cuni.cz
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On 11/11/07, Andrey Borzenkov <arvidjaar@mail.ru> wrote:
-> On Tuesday 06 November 2007, Dmitry Torokhov wrote:
-> > Hi Andrey,
-> >
-> > On Nov 6, 2007 12:51 PM, Andrey Borzenkov <arvidjaar@mail.ru> wrote:
-> > > Properly set up parent on input device registered by the button driver.
-> > >
-> >
-> > Seems to be a popular topic today :)
-> >
-> > >
-> > > +       input->cdev.dev = &device->dev;
-> >
-> > Please don't use cdev, but rather input_dev->dev.parent. cdev is going
-> > away soon.
-> > I sent a patch a couple of days ago to teh acpi list...
-> >
->
-> You mean button patch? I could find only video one.
+On Tuesday 13 November 2007 03:59:36 pm Kristen Carlson Accardi wrote:
+> On Tue, 13 Nov 2007 12:26:32 -0800 Greg KH <greg@kroah.com> wrote:
+> > And isn't there some other tool that dumps the raw ACPI tables?  I
+> > thought the acpi developers used it all the time when debugging things
+> > with users.
+> 
+> There are - people should take a look at the Intel Linux Firmware Kit
+> for an example of how to parse ACPI tables in userspace - the code
+> is also GPL'd, so you are free to use it in another GPL application.
+> 
+> http://www.linuxfirmwarekit.org/download.php#source
+> 
+> In many DSDTs I've seen, _SUN is hardcoded anyway and can be found
+> by reading the DSDT from userspace.  This is what the firmwarekit
+> does to check for duplicate _SUN in one of it's tests.
 
-Right, I got confused between the two...
+I see three relevant things in the firmware kit:
 
->
-> Just in case, here is updated version.
->
+  1) ExecuteAmlMethod() in amlpoke/amlpoke.c.  This uses
+     /proc/acpi/hotkey/event_config to cause the kernel to
+     execute an AML method.  This looks similar to what dev_acpi
+     does and is unsafe for the same reasons (the method may have
+     side effects that interfere with kernel drivers).  The kernel
+     support for this was removed in 2.6.21:
 
-Please forward to Len Brown with
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+       http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=5ee6edbcde4d3b14e4e03d4b331df1099a34aa8d
 
-Thanks!
+  2) execute_aml_method() in acpitable.c.  Similar to above.
 
--- 
-Dmitry
+  3) parse_SUN_name() in SUN/SUN.c.  This uses acpidump, acpixtract,
+     and iasl -d to disassemble the DSDT and SSDTs, then looks for
+     things like "Name (_SUN, 0x0000012C)".  That works well if _SUN
+     merely returns a constant, and many DSDTs do that.
+
+     But _SUN can be implemented as a control method, and then we have
+     a problem because we can't determine the _SUN value by inspecting
+     the DSDT.  We have to evaluate the method, and that may require
+     operation regions, semaphores, etc., so it can only be done in the
+     kernel.
+
+So I agree that the firmware kit has a clever hack that works on much
+existing x86 firmware, and it sounds like Tivoli might even rely on
+it.  But I don't feel good about it, and it could easily break when
+some BIOS writer needs to make _SUN slightly more complicated.
+
+Bjorn
