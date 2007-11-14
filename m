@@ -1,37 +1,31 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: Alex Chiang <achiang@hp.com>
 Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 15:35:33 +0100
-Message-ID: <20071114143533.GF17145@one.firstfloor.org>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <p73sl39y6qb.fsf@bingen.suse.de> <20071114141751.GS17785@parisc-linux.org>
+Date: Wed, 14 Nov 2007 07:42:37 -0700
+Message-ID: <20071114144237.GB7523@ldl.fc.hp.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113170129.GA20185@kroah.com> <20071113183353.GE17785@parisc-linux.org> <20071113185122.GA22536@kroah.com> <20071113201102.GK17785@parisc-linux.org> <20071113230804.GA14570@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:60086 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754276AbXKNOfh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 09:35:37 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759954AbXKNOmw@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20071114141751.GS17785@parisc-linux.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20071113230804.GA14570@us.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>
-Cc: Andi Kleen <andi@firstfloor.org>, Greg KH <greg@kroah.com>, Alex Chiang <achiang@hp.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, richard.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2007 at 07:17:51AM -0700, Matthew Wilcox wrote:
-> On Wed, Nov 14, 2007 at 02:07:56AM +0100, Andi Kleen wrote:
-> > It's not only complexity. Each new sysfs entry costs memory.
-> > Memory is not free. There should be always a good reason for those.
+Hi Gary,
+
+* Gary Hade <garyhade@us.ibm.com>:
 > 
-> It's not a lot of memory; it's one directory and a couple of files for
-> each PCI slot in the system.  Even huge systems have maybe 200 slots.
-> In order for this to take up as much as one page of ram on a typical PC
-> with six slots, this would have to consume 680 bytes per directory.  I
-> don't think sysfs is that inefficient (and if it is, maybe this feature
-> is not where the problem is, given the 'power' directory per device, the
-> 19 files per scsi device, the huge numbers of symlinks, etc).
+> I am not fundamentally opposed to this new capability but share
+> the same concerns that Greg and others have expressed.  So far,
+> I have only tried the changes on one single node system (IBM
+> x3850) but the below NAK-worthy result supports the idea that
+> the changes need to be well and widely tested.
 
-It becomes much more when someone does a find /sys. dentries are 
-expensive. They eventually can get pruned again, but it's still
-costly to do that.
+Can you send me the lspci -vv and lspci -vt output from this
+machine?
 
--Andi
+Thanks.
+
+/ac
