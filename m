@@ -1,46 +1,43 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
-Date: Wed, 14 Nov 2007 14:00:22 -0800
-Message-ID: <20071114220022.GB19850@kroah.com>
-References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071113145936.7e1c58fb.kristen.c.accardi@intel.com> <200711141037.09228.bjorn.helgaas@hp.com> <20071114175317.GB14994@kroah.com> <20071114214221.GC6575@ldl.fc.hp.com>
+From: Gary Hade <garyhade@us.ibm.com>
+Subject: Re: [PATCH 0/5, v2] Physical PCI slot objects
+Date: Wed, 14 Nov 2007 16:39:54 -0800
+Message-ID: <20071115003954.GB6269@us.ibm.com>
+References: <20071114193605.GA25002@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:59586 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788AbXKNWDb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 17:03:31 -0500
+Received: from e36.co.us.ibm.com ([32.97.110.154]:54496 "EHLO
+	e36.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755462AbXKOAkO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2007 19:40:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20071114214221.GC6575@ldl.fc.hp.com>
+In-Reply-To: <20071114193605.GA25002@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-pci@atrey.karlin.mff.cuni.cz, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, gregkh@suse.de, lenb@ker
+To: Alex Chiang <achiang@hp.com>
+Cc: Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2007 at 02:42:21PM -0700, Alex Chiang wrote:
-> * Greg KH <greg@kroah.com>:
-> > On Wed, Nov 14, 2007 at 10:37:08AM -0700, Bjorn Helgaas wrote:
-> > > 
-> > > So I agree that the firmware kit has a clever hack that works
-> > > on much existing x86 firmware, and it sounds like Tivoli
-> > > might even rely on it.  But I don't feel good about it, and
-> > > it could easily break when some BIOS writer needs to make
-> > > _SUN slightly more complicated.
+On Wed, Nov 14, 2007 at 12:36:05PM -0700, Alex Chiang wrote:
+> * Alex Chiang <achiang@hp.com>:
 > > 
-> > Do you know of such BIOSes out there that do this?  Will the
-> > above scheme not work for the ia64 boxes that you know of that
-> > are out in the world today?
-> 
-> One last mail on this subject -- Bjorn has pointed out to me that
-> the Dell pe6800 and rez1850 both implement _SUN as control
-> methods today.
+> > Actually, I just reworked my patch this morning, and believe that
+> > I have a much cleaner implementation now that should fix a lot of
+> > the errors you saw.
 
-Does the firmware kit break on them?
+Sorry, I lost access to the x3850 that I was using and 
+may not be able to get back on it until early next week.
 
-> Does Tivoli run on those machines? If so, how is it getting slot
-> information?
+I think I will go ahead and send you the comments
+in response to your earlier message that I was going
+to hold off on until I tried your revised patches.
+It may contain something you haven't considered.
 
-I have no idea, I don't work for them :)
+Gary
 
-good luck,
-
-greg k-h
+-- 
+Gary Hade
+System x Enablement
+IBM Linux Technology Center
+503-578-4503  IBM T/L: 775-4503
+garyhade@us.ibm.com
+http://www.ibm.com/linux/ltc
