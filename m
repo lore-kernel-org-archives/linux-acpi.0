@@ -1,8 +1,8 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [Patch_5/7 ] :Throttling control uses T-states returned by
-	_TSS when _TSS exists
-Date: Thu, 15 Nov 2007 16:42:38 +0800
-Message-ID: <1195116158.6817.14.camel@yakui_zhao.sh.intel.com>
+Subject: [Patch_3/7] ACPI: Not use calculated T-states from FADT.duty_width
+	when _TSS exists
+Date: Thu, 15 Nov 2007 16:41:42 +0800
+Message-ID: <1195116102.6817.12.camel@yakui_zhao.sh.intel.com>
 References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
 	 <200710092343.40843.lenb@kernel.org>
 Mime-Version: 1.0
@@ -11,124 +11,129 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:5910 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756683AbXKOIfI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2007 03:35:08 -0500
+	id S1756672AbXKOIfF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Nov 2007 03:35:05 -0500
 In-Reply-To: <200710092343.40843.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-Subject: ACPI : Throttling control uses T-states returned by _TSS when _TSS exists
+Subject: ACPI : Not use calculated T-states from FADT.duty_width when _TSS exists
 >From : Zhao Yakui <yakui.zhao@intel.com>
 
-If _TSS exists, throttling control will use the T-states returned by _TSS.
-Otherwise the calculated T-states from FADT.duty_width are used.
-
-When TSS is used , the access width is included in the PTC control/status
-register.So it is unnecessary that the access bit width is multiplied by 8.
-At the same time the bit_offset should be considered for system I/O Access.
-
-It should be checked the bit_width and bit_offset of PTC regsiter in order to
-avoid the failure of system I/O access. It means that bit_width plus 
-bit_offset can't be greater than 32.
+If _TSS exists, it will return supported T-states. 
+It doesn't make sense to use calculated T-states from FADT.duty_width.
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 
 ---
- drivers/acpi/processor_throttling.c |   42 ++++++++++++++++++++++++++++++------
- 1 file changed, 35 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_throttling.c |   66 +++++++++++++++++++-----------------
+ 1 file changed, 36 insertions(+), 30 deletions(-)
 
 Index: linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
 ===================================================================
 --- linux-2.6.24-rc1.orig/drivers/acpi/processor_throttling.c
 +++ linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
-@@ -131,6 +131,7 @@ static int acpi_processor_get_throttling
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *ptc = NULL;
- 	union acpi_object obj = { 0 };
-+	struct acpi_processor_throttling *throttling;
+@@ -478,6 +478,40 @@ static int acpi_processor_get_throttling
+ 	return pr->throttling.acpi_processor_get_throttling(pr);
+ }
  
- 	status = acpi_evaluate_object(pr->handle, "_PTC", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -182,6 +183,22 @@ static int acpi_processor_get_throttling
- 	memcpy(&pr->throttling.status_register, obj.buffer.pointer,
- 	       sizeof(struct acpi_ptc_register));
- 
-+	throttling = &pr->throttling;
++static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
++{
++	int i, step;
 +
-+	if ((throttling->control_register.bit_width +
-+		throttling->control_register.bit_offset) > 32) {
-+		printk(KERN_ERR PREFIX "Invalid _PTC control register\n");
-+		result = -EFAULT;
-+		goto end;
++	if (!pr->throttling.address) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No throttling register\n"));
++		return -EINVAL;
++	} else if (!pr->throttling.duty_width) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No throttling states\n"));
++		return -EINVAL;
++	}
++	/* TBD: Support duty_cycle values that span bit 4. */
++	else if ((pr->throttling.duty_offset + pr->throttling.duty_width) > 4) {
++		printk(KERN_WARNING PREFIX "duty_cycle spans bit 4\n");
++		return -EINVAL;
 +	}
 +
-+	if ((throttling->status_register.bit_width +
-+		throttling->status_register.bit_offset) > 32) {
-+		printk(KERN_ERR PREFIX "Invalid _PTC status register\n");
-+		result = -EFAULT;
-+		goto end;
++	pr->throttling.state_count = 1 << acpi_gbl_FADT.duty_width;
++
++	/*
++	 * Compute state values. Note that throttling displays a linear power
++	 * performance relationship (at 50% performance the CPU will consume
++	 * 50% power).  Values are in 1/10th of a percent to preserve accuracy.
++	 */
++
++	step = (1000 / pr->throttling.state_count);
++
++	for (i = 0; i < pr->throttling.state_count; i++) {
++		pr->throttling.states[i].performance = 1000 - step * i;
++		pr->throttling.states[i].power = 1000 - step * i;
 +	}
++	return 0;
++}
 +
-       end:
- 	kfree(buffer.pointer);
- 
-@@ -379,7 +396,9 @@ static int acpi_processor_get_throttling
- static int acpi_read_throttling_status(struct acpi_processor *pr,
- 					acpi_integer *value)
+ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
+ 					      int state)
  {
-+	u32 bit_width, bit_offset;
- 	u64 ptc_value;
-+	u64 ptc_mask;
- 	struct acpi_processor_throttling *throttling;
- 	int ret = -1;
- 
-@@ -387,11 +406,14 @@ static int acpi_read_throttling_status(s
- 	switch (throttling->status_register.space_id) {
- 	case ACPI_ADR_SPACE_SYSTEM_IO:
- 		ptc_value = 0;
-+		bit_width = throttling->status_register.bit_width;
-+		bit_offset = throttling->status_register.bit_offset;
-+
- 		acpi_os_read_port((acpi_io_address) throttling->status_register.
- 				  address, (u32 *) &ptc_value,
--				  (u32) throttling->status_register.bit_width *
--				  8);
--		*value = (acpi_integer) ptc_value;
-+				  (u32) (bit_width + bit_offset));
-+		ptc_mask = (1 << bit_width) - 1;
-+		*value = (acpi_integer) ((ptc_value >> bit_offset) & ptc_mask);
- 		ret = 0;
- 		break;
- 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-@@ -408,18 +430,24 @@ static int acpi_read_throttling_status(s
- static int acpi_write_throttling_state(struct acpi_processor *pr,
- 				acpi_integer value)
+@@ -591,8 +625,6 @@ int acpi_processor_set_throttling(struct
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
  {
-+	u32 bit_width, bit_offset;
- 	u64 ptc_value;
-+	u64 ptc_mask;
- 	struct acpi_processor_throttling *throttling;
- 	int ret = -1;
+ 	int result = 0;
+-	int step = 0;
+-	int i = 0;
  
- 	throttling = &pr->throttling;
- 	switch (throttling->control_register.space_id) {
- 	case ACPI_ADR_SPACE_SYSTEM_IO:
--		ptc_value = value;
-+		bit_width = throttling->control_register.bit_width;
-+		bit_offset = throttling->control_register.bit_offset;
-+		ptc_mask = (1 << bit_width) - 1;
-+		ptc_value = value & ptc_mask;
-+
- 		acpi_os_write_port((acpi_io_address) throttling->
--				   control_register.address, (u32) ptc_value,
--				   (u32) throttling->control_register.
--				   bit_width * 8);
-+					control_register.address,
-+					(u32) (ptc_value << bit_offset),
-+					(u32) (bit_width + bit_offset));
- 		ret = 0;
- 		break;
- 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
+@@ -611,6 +643,8 @@ int acpi_processor_get_throttling_info(s
+ 		acpi_processor_get_throttling_states(pr) ||
+ 		acpi_processor_get_platform_limit(pr))
+ 	{
++		if (acpi_processor_get_fadt_info(pr))
++			return 0;
+ 		pr->throttling.acpi_processor_get_throttling =
+ 		    &acpi_processor_get_throttling_fadt;
+ 		pr->throttling.acpi_processor_set_throttling =
+@@ -624,19 +658,6 @@ int acpi_processor_get_throttling_info(s
+ 
+ 	acpi_processor_get_tsd(pr);
+ 
+-	if (!pr->throttling.address) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No throttling register\n"));
+-		return 0;
+-	} else if (!pr->throttling.duty_width) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No throttling states\n"));
+-		return 0;
+-	}
+-	/* TBD: Support duty_cycle values that span bit 4. */
+-	else if ((pr->throttling.duty_offset + pr->throttling.duty_width) > 4) {
+-		printk(KERN_WARNING PREFIX "duty_cycle spans bit 4\n");
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * PIIX4 Errata: We don't support throttling on the original PIIX4.
+ 	 * This shouldn't be an issue as few (if any) mobile systems ever
+@@ -648,21 +669,6 @@ int acpi_processor_get_throttling_info(s
+ 		return 0;
+ 	}
+ 
+-	pr->throttling.state_count = 1 << acpi_gbl_FADT.duty_width;
+-
+-	/*
+-	 * Compute state values. Note that throttling displays a linear power/
+-	 * performance relationship (at 50% performance the CPU will consume
+-	 * 50% power).  Values are in 1/10th of a percent to preserve accuracy.
+-	 */
+-
+-	step = (1000 / pr->throttling.state_count);
+-
+-	for (i = 0; i < pr->throttling.state_count; i++) {
+-		pr->throttling.states[i].performance = step * i;
+-		pr->throttling.states[i].power = step * i;
+-	}
+-
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d throttling states\n",
+ 			  pr->throttling.state_count));
+ 
