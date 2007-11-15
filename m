@@ -1,120 +1,123 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Workaround for optimized controllers
-Date: Thu, 15 Nov 2007 23:14:29 +0300
-Message-ID: <20071115201429.12417.39628.stgit@localhost.localdomain>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Thu, 15 Nov 2007 13:20:43 -0700
+Message-ID: <20071115202043.GB25052@ldl.fc.hp.com>
+References: <20071113000853.GA13341@ldl.fc.hp.com> <20071113202632.GA3227@kroah.com> <20071113145936.7e1c58fb.kristen.c.accardi@intel.com> <200711141037.09228.bjorn.helgaas@hp.com> <20071114175317.GB14994@kroah.com> <20071114214221.GC6575@ldl.fc.hp.com> <20071114220022.GB19850@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:55855 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753139AbXKOUOz (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 15 Nov 2007 15:14:55 -0500
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:13687 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751984AbXKOU3h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2007 15:29:37 -0500
+Content-Disposition: inline
+In-Reply-To: <20071114220022.GB19850@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Matt_Domsch@dell.com
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-pci@atrey.karlin.mff.cuni.cz, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, gregkh@suse.de, lenb@kernel.org, matthew@wil.cx, rick.jones2@hp.com, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Some controllers fail to send confirmation GPE after address write.
-Detect this and don't expect such confirmation in future.
-This is a generalization of previous workaround 
-(66c5f4e7367b0085652931b2f3366de29e7ff5ec), which did only read address.
+Hi Greg, Matt,
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9327
+* Greg KH <greg@kroah.com>:
+> On Wed, Nov 14, 2007 at 02:42:21PM -0700, Alex Chiang wrote:
+> > * Greg KH <greg@kroah.com>:
+> > > On Wed, Nov 14, 2007 at 10:37:08AM -0700, Bjorn Helgaas wrote:
+> > > > 
+> > > > So I agree that the firmware kit has a clever hack that works
+> > > > on much existing x86 firmware, and it sounds like Tivoli
+> > > > might even rely on it.  But I don't feel good about it, and
+> > > > it could easily break when some BIOS writer needs to make
+> > > > _SUN slightly more complicated.
+> > > 
+> > > Do you know of such BIOSes out there that do this?  Will the
+> > > above scheme not work for the ia64 boxes that you know of that
+> > > are out in the world today?
+> > 
+> > One last mail on this subject -- Bjorn has pointed out to me that
+> > the Dell pe6800 and rez1850 both implement _SUN as control
+> > methods today.
+> 
+> Does the firmware kit break on them?
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+I downloaded the firmware kit today and played with it. There is
+a test called SUN.exe, which searches through the DSDT, looking
+to verify that there are no duplicate _SUN values in the system.
 
- drivers/acpi/ec.c |   35 ++++++++++++++++++++++-------------
- 1 files changed, 22 insertions(+), 13 deletions(-)
+The test breaks on my hp rx6600 (a currently shipping platform),
+because _SUN is not a hard-coded value, but implemented as an AML
+control method. From the various SSDT dumps:
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 56afe13..d6ddb54 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -75,7 +75,8 @@ enum {
- 	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
- 	EC_FLAGS_GPE_MODE,		/* Expect GPE to be sent for status change */
--	EC_FLAGS_ONLY_IBF_GPE,		/* Expect GPE only for IBF = 0 event */
-+	EC_FLAGS_NO_ADDRESS_GPE,	/* Expect GPE only for non-address event */
-+	EC_FLAGS_ADDRESS,		/* Address is being written */
- };
- 
- static int acpi_ec_remove(struct acpi_device *device, int type);
-@@ -166,38 +167,45 @@ static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
- 
- static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+Here's the _SUN for a slot:
+	Method (_SUN, 0, Serialized)
+	{
+		Store (\SLOT.SUN, ^_UID)
+		Local0
+		Return (Local0)
+	}
+
+Here's the _SUN for a processor:
+	Method (_SUN, 0, NotSerialized)
+	{
+		Store (\CPUL.SUN, ^CPID)
+		Local0
+		Return (Local0)
+	}
+
+So parse_SUN_name() from SUN.c is just plain broken. The test
+"passes" because it doesn't find any duplicate values for _SUN,
+but what's really going on is that it doesn't find *any* values
+of _SUN, so of course there won't be duplicates. ;)
+
+I looked at convincing this test to try and execute the method
+using ExecuteAmlMethod() and/or execute_aml_method(), but of
+course, that won't work on a modern kernel, as they depend on
+/proc/acpi/hotkey/, which was removed (as Bjorn pointed out).
+
+Matt, is there any chance you could see if the firmware kit works
+or breaks on your PE6800? 
+
+I downloaded the latest tarball:
+
+  http://www.linuxfirmwarekit.org/download/firmwarekit-r3.tar.gz
+
+And ran it in stand-alone mode. You do need to build the test
+suite, but you don't need to run the entire thing -- just run the
+SUN/SUN.exe that is generated. (If you get odd complaints about
+not being able to find libstandalone.so, just stick it in
+/usr/local/lib, modify /etc/ld.so.conf as necessary and run
+ldconfig).
+
+Please apply the following debug patch to see how many _SUN
+objects the test is actually finding. On my machine, I don't find
+any _SUN objects.
+
+Thanks.
+
+/ac
+
+diff --git a/SUN/SUN.c b/SUN/SUN.c
+index 90264a7..3b21b9c 100644
+--- a/SUN/SUN.c
++++ b/SUN/SUN.c
+@@ -260,6 +260,7 @@ static void parse_SUN_name(gpointer data, gpointer user_data)
+ int main(int argc, char **argv)
  {
-+	int ret = 0;
-+	if (unlikely(test_bit(EC_FLAGS_ADDRESS, &ec->flags) &&
-+		     test_bit(EC_FLAGS_NO_ADDRESS_GPE, &ec->flags)))
-+		force_poll = 1;
- 	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
- 	    likely(!force_poll)) {
- 		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
- 				       msecs_to_jiffies(ACPI_EC_DELAY)))
--			return 0;
-+			goto end;
- 		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 		if (acpi_ec_check_status(ec, event)) {
--			if (event == ACPI_EC_EVENT_OBF_1) {
--				/* miss OBF = 1 GPE, don't expect it anymore */
--				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
--					"switching to degraded mode.\n");
--				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
-+			if (test_bit(EC_FLAGS_ADDRESS, &ec->flags)) {
-+				/* miss address GPE, don't expect it anymore */
-+				printk(KERN_INFO PREFIX "missing address confirmation,"
-+					"don't expect it any longer.\n");
-+				set_bit(EC_FLAGS_NO_ADDRESS_GPE, &ec->flags);
- 			} else {
- 				/* missing GPEs, switch back to poll mode */
--				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
-+				printk(KERN_INFO PREFIX "missing confirmations,"
- 					"switch off interrupt mode.\n");
- 				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
- 			}
--			return 0;
-+			goto end;
- 		}
- 	} else {
- 		unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
- 		clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 		while (time_before(jiffies, delay)) {
- 			if (acpi_ec_check_status(ec, event))
--				return 0;
-+				goto end;
- 		}
- 	}
- 	printk(KERN_ERR PREFIX "acpi_ec_wait timeout,"
- 			       " status = %d, expect_event = %d\n",
- 			       acpi_ec_read_status(ec), event);
--	return -ETIME;
-+	ret = -ETIME;
-+      end:
-+	clear_bit(EC_FLAGS_ADDRESS, &ec->flags);
-+	return ret;
- }
  
- static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
-@@ -216,6 +224,9 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- 			       "write_cmd timeout, command = %d\n", command);
- 			goto end;
- 		}
-+		/* mark the address byte written to EC */
-+		if (rdata_len + wdata_len > 1)
-+			set_bit(EC_FLAGS_ADDRESS, &ec->flags);
- 		set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
- 		acpi_ec_write_data(ec, *(wdata++));
- 	}
-@@ -231,8 +242,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 
- 	for (; rdata_len > 0; --rdata_len) {
--		if (test_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags))
--			force_poll = 1;
- 		result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1, force_poll);
- 		if (result) {
- 			printk(KERN_ERR PREFIX "read timeout, command = %d\n",
++	int i;
+ 	start_test("SUN", "SUN duplicate test", 
+ 	"This makes sure that each SUN (Slot Unique Number) that is "
+ 	"called in the DSDT through the Name() method is unique, no "
+@@ -281,6 +282,11 @@ int main(int argc, char **argv)
+ 		
+ 	/* List SUN duplicates (if any) */
+ 	do_SUN_check();
++
++ 	while(SUN_list[i].line_num) { 
++		printf("## found SUN: %s\n", SUN_list[i].SUN_hexnum);
++		i++;
++	}
+ 	
+ 	finish_test("SUN");
+ 	return EXIT_SUCCESS;
 
