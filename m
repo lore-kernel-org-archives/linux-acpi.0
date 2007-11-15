@@ -1,132 +1,151 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 14/15] ACPI: thinkpad-acpi: cleanup hotkey_notify and HKEY log messages
-Date: Thu, 15 Nov 2007 01:37:01 -0200
-Message-ID: <1195097822-24738-15-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 02/15] ACPI: thinkpad-acpi: prepare for
+	NVRAM polling support
+Date: Thu, 15 Nov 2007 01:36:49 -0200
+Message-ID: <1195097822-24738-3-git-send-email-hmh@hmh.eng.br>
 References: <1195097822-24738-1-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59543 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755197AbXKODhT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2007 22:37:19 -0500
-In-Reply-To: <1195097822-24738-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1195097822-24738-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Use a generic message on hotkey_notify to log unknown and unhandled events,
-and cleanup hotkey_notify a little.
+Make some small internal thinkpad-acpi changes to the hotkey subdriver code
+that will make it easier to add NVRAM polling support.
 
-Also, document event 0x5010 (brightness changed notification) and do not
-log it as an unknown event (even if we do not use it for anything right
-now).
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/thinkpad-acpi.txt |    4 ++++
- drivers/misc/thinkpad_acpi.c    |   35 ++++++++++++++++++++---------------
- 2 files changed, 24 insertions(+), 15 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   82 +++++++++++++++++++++--------------------
+ 1 files changed, 42 insertions(+), 40 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index c03ed6d..a0d9433 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -469,6 +469,10 @@ Non hot-key ACPI HKEY event map:
- The above events are not propagated by the driver, except for legacy
- compatibility purposes when hotkey_report_mode is set to 1.
- 
-+0x5010		Brightness level changed (newer Lenovo BIOSes)
-+
-+The above events are propagated by the driver.
-+
- Compatibility notes:
- 
- ibm-acpi and thinkpad-acpi 0.15 (mainline kernels before 2.6.23) never
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index e799a74..c312470 100644
+index 87ba534..f00149f 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1917,6 +1917,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	unsigned int scancode;
+@@ -852,6 +852,46 @@ static int hotkey_status_set(int status)
+ 	return 0;
+ }
+ 
++static void tpacpi_input_send_radiosw(void)
++{
++	int wlsw;
++
++	mutex_lock(&tpacpi_inputdev_send_mutex);
++
++	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
++		input_report_switch(tpacpi_inputdev,
++				    SW_RADIO, !!wlsw);
++		input_sync(tpacpi_inputdev);
++	}
++
++	mutex_unlock(&tpacpi_inputdev_send_mutex);
++}
++
++static void tpacpi_input_send_key(unsigned int scancode)
++{
++	unsigned int keycode;
++
++	keycode = hotkey_keycode_map[scancode];
++
++	if (keycode != KEY_RESERVED) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
++
++		input_report_key(tpacpi_inputdev, keycode, 1);
++		if (keycode == KEY_UNKNOWN)
++			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
++				    scancode);
++		input_sync(tpacpi_inputdev);
++
++		input_report_key(tpacpi_inputdev, keycode, 0);
++		if (keycode == KEY_UNKNOWN)
++			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
++				    scancode);
++		input_sync(tpacpi_inputdev);
++
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
++	}
++}
++
+ /* sysfs hotkey enable ------------------------------------------------- */
+ static ssize_t hotkey_enable_show(struct device *dev,
+ 			   struct device_attribute *attr,
+@@ -1232,47 +1272,10 @@ static void hotkey_exit(void)
+ 	}
+ }
+ 
+-static void tpacpi_input_send_key(unsigned int scancode,
+-				  unsigned int keycode)
+-{
+-	if (keycode != KEY_RESERVED) {
+-		mutex_lock(&tpacpi_inputdev_send_mutex);
+-
+-		input_report_key(tpacpi_inputdev, keycode, 1);
+-		if (keycode == KEY_UNKNOWN)
+-			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+-				    scancode);
+-		input_sync(tpacpi_inputdev);
+-
+-		input_report_key(tpacpi_inputdev, keycode, 0);
+-		if (keycode == KEY_UNKNOWN)
+-			input_event(tpacpi_inputdev, EV_MSC, MSC_SCAN,
+-				    scancode);
+-		input_sync(tpacpi_inputdev);
+-
+-		mutex_unlock(&tpacpi_inputdev_send_mutex);
+-	}
+-}
+-
+-static void tpacpi_input_send_radiosw(void)
+-{
+-	int wlsw;
+-
+-	mutex_lock(&tpacpi_inputdev_send_mutex);
+-
+-	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
+-		input_report_switch(tpacpi_inputdev,
+-				    SW_RADIO, !!wlsw);
+-		input_sync(tpacpi_inputdev);
+-	}
+-
+-	mutex_unlock(&tpacpi_inputdev_send_mutex);
+-}
+-
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	u32 hkey;
+-	unsigned int keycode, scancode;
++	unsigned int scancode;
  	int send_acpi_ev;
  	int ignore_acpi_ev;
-+	int unk_ev;
  
- 	if (event != 0x80) {
- 		printk(TPACPI_ERR
-@@ -1940,8 +1941,9 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			return;
- 		}
- 
--		send_acpi_ev = 0;
-+		send_acpi_ev = 1;
- 		ignore_acpi_ev = 0;
-+		unk_ev = 0;
- 
- 		switch (hkey >> 12) {
- 		case 1:
-@@ -1951,33 +1953,34 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -1305,8 +1308,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 			scancode = hkey & 0xfff;
+ 			if (scancode > 0 && scancode < 0x21) {
  				scancode--;
- 				if (!(hotkey_source_mask & (1 << scancode))) {
- 					tpacpi_input_send_key(scancode);
-+					send_acpi_ev = 0;
- 				} else {
- 					ignore_acpi_ev = 1;
- 				}
+-				keycode = hotkey_keycode_map[scancode];
+-				tpacpi_input_send_key(scancode, keycode);
++				tpacpi_input_send_key(scancode);
  			} else {
--				printk(TPACPI_ERR
--				       "hotkey 0x%04x out of range "
--				       "for keyboard map\n", hkey);
--				send_acpi_ev = 1;
-+				unk_ev = 1;
- 			}
- 			break;
- 		case 5:
--			/* 0x5000-0x5FFF: LID */
--			/* we don't handle it through this path, just
--			 * eat up known LID events */
--			if (hkey != 0x5001 && hkey != 0x5002) {
--				printk(TPACPI_ERR
--				       "unknown LID-related HKEY event: "
--				       "0x%04x\n", hkey);
--				send_acpi_ev = 1;
--			} else {
-+			/* 0x5000-0x5FFF: On screen display helpers */
-+			switch (hkey) {
-+			case 0x5010:
-+				/* Lenovo Vista BIOS: brightness changed */
-+				break;
-+			case 0x5001:
-+			case 0x5002:
-+				/* LID switch events.  Do not propagate */
- 				ignore_acpi_ev = 1;
-+				break;
-+			default:
-+				unk_ev = 1;
- 			}
- 			break;
- 		case 7:
- 			/* 0x7000-0x7FFF: misc */
- 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
- 				tpacpi_input_send_radiosw();
-+				send_acpi_ev = 0;
- 				break;
- 			}
- 			/* fallthrough to default */
-@@ -1988,9 +1991,11 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			/* case 3: ultra-bay related. maybe bay in dock? */
- 			/*	0x3003 - T43 after wake up by bay lever
- 			 *	         eject (0x2305) */
-+			unk_ev = 1;
-+		}
-+		if (unk_ev) {
- 			printk(TPACPI_NOTICE
- 			       "unhandled HKEY event 0x%04x\n", hkey);
--			send_acpi_ev = 1;
- 		}
- 
- 		/* Legacy events */
+ 				printk(IBM_ERR
+ 				       "hotkey 0x%04x out of range for keyboard map\n",
 -- 
 1.5.3.4
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc.
+Still grepping through log files to find problems?  Stop.
+Now Search log events and configuration files using AJAX and a browser.
+Download your FREE copy of Splunk now >> http://get.splunk.com/
