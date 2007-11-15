@@ -1,65 +1,147 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH_6/7] ACPI: Init PDC before getting throttling info
-Date: Thu, 15 Nov 2007 17:05:46 +0800
-Message-ID: <1195117546.6817.41.camel@yakui_zhao.sh.intel.com>
+Subject: [PATCH_7/7] ACPI: Add MSR support for T-States
+Date: Thu, 15 Nov 2007 17:06:36 +0800
+Message-ID: <1195117596.6817.43.camel@yakui_zhao.sh.intel.com>
 References: <1191814518.3830.2.camel@yakui_zhao.sh.intel.com>
 	 <200710092343.40843.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24738 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:2361 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756343AbXKOIz0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2007 03:55:26 -0500
+	id S1752022AbXKOI4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Nov 2007 03:56:17 -0500
 In-Reply-To: <200710092343.40843.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-Subject: ACPI : Init PDC before getting throttling info
+Subject: ACPI : Add MSR support for T-States
 >From : Zhao Yakui <yakui.zhao@intel.com>
 
-The throttling info should be obtained after PDC is initialized.
-Otherwise the cpus maybe use the different PTC control/status register
-when the system supports the TSS throttling via ACPI MSR.
-One uses the System I/O mode and the other uses the Fixed HW access mode.
+Add throttling control via MSR when T-states uses the FixHW Control/
+Status registers.
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 
 ---
- drivers/acpi/processor_core.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/kernel/acpi/processor.c    |    3 +
+ drivers/acpi/processor_throttling.c |   74 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 73 insertions(+), 4 deletions(-)
 
-Index: linux-2.6.24-rc1/drivers/acpi/processor_core.c
+Index: linux-2.6.24-rc1/arch/x86/kernel/acpi/processor.c
 ===================================================================
---- linux-2.6.24-rc1.orig/drivers/acpi/processor_core.c
-+++ linux-2.6.24-rc1/drivers/acpi/processor_core.c
-@@ -612,12 +612,6 @@ static int acpi_processor_get_info(struc
- 		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
- 	}
+--- linux-2.6.24-rc1.orig/arch/x86/kernel/acpi/processor.c
++++ linux-2.6.24-rc1/arch/x86/kernel/acpi/processor.c
+@@ -49,6 +49,9 @@ static void init_intel_pdc(struct acpi_p
+ 	if (cpu_has(c, X86_FEATURE_EST))
+ 		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
  
--#ifdef CONFIG_CPU_FREQ
--	acpi_processor_ppc_has_changed(pr);
--#endif
--	acpi_processor_get_throttling_info(pr);
--	acpi_processor_get_limit_info(pr);
--
++	if (cpu_has(c, X86_FEATURE_ACPI))
++		buf[2] |= ACPI_PDC_T_FFH;
++
+ 	obj->type = ACPI_TYPE_BUFFER;
+ 	obj->buffer.length = 12;
+ 	obj->buffer.pointer = (u8 *) buf;
+Index: linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
+===================================================================
+--- linux-2.6.24-rc1.orig/drivers/acpi/processor_throttling.c
++++ linux-2.6.24-rc1/drivers/acpi/processor_throttling.c
+@@ -393,6 +393,74 @@ static int acpi_processor_get_throttling
  	return 0;
  }
  
-@@ -665,6 +659,12 @@ static int __cpuinit acpi_processor_star
- 	/* _PDC call should be done before doing anything else (if reqd.). */
- 	arch_acpi_processor_init_pdc(pr);
- 	acpi_processor_set_pdc(pr);
-+#ifdef CONFIG_CPU_FREQ
-+	acpi_processor_ppc_has_changed(pr);
-+#endif
-+	acpi_processor_get_throttling_info(pr);
-+	acpi_processor_get_limit_info(pr);
++#ifdef CONFIG_X86
++static int acpi_throttling_rdmsr(struct acpi_processor *pr,
++					acpi_integer * value)
++{
++	struct cpuinfo_x86 *c;
++	u64 msr_high, msr_low;
++	unsigned int cpu;
++	u64 msr = 0;
++	int ret = -1;
 +
- 
- 	acpi_processor_power_init(pr, device);
- 
++	cpu = pr->id;
++	c = &cpu_data(cpu);
++
++	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
++		!cpu_has(c, X86_FEATURE_ACPI)) {
++		printk(KERN_ERR PREFIX
++			"HARDWARE addr space,NOT supported yet\n");
++	} else {
++		msr_low = 0;
++		msr_high = 0;
++		rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++			(u32 *)&msr_low , (u32 *) &msr_high);
++		msr = (msr_high << 32) | msr_low;
++		*value = (acpi_integer) msr;
++		ret = 0;
++	}
++	return ret;
++}
++
++static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
++{
++	struct cpuinfo_x86 *c;
++	unsigned int cpu;
++	int ret = -1;
++	u64 msr;
++
++	cpu = pr->id;
++	c = &cpu_data(cpu);
++
++	if ((c->x86_vendor != X86_VENDOR_INTEL) ||
++		!cpu_has(c, X86_FEATURE_ACPI)) {
++		printk(KERN_ERR PREFIX
++			"HARDWARE addr space,NOT supported yet\n");
++	} else {
++		msr = value;
++		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++			msr & 0xffffffff, msr >> 32);
++		ret = 0;
++	}
++	return ret;
++}
++#else
++static int acpi_throttling_rdmsr(struct acpi_processor *pr,
++				acpi_integer * value)
++{
++	printk(KERN_ERR PREFIX
++		"HARDWARE addr space,NOT supported yet\n");
++	return -1;
++}
++
++static int acpi_throttling_wrmsr(struct acpi_processor *pr, acpi_integer value)
++{
++	printk(KERN_ERR PREFIX
++		"HARDWARE addr space,NOT supported yet\n");
++	return -1;
++}
++#endif
++
+ static int acpi_read_throttling_status(struct acpi_processor *pr,
+ 					acpi_integer *value)
+ {
+@@ -417,8 +485,7 @@ static int acpi_read_throttling_status(s
+ 		ret = 0;
+ 		break;
+ 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+-		printk(KERN_ERR PREFIX
+-		       "HARDWARE addr space,NOT supported yet\n");
++		ret = acpi_throttling_rdmsr(pr, value);
+ 		break;
+ 	default:
+ 		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
+@@ -451,8 +518,7 @@ static int acpi_write_throttling_state(s
+ 		ret = 0;
+ 		break;
+ 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+-		printk(KERN_ERR PREFIX
+-		       "HARDWARE addr space,NOT supported yet\n");
++		ret = acpi_throttling_wrmsr(pr, value);
+ 		break;
+ 	default:
+ 		printk(KERN_ERR PREFIX "Unknown addr space %d\n",
