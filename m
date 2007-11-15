@@ -1,34 +1,65 @@
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Subject: Re: 2.6.24-rc2-mm1: undefined reference to `local_apic_timer_c2_ok'
-Date: Fri, 16 Nov 2007 00:35:58 +0100
-Message-ID: <200711160036.00595.m.kozlowski@tuxland.pl>
-References: <20071113175906.497a1a6a.akpm@linux-foundation.org> <200711152325.36541.m.kozlowski@tuxland.pl> <200711151749.03950.lenb@kernel.org>
+From: Gary Hade <garyhade@us.ibm.com>
+Subject: Re: [PATCH 0/5][RFC] Physical PCI slot objects
+Date: Thu, 15 Nov 2007 15:38:17 -0800
+Message-ID: <20071115233817.GD5928@us.ibm.com>
+References: <20071115004039.GC6269@us.ibm.com> <20071115173613.GG7541@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xdsl-664.zgora.dialog.net.pl ([81.168.226.152]:1263 "EHLO
-	tuxland.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754774AbXKOXgR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2007 18:36:17 -0500
-In-Reply-To: <200711151749.03950.lenb@kernel.org>
+Received: from e34.co.us.ibm.com ([32.97.110.152]:46822 "EHLO
+	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932478AbXKOXi3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2007 18:38:29 -0500
 Content-Disposition: inline
+In-Reply-To: <20071115173613.GG7541@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, Greg KH <greg@kroah.com>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Hello,
+On Thu, Nov 15, 2007 at 10:36:13AM -0700, Alex Chiang wrote:
+  < snip >
 
-> > local_apic_timer_c2_ok
-> 
-> hmm, looks like you're missing CONFIG_X86_LOCAL_APIC
-> so does this go away when you add CONFIG_SMP
-> or CONFIG_X86_UP_APIC?
+> Ok, so all that said, after re-implementing my ACPI-PCI slot
+> driver, we get all the correct answers, but with the additional
+> appearance of slots 1 and 2 (which aren't hotpluggable):
 
-Yes it does. In both cases.
+Yea, looks much better.  Nice to see that the addresses
+for slots below the p2p bridges now include the child
+instead of the parent bus number. :)
 
-Regards,
+  < snip >
 
-	Mariusz
+> So if you could try out v2 of my patch series when you get access
+> to your machine back, I'd much appreciate it. 
+
+Will do.  It still looks like I will not get the box back
+until early next week.  I will only be working Monday and
+Tuesday due to holiday/vacation but that will hopefully not
+be a problem.
+
+> I feel a lot better about it compared to v1.
+
+I haven't tried it yet but I feel better seeing that you
+are now testing on a system having a PCI topology that
+appears similar to some of our systems.
+
+  < snip >
+
+> Here is some dmesg and lspci -vt output in case you want to
+> double-check my work:
+
+Well, I didn't see any obvious warts but I'm pretty skilled
+at missing problems when looking at that kind of info.
+
+Thanks,
+Gary
+
+-- 
+Gary Hade
+System x Enablement
+IBM Linux Technology Center
+503-578-4503  IBM T/L: 775-4503
+garyhade@us.ibm.com
+http://www.ibm.com/linux/ltc
+
