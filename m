@@ -1,100 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.24 regression:  hibernation hangs on "Suspending console" in low-battery condition
-Date: Fri, 16 Nov 2007 22:55:16 +0100
-Message-ID: <200711162255.17014.rjw@sisk.pl>
-References: <200711052201.17150.arvidjaar@mail.ru> <200711170001.46710.arvidjaar@mail.ru> <200711162233.52910.rjw@sisk.pl>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 9398] New: BUG: soft lockup detected on CPU#0!
+Date: Fri, 16 Nov 2007 15:32:47 -0800
+Message-ID: <20071116153247.b1e99f9e.akpm@linux-foundation.org>
+References: <bug-9398-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58182 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761414AbXKPViC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Nov 2007 16:38:02 -0500
-In-Reply-To: <200711162233.52910.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49674 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762796AbXKPXdD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Nov 2007 18:33:03 -0500
+In-Reply-To: <bug-9398-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: cijoml@volny.cz
+Cc: bugme-daemon@bugzilla.kernel.org, stable@kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, 16 of November 2007, Rafael J. Wysocki wrote:
-> On Friday, 16 of November 2007, Andrey Borzenkov wrote:
-> > On Sunday 11 November 2007, Rafael J. Wysocki wrote:
-> > > On Sunday, 11 of November 2007, Andrey Borzenkov wrote:
-> > > > On Sunday 11 November 2007, Rafael J. Wysocki wrote:
-> > > > > On Sunday, 11 of November 2007, Andrey Borzenkov wrote:
-> > > > > > On Monday 05 November 2007, Andrey Borzenkov wrote:
-> > > > > > > Notice "hung" not "hangs". This happened so far only once - when low battery 
-> > > > > > > condition triggered suspend to disk. I was not able to reproduce it after 
-> > > > > > > this running on AC.
-> > > > > > > 
-> > > > > > > Just in case it rings the bell for someone. This is not suspend regression 
-> > > > > > > reported earlier by Jens - I do not even have SATA nor is using libata 
-> > > > > > > drivers.
-> > > > > > > 
-> > > > > > 
-> > > > > > This happened second time, now with 2.6.24-rc2. I have kpowersave configured
-> > > > > > to initiate suspend-to-disk on low battery. Suspend-to-disk is initiated,
-> > > > > > but system stops after Suspending console line. Suspend image is not created.
-> > > > > > 
-> > > > > > This did work before although I do not name exact version.
-> > > > > > 
-> > > > > > I am rather at loss how to proceed further ... any idea? dmesg and config
-> > > > > > attached just in case. The problem is that hibernation works when I initiate
-> > > > > > it manually ...
-> > > > > 
-> > > > > Have you tried it with the battery removed?
-> > > > > 
-> > > > > 
-> > > > 
-> > > > It works. Subjectively I have relatively long pause after first Suspending console
-> > > > message (where it hangs otherwise), according to dmesg timestamp it is about
-> > > > 1 second before next messages appear. Also last two times I tried it writeout
-> > > > of suspend image was really slow; it was both with and without battery. Reading
-> > > > on resume in really in order of magnitude faster.
-> > > > 
-> > > > But manual STD so far works both on AC (with or without battery) or on battery.
-> > > > 
-> > > > Of course it is possible that battery gets exhausted during STD, but system
-> > > > is not switched off. Rather I would suspect something like ACPI notification
-> > > > that comes during freeze ...
-> > > 
-> > > Frankly, I'm suspecting a deadlock in the ACPI code.
-> > > 
-> > > Please try to make kpowersave start hibernation a bit earlier and see what
-> > > happens.
-> > > 
-> > > What's your critical time now?
-> > > 
-> > > 
-> > 
-> > it was set to 5%. Setting it to 10% makes it work, but it just confirms what I
-> > said before - suspend-to-RAM in normal battery conditions (or without battery)
-> > works.
-> 
-> Yes.
-> 
-> > With 5% threshold I have visible indication of alarm from *firmware* -
-> > battery LED flashing. 
-> > 
-> > Something happens differently when battery is in dangerous state.
-> 
-> Yes, definitely.
-> 
-> > I tried patch 
-> > 4c41d3ad6544f1c9aec37c441af04f5d0ad3a731 (got from ACPI tree) but it did not
-> > change anything. It worked once when I left system on battery with artificial
-> > load (find . -exec md5sum in linux tree in a loop) but I suspect it is just
-> > because it just triggered limit earlier. (Frankly I do not know which percentage
-> > kpowersave computes)
-> 
-> Well, do we have a bugzilla entry for this issue?
 
-Yes, we have: http://bugzilla.kernel.org/show_bug.cgi?id=9344
+(switched to email.  Please reply via emailed reply-to-all, not via the
+bugzilla web interface).
 
-Let's use it from now on, please.
+On Fri, 16 Nov 2007 14:56:13 -0800 (PST)
+bugme-daemon@bugzilla.kernel.org wrote:
 
-Thanks,
-Rafael
+> http://bugzilla.kernel.org/show_bug.cgi?id=9398
+> 
+>            Summary: BUG: soft lockup detected on CPU#0!
+>            Product: Other
+>            Version: 2.5
+>      KernelVersion: 2.6.23.8
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Other
+>         AssignedTo: other_other@kernel-bugs.osdl.org
+>         ReportedBy: cijoml@volny.cz
+> 
+> 
+> Most recent kernel where this bug did not occur: 2.6.23.0
+
+Ow.  Are you sure?  This is a regression which was added into the 2.6.23
+stable tree?
+
+> Distribution: Debian stable
+> Hardware Environment: Pentium M laptop
+> Software Environment: Debian stable
+> Problem Description:
+> 
+> Steps to reproduce:
+> 
+> i2c-adapter i2c-5: SMBus Quick command not supported, can't probe for chips
+> i2c-adapter i2c-6: SMBus Quick command not supported, can't probe for chips
+> pcmcia: Detected deprecated PCMCIA ioctl usage from process: discover.
+> pcmcia: This interface will soon be removed from the kernel; please expect
+> breakage unless you upgrade to new tools.
+> pcmcia: see http://www.kernel.org/pub/linux/utils/kernel/pcmcia/pcmcia.html for
+> details.
+> eth0: link down
+> ieee80211_crypt: registered algorithm 'TKIP'
+> BUG: soft lockup detected on CPU#0!
+>  [<c0140bf4>] softlockup_tick+0x90/0xaf
+>  [<c0120a17>] update_process_times+0x32/0x54
+>  [<c012edfd>] tick_periodic+0x6e/0x78
+>  [<c012ee16>] tick_handle_periodic+0xf/0x5d
+>  [<c0126390>] insert_work+0x59/0x5c
+>  [<c012ef3c>] tick_do_broadcast+0x1f/0x3f
+>  [<c012f05a>] tick_do_periodic_broadcast+0x1a/0x31
+>  [<c012f08c>] tick_handle_periodic_broadcast+0x1b/0x5b
+>  [<c01272fb>] __rcu_process_callbacks+0x112/0x170
+>  [<c0106e83>] timer_interrupt+0x34/0x3d
+>  [<c0140e66>] handle_IRQ_event+0x1a/0x3f
+>  [<c01420df>] handle_level_irq+0x77/0xd0
+>  [<c01061c5>] do_IRQ+0x75/0x8c
+>  [<c0220d76>] acpi_hw_register_write+0x11b/0x14b
+>  [<c0104713>] common_interrupt+0x23/0x28
+>  [<c0110000>] mc_sysdev_remove+0x2b/0x4b
+>  [<c0232ddf>] acpi_processor_idle+0x22f/0x398
+>  [<c0102344>] cpu_idle+0x43/0x71
+>  [<c03d29de>] start_kernel+0x250/0x255
+>  [<c03d2317>] unknown_bootoption+0x0/0x195
+>  =======================
+
+Looks like acpi_hw_register_write() has locked up.  Or someone is
+continuously calling acpi_hw_register_write().
+
+I assume that the mc_sysdev_remove() in there is just stack garbage.  To
+confirm this could you please set CONFIG_MICROCODE=n and retest?
+
+Also, it would be interesting to test whether we have introduced this bug
+into 2.6.24-rc2 (or -rc3, if it's out).
+
+Thanks.
+
+
+
