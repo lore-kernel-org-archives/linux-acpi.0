@@ -1,87 +1,435 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH] ACPI: thinkpad-acpi: fix oops when a
-	module parameter has	no value
-Date: Sun, 18 Nov 2007 09:18:29 -0200
-Message-ID: <20071118111829.GA19189@khazad-dum.debian.net>
-References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
-	<200711051432.27840.lenb@kernel.org>
+From: Piet <piet@powderfinger.be>
+Subject: Dmidecode
+Date: Sun, 18 Nov 2007 13:56:47 +0100
+Message-ID: <1195390607.6906.2.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200711051432.27840.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay.clearwire.be ([88.147.88.130]:52939 "EHLO
+	relay.clearwire.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbXKRNQZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Nov 2007 08:16:25 -0500
+Received: from localhost (relay.clearwire.be [127.0.0.1])
+	by relay.clearwire.be (Postfix) with ESMTP id 1F8B188175
+	for <linux-acpi@vger.kernel.org>; Sun, 18 Nov 2007 13:56:55 +0100 (CET)
+Received: from relay.clearwire.be ([127.0.0.1])
+	by localhost (relay.clearwire.be [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id XGZKt8PXMRq4 for <linux-acpi@vger.kernel.org>;
+	Sun, 18 Nov 2007 13:56:49 +0100 (CET)
+Received: from [10.0.1.194] (unknown [88.147.30.60])
+	by relay.clearwire.be (Postfix) with ESMTP id 3397288173
+	for <linux-acpi@vger.kernel.org>; Sun, 18 Nov 2007 13:56:47 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-set_ibm_param() could OOPS with a NULL pointer derreference if one did not give
-any values for a module parameter it handles.  This would, of course, cause all
-sort of trouble for future modprobing and require a reboot to clean up
-properly.
+Hi,
 
-Fix it by returning -EINVAL if no values are given for the parameter, and also
-avoid any nastyness from BUG_ON while at it.
+On booting, I get the following message:
 
-How to reproduce: modprobe thinkpad-acpi brightness
+Please send dmidecode to linux-acpi@vger.kernel.org
 
-Error report by Mike Kershaw.
+(Let me know if you need more information)
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Tested-by: Mike Kershaw <dragorn-8I8a9W+rkIX1ZkIrOfZKgqxOck334EZe@public.gmane.org>
----
- drivers/misc/thinkpad_acpi.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+Here it is:
+[root@localhost piet]# dmidecode
+# dmidecode 2.9
+SMBIOS 2.4 present.
+37 structures occupying 1217 bytes.
+Table at 0x3FEEA000.
 
-Len,
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: FUJITSU SIEMENS
+        Version: 1.10
+        Release Date: 05/05/2006
+        ROM Size: 64 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PC Card (PCMCIA) is supported
+                PNP is supported
+                APM is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                ACPI is supported
+                USB legacy is supported
+                AGP is supported
+                BIOS boot specification is supported
 
-This one is also needed for 2.6.24-rc.  As soon as it hits mainline, I will
-also send it to -stable (for 2.6.22.y and 2.6.23.y).  It fixes a really,
-really annoying OOPS.
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: FUJITSU SIEMENS
+        Product Name: AMILO XI 1546
+        Version: Not Applicable
+        Serial Number: 72002DF3
+        UUID: 80C0DC54-CD63-0010-BBE0-B272859CEAC0
+        Wake-up Type: Power Switch
+        SKU Number: Not Specified
+        Family: Not Specified
 
-Please send it to Linus along with the other patches for 2.6.24-rc.
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: FUJITSU SIEMENS
+        Product Name: AMILO XI 1546
+        Version: Not Applicable
+        Serial Number: Not Applicable
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 8c94307..ab23a32 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -4817,9 +4817,15 @@ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
- 	unsigned int i;
- 	struct ibm_struct *ibm;
- 
-+	if (!kp || !kp->name || !val)
-+		return -EINVAL;
-+
- 	for (i = 0; i < ARRAY_SIZE(ibms_init); i++) {
- 		ibm = ibms_init[i].data;
--		BUG_ON(ibm == NULL);
-+		WARN_ON(ibm == NULL);
-+
-+		if (!ibm || !ibm->name)
-+			continue;
- 
- 		if (strcmp(ibm->name, kp->name) == 0 && ibm->write) {
- 			if (strlen(val) > sizeof(ibms_init[i].param) - 2)
--- 
-1.5.3.4
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: FUJITSU SIEMENS
+        Type: Notebook
+        Lock: Not Present
+        Version: Not Applicable
+        Serial Number: Not Applicable
+        Asset Tag: Not Applicable
+        Boot-up State: Safe
+        Power Supply State: Safe
+        Thermal State: Safe
+        Security Status: None
+        OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: U2E1
+        Type: Central Processor
+        Family: Other
+        Manufacturer: Intel
+        ID: E8 06 00 00 FF FB E9 BF
+        Version: Genuine Intel(R) CPU           T2
+        Voltage: 3.3 V
+        External Clock: Unknown
+        Max Speed: 2048 MHz
+        Current Speed: 1800 MHz
+        Status: Populated, Enabled
+        Upgrade: ZIF Socket
+        L1 Cache Handle: 0x0005
+        L2 Cache Handle: 0x0006
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L1 Cache
+        Configuration: Enabled, Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 16 KB
+        Maximum Size: 16 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Asynchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Socketed, Level 2
+        Operational Mode: Write Back
+        Location: External
+        Installed Size: 2048 KB
+        Maximum Size: 512 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Burst
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J19
+        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+        External Reference Designator: COM 1
+        External Connector Type: DB-9 male
+        Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J1A1
+        Internal Connector Type: None
+        External Reference Designator: Keyboard
+        External Connector Type: Circular DIN-8 male
+        Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+        Internal Reference Designator: J1A1
+        Internal Connector Type: None
+        External Reference Designator: PS/2 Mouse
+        External Connector Type: Circular DIN-8 male
+        Port Type: Mouse Port
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Slot J8B1
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Slot J9B1
+        Type: 32-bit PCI
+        Current Usage: Unknown
+        Length: Long
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000C, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PEG Slot J6C1
+        Type: 32-bit PCI Express
+        Current Usage: In Use
+        Length: Long
+        ID: 6
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000D, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot J7C1
+        Type: 32-bit PCI Express
+        Current Usage: Available
+        Length: Long
+        ID: 7
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000E, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot J8C1
+        Type: 32-bit PCI Express
+        Current Usage: Available
+        Length: Long
+        ID: 7
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+
+Handle 0x000F, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Sound
+        Status: Disabled
+        Description: HD-Audio
+
+Handle 0x0010, DMI type 11, 5 bytes
+OEM Strings
+        String 1: This is the Intel Calistoga
+        String 2: Chipset CRB Platform
+
+Handle 0x0011, DMI type 12, 5 bytes
+System Configuration Options
+        Option 1: Jumper settings can be described here.
+
+Handle 0x0012, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 16 bytes
+        Header Start Offset: 0x0000
+        Header Length: 16 bytes
+        Data Start Offset: 0x0010
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Valid, Not Full
+        Change Token: 0x000000A1
+        Header Format: Type 1
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
+
+Handle 0x0013, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 3 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x0014, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x0013
+        Error Information Handle: No Error
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M1
+        Bank Locator: Bank 0
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0015, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x0013
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M2
+        Bank Locator: Bank 1
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: Unknown
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x0016, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0003FFFFFFF
+        Range Size: 1 GB
+        Physical Array Handle: 0x0013
+        Partition Width: 0
+
+Handle 0x0017, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x000000003FF
+        Range Size: 1 kB
+        Physical Device Handle: 0x0014
+        Memory Array Mapped Address Handle: 0x0016
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0018, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0003FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x0015
+        Memory Array Mapped Address Handle: 0x0016
+        Partition Row Position: Unknown
+        Interleave Position: Unknown
+        Interleaved Data Depth: Unknown
+
+Handle 0x0019, DMI type 23, 13 bytes
+System Reset
+        Status: Enabled
+        Watchdog Timer: Present
+        Boot Option: Do Not Reboot
+        Boot Option On Limit: Do Not Reboot
+        Reset Count: Unknown
+        Reset Limit: Unknown
+        Timer Interval: Unknown
+        Timeout: Unknown
+
+Handle 0x001A, DMI type 24, 5 bytes
+Hardware Security
+        Power-On Password Status: Disabled
+        Keyboard Password Status: Unknown
+        Administrator Password Status: Disabled
+        Front Panel Reset Status: Unknown
+
+Handle 0x001B, DMI type 25, 9 bytes
+        System Power Controls
+        Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x001C, DMI type 26, 20 bytes
+Voltage Probe
+        Description: Voltage Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001D, DMI type 27, 12 bytes
+Cooling Device
+        Temperature Probe Handle: 0x001E
+        Type: Fan
+        Status: OK
+        OEM-specific Information: 0x00000000
+
+Handle 0x001E, DMI type 28, 20 bytes
+Temperature Probe
+        Description: Temperature Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x001F, DMI type 29, 20 bytes
+Electrical Current Probe
+        Description: Electrical Current Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x0020, DMI type 30, 6 bytes
+Out-of-band Remote Access
+        Manufacturer Name: Intel
+        Inbound Connection: Enabled
+        Outbound Connection: Disabled
+
+Handle 0x0021, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x0022, DMI type 129, 16 bytes
+OEM-specific Type
+        Header and Data:
+                81 10 22 00 01 01 02 01 00 00 00 01 00 00 08 01
+        Strings:
+                Intel_ASF_001
+                Intel_ASF_001
+
+Handle 0x0023, DMI type 136, 8 bytes
+OEM-specific Type
+        Header and Data:
+                88 08 23 00 FF FF 00 00
+        Strings:
+                ..$
+
+Handle 0x0024, DMI type 127, 4 bytes
+End Of Table
 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2005.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
