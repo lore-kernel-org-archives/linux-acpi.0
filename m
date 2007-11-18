@@ -1,88 +1,87 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: SBS: Fix retval warning
-Date: Sun, 18 Nov 2007 00:32:31 +0300
-Message-ID: <20071117213231.9287.31719.stgit@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH] ACPI: thinkpad-acpi: fix oops when a
+	module parameter has	no value
+Date: Sun, 18 Nov 2007 09:18:29 -0200
+Message-ID: <20071118111829.GA19189@khazad-dum.debian.net>
+References: <1193773585-17202-1-git-send-email-hmh@hmh.eng.br>
+	<200711051432.27840.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:46676 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751942AbXKQVc2 (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 17 Nov 2007 16:32:28 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200711051432.27840.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
 
-drivers/acpi/sbs.c: In function acpi_battery_add:
-drivers/acpi/sbs.c:811: warning: ignoring return value of device_create_file,
-declared with attribute warn_unused_result
+set_ibm_param() could OOPS with a NULL pointer derreference if one did not give
+any values for a module parameter it handles.  This would, of course, cause all
+sort of trouble for future modprobing and require a reboot to clean up
+properly.
 
-Additional cleanups:
-* use struct acpi_battery in acpi_battery_remove() to clean up function
-calls, just like acpi_battery_add() already does.
+Fix it by returning -EINVAL if no values are given for the parameter, and also
+avoid any nastyness from BUG_ON while at it.
 
-* put braces around unregister call, as it depends on dev being not NULL.
+How to reproduce: modprobe thinkpad-acpi brightness
 
-* remove unneeded braces
+Error report by Mike Kershaw.
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Tested-by: Mike Kershaw <dragorn-8I8a9W+rkIX1ZkIrOfZKgqxOck334EZe@public.gmane.org>
 ---
+ drivers/misc/thinkpad_acpi.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
- drivers/acpi/sbs.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
+Len,
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 90fd09c..73c1ba3 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -113,6 +113,7 @@ struct acpi_battery {
- 	u16 spec;
- 	u8 id;
- 	u8 present:1;
-+	u8 have_sysfs_alarm:1;
- };
+This one is also needed for 2.6.24-rc.  As soon as it hits mainline, I will
+also send it to -stable (for 2.6.22.y and 2.6.23.y).  It fixes a really,
+really annoying OOPS.
+
+Please send it to Linus along with the other patches for 2.6.24-rc.
+
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 8c94307..ab23a32 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -4817,9 +4817,15 @@ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
+ 	unsigned int i;
+ 	struct ibm_struct *ibm;
  
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
-@@ -808,7 +809,13 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 	}
- 	battery->bat.get_property = acpi_sbs_battery_get_property;
- 	result = power_supply_register(&sbs->device->dev, &battery->bat);
--	device_create_file(battery->bat.dev, &alarm_attr);
-+	if (result)
-+		goto end;
-+	result = device_create_file(battery->bat.dev, &alarm_attr);
-+	if (result)
-+		goto end;
-+	battery->have_sysfs_alarm = 1;
-+      end:
- 	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       battery->name, sbs->battery->present ? "present" : "absent");
-@@ -817,14 +824,16 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 
- static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
- {
--	if (sbs->battery[id].bat.dev)
--		device_remove_file(sbs->battery[id].bat.dev, &alarm_attr);
--		power_supply_unregister(&sbs->battery[id].bat);
--#ifdef CONFIG_ACPI_PROCFS
--	if (sbs->battery[id].proc_entry) {
--		acpi_sbs_remove_fs(&(sbs->battery[id].proc_entry),
--				   acpi_battery_dir);
-+	struct acpi_battery *battery = &sbs->battery[id];
++	if (!kp || !kp->name || !val)
++		return -EINVAL;
 +
-+	if (battery->bat.dev) {
-+		if (battery->have_sysfs_alarm)
-+			device_remove_file(battery->bat.dev, &alarm_attr);
-+		power_supply_unregister(&battery->bat);
- 	}
-+#ifdef CONFIG_ACPI_PROCFS
-+	if (battery->proc_entry)
-+		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
- #endif
- }
+ 	for (i = 0; i < ARRAY_SIZE(ibms_init); i++) {
+ 		ibm = ibms_init[i].data;
+-		BUG_ON(ibm == NULL);
++		WARN_ON(ibm == NULL);
++
++		if (!ibm || !ibm->name)
++			continue;
  
+ 		if (strcmp(ibm->name, kp->name) == 0 && ibm->write) {
+ 			if (strlen(val) > sizeof(ibms_init[i].param) - 2)
+-- 
+1.5.3.4
 
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2005.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
