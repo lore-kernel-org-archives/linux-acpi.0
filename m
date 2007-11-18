@@ -1,54 +1,66 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: disable the gpe that doesn't have a GPE handler
-	correctly
-Date: Mon, 19 Nov 2007 15:32:46 +0800
-Message-ID: <1195457566.2971.12.camel@acpi-hp.sh.intel.com>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: [PATCH] Fix segfault when printing battery status
+Date: Sun, 18 Nov 2007 20:49:24 +0100
+Message-ID: <200711182049.33355.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart3278446.hSVeMvdI4x";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9770 "EHLO mga11.intel.com"
+Received: from mail.sf-mail.de ([62.27.20.61]:34185 "EHLO mail.sf-mail.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752199AbXKSHXP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 02:23:15 -0500
+	id S1752206AbXKSIhg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 03:37:36 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, astarikovskiy@suse.de, kernel list <linux-kernel@vger.kernel.org>
 
-From: Zhang Rui <rui.zhang@intel.com>
+--nextPart3278446.hSVeMvdI4x
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-The current code only disable the GPE by judging the
-GPE type, which is one of WAKE, RUNTIME and WAKE_RUN.
-In bug 6217, GPE 17 is enabled by the AML code ...
-And it will be triggerred when an extra CRT is connected.
-As GPE 17 is not ec gpe, and there is no _Lxx/_Exx method
-exists in the _GPE scope, the type flag of GPE 17 is cleared
-at the boot time and it's none of the three GPE types.
-In this case, the GPE is not disabled correctly.
+cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:19/PNP0C0A:00/powe=
+r_supply/BAT1/status
 
-http://bugzilla.kernel.org/show_bug.cgi?id=6217
+This leads to a stacktrace as acpi_battery_get_property() returns 0 for a=20
+case where it does not set val->intval. These value is used as an array=20
+index in drivers/power/power_supply_sysfs.c::power_supply_show_property().=
+=20
+I had a situation where the value was 4096 which caused a problem as the=20
+array only has 5 entries.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/events/evgpe.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
 
-Index: linux-2.6/drivers/acpi/events/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/events/evgpe.c
-+++ linux-2.6/drivers/acpi/events/evgpe.c
-@@ -277,11 +277,10 @@ acpi_status acpi_ev_disable_gpe(struct a
- 		/* Disable the requested runtime GPE */
- 
- 		ACPI_CLEAR_BIT(gpe_event_info->flags, ACPI_GPE_RUN_ENABLED);
--		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
--		break;
- 
- 	default:
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		acpi_hw_write_gpe_enable_reg(gpe_event_info);
-+		break;
- 	}
- 
- 	return_ACPI_STATUS(AE_OK);
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 192c244..2e8e790 100644
+=2D-- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -153,6 +153,8 @@ static int acpi_battery_get_property(struct power_suppl=
+y *psy,
+ 			val->intval =3D POWER_SUPPLY_STATUS_CHARGING;
+ 		else if (battery->state =3D=3D 0)
+ 			val->intval =3D POWER_SUPPLY_STATUS_FULL;
++		else
++			val->intval =3D POWER_SUPPLY_STATUS_UNKNOWN;
+ 		break;
+ 	case POWER_SUPPLY_PROP_PRESENT:
+ 		val->intval =3D acpi_battery_present(battery);
+
+--nextPart3278446.hSVeMvdI4x
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.4-svn0 (GNU/Linux)
+
+iD8DBQBHQJdNXKSJPmm5/E4RAo1/AJ9yxv0bDSI2LDSPWlelGPvWX9KRBwCfaMlQ
+MqWaei7Vvh/hWrCV+2PDfeM=
+=tt+p
+-----END PGP SIGNATURE-----
+
+--nextPart3278446.hSVeMvdI4x--
