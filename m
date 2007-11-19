@@ -1,103 +1,63 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: [Bugme-new] [Bug 9398] New: BUG: soft lockup detected on CPU#0!
-Date: Mon, 19 Nov 2007 16:30:59 -0500
-Message-ID: <47420093.9040505@redhat.com>
-References: <bug-9398-10286@http.bugzilla.kernel.org/> <20071116153247.b1e99f9e.akpm@linux-foundation.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Mon, 19 Nov 2007 15:02:37 -0700
+Message-ID: <20071119220237.GC32540@ldl.fc.hp.com>
+References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119094307.517411a2@appleyard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:58042 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751410AbXKSVbx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 16:31:53 -0500
-In-Reply-To: <20071116153247.b1e99f9e.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755992AbXKSWCz@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20071119094307.517411a2@appleyard>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: cijoml@volny.cz, bugme-daemon@bugzilla.kernel.org, stable@kernel.org, linux-acpi@vger.kernel.org
 
-On 11/16/2007 06:32 PM, Andrew Morton wrote:
-> (switched to email.  Please reply via emailed reply-to-all, not via the
-> bugzilla web interface).
-> 
-> On Fri, 16 Nov 2007 14:56:13 -0800 (PST)
-> bugme-daemon@bugzilla.kernel.org wrote:
-> 
->> http://bugzilla.kernel.org/show_bug.cgi?id=9398
->>
->>            Summary: BUG: soft lockup detected on CPU#0!
->>            Product: Other
->>            Version: 2.5
->>      KernelVersion: 2.6.23.8
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: Other
->>         AssignedTo: other_other@kernel-bugs.osdl.org
->>         ReportedBy: cijoml@volny.cz
->>
->>
->> Most recent kernel where this bug did not occur: 2.6.23.0
-> 
-> Ow.  Are you sure?  This is a regression which was added into the 2.6.23
-> stable tree?
-> 
->> Distribution: Debian stable
->> Hardware Environment: Pentium M laptop
->> Software Environment: Debian stable
->> Problem Description:
->>
->> Steps to reproduce:
->>
->> i2c-adapter i2c-5: SMBus Quick command not supported, can't probe for chips
->> i2c-adapter i2c-6: SMBus Quick command not supported, can't probe for chips
->> pcmcia: Detected deprecated PCMCIA ioctl usage from process: discover.
->> pcmcia: This interface will soon be removed from the kernel; please expect
->> breakage unless you upgrade to new tools.
->> pcmcia: see http://www.kernel.org/pub/linux/utils/kernel/pcmcia/pcmcia.html for
->> details.
->> eth0: link down
->> ieee80211_crypt: registered algorithm 'TKIP'
->> BUG: soft lockup detected on CPU#0!
->>  [<c0140bf4>] softlockup_tick+0x90/0xaf
->>  [<c0120a17>] update_process_times+0x32/0x54
->>  [<c012edfd>] tick_periodic+0x6e/0x78
->>  [<c012ee16>] tick_handle_periodic+0xf/0x5d
->>  [<c0126390>] insert_work+0x59/0x5c
->>  [<c012ef3c>] tick_do_broadcast+0x1f/0x3f
->>  [<c012f05a>] tick_do_periodic_broadcast+0x1a/0x31
->>  [<c012f08c>] tick_handle_periodic_broadcast+0x1b/0x5b
->>  [<c01272fb>] __rcu_process_callbacks+0x112/0x170
->>  [<c0106e83>] timer_interrupt+0x34/0x3d
->>  [<c0140e66>] handle_IRQ_event+0x1a/0x3f
->>  [<c01420df>] handle_level_irq+0x77/0xd0
->>  [<c01061c5>] do_IRQ+0x75/0x8c
->>  [<c0220d76>] acpi_hw_register_write+0x11b/0x14b
->>  [<c0104713>] common_interrupt+0x23/0x28
->>  [<c0110000>] mc_sysdev_remove+0x2b/0x4b
->>  [<c0232ddf>] acpi_processor_idle+0x22f/0x398
->>  [<c0102344>] cpu_idle+0x43/0x71
->>  [<c03d29de>] start_kernel+0x250/0x255
->>  [<c03d2317>] unknown_bootoption+0x0/0x195
->>  =======================
-> 
-> Looks like acpi_hw_register_write() has locked up.  Or someone is
-> continuously calling acpi_hw_register_write().
-> 
-> I assume that the mc_sysdev_remove() in there is just stack garbage.  To
-> confirm this could you please set CONFIG_MICROCODE=n and retest?
-> 
-> Also, it would be interesting to test whether we have introduced this bug
-> into 2.6.24-rc2 (or -rc3, if it's out).
-> 
+Hi Kristin,
 
-The softlockup detector was patched in 2.6.23.2; before that it was broken
-for a few releases.
+* Kristen Carlson Accardi <kristen.c.accardi@intel.com>:
+> Alex Chiang <achiang@hp.com> wrote:
+> 
+> > I have done quite a bit more testing, and verified that this
+> > series plays nicely with acpiphp during all stages of the
+> > series.  Notably, you can modprobe/rmmod acpiphp repeatedly
+> > no matter where you are in the series, and no matter whether
+> > you have CONFIG_ACPI_PCI_SLOT turned on. The correct entries
+> > in /sys/bus/pci/slots/ will appear and disappear, and we
+> > correctly register/deregister ACPI slots with the pci_hp
+> > core. 
+> 
+> How does this patch play with non-acpi based hotplug such as
+> the pciehp driver or the shpchp driver for example?
 
-patch a115d5caca1a2905ba7a32b408a6042b20179aaa in mainline
+Thanks for asking these questions -- I fixed some bugs in patches
+3/4 and 4/4 that should lead to a much better experience.
 
+First, it turns out I did not modify the pciehp driver correctly
+when using the new pci_hp_register interface. I fixed this bug,
+and noticed a problem in the rpaphp driver (which I fixed as
+well). I visually inspected the shpchp driver, and it *seems* to
+be correct, so no change there. I will send these fixes as Patch
+3/4, v4.
 
+Second, I resolved the issue of what happens when two different
+hp drivers try to claim the same PCI slot. Basically, whoever
+registered the slot first wins, and second place gets a -EBUSY
+return value. I *think* that is the correct behavior, as Willy
+informs me that having two drivers try to claim the same slot is
+badness. These fixes will be sent as Patch 4/4, v4.
+
+I tested by modprobe/rmmod both acpiphp and pciehp multiple
+times, and in differing orders. I also tested both
+CONFIG_ACPI_PCI_SLOT turned on and off. In all cases, at least
+what I intended to happen did happen.
+
+Now whether my intentions were correct or misguided might be a
+different story... ;) I'm wondering most about the -EBUSY thing,
+but I don't see a better option.
+
+Patches 1/4 and 2/4 had no changes so I will not resend them.
+
+Thanks.
+
+/ac
