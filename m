@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/8] Hibernation: Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers (rev. 2)
-Date: Mon, 19 Nov 2007 23:38:25 +0100
-Message-ID: <200711192338.26378.rjw@sisk.pl>
+Subject: [PATCH 8/8] PM: Convert PM notifiers to out-of-line code
+Date: Mon, 19 Nov 2007 23:49:18 +0100
+Message-ID: <200711192349.19063.rjw@sisk.pl>
 References: <200711192332.15078.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40381 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40391 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078AbXKSWkf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 17:40:35 -0500
+	id S1752120AbXKSWki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 17:40:38 -0500
 In-Reply-To: <200711192332.15078.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,147 +21,104 @@ Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johanne
 
 From: Alan Stern <stern@rowland.harvard.edu>
 
-Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers to the PM core, to be used
-in analogy with the existing PM_HIBERNATION_PREPARE and PM_POST_HIBERNATION
-notifiers.
+This patch (as1008b) converts the PM notifier routines from inline
+calls to out-of-line code.  It also prevents pm_chain_head from
+being created when CONFIG_PM_SLEEP isn't enabled, and EXPORTs the
+notifier registration and unregistration routines.
 
 Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- Documentation/power/notifiers.txt |    8 ++++++++
- include/linux/notifier.h          |    2 ++
- kernel/power/disk.c               |    5 +++++
- kernel/power/user.c               |   31 +++++++++++++++++++------------
- 4 files changed, 34 insertions(+), 12 deletions(-)
+ include/linux/suspend.h |   13 ++-----------
+ kernel/power/main.c     |   28 ++++++++++++++++++++++++++--
+ kernel/power/power.h    |   12 ++++--------
+ 3 files changed, 32 insertions(+), 21 deletions(-)
 
-Index: linux-2.6/Documentation/power/notifiers.txt
+Index: linux-2.6/include/linux/suspend.h
 ===================================================================
---- linux-2.6.orig/Documentation/power/notifiers.txt
-+++ linux-2.6/Documentation/power/notifiers.txt
-@@ -28,6 +28,14 @@ PM_POST_HIBERNATION	The system memory st
- 			hibernation.  Device drivers' .resume() callbacks have
- 			been executed and tasks have been thawed.
+--- linux-2.6.orig/include/linux/suspend.h
++++ linux-2.6/include/linux/suspend.h
+@@ -216,17 +216,8 @@ void __save_processor_state(struct saved
+ void __restore_processor_state(struct saved_context *ctxt);
  
-+PM_RESTORE_PREPARE	The system is going to restore a hibernation image.
-+			If all goes well the restored kernel will issue a
-+			PM_POST_HIBERNATION notification.
-+
-+PM_POST_RESTORE		An error occurred during the hibernation restore.
-+			Device drivers' .resume() callbacks have been executed
-+			and tasks have been thawed.
-+
- PM_SUSPEND_PREPARE	The system is preparing for a suspend.
- 
- PM_POST_SUSPEND		The system has just resumed or an error occured during
-Index: linux-2.6/include/linux/notifier.h
-===================================================================
---- linux-2.6.orig/include/linux/notifier.h
-+++ linux-2.6/include/linux/notifier.h
-@@ -230,6 +230,8 @@ static inline int notifier_to_errno(int 
- #define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
- #define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
- #define PM_POST_SUSPEND		0x0004 /* Suspend finished */
-+#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
-+#define PM_POST_RESTORE		0x0006 /* Restore failed */
- 
- /* Console keyboard events.
-  * Note: KBD_KEYCODE is always sent before KBD_UNBOUND_KEYCODE, KBD_UNICODE and
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -499,6 +499,10 @@ static int software_resume(void)
- 		goto Unlock;
- 	}
- 
-+	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
-+	if (error)
-+		goto Finish;
-+
- 	error = create_basic_memory_bitmaps();
- 	if (error)
- 		goto Finish;
-@@ -522,6 +526,7 @@ static int software_resume(void)
-  Done:
- 	free_basic_memory_bitmaps();
-  Finish:
-+	pm_notifier_call_chain(PM_POST_RESTORE);
- 	atomic_inc(&snapshot_device_available);
- 	/* For success case, the suspend path will release the lock */
-  Unlock:
-Index: linux-2.6/kernel/power/user.c
-===================================================================
---- linux-2.6.orig/kernel/power/user.c
-+++ linux-2.6/kernel/power/user.c
-@@ -67,6 +67,7 @@ atomic_t snapshot_device_available = ATO
- static int snapshot_open(struct inode *inode, struct file *filp)
- {
- 	struct snapshot_data *data;
-+	int error;
- 
- 	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
- 		return -EBUSY;
-@@ -87,9 +88,19 @@ static int snapshot_open(struct inode *i
- 		data->swap = swsusp_resume_device ?
- 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
- 		data->mode = O_RDONLY;
-+		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
-+		if (error)
-+			pm_notifier_call_chain(PM_POST_RESTORE);
- 	} else {
- 		data->swap = -1;
- 		data->mode = O_WRONLY;
-+		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
-+		if (error)
-+			pm_notifier_call_chain(PM_POST_HIBERNATION);
-+	}
-+	if (error) {
-+		atomic_inc(&snapshot_device_available);
-+		return error;
- 	}
- 	data->frozen = 0;
- 	data->ready = 0;
-@@ -111,6 +122,8 @@ static int snapshot_release(struct inode
- 		thaw_processes();
- 		mutex_unlock(&pm_mutex);
- 	}
-+	pm_notifier_call_chain(data->mode == O_WRONLY ?
-+			PM_POST_HIBERNATION : PM_POST_RESTORE);
- 	atomic_inc(&snapshot_device_available);
- 	return 0;
- }
-@@ -174,18 +187,13 @@ static int snapshot_ioctl(struct inode *
- 		if (data->frozen)
- 			break;
- 		mutex_lock(&pm_mutex);
--		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
--		if (!error) {
--			printk("Syncing filesystems ... ");
--			sys_sync();
--			printk("done.\n");
+ /* kernel/power/main.c */
+-extern struct blocking_notifier_head pm_chain_head;
 -
--			error = freeze_processes();
--			if (error)
--				thaw_processes();
--		}
-+		printk("Syncing filesystems ... ");
-+		sys_sync();
-+		printk("done.\n");
+-static inline int register_pm_notifier(struct notifier_block *nb)
+-{
+-	return blocking_notifier_chain_register(&pm_chain_head, nb);
+-}
+-
+-static inline int unregister_pm_notifier(struct notifier_block *nb)
+-{
+-	return blocking_notifier_chain_unregister(&pm_chain_head, nb);
+-}
++extern int register_pm_notifier(struct notifier_block *nb);
++extern int unregister_pm_notifier(struct notifier_block *nb);
+ 
+ #define pm_notifier(fn, pri) {				\
+ 	static struct notifier_block fn##_nb =			\
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -24,10 +24,34 @@
+ 
+ #include "power.h"
+ 
+-BLOCKING_NOTIFIER_HEAD(pm_chain_head);
+-
+ DEFINE_MUTEX(pm_mutex);
+ 
++#ifdef CONFIG_PM_SLEEP
 +
-+		error = freeze_processes();
- 		if (error)
--			pm_notifier_call_chain(PM_POST_HIBERNATION);
-+			thaw_processes();
- 		mutex_unlock(&pm_mutex);
- 		if (!error)
- 			data->frozen = 1;
-@@ -196,7 +204,6 @@ static int snapshot_ioctl(struct inode *
- 			break;
- 		mutex_lock(&pm_mutex);
- 		thaw_processes();
--		pm_notifier_call_chain(PM_POST_HIBERNATION);
- 		mutex_unlock(&pm_mutex);
- 		data->frozen = 0;
- 		break;
-
++/* Routines for PM-transition notifications */
++
++static BLOCKING_NOTIFIER_HEAD(pm_chain_head);
++
++int register_pm_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&pm_chain_head, nb);
++}
++EXPORT_SYMBOL_GPL(register_pm_notifier);
++
++int unregister_pm_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&pm_chain_head, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_pm_notifier);
++
++int pm_notifier_call_chain(unsigned long val)
++{
++	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
++			== NOTIFY_BAD) ? -EINVAL : 0;
++}
++
++#endif /* CONFIG_PM_SLEEP */
++
+ #ifdef CONFIG_PM_DEBUG
+ int pm_test_level = TEST_NONE;
+ 
+Index: linux-2.6/kernel/power/power.h
+===================================================================
+--- linux-2.6.orig/kernel/power/power.h
++++ linux-2.6/kernel/power/power.h
+@@ -174,14 +174,10 @@ static inline int suspend_devices_and_en
+ }
+ #endif /* !CONFIG_SUSPEND */
+ 
+-/* kernel/power/common.c */
+-extern struct blocking_notifier_head pm_chain_head;
+-
+-static inline int pm_notifier_call_chain(unsigned long val)
+-{
+-	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
+-			== NOTIFY_BAD) ? -EINVAL : 0;
+-}
++#ifdef CONFIG_PM_SLEEP
++/* kernel/power/main.c */
++extern int pm_notifier_call_chain(unsigned long val);
++#endif
+ 
+ #ifdef CONFIG_HIGHMEM
+ unsigned int count_highmem_pages(void);
