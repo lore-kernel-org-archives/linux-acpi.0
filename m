@@ -1,124 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 8/8] PM: Convert PM notifiers to out-of-line code
-Date: Mon, 19 Nov 2007 23:49:18 +0100
-Message-ID: <200711192349.19063.rjw@sisk.pl>
-References: <200711192332.15078.rjw@sisk.pl>
+From: Gary Hade <garyhade@us.ibm.com>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Mon, 19 Nov 2007 15:32:25 -0800
+Message-ID: <20071119233225.GA6931@us.ibm.com>
+References: <20071117182954.GA25003@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40391 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120AbXKSWki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 17:40:38 -0500
-In-Reply-To: <200711192332.15078.rjw@sisk.pl>
+Received: from e34.co.us.ibm.com ([32.97.110.152]:48916 "EHLO
+	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbXKSXcb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 18:32:31 -0500
 Content-Disposition: inline
+In-Reply-To: <20071117182954.GA25003@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>
+To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux
 
-From: Alan Stern <stern@rowland.harvard.edu>
+On Sat, Nov 17, 2007 at 11:29:54AM -0700, Alex Chiang wrote:
+> Hi all,
+> 
+> This is v3 of the pci_slot patch series.
+> 
+> The major change is making the ACPI-PCI slot driver a Kconfig
+> option, as per the recommendations of others (Gary, Kenji-san).
 
-This patch (as1008b) converts the PM notifier routines from inline
-calls to out-of-line code.  It also prevents pm_chain_head from
-being created when CONFIG_PM_SLEEP isn't enabled, and EXPORTs the
-notifier registration and unregistration routines.
+Alex, What I was trying to suggest is a boot-time kernel option, 
+not a kernel configuration option.  The basic idea is to give
+the user (with a single binary kernel) the ability to include
+your ACPI-PCI slot driver feature changes only when they are
+really needed.  In addition to reducing the number of
+system/PCI hotplug driver combinations where your changes
+would need to be validated, I believe would also help 
+alleviate other worries (e.g. Andi Kleen's memory consumption
+concern).  I believe this goal could also be achieved with the
+kernel config option by making the pci_slot module runtime
+loadable with the PCI hotplug drivers only visiting your new
+code when the pci_slot driver is loaded, although I think this
+would be more difficult to implement.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- include/linux/suspend.h |   13 ++-----------
- kernel/power/main.c     |   28 ++++++++++++++++++++++++++--
- kernel/power/power.h    |   12 ++++--------
- 3 files changed, 32 insertions(+), 21 deletions(-)
+Also, I notice that even with your current CONFIG_ACPI_PCI_SLOT
+implementation your numerous PCI hotplug driver changes (except
+for only two places in pci_hotplug_core.c where there is 
+`#ifndef CONFIG_ACPI_PCI_SLOT` and `#ifdef CONFIG_ACPI_PCI_SLOT`)
+are _always_ exposed.  So, even with CONFIG_ACPI_PCI_SLOT disabled
+there is IMO a need for testing of the affected PCI hotplug drivers
+on more than a small number of isolated systems.
 
-Index: linux-2.6/include/linux/suspend.h
-===================================================================
---- linux-2.6.orig/include/linux/suspend.h
-+++ linux-2.6/include/linux/suspend.h
-@@ -216,17 +216,8 @@ void __save_processor_state(struct saved
- void __restore_processor_state(struct saved_context *ctxt);
- 
- /* kernel/power/main.c */
--extern struct blocking_notifier_head pm_chain_head;
--
--static inline int register_pm_notifier(struct notifier_block *nb)
--{
--	return blocking_notifier_chain_register(&pm_chain_head, nb);
--}
--
--static inline int unregister_pm_notifier(struct notifier_block *nb)
--{
--	return blocking_notifier_chain_unregister(&pm_chain_head, nb);
--}
-+extern int register_pm_notifier(struct notifier_block *nb);
-+extern int unregister_pm_notifier(struct notifier_block *nb);
- 
- #define pm_notifier(fn, pri) {				\
- 	static struct notifier_block fn##_nb =			\
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -24,10 +24,34 @@
- 
- #include "power.h"
- 
--BLOCKING_NOTIFIER_HEAD(pm_chain_head);
--
- DEFINE_MUTEX(pm_mutex);
- 
-+#ifdef CONFIG_PM_SLEEP
-+
-+/* Routines for PM-transition notifications */
-+
-+static BLOCKING_NOTIFIER_HEAD(pm_chain_head);
-+
-+int register_pm_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&pm_chain_head, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_pm_notifier);
-+
-+int unregister_pm_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&pm_chain_head, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_pm_notifier);
-+
-+int pm_notifier_call_chain(unsigned long val)
-+{
-+	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
-+			== NOTIFY_BAD) ? -EINVAL : 0;
-+}
-+
-+#endif /* CONFIG_PM_SLEEP */
-+
- #ifdef CONFIG_PM_DEBUG
- int pm_test_level = TEST_NONE;
- 
-Index: linux-2.6/kernel/power/power.h
-===================================================================
---- linux-2.6.orig/kernel/power/power.h
-+++ linux-2.6/kernel/power/power.h
-@@ -174,14 +174,10 @@ static inline int suspend_devices_and_en
- }
- #endif /* !CONFIG_SUSPEND */
- 
--/* kernel/power/common.c */
--extern struct blocking_notifier_head pm_chain_head;
--
--static inline int pm_notifier_call_chain(unsigned long val)
--{
--	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
--			== NOTIFY_BAD) ? -EINVAL : 0;
--}
-+#ifdef CONFIG_PM_SLEEP
-+/* kernel/power/main.c */
-+extern int pm_notifier_call_chain(unsigned long val);
-+#endif
- 
- #ifdef CONFIG_HIGHMEM
- unsigned int count_highmem_pages(void);
+The good news is that I was able to test your v3 changes
+(w/2.6.24-rc3 source) on our x3850 today with 'acpiphp'
+and, except for the above mentioned inability to run-time
+include/exclude them, they seemed to work fine.  The previous
+boot-time ACPI error messages are gone and I was able to
+successfully hot-remove and hot-add both PCI-X and PCIe
+adapters.
+
+Thanks,
+Gary
+
+-- 
+Gary Hade
+System x Enablement
+IBM Linux Technology Center
+503-578-4503  IBM T/L: 775-4503
+garyhade@us.ibm.com
+http://www.ibm.com/linux/ltc
+
+
