@@ -1,17 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/8] Hibernation: Move function prototypes to header
-Date: Mon, 19 Nov 2007 23:36:20 +0100
-Message-ID: <200711192336.21264.rjw@sisk.pl>
+Subject: [PATCH 4/8] Suspend: Testing facility (rev. 2)
+Date: Mon, 19 Nov 2007 23:41:19 +0100
+Message-ID: <200711192341.20857.rjw@sisk.pl>
 References: <200711192332.15078.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40378 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40367 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752016AbXKSWke (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 17:40:34 -0500
+	id S1751591AbXKSWkb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 17:40:31 -0500
 In-Reply-To: <200711192332.15078.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,68 +18,272 @@ List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>
 
-From: Adrian Bunk <bunk@kernel.org>
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-This patch moves the prototypes of count_highmem_pages() and 
-restore_highmem() to kernel/power/power.h
+Introduce sysfs attribute /sys/power/pm_test allowing one to test the s=
+uspend
+core code. =A0Namely, writing one of the strings:
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+freezer
+devices
+platform
+processors
+core
+
+to this file causes the suspend code to work in one of the test modes d=
+efined as
+follows:
+
+freezer
+- test the freezing of processes
+
+devices
+- test the freezing of processes and suspending of devices
+
+platform
+- test the freezing of processes, suspending of devices and platform gl=
+obal
+=A0 control methods(*)
+
+processors
+- test the freezing of processes, suspending of devices, platform globa=
+l
+=A0 control methods and the disabling of nonboot CPUs
+
+core
+- test the freezing of processes, suspending of devices, platform globa=
+l
+=A0 control methods, the disabling of nonboot CPUs and suspending of
+=A0 platform/system devices
+
+(*) These are ACPI global control methods on ACPI systems
+
+Then, if a suspend is started by normal means, the suspend core will pe=
+rform
+its normal operations up to the point indicated by given test level. =A0=
+Next, it
+will wait for 5 seconds and carry out the resume operations needed to t=
+ransition
+the system back to the fully functional state.
+
+Writing "none" to /sys/power/pm_test turns the testing off.
+
+When open for reading, /sys/power/pm_test contains a space-separated li=
+st of all
+available tests (including "none" that represents the normal functional=
+ity) in
+which the current test level is indicated by square brackets.
+
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- kernel/power/power.h    |    8 ++++++++
- kernel/power/snapshot.c |    1 -
- kernel/power/swsusp.c   |    8 --------
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ kernel/power/main.c  |  109 ++++++++++++++++++++++++++++++++++++++++++=
+++++-----
+ kernel/power/power.h |   18 ++++++++
+ 2 files changed, 118 insertions(+), 9 deletions(-)
 
-20af06052a0203d9e60b4937282793900c756182 
-diff --git a/kernel/power/power.h b/kernel/power/power.h
-index 195dc46..3fe1e7f 100644
---- a/kernel/power/power.h
-+++ b/kernel/power/power.h
-@@ -211,3 +211,11 @@ static inline int pm_notifier_call_chain(unsigned long val)
- 	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
- 			== NOTIFY_BAD) ? -EINVAL : 0;
- }
+Index: linux-2.6/kernel/power/main.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -28,6 +28,80 @@ BLOCKING_NOTIFIER_HEAD(pm_chain_head);
+=20
+ DEFINE_MUTEX(pm_mutex);
+=20
++#ifdef CONFIG_PM_DEBUG
++int pm_test_level =3D TEST_NONE;
 +
-+#ifdef CONFIG_HIGHMEM
-+unsigned int count_highmem_pages(void);
-+int restore_highmem(void);
-+#else
-+static inline unsigned int count_highmem_pages(void) { return 0; }
-+static inline int restore_highmem(void) { return 0; }
-+#endif
-diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
-index 78039b4..d9ed1ff 100644
---- a/kernel/power/snapshot.c
-+++ b/kernel/power/snapshot.c
-@@ -872,7 +872,6 @@ unsigned int count_highmem_pages(void)
++static int suspend_test(int level)
++{
++	if (pm_test_level =3D=3D level) {
++		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
++		mdelay(5000);
++		return 1;
++	}
++	return 0;
++}
++
++static const char * const pm_tests[__TEST_AFTER_LAST] =3D {
++	[TEST_NONE] =3D "none",
++	[TEST_CORE] =3D "core",
++	[TEST_CPUS] =3D "processors",
++	[TEST_PLATFORM] =3D "platform",
++	[TEST_DEVICES] =3D "devices",
++	[TEST_FREEZER] =3D "freezer",
++};
++
++static ssize_t pm_test_show(struct kset *kset, char *buf)
++{
++	char *s =3D buf;
++	int level;
++
++	for (level =3D TEST_FIRST; level <=3D TEST_MAX; level++)
++		if (pm_tests[level]) {
++			if (level =3D=3D pm_test_level)
++				s +=3D sprintf(s, "[%s] ", pm_tests[level]);
++			else
++				s +=3D sprintf(s, "%s ", pm_tests[level]);
++		}
++
++	if (s !=3D buf)
++		/* convert the last space to a newline */
++		*(s-1) =3D '\n';
++
++	return (s - buf);
++}
++
++static ssize_t pm_test_store(struct kset *kset, const char *buf, size_=
+t n)
++{
++	const char * const *s;
++	int level;
++	char *p;
++	int len;
++	int error =3D -EINVAL;
++
++	p =3D memchr(buf, '\n', n);
++	len =3D p ? p - buf : n;
++
++	mutex_lock(&pm_mutex);
++
++	level =3D TEST_FIRST;
++	for (s =3D &pm_tests[level]; level <=3D TEST_MAX; s++, level++)
++		if (*s && len =3D=3D strlen(*s) && !strncmp(buf, *s, len)) {
++			pm_test_level =3D level;
++			error =3D 0;
++			break;
++		}
++
++	mutex_unlock(&pm_mutex);
++
++	return error ? error : n;
++}
++
++power_attr(pm_test);
++#else /* !CONFIG_PM_DEBUG */
++static inline int suspend_test(int level) { return 0; }
++#endif /* !CONFIG_PM_DEBUG */
++
++
+ #ifdef CONFIG_SUSPEND
+=20
+ /* This is just an arbitrary number */
+@@ -133,7 +207,10 @@ static int suspend_enter(suspend_state_t
+ 		printk(KERN_ERR "Some devices failed to power down\n");
+ 		goto Done;
+ 	}
+-	error =3D suspend_ops->enter(state);
++
++	if (!suspend_test(TEST_CORE))
++		error =3D suspend_ops->enter(state);
++
+ 	device_power_up();
+  Done:
+ 	arch_suspend_enable_irqs();
+@@ -164,16 +241,25 @@ int suspend_devices_and_enter(suspend_st
+ 		printk(KERN_ERR "Some devices failed to suspend\n");
+ 		goto Resume_console;
+ 	}
++
++	if (suspend_test(TEST_DEVICES))
++		goto Resume_devices;
++
+ 	if (suspend_ops->prepare) {
+ 		error =3D suspend_ops->prepare();
+ 		if (error)
+ 			goto Resume_devices;
+ 	}
++
++	if (suspend_test(TEST_PLATFORM))
++		goto Finish;
++
+ 	error =3D disable_nonboot_cpus();
+-	if (!error)
++	if (!error && !suspend_test(TEST_CPUS))
+ 		suspend_enter(state);
+=20
+ 	enable_nonboot_cpus();
++ Finish:
+ 	if (suspend_ops->finish)
+ 		suspend_ops->finish();
+  Resume_devices:
+@@ -240,12 +326,17 @@ static int enter_state(suspend_state_t s
+ 	printk("done.\n");
+=20
+ 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
+-	if ((error =3D suspend_prepare()))
++	error =3D suspend_prepare();
++	if (error)
+ 		goto Unlock;
+=20
++	if (suspend_test(TEST_FREEZER))
++		goto Finish;
++
+ 	pr_debug("PM: Entering %s sleep\n", pm_states[state]);
+ 	error =3D suspend_devices_and_enter(state);
+=20
++ Finish:
+ 	pr_debug("PM: Finishing wakeup.\n");
+ 	suspend_finish();
+  Unlock:
+@@ -363,18 +454,18 @@ pm_trace_store(struct kset *kset, const=20
  }
- #else
- static inline void *saveable_highmem_page(unsigned long pfn) { return NULL; }
--static inline unsigned int count_highmem_pages(void) { return 0; }
- #endif /* CONFIG_HIGHMEM */
- 
- /**
-diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
-index e1722d3..605c536 100644
---- a/kernel/power/swsusp.c
-+++ b/kernel/power/swsusp.c
-@@ -64,14 +64,6 @@ unsigned long image_size = 500 * 1024 * 1024;
- 
- int in_suspend __nosavedata = 0;
- 
--#ifdef CONFIG_HIGHMEM
--unsigned int count_highmem_pages(void);
--int restore_highmem(void);
+=20
+ power_attr(pm_trace);
++#endif /* CONFIG_PM_TRACE */
+=20
+ static struct attribute * g[] =3D {
+ 	&state_attr.attr,
++#ifdef CONFIG_PM_TRACE
+ 	&pm_trace_attr.attr,
++#endif
++#ifdef CONFIG_PM_DEBUG
++	&pm_test_attr.attr,
++#endif
+ 	NULL,
+ };
 -#else
--static inline int restore_highmem(void) { return 0; }
--static inline unsigned int count_highmem_pages(void) { return 0; }
--#endif
+-static struct attribute * g[] =3D {
+-	&state_attr.attr,
+-	NULL,
+-};
+-#endif /* CONFIG_PM_TRACE */
+=20
+ static struct attribute_group attr_group =3D {
+ 	.attrs =3D g,
+Index: linux-2.6/kernel/power/power.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/kernel/power/power.h
++++ linux-2.6/kernel/power/power.h
+@@ -190,3 +190,21 @@ int restore_highmem(void);
+ static inline unsigned int count_highmem_pages(void) { return 0; }
+ static inline int restore_highmem(void) { return 0; }
+ #endif
++
++/*
++ * Suspend test levels
++ */
++enum {
++	/* keep first */
++	TEST_NONE,
++	TEST_CORE,
++	TEST_CPUS,
++	TEST_PLATFORM,
++	TEST_DEVICES,
++	TEST_FREEZER,
++	/* keep last */
++	__TEST_AFTER_LAST
++};
++
++#define TEST_FIRST	TEST_NONE
++#define TEST_MAX	(__TEST_AFTER_LAST - 1)
+
 -
- /**
-  *	The following functions are used for tracing the allocated
-  *	swap pages, so that they can be freed in case of an error.
-
-
-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
