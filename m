@@ -1,44 +1,53 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI: Always return valid 'status' from	acpi_battery_get_property()
-Date: Mon, 19 Nov 2007 21:41:08 +0300
-Message-ID: <4741D8C4.7020501@suse.de>
-References: <87640d1wmi.fsf@shaolin.home.digitalvampire.org> <4732C8D3.605@suse.de> <20071108144207.GA8814@khazad-dum.debian.net> <4741858D.9020802@gmail.com> <20071119183606.GE3580@khazad-dum.debian.net>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [RFC] ACPI interrupt statistics
+Date: Mon, 19 Nov 2007 19:42:35 +0000
+Message-ID: <200711191942.35575.carlos@strangeworlds.co.uk>
+References: <200711030040.53126.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:47813 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751011AbXKSSkx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 13:40:53 -0500
-In-Reply-To: <20071119183606.GE3580@khazad-dum.debian.net>
+Received: from slackadelic.com ([65.196.224.53]:53879 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005AbXKSTnn (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 14:43:43 -0500
+In-Reply-To: <200711030040.53126.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Roland Dreier <roland@digitalvampire.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Rolf Eike Beer <eike-kernel@sf-tec.de>
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-Henrique de Moraes Holschuh wrote:
-> On Mon, 19 Nov 2007, Alexey Starikovskiy wrote:
->> Henrique de Moraes Holschuh wrote:
->>> On Thu, 08 Nov 2007, Alexey Starikovskiy wrote:
->>>>> handle explicitly.  There doesn't seem to be any status enum value
->>>>> defined that makes more sense than 'unknown' for a battery at a
->>>>> critical charge level.
->>> Maybe one should be added?
->>>   
->> There is already "Critical" field for capacity.
-> 
-> Ah, that's ok, then.
-> 
->> It seems that the state should be limited to only 3 options:
->>    charging, discharging, and not charging.
-> 
-> I'd call "not charging", "idle" instead.  After all, discharging IS not
-> charging as well...
-> 
-There is power_supply interface, and authors already declared this "not charging" 
-state, also they already failed to invent "idle".
-So, you might send them patch, renaming "not charging" to "idle"...
+On Saturday 03 November 2007 04:40:53 Len Brown wrote:
+> For your review and testing...
+>
+> The patch below exports interrupt counters from within ACPI
+> so that developers can better understand the cause of ACPI interrupts.
+>
+> My intent is to have something like this built in by default
+> starting in 2.6.25.  The version below applies to 2.6.21
+> and is originally based on a patch by Luming Yu.
 
-Regards,
-Alex.
+There have been a fair few changes since then, and this patch will probably 
+need a fair bit of work.
+
+1) Back in 2.6.21, acpi_subsys was defined as a 'struct subsystem' in 
+acpi_bus.h - it's now a 'struct kset'
+
+2) Greg KH has an RFC patch lined up that does even more work in this area - 
+http://lkml.org/lkml/2007/11/2
+
+3) From my limited understanding of the area and intent, this patch seems to 
+be a combination of kset work + the interrupt support - could it be split 
+into two functionally separate patches to cover these instead?
+
+(Basically, the only bit I'm really interested in is the 
+EXPORT_SYMBOL(acpi_subsys), as acpi_subsys can currently only be used from 
+built-in drivers, which is preventing me from converting wmi.c to a module).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
