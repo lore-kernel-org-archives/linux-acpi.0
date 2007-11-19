@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/8] ACPI: Fix mismerge in acpi_hibernation_finish
-Date: Mon, 19 Nov 2007 23:33:59 +0100
-Message-ID: <200711192334.00043.rjw@sisk.pl>
+Subject: [PATCH 3/8] Hibernation: Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers (rev. 2)
+Date: Mon, 19 Nov 2007 23:38:25 +0100
+Message-ID: <200711192338.26378.rjw@sisk.pl>
 References: <200711192332.15078.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40384 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40381 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131AbXKSWki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 17:40:38 -0500
+	id S1752078AbXKSWkf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 17:40:35 -0500
 In-Reply-To: <200711192332.15078.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,30 +19,149 @@ List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Some code in acpi_hibernation_finish() was moved to acpi_hibernation_leave(),
-but the old copy had been left (it's harmless, but also useless).  Remove it.
+Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers to the PM core, to be used
+in analogy with the existing PM_HIBERNATION_PREPARE and PM_POST_HIBERNATION
+notifiers.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 ---
- drivers/acpi/sleep/main.c |    5 -----
- 1 file changed, 5 deletions(-)
+ Documentation/power/notifiers.txt |    8 ++++++++
+ include/linux/notifier.h          |    2 ++
+ kernel/power/disk.c               |    5 +++++
+ kernel/power/user.c               |   31 +++++++++++++++++++------------
+ 4 files changed, 34 insertions(+), 12 deletions(-)
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
+Index: linux-2.6/Documentation/power/notifiers.txt
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -267,11 +267,6 @@ static void acpi_hibernation_leave(void)
+--- linux-2.6.orig/Documentation/power/notifiers.txt
++++ linux-2.6/Documentation/power/notifiers.txt
+@@ -28,6 +28,14 @@ PM_POST_HIBERNATION	The system memory st
+ 			hibernation.  Device drivers' .resume() callbacks have
+ 			been executed and tasks have been thawed.
  
- static void acpi_hibernation_finish(void)
++PM_RESTORE_PREPARE	The system is going to restore a hibernation image.
++			If all goes well the restored kernel will issue a
++			PM_POST_HIBERNATION notification.
++
++PM_POST_RESTORE		An error occurred during the hibernation restore.
++			Device drivers' .resume() callbacks have been executed
++			and tasks have been thawed.
++
+ PM_SUSPEND_PREPARE	The system is preparing for a suspend.
+ 
+ PM_POST_SUSPEND		The system has just resumed or an error occured during
+Index: linux-2.6/include/linux/notifier.h
+===================================================================
+--- linux-2.6.orig/include/linux/notifier.h
++++ linux-2.6/include/linux/notifier.h
+@@ -230,6 +230,8 @@ static inline int notifier_to_errno(int 
+ #define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
+ #define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
+ #define PM_POST_SUSPEND		0x0004 /* Suspend finished */
++#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
++#define PM_POST_RESTORE		0x0006 /* Restore failed */
+ 
+ /* Console keyboard events.
+  * Note: KBD_KEYCODE is always sent before KBD_UNBOUND_KEYCODE, KBD_UNICODE and
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -499,6 +499,10 @@ static int software_resume(void)
+ 		goto Unlock;
+ 	}
+ 
++	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
++	if (error)
++		goto Finish;
++
+ 	error = create_basic_memory_bitmaps();
+ 	if (error)
+ 		goto Finish;
+@@ -522,6 +526,7 @@ static int software_resume(void)
+  Done:
+ 	free_basic_memory_bitmaps();
+  Finish:
++	pm_notifier_call_chain(PM_POST_RESTORE);
+ 	atomic_inc(&snapshot_device_available);
+ 	/* For success case, the suspend path will release the lock */
+  Unlock:
+Index: linux-2.6/kernel/power/user.c
+===================================================================
+--- linux-2.6.orig/kernel/power/user.c
++++ linux-2.6/kernel/power/user.c
+@@ -67,6 +67,7 @@ atomic_t snapshot_device_available = ATO
+ static int snapshot_open(struct inode *inode, struct file *filp)
  {
--	/*
--	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
--	 * enable it here.
--	 */
--	acpi_enable();
- 	acpi_disable_wakeup_device(ACPI_STATE_S4);
- 	acpi_leave_sleep_state(ACPI_STATE_S4);
+ 	struct snapshot_data *data;
++	int error;
  
+ 	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
+ 		return -EBUSY;
+@@ -87,9 +88,19 @@ static int snapshot_open(struct inode *i
+ 		data->swap = swsusp_resume_device ?
+ 			swap_type_of(swsusp_resume_device, 0, NULL) : -1;
+ 		data->mode = O_RDONLY;
++		error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
++		if (error)
++			pm_notifier_call_chain(PM_POST_RESTORE);
+ 	} else {
+ 		data->swap = -1;
+ 		data->mode = O_WRONLY;
++		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
++		if (error)
++			pm_notifier_call_chain(PM_POST_HIBERNATION);
++	}
++	if (error) {
++		atomic_inc(&snapshot_device_available);
++		return error;
+ 	}
+ 	data->frozen = 0;
+ 	data->ready = 0;
+@@ -111,6 +122,8 @@ static int snapshot_release(struct inode
+ 		thaw_processes();
+ 		mutex_unlock(&pm_mutex);
+ 	}
++	pm_notifier_call_chain(data->mode == O_WRONLY ?
++			PM_POST_HIBERNATION : PM_POST_RESTORE);
+ 	atomic_inc(&snapshot_device_available);
+ 	return 0;
+ }
+@@ -174,18 +187,13 @@ static int snapshot_ioctl(struct inode *
+ 		if (data->frozen)
+ 			break;
+ 		mutex_lock(&pm_mutex);
+-		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
+-		if (!error) {
+-			printk("Syncing filesystems ... ");
+-			sys_sync();
+-			printk("done.\n");
+-
+-			error = freeze_processes();
+-			if (error)
+-				thaw_processes();
+-		}
++		printk("Syncing filesystems ... ");
++		sys_sync();
++		printk("done.\n");
++
++		error = freeze_processes();
+ 		if (error)
+-			pm_notifier_call_chain(PM_POST_HIBERNATION);
++			thaw_processes();
+ 		mutex_unlock(&pm_mutex);
+ 		if (!error)
+ 			data->frozen = 1;
+@@ -196,7 +204,6 @@ static int snapshot_ioctl(struct inode *
+ 			break;
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
+-		pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 		mutex_unlock(&pm_mutex);
+ 		data->frozen = 0;
+ 		break;
 
