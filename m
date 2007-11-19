@@ -1,16 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 5/8] Hibernation: New testing facility (rev. 2)
-Date: Mon, 19 Nov 2007 23:42:31 +0100
-Message-ID: <200711192342.32183.rjw@sisk.pl>
+Subject: [PATCH 7/8] PM: Make PM_TRACE more architecture independent
+Date: Mon, 19 Nov 2007 23:46:16 +0100
+Message-ID: <200711192346.17365.rjw@sisk.pl>
 References: <200711192332.15078.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40368 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40369 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751663AbXKSWkd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 17:40:33 -0500
+	id S1751923AbXKSWkd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 17:40:33 -0500
 In-Reply-To: <200711192332.15078.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -18,195 +19,71 @@ List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>
 
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Make it possible to test the hibernation core code with the help of the
-/sys/power/pm_test attribute introduced for suspend testing in the prev=
-ious
-patch.
+When trying to debug a suspend failure I started implementing
+PM_TRACE for powerpc. I then noticed that I'm debugging a suspend
+failure and so PM_TRACE isn't useful at all, but thought that
+nonetheless this could be useful in the future.
 
-Writing an appropriate string to this file causes the hibernation code =
-to work
-in one of the test modes defined as follows:
+Basically, to support PM_TRACE, you add a Kconfig option that
+selects PM_TRACE and provides the infrastructure as per the
+help text of PM_TRACE.
 
-freezer
-- test the freezing of processes
-
-devices
-- test the freezing of processes and suspending of devices
-
-platform
-- test the freezing of processes, suspending of devices and platform gl=
-obal
-=A0 control methods(*)
-
-processors
-- test the freezing of processes, suspending of devices, platform globa=
-l
-=A0 control methods(*) and the disabling of nonboot CPUs
-
-core
-- test the freezing of processes, suspending of devices, platform globa=
-l
-=A0 control methods(*), the disabling of nonboot CPUs and suspending of
-=A0 platform/system devices
-
-(*) - the platform global control methods are only available on ACPI sy=
-stems
-=A0 =A0 =A0 and are only tested if the hibernation mode is set to "plat=
-form"
-
-Then, if a hibernation is started by normal means, the hibernation core=
- will
-perform its normal operations up to the point indicated by given test l=
-evel.
-Next, it will wait for 5 seconds and carry out the resume operations ne=
-eded to
-transition the system back to the fully functional state.
-
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- kernel/power/disk.c  |   70 ++++++++++++++++++++++++++++++++++++++++--=
----------
- kernel/power/power.h |    2 +
- 2 files changed, 57 insertions(+), 15 deletions(-)
+ drivers/base/power/Makefile |    2 +-
+ kernel/power/Kconfig        |   23 ++++++++++++++++++++++-
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-Index: linux-2.6/kernel/power/disk.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -70,6 +70,35 @@ void hibernation_set_ops(struct platform
- 	mutex_unlock(&pm_mutex);
- }
-=20
-+#ifdef CONFIG_PM_DEBUG
-+static void hibernation_debug_sleep(void)
-+{
-+	printk(KERN_INFO "hibernation debug: Waiting for 5 seconds.\n");
-+	mdelay(5000);
-+}
+Index: linux-2.6/drivers/base/power/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/base/power/Makefile
++++ linux-2.6/drivers/base/power/Makefile
+@@ -1,7 +1,7 @@
+ obj-y			:= shutdown.o
+ obj-$(CONFIG_PM)	+= sysfs.o
+ obj-$(CONFIG_PM_SLEEP)	+= main.o
+-obj-$(CONFIG_PM_TRACE)	+= trace.o
++obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+ 
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+ EXTRA_CFLAGS += -DDEBUG
+Index: linux-2.6/kernel/power/Kconfig
+===================================================================
+--- linux-2.6.orig/kernel/power/Kconfig
++++ linux-2.6/kernel/power/Kconfig
+@@ -44,9 +44,30 @@ config PM_VERBOSE
+ 	---help---
+ 	This option enables verbose messages from the Power Management code.
+ 
++config CAN_PM_TRACE
++	def_bool y
++	depends on PM_DEBUG && PM_SLEEP && EXPERIMENTAL
 +
-+static int hibernation_testmode(int mode)
-+{
-+	if (hibernation_mode =3D=3D mode) {
-+		hibernation_debug_sleep();
-+		return 1;
-+	}
-+	return 0;
-+}
+ config PM_TRACE
++	bool
++	help
++	  This enables code to save the last PM event point across
++	  reboot. The architecture needs to support this, x86 for
++	  example does by saving things in the RTC, see below.
 +
-+static int hibernation_test(int level)
-+{
-+	if (pm_test_level =3D=3D level) {
-+		hibernation_debug_sleep();
-+		return 1;
-+	}
-+	return 0;
-+}
-+#else /* !CONFIG_PM_DEBUG */
-+static int hibernation_testmode(int mode) { return 0; }
-+static int hibernation_test(int level) { return 0; }
-+#endif /* !CONFIG_PM_DEBUG */
++	  The architecture specific code must provide the extern
++	  functions from <linux/resume-trace.h> as well as the
++	  <asm/resume-trace.h> header with a TRACE_RESUME() macro.
 +
- /**
-  *	platform_start - tell the platform driver that we're starting
-  *	hibernation
-@@ -167,6 +196,10 @@ int create_image(int platform_mode)
- 		goto Enable_irqs;
- 	}
-=20
-+	if (hibernation_test(TEST_CORE))
-+		goto Power_up;
++	  The way the information is presented is architecture-
++	  dependent, x86 will print the information during a
++	  late_initcall.
 +
-+	in_suspend =3D 1;
- 	save_processor_state();
- 	error =3D swsusp_arch_suspend();
- 	if (error)
-@@ -175,6 +208,7 @@ int create_image(int platform_mode)
- 	restore_processor_state();
- 	if (!in_suspend)
- 		platform_leave(platform_mode);
-+ Power_up:
- 	/* NOTE:  device_power_up() is just a resume() for devices
- 	 * that suspended with irqs off ... no overall powerup.
- 	 */
-@@ -211,24 +245,29 @@ int hibernation_snapshot(int platform_mo
- 	if (error)
- 		goto Resume_console;
-=20
--	error =3D platform_pre_snapshot(platform_mode);
--	if (error)
-+	if (hibernation_test(TEST_DEVICES))
- 		goto Resume_devices;
-=20
-+	error =3D platform_pre_snapshot(platform_mode);
-+	if (error || hibernation_test(TEST_PLATFORM))
-+		goto Finish;
-+
- 	error =3D disable_nonboot_cpus();
- 	if (!error) {
--		if (hibernation_mode !=3D HIBERNATION_TEST) {
--			in_suspend =3D 1;
--			error =3D create_image(platform_mode);
--			/* Control returns here after successful restore */
--		} else {
--			printk("swsusp debug: Waiting for 5 seconds.\n");
--			mdelay(5000);
--		}
-+		if (hibernation_test(TEST_CPUS))
-+			goto Enable_cpus;
-+
-+		if (hibernation_testmode(HIBERNATION_TEST))
-+			goto Enable_cpus;
-+
-+		error =3D create_image(platform_mode);
-+		/* Control returns here after successful restore */
- 	}
-+ Enable_cpus:
- 	enable_nonboot_cpus();
-- Resume_devices:
-+ Finish:
- 	platform_finish(platform_mode);
-+ Resume_devices:
- 	device_resume();
-  Resume_console:
- 	resume_console();
-@@ -406,11 +445,12 @@ int hibernate(void)
- 	if (error)
- 		goto Finish;
-=20
--	if (hibernation_mode =3D=3D HIBERNATION_TESTPROC) {
--		printk("swsusp debug: Waiting for 5 seconds.\n");
--		mdelay(5000);
-+	if (hibernation_test(TEST_FREEZER))
- 		goto Thaw;
--	}
-+
-+	if (hibernation_testmode(HIBERNATION_TESTPROC))
-+		goto Thaw;
-+
- 	error =3D hibernation_snapshot(hibernation_mode =3D=3D HIBERNATION_PL=
-ATFORM);
- 	if (in_suspend && !error) {
- 		unsigned int flags =3D 0;
-Index: linux-2.6/kernel/power/power.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/kernel/power/power.h
-+++ linux-2.6/kernel/power/power.h
-@@ -208,3 +208,5 @@ enum {
-=20
- #define TEST_FIRST	TEST_NONE
- #define TEST_MAX	(__TEST_AFTER_LAST - 1)
-+
-+extern int pm_test_level;
++config PM_TRACE_RTC
+ 	bool "Suspend/resume event tracing"
+-	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
++	depends on CAN_PM_TRACE
++	depends on X86
++	select PM_TRACE
+ 	default n
+ 	---help---
+ 	This enables some cheesy code to save the last PM event point in the
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
