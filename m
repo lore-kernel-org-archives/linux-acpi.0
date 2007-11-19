@@ -1,59 +1,45 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Mon, 19 Nov 2007 10:57:07 -0700
-Message-ID: <20071119175707.GH7392@ldl.fc.hp.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119094307.517411a2@appleyard>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI: Always return valid 'status' from
+	acpi_battery_get_property()
+Date: Mon, 19 Nov 2007 16:36:06 -0200
+Message-ID: <20071119183606.GE3580@khazad-dum.debian.net>
+References: <87640d1wmi.fsf@shaolin.home.digitalvampire.org> <4732C8D3.605@suse.de> <20071108144207.GA8814@khazad-dum.debian.net> <4741858D.9020802@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:29203 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754320AbXKSR5J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 12:57:09 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50736 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751210AbXKSSgN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 13:36:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20071119094307.517411a2@appleyard>
+In-Reply-To: <4741858D.9020802@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Roland Dreier <roland@digitalvampire.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Rolf Eike Beer <eike-kernel@sf-tec.de>
 
-* Kristen Carlson Accardi <kristen.c.accardi@intel.com>:
-> On Sat, 17 Nov 2007 11:29:54 -0700
-> Alex Chiang <achiang@hp.com> wrote:
-> 
-> > I have done quite a bit more testing, and verified that this
-> > series plays nicely with acpiphp during all stages of the series.
-> > Notably, you can modprobe/rmmod acpiphp repeatedly no matter
-> > where you are in the series, and no matter whether you have
-> > CONFIG_ACPI_PCI_SLOT turned on. The correct entries in
-> > /sys/bus/pci/slots/ will appear and disappear, and we correctly
-> > register/deregister ACPI slots with the pci_hp core. 
-> 
-> How does this patch play with non-acpi based hotplug such as the pciehp
-> driver 
+On Mon, 19 Nov 2007, Alexey Starikovskiy wrote:
+> Henrique de Moraes Holschuh wrote:
+>> On Thu, 08 Nov 2007, Alexey Starikovskiy wrote:
+>>>> handle explicitly.  There doesn't seem to be any status enum value
+>>>> defined that makes more sense than 'unknown' for a battery at a
+>>>> critical charge level.
+>>
+>> Maybe one should be added?
+>>   
+> There is already "Critical" field for capacity.
 
-Not well. :(
+Ah, that's ok, then.
 
-pciehp: HPC vendor_id 103c device_id 403b ss_vid 0 ss_did 0
-pciehp: pci_hp_register failed with error -17
-pciehp: pciehp: slot initialization failed
-pciehp: HPC vendor_id 111d device_id 801c ss_vid 0 ss_did 0
-pciehp: Can't get irq 0 for the hotplug controller
-pciehp: HPC vendor_id 111d device_id 801c ss_vid 0 ss_did 0
-pciehp: Can't get irq 0 for the hotplug controller
-pciehp: HPC vendor_id 103c device_id 403b ss_vid 0 ss_did 0
-pciehp: pci_hp_register failed with error -17
-pciehp: pciehp: slot initialization failed
+> It seems that the state should be limited to only 3 options:
+>    charging, discharging, and not charging.
 
-I'll take a look at this today. Thanks for pointing it out.
+I'd call "not charging", "idle" instead.  After all, discharging IS not
+charging as well...
 
-> or the shpchp driver for example?
-
-This one, I'm not sure on, as I don't have any shpc hardware.
-I'll do my best by just looking at the code, but maybe if someone
-out there has that hardware, they could let me know what breaks?
-
-Thanks.
-
-/ac
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
