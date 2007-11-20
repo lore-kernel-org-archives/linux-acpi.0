@@ -1,80 +1,66 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 10/59] drivers/acpi: Add missing "space"
-Date: Mon, 19 Nov 2007 17:48:02 -0800
-Message-ID: <07a846daef42aa7262f9e08a8be5c3ed8684ed77.1195454434.git.joe__33337.1784225621$1195523696$gmane$org@perches.com>
-References: 1234567
- <1195523331-15303-1-git-send-email-joe@perches.com>
- <1195523331-15303-2-git-send-email-joe@perches.com>
- <1195523331-15303-3-git-send-email-joe@perches.com>
- <1195523331-15303-4-git-send-email-joe@perches.com>
- <1195523331-15303-5-git-send-email-joe@perches.com>
- <1195523331-15303-6-git-send-email-joe@perches.com>
- <1195523331-15303-7-git-send-email-joe@perches.com>
- <1195523331-15303-8-git-send-email-joe@perches.com>
- <1195523331-15303-9-git-send-email-joe@perches.com>
- <1195523331-15303-10-git-send-email-joe@perches.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759463AbXKTBxl@vger.kernel.org>
-In-Reply-To: <1195523331-15303-10-git-send-email-joe@perches.com>
-Message-Id: <07a846daef42aa7262f9e08a8be5c3ed8684ed77.1195454434.git.joe@perches.com>
-In-Reply-To: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
-References: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: disable the gpe that doesn't have a GPE handler
+	correctly
+Date: Tue, 20 Nov 2007 10:10:03 +0800
+Message-ID: <1195524603.2971.15.camel@acpi-hp.sh.intel.com>
+References: <1195457566.2971.12.camel@acpi-hp.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:47033 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758734AbXKTCAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 21:00:34 -0500
+In-Reply-To: <1195457566.2971.12.camel@acpi-hp.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, astarikovskiy@suse.de
+Cc: linux-acpi@vger.kernel.org
 
+On Mon, 2007-11-19 at 15:32 +0800, Zhang Rui wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
+> 
+> The current code only disable the GPE by judging the
+> GPE type, which is one of WAKE, RUNTIME and WAKE_RUN.
+> In bug 6217, GPE 17 is enabled by the AML code ...
+> And it will be triggerred when an extra CRT is connected.
+> As GPE 17 is not ec gpe, and there is no _Lxx/_Exx method
+> exists in the _GPE scope, the type flag of GPE 17 is cleared
+> at the boot time and it's none of the three GPE types.
+> In this case, the GPE is not disabled correctly.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=6217
+> 
+Hi, Alexey,
+Any comments on this patch? :)
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/acpi/ec.c             |    4 ++--
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/tables/tbutils.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 06b78e5..cb09e5e 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -175,12 +175,12 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
- 		if (acpi_ec_check_status(ec, event)) {
- 			if (event == ACPI_EC_EVENT_OBF_1) {
- 				/* miss OBF = 1 GPE, don't expect it anymore */
--				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
-+				printk(KERN_INFO PREFIX "missing OBF_1 confirmation, "
- 					"switching to degraded mode.\n");
- 				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
- 			} else {
- 				/* missing GPEs, switch back to poll mode */
--				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
-+				printk(KERN_INFO PREFIX "missing IBF_1 confirmations, "
- 					"switch off interrupt mode.\n");
- 				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
- 			}
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 235a51e..44156e7 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -647,7 +647,7 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
- 	 */
- 	if (processor_device_array[pr->id] != NULL &&
- 	    processor_device_array[pr->id] != device) {
--		printk(KERN_WARNING "BIOS reported wrong ACPI id"
-+		printk(KERN_WARNING "BIOS reported wrong ACPI id "
- 			"for the processor\n");
- 		return -ENODEV;
- 	}
-diff --git a/drivers/acpi/tables/tbutils.c b/drivers/acpi/tables/tbutils.c
-index 5f1d85f..010f196 100644
---- a/drivers/acpi/tables/tbutils.c
-+++ b/drivers/acpi/tables/tbutils.c
-@@ -449,7 +449,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 			/* XSDT has NULL entry, RSDT is used */
- 			address = rsdt_address;
- 			table_entry_size = sizeof(u32);
--			ACPI_WARNING((AE_INFO, "BIOS XSDT has NULL entry,"
-+			ACPI_WARNING((AE_INFO, "BIOS XSDT has NULL entry, "
- 					"using RSDT"));
- 		}
- 	}
--- 
-1.5.3.5.652.gf192c
+Thanks,
+Rui
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/events/evgpe.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/events/evgpe.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
+> +++ linux-2.6/drivers/acpi/events/evgpe.c
+> @@ -277,11 +277,10 @@ acpi_status acpi_ev_disable_gpe(struct a
+>  		/* Disable the requested runtime GPE */
+>  
+>  		ACPI_CLEAR_BIT(gpe_event_info->flags, ACPI_GPE_RUN_ENABLED);
+> -		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
+> -		break;
+>  
+>  	default:
+> -		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> +		acpi_hw_write_gpe_enable_reg(gpe_event_info);
+> +		break;
+>  	}
+>  
+>  	return_ACPI_STATUS(AE_OK);
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
