@@ -1,55 +1,39 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH -v2] ACPI: disable the gpe that doesn't have a GPE handler
-	correctly
-Date: Tue, 20 Nov 2007 17:22:52 +0800
-Message-ID: <1195550573.2971.41.camel@acpi-hp.sh.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: stgit (was Re: [PATCH 4/4, v4] ACPI, PCI: ACPI PCI slot detection
+	driver)
+Date: Tue, 20 Nov 2007 14:23:12 -0200
+Message-ID: <20071120162312.GE4654@khazad-dum.debian.net>
+References: <20071117182954.GA25003@ldl.fc.hp.com> <20071117183818.GD26452@ldl.fc.hp.com> <20071119220418.GE32540@ldl.fc.hp.com> <20071119142631.4aa650eb@appleyard> <20071120030738.GA15633@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4102 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756549AbXKTJNr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2007 04:13:47 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57977 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757933AbXKTQXQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2007 11:23:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20071120030738.GA15633@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+On Mon, 19 Nov 2007, Alex Chiang wrote:
+> Ugh, seems that stacked git got very confused when I did a
+> git-fetch && git-rebase origin. Also, guess it figures that I
 
-The current code only disable the GPE by judging the
-GPE type, which is one of WAKE, RUNTIME and WAKE_RUN.
-In bug 6217, GPE 17 is enabled by the AML code ...
-And it will be triggerred when an extra CRT is connected.
-As GPE 17 is not ec gpe, and there is no _Lxx/_Exx method
-exists in the _GPE scope, the type flag of GPE 17 is none
-of the three GPE types.
-In this case, the GPE is not disabled correctly.
+Being a very heavy stgit user myself, I have to say you must give up git
+rebase on any stgit branch, and use stg rebase instead... otherwise, bad
+things can, and do happen.
 
-http://bugzilla.kernel..org/show_bug.cgi?id=6217
+Also, don't trust the stgit release schedule, it is "release eventually" and
+not something more sensible, like "release often".  Instead, track the stgit
+git tree.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/events/evgpe.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I wish git learned to do the basic stgit's business by itself :(
 
-Index: linux-2.6/drivers/acpi/events/evgpe.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/events/evgpe.c
-+++ linux-2.6/drivers/acpi/events/evgpe.c
-@@ -277,11 +277,11 @@ acpi_status acpi_ev_disable_gpe(struct a
- 		/* Disable the requested runtime GPE */
- 
- 		ACPI_CLEAR_BIT(gpe_event_info->flags, ACPI_GPE_RUN_ENABLED);
--		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
--		break;
-+
-+		/*lint -fallthrough */
- 
- 	default:
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		acpi_hw_write_gpe_enable_reg(gpe_event_info);
- 	}
- 
- 	return_ACPI_STATUS(AE_OK);
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
