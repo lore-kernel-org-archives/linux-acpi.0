@@ -1,41 +1,80 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Tue, 20 Nov 2007 02:04:02 +0000
-Message-ID: <20071120020402.GA26446@srcf.ucam.org>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 10/59] drivers/acpi: Add missing "space"
+Date: Mon, 19 Nov 2007 21:53:53 -0500
+Message-ID: <200711192153.53720.lenb@kernel.org>
+References: <1195523331-15303-1-git-send-email-joe@perches.com> <1195523331-15303-10-git-send-email-joe@perches.com> <1195523331-15303-11-git-send-email-joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:53621 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759983AbXKTCLE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 21:11:04 -0500
+Received: from hera.kernel.org ([140.211.167.34]:43309 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752063AbXKTCyL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2007 21:54:11 -0500
+In-Reply-To: <1195523331-15303-11-git-send-email-joe@perches.com>
 Content-Disposition: inline
-In-Reply-To: <20071119233225.GA6931@us.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gary Hade <garyhade@us.ibm.com>
-Cc: Alex Chiang <achiang@hp.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org
 
-On Mon, Nov 19, 2007 at 03:32:25PM -0800, Gary Hade wrote:
+applied.
 
-> Alex, What I was trying to suggest is a boot-time kernel option, 
-> not a kernel configuration option.  The basic idea is to give
-> the user (with a single binary kernel) the ability to include
-> your ACPI-PCI slot driver feature changes only when they are
-> really needed.  In addition to reducing the number of
-> system/PCI hotplug driver combinations where your changes
-> would need to be validated, I believe would also help 
-> alleviate other worries (e.g. Andi Kleen's memory consumption
-> concern).  I believe this goal could also be achieved with the
-> kernel config option by making the pci_slot module runtime
-> loadable with the PCI hotplug drivers only visiting your new
-> code when the pci_slot driver is loaded, although I think this
-> would be more difficult to implement.
+thanks,
+-len
 
-If we're compiling something into the kernel, the default behaviour 
-should be for the functionality to be turned on unless the user 
-overrides it.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+On Monday 19 November 2007 20:48, Joe Perches wrote:
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/acpi/ec.c             |    4 ++--
+>  drivers/acpi/processor_core.c |    2 +-
+>  drivers/acpi/tables/tbutils.c |    2 +-
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 06b78e5..cb09e5e 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -175,12 +175,12 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+>  		if (acpi_ec_check_status(ec, event)) {
+>  			if (event == ACPI_EC_EVENT_OBF_1) {
+>  				/* miss OBF = 1 GPE, don't expect it anymore */
+> -				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
+> +				printk(KERN_INFO PREFIX "missing OBF_1 confirmation, "
+>  					"switching to degraded mode.\n");
+>  				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
+>  			} else {
+>  				/* missing GPEs, switch back to poll mode */
+> -				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
+> +				printk(KERN_INFO PREFIX "missing IBF_1 confirmations, "
+>  					"switch off interrupt mode.\n");
+>  				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+>  			}
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 235a51e..44156e7 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -647,7 +647,7 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
+>  	 */
+>  	if (processor_device_array[pr->id] != NULL &&
+>  	    processor_device_array[pr->id] != device) {
+> -		printk(KERN_WARNING "BIOS reported wrong ACPI id"
+> +		printk(KERN_WARNING "BIOS reported wrong ACPI id "
+>  			"for the processor\n");
+>  		return -ENODEV;
+>  	}
+> diff --git a/drivers/acpi/tables/tbutils.c b/drivers/acpi/tables/tbutils.c
+> index 5f1d85f..010f196 100644
+> --- a/drivers/acpi/tables/tbutils.c
+> +++ b/drivers/acpi/tables/tbutils.c
+> @@ -449,7 +449,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
+>  			/* XSDT has NULL entry, RSDT is used */
+>  			address = rsdt_address;
+>  			table_entry_size = sizeof(u32);
+> -			ACPI_WARNING((AE_INFO, "BIOS XSDT has NULL entry,"
+> +			ACPI_WARNING((AE_INFO, "BIOS XSDT has NULL entry, "
+>  					"using RSDT"));
+>  		}
+>  	}
