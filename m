@@ -1,75 +1,106 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 2/2] Sonypi: fit input devices into sysfs tree
-Date: Wed, 21 Nov 2007 08:09:26 +0900
-Message-ID: <20071120230926.GC25225@inferi.kami.home>
-References: <200710310041.54252.dtor@insightbb.com> <200710310043.10250.dtor@insightbb.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPI: disable stray GPE, prevent ACPI interrupt storm
+Date: Tue, 20 Nov 2007 15:11:25 -0800
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A403B8044D@orsmsx415.amr.corp.intel.com>
+References: <200711201343.28940.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi15.ns.itscom.net ([219.110.2.185]:33629 "EHLO
-	mtoichi15.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755055AbXKTXJY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 18:09:24 -0500
-Content-Disposition: inline
-In-Reply-To: <200710310043.10250.dtor@insightbb.com>
+Received: from mga03.intel.com ([143.182.124.21]:28239 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751342AbXKTXMx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 18:12:53 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200711201343.28940.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Wed, Oct 31, 2007 at 12:43:10AM -0400, Dmitry Torokhov wrote:
-> Subject: Sonypi: fit input devices into sysfs tree
-> From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> 
-> Properly set up parent on input devices registered by sonypi.
-> 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+BTW, this kind of change begs for a comment, how about:
 
-Acked-by: Mattia Dongili <malattia@linux.it>
+    default:
+        /*
+         * Even if we don't know the GPE type, make sure that we always
+         * disable it. This can prevent a certain type of GPE flood,
+where
+         * the GPE has no _Lxx/_Exx method, and it cannot be determined
+         * whether the GPE is wake, run, or wake/run.
+         */
+        Status = AcpiHwWriteGpeEnableReg (GpeEventInfo);
+        break;
 
-> ---
->  drivers/char/sonypi.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> Index: linux/drivers/char/sonypi.c
-> ===================================================================
-> --- linux.orig/drivers/char/sonypi.c
-> +++ linux/drivers/char/sonypi.c
-> @@ -1163,7 +1163,7 @@ static struct acpi_driver sonypi_acpi_dr
->  };
->  #endif
->  
-> -static int __devinit sonypi_create_input_devices(void)
-> +static int __devinit sonypi_create_input_devices(struct platform_device *pdev)
->  {
->  	struct input_dev *jog_dev;
->  	struct input_dev *key_dev;
-> @@ -1177,6 +1177,7 @@ static int __devinit sonypi_create_input
->  	jog_dev->name = "Sony Vaio Jogdial";
->  	jog_dev->id.bustype = BUS_ISA;
->  	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
-> +	jog_dev->dev.parent = &pdev->dev;
->  
->  	jog_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
->  	jog_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_MIDDLE);
-> @@ -1191,6 +1192,7 @@ static int __devinit sonypi_create_input
->  	key_dev->name = "Sony Vaio Keys";
->  	key_dev->id.bustype = BUS_ISA;
->  	key_dev->id.vendor = PCI_VENDOR_ID_SONY;
-> +	key_dev->dev.parent = &pdev->dev;
->  
->  	/* Initialize the Input Drivers: special keys */
->  	key_dev->evbit[0] = BIT_MASK(EV_KEY);
-> @@ -1385,7 +1387,7 @@ static int __devinit sonypi_probe(struct
->  
->  	if (useinput) {
->  
-> -		error = sonypi_create_input_devices();
-> +		error = sonypi_create_input_devices(dev);
->  		if (error) {
->  			printk(KERN_ERR
->  				"sonypi: failed to create input devices\n");
-> 
--- 
-mattia
-:wq!
+
+>-----Original Message-----
+>From: Len Brown [mailto:lenb@kernel.org]
+>Sent: Tuesday, November 20, 2007 10:43 AM
+>To: Moore, Robert
+>Cc: linux-acpi@vger.kernel.org; Zhang, Rui; Alexey Starikovskiy
+>Subject: ACPI: disable stray GPE, prevent ACPI interrupt storm
+>
+>Bob,
+>Rui's Linux patch below modifies an ACPICA file.
+>
+>thanks,
+>-Len
+>
+>commit a7f9b1f24974da287771e2d70b30d9ca7bd66684
+>Author: Zhang Rui <rui.zhang@intel.com>
+>Date:   Tue Nov 20 13:38:59 2007 -0500
+>
+>    ACPI: disable stray GPE, prevent ACPI interrupt storm
+>
+>    GPEs are disabled depending on their type --
+>    WAKE, WAKE_RUN, and RUNTIME.  An error is returned
+>    if we are asked to disable a GPE that has no type.
+>
+>    But at least one system exists that enables a GPE from AML
+>    that is not the EC GPE, and has no _Lxx/_Exx AML handler,
+>    and is thus never initialized.
+>
+>    In this case, when an external CRT is plugged in,
+>    the GPE fires, we attempt to disable the GPE,
+>    but instead just return an error.
+>    So the GPE stays asserted and an ACPI interrupt storm follows.
+>
+>    The fix is to disable a firing GPE,
+>    even if it comes from outer space.
+>
+>    http://bugzilla.kernel.org/show_bug.cgi?id=6217
+>
+>    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>    Signed-off-by: Len Brown <len.brown@intel.com>
+>
+>diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+>index e22f4a9..056b788 100644
+>--- a/drivers/acpi/events/evgpe.c
+>+++ b/drivers/acpi/events/evgpe.c
+>@@ -270,18 +270,18 @@ acpi_status acpi_ev_disable_gpe(struct
+>acpi_gpe_event_info *gpe_event_info)
+> 	case ACPI_GPE_TYPE_WAKE_RUN:
+> 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+ACPI_GPE_WAKE_ENABLED);
+>
+>-		/*lint -fallthrough */
+>+		/* fallthrough */
+>
+> 	case ACPI_GPE_TYPE_RUNTIME:
+>
+> 		/* Disable the requested runtime GPE */
+>
+> 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+ACPI_GPE_RUN_ENABLED);
+>-		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
+>-		break;
+>+
+>+		/* fallthrough */
+>
+> 	default:
+>-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+>+		acpi_hw_write_gpe_enable_reg(gpe_event_info);
+> 	}
+>
+> 	return_ACPI_STATUS(AE_OK);
