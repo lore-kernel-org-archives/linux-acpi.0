@@ -1,59 +1,55 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH with title] priority fix in acpi_map_lsapic()  arch/ia64/kernel/acpi.c
-Date: Tue, 20 Nov 2007 15:51:46 +0900
-Message-ID: <20071120065145.GB10490@verge.net.au>
-References: <473CC232.6020901@tiscali.nl> <473CC907.4040106@tiscali.nl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Subject: ACPI: Check whether XSDT exists before dump ACPI tables
+Date: Tue, 20 Nov 2007 16:33:28 +0800
+Message-ID: <1195547608.4009.17.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <473CC907.4040106@tiscali.nl>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Roel Kluin <12o3l@tiscali.nl>
-Cc: tony.luck@intel.com, len.brown@intel.com, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:33808 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756037AbXKTIXs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2007 03:23:48 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Nov 15, 2007 at 11:32:39PM +0100, Roel Kluin wrote:
-> As above should have been its title.
-> 
-> Roel Kluin wrote:
-> > I have sent this patch before to lkml, but it appears it wasn't picked up. Also
-> > I have to admit this isn't tested. This is a patch against linus' tree.
-> > 
-> > ACPI_MADT_ENABLED is defined 1    (include/acpi/actbl1.h 501)
-> > lapic_flags: an u32 of struct acpi_madt_local_sapic (include/acpi/actbl1.h 467)
-> > --
-> > '!' has a higher priority than '&', so as was
-> > this won't test the first bit, but rather evaluates to false for any non-zero
-> > lsapic->lapic_flags.
-> > 
-> > Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Subject: ACPI: Check whether XSDT exists before dump ACPI tables
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-This looks correct to me, though I was curious to know why
-the problem wasn't manifesting in a bug. I investigated
-a bit and found that it seems that the only values
-lapic_flags currently takes are 0 and ACPI_MADT_ENABLED,
-so it turns out that the bogus logic actually gives the correct result
-(by chance).
+The acpidump tool of 20070714 version has some problems on some
+machines.First it will first search XSDT table to
+dump ACPI tables. If XSDT exists it will continue search RSDT and
+only dump ACPI info that doesn't be dumped through XSDT.
+But if XSDT doesn't exist it will report that ACPI tables
+can't be found and exit.
 
-Acked-by: Simon Horman <horms@verge.net.au>
+So it is necessary to first check whether XSDT table exists.
+If XSDT exists(Not check the integrity of XSDT), it will be used to dump
+ACPI tables. Otherwise RSDT table will be used.
 
-> > ---
-> > diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> > index 3d45d24..7d78d22 100644
-> > --- a/arch/ia64/kernel/acpi.c
-> > +++ b/arch/ia64/kernel/acpi.c
-> > @@ -858,7 +858,7 @@ int acpi_map_lsapic(acpi_handle handle, int *pcpu)
-> >  	lsapic = (struct acpi_madt_local_sapic *)obj->buffer.pointer;
-> >  
-> >  	if ((lsapic->header.type != ACPI_MADT_TYPE_LOCAL_SAPIC) ||
-> > -	    (!lsapic->lapic_flags & ACPI_MADT_ENABLED)) {
-> > +	    (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))) {
-> >  		kfree(buffer.pointer);
-> >  		return -EINVAL;
-> >  	}
-> > 
 
--- 
-Horms
+Signed-off-by: Zhao Yakui  <yakui.zhao@intel.com>
+---
+ acpidump/acpidump.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
+Index: pmtools-20070714/acpidump/acpidump.c
+===================================================================
+--- pmtools-20070714.orig/acpidump/acpidump.c
++++ pmtools-20070714/acpidump/acpidump.c
+@@ -521,8 +521,11 @@ int main(int argc, char **argv)
+ 	if (connect) {
+ 		lseek(fd, sizeof(struct acpi_rsdp_descriptor), SEEK_SET);
+ 	}
+-	if (!acpi_dump_XSDT(fd, &rsdpx))
+-		goto not_found;
++	if (rsdpx.revision > 1 && rsdpx.xsdt_physical_address) {
++		/* ACPIDUMP uses xsdt table */
++		if (!acpi_dump_XSDT(fd, &rsdpx))
++			goto not_found;
++	}
+ 	if (!acpi_dump_RSDT(fd, &rsdpx))
+ 		goto not_found;
+ 	if (connect) {
