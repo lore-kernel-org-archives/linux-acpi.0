@@ -1,66 +1,41 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI: disable the gpe that doesn't have a GPE handler
-	correctly
-Date: Tue, 20 Nov 2007 10:10:03 +0800
-Message-ID: <1195524603.2971.15.camel@acpi-hp.sh.intel.com>
-References: <1195457566.2971.12.camel@acpi-hp.sh.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Tue, 20 Nov 2007 02:04:02 +0000
+Message-ID: <20071120020402.GA26446@srcf.ucam.org>
+References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:47033 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758734AbXKTCAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:00:34 -0500
-In-Reply-To: <1195457566.2971.12.camel@acpi-hp.sh.intel.com>
+Received: from cavan.codon.org.uk ([78.32.9.130]:53621 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759983AbXKTCLE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2007 21:11:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20071119233225.GA6931@us.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, astarikovskiy@suse.de
-Cc: linux-acpi@vger.kernel.org
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: Alex Chiang <achiang@hp.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Mon, 2007-11-19 at 15:32 +0800, Zhang Rui wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> The current code only disable the GPE by judging the
-> GPE type, which is one of WAKE, RUNTIME and WAKE_RUN.
-> In bug 6217, GPE 17 is enabled by the AML code ...
-> And it will be triggerred when an extra CRT is connected.
-> As GPE 17 is not ec gpe, and there is no _Lxx/_Exx method
-> exists in the _GPE scope, the type flag of GPE 17 is cleared
-> at the boot time and it's none of the three GPE types.
-> In this case, the GPE is not disabled correctly.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=6217
-> 
-Hi, Alexey,
-Any comments on this patch? :)
+On Mon, Nov 19, 2007 at 03:32:25PM -0800, Gary Hade wrote:
 
-Thanks,
-Rui
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/events/evgpe.c |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/events/evgpe.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
-> +++ linux-2.6/drivers/acpi/events/evgpe.c
-> @@ -277,11 +277,10 @@ acpi_status acpi_ev_disable_gpe(struct a
->  		/* Disable the requested runtime GPE */
->  
->  		ACPI_CLEAR_BIT(gpe_event_info->flags, ACPI_GPE_RUN_ENABLED);
-> -		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
-> -		break;
->  
->  	default:
-> -		return_ACPI_STATUS(AE_BAD_PARAMETER);
-> +		acpi_hw_write_gpe_enable_reg(gpe_event_info);
-> +		break;
->  	}
->  
->  	return_ACPI_STATUS(AE_OK);
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Alex, What I was trying to suggest is a boot-time kernel option, 
+> not a kernel configuration option.  The basic idea is to give
+> the user (with a single binary kernel) the ability to include
+> your ACPI-PCI slot driver feature changes only when they are
+> really needed.  In addition to reducing the number of
+> system/PCI hotplug driver combinations where your changes
+> would need to be validated, I believe would also help 
+> alleviate other worries (e.g. Andi Kleen's memory consumption
+> concern).  I believe this goal could also be achieved with the
+> kernel config option by making the pci_slot module runtime
+> loadable with the PCI hotplug drivers only visiting your new
+> code when the pci_slot driver is loaded, although I think this
+> would be more difficult to implement.
+
+If we're compiling something into the kernel, the default behaviour 
+should be for the functionality to be turned on unless the user 
+overrides it.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
