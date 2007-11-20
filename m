@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
 Subject: [PATCH 10/59] drivers/acpi: Add missing "space"
 Date: Mon, 19 Nov 2007 17:48:02 -0800
-Message-ID: <1195523331-15303-11-git-send-email-joe@perches.com>
+Message-ID: <07a846daef42aa7262f9e08a8be5c3ed8684ed77.1195454434.git.joe__33337.1784225621$1195523696$gmane$org@perches.com>
 References: 1234567
  <1195523331-15303-1-git-send-email-joe@perches.com>
  <1195523331-15303-2-git-send-email-joe@perches.com>
@@ -13,19 +13,15 @@ References: 1234567
  <1195523331-15303-8-git-send-email-joe@perches.com>
  <1195523331-15303-9-git-send-email-joe@perches.com>
  <1195523331-15303-10-git-send-email-joe@perches.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from DSL022.labridge.com ([206.117.136.22]:2058 "EHLO perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756378AbXKTBs7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2007 20:48:59 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759463AbXKTBxl@vger.kernel.org>
 In-Reply-To: <1195523331-15303-10-git-send-email-joe@perches.com>
 Message-Id: <07a846daef42aa7262f9e08a8be5c3ed8684ed77.1195454434.git.joe@perches.com>
 In-Reply-To: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
 References: <ee1678e1bc8b80b7ae420059fffc7241486ea91a.1195454434.git.joe@perches.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 
 Signed-off-by: Joe Perches <joe@perches.com>
@@ -82,4 +78,3 @@ index 5f1d85f..010f196 100644
  	}
 -- 
 1.5.3.5.652.gf192c
-
