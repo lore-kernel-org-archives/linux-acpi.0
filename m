@@ -1,307 +1,213 @@
-From: Dave Daniels <dave@rdzltd.com>
-Subject: Just spotted this message in messages file....
-Date: Tue, 20 Nov 2007 19:32:19 +0000
-Message-ID: <47433643.1060601@rdzltd.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH 1/2] ACPI: EC: Add debug printks.
+Date: Tue, 20 Nov 2007 23:01:18 +0300
+Message-ID: <20071120200117.31416.47396.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030401000509090707000600"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail3.uklinux.net ([80.84.72.33]:52691 "EHLO mail3.uklinux.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756936AbXKTTzH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2007 14:55:07 -0500
-Received: from [192.168.1.2] (unknown [86.155.5.7])
-	by mail3.uklinux.net (Postfix) with ESMTP id 40AF41F712D
-	for <linux-acpi@vger.kernel.org>; Tue, 20 Nov 2007 19:34:53 +0000 (GMT)
+Received: from charybdis-ext.suse.de ([195.135.221.2]:39235 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1761289AbXKTUAu (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 15:00:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030401000509090707000600
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Sometimes it is usefull to see raw protocol dump.
+Uncomment '#define DEBUG' at the beginning of file to make EC=20
+really verbose.
 
-Hi,
+Signed-off-by: M=C3=A1rton N=C3=A9meth <nm127@freemail.hu>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Just spotted:
+ drivers/acpi/ec.c |   41 ++++++++++++++++++++++++++---------------
+ 1 files changed, 26 insertions(+), 15 deletions(-)
 
-ACPI: System BIOS is requesting _OSI(Linux)
-kernel: ACPI: If "acpi_osi=Linux" works better,
-kernel: Please send dmidecode to linux-acpi@vger.kernel.org
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 06b78e5..710f600 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -47,6 +47,9 @@
+ #undef PREFIX
+ #define PREFIX				"ACPI: EC: "
+=20
++/* Uncomment next line to get verbose print outs*/
++/* #define DEBUG */
++
+ /* EC status register */
+ #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
+ #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
+@@ -131,21 +134,27 @@ static struct acpi_ec {
+=20
+ static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
+ {
+-	return inb(ec->command_addr);
++	u8 x =3D inb(ec->command_addr);
++	pr_debug(PREFIX "---> status =3D 0x%2x\n", x);
++	return x;
+ }
+=20
+ static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
+ {
++	u8 x =3D inb(ec->data_addr);
++	pr_debug(PREFIX "---> data =3D 0x%2x\n", x);
+ 	return inb(ec->data_addr);
+ }
+=20
+ static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
+ {
++	pr_debug(PREFIX "<--- command =3D 0x%2x\n", command);
+ 	outb(command, ec->command_addr);
+ }
+=20
+ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
+ {
++	pr_debug(PREFIX "<--- data =3D 0x%2x\n", data);
+ 	outb(data, ec->data_addr);
+ }
+=20
+@@ -175,12 +184,12 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum =
+ec_event event, int force_poll)
+ 		if (acpi_ec_check_status(ec, event)) {
+ 			if (event =3D=3D ACPI_EC_EVENT_OBF_1) {
+ 				/* miss OBF =3D 1 GPE, don't expect it anymore */
+-				printk(KERN_INFO PREFIX "missing OBF_1 confirmation,"
++				pr_info(PREFIX "missing OBF_1 confirmation,"
+ 					"switching to degraded mode.\n");
+ 				set_bit(EC_FLAGS_ONLY_IBF_GPE, &ec->flags);
+ 			} else {
+ 				/* missing GPEs, switch back to poll mode */
+-				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
++				pr_info(PREFIX "missing IBF_1 confirmations,"
+ 					"switch off interrupt mode.\n");
+ 				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+ 			}
+@@ -194,7 +203,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec=
+_event event, int force_poll)
+ 				return 0;
+ 		}
+ 	}
+-	printk(KERN_ERR PREFIX "acpi_ec_wait timeout,"
++	pr_err(PREFIX "acpi_ec_wait timeout,"
+ 			       " status =3D %d, expect_event =3D %d\n",
+ 			       acpi_ec_read_status(ec), event);
+ 	return -ETIME;
+@@ -208,11 +217,11 @@ static int acpi_ec_transaction_unlocked(struct ac=
+pi_ec *ec, u8 command,
+ 	int result =3D 0;
+ 	set_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 	acpi_ec_write_cmd(ec, command);
+-
++	pr_debug(PREFIX "transaction start\n");
+ 	for (; wdata_len > 0; --wdata_len) {
+ 		result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
+ 		if (result) {
+-			printk(KERN_ERR PREFIX
++			pr_err(PREFIX
+ 			       "write_cmd timeout, command =3D %d\n", command);
+ 			goto end;
+ 		}
+@@ -223,7 +232,7 @@ static int acpi_ec_transaction_unlocked(struct acpi=
+_ec *ec, u8 command,
+ 	if (!rdata_len) {
+ 		result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, force_poll);
+ 		if (result) {
+-			printk(KERN_ERR PREFIX
++			pr_err(PREFIX
+ 			       "finish-write timeout, command =3D %d\n", command);
+ 			goto end;
+ 		}
+@@ -235,7 +244,7 @@ static int acpi_ec_transaction_unlocked(struct acpi=
+_ec *ec, u8 command,
+ 			force_poll =3D 1;
+ 		result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1, force_poll);
+ 		if (result) {
+-			printk(KERN_ERR PREFIX "read timeout, command =3D %d\n",
++			pr_err(PREFIX "read timeout, command =3D %d\n",
+ 			       command);
+ 			goto end;
+ 		}
+@@ -245,6 +254,7 @@ static int acpi_ec_transaction_unlocked(struct acpi=
+_ec *ec, u8 command,
+ 		*(rdata++) =3D acpi_ec_read_data(ec);
+ 	}
+       end:
++	pr_debug(PREFIX "transaction end\n");
+ 	return result;
+ }
+=20
+@@ -273,7 +283,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, =
+u8 command,
+=20
+ 	status =3D acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0);
+ 	if (status) {
+-		printk(KERN_ERR PREFIX
++		pr_err(PREFIX
+ 		       "input buffer is not empty, aborting transaction\n");
+ 		goto end;
+ 	}
+@@ -488,6 +498,7 @@ static u32 acpi_ec_gpe_handler(void *data)
+ 	acpi_status status =3D AE_OK;
+ 	struct acpi_ec *ec =3D data;
+=20
++	pr_debug(PREFIX "~~~> interrupt\n");
+ 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
+ 		wake_up(&ec->wait);
+@@ -498,7 +509,7 @@ static u32 acpi_ec_gpe_handler(void *data)
+ 				acpi_ec_gpe_query, ec);
+ 	} else if (unlikely(!test_bit(EC_FLAGS_GPE_MODE, &ec->flags))) {
+ 		/* this is non-query, must be confirmation */
+-		printk(KERN_INFO PREFIX "non-query interrupt received,"
++		pr_info(PREFIX "non-query interrupt received,"
+ 			" switching to interrupt mode\n");
+ 		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+ 	}
+@@ -701,10 +712,10 @@ static void ec_remove_handlers(struct acpi_ec *ec=
+)
+ {
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+-		printk(KERN_ERR PREFIX "failed to remove space handler\n");
++		pr_err(PREFIX "failed to remove space handler\n");
+ 	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
+ 				&acpi_ec_gpe_handler)))
+-		printk(KERN_ERR PREFIX "failed to remove gpe handler\n");
++		pr_err(PREFIX "failed to remove gpe handler\n");
+ 	ec->handlers_installed =3D 0;
+ }
+=20
+@@ -747,9 +758,9 @@ static int acpi_ec_add(struct acpi_device *device)
+ 		first_ec =3D ec;
+ 	acpi_driver_data(device) =3D ec;
+ 	acpi_ec_add_fs(device);
+-	printk(KERN_INFO PREFIX "GPE =3D 0x%lx, I/O: command/status =3D 0x%lx=
+, data =3D 0x%lx\n",
++	pr_info(PREFIX "GPE =3D 0x%lx, I/O: command/status =3D 0x%lx, data =3D=
+ 0x%lx\n",
+ 			  ec->gpe, ec->command_addr, ec->data_addr);
+-	printk(KERN_INFO PREFIX "driver started in %s mode\n",
++	pr_info(PREFIX "driver started in %s mode\n",
+ 		(test_bit(EC_FLAGS_GPE_MODE, &ec->flags))?"interrupt":"poll");
+ 	return 0;
+ }
+@@ -875,7 +886,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 	status =3D acpi_get_table(ACPI_SIG_ECDT, 1,
+ 				(struct acpi_table_header **)&ecdt_ptr);
+ 	if (ACPI_SUCCESS(status)) {
+-		printk(KERN_INFO PREFIX "EC description table is found, configuring =
+boot EC\n");
++		pr_info(PREFIX "EC description table is found, configuring boot EC\n=
+");
+ 		boot_ec->command_addr =3D ecdt_ptr->control.address;
+ 		boot_ec->data_addr =3D ecdt_ptr->data.address;
+ 		boot_ec->gpe =3D ecdt_ptr->gpe;
 
-So I thought I'd send you the dmidecode stuff as requested :-)
-
-Cheers
-
-Dave
-
-
-
---------------030401000509090707000600
-Content-Type: text/plain;
- name="dmidecode_data"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dmidecode_data"
-
-# dmidecode 2.7
-SMBIOS 2.4 present.
-22 structures occupying 743 bytes.
-Table at 0x000DF010.
-
-Handle 0x0000, DMI type 0, 24 bytes.
-BIOS Information
-	Vendor: Hewlett-Packard
-	Version: F.16     
-	Release Date: 02/02/2007
-	Address: 0xE6FF0
-	Runtime Size: 102416 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		Print screen service is supported (int 5h)
-		8042 keyboard services are supported (int 9h)
-		Serial services are supported (int 14h)
-		Printer services are supported (int 17h)
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		Smart battery is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-
-Handle 0x0001, DMI type 1, 27 bytes.
-System Information
-	Manufacturer: Hewlett-Packard
-	Product Name: HP Pavilion dv6000 (GH885EA#ABU)  
-	Version: Rev 1
-	Serial Number: CNF7195RYM
-	UUID: 434E4637-3139-3552-594D-001B24272AEB
-	Wake-up Type: Power Switch
-	SKU Number: GH885EA#ABU
-	Family: 103C_5335KV
-
-Handle 0x0002, DMI type 2, 8 bytes.
-Base Board Information
-	Manufacturer: Quanta
-	Product Name: 30BC
-	Version: 66.37
-	Serial Number: None
-
-Handle 0x0003, DMI type 3, 17 bytes.
-Chassis Information
-	Manufacturer: Quanta
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag:                     
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes.
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: F2 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 CPU T5300 
-	Voltage: 1.8 V
-	External Clock: 533 MHz
-	Max Speed: 1730 MHz
-	Current Speed: 1730 MHz
-	Status: Populated, Enabled
-	Upgrade: Socket 478
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 KB
-	Maximum Size: 32 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes.
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 2048 KB
-	Maximum Size: 2048 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Express Slot 1
-	Type: 64-bit PCI Express
-	Current Usage: Available
-	Length: Short
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-
-Handle 0x0008, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Express Slot 2
-	Type: 64-bit PCI Express
-	Current Usage: Available
-	Length: Short
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
-		Hot-plug devices are supported
-
-Handle 0x0009, DMI type 9, 13 bytes.
-System Slot Information
-	Designation: PCI Express Slot 3
-	Type: 64-bit PCI Express
-	Current Usage: Available
-	Length: Short
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PME signal is supported
-
-Handle 0x000A, DMI type 10, 6 bytes.
-On Board Device Information
-	Type: Video
-	Status: Enabled
-	Description: 128
-
-Handle 0x000B, DMI type 11, 5 bytes.
-OEM Strings
-	String 1: $HP$
-
-Handle 0x000C, DMI type 14, 8 bytes.
-Group Associations
-	Name: Cpu Module
-	Items: 1
-		0x0015 (Processor)
-
-Handle 0x000D, DMI type 16, 15 bytes.
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x000E, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x000D
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: 1
-	Locator: DIMM 1
-	Bank Locator: Bank 0,1
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 533 MHz (1.9 ns)
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x000F, DMI type 17, 27 bytes.
-Memory Device
-	Array Handle: 0x000D
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: 1
-	Locator: DIMM 2
-	Bank Locator: Bank 2,3
-	Type: DDR2
-	Type Detail: Synchronous
-	Speed: 533 MHz (1.9 ns)
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x0010, DMI type 19, 15 bytes.
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x000D
-	Partition Width: 0
-
-Handle 0x0011, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000E
-	Memory Array Mapped Address Handle: 0x0010
-	Partition Row Position: 2
-	Interleave Position: 2
-	Interleaved Data Depth: 2
-
-Handle 0x0012, DMI type 20, 19 bytes.
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000F
-	Memory Array Mapped Address Handle: 0x0010
-	Partition Row Position: 2
-	Interleave Position: 2
-	Interleaved Data Depth: 2
-
-Handle 0x0013, DMI type 32, 20 bytes.
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x0014, DMI type 127, 4 bytes.
-End Of Table
-
-Handle 0x0015, DMI type 127, 4 bytes.
-End Of Table
-
-
---------------030401000509090707000600--
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
