@@ -1,39 +1,51 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: stgit (was Re: [PATCH 4/4, v4] ACPI, PCI: ACPI PCI slot detection
-	driver)
-Date: Tue, 20 Nov 2007 14:23:12 -0200
-Message-ID: <20071120162312.GE4654@khazad-dum.debian.net>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071117183818.GD26452@ldl.fc.hp.com> <20071119220418.GE32540@ldl.fc.hp.com> <20071119142631.4aa650eb@appleyard> <20071120030738.GA15633@ldl.fc.hp.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/2 v7] ACPI: WMI: Patches
+Date: Tue, 20 Nov 2007 17:39:16 +0000
+Message-ID: <200711201739.16839.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57977 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757933AbXKTQXQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2007 11:23:16 -0500
+Received: from slackadelic.com ([65.196.224.53]:37671 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751910AbXKTRkZ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 12:40:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20071120030738.GA15633@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Nashif, Anas" <anas.nashif@intel.com>
 
-On Mon, 19 Nov 2007, Alex Chiang wrote:
-> Ugh, seems that stacked git got very confused when I did a
-> git-fetch && git-rebase origin. Also, guess it figures that I
+Here comes the next version of WMI.
 
-Being a very heavy stgit user myself, I have to say you must give up git
-rebase on any stgit branch, and use stg rebase instead... otherwise, bad
-things can, and do happen.
+Patch 1 (Add driver and in kernel interface):
 
-Also, don't trust the stgit release schedule, it is "release eventually" and
-not something more sensible, like "release often".  Instead, track the stgit
-git tree.
+IMNSHO, this patch is ready for testing . Ideally, I'd like to see it go up 
+to -mm and start crash^^^^^working on other systems.
 
-I wish git learned to do the basic stgit's business by itself :(
+(Of course, outside review is always appreciated - reviewing my own patches is 
+getting a tad boring).
 
+(As a mild aside - the driver is currently available on all ACPI enabled 
+architectures. However, if there are no ia64 systems with WMI ACPI devices, 
+then we could later limit the driver to just x86).
+
+Patch 2 (Add sysfs userspace interface):
+
+This patch is the one that really needs another pair of eyes looking over it. 
+It _works_, but I'm not sure if it's the best way to expose WMI ACPI to 
+userspace.
+
+In particular, I'm not sure now about creating kobjects for all the instances 
+of each GUID, then having separate variables and data pointers for each 
+instance; the alternative would be to add more sysfs files under each GUID 
+kobject to handle the instance to call, in a similar way to how method_id is 
+specified to methods. However, that starts making data queries/ writes more 
+complicated, let alone method calls.
+
+-Carlos
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
