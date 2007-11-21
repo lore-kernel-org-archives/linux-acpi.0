@@ -1,135 +1,69 @@
 From: "Torsten Kaiser" <just.for.lkml@googlemail.com>
 Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
-Date: Wed, 21 Nov 2007 20:33:36 +0100
-Message-ID: <64bb37e0711211133g355a808dl7c2bec7fe3789ddd@mail.gmail.com>
+Date: Wed, 21 Nov 2007 20:48:42 +0100
+Message-ID: <64bb37e0711211148x5383e1d3n3bd7fd86bb68d7d@mail.gmail.com>
 References: <20071120204525.ff27ac98.akpm@linux-foundation.org>
 	 <4743CC0B.9000508@linux.vnet.ibm.com>
 	 <20071120221839.faab108e.akpm@linux-foundation.org>
-	 <4743F8D2.2090302@linux.vnet.ibm.com>
-	 <20071121012918.eff93b22.akpm@linux-foundation.org>
+	 <200711211422.32908.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.178]:39914 "EHLO
+Received: from py-out-1112.google.com ([64.233.166.181]:54346 "EHLO
 	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbXKUTdn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2007 14:33:43 -0500
-Received: by py-out-1112.google.com with SMTP id u77so7429333pyb
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Nov 2007 11:33:37 -0800 (PST)
-In-Reply-To: <20071121012918.eff93b22.akpm@linux-foundation.org>
+	with ESMTP id S1750866AbXKUTsn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2007 14:48:43 -0500
+Received: by py-out-1112.google.com with SMTP id u77so7436509pyb
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Nov 2007 11:48:42 -0800 (PST)
+In-Reply-To: <200711211422.32908.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, Balbir Singh <balbir@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, Balbir Singh <balbir@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
-On Nov 21, 2007 10:29 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
-> On Wed, 21 Nov 2007 14:52:26 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ibm.com> wrote:
+On Nov 21, 2007 8:22 PM, Len Brown <lenb@kernel.org> wrote:
+> On Wednesday 21 November 2007 01:18, Andrew Morton wrote:
+> > On Wed, 21 Nov 2007 11:41:23 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ibm.com> wrote:
 >
-> > Andrew Morton wrote:
-> > > On Wed, 21 Nov 2007 11:41:23 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ibm.com> wrote:
-> > >> ACPI: Core revision 20070126
-> > >> ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> > >> Kernel panic - not syncing: IO-APIC + timer doesn't work! Try using the 'noapic' kernel parameter
-
-I seen an identical error.
-
-> > > ACPI or x86 breakage, I guess.
-> > >
-> > > Did 'noapic' work?
-> >
-> > Passing noapic works,
+> > > SMP alternatives: switching to UP code
+> > > ACPI: Core revision 20070126
+> > > ..MP-BIOS bug: 8254 timer not connected to IO-APIC
 >
-> OK.
+> did previous kernels print this too?
 
-Not for me. I get a similar oops, but then the kernel panics
+Not since my last BIOS upgrade.
 
-> >  but the kernel oops's
+This is from what dmesg's I still had laying around:
+2.6.22-rc6-mm1: No
+2.6.23-rc1-mm1, 2.6.23-rc2-mm1, 2.6.23-rc3-mm1: Yes
+2.6.23-rc3-mm1 after BIOS upgrade: No
+2.6.23-rc4-mm1...2.6.24-rc2-mm1: No
+
+> > > Kernel panic - not syncing: IO-APIC + timer doesn't work! Try using the 'noapic' kernel parameter
 > >
-> > [   97.161103] Unable to handle kernel NULL pointer dereference at 0000000000000009 RIP:
-> > [   97.193973]  [<ffffffff802341df>] cpu_to_allnodes_group+0x69/0x7c
-[snip]
-> urgh, mess.  Enabling frame pointers might help here.
+> > ACPI or x86 breakage, I guess.
+>
+> If you suspect ACPI breakage, then try "acpi=off" or "acpi=noirq".
 
-CONFIG_FRAME_POINTER=y
+ACPI doesn't look guilty.
+acpi=noirq:
+[   39.905884] Freeing SMP alternatives: 28k freed
+[   39.910674] ACPI: Core revision 20070126
+[   39.916542] ACPI: setting ELCR to 0e20 (from 0c20)
+[   39.921855] ExtINT not setup in hardware but reported by MP table
+[   39.928244] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+[   39.934586] Kernel panic - not syncing: IO-APIC + timer doesn't
+work! Try using the 'noapic' kernel parameter
+[   39.934587]
 
-The oops/panic that happens with noapic:
-[   35.866758] Initializing CPU#3
-[   35.868769] Stuck ??
-[   35.874043] Inquiring remote APIC #3...
-[   35.877896] ... APIC #3 ID: 03000000
-[   35.881523] ... APIC #3 VERSION: 80050010
-[   35.885587] ... APIC #3 SPIV: 000001ff
-[   35.889390] Brought up 1 CPUs
-[   35.892375] Unable to handle kernel NULL pointer dereference at
-0000000000000009 RIP:
-[   35.897868]  [<ffffffff8022fc5b>] cpu_to_allnodes_group+0x4b/0x60
-[   35.906464] PGD 0
-[   35.908523] Oops: 0000 [1] SMP
-[   35.911757] last sysfs file:
-[   35.914740] CPU 0
-[   35.916798] Modules linked in:
-[   35.919990] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-mm1 #2
-[   35.925914] RIP: 0010:[<ffffffff8022fc5b>]  [<ffffffff8022fc5b>]
-cpu_to_allnodes_group+0x4b/0x60
-[   35.934734] RSP: 0000:ffff81011ff2bdb0  EFLAGS: 00010282
-[   35.940053] RAX: ffffffff8084d870 RBX: ffff810001005810 RCX: 0000000000000004
-[   35.947188] RDX: 0000000000000001 RSI: ffff81011ff26f68 RDI: ffff81011ff2bdb0
-[   35.954323] RBP: ffff81011ff2bdd0 R08: 2222222222222222 R09: 0000000000000000
-[   35.961457] R10: ffff81007ff1c200 R11: 0000000000000200 R12: ffff810001005800
-[   35.968592] R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-[   35.975727] FS:  0000000000000000(0000) GS:ffffffff807d4000(0000)
-knlGS:0000000000000000
-[   35.983951] CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-[   35.989701] CR2: 0000000000000009 CR3: 0000000000201000 CR4: 00000000000006a0
-[   35.996836] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   36.003971] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[   36.011105] Process swapper (pid: 1, threadinfo FFFF81011FF2A000,
-task FFFF81007FF2A000)
-[   36.019191] Stack:  0000000000000000 ffffffff807e8f98
-0000000000000000 ffff810001005800
-[   36.027373]  ffff81011ff2be80 ffffffff80230580 ffffffff8084d640
-ffffffff8084d6e0
-[   36.034922]  ffffffff8084d780 ffffffff8084d800 ffffffffffffffff
-ffff81011ff26f68
-[   36.042247] Call Trace:
-[   36.044929]  [<ffffffff80230580>] build_sched_domains+0x460/0x820
-[   36.051701]  [<ffffffff805cf489>] mutex_lock_nested+0x199/0x2e0
-[   36.057624]  [<ffffffff80230991>] arch_init_sched_domains+0x51/0x60
-[   36.063895]  [<ffffffff8080e422>] sched_init_smp+0x22/0xe0
-[   36.069385]  [<ffffffff80806825>] smp_cpus_done+0x25/0x30
-[   36.074791]  [<ffffffff807fb739>] kernel_init+0x109/0x350
-[   36.080196]  [<ffffffff8025a34f>] trace_hardirqs_on+0xbf/0x160
-[   36.086032]  [<ffffffff805d03d2>] trace_hardirqs_on_thunk+0x35/0x3a
-[   36.092303]  [<ffffffff8025a34f>] trace_hardirqs_on+0xbf/0x160
-[   36.098141]  [<ffffffff8020cbc8>] child_rip+0xa/0x12
-[   36.103113]  [<ffffffff8020c2df>] restore_args+0x0/0x30
-[   36.108345]  [<ffffffff807fb630>] kernel_init+0x0/0x350
-[   36.113750]  [<ffffffff8020cbbe>] child_rip+0x0/0x12
-[   36.118722]
-[   36.120236] INFO: lockdep is turned off.
-[   36.124170]
-[   36.124170] Code: 48 03 42 08 48 89 03 48 83 c4 18 89 c8 5b c9 c3
-0f 1f 44 00
-[   36.133640] RIP  [<ffffffff8022fc5b>] cpu_to_allnodes_group+0x4b/0x60
-[   36.140116]  RSP <ffff81011ff2bdb0>
-[   36.143619] CR2: 0000000000000009
-[   36.146952] Kernel panic - not syncing: Attempted to kill init!
-
-(gdb) list *0xffffffff8022fc5b
-0xffffffff8022fc5b is in cpu_to_allnodes_group (kernel/sched.c:6073).
-6068
-6069            cpus_and(nodemask, nodemask, *cpu_map);
-6070            group = first_cpu(nodemask);
-6071
-6072            if (sg)
-6073                    *sg = &per_cpu(sched_group_allnodes, group);
-6074            return group;
-6075    }
-6076
-6077    static void init_numa_sched_groups_power(struct sched_group *group_head)
-
-Hope this stack trace is better.
+acpi=off:
+[    0.000000] Freeing SMP alternatives: 28k freed
+[    0.000000] ExtINT not setup in hardware but reported by MP table
+[    0.000000] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+[    0.000000] Kernel panic - not syncing: IO-APIC + timer doesn't
+work! Try using the 'noapic' kernel parameter
+[    0.000000]
 
 Torsten
