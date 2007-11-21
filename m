@@ -1,15 +1,15 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: [PATCH 1/2] ACPI: EC: Add debug printks.
-Date: Wed, 21 Nov 2007 03:16:51 +0300
-Message-ID: <20071121001650.6796.4860.stgit@localhost.localdomain>
+Date: Wed, 21 Nov 2007 03:23:26 +0300
+Message-ID: <20071121002326.8368.48287.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:43834 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:44585 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754259AbXKUAQU (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 19:16:20 -0500
+	with ESMTP id S1760031AbXKUAXJ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 20 Nov 2007 19:23:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: LenBrown <lenb@kernel.org>
@@ -28,7 +28,7 @@ Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
  1 files changed, 31 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 06b78e5..74b9407 100644
+index 06b78e5..d5a5958 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
 @@ -47,6 +47,9 @@
@@ -83,7 +83,7 @@ ec_event event, int force_poll)
  				/* missing GPEs, switch back to poll mode */
 -				printk(KERN_INFO PREFIX "missing IBF_1 confirmations,"
 -					"switch off interrupt mode.\n");
-+				if (!printk_ratelimit())
++				if (printk_ratelimit())
 +					pr_info(PREFIX "missing IBF_1 confirmations,"
 +						"switch off interrupt mode.\n");
  				clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
@@ -170,7 +170,7 @@ u8 command,
  		/* this is non-query, must be confirmation */
 -		printk(KERN_INFO PREFIX "non-query interrupt received,"
 -			" switching to interrupt mode\n");
-+		if (!printk_ratelimit())
++		if (printk_ratelimit())
 +			pr_info(PREFIX "non-query interrupt received,"
 +				" switching to interrupt mode\n");
  		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
