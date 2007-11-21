@@ -1,58 +1,112 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/8] Suspend/hibernation patches for 2.6.25
-Date: Tue, 20 Nov 2007 20:13:45 -0500
-Message-ID: <200711202013.46051.lenb@kernel.org>
-References: <200711192332.15078.rjw@sisk.pl> <200711200141.06595.lenb@kernel.org> <200711210059.54210.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: ACPI: disable stray GPE, prevent ACPI interrupt storm
+Date: Wed, 21 Nov 2007 09:33:23 +0800
+Message-ID: <1195608803.2971.2.camel@acpi-hp.sh.intel.com>
+References: <200711201343.28940.lenb@kernel.org>
+	 <B28E9812BAF6E2498B7EC5C427F293A403B8044D@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57532 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:57917 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765595AbXKUBOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2007 20:14:38 -0500
-In-Reply-To: <200711210059.54210.rjw@sisk.pl>
-Content-Disposition: inline
+	id S932342AbXKUBXH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2007 20:23:07 -0500
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A403B8044D@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Tuesday 20 November 2007 18:59, Rafael J. Wysocki wrote:
-> On Tuesday, 20 of November 2007, Len Brown wrote:
-> > thanks for re-sending, Rafael.
-> > 
-> > I've created a new "suspend" branch -- currently
-> > rooted on Linus' latest.
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git suspend
-> > 
-> > I've re-based the older hibernate patches onto
-> > the new branch, and added the batch you just sent.
-> > 
-> > Note that the suspend branch is included in my test branch,
-> > which akpm pulls into -mm.
+
+On Wed, 2007-11-21 at 07:11 +0800, Moore, Robert wrote:
+> BTW, this kind of change begs for a comment
 > 
-> Thanks for all that!
+Sounds good. :)
+
+Thanks,
+Rui
+>     default:
+>         /*
+>          * Even if we don't know the GPE type, make sure that we always
+>          * disable it. This can prevent a certain type of GPE flood,
+> where
+>          * the GPE has no _Lxx/_Exx method, and it cannot be determined
+
+>          * whether the GPE is wake, run, or wake/run.
+>          */
+>         Status = AcpiHwWriteGpeEnableReg (GpeEventInfo);
+>         break;
 > 
-> I'm now seeing the suspend branch on gitweb, but when I do
 > 
-> $ git clone git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6
-> 
-> I get a repository with only one branch which is "test" and indeed
-> .git/refs/heads contains this one only.  What should I do to get the suspend
-> branch (and the others) too with git clone (or git fetch)?
-
-per http://www.lesswatts.org/projects/acpi/git.php
-
-$ git branch -r
-
-to see the branches
-
-$ git checkout -b origin/suspend
-
-to get onto that particular branch.
-
-cheers,
--Len
+> >-----Original Message-----
+> >From: Len Brown [mailto:lenb@kernel.org]
+> >Sent: Tuesday, November 20, 2007 10:43 AM
+> >To: Moore, Robert
+> >Cc: linux-acpi@vger.kernel.org; Zhang, Rui; Alexey Starikovskiy
+> >Subject: ACPI: disable stray GPE, prevent ACPI interrupt storm
+> >
+> >Bob,
+> >Rui's Linux patch below modifies an ACPICA file.
+> >
+> >thanks,
+> >-Len
+> >
+> >commit a7f9b1f24974da287771e2d70b30d9ca7bd66684
+> >Author: Zhang Rui <rui.zhang@intel.com>
+> >Date:   Tue Nov 20 13:38:59 2007 -0500
+> >
+> >    ACPI: disable stray GPE, prevent ACPI interrupt storm
+> >
+> >    GPEs are disabled depending on their type --
+> >    WAKE, WAKE_RUN, and RUNTIME.  An error is returned
+> >    if we are asked to disable a GPE that has no type.
+> >
+> >    But at least one system exists that enables a GPE from AML
+> >    that is not the EC GPE, and has no _Lxx/_Exx AML handler,
+> >    and is thus never initialized.
+> >
+> >    In this case, when an external CRT is plugged in,
+> >    the GPE fires, we attempt to disable the GPE,
+> >    but instead just return an error.
+> >    So the GPE stays asserted and an ACPI interrupt storm follows.
+> >
+> >    The fix is to disable a firing GPE,
+> >    even if it comes from outer space.
+> >
+> >    http://bugzilla.kernel.org/show_bug.cgi?id=6217
+> >
+> >    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> >    Signed-off-by: Len Brown <len.brown@intel.com>
+> >
+> >diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+> >index e22f4a9..056b788 100644
+> >--- a/drivers/acpi/events/evgpe.c
+> >+++ b/drivers/acpi/events/evgpe.c
+> >@@ -270,18 +270,18 @@ acpi_status acpi_ev_disable_gpe(struct
+> >acpi_gpe_event_info *gpe_event_info)
+> > 	case ACPI_GPE_TYPE_WAKE_RUN:
+> > 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+> ACPI_GPE_WAKE_ENABLED);
+> >
+> >-		/*lint -fallthrough */
+> >+		/* fallthrough */
+> >
+> > 	case ACPI_GPE_TYPE_RUNTIME:
+> >
+> > 		/* Disable the requested runtime GPE */
+> >
+> > 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+> ACPI_GPE_RUN_ENABLED);
+> >-		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
+> >-		break;
+> >+
+> >+		/* fallthrough */
+> >
+> > 	default:
+> >-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> >+		acpi_hw_write_gpe_enable_reg(gpe_event_info);
+> > 	}
+> >
+> > 	return_ACPI_STATUS(AE_OK);
