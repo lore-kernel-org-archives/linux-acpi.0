@@ -1,127 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/4] acpi4asus: add support for F3Sa
-Date: Wed, 21 Nov 2007 14:50:10 -0800
-Message-ID: <200711212250.lALMoAi8013069@imap1.linux-foundation.org>
+Subject: [patch 3/4] rtc: don't write RTC century when setting a wake alarm
+Date: Wed, 21 Nov 2007 14:50:09 -0800
+Message-ID: <200711212250.lALMo9Be013066@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50773 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753576AbXKUWvR (ORCPT
+	by vger.kernel.org with ESMTP id S1753576AbXKUWvc (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:51:17 -0500
+	Wed, 21 Nov 2007 17:51:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, kronos.it@gmail.com, corentincj@iksaif.net, sziwan@users.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, lkml@rtr.ca, david-b@pacbell.net, mlord@pobox.com
 
-From: Luca Tettamanti <kronos.it@gmail.com>
+From: Mark Lord <lkml@rtr.ca>
 
-Add support for ASUS F3Sa notebook. Features:
-- LCD on/off
-- Brightness
-- Wifi kill
-- Bluetooth kill
+Fix /proc/acpi/alarm to not overwrite the RTC century field when setting a
+wake alarm.  The alarm hardware doesn't have a century field, and we really
+should not be fiddling with the RTC century field here.
 
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |   55 ++++++++++++++++++++++++++++++-------
- 1 file changed, 45 insertions(+), 10 deletions(-)
+ drivers/acpi/sleep/proc.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa
-+++ a/drivers/acpi/asus_acpi.c
-@@ -142,6 +142,7 @@ struct asus_hotk {
- 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
- 		A4S,            //Z81sp
- 		//(Centrino)
-+		F3Sa,
- 		END_MODEL
- 	} model;		//Models currently supported
- 	u16 event_count[128];	//count for each event TODO make this better
-@@ -405,7 +406,20 @@ static struct model_data model_conf[END_
- 		.brightness_get    = "GPLV",
- 		.mt_bt_switch      = "BLED",
- 		.mt_wled           = "WLED"
--	}
-+	},
-+
-+	{
-+		.name		= "F3Sa",
-+		.mt_bt_switch	= "BLED",
-+		.mt_wled	= "WLED",
-+		.mt_mled	= "MLED",
-+		.brightness_get	= "GPLV",
-+		.brightness_set	= "SPLV",
-+		.mt_lcd_switch	= "\\_SB.PCI0.SBRG.EC0._Q10",
-+		.lcd_status	= "\\_SB.PCI0.SBRG.EC0.RPIN",
-+		.display_get	= "\\ADVG",
-+		.display_set	= "SDSP",
-+	},
- 
- };
- 
-@@ -710,15 +724,8 @@ static int get_lcd_state(void)
- {
- 	int lcd = 0;
- 
--	if (hotk->model != L3H) {
--		/* We don't have to check anything if we are here */
--		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
--			printk(KERN_WARNING
--			       "Asus ACPI: Error reading LCD status\n");
--
--		if (hotk->model == L2D)
--			lcd = ~lcd;
--	} else {		/* L3H and the like have to be handled differently */
-+	if (hotk->model == L3H) {
-+		/* L3H and the like have to be handled differently */
- 		acpi_status status = 0;
- 		struct acpi_object_list input;
- 		union acpi_object mt_params[2];
-@@ -745,6 +752,32 @@ static int get_lcd_state(void)
- 		if (out_obj.type == ACPI_TYPE_INTEGER)
- 			/* That's what the AML code does */
- 			lcd = out_obj.integer.value >> 8;
-+	} else if (hotk->model == F3Sa) {
-+		unsigned long tmp;
-+		union acpi_object param;
-+		struct acpi_object_list input;
-+		acpi_status status;
-+
-+		/* Read pin 11 */
-+		param.type = ACPI_TYPE_INTEGER;
-+		param.integer.value = 0x11;
-+		input.count = 1;
-+		input.pointer = &param;
-+
-+		status = acpi_evaluate_integer(NULL, hotk->methods->lcd_status,
-+						&input, &tmp);
-+		if (status != AE_OK)
-+			return -1;
-+
-+		lcd = tmp;
-+	} else {
-+		/* We don't have to check anything if we are here */
-+		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
-+			printk(KERN_WARNING
-+			       "Asus ACPI: Error reading LCD status\n");
-+
-+		if (hotk->model == L2D)
-+			lcd = ~lcd;
+diff -puN drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm
++++ a/drivers/acpi/sleep/proc.c
+@@ -268,7 +268,6 @@ acpi_system_write_alarm(struct file *fil
+ 		day -= 31;
+ 	}
+ 	if (mo > 12) {
+-		yr += 1;
+ 		mo -= 12;
  	}
  
- 	return (lcd & 1);
-@@ -1134,6 +1167,8 @@ static int asus_model_match(char *model)
- 		return W5A;
- 	else if (strncmp(model, "A4S", 3) == 0)
- 		return A4S;
-+	else if (strncmp(model, "F3Sa", 4) == 0)
-+		return F3Sa;
- 	else
- 		return END_MODEL;
- }
+@@ -277,7 +276,6 @@ acpi_system_write_alarm(struct file *fil
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+ 
+ 	if (adjust) {
+-		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
+ 		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
+ 		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
+ 		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
+@@ -304,7 +302,6 @@ acpi_system_write_alarm(struct file *fil
+ 		day -= 31;
+ 	}
+ 	if (mo > 12) {
+-		yr++;
+ 		mo -= 12;
+ 	}
+ 
+@@ -331,8 +328,6 @@ acpi_system_write_alarm(struct file *fil
+ 		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+ 		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
+-	if (acpi_gbl_FADT.century)
+-		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
+ 	/* enable the rtc alarm interrupt */
+ 	rtc_control |= RTC_AIE;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
 _
