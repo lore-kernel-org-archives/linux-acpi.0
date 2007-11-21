@@ -1,86 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] acpi: enable C3 Power State on Dell Inspiron 8200
+Subject: [patch 2/4] ACPI: Add reboot mechanism
 Date: Wed, 21 Nov 2007 14:50:08 -0800
-Message-ID: <200711212250.lALMo8EP013058@imap1.linux-foundation.org>
+Message-ID: <200711212250.lALMo8H3013061@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60671 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752680AbXKUWvD (ORCPT
+	by vger.kernel.org with ESMTP id S1753729AbXKUWvF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:51:03 -0500
+	Wed, 21 Nov 2007 17:51:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, arjan@infradead.org, dag@bakke.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, adurbin@google.com, ak@suse.de
 
-From: Arjan van de Ven <arjan@infradead.org>
+From: Aaron Durbin <adurbin@google.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
+Add the ability to reset the machine using the RESET_REG in ACPI's FADT table.
 
-[akpm@linux-foundation.org: fix warning]
-Cc: Dag Bakke <dag@bakke.com>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Aaron Durbin <adurbin@google.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/acpi/Makefile |    2 -
+ drivers/acpi/reboot.c |   44 ++++++++++++++++++++++++++++++++++++++++
+ include/acpi/reboot.h |   10 +++++++++
+ 3 files changed, 55 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
-+++ a/drivers/acpi/processor_idle.c
-@@ -96,6 +96,8 @@ static int acpi_processor_set_power_poli
- 
- #endif
- 
-+static int forced_c3;
+diff -puN drivers/acpi/Makefile~acpi-add-reboot-mechanism drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile~acpi-add-reboot-mechanism
++++ a/drivers/acpi/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o \
++obj-y				+= osl.o utils.o reboot.o \
+ 				   dispatcher/ events/ executer/ hardware/ \
+ 				   namespace/ parser/ resources/ tables/ \
+ 				   utilities/
+diff -puN /dev/null drivers/acpi/reboot.c
+--- /dev/null
++++ a/drivers/acpi/reboot.c
+@@ -0,0 +1,44 @@
 +
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -116,6 +118,19 @@ static int set_max_cstate(const struct d
- 	return 0;
- }
- 
-+/*
-+ * Some (Dell) machines have a too large C3 latency set, but it still works
-+ * completely.  Dell provides a driver for other operating systems to hack
-+ * around this bug, so we know it's safe.
-+ */
-+static int dmi_force_c3(const struct dmi_system_id *id)
++#include <linux/pci.h>
++#include <acpi/acpi.h>
++
++void acpi_reboot(void)
 +{
-+	forced_c3 = 1;
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
-+	return 0;
-+}
++	struct acpi_generic_address *rr;
++	struct pci_bus *bus0;
++	u8 reset_value;
++	unsigned int devfn;
 +
- /* Actually this shouldn't be __cpuinitdata, would be better to fix the
-    callers to only run once -AK */
- static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
-@@ -174,6 +189,9 @@ static struct dmi_system_id __cpuinitdat
- 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
- 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
- 	 (void *)2},
-+	{ dmi_force_c3, "Dell Inspiron 8200", {
-+	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
- 	{},
- };
- 
-@@ -993,11 +1011,12 @@ static void acpi_processor_power_verify_
- 	 * C3 latency must be less than or equal to 1000
- 	 * microseconds.
- 	 */
--	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
-+	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "latency too large [%d]\n", cx->latency));
- 		return;
--	}
-+	} else if (forced_c3)
-+		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
- 
- 	/*
- 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
++	rr = &acpi_gbl_FADT.reset_register;
++
++	/* Is the reset register supported? */
++	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
++	    rr->bit_width != 8 || rr->bit_offset != 0)
++		return;
++
++	reset_value = acpi_gbl_FADT.reset_value;
++
++	/* The reset register can only exist in I/O, Memory or PCI config space
++	 * on a device on bus 0. */
++	switch (rr->space_id) {
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++		/* The reset register can only live on bus 0. */
++		bus0 = pci_find_bus(0, 0);
++		if (!bus0)
++			return;
++		/* Form PCI device/function pair. */
++		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
++				  (rr->address >> 16) & 0xffff);
++		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
++		/* Write the value that resets us. */
++		pci_bus_write_config_byte(bus0, devfn,
++				(rr->address & 0xffff), reset_value);
++		break;
++
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
++		acpi_hw_low_level_write(8, reset_value, rr);
++		break;
++	}
++}
+diff -puN /dev/null include/acpi/reboot.h
+--- /dev/null
++++ a/include/acpi/reboot.h
+@@ -0,0 +1,10 @@
++#ifndef __ACPI_REBOOT_H
++#define __ACPI_REBOOT_H
++
++#ifdef CONFIG_ACPI
++extern void acpi_reboot(void);
++#else
++static inline void acpi_reboot(void) { }
++#endif
++
++#endif
 _
