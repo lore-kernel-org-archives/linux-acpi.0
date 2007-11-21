@@ -1,43 +1,59 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Help wireless suse 9.0
-Date: Wed, 21 Nov 2007 13:43:18 +0000
-Message-ID: <200711211343.18584.carlos@strangeworlds.co.uk>
-References: <474413A6.3050702@unibas.it>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: 2.6.24 regression:  hibernation hangs on "Suspending console" in low-battery condition
+Date: Wed, 21 Nov 2007 20:06:21 +0300
+Message-ID: <20071121170624.72FEE9EBE8E@smtp05.mtu.ru>
+References: <200711052201.17150.arvidjaar@mail.ru> <200711112010.24874.rjw@sisk.pl> <200711170001.46710.arvidjaar@mail.ru> <200711162233.52910.rjw@sisk.pl> <20071121124503.GB5474@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:59489 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753791AbXKUNoc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2007 08:44:32 -0500
-In-Reply-To: <474413A6.3050702@unibas.it>
-Content-Disposition: inline
+Received: from smtp05.mtu.ru ([62.5.255.52]:59283 "EHLO smtp05.mtu.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752338AbXKURGb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Nov 2007 12:06:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alessandro Marino <alessandro.marino@unibas.it>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 21 November 2007 11:16:54 Alessandro Marino wrote:
-> Hi,
-> I'm Alessandro Marino a young Italian student.
-> I need to buy a wireless card to install on Suse 9.0 Professional.
+Pavel Machek wrote:
 
-9.0 is an ancient version of SuSE. Please update to something a
-little more modern if you actually want to run a recent wireless card
-on your laptop.
+> Hi!
+> 
+>> > > > It works. Subjectively I have relatively long pause after first
+>> > > > Suspending console message (where it hangs otherwise), according to
+>> > > > dmesg timestamp it is about 1 second before next messages appear.
+>> > > > Also last two times I tried it writeout of suspend image was really
+>> > > > slow; it was both with and without battery. Reading on resume in
+>> > > > really in order of magnitude faster.
+>> > > > 
+>> > > > But manual STD so far works both on AC (with or without battery) or
+>> > > > on battery.
+>> > > > 
+>> > > > Of course it is possible that battery gets exhausted during STD,
+>> > > > but system is not switched off. Rather I would suspect something
+>> > > > like ACPI notification that comes during freeze ...
+>> > > 
+>> > > Frankly, I'm suspecting a deadlock in the ACPI code.
+>> > > 
+>> > > Please try to make kpowersave start hibernation a bit earlier and see
+>> > > what happens.
+>> > > 
+>> > > What's your critical time now?
+>> > > 
+>> > > 
+>> > 
+>> > it was set to 5%. Setting it to 10% makes it work, but it just confirms
+>> > what I said before - suspend-to-RAM in normal battery conditions (or
+>> > without battery) works.
+>> 
+>> Yes.
+> 
+> I have something similar in suse bugzilla, but there the claim is 'it
+> always works if I trigger it manually'.
 
-> But I  
-> can't find any usefull information about it.
-> Can you help me about the supported cards and about availibility of 
-> their drivers.
+ehh ... did not I say exactly the same thing?
 
-linux-acpi is the wrong list to be asking about wireless cards - you
-would be better advised to take your question to linux-wireless.
+P.S. may I ask you to reply to all - at least to the person who initiated
+this thread ...
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+
