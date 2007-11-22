@@ -1,67 +1,59 @@
-From: akpm@linux-foundation.org
-Subject: [patch 3/4] rtc: don't write RTC century when setting a wake alarm
-Date: Wed, 21 Nov 2007 14:50:09 -0800
-Message-ID: <200711212250.lALMo9Be013066@imap1.linux-foundation.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42401 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753576AbXKUWvc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2007 17:51:32 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Kirill A. Shutemov" <k.shutemov@velesys.com>
+Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
+Date: Thu, 22 Nov 2007 12:04:27 +0200
+Message-ID: <20071122100427.GB7085@localhost.localdomain>
+References: <20071120204525.ff27ac98.akpm@linux-foundation.org> <4743CC0B.9000508@linux.vnet.ibm.com> <20071120221839.faab108e.akpm@linux-foundation.org> <4743F8D2.2090302@linux.vnet.ibm.com> <20071121012918.eff93b22.akpm@linux-foundation.org> <64bb37e0711211133g355a808dl7c2bec7fe3789ddd@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752686AbXKVKD2@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <64bb37e0711211133g355a808dl7c2bec7fe3789ddd@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Torsten Kaiser <just.for.lkml@googlemail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, Balbir Singh <balbir@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, lkml@rtr.ca, david-b@pacbell.net, mlord@pobox.com
 
-From: Mark Lord <lkml@rtr.ca>
 
-Fix /proc/acpi/alarm to not overwrite the RTC century field when setting a
-wake alarm.  The alarm hardware doesn't have a century field, and we really
-should not be fiddling with the RTC century field here.
+--JP+T4n/bALQSJXh8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+On [Wed, 21.11.2007 20:33], Torsten Kaiser wrote:
+> On Nov 21, 2007 10:29 AM, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > On Wed, 21 Nov 2007 14:52:26 +0530 Kamalesh Babulal <kamalesh@linux.vne=
+t.ibm.com> wrote:
+> >
+> > > Andrew Morton wrote:
+> > > > On Wed, 21 Nov 2007 11:41:23 +0530 Kamalesh Babulal <kamalesh@linux=
+=2Evnet.ibm.com> wrote:
+> > > >> ACPI: Core revision 20070126
+> > > >> ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> > > >> Kernel panic - not syncing: IO-APIC + timer doesn't work! Try usin=
+g the 'noapic' kernel parameter
+>=20
+> I seen an identical error.
 
- drivers/acpi/sleep/proc.c |    5 -----
- 1 file changed, 5 deletions(-)
+This bug is also reproducible with qemu.
 
-diff -puN drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~rtc-dont-write-rtc-century-when-setting-a-wake-alarm
-+++ a/drivers/acpi/sleep/proc.c
-@@ -268,7 +268,6 @@ acpi_system_write_alarm(struct file *fil
- 		day -= 31;
- 	}
- 	if (mo > 12) {
--		yr += 1;
- 		mo -= 12;
- 	}
- 
-@@ -277,7 +276,6 @@ acpi_system_write_alarm(struct file *fil
- 	rtc_control = CMOS_READ(RTC_CONTROL);
- 
- 	if (adjust) {
--		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
- 		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
- 		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
- 		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
-@@ -304,7 +302,6 @@ acpi_system_write_alarm(struct file *fil
- 		day -= 31;
- 	}
- 	if (mo > 12) {
--		yr++;
- 		mo -= 12;
- 	}
- 
-@@ -331,8 +328,6 @@ acpi_system_write_alarm(struct file *fil
- 		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
- 	if (acpi_gbl_FADT.month_alarm)
- 		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
--	if (acpi_gbl_FADT.century)
--		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
- 	/* enable the rtc alarm interrupt */
- 	rtc_control |= RTC_AIE;
- 	CMOS_WRITE(rtc_control, RTC_CONTROL);
-_
+--=20
+Regards,  Kirill A. Shutemov
+ + Belarus, Minsk
+ + Velesys LLC, http://www.velesys.com/
+ + ALT Linux Team, http://www.altlinux.com/
+
+--JP+T4n/bALQSJXh8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHRVQrbWYnhzC5v6oRAjiGAJ9mFEvEEpaCJlaujVRljQs8npd8jACeOynx
+4XJPQveZ6Pl77c/LHODAhgE=
+=oqid
+-----END PGP SIGNATURE-----
+
+--JP+T4n/bALQSJXh8--
