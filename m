@@ -1,171 +1,45 @@
-From: =?KOI8-R?B?8y7rLg==?= <9039145715@mail.ru>
-Subject: dmidecode output
-Date: Thu, 22 Nov 2007 18:03:42 +0700
-Message-ID: <20071122180342.4b827e8e@mail.ru>
+From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Subject: Re: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32
+Date: Fri, 23 Nov 2007 15:24:46 +0000
+Message-ID: <20071123152446.144ac193.miknix@gmail.com>
+References: <20071110014448.471e384b.miknix@gmail.com>
+	<200711100321.22500.carlos@strangeworlds.co.uk>
+	<20071112000534.e0489eca.miknix@gmail.com>
+	<200711120002.24474.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/F2r0/+11Qd4roLi4Q+6+HCI"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fallback.mail.ru ([194.67.57.14]:11765 "EHLO mx4.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168AbXKWF6C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2007 00:58:02 -0500
-Received: from mx30.mail.ru (mx30.mail.ru [194.67.23.238])
-	by mx4.mail.ru (mPOP.Fallback_MX) with ESMTP id 277F8B0FF8
-	for <linux-acpi@vger.kernel.org>; Fri, 23 Nov 2007 08:56:27 +0300 (MSK)
-Received: from [217.118.79.46] (port=13345 helo=localhost)
-	by mx30.mail.ru with asmtp
-	id 1IvRVl-000LX9-00
-	for linux-acpi@vger.kernel.org; Fri, 23 Nov 2007 08:55:35 +0300
+Received: from nf-out-0910.google.com ([64.233.182.187]:39842 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755914AbXKWPOG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Nov 2007 10:14:06 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so2802563nfb
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Nov 2007 07:14:04 -0800 (PST)
+In-Reply-To: <200711120002.24474.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
---MP_/F2r0/+11Qd4roLi4Q+6+HCI
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello all,
 
-Here are 2 dmidecode outputs as suggested in dmesg messages: one after
-acpi_osi=!Linux parameter passed to a kernel and another before. By the
-way I see messages
+I opened a SF.net project to support devices found under PNP0C32.
+These devices are known as Direct App Launch Buttons and are used on Vista Hotstart(TM) technology.
+I believe most of Vista "ready" laptops have this.
 
-"MP-BIOS bug: 8254 timer not connected to IO-APIC"
+The project aims to provide similar functionality to Vista Hotstart(TM) in linux.
+You can read more at http://quickstart.sourceforge.net/
 
-at every boot if it helps somehow.
+Greetings,
+-- 
+Angelo Arrifano AKA MiKNiX
+CSE Student at UBI, Portugal
+Gentoo Linux AMD64 Arch Tester
+miknix@gmail.com
+http://miknix.homelinux.com
+PGP Pubkey online
 
-I use laptop Dell Inspiron 1501 with F7. kernel-2.6.22.9-91.fc7 for
-x86_64
+- -
 
-
-Please respond if You take the material into Your consideration.
-
-Best regards,
-Stanislav Kooshnikov
-
---MP_/F2r0/+11Qd4roLi4Q+6+HCI
-Content-Type: application/x-gzip; name=q.tar.gz
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=q.tar.gz
-
-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
-Aw000EADDfyfwX8B7k+l8wBQAAA=
-
---MP_/F2r0/+11Qd4roLi4Q+6+HCI
-Content-Type: application/x-gzip; name="after osi.tar.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="after osi.tar.gz"
-
-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
-NNBAAw000EADDTTQwP8Z/Bctv+kJAFAAAA==
-
---MP_/F2r0/+11Qd4roLi4Q+6+HCI--
+Q: How many Chuck Norris' does it take to change a light bulb?
+A: None, Chuck Norris prefers to kill in the dark. 
