@@ -1,85 +1,196 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
-Date: Sat, 24 Nov 2007 03:49:15 +0300
-Message-ID: <20071124004915.GA1743@martell.zuzino.mipt.ru>
-References: <20071120204525.ff27ac98.akpm@linux-foundation.org> <4743CC0B.9000508@linux.vnet.ibm.com> <20071120221839.faab108e.akpm@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: acpi_scan_rsdp() breaks some PCs by not honouring ACPI specification
+Date: Fri, 23 Nov 2007 20:06:39 -0500
+Message-ID: <200711232006.39628.lenb@kernel.org>
+References: <1190705863.9409.7.camel@hephaestion.lan.tjworld.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:2395 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562AbXKXAtX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Nov 2007 19:49:23 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so599372ugc
-        for <linux-acpi@vger.kernel.org>; Fri, 23 Nov 2007 16:49:21 -0800 (PST)
+Received: from hera.kernel.org ([140.211.167.34]:57764 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752592AbXKXBHV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Nov 2007 20:07:21 -0500
+In-Reply-To: <1190705863.9409.7.camel@hephaestion.lan.tjworld.net>
 Content-Disposition: inline
-In-Reply-To: <20071120221839.faab108e.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, Balbir Singh <balbir@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
+To: TJ <linux@tjworld.net>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 20, 2007 at 10:18:39PM -0800, Andrew Morton wrote:
-> On Wed, 21 Nov 2007 11:41:23 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ibm.com> wrote:
-> 
-> > Hi Andrew,
-> > 
-> > Kernel panic's across different architectures like powerpc, x86_64, 
-> 
-> powerpc complains about IO-APICs??
-> 
-> > Dentry cache hash table entries: 8388608 (order: 14, 67108864 bytes)
-> > Inode-cache hash table entries: 4194304 (order: 13, 33554432 bytes)
-> > Mount-cache hash table entries: 256
-> > SMP alternatives: switching to UP code
-> > ACPI: Core revision 20070126
+TJ,
+Please try this patch.
 
-Hmm. same date here. It's Asus P5B-E motheboard
+thanks,
+-Len
 
-> > ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> > Kernel panic - not syncing: IO-APIC + timer doesn't work! Try using the 'noapic' kernel parameter
-> 
-> ACPI or x86 breakage, I guess.
-> 
-> Did 'noapic' work?
+ACPI: tables: complete searching upon RSDP w/ bad checksum.
+From: Len Brown <len.brown@intel.com>
 
-No! The box freezes somewhere after "Freeing unused kernel memory"...
+ACPI tables follow a tree structure in memory.
+The root of the tree is the RSDP (Root System Description Pointer).
 
-Bisection points to git-x86.patch, though.
+To find the RSDP, the OS searches for the signature "RSD PTR "
+in well known physical memory locations.  Then the OS computes
+a table checksum to verify that the signature is really part
+of a valid table header.
 
-git-bisect start
-# good: [f05092637dc0d9a3f2249c9b283b973e6e96b7d2] Linux 2.6.24-rc3
-git-bisect good f05092637dc0d9a3f2249c9b283b973e6e96b7d2
-# bad: [46c8c396d2c87b786a7fac615c289f85a18e53ce] w1-build-fix
-git-bisect bad 46c8c396d2c87b786a7fac615c289f85a18e53ce
-# bad: [4e22f4852c48e1eddfe04299e78c0456164abe86] frv-move-dma-macros-to-scatterlisth-for-consistency
-git-bisect bad 4e22f4852c48e1eddfe04299e78c0456164abe86
-# bad: [4e22f4852c48e1eddfe04299e78c0456164abe86] frv-move-dma-macros-to-scatterlisth-for-consistency
-git-bisect bad 4e22f4852c48e1eddfe04299e78c0456164abe86
-# good: [d5135f31313af2be37d8ccb71e2a42f8e221d8c4] ide-mm-ide-disk-extend-timeout-for-pio-out-commands
-git-bisect good d5135f31313af2be37d8ccb71e2a42f8e221d8c4
-# good: [6be815e83f506f4c39a46cf59014e29a95c5e6c4] iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue
-git-bisect good 6be815e83f506f4c39a46cf59014e29a95c5e6c4
-# good: [6be815e83f506f4c39a46cf59014e29a95c5e6c4] iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue
-git-bisect good 6be815e83f506f4c39a46cf59014e29a95c5e6c4
-# bad: [c792db6d06114a85e33a27c89e9e979f11b951c4] slub-fix-coding-style-violations
-git-bisect bad c792db6d06114a85e33a27c89e9e979f11b951c4
-# bad: [c792db6d06114a85e33a27c89e9e979f11b951c4] slub-fix-coding-style-violations
-git-bisect bad c792db6d06114a85e33a27c89e9e979f11b951c4
-# bad: [76f3939b76ff557f73720b57a16716196f04e407] x86_64-make-sparsemem-vmemmap-the-default-memory-model-v2
-git-bisect bad 76f3939b76ff557f73720b57a16716196f04e407
-# good: [b8ba611566d8799a979b190d4bb14305ca64ee0e] sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
-git-bisect good b8ba611566d8799a979b190d4bb14305ca64ee0e
-# good: [e34995928859308d2abef1709332e2b12d36db2f] git-ipwireless_cs
-git-bisect good e34995928859308d2abef1709332e2b12d36db2f
-# bad: [f520abbbe11bc8253714bcd34aaaf19bdf82189e] git-x86-identify_cpu-fix
-git-bisect bad f520abbbe11bc8253714bcd34aaaf19bdf82189e
+Some systems have a proper signature but an invalid checksum;
+followed elsewhere by a proper signature with valid checksum.
 
+http://bugzilla.kernel.org/show_bug.cgi?id=9444
 
-I honestly tried fresh #mm from x86 tree -- the one which ends at commit
-70be766db1105c0fc9aed8e954d0c343c1eda067 "x86: Add the RDC machine
-specific reboot fixup". FWIW, commit "x86: validate against ACPI motherboard
-resources" is innocent. After "x86: make stack size configurable" damn thing
-wouldn't build and applying fixets from -mm doesn't help at 3AM.
+The Linux RSDP scanning code bailed out on those systems
+and as a result they booted with ACPI disabled.
 
-Again, it's late here, I'll recheck today.
+Fix this by deleting the Linux RSDP scanning code and
+plugging in the ACPICA RSDP scanning code.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ arch/x86/kernel/acpi/boot.c    |   40 -----------------------------
+ arch/x86/kernel/srat_32.c      |    2 -
+ drivers/acpi/osl.c             |    8 ++++-
+ drivers/acpi/tables/Makefile   |    2 -
+ drivers/acpi/tables/tbxfroot.c |    4 --
+ include/linux/acpi.h           |    1
+ 6 files changed, 9 insertions(+), 48 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 0ca27c7..719c74b 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -581,25 +581,6 @@ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
+ 
+ EXPORT_SYMBOL(acpi_unregister_ioapic);
+ 
+-static unsigned long __init
+-acpi_scan_rsdp(unsigned long start, unsigned long length)
+-{
+-	unsigned long offset = 0;
+-	unsigned long sig_len = sizeof("RSD PTR ") - 1;
+-
+-	/*
+-	 * Scan all 16-byte boundaries of the physical memory region for the
+-	 * RSDP signature.
+-	 */
+-	for (offset = 0; offset < length; offset += 16) {
+-		if (strncmp((char *)(phys_to_virt(start) + offset), "RSD PTR ", sig_len))
+-			continue;
+-		return (start + offset);
+-	}
+-
+-	return 0;
+-}
+-
+ static int __init acpi_parse_sbf(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_boot *sb;
+@@ -742,27 +723,6 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ 	return 0;
+ }
+ 
+-unsigned long __init acpi_find_rsdp(void)
+-{
+-	unsigned long rsdp_phys = 0;
+-
+-	if (efi_enabled) {
+-		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+-			return efi.acpi20;
+-		else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+-			return efi.acpi;
+-	}
+-	/*
+-	 * Scan memory looking for the RSDP signature. First search EBDA (low
+-	 * memory) paragraphs and then search upper memory (E0000-FFFFF).
+-	 */
+-	rsdp_phys = acpi_scan_rsdp(0, 0x400);
+-	if (!rsdp_phys)
+-		rsdp_phys = acpi_scan_rsdp(0xE0000, 0x20000);
+-
+-	return rsdp_phys;
+-}
+-
+ #ifdef	CONFIG_X86_LOCAL_APIC
+ /*
+  * Parse LAPIC entries in MADT
+diff --git a/arch/x86/kernel/srat_32.c b/arch/x86/kernel/srat_32.c
+index 2a8713e..b3b2c95 100644
+--- a/arch/x86/kernel/srat_32.c
++++ b/arch/x86/kernel/srat_32.c
+@@ -276,7 +276,7 @@ int __init get_memcfg_from_srat(void)
+ 	int tables = 0;
+ 	int i = 0;
+ 
+-	rsdp_address = acpi_find_rsdp();
++	rsdp_address = acpi_os_get_root_pointer();
+ 	if (!rsdp_address) {
+ 		printk("%s: System description tables not found\n",
+ 		       __FUNCTION__);
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index aabc6ca..101691e 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -207,8 +207,12 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 			       "System description tables not found\n");
+ 			return 0;
+ 		}
+-	} else
+-		return acpi_find_rsdp();
++	} else {
++		acpi_physical_address pa = 0;
++
++		acpi_find_root_pointer(&pa);
++		return pa;
++	}
+ }
+ 
+ void __iomem *acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
+diff --git a/drivers/acpi/tables/Makefile b/drivers/acpi/tables/Makefile
+index 0a7d7af..7385efa 100644
+--- a/drivers/acpi/tables/Makefile
++++ b/drivers/acpi/tables/Makefile
+@@ -2,6 +2,6 @@
+ # Makefile for all Linux ACPI interpreter subdirectories
+ #
+ 
+-obj-y := tbxface.o tbinstal.o  tbutils.o tbfind.o tbfadt.o
++obj-y := tbxface.o tbinstal.o tbutils.o tbfind.o tbfadt.o tbxfroot.o
+ 
+ EXTRA_CFLAGS += $(ACPI_CFLAGS)
+diff --git a/drivers/acpi/tables/tbxfroot.c b/drivers/acpi/tables/tbxfroot.c
+index cf8fa51..9ecb4b6 100644
+--- a/drivers/acpi/tables/tbxfroot.c
++++ b/drivers/acpi/tables/tbxfroot.c
+@@ -100,7 +100,7 @@ static acpi_status acpi_tb_validate_rsdp(struct acpi_table_rsdp *rsdp)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_tb_find_rsdp
++ * FUNCTION:    acpi_find_root_pointer
+  *
+  * PARAMETERS:  table_address           - Where the table pointer is returned
+  *
+@@ -219,8 +219,6 @@ acpi_status acpi_find_root_pointer(acpi_native_uint * table_address)
+ 	return_ACPI_STATUS(AE_NOT_FOUND);
+ }
+ 
+-ACPI_EXPORT_SYMBOL(acpi_find_root_pointer)
+-
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_tb_scan_memory_for_rsdp
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 8ccedf7..8deb611 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -79,7 +79,6 @@ typedef int (*acpi_table_handler) (struct acpi_table_header *table);
+ typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header *header, const unsigned long end);
+ 
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+-unsigned long acpi_find_rsdp (void);
+ int acpi_boot_init (void);
+ int acpi_boot_table_init (void);
+ int acpi_numa_init (void);
+
