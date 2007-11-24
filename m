@@ -1,42 +1,62 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Laptop keyboard unusable when ACPI is active
-Date: Fri, 23 Nov 2007 23:04:56 -0500
-Message-ID: <200711232304.57652.lenb@kernel.org>
-References: <20071123084443.2cf6b61e@loke.fish.not>
+Subject: Re: [RFC] ACPI interrupt statistics
+Date: Sat, 24 Nov 2007 00:34:24 -0500
+Message-ID: <200711240034.24747.lenb@kernel.org>
+References: <200711030040.53126.lenb@kernel.org> <200711191942.35575.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20071123084443.2cf6b61e@loke.fish.not>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:43462 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750999AbXKXFem (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Sat, 24 Nov 2007 00:34:42 -0500
+In-Reply-To: <200711191942.35575.carlos@strangeworlds.co.uk>
 Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Mats Johannesson <spamcan@abcbredband.net>
-Cc: pavel@suse.cz, legolas558@users.sourceforge.net, dmitry.torokhov@gmail.com, astarikovskiy@suse.de, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Linux-acpi@vger.kernel.org
 
-On Friday 23 November 2007 02:44, Mats Johannesson wrote:
+On Monday 19 November 2007 14:42, Carlos Corbacho wrote:
+> On Saturday 03 November 2007 04:40:53 Len Brown wrote:
+> > For your review and testing...
+> >
+> > The patch below exports interrupt counters from within ACPI
+> > so that developers can better understand the cause of ACPI interrupts.
+> >
+> > My intent is to have something like this built in by default
+> > starting in 2.6.25.  The version below applies to 2.6.21
+> > and is originally based on a patch by Luming Yu.
+> 
+> There have been a fair few changes since then, and this patch will probably 
+> need a fair bit of work.
+> 
+> 1) Back in 2.6.21, acpi_subsys was defined as a 'struct subsystem' in 
+> acpi_bus.h - it's now a 'struct kset'
 
-> The bad interaction between ACPI controlled EC (embedded controller)
-> and the i8042 interrupt handler is theorized about in detail at OLPCs
-> http://dev.laptop.org/ticket/2401 - almost at the end of that page.
-> Thanks to Daniele C for the link.
+yep, that is what broke it.
 
-huh?
+> 2) Greg KH has an RFC patch lined up that does even more work in this area - 
+> http://lkml.org/lkml/2007/11/2
 
-I believe that the OLPC XO1 does not run in ACPI mode
-and thus does not use the ACPI EC driver to talk to
-the EC on their board.
+yeah, i noticed that too -- we already ran amuck of them with some
+other patches in the acpi tree...  akpm patched it up in mm.
 
-Presumably they use some native embedded controller driver to
-talk to their platform specific embedded controller.
+> 3) From my limited understanding of the area and intent, this patch seems to 
+> be a combination of kset work + the interrupt support - could it be split 
+> into two functionally separate patches to cover these instead?
 
-I don't know why they call their interrupt an SCI.
-Per above, it can't be an ACPI SCI.  Presumably they
-call it that b/c their chipset documentation calls it
-that too, on the (invalid) assumption that an ACPI-enabled
-OS and firmware would be running on the hardware.
+the patch I sent to the list is actually a roll-up of a patch series,
+so more patches will appear in the tree when it hits 2.6.25.
 
-Please let me know if I'm wrong.
+> (Basically, the only bit I'm really interested in is the 
+> EXPORT_SYMBOL(acpi_subsys), as acpi_subsys can currently only be used from 
+> built-in drivers, which is preventing me from converting wmi.c to a module).
 
+hmm, okay, i didn't know that.
+but feel free to pre-pend a non-wmi patch to your wmi series if you need it.
+
+thanks,
 -Len
