@@ -1,150 +1,75 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] utilities/: Compliment va_start() with va_end().
-Date: Mon, 26 Nov 2007 14:14:47 -0800
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A403BCB8FA@orsmsx415.amr.corp.intel.com>
-References: <200711250205.34299.lenb@kernel.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
+Date: Mon, 26 Nov 2007 14:17:13 -0800
+Message-ID: <20071126141713.3dcd492b.akpm@linux-foundation.org>
+References: <20071120204525.ff27ac98.akpm@linux-foundation.org>
+	<4743CC0B.9000508@linux.vnet.ibm.com>
+	<20071120221839.faab108e.akpm@linux-foundation.org>
+	<20071126143943.0a01665b@cuia.boston.redhat.com>
+	<20071126123319.7483e57f.akpm@linux-foundation.org>
+	<20071126204540.GA19874@elte.hu>
+	<474B43E1.9080407@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44299 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089AbXKZWOt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2007 17:14:49 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <200711250205.34299.lenb@kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44332 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755785AbXKZWSu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Nov 2007 17:18:50 -0500
+In-Reply-To: <474B43E1.9080407@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ricknu-0@student.ltu.se, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: mingo@elte.hu, riel@redhat.com, kamalesh@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, apw@shadowen.org, balbir@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, tglx@linutronix.de, clameter@sgi.com
 
-This is an interesting one to me.
+On Mon, 26 Nov 2007 23:08:33 +0100
+Jiri Slaby <jirislaby@gmail.com> wrote:
 
->From various documentation:
+> On 11/26/2007 09:45 PM, Ingo Molnar wrote:
+> > * Andrew Morton <akpm@linux-foundation.org> wrote:
+> > 
+> >> On Mon, 26 Nov 2007 14:39:43 -0500
+> >> Rik van Riel <riel@redhat.com> wrote:
+> >>
+> >>> On Tue, 20 Nov 2007 22:18:39 -0800
+> >>> Andrew Morton <akpm@linux-foundation.org> wrote:
+> >>>
+> >>>>> ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> >>>>> Kernel panic - not syncing: IO-APIC + timer doesn't work! Try using the 'noapic' kernel parameter
+> >>>> ACPI or x86 breakage, I guess.
+> >>>>
+> >>>> Did 'noapic' work?
+> >>> I got the same bug as above, 'noapic' gets past that point 
+> >> We still don't know what caused this, afaik.
+> > 
+> > yes. Is it a regression? If yes, could someone try to bisect it so that 
+> > we can fix it? If it's caused by x86.git then the 'mm' branch of the x86 
+> > git tree can be used for bisection:
+> > 
+> >    git://git.kernel.org/pub/scm/linux/kernel/git/x86/linux-2.6-x86.git
+> 
+> I did, but it's hard, if you don't know the BAD point. HEAD boots fine and 'x86:
+> randomize brk' too (the top of git-x86.patch).
 
-After all arguments have been retrieved, va_end resets the pointer to
-NULL.
+So the bug wasn't in git-x86 in 2.6.24-rc3-mm1.
 
-va_end
-Each invocation of va_start must be matched by a corresponding
-invocation of va_end in the same function. After the call va_end(ap) the
-variable ap is undefined. Multiple transversals of the list, each
-bracketed by va_start and va_end are possible. va_end may be a macro or
-a function.   
+But it might be in there now, as some patches got moved over.
 
-Now, I'm all for defensive programming, but I don't really see the point
-of va_end when the list will be only traversed once.
+Or it could be git-acpi.  Or lots of other things.
 
+> Andrew, how do you pull it, git
+> #mm doesn't fit to the ids from the patch.
 
+The -mm git tree reimports the plain git-foo.patch files back into a new
+git tree, so the commit IDs won't line up.
 
-We don't set all local pointers to NULL at function exit, what is the
-point of doing it here?
+The way to find the culprit patch in 2.6.24-rc3-mm1 is
+http://www.zip.com.au/~akpm/linux/patches/stuff/bisecting-mm-trees.txt.  It
+will be quite quick.
 
-I suppose some implementation could allocate memory at va_start, but in
-practice, does this happen?
+> Maybe if you can emit a broken-out with the fresh pull to test?
 
-Bob
-
-
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Saturday, November 24, 2007 11:06 PM
->To: Moore, Robert
->Subject: Fwd: [PATCH] [ACPI] utilities/: Compliment va_start() with
->va_end().
->
->
->
->----------  Forwarded Message  ----------
->
->Subject: [PATCH] [ACPI] utilities/: Compliment va_start() with
-va_end().
->Date: Saturday 24 November 2007 15:43
->From: Richard Knutsson <ricknu-0@student.ltu.se>
->To: len.brown@intel.com
->Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Richard
->Knutsson <ricknu-0@student.ltu.se>
->
->Compliment va_start() with va_end().
->
->Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
->---
->Compile-tested on i386 with allyesconfig & allmodconfig.
->
-> utdebug.c |    2 ++
-> utmisc.c  |    4 ++++
-> 2 files changed, 6 insertions(+)
->
->
->diff --git a/drivers/acpi/utilities/utdebug.c
->b/drivers/acpi/utilities/utdebug.c
->index c7e128e..f45e3d5 100644
->--- a/drivers/acpi/utilities/utdebug.c
->+++ b/drivers/acpi/utilities/utdebug.c
->@@ -203,6 +203,7 @@ acpi_ut_debug_print(u32 requested_debug_level,
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> }
->
-> ACPI_EXPORT_SYMBOL(acpi_ut_debug_print)
->@@ -240,6 +241,7 @@ acpi_ut_debug_print_raw(u32 requested_debug_level,
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> }
->
-> ACPI_EXPORT_SYMBOL(acpi_ut_debug_print_raw)
->diff --git a/drivers/acpi/utilities/utmisc.c
->b/drivers/acpi/utilities/utmisc.c
->index 2d19f71..ca4904c 100644
->--- a/drivers/acpi/utilities/utmisc.c
->+++ b/drivers/acpi/utilities/utmisc.c
->@@ -1032,6 +1032,7 @@ acpi_ut_error(char *module_name, u32 line_number,
->char *format, ...)
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> 	acpi_os_printf(" [%X]\n", ACPI_CA_VERSION);
-> }
->
->@@ -1046,6 +1047,7 @@ acpi_ut_exception(char *module_name,
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> 	acpi_os_printf(" [%X]\n", ACPI_CA_VERSION);
-> }
->
->@@ -1060,6 +1062,7 @@ acpi_ut_warning(char *module_name, u32
-line_number,
->char *format, ...)
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> 	acpi_os_printf(" [%X]\n", ACPI_CA_VERSION);
-> }
->
->@@ -1076,5 +1079,6 @@ acpi_ut_info(char *module_name, u32 line_number,
-char
->*format, ...)
->
-> 	va_start(args, format);
-> 	acpi_os_vprintf(format, args);
->+	va_end(args);
-> 	acpi_os_printf("\n");
-> }
->-
->To unsubscribe from this list: send the line "unsubscribe linux-kernel"
-in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->Please read the FAQ at  http://www.tux.org/lkml/
->
->
->-------------------------------------------------------
+http://userweb.kernel.org/~akpm/mmotm/ is current.  But it probably won't
+compile.  I'd suggest bisecting 2.6.24-rc3-mm1 would be easier.  
