@@ -1,36 +1,41 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
-Date: Tue, 27 Nov 2007 00:14:17 +0100
-Message-ID: <474B5349.2070500@gmail.com>
-References: <20071120204525.ff27ac98.akpm@linux-foundation.org>	<4743CC0B.9000508@linux.vnet.ibm.com>	<20071120221839.faab108e.akpm@linux-foundation.org>	<20071126143943.0a01665b@cuia.boston.redhat.com>	<20071126123319.7483e57f.akpm@linux-foundation.org>	<20071126204540.GA19874@elte.hu>	<474B43E1.9080407@gmail.com> <20071126141713.3dcd492b.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Suspend-to-ram/disk signal
+Date: Tue, 27 Nov 2007 00:36:21 +0100
+Message-ID: <200711270036.21884.rjw@sisk.pl>
+References: <474B4B35.6030800@tipisoft.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:28457 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbXKZXOX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2007 18:14:23 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so1072610ugc
-        for <linux-acpi@vger.kernel.org>; Mon, 26 Nov 2007 15:14:21 -0800 (PST)
-In-Reply-To: <20071126141713.3dcd492b.akpm@linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:40857 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757509AbXKZXSg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Nov 2007 18:18:36 -0500
+In-Reply-To: <474B4B35.6030800@tipisoft.dk>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mingo@elte.hu, riel@redhat.com, kamalesh@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, apw@shadowen.org, balbir@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, tglx@linutronix.de, clameter@sgi.com
+To: Pascal d'Hermilly <pascal@tipisoft.dk>
+Cc: linux-acpi@vger.kernel.org
 
-On 11/26/2007 11:17 PM, Andrew Morton wrote:
->> Maybe if you can emit a broken-out with the fresh pull to test?
+On Monday, 26 of November 2007, Pascal d'Hermilly wrote:
+> When the computer suspends and comes back does it send a signal to the 
+> running applications?
+
+No, it doesn't.  Applications aren't supposed to notice the suspend.
+
+> Specifically I would like to use it so a IM client will reconnect to the 
+> server instead of saying there is a timeout.
 > 
-> http://userweb.kernel.org/~akpm/mmotm/ is current.  But it probably won't
-> compile. 
+> Hope someone can help me out with a tip.
 
-Yes it did :). And it worked. Both in qemu and on my desktop...
+Your distribution surely uses some scripts that activate the kernel's suspend
+code.  You can modify these scripts to notify your application.
 
-qemu output at:
-http://www.fi.muni.cz/~xslaby/sklad/qemu-output.txt
+Greetings,
+Rafael
 
-thanks,
+
 -- 
-Jiri Slaby (jirislaby@gmail.com)
-Faculty of Informatics, Masaryk University
+"Premature optimization is the root of all evil." - Donald Knuth
