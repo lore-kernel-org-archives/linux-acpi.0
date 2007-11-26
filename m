@@ -1,90 +1,73 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: No blacklight Re: [patch] remove debug info in acpi video
-Date: Mon, 26 Nov 2007 19:39:19 +0000
-Message-ID: <1196105959.14119.9.camel@localhost.localdomain>
-References: <20071113005047.GA27837@zhen-devel.sh.intel.com>
-	 <1194921410.2969.1.camel@localhost.localdomain>
-	 <1195950110.813.1.camel@localhost.localdomain>
-	 <20071126012040.GA5493@zhen-devel.sh.intel.com>
+From: Rik van Riel <riel@redhat.com>
+Subject: Re: 2.6.24-rc3-mm1 - Kernel Panic on IO-APIC
+Date: Mon, 26 Nov 2007 14:39:43 -0500
+Message-ID: <20071126143943.0a01665b@cuia.boston.redhat.com>
+References: <20071120204525.ff27ac98.akpm@linux-foundation.org>
+	<4743CC0B.9000508@linux.vnet.ibm.com>
+	<20071120221839.faab108e.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-md0t8KLIlsKl8G7gC0IS"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:51623 "HELO sapo.pt"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751919AbXKZTkB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Nov 2007 14:40:01 -0500
-In-Reply-To: <20071126012040.GA5493@zhen-devel.sh.intel.com>
+Received: from mx1.redhat.com ([66.187.233.31]:55013 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752493AbXKZTkt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Nov 2007 14:40:49 -0500
+In-Reply-To: <20071120221839.faab108e.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, Balbir Singh <balbir@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
+On Tue, 20 Nov 2007 22:18:39 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
---=-md0t8KLIlsKl8G7gC0IS
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+> > ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> > Kernel panic - not syncing: IO-APIC + timer doesn't work! Try using the 'noapic' kernel parameter
+> 
+> ACPI or x86 breakage, I guess.
+> 
+> Did 'noapic' work?
 
+I got the same bug as above, 'noapic' gets past that point and right to the
+next oops.  I'm posting it here because this one is different from the others
+in the thread, yet looks vaguely related:
 
-On Mon, 2007-11-26 at 09:20 +0800, Zhenyu Wang wrote:
-> No idea how could my simple patch cause your problem...
+Unable to handle kernel NULL pointer dereference at 0000000000000021 RIP:
+ [<ffffffff8108382a>] refresh_zone_stat_thresholds+0x6d/0x90
+PGD 0
+Oops: 0002 [1] SMP
+last sysfs file:
+CPU 0
+Modules linked in:
+Pid: 1, comm: swapper Not tainted 2.6.24-rc3-mm1 #2
+RIP: 0010:[<ffffffff8108382a>]  [<ffffffff8108382a>] refresh_zone_stat_thresholds+0x6d/0x90
+RSP: 0000:ffff81007fb59ec0  EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000000001
+RDX: 0000000000000001 RSI: ffffffff8146fb38 RDI: 0000000000000001
+RBP: ffff81000000c000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff81007fb59e60 R11: 0000000000000028 R12: ffffffff814d4558
+R13: 0000000000000000 R14: ffffffff814b62c0 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffffffff813d9000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000021 CR3: 0000000000201000 CR4: 00000000000006a0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 1, threadinfo FFFF81007FB58000, task FFFF81007FB56000)
+Stack:  0000000000000000 0000000000000000 0000000000000000 ffffffff814a3839
+ 0000000000000000 ffffffff8148e626 ffff81007fb56000 ffffffff8126d36a
+ 0000000000000000 ffffffffffffffff ffffffff8105786b 0000000000000000
+Call Trace:
+ [<ffffffff814a3839>] setup_vmstat+0x6/0x40
+ [<ffffffff8148e626>] kernel_init+0x169/0x2d8
+ [<ffffffff8126d36a>] trace_hardirqs_on_thunk+0x35/0x3a
+ [<ffffffff8105786b>] trace_hardirqs_on+0x115/0x138
+ [<ffffffff8100ce48>] child_rip+0xa/0x12
+ [<ffffffff8100c55f>] restore_args+0x0/0x30
+ [<ffffffff8148e4bd>] kernel_init+0x0/0x2d8
+ [<ffffffff8100ce3e>] child_rip+0x0/0x12
 
-I'm not saying your patch cause the problem , I say when this messages
-begging to appears at more or less at same time my blacklight stops to
-works, but not saying that is direct related to this patch.
+INFO: lockdep is turned off.
 
-btw , after suspend to disk and resume , blacklight works! .
-
-Just trying to help .
-
-Thanks,=20
---=20
-S=C3=A9rgio M. B.
-
---=-md0t8KLIlsKl8G7gC0IS
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
-NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
-do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
-1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
-lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
-jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
-5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
-9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
-el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MTEyNjE5MzkxNFowIwYJKoZI
-hvcNAQkEMRYEFLGwWj+YzEVGD/BzcBZdKwol8u1bMA0GCSqGSIb3DQEBAQUABIIBAB0A8rfg/ZDe
-bGzztB1uiaSCGr6XcB6vGv+LNmFhCSfh4WVZPLGejKjEqaO2OhCi/eGFbL5IXXJ27RXosM9Klhze
-aku3rRW+7toM25olfFMLsYN97s2wn3DzJ7ibFD9f/4MwF0mZR7LpUfq7QRE1nmQMZpSiVd2GfJcW
-ZU8/H8J8nj+UvV+d2uIIILjZLtUAtpyVJts4PG0m7uX3Ug6bRSHDgZjAWLj0DqzLpPlxkaFfTeqF
-dvUv9iirHk9vhhDub1yyyxXhKfBcg3tAurkFKBB3q4M8ACDlMcTVSBud3hTKCdALJOPLTuHOiBgn
-On+Zq1232UJ7gqUJOQMZHUynrLcAAAAAAAA=
-
-
---=-md0t8KLIlsKl8G7gC0IS--
-
+-- 
+All Rights Reversed
