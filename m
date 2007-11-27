@@ -1,81 +1,49 @@
-From: Richard Knutsson <ricknu-0@student.ltu.se>
-Subject: Re: [PATCH] utilities/: Compliment va_start() with va_end().
-Date: Tue, 27 Nov 2007 01:15:48 +0100
-Message-ID: <474B61B4.9020309@student.ltu.se>
-References: <200711250205.34299.lenb@kernel.org> <B28E9812BAF6E2498B7EC5C427F293A403BCB8FA@orsmsx415.amr.corp.intel.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: No blacklight Re: [patch] remove debug info in acpi video
+Date: Tue, 27 Nov 2007 08:45:22 +0800
+Message-ID: <823A93EED437D048963A3697DB0E35DEE70D02@pdsmsx414.ccr.corp.intel.com>
+References: <20071113005047.GA27837@zhen-devel.sh.intel.com> <1194921410.2969.1.camel@localhost.localdomain> <1195950110.813.1.camel@localhost.localdomain> <20071126012040.GA5493@zhen-devel.sh.intel.com> <1196105959.14119.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gepetto.dc.ltu.se ([130.240.42.40]:63035 "EHLO
-	gepetto.dc.ltu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232AbXK0A2M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2007 19:28:12 -0500
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A403BCB8FA@orsmsx415.amr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:15283 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753182AbXK0Apr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2007 19:45:47 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <1196105959.14119.9.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>, "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Moore, Robert wrote:
-> This is an interesting one to me.
->
-> From various documentation:
->
-> After all arguments have been retrieved, va_end resets the pointer to
-> NULL.
->
-> va_end
-> Each invocation of va_start must be matched by a corresponding
-> invocation of va_end in the same function. After the call va_end(ap) the
-> variable ap is undefined. Multiple transversals of the list, each
-> bracketed by va_start and va_end are possible. va_end may be a macro or
-> a function.   
->
-> Now, I'm all for defensive programming, but I don't really see the point
-> of va_end when the list will be only traversed once.
->
->   
-First off, I think it is a good idea to follow the documentation, which stated:
-"va_end
-Each invocation of va_start must be matched by a corresponding
-invocation of va_end in the same function."
 
-Then if it is not really needed, does it take up extra cycles?
-"In practice, with most C compilers, calling |va_end| does nothing
-and you do not really need to call it.  This is always true in the GNU C
-compiler."[1]
 
-Portability:
-"But you might as well call |va_end| just in case your
-program is someday compiled with a peculiar compiler."[2]
-This argument is not as likely thou, but who knows? (Since I guess Intel's
-compiler is included in the 'most C compilers')
-
+>-----Original Message-----
+>From: Sergio Monteiro Basto [mailto:sergio@sergiomb.no-ip.org]
+>Sent: Tuesday, November 27, 2007 3:39 AM
+>To: Wang, Zhenyu Z
+>Cc: Zhang, Rui; linux-acpi@vger.kernel.org
+>Subject: Re: No blacklight Re: [patch] remove debug info in acpi video
 >
-> We don't set all local pointers to NULL at function exit, what is the
-> point of doing it here?
->   
-I think it is a good thing if the code follows the documentation, both 
-for the person who tries
-to understand the code (to see when the 'args' is no longer needed and 
-not getting confused
-by the absent of va_end(), after all, IMHO we should write the code how 
-we want things to
-work and let the compiler do the optimizations (it usually does a better 
-job at it then we do))
-and to automated searches (that is how I found this one).
-> I suppose some implementation could allocate memory at va_start, but in
-> practice, does this happen?
->   
-Not sure what you mean.
-> Bob
 >
->   
-cu
-Richard Knutsson
+>On Mon, 2007-11-26 at 09:20 +0800, Zhenyu Wang wrote:
+>> No idea how could my simple patch cause your problem...
+>
+>I'm not saying your patch cause the problem , I say when this messages
+>begging to appears at more or less at same time my blacklight stops to
+>works, but not saying that is direct related to this patch.
+>
+If the hotkey events is handled via ACPI, which is true in your case,
+this debug message always appears no matter the backlight works or not.
+:)
 
-[1] 
-http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_28.html
-[2] The rest of [1]'s line.
+>btw , after suspend to disk and resume , blacklight works! .
+That's weird.
+You can open a bug at http://bugzilla.kernel.org/enter_bug.cgi
+And attach the acpidump.
 
+Thanks,
+Rui
