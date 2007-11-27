@@ -1,167 +1,81 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Mon, 26 Nov 2007 19:04:54 -0800
-Message-ID: <20071127030454.GC23277@us.ibm.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com>
+From: Dave Jones <davej@redhat.com>
+Subject: battery unplug related oops. (2.6.24-rc3-git1)
+Date: Mon, 26 Nov 2007 22:27:41 -0500
+Message-ID: <20071127032741.GA3337@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756056AbXK0DFU@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([66.187.233.31]:58149 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753851AbXK0D1n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Nov 2007 22:27:43 -0500
+Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
+	by mx1.redhat.com (8.13.8/8.13.1) with ESMTP id lAR3RgUl022189
+	for <linux-acpi@vger.kernel.org>; Mon, 26 Nov 2007 22:27:42 -0500
+Received: from gelk.kernelslacker.org (vpn-14-143.rdu.redhat.com [10.11.14.143])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id lAR3Rg1g030646
+	for <linux-acpi@vger.kernel.org>; Mon, 26 Nov 2007 22:27:42 -0500
+Received: from gelk.kernelslacker.org (localhost.localdomain [127.0.0.1])
+	by gelk.kernelslacker.org (8.14.1/8.13.8) with ESMTP id lAR3Rfck008024
+	for <linux-acpi@vger.kernel.org>; Mon, 26 Nov 2007 22:27:41 -0500
+Received: (from davej@localhost)
+	by gelk.kernelslacker.org (8.14.1/8.14.1/Submit) id lAR3RfJk008023
+	for linux-acpi@vger.kernel.org; Mon, 26 Nov 2007 22:27:41 -0500
 Content-Disposition: inline
-In-Reply-To: <20071126222253.GA31708@ldl.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Nov 26, 2007 at 03:22:53PM -0700, Alex Chiang wrote:
-> Hi Gary, Kenji-san, et. al,
-> 
-> * Gary Hade <garyhade@us.ibm.com>:
-> > 
-> > Alex, What I was trying to suggest is a boot-time kernel
-> > option, not a kernel configuration option.  The basic idea is
-> > to give the user (with a single binary kernel) the ability to
-> > include your ACPI-PCI slot driver feature changes only when
-> > they are really needed.  In addition to reducing the number of
-> > system/PCI hotplug driver combinations where your changes would
-> > need to be validated, I believe would also help alleviate other
-> > worries (e.g. Andi Kleen's memory consumption concern).  I
-> > believe this goal could also be achieved with the kernel config
-> > option by making the pci_slot module runtime loadable with the
-> > PCI hotplug drivers only visiting your new code when the
-> > pci_slot driver is loaded, although I think this would be more
-> > difficult to implement.
-> 
-> I have modified my patch series so that the final patch that
-> introduces my ACPI-PCI slot driver is a full-fledged module, that
-> has a tristate Kconfig option.
-> 
-> It can be modprobe'd/rmmod'ed in any combination, and in any
-> order with other PCI hotplug modules. There is no ordering
-> dependency, even at module unload time, so you can safely rmmod
-> pci_slot, and safely continue using features provided by the PCI
-> hotplug drivers (acpiphp, pciehp, etc.). The opposite works too.
+https://bugzilla.redhat.com/show_bug.cgi?id=399111
 
-Nice!  I like the loadable module approach much better than my
-boot-time kernel option suggestion.
+Looks like a use-after-free ..
 
-> 
-> The one limitation is that two separate hotplug drivers cannot
-> both claim the same device (2nd module loaded will get -EBUSY
-> errors), but I do not believe that is a regression from current
-> behavior.
 
-I cannot confirm this since the systems I am using only support
-a single hotplug driver (acpiphp).
+BUG: unable to handle kernel paging request at virtual address 6b6b6b6b
+printing eip: c050a0c5 *pde = 00000000 
+Oops: 0000 [#1] SMP 
+Modules linked in: i915 drm rfcomm l2cap bluetooth autofs4 ipv6 ipt_REJECT
+nf_conntrack_ipv4 xt_state nf_conntrack xt_tcpudp iptable_filter ip_tables
+x_tables cpufreq_ondemand acpi_cpufreq dm_mirror dm_mod snd_intel8x0
+snd_seq_dummy snd_intel8x0m snd_ac97_codec ac97_bus snd_seq_oss
+snd_seq_midi_event snd_seq snd_seq_device snd_pcm_oss snd_mixer_oss snd_pcm
+ipw2200 ieee80211 ieee80211_crypt video snd_timer output snd button tg3 battery
+iTCO_wdt ac power_supply soundcore iTCO_vendor_support joydev snd_page_alloc
+pcspkr dcdbas sg ata_piix pata_acpi ata_generic libata sd_mod scsi_mod ext3 jbd
+mbcache uhci_hcd ohci_hcd ehci_hcd
 
-> 
-> I have only tested with acpiphp and pciehp, as that's the only
-> hardware I have, but I believe my code will play nicely with the
-> other PCI hp drivers as well.
-
-I have only tested your changes with acpiphp.
-
-> 
-> The patch series is fully bisectable, and the correct behavior
-> occurs no matter which patch you happen to have applied.
-
-Based on my testing (see below) this appears to be true.
-
-> 
-> I'll be sending v5 of patches 3 and 4 shortly (patches 1 and 2
-> did not change). It is still based on 2.6.24-rc2, because I was
-> too scared to do another git rebase while using stgit. :-/
-
-I have been using 2.6.24-rc3 source for my testing.
-
-> 
-> > Also, I notice that even with your current CONFIG_ACPI_PCI_SLOT
-> > implementation your numerous PCI hotplug driver changes (except
-> > for only two places in pci_hotplug_core.c where there is 
-> > `#ifndef CONFIG_ACPI_PCI_SLOT` and `#ifdef CONFIG_ACPI_PCI_SLOT`)
-> > are _always_ exposed.  So, even with CONFIG_ACPI_PCI_SLOT disabled
-> > there is IMO a need for testing of the affected PCI hotplug drivers
-> > on more than a small number of isolated systems.
-> 
-> You are, of course, correct.
-> 
-> In my opinion, though, I would say most of the changes to the PCI
-> hotplug drivers themselves are pretty straightforward, as in
-> removing the different ways of getting the PCI address.
-> 
-> The scary part of the changes (aside from the ACPI-PCI slot
-> driver) revolve around the new struct pci_slot, which is
-> relatively self-contained, and only expose themselves via the
-> pci_create_slot/pci_destroy_slot interfaces which only the PCI
-> hotplug corecares about.
-
-I think this sounds like a reasonable argument for not
-doing what I was trying to suggest.
-
-> 
-> Regardless, your point stands. How do you suggest I get more
-> testing time?
-
-I am only able to test with acpiphp.  In addition to the
-testing on the x3850 described below I would also like to
-do some testing on an x3950 which has a mix of hotplug and
-non-hotplug slots.  If this testing which I hope to complete
-this week goes well, I will be satisfied.
-
-I will let others speak for the other hotplug drivers
-and platforms.
-
-> Is this patchset appropriate for the -mm tree yet?
-
-I would defer to our illustrious maintainers on this one. :)
-
-> Or do you think it still needs more work?
-
-I am now much more comfortable with your changes with respect
-to acpiphp on the systems I worry about but others may have
-concerns with respect to the other hotplug drivers, or even
-acpiphp, on other systems.
-
-> 
-> > The good news is that I was able to test your v3 changes
-> > (w/2.6.24-rc3 source) on our x3850 today with 'acpiphp' and,
-> > except for the above mentioned inability to run-time
-> > include/exclude them, they seemed to work fine.  The previous
-> > boot-time ACPI error messages are gone and I was able to
-> > successfully hot-remove and hot-add both PCI-X and PCIe
-> > adapters.
-> 
-> Thanks for testing. Please let me know how v5 works for you too.
-
-I just tried your v5 (1/4 v3, 2/4 v3, 3/4 v5, 4/4 v5) applied 
-to 2.6.24-rc3 source with acpiphp on the x3850 and found 
-nothing to complain about.  About time, eh? :)
-
-Following boot, 'pci_slot' was already loaded and slot directories
-(each containing an address file) for all 6 (2 PCI-X, 4 PCIe)
-slots were present.  I then successfully modprobed acpiphp and
-successfully hot-removed the PCI-X and PCIe cards that were present
-during boot.  I then successfully hot-added the same cards to
-the slots they occupied during boot and to slots that were vacant
-during boot.
-
-I then unloaded acpiphp and pci_slot and reloaded both in
-the opposite order (acpiphp 1st, pci_slot 2nd) and
-successfully repeated the above hot-remove/hot-add operations. 
-
-I then unloaded both drivers again, reloaded only acpiphp,
-and successfully repeated the same hot-remove/hot-add operations.
-
-I will let you know how it goes on the x3950.
-
-Thanks for all your hard work on this.
-
-Gary
+Pid: 66, comm: kacpi_notify Not tainted (2.6.24-0.41.rc3.git1.fc9 #1)
+EIP: 0060:[<c050a0c5>] EFLAGS: 00010246 CPU: 0
+EIP is at strlen+0xb/0x15
+EAX: 00000000 EBX: c4d89548 ECX: ffffffff EDX: 000000d0
+ESI: 000000d0 EDI: 6b6b6b6b EBP: df092ec8 ESP: df092ec4
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process kacpi_notify (pid: 66, ti=df092000 task=df07ae10 task.ti=df092000)
+Stack: c4d89548 df092ee4 c0505df4 c0750860 00000001 00000000 c0750860 d60c3000 
+       df092f34 c0506504 00000000 00000000 cf64f400 c7e7e044 c4d89548 c06f7958 
+       00000001 e019c918 c07508e4 fffffff4 df0788e1 c7e7e014 00000000 00000014 
+Call Trace:
+ [<c040649a>] show_trace_log_lvl+0x1a/0x2f
+ [<c040654a>] show_stack_log_lvl+0x9b/0xa3
+ [<c04065f9>] show_registers+0xa7/0x178
+ [<c04067f0>] die+0x126/0x211
+ [<c0643542>] do_page_fault+0x553/0x631
+ [<c0641be2>] error_code+0x72/0x78
+ [<c0505df4>] kobject_get_path+0x21/0x89
+ [<c0506504>] kobject_uevent_env+0xa0/0x36e
+ [<c05067dc>] kobject_uevent+0xa/0xc
+ [<e01cea0b>] acpi_battery_notify+0x76/0x7c [battery]
+ [<c0534c26>] acpi_ev_notify_dispatch+0x4f/0x5a
+ [<c052f3f5>] acpi_os_execute_notify+0x24/0x2f
+ [<c043da7d>] run_workqueue+0xd9/0x1ac
+ [<c043e599>] worker_thread+0xbb/0xc6
+ [<c0441373>] kthread+0x3b/0x64
+ [<c0405f1f>] kernel_thread_helper+0x7/0x10
+ =======================
+Code: 5d c3 55 89 e5 56 89 c6 89 d0 88 c4 ac 38 e0 74 09 84 c0 75 f7 be 01 00 00
+00 89 f0 48 5e 5d c3 55 83 c9 ff 89 e5 57 89 c7 31 c0 <f2> ae f7 d1 49 5f 89 c8
+5d c3 55 89 e5 57 89 c7 89 d0 31 d2 85 
+EIP: [<c050a0c5>] strlen+0xb/0x15 SS:ESP 0068:df092ec4
 
 -- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+http://www.codemonkey.org.uk
