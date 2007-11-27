@@ -1,53 +1,62 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH] ACPI :Restore the previous calculation of FSB ratio for
-	mode <2
-Date: Tue, 27 Nov 2007 16:20:21 +0800
-Message-ID: <1196151621.3766.3.camel@yakui_zhao.sh.intel.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: 2.6.24: Serial disabled in BIOS but serial modules still
+	loaded (probably PnP related)
+Date: Tue, 27 Nov 2007 16:59:06 +0800
+Message-ID: <1196153946.5385.4.camel@sli10-conroe.sh.intel.com>
+References: <fa.P01QcmUf2f3DN4etI8KJYFdaLnE@ifi.uio.no>
+	 <4749C15C.6020805@shaw.ca>  <200711252301.34503.arvidjaar@mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53016 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799AbXK0II4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Nov 2007 03:08:56 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <200711252301.34503.arvidjaar@mail.ru>
+Sender: linux-serial-owner@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Robert Hancock <hancockr@shaw.ca>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-Subject: ACPI :Restore the previous calculation of FSB ratio for mode <2
->From : Zhao Yakui <yakui.zhao@intel.com>
+On Mon, 2007-11-26 at 04:01 +0800, Andrey Borzenkov wrote:
+> On Sunday 25 November 2007, Robert Hancock wrote:
+> > Andrey Borzenkov wrote:
+> > > I have no COM port on notebook (without port replicator which I do not have)
+> > > so COM is disabled in BIOS. No ttyS* is detected during boot (and no device
+> > > created) but I just noticed that serial modules are still loaded. Well, this
+> > > partially defeats the purpose of disabling COM port - the intention was to
+> > > free resources by *not* loading unneeded modules ...
+> > > 
+> > > This may have something to do with (ACPI) PnP which apparently believes COM is alive.
+> > > Notebook is Toshiba Portege 4000.
+> > 
+> > Probably a BIOS bug. It still lists the port in PnP data even though the 
+> > hardware is disabled, so the kernel still tries to load the serial 
+> > driver for it, which finds there's no port there.
+> > 
+> 
+> Here is what we get from _STA:
+> 
+> [ 1689.988245] HID=PNP0501 flags=0d
+> 
+> If I read specs correctly, if bit 1 is cleared it means, device is not able
+> to access its hardware resources, so it makes no sense to even try to
+> load driver for it.
+> 
+> And of course it makes PnP output completely bogus:
+> 
+> 00:09 PNP0501 16550A-compatible serial port
+>     state = active
+>     allocated resources:
+>         io 0x3f8-0x3ff
+>         irq 5
+>  
+> So two questions:
+> 
+> 1. why device got enabled when ACPI explicitly stated it cannot be?
+> 2. can we get information about _STA result in user space so we do not try
+> to autoload driver for device that can't work?
+0xd means present, disabled. A disabled PNP device can be enabled, ACPI
+doesn't say it can't be. When the driver is loaded, it will enabled the
+device. If BIOS wants to disable the device, it should make the device
+non-present.
 
-The ratio is undefined in the register of MSR_FBC_REGSITER_ID
-when the model for P4 is less than 2. So the following calculation in
-comment (3e4159ab35c88aef5e063ba78796b277b762a30a) is inappropriate.
-   if (c->x86_model < 2)
-         mult = msr_lo >> 27;
-
-It is more appropriate that the commit is reverted 
-until the proper patch in that place has been developed.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=7186
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- arch/x86/kernel/cpu/cpufreq/speedstep-lib.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-Index: linux-2.6.24-rc1/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
-===================================================================
---- linux-2.6.24-rc1.orig/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
-+++ linux-2.6.24-rc1/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
-@@ -189,10 +189,7 @@ static unsigned int pentium4_get_frequen
- 		printk(KERN_DEBUG "speedstep-lib: couldn't detect FSB speed. Please send an e-mail to <linux@brodo.de>\n");
- 
- 	/* Multiplier. */
--	if (c->x86_model < 2)
--		mult = msr_lo >> 27;
--	else
--		mult = msr_lo >> 24;
-+	mult = msr_lo >> 24;
- 
- 	dprintk("P4 - FSB %u kHz; Multiplier %u; Speed %u kHz\n", fsb, mult, (fsb * mult));
- 
+Thanks,
+Shaohua
