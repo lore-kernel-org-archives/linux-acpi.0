@@ -1,259 +1,181 @@
-From: akpm@linux-foundation.org
-Subject: + git-acpi-ia64-build-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2007 21:18:20 -0800
-Message-ID: <200711280525.lAS5PaGU017529@imap1.linux-foundation.org>
-Reply-To: linux-kernel@vger.kernel.org
-Return-path: <mm-commits-owner@vger.kernel.org>
-Sender: mm-commits-owner@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: ACPI related Warning in 2.6.24-rc3-git2
+Date: Tue, 27 Nov 2007 22:42:29 -0800
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE2B3AD7@orsmsx423.amr.corp.intel.com>
+References: <20071127150557.GA4365@ics.muni.cz> <200711271637.13036.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:23075 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751274AbXK1Gml convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2007 01:42:41 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200711271637.13036.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, "Zhao, Yakui" <yakui.zhao@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
 
-The patch titled
-     git-acpi: ia64 build fix
-has been added to the -mm tree.  Its filename is
-     git-acpi-ia64-build-fix.patch
+Yakui,
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Can you look at this. Seems to be coming from commit f79f06ab9f86
+FixedHW support tries to read MSR with interrupts disabled.
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+Thanks,
+Venki 
 
-------------------------------------------------------
-Subject: git-acpi: ia64 build fix
-From: Andrew Morton <akpm@linux-foundation.org>
-
-arch/ia64/kernel/acpi.c: In function `acpi_get_sysname':
-arch/ia64/kernel/acpi.c:81: error: implicit declaration of function `acpi_find_rsdp'
-arch/ia64/kernel/acpi.c: At top level:
-arch/ia64/kernel/acpi.c:631: error: conflicting types for 'acpi_find_rsdp'
-arch/ia64/kernel/acpi.c:81: error: previous implicit declaration of 'acpi_find_rsdp' was here
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: <linux-acpi@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/ia64/kernel/acpi.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
-
-diff -puN arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~git-acpi-ia64-build-fix
-+++ a/arch/ia64/kernel/acpi.c
-@@ -67,7 +67,19 @@ EXPORT_SYMBOL(pm_power_off);
- unsigned int acpi_cpei_override;
- unsigned int acpi_cpei_phys_cpuid;
- 
--unsigned long acpi_wakeup_address = 0;
-+unsigned long acpi_wakeup_address;
-+
-+unsigned long __init acpi_find_rsdp(void)
-+{
-+	unsigned long rsdp_phys = 0;
-+
-+	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-+		rsdp_phys = efi.acpi20;
-+	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
-+		printk(KERN_WARNING PREFIX
-+		       "v1.0/r0.71 tables no longer supported\n");
-+	return rsdp_phys;
-+}
- 
- const char __init *
- acpi_get_sysname(void)
-@@ -627,18 +639,6 @@ static int __init acpi_parse_fadt(struct
- 	return 0;
- }
- 
--unsigned long __init acpi_find_rsdp(void)
--{
--	unsigned long rsdp_phys = 0;
--
--	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
--		rsdp_phys = efi.acpi20;
--	else if (efi.acpi != EFI_INVALID_TABLE_ADDR)
--		printk(KERN_WARNING PREFIX
--		       "v1.0/r0.71 tables no longer supported\n");
--	return rsdp_phys;
--}
--
- int __init acpi_boot_init(void)
- {
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-fix-linux-kdh-usage-in-userspace-checkpatch-fixes.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-ia64-build-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-kernel-auditc-warning-fix.patch
-git-cpufreq.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-dm-persistent_read_metadata-warning-fix.patch
-ppc-chrp-fix-possible-null-pointer-dereference-checkpatch-fixes.patch
-gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-git-drm-oops-fix.patch
-intel-agp-enable-i915-recognition.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-constify-client-address-data.patch
-fix-hpet-wrong-values-fix.patch
-ia64-slim-down-__clear_bit_unlock.patch
-git-infiniband.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-bluetooth-uninlining.patch
-git-nfsd.patch
-quirk-enable-msi-mapping-on-ht1000.patch
-git-sh-fixup.patch
-git-scsi-misc-fixup.patch
-ips-trim-trailing-whitespace.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-libsas-convert-ata-bridge-to-use-new-eh-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-mct232-speed-new-termios-and-compliance-cleanups-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-build-fix.patch
-git-cryptodev.patch
-git-xtensa.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-mm-page-writeback-highmem_is_dirtyable-option-fix.patch
-shmem-factor-out-sbi-free_inodes-manipulations-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix-modify-old-libcap-warning-message-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-dio-array_size-cleanup-update-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-genericizing-iova-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-mm-prevent-dereferencing-non-allocated-per_cpu-variables-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ext4-add-block-bitmap-validation-fix.patch
-ext4-fix-up-ext4fs_debug-builds-checkpatch-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page-warning-fix.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup-fix-2.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+>-----Original Message-----
+>From: linux-kernel-owner@vger.kernel.org 
+>[mailto:linux-kernel-owner@vger.kernel.org] On Behalf Of 
+>Rafael J. Wysocki
+>Sent: Tuesday, November 27, 2007 7:37 AM
+>To: Lukas Hejtmanek
+>Cc: linux-kernel@vger.kernel.org; ACPI Devel Maling List; Len 
+>Brown; Alexey Starikovskiy
+>Subject: Re: ACPI related Warning in 2.6.24-rc3-git2
+>
+>On Tuesday, 27 of November 2007, Lukas Hejtmanek wrote:
+>> Hello,
+>> 
+>> in recent kernel, I got the following warnings while 
+>booting. It's ACPI
+>> related. Does anybode care? Lenovo ThinkPad T61 (6465CTO).
+>
+>Appropriate Ccs added.
+>
+>Did it happen before?
+>
+>> [   13.114814] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+>> [   13.114885] 
+>> [   13.114885] Call Trace:
+>> [   13.115020]  [<ffffffff80357ab6>] 
+>acpi_ut_update_ref_count+0x50/0x9d
+>> [   13.115095]  [<ffffffff8021e7ad>] 
+>smp_call_function_single+0xbd/0xd0
+>> [   13.115169]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+>> [   13.115241]  [<ffffffff803631c7>]
+>> acpi_processor_get_throttling_ptc+0xf3/0x158
+>> [   13.115323]  [<ffffffff80362f04>]
+>> acpi_processor_get_throttling_info+0x460/0x4af
+>> [   13.115406]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+>> [   13.115478]  [<ffffffff802abc38>] ifind+0x48/0xd0
+>> [   13.115550]  [<ffffffff8035a31e>] 
+>acpi_start_single_object+0x24/0x46
+>> [   13.115622]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+>> [   13.115694]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+>> [   13.115766]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+>> [   13.115840]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+>> [   13.115924]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+>> [   13.115994]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+>> [   13.116080]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+>> [   13.116153]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+>> [   13.116225]  [<ffffffff8020d178>] child_rip+0xa/0x12
+>> [   13.116295]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+>> [   13.116365]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+>> [   13.116435] 
+>> [   13.116504] WARNING: at arch/x86/kernel/smp_64.c:397
+>> smp_call_function_mask()
+>> [   13.116577] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+>> [   13.116648] 
+>> [   13.116648] Call Trace:
+>> [   13.116779]  [<ffffffff80357ab6>] 
+>acpi_ut_update_ref_count+0x50/0x9d
+>> [   13.116851]  [<ffffffff8021e4af>] smp_call_function_mask+0x8f/0xa0
+>> [   13.116923]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+>> [   13.116994]  [<ffffffff803631c7>]
+>> acpi_processor_get_throttling_ptc+0xf3/0x158
+>> [   13.117077]  [<ffffffff80362f04>]
+>> acpi_processor_get_throttling_info+0x460/0x4af
+>> [   13.117169]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+>> [   13.117248]  [<ffffffff802abc38>] ifind+0x48/0xd0
+>> [   13.117330]  [<ffffffff8035a31e>] 
+>acpi_start_single_object+0x24/0x46
+>> [   13.117402]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+>> [   13.117488]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+>> [   13.117559]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+>> [   13.117631]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+>> [   13.117715]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+>> [   13.117786]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+>> [   13.117856]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+>> [   13.117941]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+>> [   13.118018]  [<ffffffff8020d178>] child_rip+0xa/0x12
+>> [   13.118088]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+>> [   13.118158]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+>> [   13.118227] 
+>> [...]
+>> [   13.124714] WARNING: at arch/x86/kernel/smp_64.c:427
+>> smp_call_function_single()
+>> [   13.124798] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+>> [   13.125460] 
+>> [   13.125461] Call Trace:
+>> [   13.125592]  [<ffffffff80357ab6>] 
+>acpi_ut_update_ref_count+0x50/0x9d
+>> [   13.125665]  [<ffffffff8021e7ad>] 
+>smp_call_function_single+0xbd/0xd0
+>> [   13.125737]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+>> [   13.125807]  [<ffffffff803631c7>]
+>> acpi_processor_get_throttling_ptc+0xf3/0x158
+>> [   13.125903]  [<ffffffff80362f04>]
+>> acpi_processor_get_throttling_info+0x460/0x4af
+>> [   13.125999]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+>> [   13.126071]  [<ffffffff803625ed>] acpi_processor_add+0x24/0x6b
+>> [   13.126142]  [<ffffffff8035a31e>] 
+>acpi_start_single_object+0x24/0x46
+>> [   13.126214]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+>> [   13.126285]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+>> [   13.126357]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+>> [   13.126441]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+>> [   13.126518]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+>> [   13.126600]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+>> [   13.126670]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+>> [   13.126755]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+>> [   13.126832]  [<ffffffff8020d178>] child_rip+0xa/0x12
+>> [   13.126916]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+>> [   13.126986]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+>> [   13.127059] 
+>> [   13.127124] WARNING: at arch/x86/kernel/smp_64.c:397
+>> smp_call_function_mask()
+>> [   13.127197] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+>> [   13.127267] 
+>> [   13.127268] Call Trace:
+>> [   13.127398]  [<ffffffff80357ab6>] 
+>acpi_ut_update_ref_count+0x50/0x9d
+>> [   13.127473]  [<ffffffff8021e4af>] smp_call_function_mask+0x8f/0xa0
+>> [   13.127545]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+>> [   13.127616]  [<ffffffff803631c7>]
+>> acpi_processor_get_throttling_ptc+0xf3/0x158
+>> [   13.127699]  [<ffffffff80362f04>]
+>> acpi_processor_get_throttling_info+0x460/0x4af
+>> [   13.127782]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+>> [   13.127861]  [<ffffffff803625ed>] acpi_processor_add+0x24/0x6b
+>> [   13.127933]  [<ffffffff8035a31e>] 
+>acpi_start_single_object+0x24/0x46
+>> [   13.128005]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+>> [   13.128076]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+>> [   13.128147]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+>> [   13.128226]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+>> [   13.128310]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+>> [   13.128381]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+>> [   13.128452]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+>> [   13.128523]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+>> [   13.128594]  [<ffffffff8020d178>] child_rip+0xa/0x12
+>> [   13.128664]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+>> [   13.128734]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+>> 
+>> 
+>
+>
+>
+>-- 
+>"Premature optimization is the root of all evil." - Donald Knuth
+>-
+>To unsubscribe from this list: send the line "unsubscribe 
+>linux-kernel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Please read the FAQ at  http://www.tux.org/lkml/
+>
