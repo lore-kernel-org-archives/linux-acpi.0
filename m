@@ -1,61 +1,51 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [RFC] EC registers - Adding sysfs interface?
-Date: Wed, 28 Nov 2007 21:25:06 +0300
-Message-ID: <474DB282.4050003@gmail.com>
-References: <200711131724.31868.carlos@strangeworlds.co.uk>	 <200711131849.56964.carlos@strangeworlds.co.uk> <4739F2FB.9080800@suse.de>	 <200711131903.03018.carlos@strangeworlds.co.uk> <1196267304.23251.165.camel@queen.suse.de>
+From: Roman Zimmermann <mereandor@gmail.com>
+Subject: System freeze when accessing hwclock (hp dv6155eu)
+Date: Wed, 28 Nov 2007 20:25:49 +0100
+Message-ID: <200711282025.49737.mereandor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:44140 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbXK1SYu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2007 13:24:50 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so1583741ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Nov 2007 10:24:44 -0800 (PST)
-In-Reply-To: <1196267304.23251.165.camel@queen.suse.de>
+Received: from nf-out-0910.google.com ([64.233.182.190]:54368 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346AbXK1T1i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2007 14:27:38 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so1519146nfb
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Nov 2007 11:27:36 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
-> On Tue, 2007-11-13 at 19:03 +0000, Carlos Corbacho wrote:
->   
->> Alexey,
->>
->>     
->>> How about character /dev/ec0?
->>>       
->> Yes, that would be fine.
->>
->> On Tuesday 13 November 2007 18:54:51 Alexey Starikovskiy wrote:
->>     
->>> What is the benefit of having acer_acpi in userspace, rather than one more
->>> *-laptop in /devices/misc?
->>>       
->> A debate of "would it be easier for me to maintain an in kernel driver (if/ 
->> when I can get it upstream) or a userspace application". At the moment, the 
->> idea of a full blown userspace application is just something I'm toying with 
->> in my head whilst working on WMI userspace.
->>     
->
-> I very much like the idea of a general EC debug/devel interface to
-> userspace.
-> It should be a separate CONFIG, marked "DEBUG", "EXPERIMENTAL" or
-> whatever and be per default off.
-> It is stupid that everybody who wants to debug a bit on EC registers
-> needs to duplicate the IBM EC implementation, this should IMO be moved
-> where it belongs to:
-> drivers/acpi/ec.c
->
-> The question is whether Len will accept/like it, Len?
->
->   
-Having it as /dev/ec0 should not introduce too many problems...
-Also, it has much smaller impact than /dev/mem or /dev/ioport...
+Hi!
 
-Regards,
-Alex.
+I ran into an problem while setting up linux on a laptop (HP dv6155eu; amd64  
+cpu). I'm posting here because I found some pointers to ACPI and DSDT 
+problems when I searched for this.
 
+When I (or the init scripts) access the hwclock the system often - not 
+always - freezes. It never worked for more than 5 times in a row. This are 
+the commands that I used to test it:
 
+hwclock --show 
+and
+hwclock --directisa --show
+
+I did test this with various kernel versions and different distributions (grml 
+amd64+i386, kubuntu 7.04 i386, gentoo amd64).
+It seems that everything works well on i386 systems, while on all amd64 
+systems it freezes. It also seems to work on grml amd64 when I pass acpi=off 
+as kernel-option and loaded the rtc kernel module afterwards.
+I was unable to test it with kubuntu 7.10 amd64/i386 because both versions 
+froze at boot time, with a blank screen, which may or may not be connected 
+with this problem.
+Windows XP seems to work fine on this laptop.
+
+If this is not the right place to request help with this problem, please tell 
+me where it would be better suited.
+
+Please tell me what information you'd need to help me.
+
+greetings
+Roman
