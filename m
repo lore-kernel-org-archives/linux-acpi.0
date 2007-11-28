@@ -1,91 +1,82 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [ACPICA] EmbeddedControl region handling bug in PNP0C14
-Date: Wed, 28 Nov 2007 03:50:08 +0000
-Message-ID: <200711280350.08539.carlos@strangeworlds.co.uk>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Suspend-to-ram/disk signal
+Date: Wed, 28 Nov 2007 02:10:14 -0200
+Message-ID: <20071128041014.GA18131@khazad-dum.debian.net>
+References: <474B4B35.6030800@tipisoft.dk> <200711270036.21884.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:38475 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467AbXK1Dv2 (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 27 Nov 2007 22:51:28 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43015 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751761AbXK1EKT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Nov 2007 23:10:19 -0500
 Content-Disposition: inline
+In-Reply-To: <200711270036.21884.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pascal d'Hermilly <pascal@tipisoft.dk>, linux-acpi@vger.kernel.org
 
-The following is, I think, a bug in ACPICA (so CC'ing Robert Moore).
+On Tue, 27 Nov 2007, Rafael J. Wysocki wrote:
+> On Monday, 26 of November 2007, Pascal d'Hermilly wrote:
+> > When the computer suspends and comes back does it send a signal to =
+the=20
+> > running applications?
+>=20
+> No, it doesn't.  Applications aren't supposed to notice the suspend.
 
-(The full DSDT for the laptop in question (Acer Aspire 5040) is available 
-here - I'm just going to selectively quote from it in this e-mail:
-http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/5040.dsl
-)
+Except, of course, when they need to notice the suspend.  The clocks
+changed, the hardware configuration may have changed, and something
+certainly did happen, so "Applications aren't supposed to notice the
+suspend" is a na=EFve proposition at best.  They need to *deal well* wi=
+th it,
+instead.
 
-ACPI is choking on the second of two OperationRegion's in different parts of 
-the DSDT, with the same name, and that both operate on the Embedded 
-Controller.
+ntp needs to reset everything, for example.  A LOT of software really
+dislikes large steps in the clocks (monotonic or gettimeofday()), and
+misbehave.  Not notifying them they need to resync themselves is part o=
+f the
+breakage.  Multimedia applications and screen savers are often plagued =
+by
+this sort of problem.
 
-This hasn't cropped up before on the laptop in question (an Acer Aspire 5040 - 
-based on the DSDTs I've collected so far for Acer laptops, I suspect a few 
-others will have the same problem), as the second OperationRegion, in this 
-case, is found in \_SB.AMW0 (aka WMI-ACPI or PNP0C14); and in acer_acpi, I've 
-only just started poking at this (the first time by accident, the second time 
-by more closely studying the DSDT - unfortunately, I don't have the hardware 
-in question).
+A deskptop suite trying to emulate the ThinkVantage suite in a ThinkPad
+might want to check that the user woke up the laptop just to eject the =
+bay,
+and ask him if he wants the box to go back to sleep, and maybe even off=
+er to
+do so automatically from now on.
 
-So, on the DSDT in question, we are trying to call \_SB.AMW0.WMCA
+The possibilities are endless...
 
-In ACPI land, it takes three arguments:
+> Your distribution surely uses some scripts that activate the kernel's=
+ suspend
+> code.  You can modify these scripts to notify your application.
 
-1) Instance (ACPI_TYPE_INTEGER)
-2) Method ID (ACPI_TYPE_INTEGER)
-3) Buffer (u32 in this case)
+Which is, of course, one way to work around the issue (and probably the=
+ best
+one, since trying to act upon a wakeup out-of-sync with whatever said s=
+cript
+might be doing is likely not going to be very wise).
 
-When we call it (we already know what the correct values to pass are, both 
-from reverse engineering, and from visual inspection of the DSDT), we always 
-get the following result (this is from a user with a 2.6.22 kernel):
+But it would still be nice if we kicked userspace in the arse to let it=
+ know
+it was sleeping for a while and needs to resync, when we wake up each
+userspace task.   The kernel makes that information available to kthrea=
+ds
+for a damn good reason.  Sounds like a job for a SIGCONT, but I don't k=
+now
+how well would that work.
 
-[  699.477048] ACPI Error (evregion-0316): No handler for Region [RAM_] 
-(ffff8100012b7ac0) [EmbeddedControl] [20070126]
-[  699.477055] ACPI Error (exfldio-0289): Region EmbeddedControl(3) has 
-no handler [20070126]
-[  699.477060] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While 
-resolving operands for [OpcodeName unavailable] [20070126]
-[  699.477066] ACPI Error (psparse-0551): Method parse/execution failed 
-[\_SB_.AMW0.WMCA] (Node ffff810035e55400), AE_NOT_EXIST
-
-The part of the DSDT we appear to be choking on is in \_SB.AMW0 (_HID 
-PNP0C14):
-
-OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
-
-(Followed by lots of Field() bits, which depend on the region RAM being 
-defined).
-
-Of course, in \_SB.PCI0.LPC0.EC0 (PNP0C09) we have exactly the same line, 
-which works just fine:
-
-OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
-
-So, I suspect either:
-
-1) ACPICA does not handle EmbeddedControl outside of PNP0C09 (or, at least, 
-can't handle it properly in PNP0C14, or in this case, *pnp0c14)
-
-or
-
-2) ACPICA is having a namespace clash with two identically named regions both 
-trying to access EmbeddedControl? (But given that EC0 works fine, I'm not 
-sure how likely this is).
-
-Of course, if this bug is already known and has been fixed in something newer 
-than 2.6.22, please let me know - I don't have the hardware in question, so 
-cannot confirm this myself.
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+--=20
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
