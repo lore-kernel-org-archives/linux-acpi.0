@@ -1,129 +1,91 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 4/4] ACPI: WMI: Add documentation
-Date: Wed, 28 Nov 2007 02:33:19 +0000
-Message-ID: <200711280233.19987.carlos@strangeworlds.co.uk>
-References: <200711280230.24318.carlos@strangeworlds.co.uk>
+Subject: [ACPICA] EmbeddedControl region handling bug in PNP0C14
+Date: Wed, 28 Nov 2007 03:50:08 +0000
+Message-ID: <200711280350.08539.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:43577 "EHLO
+Received: from slackadelic.com ([65.196.224.53]:38475 "EHLO
 	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759868AbXK1Cem (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 27 Nov 2007 21:34:42 -0500
-In-Reply-To: <200711280230.24318.carlos@strangeworlds.co.uk>
+	with ESMTP id S1751467AbXK1Dv2 (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 27 Nov 2007 22:51:28 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Nashif, Anas" <anas.nashif@intel.com>
+To: Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Add documentation for WMI-ACPI, giving basic information for WMI driver
-and userspace writers.
+The following is, I think, a bug in ACPICA (so CC'ing Robert Moore).
 
-===
-ChangeLog
+(The full DSDT for the laptop in question (Acer Aspire 5040) is available 
+here - I'm just going to selectively quote from it in this e-mail:
+http://aceracpi.googlecode.com/svn/trunk/dsdt/acer/aspire/5040.dsl
+)
 
-v1 (2007-11-28)
+ACPI is choking on the second of two OperationRegion's in different parts of 
+the DSDT, with the same name, and that both operate on the Embedded 
+Controller.
 
-Initial version
+This hasn't cropped up before on the laptop in question (an Acer Aspire 5040 - 
+based on the DSDTs I've collected so far for Acer laptops, I suspect a few 
+others will have the same problem), as the second OperationRegion, in this 
+case, is found in \_SB.AMW0 (aka WMI-ACPI or PNP0C14); and in acer_acpi, I've 
+only just started poking at this (the first time by accident, the second time 
+by more closely studying the DSDT - unfortunately, I don't have the hardware 
+in question).
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
- Documentation/acpi/wmi.txt |   82 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/acpi/wmi.txt
+So, on the DSDT in question, we are trying to call \_SB.AMW0.WMCA
 
-diff --git a/Documentation/acpi/wmi.txt b/Documentation/acpi/wmi.txt
-new file mode 100644
-index 0000000..1eff576
---- /dev/null
-+++ b/Documentation/acpi/wmi.txt
-@@ -0,0 +1,82 @@
-+WMI-ACPI mapping driver
-+
-+Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+
-+Updated: 28th November 2007
-+
-+1) About this guide
-+
-+This guide is a basic introduction on how to interact with the WMI-ACPI mapper
-+driver in the kernel - it presumes you already have a basic knowledge of
-+WMI-ACPI, ACPI and the hardware you are writing the driver for.
-+
-+2) What is WMI-ACPI
-+
-+At its simplest, WMI-ACPI is a proprietary extension to the ACPI specification
-+from Microsoft to allow WMI (their implementation of WBEM) to access
-+instrumentation data and methods in ACPI from userspace, via the ACPI _HID
-+device PNP0C14.
-+
-+3) What is the WMI-ACPI mapper
-+
-+The Linux WMI to ACPI mapper is the implementation of the kernel part of the
-+WMI-ACPI specification.
-+
-+NOTE: The mapper does not do anything itself with the WMIACPI devices - it
-+simply makes their methods and data available to other drivers and userspace.
-+
-+Userspace:
-+
-+WMI-ACPI is exposed to userspace via sysfs and netlink. Data and methods are
-+exposed through sysfs, events are sent via netlink.
-+
-+Accessing WMI-ACPI directly through sysfs is generally not recommended -
-+ideally, this should be done by a userspace library, which could also deal
-+with the netlink events.
-+
-+The sysfs interface is in /sys/firmware/acpi/wmi for WMI methods and data, as
-+follows:
-+
-+/sys/firmware/acpi/wmi/
-+|
-+|-> <GUID>/
-+ |-> type (method, data, event)
-+
-+Method & data blocks
-+ |-> <instance>/
-+ |-> data (binary data file - write input data to file, read file
-+           to execute method or retrieve data).
-+
-+Method only
-+ |-> method_id (write value of method id to execute)
-+
-+Events - passed to userspace via netlink. However, the extra WMI data
-+associated with an event is exposed through sysfs.
-+
-+ |-> notification (ACPI event value)
-+ |-> data (binary data file - WMI data associated with the event)
-+
-+Kernel interface:
-+
-+For drivers that want to bypass userspace (either because WBEM is overkill,
-+or a userspace application is not really appropriate for want you want to do),
-+and talk directly to WMI-ACPI, then the mapper also exports functions
-+to do this - these are essentially thin wrappers around ACPI, so if you are
-+familiar with writing an ACPI driver, then writing a WMI driver is not much more
-+of a stretch.
-+
-+The exported WMIACPI functions can be found in <linux/acpi.h>
-+
-+The most important differences between WMI-ACPI and WMI are:
-+
-+A) WMI based drivers should be platform drivers, not ACPI drivers.
-+
-+B) ACPI details such as handles and/ or path names are hidden; you use GUIDs as
-+   the unique identifier to call methods instead (you don't need to care either
-+   about multiple PNP0C14 devices exiting - the GUIDs are always unique, and
-+   these are what you will work with).
-+
-+C) In your probe() function, you should use wmi_has_guid() to look for the
-+   GUID(s) you need for your driver.
-+
-+[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
-\ No newline at end of file
+In ACPI land, it takes three arguments:
+
+1) Instance (ACPI_TYPE_INTEGER)
+2) Method ID (ACPI_TYPE_INTEGER)
+3) Buffer (u32 in this case)
+
+When we call it (we already know what the correct values to pass are, both 
+from reverse engineering, and from visual inspection of the DSDT), we always 
+get the following result (this is from a user with a 2.6.22 kernel):
+
+[  699.477048] ACPI Error (evregion-0316): No handler for Region [RAM_] 
+(ffff8100012b7ac0) [EmbeddedControl] [20070126]
+[  699.477055] ACPI Error (exfldio-0289): Region EmbeddedControl(3) has 
+no handler [20070126]
+[  699.477060] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While 
+resolving operands for [OpcodeName unavailable] [20070126]
+[  699.477066] ACPI Error (psparse-0551): Method parse/execution failed 
+[\_SB_.AMW0.WMCA] (Node ffff810035e55400), AE_NOT_EXIST
+
+The part of the DSDT we appear to be choking on is in \_SB.AMW0 (_HID 
+PNP0C14):
+
+OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
+
+(Followed by lots of Field() bits, which depend on the region RAM being 
+defined).
+
+Of course, in \_SB.PCI0.LPC0.EC0 (PNP0C09) we have exactly the same line, 
+which works just fine:
+
+OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
+
+So, I suspect either:
+
+1) ACPICA does not handle EmbeddedControl outside of PNP0C09 (or, at least, 
+can't handle it properly in PNP0C14, or in this case, *pnp0c14)
+
+or
+
+2) ACPICA is having a namespace clash with two identically named regions both 
+trying to access EmbeddedControl? (But given that EC0 works fine, I'm not 
+sure how likely this is).
+
+Of course, if this bug is already known and has been fixed in something newer 
+than 2.6.22, please let me know - I don't have the hardware in question, so 
+cannot confirm this myself.
+
+-Carlos
 -- 
-1.5.3.4
-
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
