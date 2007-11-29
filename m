@@ -1,48 +1,125 @@
-From: Gary Hade <garyhade@us.ibm.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Wed, 28 Nov 2007 17:09:35 -0800
-Message-ID: <20071129010935.GB6199@us.ibm.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com> <20071127030454.GC23277@us.ibm.com> <20071127111136.77cb61fc@appleyard> <20071128213147.GA6199@us.ibm.com> <20071128160238.3c8685e5@orpington>
+Date: Thu, 29 Nov 2007 16:47:14 +0900
+Message-ID: <474E6E82.40307@jp.fujitsu.com>
+References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e4.ny.us.ibm.com ([32.97.182.144]:53023 "EHLO e4.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741AbXK2BJu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2007 20:09:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20071128160238.3c8685e5@orpington>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:48453 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbXK2Hwr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2007 02:52:47 -0500
+In-Reply-To: <20071126222253.GA31708@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux
 
-On Wed, Nov 28, 2007 at 04:02:38PM -0800, Kristen Carlson Accardi wrote:
-> On Wed, 28 Nov 2007 13:31:47 -0800
-> Gary Hade <garyhade@us.ibm.com> wrote:
+> Hi Gary, Kenji-san, et. al,
 > 
-> > FYI, the node contains 2 hotpluggable PCIe slots and 5
-> > non-hotpluggable PCIe slots but 'pci_slot' only exposed
-> > the 2 hotpluggable slots.  This does not appear to be due
-> > to a 'pci_slot' driver problem since I looked at the DSDT
-> > and SSDT and found that there are currently no _SUN methods
-> > for the non-hotpluggable slots.
+> * Gary Hade <garyhade@us.ibm.com>:
+>> Alex, What I was trying to suggest is a boot-time kernel
+>> option, not a kernel configuration option.  The basic idea is
+>> to give the user (with a single binary kernel) the ability to
+>> include your ACPI-PCI slot driver feature changes only when
+>> they are really needed.  In addition to reducing the number of
+>> system/PCI hotplug driver combinations where your changes would
+>> need to be validated, I believe would also help alleviate other
+>> worries (e.g. Andi Kleen's memory consumption concern).  I
+>> believe this goal could also be achieved with the kernel config
+>> option by making the pci_slot module runtime loadable with the
+>> PCI hotplug drivers only visiting your new code when the
+>> pci_slot driver is loaded, although I think this would be more
+>> difficult to implement.
 > 
-> Thanks for testing Gary.  I would think this situation would be the
-> common case, since I doubt most firmware writers would bother to
-> implement _SUN for non-hotpluggable slots -- at least on other DSDT
-> I've seen this has been the case as well.  
+> I have modified my patch series so that the final patch that
+> introduces my ACPI-PCI slot driver is a full-fledged module, that
+> has a tristate Kconfig option.
+> 
 
-Yea, I was also not surprised although features such as
-Alex working on may provide some motivation to change that.
+Thank you for your good job.
 
-Gary
+I tested shpchp and pciehp both with and without pci_slot module. There
+seems no regression from shpchp and pciehp's point of view.
+(I had a little concern about the hotplug slots' name that vary depending
+on whether pci_slot functionality is enabled or disabled. But, now that we
+can build pci_slot driver as a kernel module, I don't think it is a big
+problem).
 
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+Only the problems is that I got Call Traces with the following error
+messages when pci_slot driver was loaded, and one strange slot named
+'1023' was registered (other slots are fine). This is the same problem
+I reported before.
+
+    sysfs: duplicate filename '1023' can not be created
+    WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
+
+    kobject_add failed for 1023 with -EEXIST, don't try to register
+    things with the same name in the same directory.
+
+On my system, hotplug slots themselves can be added, removed and replaced
+with the ohter type of I/O box. The ACPI firmware tells OS the presence of
+those slots using _STA method (That is, it doesn't use 'LoadTable()' AML
+operator). On the other hand, current pci_slot driver doesn't check _STA.
+As a result, pci_slot driver tryied to register the invalid (non-existing)
+slots. The ACPI firmware of my system returns '1023' if the invalid slot's
+_SUN is evaluated. This is the cause of Call Traces mentioned above. To
+fix this problem, pci_slot driver need to check _STA when scanning ACPI
+Namespace.
+
+I'm sorry for reporting this so late. I'm attaching the patch to fix the
+problem. This is against 2.6.24-rc3 with your patches applied. Could you
+try it?
+
+BTW, acpiphp also seems to have the same problem...
+
+Thanks,
+Kenji Kaneshige
+
+---
+ drivers/acpi/pci_slot.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+Index: linux-2.6.24-rc3/drivers/acpi/pci_slot.c
+===================================================================
+--- linux-2.6.24-rc3.orig/drivers/acpi/pci_slot.c
++++ linux-2.6.24-rc3/drivers/acpi/pci_slot.c
+@@ -113,10 +113,17 @@ register_slot(acpi_handle handle, u32 lv
+ 	int device;
+ 	unsigned long sun;
+ 	char name[KOBJ_NAME_LEN];
++	acpi_status status;
++	struct acpi_device *dummy_device;
+ 
+ 	struct pci_slot *pci_slot;
+ 	struct pci_bus *pci_bus = context;
+ 
++	/* Skip non-existing device object. */
++	status = acpi_bus_get_device(handle, &dummy_device);
++	if (ACPI_FAILURE(status))
++		return AE_OK;
++
+ 	if (check_slot(handle, &device, &sun))
+ 		return AE_OK;
+ 
+@@ -150,12 +157,18 @@ walk_p2p_bridge(acpi_handle handle, u32 
+ 	acpi_status status;
+ 	acpi_handle dummy_handle;
+ 	acpi_walk_callback user_function;
++	struct acpi_device *dummy_device;
+ 
+ 	struct pci_dev *dev;
+ 	struct pci_bus *pci_bus;
+ 	struct p2p_bridge_context child_context;
+ 	struct p2p_bridge_context *parent_context = context;
+ 
++	/* Skip non-existing device object. */
++	status = acpi_bus_get_device(handle, &dummy_device);
++	if (ACPI_FAILURE(status))
++		return AE_OK;
++
+ 	pci_bus = parent_context->pci_bus;
+ 	user_function = parent_context->user_function;
+ 
 
