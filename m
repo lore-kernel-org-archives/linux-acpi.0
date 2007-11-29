@@ -1,62 +1,40 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Suspend-to-ram/disk signal
-Date: Thu, 29 Nov 2007 13:16:29 -0200
-Message-ID: <20071129151629.GD22587@khazad-dum.debian.net>
-References: <474B4B35.6030800@tipisoft.dk> <200711270036.21884.rjw@sisk.pl> <20071128041014.GA18131@khazad-dum.debian.net> <200711290128.22467.rjw@sisk.pl>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: ACPI related Warning in 2.6.24-rc3-git2
+Date: Thu, 29 Nov 2007 23:07:05 +0100
+Message-ID: <20071129220705.GA4259@ics.muni.cz>
+References: <20071127150557.GA4365@ics.muni.cz> <200711271637.13036.rjw@sisk.pl> <924EFEDD5F540B4284297C4DC59F3DEE2B3AD7@orsmsx423.amr.corp.intel.com> <1196324563.4062.15.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60503 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755414AbXK2PQe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Nov 2007 10:16:34 -0500
+Received: from minas.ics.muni.cz ([147.251.4.40]:41595 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933130AbXK2WHn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Nov 2007 17:07:43 -0500
 Content-Disposition: inline
-In-Reply-To: <200711290128.22467.rjw@sisk.pl>
+In-Reply-To: <1196324563.4062.15.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pascal d'Hermilly <pascal@tipisoft.dk>, linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Li, Shaohua" <shaohua.li@intel.com>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thu, 29 Nov 2007, Rafael J. Wysocki wrote:
-> > A deskptop suite trying to emulate the ThinkVantage suite in a ThinkPad
-> > might want to check that the user woke up the laptop just to eject the bay,
-> > and ask him if he wants the box to go back to sleep, and maybe even offer to
-> > do so automatically from now on.
-> > 
-> > The possibilities are endless...
-> 
-> OTOH, there are applications that need not be notified in any way, so I don't
-> think we should uncondtionally send signals to all of them, for example.
+On Thu, Nov 29, 2007 at 04:22:43PM +0800, Zhao Yakui wrote:
+> Subject: ACPI : Delete the IRQ operation in throttling controll via P=
+TC
+> >From : Zhao Yakui <yakui.zhao@intel.com>
+>=20
+> The IRQ operation(enable/disable) should be avoided when throttling i=
+s
+> controlled via PTC method. It is replaced by the migration of task.=20
+>=20
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 
-IMO, "need not be notified" != "must not be notified".  *If* it doesn't
-cause trouble for the vast majority of applications, notifying them all is
-better.
+works for me.
 
-> > But it would still be nice if we kicked userspace in the arse to let it know
-> > it was sleeping for a while and needs to resync, when we wake up each
-> > userspace task.   The kernel makes that information available to kthreads
-> > for a damn good reason.  Sounds like a job for a SIGCONT, but I don't know
-> > how well would that work.
-> 
-> It wouldn't work very well, IMHO, unless the tasks in question are prepared to
-> get an "out of order" SIGCONT.
-
-It is a actually a bug if anything can't take multiple SIGCONT's in a row,
-AFAIK.  Most applications don't pay attention to SIGSTOP and SIGCONT at all
-anyway, and let the default handlers take care of it (and those do the right
-thing if they receive multiple signals).
-
-> However, sending SIGSTOP to selected tasks before the suspend and then SIGCONT
-> after the resume might do the trick.
-
-Or to all userspace tasks that are not part of the "suspend process
-interface" (for suspend2 UI) come to think of it, since we ARE going to
-freeze them anyway.  I.e. "send SIGSTOP to all but some selected tasks..."
-:-)
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
