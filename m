@@ -1,35 +1,38 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC] EC registers - Adding sysfs interface?
-Date: Wed, 28 Nov 2007 21:12:37 -0200
-Message-ID: <20071128231237.GC22587@khazad-dum.debian.net>
-References: <200711131724.31868.carlos@strangeworlds.co.uk> <200711131849.56964.carlos@strangeworlds.co.uk> <4739F2FB.9080800@suse.de> <200711131903.03018.carlos@strangeworlds.co.uk> <1196267304.23251.165.camel@queen.suse.de> <474DB282.4050003@gmail.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Wed, 28 Nov 2007 16:02:38 -0800
+Message-ID: <20071128160238.3c8685e5@orpington>
+References: <20071117182954.GA25003@ldl.fc.hp.com>
+	<20071119233225.GA6931@us.ibm.com>
+	<20071126222253.GA31708@ldl.fc.hp.com>
+	<20071127030454.GC23277@us.ibm.com>
+	<20071127111136.77cb61fc@appleyard>
+	<20071128213147.GA6199@us.ibm.com>
+Reply-To: kristen.c.accardi@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:46571 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755733AbXK1XMl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2007 18:12:41 -0500
-Content-Disposition: inline
-In-Reply-To: <474DB282.4050003@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:39250 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755372AbXK2AIV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2007 19:08:21 -0500
+In-Reply-To: <20071128213147.GA6199@us.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: trenn@suse.de, Carlos Corbacho <carlos@strangeworlds.co.uk>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+Cc: Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, 28 Nov 2007, Alexey Starikovskiy wrote:
-> Having it as /dev/ec0 should not introduce too many problems...
+On Wed, 28 Nov 2007 13:31:47 -0800
+Gary Hade <garyhade@us.ibm.com> wrote:
 
-As long as it is with a debugging intent, and not as a place to plug
-"userspace" drivers at.  That would be much too dangerous IMO.
+> FYI, the node contains 2 hotpluggable PCIe slots and 5
+> non-hotpluggable PCIe slots but 'pci_slot' only exposed
+> the 2 hotpluggable slots.  This does not appear to be due
+> to a 'pci_slot' driver problem since I looked at the DSDT
+> and SSDT and found that there are currently no _SUN methods
+> for the non-hotpluggable slots.
 
-> Also, it has much smaller impact than /dev/mem or /dev/ioport...
-
-IMHO, it is just as dangerous.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks for testing Gary.  I would think this situation would be the
+common case, since I doubt most firmware writers would bother to
+implement _SUN for non-hotpluggable slots -- at least on other DSDT
+I've seen this has been the case as well.  
