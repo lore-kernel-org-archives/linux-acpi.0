@@ -1,125 +1,294 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Thu, 29 Nov 2007 16:47:14 +0900
-Message-ID: <474E6E82.40307@jp.fujitsu.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: RE: ACPI related Warning in 2.6.24-rc3-git2
+Date: Thu, 29 Nov 2007 16:22:43 +0800
+Message-ID: <1196324563.4062.15.camel@yakui_zhao.sh.intel.com>
+References: <20071127150557.GA4365@ics.muni.cz>
+	 <200711271637.13036.rjw@sisk.pl>
+	 <924EFEDD5F540B4284297C4DC59F3DEE2B3AD7@orsmsx423.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:48453 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbXK2Hwr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2007 02:52:47 -0500
-In-Reply-To: <20071126222253.GA31708@ldl.fc.hp.com>
+Received: from mga11.intel.com ([192.55.52.93]:2457 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752722AbXK2ILH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Nov 2007 03:11:07 -0500
+In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE2B3AD7@orsmsx423.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, "Li, Shaohua" <shaohua.li@intel.com>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-> Hi Gary, Kenji-san, et. al,
-> 
-> * Gary Hade <garyhade@us.ibm.com>:
->> Alex, What I was trying to suggest is a boot-time kernel
->> option, not a kernel configuration option.  The basic idea is
->> to give the user (with a single binary kernel) the ability to
->> include your ACPI-PCI slot driver feature changes only when
->> they are really needed.  In addition to reducing the number of
->> system/PCI hotplug driver combinations where your changes would
->> need to be validated, I believe would also help alleviate other
->> worries (e.g. Andi Kleen's memory consumption concern).  I
->> believe this goal could also be achieved with the kernel config
->> option by making the pci_slot module runtime loadable with the
->> PCI hotplug drivers only visiting your new code when the
->> pci_slot driver is loaded, although I think this would be more
->> difficult to implement.
-> 
-> I have modified my patch series so that the final patch that
-> introduces my ACPI-PCI slot driver is a full-fledged module, that
-> has a tristate Kconfig option.
-> 
+Subject: ACPI : Delete the IRQ operation in throttling controll via PTC
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-Thank you for your good job.
+The IRQ operation(enable/disable) should be avoided when throttling is
+controlled via PTC method. It is replaced by the migration of task. 
 
-I tested shpchp and pciehp both with and without pci_slot module. There
-seems no regression from shpchp and pciehp's point of view.
-(I had a little concern about the hotplug slots' name that vary depending
-on whether pci_slot functionality is enabled or disabled. But, now that we
-can build pci_slot driver as a kernel module, I don't think it is a big
-problem).
-
-Only the problems is that I got Call Traces with the following error
-messages when pci_slot driver was loaded, and one strange slot named
-'1023' was registered (other slots are fine). This is the same problem
-I reported before.
-
-    sysfs: duplicate filename '1023' can not be created
-    WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
-
-    kobject_add failed for 1023 with -EEXIST, don't try to register
-    things with the same name in the same directory.
-
-On my system, hotplug slots themselves can be added, removed and replaced
-with the ohter type of I/O box. The ACPI firmware tells OS the presence of
-those slots using _STA method (That is, it doesn't use 'LoadTable()' AML
-operator). On the other hand, current pci_slot driver doesn't check _STA.
-As a result, pci_slot driver tryied to register the invalid (non-existing)
-slots. The ACPI firmware of my system returns '1023' if the invalid slot's
-_SUN is evaluated. This is the cause of Call Traces mentioned above. To
-fix this problem, pci_slot driver need to check _STA when scanning ACPI
-Namespace.
-
-I'm sorry for reporting this so late. I'm attaching the patch to fix the
-problem. This is against 2.6.24-rc3 with your patches applied. Could you
-try it?
-
-BTW, acpiphp also seems to have the same problem...
-
-Thanks,
-Kenji Kaneshige
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 
 ---
- drivers/acpi/pci_slot.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/acpi/processor_throttling.c |   36
+++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-Index: linux-2.6.24-rc3/drivers/acpi/pci_slot.c
+Index: linux-2.6.24-rc3-git3/drivers/acpi/processor_throttling.c
 ===================================================================
---- linux-2.6.24-rc3.orig/drivers/acpi/pci_slot.c
-+++ linux-2.6.24-rc3/drivers/acpi/pci_slot.c
-@@ -113,10 +113,17 @@ register_slot(acpi_handle handle, u32 lv
- 	int device;
- 	unsigned long sun;
- 	char name[KOBJ_NAME_LEN];
-+	acpi_status status;
-+	struct acpi_device *dummy_device;
+--- linux-2.6.24-rc3-git3.orig/drivers/acpi/processor_throttling.c
++++ linux-2.6.24-rc3-git3/drivers/acpi/processor_throttling.c
+@@ -29,6 +29,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/sched.h>
+ #include <linux/cpufreq.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+@@ -413,7 +414,7 @@ static int acpi_throttling_rdmsr(struct 
+ 	} else {
+ 		msr_low = 0;
+ 		msr_high = 0;
+-		rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		rdmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			(u32 *)&msr_low , (u32 *) &msr_high);
+ 		msr = (msr_high << 32) | msr_low;
+ 		*value = (acpi_integer) msr;
+@@ -438,7 +439,7 @@ static int acpi_throttling_wrmsr(struct 
+ 			"HARDWARE addr space,NOT supported yet\n");
+ 	} else {
+ 		msr = value;
+-		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL,
++		wrmsr_safe(MSR_IA32_THERM_CONTROL,
+ 			msr & 0xffffffff, msr >> 32);
+ 		ret = 0;
+ 	}
+@@ -572,21 +573,32 @@ static int acpi_processor_get_throttling
+ 		return -ENODEV;
  
- 	struct pci_slot *pci_slot;
- 	struct pci_bus *pci_bus = context;
- 
-+	/* Skip non-existing device object. */
-+	status = acpi_bus_get_device(handle, &dummy_device);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
+ 	pr->throttling.state = 0;
+-	local_irq_disable();
 +
- 	if (check_slot(handle, &device, &sun))
- 		return AE_OK;
+ 	value = 0;
+ 	ret = acpi_read_throttling_status(pr, &value);
+ 	if (ret >= 0) {
+ 		state = acpi_get_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
  
-@@ -150,12 +157,18 @@ walk_p2p_bridge(acpi_handle handle, u32 
- 	acpi_status status;
- 	acpi_handle dummy_handle;
- 	acpi_walk_callback user_function;
-+	struct acpi_device *dummy_device;
+ 	return 0;
+ }
  
- 	struct pci_dev *dev;
- 	struct pci_bus *pci_bus;
- 	struct p2p_bridge_context child_context;
- 	struct p2p_bridge_context *parent_context = context;
- 
-+	/* Skip non-existing device object. */
-+	status = acpi_bus_get_device(handle, &dummy_device);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
+ static int acpi_processor_get_throttling(struct acpi_processor *pr)
+ {
+-	return pr->throttling.acpi_processor_get_throttling(pr);
++	cpumask_t saved_mask;
++	int ret;
 +
- 	pci_bus = parent_context->pci_bus;
- 	user_function = parent_context->user_function;
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_get_throttling(pr);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++
++	return ret;
+ }
  
+ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+@@ -717,21 +729,29 @@ static int acpi_processor_set_throttling
+ 	if (state < pr->throttling_platform_limit)
+ 		return -EPERM;
+ 
+-	local_irq_disable();
+ 	value = 0;
+ 	ret = acpi_get_throttling_value(pr, state, &value);
+ 	if (ret >= 0) {
+ 		acpi_write_throttling_state(pr, value);
+ 		pr->throttling.state = state;
+ 	}
+-	local_irq_enable();
+ 
+ 	return 0;
+ }
+ 
+ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
+ {
+-	return pr->throttling.acpi_processor_set_throttling(pr, state);
++	cpumask_t saved_mask;
++	int ret;
++	/*
++	 * Migrate task to the cpu pointed by pr.
++	 */
++	saved_mask = current->cpus_allowed;
++	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++	ret = pr->throttling.acpi_processor_set_throttling(pr, state);
++	/* restore the previous state */
++	set_cpus_allowed(current, saved_mask);
++	return ret;
+ }
+ 
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
 
+On Wed, 2007-11-28 at 14:42 +0800, Pallipadi, Venkatesh wrote:
+> Yakui,
+> 
+> Can you look at this. Seems to be coming from commit f79f06ab9f86
+> FixedHW support tries to read MSR with interrupts disabled.
+> 
+> Thanks,
+> Venki 
+> 
+> >-----Original Message-----
+> >From: linux-kernel-owner@vger.kernel.org 
+> >[mailto:linux-kernel-owner@vger.kernel.org] On Behalf Of 
+> >Rafael J. Wysocki
+> >Sent: Tuesday, November 27, 2007 7:37 AM
+> >To: Lukas Hejtmanek
+> >Cc: linux-kernel@vger.kernel.org; ACPI Devel Maling List; Len 
+> >Brown; Alexey Starikovskiy
+> >Subject: Re: ACPI related Warning in 2.6.24-rc3-git2
+> >
+> >On Tuesday, 27 of November 2007, Lukas Hejtmanek wrote:
+> >> Hello,
+> >> 
+> >> in recent kernel, I got the following warnings while 
+> >booting. It's ACPI
+> >> related. Does anybode care? Lenovo ThinkPad T61 (6465CTO).
+> >
+> >Appropriate Ccs added.
+> >
+> >Did it happen before?
+> >
+> >> [   13.114814] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+> >> [   13.114885] 
+> >> [   13.114885] Call Trace:
+> >> [   13.115020]  [<ffffffff80357ab6>] 
+> >acpi_ut_update_ref_count+0x50/0x9d
+> >> [   13.115095]  [<ffffffff8021e7ad>] 
+> >smp_call_function_single+0xbd/0xd0
+> >> [   13.115169]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+> >> [   13.115241]  [<ffffffff803631c7>]
+> >> acpi_processor_get_throttling_ptc+0xf3/0x158
+> >> [   13.115323]  [<ffffffff80362f04>]
+> >> acpi_processor_get_throttling_info+0x460/0x4af
+> >> [   13.115406]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+> >> [   13.115478]  [<ffffffff802abc38>] ifind+0x48/0xd0
+> >> [   13.115550]  [<ffffffff8035a31e>] 
+> >acpi_start_single_object+0x24/0x46
+> >> [   13.115622]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+> >> [   13.115694]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+> >> [   13.115766]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+> >> [   13.115840]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+> >> [   13.115924]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+> >> [   13.115994]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+> >> [   13.116080]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+> >> [   13.116153]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+> >> [   13.116225]  [<ffffffff8020d178>] child_rip+0xa/0x12
+> >> [   13.116295]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+> >> [   13.116365]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+> >> [   13.116435] 
+> >> [   13.116504] WARNING: at arch/x86/kernel/smp_64.c:397
+> >> smp_call_function_mask()
+> >> [   13.116577] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+> >> [   13.116648] 
+> >> [   13.116648] Call Trace:
+> >> [   13.116779]  [<ffffffff80357ab6>] 
+> >acpi_ut_update_ref_count+0x50/0x9d
+> >> [   13.116851]  [<ffffffff8021e4af>] smp_call_function_mask+0x8f/0xa0
+> >> [   13.116923]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+> >> [   13.116994]  [<ffffffff803631c7>]
+> >> acpi_processor_get_throttling_ptc+0xf3/0x158
+> >> [   13.117077]  [<ffffffff80362f04>]
+> >> acpi_processor_get_throttling_info+0x460/0x4af
+> >> [   13.117169]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+> >> [   13.117248]  [<ffffffff802abc38>] ifind+0x48/0xd0
+> >> [   13.117330]  [<ffffffff8035a31e>] 
+> >acpi_start_single_object+0x24/0x46
+> >> [   13.117402]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+> >> [   13.117488]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+> >> [   13.117559]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+> >> [   13.117631]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+> >> [   13.117715]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+> >> [   13.117786]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+> >> [   13.117856]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+> >> [   13.117941]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+> >> [   13.118018]  [<ffffffff8020d178>] child_rip+0xa/0x12
+> >> [   13.118088]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+> >> [   13.118158]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+> >> [   13.118227] 
+> >> [...]
+> >> [   13.124714] WARNING: at arch/x86/kernel/smp_64.c:427
+> >> smp_call_function_single()
+> >> [   13.124798] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+> >> [   13.125460] 
+> >> [   13.125461] Call Trace:
+> >> [   13.125592]  [<ffffffff80357ab6>] 
+> >acpi_ut_update_ref_count+0x50/0x9d
+> >> [   13.125665]  [<ffffffff8021e7ad>] 
+> >smp_call_function_single+0xbd/0xd0
+> >> [   13.125737]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+> >> [   13.125807]  [<ffffffff803631c7>]
+> >> acpi_processor_get_throttling_ptc+0xf3/0x158
+> >> [   13.125903]  [<ffffffff80362f04>]
+> >> acpi_processor_get_throttling_info+0x460/0x4af
+> >> [   13.125999]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+> >> [   13.126071]  [<ffffffff803625ed>] acpi_processor_add+0x24/0x6b
+> >> [   13.126142]  [<ffffffff8035a31e>] 
+> >acpi_start_single_object+0x24/0x46
+> >> [   13.126214]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+> >> [   13.126285]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+> >> [   13.126357]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+> >> [   13.126441]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+> >> [   13.126518]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+> >> [   13.126600]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+> >> [   13.126670]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+> >> [   13.126755]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+> >> [   13.126832]  [<ffffffff8020d178>] child_rip+0xa/0x12
+> >> [   13.126916]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+> >> [   13.126986]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+> >> [   13.127059] 
+> >> [   13.127124] WARNING: at arch/x86/kernel/smp_64.c:397
+> >> smp_call_function_mask()
+> >> [   13.127197] Pid: 1, comm: swapper Not tainted 2.6.24-rc3-git2 #3
+> >> [   13.127267] 
+> >> [   13.127268] Call Trace:
+> >> [   13.127398]  [<ffffffff80357ab6>] 
+> >acpi_ut_update_ref_count+0x50/0x9d
+> >> [   13.127473]  [<ffffffff8021e4af>] smp_call_function_mask+0x8f/0xa0
+> >> [   13.127545]  [<ffffffff80331dbc>] _rdmsr_on_cpu+0x5c/0x60
+> >> [   13.127616]  [<ffffffff803631c7>]
+> >> acpi_processor_get_throttling_ptc+0xf3/0x158
+> >> [   13.127699]  [<ffffffff80362f04>]
+> >> acpi_processor_get_throttling_info+0x460/0x4af
+> >> [   13.127782]  [<ffffffff80362264>] acpi_processor_start+0x54a/0x606
+> >> [   13.127861]  [<ffffffff803625ed>] acpi_processor_add+0x24/0x6b
+> >> [   13.127933]  [<ffffffff8035a31e>] 
+> >acpi_start_single_object+0x24/0x46
+> >> [   13.128005]  [<ffffffff8035b716>] acpi_device_probe+0x7d/0x91
+> >> [   13.128076]  [<ffffffff8038effc>] driver_probe_device+0x9c/0x1b0
+> >> [   13.128147]  [<ffffffff8038f2c9>] __driver_attach+0xc9/0xd0
+> >> [   13.128226]  [<ffffffff8038f200>] __driver_attach+0x0/0xd0
+> >> [   13.128310]  [<ffffffff8038e1dd>] bus_for_each_dev+0x4d/0x80
+> >> [   13.128381]  [<ffffffff8038e64c>] bus_add_driver+0xac/0x220
+> >> [   13.128452]  [<ffffffff8064dd7c>] acpi_processor_init+0x8f/0xfc
+> >> [   13.128523]  [<ffffffff806386f4>] kernel_init+0x154/0x330
+> >> [   13.128594]  [<ffffffff8020d178>] child_rip+0xa/0x12
+> >> [   13.128664]  [<ffffffff806385a0>] kernel_init+0x0/0x330
+> >> [   13.128734]  [<ffffffff8020d16e>] child_rip+0x0/0x12
+> >> 
+> >> 
+> >
+> >
+> >
+> >-- 
+> >"Premature optimization is the root of all evil." - Donald Knuth
+> >-
+> >To unsubscribe from this list: send the line "unsubscribe 
+> >linux-kernel" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >Please read the FAQ at  http://www.tux.org/lkml/
+> >
