@@ -1,42 +1,75 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: [PATCH] 2.6.24: restore missing sysfs max_cstate attr
-Date: Fri, 30 Nov 2007 14:06:19 -0500
-Message-ID: <47505F2B.2090109@rtr.ca>
+From: Gary Hade <garyhade@us.ibm.com>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Fri, 30 Nov 2007 11:10:22 -0800
+Message-ID: <20071130191022.GA6189@us.ibm.com>
+References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com> <20071127030454.GC23277@us.ibm.com> <20071127111136.77cb61fc@appleyard> <20071128213147.GA6199@us.ibm.com> <20071130011941.GG24707@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:4082 "EHLO mail.rtr.ca"
+Received: from e2.ny.us.ibm.com ([32.97.182.142]:42141 "EHLO e2.ny.us.ibm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756062AbXK3TGV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Nov 2007 14:06:21 -0500
+	id S1756974AbXK3TKc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Nov 2007 14:10:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20071130011941.GG24707@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>, Linux Kernel <linux-acpi@vger.kernel.org>, len.brown@intel.com, Andrew Morton <akpm@linux-foundation.org>
+To: Alex Chiang <achiang@hp.com>
+Cc: Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Len, is there any good reason why max_cstate was made invisible in 2.6.24,
-breaking my userspace scripts that access it?
+On Thu, Nov 29, 2007 at 06:19:41PM -0700, Alex Chiang wrote:
 
-Here's a patch to fix the regression from 2.6.23:
+  < snip >
 
-Restore visibility of /sys/module/processor/parameters/max_cstate 
-for compatibility with kernels prior to 2.6.24.
+> >  [<ffffffff802499bc>] kthread+0x47/0x73
+> >  [<ffffffff8020cc98>] child_rip+0xa/0x12
+> >  [<ffffffff80249975>] kthread+0x0/0x73
+> >  [<ffffffff8020cc8e>] child_rip+0x0/0x12
+> 
+> Maybe we're trying to kick off a hotplug event on the wrong slot?
+> I really have no idea...
 
-I have scripts here that rely upon it.
+One hotplug event related difference that I believe I 
+noticed between the x3850 were I did not see the problem and
+the x3950 is the hotplug event arrival location.  On the
+x3850 the handler receives the handle for the transparent
+p2p bridge above the slot.  On the x3950 I believe the handler
+is receiving the handle for the root bridge (directly above
+the transparent p2p bridge).  acpiphp installs a handler for
+each of these possible arrival locations.  pci_slot installs
+a handler for neither location which seems like it should be
+okay.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
----
+I notice that acpi_pci_register_driver() was only being
+used by acpiphp before pci_slot.  Perhaps your changes are
+flushing out some sort of ACPI core coexistence issue not
+seen previously because there was only a single user?
 
-Patch is against 2.6.24-rc3-git5.
+My silly idea is probably no better than your no idea. :)
 
---- linux/drivers/acpi/processor_idle.c.orig	2007-11-30 13:35:20.000000000 -0500
-+++ linux/drivers/acpi/processor_idle.c	2007-11-30 13:35:31.000000000 -0500
-@@ -76,7 +76,7 @@
- #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
- 
- static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
--module_param(max_cstate, uint, 0000);
-+module_param(max_cstate, uint, 0644);
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
- 
+> 
+> > Code: ff ff ff ff 40 23 2c 88 ff ff ff ff 00 c8 c6 3b 10 81 ff ff 
+> > RIP  [<ffffffff882c2344>] :pci_slot:__this_module+0x21c4/0xfffffffffffff204
+> >  RSP <ffff81103fa43ea8>
+> 
+> Can you apply this debug patch on top of your tree, and send me
+> the output?
+> 
+> I'd be curious to see the output for your failure case:
+> 
+>   # modprobe pci_slot debug=1
+>   # modprobe acpiphp debug=1
+
+Someone else is using the system right now so I may not
+be able to do this until next week.
+
+Gary
+
+-- 
+Gary Hade
+System x Enablement
+IBM Linux Technology Center
+503-578-4503  IBM T/L: 775-4503
+garyhade@us.ibm.com
+http://www.ibm.com/linux/ltc
+
