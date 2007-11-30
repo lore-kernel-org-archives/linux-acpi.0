@@ -1,75 +1,149 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Fri, 30 Nov 2007 11:10:22 -0800
-Message-ID: <20071130191022.GA6189@us.ibm.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com> <20071127030454.GC23277@us.ibm.com> <20071127111136.77cb61fc@appleyard> <20071128213147.GA6199@us.ibm.com> <20071130011941.GG24707@ldl.fc.hp.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPI: disable stray GPE, prevent ACPI interrupt storm
+Date: Fri, 30 Nov 2007 14:15:21 -0800
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A403C6FF27@orsmsx415.amr.corp.intel.com>
+References: <200711201343.28940.lenb@kernel.org> <B28E9812BAF6E2498B7EC5C427F293A403B8044D@orsmsx415.amr.corp.intel.com> <1195608803.2971.2.camel@acpi-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e2.ny.us.ibm.com ([32.97.182.142]:42141 "EHLO e2.ny.us.ibm.com"
+Received: from mga02.intel.com ([134.134.136.20]:36783 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756974AbXK3TKc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Nov 2007 14:10:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20071130011941.GG24707@ldl.fc.hp.com>
+	id S1755751AbXK3WPX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2007 17:15:23 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <1195608803.2971.2.camel@acpi-hp.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, kaneshige.kenji@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thu, Nov 29, 2007 at 06:19:41PM -0700, Alex Chiang wrote:
+I don't understand why the GPE was enabled in the first place.
 
-  < snip >
+GPEs start out all disabled. They only get enabled if an _Lxx/_Exx
+method is found.
 
-> >  [<ffffffff802499bc>] kthread+0x47/0x73
-> >  [<ffffffff8020cc98>] child_rip+0xa/0x12
-> >  [<ffffffff80249975>] kthread+0x0/0x73
-> >  [<ffffffff8020cc8e>] child_rip+0x0/0x12
-> 
-> Maybe we're trying to kick off a hotplug event on the wrong slot?
-> I really have no idea...
+I'm all for defensive programming (if all else fails...), but I'm
+worried that there is a bug somewhere else that is accidentally enabling
+this GPE.
 
-One hotplug event related difference that I believe I 
-noticed between the x3850 were I did not see the problem and
-the x3950 is the hotplug event arrival location.  On the
-x3850 the handler receives the handle for the transparent
-p2p bridge above the slot.  On the x3950 I believe the handler
-is receiving the handle for the root bridge (directly above
-the transparent p2p bridge).  acpiphp installs a handler for
-each of these possible arrival locations.  pci_slot installs
-a handler for neither location which seems like it should be
-okay.
+>> >    But at least one system exists that enables a GPE from AML
+>> >    that is not the EC GPE, and has no _Lxx/_Exx AML handler,
+>> >    and is thus never initialized.
 
-I notice that acpi_pci_register_driver() was only being
-used by acpiphp before pci_slot.  Perhaps your changes are
-flushing out some sort of ACPI core coexistence issue not
-seen previously because there was only a single user?
+Yes, it should be "initialized". All GPEs are disabled by default.
 
-My silly idea is probably no better than your no idea. :)
+Please check this out.
+Thanks,
+Bob
 
-> 
-> > Code: ff ff ff ff 40 23 2c 88 ff ff ff ff 00 c8 c6 3b 10 81 ff ff 
-> > RIP  [<ffffffff882c2344>] :pci_slot:__this_module+0x21c4/0xfffffffffffff204
-> >  RSP <ffff81103fa43ea8>
-> 
-> Can you apply this debug patch on top of your tree, and send me
-> the output?
-> 
-> I'd be curious to see the output for your failure case:
-> 
->   # modprobe pci_slot debug=1
->   # modprobe acpiphp debug=1
 
-Someone else is using the system right now so I may not
-be able to do this until next week.
 
-Gary
 
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
 
+
+
+
+>-----Original Message-----
+>From: Zhang, Rui
+>Sent: Tuesday, November 20, 2007 5:33 PM
+>To: Moore, Robert
+>Cc: Len Brown; linux-acpi@vger.kernel.org; Alexey Starikovskiy
+>Subject: RE: ACPI: disable stray GPE, prevent ACPI interrupt storm
+>
+>
+>On Wed, 2007-11-21 at 07:11 +0800, Moore, Robert wrote:
+>> BTW, this kind of change begs for a comment
+>>
+>Sounds good. :)
+>
+>Thanks,
+>Rui
+>>     default:
+>>         /*
+>>          * Even if we don't know the GPE type, make sure that we
+always
+>>          * disable it. This can prevent a certain type of GPE flood,
+>> where
+>>          * the GPE has no _Lxx/_Exx method, and it cannot be
+determined
+>
+>>          * whether the GPE is wake, run, or wake/run.
+>>          */
+>>         Status = AcpiHwWriteGpeEnableReg (GpeEventInfo);
+>>         break;
+>>
+>>
+>> >-----Original Message-----
+>> >From: Len Brown [mailto:lenb@kernel.org]
+>> >Sent: Tuesday, November 20, 2007 10:43 AM
+>> >To: Moore, Robert
+>> >Cc: linux-acpi@vger.kernel.org; Zhang, Rui; Alexey Starikovskiy
+>> >Subject: ACPI: disable stray GPE, prevent ACPI interrupt storm
+>> >
+>> >Bob,
+>> >Rui's Linux patch below modifies an ACPICA file.
+>> >
+>> >thanks,
+>> >-Len
+>> >
+>> >commit a7f9b1f24974da287771e2d70b30d9ca7bd66684
+>> >Author: Zhang Rui <rui.zhang@intel.com>
+>> >Date:   Tue Nov 20 13:38:59 2007 -0500
+>> >
+>> >    ACPI: disable stray GPE, prevent ACPI interrupt storm
+>> >
+>> >    GPEs are disabled depending on their type --
+>> >    WAKE, WAKE_RUN, and RUNTIME.  An error is returned
+>> >    if we are asked to disable a GPE that has no type.
+>> >
+>> >    But at least one system exists that enables a GPE from AML
+>> >    that is not the EC GPE, and has no _Lxx/_Exx AML handler,
+>> >    and is thus never initialized.
+>> >
+>> >    In this case, when an external CRT is plugged in,
+>> >    the GPE fires, we attempt to disable the GPE,
+>> >    but instead just return an error.
+>> >    So the GPE stays asserted and an ACPI interrupt storm follows.
+>> >
+>> >    The fix is to disable a firing GPE,
+>> >    even if it comes from outer space.
+>> >
+>> >    http://bugzilla.kernel.org/show_bug.cgi?id=6217
+>> >
+>> >    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>> >    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>> >    Signed-off-by: Len Brown <len.brown@intel.com>
+>> >
+>> >diff --git a/drivers/acpi/events/evgpe.c
+b/drivers/acpi/events/evgpe.c
+>> >index e22f4a9..056b788 100644
+>> >--- a/drivers/acpi/events/evgpe.c
+>> >+++ b/drivers/acpi/events/evgpe.c
+>> >@@ -270,18 +270,18 @@ acpi_status acpi_ev_disable_gpe(struct
+>> >acpi_gpe_event_info *gpe_event_info)
+>> > 	case ACPI_GPE_TYPE_WAKE_RUN:
+>> > 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+>> ACPI_GPE_WAKE_ENABLED);
+>> >
+>> >-		/*lint -fallthrough */
+>> >+		/* fallthrough */
+>> >
+>> > 	case ACPI_GPE_TYPE_RUNTIME:
+>> >
+>> > 		/* Disable the requested runtime GPE */
+>> >
+>> > 		ACPI_CLEAR_BIT(gpe_event_info->flags,
+>> ACPI_GPE_RUN_ENABLED);
+>> >-		status = acpi_hw_write_gpe_enable_reg(gpe_event_info);
+>> >-		break;
+>> >+
+>> >+		/* fallthrough */
+>> >
+>> > 	default:
+>> >-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+>> >+		acpi_hw_write_gpe_enable_reg(gpe_event_info);
+>> > 	}
+>> >
+>> > 	return_ACPI_STATUS(AE_OK);
