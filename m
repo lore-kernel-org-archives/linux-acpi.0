@@ -1,56 +1,78 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
-Date: Fri, 30 Nov 2007 14:20:58 -0800
-Message-ID: <20071130142058.816d1693.akpm@linux-foundation.org>
-References: <200711302153.lAULrZ7n026255@imap1.linux-foundation.org>
-	<924EFEDD5F540B4284297C4DC59F3DEE2FAE6A@orsmsx423.amr.corp.intel.com>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Fri, 30 Nov 2007 14:37:46 -0800
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>
+References: <200711302153.lAULrZ7n026255@imap1.linux-foundation.org><924EFEDD5F540B4284297C4DC59F3DEE2FAE6A@orsmsx423.amr.corp.intel.com> <20071130142058.816d1693.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33201 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753322AbXK3WWW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Nov 2007 17:22:22 -0500
-In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE2FAE6A@orsmsx423.amr.corp.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:61089 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752768AbXK3Wm1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2007 17:42:27 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20071130142058.816d1693.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
 Cc: lkml@rtr.ca, abelay@novell.com, lenb@kernel.org, mlord@pobox.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 30 Nov 2007 14:06:55 -0800
-"Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com> wrote:
+ 
 
-Please dont go off-list like this.  I put Mark's original mailing list cc's
-back.
+>On Fri, 30 Nov 2007 14:06:55 -0800
+>"Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com> wrote:
+>
+>Please dont go off-list like this.  I put Mark's original 
+>mailing list cc's
+>back.
 
-> 
-> I will have to Nack this. The reason max_cstate was initentionally
-> removed due to couple of reasons:
+Sorry for missing some cc's earlier. I blindly did a reply-all to the
+mm-commits mail I got.
 
-It broke userspace without any warning or migration period, afaict.
+>> I will have to Nack this. The reason max_cstate was initentionally
+>> removed due to couple of reasons:
+>
+>It broke userspace without any warning or migration period, afaict.
 
-> 1) All in kernel users of max_cstate should rather be using
-> pm_qos/latency interfaces. All such max_cstate usages must already be
-> migrated.
+Yes. That's true. I will have to take the blame for that. It has been
+known for a while during cpuidle development. But, it was never
+documented as deprecating.
+ 
+>> 1) All in kernel users of max_cstate should rather be using
+>> pm_qos/latency interfaces. All such max_cstate usages must already be
+>> migrated.
+>
+>That code isn't merged.
 
-That code isn't merged.
+All kernel part is already merged. I mean, there are do drivers that
+depend on max_cstate. They use latency_notifier thing today and their
+migration to pm_qos part is not merged yet.
 
-> 2) Supporting max_cstate as a dynamic parameter cleanly is no longer
-> possible in acpi/processor_idle.c as the C-state policy has moved to
-> cpuidle instead. It can be done if it is needed. But, just below patch
-> will not really work with cpuidle.
-> 
-> Selecting max_cstate at boot time as a debug option still works without
-> this patch.
-> 
-> So, just this patch will not get back the functionality with cpuidle.
-> Infact changing it at run time will have no effect. Question however is:
-> Is there a real need to revive this parameter so that user can change
-> max_cstate at run time?
+>> 2) Supporting max_cstate as a dynamic parameter cleanly is no longer
+>> possible in acpi/processor_idle.c as the C-state policy has moved to
+>> cpuidle instead. It can be done if it is needed. But, just 
+>below patch
+>> will not really work with cpuidle.
+>> 
+>> Selecting max_cstate at boot time as a debug option still 
+>works without
+>> this patch.
+>> 
+>> So, just this patch will not get back the functionality with cpuidle.
+>> Infact changing it at run time will have no effect. Question 
+>however is:
+>> Is there a real need to revive this parameter so that user can change
+>> max_cstate at run time?
+>
+>It is not known whether Mark is actually writing to this 
+>thing.  Perhaps
+>read-only permissions would be a suitable fix?
+>
 
-It is not known whether Mark is actually writing to this thing.  Perhaps
-read-only permissions would be a suitable fix?
+Exporting it as read only should be OK. We also need to know if there
+are hard user space dependency on writing to this from userspace.
 
-
+Thanks,
+Venki  
