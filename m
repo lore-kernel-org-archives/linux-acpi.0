@@ -1,41 +1,42 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [PATCH] Set pnp_init_resource_table, pnp_resource_change,	pnp_manual_config_dev
- deprecated
-Date: Fri, 30 Nov 2007 18:27:39 +0100
-Message-ID: <4750480B.9010909@keyaccess.nl>
-References: <a8e1da0711290111m65b071cft90b4361ec0155096@mail.gmail.com>	 <474F72E3.4040608@keyaccess.nl>	 <1196389939.7234.1.camel@sli10-desk.sh.intel.com> <1196417657.23251.293.camel@queen.suse.de>
+From: Mark Lord <lkml@rtr.ca>
+Subject: [PATCH] 2.6.24: restore missing sysfs max_cstate attr
+Date: Fri, 30 Nov 2007 14:06:19 -0500
+Message-ID: <47505F2B.2090109@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:43598 "EHLO
-	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763144AbXK3R2N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2007 12:28:13 -0500
-In-Reply-To: <1196417657.23251.293.camel@queen.suse.de>
+Received: from rtr.ca ([76.10.145.34]:4082 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756062AbXK3TGV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Nov 2007 14:06:21 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Shaohua Li <shaohua.li@intel.com>, Dave Young <hidave.darkstar@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Linux Kernel <linux-kernel@vger.kernel.org>, Linux Kernel <linux-acpi@vger.kernel.org>, len.brown@intel.com, Andrew Morton <akpm@linux-foundation.org>
 
-On 30-11-07 11:14, Thomas Renninger wrote:
+Len, is there any good reason why max_cstate was made invisible in 2.6.24,
+breaking my userspace scripts that access it?
 
-> This should be 2.6.24 material:
-> 
-> Mark pnp_init_resource_table, pnp_resource_change, pnp_manual_config_dev deprecated
-> 
-> Thanks to Rene Herman, the remaining calls to those functions got eliminated
-> in the sound/isa layer recently.
-> Those functions are a workaround for wrong BIOS pnp information and give
-> drivers the possibility to override BIOS exported PNP resources.
-> This can be done through sysfs since 2.6, therefore these functions should
-> vanish rather soon, as dynamic allocation for PNP resources is depending
-> on it.
+Here's a patch to fix the regression from 2.6.23:
 
-I'll withhold an ack on this for now. The ALSA side patch has hit the ALSA 
-repositories but wouldn't seem likely to end up in 2.6.24 at this point in 
-the development cycle.
+Restore visibility of /sys/module/processor/parameters/max_cstate 
+for compatibility with kernels prior to 2.6.24.
 
-Can't have it deprecated with ALSA still using them...
+I have scripts here that rely upon it.
 
-Rene.
+Signed-off-by: Mark Lord <mlord@pobox.com>
+---
+
+Patch is against 2.6.24-rc3-git5.
+
+--- linux/drivers/acpi/processor_idle.c.orig	2007-11-30 13:35:20.000000000 -0500
++++ linux/drivers/acpi/processor_idle.c	2007-11-30 13:35:31.000000000 -0500
+@@ -76,7 +76,7 @@
+ #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+-module_param(max_cstate, uint, 0000);
++module_param(max_cstate, uint, 0644);
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
+ 
