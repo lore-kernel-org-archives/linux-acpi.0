@@ -1,64 +1,35 @@
-From: Andres Freund <andres@anarazel.de>
-Subject: Re: 20000+ wake-ups/second in 2.6.24.   Bug?
-Date: Sun, 2 Dec 2007 02:10:50 +0100
-Message-ID: <200712020210.59041.andres@anarazel.de>
-References: <200711302153.lAULrZ7n026255@imap1.linux-foundation.org> <4751F484.6040204@rtr.ca> <20071201161302.731b80d3@laptopd505.fenrus.org>
+From: Len Brown <lenb@kernel.org>
+Subject: lost e-mail
+Date: Sat, 1 Dec 2007 23:01:00 -0500
+Message-ID: <200712012301.00769.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1682725.tduZQciSPq";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755363AbXLBBL0@vger.kernel.org>
-In-Reply-To: <20071201161302.731b80d3@laptopd505.fenrus.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Mark Lord <lkml@rtr.ca>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---nextPart1682725.tduZQciSPq
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:52616 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754084AbXLBEBV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 1 Dec 2007 23:01:21 -0500
+Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id lB241Dn6029483
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Sun, 2 Dec 2007 04:01:14 GMT
 Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
+I lost some e-mail between Nov-24 and today
+when my laptop went nuts on the road.
 
-On Sunday 02 December 2007, Arjan van de Ven wrote in "Re: 20000+=20
-wake-ups/second in 2.6.24.   Bug?":
-> > > Mark Lord <lkml@rtr.ca> wrote:
-> > >> 2.6.23 did not have this problem.
-> > > actually we have reports of 2.6.23 having the exact same problem.
-> > > The thing is, "something" is causing the system to go into a state
-> > > where the cpu throws us right out of the C-state the kernel asks
-> > > for.
-Just as an Information - I see the same problem here, with an ubuntu 2.6.22=
-=20
-kernel. I did not report it so far, as I couldnt reliably reproduce it with=
-=20
-an upstream kernel.
-Just as an additional datapoint (Lenovo T60 here).
+Dunno if the cause was that my latop updated itself to FC9 early release,
+or if I did something foolish when slinging around mail archives
+between desktop and laptop.
 
-=46or me it happens only when using battery. Thats another reason I havent=
-=20
-reported it so far - it only happened while on the road with work to do.=20
+In any case, if you sent me something in the last week
+and you're wondering why I didn't reply, please re-send.
 
-If there is any testing needed - just say it.
-
-Greetings,=20
-
-Andres
-
---nextPart1682725.tduZQciSPq
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQBHUgYiporPraT14igRAhXRAJ9KcmAV6+O1mbhl9xrJZ7b4U9hu/wCgkElB
-gz5FXuPb4qRqNXD//az/3Qc=
-=2Yu5
------END PGP SIGNATURE-----
-
---nextPart1682725.tduZQciSPq--
+thanks,
+-Len
