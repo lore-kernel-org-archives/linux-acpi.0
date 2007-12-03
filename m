@@ -1,60 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/2] Freezer: Fix JFFS2 garbage collector freezing issue
-Date: Mon, 3 Dec 2007 18:03:20 +0100
-Message-ID: <200712031803.21260.rjw@sisk.pl>
-References: <1196624925-17220-1-git-send-email-lenb@kernel.org> <200712031755.44441.rjw@sisk.pl>
+From: Sebastian Schleehauf <S.Schleehauf@gmx.de>
+Subject: If "acpi_apic_instance=0" works better
+Date: Mon, 03 Dec 2007 18:16:21 +0100
+Message-ID: <475439E5.6010801@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42454 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750967AbXLCQpu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Dec 2007 11:45:50 -0500
-In-Reply-To: <200712031755.44441.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:47933 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751008AbXLCRQX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Dec 2007 12:16:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>, Pete MacKay <armlinux@architechnical.net>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Fix breakage caused by commit d5d8c5976d6adeddb8208c240460411e2198b393
-"freezer: do not send signals to kernel threads" in
-jffs2_garbage_collect_thread() that assumed it would be sent signals
-by the freezer.
+Hi,
+when booting I get:
+ACPI: BIOS bug: multiple APIC/MADT found, using 2
+[    0.000000] ACPI: If "acpi_apic_instance=0" works better, notify
+I am not sure to what works better relate, if you tell me I can test
+which one is working better....
+I am using Lenovo 3000V100 Bios Version 1.11 with Ubuntu 7.10
+kernel: 2.6.22-14-generic #1
+Thanks,
+Sebastian Schleehauf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pete MacKay <armlinux@architechnical.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
----
- fs/jffs2/background.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/fs/jffs2/background.c
-===================================================================
---- linux-2.6.orig/fs/jffs2/background.c
-+++ linux-2.6/fs/jffs2/background.c
-@@ -103,15 +103,17 @@ static int jffs2_garbage_collect_thread(
- 		   get there first. */
- 		yield();
- 
-+		/* If system suspend is in progress, go to the refrigerator and
-+		   start again when the suspend is done */
-+		if (try_to_freeze())
-+			goto again;
-+
- 		/* Put_super will send a SIGKILL and then wait on the sem.
- 		 */
- 		while (signal_pending(current)) {
- 			siginfo_t info;
- 			unsigned long signr;
- 
--			if (try_to_freeze())
--				goto again;
--
- 			signr = dequeue_signal_lock(current, &current->blocked, &info);
- 
- 			switch(signr) {
+iD8DBQFHVDmObGnBMi06ftIRAkjoAJ4tPqkkZ3D/12TqUoaGvcVhzXcVUQCgsuJV
+6AIr7uL+0anq6wPIoMbGG0g=
+=7f4m
+-----END PGP SIGNATURE-----
