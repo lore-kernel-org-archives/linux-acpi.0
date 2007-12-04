@@ -1,73 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] Freezer: Fix JFFS2 garbage collector freezing issue
-Date: Tue, 4 Dec 2007 00:59:05 +0100
-Message-ID: <200712040059.05935.rjw@sisk.pl>
-References: <1196624925-17220-1-git-send-email-lenb@kernel.org> <200712031755.44441.rjw@sisk.pl> <200712031803.21260.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH with title] priority fix in acpi_map_lsapic()  arch/ia64/kernel/acpi.c
+Date: Tue, 4 Dec 2007 01:22:07 -0500
+Message-ID: <200712040122.07391.lenb@kernel.org>
+References: <473CC232.6020901@tiscali.nl> <473CC907.4040106@tiscali.nl> <20071120065145.GB10490@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43893 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:45987 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081AbXLCXk3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Dec 2007 18:40:29 -0500
-In-Reply-To: <200712031803.21260.rjw@sisk.pl>
+	id S1751560AbXLDGWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Dec 2007 01:22:31 -0500
+In-Reply-To: <20071120065145.GB10490@verge.net.au>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>, Pete MacKay <armlinux@architechnical.net>, Andrew Morton <akpm@linux-foundation.org>
+To: Simon Horman <horms@verge.net.au>
+Cc: Roel Kluin <12o3l@tiscali.nl>, tony.luck@intel.com, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, 3 of December 2007, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+Applied.
+
+thanks,
+-Len
+
+On Tuesday 20 November 2007 01:51, Simon Horman wrote:
+> On Thu, Nov 15, 2007 at 11:32:39PM +0100, Roel Kluin wrote:
+> > As above should have been its title.
+> > 
+> > Roel Kluin wrote:
+> > > I have sent this patch before to lkml, but it appears it wasn't picked up. Also
+> > > I have to admit this isn't tested. This is a patch against linus' tree.
+> > > 
+> > > ACPI_MADT_ENABLED is defined 1    (include/acpi/actbl1.h 501)
+> > > lapic_flags: an u32 of struct acpi_madt_local_sapic (include/acpi/actbl1.h 467)
+> > > --
+> > > '!' has a higher priority than '&', so as was
+> > > this won't test the first bit, but rather evaluates to false for any non-zero
+> > > lsapic->lapic_flags.
+> > > 
+> > > Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
 > 
-> Fix breakage caused by commit d5d8c5976d6adeddb8208c240460411e2198b393
-> "freezer: do not send signals to kernel threads" in
-> jffs2_garbage_collect_thread() that assumed it would be sent signals
-> by the freezer.
-
-Scratch this one.  I'll send an updated version.
-
-The other one is fine, though.
-
-Thanks,
-Rafael
-
-
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Cc: Pete MacKay <armlinux@architechnical.net>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> ---
->  fs/jffs2/background.c |    8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
+> This looks correct to me, though I was curious to know why
+> the problem wasn't manifesting in a bug. I investigated
+> a bit and found that it seems that the only values
+> lapic_flags currently takes are 0 and ACPI_MADT_ENABLED,
+> so it turns out that the bogus logic actually gives the correct result
+> (by chance).
 > 
-> Index: linux-2.6/fs/jffs2/background.c
-> ===================================================================
-> --- linux-2.6.orig/fs/jffs2/background.c
-> +++ linux-2.6/fs/jffs2/background.c
-> @@ -103,15 +103,17 @@ static int jffs2_garbage_collect_thread(
->  		   get there first. */
->  		yield();
->  
-> +		/* If system suspend is in progress, go to the refrigerator and
-> +		   start again when the suspend is done */
-> +		if (try_to_freeze())
-> +			goto again;
-> +
->  		/* Put_super will send a SIGKILL and then wait on the sem.
->  		 */
->  		while (signal_pending(current)) {
->  			siginfo_t info;
->  			unsigned long signr;
->  
-> -			if (try_to_freeze())
-> -				goto again;
-> -
->  			signr = dequeue_signal_lock(current, &current->blocked, &info);
->  
->  			switch(signr) {
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Acked-by: Simon Horman <horms@verge.net.au>
+> 
+> > > ---
+> > > diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> > > index 3d45d24..7d78d22 100644
+> > > --- a/arch/ia64/kernel/acpi.c
+> > > +++ b/arch/ia64/kernel/acpi.c
+> > > @@ -858,7 +858,7 @@ int acpi_map_lsapic(acpi_handle handle, int *pcpu)
+> > >  	lsapic = (struct acpi_madt_local_sapic *)obj->buffer.pointer;
+> > >  
+> > >  	if ((lsapic->header.type != ACPI_MADT_TYPE_LOCAL_SAPIC) ||
+> > > -	    (!lsapic->lapic_flags & ACPI_MADT_ENABLED)) {
+> > > +	    (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))) {
+> > >  		kfree(buffer.pointer);
+> > >  		return -EINVAL;
+> > >  	}
+> > > 
+> 
