@@ -1,57 +1,97 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: RFC: PNP: do not stop/start devices in suspend/resume path
-Date: Wed, 5 Dec 2007 11:50:13 -0700
-Message-ID: <20071205185012.GA27526@parisc-linux.org>
-References: <4745F77C.7040402@gmail.com> <47511751.2010707@gmail.com> <47514CE2.3000600@gmail.com> <200712051124.18852.bjorn.helgaas@hp.com>
+From: Tomas Carnecky <tom@dbservice.com>
+Subject: [Announce] acpi daemon with support for netlink and evdev events
+Date: Wed, 5 Dec 2007 21:24:58 +0000 (UTC)
+Message-ID: <47586B71.9020607@dbservice.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:58545 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbXLESuO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2007 13:50:14 -0500
-Content-Disposition: inline
-In-Reply-To: <200712051124.18852.bjorn.helgaas@hp.com>
+Received: from neopsis.com ([213.239.204.14]:60980 "EHLO
+	matterhorn.dbservice.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751880AbXLEVY1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2007 16:24:27 -0500
+Date: Thu, 06 Dec 2007 22:36:49 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: nico-linux-20071129@schottelius.org
 
-On Wed, Dec 05, 2007 at 11:24:18AM -0700, Bjorn Helgaas wrote:
-> This means we will not disable the device and release its
-> resources.  The driver suspend method typically does not release
-> its resources in the suspend path.  For example, if we have:
-> 
->   03f8-03ff : 00:06
->     03f8-03ff : serial
-> 
-> pnp_stop_dev() would release the 00:06 region, which still
-> has a child.  This causes a warning from __release_resource
-> and corrupts /proc/ioports.
+   What is it?
+  =============
 
-So, I put the warning in there because I genuinely didn't know if we
-were doing this, and if so what the semantics should be.
+An acpi deamon that processes events from various sources, passes these
+to scripts for further processing and also broadcasts dbus events.
+Currently it contains drivers for (generic-)netlink and evdev event
+sources. Configuration and event processing is done in Lua, a
+leightweight scripting language.
 
-I'm quite happy to see resources with children being released -- I just
-want to know what we should do with those children.  As the first person
-to come across this problem, I think you get to decide the semantics.
 
-It seems to me from this description that all we want to do is reparent
-the children -- which is easy enough to do; just a matter of twizzling
-all the ->parent pointers of the children; the ->sibling of the resource
-before the one being released and the ->sibling of the last child of the
-one being released.
+   How does it work?
+  ===================
 
-If you think it's a genuine bug that happens to have been caught by this
-check, I'm happy to see the check being useful, and we don't need to
-allow the removal of resources.
+Drivers are automatically registered into the daemon when the binary is
+loaded into memory. The main executable fist creates a Lua environment
+and then loads the event source configuration and the scripts which are
+invoked when an event is received. Each event source (called a channel)
+is defined by the driver, optional arguments and a function (callback).
+In the main function a loop polls on all fd's and waits for events. When
+a channel receives a new event, it is first passed to the channel
+callback which can perform modifications to the event. Then the event is
+passed to all scripts (which are really just Lua functions) in a well
+defined order. Each script can abort the execution at any point. In any
+case a dbus broadcast even is sent to the system bus.
 
-The only thing is, if you're going to be re-acquiring these resources
-upon resume, you'll need to use insert_resource() instead of
-request_region() because the child will now be in that spot.
+   What needs to be done?
+  ========================
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+Overall code cleanup, documentation/readme, error checking. Improve the
+Lua environment (currently only two useful functions are available),
+maybe add the Lua base functions (string, table, coroutine etc.).
+Consult with desktop developers if they need a particular functionality
+(better adjust the overall design now rather then trying to do it a
+hacky way later on).
+
+
+   What features are missing?
+  ============================
+
+I had planed to integrate it more with dbus. One feature I think would
+be useful is the ability to schedule actions (as opposed to immediate
+invocation of scripts) and the ability to cancel those through dbus. One
+particular use-case would be when the user presses the 'sleep' button
+and the desktop is performing a task that really shouldn't be
+interrupted, then the desktop could cancel or delay the suspend-to-ram
+action.
+
+
+   How do I use it?
+  ==================
+
+A bit Lua knowledge is required for writing the scripts! To compile it
+you'll need dbus-1 and lua. Compile acpid with 'make', a sample client
+application with 'make all'. You'll need to start acpid as root as it
+needs to register a name with the system bus. Also make sure to copy the
+attached acpi.conf to /etc/dbus-1/system.d/.
+You may need to edit config.lua and scripts.lua, but it should work out
+of the box. Start acpid from the root directory of the source. If your
+computer now generates an acpi event, you should see some output in
+stdout. You can also start the client and it will also receive all
+events and print those to stdout as well.
+
+
+   So where can I get the source?
+  ================================
+
+Sources are available in a tarball only. You'll see that it also
+contains a git repository. Once I figure out how to set up gitweb I'll
+be pushing the source to my server.
+
+
+Questions/Suggestions? Just send me an email.
+
+Nico, I saw your email to the LKML and I thought you might be interested
+in my project and source.
+
+tom
+
+PS: I'm not subscribed.. you know the drill.
