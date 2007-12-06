@@ -1,138 +1,177 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: RFC: PNP: do not stop/start devices in suspend/resume path
-Date: Thu, 6 Dec 2007 02:07:32 +0100
-Message-ID: <200712060207.33973.rjw@sisk.pl>
-References: <4745F77C.7040402@gmail.com> <47514CE2.3000600@gmail.com> <200712051124.18852.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 2.6.21 through 2.6.23] ACPICA: fix acpi-cpufreq boot crash due to _PSD return-by-reference
+Date: Wed, 5 Dec 2007 23:42:10 -0500
+Message-ID: <200712052342.10986.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55943 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:41638 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008AbXLFAtI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Dec 2007 19:49:08 -0500
-In-Reply-To: <200712051124.18852.bjorn.helgaas@hp.com>
+	id S1752195AbXLFEmu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Dec 2007 23:42:50 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>
+To: stable@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Adrian Bunk <bunk@stusta.de>
 
-On Wednesday, 5 of December 2007, Bjorn Helgaas wrote:
-> Re: warning on suspend-to-RAM caused by
-> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch,
-> thread here: http://lkml.org/lkml/2007/11/22/110
-> 
-> On Saturday 01 December 2007 05:00:34 am Jiri Slaby wrote:
-> > I didn't get it. Maybe some trolls poking around or something (maybe the
-> > ext3 breakage which fsck fixed). It works after recompilation of the
-> > whole tree. And the important part -- the warning has gone.
-> 
-> Good.  It's not clear to me whether it is safe to leave devices
-> enabled while we sleep.  I don't see an actual problem, but there
-> might be something related to hotplug while we're asleep or something.
-> So I'll cc: some additional people who might have some insight.
-> 
-> 
-> 
-> RFC: PNP: do not stop/start devices in suspend/resume path
-> 
-> Do not disable PNP devices in the suspend path.  We still call
-> the driver's suspend method, which should prevent further use of
-> the device, and the protocol suspend method, which may put the
-> device in a low-power state.
-> 
-> This means we will not disable the device and release its
-> resources.  The driver suspend method typically does not release
-> its resources in the suspend path.  For example, if we have:
-> 
->   03f8-03ff : 00:06
->     03f8-03ff : serial
-> 
-> pnp_stop_dev() would release the 00:06 region, which still
-> has a child.  This causes a warning from __release_resource
-> and corrupts /proc/ioports.
-> 
-> However, we should do this the same way Windows does, so if
-> Windows disables devices before going to sleep, we should, too.
-> It doesn't *look* necessary to me because
-> 
->   - In the ACPI 3.0b spec, I can't find any mention of _DIS in
->     connection with sleep.  And Device Object Notifications,
->     Section 5.6.3, Table 5-43, says we should get a bus check
->     after awakening if hardware was removed while we slept.
-> 
->     This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
->     makes a similar point about how the OS re-enumerates devices
->     as a result of a power state change (3rd last paragraph of
->     text).
-> 
->   - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
->     suggests that Windows only stops a device to rebalance hardware
->     resources.
-> 
-> [This should go before
-> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
-> for best bisect-ability.]
+From: Bob Moore <robert.moore@intel.com>
 
-The only comment I can make is that this change is along with the lines of
-what PCI drivers do, so it looks reasonable.
+This bug has been in the ACPICA interpreter since the beginning of time.
+It is a reference-after-free bug due to the interpreter doing a
+"return by reference" on local objects instead of a "return by value"
+when the objects are part of a package.
 
-In any case it's worthy of checking if removing the pnp_stop(start)_dev()
-invocations from the suspend/resume code paths will cause any problems to
-appear, IMO.
+It could technically happen for any AML code, but slab debugging
+exposed it for the first time (we think) on some new hardware
+when we were interpreting some AML on behalf of acpi-cpufreq initialization.
 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> Index: linux-mm/drivers/pnp/driver.c
-> ===================================================================
-> --- linux-mm.orig/drivers/pnp/driver.c	2007-11-30 13:58:25.000000000 -0700
-> +++ linux-mm/drivers/pnp/driver.c	2007-12-03 09:58:35.000000000 -0700
-> @@ -161,13 +161,6 @@
->  			return error;
->  	}
->  
-> -	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
-> -	    pnp_can_disable(pnp_dev)) {
-> -		error = pnp_stop_dev(pnp_dev);
-> -		if (error)
-> -			return error;
-> -	}
-> -
->  	if (pnp_dev->protocol && pnp_dev->protocol->suspend)
->  		pnp_dev->protocol->suspend(pnp_dev, state);
->  	return 0;
-> @@ -177,7 +170,6 @@
->  {
->  	struct pnp_dev *pnp_dev = to_pnp_dev(dev);
->  	struct pnp_driver *pnp_drv = pnp_dev->driver;
-> -	int error;
->  
->  	if (!pnp_drv)
->  		return 0;
-> @@ -185,12 +177,6 @@
->  	if (pnp_dev->protocol && pnp_dev->protocol->resume)
->  		pnp_dev->protocol->resume(pnp_dev);
->  
-> -	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
-> -		error = pnp_start_dev(pnp_dev);
-> -		if (error)
-> -			return error;
-> -	}
-> -
->  	if (pnp_drv->resume)
->  		return pnp_drv->resume(pnp_dev);
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+This patch shipped in linux-2.6.24-rc4,
+but it applies cleanly back through 2.6.21.
+http://bugzilla.kernel.org/show_bug.cgi?id=9429
+contains backports through 2.6.16.
 
+-Len
 
+Changed resolution of named references in packages
 
+Fixed a problem with the Package operator where all named
+references were created as object references and left otherwise
+unresolved. According to the ACPI specification, a Package can
+only contain Data Objects or references to control methods. The
+implication is that named references to Data Objects (Integer,
+Buffer, String, Package, BufferField, Field) should be resolved
+immediately upon package creation. This is the approach taken
+with this change. References to all other named objects (Methods,
+Devices, Scopes, etc.) are all now properly created as reference objects.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=5328
+http://bugzilla.kernel.org/show_bug.cgi?id=9429
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+
+ drivers/acpi/dispatcher/dsobject.c |   91 +++++++++++++++++++++++++++++++++--
+ 1 files changed, 85 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/dispatcher/dsobject.c b/drivers/acpi/dispatcher/dsobject.c
+index a474ca2..954ac8c 100644
+--- a/drivers/acpi/dispatcher/dsobject.c
++++ b/drivers/acpi/dispatcher/dsobject.c
+@@ -137,6 +137,71 @@ acpi_ds_build_internal_object(struct acpi_walk_state *walk_state,
+ 				return_ACPI_STATUS(status);
+ 			}
+ 		}
++
++		/* Special object resolution for elements of a package */
++
++		if ((op->common.parent->common.aml_opcode == AML_PACKAGE_OP) ||
++		    (op->common.parent->common.aml_opcode ==
++		     AML_VAR_PACKAGE_OP)) {
++			/*
++			 * Attempt to resolve the node to a value before we insert it into
++			 * the package. If this is a reference to a common data type,
++			 * resolve it immediately. According to the ACPI spec, package
++			 * elements can only be "data objects" or method references.
++			 * Attempt to resolve to an Integer, Buffer, String or Package.
++			 * If cannot, return the named reference (for things like Devices,
++			 * Methods, etc.) Buffer Fields and Fields will resolve to simple
++			 * objects (int/buf/str/pkg).
++			 *
++			 * NOTE: References to things like Devices, Methods, Mutexes, etc.
++			 * will remain as named references. This behavior is not described
++			 * in the ACPI spec, but it appears to be an oversight.
++			 */
++			obj_desc = (union acpi_operand_object *)op->common.node;
++
++			status =
++			    acpi_ex_resolve_node_to_value(ACPI_CAST_INDIRECT_PTR
++							  (struct
++							   acpi_namespace_node,
++							   &obj_desc),
++							  walk_state);
++			if (ACPI_FAILURE(status)) {
++				return_ACPI_STATUS(status);
++			}
++
++			switch (op->common.node->type) {
++				/*
++				 * For these types, we need the actual node, not the subobject.
++				 * However, the subobject got an extra reference count above.
++				 */
++			case ACPI_TYPE_MUTEX:
++			case ACPI_TYPE_METHOD:
++			case ACPI_TYPE_POWER:
++			case ACPI_TYPE_PROCESSOR:
++			case ACPI_TYPE_EVENT:
++			case ACPI_TYPE_REGION:
++			case ACPI_TYPE_DEVICE:
++			case ACPI_TYPE_THERMAL:
++
++				obj_desc =
++				    (union acpi_operand_object *)op->common.
++				    node;
++				break;
++
++			default:
++				break;
++			}
++
++			/*
++			 * If above resolved to an operand object, we are done. Otherwise,
++			 * we have a NS node, we must create the package entry as a named
++			 * reference.
++			 */
++			if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) !=
++			    ACPI_DESC_TYPE_NAMED) {
++				goto exit;
++			}
++		}
+ 	}
+ 
+ 	/* Create and init a new internal ACPI object */
+@@ -156,6 +221,7 @@ acpi_ds_build_internal_object(struct acpi_walk_state *walk_state,
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
++      exit:
+ 	*obj_desc_ptr = obj_desc;
+ 	return_ACPI_STATUS(AE_OK);
+ }
+@@ -356,12 +422,25 @@ acpi_ds_build_internal_package_obj(struct acpi_walk_state *walk_state,
+ 	arg = arg->common.next;
+ 	for (i = 0; arg && (i < element_count); i++) {
+ 		if (arg->common.aml_opcode == AML_INT_RETURN_VALUE_OP) {
+-
+-			/* This package element is already built, just get it */
+-
+-			obj_desc->package.elements[i] =
+-			    ACPI_CAST_PTR(union acpi_operand_object,
+-					  arg->common.node);
++			if (arg->common.node->type == ACPI_TYPE_METHOD) {
++				/*
++				 * A method reference "looks" to the parser to be a method
++				 * invocation, so we special case it here
++				 */
++				arg->common.aml_opcode = AML_INT_NAMEPATH_OP;
++				status =
++				    acpi_ds_build_internal_object(walk_state,
++								  arg,
++								  &obj_desc->
++								  package.
++								  elements[i]);
++			} else {
++				/* This package element is already built, just get it */
++
++				obj_desc->package.elements[i] =
++				    ACPI_CAST_PTR(union acpi_operand_object,
++						  arg->common.node);
++			}
+ 		} else {
+ 			status = acpi_ds_build_internal_object(walk_state, arg,
+ 							       &obj_desc->
 -- 
-"Premature optimization is the root of all evil." - Donald Knuth
+1.5.3.7.949.g2221a6
+
