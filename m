@@ -1,159 +1,134 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Defer enabling of level GPE until all pending notifies done
-Date: Thu, 6 Dec 2007 21:55:36 -0500
-Message-ID: <200712062155.37059.lenb@kernel.org>
-References: <1194828146.32662.3.camel@sli10-conroe.sh.intel.com> <20071113100545.13159.20465.stgit@localhost.localdomain>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH] ACPI : Load device driver according to the status of acpi
+	device
+Date: Fri, 07 Dec 2007 11:18:35 +0800
+Message-ID: <1196997515.4045.5.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:32960 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:8854 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753233AbXLGCzy (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Thu, 6 Dec 2007 21:55:54 -0500
-In-Reply-To: <20071113100545.13159.20465.stgit@localhost.localdomain>
-Content-Disposition: inline
+	id S1752209AbXLGDYa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Dec 2007 22:24:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-applied to acpi test branch.
+Subject: ACPI : Load device driver according to the status of acpi device
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-thanks,
--len
+According to ACPI spec when the status of some device is not present 
+but functional, the device is valid and the children of this device 
+should be enumerated. It means that the device should be added to 
+linux acpi device tree.
+But the device driver for this device should not be loaded. 
 
-On Tuesday 13 November 2007 05:05, Alexey Starikovskiy wrote:
-> Level GPE should not be enabled until all work caused by it is done,
-> e.g. all Notify() methods are completed.
-> This could be accomplished by appending enable_gpe function to the end
-> of notify queue.
-> 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
-> 
->  drivers/acpi/events/evgpe.c |   17 +++++++++++++----
->  drivers/acpi/osl.c          |   42 ++++++++----------------------------------
->  2 files changed, 21 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-> index e22f4a9..b4509f9 100644
-> --- a/drivers/acpi/events/evgpe.c
-> +++ b/drivers/acpi/events/evgpe.c
-> @@ -501,6 +501,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
->   *              an interrupt handler.
->   *
->   ******************************************************************************/
-> +static void acpi_ev_asynch_enable_gpe(void *context);
->  
->  static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  {
-> @@ -576,22 +577,30 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  					 method_node)));
->  		}
->  	}
-> +	/* Defer enabling of GPE until all notify handlers are done */
-> +	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
-> +				gpe_event_info);
-> +	return_VOID;
-> +}
->  
-> -	if ((local_gpe_event_info.flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-> +static void acpi_ev_asynch_enable_gpe(void *context)
-> +{
-> +	struct acpi_gpe_event_info *gpe_event_info = context;
-> +	acpi_status status;
-> +	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
->  	    ACPI_GPE_LEVEL_TRIGGERED) {
->  		/*
->  		 * GPE is level-triggered, we clear the GPE status bit after
->  		 * handling the event.
->  		 */
-> -		status = acpi_hw_clear_gpe(&local_gpe_event_info);
-> +		status = acpi_hw_clear_gpe(gpe_event_info);
->  		if (ACPI_FAILURE(status)) {
->  			return_VOID;
->  		}
->  	}
->  
->  	/* Enable this GPE */
-> -
-> -	(void)acpi_hw_write_gpe_enable_reg(&local_gpe_event_info);
-> +	(void)acpi_hw_write_gpe_enable_reg(gpe_event_info);
->  	return_VOID;
->  }
->  
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index aabc6ca..6816ac6 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -625,25 +625,6 @@ static void acpi_os_execute_deferred(struct work_struct *work)
->  	dpc->function(dpc->context);
->  	kfree(dpc);
->  
-> -	/* Yield cpu to notify thread */
-> -	cond_resched();
-> -
-> -	return;
-> -}
-> -
-> -static void acpi_os_execute_notify(struct work_struct *work)
-> -{
-> -	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
-> -
-> -	if (!dpc) {
-> -		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
-> -		return;
-> -	}
-> -
-> -	dpc->function(dpc->context);
-> -
-> -	kfree(dpc);
-> -
->  	return;
->  }
->  
-> @@ -667,7 +648,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->  {
->  	acpi_status status = AE_OK;
->  	struct acpi_os_dpc *dpc;
-> -
-> +	struct workqueue_struct *queue;
->  	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
->  			  "Scheduling function [%p(%p)] for deferred execution.\n",
->  			  function, context));
-> @@ -691,20 +672,13 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->  	dpc->function = function;
->  	dpc->context = context;
->  
-> -	if (type == OSL_NOTIFY_HANDLER) {
-> -		INIT_WORK(&dpc->work, acpi_os_execute_notify);
-> -		if (!queue_work(kacpi_notify_wq, &dpc->work)) {
-> -			status = AE_ERROR;
-> -			kfree(dpc);
-> -		}
-> -	} else {
-> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -		if (!queue_work(kacpid_wq, &dpc->work)) {
-> -			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> -				  "Call to queue_work() failed.\n"));
-> -			status = AE_ERROR;
-> -			kfree(dpc);
-> -		}
-> +	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> +	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
-> +	if (!queue_work(queue, &dpc->work)) {
-> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> +			  "Call to queue_work() failed.\n"));
-> +		status = AE_ERROR;
-> +		kfree(dpc);
->  	}
->  	return_ACPI_STATUS(status);
->  }
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+http://bugzilla.kernel.org/show_bug.cgi?id=3358
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+
+---
+ drivers/acpi/bus.c         |   11 +++++------
+ drivers/acpi/scan.c        |   20 ++++++++++++++++++--
+ drivers/pnp/pnpacpi/core.c |    6 +++++-
+ 3 files changed, 28 insertions(+), 9 deletions(-)
+
+Index: linux-2.6.24-rc4/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.24-rc4.orig/drivers/acpi/bus.c
++++ linux-2.6.24-rc4/drivers/acpi/bus.c
+@@ -97,11 +97,11 @@ int acpi_bus_get_status(struct acpi_devi
+ 	}
+ 
+ 	/*
+-	 * Otherwise we assume the status of our parent (unless we don't
+-	 * have one, in which case status is implied).
++	 * According to ACPI spec some device can be present and functional
++	 * even if the parent is not present but functional.
++	 * In such conditions the child device should not inherit the status
++	 * from the parent.
+ 	 */
+-	else if (device->parent)
+-		device->status = device->parent->status;
+ 	else
+ 		STRUCT_TO_INT(device->status) =
+ 		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+@@ -109,9 +109,8 @@ int acpi_bus_get_status(struct acpi_devi
+ 
+ 	if (device->status.functional && !device->status.present) {
+ 		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+-		       "functional but not present; setting present\n",
++		       "functional but not present.\n",
+ 		       device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status));
+-		device->status.present = 1;
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+Index: linux-2.6.24-rc4/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.24-rc4.orig/drivers/acpi/scan.c
++++ linux-2.6.24-rc4/drivers/acpi/scan.c
+@@ -257,6 +257,11 @@ int acpi_match_device_ids(struct acpi_de
+ 			  const struct acpi_device_id *ids)
+ {
+ 	const struct acpi_device_id *id;
++	/*
++	 * If the device is not present, the device driver is not loaded.
++	 */
++	if (!device->status.present)
++		return -ENODEV;
+ 
+ 	if (device->flags.hardware_id) {
+ 		for (id = ids; id->id[0]; id++) {
+@@ -1131,7 +1136,13 @@ acpi_add_single_object(struct acpi_devic
+ 	case ACPI_BUS_TYPE_PROCESSOR:
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+-		if (ACPI_FAILURE(result) || !device->status.present) {
++		if (ACPI_FAILURE(result) || (!device->status.present &&
++					!device->status.functional)) {
++		/*
++		 * When the device is neither present nor functional, the
++		 * device should not be added to Linux ACPI device tree.
++		 */
++
+ 			result = -ENOENT;
+ 			goto end;
+ 		}
+@@ -1306,7 +1317,12 @@ static int acpi_bus_scan(struct acpi_dev
+ 		 * TBD: Need notifications and other detection mechanisms
+ 		 *      in place before we can fully implement this.
+ 		 */
+-		if (child->status.present) {
++		/*
++		 * When the device is not present but functional, it is also
++		 * necessary to scan the children of this device.
++		 */
++		if ((child->status.present) || (!child->status.present &&
++						child->status.functional)) {
+ 			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
+ 						      NULL, NULL);
+ 			if (ACPI_SUCCESS(status)) {
+Index: linux-2.6.24-rc4/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.24-rc4.orig/drivers/pnp/pnpacpi/core.c
++++ linux-2.6.24-rc4/drivers/pnp/pnpacpi/core.c
+@@ -166,9 +166,13 @@ static int __init pnpacpi_add_device(str
+ 	struct pnp_id *dev_id;
+ 	struct pnp_dev *dev;
+ 
++	/*
++	 * If a PnPacpi device is not present , the device
++	 * driver should not be loaded.
++	 */
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+ 	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+-	    is_exclusive_device(device))
++	    is_exclusive_device(device) || !device->status.present)
+ 		return 0;
+ 
+ 	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
