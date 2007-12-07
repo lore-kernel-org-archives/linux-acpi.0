@@ -1,120 +1,133 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: PNP: do not stop/start devices in suspend/resume path
-Date: Thu, 6 Dec 2007 16:25:57 -0700
-Message-ID: <200712061625.57660.bjorn.helgaas@hp.com>
-References: <4745F77C.7040402@gmail.com> <47514CE2.3000600@gmail.com>
-	<200712051124.18852.bjorn.helgaas@hp.com>
+From: Stephan Seidl <stephan.seidl@tu-dresden.de>
+Subject: ACPI power down problem
+Date: Fri, 7 Dec 2007 02:18:52 +0100
+Message-ID: <20071207011852.GA2827@sbase.snet>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200712051124.18852.bjorn.helgaas@hp.com>
+Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout1.zih.tu-dresden.de ([141.30.67.72]:44715 "EHLO
+	mailout1.zih.tu-dresden.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751155AbXLGCE6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Dec 2007 21:04:58 -0500
+Received: from rmc67-31.zih.tu-dresden.de ([141.30.67.31] helo=server-n)
+	by mailout1.zih.tu-dresden.de with esmtp (Exim 4.63)
+	(envelope-from <stephan.seidl@tu-dresden.de>)
+	id 1J0SCM-0006a8-GT
+	for linux-acpi@vger.kernel.org; Fri, 07 Dec 2007 02:40:16 +0100
+Received: from sbase.snet (208.Red-83-61-91.dynamicIP.rima-tde.net [83.61.91.208])
+	by server-n (Postfix) with ESMTP id 24B43100A08E
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Dec 2007 02:40:14 +0100 (CET)
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, drzeus@drzeus.cx, Matthieu Castet <castet.matthieu@free.fr>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Wednesday 05 December 2007 11:24:18 am Bjorn Helgaas wrote:
-> Re: warning on suspend-to-RAM caused by
-> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch,
-> thread here: http://lkml.org/lkml/2007/11/22/110
-> 
-> On Saturday 01 December 2007 05:00:34 am Jiri Slaby wrote:
-> > I didn't get it. Maybe some trolls poking around or something (maybe the
-> > ext3 breakage which fsck fixed). It works after recompilation of the
-> > whole tree. And the important part -- the warning has gone.
-> 
-> Good.  It's not clear to me whether it is safe to leave devices
-> enabled while we sleep.  I don't see an actual problem, but there
-> might be something related to hotplug while we're asleep or something.
-> So I'll cc: some additional people who might have some insight.
-
-I checked with a Windows kernel person, who said that when preparing
-to sleep, Windows puts devices in S3 state (I think he meant D3)
-and does not use _DIS.
-
-I think this patch is the right thing to do.  It's possible we'll
-trip over some BIOS issue, but in the long term, we should try to
-do it the same way Windows does.  Andrew, can you add this before
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch?
-
-Thanks,
-  Bjorn
+To: linux-acpi@vger.kernel.org
 
 
-PNP: do not stop/start devices in suspend/resume path
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Do not disable PNP devices in the suspend path.  We still call
-the driver's suspend method, which should prevent further use of
-the device, and the protocol suspend method, which may put the
-device in a low-power state.
+Hi,
+I would like to ask two questions, but firstly some history.
+Normally Debian Sarge is running with the kernel 2.6.14.3 with several
+patches and all works fine since Dec 2005. In Jul, 2006, I tried another
+kernel, 2.6.17.4, again with several patches, and again all worked fine
+with the exception of the fact that the machine did not switch off the
+power on `/sbin/shutdown -t5 -h -P now'. So I rejected the kernel
+2.6.17.4 hoping that the problems would disappear by itself with the time.
+But, it did not.
+In Aug 2007, Debian 4.0 r1 appeared with a kernel 2.6.18..., still
+having the power down problem. Obviously, the problem has been introduced
+between 2.6.14.3 and 2.6.17.4 and I am the only who has it. The concerning
+board can be described by
 
-I'm told that Windows puts devices in a low-power state (Linux
-does this in the protocol suspend method), but does not use _DIS
-in the suspend path.  Other relevant references:
+  Award Medallion BIOS v6.0, An Energy Star Ally
+  ASUS P4B ACPI BIOS Revision 1013 Beta 004
+  Award Plug and Play BIOS Extension v1.0A
 
-  - In the ACPI 3.0b spec, I can't find any mention of _DIS in
-    connection with sleep.  And Device Object Notifications,
-    Section 5.6.3, Table 5-43, says we should get a bus check
-    after awakening if hardware was removed while we slept.
+This week, to tackle the problem, I addionally applied the patches
+in the attachment to have the console messages somewhat longer on the screen.
+I got the same output with the two kernels, 2.6.14.3 and 2.6.17.4, namely
 
-  - This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
-    makes a similar point about how the OS re-enumerates devices
-    as a result of a power state change (3rd last paragraph of
-    text).
+  Power down.
+  acpi_power_off called
+   hwsleep-0284 [01] enter_sleep_state     : Entering sleep state [S5]
 
-  - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
-    suggests that Windows only stops a device to rebalance hardware
-    resources.
+whereat the line numer 0284 changed to 0283 for 2.6.17.4.
+What in fact happens after the above has been seen for 20 seconds is that
+the same machine switches off in case of 2.6.14.3, and wrongly reboots in
+case of 2.6.17.4. Now the questions, firstly,
+is that a kernel bug ? From my point of view, yes, it seems to be one.
+Secondly, if I would more or less stupidly put the debugging into execution,
+is there anyone who could guide me, because in the ACPI kernel environment,
+I am mildly expressed blind.
+Many thanks in advance
+Stephan
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="linux-2.6.14.3.PATCH4"
 
-Index: linux-mm/drivers/pnp/driver.c
-===================================================================
---- linux-mm.orig/drivers/pnp/driver.c	2007-11-30 13:58:25.000000000 -0700
-+++ linux-mm/drivers/pnp/driver.c	2007-12-03 09:58:35.000000000 -0700
-@@ -161,13 +161,6 @@
- 			return error;
- 	}
- 
--	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
--	    pnp_can_disable(pnp_dev)) {
--		error = pnp_stop_dev(pnp_dev);
--		if (error)
--			return error;
--	}
--
- 	if (pnp_dev->protocol && pnp_dev->protocol->suspend)
- 		pnp_dev->protocol->suspend(pnp_dev, state);
- 	return 0;
-@@ -177,7 +170,6 @@
- {
- 	struct pnp_dev *pnp_dev = to_pnp_dev(dev);
- 	struct pnp_driver *pnp_drv = pnp_dev->driver;
--	int error;
- 
- 	if (!pnp_drv)
- 		return 0;
-@@ -185,12 +177,6 @@
- 	if (pnp_dev->protocol && pnp_dev->protocol->resume)
- 		pnp_dev->protocol->resume(pnp_dev);
- 
--	if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
--		error = pnp_start_dev(pnp_dev);
--		if (error)
--			return error;
--	}
--
- 	if (pnp_drv->resume)
- 		return pnp_drv->resume(pnp_dev);
- 
+diff -crN -C 7 linux-2.6.14.3-ORG/drivers/acpi/hardware/hwsleep.c linux-2.6.14.3/drivers/acpi/hardware/hwsleep.c
+*** linux-2.6.14.3-ORG/drivers/acpi/hardware/hwsleep.c	Thu Nov 24 23:10:21 2005
+--- linux-2.6.14.3/drivers/acpi/hardware/hwsleep.c	Thu Dec  6 16:00:51 2007
+***************
+*** 279,292 ****
+--- 279,300 ----
+  				       ACPI_REGISTER_PM1_CONTROL, &PM1Acontrol);
+  	if (ACPI_FAILURE(status)) {
+  		return_ACPI_STATUS(status);
+  	}
+  	ACPI_DEBUG_PRINT((ACPI_DB_INIT,
+  			  "Entering sleep state [S%d]\n", sleep_state));
+  
++ 	{
++ 		volatile int n = 2000, m = 0, i, j, k;
++ 		for (i = 0; i < n; i++)
++ 			for (j = 0; j < n; j++)
++ 				for (k = 0; k < n; k++)
++ 					m = 1 - m;
++ 	}
++ 
+  	/* Clear SLP_EN and SLP_TYP fields */
+  
+  	PM1Acontrol &= ~(sleep_type_reg_info->access_bit_mask |
+  			 sleep_enable_reg_info->access_bit_mask);
+  	PM1Bcontrol = PM1Acontrol;
+  
+  	/* Insert SLP_TYP bits */
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="linux-2.6.17.4.PATCH4"
+
+diff -crN -C 7 linux-2.6.17.4-ORG/drivers/acpi/hardware/hwsleep.c linux-2.6.17.4/drivers/acpi/sleep/hardware/hwsleep.c
+*** linux-2.6.17.4-ORG/drivers/acpi/hardware/hwsleep.c	Thu Jul  6 22:02:28 2006
+--- linux-2.6.17.4/drivers/acpi/hardware/hwsleep.c	Wed Dec  5 16:37:33 2007
+***************
+*** 278,291 ****
+--- 278,299 ----
+  				       ACPI_REGISTER_PM1_CONTROL, &PM1Acontrol);
+  	if (ACPI_FAILURE(status)) {
+  		return_ACPI_STATUS(status);
+  	}
+  	ACPI_DEBUG_PRINT((ACPI_DB_INIT,
+  			  "Entering sleep state [S%d]\n", sleep_state));
+  
++ 	{
++ 		volatile int n = 2000, m = 0, i, j, k;
++ 		for (i = 0; i < n; i++)
++ 			for (j = 0; j < n; j++)
++ 				for (k = 0; k < n; k++)
++ 					m = 1 - m;
++ 	}
++ 
+  	/* Clear SLP_EN and SLP_TYP fields */
+  
+  	PM1Acontrol &= ~(sleep_type_reg_info->access_bit_mask |
+  			 sleep_enable_reg_info->access_bit_mask);
+  	PM1Bcontrol = PM1Acontrol;
+  
+  	/* Insert SLP_TYP bits */
+
+--r5Pyd7+fXNt84Ff3--
