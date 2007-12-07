@@ -1,72 +1,64 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] 2.6.24-rc: fix ACPI battery technology reporting
-Date: Thu, 6 Dec 2007 22:31:01 -0500
-Message-ID: <200712062231.02380.lenb@kernel.org>
-References: <200711102002.56951.arvidjaar@mail.ru> <4737847A.5050702@gmail.com>
+Subject: Re: ACPI power down problem
+Date: Thu, 6 Dec 2007 22:51:01 -0500
+Message-ID: <200712062251.01746.lenb@kernel.org>
+References: <20071207011852.GA2827@sbase.snet>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38749 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:39910 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753099AbXLGDb0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Dec 2007 22:31:26 -0500
-In-Reply-To: <4737847A.5050702@gmail.com>
+	id S1753163AbXLGDvW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Dec 2007 22:51:22 -0500
+In-Reply-To: <20071207011852.GA2827@sbase.snet>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org
+To: Stephan Seidl <stephan.seidl@tu-dresden.de>
+Cc: linux-acpi@vger.kernel.org
 
-applied.
-
-though kmail found it to be impossible to save
-an un-corrupted plain text version of andrezy's message.
-
-should the other string compares be updated like this one?
-
--len
-
-On Sunday 11 November 2007 17:38, Alexey Starikovskiy wrote:
-> Andrey Borzenkov wrote:
-> > Subject: [PATCH] 2.6.24-rc: fix ACPI battery technology reporting
-> > From: Andrey Borzenkov <arvidjaar@mail.ru>
-> >
-> > At least some systems report technology information with trailing spaces:
-> >
-> > {pts/1}% cat -E /var/tmp/bat/2.6.23 | grep type
-> > battery type:            Li-ION  $
-> >
-> > Use strncasecmp to compare model string to skip trailing part
-> >
-> > Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-> >
-> >   
-> Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> > ---
-> >
-> >  drivers/acpi/battery.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> > index c2ce0ad..1905b88 100644
-> > --- a/drivers/acpi/battery.c
-> > +++ b/drivers/acpi/battery.c
-> > @@ -125,7 +125,7 @@ static int acpi_battery_technology(struct acpi_battery 
-> > *battery)
-> >  		return POWER_SUPPLY_TECHNOLOGY_NiMH;
-> >  	if (!strcasecmp("LION", battery->type))
-> >  		return POWER_SUPPLY_TECHNOLOGY_LION;
-> > -	if (!strcasecmp("LI-ION", battery->type))
-> > +	if (!strncasecmp("LI-ION", battery->type, 6))
-> >  		return POWER_SUPPLY_TECHNOLOGY_LION;
-> >  	if (!strcasecmp("LiP", battery->type))
-> >  		return POWER_SUPPLY_TECHNOLOGY_LIPO;
-> >   
+On Thursday 06 December 2007 20:18, Stephan Seidl wrote:
+> Hi,
+> I would like to ask two questions, but firstly some history.
+> Normally Debian Sarge is running with the kernel 2.6.14.3 with several
+> patches and all works fine since Dec 2005. In Jul, 2006, I tried another
+> kernel, 2.6.17.4, again with several patches, and again all worked fine
+> with the exception of the fact that the machine did not switch off the
+> power on `/sbin/shutdown -t5 -h -P now'. So I rejected the kernel
+> 2.6.17.4 hoping that the problems would disappear by itself with the time.
+> But, it did not.
+> In Aug 2007, Debian 4.0 r1 appeared with a kernel 2.6.18..., still
+> having the power down problem. Obviously, the problem has been introduced
+> between 2.6.14.3 and 2.6.17.4 and I am the only who has it. The concerning
+> board can be described by
 > 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   Award Medallion BIOS v6.0, An Energy Star Ally
+>   ASUS P4B ACPI BIOS Revision 1013 Beta 004
+>   Award Plug and Play BIOS Extension v1.0A
 > 
+> This week, to tackle the problem, I addionally applied the patches
+> in the attachment to have the console messages somewhat longer on the screen.
+> I got the same output with the two kernels, 2.6.14.3 and 2.6.17.4, namely
+> 
+>   Power down.
+>   acpi_power_off called
+>    hwsleep-0284 [01] enter_sleep_state     : Entering sleep state [S5]
+> 
+> whereat the line numer 0284 changed to 0283 for 2.6.17.4.
+> What in fact happens after the above has been seen for 20 seconds is that
+> the same machine switches off in case of 2.6.14.3, and wrongly reboots in
+> case of 2.6.17.4. Now the questions, firstly,
+> is that a kernel bug ? From my point of view, yes, it seems to be one.
+> Secondly, if I would more or less stupidly put the debugging into execution,
+> is there anyone who could guide me, because in the ACPI kernel environment,
+
+yes, it is a bug.
+please try linux-2.6.23.stable and see if it still resets on poweroff there.
+
+see if there is any difference when you boot with "maxcpus=1".
+
+cheers,
+-Len
+
