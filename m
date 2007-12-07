@@ -1,64 +1,121 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI power down problem
-Date: Thu, 6 Dec 2007 22:51:01 -0500
-Message-ID: <200712062251.01746.lenb@kernel.org>
-References: <20071207011852.GA2827@sbase.snet>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: RFC: PNP: do not stop/start devices in suspend/resume path
+Date: Fri, 07 Dec 2007 15:13:35 +0800
+Message-ID: <1197011615.21100.1.camel@sli10-desk.sh.intel.com>
+References: <4745F77C.7040402@gmail.com> <47511751.2010707@gmail.com>
+	 <47514CE2.3000600@gmail.com>  <200712051124.18852.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39910 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:61695 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753163AbXLGDvW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Dec 2007 22:51:22 -0500
-In-Reply-To: <20071207011852.GA2827@sbase.snet>
-Content-Disposition: inline
+	id S1751008AbXLGHUt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2007 02:20:49 -0500
+In-Reply-To: <200712051124.18852.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephan Seidl <stephan.seidl@tu-dresden.de>
-Cc: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Len Brown <lenb@kernel.org>
 
-On Thursday 06 December 2007 20:18, Stephan Seidl wrote:
-> Hi,
-> I would like to ask two questions, but firstly some history.
-> Normally Debian Sarge is running with the kernel 2.6.14.3 with several
-> patches and all works fine since Dec 2005. In Jul, 2006, I tried another
-> kernel, 2.6.17.4, again with several patches, and again all worked fine
-> with the exception of the fact that the machine did not switch off the
-> power on `/sbin/shutdown -t5 -h -P now'. So I rejected the kernel
-> 2.6.17.4 hoping that the problems would disappear by itself with the time.
-> But, it did not.
-> In Aug 2007, Debian 4.0 r1 appeared with a kernel 2.6.18..., still
-> having the power down problem. Obviously, the problem has been introduced
-> between 2.6.14.3 and 2.6.17.4 and I am the only who has it. The concerning
-> board can be described by
+
+On Thu, 2007-12-06 at 02:24 +0800, Bjorn Helgaas wrote:
+> Re: warning on suspend-to-RAM caused by
+> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch,
+> thread here: http://lkml.org/lkml/2007/11/22/110
 > 
->   Award Medallion BIOS v6.0, An Energy Star Ally
->   ASUS P4B ACPI BIOS Revision 1013 Beta 004
->   Award Plug and Play BIOS Extension v1.0A
+> On Saturday 01 December 2007 05:00:34 am Jiri Slaby wrote:
+> > I didn't get it. Maybe some trolls poking around or something (maybe
+> the
+> > ext3 breakage which fsck fixed). It works after recompilation of the
+> > whole tree. And the important part -- the warning has gone.
 > 
-> This week, to tackle the problem, I addionally applied the patches
-> in the attachment to have the console messages somewhat longer on the screen.
-> I got the same output with the two kernels, 2.6.14.3 and 2.6.17.4, namely
+> Good.  It's not clear to me whether it is safe to leave devices
+> enabled while we sleep.  I don't see an actual problem, but there
+> might be something related to hotplug while we're asleep or something.
+> So I'll cc: some additional people who might have some insight.
 > 
->   Power down.
->   acpi_power_off called
->    hwsleep-0284 [01] enter_sleep_state     : Entering sleep state [S5]
 > 
-> whereat the line numer 0284 changed to 0283 for 2.6.17.4.
-> What in fact happens after the above has been seen for 20 seconds is that
-> the same machine switches off in case of 2.6.14.3, and wrongly reboots in
-> case of 2.6.17.4. Now the questions, firstly,
-> is that a kernel bug ? From my point of view, yes, it seems to be one.
-> Secondly, if I would more or less stupidly put the debugging into execution,
-> is there anyone who could guide me, because in the ACPI kernel environment,
-
-yes, it is a bug.
-please try linux-2.6.23.stable and see if it still resets on poweroff there.
-
-see if there is any difference when you boot with "maxcpus=1".
-
-cheers,
--Len
-
+> 
+> RFC: PNP: do not stop/start devices in suspend/resume path
+> 
+> Do not disable PNP devices in the suspend path.  We still call
+> the driver's suspend method, which should prevent further use of
+> the device, and the protocol suspend method, which may put the
+> device in a low-power state.
+> 
+> This means we will not disable the device and release its
+> resources.  The driver suspend method typically does not release
+> its resources in the suspend path.  For example, if we have:
+> 
+>   03f8-03ff : 00:06
+>     03f8-03ff : serial
+> 
+> pnp_stop_dev() would release the 00:06 region, which still
+> has a child.  This causes a warning from __release_resource
+> and corrupts /proc/ioports.
+> 
+> However, we should do this the same way Windows does, so if
+> Windows disables devices before going to sleep, we should, too.
+> It doesn't *look* necessary to me because
+> 
+>   - In the ACPI 3.0b spec, I can't find any mention of _DIS in
+>     connection with sleep.  And Device Object Notifications,
+>     Section 5.6.3, Table 5-43, says we should get a bus check
+>     after awakening if hardware was removed while we slept.
+> 
+>     This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
+>     makes a similar point about how the OS re-enumerates devices
+>     as a result of a power state change (3rd last paragraph of
+>     text).
+> 
+>   - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
+>     suggests that Windows only stops a device to rebalance hardware
+>     resources.
+> 
+> [This should go before
+> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+> for best bisect-ability.]
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Index: linux-mm/drivers/pnp/driver.c
+> ===================================================================
+> --- linux-mm.orig/drivers/pnp/driver.c  2007-11-30 13:58:25.000000000
+> -0700
+> +++ linux-mm/drivers/pnp/driver.c       2007-12-03 09:58:35.000000000
+> -0700
+> @@ -161,13 +161,6 @@
+>                         return error;
+>         }
+> 
+> -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
+> -           pnp_can_disable(pnp_dev)) {
+> -               error = pnp_stop_dev(pnp_dev);
+> -               if (error)
+> -                       return error;
+> -       }
+> -
+>         if (pnp_dev->protocol && pnp_dev->protocol->suspend)
+>                 pnp_dev->protocol->suspend(pnp_dev, state);
+>         return 0;
+> @@ -177,7 +170,6 @@
+>  {
+>         struct pnp_dev *pnp_dev = to_pnp_dev(dev);
+>         struct pnp_driver *pnp_drv = pnp_dev->driver;
+> -       int error;
+> 
+>         if (!pnp_drv)
+>                 return 0;
+> @@ -185,12 +177,6 @@
+>         if (pnp_dev->protocol && pnp_dev->protocol->resume)
+>                 pnp_dev->protocol->resume(pnp_dev);
+> 
+> -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
+> -               error = pnp_start_dev(pnp_dev);
+> -               if (error)
+> -                       return error;
+> -       }
+> -
+I'd suggest keep pnp_start_dev here to prevent BIOS not or assign
+different resources after a resume.
