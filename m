@@ -1,124 +1,453 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Recent Lenovo ThinkPads define a dummy grahpics
-	device, find it and ignore it
-Date: Fri, 07 Dec 2007 16:27:52 +0100
-Message-ID: <1197041272.28990.188.camel@queen.suse.de>
-References: <1197032113.28990.155.camel@queen.suse.de>
-Reply-To: trenn@suse.de
+From: Henk Koster <H.A.J.Koster@xs4all.nl>
+Subject: dmidecode output, as requested
+Date: Fri, 7 Dec 2007 18:58:02 +0100
+Message-ID: <200712071858.03017.H.A.J.Koster@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_rmYWHV01Bii5lbo"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:41622 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbXLGP1y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2007 10:27:54 -0500
-In-Reply-To: <1197032113.28990.155.camel@queen.suse.de>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4880 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756785AbXLGSOv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Dec 2007 13:14:51 -0500
+Received: from sid64.local (a82-95-195-55.adsl.xs4all.nl [82.95.195.55])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id lB7Hw3R5051975
+	for <linux-acpi@vger.kernel.org>; Fri, 7 Dec 2007 18:58:03 +0100 (CET)
+	(envelope-from H.A.J.Koster@xs4all.nl)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>
+To: linux-acpi@vger.kernel.org
 
-On Fri, 2007-12-07 at 13:55 +0100, Thomas Renninger wrote:
-> Hi Matthew,
-> 
-> I posted this one already and you had some concerns about it:
-> http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg09510.html
-> 
-> IMO, this one should still be added to -mm, because:
->   - The patch itself is correct, it is the function that is called
->     that must make sure to return the corresponding pci device
-> 
->   - There currently is a bug: Lenovos will register a device for which
->     no physical device exists.
->     
->   - That means on these machines HW is addressed/poked
->     which does not exist -> danger.
-> 
->   - There is no other way to fix up acpi_get_physical_device, than to
->     just do this change (at least I don't see it). People have to
->     complain that their device is not found (the message they see in
->     dmesg is obvious).
->     Then we can make acpi_get_physical_device more robust, which will
->     come out as a benefit for other functionality too sooner or later to
->     be able to rely on getting struct pci in the video (and possibly
->     other) driver(s).
+--Boundary-00=_rmYWHV01Bii5lbo
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I forgot to mention, that not only Lenovos are affected.
-I tested this on an HP Compaq 6715b and the video device is still found.
-I also tested this on a Toshiba Satellite A210 and there the patch is
-also mandatory!
+Please find attached the output of dmidecode after disabling _OSI(Linux), as
+per your request.
 
-There two VGA devices are declared, which results in /proc/acpi/video
-showing *two* "VGA" device entries in the same proc directory.
-Here the hack (drivers/acpi/video.c):
-        /* a hack to fix the duplicate name "VID" problem on T61 */
-        if (!strcmp(device->pnp.bus_id, "VID")) {
-                if (instance)
-                        device->pnp.bus_id[3] = '0' + instance;
-                instance ++;
-        }
-which was written for duplicated Lenovo devices (where BIOS names the
-graphics device "VID") does not help.
-Brightness switching is broken there without this patch and works fine
-with it.
+-- 
+Henk Koster
+"Behavioral axioms are right, but agents make mistakes."
+Attributed to L.J. Savage
 
-Please add it to mm.
-Is that ok with you, Matthew?
 
-    Thomas
 
-> What do you think?
-> 
-> ---------------
-> 
-> 
-> Recent Lenovo ThinkPads define a dummy grahpics device, find it and ignore it
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> 
-> ---
->  drivers/acpi/video.c |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -35,6 +35,7 @@
->  #include <linux/input.h>
->  #include <linux/backlight.h>
->  #include <linux/video_output.h>
-> +#include <linux/acpi.h>
->  #include <asm/uaccess.h>
->  
->  #include <acpi/acpi_bus.h>
-> @@ -1896,6 +1897,21 @@ static int acpi_video_bus_add(struct acp
->  	struct acpi_video_bus *video;
->  	struct input_dev *input;
->  	int error;
-> +	struct device *dev;
-> +
-> +
-> +	/*
-> +	 *	Check whether we have really  a graphics device physically
-> +	 *      in the slot and registered at the system.
-> +	 */
-> +	dev = acpi_get_physical_device(device->handle);
-> +	if (!dev) {
-> +		printk (KERN_DEBUG PREFIX "Video device %s.%s not physically"
-> +			" connected, ignoring\n", acpi_device_bid(device),
-> +			device->parent ? acpi_device_bid(device->parent) : "");
-> +		return -ENODEV;
-> +	}
-> +	put_device(dev);
->  
->  	video = kzalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
->  	if (!video)
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Boundary-00=_rmYWHV01Bii5lbo
+Content-Type: text/plain;
+  charset="us-ascii";
+  name="dmidecode.out"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dmidecode.out"
 
+# dmidecode 2.9
+SMBIOS 2.4 present.
+37 structures occupying 1472 bytes.
+Table at 0x000E7440.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Apple Computer, Inc.
+	Version:     MB11.88Z.0061.B03.0610121324
+	Release Date: 10/12/06
+	ROM Size: 2048 kB
+	Characteristics:
+		PCI is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		ACPI is supported
+		IEEE 1394 boot is supported
+		Smart battery is supported
+		Function key-initiated network boot is supported
+	BIOS Revision: 0.1
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Apple Computer, Inc.
+	Product Name: MacBook1,1
+	Version: 1.0
+	Serial Number: 4H6291CSU9D
+	UUID: 9CFE245E-D0C8-BD45-A79F-54EA5FBD3D97
+	Wake-up Type: Power Switch
+	SKU Number: System SKUNumber
+	Family: Napa Mac
+
+Handle 0x0002, DMI type 2, 16 bytes
+Base Board Information
+	Manufacturer: Apple Computer, Inc.
+	Product Name: Mac-F4208CC8
+	Version: PVT
+	Serial Number: 1
+	Asset Tag: Base Board Asset Tag
+	Features:
+		Board is a hosting board
+		Board is replaceable
+	Location In Chassis: Part Component
+	Chassis Handle: 0x0003
+	Type: Unknown
+	Contained Object Handles: 0
+
+Handle 0x0003, DMI type 3, 21 bytes
+Chassis Information
+	Manufacturer: Apple Computer, Inc.
+	Type: Notebook
+	Lock: Not Present
+	Version: Mac-F4208CC8
+	Serial Number: 4H6291CSU9D
+	Asset Tag: Asset Tag
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Other
+	Security Status: Other
+	OEM Information: 0x00000000
+	Height: Unspecified
+	Number Of Power Cords: Unspecified
+	Contained Elements: 0
+
+Handle 0x0004, DMI type 32, 20 bytes
+System Boot Information
+	Status: No errors detected
+
+Handle 0x0005, DMI type 13, 22 bytes
+BIOS Language Information
+	Installable Languages: 1
+		<BAD INDEX>
+	Currently Installed Language: Not Specified
+
+Handle 0x0106, DMI type 12, 5 bytes
+System Configuration Options
+
+Handle 0x0107, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: DVI
+	External Connector Type: Other
+	Port Type: Video Port
+
+Handle 0x0108, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: USBA
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x0109, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: USBC
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x010A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: 1394A
+	External Connector Type: IEEE 1394
+	Port Type: Firewire (IEEE P1394)
+
+Handle 0x010B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: Audio Out
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x010C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: Microphone
+	External Connector Type: Mini Jack (headphones)
+	Port Type: Audio Port
+
+Handle 0x010D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: None
+	Internal Connector Type: None
+	External Reference Designator: RJ-45
+	External Connector Type: RJ-45
+	Port Type: Network Port
+
+Handle 0x010E, DMI type 9, 13 bytes
+System Slot Information
+	Designation: AirPort
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Short
+	ID: 2
+	Characteristics:
+		3.3 V is provided
+		Hot-plug devices are supported
+		SMBus signal is supported
+
+Handle 0x010F, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description: ATI M56 Video
+
+Handle 0x0110, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Enabled
+	Description: Azalia Audio Codec
+
+Handle 0x0111, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Ethernet
+	Status: Enabled
+	Description: Yukon Ethernet Controller
+
+Handle 0x0112, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Other
+	Status: Enabled
+	Description: SATA
+
+Handle 0x0113, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Other
+	Status: Enabled
+	Description: PATA
+
+Handle 0x0114, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Other
+	Status: Enabled
+	Description: Sudden Motion Sensor
+
+Handle 0x0115, DMI type 136, 6 bytes
+OEM-specific Type
+	Header and Data:
+		88 06 15 01 00 00
+
+Handle 0x0116, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Unknown
+	Manufacturer: Intel(R) Corporation
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU           T
+	Voltage: 1.6 V
+	External Clock: 166 MHz
+	Max Speed: 1830 MHz
+	Current Speed: 1830 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0119
+	L2 Cache Handle: 0x0117
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Unknown
+	Part Number: Not Specified
+
+Handle 0x0117, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 2048 KB
+	Maximum Size: 2048 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Unified
+	Associativity: 8-way Set-associative
+
+Handle 0x0118, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Instruction
+	Associativity: 8-way Set-associative
+
+Handle 0x0119, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Data
+	Associativity: 8-way Set-associative
+
+Handle 0x011A, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Unknown
+	Manufacturer: Intel(R) Corporation
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU           T
+	Voltage: 1.6 V
+	External Clock: 166 MHz
+	Max Speed: 1830 MHz
+	Current Speed: 1830 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x011D
+	L2 Cache Handle: 0x011B
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Unknown
+	Part Number: Not Specified
+
+Handle 0x011B, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 2048 KB
+	Maximum Size: 2048 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Unified
+	Associativity: 8-way Set-associative
+
+Handle 0x011C, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Instruction
+	Associativity: 8-way Set-associative
+
+Handle 0x011D, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: Unknown
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Data
+	Associativity: 8-way Set-associative
+
+Handle 0x011E, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 4 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x011F, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x011E
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM0
+	Bank Locator: BANK 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: 0x2C00000000000000
+	Serial Number: 0xE11325EE
+	Asset Tag: Unknown
+	Part Number: 0x3848544631323836344844592D3636374531
+
+Handle 0x0120, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x011F
+	Memory Array Mapped Address Handle: 0x0123
+	Partition Row Position: 1
+	Interleave Position: 1
+	Interleaved Data Depth: 1
+
+Handle 0x0121, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x011E
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM1
+	Bank Locator: BANK 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: 0x2C00000000000000
+	Serial Number: 0xE11325E9
+	Asset Tag: Unknown
+	Part Number: 0x3848544631323836344844592D3636374531
+
+Handle 0x0122, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0121
+	Memory Array Mapped Address Handle: 0x0123
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 1
+
+Handle 0x0123, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x011E
+	Partition Width: 0
+
+Handle 0xFFFD, DMI type 127, 4 bytes
+End Of Table
+
+
+--Boundary-00=_rmYWHV01Bii5lbo--
