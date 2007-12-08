@@ -1,196 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 9/9] Suspend: Clean up Kconfig (V2)
-Date: Sat, 8 Dec 2007 02:14:00 +0100
-Message-ID: <200712080214.01044.rjw@sisk.pl>
-References: <200712080201.40661.rjw@sisk.pl>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/4] WMI & acer_wmi
+Date: Sat, 8 Dec 2007 01:58:38 +0000
+Message-ID: <200712080158.39349.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38265 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752396AbXLHA4C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2007 19:56:02 -0500
-In-Reply-To: <200712080201.40661.rjw@sisk.pl>
+Received: from slackadelic.com ([65.196.224.53]:33253 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892AbXLHCAL (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 7 Dec 2007 21:00:11 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Russell King <rmk@arm.linux.org.uk>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Mundt <lethal@linux-sh.org>
+To: Linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-From: Johannes Berg <johannes@sipsolutions.net>
+Patch 1: Add ACPI-WMI mapping driver
 
-This cleans up the suspend Kconfig and removes the need to
-declare centrally which architectures support suspend. All
-architectures that currently support suspend are modified
-accordingly.
+Len - unless there are any objections, I would like this patch applied.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Paul Mackerras <paulus@samba.org>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Pavel Machek <pavel@suse.cz>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/arm/Kconfig      |    3 +++
- arch/blackfin/Kconfig |    4 ++++
- arch/frv/Kconfig      |    5 +++++
- arch/mips/Kconfig     |    4 ++++
- arch/powerpc/Kconfig  |    4 ++++
- arch/sh/Kconfig       |    4 ++++
- arch/x86/Kconfig      |    4 ++++
- kernel/power/Kconfig  |   21 +++------------------
- 8 files changed, 31 insertions(+), 18 deletions(-)
 
-Index: linux-2.6/arch/x86/Kconfig
-===================================================================
---- linux-2.6.orig/arch/x86/Kconfig
-+++ linux-2.6/arch/x86/Kconfig
-@@ -119,6 +119,10 @@ config ARCH_HIBERNATION_POSSIBLE
- 	def_bool y
- 	depends on !SMP || !X86_VOYAGER
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on !X86_VOYAGER
-+
- config ZONE_DMA32
- 	bool
- 	default X86_64
-Index: linux-2.6/kernel/power/Kconfig
-===================================================================
---- linux-2.6.orig/kernel/power/Kconfig
-+++ linux-2.6/kernel/power/Kconfig
-@@ -85,7 +85,7 @@ config PM_TRACE_RTC
- config PM_SLEEP_SMP
- 	bool
- 	depends on SMP
--	depends on SUSPEND_SMP_POSSIBLE || ARCH_HIBERNATION_POSSIBLE
-+	depends on ARCH_SUSPEND_POSSIBLE || ARCH_HIBERNATION_POSSIBLE
- 	depends on PM_SLEEP
- 	select HOTPLUG_CPU
- 	default y
-@@ -95,29 +95,14 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
- 
--config SUSPEND_UP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) || PPC || ARM || BLACKFIN || MIPS \
--		   || SUPERH || FRV
--	depends on !SMP
--	default y
--
--config SUSPEND_SMP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) \
--		   || (PPC && (PPC_PSERIES || PPC_PMAC)) || ARM
--	depends on SMP
--	default y
--
- config SUSPEND
- 	bool "Suspend to RAM and standby"
--	depends on PM
--	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
-+	depends on PM && ARCH_SUSPEND_POSSIBLE
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
- 	  powered and thus its contents are preserved, such as the
--	  suspend-to-RAM state (i.e. the ACPI S3 state).
-+	  suspend-to-RAM state (e.g. the ACPI S3 state).
- 
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
-Index: linux-2.6/arch/blackfin/Kconfig
-===================================================================
---- linux-2.6.orig/arch/blackfin/Kconfig
-+++ linux-2.6/arch/blackfin/Kconfig
-@@ -925,6 +925,10 @@ endmenu
- menu "Power management options"
- source "kernel/power/Kconfig"
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on !SMP
-+
- choice
- 	prompt "Select PM Wakeup Event Source"
- 	default PM_WAKEUP_GPIO_BY_SIC_IWR
-Index: linux-2.6/arch/arm/Kconfig
-===================================================================
---- linux-2.6.orig/arch/arm/Kconfig
-+++ linux-2.6/arch/arm/Kconfig
-@@ -977,6 +977,9 @@ menu "Power management options"
- 
- source "kernel/power/Kconfig"
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+
- endmenu
- 
- source "net/Kconfig"
-Index: linux-2.6/arch/mips/Kconfig
-===================================================================
---- linux-2.6.orig/arch/mips/Kconfig
-+++ linux-2.6/arch/mips/Kconfig
-@@ -2046,6 +2046,10 @@ endmenu
- 
- menu "Power management options"
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on !SMP
-+
- source "kernel/power/Kconfig"
- 
- endmenu
-Index: linux-2.6/arch/sh/Kconfig
-===================================================================
---- linux-2.6.orig/arch/sh/Kconfig
-+++ linux-2.6/arch/sh/Kconfig
-@@ -746,6 +746,10 @@ endmenu
- menu "Power management options (EXPERIMENTAL)"
- depends on EXPERIMENTAL && SYS_SUPPORTS_PM
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on !SMP
-+
- source kernel/power/Kconfig
- 
- endmenu
-Index: linux-2.6/arch/frv/Kconfig
-===================================================================
---- linux-2.6.orig/arch/frv/Kconfig
-+++ linux-2.6/arch/frv/Kconfig
-@@ -357,6 +357,11 @@ source "drivers/pcmcia/Kconfig"
- #	  should probably wait a while.
- 
- menu "Power management options"
-+
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on !SMP
-+
- source kernel/power/Kconfig
- endmenu
- 
-Index: linux-2.6/arch/powerpc/Kconfig
-===================================================================
---- linux-2.6.orig/arch/powerpc/Kconfig
-+++ linux-2.6/arch/powerpc/Kconfig
-@@ -155,6 +155,10 @@ config ARCH_HIBERNATION_POSSIBLE
- 	depends on (PPC64 && HIBERNATE_64) || (PPC32 && HIBERNATE_32)
- 	default y
- 
-+config ARCH_SUSPEND_POSSIBLE
-+	def_bool y
-+	depends on ADB_PMU || PPC_EFIKA || PPC_LITE5200
-+
- config PPC_DCR_NATIVE
- 	bool
- 	default n
+Patch 2: Add driver for newer Acer laptops (acer-wmi)
+
+Matthew - I've added both GUID based matching (long term plan - see notes for 
+patch 3 & 4) and WMI based matching (short term - until patch 3 can be 
+applied. Doesn't cover all supported laptops, but should cover the Acer ones 
+at least, which are the greater majority of the acer-wmi supported laptops).
+
+Len - Once any other comments from either Matthew or yourself are addressed, 
+I'd like to get this patch applied.
+
+---
+
+Patch 3: (RFC) Add sysfs userspace interface (to WMI)
+
+I rewrote the sysfs code (again!). Rather than fiddling with kobjects directly 
+(which are in the middle of another big change...) I've switched WMI to a 
+class with virtual devices - each GUID is now its own virtual device, which 
+means we can do matching based on the GUID.
+
+e.g. (this is a real, tested and working example from acer-wmi)
+
+MODULE_ALIAS("wmi:67C3371D-95A3-4C37-BB61-DD47B491DAAB");
+
+Also, each GUID now does _not_ have instance subdirectories (since this would 
+involve more kobject fiddling, which I want to avoid). Instead, I've added 
+two new files, instance_count (reports the number of instances from the GUID 
+entry in _WDG) and instance (the instance we want to execute).
+
+So executing, for example, a method, is now:
+
+write an instance (0 to instance_count) to 'instance' (e.g. 1)
+write a method ID to method (e.g. 1)
+(write input data to 'data' - if there is any input)
+read 'data' to execute and get output from call.
+
+However, this patch is an RFC only - it should _not_ be applied to the ACPI 
+tree, or pushed to -mm/ upstream (see patch #4 for why)
+
+---
+
+Patch 4: Limit device string to 19 characters
+
+Unfortunately, struct device still has a static bus_id array of 20 characters 
+(WMI needs 36 + null termination). Ref Greg KH, Kay Sievers is apparently 
+working on a patch to fix this problem - http://lkml.org/lkml/2007/12/4/30
+
+This patch is just a hack so that you can actually load and test patch #3 
+(although it means the GUID directory names are truncated - however, this 
+will not affect either the autoloading or being able to trigger the methods/ 
+data calls via sysfs).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
