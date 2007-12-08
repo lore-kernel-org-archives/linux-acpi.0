@@ -1,47 +1,117 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 4/9] Hibernation: Fix comment in disk.c
-Date: Sat, 8 Dec 2007 02:06:57 +0100
-Message-ID: <200712080206.58285.rjw@sisk.pl>
+Subject: [PATCH 8/9] Hibernation: Clean up Kconfig (V2)
+Date: Sat, 8 Dec 2007 02:12:39 +0100
+Message-ID: <200712080212.40440.rjw@sisk.pl>
 References: <200712080201.40661.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38249 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:38260 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751825AbXLHAzy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2007 19:55:54 -0500
+	id S1751941AbXLHA4A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2007 19:56:00 -0500
 In-Reply-To: <200712080201.40661.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: Pavel Machek <pavel@suse.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Paul Mackerras <paulus@samba.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Fix a comment in kernel/power/disk.c so that it doesn't contain lines
-longer that 80 characters.
+This cleans up the hibernation Kconfig and removes the need to
+declare centrally which architectures support hibernation. All
+architectures that currently support hibernation are modified
+accordingly.
 
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: Paul Mackerras <paulus@samba.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- kernel/power/disk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/Kconfig |   14 ++++++++++++--
+ arch/x86/Kconfig     |    4 +++-
+ kernel/power/Kconfig |   18 +++---------------
+ 3 files changed, 18 insertions(+), 18 deletions(-)
 
-Index: linux-2.6/kernel/power/disk.c
+Index: linux-2.6/arch/powerpc/Kconfig
 ===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -568,8 +568,8 @@ static int software_resume(void)
+--- linux-2.6.orig/arch/powerpc/Kconfig
++++ linux-2.6/arch/powerpc/Kconfig
+@@ -140,9 +140,19 @@ config DEFAULT_UIMAGE
+ 	  Used to allow a board to specify it wants a uImage built by default
+ 	default n
  
- 	if (noresume) {
- 		/**
--		 * FIXME: If noresume is specified, we need to find the partition
--		 * and reset it back to normal swap space.
-+		 * FIXME: If noresume is specified, we need to find the
-+		 * partition and reset it back to normal swap space.
- 		 */
- 		mutex_unlock(&pm_mutex);
- 		return 0;
+-config PPC64_SWSUSP
++config HIBERNATE_32
+ 	bool
+-	depends on PPC64 && (BROKEN || (PPC_PMAC64 && EXPERIMENTAL))
++	depends on (PPC_PMAC && !SMP) || BROKEN
++	default y
++
++config HIBERNATE_64
++	bool
++	depends on BROKEN || (PPC_PMAC64 && EXPERIMENTAL)
++	default y
++
++config ARCH_HIBERNATION_POSSIBLE
++	bool
++	depends on (PPC64 && HIBERNATE_64) || (PPC32 && HIBERNATE_32)
+ 	default y
+ 
+ config PPC_DCR_NATIVE
+Index: linux-2.6/kernel/power/Kconfig
+===================================================================
+--- linux-2.6.orig/kernel/power/Kconfig
++++ linux-2.6/kernel/power/Kconfig
+@@ -84,7 +84,8 @@ config PM_TRACE_RTC
+ 
+ config PM_SLEEP_SMP
+ 	bool
+-	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
++	depends on SMP
++	depends on SUSPEND_SMP_POSSIBLE || ARCH_HIBERNATION_POSSIBLE
+ 	depends on PM_SLEEP
+ 	select HOTPLUG_CPU
+ 	default y
+@@ -118,22 +119,9 @@ config SUSPEND
+ 	  powered and thus its contents are preserved, such as the
+ 	  suspend-to-RAM state (i.e. the ACPI S3 state).
+ 
+-config HIBERNATION_UP_POSSIBLE
+-	bool
+-	depends on X86 || PPC64_SWSUSP || PPC32
+-	depends on !SMP
+-	default y
+-
+-config HIBERNATION_SMP_POSSIBLE
+-	bool
+-	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
+-	depends on SMP
+-	default y
+-
+ config HIBERNATION
+ 	bool "Hibernation (aka 'suspend to disk')"
+-	depends on PM && SWAP
+-	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
++	depends on PM && SWAP && ARCH_HIBERNATION_POSSIBLE
+ 	---help---
+ 	  Enable the suspend to disk (STD) functionality, which is usually
+ 	  called "hibernation" in user interfaces.  STD checkpoints the
+Index: linux-2.6/arch/x86/Kconfig
+===================================================================
+--- linux-2.6.orig/arch/x86/Kconfig
++++ linux-2.6/arch/x86/Kconfig
+@@ -115,7 +115,9 @@ config GENERIC_TIME_VSYSCALL
+ config ARCH_SUPPORTS_OPROFILE
+ 	bool
+ 	default y
+-
++config ARCH_HIBERNATION_POSSIBLE
++	def_bool y
++	depends on !SMP || !X86_VOYAGER
+ 
+ config ZONE_DMA32
+ 	bool
