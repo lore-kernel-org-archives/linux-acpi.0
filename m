@@ -1,41 +1,38 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: Asus A6Rp /proc/acpi/dsdt
-Date: Sun, 9 Dec 2007 11:52:51 +0100
-Message-ID: <200712091152.51124.corentincj@iksaif.net>
-References: <68f45f2e0711050419v516190f9s9315721b308e3ef3@mail.gmail.com>
+Subject: Re: [patch 4/4] acpi4asus: add support for F3Sa
+Date: Sun, 9 Dec 2007 11:52:31 +0100
+Message-ID: <200712091152.31782.corentincj@iksaif.net>
+References: <200711212250.lALMoAi8013069@imap1.linux-foundation.org>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:57270 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:57271 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032AbXLILCK convert rfc822-to-8bit (ORCPT
+	id S1751101AbXLILCK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 06:02:10 -0500
-In-Reply-To: <68f45f2e0711050419v516190f9s9315721b308e3ef3@mail.gmail.com>
+In-Reply-To: <200711212250.lALMoAi8013069@imap1.linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Pugachev <alexander.pugachev@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, kronos.it@gmail.com, sziwan@users.sourceforge.net
 
-Le Monday 05 November 2007 13:19:20 Alexander Pugachev, vous avez =E9cr=
-it=A0:
-> Hello.
-> I see in dmesg output this lines:
+Le Wednesday 21 November 2007 23:50:10 akpm@linux-foundation.org, vous =
+avez=20
+=E9crit=A0:
+> From: Luca Tettamanti <kronos.it@gmail.com>
 >
-> [   34.680000] Asus Laptop ACPI Extras version 0.30
-> [   34.680000]   BSTS called, 0x7f returned
-> [   34.680000]   unsupported model A6Rp, trying default values
-> [   34.680000]   send /proc/acpi/dsdt to the developers
->
-> I googled around, and looks like this is correct address to send dsdt=
-=2E
-> It is attached.
-> Please contact me if I can help you. CC me, because I am not
-> subscribed to this list.
+> Add support for ASUS F3Sa notebook. Features:
+> - LCD on/off
+> - Brightness
+> - Wifi kill
+> - Bluetooth kill
+ I don't think it's a good idea to add features to the old driver. We s=
+hould=20
+improve the new driver instead ..
 
-use asus-laptop driver instead ;)
 
 --=20
 CHARY 'Iksaif' Corentin
