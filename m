@@ -1,226 +1,126 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: Re: 2.6.24-rc4-git5: Reported regressions from 2.6.23
-Date: Sun, 9 Dec 2007 22:36:42 +0100
-Message-ID: <20071209213642.GA27096@rhlx01.hs-esslingen.de>
-References: <fa.qQhD8aJpiTOFaZqjRYwoaG7YT1c@ifi.uio.no> <fa.yaP86AixGhz5Q7eXSu04pIQp6ho@ifi.uio.no> <fa.c3k8VKWAx4HIo9zXWbL5Ek0oSBw@ifi.uio.no> <fa.C8ACnOhs8bXB++vmugf5F34JcJg@ifi.uio.no> <fa.5o6E6S0UWnARbQPxLe30TvLQIiY@ifi.uio.no> <475AE150.9050306@shaw.ca>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Date: Sun, 9 Dec 2007 23:04:31 +0100
+Message-ID: <20071209220430.GK20441@stusta.de>
+References: <20071204215154.7f26285e.mikeserv@bmts.com> <20071209000554.GF20441@stusta.de> <20071208212234.e00b74cd.mikeserv@bmts.com> <20071209105028.06ed52a6@hyperion.delvare> <E1J1TRp-0000ZF-6J@asgard.prans.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:52413 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751471AbXLIWEd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 17:04:33 -0500
 Content-Disposition: inline
-In-Reply-To: <475AE150.9050306@shaw.ca>
-Sender: linux-ide-owner@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-ide@vger.kernel.org, Tejun Heo <htejun@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <E1J1TRp-0000ZF-6J@asgard.prans.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Elvis Pranskevichus <el@prans.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Mike Houston <mikeserv@bmts.com>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, Dec 09, 2007 at 04:12:25PM -0500, Elvis Pranskevichus wrote:
+> Jean Delvare wrote:
+> 
+> > Hi Mike,
+> > 
+> > On Sat, 8 Dec 2007 21:22:34 -0500, Mike Houston wrote:
+> >> On Sun, 9 Dec 2007 01:05:54 +0100
+> >> Adrian Bunk <bunk@stusta.de> wrote:
+> >> 
+> >> > On Tue, Dec 04, 2007 at 09:51:54PM -0500, Mike Houston wrote:
+> >> > > I finally got around to testing Linux 2.6.24 (2.6.24-rc4) and
+> >> > > found that the it87 driver fails to probe and consequently, my
+> >> > > sensors no longer work. This was fine with Linux 2.6.23.8 (the
+> >> > > last kernel I was using)
+> >> > > 
+> >> > > The necessary modules load, but:
+> >> > > 
+> >> > > it87: Found IT8718F chip at 0x290, revision 2
+> >> > > it87: in3 is VCC (+5V)
+> >> > > it87 it87.656: Failed to request region 0x290-0x297
+> >> > > it87: probe of it87.656 failed with error -16
+> >> > > 
+> >> > > Coretemp still works.
+> >> > > 
+> >> > > It appears it has something to do with the ioport range being
+> >> > > reserved for some reason:
+> >> > > 
+> >> > > system 00:01: ioport range 0x290-0x29f has been reserved
+> >> 
+> >> > 
+> >> > Thanks for your report.
+> >> > 
+> >> > Please also provide:
+> >> > - dmesg from 2.6.23.8
+> >> > - The output of "cat /proc/ioports" for both kernels
+> >> 
+> >> Thanks Adrian, here is the information you have requested, for
+> >> both kernels (I have 2.6.23.9 now though where it87 still works)
+> >> 
+> >> Linux 2.6.23.9:
+> >> http://www.mikeserv.com/temp/proc_ioports-2.6.23.9.txt
+> >> http://www.mikeserv.com/temp/dmesg-2.6.23.9.txt
+> >> http://www.mikeserv.com/temp/config-2.6.23.9.txt
+> >> 
+> >> Linux 2.6.24-rc4:
+> >> http://www.mikeserv.com/temp/proc_ioports-2.6.24-rc4.txt
+> >> http://www.mikeserv.com/temp/dmesg-2.6.24-rc4.txt
+> > 
+> > This one shows:
+> > 
+> > system 00:01: ioport range 0x290-0x29f has been reserved
+> > (...)
+> > system 00:01: ioport range 0x290-0x294 has been reserved
+> > 
+> > This is clearly not correct as both areas overlap. The second
+> > reservation is responsible for the it87 breakage, because it conflicts
+> > with what the it87 driver later attempts to request (0x290-0x297). The
+> > first is wrong as well (the IT87xxF environment controller I/O area is
+> > 8 port wide, not 16) but shouldn't be a problem in practice.
+> > 
+> > These port reservations weren't happening in 2.6.23.9 according to your
+> > dmesg output for that kernel. I don't know what changed in this area
+> > since 2.6.23.9, maybe Bjorn or Adam (Cc'd) can tell.
+> > 
+> 
+> Hi,
+> 
+> I have exactly the same problem here on a Gigabyte GA-965G-DS3 motherboard
+> based box:
+> 
+> it87: Found IT8718F chip at 0x290, revision 1
+> it87: in3 is VCC (+5V)
+> it87 it87.656: Failed to request region 0x290-0x297
+> it87: probe of it87.656 failed with error -16
+> 
+> git bisecting revealed the offending commit:
+> 
+> a7839e960675b54: PNP: increase the maximum number of resources
+> 
+> Happened between rc3 and rc4.
 
-[ACPI _GTM suspend issue sorta fixed, read below]
+Thanks for doing the work of bisecting!
 
-On Sat, Dec 08, 2007 at 12:24:16PM -0600, Robert Hancock wrote:
-> Matthew Garrett wrote:
->> On Sat, Dec 08, 2007 at 02:20:01AM -0800, Andrew Morton wrote:
->>> On Sat, 8 Dec 2007 11:12:57 +0100 Andreas Mohr <andi@lisas.de> wrote:
->>>> ACPI Exception (exoparg2-0442): AE_AML_PACKAGE_LIMIT, Index (0FFFFFFFF) is beyond end of object [20070126]
->>>> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.GTF_] (Node c180b990), AE_AML_PACKAGE_LIMIT
->>>> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV1._GTF] (Node c180b888), AE_AML_PACKAGE_LIMIT
->>>> ata1.01: _GTF evaluation failed (AE 0x300d)
->>
->> 037f6bb79f753c014bc84bca0de9bf98bb5ab169 ought to have fixed this?
->>
->
-> I should think it should have.
+> > Either way, the overlapping areas smell like a BIOS bug, meaning that
+> > you should look for an updated BIOS for your system first.
+> > 
+> >> http://www.mikeserv.com/temp/config-2.6.24-rc4.txt
+> > 
+> 
+> This indeed looks like a broken ACPI BIOS since the aforementioned commit
+> touches only the PNP ACPI driver. I'm not sure how to work around this,
+> though. Ideas?
 
-Yup, the _GTF problem is certainly fixed, but this is a dead-end
-since I showed the -rc1 vs. -rc2 behaviour, whereas I still have
-failing suspend in -rc4 with this patch confirmed to be applied
-(source does contain the changes) and confirmed to apparently be working
-(no errors in dmesg any more).
+People responsible for this commit + ACPI maintainer added to Cc.
 
-IOW, what I'm concerned about is not a _GTF error on boot any more,
-but a seemingly fatally handled _GTM error on suspend.
+>           Elvis
 
+cu
+Adrian
 
-...OK, dug some more into this, and now I managed to get it to work,
-and it was indeed _GTM which broke my whole suspend:
+-- 
 
-Since _GTM is failing on me (and the point is, it's failing
-catastrophically, not "normally"!), ata_acpi_on_suspend()
-calling ata_acpi_gtm() fails with -EINVAL instead of -ENOENT,
-however ata_acpi_on_suspend() has the following correction only:
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-        if (rc == -ENOENT)
-                rc = 0;
-
-to make sure a suspend doesn't get aborted (fatal error) when
-_GTM is simply empty.
-
-Changing this into
-
-        if ((rc == -ENOENT) || (rc == -EINVAL))
-                rc = 0;
-
-to additionally account for _invalid_ _GTM execution makes my suspend
-(and resume!) work again on -rc4.
-
-
-Now the question is whether this error code correction is ok, or whether a
-catastrophically failing _GTM should have been truly registered on boot
-already (where it does gtm to fetch cable timings) to subsequently avoid
-doing any ATA ACPI things on suspend at all.
-
-
-And the second, possibly much more lucrative, question would be
-whether we're actually doing something wrong with our ACPI _GTM execution
-which triggers the AE_AML_PACKAGE_LIMIT problem.
-
-This might help here, perhaps (relevant snippets of AML dump):
-
-                Device (CHN0)
-                {
-                    Name (_ADR, 0x00)
-                    Method (_GTM, 0, NotSerialized)
-                    {
-                        Return (GTM (PMPT, PMUE, PMUT, PSPT, PSUE, PSUT))
-                    }
-
-                    Method (_STM, 3, NotSerialized)
-                    {
-                        Store (Arg0, TMD0)
-                        Store (PMPT, GMPT)
-                        Store (PMUE, GMUE)
-                        Store (PMUT, GMUT)
-                        Store (PSPT, GSPT)
-                        Store (PSUE, GSUE)
-                        Store (PSUT, GSUT)
-                        STM ()
-                        Store (GMPT, PMPT)
-                        Store (GMUE, PMUE)
-                        Store (GMUT, PMUT)
-                        Store (GSPT, PSPT)
-                        Store (GSUE, PSUE)
-                        Store (GSUT, PSUT)
-                    }
-
-                Device (CHN1)
-                {
-                    Name (_ADR, 0x01)
-                    Method (_GTM, 0, NotSerialized)
-                    {
-                        Return (GTM (SMPT, SMUE, SMUT, SSPT, SSUE, SSUT))
-                    }
-
-                    Method (_STM, 3, NotSerialized)
-                    {
-                        Store (Arg0, TMD0)
-                        Store (SMPT, GMPT)
-                        Store (SMUE, GMUE)
-                        Store (SMUT, GMUT)
-                        Store (SSPT, GSPT)
-                        Store (SSUE, GSUE)
-                        Store (SSUT, GSUT)
-                        STM ()
-                        Store (GMPT, SMPT)
-                        Store (GMUE, SMUE)
-                        Store (GMUT, SMUT)
-                        Store (GSPT, SSPT)
-                        Store (GSUE, SSUE)
-                        Store (GSUT, SSUT)
-                    }
-
-
-                Method (GTM, 6, Serialized)
-                {
-                    Store (Ones, PIO0)
-                    Store (Ones, PIO1)
-                    Store (Ones, DMA0)
-                    Store (Ones, DMA1)
-                    Store (0x10, CHNF)
-                    If (REGF) {}
-                    Else
-                    {
-                        Return (TMD0)
-                    }
-
-                    Store (Match (DerefOf (Index (TIM0, 0x01)), MEQ, Arg0, MTR,
-                        0x00, 0x00), Local6)
-                    Store (DerefOf (Index (DerefOf (Index (TIM0, 0x00)), Local6)
-),
-                        Local7)
-                    Store (Local7, DMA0)
-                    Store (Local7, PIO0)
-                    Store (Match (DerefOf (Index (TIM0, 0x01)), MEQ, Arg3, MTR,
-                        0x00, 0x00), Local6)
-                    Store (DerefOf (Index (DerefOf (Index (TIM0, 0x00)), Local6)
-),
-                        Local7)
-                    Store (Local7, DMA1)
-                    Store (Local7, PIO1)
-                    If (Arg1)
-                    {
-                        If (A133 ())
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0D)),
- Arg2)),
-                                Local5)
-                        }
-                        Else
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0A)),
- Arg2)),
-                                Local5)
-                        }
-
-                        If (A133 ())
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0C)),
- Local5)),
-                                DMA0)
-                        }
-                        Else
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x04)),
- Local5)),
-                                DMA0)
-                        }
-
-                        Or (CHNF, 0x01, CHNF)
-                    }
-
-                    If (Arg4)
-                    {
-                        If (A133 ())
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0D)), Arg5)),
-                                Local5)
-                        }
-                        Else
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0A)), Arg5)),
-                                Local5)
-                        }
-
-                        If (A133 ())
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0C)), Local5)),
-                                DMA1)
-                        }
-                        Else
-                        {
-                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x04)), Local5)),
-                                DMA1)
-                        }
-
-                        Or (CHNF, 0x04, CHNF)
-                    }
-
-                    Return (TMD0)
-                }
-
-
-Reminder: issue tracked at #9530.
-
-
-Thanks,
-
-Andreas Mohr
