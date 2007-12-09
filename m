@@ -1,26 +1,226 @@
 From: Andreas Mohr <andi@lisas.de>
 Subject: Re: 2.6.24-rc4-git5: Reported regressions from 2.6.23
-Date: Sun, 9 Dec 2007 20:59:21 +0100
-Message-ID: <20071209195921.GA13185@rhlx01.hs-esslingen.de>
-References: <200712080340.49546.rjw@sisk.pl> <20071208013631.3147986a.akpm@linux-foundation.org> <20071208101256.GA25807@rhlx01.hs-esslingen.de> <20071208022001.155e0c52.akpm@linux-foundation.org> <20071208105557.GA27646@rhlx01.hs-esslingen.de> <475C0DF1.50108@gmail.com>
+Date: Sun, 9 Dec 2007 22:36:42 +0100
+Message-ID: <20071209213642.GA27096@rhlx01.hs-esslingen.de>
+References: <fa.qQhD8aJpiTOFaZqjRYwoaG7YT1c@ifi.uio.no> <fa.yaP86AixGhz5Q7eXSu04pIQp6ho@ifi.uio.no> <fa.c3k8VKWAx4HIo9zXWbL5Ek0oSBw@ifi.uio.no> <fa.C8ACnOhs8bXB++vmugf5F34JcJg@ifi.uio.no> <fa.5o6E6S0UWnARbQPxLe30TvLQIiY@ifi.uio.no> <475AE150.9050306@shaw.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <475C0DF1.50108@gmail.com>
+In-Reply-To: <475AE150.9050306@shaw.ca>
 Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-ide@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Robert Hancock <hancockr@shaw.ca>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-ide@vger.kernel.org, Tejun Heo <htejun@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-On Mon, Dec 10, 2007 at 12:46:57AM +0900, Tejun Heo wrote:
-> Please post full kernel boot log and the result of 'lspci -nn'.
+[ACPI _GTM suspend issue sorta fixed, read below]
 
-Done, on #9530.
+On Sat, Dec 08, 2007 at 12:24:16PM -0600, Robert Hancock wrote:
+> Matthew Garrett wrote:
+>> On Sat, Dec 08, 2007 at 02:20:01AM -0800, Andrew Morton wrote:
+>>> On Sat, 8 Dec 2007 11:12:57 +0100 Andreas Mohr <andi@lisas.de> wrote:
+>>>> ACPI Exception (exoparg2-0442): AE_AML_PACKAGE_LIMIT, Index (0FFFFFFFF) is beyond end of object [20070126]
+>>>> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.GTF_] (Node c180b990), AE_AML_PACKAGE_LIMIT
+>>>> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV1._GTF] (Node c180b888), AE_AML_PACKAGE_LIMIT
+>>>> ata1.01: _GTF evaluation failed (AE 0x300d)
+>>
+>> 037f6bb79f753c014bc84bca0de9bf98bb5ab169 ought to have fixed this?
+>>
+>
+> I should think it should have.
 
-Will try some of the promising patches/suggestions now, hopefully this will
-show me what's up. Will add further results there.
+Yup, the _GTF problem is certainly fixed, but this is a dead-end
+since I showed the -rc1 vs. -rc2 behaviour, whereas I still have
+failing suspend in -rc4 with this patch confirmed to be applied
+(source does contain the changes) and confirmed to apparently be working
+(no errors in dmesg any more).
+
+IOW, what I'm concerned about is not a _GTF error on boot any more,
+but a seemingly fatally handled _GTM error on suspend.
+
+
+...OK, dug some more into this, and now I managed to get it to work,
+and it was indeed _GTM which broke my whole suspend:
+
+Since _GTM is failing on me (and the point is, it's failing
+catastrophically, not "normally"!), ata_acpi_on_suspend()
+calling ata_acpi_gtm() fails with -EINVAL instead of -ENOENT,
+however ata_acpi_on_suspend() has the following correction only:
+
+        if (rc == -ENOENT)
+                rc = 0;
+
+to make sure a suspend doesn't get aborted (fatal error) when
+_GTM is simply empty.
+
+Changing this into
+
+        if ((rc == -ENOENT) || (rc == -EINVAL))
+                rc = 0;
+
+to additionally account for _invalid_ _GTM execution makes my suspend
+(and resume!) work again on -rc4.
+
+
+Now the question is whether this error code correction is ok, or whether a
+catastrophically failing _GTM should have been truly registered on boot
+already (where it does gtm to fetch cable timings) to subsequently avoid
+doing any ATA ACPI things on suspend at all.
+
+
+And the second, possibly much more lucrative, question would be
+whether we're actually doing something wrong with our ACPI _GTM execution
+which triggers the AE_AML_PACKAGE_LIMIT problem.
+
+This might help here, perhaps (relevant snippets of AML dump):
+
+                Device (CHN0)
+                {
+                    Name (_ADR, 0x00)
+                    Method (_GTM, 0, NotSerialized)
+                    {
+                        Return (GTM (PMPT, PMUE, PMUT, PSPT, PSUE, PSUT))
+                    }
+
+                    Method (_STM, 3, NotSerialized)
+                    {
+                        Store (Arg0, TMD0)
+                        Store (PMPT, GMPT)
+                        Store (PMUE, GMUE)
+                        Store (PMUT, GMUT)
+                        Store (PSPT, GSPT)
+                        Store (PSUE, GSUE)
+                        Store (PSUT, GSUT)
+                        STM ()
+                        Store (GMPT, PMPT)
+                        Store (GMUE, PMUE)
+                        Store (GMUT, PMUT)
+                        Store (GSPT, PSPT)
+                        Store (GSUE, PSUE)
+                        Store (GSUT, PSUT)
+                    }
+
+                Device (CHN1)
+                {
+                    Name (_ADR, 0x01)
+                    Method (_GTM, 0, NotSerialized)
+                    {
+                        Return (GTM (SMPT, SMUE, SMUT, SSPT, SSUE, SSUT))
+                    }
+
+                    Method (_STM, 3, NotSerialized)
+                    {
+                        Store (Arg0, TMD0)
+                        Store (SMPT, GMPT)
+                        Store (SMUE, GMUE)
+                        Store (SMUT, GMUT)
+                        Store (SSPT, GSPT)
+                        Store (SSUE, GSUE)
+                        Store (SSUT, GSUT)
+                        STM ()
+                        Store (GMPT, SMPT)
+                        Store (GMUE, SMUE)
+                        Store (GMUT, SMUT)
+                        Store (GSPT, SSPT)
+                        Store (GSUE, SSUE)
+                        Store (GSUT, SSUT)
+                    }
+
+
+                Method (GTM, 6, Serialized)
+                {
+                    Store (Ones, PIO0)
+                    Store (Ones, PIO1)
+                    Store (Ones, DMA0)
+                    Store (Ones, DMA1)
+                    Store (0x10, CHNF)
+                    If (REGF) {}
+                    Else
+                    {
+                        Return (TMD0)
+                    }
+
+                    Store (Match (DerefOf (Index (TIM0, 0x01)), MEQ, Arg0, MTR,
+                        0x00, 0x00), Local6)
+                    Store (DerefOf (Index (DerefOf (Index (TIM0, 0x00)), Local6)
+),
+                        Local7)
+                    Store (Local7, DMA0)
+                    Store (Local7, PIO0)
+                    Store (Match (DerefOf (Index (TIM0, 0x01)), MEQ, Arg3, MTR,
+                        0x00, 0x00), Local6)
+                    Store (DerefOf (Index (DerefOf (Index (TIM0, 0x00)), Local6)
+),
+                        Local7)
+                    Store (Local7, DMA1)
+                    Store (Local7, PIO1)
+                    If (Arg1)
+                    {
+                        If (A133 ())
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0D)),
+ Arg2)),
+                                Local5)
+                        }
+                        Else
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0A)),
+ Arg2)),
+                                Local5)
+                        }
+
+                        If (A133 ())
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0C)),
+ Local5)),
+                                DMA0)
+                        }
+                        Else
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x04)),
+ Local5)),
+                                DMA0)
+                        }
+
+                        Or (CHNF, 0x01, CHNF)
+                    }
+
+                    If (Arg4)
+                    {
+                        If (A133 ())
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0D)), Arg5)),
+                                Local5)
+                        }
+                        Else
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0A)), Arg5)),
+                                Local5)
+                        }
+
+                        If (A133 ())
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x0C)), Local5)),
+                                DMA1)
+                        }
+                        Else
+                        {
+                            Store (DerefOf (Index (DerefOf (Index (TIM0, 0x04)), Local5)),
+                                DMA1)
+                        }
+
+                        Or (CHNF, 0x04, CHNF)
+                    }
+
+                    Return (TMD0)
+                }
+
+
+Reminder: issue tracked at #9530.
+
+
+Thanks,
 
 Andreas Mohr
