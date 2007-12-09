@@ -1,76 +1,45 @@
-From: Borislav Petkov <bbpetkov@yahoo.de>
-Subject: Re: 2.6.24-rc4-mm1: acpi reboots machine
-Date: Sun, 9 Dec 2007 10:19:47 +0100
-Message-ID: <20071209091946.GA4501@gollum.tnic>
-References: <20071209075001.GA4686@gollum.tnic>
-Reply-To: bbpetkov@yahoo.de
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: Re: Asus A6Rp /proc/acpi/dsdt
+Date: Sun, 9 Dec 2007 11:52:51 +0100
+Message-ID: <200712091152.51124.corentincj@iksaif.net>
+References: <68f45f2e0711050419v516190f9s9315721b308e3ef3@mail.gmail.com>
+Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp101.plus.mail.re1.yahoo.com ([69.147.102.64]:28324 "HELO
-	smtp101.plus.mail.re1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751723AbXLIJVA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 04:21:00 -0500
+Received: from iksaif.dns26.com ([84.246.226.15]:57270 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751032AbXLILCK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 06:02:10 -0500
+In-Reply-To: <68f45f2e0711050419v516190f9s9315721b308e3ef3@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20071209075001.GA4686@gollum.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexander Pugachev <alexander.pugachev@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, Dec 09, 2007 at 08:50:02AM +0100, Borislav Petkov wrote:
-> Hi Andrew,
-> Hi Len,
->=20
-> after booting 2.6.24-rc4-mm1 (2.6.24-rc4-190-g94545ba, otoh, boots ju=
-st
-> fine) on my asus laptop, the machine reboots after claiming that
-> "Critical temperature reached (255 C)." However, the degrees number
-> is kinda hinting at 0xff all-ones field. Will try dump_stack in
-> acpi_thermal_critical() to checkout the call path. For now here's the=
- netconsole bootlog:
+Le Monday 05 November 2007 13:19:20 Alexander Pugachev, vous avez =E9cr=
+it=A0:
+> Hello.
+> I see in dmesg output this lines:
+>
+> [   34.680000] Asus Laptop ACPI Extras version 0.30
+> [   34.680000]   BSTS called, 0x7f returned
+> [   34.680000]   unsupported model A6Rp, trying default values
+> [   34.680000]   send /proc/acpi/dsdt to the developers
+>
+> I googled around, and looks like this is correct address to send dsdt=
+=2E
+> It is attached.
+> Please contact me if I can help you. CC me, because I am not
+> subscribed to this list.
 
-Here's what i got so far:
+use asus-laptop driver instead ;)
 
-[   50.287939] Pid: 1, comm: swapper Not tainted 2.6.24-rc4-mm1 #14
-[   50.287999]  [<c0104b65>] show_trace_log_lvl+0x12/0x25
-[   50.288103]  [<c01053e7>] show_trace+0xd/0x10
-[   50.288202]  [<c0105a6c>] dump_stack+0x57/0x5f
-[   50.288303]  [<c021c991>] acpi_thermal_check+0x150/0x3bb
-[   50.288415]  [<c021d4b3>] acpi_thermal_add+0x261/0x2cf
-[   50.288515]  [<c0213549>] acpi_device_probe+0x3e/0xdb
-[   50.288615]  [<c023f8f5>] driver_probe_device+0xaf/0x12a
-[   50.288717]  [<c023fa88>] __driver_attach+0x6c/0xa5
-[   50.288817]  [<c023ee5a>] bus_for_each_dev+0x3e/0x60
-[   50.288916]  [<c023f77d>] driver_attach+0x14/0x16
-[   50.289015]  [<c023f5a6>] bus_add_driver+0xa6/0x1a8
-[   50.289114]  [<c023fc53>] driver_register+0x42/0x47
-[   50.289214]  [<c02138c2>] acpi_bus_register_driver+0x3a/0x3c
-[   50.289316]  [<c044306b>] acpi_thermal_init+0x57/0x76
-[   50.289424]  [<c04344a7>] kernel_init+0x138/0x280
-[   50.289525]  [<c01047df>] kernel_thread_helper+0x7/0x10
-[   50.289625]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
-[   50.289680] ACPI: Critical trip point
-[   50.289736] Critical temperature reached (255 C), shutting down.
-
-so in acpi_thermal_get_temperature() called in acpi_thermal_add() the
-tz->temperature thingy is not set properly (printk's added):
-
-[   50.276607] Old temp: 4294967023
-[   50.281890] Got temp: 255
-[   50.282567] Old temp: 255
-[   50.287882] Got temp: 255
-
-What's also strange is that the tz acpi_thermal is alloc'd with kzalloc=
- and
-there's still garbage in it after reading it in acpi_thermal_get_temper=
-ature()
-for the first time. Debugging continues...
 --=20
-Regards/Gru=DF,
-    Boris.
+CHARY 'Iksaif' Corentin
+http://xf.iksaif.net
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
