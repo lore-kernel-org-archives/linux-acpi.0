@@ -1,53 +1,47 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: Re: 2.6.24-rc4-git5: Reported regressions from 2.6.23
-Date: Mon, 10 Dec 2007 01:04:31 +0100
-Message-ID: <20071210000429.GA3916@rhlx01.hs-esslingen.de>
-References: <fa.qQhD8aJpiTOFaZqjRYwoaG7YT1c@ifi.uio.no> <fa.yaP86AixGhz5Q7eXSu04pIQp6ho@ifi.uio.no> <fa.c3k8VKWAx4HIo9zXWbL5Ek0oSBw@ifi.uio.no> <fa.C8ACnOhs8bXB++vmugf5F34JcJg@ifi.uio.no> <fa.5o6E6S0UWnARbQPxLe30TvLQIiY@ifi.uio.no> <475AE150.9050306@shaw.ca> <20071209213642.GA27096@rhlx01.hs-esslingen.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: suspend to RAM failure on t61p
+Date: Sun, 9 Dec 2007 16:40:53 -0800
+Message-ID: <20071209164053.fc8ceabb.akpm@linux-foundation.org>
+References: <20071209011928.c9873c66.akpm@linux-foundation.org>
+	<475BE227.2040003@dbservice.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:44487 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126AbXLJAEg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 19:04:36 -0500
-Content-Disposition: inline
-In-Reply-To: <20071209213642.GA27096@rhlx01.hs-esslingen.de>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43983 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751136AbXLJAk6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Dec 2007 19:40:58 -0500
+In-Reply-To: <475BE227.2040003@dbservice.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: Robert Hancock <hancockr@shaw.ca>, Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-ide@vger.kernel.org, Tejun Heo <htejun@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Tomas Carnecky <tom@dbservice.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, 09 Dec 2007 13:40:07 +0100 Tomas Carnecky <tom@dbservice.com> wrote:
 
-On Sun, Dec 09, 2007 at 10:36:42PM +0100, Andreas Mohr wrote:
-> And the second, possibly much more lucrative, question would be
-> whether we're actually doing something wrong with our ACPI _GTM execution
-> which triggers the AE_AML_PACKAGE_LIMIT problem.
+> Andrew Morton wrote:
+> > 2.6.24-rc4 on a Lenovo t61p, using FC8 config.
+> > 
+> > echo mem > /sys/power/state while running X.
+> > 
+> > It appears to suspend OK but then it instantly resumes and runs
+> > OK except the display is blank.
 > 
-> This might help here, perhaps (relevant snippets of AML dump):
+> http://bugzilla.kernel.org/show_bug.cgi?id=9258
+> 
+> I have a X61 tablet, and the screen is blank after resume, too, but
+> pressing ctrl+alt+F1/F7 usually fixes it. It seems a problem with the X
+> video driver. I'm not sure though.
+> 
 
-Indeed, after looking over this horrid ASL stuff for ages I'm now starting
-to believe that our IDE controller state is wrong,
-since the Match()ing etc. in this particular _GTM implementation
-is heavily dependant on actual PCI values
-(it references some PCI_Config OperationRegion:s),
-and some indexing seems to go wrong due to this.
+This machine doesn't bring the display back after resume-from-RAM under
+2.6.23 either.
 
-IOW, it seems very likely that _GTM on these BIOSes (VIA chipsets) isn't
-actually wrongly implemented but simply expects IDE controller values
-to have been set up ""differently"".
+The post-2.6.23 regresison here is that the suspend itself fails.  Under
+2.6.23 the machine suspends and requires a keystrike to start resuming. 
+Under 2.6.24-rc4 it just instantly resumes all by itself.
 
-
-Or... one could possibly even infer from this that - maybe -
-the _GTM invocation spot is wrong, it should be done somewhere
-different during bootup. Or whatever.
-
-
-
-This seems to tell me again that we're often quick to blacklist
-or whitelist things left and right when instead fundamental problems
-are hidden somewhere.
-
-Still investigating,
-
-Andreas Mohr
+And I'm having real problems working out why 2.6.23 and 2.6.24-rc4 work
+OK(ish) but anything in between won't boot: can't open /dev/root. 
+Everything has scrolled off, no serial, no netconsole..  
