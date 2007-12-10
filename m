@@ -1,85 +1,74 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: suspend to RAM failure on t61p
-Date: Sun, 9 Dec 2007 23:25:47 -0800
-Message-ID: <20071209232547.1d0c6599.akpm@linux-foundation.org>
-References: <20071209011928.c9873c66.akpm@linux-foundation.org>
-	<475BE227.2040003@dbservice.com>
-	<20071209164053.fc8ceabb.akpm@linux-foundation.org>
-	<200712100204.13881.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [RFC] [PATCH] ACPI: ignore the error about the _CRS of LINK device
+Date: Mon, 10 Dec 2007 16:15:21 +0800
+Message-ID: <1197274521.20098.10.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56593 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978AbXLJHZ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Dec 2007 02:25:56 -0500
-In-Reply-To: <200712100204.13881.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:8334 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751012AbXLJIU7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Dec 2007 03:20:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tomas Carnecky <tom@dbservice.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-On Mon, 10 Dec 2007 02:04:13 +0100 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+Hi, All
+	The following error message can be found in the dmesg of bug8896.
+	 ACPI Error (uteval-0269): Return object type is incorrect
+[\_SB_.PCI0.ALKD._CRS] (Node da4b49f0), AE_TYPE
+	ACPI Error (uteval-0275): Type returned from _CRS was incorrect:
+Integer, expected Btypes: 4 [20060707]
+	ACPI Exception (pci_link-0278): AE_TYPE, Evaluating _CRS [20060707]
+	And the above error message is related to the following	BIOS Bug.
+	Method (_CRS, 0, NotSerialized)
+                {
+                    Return (0x00)
+                }
 
-> On Monday, 10 of December 2007, Andrew Morton wrote:
-> > On Sun, 09 Dec 2007 13:40:07 +0100 Tomas Carnecky <tom@dbservice.com> wrote:
-> > 
-> > > Andrew Morton wrote:
-> > > > 2.6.24-rc4 on a Lenovo t61p, using FC8 config.
-> > > > 
-> > > > echo mem > /sys/power/state while running X.
-> > > > 
-> > > > It appears to suspend OK but then it instantly resumes and runs
-> > > > OK except the display is blank.
-> > > 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=9258
-> > > 
-> > > I have a X61 tablet, and the screen is blank after resume, too, but
-> > > pressing ctrl+alt+F1/F7 usually fixes it. It seems a problem with the X
-> > > video driver. I'm not sure though.
-> > > 
-> > 
-> > This machine doesn't bring the display back after resume-from-RAM under
-> > 2.6.23 either.
-> > 
-> > The post-2.6.23 regresison here is that the suspend itself fails.  Under
-> > 2.6.23 the machine suspends and requires a keystrike to start resuming. 
-> > Under 2.6.24-rc4 it just instantly resumes all by itself.
-> 
-> Please see if the appended patch helps (it will probably break the RTC wakeup
-> again, but well ...).
-> 
-> 
-> ---
->  kernel/power/disk.c |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6/kernel/power/disk.c
-> ===================================================================
-> --- linux-2.6.orig/kernel/power/disk.c
-> +++ linux-2.6/kernel/power/disk.c
-> @@ -378,9 +378,12 @@ int hibernation_platform_enter(void)
->  		return error;
->  
->  	suspend_console();
-> -	error = device_suspend(PMSG_SUSPEND);
-> -	if (error)
-> -		goto Resume_console;
-> +	/*
-> +	 * FIXME: device_suspend(PMSG_SUSPEND) should be called here, but
-> +	 * some EHCI controllers make boxes reboot instead of going into the
-> +	 * S4 sleep state in that case.
-> +	 */
-> +	device_shutdown();
->  
->  	error = hibernation_ops->prepare();
->  	if (error)
+Can we ignore the error about the _CRS method of LINK device and select
+IRQ from the possible IRQ list returned by _PRS method?
 
-Nope, the machine still instantly resumes after suspend-to-RAM.
+Thanks.
+	
 
-Sigh.  I guess I need to git-bisect my cant-find-root-disk problem and then
-once that is fixed I can bisect this suspend-to-RAM-resumes-itself
-regression and the resume-from-disk-causes-reboot regression.
 
+Subject: ACPI : Ignore the error about the _CRS of LINK device
+>From : Zhao Yakui <yakui.zhao@intel.com>
+
+Ignore the error about the _CRS method of LINK device and select
+IRQ from possible IRQ list returned by _PRS method.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=8896
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/pci_link.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+Index: linux-2.6.24-rc4/drivers/acpi/pci_link.c
+===================================================================
+--- linux-2.6.24-rc4.orig/drivers/acpi/pci_link.c
++++ linux-2.6.24-rc4/drivers/acpi/pci_link.c
+@@ -385,9 +385,16 @@ static int acpi_pci_link_set(struct acpi
+ 
+ 	/* Query _CRS, set link->irq.active */
+ 	result = acpi_pci_link_get_current(link);
+-	if (result) {
+-		goto end;
+-	}
++	if (result == ENODEV) {
++		/*
++		 * Ignore the error about the _CRS method of Link device and
++		 * select IRQ from the Possible IRQ list
++		 * returned by _PRS method.
++		 */
++                printk(KERN_WARNING "Ignore error LINK CRS method.\n");
++                link->irq.active = irq;
++                result = 0;
++        }
+ 
+ 	/*
+ 	 * Is current setting not what we set?
