@@ -1,181 +1,84 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Mon, 10 Dec 2007 16:02:22 -0700
-Message-ID: <20071210230222.GA16573@ldl.fc.hp.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com> <20071119233225.GA6931@us.ibm.com> <20071126222253.GA31708@ldl.fc.hp.com> <474E6E82.40307@jp.fujitsu.com> <20071130015105.GH24707@ldl.fc.hp.com> <4753786F.1040703@jp.fujitsu.com> <20071203224331.GA29227@ldl.fc.hp.com> <47554EBD.1090106@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: RFC: PNP: do not stop/start devices in suspend/resume path
+Date: Mon, 10 Dec 2007 16:26:34 -0700
+Message-ID: <200712101626.35491.bjorn.helgaas@hp.com>
+References: <4745F77C.7040402@gmail.com> <200712051124.18852.bjorn.helgaas@hp.com> <1197011615.21100.1.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:10022 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740AbXLJXCZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2007 18:02:25 -0500
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:16693 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751835AbXLJX0k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2007 18:26:40 -0500
+In-Reply-To: <1197011615.21100.1.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <47554EBD.1090106@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: pcihpd-discuss@lists.sourceforge.net, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Len Brown <lenb@kernel.org>
 
-Hi Kenji-san,
+On Friday 07 December 2007 12:13:35 am Shaohua Li wrote:
+> On Thu, 2007-12-06 at 02:24 +0800, Bjorn Helgaas wrote:
+> > Index: linux-mm/drivers/pnp/driver.c
+> > ===================================================================
+> > --- linux-mm.orig/drivers/pnp/driver.c  2007-11-30 13:58:25.000000000
+> > -0700
+> > +++ linux-mm/drivers/pnp/driver.c       2007-12-03 09:58:35.000000000
+> > -0700
+> > @@ -161,13 +161,6 @@
+> >                         return error;
+> >         }
+> > 
+> > -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
+> > -           pnp_can_disable(pnp_dev)) {
+> > -               error = pnp_stop_dev(pnp_dev);
+> > -               if (error)
+> > -                       return error;
+> > -       }
+> > -
+> >         if (pnp_dev->protocol && pnp_dev->protocol->suspend)
+> >                 pnp_dev->protocol->suspend(pnp_dev, state);
+> >         return 0;
+> > @@ -177,7 +170,6 @@
+> >  {
+> >         struct pnp_dev *pnp_dev = to_pnp_dev(dev);
+> >         struct pnp_driver *pnp_drv = pnp_dev->driver;
+> > -       int error;
+> > 
+> >         if (!pnp_drv)
+> >                 return 0;
+> > @@ -185,12 +177,6 @@
+> >         if (pnp_dev->protocol && pnp_dev->protocol->resume)
+> >                 pnp_dev->protocol->resume(pnp_dev);
+> > 
+> > -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
+> > -               error = pnp_start_dev(pnp_dev);
+> > -               if (error)
+> > -                       return error;
+> > -       }
+> > -
+> I'd suggest keep pnp_start_dev here to prevent BIOS not or assign
+> different resources after a resume.
 
-I have been thinking about this problem for quite a bit, and
-think that there are no good solutions...
+The patch I currently have in -mm (http://lkml.org/lkml/2007/10/29/412)
+merely requests resources in pnp_start_dev() and releases them in
+pnp_stop_dev().  So if we remove pnp_stop_dev() but keep pnp_start_dev(),
+I have to fix that patch to deal with things that may already be
+reserved.
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
->>>>> On my system, hotplug slots themselves can be added, removed
->>>>> and replaced with the ohter type of I/O box. 
->> Are you talking about some sort of I/O cabinet/chassis that you
->> can attach to the actual computer? Can the I/O expander unit be
->> hotplugged? Or do you need to power your machine down to attach
->> it?
->> If you can hotplug it, I'm guessing that is why your firmware
->> presents SxFy objects in the namespace with "weird" _SUN values,
->> and it's why you have to check _STA to see if the slots are valid
->> or not. That means the value returned by _SUN will change too,
->> right? What will it turn into?
->>
->
-> Currently, it's not hotpluggable (will be hotpluggable in the future).
-> Here is a sample AML code to explain what my firmware is doing.
->
-> Device (PCI0) {
-> 	Device (P2PA) {
-> 		Device (P2PB) {	// for I/O unit (A)
-> 			Name (_ADR, ...)
-> 			Method (_STA) { ... }
-> 		}
-> 		Device (S0F0) {	// for I/O unit (B)
-> 			Name (_ADR, ...)
-> 			Method (_STA) { ... }
-> 			Method (_EJx) { ... }
-> 			Method (_SUN) { ... }
-> 		}
-> 		...
-> 	}
-> 	...
-> }
->
-> If the I/O unit (A) is connected, _STA of P2PB returns as present
-> and _STA of S0F0 returns as not present.
-> If the I/O unit (B) is connected, _STA of P2PB returns as not
-> present and _STA of S0F0 returns as present.
+But I don't see any mention in the spec of running _SRS in the
+sleep/wakup path, so I'm not convinced it's really necessary.
+Section 7.4 mentions _TTS, _PTS, _GTS, etc., but not _SRS.
 
-If I/O unit A or B can never appear while the system is turned on
-(aka not hotpluggable), then it is incorrect to present them in
-the current namespace. 
+For devices, it looks like the intent is that BIOS should generate
+notifications that cause OSPM to re-enumerate devices that might
+have changed.  I'm pretty sure Linux is missing some of that code,
+though, so I could believe that _SRS might help paper over that
+deficiency.
 
->>> In addtion, I think we should not trust the _SUN value of
->>> non-existing device because the ACPI spec says in "6.5.1 _INI
->>> (Init)" that _INI method is run before _ADR, _CID, _HID, _SUN, and
->>> _UID are run. It means _SUN could be initialized in _INI method
->>> implecitely. And it also says that "If the _STA method indicates
->>> that the device is not present, OSPM will not run the _INI and will
->>> not examine the children of the device for _INI methods.". After all,
->>> _SUN for non-existing device is not reliable because it might not
->>> initialized by _INI method.
->> This is true, but HP platforms provide _INI at the root
->> device/host bridge level, not on SxFy objects, so it doesn't seem
->> that we would need to call _STA before calling _SUN for SxFy.
->> Does your firmware provide _INI on SxFy objects?
->
-> No, it doesn't. But what I wanted to say was we should not use _SUN
-> value of non-existing device object.
+What I'd really like to do is figure out how Windows uses _SRS and
+do the same thing.
 
-There is nothing illegal about evaluating _SUN for an object that
-returns 0x0 for _STA. 
-
-Also, when you say "non-existing", I think of the ACPI CA
-exception code AE_NOT_EXIST which means "absent from
-the namespace", and is the reason why my code works on both HP
-and IBM machines. It does not mean "_STA == 0x0".
-
->> Our firmware teams seem to think that _STA should give the status
->> of the card for hotplug support and general functional state.
->> They claim that it doesn't makes much sense to support _STA on
->> the slot itself unless you can physically change the slot
->> topology on the machine at runtime, which we can't do (although
->> maybe you can).
->> The section of the spec you quoted is correct as long as we are
->> talking ACPI 2.0 or later. My platforms implement ACPI 1.0b for
->> legacy reasons. :-/
->> In ACPI 1.0b, _EJx definition says (section 6.3.2):
->> 	For hot removal, the device must be immediately ejected
->> 	when the OS calls the _EJ0 control method. The _EJ0
->> 	control method does not return until ejection is
->> 	complete. After calling _EJ0, the OS will call _STA to
->> 	determine whether or not the eject succeeded.
->> So your firmware implementation does not seem backward compatible
->> with the 1.0b spec. The different versions of ACPI is part of the
->> reason why my patch is breaking on your machine.
->
-> I think this is the real reason. My platform implements ACPI 2.0 or
-> later. I didn't notice the chage to_EJx definition. Maybe we need to
-> check ACPI version in pci_slot driver.
-
-I did some experiments on HP low-end ia64 (ACPI 1.0b only) and
-our mid-range and high-end ia64 platforms (ACPI 2.0c). Checking
-for _STA before evaluating _SUN leads to the same result for me:
-we only detect populated slots.
-
-I think that the real issue is not 1.0 vs 2.0, but the semantics
-that our different firmware teams have placed on _STA. Again,
-
-  - HP firmware thinks _STA should give status of the card
-  - Fujitsu firmware thinks _STA should give status of the slot
-
-So we are at an impasse. :(
-
->> But as long as we are quoting the spec...  :)
->> 	_SUN evaluates to a DWORD that is the number to be used
->> 	in the user interface. This number is required to be
->> 	unique among the slots of the same type. It is also
->> 	recommended that this number match the slot number
->> 	printed on the physical slot whenever possible.
->> 	section 6.1.6 of ACPI 2.0c
->> My question is, why is your firmware returning multiple values of
->> 1023 then? This seems to be the real reason why my patch is
->> breaking on your machine.
->> While depending on ACPI 1.0b behavior might be somewhat risky,
->> returning the same value for _SUN multiple times, for slots of
->> the same type, definitely seems non-compliant.
->
-> The reason is very simple. The reason is your patch is evaluating
-> invalid _SUN method. We must skip non-existing device object. This
-> is what your patch is already doing for pci root bridges.
-> In addition, even if those _SUN method were changed to return unique
-> number, none of the problems would be solved. Maybe pci_slot driver
-> would detect many unknown slots.
-
-I did some experiments to see if I could write a quick hack, like
-
-  - do not register a slot if we've already seen this _SUN
-
-But it broke my reference counting, and I don't think it would be
-robust enough if users wanted to modprobe/rmmod pci_slot and
-acpiphp/pciehp in random order.
-
-I do not agree that _SUN should return a repeating, non-compliant
-value even if _STA says the device is not present. A truly
-non-existent device is one that does not appear in the namespace.
-If you cannot hotplug an I/O unit on your machine, then your
-firmware shouldn't be presenting those devices in the namespace.
-
-I think the best option would be for your firmware to return the
-actual value of _SUN if I/O unit A and/or B was plugged in. That
-way, nothing special has to happen when the units are hotplugged
--- they'll already have correct entries in sysfs. If they are
-never hotplugged, it shouldn't be confusing for the user, since
-they will never actually get any devices in those slots anyway.
-
-What happens if you try to load acpiphp on your system today?
-Does it work, or do you get the same messages about trying to
-create multiple entries in sysfs with the same name?
-
-Do you have any better ideas for detecting all physical slots in
-a system, regardless of whether they are populated?
-
-Thanks.
-
-/ac
-
+Bjorn
