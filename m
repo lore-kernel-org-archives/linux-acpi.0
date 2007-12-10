@@ -1,53 +1,85 @@
-From: Mike Houston <mikeserv@bmts.com>
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Date: Sun, 9 Dec 2007 23:02:11 -0500
-Message-ID: <20071209230211.1c2077cf.mikeserv@bmts.com>
-References: <20071204215154.7f26285e.mikeserv@bmts.com>
-	<20071209000554.GF20441@stusta.de>
-	<20071208212234.e00b74cd.mikeserv@bmts.com>
-	<20071209105028.06ed52a6@hyperion.delvare>
-	<E1J1TRp-0000ZF-6J@asgard.prans.org>
-	<20071209220430.GK20441@stusta.de>
-	<1197253887.27516.2.camel@sli10-desk.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: suspend to RAM failure on t61p
+Date: Sun, 9 Dec 2007 23:25:47 -0800
+Message-ID: <20071209232547.1d0c6599.akpm@linux-foundation.org>
+References: <20071209011928.c9873c66.akpm@linux-foundation.org>
+	<475BE227.2040003@dbservice.com>
+	<20071209164053.fc8ceabb.akpm@linux-foundation.org>
+	<200712100204.13881.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754035AbXLJEC2@vger.kernel.org>
-In-Reply-To: <1197253887.27516.2.camel@sli10-desk.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, Mike Houston <mikeserv@bmts.com>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56593 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750978AbXLJHZ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Dec 2007 02:25:56 -0500
+In-Reply-To: <200712100204.13881.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tomas Carnecky <tom@dbservice.com>, linux-acpi@vger.kernel.org
 
-On Mon, 10 Dec 2007 10:31:27 +0800
-Shaohua Li <shaohua.li@intel.com> wrote:
-> This should exist in previous kernel (before we remove acpi
-> motherboard driver) too. Basically it's a broken BIOS. Could below
-> patch work around it?
+On Mon, 10 Dec 2007 02:04:13 +0100 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+> On Monday, 10 of December 2007, Andrew Morton wrote:
+> > On Sun, 09 Dec 2007 13:40:07 +0100 Tomas Carnecky <tom@dbservice.com> wrote:
+> > 
+> > > Andrew Morton wrote:
+> > > > 2.6.24-rc4 on a Lenovo t61p, using FC8 config.
+> > > > 
+> > > > echo mem > /sys/power/state while running X.
+> > > > 
+> > > > It appears to suspend OK but then it instantly resumes and runs
+> > > > OK except the display is blank.
+> > > 
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=9258
+> > > 
+> > > I have a X61 tablet, and the screen is blank after resume, too, but
+> > > pressing ctrl+alt+F1/F7 usually fixes it. It seems a problem with the X
+> > > video driver. I'm not sure though.
+> > > 
+> > 
+> > This machine doesn't bring the display back after resume-from-RAM under
+> > 2.6.23 either.
+> > 
+> > The post-2.6.23 regresison here is that the suspend itself fails.  Under
+> > 2.6.23 the machine suspends and requires a keystrike to start resuming. 
+> > Under 2.6.24-rc4 it just instantly resumes all by itself.
 > 
-> Thanks,
-> Shaohua
+> Please see if the appended patch helps (it will probably break the RTC wakeup
+> again, but well ...).
 > 
-> Index: linux/drivers/pnp/system.c
+> 
+> ---
+>  kernel/power/disk.c |    9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> Index: linux-2.6/kernel/power/disk.c
 > ===================================================================
-> --- linux.orig/drivers/pnp/system.c	2007-12-10
-> 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
+> --- linux-2.6.orig/kernel/power/disk.c
+> +++ linux-2.6/kernel/power/disk.c
+> @@ -378,9 +378,12 @@ int hibernation_platform_enter(void)
+>  		return error;
+>  
+>  	suspend_console();
+> -	error = device_suspend(PMSG_SUSPEND);
+> -	if (error)
+> -		goto Resume_console;
+> +	/*
+> +	 * FIXME: device_suspend(PMSG_SUSPEND) should be called here, but
+> +	 * some EHCI controllers make boxes reboot instead of going into the
+> +	 * S4 sleep state in that case.
+> +	 */
+> +	device_shutdown();
+>  
+>  	error = hibernation_ops->prepare();
+>  	if (error)
 
-Thanks Shaohua, I tested this as well and it appears to have worked
-around the issue for me.
+Nope, the machine still instantly resumes after suspend-to-RAM.
 
-Now, in dmesg, I get:
+Sigh.  I guess I need to git-bisect my cant-find-root-disk problem and then
+once that is fixed I can bisect this suspend-to-RAM-resumes-itself
+regression and the resume-from-disk-causes-reboot regression.
 
-system 00:01: ioport range 0x290-0x29f has been reserved
-(...)
-system 00:01: ioport range 0x290-0x294 could not be reserved
-
-In /proc/ioports I see:
-
-0290-029f : pnp 00:01
-  0290-0297 : it87
-    0290-0297 : it87
-
-The it87 sensor now works without disabling acpipnp
-
-Mike Houston
