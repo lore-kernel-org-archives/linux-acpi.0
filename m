@@ -1,52 +1,53 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: 2.6.24-rc4-git5: Reported regressions from 2.6.23
-Date: Sun, 09 Dec 2007 21:20:09 -0600
-Message-ID: <475CB069.3050001@shaw.ca>
-References: <fa.qQhD8aJpiTOFaZqjRYwoaG7YT1c@ifi.uio.no>
- <fa.yaP86AixGhz5Q7eXSu04pIQp6ho@ifi.uio.no>
- <fa.c3k8VKWAx4HIo9zXWbL5Ek0oSBw@ifi.uio.no>
- <fa.C8ACnOhs8bXB++vmugf5F34JcJg@ifi.uio.no>
- <fa.5o6E6S0UWnARbQPxLe30TvLQIiY@ifi.uio.no> <475AE150.9050306@shaw.ca>
- <20071209213642.GA27096@rhlx01.hs-esslingen.de>
- <20071210000429.GA3916@rhlx01.hs-esslingen.de>
- <20071210004959.GA23280@rhlx01.hs-esslingen.de> <475C9643.2000202@shaw.ca>
- <475CA388.9050805@gmail.com>
+From: Mike Houston <mikeserv@bmts.com>
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Date: Sun, 9 Dec 2007 23:02:11 -0500
+Message-ID: <20071209230211.1c2077cf.mikeserv@bmts.com>
+References: <20071204215154.7f26285e.mikeserv@bmts.com>
+	<20071209000554.GF20441@stusta.de>
+	<20071208212234.e00b74cd.mikeserv@bmts.com>
+	<20071209105028.06ed52a6@hyperion.delvare>
+	<E1J1TRp-0000ZF-6J@asgard.prans.org>
+	<20071209220430.GK20441@stusta.de>
+	<1197253887.27516.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-reply-to: <475CA388.9050805@gmail.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-ide@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754035AbXLJEC2@vger.kernel.org>
+In-Reply-To: <1197253887.27516.2.camel@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, Mike Houston <mikeserv@bmts.com>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tejun Heo wrote:
-> Robert Hancock wrote:
->> And you're quite right in your comment that we are often too quick to
->> blacklist hardware instead of looking into why it really is failing.
->> ACPI is one of those areas where we often just need to figure out how to
->> be bug-to-bug compatibile with what Windows is doing..
+On Mon, 10 Dec 2007 10:31:27 +0800
+Shaohua Li <shaohua.li@intel.com> wrote:
+> This should exist in previous kernel (before we remove acpi
+> motherboard driver) too. Basically it's a broken BIOS. Could below
+> patch work around it?
 > 
-> In the spirit of not blacklisting without looking deep into ACPI code,
-> can somebody familiar with ASL take a look at comment 11 of bug 9320?
+> Thanks,
+> Shaohua
 > 
->   http://bugzilla.kernel.org/show_bug.cgi?id=9320#c11
-> 
-> This is libata calling _GTM to find out how the BIOS configured the
-> device to determine cable type.
-> 
-> Thanks.
+> Index: linux/drivers/pnp/system.c
+> ===================================================================
+> --- linux.orig/drivers/pnp/system.c	2007-12-10
+> 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
 
-I suspect it's somewhat similar (though perhaps a different cause), the 
-code is trying to lookup a value (presumably register contents) in a 
-table using Match, gets a value that's not in the table (which makes 
-Match return the ONES value FFFFFFFF meaning not found) and so the 
-lookup of the corresponding output value with that index fails. We'd 
-need the full ASL dump to know exactly what's going on there.
+Thanks Shaohua, I tested this as well and it appears to have worked
+around the issue for me.
 
--- 
-Robert Hancock      Saskatoon, SK, Canada
-To email, remove "nospam" from hancockr@nospamshaw.ca
-Home Page: http://www.roberthancock.com/
+Now, in dmesg, I get:
 
+system 00:01: ioport range 0x290-0x29f has been reserved
+(...)
+system 00:01: ioport range 0x290-0x294 could not be reserved
+
+In /proc/ioports I see:
+
+0290-029f : pnp 00:01
+  0290-0297 : it87
+    0290-0297 : it87
+
+The it87 sensor now works without disabling acpipnp
+
+Mike Houston
