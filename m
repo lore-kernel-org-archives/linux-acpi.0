@@ -1,32 +1,87 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: suspend to RAM failure on t61p
-Date: Tue, 11 Dec 2007 02:31:36 -0800
-Message-ID: <20071211023136.b01a1dd7.akpm@linux-foundation.org>
-References: <20071209011928.c9873c66.akpm@linux-foundation.org>
-	<200712100204.13881.rjw@sisk.pl>
-	<20071209232547.1d0c6599.akpm@linux-foundation.org>
-	<200712101206.15037.rjw@sisk.pl>
-	<20071210222156.f51dd114.akpm@linux-foundation.org>
-	<20071210225858.f9746533.akpm@linux-foundation.org>
-	<20071211015751.3a786fb4.akpm@linux-foundation.org>
+From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: Re: 2.6.24-rc4-mm1: acpi reboots machine... solved
+Date: Tue, 11 Dec 2007 18:44:43 +0100
+Message-ID: <20071211174443.GA5013@gollum.tnic>
+References: <20071209075001.GA4686@gollum.tnic> <20071209091946.GA4501@gollum.tnic>
+Reply-To: bbpetkov@yahoo.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54584 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751864AbXLKKbm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Dec 2007 05:31:42 -0500
-In-Reply-To: <20071211015751.3a786fb4.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754968AbXLKRqV@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20071209091946.GA4501@gollum.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, len.brown@intel.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Tomas Carnecky <tom@dbservice.com>, linux-acpi@vger.kernel.org
 
-On Tue, 11 Dec 2007 01:57:51 -0800 Andrew Morton <akpm@linux-foundation.org> wrote:
+On Sun, Dec 09, 2007 at 10:19:47AM +0100, Borislav Petkov wrote:
+> On Sun, Dec 09, 2007 at 08:50:02AM +0100, Borislav Petkov wrote:
+> > Hi Andrew,
+> > Hi Len,
+> >=20
+> > after booting 2.6.24-rc4-mm1 (2.6.24-rc4-190-g94545ba, otoh, boots =
+just
+> > fine) on my asus laptop, the machine reboots after claiming that
+> > "Critical temperature reached (255 C)." However, the degrees number
+> > is kinda hinting at 0xff all-ones field. Will try dump_stack in
+> > acpi_thermal_critical() to checkout the call path. For now here's t=
+he netconsole bootlog:
+>=20
+> Here's what i got so far:
+>=20
+> [   50.287939] Pid: 1, comm: swapper Not tainted 2.6.24-rc4-mm1 #14
+> [   50.287999]  [<c0104b65>] show_trace_log_lvl+0x12/0x25
+> [   50.288103]  [<c01053e7>] show_trace+0xd/0x10
+> [   50.288202]  [<c0105a6c>] dump_stack+0x57/0x5f
+> [   50.288303]  [<c021c991>] acpi_thermal_check+0x150/0x3bb
+> [   50.288415]  [<c021d4b3>] acpi_thermal_add+0x261/0x2cf
+> [   50.288515]  [<c0213549>] acpi_device_probe+0x3e/0xdb
+> [   50.288615]  [<c023f8f5>] driver_probe_device+0xaf/0x12a
+> [   50.288717]  [<c023fa88>] __driver_attach+0x6c/0xa5
+> [   50.288817]  [<c023ee5a>] bus_for_each_dev+0x3e/0x60
+> [   50.288916]  [<c023f77d>] driver_attach+0x14/0x16
+> [   50.289015]  [<c023f5a6>] bus_add_driver+0xa6/0x1a8
+> [   50.289114]  [<c023fc53>] driver_register+0x42/0x47
+> [   50.289214]  [<c02138c2>] acpi_bus_register_driver+0x3a/0x3c
+> [   50.289316]  [<c044306b>] acpi_thermal_init+0x57/0x76
+> [   50.289424]  [<c04344a7>] kernel_init+0x138/0x280
+> [   50.289525]  [<c01047df>] kernel_thread_helper+0x7/0x10
+> [   50.289625]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+> [   50.289680] ACPI: Critical trip point
+> [   50.289736] Critical temperature reached (255 C), shutting down.
+>=20
+> so in acpi_thermal_get_temperature() called in acpi_thermal_add() the
+> tz->temperature thingy is not set properly (printk's added):
+>=20
+> [   50.276607] Old temp: 4294967023
+> [   50.281890] Got temp: 255
+> [   50.282567] Old temp: 255
+> [   50.287882] Got temp: 255
+>=20
+> What's also strange is that the tz acpi_thermal is alloc'd with kzall=
+oc and
+> there's still garbage in it after reading it in acpi_thermal_get_temp=
+erature()
+> for the first time. Debugging continues...
 
-> Now let me see what caused the keystrokes-no-longer-trigger-resume-from-RAM
-> regression.
+(i almost suspected that the problem might be something completely diff=
+erent.)
+well, after bisecting the rc4-mm1 tree for a whole day today, the evild=
+oer
+turned out to be
 
-OK, I must have dreamed this - 2.6.23 requires a power-button tap to
-come back from suspend-to-RAM as well.
+broken-out/pnp-request-ioport-and-iomem-resources-used-by-active-device=
+s.patch.
+
+After backing this one out, mm1 boots just fine here.
+--=20
+Regards/Gru=DF,
+    Boris.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
