@@ -1,84 +1,128 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: RFC: PNP: do not stop/start devices in suspend/resume path
-Date: Mon, 10 Dec 2007 16:26:34 -0700
-Message-ID: <200712101626.35491.bjorn.helgaas@hp.com>
-References: <4745F77C.7040402@gmail.com> <200712051124.18852.bjorn.helgaas@hp.com> <1197011615.21100.1.camel@sli10-desk.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: suspend to RAM failure on t61p
+Date: Mon, 10 Dec 2007 22:21:56 -0800
+Message-ID: <20071210222156.f51dd114.akpm@linux-foundation.org>
+References: <20071209011928.c9873c66.akpm@linux-foundation.org>
+	<200712100204.13881.rjw@sisk.pl>
+	<20071209232547.1d0c6599.akpm@linux-foundation.org>
+	<200712101206.15037.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:16693 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751835AbXLJX0k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2007 18:26:40 -0500
-In-Reply-To: <1197011615.21100.1.camel@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43911 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751273AbXLKGWP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Dec 2007 01:22:15 -0500
+In-Reply-To: <200712101206.15037.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tomas Carnecky <tom@dbservice.com>, linux-acpi@vger.kernel.org
 
-On Friday 07 December 2007 12:13:35 am Shaohua Li wrote:
-> On Thu, 2007-12-06 at 02:24 +0800, Bjorn Helgaas wrote:
-> > Index: linux-mm/drivers/pnp/driver.c
-> > ===================================================================
-> > --- linux-mm.orig/drivers/pnp/driver.c  2007-11-30 13:58:25.000000000
-> > -0700
-> > +++ linux-mm/drivers/pnp/driver.c       2007-12-03 09:58:35.000000000
-> > -0700
-> > @@ -161,13 +161,6 @@
-> >                         return error;
-> >         }
+On Mon, 10 Dec 2007 12:06:14 +0100 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+> On Monday, 10 of December 2007, Andrew Morton wrote:
+> > On Mon, 10 Dec 2007 02:04:13 +0100 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 > > 
-> > -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE) &&
-> > -           pnp_can_disable(pnp_dev)) {
-> > -               error = pnp_stop_dev(pnp_dev);
-> > -               if (error)
-> > -                       return error;
-> > -       }
-> > -
-> >         if (pnp_dev->protocol && pnp_dev->protocol->suspend)
-> >                 pnp_dev->protocol->suspend(pnp_dev, state);
-> >         return 0;
-> > @@ -177,7 +170,6 @@
-> >  {
-> >         struct pnp_dev *pnp_dev = to_pnp_dev(dev);
-> >         struct pnp_driver *pnp_drv = pnp_dev->driver;
-> > -       int error;
+> > > On Monday, 10 of December 2007, Andrew Morton wrote:
+> > > > On Sun, 09 Dec 2007 13:40:07 +0100 Tomas Carnecky <tom@dbservice.com> wrote:
+> > > > 
+> > > > > Andrew Morton wrote:
+> > > > > > 2.6.24-rc4 on a Lenovo t61p, using FC8 config.
+> > > > > > 
+> > > > > > echo mem > /sys/power/state while running X.
+> > > > > > 
+> > > > > > It appears to suspend OK but then it instantly resumes and runs
+> > > > > > OK except the display is blank.
+> > > > > 
+> > > > > http://bugzilla.kernel.org/show_bug.cgi?id=9258
+> > > > > 
+> > > > > I have a X61 tablet, and the screen is blank after resume, too, but
+> > > > > pressing ctrl+alt+F1/F7 usually fixes it. It seems a problem with the X
+> > > > > video driver. I'm not sure though.
+> > > > > 
+> > > > 
+> > > > This machine doesn't bring the display back after resume-from-RAM under
+> > > > 2.6.23 either.
+> > > > 
+> > > > The post-2.6.23 regresison here is that the suspend itself fails.  Under
+> > > > 2.6.23 the machine suspends and requires a keystrike to start resuming. 
+> > > > Under 2.6.24-rc4 it just instantly resumes all by itself.
+> > > 
+> > > Please see if the appended patch helps (it will probably break the RTC wakeup
+> > > again, but well ...).
+> > > 
+> > > 
+> > > ---
+> > >  kernel/power/disk.c |    9 ++++++---
+> > >  1 file changed, 6 insertions(+), 3 deletions(-)
+> > > 
+> > > Index: linux-2.6/kernel/power/disk.c
+> > > ===================================================================
+> > > --- linux-2.6.orig/kernel/power/disk.c
+> > > +++ linux-2.6/kernel/power/disk.c
+> > > @@ -378,9 +378,12 @@ int hibernation_platform_enter(void)
+> > >  		return error;
+> > >  
+> > >  	suspend_console();
+> > > -	error = device_suspend(PMSG_SUSPEND);
+> > > -	if (error)
+> > > -		goto Resume_console;
+> > > +	/*
+> > > +	 * FIXME: device_suspend(PMSG_SUSPEND) should be called here, but
+> > > +	 * some EHCI controllers make boxes reboot instead of going into the
+> > > +	 * S4 sleep state in that case.
+> > > +	 */
+> > > +	device_shutdown();
+> > >  
+> > >  	error = hibernation_ops->prepare();
+> > >  	if (error)
 > > 
-> >         if (!pnp_drv)
-> >                 return 0;
-> > @@ -185,12 +177,6 @@
-> >         if (pnp_dev->protocol && pnp_dev->protocol->resume)
-> >                 pnp_dev->protocol->resume(pnp_dev);
+> > Nope, the machine still instantly resumes after suspend-to-RAM.
 > > 
-> > -       if (!(pnp_drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)) {
-> > -               error = pnp_start_dev(pnp_dev);
-> > -               if (error)
-> > -                       return error;
-> > -       }
-> > -
-> I'd suggest keep pnp_start_dev here to prevent BIOS not or assign
-> different resources after a resume.
+> > Sigh.  I guess I need to git-bisect my cant-find-root-disk problem and then
+> > once that is fixed I can bisect this suspend-to-RAM-resumes-itself
+> > regression and the resume-from-disk-causes-reboot regression.
+> 
+> Well, please try to revert the entire commit 9cd9a0058dd35268b24fa16795a92c800f4086d4
+> "Hibernation: Enter platform hibernation state in a consistent way" for the last one.
 
-The patch I currently have in -mm (http://lkml.org/lkml/2007/10/29/412)
-merely requests resources in pnp_start_dev() and releases them in
-pnp_stop_dev().  So if we remove pnp_stop_dev() but keep pnp_start_dev(),
-I have to fix that patch to deal with things that may already be
-reserved.
+Yes, reverting 9cd9a0058dd35268b24fa16795a92c800f4086d4 fixes the
+suspend-to-RAM problem: it now stays suspended.
 
-But I don't see any mention in the spec of running _SRS in the
-sleep/wakup path, so I'm not convinced it's really necessary.
-Section 7.4 mentions _TTS, _PTS, _GTS, etc., but not _SRS.
+However it doens't resume on a keystroke like 2.6.23 does: I have to tap the
+power switch to make it resume.
 
-For devices, it looks like the intent is that BIOS should generate
-notifications that cause OSPM to re-enumerate devices that might
-have changed.  I'm pretty sure Linux is missing some of that code,
-though, so I could believe that _SRS might help paper over that
-deficiency.
 
-What I'd really like to do is figure out how Windows uses _SRS and
-do the same thing.
+However reverting 9cd9a0058dd35268b24fa16795a92c800f4086d4 does not fix the
+machine-reboots-after-resume-from-disk regression.
 
-Bjorn
+It gets to here:
+
+Attempting manual resume
+swsusp: Marking nosave pages: 000000000009d000 - 0000000000100000
+swsusp: Basic memory bitmaps created
+Freezing user space processes ... (elapsed 0.00 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+Loading image data pages (52207 pages) ... done
+Read 208828 kbytes in 5.40 seconds (38.67 MB/s)
+Suspending console(s)
+
+then everything stops for five seconds then wham.
+
+This bug is present in 2.6.24-rc1 but I'm basically unable to bisect it
+because every bisection point (tried about four so far) hits fatal runtime
+errors: cant-find-/dev/root, an oops in ipv6, an oops in netfilter, etc.
+
+This is just a basic boot-it-on-fc8 test with RH's config and nothing
+works.  The quality of code which people have been checking into the tree
+is just appalling and here we see the costs of that.
+
+I think I'll see if it's present in the last 2.6.23 -mm lineup: I know I
+can bisect that.  Probably it won't be, given the way in which people like
+to jam vast amounts of new code into the merge window.
+
+Sigh.
+
