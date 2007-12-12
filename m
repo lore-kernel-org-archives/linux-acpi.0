@@ -1,69 +1,55 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [ACPICA] EmbeddedControl region handling bug in PNP0C14
-Date: Wed, 12 Dec 2007 18:44:36 +0300
-Message-ID: <476001E4.9020900@gmail.com>
-References: <200711280350.08539.carlos@strangeworlds.co.uk> <B28E9812BAF6E2498B7EC5C427F293A403C0F46D@orsmsx415.amr.corp.intel.com> <200712121410.15587.carlos@strangeworlds.co.uk>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: 2.6.24-rc4-mm1: acpi reboots machine... solved
+Date: Wed, 12 Dec 2007 09:21:41 -0700
+Message-ID: <200712120921.42430.bjorn.helgaas@hp.com>
+References: <20071209075001.GA4686@gollum.tnic> <200712111709.00313.bjorn.helgaas@hp.com> <20071212101123.GA5619@gollum.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:48270 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760297AbXLLPny (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 12 Dec 2007 10:43:54 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so600436ugc.16
-        for <Linux-acpi@vger.kernel.org>; Wed, 12 Dec 2007 07:43:52 -0800 (PST)
-In-Reply-To: <200712121410.15587.carlos@strangeworlds.co.uk>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:38407 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752401AbXLLQVp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2007 11:21:45 -0500
+In-Reply-To: <20071212101123.GA5619@gollum.tnic>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: bbpetkov@yahoo.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-_STA for EC is not needed -- might be worth trying to remove it
+On Wednesday 12 December 2007 03:11:23 am Borislav Petkov wrote:
+> On Tue, Dec 11, 2007 at 05:08:59PM -0700, Bjorn Helgaas wrote:
+> > On Tuesday 11 December 2007 01:52:55 pm Borislav Petkov wrote:
+> > > From what i can roughly tell so far it seems like an resource conflict between acpi and
+> > > the pnp requested regions in your patch which result in the acpi_thermal code
+> > > to read the wrong (0xff) temperature value and halt the machine, but i might be
+> > > wrong on the details since acpi is such a big code chunk to swallow.
+> > 
+> > I don't see any obvious conflict from the log you posted.  For the sake
+> > of comparison, can you post the corresponding dmesg log after you removed
+> > the patch?
+> 
+> The only difference i see is that ACPI finds EC in DSDT in the working kernel
+> and in the broken case something silently fails. Please find attached the 2 bootlogs
+> and a disassembled DSDT.
 
-AnyAcc is not right -- should be ByteAcc.
+Thanks very much!
 
-OperationRegion EC01, EC02 also seem to be good recipe for trouble...
+"ACPI: EC: Look up EC in DSDT" appears in the working log, but not
+in the broken one.  But I think we *do* find the EC in both cases,
+because we see "ACPI: EC: non-query interrupt received" even before
+acpi_ec_add() (which prints the "ACPI: EC: GPE = 0x1c, ...".  Maybe
+the logs were collected with different log levels?
 
+I think Alexey is on the right track with the PCI resource allocation
+failure.  On your working kernel, can you collect this:
 
-Carlos Corbacho wrote:
-> On Wednesday 28 November 2007 18:08:44 Moore, Robert wrote:
->   
->> This will probably require a trace.
->>     
->
-> Here's the relevant ACPI error messages (with full ACPI debugging enabled) 
-> from acer_acpi, with some comments as to which method is 
-> being called and what arguments we're passing.
->
-> This user tested this on Kubuntu Gutsy (7.10) x86-64, with a custom 2.6.23.9 
-> kernel (basically, just the ACPI debugging enabled so we can get a better 
-> trace).
->
-> So, for reference, this is the DSDT we're working with:
-> http://files.strangeworlds.co.uk/5040.dsl
->
-> WMCA(1, 3, NULL):
-> [23375.726016] ACPI Error (evregion-0316): No handler for Region
-> [RAM_] (ffff81000132d1a0) [EmbeddedControl] [20070126]
-> [23375.726246] ACPI Error (exfldio-0289): Region EmbeddedControl(3)
-> has no handler [20070126]
-> [23375.726475] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While
-> resolving operands for [Store] [20070126]
-> [23375.726708] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.AMW0.WMCA] (Node ffff8100013315f0), AE_NOT_EXIST
->
-> WMCA(1, 6, BUF(4 bytes) = 1):
-> [23444.490213] ACPI Error (evregion-0316): No handler for Region
-> [RAM_] (ffff81000132d1a0) [EmbeddedControl] [20070126]
-> [23444.490218] ACPI Error (exfldio-0289): Region EmbeddedControl(3)
-> has no handler [20070126]
-> [23444.490223] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While
-> resolving operands for [LGreater] [20070126]
-> [23444.490228] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.AMW0.WMCA] (Node ffff8100013315f0), AE_NOT_EXIST
-> [23444.490263] acer_acpi:   In: 0x00000001
->
-> -Carlos
->   
+  lspci -vv > lspci
+  cat /proc/ioports > ioports
+  cat /proc/iomem > iomem
+  grep . /sys/devices/pnp*/*/resources > pnp
+  tar -jcf resources.tar.bz2 lspci ioports iomem pnp
 
+Bjorn
