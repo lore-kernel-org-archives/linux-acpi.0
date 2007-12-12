@@ -1,38 +1,43 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PNP: do not stop/start devices in suspend/resume path
-Date: Wed, 12 Dec 2007 00:16:10 -0800
-Message-ID: <20071212001610.6506c6d2.akpm@linux-foundation.org>
-References: <4745F77C.7040402@gmail.com>
-	<47514CE2.3000600@gmail.com>
-	<200712051124.18852.bjorn.helgaas@hp.com>
-	<200712061625.57660.bjorn.helgaas@hp.com>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [Bugme-new] [Bug 9533] New: 2.6.24-rc4: some ahci/acpi interaction
+ causes delays during boot
+Date: Wed, 12 Dec 2007 17:20:47 +0900
+Message-ID: <475F99DF.7070903@gmail.com>
+References: <bug-9533-10286@http.bugzilla.kernel.org/>	<20071210125243.df6b441e.akpm@linux-foundation.org> <20071210125543.80b1e841.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42218 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754903AbXLLIQz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Dec 2007 03:16:55 -0500
-In-Reply-To: <200712061625.57660.bjorn.helgaas@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20071210125543.80b1e841.akpm@linux-foundation.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: rjw@sisk.pl, bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, 6 Dec 2007 16:25:57 -0700 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-
-> Andrew, can you add this before
-> pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch?
+Andrew Morton wrote:
+> On Mon, 10 Dec 2007 12:52:43 -0800
+> Andrew Morton <akpm@linux-foundation.org> wrote:
 > 
-> ...
->
-> PNP: do not stop/start devices in suspend/resume path
+>> On Mon, 10 Dec 2007 05:55:20 -0800 (PST)
+>> bugme-daemon@bugzilla.kernel.org wrote:
+>>
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=9533
+>> Another box-killing regression to track, please.  Either ATA or ACPI.
+> 
+> er, no, not box-killing - just scary warnings.
+> 
+> It's not clear what "kernel doesn't get to userland yet" is referring to - 
+> something else I guess.
+> 
+> Your desire to avoid doing a bisection search is a good one - I've been
+> trying to do one for a couple of days on and off and there are so many
+> fatally buggy bisection points between 2.6.23 and 2.6.24-rc1 that I've
+> given up on the attempt.
 
-I did, but I also temporarily dropped
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch.
+This one will be fixed by ACPI fixes which are currently being tested.
+I just need to get one more test result.  I'll post the patch to 9533 too.
 
-Is it expected that this patch will fix
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch? 
-Should I bring it back?
+Thanks.
+
+-- 
+tejun
