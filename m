@@ -1,149 +1,72 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [ACPICA] EmbeddedControl region handling bug in PNP0C14
-Date: Wed, 12 Dec 2007 21:13:35 +0300
-Message-ID: <476024CF.3000800@gmail.com>
-References: <200711280350.08539.carlos@strangeworlds.co.uk> <200712121410.15587.carlos@strangeworlds.co.uk> <476001E4.9020900@gmail.com> <200712121726.53180.carlos@strangeworlds.co.uk>
+From: Stephan Seidl <stephan.seidl@tu-dresden.de>
+Subject: Re: ACPI power down problem
+Date: Wed, 12 Dec 2007 23:40:53 +0100
+Message-ID: <20071212224053.GA3349@sbase.snet>
+References: <20071207011852.GA2827@sbase.snet> <200712062251.01746.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080307070909050106040009"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:32243 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702AbXLLSMx (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 12 Dec 2007 13:12:53 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so646221ugc.16
-        for <Linux-acpi@vger.kernel.org>; Wed, 12 Dec 2007 10:12:49 -0800 (PST)
-In-Reply-To: <200712121726.53180.carlos@strangeworlds.co.uk>
+Received: from mailout2.zih.tu-dresden.de ([141.30.67.73]:39597 "EHLO
+	mailout2.zih.tu-dresden.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760008AbXLLXJo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Dec 2007 18:09:44 -0500
+Content-Disposition: inline
+In-Reply-To: <200712062251.01746.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080307070909050106040009
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Dear Len,
+2.6.17.4 with "maxcpus=1" does not switch off the power (still bad).
+2.6.23.9 does switch off the power (works fine).
+So I am not sure what should be the next step,
+perhaps a simple Debian bug report.
+Regards,
+Stephan
 
-Carlos Corbacho wrote:
-> Alexey,
->
-> Is the code in EC0 interfering then with the EC access code in AMW0? (See 
-> lines 962 onwards for the AMW0 EmbeddedControl region bits)?
->
-> Because AFAICT, the EC0 code is fine (my 5020 has the same AML for EC0 and 
-> doesn't have any problem, and the user didn't report any other EC problems - 
-> we only see this problem when we try to use the EmbeddedControl region in 
-> AMW0).
->
-> -Carlos
->
->   
-Please check if making AMW0' RAM an alias to EC0 one helps... See 
-attachment.
-
---------------080307070909050106040009
-Content-Type: text/x-patch;
- name="a.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="a.diff"
-
---- 5040.dsl	2007-12-12 21:03:04.000000000 +0300
-+++ 5040a.dsl	2007-12-12 21:02:54.000000000 +0300
-@@ -721,7 +721,7 @@
- 
-         Device (AMW0)
-         {
--            Name (_HID, "*pnp0c14")
-+            Name (_HID, "PNP0C14")
-             Name (_UID, 0x00)
-             Name (WLMP, 0x00)
-             Name (B0ED, Buffer (0x04)
-@@ -959,7 +959,8 @@
-             CreateDWordField (CBE0, 0x00, BER4)
-             CreateWordField (CBE0, 0x00, BUF0)
-             CreateWordField (CBE0, 0x02, BER2)
--            OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
-+//            OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
-+            Alias(\_SB.PCI0.LPC0.EC0.RAM, RAM)
-             Field (RAM, ByteAcc, Lock, Preserve)
-             {
-                 CMD0,   8, 
-@@ -3614,7 +3615,7 @@
-                     }
- 
-                     OperationRegion (RAM, EmbeddedControl, 0x00, 0xFF)
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x0A), 
-                             ,   1, 
-@@ -3637,7 +3638,7 @@
-                         BL2W,   1
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x01), 
-                         TIID,   8, 
-@@ -3664,19 +3665,19 @@
-                         THS7,   8
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x92), 
-                         KTAF,   8
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x92), 
-                         THSL,   4
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0xD0), 
-                         TSP0,   8, 
-@@ -3985,7 +3986,7 @@
-                         Notify (\_TZ.TZS1, 0x80)
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x02), 
-                         NBID,   8, 
-@@ -3997,14 +3998,14 @@
-                         NB1A,   1
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0x88), 
-                         NB0S,   8, 
-                         NB1S,   8
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0xE0), 
-                         BSRC,   16, 
-@@ -4018,7 +4019,7 @@
-                         BSBS,   8
-                     }
- 
--                    Field (RAM, AnyAcc, Lock, Preserve)
-+                    Field (RAM, ByteAcc, Lock, Preserve)
-                     {
-                                 Offset (0xE0), 
-                         BSDC,   16, 
-
---------------080307070909050106040009--
+On Thu, Dec 06, 2007 at 10:51:01PM -0500, Len Brown wrote:
+> On Thursday 06 December 2007 20:18, Stephan Seidl wrote:
+> > Hi,
+> > I would like to ask two questions, but firstly some history.
+> > Normally Debian Sarge is running with the kernel 2.6.14.3 with several
+> > patches and all works fine since Dec 2005. In Jul, 2006, I tried another
+> > kernel, 2.6.17.4, again with several patches, and again all worked fine
+> > with the exception of the fact that the machine did not switch off the
+> > power on `/sbin/shutdown -t5 -h -P now'. So I rejected the kernel
+> > 2.6.17.4 hoping that the problems would disappear by itself with the time.
+> > But, it did not.
+> > In Aug 2007, Debian 4.0 r1 appeared with a kernel 2.6.18..., still
+> > having the power down problem. Obviously, the problem has been introduced
+> > between 2.6.14.3 and 2.6.17.4 and I am the only who has it. The concerning
+> > board can be described by
+> > 
+> >   Award Medallion BIOS v6.0, An Energy Star Ally
+> >   ASUS P4B ACPI BIOS Revision 1013 Beta 004
+> >   Award Plug and Play BIOS Extension v1.0A
+> > 
+> > This week, to tackle the problem, I addionally applied the patches
+> > in the attachment to have the console messages somewhat longer on the screen.
+> > I got the same output with the two kernels, 2.6.14.3 and 2.6.17.4, namely
+> > 
+> >   Power down.
+> >   acpi_power_off called
+> >    hwsleep-0284 [01] enter_sleep_state     : Entering sleep state [S5]
+> > 
+> > whereat the line numer 0284 changed to 0283 for 2.6.17.4.
+> > What in fact happens after the above has been seen for 20 seconds is that
+> > the same machine switches off in case of 2.6.14.3, and wrongly reboots in
+> > case of 2.6.17.4. Now the questions, firstly,
+> > is that a kernel bug ? From my point of view, yes, it seems to be one.
+> > Secondly, if I would more or less stupidly put the debugging into execution,
+> > is there anyone who could guide me, because in the ACPI kernel environment,
+> 
+> yes, it is a bug.
+> please try linux-2.6.23.stable and see if it still resets on poweroff there.
+> 
+> see if there is any difference when you boot with "maxcpus=1".
+> 
+> cheers,
+> -Len
+> 
