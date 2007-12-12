@@ -1,17 +1,17 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 2/5] acer-wmi: Add driver for newer Acer laptops
-Date: Wed, 12 Dec 2007 02:08:04 +0000
-Message-ID: <200712120208.04969.carlos@strangeworlds.co.uk>
+Subject: [PATCH 3/5] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
+Date: Wed, 12 Dec 2007 02:08:45 +0000
+Message-ID: <200712120208.46400.carlos@strangeworlds.co.uk>
 References: <200712120201.45478.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:36181 "EHLO
+Received: from slackadelic.com ([65.196.224.53]:36196 "EHLO
 	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbXLLCJl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Dec 2007 21:09:41 -0500
+	with ESMTP id S1751036AbXLLCKW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Dec 2007 21:10:22 -0500
 In-Reply-To: <200712120201.45478.carlos@strangeworlds.co.uk>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,556 +19,151 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-This is a driver for newer Acer (and Wistron) laptops. It adds wireless
-radio and bluetooth control, and on some laptops, exposes the mail LED and
-LCD backlight.
-
-v1:
-
-* Initial release
-
-v2:
-
-* Replace left over ACPI references with WMI
-* Add GUID based autoloading (depends on future work to WMI)
-* Add DMI based autoloading (backup solution until WMI sysfs/ class
-  work is available)
-* Checkpatch fixes
-
-v3:
-
-* Add new EC quirks for Aspire 3100 & 5100, and Extensa 5220
+This is based on the 2004 out-of-tree work of Jamey Hicks, to add
+support via WMI for controlling the bluetooth and wireless on these
+tablets.
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
- drivers/misc/Kconfig    |   16 +
- drivers/misc/Makefile   |    1 +
- drivers/misc/acer-wmi.c | 1009 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1026 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/acer-wmi.c
+ drivers/misc/Kconfig      |    9 ++
+ drivers/misc/Makefile     |    1 +
+ drivers/misc/tc1100-wmi.c |  290 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 300 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/tc1100-wmi.c
 
 diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index b1f9a40..d72acbf 100644
+index d72acbf..205fd6a 100644
 --- a/drivers/misc/Kconfig
 +++ b/drivers/misc/Kconfig
-@@ -92,6 +92,22 @@ config TIFM_7XX1
-           To compile this driver as a module, choose M here: the module will
- 	  be called tifm_7xx1.
+@@ -142,6 +142,15 @@ config FUJITSU_LAPTOP
  
-+config ACER_WMI
-+        tristate "Acer Laptop WMI-ACPI Extras (EXPERIMENTAL)"
-+	depends on X86
-+	depends on EXPERIMENTAL
+ 	  If you have a Fujitsu laptop, say Y or M here.
+ 
++config TC1100_WMI
++	tristate "HP Compaq TC1100 Tablet WMI Extras"
++	depends on X86 && !X86_64
 +	depends on ACPI
 +	depends on ACPI_WMI
-+	depends on LEDS_CLASS
-+	depends on BACKLIGHT_CLASS_DEVICE
 +	---help---
-+	  This is a driver for newer Acer (and Wistron) laptops. It adds
-+	  wireless radio and bluetooth control, and on some laptops,
-+	  exposes the mail LED and LCD backlight.
++	  This is a driver for the WMI extensions (wireless and bluetooth power
++	  control) of the HP Compaq TC1100 tablet.
 +
-+	  If you have an ACPI-WMI compatible Acer/ Wistron laptop, say Y or M
-+	  here.
-+
- config ASUS_LAPTOP
-         tristate "Asus Laptop Extras (EXPERIMENTAL)"
+ config MSI_LAPTOP
+         tristate "MSI Laptop Extras"
          depends on X86
 diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 87f2685..3da1491 100644
+index 3da1491..51196c0 100644
 --- a/drivers/misc/Makefile
 +++ b/drivers/misc/Makefile
-@@ -6,6 +6,7 @@ obj- := misc.o	# Dummy rule to force built-in.o to be made
- obj-$(CONFIG_IBM_ASM)		+= ibmasm/
- obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
- obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
-+obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
+@@ -9,6 +9,7 @@ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+ obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
  obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
  obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
++obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
  obj-$(CONFIG_LKDTM)		+= lkdtm.o
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
 new file mode 100644
-index 0000000..ebdf70c
+index 0000000..f0a8bdc
 --- /dev/null
-+++ b/drivers/misc/acer-wmi.c
-@@ -0,0 +1,1009 @@
++++ b/drivers/misc/tc1100-wmi.c
+@@ -0,0 +1,290 @@
 +/*
-+ *  Acer Laptop WMI Extras
++ *  HP Compaq TC1100 Tablet WMI Extras Driver
 + *
-+ *  Copyright (C) 2007		Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
++ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
++ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
 + *
-+ *  Based on acer_acpi:
-+ *    Copyright (C) 2005-2007	E.M. Smith
-+ *    Copyright (C) 2007	Carlos Corbacho <cathectic@gmail.com>
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
 + *  This program is free software; you can redistribute it and/or modify
 + *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
 + *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
 + *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + */
-+
-+#define ACER_WMI_VERSION	"0.1"
 +
 +#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/init.h>
 +#include <linux/types.h>
-+#include <linux/dmi.h>
-+#include <linux/backlight.h>
-+#include <linux/leds.h>
-+#include <linux/platform_device.h>
-+#include <linux/acpi.h>
-+#include <linux/i8042.h>
-+
++#include <acpi/acpi.h>
++#include <acpi/actypes.h>
++#include <acpi/acpi_bus.h>
 +#include <acpi/acpi_drivers.h>
++#include <linux/platform_device.h>
 +
-+MODULE_AUTHOR("Carlos Corbacho");
-+MODULE_DESCRIPTION("Acer Laptop WMI Extras Driver");
++#define GUID "C364AC71-36DB-495A-8494-B439D472A505"
++
++#define TC1100_INSTANCE_WIRELESS		1
++#define TC1100_INSTANCE_BLUETOOTH		2
++
++#define TC1100_LOGPREFIX "tc1100-wmi: "
++#define TC1100_INFO KERN_INFO TC1100_LOGPREFIX
++
++MODULE_AUTHOR("Jamey Hicks, Carlos Corbacho");
++MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
 +
-+#define ACER_LOGPREFIX "acer-wmi: "
-+#define ACER_ERR KERN_ERR ACER_LOGPREFIX
-+#define ACER_NOTICE KERN_NOTICE ACER_LOGPREFIX
-+#define ACER_INFO KERN_INFO ACER_LOGPREFIX
++static int tc1100_probe(struct platform_device *device);
++static int tc1100_remove(struct platform_device *device);
++static int tc1100_suspend(struct platform_device *device, pm_message_t state);
++static int tc1100_resume(struct platform_device *device);
 +
-+/*
-+ * The following defines quirks to get some specific functions to work
-+ * which are known to not be supported over ACPI (such as the mail LED
-+ * on WMID based Acer's)
-+ */
-+struct acer_quirks {
-+	const char *vendor;
-+	const char *model;
-+	u16 quirks;
-+};
-+
-+/*
-+ * Magic Number
-+ * Meaning is unknown - this number is required for writing to ACPI for AMW0
-+ * (it's also used in acerhk when directly accessing the EC)
-+ */
-+#define ACER_AMW0_WRITE	0x9610
-+
-+/*
-+ * Bit masks for the old AMW0 interface
-+ */
-+#define ACER_AMW0_WIRELESS_MASK  0x35
-+#define ACER_AMW0_BLUETOOTH_MASK 0x34
-+#define ACER_AMW0_MAILLED_MASK   0x31
-+
-+/*
-+ * Method IDs for new WMID interface
-+ */
-+#define ACER_WMID_GET_WIRELESS_METHODID		1
-+#define ACER_WMID_GET_BLUETOOTH_METHODID	2
-+#define ACER_WMID_GET_BRIGHTNESS_METHODID	3
-+#define ACER_WMID_SET_WIRELESS_METHODID		4
-+#define ACER_WMID_SET_BLUETOOTH_METHODID	5
-+#define ACER_WMID_SET_BRIGHTNESS_METHODID	6
-+#define ACER_WMID_GET_THREEG_METHODID		10
-+#define ACER_WMID_SET_THREEG_METHODID		11
-+
-+/*
-+ * Acer ACPI method GUIDs
-+ */
-+#define AMW0_GUID1		"67C3371D-95A3-4C37-BB61-DD47B491DAAB"
-+#define WMID_GUID1		"6AF4F258-B401-42fd-BE91-3D4AC2D7C0D3"
-+
-+MODULE_ALIAS("wmi:67C3371D-95A3-4C37-BB61-DD47B491DAAB");
-+MODULE_ALIAS("wmi:6AF4F258-B401-42fd-BE91-3D4AC2D7C0D3");
-+
-+/* Temporary workaround until the WMI sysfs interface goes in */
-+MODULE_ALIAS("dmi:*:*Acer*:*:");
-+
-+/*
-+ * Interface capability flags
-+ */
-+#define ACER_CAP_MAILLED		(1<<0)
-+#define ACER_CAP_WIRELESS		(1<<1)
-+#define ACER_CAP_BLUETOOTH		(1<<2)
-+#define ACER_CAP_BRIGHTNESS		(1<<3)
-+#define ACER_CAP_THREEG			(1<<4)
-+#define ACER_CAP_ANY			(0xFFFFFFFF)
-+
-+/*
-+ * Interface type flags
-+ */
-+enum interface_flags {
-+	ACER_AMW0,
-+	ACER_AMW0_V2,
-+	ACER_WMID,
-+};
-+
-+#define ACER_DEFAULT_WIRELESS  0
-+#define ACER_DEFAULT_BLUETOOTH 0
-+#define ACER_DEFAULT_MAILLED   0
-+#define ACER_DEFAULT_THREEG    0
-+
-+static int max_brightness = 0xF;
-+
-+static int wireless = -1;
-+static int bluetooth = -1;
-+static int mailled = -1;
-+static int brightness = -1;
-+static int threeg = -1;
-+static int force_series;
-+
-+module_param(mailled, int, 0444);
-+module_param(wireless, int, 0444);
-+module_param(bluetooth, int, 0444);
-+module_param(brightness, int, 0444);
-+module_param(threeg, int, 0444);
-+module_param(force_series, int, 0444);
-+MODULE_PARM_DESC(wireless, "Set initial state of Wireless hardware");
-+MODULE_PARM_DESC(bluetooth, "Set initial state of Bluetooth hardware");
-+MODULE_PARM_DESC(mailled, "Set initial state of Mail LED");
-+MODULE_PARM_DESC(brightness, "Set initial LCD backlight brightness");
-+MODULE_PARM_DESC(threeg, "Set initial state of 3G hardware");
-+MODULE_PARM_DESC(force_series, "Force a different laptop series");
-+
-+struct acer_data {
-+	int mailled;
-+	int wireless;
-+	int bluetooth;
-+	int threeg;
-+	int brightness;
-+};
-+
-+/* Each low-level interface must define at least some of the following */
-+struct wmi_interface {
-+	/*
-+	 * The WMI device type
-+	 */
-+	u32 type;
-+
-+	/*
-+	 * The capabilities this interface provides
-+	 */
-+	u32 capability;
-+
-+	/*
-+	 * Private data for the current interface
-+	 */
-+	struct acer_data data;
-+};
-+
-+/* The static interface pointer, points to the currently detected interface */
-+static struct wmi_interface *interface;
-+
-+/*
-+ * Embedded Controller quirks
-+ * Some laptops require us to directly access the EC to either enable or query
-+ * features that are not available through WMI.
-+ */
-+
-+struct quirk_entry {
-+	u8 wireless;
-+	u8 mailled;
-+	u8 brightness;
-+	u8 bluetooth;
-+	u8 max_brightness;
-+};
-+
-+static struct quirk_entry *quirks;
-+
-+static void set_quirks(void)
-+{
-+	if (quirks->mailled != 0)
-+		interface->capability |= ACER_CAP_MAILLED;
-+
-+	if (quirks->brightness != 0)
-+		interface->capability |= ACER_CAP_BRIGHTNESS;
-+
-+	if (quirks->bluetooth != 0)
-+		interface->capability |= ACER_CAP_BLUETOOTH;
-+
-+	if (quirks->wireless != 0)
-+		interface->capability |= ACER_CAP_WIRELESS;
-+
-+	if (quirks->max_brightness != 0)
-+		max_brightness = quirks->max_brightness;
-+}
-+
-+static int dmi_matched(const struct dmi_system_id *dmi)
-+{
-+	quirks = dmi->driver_data;
-+	return 0;
-+}
-+
-+static struct quirk_entry quirk_unknown = {
-+};
-+
-+static struct quirk_entry quirk_acer_travelmate_2490 = {
-+	.mailled = 1,
-+};
-+
-+static struct quirk_entry quirk_acer_travelmate_5720 = {
-+	.max_brightness = 0x9,
-+};
-+
-+static struct dmi_system_id acer_quirks[] = {
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Aspire 3100",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 3100"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
++static struct platform_driver tc1100_driver = {
++	.driver = {
++		.name = "tc1100-wmi",
++		.owner = THIS_MODULE,
 +	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Aspire 5100",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5100"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Aspire 5630",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5630"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Aspire 5650",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5650"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Aspire 5680",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5680"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer Extensa 5220",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Extensa 5220"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_5720,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer TravelMate 2490",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 2490"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
-+		.ident = "Acer TravelMate 5720",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 5720"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_5720,
-+	},
-+	{}
++	.probe = tc1100_probe,
++	.remove = tc1100_remove,
++	.suspend = tc1100_suspend,
++	.resume = tc1100_resume,
 +};
 +
-+/* Find which quirks are needed for a particular vendor/ model pair */
-+static void find_quirks(void)
-+{
-+	if (!force_series) {
-+		dmi_check_system(acer_quirks);
-+	} else if (force_series == 2490) {
-+		quirks = &quirk_acer_travelmate_2490;
-+	}
++static struct platform_device *tc1100_device;
 +
-+	if (quirks == NULL)
-+		quirks = &quirk_unknown;
-+
-+	set_quirks();
-+}
-+
-+/*
-+ * General interface convenience methods
-+ */
-+
-+static bool has_cap(u32 cap)
-+{
-+	if ((interface->capability & cap) != 0)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Old interface (now known as the AMW0 interface)
-+ */
-+struct wmab_args {
-+	u32 eax;
-+	u32 ebx;
-+	u32 ecx;
-+	u32 edx;
++struct tc1100_data {
++	u32 wireless;
++	u32 bluetooth;
 +};
 +
-+static acpi_status WMAB_execute(struct wmab_args *regbuf,
-+struct acpi_buffer *result)
++static struct tc1100_data suspend_data;
++
++/* --------------------------------------------------------------------------
++				Device Management
++   -------------------------------------------------------------------------- */
++
++static int get_state(u32 *out, u8 instance)
 +{
-+	struct acpi_buffer input;
-+	acpi_status status;
-+	input.length = sizeof(struct wmab_args);
-+	input.pointer = (u8 *)regbuf;
-+
-+	status = wmi_evaluate_method(AMW0_GUID1, 1, 1, &input, result);
-+
-+	return status;
-+}
-+
-+static acpi_status AMW0_get_bool(bool *value, u32 cap,
-+struct wmi_interface *iface)
-+{
-+	u8 result;
-+
-+	switch (cap) {
-+	case ACER_CAP_MAILLED:
-+		switch (quirks->mailled) {
-+		default:
-+			ec_read(0x0A, &result);
-+			*value = (result >> 7) & 0x01;
-+			return 0;
-+		}
-+		break;
-+	case ACER_CAP_WIRELESS:
-+		switch (quirks->wireless) {
-+		default:
-+			ec_read(0x0A, &result);
-+			*value = (result >> 2) & 0x01;
-+			return 0;
-+		}
-+		break;
-+	case ACER_CAP_BLUETOOTH:
-+		switch (quirks->bluetooth) {
-+		default:
-+			ec_read(0x0A, &result);
-+			*value = (result >> 4) & 0x01;
-+			return 0;
-+		}
-+		break;
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+	return AE_OK;
-+}
-+
-+static acpi_status AMW0_set_bool(bool value, u32 cap,
-+struct wmi_interface *iface)
-+{
-+	struct wmab_args args;
-+
-+	args.eax = ACER_AMW0_WRITE;
-+	args.ebx = value ? (1<<8) : 0;
-+	args.ecx = args.edx = 0;
-+
-+	switch (cap) {
-+	case ACER_CAP_MAILLED:
-+		args.ebx |= ACER_AMW0_MAILLED_MASK;
-+		break;
-+	case ACER_CAP_WIRELESS:
-+		args.ebx |= ACER_AMW0_WIRELESS_MASK;
-+		break;
-+	case ACER_CAP_BLUETOOTH:
-+		args.ebx |= ACER_AMW0_BLUETOOTH_MASK;
-+		break;
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+
-+	/* Actually do the set */
-+	return WMAB_execute(&args, NULL);
-+}
-+
-+static acpi_status AMW0_get_u8(u8 *value, u32 cap, struct wmi_interface *iface)
-+{
-+	switch (cap) {
-+	case ACER_CAP_BRIGHTNESS:
-+		switch (quirks->brightness) {
-+		default:
-+			return ec_read(0x83, value);
-+		}
-+		break;
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+	return AE_OK;
-+}
-+
-+static acpi_status AMW0_set_u8(u8 value, u32 cap, struct wmi_interface *iface)
-+{
-+	switch (cap) {
-+	case ACER_CAP_BRIGHTNESS:
-+		switch (quirks->brightness) {
-+		default:
-+			return ec_write(0x83, value);
-+		break;
-+		}
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+	return AE_OK;
-+}
-+
-+static struct wmi_interface AMW0_interface = {
-+	.type = ACER_AMW0,
-+	.capability = (
-+		ACER_CAP_MAILLED |
-+		ACER_CAP_WIRELESS |
-+		ACER_CAP_BLUETOOTH
-+	),
-+};
-+
-+static struct wmi_interface AMW0_V2_interface = {
-+	.type = ACER_AMW0_V2,
-+	.capability = (
-+		ACER_CAP_MAILLED |
-+		ACER_CAP_WIRELESS |
-+		ACER_CAP_BLUETOOTH |
-+		ACER_CAP_BRIGHTNESS
-+	),
-+};
-+
-+/*
-+ * New interface (The WMID interface)
-+ */
-+static acpi_status
-+WMI_execute_u32(u32 method_id, u32 in, u32 *out)
-+{
-+	struct acpi_buffer input = { (acpi_size) sizeof(u32), (void *)(&in) };
-+	struct acpi_buffer result = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
 +	u32 tmp;
 +	acpi_status status;
++	struct acpi_buffer result = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *obj;
 +
-+	status = wmi_evaluate_method(WMID_GUID1, 1, method_id, &input, &result);
++	if (!out)
++		return -EINVAL;
 +
++	if (instance > 2)
++		return -ENODEV;
++
++	status = wmi_query_block(GUID, instance, &result);
 +	if (ACPI_FAILURE(status))
-+		return status;
++		return -ENODEV;
 +
 +	obj = (union acpi_object *) result.pointer;
 +	if (obj && obj->type == ACPI_TYPE_BUFFER &&
@@ -578,279 +173,68 @@ index 0000000..ebdf70c
 +		tmp = 0;
 +	}
 +
-+	if (out)
-+		*out = tmp;
-+
 +	if (result.length > 0 && result.pointer)
 +		kfree(result.pointer);
 +
-+	return status;
++	switch (instance) {
++	case TC1100_INSTANCE_WIRELESS:
++		*out = (tmp == 3) ? 1 : 0;
++		return 0;
++	case TC1100_INSTANCE_BLUETOOTH:
++		*out = (tmp == 1) ? 1 : 0;
++		return 0;
++	default:
++		return -ENODEV;
++	}
 +}
 +
-+static acpi_status WMID_get_u8(u8 *value, u32 cap, struct wmi_interface *iface)
++static int set_state(u32 *in, u8 instance)
 +{
++	u32 value;
 +	acpi_status status;
-+	u32 result;
-+	u32 method_id = 0;
++	struct acpi_buffer input;
 +
-+	switch (cap) {
-+	case ACER_CAP_WIRELESS:
-+		method_id = ACER_WMID_GET_WIRELESS_METHODID;
++	if (!in)
++		return -EINVAL;
++
++	if (instance > 2)
++		return -ENODEV;
++
++	switch (instance) {
++	case TC1100_INSTANCE_WIRELESS:
++		value = (*in) ? 1 : 2;
 +		break;
-+	case ACER_CAP_BLUETOOTH:
-+		method_id = ACER_WMID_GET_BLUETOOTH_METHODID;
-+		break;
-+	case ACER_CAP_BRIGHTNESS:
-+		method_id = ACER_WMID_GET_BRIGHTNESS_METHODID;
-+		break;
-+	case ACER_CAP_THREEG:
-+		method_id = ACER_WMID_GET_THREEG_METHODID;
-+		break;
-+	case ACER_CAP_MAILLED:
-+		switch (quirks->mailled) {
-+		case 1:
-+			ec_read(0x9f, value);
-+			*value &= 0x01;
-+			return 0;
-+		default:
-+			return AE_BAD_ADDRESS;
-+		}
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+	status = WMI_execute_u32(method_id, 0, &result);
-+
-+	if (ACPI_SUCCESS(status))
-+		*value = (u8) result;
-+
-+	return status;
-+}
-+
-+static acpi_status WMID_set_u8(u8 value, u32 cap, struct wmi_interface *iface)
-+{
-+	u32 method_id = 0;
-+	char param;
-+
-+	switch (cap) {
-+	case ACER_CAP_BRIGHTNESS:
-+		method_id = ACER_WMID_SET_BRIGHTNESS_METHODID;
-+		break;
-+	case ACER_CAP_WIRELESS:
-+		method_id = ACER_WMID_SET_WIRELESS_METHODID;
-+		break;
-+	case ACER_CAP_BLUETOOTH:
-+		method_id = ACER_WMID_SET_BLUETOOTH_METHODID;
-+		break;
-+	case ACER_CAP_THREEG:
-+		method_id = ACER_WMID_SET_THREEG_METHODID;
-+		break;
-+	case ACER_CAP_MAILLED:
-+		switch (quirks->mailled) {
-+		case 1:
-+			param = value? 0x92 : 0x93;
-+			i8042_command(&param, 0x1059);
-+			return 0;
-+		default:
-+			return AE_BAD_ADDRESS;
-+		}
-+	default:
-+		return AE_BAD_ADDRESS;
-+	}
-+	return WMI_execute_u32(method_id, (u32)value, NULL);
-+}
-+
-+
-+static struct wmi_interface wmid_interface = {
-+	.type = ACER_WMID,
-+	.capability = (
-+		ACER_CAP_WIRELESS
-+		| ACER_CAP_BRIGHTNESS
-+		| ACER_CAP_BLUETOOTH
-+		| ACER_CAP_THREEG
-+	),
-+};
-+
-+/*
-+ * Generic Device (interface-independent)
-+ */
-+
-+static acpi_status get_bool(bool *value, u32 cap)
-+{
-+	acpi_status status = AE_BAD_ADDRESS;
-+	u8 tmp = 0;
-+
-+	switch (interface->type) {
-+	case ACER_AMW0:
-+		status = AMW0_get_bool(value, cap, interface);
-+		break;
-+	case ACER_AMW0_V2:
-+		if (cap == ACER_CAP_MAILLED) {
-+			status = AMW0_get_bool(value, cap, interface);
-+			break;
-+		}
-+	case ACER_WMID:
-+		status = WMID_get_u8(&tmp, cap, interface);
-+		*value = (tmp == 1) ? 1 : 0;
-+		break;
-+	}
-+	return status;
-+}
-+
-+static acpi_status set_bool(int value, u32 cap)
-+{
-+	acpi_status status = AE_BAD_PARAMETER;
-+
-+	if ((value == 0 || value == 1) && (interface->capability & cap)) {
-+		switch (interface->type) {
-+		case ACER_AMW0:
-+			status = AMW0_set_bool(value == 1, cap, interface);
-+			break;
-+		case ACER_AMW0_V2:
-+			if (cap == ACER_CAP_MAILLED) {
-+				status = AMW0_set_bool(value == 1, cap,
-+					interface);
-+				break;
-+			}
-+		case ACER_WMID:
-+			status = WMID_set_u8(value == 1, cap, interface);
-+			break;
-+		}
-+	}
-+	return status;
-+}
-+
-+static acpi_status get_u8(u8 *value, u32 cap)
-+{
-+	switch (interface->type) {
-+	case ACER_AMW0:
-+		return AMW0_get_u8(value, cap, interface);
-+		break;
-+	case ACER_AMW0_V2:
-+	case ACER_WMID:
-+		return WMID_get_u8(value, cap, interface);
++	case TC1100_INSTANCE_BLUETOOTH:
++		value = (*in) ? 0 : 1;
 +		break;
 +	default:
-+		return AE_BAD_ADDRESS;
++		return -ENODEV;
 +	}
-+}
 +
-+static acpi_status set_u8(u8 value, u8 min, u8 max, u32 cap)
-+{
-+	if ((value >= min && value <= max) && (interface->capability & cap)) {
-+		switch (interface->type) {
-+		case ACER_AMW0:
-+			return AMW0_set_u8(value, cap, interface);
-+		case ACER_AMW0_V2:
-+		case ACER_WMID:
-+			return WMID_set_u8(value, cap, interface);
-+		default:
-+			return AE_BAD_PARAMETER;
-+		}
-+	}
-+	return AE_BAD_PARAMETER;
-+}
++	input.length = sizeof(u32);
++	input.pointer = &value;
 +
-+/* Each _u8 needs a small wrapper that sets the boundary values */
-+static acpi_status set_brightness(u8 value)
-+{
-+	return set_u8(value, 0, max_brightness, ACER_CAP_BRIGHTNESS);
-+}
++	status = wmi_set_block(GUID, instance, &input);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
 +
-+static void __init acer_commandline_init(void)
-+{
-+	/*
-+	 * These will all fail silently if the value given is invalid, or the
-+	 * capability isn't available on the given interface
-+	 */
-+	set_bool(mailled, ACER_CAP_MAILLED);
-+	set_bool(wireless, ACER_CAP_WIRELESS);
-+	set_bool(bluetooth, ACER_CAP_BLUETOOTH);
-+	set_bool(threeg, ACER_CAP_THREEG);
-+	set_brightness((u8)brightness);
-+}
-+
-+/*
-+ * LED device (Mail LED only, no other LEDs known yet)
-+ */
-+static void mail_led_set(struct led_classdev *led_cdev,
-+enum led_brightness value)
-+{
-+	bool tmp = value;
-+	set_bool(tmp, ACER_CAP_MAILLED);
-+}
-+
-+static struct led_classdev mail_led = {
-+	.name = "acer-mail:green",
-+	.brightness_set = mail_led_set,
-+};
-+
-+static void acer_led_init(struct device *dev)
-+{
-+	led_classdev_register(dev, &mail_led);
-+}
-+
-+static void acer_led_exit(void)
-+{
-+	led_classdev_unregister(&mail_led);
-+}
-+
-+/*
-+ * Backlight device
-+ */
-+static struct backlight_device *acer_backlight_device;
-+
-+static int read_brightness(struct backlight_device *bd)
-+{
-+	u8 value;
-+	get_u8(&value, ACER_CAP_BRIGHTNESS);
-+	return value;
-+}
-+
-+static int update_bl_status(struct backlight_device *bd)
-+{
-+	set_brightness(bd->props.brightness);
 +	return 0;
 +}
 +
-+static struct backlight_ops acer_bl_ops = {
-+	.get_brightness = read_brightness,
-+	.update_status = update_bl_status,
-+};
-+
-+static int __init acer_backlight_init(struct device *dev)
-+{
-+	struct backlight_device *bd;
-+
-+	bd = backlight_device_register("acer-wmi", dev, NULL, &acer_bl_ops);
-+	if (IS_ERR(bd)) {
-+		printk(ACER_ERR "Could not register Acer backlight device\n");
-+		acer_backlight_device = NULL;
-+		return PTR_ERR(bd);
-+	}
-+
-+	acer_backlight_device = bd;
-+
-+	bd->props.max_brightness = max_brightness;
-+	bd->props.brightness = read_brightness(NULL);
-+	backlight_update_status(bd);
-+	return 0;
-+}
-+
-+static void __exit acer_backlight_exit(void)
-+{
-+	backlight_device_unregister(acer_backlight_device);
-+}
++/* --------------------------------------------------------------------------
++				FS Interface (/sys)
++   -------------------------------------------------------------------------- */
 +
 +/*
 + * Read/ write bool sysfs macro
 + */
-+#define show_set_bool(value, cap) \
++#define show_set_bool(value, instance) \
 +static ssize_t \
 +show_bool_##value(struct device *dev, struct device_attribute *attr, \
 +	char *buf) \
 +{ \
-+	bool result; \
-+	acpi_status status = get_bool(&result, cap); \
++	u32 result; \
++	acpi_status status = get_state(&result, instance); \
 +	if (ACPI_SUCCESS(status)) \
 +		return sprintf(buf, "%d\n", result); \
 +	return sprintf(buf, "Read error\n"); \
@@ -860,8 +244,8 @@ index 0000000..ebdf70c
 +set_bool_##value(struct device *dev, struct device_attribute *attr, \
 +	const char *buf, size_t count) \
 +{ \
-+	bool tmp = simple_strtoul(buf, NULL, 10); \
-+	acpi_status status = set_bool(tmp, cap); \
++	u32 tmp = simple_strtoul(buf, NULL, 10); \
++	acpi_status status = set_state(&tmp, instance); \
 +		if (ACPI_FAILURE(status)) \
 +			return -EINVAL; \
 +	return count; \
@@ -869,238 +253,112 @@ index 0000000..ebdf70c
 +static DEVICE_ATTR(value, S_IWUGO | S_IRUGO | S_IWUSR, \
 +	show_bool_##value, set_bool_##value);
 +
-+show_set_bool(wireless, ACER_CAP_WIRELESS);
-+show_set_bool(bluetooth, ACER_CAP_BLUETOOTH);
-+show_set_bool(threeg, ACER_CAP_THREEG);
++show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
++show_set_bool(bluetooth, TC1100_INSTANCE_BLUETOOTH);
 +
-+/*
-+ * Read interface sysfs macro
-+ */
-+static ssize_t show_interface(struct device *dev, struct device_attribute *attr,
-+	char *buf)
++static void remove_fs(void)
 +{
-+	switch (interface->type) {
-+	case ACER_AMW0:
-+		return sprintf(buf, "AMW0\n");
-+	case ACER_AMW0_V2:
-+		return sprintf(buf, "AMW0 v2\n");
-+	case ACER_WMID:
-+		return sprintf(buf, "WMID\n");
-+	default:
-+		return sprintf(buf, "Error!\n");
-+	}
++	device_remove_file(&tc1100_device->dev, &dev_attr_wireless);
++	device_remove_file(&tc1100_device->dev, &dev_attr_bluetooth);
 +}
 +
-+static DEVICE_ATTR(interface, S_IWUGO | S_IRUGO | S_IWUSR,
-+	show_interface, NULL);
-+
-+/*
-+ * Platform device
-+ */
-+static int __devinit acer_platform_probe(struct platform_device *device)
++static int add_fs(void)
 +{
-+	if (has_cap(ACER_CAP_MAILLED))
-+		acer_led_init(&device->dev);
-+	if (has_cap(ACER_CAP_BRIGHTNESS))
-+		acer_backlight_init(&device->dev);
++	int ret;
++
++	ret = device_create_file(&tc1100_device->dev, &dev_attr_wireless);
++	if (ret)
++		goto add_sysfs_error;
++
++	ret = device_create_file(&tc1100_device->dev, &dev_attr_bluetooth);
++	if (ret)
++		goto add_sysfs_error;
++
++	return ret;
++
++add_sysfs_error:
++	remove_fs();
++	return ret;
++}
++
++/* --------------------------------------------------------------------------
++				Driver Model
++   -------------------------------------------------------------------------- */
++
++static int tc1100_probe(struct platform_device *device)
++{
++	int result = 0;
++
++	result = add_fs();
++	return result;
++}
++
++
++static int tc1100_remove(struct platform_device *device)
++{
++	remove_fs();
 +	return 0;
 +}
 +
-+static int acer_platform_remove(struct platform_device *device)
++static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
 +{
-+	if (has_cap(ACER_CAP_MAILLED))
-+		acer_led_exit();
-+	if (has_cap(ACER_CAP_BRIGHTNESS))
-+		acer_backlight_exit();
-+	return 0;
++	int ret;
++
++	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
++	if (ret)
++		return ret;
++
++	ret = get_state(&suspend_data.bluetooth, TC1100_INSTANCE_BLUETOOTH);
++	if (ret)
++		return ret;
++
++	return ret;
 +}
 +
-+static int acer_platform_suspend(struct platform_device *dev,
-+pm_message_t state)
++static int tc1100_resume(struct platform_device *dev)
 +{
-+	bool value;
-+	u8 u8value;
-+	struct acer_data *data = &interface->data;
++	int ret;
 +
-+	if (!data)
-+		return -ENOMEM;
++	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
++	if (ret)
++		return ret;
 +
-+	if (has_cap(ACER_CAP_WIRELESS)) {
-+		get_bool(&value, ACER_CAP_WIRELESS);
-+		data->wireless = value;
-+	}
++	ret = set_state(&suspend_data.bluetooth, TC1100_INSTANCE_BLUETOOTH);
++	if (ret)
++		return ret;
 +
-+	if (has_cap(ACER_CAP_BLUETOOTH)) {
-+		get_bool(&value, ACER_CAP_BLUETOOTH);
-+		data->bluetooth = value;
-+	}
-+
-+	if (has_cap(ACER_CAP_MAILLED)) {
-+		get_bool(&value, ACER_CAP_MAILLED);
-+		data->mailled = value;
-+	}
-+
-+	if (has_cap(ACER_CAP_BRIGHTNESS)) {
-+		get_u8(&u8value, ACER_CAP_BRIGHTNESS);
-+		data->brightness = value;
-+	}
-+
-+	return 0;
++	return ret;
 +}
 +
-+static int acer_platform_resume(struct platform_device *device)
++static int __init tc1100_init(void)
 +{
-+	struct acer_data *data = &interface->data;
++	int result = 0;
 +
-+	if (!data)
-+		return -ENOMEM;
-+
-+	if (has_cap(ACER_CAP_WIRELESS))
-+		set_bool(data->wireless, ACER_CAP_WIRELESS);
-+
-+	if (has_cap(ACER_CAP_BLUETOOTH))
-+		set_bool(data->bluetooth, ACER_CAP_BLUETOOTH);
-+
-+	if (has_cap(ACER_CAP_THREEG))
-+		set_bool(data->threeg, ACER_CAP_THREEG);
-+
-+	if (has_cap(ACER_CAP_MAILLED))
-+		set_bool(data->mailled, ACER_CAP_MAILLED);
-+
-+	if (has_cap(ACER_CAP_BRIGHTNESS))
-+		set_brightness((u8)data->brightness);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver acer_platform_driver = {
-+	.driver = {
-+		.name = "acer-wmi",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = acer_platform_probe,
-+	.remove = acer_platform_remove,
-+	.suspend = acer_platform_suspend,
-+	.resume = acer_platform_resume,
-+};
-+
-+static struct platform_device *acer_platform_device;
-+
-+static int remove_sysfs(struct platform_device *device)
-+{
-+	if (has_cap(ACER_CAP_WIRELESS))
-+		device_remove_file(&device->dev, &dev_attr_wireless);
-+
-+	if (has_cap(ACER_CAP_BLUETOOTH))
-+		device_remove_file(&device->dev, &dev_attr_bluetooth);
-+
-+	if (has_cap(ACER_CAP_THREEG))
-+		device_remove_file(&device->dev, &dev_attr_threeg);
-+
-+	device_remove_file(&device->dev, &dev_attr_interface);
-+
-+	return 0;
-+}
-+
-+static int create_sysfs(void)
-+{
-+	int retval = -ENOMEM;
-+
-+	if (has_cap(ACER_CAP_WIRELESS)) {
-+		retval = device_create_file(&acer_platform_device->dev,
-+			&dev_attr_wireless);
-+		if (retval)
-+			goto error;
-+	}
-+
-+	if (has_cap(ACER_CAP_BLUETOOTH)) {
-+		retval = device_create_file(&acer_platform_device->dev,
-+			&dev_attr_bluetooth);
-+		if (retval)
-+			goto error;
-+	}
-+
-+	if (has_cap(ACER_CAP_THREEG)) {
-+		retval = device_create_file(&acer_platform_device->dev,
-+			&dev_attr_threeg);
-+		if (retval)
-+			goto error;
-+	}
-+
-+	retval = device_create_file(&acer_platform_device->dev,
-+		&dev_attr_interface);
-+	if (retval)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+		remove_sysfs(acer_platform_device);
-+	return retval;
-+}
-+
-+static int __init acer_wmi_init(void)
-+{
-+	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras version %s\n",
-+			ACER_WMI_VERSION);
-+
-+	find_quirks();
-+
-+	/*
-+	 * Detect which ACPI-WMI interface we're using.
-+	 */
-+	if (wmi_has_guid(AMW0_GUID1)) {
-+		interface = &AMW0_interface;
-+
-+		if (!quirks)
-+			return -ENOMEM;
-+
-+		if (wmi_has_guid(WMID_GUID1)) {
-+			interface = &AMW0_V2_interface;
-+		} else {
-+			if (!quirks->brightness) {
-+				quirks->brightness = 1;
-+				interface->capability |= ACER_CAP_BRIGHTNESS;
-+			}
-+		}
-+	} else if (wmi_has_guid(WMID_GUID1)) {
-+		interface = &wmid_interface;
-+	} else {
-+		printk(ACER_ERR "No or unsupported WMI interface, unable to ");
-+		printk(KERN_CONT "load.\n");
++	if (!wmi_has_guid(GUID))
 +		return -ENODEV;
-+	}
 +
-+	if (platform_driver_register(&acer_platform_driver)) {
-+		printk(ACER_ERR "Unable to register platform driver.\n");
-+		goto error_platform_register;
-+	}
-+	acer_platform_device = platform_device_alloc("acer-wmi", -1);
-+	platform_device_add(acer_platform_device);
++	result = platform_driver_register(&tc1100_driver);
++	if (result)
++		return result;
 +
-+	create_sysfs();
++	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
++	platform_device_add(tc1100_device);
 +
-+	/* Override any initial settings with values from the commandline */
-+	acer_commandline_init();
++	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
 +
-+	return 0;
-+
-+error_platform_register:
-+	return -ENODEV;
++	return result;
 +}
 +
-+static void __exit acer_wmi_exit(void)
++static void __exit tc1100_exit(void)
 +{
-+	remove_sysfs(acer_platform_device);
-+	platform_device_del(acer_platform_device);
-+	platform_driver_unregister(&acer_platform_driver);
++	platform_device_del(tc1100_device);
++	platform_driver_unregister(&tc1100_driver);
 +
-+	printk(ACER_INFO "Acer Laptop WMI Extras unloaded\n");
-+	return;
++	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
 +}
 +
-+module_init(acer_wmi_init);
-+module_exit(acer_wmi_exit);
++module_init(tc1100_init);
++module_exit(tc1100_exit);
 -- 
 1.5.3.4
 
