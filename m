@@ -1,43 +1,49 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: 2.6.24-rc4-mm1: acpi reboots machine... solved
-Date: Wed, 12 Dec 2007 13:38:01 +0300
-Message-ID: <475FBA09.7060907@gmail.com>
-References: <20071209075001.GA4686@gollum.tnic> <200712111300.24841.bjorn.helgaas@hp.com> <20071211205255.GB5013@gollum.tnic> <200712111709.00313.bjorn.helgaas@hp.com> <20071212101123.GA5619@gollum.tnic>
+From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: Re: acpi ->video_device_list corruption
+Date: Wed, 12 Dec 2007 12:48:09 +0100
+Message-ID: <18271.51833.872482.880312@harpo.it.uu.se>
+References: <20071212101505.GA18472@holomorphy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:18525 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758622AbXLLKhX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2007 05:37:23 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so516975ugc.16
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Dec 2007 02:37:17 -0800 (PST)
-In-Reply-To: <20071212101123.GA5619@gollum.tnic>
+Received: from aun.it.uu.se ([130.238.12.36]:58523 "EHLO aun.it.uu.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757072AbXLLLsa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Dec 2007 06:48:30 -0500
+In-Reply-To: <20071212101505.GA18472@holomorphy.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bbpetkov@yahoo.de, Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: William Lee Irwin III <wli@holomorphy.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Borislav Petkov wrote:
-> On Tue, Dec 11, 2007 at 05:08:59PM -0700, Bjorn Helgaas wrote:
->   
->> On Tuesday 11 December 2007 01:52:55 pm Borislav Petkov wrote:
->>     
->>> From what i can roughly tell so far it seems like an resource conflict between acpi and
->>> the pnp requested regions in your patch which result in the acpi_thermal code
->>> to read the wrong (0xff) temperature value and halt the machine, but i might be
->>> wrong on the details since acpi is such a big code chunk to swallow.
->>>       
->> I don't see any obvious conflict from the log you posted.  For the sake
->> of comparison, can you post the corresponding dmesg log after you removed
->> the patch?
->>     
->
-> The only difference i see is that ACPI finds EC in DSDT in the working kernel
-> and in the broken case something silently fails. Please find attached the 2 bootlogs
-> and a disassembled DSDT.
->
->   
-This seems to be the start of trouble...
-    PCI: Cannot allocate resource region 4 of device 0000:00:1f.3
+William Lee Irwin III writes:
+ > The ->cap fields of struct acpi_video_device and struct acpi_video_bus
+ > are 1B each, not 4B. The oversized memset()'s corrupted the subsequent
+ > list_head fields. This resulted in silent corruption without
+ > CONFIG_DEBUG_LIST and BUG's with it. This patch uses sizeof() to pass
+ > the proper bounds to the memset() calls and thereby correct the bugs.
+ > 
+ > Included as a MIME attachment is a compressed dmesg from an affected
+ > system. The patch was seen to resolve the issue on the affected system.
+ > 
+ > vs. 2.6.24-rc5
+ > 
+ > Signed-off-by: William Irwin <wli@holomorphy.com>
+ > 
+ > 
+ > -- wli
+ > 
+ > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+ > index 44a0d9b..7895d57 100644
+ > --- a/drivers/acpi/video.c
+ > +++ b/drivers/acpi/video.c
+ > @@ -577,7 +577,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ >  	struct acpi_video_device_brightness *br = NULL;
+ >  
+ >  
+ > -	memset(&device->cap, 0, 4);
+ > +	memset(&device->cap, 0, sizeof(struct acpi_video_device_cap));
 
+IMO the memset(ptr, 0, sizeof(*ptr)) idiom is both safer
+and avoids having to write an uninteresting type name.
