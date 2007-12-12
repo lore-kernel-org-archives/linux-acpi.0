@@ -1,73 +1,68 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Subject: Re: acpi ->video_device_list corruption
-Date: Wed, 12 Dec 2007 13:12:57 +0100
-Message-ID: <18271.53321.104822.233365@harpo.it.uu.se>
-References: <20071212101505.GA18472@holomorphy.com>
-	<18271.51833.872482.880312@harpo.it.uu.se>
-	<20071212115655.GB18472@holomorphy.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [ACPICA] EmbeddedControl region handling bug in PNP0C14
+Date: Wed, 12 Dec 2007 14:10:14 +0000
+Message-ID: <200712121410.15587.carlos@strangeworlds.co.uk>
+References: <200711280350.08539.carlos@strangeworlds.co.uk> <B28E9812BAF6E2498B7EC5C427F293A403C0F46D@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aun.it.uu.se ([130.238.12.36]:58781 "EHLO aun.it.uu.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751948AbXLLMNO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Dec 2007 07:13:14 -0500
-In-Reply-To: <20071212115655.GB18472@holomorphy.com>
+Received: from slackadelic.com ([65.196.224.53]:46759 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbXLLOLw (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Wed, 12 Dec 2007 09:11:52 -0500
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A403C0F46D@orsmsx415.amr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: William Lee Irwin III <wli@holomorphy.com>
-Cc: Mikael Pettersson <mikpe@it.uu.se>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-William Lee Irwin III writes:
- > On Wed, Dec 12, 2007 at 12:48:09PM +0100, Mikael Pettersson wrote:
- > > IMO the memset(ptr, 0, sizeof(*ptr)) idiom is both safer
- > > and avoids having to write an uninteresting type name.
- > 
- > How about this, then?
+On Wednesday 28 November 2007 18:08:44 Moore, Robert wrote:
+> This will probably require a trace.
 
-Looks good.
+Here's the relevant ACPI error messages (with full ACPI debugging enabl=
+ed)=20
+from acer_acpi, with some comments as to which method is=20
+being called and what arguments we're passing.
 
-Acked-by: Mikael Pettersson <mikpe@it.uu.se>
+This user tested this on Kubuntu Gutsy (7.10) x86-64, with a custom 2.6=
+=2E23.9=20
+kernel (basically, just the ACPI debugging enabled so we can get a bett=
+er=20
+trace).
 
- > 
- > The ->cap fields of struct acpi_video_device and struct acpi_video_bus
- > are 1B each, not 4B. The oversized memset()'s corrupted the subsequent
- > list_head fields. This resulted in silent corruption without
- > CONFIG_DEBUG_LIST and BUG's with it. This patch uses sizeof() to pass
- > the proper bounds to the memset() calls and thereby correct the bugs.
- > 
- > The patch was seen to resolve the issue on the affected system.
- > 
- > vs. 2.6.24-rc5
- > 
- > Signed-off-by: William Irwin <wli@holomorphy.com>
- > 
- > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
- > index 44a0d9b..bd77e81 100644
- > --- a/drivers/acpi/video.c
- > +++ b/drivers/acpi/video.c
- > @@ -577,7 +577,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- >  	struct acpi_video_device_brightness *br = NULL;
- >  
- >  
- > -	memset(&device->cap, 0, 4);
- > +	memset(&device->cap, 0, sizeof(device->cap));
- >  
- >  	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_ADR", &h_dummy1))) {
- >  		device->cap._ADR = 1;
- > @@ -697,7 +697,7 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
- >  {
- >  	acpi_handle h_dummy1;
- >  
- > -	memset(&video->cap, 0, 4);
- > +	memset(&video->cap, 0, sizeof(video->cap));
- >  	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOS", &h_dummy1))) {
- >  		video->cap._DOS = 1;
- >  	}
- > --
- > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
- > the body of a message to majordomo@vger.kernel.org
- > More majordomo info at  http://vger.kernel.org/majordomo-info.html
- > Please read the FAQ at  http://www.tux.org/lkml/
- > 
+So, for reference, this is the DSDT we're working with:
+http://files.strangeworlds.co.uk/5040.dsl
+
+WMCA(1, 3, NULL):
+[23375.726016] ACPI Error (evregion-0316): No handler for Region
+[RAM_] (ffff81000132d1a0) [EmbeddedControl] [20070126]
+[23375.726246] ACPI Error (exfldio-0289): Region EmbeddedControl(3)
+has no handler [20070126]
+[23375.726475] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While
+resolving operands for [Store] [20070126]
+[23375.726708] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.AMW0.WMCA] (Node ffff8100013315f0), AE_NOT_EXIST
+
+WMCA(1, 6, BUF(4 bytes) =3D 1):
+[23444.490213] ACPI Error (evregion-0316): No handler for Region
+[RAM_] (ffff81000132d1a0) [EmbeddedControl] [20070126]
+[23444.490218] ACPI Error (exfldio-0289): Region EmbeddedControl(3)
+has no handler [20070126]
+[23444.490223] ACPI Exception (dswexec-0462): AE_NOT_EXIST, While
+resolving operands for [LGreater] [20070126]
+[23444.490228] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.AMW0.WMCA] (Node ffff8100013315f0), AE_NOT_EXIST
+[23444.490263] acer_acpi: =A0 In: 0x00000001
+
+-Carlos
+--=20
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
