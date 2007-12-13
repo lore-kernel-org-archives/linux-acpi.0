@@ -1,43 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/8] git-acpi build fix
-Date: Thu, 13 Dec 2007 15:53:33 -0800
-Message-ID: <200712132353.lBDNrXRG024821@imap1.linux-foundation.org>
+Subject: [patch 8/8] acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of list_for_each()
+Date: Thu, 13 Dec 2007 15:53:40 -0800
+Message-ID: <200712132353.lBDNreUC024842@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45602 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760409AbXLMXyE (ORCPT
+	by vger.kernel.org with ESMTP id S1759831AbXLMXyE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 13 Dec 2007 18:54:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, matthias.kaehlcke@gmail.com
 
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-ia64 allmodconfig:
+acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of
+list_for_each()
 
-kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/pci_irq.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/power/main.c~git-acpi-build-fix kernel/power/main.c
---- a/kernel/power/main.c~git-acpi-build-fix
-+++ a/kernel/power/main.c
-@@ -489,9 +489,6 @@ static struct attribute * g[] = {
- #ifdef CONFIG_PM_TRACE
- 	&pm_trace_attr.attr,
- #endif
--#ifdef CONFIG_PM_DEBUG
--	&pm_test_attr.attr,
--#endif
- 	NULL,
- };
+diff -puN drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each drivers/acpi/pci_irq.c
+--- a/drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each
++++ a/drivers/acpi/pci_irq.c
+@@ -51,10 +51,8 @@ static struct acpi_prt_entry *acpi_pci_i
+ 							  int bus,
+ 							  int device, int pin)
+ {
+-	struct list_head *node = NULL;
+ 	struct acpi_prt_entry *entry = NULL;
  
+-
+ 	if (!acpi_prt.count)
+ 		return NULL;
+ 
+@@ -64,8 +62,7 @@ static struct acpi_prt_entry *acpi_pci_i
+ 	 *
+ 	 */
+ 	spin_lock(&acpi_prt_lock);
+-	list_for_each(node, &acpi_prt.entries) {
+-		entry = list_entry(node, struct acpi_prt_entry, node);
++	list_for_each_entry(entry, &acpi_prt.entries, node) {
+ 		if ((segment == entry->id.segment)
+ 		    && (bus == entry->id.bus)
+ 		    && (device == entry->id.device)
 _
