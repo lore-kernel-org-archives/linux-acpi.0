@@ -1,40 +1,82 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 3/5] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
-Date: Thu, 13 Dec 2007 16:41:46 +0000
-Message-ID: <200712131641.46641.carlos@strangeworlds.co.uk>
-References: <200712120201.45478.carlos@strangeworlds.co.uk> <200712120208.46400.carlos@strangeworlds.co.uk> <Pine.LNX.4.63.0712120224340.19698@dashnine.joshuawise.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH] [RFC] Expose _SUN in /proc/acpi/processor/<...>/info
+Date: Thu, 13 Dec 2007 12:08:02 -0700
+Message-ID: <20071213190801.GA7747@ldl.fc.hp.com>
+References: <20071019193844.GL8122@ldl.fc.hp.com> <20071030235057.GD3127@ldl.fc.hp.com> <200711191254.33682.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:48711 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762443AbXLMQn0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2007 11:43:26 -0500
-In-Reply-To: <Pine.LNX.4.63.0712120224340.19698@dashnine.joshuawise.com>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:11832 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756758AbXLMTIF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2007 14:08:05 -0500
 Content-Disposition: inline
+In-Reply-To: <200711191254.33682.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joshua Wise <joshua@joshuawise.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Len Brown <lenb@kernel.org>
+Cc: akpm@linux-foundation.org, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Wednesday 12 December 2007 07:26:24 Joshua Wise wrote:
-> On Wed, 12 Dec 2007, Carlos Corbacho wrote:
-> > +	case TC1100_INSTANCE_BLUETOOTH:
-> > +		*out = (tmp == 1) ? 1 : 0;
-> > +		return 0;
->
-> This doesn't actually control Bluetooth.  This controls whether the jog
-> dial is in normal mode or brightness select mode.
+Hi Len,
 
-Is this a mistake then from the original tc1100-wmi (the 'bluetooth' file 
-never controlled bluetooth, it always controlled the jog dial), or a mistake 
-in my patch (it should control bluetooth, but is changing the jog dial 
-instead)?
+* Len Brown <lenb@kernel.org>:
+> On Tuesday 30 October 2007 19:50, Alex Chiang wrote:
+> > 
+> > I'm looking for comments on the following patch that exposes _SUN
+> > on processor objects in /proc/acpi/processor/<...>/info. 
+> > 
+> > This didn't get many comments on the linux-acpi list, so I'm
+> > sending to a wider distribution.
+> > 
+> > I notice that acpiphp exposes _SUN for (hotpluggable) PCI slots
+> > in /sys/bus/pci/slots/N/, where N is the value of _SUN. I'm not
+> > so sure we want to go *exactly* in the same direction for CPUs,
+> > because:
+> > 
+> >   - x86 systems might not implement _SUN for processors
+> >   - ia64 systems that implement ACPI 2.x do not have unique
+> >     values for _SUN across the entire system
+> > 
+> > Nonetheless, even non-unique values of _SUN are still helpful for
+> > userspace to figure out which physical socket a CPU might be in,
+> > especially when combined with information from /proc/cpuinfo.
+> > 
+> > Thoughts?
+> 
+> We've not allowed new features in /proc/acpi
+> since we started removing /proc/acpi.
+> ie. we don't want to update the API, we want to delete it.
+ 
+Ok.
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+> If this is a useful thing for user-space to know, then you need
+> to figure out a generic way to present it -- likely under
+> /sys/devices/system/cpu/
+ 
+There are lots of ways to go with this, and I'd like to get an
+idea of what you think makes most sense before going off and
+spending tons of time here.
+
+I see possible choices as:
+
+  1) create something like:
+  
+	/sys/devices/system/cpu/cpuN/topology/socket_id
+
+     And leave it up to the arch to figure if/how they want to
+     implement it. On ia64 systems, we can get this information
+     from the _SUN method.
+
+  2) create something like:
+
+  	/sys/devices/system/cpu/cpuN/acpi/
+
+     And port over the stuff from /proc/acpi, adding in a new
+     field for _SUN.
+
+Thoughts?
+
+Thanks.
+
+/ac
+
