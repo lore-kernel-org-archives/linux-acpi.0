@@ -1,53 +1,80 @@
-From: Akkana Peck <akkana@shallowsky.com>
-Subject: Re: [Bugme-new] [Bug 9555] New: Suspend to RAM horks keyboard autorepeat, system bell, trackpad
-Date: Wed, 12 Dec 2007 22:45:32 -0800
-Message-ID: <20071213064532.GA7618@shallowsky.com>
-References: <bug-9555-10286@http.bugzilla.kernel.org/> <20071212183349.f81464bf.akpm@linux-foundation.org>
+From: Pierre Ossman <drzeus@drzeus.cx>
+Subject: Re: PNP: do not stop/start devices in suspend/resume path
+Date: Thu, 13 Dec 2007 09:26:21 +0100
+Message-ID: <20071213092621.7cf6ee87@poseidon.drzeus.cx>
+References: <4745F77C.7040402@gmail.com>
+	<47514CE2.3000600@gmail.com>
+	<200712051124.18852.bjorn.helgaas@hp.com>
+	<200712061625.57660.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=PGP-SHA1; boundary="=_hera.drzeus.cx-25559-1197534386-0001-2"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adsl-69-105-235-1.dsl.pltn13.pacbell.net ([69.105.235.1]:55813
-	"EHLO moon.timocharis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764132AbXLMHPc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2007 02:15:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20071212183349.f81464bf.akpm@linux-foundation.org>
+Received: from gateway.drzeus.cx ([85.8.24.16]:55561 "EHLO smtp.drzeus.cx"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752740AbXLMI01 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Dec 2007 03:26:27 -0500
+In-Reply-To: <200712061625.57660.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: stable@kernel.org, bugme-daemon@bugzilla.kernel.org, Dmitry Torokhov <dtor@mail.ru>, linux-acpi@vger.kernel.org, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-[Replying again with all CCs]
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-Andrew Morton writes:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=9555
-> > 
-> >            Summary: Suspend to RAM horks keyboard autorepeat, system bell,
-> >                     trackpad
-[ ... ]
-> > With 2.6.23.8, when I suspend to RAM (using /usr/sbin/hibernate -F
-> > /etc/hibernate/ram.conf) from within X, when I resume I see the
-> > following odd behavior:
-> > 
-> > 1. The system bell is now half a second long.
-> > 2. Keyboard autorepeat has a very long delay -- like 7 seconds before the first
-> > repeated character shows up.
-> > 3. If I configure X to use the (Alps) trackpad via the synaptics  driver, after
-> > resuming, clicks from the trackpad don't work at all -- not only are taps
-> > ignored (which is how I've configured xorg.conf) but the physical buttons don't
-> > generate click events either. If I configure X to use the trackpad just as a
-> > PS/2 mouse, though, it still works normally after resuming.
-[ ... ]
-> 
-> A regression in the -stable series.
-> 
-> IT'd be interesting to see if this has gone into 2.6.24-rc5 too.
+--=_hera.drzeus.cx-25559-1197534386-0001-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The problem seems fixed in 2.6.24-rc5 (and I'd like to apologize for
-wasting everyone's time by not checking for a new version first).
-So the bug appeared in the patches that took 2.6.23.1 to 2.6.23.8, and
-was fixed by something between .23.8 and .24-rc5.
+On Thu, 6 Dec 2007 16:25:57 -0700
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-I'm fine with closing the bug since it's working fine in .24-rc5,
-but if anyone is curious what the problem was, I'm happy to help
-with tracking it down. It's very easily reproducible on this machine.
+> PNP: do not stop/start devices in suspend/resume path
+>=20
+> Do not disable PNP devices in the suspend path.  We still call
+> the driver's suspend method, which should prevent further use of
+> the device, and the protocol suspend method, which may put the
+> device in a low-power state.
+>=20
+> I'm told that Windows puts devices in a low-power state (Linux
+> does this in the protocol suspend method), but does not use _DIS
+> in the suspend path.  Other relevant references:
+>=20
+>   - In the ACPI 3.0b spec, I can't find any mention of _DIS in
+>     connection with sleep.  And Device Object Notifications,
+>     Section 5.6.3, Table 5-43, says we should get a bus check
+>     after awakening if hardware was removed while we slept.
+>=20
+>   - This: http://msdn2.microsoft.com/en-us/library/ms810079.aspx
+>     makes a similar point about how the OS re-enumerates devices
+>     as a result of a power state change (3rd last paragraph of
+>     text).
+>=20
+>   - This: http://msdn2.microsoft.com/en-us/library/aa489874.aspx
+>     suggests that Windows only stops a device to rebalance hardware
+>     resources.
+>=20
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+>=20
+
+Tested-by: Pierre Ossman <drzeus@drzeus.cx>
+
+No noticeable issues with suspend or hibernate using this patch.
+
+Rgds
+Pierre
+
+--=_hera.drzeus.cx-25559-1197534386-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFHYOyt7b8eESbyJLgRAkFQAJ9DDfb9L2gXYVF32hxFgu9hpHPNfwCguypF
+kLYBUDCTxW9Rm445Ts7Iiq4=
+=9Wkm
+-----END PGP SIGNATURE-----
+
+--=_hera.drzeus.cx-25559-1197534386-0001-2--
