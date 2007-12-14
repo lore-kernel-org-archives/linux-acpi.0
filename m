@@ -1,126 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: + git-acpi-build-fix.patch added to -mm tree
-Date: Thu, 13 Dec 2007 20:27:31 -0500
-Message-ID: <200712132027.31477.lenb@kernel.org>
-References: <200712130343.lBD3hAmY011894@imap1.linux-foundation.org> <200712140107.13630.rjw@sisk.pl>
+Subject: Re: ACPI related Warning in 2.6.24-rc3-git2
+Date: Thu, 13 Dec 2007 21:41:23 -0500
+Message-ID: <200712132141.23656.lenb@kernel.org>
+References: <20071127150557.GA4365@ics.muni.cz> <20071128041155.GB18131@khazad-dum.debian.net> <20071128083153.GL4365@ics.muni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49527 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:58557 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756707AbXLNB2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Dec 2007 20:28:12 -0500
-In-Reply-To: <200712140107.13630.rjw@sisk.pl>
+	id S1754549AbXLNCmH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Dec 2007 21:42:07 -0500
+In-Reply-To: <20071128083153.GL4365@ics.muni.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: akpm@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Thursday 13 December 2007 19:07, Rafael J. Wysocki wrote:
-> On Thursday, 13 of December 2007, akpm@linux-foundation.org wrote:
+On Wednesday 28 November 2007 03:31, Lukas Hejtmanek wrote:
+> On Wed, Nov 28, 2007 at 02:11:55AM -0200, Henrique de Moraes Holschuh wrote:
+> > On Tue, 27 Nov 2007, Rafael J. Wysocki wrote:
+> > > > in recent kernel, I got the following warnings while booting. It's ACPI
+> > > > related. Does anybode care? Lenovo ThinkPad T61 (6465CTO).
 > > 
-> > The patch titled
-> >      git-acpi build fix
-> > has been added to the -mm tree.  Its filename is
-> >      git-acpi-build-fix.patch
-> > 
-> > *** Remember to use Documentation/SubmitChecklist when testing your code ***
-> > 
-> > See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-> > out what to do about this
-> > 
-> > ------------------------------------------------------
-> > Subject: git-acpi build fix
-> > From: Andrew Morton <akpm@linux-foundation.org>
-> > 
-> > ia64 allmodconfig:
+> > Could we know the BIOS version, please?
+> 
+> 7LET56WW (1.26 ) (according to hal, 1.26 is definitely correct, can be seen in
+> BIOS as well)
 
-ah, good to know that ia64 allmodconfig is supposed to build.
-A while back it looked so hopeless that I deleted it from
-my test builds and it never got back onto my list.
+I've udpated the BIOS on my T61 to 1.26 to match yours, but
+running 2.6.24-rc5 I don't see the issue you reported.
 
-I guess I should kick off an ia64 allyesconfig and see how that does too...
+If it still fails for you, please send me your .config
 
-> > kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
-> > 
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> > 
-> >  kernel/power/main.c |    3 ---
-> >  1 file changed, 3 deletions(-)
-> > 
-> > diff -puN kernel/power/main.c~git-acpi-build-fix kernel/power/main.c
-> > --- a/kernel/power/main.c~git-acpi-build-fix
-> > +++ a/kernel/power/main.c
-> > @@ -489,9 +489,6 @@ static struct attribute * g[] = {
-> >  #ifdef CONFIG_PM_TRACE
-> >  	&pm_trace_attr.attr,
-> >  #endif
-> > -#ifdef CONFIG_PM_DEBUG
-> > -	&pm_test_attr.attr,
-> > -#endif
-> 
-> Doesn't it kill pm_test_attr on all architectures?
-> 
-> The proper (hopefully) fix is appended (Len, please add it to the suspend
-> branch).
-> 
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Fix compilation problems related to the /sys/power/pm_test attribute.
-> Namely, this attribute should also be available when
-> CONFIG_HIBERNATION is set and CONFIG_SUSPEND is unset and it should
-> not break compilation when neither of them is set.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  kernel/power/main.c |   10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> Index: linux-2.6/kernel/power/main.c
-> ===================================================================
-> --- linux-2.6.orig/kernel/power/main.c
-> +++ linux-2.6/kernel/power/main.c
-> @@ -50,10 +50,6 @@ int pm_notifier_call_chain(unsigned long
->  			== NOTIFY_BAD) ? -EINVAL : 0;
->  }
->  
-> -#endif /* CONFIG_PM_SLEEP */
-> -
-> -#ifdef CONFIG_SUSPEND
-> -
->  #ifdef CONFIG_PM_DEBUG
->  int pm_test_level = TEST_NONE;
->  
-> @@ -127,6 +123,10 @@ power_attr(pm_test);
->  static inline int suspend_test(int level) { return 0; }
->  #endif /* !CONFIG_PM_DEBUG */
->  
-> +#endif /* CONFIG_PM_SLEEP */
-> +
-> +#ifdef CONFIG_SUSPEND
-> +
->  /* This is just an arbitrary number */
->  #define FREE_PAGE_NUMBER (100)
->  
-> @@ -484,7 +484,7 @@ static struct attribute * g[] = {
->  #ifdef CONFIG_PM_TRACE
->  	&pm_trace_attr.attr,
->  #endif
-> -#ifdef CONFIG_PM_DEBUG
-> +#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
->  	&pm_test_attr.attr,
->  #endif
->  	NULL,
-> 
-
-Applied.
 thanks,
 -Len
-
