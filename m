@@ -1,39 +1,126 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch 2/8] git-acpi build fix
-Date: Fri, 14 Dec 2007 02:13:12 +0100
-Message-ID: <200712140213.13343.rjw@sisk.pl>
-References: <200712132353.lBDNrXRG024821@imap1.linux-foundation.org> <200712140124.33319.rjw@sisk.pl> <20071213162444.1c78c6b7.akpm@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: + git-acpi-build-fix.patch added to -mm tree
+Date: Thu, 13 Dec 2007 20:27:31 -0500
+Message-ID: <200712132027.31477.lenb@kernel.org>
+References: <200712130343.lBD3hAmY011894@imap1.linux-foundation.org> <200712140107.13630.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36884 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:49527 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751854AbXLNAx4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Dec 2007 19:53:56 -0500
-In-Reply-To: <20071213162444.1c78c6b7.akpm@linux-foundation.org>
+	id S1756707AbXLNB2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Dec 2007 20:28:12 -0500
+In-Reply-To: <200712140107.13630.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: akpm@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Friday, 14 of December 2007, Andrew Morton wrote:
-> On Fri, 14 Dec 2007 01:24:32 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Friday, 14 of December 2007, akpm@linux-foundation.org wrote:
-> > > From: Andrew Morton <akpm@linux-foundation.org>
-> > > 
-> > > ia64 allmodconfig:
-> > > 
-> > > kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
+On Thursday 13 December 2007 19:07, Rafael J. Wysocki wrote:
+> On Thursday, 13 of December 2007, akpm@linux-foundation.org wrote:
 > > 
-> > I've already sent a better fix for that, thanks.
-> 
-> I don't think I was cc'ed.  Please make sure that I see fixes to trees
-> which are in -mm?
+> > The patch titled
+> >      git-acpi build fix
+> > has been added to the -mm tree.  Its filename is
+> >      git-acpi-build-fix.patch
+> > 
+> > *** Remember to use Documentation/SubmitChecklist when testing your code ***
+> > 
+> > See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+> > out what to do about this
+> > 
+> > ------------------------------------------------------
+> > Subject: git-acpi build fix
+> > From: Andrew Morton <akpm@linux-foundation.org>
+> > 
+> > ia64 allmodconfig:
 
-Well, my mailer testifies that it was To: you and Len.  [I was beating it
-really hard, but it wouldn't confess to lying.]
+ah, good to know that ia64 allmodconfig is supposed to build.
+A while back it looked so hopeless that I deleted it from
+my test builds and it never got back onto my list.
+
+I guess I should kick off an ia64 allyesconfig and see how that does too...
+
+> > kernel/power/main.c:493: error: `pm_test_attr' undeclared here (not in a function)
+> > 
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > ---
+> > 
+> >  kernel/power/main.c |    3 ---
+> >  1 file changed, 3 deletions(-)
+> > 
+> > diff -puN kernel/power/main.c~git-acpi-build-fix kernel/power/main.c
+> > --- a/kernel/power/main.c~git-acpi-build-fix
+> > +++ a/kernel/power/main.c
+> > @@ -489,9 +489,6 @@ static struct attribute * g[] = {
+> >  #ifdef CONFIG_PM_TRACE
+> >  	&pm_trace_attr.attr,
+> >  #endif
+> > -#ifdef CONFIG_PM_DEBUG
+> > -	&pm_test_attr.attr,
+> > -#endif
+> 
+> Doesn't it kill pm_test_attr on all architectures?
+> 
+> The proper (hopefully) fix is appended (Len, please add it to the suspend
+> branch).
+> 
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Fix compilation problems related to the /sys/power/pm_test attribute.
+> Namely, this attribute should also be available when
+> CONFIG_HIBERNATION is set and CONFIG_SUSPEND is unset and it should
+> not break compilation when neither of them is set.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  kernel/power/main.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> Index: linux-2.6/kernel/power/main.c
+> ===================================================================
+> --- linux-2.6.orig/kernel/power/main.c
+> +++ linux-2.6/kernel/power/main.c
+> @@ -50,10 +50,6 @@ int pm_notifier_call_chain(unsigned long
+>  			== NOTIFY_BAD) ? -EINVAL : 0;
+>  }
+>  
+> -#endif /* CONFIG_PM_SLEEP */
+> -
+> -#ifdef CONFIG_SUSPEND
+> -
+>  #ifdef CONFIG_PM_DEBUG
+>  int pm_test_level = TEST_NONE;
+>  
+> @@ -127,6 +123,10 @@ power_attr(pm_test);
+>  static inline int suspend_test(int level) { return 0; }
+>  #endif /* !CONFIG_PM_DEBUG */
+>  
+> +#endif /* CONFIG_PM_SLEEP */
+> +
+> +#ifdef CONFIG_SUSPEND
+> +
+>  /* This is just an arbitrary number */
+>  #define FREE_PAGE_NUMBER (100)
+>  
+> @@ -484,7 +484,7 @@ static struct attribute * g[] = {
+>  #ifdef CONFIG_PM_TRACE
+>  	&pm_trace_attr.attr,
+>  #endif
+> -#ifdef CONFIG_PM_DEBUG
+> +#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
+>  	&pm_test_attr.attr,
+>  #endif
+>  	NULL,
+> 
+
+Applied.
+thanks,
+-Len
+
