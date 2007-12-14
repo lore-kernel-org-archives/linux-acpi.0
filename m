@@ -1,32 +1,43 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [BUG] Kernel Bugs Weekly (maybe bi-weekly)
-Date: Fri, 14 Dec 2007 14:46:28 +0000
-Message-ID: <20071214144628.GB15149@flint.arm.linux.org.uk>
-References: <32209efe0712132057x247219e0m602f24d1e3a2c20b@mail.gmail.com>
+From: ice` <icestorm@ngi.it>
+Subject: Re: Help please
+Date: Fri, 14 Dec 2007 16:22:29 +0100
+Message-ID: <47629FB5.7050009@ngi.it>
+References: <47629334.50201@thecybersource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753818AbXLNOrY@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <32209efe0712132057x247219e0m602f24d1e3a2c20b@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Natalie Protasevich <protasnb@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, linux-ide@vger.kernel.org, linux-pcmcia@lists.infradead.org, linux-input@atrey.karlin.mff.cuni.cz, linux-dvb@linuxtv.org, linux-acpi@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-out28.alice.it ([85.33.2.28]:2860 "EHLO
+	smtp-out28.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753265AbXLNPj1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2007 10:39:27 -0500
+In-Reply-To: <47629334.50201@thecybersource.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Dec 13, 2007 at 08:57:24PM -0800, Natalie Protasevich wrote:
-> PLATFORM======================================================================
-> 
-> s3c2440_clk_add disables inactive clocks _ARM_
-> http://bugzilla.kernel.org/show_bug.cgi?id=9040
-> Kernel: 2.6.22
-> ARM, assigned to Ben Dooks (question is if he knows this :)
+Cyber Source ha scritto:
+> Hello,
+>  To simplify my question, I'm going to include an excerpt from a post 
+> to our lug here. Would you possible have a work around for this 
+> problem? TIA
+Hi,
+sorry if I follow your post but I have a problem with ACPI and I think 
+that the culprit is always Phoenix Bios as in your case (I have an HP 
+dv2500 laptop with bios F.21)...
+I've read that Phoenix Bios has been planned to allow only Microsoft 
+systems (in particular Vista) to read ACPI data and therefore manage CPU.
+Someone can confirm this?
+I can't manage cpu frequency scaling which, by the way, is supported by 
+my cpu (C2D T7500) and in fact inside Vista works pretty well.
+This is the ACPI error I get when I modprobe acpi-cpufreq:
 
-Not quite sure what the point of putting it in an email he hasn't seen
-is either.
+[ 1008.017253] ACPI Error (psargs-0355): [\_PR_.CPU0._PSS] Namespace 
+lookup failure, AE_NOT_FOUND
+[ 1008.017259] ACPI Error (psparse-0551): Method parse/execution failed 
+[\_PR_.CPU1._PSS] (Node ffff81007cf59de0), AE_NOT_FOUND
+[ 1008.017293] ACPI Exception (processor_perflib-0234): AE_NOT_FOUND, 
+Evaluating _PSS [20070126]
 
-Adding Ben as a CC.
+I hope someone can clarify on this.
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
