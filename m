@@ -1,49 +1,35 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: ATA ACPI needs "Mr interpreter, would you please shut up?" flag
-Date: Fri, 14 Dec 2007 15:28:47 +0900
-Message-ID: <4762229F.8020900@gmail.com>
-References: <47620E5E.5020001@gmail.com> <4762129F.6060209@shaw.ca>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: ACPI related Warning in 2.6.24-rc3-git2
+Date: Fri, 14 Dec 2007 07:57:13 +0100
+Message-ID: <20071214065713.GC3370@ics.muni.cz>
+References: <20071127150557.GA4365@ics.muni.cz> <20071128041155.GB18131@khazad-dum.debian.net> <20071128083153.GL4365@ics.muni.cz> <200712132141.23656.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <4762129F.6060209@shaw.ca>
-Sender: linux-ide-owner@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Randy Dunlap <randy.dunlap@oracle.com>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from minas.ics.muni.cz ([147.251.4.40]:43132 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359AbXLNG6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Dec 2007 01:58:14 -0500
+Content-Disposition: inline
+In-Reply-To: <200712132141.23656.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Robert Hancock wrote:
->> Problem is that _GTM implementation on certain BIOSen crap themselves if
->> invoked on empty channels.  However, as written above, because initial
->> _GTM caching is done before any actual operation is performed on the
->> port, libata can't determine whether the port is occupied or not when
->> trying to cache _GTM result.  Unfortunately, VIA PATA is on both
->> categories - it needs _GTM caching but can't cope with _GTM invocation
->> on empty ports.  Yay!
-> 
-> I seem to have lost the thread/bug report where we decided that one
-> board always choked on an empty channel. Maybe it's not that and it's
-> just another case of the same issue where our resetting default timing
-> values on the controller before calling _GTM would choke the _GTM method?
+On Thu, Dec 13, 2007 at 09:41:23PM -0500, Len Brown wrote:
+> I've udpated the BIOS on my T61 to 1.26 to match yours, but
+> running 2.6.24-rc5 I don't see the issue you reported.
+>=20
+> If it still fails for you, please send me your .config
 
-Could be.  Hans' machine on bug 9320 is the affected one (PATA on via
-CN700).  I asked him to test the final version.  If it indeed is caused
-by the same problem, there won't be evaluation failures.
+It has been fixed in -rc4 I guess.
 
-Anyways, table-based implementations like the NVidia and VIA ones are
-bound to fail on certain conditions.  libata reconfigures transfer mode
-aggressively under certain failure conditions and _GTM invocation will
-fail if the port is in a mode which is not on ACPI's mode table (which
-doesn't seem to be too comprehensive anyway).  So, there's always
-possibility of _GTM failure for those boards, which in turn can fail
-_GTF evaluation.
-
-As _GTM, _STM and _GTF aren't strictly necessary for operation anyway, I
-think it's better to print ATA ACPI evaluation failure messages using
-KERN_DEBUG.
-
-Thanks.
-
--- 
-tejun
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
