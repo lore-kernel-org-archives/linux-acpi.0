@@ -1,43 +1,26 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.24-rc5
-Date: Thu, 13 Dec 2007 23:06:43 -0800
-Message-ID: <20071213230643.76d196dd.akpm@linux-foundation.org>
-References: <200712140126.12182.lenb@kernel.org>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: ATA ACPI needs "Mr interpreter, would you please shut up?" flag
+Date: Fri, 14 Dec 2007 21:17:03 +0900
+Message-ID: <4762743F.4070605@gmail.com>
+References: <47620E5E.5020001@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45133 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754365AbXLNHG6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Dec 2007 02:06:58 -0500
-In-Reply-To: <200712140126.12182.lenb@kernel.org>
+Received: from wa-out-1112.google.com ([209.85.146.181]:19905 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761341AbXLNMRO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2007 07:17:14 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so1718693wah.23
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Dec 2007 04:17:12 -0800 (PST)
+In-Reply-To: <47620E5E.5020001@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Linux Kernel <linux-kernel@vger.kernel.org>, IDE/ATA development list <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org, Robert Hancock <hancockr@shaw.ca>, Jeff Garzik <jeff@gar>
 
-On Fri, 14 Dec 2007 01:26:11 -0500 Len Brown <lenb@kernel.org> wrote:
+I take it back.  I found how to satisfy neurotic BIOSen.
 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> 
-> This will update the files shown below.
-> 
-> thanks!
-> 
-> -Len
-> 
-> ps. individual patches are available on linux-acpi@vger.kernel.org
-> and a consolidated plain patch is available here:
-> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.24/acpi-release-20070126-2.6.24-rc5.diff.gz
-> 
->  drivers/acpi/battery.c       |    2 +-
->  drivers/acpi/numa.c          |    4 ++--
->  drivers/acpi/video.c         |    4 ++--
->  drivers/misc/thinkpad_acpi.c |    4 ++--
->  4 files changed, 7 insertions(+), 7 deletions(-)
+Thanks.
 
-What's happening with Alexey's sbs regression fixes?
+-- 
+tejun
