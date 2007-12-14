@@ -1,37 +1,32 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Help please
-Date: Fri, 14 Dec 2007 14:43:10 +0000
-Message-ID: <200712141443.11320.carlos@strangeworlds.co.uk>
-References: <47629334.50201@thecybersource.com>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
+Subject: Re: [BUG] Kernel Bugs Weekly (maybe bi-weekly)
+Date: Fri, 14 Dec 2007 14:46:28 +0000
+Message-ID: <20071214144628.GB15149@flint.arm.linux.org.uk>
+References: <32209efe0712132057x247219e0m602f24d1e3a2c20b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:50917 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752515AbXLNOot (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2007 09:44:49 -0500
-In-Reply-To: <47629334.50201@thecybersource.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753818AbXLNOrY@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <32209efe0712132057x247219e0m602f24d1e3a2c20b@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Natalie Protasevich <protasnb@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, linux-ide@vger.kernel.org, linux-pcmcia@lists.infradead.org, linux-input@atrey.karlin.mff.cuni.cz, linux-dvb@linuxtv.org, linux-acpi@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Cyber Source <peter@thecybersource.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Friday 14 December 2007 14:29:08 Cyber Source wrote:
-> Ok, gotta throw one out for some help.
->  Long story short is, I have a laptop that I just purchased for a
-> client, has nvidia and runs perfect with Ubuntu Gutsy except for 1
-> little (kinda huge) problem.
+On Thu, Dec 13, 2007 at 08:57:24PM -0800, Natalie Protasevich wrote:
+> PLATFORM======================================================================
+> 
+> s3c2440_clk_add disables inactive clocks _ARM_
+> http://bugzilla.kernel.org/show_bug.cgi?id=9040
+> Kernel: 2.6.22
+> ARM, assigned to Ben Dooks (question is if he knows this :)
 
-Make and model of laptop?
-BIOS version?
+Not quite sure what the point of putting it in an email he hasn't seen
+is either.
 
-dmesg output would probably also be useful.
+Adding Ben as a CC.
 
--Carlos
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
