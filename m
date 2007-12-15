@@ -1,88 +1,113 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC] [PATCH] ACPI: ignore the error about the _CRS of LINK device
-Date: Fri, 14 Dec 2007 17:43:10 -0500
-Message-ID: <200712141743.10524.lenb@kernel.org>
-References: <1197274521.20098.10.camel@yakui_zhao.sh.intel.com>
+From: Jan Willies <jan@willies.info>
+Subject: Re: No battery status with 2.6.24-rcX anymore
+Date: Sat, 15 Dec 2007 18:03:14 +0100
+Message-ID: <476408D2.1060205@willies.info>
+References: <4762C081.4010000@willies.info> <200712141504.41707.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:59182 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935130AbXLNWnY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Dec 2007 17:43:24 -0500
-In-Reply-To: <1197274521.20098.10.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from will39.synserver.de ([212.40.172.10]:58803 "EHLO
+	will39.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653AbXLOREO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Dec 2007 12:04:14 -0500
+In-Reply-To: <200712141504.41707.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-That's funny,
-I thought we already ignored errors from _CRS on link devices.
-perhaps the errors we ignore are slightly different --
-we ignore an IRQ0, but here the return value isn't
-formatted correctly -- we should probably follow the same path...
+Len Brown wrote:
+> On Friday 14 December 2007 12:42, Jan Willies wrote:
+> 
+>> ACPI: Table DSDT replaced by host OS
+> 
+> Sorry, can't help you if you are running a modified BIOS.
 
--Len
+Uh sorry, I totally forgot about that. It's just some compile errors fixed with intel compiler [1] and a little undervolting [2], don't know if it matters at all. Here is a clean log:
 
-On Monday 10 December 2007 03:15, Zhao Yakui wrote:
-> Hi, All
-> 	The following error message can be found in the dmesg of bug8896.
-> 	 ACPI Error (uteval-0269): Return object type is incorrect
-> [\_SB_.PCI0.ALKD._CRS] (Node da4b49f0), AE_TYPE
-> 	ACPI Error (uteval-0275): Type returned from _CRS was incorrect:
-> Integer, expected Btypes: 4 [20060707]
-> 	ACPI Exception (pci_link-0278): AE_TYPE, Evaluating _CRS [20060707]
-> 	And the above error message is related to the following	BIOS Bug.
-> 	Method (_CRS, 0, NotSerialized)
->                 {
->                     Return (0x00)
->                 }
-> 
-> Can we ignore the error about the _CRS method of LINK device and select
-> IRQ from the possible IRQ list returned by _PRS method?
-> 
-> Thanks.
-> 	
-> 
-> 
-> Subject: ACPI : Ignore the error about the _CRS of LINK device
-> >From : Zhao Yakui <yakui.zhao@intel.com>
-> 
-> Ignore the error about the _CRS method of LINK device and select
-> IRQ from possible IRQ list returned by _PRS method.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8896
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  drivers/acpi/pci_link.c |   13 ++++++++++---
->  1 file changed, 10 insertions(+), 3 deletions(-)
-> 
-> Index: linux-2.6.24-rc4/drivers/acpi/pci_link.c
-> ===================================================================
-> --- linux-2.6.24-rc4.orig/drivers/acpi/pci_link.c
-> +++ linux-2.6.24-rc4/drivers/acpi/pci_link.c
-> @@ -385,9 +385,16 @@ static int acpi_pci_link_set(struct acpi
->  
->  	/* Query _CRS, set link->irq.active */
->  	result = acpi_pci_link_get_current(link);
-> -	if (result) {
-> -		goto end;
-> -	}
-> +	if (result == ENODEV) {
-> +		/*
-> +		 * Ignore the error about the _CRS method of Link device and
-> +		 * select IRQ from the Possible IRQ list
-> +		 * returned by _PRS method.
-> +		 */
-> +                printk(KERN_WARNING "Ignore error LINK CRS method.\n");
-> +                link->irq.active = irq;
-> +                result = 0;
-> +        }
->  
->  	/*
->  	 * Is current setting not what we set?
-> 
+ BIOS-e820: 0000000037f40000 - 0000000037f50000 (ACPI data)
+ BIOS-e820: 0000000037f50000 - 0000000038000000 (ACPI NVS)
+ACPI: RSDP 000F8360, 0014 (r0 MSI   )
+ACPI: RSDT 37F40000, 003C (r1 MSI    1013      9262005 MSFT       97)
+ACPI: FACP 37F40200, 0081 (r2 MSI    1013      9262005 MSFT       97)
+ACPI: DSDT 37F403F0, 31EC (r1    MSI     1013  9262005 INTL  2002026)
+ACPI: FACS 37F50000, 0040
+ACPI: APIC 37F40300, 0054 (r1 MSI    OEMAPIC   9262005 MSFT       97)
+ACPI: WDRT 37F40360, 0047 (r1 MSI    MSI_OEM   9262005 MSFT       97)
+ACPI: MCFG 37F403B0, 003C (r1 MSI    OEMMCFG   9262005 MSFT       97)
+ACPI: SSDT 37F435E0, 002B (r1 OEM_ID OEMTBLID        1 INTL  2002026)
+ACPI: OEMB 37F50040, 0049 (r1 MSI    MSI_OEM   9262005 MSFT       97)
+ACPI: PM-Timer IO Port: 0x4008
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+ACPI: IOAPIC (id[0x01] address[0xfec00000] gsi_base[0])
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 21 low level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+Using ACPI (MADT) for SMP configuration information
+ACPI: Core revision 20070126
+ACPI: bus type pci registered
+ACPI: EC: Look up EC in DSDT
+ACPI: Interpreter enabled
+ACPI: (supports S0 S1 S3 S5)
+ACPI: Using IOAPIC for interrupt routing
+ACPI: EC: GPE = 0x6, I/O: command/status = 0x66, data = 0x62
+ACPI: EC: driver started in poll mode
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.POP2._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 5 6 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKB] (IRQs 5 6 7 *10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 5 6 7 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 5 *6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 5 6 *7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKG] (IRQs *5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 5 6 7 10 11 12 14 15) *0, disabled.
+pnp: PnP ACPI init
+ACPI: bus type pnp registered
+pnpacpi: exceeded the max number of IO resources: 24 
+pnpacpi: exceeded the max number of IO resources: 24 
+pnpacpi: exceeded the max number of IO resources: 24 
+pnpacpi: exceeded the max number of IO resources: 24 
+pnpacpi: exceeded the max number of IO resources: 24 
+ACPI: EC: non-query interrupt received, switching to interrupt mode
+pnp: PnP ACPI: found 11 devices
+ACPI: ACPI bus type pnp unregistered
+PCI: Using ACPI for IRQ routing
+ACPI: RTC can wake from S4
+ACPI: PCI Interrupt 0000:02:04.0[A] -> GSI 19 (level, low) -> IRQ 16
+ACPI: PCI Interrupt 0000:02:04.1[B] -> GSI 20 (level, low) -> IRQ 17
+ACPI: PCI Interrupt 0000:00:14.6[B] -> GSI 17 (level, low) -> IRQ 18
+ACPI: PCI interrupt for device 0000:00:14.6 disabled
+ACPI: PCI Interrupt 0000:00:14.1[A] -> GSI 16 (level, low) -> IRQ 19
+ACPI: PCI Interrupt 0000:02:03.0[A] -> GSI 18 (level, low) -> IRQ 20
+ACPI: duty_cycle spans bit 4
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+Time: acpi_pm clocksource has been installed.
+ACPI: AC Adapter [ADP1] (on-line)
+ACPI: Battery Slot [BAT1] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID0]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Power Button (CM) [PWRB]
+ACPI: Thermal Zone [THRM] (66 C)
+ACPI: PCI Interrupt 0000:00:13.0[A] -> GSI 19 (level, low) -> IRQ 16
+ACPI: PCI Interrupt 0000:00:13.1[A] -> GSI 19 (level, low) -> IRQ 16
+ACPI: PCI Interrupt 0000:00:13.2[A] -> GSI 19 (level, low) -> IRQ 16
+ACPI: PCI Interrupt 0000:00:14.5[B] -> GSI 17 (level, low) -> IRQ 18
+ACPI: PCI Interrupt 0000:02:09.0[A] -> GSI 22 (level, low) -> IRQ 22
+ACPI: PCI Interrupt 0000:01:05.0[A] -> GSI 17 (level, low) -> IRQ 18
+
+What else information is needed?
+
+
+Thanks for looking into it,
+
+- Jan
+
+[1] http://katherina.student.utwente.nl/~matthijs/cgi-bin/blosxom/Hardware/S270/BrandNew.html -> Fixing ACPI
+[2] http://katherina.student.utwente.nl/~matthijs/cgi-bin/blosxom/Hardware/S270/Undervolting.html
