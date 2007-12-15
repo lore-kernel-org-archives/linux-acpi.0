@@ -1,34 +1,39 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 1/5] From 53c80bb97496897ce0bb86b528a2500f29bc6e99 Mon Sep 17 00:00:00 2001
-Date: Sat, 15 Dec 2007 17:31:00 +0000
-Message-ID: <200712151731.00757.carlos@strangeworlds.co.uk>
-References: <20071215171401.22833.69972.stgit@localhost>
+Subject: Re: Help please
+Date: Sat, 15 Dec 2007 18:20:04 +0000
+Message-ID: <200712151820.04963.carlos@strangeworlds.co.uk>
+References: <47629334.50201@thecybersource.com> <200712141443.11320.carlos@strangeworlds.co.uk> <47629A2E.7060809@thecybersource.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:35940 "EHLO
+Received: from slackadelic.com ([65.196.224.53]:52717 "EHLO
 	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756122AbXLORci (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Dec 2007 12:32:38 -0500
-Received: from [192.168.0.2] (bb-87-81-255-5.ukonline.co.uk [87.81.255.5])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: carlos@strangeworlds.co.uk)
-	by mail.slackadelic.com (Postfix) with ESMTP id EBFDD5997
-	for <linux-acpi@vger.kernel.org>; Sat, 15 Dec 2007 12:31:41 -0500 (EST)
-In-Reply-To: <20071215171401.22833.69972.stgit@localhost>
+	with ESMTP id S1754661AbXLOSVm (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 15 Dec 2007 13:21:42 -0500
+In-Reply-To: <47629A2E.7060809@thecybersource.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Cyber Source <peter@thecybersource.com>
+Cc: Linux-acpi@vger.kernel.org
 
-On Saturday 15 December 2007 17:14:01 Carlos Corbacho wrote:
-> Subject: [PATCH 1/5] ACPI: WMI: Add ACPI-WMI mapping driver
+On Friday 14 December 2007 14:58:54 you wrote:
+> Thanks for getting back to me Carlos.
 
-Please disregard both this and [PATCH 2/5] - I stuffed up in my test patch 
-sending (shouldn't have gone to linux-acpi).
+Re-adding linux-acpi to CC.
+
+> Acer Aspire 7520-5971
+> System BIOS Version = V1.09 (phoenix)
+
+This is not an ACPI problem, it's an ALSA problem.
+
+http://ubuntuforums.org/showthread.php?t=545401
+
+See the third entry ("Aspire 5720ZG, also: Aspire 7520G TV") which should 
+cover the Aspire 7520 and what you need to do to get the sound working on 
+*buntu.
 
 -Carlos
 -- 
