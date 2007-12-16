@@ -1,35 +1,37 @@
-From: ice` <icestorm@ngi.it>
-Subject: Re: Help please
-Date: Sun, 16 Dec 2007 22:08:41 +0100
-Message-ID: <476593D9.3070409@ngi.it>
-References: <47629334.50201@thecybersource.com> <47629FB5.7050009@ngi.it> <200712141424.16502.lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/2] Suspend: More cleanups
+Date: Sun, 16 Dec 2007 23:46:09 +0100
+Message-ID: <200712162346.10241.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out112.alice.it ([85.37.17.112]:2653 "EHLO
-	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755972AbXLPVIu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Dec 2007 16:08:50 -0500
-In-Reply-To: <200712141424.16502.lenb@kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:49552 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760936AbXLPX3G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2007 18:29:06 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>
 
-Len Brown ha scritto:
-> Please file a sighting here:
->
-> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
->
-> please attach the output from acpidump.
->
-> please attach the dmesg from 2.6.23.stable or later.
->
-> thanks,
-> -Len
->   
-ok, found and done:
-http://bugzilla.kernel.org/show_bug.cgi?id=9586
+Hi,
 
-thanks
+The following two patches are targeted for 2.6.25.
+
+The first one fixes a comment in x86-64 low-level suspend code.
+
+The other one adds a config option allowing to drop the freezer from the
+suspend (ie. STR / standby) code path.
+
+Please add to the suspend branch.
+
+Thanks,
+Rafael
+
+
+-- 
+"Premature optimization is the root of all evil." - Donald Knuth
+
