@@ -1,61 +1,35 @@
-From: Jan Willies <jan@willies.info>
-Subject: Re: No battery status with 2.6.24-rcX anymore
-Date: Sun, 16 Dec 2007 21:08:13 +0100
-Message-ID: <476585AD.9000702@willies.info>
-References: <4762C081.4010000@willies.info> <200712160030.08991.rjw@sisk.pl> <476520FE.4080101@willies.info> <200712161534.16486.rjw@sisk.pl> <47653BA5.9020105@willies.info> <47656B51.401@gmail.com>
+From: ice` <icestorm@ngi.it>
+Subject: Re: Help please
+Date: Sun, 16 Dec 2007 22:08:41 +0100
+Message-ID: <476593D9.3070409@ngi.it>
+References: <47629334.50201@thecybersource.com> <47629FB5.7050009@ngi.it> <200712141424.16502.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from will39.synserver.de ([212.40.172.10]:54761 "EHLO
-	will39.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbXLPUJd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Dec 2007 15:09:33 -0500
-In-Reply-To: <47656B51.401@gmail.com>
+Received: from smtp-out112.alice.it ([85.37.17.112]:2653 "EHLO
+	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755972AbXLPVIu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Dec 2007 16:08:50 -0500
+In-Reply-To: <200712141424.16502.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Jan Willies wrote:
->> Rafael J. Wysocki wrote:
->>> On Sunday, 16 of December 2007, Jan Willies wrote:
->>>> Rafael J. Wysocki wrote:
->>>>> On Saturday, 15 of December 2007, Jan Willies wrote:
->>>>>> Len Brown wrote:
->>>>>>> On Friday 14 December 2007 12:42, Jan Willies wrote:
->>>>>>>            
->>>>>>>> ACPI: Table DSDT replaced by host OS
->>>>>>>>               
->>>>>>> Sorry, can't help you if you are running a modified BIOS.
->>>>>>>             
->>>>>> Uh sorry, I totally forgot about that. It's just some compile
->>>>>> errors fixed with intel compiler [1] and a little undervolting
->>>>>> [2], don't know if it matters at all. Here is a clean log:
->>>>>>           
->>>>> [--snip--]
->>>>>        
->>>>>> What else information is needed?
->>>>>>           
->>>>> Have you tested the latest Linus' tree?  We've had some ACPI fixes
->>>>> recently.
->>>>>         
->>>> Latest as in 2.6.24-rc5-git3?
->>>>       
->>> Yes.
->>
->> No change with 2.6.24-rc5-git3. I used the tarball from [1], shortlog
->> says last changes were made 3 days ago. I don't know if that is
->> 'recently' enough?
-> 
-> Jan,
-> Please open bug at bugzilla.kernel.org, and append acpidump output, full
-> dmesg and .config from your kernel.
+Len Brown ha scritto:
+> Please file a sighting here:
+>
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+>
+> please attach the output from acpidump.
+>
+> please attach the dmesg from 2.6.23.stable or later.
+>
+> thanks,
+> -Len
+>   
+ok, found and done:
+http://bugzilla.kernel.org/show_bug.cgi?id=9586
 
-it's done: http://bugzilla.kernel.org/show_bug.cgi?id=9585
-
-
-cheers
-
-- Jan
+thanks
