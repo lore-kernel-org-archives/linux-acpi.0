@@ -1,37 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: No battery status with 2.6.24-rcX anymore
-Date: Sun, 16 Dec 2007 00:30:08 +0100
-Message-ID: <200712160030.08991.rjw@sisk.pl>
-References: <4762C081.4010000@willies.info> <200712141504.41707.lenb@kernel.org> <476408D2.1060205@willies.info>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [ACPICA] EmbeddedControl region handling bug in PNP0C14
+Date: Sun, 16 Dec 2007 03:42:37 +0000
+Message-ID: <200712160342.38771.carlos@strangeworlds.co.uk>
+References: <200711280350.08539.carlos@strangeworlds.co.uk> <200712121726.53180.carlos@strangeworlds.co.uk> <476024CF.3000800@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45820 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267AbXLOXKz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Dec 2007 18:10:55 -0500
-In-Reply-To: <476408D2.1060205@willies.info>
+Received: from slackadelic.com ([65.196.224.53]:43972 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756558AbXLPDoR (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 15 Dec 2007 22:44:17 -0500
+In-Reply-To: <476024CF.3000800@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Willies <jan@willies.info>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Saturday, 15 of December 2007, Jan Willies wrote:
-> Len Brown wrote:
-> > On Friday 14 December 2007 12:42, Jan Willies wrote:
-> > 
-> >> ACPI: Table DSDT replaced by host OS
-> > 
-> > Sorry, can't help you if you are running a modified BIOS.
-> 
-> Uh sorry, I totally forgot about that. It's just some compile errors fixed with intel compiler [1] and a little undervolting [2], don't know if it matters at all. Here is a clean log:
-[--snip--]
-> What else information is needed?
+Actually, a bit of further reading suggests that this is my fault :(
 
-Have you tested the latest Linus' tree?  We've had some ACPI fixes recently.
+The original ACPI error was quite correct - there is no EC region handler 
+installed - because the EC handler is only installed for the EC device 
+(PNP0C09), not WMI (PNP0C14).
 
-Greetings,
-Rafael
+Had I read through the EC code earlier I would have spotted that one. So, my 
+apologies for wasting your time with this.
+
+So, what I need to do is update WMI to install a handler for the 
+EmbeddedControl region in PNP0C14.
+
+Alexey - I suspect the easiest way would be to make such a handler just call 
+ec_read & ec_write, and let the EC driver do the real work, rather than 
+trying to do anything more complicated in WMI?
+
+-Carlos
+
+(Hoping WMI doesn't keep throwing up more "surprises"...)
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
