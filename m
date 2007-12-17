@@ -1,65 +1,54 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Date: Mon, 17 Dec 2007 09:59:39 +0800
-Message-ID: <1197856779.7782.2.camel@sli10-desk.sh.intel.com>
-References: <20071204215154.7f26285e.mikeserv@bmts.com>
-	 <20071209000554.GF20441@stusta.de>
-	 <20071208212234.e00b74cd.mikeserv@bmts.com>
-	 <20071209105028.06ed52a6@hyperion.delvare>
-	 <E1J1TRp-0000ZF-6J@asgard.prans.org> <20071209220430.GK20441@stusta.de>
-	 <1197253887.27516.2.camel@sli10-desk.sh.intel.com>
-	 <20071209230211.1c2077cf.mikeserv@bmts.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [Patch]: ACPI : Not register gsi for PCI IDE controller in legacy
+	mode
+Date: Mon, 17 Dec 2007 15:13:29 +0800
+Message-ID: <1197875609.7945.70.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29387 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752406AbXLQCLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2007 21:11:05 -0500
-In-Reply-To: <20071209230211.1c2077cf.mikeserv@bmts.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Houston <mikeserv@bmts.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
+Subject: ACPI : Not register gsi for PCI IDE controller in legacy mode
+>From : Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Sun, 2007-12-09 at 23:02 -0500, Mike Houston wrote:
-> On Mon, 10 Dec 2007 10:31:27 +0800
-> Shaohua Li <shaohua.li@intel.com> wrote:
-> > This should exist in previous kernel (before we remove acpi
-> > motherboard driver) too. Basically it's a broken BIOS. Could below
-> > patch work around it?
-> > 
-> > Thanks,
-> > Shaohua
-> > 
-> > Index: linux/drivers/pnp/system.c
-> > ===================================================================
-> > --- linux.orig/drivers/pnp/system.c	2007-12-10
-> > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
-> 
-> Thanks Shaohua, I tested this as well and it appears to have worked
-> around the issue for me.
-> 
-> Now, in dmesg, I get:
-> 
-> system 00:01: ioport range 0x290-0x29f has been reserved
-> (...)
-> system 00:01: ioport range 0x290-0x294 could not be reserved
-> 
-> In /proc/ioports I see:
-> 
-> 0290-029f : pnp 00:01
->   0290-0297 : it87
->     0290-0297 : it87
-Unfortunately this can't solve all such issues.
+When PCI IDE controller works in legacy mode and no PRT entry is found 
+in ACPI PRT table, OSPM will neither read the irq number from the IDE
+PCI configuration space nor call the function of acpi_register_gsi to
+register gsi.
 
-Adam & Bjorn,
-Could we just reserve IO ports >= 0x1000 in pnp system driver? The
-purpose of the driver is to avoid resource conflict with PCI device, and
-PCI device can't user io port < 0x1000.
+http://bugzilla.kernel.org/show_bug.cgi?id=5637
 
-Thanks,
-Shaohua
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Alan Cox  <alan@lxorguk.ukuu.org.uk>
+
+---
+ drivers/acpi/pci_irq.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+Index: linux-2.6.24-rc5/drivers/acpi/pci_irq.c
+===================================================================
+--- linux-2.6.24-rc5.orig/drivers/acpi/pci_irq.c
++++ linux-2.6.24-rc5/drivers/acpi/pci_irq.c
+@@ -429,6 +429,15 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 					  &polarity, &link,
+ 					  acpi_pci_allocate_irq);
+ 
++	if (irq < 0) {
++		/*
++		 * IDE legacy mode controller IRQs are magic. Why do compat
++		 * extensions always make such a nasty mess.
++		 */
++		if (dev->class >> 8 == PCI_CLASS_STORAGE_IDE &&
++				(dev->class & 0x05) == 0)
++			return 0;
++	}
+ 	/*
+ 	 * No IRQ known to the ACPI subsystem - maybe the BIOS / 
+ 	 * driver reported one, then use it. Exit in any case.
+
 
