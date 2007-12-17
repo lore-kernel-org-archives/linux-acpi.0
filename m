@@ -1,35 +1,65 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/2] Suspend: Add config option to disable the freezer
-	if architecture wants that
-Date: Mon, 17 Dec 2007 01:26:59 +0100
-Message-ID: <20071217002659.GF5692@elf.ucw.cz>
-References: <200712162346.10241.rjw@sisk.pl> <200712170030.30578.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Date: Mon, 17 Dec 2007 09:59:39 +0800
+Message-ID: <1197856779.7782.2.camel@sli10-desk.sh.intel.com>
+References: <20071204215154.7f26285e.mikeserv@bmts.com>
+	 <20071209000554.GF20441@stusta.de>
+	 <20071208212234.e00b74cd.mikeserv@bmts.com>
+	 <20071209105028.06ed52a6@hyperion.delvare>
+	 <E1J1TRp-0000ZF-6J@asgard.prans.org> <20071209220430.GK20441@stusta.de>
+	 <1197253887.27516.2.camel@sli10-desk.sh.intel.com>
+	 <20071209230211.1c2077cf.mikeserv@bmts.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:53571 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761938AbXLQA1A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2007 19:27:00 -0500
-Content-Disposition: inline
-In-Reply-To: <200712170030.30578.rjw@sisk.pl>
+Received: from mga11.intel.com ([192.55.52.93]:29387 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752406AbXLQCLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2007 21:11:05 -0500
+In-Reply-To: <20071209230211.1c2077cf.mikeserv@bmts.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>, Johannes Berg <johannes@sipsolutions.net>
+To: Mike Houston <mikeserv@bmts.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, Jean Delvare <khali@linux-fr.org>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Mon 2007-12-17 00:30:29, Rafael J. Wysocki wrote:
-> From: Johannes Berg <johannes@sipsolutions.net>
-> 
-> This patch makes the freezer optional for suspend to allow the
-> system to work (or not work) like the original PMU suspend.
-> 
-> Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACK.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+On Sun, 2007-12-09 at 23:02 -0500, Mike Houston wrote:
+> On Mon, 10 Dec 2007 10:31:27 +0800
+> Shaohua Li <shaohua.li@intel.com> wrote:
+> > This should exist in previous kernel (before we remove acpi
+> > motherboard driver) too. Basically it's a broken BIOS. Could below
+> > patch work around it?
+> > 
+> > Thanks,
+> > Shaohua
+> > 
+> > Index: linux/drivers/pnp/system.c
+> > ===================================================================
+> > --- linux.orig/drivers/pnp/system.c	2007-12-10
+> > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
+> 
+> Thanks Shaohua, I tested this as well and it appears to have worked
+> around the issue for me.
+> 
+> Now, in dmesg, I get:
+> 
+> system 00:01: ioport range 0x290-0x29f has been reserved
+> (...)
+> system 00:01: ioport range 0x290-0x294 could not be reserved
+> 
+> In /proc/ioports I see:
+> 
+> 0290-029f : pnp 00:01
+>   0290-0297 : it87
+>     0290-0297 : it87
+Unfortunately this can't solve all such issues.
+
+Adam & Bjorn,
+Could we just reserve IO ports >= 0x1000 in pnp system driver? The
+purpose of the driver is to avoid resource conflict with PCI device, and
+PCI device can't user io port < 0x1000.
+
+Thanks,
+Shaohua
+
