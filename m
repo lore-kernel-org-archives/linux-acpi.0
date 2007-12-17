@@ -1,602 +1,375 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 4/5] [RFC] ACPI: WMI: Add sysfs userspace interface
-Date: Mon, 17 Dec 2007 00:23:39 +0000
-Message-ID: <20071217002339.4980.23662.stgit@localhost>
+Subject: [PATCH 3/5] [RFC] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
+Date: Mon, 17 Dec 2007 00:23:33 +0000
+Message-ID: <20071217002333.4980.12273.stgit@localhost>
 References: <20071217002317.4980.71135.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:54254 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:54255 "EHLO
 	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1759998AbXLQA0Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2007 19:26:24 -0500
+	id S1757157AbXLQA0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2007 19:26:36 -0500
 In-Reply-To: <20071217002317.4980.71135.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Jamey Hicks <jamey.hicks@nokia.com>, Joshua Wise <joshua@joshuawise.com>
 
-Create a 'wmi' class, and populate it with a virtual device for each GUID.
-This also allows us to autoload WMI drivers based on GUID
-via MODULE_ALIAS.
+This is based on the 2004 out-of-tree work of Jamey Hicks, to add
+support via WMI for controlling the jog dial and wireless on these
+tablets.
 
-Under each GUID are a set of files that can be read and written to from
-userspace (these will be fully documented in a later patch).
+v1:
 
-v1 (2007-11-03)
+Original release
 
-* Initial release
+v2:
 
-v2 (2007-11-07)
-
-* Split out into a separate patch
-
-v3 (2007-11-20)
-
-* Convert kobject storage to using kernel list structures.
-* Change instance handling - store input data on a per instance basis,
-  rather than a per GUID.
-* Add locking to methods - method_id (write) and data (read & write)
-  should all be mutually exclusive - we do not want the input data to
-  change when we are trying to execute a method.
-* Change method calling semantics: when input is written to 'data',
-  store it, but don't execute the method until 'data' is read. This is
-  due to the fact that it is perfectly acceptable to have a WMI method
-  that does not take any input (and it is easier to trigger an execute
-  on reading the file, and not return anything if there is nothing to
-  return, rather than trying to write values that aren't required, or
-  may cause ACPI evaluation to fail on the method).
-* Do not try and convert String's from ASCII to Unicode - instead, only
-  handle ASCII (as per ACPI), and leave it up to userspace to convert
-  to/ from whatever encoding they wish to use.
-
-v4 (2007-11-28)
-
-* Add code to remove sysfs files on module removal
-
-v5 (2007-12-08)
-
-* Convert to a class device, instead of trying to manually create and
-  manipulate kobject's - this allows us to add module autoloading for WMI
-  based drivers, and will (hopefully) be less likely to break with the
-  latest round of kobject changes.
-* Convert GUIDs to use a 'flat' structure - add two new files:
-  instance and instance_count, and use these to provide the instance
-  to call for a given GUID (while still communicating the maximum number
-  of instances available - for now, we will always respect instance_count
-  when setting instance - so any instance > instance_count will be
-  discarded).
-
-v6 (2007-12-12)
-
-* Add string file - this reports back if the GUID has the string flag set.
+As per Joshua Wise's comments, change bluetooth to jogdial (an error from
+the original driver).
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 CC: Len Brown <lenb@kernel.org>
 CC: Matthew Garrett <mjg59@srcf.ucam.org>
+CC: Jamey Hicks <jamey.hicks@nokia.com>
+CC: Joshua Wise <joshua@joshuawise.com>
 ---
 
- drivers/acpi/wmi.c |  463 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 461 insertions(+), 2 deletions(-)
+ drivers/misc/Kconfig      |    9 +
+ drivers/misc/Makefile     |    1 
+ drivers/misc/tc1100-wmi.c |  290 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 300 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/tc1100-wmi.c
 
 
-diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
-index 75a87ff..b6f635a 100644
---- a/drivers/acpi/wmi.c
-+++ b/drivers/acpi/wmi.c
-@@ -30,6 +30,8 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/device.h>
-+#include <linux/mutex.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <acpi/acpi_bus.h>
-@@ -64,6 +66,11 @@ struct wmi_block {
- 	struct list_head list;
- 	struct guid_block gblock;
- 	acpi_handle handle;
-+	struct device dev;
-+	u8 instance;
-+	u32 method_id;
-+	void *pointer;
-+	acpi_size length;
- };
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index d72acbf..205fd6a 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -142,6 +142,15 @@ config FUJITSU_LAPTOP
  
- static struct wmi_block wmi_blocks;
-@@ -195,6 +202,33 @@ static bool wmi_parse_guid(const u8 *src, u8 *dest)
- 	return true;
- }
+ 	  If you have a Fujitsu laptop, say Y or M here.
  
++config TC1100_WMI
++	tristate "HP Compaq TC1100 Tablet WMI Extras"
++	depends on X86 && !X86_64
++	depends on ACPI
++	depends on ACPI_WMI
++	---help---
++	  This is a driver for the WMI extensions (wireless and bluetooth power
++	  control) of the HP Compaq TC1100 tablet.
++
+ config MSI_LAPTOP
+         tristate "MSI Laptop Extras"
+         depends on X86
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 3da1491..51196c0 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -9,6 +9,7 @@ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+ obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
+ obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
+ obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
++obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
+new file mode 100644
+index 0000000..f25e4c9
+--- /dev/null
++++ b/drivers/misc/tc1100-wmi.c
+@@ -0,0 +1,290 @@
 +/*
-+ * Convert a raw GUID to the ACII string representation
++ *  HP Compaq TC1100 Tablet WMI Extras Driver
++ *
++ *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
++ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
++ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + */
-+static int wmi_gtoa(const char *in, char *out)
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <acpi/acpi.h>
++#include <acpi/actypes.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++#include <linux/platform_device.h>
++
++#define GUID "C364AC71-36DB-495A-8494-B439D472A505"
++
++#define TC1100_INSTANCE_WIRELESS		1
++#define TC1100_INSTANCE_JOGDIAL		2
++
++#define TC1100_LOGPREFIX "tc1100-wmi: "
++#define TC1100_INFO KERN_INFO TC1100_LOGPREFIX
++
++MODULE_AUTHOR("Jamey Hicks, Carlos Corbacho");
++MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
++
++static int tc1100_probe(struct platform_device *device);
++static int tc1100_remove(struct platform_device *device);
++static int tc1100_suspend(struct platform_device *device, pm_message_t state);
++static int tc1100_resume(struct platform_device *device);
++
++static struct platform_driver tc1100_driver = {
++	.driver = {
++		.name = "tc1100-wmi",
++		.owner = THIS_MODULE,
++	},
++	.probe = tc1100_probe,
++	.remove = tc1100_remove,
++	.suspend = tc1100_suspend,
++	.resume = tc1100_resume,
++};
++
++static struct platform_device *tc1100_device;
++
++struct tc1100_data {
++	u32 wireless;
++	u32 jogdial;
++};
++
++static struct tc1100_data suspend_data;
++
++/* --------------------------------------------------------------------------
++				Device Management
++   -------------------------------------------------------------------------- */
++
++static int get_state(u32 *out, u8 instance)
 +{
-+	int i;
-+
-+	for (i = 3; i >= 0; i--)
-+		out += sprintf(out, "%02X", in[i] & 0xFF);
-+
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[5] & 0xFF);
-+	out += sprintf(out, "%02X", in[4] & 0xFF);
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[7] & 0xFF);
-+	out += sprintf(out, "%02X", in[6] & 0xFF);
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[8] & 0xFF);
-+	out += sprintf(out, "%02X", in[9] & 0xFF);
-+	out += sprintf(out, "-");
-+
-+	for (i = 10; i <= 15; i++)
-+		out += sprintf(out, "%02X", in[i] & 0xFF);
-+
-+	return 0;
-+}
-+
- static bool find_guid(const char *guid_string, struct wmi_block **out)
- {
- 	char tmp[16], guid_input[16];
-@@ -499,6 +533,421 @@ bool wmi_has_guid(const char *guid_string)
- }
- EXPORT_SYMBOL_GPL(wmi_has_guid);
- 
-+/*
-+ * sysfs interface
-+ */
-+static ssize_t wmi_data_read(struct kobject *kobj, struct bin_attribute
-+			*bin_attr, char *buf, loff_t offset, size_t count) {
-+	u8 instance;
-+	const char *guid;
-+	struct acpi_buffer in;
-+	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
++	u32 tmp;
 +	acpi_status status;
++	struct acpi_buffer result = { ACPI_ALLOCATE_BUFFER, NULL };
 +	union acpi_object *obj;
-+	struct wmi_block *block;
-+	struct device *dev;
 +
-+	dev = container_of(kobj, struct device, kobj);
-+	if (!dev)
++	if (!out)
++		return -EINVAL;
++
++	if (instance > 2)
 +		return -ENODEV;
 +
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return -EINVAL;
++	status = wmi_query_block(GUID, instance, &result);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
 +
-+	guid = block->gblock.guid;
-+	if (!guid)
-+		return -EINVAL;
-+
-+	instance = block->instance;
-+
-+	if (block->gblock.flags & ACPI_WMI_METHOD) {
-+		mutex_lock(&wmi_data_lock);
-+		if (block->pointer) {
-+			in.pointer = block->pointer;
-+			in.length = block->length;
-+			status = wmi_evaluate_method(guid, instance,
-+				block->method_id, &in, &out);
-+		} else {
-+			status = wmi_evaluate_method(guid, instance,
-+				block->method_id, NULL, &out);
-+		}
-+		mutex_unlock(&wmi_data_lock);
++	obj = (union acpi_object *) result.pointer;
++	if (obj && obj->type == ACPI_TYPE_BUFFER &&
++		obj->buffer.length == sizeof(u32)) {
++		tmp = *((u32 *) obj->buffer.pointer);
 +	} else {
-+		status = wmi_query_block(guid, instance, &out);
++		tmp = 0;
 +	}
 +
-+	obj = (union acpi_object *) out.pointer;
++	if (result.length > 0 && result.pointer)
++		kfree(result.pointer);
 +
-+	switch (obj->type) {
-+	case (ACPI_TYPE_STRING):
-+	case (ACPI_TYPE_BUFFER):
-+		buf = obj->buffer.pointer;
++	switch (instance) {
++	case TC1100_INSTANCE_WIRELESS:
++		*out = (tmp == 3) ? 1 : 0;
++		return 0;
++	case TC1100_INSTANCE_JOGDIAL:
++		*out = (tmp == 1) ? 1 : 0;
++		return 0;
++	default:
++		return -ENODEV;
++	}
++}
++
++static int set_state(u32 *in, u8 instance)
++{
++	u32 value;
++	acpi_status status;
++	struct acpi_buffer input;
++
++	if (!in)
++		return -EINVAL;
++
++	if (instance > 2)
++		return -ENODEV;
++
++	switch (instance) {
++	case TC1100_INSTANCE_WIRELESS:
++		value = (*in) ? 1 : 2;
++		break;
++	case TC1100_INSTANCE_JOGDIAL:
++		value = (*in) ? 0 : 1;
 +		break;
 +	default:
-+		return -EIO;
++		return -ENODEV;
 +	}
 +
-+	return 0;
-+}
++	input.length = sizeof(u32);
++	input.pointer = &value;
 +
-+static ssize_t wmi_data_write(struct kobject *kobj, struct bin_attribute
-+			*bin_attr, char *buf, loff_t offset, size_t count){
-+	struct wmi_block *block;
-+	struct acpi_buffer in;
-+	acpi_status status;
-+	struct device *dev;
-+	char guid_string[37];
-+
-+	dev = container_of(kobj, struct device, kobj);
-+	if (!dev)
++	status = wmi_set_block(GUID, instance, &input);
++	if (ACPI_FAILURE(status))
 +		return -ENODEV;
 +
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return -EINVAL;
-+
-+	if (count == 0)
-+		return count;
-+
-+	if (block->gblock.flags & ACPI_WMI_METHOD) {
-+		block->pointer = kzalloc(count, GFP_KERNEL);
-+		if (!block->pointer)
-+			return count;
-+
-+		memcpy(block->pointer, buf, count);
-+		block->length = count;
-+	} else {
-+		in.pointer = buf;
-+		in.length = count;
-+		wmi_gtoa(block->gblock.guid, guid_string);
-+		status = wmi_set_block(guid_string, block->instance, &in);
-+	}
-+
-+	return count;
-+}
-+
-+static struct bin_attribute wmi_attr_data = {
-+	.attr = {
-+		.name = "data",
-+		.mode = 0600
-+	},
-+	.size = 0,
-+	.read = wmi_data_read,
-+	.write = wmi_data_write,
-+};
-+
-+static ssize_t wmi_event_data_read(struct kobject *kobj, struct bin_attribute
-+			*bin_attr, char *buf, loff_t offset, size_t count) {
-+	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
-+	union acpi_object *obj;
-+	struct wmi_block *block;
-+	struct device *dev;
-+
-+	dev = container_of(kobj, struct device, kobj);
-+	if (!dev)
-+		return -ENODEV;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return -EINVAL;
-+
-+	wmi_get_event_data(block->gblock.notify_id, &out);
-+
-+	obj = (union acpi_object *) out.pointer;
-+	buf = obj->buffer.pointer;
-+
 +	return 0;
 +}
 +
-+static struct bin_attribute wmi_attr_event_data = {
-+	.attr = {
-+		.name = "data",
-+		.mode = 0400
-+	},
-+	.size = 0,
-+	.read = wmi_event_data_read,
-+};
++/* --------------------------------------------------------------------------
++				FS Interface (/sys)
++   -------------------------------------------------------------------------- */
 +
-+static ssize_t show_type(struct device *dev,
-+	struct device_attribute *attr, char *buf)
++/*
++ * Read/ write bool sysfs macro
++ */
++#define show_set_bool(value, instance) \
++static ssize_t \
++show_bool_##value(struct device *dev, struct device_attribute *attr, \
++	char *buf) \
++{ \
++	u32 result; \
++	acpi_status status = get_state(&result, instance); \
++	if (ACPI_SUCCESS(status)) \
++		return sprintf(buf, "%d\n", result); \
++	return sprintf(buf, "Read error\n"); \
++} \
++\
++static ssize_t \
++set_bool_##value(struct device *dev, struct device_attribute *attr, \
++	const char *buf, size_t count) \
++{ \
++	u32 tmp = simple_strtoul(buf, NULL, 10); \
++	acpi_status status = set_state(&tmp, instance); \
++		if (ACPI_FAILURE(status)) \
++			return -EINVAL; \
++	return count; \
++} \
++static DEVICE_ATTR(value, S_IWUGO | S_IRUGO | S_IWUSR, \
++	show_bool_##value, set_bool_##value);
++
++show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
++show_set_bool(jogdial, TC1100_INSTANCE_JOGDIAL);
++
++static void remove_fs(void)
 +{
-+	struct guid_block *block;
-+	struct wmi_block *wblock;
-+
-+	wblock = container_of(dev, struct wmi_block, dev);
-+	if (!wblock)
-+		return sprintf(buf, "Error\n");
-+
-+	block = &wblock->gblock;
-+
-+	if (block->flags & ACPI_WMI_METHOD) {
-+		return sprintf(buf, "method\n");
-+	} else if (block->flags & ACPI_WMI_EVENT) {
-+		return sprintf(buf, "event\n");
-+	} else {
-+		return sprintf(buf, "data\n");
-+	}
-+}
-+static DEVICE_ATTR(type, S_IRUGO, show_type, NULL);
-+
-+static ssize_t show_instance_count(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct wmi_block *block;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return sprintf(buf, "Error\n");
-+
-+	return sprintf(buf, "%d\n", block->gblock.instance_count);
-+}
-+static DEVICE_ATTR(instance_count, S_IRUGO, show_instance_count, NULL);
-+
-+static ssize_t show_instance(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct wmi_block *block;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return sprintf(buf, "Error\n");
-+
-+	return sprintf(buf, "%d\n", block->instance);
++	device_remove_file(&tc1100_device->dev, &dev_attr_wireless);
++	device_remove_file(&tc1100_device->dev, &dev_attr_jogdial);
 +}
 +
-+static ssize_t set_instance(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct wmi_block *block;
-+	u8 instance;
-+
-+	instance = simple_strtoul(buf, NULL, 10);
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return -EINVAL;
-+
-+	if (instance <= block->gblock.instance_count) {
-+		block->instance = instance;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return count;
-+}
-+static DEVICE_ATTR(instance, S_IWUGO | S_IRUGO, show_instance, set_instance);
-+
-+static ssize_t show_method_id(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct wmi_block *block;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block)
-+		return sprintf(buf, "Error\n");
-+
-+	return sprintf(buf, "%d\n", block->method_id);
-+}
-+
-+static ssize_t set_method_id(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct wmi_block *block;
-+	u8 method_id;
-+
-+	method_id = simple_strtoul(buf, NULL, 10);
-+
-+	mutex_lock(&wmi_data_lock);
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	if (!block) {
-+		mutex_unlock(&wmi_data_lock);
-+		return -EINVAL;
-+	}
-+
-+	block->method_id = method_id;
-+	mutex_unlock(&wmi_data_lock);
-+
-+	return count;
-+}
-+static DEVICE_ATTR(method_id, S_IWUGO | S_IRUGO, show_method_id,
-+	set_method_id);
-+
-+static ssize_t show_event_notification(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct wmi_block *block;
-+	struct guid_block *gblock;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	gblock = &block->gblock;
-+
-+	return sprintf(buf, "%d\n", gblock->notify_id & 0xFF);
-+}
-+static DEVICE_ATTR(notification, S_IRUGO, show_event_notification, NULL);
-+
-+static ssize_t show_string(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct wmi_block *block;
-+	struct guid_block *gblock;
-+
-+	block = container_of(dev, struct wmi_block, dev);
-+	gblock = &block->gblock;
-+
-+	return sprintf(buf, "%d\n", (gblock->flags & ACPI_WMI_STRING) >> 2);
-+}
-+static DEVICE_ATTR(string, S_IRUGO, show_string, NULL);
-+
-+static int wmi_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	char guid_string[37];
-+
-+	struct wmi_block *wblock;
-+
-+	if (add_uevent_var(env, "MODALIAS="))
-+		return -ENOMEM;
-+
-+	wblock = container_of(dev, struct wmi_block, dev);
-+	if (!wblock)
-+		return -ENOMEM;
-+
-+	wmi_gtoa(wblock->gblock.guid, guid_string);
-+
-+	strcpy(&env->buf[env->buflen - 1], "wmi:");
-+	memcpy(&env->buf[env->buflen - 1 + 4], guid_string, 36);
-+	env->buflen += 40;
-+
-+	return 0;
-+}
-+
-+static struct class wmi_class = {
-+	.name = "wmi",
-+	.dev_release = (void(*)(struct device *)) kfree,
-+	.dev_uevent = wmi_dev_uevent,
-+};
-+
-+static int wmi_create_devs(void)
-+{
-+	int result;
-+	char guid_string[37];
-+	struct guid_block *gblock;
-+	struct wmi_block *wblock;
-+	struct list_head *p;
-+	struct device *guid_dev;
-+
-+	/* Create devices for all the GUIDs */
-+	list_for_each(p, &wmi_blocks.list) {
-+		wblock = list_entry(p, struct wmi_block, list);
-+
-+		guid_dev = &wblock->dev;
-+		guid_dev->class = &wmi_class;
-+
-+		gblock = &wblock->gblock;
-+
-+		wmi_gtoa(gblock->guid, guid_string);
-+		memcpy(guid_dev->bus_id, guid_string, 36);
-+
-+		result = device_register(guid_dev);
-+		if (result)
-+			return result;
-+
-+		result = device_create_file(guid_dev, &dev_attr_type);
-+		if (result)
-+			return result;
-+
-+		result = device_create_file(guid_dev, &dev_attr_string);
-+		if (result)
-+			return result;
-+
-+		if (gblock->flags & ACPI_WMI_EVENT) {
-+			result = device_create_file(guid_dev,
-+				&dev_attr_notification);
-+			if (result)
-+				return result;
-+
-+			result = device_create_bin_file(guid_dev,
-+				&wmi_attr_event_data);
-+			if (result)
-+				return result;
-+			break;
-+		}
-+
-+		result = device_create_file(guid_dev, &dev_attr_instance_count);
-+		if (result)
-+			return result;
-+
-+		result = device_create_file(guid_dev, &dev_attr_instance);
-+		if (result)
-+			return result;
-+
-+		result = device_create_bin_file(guid_dev, &wmi_attr_data);
-+		if (result)
-+			return result;
-+
-+		if (gblock->flags & ACPI_WMI_METHOD) {
-+			result = device_create_file(guid_dev,
-+				&dev_attr_method_id);
-+			if (result)
-+				return result;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void wmi_remove_devs(void)
-+{
-+	struct guid_block *gblock;
-+	struct wmi_block *wblock;
-+	struct list_head *p;
-+	struct device *guid_dev;
-+
-+	/* Delete devices for all the GUIDs */
-+	list_for_each(p, &wmi_blocks.list) {
-+		wblock = list_entry(p, struct wmi_block, list);
-+
-+		guid_dev = &wblock->dev;
-+		gblock = &wblock->gblock;
-+
-+		device_remove_file(guid_dev, &dev_attr_type);
-+		device_remove_file(guid_dev, &dev_attr_string);
-+
-+		if (gblock->flags & ACPI_WMI_EVENT) {
-+			device_remove_file(guid_dev, &dev_attr_notification);
-+			device_remove_bin_file(guid_dev, &wmi_attr_event_data);
-+		} else {
-+			device_remove_file(guid_dev, &dev_attr_instance_count);
-+			device_remove_file(guid_dev, &dev_attr_instance);
-+			device_remove_bin_file(guid_dev, &wmi_attr_data);
-+
-+			if (gblock->flags & ACPI_WMI_METHOD) {
-+				device_remove_file(guid_dev,
-+					&dev_attr_method_id);
-+			}
-+		}
-+		device_unregister(guid_dev);
-+	}
-+}
-+
-+static int wmi_class_init(void)
++static int add_fs(void)
 +{
 +	int ret;
 +
-+	ret = class_register(&wmi_class);
++	ret = device_create_file(&tc1100_device->dev, &dev_attr_wireless);
++	if (ret)
++		goto add_sysfs_error;
++
++	ret = device_create_file(&tc1100_device->dev, &dev_attr_jogdial);
++	if (ret)
++		goto add_sysfs_error;
++
++	return ret;
++
++add_sysfs_error:
++	remove_fs();
++	return ret;
++}
++
++/* --------------------------------------------------------------------------
++				Driver Model
++   -------------------------------------------------------------------------- */
++
++static int tc1100_probe(struct platform_device *device)
++{
++	int result = 0;
++
++	result = add_fs();
++	return result;
++}
++
++
++static int tc1100_remove(struct platform_device *device)
++{
++	remove_fs();
++	return 0;
++}
++
++static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
++{
++	int ret;
++
++	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
 +	if (ret)
 +		return ret;
 +
-+	return wmi_create_devs();
-+}
-+
-+static void wmi_class_exit(void)
-+{
-+	wmi_remove_devs();
-+	class_unregister(&wmi_class);
-+}
-+
- /**
-  * parse_wdg - Parse the _WDG method for the GUID data blocks
-  */
-@@ -654,6 +1103,7 @@ static int __init acpi_wmi_add(struct acpi_device *device)
- 
- static int __init acpi_wmi_init(void)
- {
-+	int ret;
- 	acpi_status result;
- 
- 	if (acpi_disabled)
-@@ -665,10 +1115,17 @@ static int __init acpi_wmi_init(void)
- 
- 	if (ACPI_FAILURE(result)) {
- 		printk(KERN_INFO PREFIX "Error loading mapper\n");
--	} else {
--		printk(KERN_INFO PREFIX "Mapper loaded\n");
-+		return -ENODEV;
-+	}
-+
-+	ret = wmi_class_init();
-+	if (ret) {
-+		acpi_bus_unregister_driver(&acpi_wmi_driver);
++	ret = get_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
++	if (ret)
 +		return ret;
- 	}
- 
-+	printk(KERN_INFO PREFIX "Mapper loaded\n");
 +
- 	return result;
- }
- 
-@@ -677,6 +1134,8 @@ static void __exit acpi_wmi_exit(void)
- 	struct list_head *p, *tmp;
- 	struct wmi_block *wblock;
- 
-+	wmi_class_exit();
++	return ret;
++}
 +
- 	acpi_bus_unregister_driver(&acpi_wmi_driver);
- 
- 	list_for_each_safe(p, tmp, &wmi_blocks.list) {
++static int tc1100_resume(struct platform_device *dev)
++{
++	int ret;
++
++	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
++	if (ret)
++		return ret;
++
++	ret = set_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
++	if (ret)
++		return ret;
++
++	return ret;
++}
++
++static int __init tc1100_init(void)
++{
++	int result = 0;
++
++	if (!wmi_has_guid(GUID))
++		return -ENODEV;
++
++	result = platform_driver_register(&tc1100_driver);
++	if (result)
++		return result;
++
++	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
++	platform_device_add(tc1100_device);
++
++	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
++
++	return result;
++}
++
++static void __exit tc1100_exit(void)
++{
++	platform_device_del(tc1100_device);
++	platform_driver_unregister(&tc1100_driver);
++
++	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
++}
++
++module_init(tc1100_init);
++module_exit(tc1100_exit);
 
