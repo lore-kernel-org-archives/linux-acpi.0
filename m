@@ -1,348 +1,970 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: ASUS P5N32-E SLI PLUS and cpufreq ?
-Date: Mon, 17 Dec 2007 09:48:27 +0100
-Message-ID: <20071217084827.GA17568@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 1/5] ACPI: WMI: Add ACPI-WMI mapping driver
+Date: Mon, 17 Dec 2007 12:40:19 +0300
+Message-ID: <47664403.5060902@gmail.com>
+References: <20071217002317.4980.71135.stgit@localhost> <20071217002322.4980.57591.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ibTvN161/egqYuK8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:50702 "EHLO tangens.sinus.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751640AbXLQJII (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Dec 2007 04:08:08 -0500
-Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
-	by tangens.sinus.cz (8.14.1/8.14.1) with ESMTP id lBH8mRoY018755
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 17 Dec 2007 09:48:27 +0100
-Received: (from patrol@localhost)
-	by tangens.sinus.cz (8.14.1/8.14.1/Submit) id lBH8mRrn018754
-	for linux-acpi@vger.kernel.org; Mon, 17 Dec 2007 09:48:27 +0100
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.171]:25316 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763414AbXLQJkT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Dec 2007 04:40:19 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so1535458ugc.16
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Dec 2007 01:40:17 -0800 (PST)
+In-Reply-To: <20071217002322.4980.57591.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <ayastarik@gmail.com>
 
+Carlos Corbacho wrote:
+> The following is an implementation of the Windows Management
+> Instrumentation (WMI) ACPI interface mapper (PNP0C14).
+>
+> What it does:
+>
+> Parses the _WDG method and exports functions to process WMI method calls,
+> data block query/ set commands (both based on GUID) and does basic event
+> handling.
+>
+> How: WMI presents an in kernel interface here (essentially, a minimal
+> wrapper around ACPI)
+>
+> (const char *guid assume the 36 character ASCII representation of
+> a GUID - e.g. 67C3371D-95A3-4C37-BB61-DD47B491DAAB)
+>
+> wmi_evaluate_method(const char *guid, u8 instance, u32 method_id,
+> const struct acpi_buffer *in, struct acpi_buffer *out)
+>
+> wmi_query_block(const char *guid, u8 instance,
+> struct acpi_buffer *out)
+>
+> wmi_set_block(const char *guid, u38 instance,
+> const struct acpi_buffer *in)
+>
+> wmi_install_notify_handler(acpi_notify_handler handler);
+>
+> wmi_remove_notify_handler(void);
+>
+> wmi_get_event_data(u32 event, struct acpi_buffer *out)
+>
+> wmi_has_guid(const char guid*)
+>
+> wmi_has_guid() is a helper function to find if a GUID exists or not on the
+> system (a quick and easy way for WMI dependant drivers to see if the
+> the method/ block they want exists, since GUIDs are supposed to be unique).
+>
+> Event handling - allow a WMI based driver to register a notifier handler
+> with WMI. When a notification is sent to WMI, the handler registered with
+> WMI is then called (it is left to the caller to ask for the WMI event data,
+> if needed).
+>
+> What it won't do:
+>
+> Unicode - The MS article[1] calls for converting between ASCII and Unicode (or
+> vice versa) if a GUID is marked as "string". This is left up to the calling
+> driver.
+>
+> Handle a MOF[1] - the WMI mapper just exports methods, data and events to
+> userspace. MOF handling is down to userspace.
+>
+> Userspace interface - this will be added later.
+>
+> [1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
+>
+> ===
+> ChangeLog
+> ==
+>
+> v1 (2007-10-02):
+>
+> * Initial release
+>
+> v2 (2007-10-05):
+>
+> * Cleaned up code - split up super "wmi_evaluate_block" -> each external
+>   symbol now handles its own ACPI calls, rather than handing off to
+>   a "super" method (and in turn, is a lot simpler to read)
+> * Added a find_guid() symbol - return true if a given GUID exists on
+>   the system
+> * wmi_* functions now return type acpi_status (since they are just
+>   fancy wrappers around acpi_evaluate_object())
+> * Removed extra debug code
+>
+> v3 (2007-10-27)
+>
+> * More code clean up - now passes checkpatch.pl
+> * Change data block calls - ref MS spec, method ID is not required for
+>   them, so drop it from the function parameters.
+> * Const'ify guid in the function call parameters.
+> * Fix _WDG buffer handling - copy the data to our own private structure.
+> * Change WMI from tristate to bool - otherwise the external functions are
+>   not exported in linux/acpi.h if you try to build WMI as a module.
+> * Fix more flag comparisons.
+> * Add a maintainers entry - since I wrote this, I should take the blame
+>   for it.
+>
+> v4 (2007-10-30)
+>
+> * Add missing brace from after fixing checkpatch errors.
+> * Rewrote event handling - allow external drivers to register with WMI to
+>   handle WMI events
+> * Clean up flags and sanitise flag handling
+>
+> v5 (2007-11-03)
+>
+> * Add sysfs interface for userspace. Export events over netlink again.
+> * Remove module left overs, fully convert to built-in driver.
+> * Tweak in-kernel API to use u8 for instance, since this is what the GUID
+>   blocks use (so instance cannot be greater than u8).
+> * Export wmi_get_event_data() for in kernel WMI drivers.
+>
+> v6 (2007-11-07)
+>
+> * Split out userspace into a different patch
+>
+> v7 (2007-11-20)
+>
+> * Fix driver to handle multiple PNP0C14 devices - store all GUIDs using
+>   the kernel's built in list functions, and just keep adding to the list
+>   every time we handle a PNP0C14 devices - GUIDs will always be unique,
+>   and WMI callers do not know or care about different devices.
+> * Change WMI event handler registration to use its' own event handling
+>   struct; we should not pass an acpi_handle down to any WMI based drivers
+>   - they should be able to function with only the calls provided in WMI.
+> * Update my e-mail address
+>
+> v8 (2007-11-28)
+>
+> * Convert back to a module.
+> * Update Kconfig to default to building as a module.
+> * Remove an erroneous printk.
+> * Simply comments for string flag (since we now leave the handling to the
+>   caller).
+>
+> v9 (2007-12-07)
+>
+> * Add back missing MODULE_DEVICE_TABLE for autoloading
+> * Checkpatch fixes
+>
+> v10 (2007-12-12)
+>
+> * Workaround broken GUIDs declared expensive without a WCxx method.
+> * Minor cleanups
+>
+> v11 (2007-12-17)
+>
+> * More fixing for broken GUIDs declared expensive without a WCxx method.
+> * Add basic EmbeddedControl region handling.
+>
+> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> CC: Len Brown <lenb@kernel.org>
+> CC: Matthew Garrett <mjg59@srcf.ucam.org>
+> CC: Alexey Starikovskiy <ayastarik@gmail.com>
+> ---
+>
+>  MAINTAINERS           |    7 
+>  drivers/acpi/Kconfig  |   11 +
+>  drivers/acpi/Makefile |    1 
+>  drivers/acpi/wmi.c    |  693 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h  |   20 +
+>  5 files changed, 732 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/acpi/wmi.c
+>
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 9507b42..68101ad 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -259,6 +259,13 @@ L:	linux-acpi@vger.kernel.org
+>  W:	http://acpi.sourceforge.net/
+>  S:	Supported
+>  
+> +ACPI WMI DRIVER
+> +P:      Carlos Corbacho
+> +M:      carlos@strangeworlds.co.uk
+> +L:      linux-acpi@vger.kernel.org
+> +W:      http://www.lesswatts.org/projects/acpi/
+> +S:      Supported
+> +
+>  ADM1025 HARDWARE MONITOR DRIVER
+>  P:	Jean Delvare
+>  M:	khali@linux-fr.org
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b9f923e..5fe266c 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -195,6 +195,17 @@ config ACPI_NUMA
+>  	depends on (X86 || IA64)
+>  	default y if IA64_GENERIC || IA64_SGI_SN2
+>  
+> +config ACPI_WMI
+> +	tristate "WMI (EXPERIMENTAL)"
+> +	depends on EXPERIMENTAL
+> +	default m
+> +	help
+> +	  This driver adds support for the ACPI-WMI mapper device (PNP0C14)
+> +	  found on some systems.
+> +
+> +	  NOTE: You will need another driver or userspace application on top of
+> +	  this to actually use anything defined in the ACPI-WMI mapper.
+> +
+>  config ACPI_ASUS
+>          tristate "ASUS/Medion Laptop Extras"
+>  	depends on X86
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 456446f..f29812a 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,6 +55,7 @@ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+>  obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+>  obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+>  obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+> +obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+>  obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+>  obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+>  obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+> diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+> new file mode 100644
+> index 0000000..75a87ff
+> --- /dev/null
+> +++ b/drivers/acpi/wmi.c
+> @@ -0,0 +1,693 @@
+> +/*
+> + *  ACPI-WMI mapping driver
+> + *
+> + *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
+> + *
+> + *  GUID parsing code from ldm.c is:
+> + *   Copyright (C) 2001,2002 Richard Russon <ldm@flatcap.org>
+> + *   Copyright (c) 2001-2007 Anton Altaparmakov
+> + *   Copyright (C) 2001,2002 Jakob Kemi <jakob.kemi@telia.com>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or (at
+> + *  your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful, but
+> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + *  General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License along
+> + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/types.h>
+> +#include <linux/list.h>
+> +#include <linux/acpi.h>
+> +#include <acpi/acpi_bus.h>
+> +#include <acpi/acpi_drivers.h>
+> +
+> +ACPI_MODULE_NAME("wmi");
+> +MODULE_AUTHOR("Carlos Corbacho");
+> +MODULE_DESCRIPTION("ACPI-WMI Mapping Driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +#define ACPI_WMI_CLASS "wmi"
+> +
+> +#undef PREFIX
+> +#define PREFIX "ACPI: WMI: "
+> +
+> +static DEFINE_MUTEX(wmi_data_lock);
+> +
+> +struct guid_block {
+> +	char guid[16];
+> +	union {
+> +		char object_id[2];
+> +		struct {
+> +			unsigned char notify_id;
+> +			unsigned char reserved;
+> +		};
+> +	};
+> +	u8 instance_count;
+> +	u8 flags;
+> +};
+> +
+> +struct wmi_block {
+> +	struct list_head list;
+> +	struct guid_block gblock;
+> +	acpi_handle handle;
+> +};
+> +
+> +static struct wmi_block wmi_blocks;
+> +
+> +static wmi_notify_handler wmi_external_handler;
+> +static void *wmi_external_data;
+> +
+> +/*
+> + * If the GUID data block is marked as expensive, we must enable and
+> + * explicitily disable data collection.
+> + */
+> +#define ACPI_WMI_EXPENSIVE   0x1
+> +#define ACPI_WMI_METHOD      0x2	/* GUID is a method */
+> +#define ACPI_WMI_STRING      0x4	/* GUID takes & returns a string */
+> +#define ACPI_WMI_EVENT       0x8	/* GUID is an event */
+> +
+> +static int acpi_wmi_remove(struct acpi_device *device, int type);
+> +static int acpi_wmi_add(struct acpi_device *device);
+> +
+> +static const struct acpi_device_id wmi_device_ids[] = {
+> +	{"PNP0C14", 0},
+> +	{"pnp0c14", 0},
+> +	{"", 0},
+> +};
+> +MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
+> +
+> +static struct acpi_driver acpi_wmi_driver = {
+> +	.name = "wmi",
+> +	.class = ACPI_WMI_CLASS,
+> +	.ids = wmi_device_ids,
+> +	.ops = {
+> +		.add = acpi_wmi_add,
+> +		.remove = acpi_wmi_remove,
+> +		},
+> +};
+> +
+> +/*
+> + * GUID parsing functions
+> + */
+> +
+> +/**
+> + * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
+> + * @src:  Pointer to at least 2 characters to convert.
+> + *
+> + * Convert a two character ASCII hex string to a number.
+> + *
+> + * Return:  0-255  Success, the byte was parsed correctly
+> + *          -1     Error, an invalid character was supplied
+> + */
+>   
+Why don't use sscanf("%h")?
+> +static int wmi_parse_hexbyte(const u8 *src)
+> +{
+> +	unsigned int x; /* For correct wrapping */
+> +	int h;
+> +
+> +	/* high part */
+> +	x = src[0];
+> +	if (x - '0' <= '9' - '0') {
+> +		h = x - '0';
+> +	} else if (x - 'a' <= 'f' - 'a') {
+> +		h = x - 'a' + 10;
+> +	} else if (x - 'A' <= 'F' - 'A') {
+> +		h = x - 'A' + 10;
+> +	} else {
+> +		return -1;
+> +	}
+> +	h <<= 4;
+> +
+> +	/* low part */
+> +	x = src[1];
+> +	if (x - '0' <= '9' - '0')
+> +		return h | (x - '0');
+> +	if (x - 'a' <= 'f' - 'a')
+> +		return h | (x - 'a' + 10);
+> +	if (x - 'A' <= 'F' - 'A')
+> +		return h | (x - 'A' + 10);
+> +	return -1;
+> +}
+> +
+> +/**
+> + * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
+> + * @src:   Memory block holding binary GUID (16 bytes)
+> + * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
+> + *
+> + * Byte swap a binary GUID to match it's real GUID value
+> + */
+> +static void wmi_swap_bytes(u8 *src, u8 *dest)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i <= 3; i++)
+> +		memcpy(dest + i, src + (3 - i), 1);
+> +
+> +	for (i = 0; i <= 1; i++)
+> +		memcpy(dest + 4 + i, src + (5 - i), 1);
+> +
+> +	for (i = 0; i <= 1; i++)
+> +		memcpy(dest + 6 + i, src + (7 - i), 1);
+> +
+> +	memcpy(dest + 8, src + 8, 8);
+> +}
+> +
+> +/**
+> + * wmi_parse_guid - Convert GUID from ASCII to binary
+> + * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+> + * @dest:  Memory block to hold binary GUID (16 bytes)
+> + *
+> + * N.B. The GUID need not be NULL terminated.
+> + *
+> + * Return:  'true'   @dest contains binary GUID
+> + *          'false'  @dest contents are undefined
+> + */
+> +static bool wmi_parse_guid(const u8 *src, u8 *dest)
+> +{
+> +	static const int size[] = { 4, 2, 2, 2, 6 };
+> +	int i, j, v;
+> +
+> +	if (src[8]  != '-' || src[13] != '-' ||
+> +		src[18] != '-' || src[23] != '-')
+> +		return false;
+> +
+> +	for (j = 0; j < 5; j++, src++) {
+> +		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
+> +			v = wmi_parse_hexbyte(src);
+> +			if (v < 0)
+> +				return false;
+> +		}
+> +	}
+> +
+> +	return true;
+> +}
+> +
+> +static bool find_guid(const char *guid_string, struct wmi_block **out)
+> +{
+> +	char tmp[16], guid_input[16];
+> +	struct wmi_block *wblock;
+> +	struct guid_block *block;
+> +	struct list_head *p;
+> +
+> +	wmi_parse_guid(guid_string, tmp);
+> +	wmi_swap_bytes(tmp, guid_input);
+> +
+> +	list_for_each(p, &wmi_blocks.list) {
+> +		wblock = list_entry(p, struct wmi_block, list);
+> +		block = &wblock->gblock;
+> +
+> +		if (memcmp(block->guid, guid_input, 16) == 0) {
+> +			if (out)
+> +				*out = wblock;
+> +			return 1;
+> +		}
+> +	}
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Exported WMI functions
+> + */
+> +/**
+> + * wmi_evaluate_method - Evaluate a WMI method
+> + * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+> + * @instance: Instance index
+> + * @method_id: Method ID to call
+> + * &in: Buffer containing input for the method call
+> + * &out: Empty buffer to return the method results
+> + *
+> + * Convert a WMI method call to an ACPI one, and return the results
+> + */
+> +acpi_status wmi_evaluate_method(const char *guid_string, u8 instance,
+> +u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
+> +{
+> +	struct guid_block *block = NULL;
+> +	struct wmi_block *wblock = NULL;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +	struct acpi_object_list input;
+> +	union acpi_object params[3];
+> +	char method[4] = "WM";
+> +
+> +	if (!find_guid(guid_string, &wblock))
+> +		return AE_BAD_ADDRESS;
+> +
+> +	block = &wblock->gblock;
+> +	handle = wblock->handle;
+> +
+> +	if (!block->flags & ACPI_WMI_METHOD)
+> +		return AE_BAD_DATA;
+> +
+> +	if (block->instance_count < instance)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	input.count = 2;
+> +	input.pointer = params;
+> +	params[0].type = ACPI_TYPE_INTEGER;
+> +	params[0].integer.value = instance;
+> +	params[1].type = ACPI_TYPE_INTEGER;
+> +	params[1].integer.value = method_id;
+> +
+> +	if (in) {
+> +		input.count = 3;
+> +
+> +		if (block->flags & ACPI_WMI_STRING) {
+> +			params[2].type = ACPI_TYPE_STRING;
+> +		} else {
+> +			params[2].type = ACPI_TYPE_BUFFER;
+> +		}
+> +		params[2].buffer.length = in->length;
+> +		params[2].buffer.pointer = in->pointer;
+> +	}
+> +
+> +	strncat(method, block->object_id, 2);
+> +
+> +	status = acpi_evaluate_object(handle, method, &input, out);
+> +
+> +	return status;
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_evaluate_method);
+> +
+> +/**
+> + * wmi_query_block - Return contents of a WMI block
+> + * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+> + * @instance: Instance index
+> + * &out: Empty buffer to return the contents of the data block to
+> + *
+> + * Return the contents of a data block to a buffer
+> + */
+> +acpi_status wmi_query_block(const char *guid_string, u8 instance,
+> +struct acpi_buffer *out)
+> +{
+> +	struct guid_block *block = NULL;
+> +	struct wmi_block *wblock = NULL;
+> +	acpi_handle handle;
+> +	acpi_status status, wc_status = AE_ERROR;
+> +	struct acpi_object_list input, wc_input;
+> +	union acpi_object wc_params[1], wq_params[1];
+> +	char method[4] = "WQ";
+> +	char wc_method[4] = "WC";
+> +
+> +	if (guid_string == NULL || out == NULL)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	if (!find_guid(guid_string, &wblock))
+> +		return AE_BAD_ADDRESS;
+> +
+> +	block = &wblock->gblock;
+> +	handle = wblock->handle;
+> +
+> +	if (block->instance_count < instance)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	/* Check GUID is a data block */
+> +	if (block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD))
+> +		return AE_BAD_ADDRESS;
+> +
+> +	input.count = 1;
+> +	input.pointer = wq_params;
+> +	wq_params[0].type = ACPI_TYPE_INTEGER;
+> +	wq_params[0].integer.value = instance;
+> +
+> +	/*
+> +	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method first to
+> +	 * enable collection
+> +	 */
+> +	if (block->flags & ACPI_WMI_EXPENSIVE) {
+> +		wc_input.count = 1;
+> +		wc_input.pointer = wc_params;
+> +		wc_params[0].type = ACPI_TYPE_INTEGER;
+> +		wc_params[0].integer.value = 1;
+> +
+> +		strncat(wc_method, block->object_id, 2);
+> +
+> +		/*
+> +		 * Some GUIDs break the specification by declaring themselves
+> +		 * expensive, but have no corresponding WCxx method. So we
+> +		 * should not fail if this happens.
+> +		 */
+> +		wc_status = acpi_evaluate_object(handle, wc_method,
+> +			&wc_input, NULL);
+> +	}
+> +
+> +	strncat(method, block->object_id, 2);
+> +
+> +	status = acpi_evaluate_object(handle, method, NULL, out);
+> +
+> +	/*
+> +	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method, even if
+> +	 * the WQxx method failed - we should disable collection anyway
+> +	 */
+> +	if ((block->flags & ACPI_WMI_EXPENSIVE) && wc_status) {
+> +		wc_params[0].integer.value = 0;
+> +		status = acpi_evaluate_object(handle,
+> +		wc_method, &wc_input, NULL);
+> +	}
+> +
+> +	return status;
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_query_block);
+> +
+> +/**
+> + * wmi_set_block - Write to a WMI block
+> + * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+> + * @instance: Instance index
+> + * &in: Buffer containing new values for the data block
+> + *
+> + * Write the contents of the input buffer to ACPI
+> + */
+> +acpi_status wmi_set_block(const char *guid_string, u8 instance,
+> +const struct acpi_buffer *in)
+> +{
+> +	struct guid_block *block = NULL;
+> +	struct wmi_block *wblock = NULL;
+> +	acpi_handle handle;
+> +	struct acpi_object_list input;
+> +	union acpi_object params[2];
+> +	char method[4] = "WS";
+> +
+> +	if (!guid_string || !in)
+> +		return AE_BAD_DATA;
+> +
+> +	if (!find_guid(guid_string, &wblock))
+> +		return AE_BAD_ADDRESS;
+> +
+> +	block = &wblock->gblock;
+> +	handle = wblock->handle;
+> +
+> +	if (block->instance_count < instance)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	/* Check GUID is a data block */
+> +	if (block->flags & (ACPI_WMI_EVENT | ACPI_WMI_METHOD))
+> +		return AE_BAD_ADDRESS;
+> +
+> +	input.count = 2;
+> +	input.pointer = params;
+> +	params[0].type = ACPI_TYPE_INTEGER;
+> +	params[0].integer.value = instance;
+> +
+> +	if (block->flags & ACPI_WMI_STRING) {
+> +		params[1].type = ACPI_TYPE_STRING;
+> +	} else {
+> +		params[1].type = ACPI_TYPE_BUFFER;
+> +	}
+> +	params[1].buffer.length = in->length;
+> +	params[1].buffer.pointer = in->pointer;
+> +
+> +	strncat(method, block->object_id, 2);
+> +
+> +	return acpi_evaluate_object(handle, method, &input, NULL);
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_set_block);
+> +
+> +/**
+> + * wmi_install_notify_handler - Register handler for WMI events
+> + * @handler: Function to handle notifications
+> + * @data: Data to be returned to handler when event is fired
+> + *
+> + * Register a handler for events sent to the WMI-ACPI mapper device.
+> + */
+> +acpi_status wmi_install_notify_handler(wmi_notify_handler handler, void *data)
+> +{
+> +	if (!handler)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	if (!wmi_external_handler)
+> +		return AE_ALREADY_ACQUIRED;
+> +
+> +	wmi_external_handler = handler;
+> +	wmi_external_data = data;
+> +
+> +	return AE_OK;
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_install_notify_handler);
+> +
+> +/**
+> + * wmi_uninstall_notify_handler - Unregister handler for WMI events
+> + *
+> + * Unregister handler for events sent to the WMI-ACPI mapper device.
+> + */
+> +acpi_status wmi_remove_notify_handler(void)
+> +{
+> +	if (wmi_external_handler) {
+> +		wmi_external_handler = NULL;
+> +		wmi_external_data = NULL;
+> +		return AE_OK;
+> +	}
+> +	return AE_ERROR;
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_remove_notify_handler);
+> +
+> +/**
+> + * wmi_get_event_data - Get WMI data associated with an event
+> + *
+> + * @event - Event to find
+> + * &out - Buffer to hold event data
+> + *
+> + * Returns extra data associated with an event in WMI.
+> + */
+> +acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out)
+> +{
+> +	struct acpi_object_list input;
+> +	union acpi_object params[1];
+> +	struct guid_block *gblock;
+> +	struct wmi_block *wblock;
+> +	struct list_head *p;
+> +
+> +	input.count = 1;
+> +	input.pointer = params;
+> +	params[0].type = ACPI_TYPE_INTEGER;
+> +	params[0].integer.value = event;
+> +
+> +	list_for_each(p, &wmi_blocks.list) {
+> +		wblock = list_entry(p, struct wmi_block, list);
+> +		gblock = &wblock->gblock;
+> +
+> +		if ((gblock->flags & ACPI_WMI_EVENT) &&
+> +			(gblock->notify_id == event))
+> +			return acpi_evaluate_object(wblock->handle, "_WED",
+> +				&input, out);
+> +	}
+> +
+> +	return AE_NOT_FOUND;
+> +}
+> +EXPORT_SYMBOL(wmi_get_event_data);
+> +
+> +/**
+> + * wmi_has_guid - Check if a GUID is available
+> + * @guid_string: 36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+> + *
+> + * Check if a given GUID is defined by _WDG
+> + */
+> +bool wmi_has_guid(const char *guid_string)
+> +{
+> +	return find_guid(guid_string, NULL);
+> +}
+> +EXPORT_SYMBOL_GPL(wmi_has_guid);
+> +
+> +/**
+> + * parse_wdg - Parse the _WDG method for the GUID data blocks
+> + */
+> +static __init acpi_status parse_wdg(acpi_handle handle)
+> +{
+> +	struct acpi_buffer out = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	union acpi_object *obj;
+> +	struct guid_block *gblock;
+> +	struct wmi_block *wblock;
+> +	acpi_status status;
+> +	u32 i, total;
+> +
+> +	status = acpi_evaluate_object(handle, "_WDG", NULL, &out);
+> +
+> +	if (ACPI_FAILURE(status))
+> +		return status;
+> +
+> +	obj = (union acpi_object *) out.pointer;
+> +
+> +	if (obj->type != ACPI_TYPE_BUFFER)
+> +		return AE_ERROR;
+> +
+> +	total = obj->buffer.length / sizeof(struct guid_block);
+> +
+> +	gblock = kzalloc(obj->buffer.length, GFP_KERNEL);
+> +	if (!gblock)
+> +		return AE_NO_MEMORY;
+> +
+> +	memcpy(gblock, obj->buffer.pointer, obj->buffer.length);
+> +
+> +	for (i = 0; i < total; i++) {
+> +		wblock = kzalloc(sizeof(struct wmi_block), GFP_KERNEL);
+> +		if (!wblock)
+> +			return AE_NO_MEMORY;
+> +
+> +		wblock->gblock = gblock[i];
+> +		wblock->handle = handle;
+> +		list_add_tail(&wblock->list, &wmi_blocks.list);
+> +	}
+> +
+> +	kfree(out.pointer);
+> +	kfree(gblock);
+> +
+> +	return status;
+> +}
+> +
+> +/*
+> + * WMI can have EmbeddedControl access regions. In which case, we just want to
+> + * hand these off to the EC driver.
+> + */
+> +static acpi_status
+> +acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+> +		      u32 bits, acpi_integer *value,
+> +		      void *handler_context, void *region_context)
+> +{
+> +	int result = 0, i = 0;
+> +	u8 temp = 0;
+> +
+> +	if ((address > 0xFF) || !value)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	if (function != ACPI_READ && function != ACPI_WRITE)
+> +		return AE_BAD_PARAMETER;
+> +
+>   
+You probably don't need to handle more than 1 byte here -- even in EC it 
+is legacy...
+> +	while (bits - i > 0) {
+> +		if (function == ACPI_READ) {
+> +			result = ec_read(address, &temp);
+> +			(*value) |= ((acpi_integer)temp) << i;
+> +		} else {
+> +			temp = 0xff & ((*value) >> i);
+> +			result = ec_write(address, temp);
+> +		}
+> +		i += 8;
+> +		++address;
+> +	}
+> +
+> +	switch (result) {
+> +	case -EINVAL:
+> +		return AE_BAD_PARAMETER;
+> +		break;
+> +	case -ENODEV:
+> +		return AE_NOT_FOUND;
+> +		break;
+> +	case -ETIME:
+> +		return AE_TIME;
+> +		break;
+> +	default:
+> +		return AE_OK;
+> +	}
+> +}
+> +
+> +static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
+> +{
+> +	struct guid_block *block;
+> +	struct wmi_block *wblock;
+> +	struct list_head *p;
+> +	struct acpi_device *device = data;
+> +
+> +	list_for_each(p, &wmi_blocks.list) {
+> +		wblock = list_entry(p, struct wmi_block, list);
+> +		block = &wblock->gblock;
+> +
+> +		if ((block->flags & ACPI_WMI_EVENT) &&
+> +		block->notify_id == event) {
+> +			if (wmi_external_handler)
+> +				wmi_external_handler(event, wmi_external_data);
+> +
+> +			acpi_bus_generate_netlink_event(
+> +				device->pnp.device_class, device->dev.bus_id,
+> +				event, 0);
+> +			break;
+> +		}
+> +	}
+> +}
+> +
+> +static int acpi_wmi_remove(struct acpi_device *device, int type)
+> +{
+> +	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+> +		acpi_wmi_notify);
+> +
+> +	acpi_remove_address_space_handler(device->handle,
+> +				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init acpi_wmi_add(struct acpi_device *device)
+> +{
+> +	acpi_status status;
+> +	int result = 0;
+> +
+> +	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+> +		acpi_wmi_notify, device);
+> +	if (ACPI_FAILURE(status)) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+> +				  "Error installing notify handler\n"));
+> +		return -ENODEV;
+> +	}
+> +
+> +	status = acpi_install_address_space_handler(device->handle,
+> +						    ACPI_ADR_SPACE_EC,
+> +						    &acpi_wmi_ec_space_handler,
+> +						    NULL, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	status = parse_wdg(device->handle);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	return result;
+> +}
+> +
+> +static int __init acpi_wmi_init(void)
+> +{
+> +	acpi_status result;
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	INIT_LIST_HEAD(&wmi_blocks.list);
+> +
+> +	result = acpi_bus_register_driver(&acpi_wmi_driver);
+> +
+> +	if (ACPI_FAILURE(result)) {
+> +		printk(KERN_INFO PREFIX "Error loading mapper\n");
+> +	} else {
+> +		printk(KERN_INFO PREFIX "Mapper loaded\n");
+> +	}
+> +
+> +	return result;
+> +}
+> +
+> +static void __exit acpi_wmi_exit(void)
+> +{
+> +	struct list_head *p, *tmp;
+> +	struct wmi_block *wblock;
+> +
+> +	acpi_bus_unregister_driver(&acpi_wmi_driver);
+> +
+> +	list_for_each_safe(p, tmp, &wmi_blocks.list) {
+> +		wblock = list_entry(p, struct wmi_block, list);
+> +
+> +		list_del(p);
+> +		kfree(wblock);
+> +	}
+> +
+> +	printk(KERN_INFO PREFIX "Mapper unloaded\n");
+> +}
+> +
+> +subsys_initcall(acpi_wmi_init);
+> +module_exit(acpi_wmi_exit);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 4497964..0ec11e7 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -176,6 +176,26 @@ extern int ec_transaction(u8 command,
+>  
+>  #endif /*CONFIG_ACPI_EC*/
+>  
+> +#if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+> +
+> +typedef void (*wmi_notify_handler) (u32 value, void *context);
+> +
+> +extern acpi_status wmi_evaluate_method(const char *guid, u8 instance,
+> +					u32 method_id,
+> +					const struct acpi_buffer *in,
+> +					struct acpi_buffer *out);
+> +extern acpi_status wmi_query_block(const char *guid, u8 instance,
+> +					struct acpi_buffer *out);
+> +extern acpi_status wmi_set_block(const char *guid, u8 instance,
+> +					const struct acpi_buffer *in);
+> +extern acpi_status wmi_install_notify_handler(wmi_notify_handler handler,
+> +					void *data);
+> +extern acpi_status wmi_remove_notify_handler(void);
+> +extern acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out);
+> +extern bool wmi_has_guid(const char *guid);
+> +
+> +#endif	/* CONFIG_ACPI_WMI */
+> +
+>  extern int acpi_blacklisted(void);
+>  extern void acpi_bios_year(char *s);
+>  
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi!
-  I've built a new machine with an ASUS P5N32-E SLI PLUS motherboard,
-equipped with an Intel(R) Core(TM)2 Quad CPU. The system seems stable
-and well-performing. However, I'm curious about the following:
-  In the BIOS settings, there is an "Enhanced Intel SpeedStep (TM)" item,
-which can be disabled or enabled. I've tried to hook a cpufreq module on it
-but it seems to be unsuccessful. Neither speedstep nor acpi-cpufreq modules
-are recognizing the hardware, so the feature seems unsupported.
-  However, when the BIOS SpeedStep setting is enabled, strange things happen.
-In /proc/cpuinfo, the CPU frequency is always reported as 900 MHz (while
-normally it's 2.6GHz), but the bogomips value is at 5220, which corelates
-with the standard 2.6G clock. Also the system performance is not so low as
-for 900M clock - I can see a small slowdown, but it may be about 5%, not more.
-Even with an artificial load of all cores (4 cpu-eating tasks run concurrently)
-the frequency reported by /proc/cpuinfo is at 900 MHz and doesn't never
-increase.
-  So what does it mean ? Is the SpeedStep feature usable just by setting the
-BIOS ? Isn't it limiting the performance too much ? Why the clock always seems
-to be low ? I'm keeping it off until I know all the answers :-).
-  I'm attaching my DSDT for reference.
-  With regards,
-        Pavel Troller
-
---ibTvN161/egqYuK8
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename="dsdt.dsl.bz2"
-Content-Transfer-Encoding: base64
-
-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
-
---ibTvN161/egqYuK8--
