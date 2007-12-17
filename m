@@ -1,21 +1,19 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: [PATCH 0/5] WMI
-Date: Mon, 17 Dec 2007 00:23:00 +0000
-Message-ID: <20071217002300.4943.99904.stgit@localhost>
+Date: Mon, 17 Dec 2007 00:23:17 +0000
+Message-ID: <20071217002317.4980.71135.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:34834 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:34852 "EHLO
 	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1757111AbXLQAWK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2007 19:22:10 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by pacifica. (8.14.1/8.13.8) with ESMTP id lBH0N0q3004973
-	for <linux-acpi@vger.kernel.org>; Mon, 17 Dec 2007 00:23:00 GMT
+	id S1757905AbXLQAWx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2007 19:22:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
 Another WMI release.
 
