@@ -1,17 +1,13 @@
 From: Joe Perches <joe@perches.com>
 Subject: [PATCH] drivers/acpi/: Spelling fixes
 Date: Mon, 17 Dec 2007 11:30:25 -0800
-Message-ID: <1197919875-5288-26-git-send-email-joe@perches.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from DSL022.labridge.com ([206.117.136.22]:2981 "EHLO perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761061AbXLQTbm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Dec 2007 14:31:42 -0500
+Message-ID: <5703e57f925f31fc0eb38873bd7f10fc44f99cb4.1197918890.git.joe__38039.9955706254$1197920714$gmane$org@perches.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934650AbXLQTm3@vger.kernel.org>
 Message-Id: <5703e57f925f31fc0eb38873bd7f10fc44f99cb4.1197918890.git.joe@perches.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 
 Signed-off-by: Joe Perches <joe@perches.com>
