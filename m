@@ -1,145 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/2] Suspend: Add config option to disable the freezer if architecture wants that
-Date: Mon, 17 Dec 2007 00:30:29 +0100
-Message-ID: <200712170030.30578.rjw@sisk.pl>
-References: <200712162346.10241.rjw@sisk.pl>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/5] WMI
+Date: Mon, 17 Dec 2007 00:23:00 +0000
+Message-ID: <20071217002300.4943.99904.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49555 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761801AbXLPX3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2007 18:29:14 -0500
-In-Reply-To: <200712162346.10241.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:34834 "EHLO
+	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1757111AbXLQAWK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2007 19:22:10 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by pacifica. (8.14.1/8.13.8) with ESMTP id lBH0N0q3004973
+	for <linux-acpi@vger.kernel.org>; Mon, 17 Dec 2007 00:23:00 GMT
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>, Johannes Berg <johannes@sipsolutions.net>
+To: linux-acpi@vger.kernel.org
 
-From: Johannes Berg <johannes@sipsolutions.net>
+Another WMI release.
 
-This patch makes the freezer optional for suspend to allow the
-system to work (or not work) like the original PMU suspend.
+Patch #1: (WMI - initial driver and in kernel interface)
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
-In a quick test, playing sound across suspend failed to work,
-it usually works when the freezer is enabled (unless you use
-gstreamer.)
+Big change here is putting in a basic EC region handler - which is
+mostly a shameless rip off of the EC driver's acpi_ec_space_handler,
+with the exception that WMI doesn't need to care about the EC device,
+and just calls ec_{read,write} instead.
 
- arch/powerpc/Kconfig |    4 ++++
- kernel/power/Kconfig |   11 +++++++++++
- kernel/power/main.c  |    6 +++---
- kernel/power/power.h |   22 ++++++++++++++++++++++
- 4 files changed, 40 insertions(+), 3 deletions(-)
+Therefore, CC'ing Alexey for the EC bit.
 
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -176,7 +176,7 @@ static int suspend_prepare(void)
- 
- 	pm_prepare_console();
- 
--	if (freeze_processes()) {
-+	if (suspend_freeze_processes()) {
- 		error = -EAGAIN;
- 		goto Thaw;
- 	}
-@@ -194,7 +194,7 @@ static int suspend_prepare(void)
- 		return 0;
- 
-  Thaw:
--	thaw_processes();
-+	suspend_thaw_processes();
- 	pm_restore_console();
-  Finish:
- 	pm_notifier_call_chain(PM_POST_SUSPEND);
-@@ -300,7 +300,7 @@ int suspend_devices_and_enter(suspend_st
-  */
- static void suspend_finish(void)
- {
--	thaw_processes();
-+	suspend_thaw_processes();
- 	pm_restore_console();
- 	pm_notifier_call_chain(PM_POST_SUSPEND);
- }
-Index: linux-2.6/kernel/power/Kconfig
-===================================================================
---- linux-2.6.orig/kernel/power/Kconfig
-+++ linux-2.6/kernel/power/Kconfig
-@@ -104,6 +104,17 @@ config SUSPEND
- 	  powered and thus its contents are preserved, such as the
- 	  suspend-to-RAM state (e.g. the ACPI S3 state).
- 
-+config SUSPEND_FREEZER
-+	bool "Enable freezer for suspend to RAM/standby" \
-+		if ARCH_WANTS_FREEZER_CONTROL || BROKEN
-+	depends on SUSPEND
-+	default y
-+	help
-+	  This allows you to turn off the freezer for suspend. If this is
-+	  done, no tasks are frozen for suspend to RAM/standby.
-+
-+	  Turning OFF this setting is NOT recommended! If in doubt, say Y.
-+
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
- 	depends on PM && SWAP && ARCH_HIBERNATION_POSSIBLE
-Index: linux-2.6/arch/powerpc/Kconfig
-===================================================================
---- linux-2.6.orig/arch/powerpc/Kconfig
-+++ linux-2.6/arch/powerpc/Kconfig
-@@ -384,6 +384,10 @@ config CMDLINE
- 	  most cases you will need to specify the root device here.
- 
- if !44x || BROKEN
-+config ARCH_WANTS_FREEZER_CONTROL
-+	def_bool y
-+	depends on ADB_PMU
-+
- source kernel/power/Kconfig
- endif
- 
-Index: linux-2.6/kernel/power/power.h
-===================================================================
---- linux-2.6.orig/kernel/power/power.h
-+++ linux-2.6/kernel/power/power.h
-@@ -1,6 +1,7 @@
- #include <linux/suspend.h>
- #include <linux/suspend_ioctls.h>
- #include <linux/utsname.h>
-+#include <linux/freezer.h>
- 
- struct swsusp_info {
- 	struct new_utsname	uts;
-@@ -205,3 +206,24 @@ enum {
- #define TEST_MAX	(__TEST_AFTER_LAST - 1)
- 
- extern int pm_test_level;
-+
-+#ifdef CONFIG_SUSPEND_FREEZER
-+static inline int suspend_freeze_processes(void)
-+{
-+	return freeze_processes();
-+}
-+
-+static inline void suspend_thaw_processes(void)
-+{
-+	thaw_processes();
-+}
-+#else
-+static inline int suspend_freeze_processes(void)
-+{
-+	return 0;
-+}
-+
-+static inline void suspend_thaw_processes(void)
-+{
-+}
-+#endif
+For review, and hopefully to go up to 2.6.25
+
+Patch #2: (acer-wmi) - No Change
+
+For review, and (rather tentatively here) 2.6.25 material?
+
+Patch #3: (tc1100-wmi)
+
+RFC only, needs actual testing on the hardware, and probably very broken. 
+Waiting on Matthew Garrett to get some free time to test this.
+
+Bluetooth renamed to jogdial, as per comments from Joshua Wise.
+
+Patch #4: (WMI sysfs interface) - No Change
+
+RFC only (see patch #5 for reason). Adds interface 
+under /sys/devices/virtual/wmi
+
+Changes: Added 'string' file to each GUID, which reports whether the GUID has 
+the 'string' flag set (userspace needs to know for converting from its' 
+format to ASCII and back).
+
+Patch #5: (WMI sysfs workaround) - No change
+
+Temporary hack, needed to get patch #4 working, due to a limitation on bus_id 
+length (Kay Sievers is apparently working on this, ref Greg KH[1]). This 
+should _NOT_ be applied to any upstream kernel.
+
+-Carlos
+
+[1] http://lkml.org/lkml/2007/12/4/30
