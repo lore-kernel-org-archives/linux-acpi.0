@@ -1,106 +1,97 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: ASUS P5N32-E SLI PLUS and cpufreq ?
-Date: Tue, 18 Dec 2007 10:33:39 +0100
-Message-ID: <20071218093339.GA28511@tangens.sinus.cz>
-References: <20071217084827.GA17568@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
+Date: Tue, 18 Dec 2007 18:59:18 +0100
+Message-ID: <20071218185918.5d2d4c7d@hyperion.delvare>
+References: <20071204215154.7f26285e.mikeserv@bmts.com>
+	<20071209230211.1c2077cf.mikeserv@bmts.com>
+	<1197856779.7782.2.camel@sli10-desk.sh.intel.com>
+	<200712171014.44360.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="AhhlLboLdkugWU4S"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:44523 "EHLO tangens.sinus.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063AbXLRJdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Dec 2007 04:33:41 -0500
-Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
-	by tangens.sinus.cz (8.14.1/8.14.1) with ESMTP id lBI9XdcB029356
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Tue, 18 Dec 2007 10:33:39 +0100
-Received: (from patrol@localhost)
-	by tangens.sinus.cz (8.14.1/8.14.1/Submit) id lBI9Xdgt029355
-	for linux-acpi@vger.kernel.org; Tue, 18 Dec 2007 10:33:39 +0100
-Content-Disposition: inline
-In-Reply-To: <20071217084827.GA17568@tangens.sinus.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761516AbXLRR7c@vger.kernel.org>
+In-Reply-To: <200712171014.44360.bjorn.helgaas@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+Hi Bjorn,
 
---AhhlLboLdkugWU4S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Mon, 17 Dec 2007 10:14:43 -0700, Bjorn Helgaas wrote:
+> On Sunday 16 December 2007 06:59:39 pm Shaohua Li wrote:
+> > On Sun, 2007-12-09 at 23:02 -0500, Mike Houston wrote:
+> > > On Mon, 10 Dec 2007 10:31:27 +0800
+> > > Shaohua Li <shaohua.li@intel.com> wrote:
+> > > > This should exist in previous kernel (before we remove acpi
+> > > > motherboard driver) too. Basically it's a broken BIOS. Could below
+> > > > patch work around it?
+> > > > 
+> > > > Thanks,
+> > > > Shaohua
+> > > > 
+> > > > Index: linux/drivers/pnp/system.c
+> > > > ===================================================================
+> > > > --- linux.orig/drivers/pnp/system.c	2007-12-10
+> > > > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
+> > > 
+> > > Thanks Shaohua, I tested this as well and it appears to have worked
+> > > around the issue for me.
+> > > 
+> > > Now, in dmesg, I get:
+> > > 
+> > > system 00:01: ioport range 0x290-0x29f has been reserved
+> > > (...)
+> > > system 00:01: ioport range 0x290-0x294 could not be reserved
+> > > 
+> > > In /proc/ioports I see:
+> > > 
+> > > 0290-029f : pnp 00:01
+> > >   0290-0297 : it87
+> > >     0290-0297 : it87
+> >
+> > Unfortunately this can't solve all such issues.
 
-> Hi!
->   I've built a new machine with an ASUS P5N32-E SLI PLUS motherboard,
-> equipped with an Intel(R) Core(TM)2 Quad CPU. The system seems stable
-> and well-performing. However, I'm curious about the following:
->   In the BIOS settings, there is an "Enhanced Intel SpeedStep (TM)" item,
-> which can be disabled or enabled. I've tried to hook a cpufreq module on it
-> but it seems to be unsuccessful. Neither speedstep nor acpi-cpufreq modules
-> are recognizing the hardware, so the feature seems unsupported.
->   However, when the BIOS SpeedStep setting is enabled, strange things happen.
-> In /proc/cpuinfo, the CPU frequency is always reported as 900 MHz (while
-> normally it's 2.6GHz), but the bogomips value is at 5220, which corelates
-> with the standard 2.6G clock. Also the system performance is not so low as
-> for 900M clock - I can see a small slowdown, but it may be about 5%, not more.
-> Even with an artificial load of all cores (4 cpu-eating tasks run concurrently)
-> the frequency reported by /proc/cpuinfo is at 900 MHz and doesn't never
-> increase.
->   So what does it mean ? Is the SpeedStep feature usable just by setting the
-> BIOS ? Isn't it limiting the performance too much ? Why the clock always seems
-> to be low ? I'm keeping it off until I know all the answers :-).
->   I'm attaching my DSDT for reference.
->   With regards,
->         Pavel Troller
+I don't see any issue here, but anyway it doesn't really matter as the
+proposed patch is not sufficient for all affected motherboards.
 
-Hi!
-  I'm here again with a new info, which may be important.
-  When the "Intel Enhanced SpeedStep" feature is active, there are 5 additional
-SSDT tables, which are not there, when the feature is disabled. Linux states
-that the tables are there, but I can't see any other difference than that
-with exception of another ordering of CPU cores and some minor timing issues.
-  Can Linux profit from those tables ? Their dissassembly is attached.
+> > 
+> > Adam & Bjorn,
+> > Could we just reserve IO ports >= 0x1000 in pnp system driver? The
+> > purpose of the driver is to avoid resource conflict with PCI device, and
+> > PCI device can't user io port < 0x1000.
+> 
+> The purpose of the PNP system driver is to avoid conflicts with
+> *all* devices.  And if the PNP core were a little smarter, we
+> wouldn't need the system driver at all.  We don't have one for
+> PCI -- the PCI core manages resources for all PCI devices, even
+> ones that have no driver.
+> 
+> Why is 0x1000 a magic number?  drivers/acpi/motherboard.c used to
+> ignore IO port ranges that ended below PCIBIOS_MIN_IO (== 0x1000 for
+> most architectures).  I don't think Linux will assign IO ports below
+> PCIBIOS_MIN_IO to a PCI device, but the BIOS could, and I've seen
+> CardBus devices below PCIBIOS_MIN_IO.
+> 
+> I think having drivers/pnp/system.c ignore resources below
+> PCIBIOS_MIN_IO would be a hack that happens to cover up problems
+> like this without understanding the real cause.
 
-    With regards, Pavel Troller
+The real cause is pretty clear here: broken BIOS. In an ideal world we
+would ask the manufacturer for a fixed BIOS and they would give that to
+us, unfortunately my experience is that it won't happen. So, unless we
+accept that idea that some users won't be able to use some of their
+devices because of broken resource enumeration in their BIOS, we will
+have to find a workaround, whatever it is.
 
+My initial idea was to identify the faulty motherboard using DMI and to
+force pnpacpi=off on the faulty motherboards. If this is considered too
+aggressive, maybe we can just reject resource declarations that
+intersect (but don't match) 0x290-0x297 for these motherboards. Either
+way, we have to do something, and we have to do it quickly. 2.6.24
+final isn't too far away, and more importantly, the patch that revealed
+the problem has been backported to 2.6.23.10 so people are experiencing
+regressions already.
 
---AhhlLboLdkugWU4S
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename="ssdt.tar.bz2"
-Content-Transfer-Encoding: base64
-
-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
-DApRgYRP/xdyRThQkCeagEQ=
-
---AhhlLboLdkugWU4S--
+-- 
+Jean Delvare
