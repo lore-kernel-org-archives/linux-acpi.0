@@ -1,97 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Date: Tue, 18 Dec 2007 18:59:18 +0100
-Message-ID: <20071218185918.5d2d4c7d@hyperion.delvare>
-References: <20071204215154.7f26285e.mikeserv@bmts.com>
-	<20071209230211.1c2077cf.mikeserv@bmts.com>
-	<1197856779.7782.2.camel@sli10-desk.sh.intel.com>
-	<200712171014.44360.bjorn.helgaas@hp.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/5] WMI
+Date: Tue, 18 Dec 2007 23:51:38 +0000
+Message-ID: <20071218235137.12838.75397.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761516AbXLRR7c@vger.kernel.org>
-In-Reply-To: <200712171014.44360.bjorn.helgaas@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:42099 "EHLO
+	pacifica." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1753829AbXLRXwJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Dec 2007 18:52:09 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-Hi Bjorn,
+YAWR - Yet Another WMI release
 
-On Mon, 17 Dec 2007 10:14:43 -0700, Bjorn Helgaas wrote:
-> On Sunday 16 December 2007 06:59:39 pm Shaohua Li wrote:
-> > On Sun, 2007-12-09 at 23:02 -0500, Mike Houston wrote:
-> > > On Mon, 10 Dec 2007 10:31:27 +0800
-> > > Shaohua Li <shaohua.li@intel.com> wrote:
-> > > > This should exist in previous kernel (before we remove acpi
-> > > > motherboard driver) too. Basically it's a broken BIOS. Could below
-> > > > patch work around it?
-> > > > 
-> > > > Thanks,
-> > > > Shaohua
-> > > > 
-> > > > Index: linux/drivers/pnp/system.c
-> > > > ===================================================================
-> > > > --- linux.orig/drivers/pnp/system.c	2007-12-10
-> > > > 10:17:46.000000000 +0800 +++ linux/drivers/pnp/system.c
-> > > 
-> > > Thanks Shaohua, I tested this as well and it appears to have worked
-> > > around the issue for me.
-> > > 
-> > > Now, in dmesg, I get:
-> > > 
-> > > system 00:01: ioport range 0x290-0x29f has been reserved
-> > > (...)
-> > > system 00:01: ioport range 0x290-0x294 could not be reserved
-> > > 
-> > > In /proc/ioports I see:
-> > > 
-> > > 0290-029f : pnp 00:01
-> > >   0290-0297 : it87
-> > >     0290-0297 : it87
-> >
-> > Unfortunately this can't solve all such issues.
+Patch #1: (WMI - driver and in kernel interface)
 
-I don't see any issue here, but anyway it doesn't really matter as the
-proposed patch is not sufficient for all affected motherboards.
+Updated EC region handling as per Alexey's comments
 
-> > 
-> > Adam & Bjorn,
-> > Could we just reserve IO ports >= 0x1000 in pnp system driver? The
-> > purpose of the driver is to avoid resource conflict with PCI device, and
-> > PCI device can't user io port < 0x1000.
-> 
-> The purpose of the PNP system driver is to avoid conflicts with
-> *all* devices.  And if the PNP core were a little smarter, we
-> wouldn't need the system driver at all.  We don't have one for
-> PCI -- the PCI core manages resources for all PCI devices, even
-> ones that have no driver.
-> 
-> Why is 0x1000 a magic number?  drivers/acpi/motherboard.c used to
-> ignore IO port ranges that ended below PCIBIOS_MIN_IO (== 0x1000 for
-> most architectures).  I don't think Linux will assign IO ports below
-> PCIBIOS_MIN_IO to a PCI device, but the BIOS could, and I've seen
-> CardBus devices below PCIBIOS_MIN_IO.
-> 
-> I think having drivers/pnp/system.c ignore resources below
-> PCIBIOS_MIN_IO would be a hack that happens to cover up problems
-> like this without understanding the real cause.
+Len:
+For review, and hopefully to go up to 2.6.25
 
-The real cause is pretty clear here: broken BIOS. In an ideal world we
-would ask the manufacturer for a fixed BIOS and they would give that to
-us, unfortunately my experience is that it won't happen. So, unless we
-accept that idea that some users won't be able to use some of their
-devices because of broken resource enumeration in their BIOS, we will
-have to find a workaround, whatever it is.
+(Bar the EC stuff, this code has also been inflic^^^^tested by acer_acpi users
+with the 0.10 RCs and 0.10 releases, so I'm confident on Acer hardware at least
+that it won't break horribly).
 
-My initial idea was to identify the faulty motherboard using DMI and to
-force pnpacpi=off on the faulty motherboards. If this is considered too
-aggressive, maybe we can just reject resource declarations that
-intersect (but don't match) 0x290-0x297 for these motherboards. Either
-way, we have to do something, and we have to do it quickly. 2.6.24
-final isn't too far away, and more importantly, the patch that revealed
-the problem has been backported to 2.6.23.10 so people are experiencing
-regressions already.
+Patch #2: (acer-wmi) - No Change
 
--- 
-Jean Delvare
+For review, and (rather tentatively here) 2.6.25 material?
+
+Patch #3: (tc1100-wmi) - No Change
+
+RFC only, needs actual testing on the hardware, and probably very broken.
+Waiting on Matthew Garrett to get some free time to test this.
+
+Patch #4: (WMI sysfs interface) - No Change
+
+RFC only (see patch #5 for reason). Adds interface under
+/sys/devices/virtual/wmi
+
+Patch #5: (WMI sysfs workaround) - No change
+
+Temporary hack, needed to get patch #4 working, due to a limitation on bus_id
+length (Kay Sievers is apparently working on this, ref Greg KH[1]). This
+should _NOT_ be applied to any upstream kernel.
+
+-Carlos
+
+[1] http://lkml.org/lkml/2007/12/4/30
