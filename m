@@ -1,38 +1,118 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Date: Thu, 20 Dec 2007 02:17:02 +0000
-Message-ID: <200712200217.03861.carlos@strangeworlds.co.uk>
-References: <20071204215154.7f26285e.mikeserv@bmts.com> <200712200045.16899.carlos@strangeworlds.co.uk> <200712192113.22974.el@prans.net>
+From: Federico Grau <donfede@casagrau.org>
+Subject: dell inspiron 4150 acpi suspend problems (apm is ok)
+Date: Wed, 19 Dec 2007 23:34:21 -0500
+Message-ID: <20071220043421.GA1664@casagrau.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:50766 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081AbXLTCSp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Dec 2007 21:18:45 -0500
-In-Reply-To: <200712192113.22974.el@prans.net>
+Received: from dsl093-100-179.wdc2.dsl.speakeasy.net ([66.93.100.179]:57425
+	"EHLO tatooine.casagrau.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750741AbXLTFG0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Dec 2007 00:06:26 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Elvis Pranskevichus <el@prans.net>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Jean Delvare <khali@linux-fr.org>, Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thursday 20 December 2007 02:13:22 Elvis Pranskevichus wrote:
-> Hi Carlos,
->
-> I've attached the DSDT for Gigabyte GA-965G-DS3 (rev 1.0, bios rev. F9) to
-> bugzilla entry #9514:
->
-> http://bugzilla.kernel.org/attachment.cgi?id=14132
+Hello,
 
-A quick look over the DSDT shows that there is no ACPI-WMI mapper device 
-(PNP0C14) on this board; so WMI is, at least in this case, not the solution 
-to this bug.
+I have a dell inspiron 4150 laptop.  Previously it suspended (to ram) and
+resumed well, when I was using apm.  Recently I tried on my latest kernel
+update to finally evolve and start using acpi.  Unfortunately when suspending
+to ram with acpi (using "acpitool -s") the display comes back garbled and
+cannot be corrected.  
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+I have the most recent bios version A06 (I doubt any more will come out as the
+laptop is 2 - 3 years old).  My distro is debian unstable (relatively recent)
+and my kernel versions and power management info sections are listed below.  I
+have the same symptoms whether I do this from an xterm within X11 (xorg) or
+from the console.  After I resume, switching between consoles and X11 does not
+help.  About the only way I can "exit" the situation is to press the power
+button which triggers acpi to nicely shutdown the machine.
+
+Some google searches showed others with similar problems, but they were all 2
+- 4 years ago.  What could be the problem, and what could I try to correct it?
+
+thanks for any help,
+donfede
+
+
+######################################
+
+###########
+#
+# working apm configuration
+#
+# Linux kernel version: 2.6.22.5
+
+# Power management options (ACPI, APM)
+#
+CONFIG_PM=y
+CONFIG_PM_LEGACY=y
+CONFIG_PM_DEBUG=y
+# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
+# CONFIG_PM_TRACE is not set
+# CONFIG_PM_SYSFS_DEPRECATED is not set
+# CONFIG_SOFTWARE_SUSPEND is not set
+
+#
+# ACPI (Advanced Configuration and Power Interface) Support
+#
+# CONFIG_ACPI is not set
+CONFIG_APM=y
+# CONFIG_APM_IGNORE_USER_SUSPEND is not set
+CONFIG_APM_DO_ENABLE=y
+CONFIG_APM_CPU_IDLE=y
+# CONFIG_APM_DISPLAY_BLANK is not set
+# CONFIG_APM_ALLOW_INTS is not set
+# CONFIG_APM_REAL_MODE_POWER_OFF is not set
+
+
+
+
+
+###########
+#
+# unfortunately not working acpi configuration
+#
+# Linux kernel version: 2.6.23.9
+
+# Power management options (ACPI, APM)
+#
+CONFIG_PM=y
+# CONFIG_PM_LEGACY is not set
+# CONFIG_PM_DEBUG is not set
+CONFIG_PM_SLEEP=y
+CONFIG_SUSPEND_UP_POSSIBLE=y
+CONFIG_SUSPEND=y
+CONFIG_HIBERNATION_UP_POSSIBLE=y
+CONFIG_HIBERNATION=y
+CONFIG_PM_STD_PARTITION="/dev/hda1"
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_PROCFS=y
+CONFIG_ACPI_PROC_EVENT=y
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_VIDEO=m
+CONFIG_ACPI_FAN=y
+# CONFIG_ACPI_DOCK is not set
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+# CONFIG_ACPI_CUSTOM_DSDT is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_X86_PM_TIMER=y
+# CONFIG_ACPI_CONTAINER is not set
+# CONFIG_ACPI_SBS is not set
+# CONFIG_APM is not set
+
+
+
