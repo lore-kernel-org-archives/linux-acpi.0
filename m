@@ -1,47 +1,493 @@
-From: Sven Geggus <lists@fuchsschwanzdomain.de>
-Subject: Enforcing C2,C3... states?
-Date: Thu, 20 Dec 2007 19:08:43 +0100
-Message-ID: <20071220180843.GA5634@diesel.geggus.net>
+From: =?ISO-8859-1?Q?St=E9phane_BAUSSON?= <stephane.bausson@free.fr>
+Subject: dmidecode 2.6.23.9 + ACER 7720Z
+Date: Fri, 21 Dec 2007 17:34:02 +0100
+Message-ID: <476BEAFA.5060007@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------030409030201030607060302"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dolly.gnuher.de ([212.227.64.154]:51032 "EHLO dolly.gnuher.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756578AbXLTSxc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Dec 2007 13:53:32 -0500
-Received: from ultimate100.geggus.net ([2001:8d8:81:672::1])
-	by dolly.gnuher.de with esmtpsa TLS-1.0:RSA_AES_256_CBC_SHA:32
-	(Exim 4.66 id 1J5Pp6-0002xz-V8)
-	for <linux-acpi@vger.kernel.org>; Thu, 20 Dec 2007 19:08:45 +0100
-Received: from diesel.geggus.net ([192.168.3.2] ident=mail)
-	by ultimate100.geggus.net with esmtp
-	(Exim 4.66 id 1J5Pp6-0004SD-4r)
-	for <linux-acpi@vger.kernel.org>; Thu, 20 Dec 2007 19:08:44 +0100
-Received: from sven by diesel.geggus.net with local
-	(Exim 3.36 id 1J5Pp6-0001TK-00)
-	for <linux-acpi@vger.kernel.org>; Thu, 20 Dec 2007 19:08:44 +0100
-Content-Disposition: inline
+Received: from postfix2-g20.free.fr ([212.27.60.43]:53197 "EHLO
+	postfix2-g20.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579AbXLUQfK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Dec 2007 11:35:10 -0500
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by postfix2-g20.free.fr (Postfix) with ESMTP id 509CB217655A
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Dec 2007 15:34:22 +0100 (CET)
+Received: from smtp8-g19.free.fr (localhost [127.0.0.1])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 2E68E17F568
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Dec 2007 17:33:06 +0100 (CET)
+Received: from [192.168.0.1] (lns-bzn-26-82-254-85-42.adsl.proxad.net [82.254.85.42])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 472AA17F526
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Dec 2007 17:33:05 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Dear ACPI List,
+This is a multi-part message in MIME format.
+--------------030409030201030607060302
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Desktop Boards usually don't seem to activate power management as
-one can see in /proc/acpi/processor/CPU?/power even if they use a
-Laptop CPU which would be able to use this states.
+dump attached
 
-Would it be possible to enforce the Use of C2,C3... Power states on
-those kind of machines by means of a modified dsdt?
 
-if so, what would I need to add to the ACPI Bios to achieve this?
+--------------030409030201030607060302
+Content-Type: text/plain;
+ name="dmidecode.dump"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmidecode.dump"
 
-Regards
+# dmidecode 2.9
+SMBIOS 2.4 present.
+37 structures occupying 1489 bytes.
+Table at 0x000E2AE0.
 
-Sven
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Acer
+	Version: V1.18
+	Release Date: 09/27/2007
+	ROM Size: 1024 kB
+	Characteristics:
+		PCI is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		BIOS ROM is socketed
+		EDD is supported
+		Japanese floppy for NEC 9800 1.2 MB is supported (int 13h)
+		Japanese floppy for Toshiba 1.2 MB is supported (int 13h)
+		5.25"/360 KB floppy services are supported (int 13h)
+		5.25"/1.2 MB floppy services are supported (int 13h)
+		3.5"/720 KB floppy services are supported (int 13h)
+		3.5"/2.88 MB floppy services are supported (int 13h)
+		8042 keyboard services are supported (int 9h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		Targeted content distribution is supported
 
--- 
-"Those who do not understand Unix are condemned to reinvent it, poorly"
-(Henry Spencer)
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Acer      
+	Product Name: Aspire 7720Z    
+	Version: V1.18
+	Serial Number: LXALJ0X0057431A4311601
+	UUID: FE2BD8EC-7476-80B2-E6F3-001B3863F8F0
+	Wake-up Type: Power Switch
+	SKU Number: None
+	Family: None
 
-/me is giggls@ircnet, http://sven.gegg.us/ on the Web
+Handle 0x0002, DMI type 2, 16 bytes
+Base Board Information
+	Manufacturer: Acer
+	Product Name: Poyang   
+	Version: V1.18
+	Serial Number: Base Board Serial Number
+	Asset Tag: Base Board Asset Tag
+	Features:
+		Board is a hosting board
+		Board is replaceable
+	Location In Chassis: Base Board Chassis Location
+	Chassis Handle: 0x0003
+	Type: Motherboard
+	Contained Object Handles: 0
+
+Handle 0x0003, DMI type 3, 22 bytes
+Chassis Information
+	Manufacturer: Acer
+	Type: Other
+	Lock: Not Present
+	Version: V1.18
+	Serial Number: Chassis Serial Number
+	Asset Tag:                  
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00000000
+	Height: Unspecified
+	Number Of Power Cords: 1
+	Contained Elements: 0
+
+Handle 0x0004, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J6C1
+	Type: x16 PCI Express
+	Current Usage: Available
+	Length: Other
+	ID: 0
+	Characteristics:
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0005, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J8C1
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Other
+	ID: 0
+	Characteristics:
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0006, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J7C1
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Other
+	ID: 1
+	Characteristics:
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J8D1
+	Type: x1 PCI Express
+	Current Usage: Available
+	Length: Other
+	ID: 2
+	Characteristics:
+		PME signal is supported
+		Hot-plug devices are supported
+
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J8B1
+	Type: 32-bit PCI
+	Current Usage: Available
+	Length: Long
+	ID: 3
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		Cardbus is supported
+		Modem ring resume is supported
+		PME signal is supported
+		SMBus signal is supported
+
+Handle 0x0009, DMI type 9, 13 bytes
+System Slot Information
+	Designation: J9B1
+	Type: 32-bit PCI
+	Current Usage: Available
+	Length: Long
+	ID: 4
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+		Cardbus is supported
+		Modem ring resume is supported
+		PME signal is supported
+		SMBus signal is supported
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: PS/2
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: PS/2
+	Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: PS/2
+	Internal Connector Type: None
+	External Reference Designator: Mouse
+	External Connector Type: PS/2
+	Port Type: Mouse Port
+
+Handle 0x000C, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB
+	Internal Connector Type: None
+	External Reference Designator: USB 1
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB
+	Internal Connector Type: None
+	External Reference Designator: USB 2
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: USB
+	Internal Connector Type: None
+	External Reference Designator: USB 3
+	External Connector Type: Access Bus (USB)
+	Port Type: USB
+
+Handle 0x000F, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: LAN
+	Internal Connector Type: None
+	External Reference Designator: Network
+	External Connector Type: RJ-45
+	Port Type: Network Port
+
+Handle 0x0010, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J2H2
+	Internal Connector Type: On Board IDE
+	External Reference Designator: OnBoard Primary IDE
+	External Connector Type: None
+	Port Type: Other
+
+Handle 0x0011, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J2H1
+	Internal Connector Type: On Board IDE
+	External Reference Designator: OnBoard Secondary IDE
+	External Connector Type: None
+	Port Type: Other
+
+Handle 0x0012, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Video
+	Status: Enabled
+	Description: Intel Video Graphics Controller
+
+Handle 0x0013, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Ethernet
+	Status: Enabled
+	Description: Broadcom Lan Controller
+
+Handle 0x0014, DMI type 11, 6 bytes
+OEM Strings
+	String 1: EFI Software for Nettiling and Poyang
+
+Handle 0x0015, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: J1D4:1-2,5-6,9-10Default;2-3CMOS clr,6-7Pswd clr,10-11Recovery
+
+Handle 0x0016, DMI type 21, 7 bytes
+Built-in Pointing Device
+	Type: Touch Pad
+	Interface: PS/2
+	Buttons: 4
+
+Handle 0x0017, DMI type 22, 26 bytes
+Portable Battery
+	Location: Internal Battery
+	Manufacturer: Sony
+	Serial Number: Not Supported
+	Name: Li-ion(6cell)
+	Chemistry: Lithium Ion
+	Design Capacity: 51840 mWh
+	Design Voltage: 10800 mV
+	SBDS Version: Not Specified
+	Maximum Error: Unknown
+	SBDS Manufacture Date: 1980-00-00
+	OEM-specific Information: 0xFFFFFFFF
+
+Handle 0x0018, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 2 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0019, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0018
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM0
+	Bank Locator: BANK 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 533 MHz (1.9 ns)
+	Manufacturer: 0xCE00000000000000
+	Serial Number: 0x73332746
+	Asset Tag: Unknown
+	Part Number: 0x4D342037305432393533455A332D43453620
+
+Handle 0x001A, DMI type 6, 12 bytes
+Memory Module Information
+	Socket Designation: DIMM0
+	Bank Connections: 0 0
+	Current Speed: 1 ns
+	Type: DIMM
+	Installed Size: 1024 MB (Single-bank Connection)
+	Enabled Size: 1024 MB (Single-bank Connection)
+	Error Status: OK
+
+Handle 0x001B, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x0019
+	Memory Array Mapped Address Handle: 0x001F
+	Partition Row Position: 1
+	Interleave Position: 1
+	Interleaved Data Depth: 1
+
+Handle 0x001C, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0018
+	Error Information Handle: Not Provided
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 1024 MB
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM2
+	Bank Locator: BANK 2
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 533 MHz (1.9 ns)
+	Manufacturer: 0xCE00000000000000
+	Serial Number: 0x733327AB
+	Asset Tag: Unknown
+	Part Number: 0x4D342037305432393533455A332D43453620
+
+Handle 0x001D, DMI type 6, 12 bytes
+Memory Module Information
+	Socket Designation: DIMM2
+	Bank Connections: 0 0
+	Current Speed: 1 ns
+	Type: DIMM
+	Installed Size: 1024 MB (Single-bank Connection)
+	Enabled Size: 1024 MB (Single-bank Connection)
+	Error Status: OK
+
+Handle 0x001E, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00040000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 1 GB
+	Physical Device Handle: 0x001C
+	Memory Array Mapped Address Handle: 0x001F
+	Partition Row Position: 2
+	Interleave Position: 2
+	Interleaved Data Depth: 1
+
+Handle 0x001F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x0018
+	Partition Width: 0
+
+Handle 0x0020, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: uPGA-478
+	Type: Central Processor
+	Family: Pentium M
+	Manufacturer: Intel(R) Corporation
+	ID: FD 06 00 00 FF FB EB BF
+	Signature: Type 0, Family 6, Model 15, Stepping 13
+	Flags:
+		FPU (Floating-point unit on-chip)
+		VME (Virtual mode extension)
+		DE (Debugging extension)
+		PSE (Page size extension)
+		TSC (Time stamp counter)
+		MSR (Model specific registers)
+		PAE (Physical address extension)
+		MCE (Machine check exception)
+		CX8 (CMPXCHG8 instruction supported)
+		APIC (On-chip APIC hardware supported)
+		SEP (Fast system call)
+		MTRR (Memory type range registers)
+		PGE (Page global enable)
+		MCA (Machine check architecture)
+		CMOV (Conditional move instruction supported)
+		PAT (Page attribute table)
+		PSE-36 (36-bit page size extension)
+		CLFSH (CLFLUSH instruction supported)
+		DS (Debug store)
+		ACPI (ACPI supported)
+		MMX (MMX technology supported)
+		FXSR (Fast floating-point save and restore)
+		SSE (Streaming SIMD extensions)
+		SSE2 (Streaming SIMD extensions 2)
+		SS (Self-snoop)
+		HTT (Hyper-threading technology)
+		TM (Thermal monitor supported)
+		PBE (Pending break enabled)
+	Version: Intel(R) Pentium(R) Dual  CPU  T2310  @ 1.46GHz
+	Voltage: 1.6 V
+	External Clock: 133 MHz
+	Max Speed: 1466 MHz
+	Current Speed: 1466 MHz
+	Status: Populated, Enabled
+	Upgrade: Socket 478
+	L1 Cache Handle: 0x0023
+	L2 Cache Handle: 0x0021
+	L3 Cache Handle: Not Provided
+	Serial Number: NotSupport
+	Asset Tag: FFFF
+	Part Number: FFFF
+
+Handle 0x0021, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Not Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 1024 KB
+	Maximum Size: 1024 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Unified
+	Associativity: 4-way Set-associative
+
+Handle 0x0022, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Instruction
+	Associativity: 8-way Set-associative
+
+Handle 0x0023, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 32 KB
+	Maximum Size: 32 KB
+	Supported SRAM Types:
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Single-bit ECC
+	System Type: Data
+	Associativity: 8-way Set-associative
+
+Handle 0x0024, DMI type 127, 4 bytes
+End Of Table
+
+
+--------------030409030201030607060302--
