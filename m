@@ -1,105 +1,64 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [lm-sensors] 2.6.24-rc4 hwmon it87 probe fails
-Date: Sat, 22 Dec 2007 20:40:30 -0700
-Message-ID: <200712222040.32079.bjorn.helgaas@hp.com>
-References: <w9NvZsoO.1198322501.4301280.khali@gcu-squad.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: brightness control on thinkpad t61p
+Date: Sun, 23 Dec 2007 00:00:57 -0800
+Message-ID: <20071223000057.739d5891.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:42632 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327AbXLWDmW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Dec 2007 22:42:22 -0500
-In-Reply-To: <w9NvZsoO.1198322501.4301280.khali@gcu-squad.org>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51892 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750872AbXLWIBw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Dec 2007 03:01:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Saturday 22 December 2007 4:21:41 am Jean Delvare wrote:
-> >This patch makes the it87 driver request only the two ports used for the
-> >Environment Controller device.
->
-> The problem is that the IT87xxF chips do decode 4 ports (recent chips,
-> 0x294-0x297) or 8 ports (older chips, 0x290-0x297), not 2 as the
-> datasheets say. The ITE Super-I/O chips differ from the Winbond
-> Super-I/O chips in this respect. The it87 driver only needs to access
-> ports 0x295 and 0x296, true, but the device itself decodes more
-> addresses than that. So, with this proposed patch, ports which are busy
-> will be shown as being free. This pretty much voids the point of
-> resource declarations, doesn't it? This might not cause too much
-> trouble in practice, but to me this still looks like the wrong way to go.
 
-Yes, all the ports decoded by the chip should certainly be reserved,
-but I think the entire range should be reserved at a higher level,
-like the PNP core, and the driver should reserve only the ports it
-uses.  Then the entire range is reserved even if there is no driver
-or the driver is not loaded.  That's the approach we use for PCI,
-e.g.,
+When I fire up the latest Linus tree on my thinkpad t61p I get:
 
-  e8100000-e81fffff : 0000:00:08.0          <-- reserved by PCI core
-    e8100000-e8102fff : CS46xx_BA1_data0    <-- reserved by driver
-    e8110000-e81137ff : CS46xx_BA1_data1
-    e8120000-e8126fff : CS46xx_BA1_pmem
-    e8130000-e81300ff : CS46xx_BA1_reg
+thinkpad_acpi: ThinkPad ACPI Extras v0.17
+thinkpad_acpi: http://ibm-acpi.sf.net/
+thinkpad_acpi: ThinkPad BIOS 7LET44WW (1.14 ), EC 7KHT22WW-1.06
+thinkpad_acpi: Lenovo ThinkPad T61p
+thinkpad_acpi: radio switch found; radios are enabled
+ACPI: Lid Switch [LID]
+input: Sleep Button (CM) as /class/input/input6
+ACPI: Sleep Button (CM) [SLPB]
+thinkpad_acpi: standard ACPI backlight interface available, not loading native one...
 
-> The resource declarations made by these motherboard BIOSes are totally
-> bogus. 0x290-0x29f is much larger than what the chip decodes.
-> 0x290-0x294 is a subset that doesn't make any sense. The GA-K8N Ultra 9
-> is even funnier with 0x295-0x314, which again doesn't correspond to
-> anything real.
 
-I agree those declarations are probably wrong.  But at least they're
-larger than required, so they should be safe.
 
-> All these happen to not intersect with 0x295-0x296 but I 
-> wouldn't count on it. If Gigabyte (and possibly others) care that
-> little about these declarations, pretty much anything could be seen. So
-> while your proposed workaround happens to fix the problem at hand, it is
-> not really correct technically, and could break again soon.
->
-> I'd rather fix the problem at its source, or, as fixing it as the source
-> isn't very realistic in this case, as near of the source as possible.
-> That would mean DMI-based quirks for the affected motherboards, that
-> would discard or adjust the bogus resource declarations.
+and /sys/class/backlight/thinkpad_screen/brightness is no longer present, so
+my `brightness' script no longer works.  That, my friends, is a regression.
 
-Well, I think the driver change *is* correct, assuming that the
-entire range can be reserved at a higher level.  In this case,
-it is, via a PNP0C02 device.
+Here's my script:
 
-I think a DMI-based quirk to fix the PNP0C02 resources would be
-a good approach, but we shouldn't do that until those resources
-cause some other problem.
+(
+0 sh -c "echo $1 > /proc/acpi/sony/brightness"
+0 sh -c "echo $1 > /proc/acpi/sony/brightness_default"
+0 sh -c "echo $1 > /sys/class/backlight/sony/brightness"
+0 sh -c "echo $1 > /sys/class/backlight/thinkpad_screen/brightness"
+) 2>/dev/null
 
-> I also don't fully understand what pnpacpi is useful for. I have heard
-> about PCI drivers that might request resources that the motherboard
-> doesn't want them to touch, but I don't know the details, I also
-> don't know if it is a theoretical issue or if it really happens on some
-> systems, and I don't know if there are other uses for pnpacpi.
+which rather shows how pathetic we are in this area.  Ho hum.
 
-It is a real issue.  It's probably not very common because many ACPI
-devices use "legacy" resources like ports below 0x1000, and the kernel
-has heuristics to avoid placing other devices there.  But I have seen
-the kernel place a CardBus device on top of an ACPI device, so it does
-happen.
 
-Apart from preventing resource conflicts, PNP has framework for
-driver/device binding, suspend/resume, etc.  Without PNPACPI,
-we'll fall back to PNPBIOS, but my guess is that nowadays, the
-ACPI namespace is better-tested than PNPBIOS.  And I wouldn't
-be surprised if PNPBIOS disappears from new boxes.
+So I go hunting around and find
 
-> I'm 
-> asking because I want to know if forcing pnpacpi=off on the faulty
-> motherboards would be good enough or if we really need finer-grained
-> quirks (assuming that we go the DMI-based quirks route at all.) The
-> former would obviously be easier.
+	/sys/class/backlight/acpi_video0/
+and
+	/sys/class/backlight/acpi_video1/
 
-I'm sure these boxes still have PNPBIOS, so pnpacpi=off would
-probably work fine.  But it feels like a bigger hammer than
-necessary for this problem.
+Why are there two of them?
 
-Bjorn
+
+Both of these have a `brightness' entry which has contents of 100.  When I set
+that to 10, the screen's brightness is not reduced.
+
+So as far as I can tell, we have lost the ability to alter the brightness of
+the screen on this machine.
+
+
