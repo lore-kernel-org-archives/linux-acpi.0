@@ -1,38 +1,49 @@
-From: Stephane Ascoet <stephaneascoet@free.fr>
-Subject: Re: do not stop/start devices in suspend/resume path: the SCSI case
-Date: Mon, 24 Dec 2007 02:43:49 +0100
-Message-ID: <476F0ED5.3090609@free.fr>
-References: <4745F77C.7040402@gmail.com> <47511751.2010707@gmail.com> <47514CE2.3000600@gmail.com> <200712051124.18852.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/3] PM: Do not destroy/create devices while suspended in cpuid.c
+Date: Mon, 24 Dec 2007 01:57:57 +0100
+Message-ID: <200712240157.58560.rjw@sisk.pl>
+References: <200712240155.14765.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp25.orange.fr ([193.252.22.23]:37420 "EHLO smtp25.orange.fr"
+Received: from ogre.sisk.pl ([217.79.144.158]:57105 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140AbXLWXjC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Dec 2007 18:39:02 -0500
-In-Reply-To: <200712051124.18852.bjorn.helgaas@hp.com>
+	id S1751020AbXLXAjZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Dec 2007 19:39:25 -0500
+In-Reply-To: <200712240155.14765.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, matthew@wil.cx, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, drzeus@drzeus.cx, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>
 
-Bjorn Helgaas a =E9crit :
-> Good.  It's not clear to me whether it is safe to leave devices
-> enabled while we sleep.  I don't see an actual problem, but there
-> might be something related to hotplug while we're asleep or something=
-=2E
-> So I'll cc: some additional people who might have some insight.
-Hi, is there a chance for SCSI sleeping being managed by ACPI(it seems=20
-to be the case for IDE)?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
---=20
-Bien cordialement, Stephane Ascoet, conseils pour que la technologie=20
-soit un progres respectueux de la vie.
-Album photo:<http://www.flickr.com/photos/stephaneascoet/>
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The cpuid driver should not attempt to destroy/create a suspended
+device.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/x86/kernel/cpuid.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+Index: linux-2.6/arch/x86/kernel/cpuid.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/cpuid.c
++++ linux-2.6/arch/x86/kernel/cpuid.c
+@@ -157,13 +157,10 @@ static int __cpuinit cpuid_class_cpu_cal
+ 
+ 	switch (action) {
+ 	case CPU_UP_PREPARE:
+-	case CPU_UP_PREPARE_FROZEN:
+ 		err = cpuid_device_create(cpu);
+ 		break;
+ 	case CPU_UP_CANCELED:
+-	case CPU_UP_CANCELED_FROZEN:
+ 	case CPU_DEAD:
+-	case CPU_DEAD_FROZEN:
+ 		cpuid_device_destroy(cpu);
+ 		break;
+ 	}
