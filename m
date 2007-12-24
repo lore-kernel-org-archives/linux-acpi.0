@@ -1,66 +1,49 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: brightness control on thinkpad t61p
-Date: Mon, 24 Dec 2007 15:08:37 -0200
-Message-ID: <20071224170837.GC7907@khazad-dum.debian.net>
-References: <20071223000057.739d5891.akpm@linux-foundation.org>
+Date: Mon, 24 Dec 2007 15:14:05 -0200
+Message-ID: <20071224171405.GD7907@khazad-dum.debian.net>
+References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224073406.GA1018@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59668 "EHLO
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:36131 "EHLO
 	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750966AbXLXRIp (ORCPT
+	by vger.kernel.org with ESMTP id S1752272AbXLXROL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Dec 2007 12:08:45 -0500
+	Mon, 24 Dec 2007 12:14:11 -0500
 Content-Disposition: inline
-In-Reply-To: <20071223000057.739d5891.akpm@linux-foundation.org>
+In-Reply-To: <20071224073406.GA1018@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Sun, 23 Dec 2007, Andrew Morton wrote:
-> When I fire up the latest Linus tree on my thinkpad t61p I get:
+On Mon, 24 Dec 2007, Matthew Garrett wrote:
+> On Sun, Dec 23, 2007 at 12:00:57AM -0800, Andrew Morton wrote:
 > 
-> thinkpad_acpi: ThinkPad ACPI Extras v0.17
-> thinkpad_acpi: http://ibm-acpi.sf.net/
-> thinkpad_acpi: ThinkPad BIOS 7LET44WW (1.14 ), EC 7KHT22WW-1.06
-> thinkpad_acpi: Lenovo ThinkPad T61p
-> thinkpad_acpi: radio switch found; radios are enabled
-> ACPI: Lid Switch [LID]
-> input: Sleep Button (CM) as /class/input/input6
-> ACPI: Sleep Button (CM) [SLPB]
-> thinkpad_acpi: standard ACPI backlight interface available, not loading native one...
+> > and /sys/class/backlight/thinkpad_screen/brightness is no longer present, so
+> > my `brightness' script no longer works.  That, my friends, is a regression.
 > 
-> and /sys/class/backlight/thinkpad_screen/brightness is no longer present, so
-> my `brightness' script no longer works.  That, my friends, is a regression.
+> The thinkpad_acpi brightness interface simply doesn't work correctly on 
+> recent Thinkpads. The ACPI interface does, but the currently exported ui 
 
-For thinkpad-acpi at least, it is not a regression. 2.6.23/0.16 did NOT
-support your thinkpad (it will pretend to work, but it won't work 100% right
-as it only supports 8 levels of backlight control).  2.6.24-rc4/0.17 added
-support for it (16-level brightness), but also added the automatic detection
-of ACPI generic video support.
+Yes, it does since 2.6.24-rc4.  And since MUCH earlier in the out-of-tree
+develompent versions.
 
-You can ask thinkpad-acpi for the backlight interface using the
-"brightness_enable=1" parameter, if you'd rather use it instead of the
-generic ACPI video driver.  I don't know if you can ask video to not enable
-backlight control, though.
+What usually causes weird breakage is to have more than one of (Ubuntu
+hackage in HAL calling back into thinkpad-acpi, X.org, ACPI video) trying to
+respond to brightness up/down.  And you *do* *have* to use the latest Lenovo
+BIOSes, too. 
 
-> So I go hunting around and find
-> 
-> 	/sys/class/backlight/acpi_video0/
-> and
-> 	/sys/class/backlight/acpi_video1/
-> 
-> Why are there two of them?
+Also, apparently now X.org knows how to tell the BIOS to not react to
+backlight changes, so you have to configure it properly (I don't know much
+about it), too.
 
-Two nodes in the ACPI tree (AGP and PCI), and the ACPI drivers don't
-differentiate a deactivated node from a working node yet.  There are some
-tentative patches flying around to fix it, AFAIK.
-
-> Both of these have a `brightness' entry which has contents of 100.  When I set
-> that to 10, the screen's brightness is not reduced.
-
-One of them should work.  Maybe X.org is doing something?
+Matthew, btw, Dmitri approved the _NOTIFY keycodes, which need to be part of
+the solution re. backlight control in thinkpads.  Are you intending to push
+a patch implementing them?  As I said before, I am okay with that solution,
+as long as Dmitri accepted it, and I will use _NOTIFY keycodes in
+thinkpad-acpi when they become available.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
