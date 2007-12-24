@@ -1,42 +1,69 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 0/3] PM: Do not destroy/create devices while suspended
-Date: Mon, 24 Dec 2007 10:51:15 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0712241045150.25920-100000@netrider.rowland.org>
-References: <200712240155.14765.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: brightness control on thinkpad t61p
+Date: Mon, 24 Dec 2007 15:08:37 -0200
+Message-ID: <20071224170837.GC7907@khazad-dum.debian.net>
+References: <20071223000057.739d5891.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753234AbXLXPv0@vger.kernel.org>
-In-Reply-To: <200712240155.14765.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59668 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750966AbXLXRIp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Dec 2007 12:08:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20071223000057.739d5891.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, 24 Dec 2007, Rafael J. Wysocki wrote:
-
-> Hi,
+On Sun, 23 Dec 2007, Andrew Morton wrote:
+> When I fire up the latest Linus tree on my thinkpad t61p I get:
 > 
-> Some device drivers register CPU hotplug notifiers and use them to destroy
-> device objects when removing the corresponding CPUs and to create these objects
-> when adding the CPUs back.
+> thinkpad_acpi: ThinkPad ACPI Extras v0.17
+> thinkpad_acpi: http://ibm-acpi.sf.net/
+> thinkpad_acpi: ThinkPad BIOS 7LET44WW (1.14 ), EC 7KHT22WW-1.06
+> thinkpad_acpi: Lenovo ThinkPad T61p
+> thinkpad_acpi: radio switch found; radios are enabled
+> ACPI: Lid Switch [LID]
+> input: Sleep Button (CM) as /class/input/input6
+> ACPI: Sleep Button (CM) [SLPB]
+> thinkpad_acpi: standard ACPI backlight interface available, not loading native one...
 > 
-> Unfortunately, this is not the right thing to do during suspend/hibernation,
-> since in that cases the CPU hotplug notifiers are called after suspending
-> devices and before resuming them, so the operations in question are carried
-> out on the objects representing suspended devices which shouldn't be
-> unregistered behing the PM core's back.  Although right now it usually doesn't
-> lead to any practical complications, it will predictably deadlock if
-> gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch is applied.
+> and /sys/class/backlight/thinkpad_screen/brightness is no longer present, so
+> my `brightness' script no longer works.  That, my friends, is a regression.
+
+For thinkpad-acpi at least, it is not a regression. 2.6.23/0.16 did NOT
+support your thinkpad (it will pretend to work, but it won't work 100% right
+as it only supports 8 levels of backlight control).  2.6.24-rc4/0.17 added
+support for it (16-level brightness), but also added the automatic detection
+of ACPI generic video support.
+
+You can ask thinkpad-acpi for the backlight interface using the
+"brightness_enable=1" parameter, if you'd rather use it instead of the
+generic ACPI video driver.  I don't know if you can ask video to not enable
+backlight control, though.
+
+> So I go hunting around and find
 > 
-> The solution is to prevent drivers from removing/adding devices from within
-> CPU hotplug notifiers during suspend/hibernation using the FROZEN bit
-> in the notifier's action argument.  The following three patches modify the
-> MSR, x86-64 MCE and cpuid drivers along these lines.
+> 	/sys/class/backlight/acpi_video0/
+> and
+> 	/sys/class/backlight/acpi_video1/
+> 
+> Why are there two of them?
 
-Do we need to worry about the possibility that when the system wakes up 
-from hibernation, the set of usable CPUs might be smaller than it was 
-beforehand?  Is any special handling needed for this, or is it already 
-accounted for?
+Two nodes in the ACPI tree (AGP and PCI), and the ACPI drivers don't
+differentiate a deactivated node from a working node yet.  There are some
+tentative patches flying around to fix it, AFAIK.
 
-Alan Stern
+> Both of these have a `brightness' entry which has contents of 100.  When I set
+> that to 10, the screen's brightness is not reduced.
 
+One of them should work.  Maybe X.org is doing something?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
