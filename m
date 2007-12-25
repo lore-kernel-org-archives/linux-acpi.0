@@ -1,61 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: ACPI:  _PTS ordering needs fixing for pre ACPI 3.0 systems (was: Re: x86: Increase PCIBIOS_MIN_IO to 0x1500 to fix nForce 4 suspend-to-RAM)
-Date: Tue, 25 Dec 2007 15:07:22 +0100
-Message-ID: <200712251507.24144.rjw@sisk.pl>
-References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no> <200712250241.49753.carlos@strangeworlds.co.uk> <200712251436.52246.rjw@sisk.pl>
+Date: Tue, 25 Dec 2007 13:52:11 +0000
+Message-ID: <200712251352.13902.carlos@strangeworlds.co.uk>
+References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no> <200712251436.52246.rjw@sisk.pl> <200712251507.24144.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34671 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197AbXLYNsX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Dec 2007 08:48:23 -0500
-In-Reply-To: <200712251436.52246.rjw@sisk.pl>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753879AbXLYNwe@vger.kernel.org>
+In-Reply-To: <200712251507.24144.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Robert Hancock <hancockr@shaw.ca>, Linus Torvalds <torvalds@linux-foundation.org>, "H. Peter Anvin" <hpa@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, 25 of December 2007, Rafael J. Wysocki wrote:
-> On Tuesday, 25 of December 2007, Carlos Corbacho wrote:
-> > Adding Linux-ACPI to CC.
-> > 
-> > On Tuesday 25 December 2007 00:03:25 Carlos Corbacho wrote:
-> > > According to the earlier versions of the ACPI spec, Linux is doing the
-> > > wrong thing - we should call _PTS() before we start powerding down devices,
-> > > or notifying device drivers to start suspending.
-> > >
-> > > So, my limited understanding of what we currently do for ACPI
-> > > suspend-to-RAM is:
-> > >
-> > > 1) Freeze processes/ devices
-> > > 2) Put all devices into low power mode
-> > > 3) Execute _PTS()
-> > > 4) Suspend system
-> > >
-> > > So the problem is - our current suspend order is fine for ACPI 3.0 and
-> > > above, but for pre-3.0 systems, this violates the older specs, where 2) and
-> > > 3) should be reversed.
-> > 
-> > The following is a hack to illustrate what I'm getting at (this is
-> > tested on x86-64) (it's a hack since it does all the ACPI prepare bits
-> > during set_target() for the pre ACPI 3.0 systems, rather than prepare() -
-> > whether this can be cleaned up to move out just the _PTS() call, I don't
-> > know).
-> > 
-> > It abuses suspend_ops->set_target(), but was the easiest way to quickly
-> > demonstrate this (since the kerneldoc for set_target() says it will always
-> > be executed before we suspend the devices).
-> 
-> Please, don't do that.
+On Tuesday 25 December 2007 14:07:22 Rafael J. Wysocki wrote:
+> OK, sorry, the approach is generally reasonable, IMO, but it needs to be a
+> bit more fine grained.
 
-OK, sorry, the approach is generally reasonable, IMO, but it needs to be a bit
-more fine grained.
+I know, hence this was marked as a hack and not signed off; it's just a 
+demonstration of the general idea with code instead of words.
 
-I'll try to prepare some patches along these lines soon.
+> I'll try to prepare some patches along these lines soon.
 
-Thanks,
-Rafael
+Much appreciated - I'm much happier with someone who's more familiar with this 
+code than I working on it.
+
+-Carlos
+
+(Now going back to unwrapping Christmas presents...)
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
