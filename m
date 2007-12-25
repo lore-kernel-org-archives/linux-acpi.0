@@ -1,99 +1,55 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: ACPI:  _PTS ordering needs fixing for pre ACPI 3.0 systems (was: Re: x86: Increase PCIBIOS_MIN_IO to 0x1500 to fix nForce 4 suspend-to-RAM)
-Date: Tue, 25 Dec 2007 02:41:48 +0000
-Message-ID: <200712250241.49753.carlos@strangeworlds.co.uk>
-References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no> <4770356E.1000407@shaw.ca> <200712250003.27570.carlos@strangeworlds.co.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/3] PM: Do not destroy/create devices while suspended
+Date: Tue, 25 Dec 2007 13:33:20 +0100
+Message-ID: <20071225123320.GA1670@elf.ucw.cz>
+References: <200712240155.14765.rjw@sisk.pl> <Pine.LNX.4.44L0.0712241045150.25920-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752467AbXLYCmI@vger.kernel.org>
-In-Reply-To: <200712250003.27570.carlos@strangeworlds.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36761 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750943AbXLYMfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Dec 2007 07:35:13 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "H. Peter Anvin" <hpa@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.44L0.0712241045150.25920-100000@netrider.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
 
-Adding Linux-ACPI to CC.
+On Mon 2007-12-24 10:51:15, Alan Stern wrote:
+> On Mon, 24 Dec 2007, Rafael J. Wysocki wrote:
+> 
+> > Hi,
+> > 
+> > Some device drivers register CPU hotplug notifiers and use them to destroy
+> > device objects when removing the corresponding CPUs and to create these objects
+> > when adding the CPUs back.
+> > 
+> > Unfortunately, this is not the right thing to do during suspend/hibernation,
+> > since in that cases the CPU hotplug notifiers are called after suspending
+> > devices and before resuming them, so the operations in question are carried
+> > out on the objects representing suspended devices which shouldn't be
+> > unregistered behing the PM core's back.  Although right now it usually doesn't
+> > lead to any practical complications, it will predictably deadlock if
+> > gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch is applied.
+> > 
+> > The solution is to prevent drivers from removing/adding devices from within
+> > CPU hotplug notifiers during suspend/hibernation using the FROZEN bit
+> > in the notifier's action argument.  The following three patches modify the
+> > MSR, x86-64 MCE and cpuid drivers along these lines.
+> 
+> Do we need to worry about the possibility that when the system wakes up 
+> from hibernation, the set of usable CPUs might be smaller than it was 
+> beforehand?  Is any special handling needed for this, or is it already 
+> accounted for?
 
-On Tuesday 25 December 2007 00:03:25 Carlos Corbacho wrote:
-> According to the earlier versions of the ACPI spec, Linux is doing the
-> wrong thing - we should call _PTS() before we start powerding down devices,
-> or notifying device drivers to start suspending.
->
-> So, my limited understanding of what we currently do for ACPI
-> suspend-to-RAM is:
->
-> 1) Freeze processes/ devices
-> 2) Put all devices into low power mode
-> 3) Execute _PTS()
-> 4) Suspend system
->
-> So the problem is - our current suspend order is fine for ACPI 3.0 and
-> above, but for pre-3.0 systems, this violates the older specs, where 2) and
-> 3) should be reversed.
+That should not happen... but it does in some error cases.... so
+handling it would be a bonus.
 
-The following is a hack to illustrate what I'm getting at (this is
-tested on x86-64) (it's a hack since it does all the ACPI prepare bits
-during set_target() for the pre ACPI 3.0 systems, rather than prepare() -
-whether this can be cleaned up to move out just the _PTS() call, I don't
-know).
-
-It abuses suspend_ops->set_target(), but was the easiest way to quickly
-demonstrate this (since the kerneldoc for set_target() says it will always
-be executed before we suspend the devices).
-
--Carlos
----
-
- drivers/acpi/sleep/main.c |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
-
-
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 96d23b3..89e708b 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -77,8 +77,19 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
- 	} else {
- 		printk(KERN_ERR "ACPI does not support this state: %d\n",
- 			pm_state);
--		error = -ENOSYS;
-+		return -ENOSYS;
- 	}
-+
-+	/*
-+	 * For ACPI 1.0 and 2.0 systems, we must run the preparation methods
-+	 * before we put the devices into low power mode.
-+	 */
-+	if (acpi_gbl_FADT.header.revision < 3) {
-+		error = acpi_sleep_prepare(acpi_target_sleep_state);
-+		if (error)
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+	}
-+
- 	return error;
- }
- 
-@@ -91,10 +102,17 @@ static int acpi_pm_set_target(suspend_state_t pm_state)
- 
- static int acpi_pm_prepare(void)
- {
--	int error = acpi_sleep_prepare(acpi_target_sleep_state);
-+	int error = 0;
- 
--	if (error)
--		acpi_target_sleep_state = ACPI_STATE_S0;
-+	/*
-+	 * For ACPI 3.0 or newer systems, we must run the preparation methods
-+	 * after we put the devices into low power mode.
-+	 */
-+	if (acpi_gbl_FADT.header.revision >= 3) {
-+		error = acpi_sleep_prepare(acpi_target_sleep_state);
-+		if (error)
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+	}
- 
- 	return error;
- }
+Waking up with one cpu out of 8 is bad, but still way better than not
+waking up at all ;-).
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
