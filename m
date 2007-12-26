@@ -1,86 +1,51 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] Rationalise ACPI backlight implementation
-Date: Wed, 26 Dec 2007 02:03:26 +0000
-Message-ID: <20071226020325.GA21099@srcf.ucam.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 0/3] PM: Do not destroy/create devices while suspended
+Date: Tue, 25 Dec 2007 22:33:53 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0712252229050.25960-100000@netrider.rowland.org>
+References: <200712252021.14540.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:56256 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbXLZCDi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Dec 2007 21:03:38 -0500
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:1704 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751401AbXLZDdz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Dec 2007 22:33:55 -0500
+In-Reply-To: <200712252021.14540.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>
 
-The sysfs backlight class provides no mechanism for querying the 
-acceptable brightness for a backlight. The ACPI spec states that values 
-are only valid if they are reported as available by the firmware. Since 
-we can't provide that information to userspace, instead collapse the 
-range to the number of actual values that can be set.
+On Tue, 25 Dec 2007, Rafael J. Wysocki wrote:
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> > > Do we need to worry about the possibility that when the system wakes up 
+> > > from hibernation, the set of usable CPUs might be smaller than it was 
+> > > beforehand?
+> > 
+> > This is possible in error conditions.
+> > 
+> > > Is any special handling needed for this, or is it already accounted for?
+> > 
+> > Hm, well.  The cleanest thing would be to allow the drivers to remove the
+> > device objects on CPU_UP_CANCELED_FROZEN, which means that we weren't able to
+> > bring the CPU up during a resume, but still that will deadlock with
+> > gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch.
+> 
+> Hmm.  In principle, device objects may be destroyed on CPU_UP_CANCELED_FROZEN
+> without acquiring the device locks, since in fact we know these objects won't
+> be accessed concurrently at that time (the locks are already held by the PM
+> core, but the PM core is not going to actually access the devices before the
+> subsequent resume).
 
----
+How about delaying the CPU_UP_CANCELED_FROZEN announcements until it's 
+really safe to send them out?  That is, after all devices have been 
+resumed and the PM core no longer holds any of their locks.  (Should 
+this be before or after tasks leave the freezer? -- I'm not sure.)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 521645e..12b2adb 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -296,18 +296,26 @@ static int acpi_video_device_set_state(struct acpi_video_device *device, int sta
- static int acpi_video_get_brightness(struct backlight_device *bd)
- {
- 	unsigned long cur_level;
-+	int i;
- 	struct acpi_video_device *vd =
- 		(struct acpi_video_device *)bl_get_data(bd);
- 	acpi_video_device_lcd_get_level_current(vd, &cur_level);
--	return (int) cur_level;
-+	for (i=2; i<vd->brightness->count; i++) {
-+		if (vd->brightness->levels[i] == cur_level)
-+			/* The first two entries are special - see page 575
-+			   of the ACPI spec 3.0 */
-+			return i-2;
-+	}
-+	return 0;
- }
- 
- static int acpi_video_set_brightness(struct backlight_device *bd)
- {
--	int request_level = bd->props.brightness;
-+	int request_level = bd->props.brightness+2;
- 	struct acpi_video_device *vd =
- 		(struct acpi_video_device *)bl_get_data(bd);
--	acpi_video_device_lcd_set_level(vd, request_level);
-+	acpi_video_device_lcd_set_level(vd, 
-+					vd->brightness->levels[request_level]);
- 	return 0;
- }
- 
-@@ -656,7 +664,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 	kfree(obj);
- 
- 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
--		unsigned long tmp;
- 		static int count = 0;
- 		char *name;
- 		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-@@ -664,11 +671,10 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 			return;
- 
- 		sprintf(name, "acpi_video%d", count++);
--		acpi_video_device_lcd_get_level_current(device, &tmp);
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
--		device->backlight->props.max_brightness = max_level;
--		device->backlight->props.brightness = (int)tmp;
-+		device->backlight->props.max_brightness = device->brightness->count-3;
-+		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
- 		backlight_update_status(device->backlight);
- 
- 		kfree(name);
+So the idea is send appropriate announcements at the usual time for
+CPUs that do come back up normally, and don't send anything right away
+for CPUs that fail to come up.  Just keep track of which ones failed,
+and then later take care of them.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan Stern
+
