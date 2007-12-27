@@ -1,150 +1,100 @@
-From: Christophe Cartier <satfr@free.fr>
-Subject: Notebook Toshiba A200-1PD
-Date: Thu, 27 Dec 2007 23:13:43 +0100
-Message-ID: <1198793623.477423977d95b@imp.free.fr>
+From: Lee Howard <faxguy@howardsilvan.com>
+Subject: controlling ACPI IRQ routing
+Date: Thu, 27 Dec 2007 14:00:35 -0800
+Message-ID: <47742083.5060903@howardsilvan.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="-MOQ11987936230af85699a716f797eec2a90e9b2d8196"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5-g19.free.fr ([212.27.42.35]:36386 "EHLO smtp5-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151AbXL0VNp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Dec 2007 16:13:45 -0500
-Received: from smtp5-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id D89C93F616E
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 22:13:43 +0100 (CET)
-Received: from imp3-g19.free.fr (imp3-g19.free.fr [212.27.42.3])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id C60E73F619A
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 22:13:43 +0100 (CET)
+Received: from frodo.howardsilvan.com ([66.119.206.113]:49044 "EHLO
+	mail.howardsilvan.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752663AbXL0WIn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Dec 2007 17:08:43 -0500
+Received: from bilbo.x101.com (localhost.localdomain [127.0.0.1])
+	by mail.howardsilvan.com (Postfix) with ESMTP id 95AA4C0080
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 14:00:35 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-This message is in MIME format.
+Hello.
 
----MOQ11987936230af85699a716f797eec2a90e9b2d8196
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+I frequently work with certain Asterisk-compatible PCI telephony 
+interfaces that use the "zaptel" module/driver.  This module generates 
+1000 interrupts per second (yes, I know...) and any noticeable latency 
+in handling that interrupt can cause significant problems for modulated 
+data audio (such as fax) passing through those telephony interfaces.
 
+It's become apparent that IRQ priorities seem to have to a lot to do 
+with the performance of the zaptel driver.  For example, if the zaptel 
+device sits on interrupt 16, and the network interfaces and hard drive 
+interfaces are on higher-numbered interrupts then things tend to go 
+well.  But if the zaptel device sits on interrupt 19, and the network 
+interfaces and hard drive interfaces are on lesser-numbered interrupts 
+(such as 16, 17, and 18) then things tend to go poorly.
 
-Hello,
+The zaptel driver comes with a utility called "zttest" which basically 
+indicates the reliability for the application to retrieve audio samples 
+from the device driver before too much time passes... or in other words, 
+the latency (or lack thereof) in handling device interrupts.  A good 
+zttest score on a well-configured system is 100%, although scores as low 
+as 99.98% seem to be tolerable for modulated data audio.  However, 
+anything less... 99.97%, 99.96, I've even seen 99.91% and worse... these 
+constitute poor scores and inevitably indicate that audio samples will 
+be lost during usage.  (You can see that the difference between "good" 
+and "poor" is rather a narrow margin.) Lost audio samples is tolerable 
+for voice applications, but it is detrimental to data/fax applications.
 
-Just sendig the content of dmidecode.
+Usually the trick, then, has been to simply start rearranging the PCI 
+cards in the system and disabling unused devices (such as serial, 
+parallel, and USB ports with the respective drivers) until some 
+combination was reached where zttest scores were good - inevitably 
+meaning that the device had a high-priority (low-numbered) interrupt.
 
-Hope that can help someone someday somewhere...
+Recently this trick is seemingly more and more difficult to perform... 
+and it's especially difficult in cases where (like on a 1U rack-mount 
+server) there is but one PCI slot and the motherboard BIOS offers no 
+helpful IRQ configuration mechanism.  For example, a recent installation 
+of Fedora 8 on such a server put the zaptel device at a low-priority 
+interrupt.  After hours of futile BIOS option changes and tests and even 
+after testing a kernel (2.6.23.11) patched with Ingo Molnar's "rt" 
+Real-Time patches (and using chrt for the associated IRQ to increase 
+priority) nothing seemed to help.  Then I simply reverted to an old 
+2.6.20 kernel from Fedora Core 5 that we had used successfully on 
+previous deployments on similar hardware... and all was fine.  And, of 
+course, the apparent difference was that the 2.6.23.11 kernel put the 
+device interrupt high-numbered while the 2.6.20 kernel put the device 
+interrupt low-numbered.
 
+Sometimes, however, it's just not ideal ... or even possible ... to 
+downgrade to a "known good" kernel.  It's certainly not desirable.  So 
+my question is, "How can we deliberately control the IRQ routing 
+assignments made by ACPI so that certain PCI devices get the 
+highest-priority interrupts?"
 
----MOQ11987936230af85699a716f797eec2a90e9b2d8196
-Content-Type: text/plain; name="dmidecode_out.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="dmidecode_out.txt"
+I've looked into the pirq kernel option ... only to find that it's 
+insanely difficult to understand *how* to use... and simply trying it 
+out with various values doesn't seem to accomplish much as far as I can 
+tell.  (Yes, I have read Documentation/i386/IO-APIC.txt many times... 
+not that it reading it makes the pirq usage any easier to understand.)
 
-IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjIgc3RydWN0dXJlcyBvY2N1cHlp
-bmcgMTAxMiBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
-eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogVE9TSElCQQoJVmVyc2lv
-bjogVjEuNzAKCVJlbGVhc2UgRGF0ZTogMDkvMjcvMjAwNwoJQWRkcmVzczogMHhFNTczMAoJUnVu
-dGltZSBTaXplOiAxMDg3NTIgYnl0ZXMKCVJPTSBTaXplOiA2NCBrQgoJQ2hhcmFjdGVyaXN0aWNz
-OgoJCUlTQSBpcyBzdXBwb3J0ZWQKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUEMgQ2FyZCAoUENNQ0lB
-KSBpcyBzdXBwb3J0ZWQKCQlQTlAgaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRlYWJsZQoJ
-CUJJT1Mgc2hhZG93aW5nIGlzIGFsbG93ZWQKCQlFU0NEIHN1cHBvcnQgaXMgYXZhaWxhYmxlCgkJ
-Qm9vdCBmcm9tIENEIGlzIHN1cHBvcnRlZAoJCUFDUEkgaXMgc3VwcG9ydGVkCgkJVVNCIGxlZ2Fj
-eSBpcyBzdXBwb3J0ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJQklPUyBib290IHNwZWNpZmljYXRp
-b24gaXMgc3VwcG9ydGVkCgkJVGFyZ2V0ZWQgY29udGVudCBkaXN0cmlidXRpb24gaXMgc3VwcG9y
-dGVkCglCSU9TIFJldmlzaW9uOiAxLjExMgoJRmlybXdhcmUgUmV2aXNpb246IDEuMTEyCgpIYW5k
-bGUgMHgwMDAxLCBETUkgdHlwZSAxLCAyNyBieXRlcwpTeXN0ZW0gSW5mb3JtYXRpb24KCU1hbnVm
-YWN0dXJlcjogVE9TSElCQQoJUHJvZHVjdCBOYW1lOiBTYXRlbGxpdGUgQTIwMAoJVmVyc2lvbjog
-UFNBRTZFLTA2RDAyNEZSCglTZXJpYWwgTnVtYmVyOiBYMDEyMzQ1MUsKCVVVSUQ6IEY0RUJGQ0ZF
-LTY1RUUtMTFEQy04REZCLTAwMUIzODQ3MjQyRgoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gK
-CVNLVSBOdW1iZXI6IDAxMjM0NTY3ODkxMjM0NTY3ODkxMjM0NTY3OAoJRmFtaWx5OiBBQkNERUZH
-SElKS0xNTk9QUVJTVFVWV1hZWgoKSGFuZGxlIDB4MDAwMiwgRE1JIHR5cGUgMiwgOCBieXRlcwpC
-YXNlIEJvYXJkIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IFRPU0hJQkEKCVByb2R1Y3QgTmFt
-ZTogSVNLQUEKCVZlcnNpb246IDEuMDAKCVNlcmlhbCBOdW1iZXI6IDAxMjM0NTY3ODlBQgoKSGFu
-ZGxlIDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0ZXMKQ2hhc3NpcyBJbmZvcm1hdGlvbgoJTWFu
-dWZhY3R1cmVyOiBUT1NISUJBCglUeXBlOiBOb3RlYm9vawoJTG9jazogTm90IFByZXNlbnQKCVZl
-cnNpb246IE4vQQoJU2VyaWFsIE51bWJlcjogTm9uZQoJQXNzZXQgVGFnOiAqCglCb290LXVwIFN0
-YXRlOiBTYWZlCglQb3dlciBTdXBwbHkgU3RhdGU6IFNhZmUKCVRoZXJtYWwgU3RhdGU6IFNhZmUK
-CVNlY3VyaXR5IFN0YXR1czogTm9uZQoJT0VNIEluZm9ybWF0aW9uOiAweDAwMDAxMjM0CgpIYW5k
-bGUgMHgwMDA0LCBETUkgdHlwZSA0LCAzNSBieXRlcwpQcm9jZXNzb3IgSW5mb3JtYXRpb24KCVNv
-Y2tldCBEZXNpZ25hdGlvbjogVTJFMQoJVHlwZTogQ2VudHJhbCBQcm9jZXNzb3IKCUZhbWlseTog
-T3RoZXIKCU1hbnVmYWN0dXJlcjogSW50ZWwKCUlEOiBGQiAwNiAwMCAwMCBGRiBGQiBFQiBCRgoJ
-VmVyc2lvbjogQ1BVIFZlcnNpb24KCVZvbHRhZ2U6IDMuMyBWCglFeHRlcm5hbCBDbG9jazogVW5r
-bm93bgoJTWF4IFNwZWVkOiA0MDk2IE1IegoJQ3VycmVudCBTcGVlZDogMjIwMCBNSHoKCVN0YXR1
-czogUG9wdWxhdGVkLCBFbmFibGVkCglVcGdyYWRlOiBaSUYgU29ja2V0CglMMSBDYWNoZSBIYW5k
-bGU6IDB4MDAwNQoJTDIgQ2FjaGUgSGFuZGxlOiAweDAwMDYKCUwzIENhY2hlIEhhbmRsZTogTm90
-IFByb3ZpZGVkCglTZXJpYWwgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBT
-cGVjaWZpZWQKCVBhcnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDA1LCBETUkg
-dHlwZSA3LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBM
-MSBDYWNoZQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQsIExldmVsIDEKCU9wZXJh
-dGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNp
-emU6IDY0IEtCCglNYXhpbXVtIFNpemU6IDY0IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlC
-dXJzdAoJCVBpcGVsaW5lIEJ1cnN0CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBl
-OiBBc3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVu
-a25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5k
-bGUgMHgwMDA2LCBETUkgdHlwZSA3LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0
-IERlc2lnbmF0aW9uOiBMMiBDYWNoZQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQs
-IExldmVsIDIKCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5h
-bAoJSW5zdGFsbGVkIFNpemU6IDQwOTYgS0IKCU1heGltdW0gU2l6ZTogNDA5NiBLQgoJU3VwcG9y
-dGVkIFNSQU0gVHlwZXM6CgkJQnVyc3QKCQlQaXBlbGluZSBCdXJzdAoJCUFzeW5jaHJvbm91cwoJ
-SW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0
-aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBV
-bmtub3duCgpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA4LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9y
-IEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogSjFBMQoJSW50ZXJu
-YWwgQ29ubmVjdG9yIFR5cGU6IE5vbmUKCUV4dGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBL
-ZXlib2FyZAoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IENpcmN1bGFyIERJTi04IG1hbGUKCVBv
-cnQgVHlwZTogS2V5Ym9hcmQgUG9ydAoKSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgOCwgOSBieXRl
-cwpQb3J0IENvbm5lY3RvciBJbmZvcm1hdGlvbgoJSW50ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0
-b3I6IEoxQTEKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25lCglFeHRlcm5hbCBSZWZlcmVu
-Y2UgRGVzaWduYXRvcjogUFMvMiBNb3VzZQoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IENpcmN1
-bGFyIERJTi04IG1hbGUKCVBvcnQgVHlwZTogTW91c2UgUG9ydAoKSGFuZGxlIDB4MDAwOSwgRE1J
-IHR5cGUgOSwgMTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KCURlc2lnbmF0aW9uOiBU
-SQoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJTGVuZ3RoOiBMb25n
-CglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMg
-cHJvdmlkZWQKCkhhbmRsZSAweDAwMEEsIERNSSB0eXBlIDEwLCA2IGJ5dGVzCk9uIEJvYXJkIERl
-dmljZSBJbmZvcm1hdGlvbgoJVHlwZTogU291bmQKCVN0YXR1czogRGlzYWJsZWQKCURlc2NyaXB0
-aW9uOiBSZWFsdGVrIEhEQS0wMQoKSGFuZGxlIDB4MDAwQiwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMK
-T0VNIFN0cmluZ3MKCVN0cmluZyAxOiBQU0FFNkUtMDZEMDI0RlIsU1NBRTYwNkQwMjRGUgoKSGFu
-ZGxlIDB4MDAwQywgRE1JIHR5cGUgMTIsIDUgYnl0ZXMKU3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0
-aW9ucwoJT3B0aW9uIDE6IEp1bXBlciBzZXR0aW5ncyBjYW4gYmUgZGVzY3JpYmVkIGhlcmUuCgpI
-YW5kbGUgMHgwMDBELCBETUkgdHlwZSAxNiwgMTUgYnl0ZXMKUGh5c2ljYWwgTWVtb3J5IEFycmF5
-CglMb2NhdGlvbjogU3lzdGVtIEJvYXJkIE9yIE1vdGhlcmJvYXJkCglVc2U6IFN5c3RlbSBNZW1v
-cnkKCUVycm9yIENvcnJlY3Rpb24gVHlwZTogTm9uZQoJTWF4aW11bSBDYXBhY2l0eTogMTAwMCBN
-QgoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBOb3QgUHJvdmlkZWQKCU51bWJlciBPZiBEZXZp
-Y2VzOiAyCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVtb3J5IERldmlj
-ZQoJQXJyYXkgSGFuZGxlOiAweDAwMEQKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm8gRXJy
-b3IKCVRvdGFsIFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRoOiA2NCBiaXRzCglTaXplOiAxMDI0
-IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDEKCUxvY2F0b3I6IE0xCglCYW5rIExvY2F0
-b3I6IEJhbmsgMAoJVHlwZTogRERSMgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDog
-NjY3IE1IeiAoMS41IG5zKQoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglTZXJpYWwgTnVt
-YmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQgTnVtYmVy
-OiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDBGLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVt
-b3J5IERldmljZQoJQXJyYXkgSGFuZGxlOiAweDAwMEQKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRs
-ZTogTm8gRXJyb3IKCVRvdGFsIFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRoOiA2NCBiaXRzCglT
-aXplOiAxMDI0IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDEKCUxvY2F0b3I6IE0yCglC
-YW5rIExvY2F0b3I6IEJhbmsgMQoJVHlwZTogRERSMgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3Vz
-CglTcGVlZDogNjY3IE1IeiAoMS41IG5zKQoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglT
-ZXJpYWwgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBh
-cnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDEwLCBETUkgdHlwZSAxOSwgMTUg
-Ynl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAw
-MDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRgoJUmFuZ2UgU2l6ZTogMiBH
-QgoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAweDAwMEQKCVBhcnRpdGlvbiBXaWR0aDogMAoKSGFu
-ZGxlIDB4MDAxMSwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFk
-ZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAwMDAwMDAKCUVuZGluZyBBZGRyZXNzOiAw
-eDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiAxIEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAw
-eDAwMEUKCU1lbW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxMAoJUGFydGl0
-aW9uIFJvdyBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJ
-SW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDogVW5rbm93bgoKSGFuZGxlIDB4MDAxMiwgRE1JIHR5cGUg
-MjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJl
-c3M6IDB4MDAwNDAwMDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDdGRkZGRkZGCglSYW5nZSBT
-aXplOiAxIEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEYKCU1lbW9yeSBBcnJheSBN
-YXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxMAoJUGFydGl0aW9uIFJvdyBQb3NpdGlvbjogVW5r
-bm93bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0
-aDogVW5rbm93bgoKSGFuZGxlIDB4MDAxMywgRE1JIHR5cGUgMjIsIDI2IGJ5dGVzClBvcnRhYmxl
-IEJhdHRlcnkKCUxvY2F0aW9uOiBSZWFyCglNYW51ZmFjdHVyZXI6IFRPU0hJQkEgICAKCU5hbWU6
-IFRPU0hJQkEgICAKCUNoZW1pc3RyeTogTGl0aGl1bSBJb24KCURlc2lnbiBDYXBhY2l0eTogMTAw
-MCBtV2gKCURlc2lnbiBWb2x0YWdlOiAxOSBtVgoJU0JEUyBWZXJzaW9uOiBCQVRUXzEyMzQKCU1h
-eGltdW0gRXJyb3I6IDEwMCUKCVNCRFMgU2VyaWFsIE51bWJlcjogMDAwMQoJU0JEUyBNYW51ZmFj
-dHVyZSBEYXRlOiAxOTgwLTAwLTAxCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAw
-MDAKCkhhbmRsZSAweDAwMTQsIERNSSB0eXBlIDMyLCAyMCBieXRlcwpTeXN0ZW0gQm9vdCBJbmZv
-cm1hdGlvbgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpIYW5kbGUgMHgwMDE1LCBETUkgdHlwZSAx
-MjcsIDQgYnl0ZXMKRW5kIE9mIFRhYmxlCgo=
+I've looked into the setpci utility... but besides the man page for it 
+being mostly unhelpful, it's difficult to know whether or not using 
+setpci will actually do anything for us in this respect, as there seems 
+to be a lot of conflicting information in various posts and mail 
+archives on whether or not an IRQ assignment can actually be changed by 
+using setpci.  And then there's the fear that by using setpci 
+incorrectly I may actually break the hardware.
 
----MOQ11987936230af85699a716f797eec2a90e9b2d8196--
+I'm fairly certain that this is simply a matter of ACPI tuning... 
+because with one kernel the interrupt assignments are one way while with 
+another kernel the interrupt assignments are a different way... and both 
+kernels use IO-APIC and IRQ routing by ACPI.
+
+I would appreciate any feedback or assistance in this matter.  How can 
+we deliberately control the IRQ routing assignments made by ACPI so that 
+certain PCI devices get the highest-priority interrupts?
+
+Thanks,
+
+Lee.
