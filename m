@@ -1,662 +1,150 @@
-From: Alessio Sias <asias@stepservizi.net>
-Subject: dmidecode on Dell PowerEdge SC440
-Date: Thu, 27 Dec 2007 12:32:37 +0100
-Message-ID: <47738D55.30204@stepservizi.net>
+From: Christophe Cartier <satfr@free.fr>
+Subject: Notebook Toshiba A200-1PD
+Date: Thu, 27 Dec 2007 23:13:43 +0100
+Message-ID: <1198793623.477423977d95b@imp.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="-MOQ11987936230af85699a716f797eec2a90e9b2d8196"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpi1.ngi.it ([88.149.128.20]:48834 "EHLO smtpi1.ngi.it"
+Received: from smtp5-g19.free.fr ([212.27.42.35]:36386 "EHLO smtp5-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068AbXL0UY7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Dec 2007 15:24:59 -0500
-Received: from mail.stepservizi.net (88-149-134-131.staticnet.ngi.it [88.149.134.131])
-	by smtpi1.ngi.it (8.13.8/8.13.8) with ESMTP id lBRBWeUI024537
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 12:32:41 +0100
-Received: from [192.168.1.99] (unknown [192.168.1.99])
-	by mail.stepservizi.net (Postfix) with ESMTP id 26329E01D91
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 12:32:46 +0100 (CET)
+	id S1752151AbXL0VNp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Dec 2007 16:13:45 -0500
+Received: from smtp5-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp5-g19.free.fr (Postfix) with ESMTP id D89C93F616E
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 22:13:43 +0100 (CET)
+Received: from imp3-g19.free.fr (imp3-g19.free.fr [212.27.42.3])
+	by smtp5-g19.free.fr (Postfix) with ESMTP id C60E73F619A
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Dec 2007 22:13:43 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-# dmidecode 2.9
-SMBIOS 2.3 present.
-63 structures occupying 2290 bytes.
-Table at 0x000F0450.
-
-Handle 0xDA00, DMI type 218, 53 bytes
-OEM-specific Type
-        Header and Data:
-                DA 35 00 DA B2 00 17 0B 0E 38 00 00 80 00 80 01
-                00 02 80 02 80 01 00 00 A0 00 A0 01 00 58 00 58
-                00 01 00 59 00 59 00 01 00 05 80 05 80 01 00 FF
-                FF 00 00 00 00
-
-Handle 0xDA01, DMI type 218, 35 bytes
-OEM-specific Type
-        Header and Data:
-                DA 23 01 DA B2 00 17 0B 0E 38 00 10 F5 10 F5 00
-                00 11 F5 11 F5 00 00 12 F5 12 F5 00 00 FF FF 00
-                00 00 00
-
-Handle 0x0000, DMI type 0, 22 bytes
-BIOS Information
-        Vendor: Dell Inc.
-        Version: 1.5.0
-        Release Date: 09/04/2007
-        Address: 0xF0000
-        Runtime Size: 64 kB
-        ROM Size: 512 kB
-        Characteristics:
-                PCI is supported
-                PNP is supported
-                APM is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                Boot from CD is supported
-                Selectable boot is supported
-                EDD is supported
-                Japanese floppy for Toshiba 1.2 MB is supported (int 13h)
-                Print screen service is supported (int 5h)
-                8042 keyboard services are supported (int 9h)
-                Serial services are supported (int 14h)
-                Printer services are supported (int 17h)
-                ACPI is supported
-                USB legacy is supported
-                LS-120 boot is supported
-                BIOS boot specification is supported
-                Function key-initiated network boot is supported
-
-Handle 0x0100, DMI type 1, 25 bytes
-System Information
-        Manufacturer: Dell Inc.
-        Product Name: PowerEdge SC440
-        Version: Not Specified
-        Serial Number: 3CWRB3J
-        UUID: 44454C4C-4300-1057-8052-B3C04F42334A
-        Wake-up Type: Power Switch
-
-Handle 0x0200, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: Dell Inc.
-        Product Name: 0NY776
-        Version:
-        Serial Number: ..CN708217AB509A.
-
-Handle 0x0300, DMI type 3, 13 bytes
-Chassis Information
-        Manufacturer: Dell Inc.
-        Type: Tower
-        Lock: Not Present
-        Version: Not Specified
-        Serial Number: 3CWRB3J
-        Asset Tag:
-        Boot-up State: Warning
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-
-Handle 0x0400, DMI type 4, 40 bytes
-Processor Information
-        Socket Designation: Microprocessor
-        Type: Central Processor
-        Family: Xeon
-        Manufacturer: Intel
-        ID: F6 06 00 00 FF FB EB BF
-        Signature: Type 0, Family 6, Model 15, Stepping 6
-        Flags:
-                FPU (Floating-point unit on-chip)
-                VME (Virtual mode extension)
-                DE (Debugging extension)
-                PSE (Page size extension)
-                TSC (Time stamp counter)
-                MSR (Model specific registers)
-                PAE (Physical address extension)
-                MCE (Machine check exception)
-                CX8 (CMPXCHG8 instruction supported)
-                APIC (On-chip APIC hardware supported)
-                SEP (Fast system call)
-                MTRR (Memory type range registers)
-                PGE (Page global enable)
-                MCA (Machine check architecture)
-                CMOV (Conditional move instruction supported)
-                PAT (Page attribute table)
-                PSE-36 (36-bit page size extension)
-                CLFSH (CLFLUSH instruction supported)
-                DS (Debug store)
-                ACPI (ACPI supported)
-                MMX (MMX technology supported)
-                FXSR (Fast floating-point save and restore)
-                SSE (Streaming SIMD extensions)
-                SSE2 (Streaming SIMD extensions 2)
-                SS (Self-snoop)
-                HTT (Hyper-threading technology)
-                TM (Thermal monitor supported)
-                PBE (Pending break enabled)
-        Version: Not Specified
-        Voltage: 1.8 V
-        External Clock: 1066 MHz
-        Max Speed: 4000 MHz
-        Current Speed: 2400 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0700
-        L2 Cache Handle: 0x0701
-        L3 Cache Handle: 0x0704
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-        Core Count: 2
-        Core Enabled: 2
-        Thread Count: 2
-        Characteristics:
-                64-bit capable
-
-Handle 0x0700, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: Not Specified
-        Configuration: Enabled, Not Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 32 KB
-        Maximum Size: 32 KB
-        Supported SRAM Types:
-                Other
-        Installed SRAM Type: Other
-        Speed: Unknown
-        Error Correction Type: None
-        System Type: Data
-        Associativity: 8-way Set-associative
-
-Handle 0x0701, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: Not Specified
-        Configuration: Enabled, Not Socketed, Level 2
-        Operational Mode: Varies With Memory Address
-        Location: Internal
-        Installed Size: 4096 KB
-        Maximum Size: 4096 KB
-        Supported SRAM Types:
-                Other
-        Installed SRAM Type: Other
-        Speed: Unknown
-        Error Correction Type: Single-bit ECC
-        System Type: Unified
-        Associativity: 16-way Set-associative
-
-Handle 0x0704, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: Not Specified
-        Configuration: Enabled, Not Socketed, Level 3
-        Operational Mode: Varies With Memory Address
-        Location: Internal
-        Installed Size: 0 KB
-        Maximum Size: 0 KB
-        Supported SRAM Types:
-                Other
-        Installed SRAM Type: Other
-        Speed: Unknown
-        Error Correction Type: Single-bit ECC
-        System Type: Unified
-        Associativity: Unknown
-
-Handle 0x0801, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: SERIAL1
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: DB-9 male
-        Port Type: Serial Port 16550A Compatible
-
-Handle 0x0805, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB1
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x0806, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB2
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x0807, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB3
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x0808, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB4
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x0809, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB5
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x080A, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB6
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x080B, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB7
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x080C, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: USB8
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: Access Bus (USB)
-        Port Type: USB
-
-Handle 0x080D, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: ENET
-        Internal Connector Type: None
-        External Reference Designator: Not Specified
-        External Connector Type: RJ-45
-        Port Type: Network Port
-
-Handle 0x0901, DMI type 9, 13 bytes
-System Slot Information
-        Designation: SLOT1
-        Type: x1 PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 1
-        Characteristics:
-                3.3 V is provided
-                PME signal is supported
-
-Handle 0x0902, DMI type 9, 13 bytes
-System Slot Information
-        Designation: SLOT2
-        Type: x8 PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 2
-        Characteristics:
-                3.3 V is provided
-                PME signal is supported
-
-Handle 0x0903, DMI type 9, 13 bytes
-System Slot Information
-        Designation: SLOT3
-        Type: 32-bit PCI
-        Current Usage: Available
-        Length: Long
-        ID: 3
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-                PME signal is supported
-
-Handle 0x0904, DMI type 9, 13 bytes
-System Slot Information
-        Designation: SLOT4
-        Type: x4 PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 4
-        Characteristics:
-                3.3 V is provided
-                PME signal is supported
-
-Handle 0x0905, DMI type 9, 13 bytes
-System Slot Information
-        Designation: SLOT5
-        Type: 32-bit PCI
-        Current Usage: Available
-        Length: Long
-        ID: 5
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-                PME signal is supported
-
-Handle 0x0906, DMI type 126, 13 bytes
-Inactive
-
-Handle 0x0907, DMI type 126, 13 bytes
-Inactive
-
-Handle 0x0908, DMI type 126, 13 bytes
-Inactive
-
-Handle 0x0A02, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Ethernet
-        Status: Enabled
-        Description: Broadcom 5751 NetXtreme Gigabit Controller
-
-Handle 0x0B00, DMI type 11, 5 bytes
-OEM Strings
-        String 1: www.dell.com
-
-Handle 0x0D00, DMI type 13, 22 bytes
-BIOS Language Information
-        Installable Languages: 1
-                en|US|iso8859-1
-        Currently Installed Language: en|US|iso8859-1
-
-Handle 0x0F00, DMI type 15, 31 bytes
-System Event Log
-        Area Length: 2049 bytes
-        Header Start Offset: 0x0000
-        Header Length: 16 bytes
-        Data Start Offset: 0x0010
-        Access Method: Memory-mapped physical 32-bit address
-        Access Address: 0xFFF81000
-        Status: Valid, Not Full
-        Change Token: 0x00000018
-        Header Format: Type 1
-        Supported Log Type Descriptors: 4
-        Descriptor 1: POST error
-        Data Format 1: POST results bitmap
-        Descriptor 2: System limit exceeded
-        Data Format 2: System management
-        Descriptor 3: Log area reset/cleared
-        Data Format 3: None
-        Descriptor 4: Multi-bit ECC memory error
-        Data Format 4: Handle
-
-Handle 0x1000, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: Single-bit ECC
-        Maximum Capacity: 4 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 4
-
-Handle 0x1100, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x1000
-        Error Information Handle: No Error
-        Total Width: 72 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: DIMM
-        Set: None
-        Locator: DIMM_1
-        Bank Locator: Not Specified
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: AD00000000000000
-        Serial Number: 00003223
-        Asset Tag: 010746
-        Part Number: HYMP512U72CP8-Y5
-
-Handle 0x1101, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x1000
-        Error Information Handle: No Error
-        Total Width: 72 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: DIMM
-        Set: None
-        Locator: DIMM_3
-        Bank Locator: Not Specified
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: AD00000000000000
-        Serial Number: 04008177
-        Asset Tag: 010746
-        Part Number: HYMP512U72CP8-Y5
-
-Handle 0x1102, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x1000
-        Error Information Handle: No Error
-        Total Width: 72 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: DIMM
-        Set: None
-        Locator: DIMM_2
-        Bank Locator: Not Specified
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: AD00000000000000
-        Serial Number: 00005224
-        Asset Tag: 010746
-        Part Number: HYMP512U72CP8-Y5
-
-Handle 0x1103, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x1000
-        Error Information Handle: No Error
-        Total Width: 72 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: DIMM
-        Set: None
-        Locator: DIMM_4
-        Bank Locator: Not Specified
-        Type: DDR
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: AD00000000000000
-        Serial Number: 00007222
-        Asset Tag: 010746
-        Part Number: HYMP512U72CP8-Y5
-
-Handle 0x1301, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x000FFFFFFFF
-        Range Size: 4 GB
-        Physical Array Handle: 0x1000
-        Partition Width: 0
-
-Handle 0x1400, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x1100
-        Memory Array Mapped Address Handle: 0x1301
-        Partition Row Position: 1
-
-Handle 0x1401, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00040000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x1101
-        Memory Array Mapped Address Handle: 0x1301
-        Partition Row Position: 1
-
-Handle 0x1402, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00080000000
-        Ending Address: 0x000BFFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x1102
-        Memory Array Mapped Address Handle: 0x1301
-        Partition Row Position: 1
-
-Handle 0x1403, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x000C0000000
-        Ending Address: 0x000FFFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x1103
-        Memory Array Mapped Address Handle: 0x1301
-        Partition Row Position: 1
-
-Handle 0x1800, DMI type 24, 5 bytes
-Hardware Security
-        Power-On Password Status: Enabled
-        Keyboard Password Status: Not Implemented
-        Administrator Password Status: Enabled
-        Front Panel Reset Status: Not Implemented
-
-Handle 0x1900, DMI type 25, 9 bytes
-        System Power Controls
-        Next Scheduled Power-on: *-* 00:00:00
-
-Handle 0x1B10, DMI type 27, 12 bytes
-Cooling Device
-        Type: Fan
-        Status: OK
-        OEM-specific Information: 0x0000DD00
-
-Handle 0x1B11, DMI type 27, 12 bytes
-Cooling Device
-        Type: Fan
-        Status: OK
-        OEM-specific Information: 0x0000DD01
-
-Handle 0x1B12, DMI type 126, 12 bytes
-Inactive
-
-Handle 0x1B13, DMI type 126, 12 bytes
-Inactive
-
-Handle 0x1B14, DMI type 126, 12 bytes
-Inactive
-
-Handle 0x2000, DMI type 32, 11 bytes
-System Boot Information
-        Status: No errors detected
-
-Handle 0x8100, DMI type 129, 8 bytes
-OEM-specific Type
-        Header and Data:
-                81 08 00 81 01 01 02 01
-        Strings:
-                Intel_ASF
-                Intel_ASF_001
-
-Handle 0x8800, DMI type 136, 6 bytes
-OEM-specific Type
-        Header and Data:
-                88 06 00 88 5A 5A
-
-Handle 0xD000, DMI type 208, 10 bytes
-OEM-specific Type
-        Header and Data:
-                D0 0A 00 D0 01 03 FE 00 DF 01
-
-Handle 0xD200, DMI type 210, 12 bytes
-OEM-specific Type
-        Header and Data:
-                D2 0C 00 D2 F8 03 04 03 06 80 04 05
-
-Handle 0xD400, DMI type 212, 212 bytes
-OEM-specific Type
-        Header and Data:
-                D4 D4 00 D4 70 00 71 00 00 10 2D 2E 42 00 11 FE
-                01 43 00 11 FE 00 0F 00 25 FC 00 10 00 25 FC 01
-                11 00 25 FC 02 12 00 25 FC 03 07 00 23 8F 00 08
-                00 23 F3 00 09 00 23 F3 04 0A 00 23 F3 08 0B 00
-                23 8F 10 0C 00 23 8F 20 0E 00 23 8F 30 0D 00 23
-                8C 40 A6 00 23 8C 41 A7 00 23 8C 42 4E 01 28 DF
-                00 4F 01 28 DF 20 8C 00 22 FE 00 8D 00 22 FE 01
-                09 01 25 3F 80 A1 00 26 F3 00 A2 00 26 F3 08 A3
-                00 26 F3 04 9F 00 26 FD 02 A0 00 26 FD 00 9D 00
-                11 FB 04 9E 00 11 FB 00 54 01 23 7F 00 55 01 23
-                7F 80 5C 00 78 BF 40 5D 00 78 BF 00 04 80 78 F5
-                0A 01 A0 78 F5 00 93 00 7B 7F 80 94 00 7B 7F 00
-                8A 00 37 DF 20 8B 00 37 DF 00 03 C0 67 00 05 FF
-                FF 00 00 00
-
-Handle 0xD401, DMI type 212, 197 bytes
-OEM-specific Type
-        Header and Data:
-                D4 C5 01 D4 70 00 71 00 03 40 59 6D 2D 00 59 FC
-                02 2E 00 59 FC 00 6E 00 59 FC 01 27 01 59 FC 03
-                28 00 59 3F 00 29 00 59 3F 40 2A 00 59 3F 80 2B
-                00 5A 00 00 2C 00 5B 00 00 55 00 59 F3 00 6D 00
-                59 F3 04 8E 00 59 F3 08 8F 00 59 F3 00 1C 00 55
-                FB 04 1D 00 55 FB 00 19 00 55 E7 00 1A 00 55 E7
-                08 1B 00 55 E7 10 F5 00 58 BF 40 F6 00 58 BF 00
-                EB 00 55 FE 00 EA 00 55 FE 01 01 01 51 3F 00 02
-                01 51 3F 40 03 01 51 3F 80 04 01 51 3F C0 40 01
-                54 EF 00 41 01 54 EF 10 42 01 54 F7 00 43 01 54
-                F7 08 4A 01 54 FB 00 4B 01 54 FB 04 4C 01 53 7F
-                00 4D 01 53 7F 80 68 01 56 BF 00 69 01 56 BF 40
-                FF FF 00 00 00
-
-Handle 0xD402, DMI type 212, 92 bytes
-OEM-specific Type
-        Header and Data:
-                D4 5C 02 D4 70 00 71 00 00 10 2D 2E 2D 01 21 FE
-                01 2E 01 21 FE 00 90 00 11 CF 00 91 00 11 CF 20
-                92 00 11 CF 10 E2 00 27 7F 00 E3 00 27 7F 80 E4
-                00 27 BF 00 E5 00 27 BF 40 D1 00 22 7F 80 D2 00
-                22 7F 00 83 00 5F 00 00 84 00 60 00 00 2B 01 11
-                7F 80 2C 01 11 7F 00 FF FF 00 00 00
-
-Handle 0xD403, DMI type 212, 97 bytes
-OEM-specific Type
-        Header and Data:
-                D4 61 03 D4 70 00 71 00 03 40 59 6D 17 01 52 FE
-                00 18 01 52 FE 01 19 01 52 FB 00 1A 01 52 FB 04
-                1B 01 52 FD 00 1C 01 52 FD 02 1D 01 52 F7 00 1E
-                01 52 F7 08 09 40 52 EF 00 08 40 52 EF 10 0B 40
-                52 DF 00 0A 40 52 DF 20 0D 40 52 BF 00 0C 40 52
-                BF 40 0F 40 52 7F 00 0E 40 52 7F 80 FF FF 00 00
-                00
-
-Handle 0xDD00, DMI type 221, 19 bytes
-OEM-specific Type
-        Header and Data:
-                DD 13 00 DD 00 01 00 00 00 10 F5 00 00 00 00 00
-                00 00 00
-
-Handle 0xDD01, DMI type 221, 19 bytes
-OEM-specific Type
-        Header and Data:
-                DD 13 01 DD 00 01 00 00 00 11 F5 00 00 00 00 00
-                00 00 00
-
-Handle 0xDD02, DMI type 221, 19 bytes
-OEM-specific Type
-        Header and Data:
-                DD 13 02 DD 00 01 00 00 00 12 F5 00 00 00 00 00
-                00 00 00
-
-Handle 0xDE00, DMI type 222, 16 bytes
-OEM-specific Type
-        Header and Data:
-                DE 10 00 DE C1 01 FF FF 00 00 00 00 00 00 00 01
-
-Handle 0x7F00, DMI type 127, 4 bytes
-End Of Table
-
--- 
-Alessio Sias                [System Administrator]
-STEP S.r.l.                 Servizi e Tecnologie Enti Pubblici
-[e] asias@stepservizi.net   [w] http://www.stepservizi.net
-[t] (+39) 079.350.332       [f] (+39) 079.351.736
-[a] V.le Porto Torres 23    07037 Sorso SS
+This message is in MIME format.
+
+---MOQ11987936230af85699a716f797eec2a90e9b2d8196
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+
+
+Hello,
+
+Just sendig the content of dmidecode.
+
+Hope that can help someone someday somewhere...
+
+
+---MOQ11987936230af85699a716f797eec2a90e9b2d8196
+Content-Type: text/plain; name="dmidecode_out.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="dmidecode_out.txt"
+
+IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjIgc3RydWN0dXJlcyBvY2N1cHlp
+bmcgMTAxMiBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
+eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogVE9TSElCQQoJVmVyc2lv
+bjogVjEuNzAKCVJlbGVhc2UgRGF0ZTogMDkvMjcvMjAwNwoJQWRkcmVzczogMHhFNTczMAoJUnVu
+dGltZSBTaXplOiAxMDg3NTIgYnl0ZXMKCVJPTSBTaXplOiA2NCBrQgoJQ2hhcmFjdGVyaXN0aWNz
+OgoJCUlTQSBpcyBzdXBwb3J0ZWQKCQlQQ0kgaXMgc3VwcG9ydGVkCgkJUEMgQ2FyZCAoUENNQ0lB
+KSBpcyBzdXBwb3J0ZWQKCQlQTlAgaXMgc3VwcG9ydGVkCgkJQklPUyBpcyB1cGdyYWRlYWJsZQoJ
+CUJJT1Mgc2hhZG93aW5nIGlzIGFsbG93ZWQKCQlFU0NEIHN1cHBvcnQgaXMgYXZhaWxhYmxlCgkJ
+Qm9vdCBmcm9tIENEIGlzIHN1cHBvcnRlZAoJCUFDUEkgaXMgc3VwcG9ydGVkCgkJVVNCIGxlZ2Fj
+eSBpcyBzdXBwb3J0ZWQKCQlBR1AgaXMgc3VwcG9ydGVkCgkJQklPUyBib290IHNwZWNpZmljYXRp
+b24gaXMgc3VwcG9ydGVkCgkJVGFyZ2V0ZWQgY29udGVudCBkaXN0cmlidXRpb24gaXMgc3VwcG9y
+dGVkCglCSU9TIFJldmlzaW9uOiAxLjExMgoJRmlybXdhcmUgUmV2aXNpb246IDEuMTEyCgpIYW5k
+bGUgMHgwMDAxLCBETUkgdHlwZSAxLCAyNyBieXRlcwpTeXN0ZW0gSW5mb3JtYXRpb24KCU1hbnVm
+YWN0dXJlcjogVE9TSElCQQoJUHJvZHVjdCBOYW1lOiBTYXRlbGxpdGUgQTIwMAoJVmVyc2lvbjog
+UFNBRTZFLTA2RDAyNEZSCglTZXJpYWwgTnVtYmVyOiBYMDEyMzQ1MUsKCVVVSUQ6IEY0RUJGQ0ZF
+LTY1RUUtMTFEQy04REZCLTAwMUIzODQ3MjQyRgoJV2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gK
+CVNLVSBOdW1iZXI6IDAxMjM0NTY3ODkxMjM0NTY3ODkxMjM0NTY3OAoJRmFtaWx5OiBBQkNERUZH
+SElKS0xNTk9QUVJTVFVWV1hZWgoKSGFuZGxlIDB4MDAwMiwgRE1JIHR5cGUgMiwgOCBieXRlcwpC
+YXNlIEJvYXJkIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IFRPU0hJQkEKCVByb2R1Y3QgTmFt
+ZTogSVNLQUEKCVZlcnNpb246IDEuMDAKCVNlcmlhbCBOdW1iZXI6IDAxMjM0NTY3ODlBQgoKSGFu
+ZGxlIDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0ZXMKQ2hhc3NpcyBJbmZvcm1hdGlvbgoJTWFu
+dWZhY3R1cmVyOiBUT1NISUJBCglUeXBlOiBOb3RlYm9vawoJTG9jazogTm90IFByZXNlbnQKCVZl
+cnNpb246IE4vQQoJU2VyaWFsIE51bWJlcjogTm9uZQoJQXNzZXQgVGFnOiAqCglCb290LXVwIFN0
+YXRlOiBTYWZlCglQb3dlciBTdXBwbHkgU3RhdGU6IFNhZmUKCVRoZXJtYWwgU3RhdGU6IFNhZmUK
+CVNlY3VyaXR5IFN0YXR1czogTm9uZQoJT0VNIEluZm9ybWF0aW9uOiAweDAwMDAxMjM0CgpIYW5k
+bGUgMHgwMDA0LCBETUkgdHlwZSA0LCAzNSBieXRlcwpQcm9jZXNzb3IgSW5mb3JtYXRpb24KCVNv
+Y2tldCBEZXNpZ25hdGlvbjogVTJFMQoJVHlwZTogQ2VudHJhbCBQcm9jZXNzb3IKCUZhbWlseTog
+T3RoZXIKCU1hbnVmYWN0dXJlcjogSW50ZWwKCUlEOiBGQiAwNiAwMCAwMCBGRiBGQiBFQiBCRgoJ
+VmVyc2lvbjogQ1BVIFZlcnNpb24KCVZvbHRhZ2U6IDMuMyBWCglFeHRlcm5hbCBDbG9jazogVW5r
+bm93bgoJTWF4IFNwZWVkOiA0MDk2IE1IegoJQ3VycmVudCBTcGVlZDogMjIwMCBNSHoKCVN0YXR1
+czogUG9wdWxhdGVkLCBFbmFibGVkCglVcGdyYWRlOiBaSUYgU29ja2V0CglMMSBDYWNoZSBIYW5k
+bGU6IDB4MDAwNQoJTDIgQ2FjaGUgSGFuZGxlOiAweDAwMDYKCUwzIENhY2hlIEhhbmRsZTogTm90
+IFByb3ZpZGVkCglTZXJpYWwgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBT
+cGVjaWZpZWQKCVBhcnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDA1LCBETUkg
+dHlwZSA3LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBM
+MSBDYWNoZQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQsIExldmVsIDEKCU9wZXJh
+dGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5hbAoJSW5zdGFsbGVkIFNp
+emU6IDY0IEtCCglNYXhpbXVtIFNpemU6IDY0IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlC
+dXJzdAoJCVBpcGVsaW5lIEJ1cnN0CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBl
+OiBBc3luY2hyb25vdXMKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IFVu
+a25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBVbmtub3duCgpIYW5k
+bGUgMHgwMDA2LCBETUkgdHlwZSA3LCAxOSBieXRlcwpDYWNoZSBJbmZvcm1hdGlvbgoJU29ja2V0
+IERlc2lnbmF0aW9uOiBMMiBDYWNoZQoJQ29uZmlndXJhdGlvbjogRW5hYmxlZCwgU29ja2V0ZWQs
+IExldmVsIDIKCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sKCUxvY2F0aW9uOiBJbnRlcm5h
+bAoJSW5zdGFsbGVkIFNpemU6IDQwOTYgS0IKCU1heGltdW0gU2l6ZTogNDA5NiBLQgoJU3VwcG9y
+dGVkIFNSQU0gVHlwZXM6CgkJQnVyc3QKCQlQaXBlbGluZSBCdXJzdAoJCUFzeW5jaHJvbm91cwoJ
+SW5zdGFsbGVkIFNSQU0gVHlwZTogQnVyc3QKCVNwZWVkOiBVbmtub3duCglFcnJvciBDb3JyZWN0
+aW9uIFR5cGU6IFVua25vd24KCVN5c3RlbSBUeXBlOiBVbmtub3duCglBc3NvY2lhdGl2aXR5OiBV
+bmtub3duCgpIYW5kbGUgMHgwMDA3LCBETUkgdHlwZSA4LCA5IGJ5dGVzClBvcnQgQ29ubmVjdG9y
+IEluZm9ybWF0aW9uCglJbnRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRvcjogSjFBMQoJSW50ZXJu
+YWwgQ29ubmVjdG9yIFR5cGU6IE5vbmUKCUV4dGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBL
+ZXlib2FyZAoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IENpcmN1bGFyIERJTi04IG1hbGUKCVBv
+cnQgVHlwZTogS2V5Ym9hcmQgUG9ydAoKSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgOCwgOSBieXRl
+cwpQb3J0IENvbm5lY3RvciBJbmZvcm1hdGlvbgoJSW50ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0
+b3I6IEoxQTEKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25lCglFeHRlcm5hbCBSZWZlcmVu
+Y2UgRGVzaWduYXRvcjogUFMvMiBNb3VzZQoJRXh0ZXJuYWwgQ29ubmVjdG9yIFR5cGU6IENpcmN1
+bGFyIERJTi04IG1hbGUKCVBvcnQgVHlwZTogTW91c2UgUG9ydAoKSGFuZGxlIDB4MDAwOSwgRE1J
+IHR5cGUgOSwgMTMgYnl0ZXMKU3lzdGVtIFNsb3QgSW5mb3JtYXRpb24KCURlc2lnbmF0aW9uOiBU
+SQoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJTGVuZ3RoOiBMb25n
+CglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMg
+cHJvdmlkZWQKCkhhbmRsZSAweDAwMEEsIERNSSB0eXBlIDEwLCA2IGJ5dGVzCk9uIEJvYXJkIERl
+dmljZSBJbmZvcm1hdGlvbgoJVHlwZTogU291bmQKCVN0YXR1czogRGlzYWJsZWQKCURlc2NyaXB0
+aW9uOiBSZWFsdGVrIEhEQS0wMQoKSGFuZGxlIDB4MDAwQiwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMK
+T0VNIFN0cmluZ3MKCVN0cmluZyAxOiBQU0FFNkUtMDZEMDI0RlIsU1NBRTYwNkQwMjRGUgoKSGFu
+ZGxlIDB4MDAwQywgRE1JIHR5cGUgMTIsIDUgYnl0ZXMKU3lzdGVtIENvbmZpZ3VyYXRpb24gT3B0
+aW9ucwoJT3B0aW9uIDE6IEp1bXBlciBzZXR0aW5ncyBjYW4gYmUgZGVzY3JpYmVkIGhlcmUuCgpI
+YW5kbGUgMHgwMDBELCBETUkgdHlwZSAxNiwgMTUgYnl0ZXMKUGh5c2ljYWwgTWVtb3J5IEFycmF5
+CglMb2NhdGlvbjogU3lzdGVtIEJvYXJkIE9yIE1vdGhlcmJvYXJkCglVc2U6IFN5c3RlbSBNZW1v
+cnkKCUVycm9yIENvcnJlY3Rpb24gVHlwZTogTm9uZQoJTWF4aW11bSBDYXBhY2l0eTogMTAwMCBN
+QgoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBOb3QgUHJvdmlkZWQKCU51bWJlciBPZiBEZXZp
+Y2VzOiAyCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVtb3J5IERldmlj
+ZQoJQXJyYXkgSGFuZGxlOiAweDAwMEQKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm8gRXJy
+b3IKCVRvdGFsIFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRoOiA2NCBiaXRzCglTaXplOiAxMDI0
+IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDEKCUxvY2F0b3I6IE0xCglCYW5rIExvY2F0
+b3I6IEJhbmsgMAoJVHlwZTogRERSMgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDog
+NjY3IE1IeiAoMS41IG5zKQoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglTZXJpYWwgTnVt
+YmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBhcnQgTnVtYmVy
+OiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDBGLCBETUkgdHlwZSAxNywgMjcgYnl0ZXMKTWVt
+b3J5IERldmljZQoJQXJyYXkgSGFuZGxlOiAweDAwMEQKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRs
+ZTogTm8gRXJyb3IKCVRvdGFsIFdpZHRoOiA2NCBiaXRzCglEYXRhIFdpZHRoOiA2NCBiaXRzCglT
+aXplOiAxMDI0IE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6IDEKCUxvY2F0b3I6IE0yCglC
+YW5rIExvY2F0b3I6IEJhbmsgMQoJVHlwZTogRERSMgoJVHlwZSBEZXRhaWw6IFN5bmNocm9ub3Vz
+CglTcGVlZDogNjY3IE1IeiAoMS41IG5zKQoJTWFudWZhY3R1cmVyOiBOb3QgU3BlY2lmaWVkCglT
+ZXJpYWwgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQKCVBh
+cnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDEwLCBETUkgdHlwZSAxOSwgMTUg
+Ynl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAw
+MDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRgoJUmFuZ2UgU2l6ZTogMiBH
+QgoJUGh5c2ljYWwgQXJyYXkgSGFuZGxlOiAweDAwMEQKCVBhcnRpdGlvbiBXaWR0aDogMAoKSGFu
+ZGxlIDB4MDAxMSwgRE1JIHR5cGUgMjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFk
+ZHJlc3MKCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAwMDAwMDAKCUVuZGluZyBBZGRyZXNzOiAw
+eDAwMDNGRkZGRkZGCglSYW5nZSBTaXplOiAxIEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAw
+eDAwMEUKCU1lbW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxMAoJUGFydGl0
+aW9uIFJvdyBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJ
+SW50ZXJsZWF2ZWQgRGF0YSBEZXB0aDogVW5rbm93bgoKSGFuZGxlIDB4MDAxMiwgRE1JIHR5cGUg
+MjAsIDE5IGJ5dGVzCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFkZHJlc3MKCVN0YXJ0aW5nIEFkZHJl
+c3M6IDB4MDAwNDAwMDAwMDAKCUVuZGluZyBBZGRyZXNzOiAweDAwMDdGRkZGRkZGCglSYW5nZSBT
+aXplOiAxIEdCCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEYKCU1lbW9yeSBBcnJheSBN
+YXBwZWQgQWRkcmVzcyBIYW5kbGU6IDB4MDAxMAoJUGFydGl0aW9uIFJvdyBQb3NpdGlvbjogVW5r
+bm93bgoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bgoJSW50ZXJsZWF2ZWQgRGF0YSBEZXB0
+aDogVW5rbm93bgoKSGFuZGxlIDB4MDAxMywgRE1JIHR5cGUgMjIsIDI2IGJ5dGVzClBvcnRhYmxl
+IEJhdHRlcnkKCUxvY2F0aW9uOiBSZWFyCglNYW51ZmFjdHVyZXI6IFRPU0hJQkEgICAKCU5hbWU6
+IFRPU0hJQkEgICAKCUNoZW1pc3RyeTogTGl0aGl1bSBJb24KCURlc2lnbiBDYXBhY2l0eTogMTAw
+MCBtV2gKCURlc2lnbiBWb2x0YWdlOiAxOSBtVgoJU0JEUyBWZXJzaW9uOiBCQVRUXzEyMzQKCU1h
+eGltdW0gRXJyb3I6IDEwMCUKCVNCRFMgU2VyaWFsIE51bWJlcjogMDAwMQoJU0JEUyBNYW51ZmFj
+dHVyZSBEYXRlOiAxOTgwLTAwLTAxCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAw
+MDAKCkhhbmRsZSAweDAwMTQsIERNSSB0eXBlIDMyLCAyMCBieXRlcwpTeXN0ZW0gQm9vdCBJbmZv
+cm1hdGlvbgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpIYW5kbGUgMHgwMDE1LCBETUkgdHlwZSAx
+MjcsIDQgYnl0ZXMKRW5kIE9mIFRhYmxlCgo=
+
+---MOQ11987936230af85699a716f797eec2a90e9b2d8196--
