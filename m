@@ -1,43 +1,133 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 0/7] Fix the ACPI 1.0 vs ACPI 2.0 suspend ordering issue
-Date: Thu, 27 Dec 2007 19:03:52 +0100
-Message-ID: <200712271903.53961.rjw@sisk.pl>
+Subject: [RFC][PATCH 4/7] Suspend: Call _PTS early on ACPI 1.0x
+	systems
+Date: Thu, 27 Dec 2007 19:17:32 +0100
+Message-ID: <200712271917.32982.rjw@sisk.pl>
+References: <200712271903.53961.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43404 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192AbXL0SBa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Dec 2007 13:01:30 -0500
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200712271903.53961.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, LKML <linux-kernel@vger.kernel.org>, "Moore,
+	Robert" <robert.moore@intel.com>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The following patchset is intended to fix the ACPI 1.0 vs ACPI 2.0 suspend
-ordering issue described at http://bugzilla.kernel.org/show_bug.cgi?id=9528 and
-in a recent LKML thread (http://lkml.org/lkml/2007/12/25/37).
+The ACPI 1.0 specification wants us to put devices into low power
+states after executing the _PTS global control methods, while ACPI
+2.0 and later want us to do that in the reverse order.  The current
+suspend code follows ACPI 2.0 in that respect which causes some
+ACPI 1.0x systems to hang during suspend (ref.
+http://bugzilla.kernel.org/show_bug.cgi?id=9528).
 
-The patches actually do more than that, as I think it's reasonable to untangle
-some ACPI-specific suspend code by the way.  The details are described in the
-changelogs.
+Make the suspend code execute _PTS before putting devices into low
+power states on ACPI 1.0x systems (i.e. on systems for which the
+revision in the FADT header is lesser than 3).
 
-The patches apply on top of the suspend branch of the ACPI tree
-(git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6 suspend),
-but they are also included in the quilt patch series at:
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.24-rc6/patches/ .
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/sleep/main.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-Please review (and test, if possible).
-
-Thanks,
-Rafael
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
-
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -26,6 +26,7 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
+ #ifdef CONFIG_PM_SLEEP
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
++static bool acpi_sleep_finish_wake_up;
+ #endif
+ 
+ int acpi_sleep_prepare(u32 acpi_state)
+@@ -74,6 +75,14 @@ static int acpi_pm_open(suspend_state_t 
+ 
+ 	if (sleep_states[acpi_state]) {
+ 		acpi_target_sleep_state = acpi_state;
++		/* On ACPI 1.0x systems _PTS has to be executed right now. */
++		if (acpi_gbl_FADT.header.revision < 3) {
++			error = acpi_sleep_prepare(acpi_state);
++			if (error)
++				acpi_target_sleep_state = ACPI_STATE_S0;
++			else
++				acpi_sleep_finish_wake_up = true;
++		}
+ 	} else {
+ 		printk(KERN_ERR "ACPI does not support this state: %d\n",
+ 			pm_state);
+@@ -91,15 +100,18 @@ static int acpi_pm_open(suspend_state_t 
+ 
+ static int acpi_pm_prepare(void)
+ {
+-	int error;
++	/* On ACPI 1.0x systems_PTS global is executed earlier. */
++	if (acpi_gbl_FADT.header.revision >= 3) {
++		int error = acpi_sleep_prepare(acpi_target_sleep_state);
+ 
+-	error = acpi_sleep_prepare(acpi_target_sleep_state);
+-	if (error)
+-		acpi_target_sleep_state = ACPI_STATE_S0;
+-	else if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
+-		error = -EFAULT;
++		if (error) {
++			acpi_target_sleep_state = ACPI_STATE_S0;
++			return error;
++		}
++		acpi_sleep_finish_wake_up = true;
++	}
+ 
+-	return error;
++	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+ }
+ 
+ /**
+@@ -123,10 +135,8 @@ static int acpi_pm_enter(suspend_state_t
+ 	if (acpi_state == ACPI_STATE_S3) {
+ 		int error = acpi_save_state_mem();
+ 
+-		if (error) {
+-			acpi_target_sleep_state = ACPI_STATE_S0;
++		if (error)
+ 			return error;
+-		}
+ 	}
+ 
+ 	local_irq_save(flags);
+@@ -187,6 +197,7 @@ static void acpi_pm_finish(void)
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
++	acpi_sleep_finish_wake_up = false;
+ 
+ #ifdef CONFIG_X86
+ 	if (init_8259A_after_S1) {
+@@ -203,10 +214,11 @@ static void acpi_pm_finish(void)
+ static void acpi_pm_close(void)
+ {
+ 	/*
+-	 * This is necessary in case acpi_pm_finish() is not called during a
+-	 * failing transition to a sleep state.
++	 * This is necessary in case acpi_pm_finish() is not called directly
++	 * during a failing transition to a sleep state.
+ 	 */
+-	acpi_target_sleep_state = ACPI_STATE_S0;
++	if (acpi_sleep_finish_wake_up)
++		acpi_pm_finish();
+ }
+ 
+ static int acpi_pm_state_valid(suspend_state_t pm_state)
