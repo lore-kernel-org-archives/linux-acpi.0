@@ -1,72 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: brightness control on thinkpad t61p
-Date: Thu, 27 Dec 2007 11:15:48 -0200
-Message-ID: <20071227131548.GC25535@khazad-dum.debian.net>
-References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224170837.GC7907@khazad-dum.debian.net> <20071226141034.959746a9.akpm@linux-foundation.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/5] WMI
+Date: Thu, 27 Dec 2007 15:38:04 +0000
+Message-ID: <20071227153803.4974.97907.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:48635 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751822AbXL0NPx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Dec 2007 08:15:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20071226141034.959746a9.akpm@linux-foundation.org>
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:39518 "EHLO
+	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751874AbXL0Pif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Dec 2007 10:38:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Wed, 26 Dec 2007, Andrew Morton wrote:
-> > For thinkpad-acpi at least, it is not a regression. 2.6.23/0.16 did NOT
-> > support your thinkpad (it will pretend to work, but it won't work 100% right
-> > as it only supports 8 levels of backlight control).
-> 
-> Well it may have been partially working, but it worked.
+ACSWR - A Christmas Sale WMI release
 
-See below...
+Patch #1: (WMI - driver and in kernel interface)
 
-> >  2.6.24-rc4/0.17 added
-> > support for it (16-level brightness), but also added the automatic detection
-> > of ACPI generic video support.
-> 
-> Doesn't work.
+Added per GUID event handling callbacks, as per Matthew's suggestion.
 
-Needs fixing, then.  THAT is the way to go in the future, including for
-thinkpads.
+Len:
+For review, and to go upstream.
 
-> > You can ask thinkpad-acpi for the backlight interface using the
-> > "brightness_enable=1" parameter, if you'd rather use it instead of the
-> > generic ACPI video driver.  I don't know if you can ask video to not enable
-> > backlight control, though.
-> 
-> I shouldn't have to add some module parameter to get previously-working
-> stuff to work again.
+(Bar the EC stuff, this code has also been inflic^^^^tested by acer_acpi users
+with my 0.10 releases, so I'm confident on Acer hardware at least that it won't
+break horribly).
 
-It was not working properly, and it was unsupported.  Things that work
-half-way by accident are NOT considered to be supported in my book.
+Patch #2: (acer-wmi)
 
-While I don't mind at all to leave it enabled when there are other drivers
-also taking care of brightness, I am afraid it will cause an even worse
-mess, since ACPI video will attempt to control the backlight level as
-well.  So, I have disabled the thinkpad-specific interface when the presence
-of the generic interface (driven by ACPI video) is detected.
+Add device detection for bluetooth and maximum brightness (removes more hard
+coded EC quirks). Also simplified some of the code.
 
-> > > Both of these have a `brightness' entry which has contents of 100.
-> > > When I set that to 10, the screen's brightness is not reduced.
-> > 
-> > One of them should work.  Maybe X.org is doing something?
-> 
-> Dunno.
+Len:
+For review, and to go upstream.
 
-Really up-to-date X.org can completely disable the BIOS backlight handling
-by changing some registers in the GPUs, at least for Radeons (and probably
-Intel GPUs).  I believe there are ways to control it through xbacklight
-options, but I don't have that X.org yet, so I can't tell what to try.
+Patch #3: (tc1100-wmi) - No Change
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+RFC only, needs actual testing on the hardware, and probably very broken.
+Waiting on Matthew Garrett to get some free time to test this.
+
+Patch #4: (WMI sysfs interface) - No Change
+
+RFC only (see patch #5 for reason). Adds interface under
+/sys/devices/virtual/wmi
+
+Matthew - Do you want me to fold patch #5 into this?
+
+Patch #5: (WMI sysfs workaround) - No change
+
+Temporary hack, needed to get patch #4 working, due to a limitation on bus_id
+length (Kay Sievers is apparently working on this, ref Greg KH[1]).
+
+-Carlos
+
+[1] http://lkml.org/lkml/2007/12/4/30
