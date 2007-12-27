@@ -1,8 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 6/7] Hibernation: Call _PTS early on ACPI
-	1.0x systems
-Date: Thu, 27 Dec 2007 19:19:10 +0100
-Message-ID: <200712271919.12184.rjw@sisk.pl>
+Subject: [RFC][PATCH 7/7] ACPI: Print message before calling _PTS
+Date: Thu, 27 Dec 2007 19:20:01 +0100
+Message-ID: <200712271920.02207.rjw@sisk.pl>
 References: <200712271903.53961.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -27,88 +26,45 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The ACPI 1.0 specification wants us to put devices into low power
-states after executing the _PTS global control methods, while ACPI
-2.0 and later want us to do that in the reverse order.  The current
-hibernation code follows ACPI 2.0 in that respect which may cause some
-ACPI 1.0x systems to hang during hibernation (ref.
-http://bugzilla.kernel.org/show_bug.cgi?id=9528).
-
-Make the hibernation code execute _PTS before putting devices into low
-power states on ACPI 1.0x systems (i.e. on systems for which the
-revision in the FADT header is lesser than 3).
+Make acpi_sleep_prepare() static and cause it to print a message
+specifying the ACPI system sleep state to be entered (helpful for
+debugging the suspend/hibernation code).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/sleep/main.c |   38 +++++++++++++++++++++++++++-----------
- 1 file changed, 27 insertions(+), 11 deletions(-)
+ drivers/acpi/sleep/main.c  |    4 +++-
+ drivers/acpi/sleep/sleep.h |    2 --
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 Index: linux-2.6/drivers/acpi/sleep/main.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/sleep/main.c
 +++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -271,21 +271,35 @@ static struct dmi_system_id __initdata a
- static int acpi_hibernation_open(void)
+@@ -29,7 +29,7 @@ static u32 acpi_target_sleep_state = ACP
+ static bool acpi_sleep_finish_wake_up;
+ #endif
+ 
+-int acpi_sleep_prepare(u32 acpi_state)
++static int acpi_sleep_prepare(u32 acpi_state)
  {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
-+
-+	/* On ACPI 1.0x systems _PTS has to be executed right now. */
-+	if (acpi_gbl_FADT.header.revision < 3) {
-+		int error = acpi_sleep_prepare(ACPI_STATE_S4);
-+
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+			return error;
-+		}
-+		acpi_sleep_finish_wake_up = true;
-+	}
-+
+ #ifdef CONFIG_ACPI_SLEEP
+ 	/* do we have a wakeup address for S2 and S3? */
+@@ -45,6 +45,8 @@ int acpi_sleep_prepare(u32 acpi_state)
+ 	ACPI_FLUSH_CPU_CACHE();
+ 	acpi_enable_wakeup_device_prep(acpi_state);
+ #endif
++	printk(KERN_INFO PREFIX "Preparing to enter system sleep state S%d\n",
++		acpi_state);
+ 	acpi_enter_sleep_state_prep(acpi_state);
  	return 0;
  }
- 
- static int acpi_hibernation_prepare(void)
- {
--	int error;
+Index: linux-2.6/drivers/acpi/sleep/sleep.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/sleep.h
++++ linux-2.6/drivers/acpi/sleep/sleep.h
+@@ -5,5 +5,3 @@ extern int acpi_suspend (u32 state);
+ extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
+ extern void acpi_enable_wakeup_device(u8 sleep_state);
+ extern void acpi_disable_wakeup_device(u8 sleep_state);
 -
--	error = acpi_sleep_prepare(ACPI_STATE_S4);
--	if (error)
--		return error;
--
--	if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
--		error = -EFAULT;
-+	/* On ACPI 1.0x systems _PTS global is executed earlier. */
-+	if (acpi_gbl_FADT.header.revision >= 3) {
-+		int error = acpi_sleep_prepare(ACPI_STATE_S4);
-+
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+			return error;
-+		}
-+		acpi_sleep_finish_wake_up = true;
-+	}
- 
--	return error;
-+	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
- }
- 
- static int acpi_hibernation_enter(void)
-@@ -326,15 +340,17 @@ static void acpi_hibernation_finish(void
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_sleep_finish_wake_up = false;
- }
- 
- static void acpi_hibernation_close(void)
- {
- 	/*
- 	 * This is necessary in case acpi_hibernation_finish() is not called
--	 * during a failing transition to the sleep state.
-+	 * directly during a failing transition to the sleep state.
- 	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	if (acpi_sleep_finish_wake_up)
-+		acpi_hibernation_finish();
- }
- 
- static int acpi_hibernation_pre_restore(void)
+-extern int acpi_sleep_prepare(u32 acpi_state);
