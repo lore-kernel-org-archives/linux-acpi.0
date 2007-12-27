@@ -1,58 +1,71 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: backlight regration from kernel 2.6.22 to 2.6.23
-Date: Thu, 27 Dec 2007 09:17:19 +0800
-Message-ID: <823A93EED437D048963A3697DB0E35DEFD384A@pdsmsx414.ccr.corp.intel.com>
-References: <1198701759.2704.14.camel@localhost.localdomain>
+From: Thomas Jaeger <thjaeger@gmail.com>
+Subject: interrupt resource descriptor issues
+Date: Thu, 27 Dec 2007 02:23:24 +0100
+Message-ID: <4772FE8C.3080100@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26345 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751826AbXL0BRb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Dec 2007 20:17:31 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <1198701759.2704.14.camel@localhost.localdomain>
+Received: from fg-out-1718.google.com ([72.14.220.158]:50054 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709AbXL0BXu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Dec 2007 20:23:50 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so1558790fga.17
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Dec 2007 17:23:49 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>, acpi devel <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi, Sergio,
+Hi,
 
-Please open a bug at http://bugzilla.kernel.org/enter_bug.cgi?product=3D=
-ACPI
-And attach the dmesg and acpidump output.
+I recently filed bug 9487
+(http://bugzilla.kernel.org/show_bug.cgi?id=9487 ), which prevents the
+pen on most, if not all, Toshiba Tablet PCs from waking up from suspend
+mode.  I don't think the bug was announced on this list since I
+originally filed it in the wrong category.
+Anyway, I investigated the issue further and here is what happens as far
+as I can tell:
+During boot, _CRS is called and the returned buffer is converted into
+the kernel's own format.  This is not a one-to-one mapping.
+Specifically, the ACPI spec allows high true, edge sensitive,
+non-shareable interrupts to be represented by 3-byte descriptors, but
+4-byte descriptors that set the appropriate flags are also possible,
+which is what these Tablet PCs choose to do for their serial port.  Upon
+resume, _SRS is called, so the internal representation needs to be
+converted back to an AML buffer, but at this point the information how
+the original buffer looked like is lost.  In my case, the kernel chooses
+a three-byte descriptor that evidently throws off the device's firmware,
+which expects the buffer to be in the same format as returned by _CRS.
+Of course, this is not technically a kernel bug because the buffer
+passed to _SRS complies with the ACPI standard, but I think this sort of
+problem is fairly common.  The other instance I'm aware of actually goes
+in the opposite direction:  The The Fujitsu Lifebook C1020's parallel
+port returns a three-byte descriptor and appears to require a three-byte
+descriptor to be passed to _SRS in order to wake up (see
+http://bugzilla.kernel.org/show_bug.cgi?id=6316 ).  Presumably Windows
+does not alter the form of the buffer, so it's reasonable that linux
+should do the same.
+
+I've created a patch that keeps track of whether _CRS returned a three
+or four-byte descriptor by adding a new field descriptor_length to
+acpi_resource_irq and respects that information during conversion back
+to an AML resource.  It's attached to bug 9487.
+
+When I made the changes I stumbled upon the following bugs in rsparser.c
+that I took the liberty of correcting, but I'd be happy to separate the
+changes into two patches if that's desired:
+
+* decode_irq_flags would leave values uninitialized if additional flags
+such as IORESOURCE_IRQ_SHAREABLE were set.
+* pnpacpi_encode_irq would deduce sharable from triggering and polarity.
+ This may well be okay in practice, but the IORESOURCE_IRQ_SHAREABLE
+flag should be used (the same goes for pnpacpi_encode_ext_irq, btw).
+* pnpacpi_encode_ext_irq would write to resource->data.irq.sharable
+which is actually data.extended_irq.polarity.
+
 
 Thanks,
-Rui
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org
->[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Sergio Monteiro=
- Basto
->Sent: Thursday, December 27, 2007 4:43 AM
->To: acpi devel
->Subject: backlight regration from kernel 2.6.22 to 2.6.23
->
->Hi,
->As a quick message to see if any one is ware of this problem.
->
->On kernel 2.6.23 I had a problem with backlight, lid button doesn't
->work !
->If I boot computer and close lid (to plug other devices like mouse and
->network), after a little while when I open lid, I can't get screen any=
-more ,
->I
->have to reboot my laptop to have screen.
->On suspend after resume, I have to go to console and return to X go ge=
-t screen
->maybe I will open other bug to ACPI
->
->Thanks in advance ,
->--
->S=E9rgio M. B.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tom
+
+
