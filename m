@@ -1,375 +1,240 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 3/5] [RFC] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
-Date: Thu, 27 Dec 2007 15:38:20 +0000
-Message-ID: <20071227153820.4974.39770.stgit@pacifica>
-References: <20071227153803.4974.97907.stgit@pacifica>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 1/7] Suspend: Introduce open() and close() callbacks
+Date: Thu, 27 Dec 2007 19:13:42 +0100
+Message-ID: <200712271913.43660.rjw@sisk.pl>
+References: <200712271903.53961.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:60128 "EHLO
-	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751957AbXL0PpX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Dec 2007 10:45:23 -0500
-In-Reply-To: <20071227153803.4974.97907.stgit@pacifica>
+Received: from ogre.sisk.pl ([217.79.144.158]:43403 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751946AbXL0SB3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Dec 2007 13:01:29 -0500
+In-Reply-To: <200712271903.53961.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Jamey Hicks <jamey.hicks@nokia.com>, Joshua Wise <joshua@joshuawise.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
 
-This is based on the 2004 out-of-tree work of Jamey Hicks, to add
-support via WMI for controlling the jog dial and wireless on these
-tablets.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-v1:
+On ACPI systems the target state set by acpi_pm_set_target() is
+reset by acpi_pm_finish(), but that need not be called in the
+suspend fails.  For this reason, we need an additional global suspend
+callback that will reset the target state regardless of whether or
+not the suspend is successful.  Also, it is reasonable to rename the
+.set_target() global suspend callback, since it will be used for a
+different purpose on ACPI 1.0x systems.
 
-Original release
+Introduce the global suspend callback .close() to be executed at the
+end of the suspend sequence and rename the .set_target() global
+suspend callback to .open().
 
-v2:
-
-As per Joshua Wise's comments, change bluetooth to jogdial (an error from
-the original driver).
-
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: Len Brown <lenb@kernel.org>
-CC: Matthew Garrett <mjg59@srcf.ucam.org>
-CC: Jamey Hicks <jamey.hicks@nokia.com>
-CC: Joshua Wise <joshua@joshuawise.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
+ arch/arm/mach-at91/pm.c                   |    8 ++++----
+ arch/powerpc/platforms/52xx/lite5200_pm.c |    4 ++--
+ drivers/acpi/sleep/main.c                 |   22 ++++++++++++++++++----
+ include/linux/suspend.h                   |   24 ++++++++++++++----------
+ kernel/power/main.c                       |    9 ++++++---
+ 5 files changed, 44 insertions(+), 23 deletions(-)
 
- drivers/misc/Kconfig      |    9 +
- drivers/misc/Makefile     |    1 
- drivers/misc/tc1100-wmi.c |  290 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 300 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/tc1100-wmi.c
-
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index d72acbf..205fd6a 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -142,6 +142,15 @@ config FUJITSU_LAPTOP
+Index: linux-2.6/include/linux/suspend.h
+===================================================================
+--- linux-2.6.orig/include/linux/suspend.h
++++ linux-2.6/include/linux/suspend.h
+@@ -38,18 +38,16 @@ typedef int __bitwise suspend_state_t;
+  *	There is the %suspend_valid_only_mem function available that can be
+  *	assigned to this if the platform only supports mem sleep.
+  *
+- * @set_target: Tell the platform which system sleep state is going to be
+- *	entered.
+- *	@set_target() is executed right prior to suspending devices.  The
+- *	information conveyed to the platform code by @set_target() should be
+- *	disregarded by the platform as soon as @finish() is executed and if
+- *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
++ * @open: Initialise a transition to given system sleep state.
++ *	@open() is executed right prior to suspending devices.  The information
++ *	conveyed to the platform code by @open() should be disregarded by it as
++ *	soon as @close() is executed.  If @open() fails (ie. returns nonzero),
+  *	@prepare(), @enter() and @finish() will not be called by the PM core.
+  *	This callback is optional.  However, if it is implemented, the argument
+  *	passed to @enter() is meaningless and should be ignored.
+  *
+  * @prepare: Prepare the platform for entering the system sleep state indicated
+- *	by @set_target().
++ *	by @open().
+  *	@prepare() is called right after devices have been suspended (ie. the
+  *	appropriate .suspend() method has been executed for each device) and
+  *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
+@@ -57,8 +55,8 @@ typedef int __bitwise suspend_state_t;
+  *	error code otherwise, in which case the system cannot enter the desired
+  *	sleep state (@enter() and @finish() will not be called in that case).
+  *
+- * @enter: Enter the system sleep state indicated by @set_target() or
+- *	represented by the argument if @set_target() is not implemented.
++ * @enter: Enter the system sleep state indicated by @open() or represented by
++ *	the argument if @open() is not implemented.
+  *	This callback is mandatory.  It returns 0 on success or a negative
+  *	error code otherwise, in which case the system cannot enter the desired
+  *	sleep state.
+@@ -69,13 +67,19 @@ typedef int __bitwise suspend_state_t;
+  *	This callback is optional, but should be implemented by the platforms
+  *	that implement @prepare().  If implemented, it is always called after
+  *	@enter() (even if @enter() fails).
++ *
++ * @close: Called by the PM core right after resuming devices, to indicate to
++ *	the platform that the system has returned to the working state.
++ *	This callback is optional, but should be implemented by the platforms
++ *	that implement @open().
+  */
+ struct platform_suspend_ops {
+ 	int (*valid)(suspend_state_t state);
+-	int (*set_target)(suspend_state_t state);
++	int (*open)(suspend_state_t state);
+ 	int (*prepare)(void);
+ 	int (*enter)(suspend_state_t state);
+ 	void (*finish)(void);
++	void (*close)(void);
+ };
  
- 	  If you have a Fujitsu laptop, say Y or M here.
+ #ifdef CONFIG_SUSPEND
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -63,11 +63,11 @@ static u32 acpi_suspend_states[] = {
+ static int init_8259A_after_S1;
  
-+config TC1100_WMI
-+	tristate "HP Compaq TC1100 Tablet WMI Extras"
-+	depends on X86 && !X86_64
-+	depends on ACPI
-+	depends on ACPI_WMI
-+	---help---
-+	  This is a driver for the WMI extensions (wireless and bluetooth power
-+	  control) of the HP Compaq TC1100 tablet.
-+
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 3da1491..51196c0 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
- obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
- obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
- obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
-+obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_LKDTM)		+= lkdtm.o
- obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
- obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
-diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
-new file mode 100644
-index 0000000..f25e4c9
---- /dev/null
-+++ b/drivers/misc/tc1100-wmi.c
-@@ -0,0 +1,290 @@
-+/*
-+ *  HP Compaq TC1100 Tablet WMI Extras Driver
-+ *
-+ *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+ *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
-+ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-+ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ /**
+- *	acpi_pm_set_target - Set the target system sleep state to the state
++ *	acpi_pm_open - Set the target system sleep state to the state
+  *		associated with given @pm_state, if supported.
+  */
+ 
+-static int acpi_pm_set_target(suspend_state_t pm_state)
++static int acpi_pm_open(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 	int error = 0;
+@@ -164,7 +164,7 @@ static int acpi_pm_enter(suspend_state_t
+ }
+ 
+ /**
+- *	acpi_pm_finish - Finish up suspend sequence.
++ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+  *
+  *	This is called after we wake back up (or if entering the sleep state
+  *	failed). 
+@@ -190,6 +190,19 @@ static void acpi_pm_finish(void)
+ #endif
+ }
+ 
++/**
++ *	acpi_pm_close - Finish up suspend sequence.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <acpi/acpi.h>
-+#include <acpi/actypes.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/platform_device.h>
-+
-+#define GUID "C364AC71-36DB-495A-8494-B439D472A505"
-+
-+#define TC1100_INSTANCE_WIRELESS		1
-+#define TC1100_INSTANCE_JOGDIAL		2
-+
-+#define TC1100_LOGPREFIX "tc1100-wmi: "
-+#define TC1100_INFO KERN_INFO TC1100_LOGPREFIX
-+
-+MODULE_AUTHOR("Jamey Hicks, Carlos Corbacho");
-+MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
-+
-+static int tc1100_probe(struct platform_device *device);
-+static int tc1100_remove(struct platform_device *device);
-+static int tc1100_suspend(struct platform_device *device, pm_message_t state);
-+static int tc1100_resume(struct platform_device *device);
-+
-+static struct platform_driver tc1100_driver = {
-+	.driver = {
-+		.name = "tc1100-wmi",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = tc1100_probe,
-+	.remove = tc1100_remove,
-+	.suspend = tc1100_suspend,
-+	.resume = tc1100_resume,
-+};
-+
-+static struct platform_device *tc1100_device;
-+
-+struct tc1100_data {
-+	u32 wireless;
-+	u32 jogdial;
-+};
-+
-+static struct tc1100_data suspend_data;
-+
-+/* --------------------------------------------------------------------------
-+				Device Management
-+   -------------------------------------------------------------------------- */
-+
-+static int get_state(u32 *out, u8 instance)
++static void acpi_pm_close(void)
 +{
-+	u32 tmp;
-+	acpi_status status;
-+	struct acpi_buffer result = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
-+
-+	if (!out)
-+		return -EINVAL;
-+
-+	if (instance > 2)
-+		return -ENODEV;
-+
-+	status = wmi_query_block(GUID, instance, &result);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	obj = (union acpi_object *) result.pointer;
-+	if (obj && obj->type == ACPI_TYPE_BUFFER &&
-+		obj->buffer.length == sizeof(u32)) {
-+		tmp = *((u32 *) obj->buffer.pointer);
-+	} else {
-+		tmp = 0;
-+	}
-+
-+	if (result.length > 0 && result.pointer)
-+		kfree(result.pointer);
-+
-+	switch (instance) {
-+	case TC1100_INSTANCE_WIRELESS:
-+		*out = (tmp == 3) ? 1 : 0;
-+		return 0;
-+	case TC1100_INSTANCE_JOGDIAL:
-+		*out = (tmp == 1) ? 1 : 0;
-+		return 0;
-+	default:
-+		return -ENODEV;
-+	}
++	/*
++	 * This is necessary in case acpi_pm_finish() is not called during a
++	 * failing transition to a sleep state.
++	 */
++	acpi_target_sleep_state = ACPI_STATE_S0;
 +}
 +
-+static int set_state(u32 *in, u8 instance)
-+{
-+	u32 value;
-+	acpi_status status;
-+	struct acpi_buffer input;
-+
-+	if (!in)
-+		return -EINVAL;
-+
-+	if (instance > 2)
-+		return -ENODEV;
-+
-+	switch (instance) {
-+	case TC1100_INSTANCE_WIRELESS:
-+		value = (*in) ? 1 : 2;
-+		break;
-+	case TC1100_INSTANCE_JOGDIAL:
-+		value = (*in) ? 0 : 1;
-+		break;
-+	default:
-+		return -ENODEV;
-+	}
-+
-+	input.length = sizeof(u32);
-+	input.pointer = &value;
-+
-+	status = wmi_set_block(GUID, instance, &input);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+/* --------------------------------------------------------------------------
-+				FS Interface (/sys)
-+   -------------------------------------------------------------------------- */
-+
-+/*
-+ * Read/ write bool sysfs macro
-+ */
-+#define show_set_bool(value, instance) \
-+static ssize_t \
-+show_bool_##value(struct device *dev, struct device_attribute *attr, \
-+	char *buf) \
-+{ \
-+	u32 result; \
-+	acpi_status status = get_state(&result, instance); \
-+	if (ACPI_SUCCESS(status)) \
-+		return sprintf(buf, "%d\n", result); \
-+	return sprintf(buf, "Read error\n"); \
-+} \
-+\
-+static ssize_t \
-+set_bool_##value(struct device *dev, struct device_attribute *attr, \
-+	const char *buf, size_t count) \
-+{ \
-+	u32 tmp = simple_strtoul(buf, NULL, 10); \
-+	acpi_status status = set_state(&tmp, instance); \
-+		if (ACPI_FAILURE(status)) \
-+			return -EINVAL; \
-+	return count; \
-+} \
-+static DEVICE_ATTR(value, S_IWUGO | S_IRUGO | S_IWUSR, \
-+	show_bool_##value, set_bool_##value);
-+
-+show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
-+show_set_bool(jogdial, TC1100_INSTANCE_JOGDIAL);
-+
-+static void remove_fs(void)
-+{
-+	device_remove_file(&tc1100_device->dev, &dev_attr_wireless);
-+	device_remove_file(&tc1100_device->dev, &dev_attr_jogdial);
-+}
-+
-+static int add_fs(void)
-+{
-+	int ret;
-+
-+	ret = device_create_file(&tc1100_device->dev, &dev_attr_wireless);
-+	if (ret)
-+		goto add_sysfs_error;
-+
-+	ret = device_create_file(&tc1100_device->dev, &dev_attr_jogdial);
-+	if (ret)
-+		goto add_sysfs_error;
-+
-+	return ret;
-+
-+add_sysfs_error:
-+	remove_fs();
-+	return ret;
-+}
-+
-+/* --------------------------------------------------------------------------
-+				Driver Model
-+   -------------------------------------------------------------------------- */
-+
-+static int tc1100_probe(struct platform_device *device)
-+{
-+	int result = 0;
-+
-+	result = add_fs();
-+	return result;
-+}
-+
-+
-+static int tc1100_remove(struct platform_device *device)
-+{
-+	remove_fs();
-+	return 0;
-+}
-+
-+static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
-+{
-+	int ret;
-+
-+	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
-+	if (ret)
-+		return ret;
-+
-+	ret = get_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
-+	if (ret)
-+		return ret;
-+
-+	return ret;
-+}
-+
-+static int tc1100_resume(struct platform_device *dev)
-+{
-+	int ret;
-+
-+	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
-+	if (ret)
-+		return ret;
-+
-+	ret = set_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
-+	if (ret)
-+		return ret;
-+
-+	return ret;
-+}
-+
-+static int __init tc1100_init(void)
-+{
-+	int result = 0;
-+
-+	if (!wmi_has_guid(GUID))
-+		return -ENODEV;
-+
-+	result = platform_driver_register(&tc1100_driver);
-+	if (result)
-+		return result;
-+
-+	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
-+	platform_device_add(tc1100_device);
-+
-+	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
-+
-+	return result;
-+}
-+
-+static void __exit tc1100_exit(void)
-+{
-+	platform_device_del(tc1100_device);
-+	platform_driver_unregister(&tc1100_driver);
-+
-+	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
-+}
-+
-+module_init(tc1100_init);
-+module_exit(tc1100_exit);
-
+ static int acpi_pm_state_valid(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state;
+@@ -208,10 +221,11 @@ static int acpi_pm_state_valid(suspend_s
+ 
+ static struct platform_suspend_ops acpi_pm_ops = {
+ 	.valid = acpi_pm_state_valid,
+-	.set_target = acpi_pm_set_target,
++	.open = acpi_pm_open,
+ 	.prepare = acpi_pm_prepare,
+ 	.enter = acpi_pm_enter,
+ 	.finish = acpi_pm_finish,
++	.close = acpi_pm_close,
+ };
+ 
+ /*
+Index: linux-2.6/arch/arm/mach-at91/pm.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-at91/pm.c
++++ linux-2.6/arch/arm/mach-at91/pm.c
+@@ -52,7 +52,7 @@ static suspend_state_t target_state;
+ /*
+  * Called after processes are frozen, but before we shutdown devices.
+  */
+-static int at91_pm_set_target(suspend_state_t state)
++static int at91_pm_open(suspend_state_t state)
+ {
+ 	target_state = state;
+ 	return 0;
+@@ -199,9 +199,9 @@ error:
+ 
+ 
+ static struct platform_suspend_ops at91_pm_ops ={
+-	.valid		= at91_pm_valid_state,
+-	.set_target	= at91_pm_set_target,
+-	.enter		= at91_pm_enter,
++	.valid	= at91_pm_valid_state,
++	.open	= at91_pm_open,
++	.enter	= at91_pm_enter,
+ };
+ 
+ static int __init at91_pm_init(void)
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -253,10 +253,10 @@ int suspend_devices_and_enter(suspend_st
+ 	if (!suspend_ops)
+ 		return -ENOSYS;
+ 
+-	if (suspend_ops->set_target) {
+-		error = suspend_ops->set_target(state);
++	if (suspend_ops->open) {
++		error = suspend_ops->open(state);
+ 		if (error)
+-			return error;
++			goto Close;
+ 	}
+ 	suspend_console();
+ 	error = device_suspend(PMSG_SUSPEND);
+@@ -289,6 +289,9 @@ int suspend_devices_and_enter(suspend_st
+ 	device_resume();
+  Resume_console:
+ 	resume_console();
++ Close:
++	if (suspend_ops->close)
++		suspend_ops->close();
+ 	return error;
+ }
+ 
+Index: linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
+===================================================================
+--- linux-2.6.orig/arch/powerpc/platforms/52xx/lite5200_pm.c
++++ linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -31,7 +31,7 @@ static int lite5200_pm_valid(suspend_sta
+ 	}
+ }
+ 
+-static int lite5200_pm_set_target(suspend_state_t state)
++static int lite5200_pm_open(suspend_state_t state)
+ {
+ 	if (lite5200_pm_valid(state)) {
+ 		lite5200_pm_target_state = state;
+@@ -210,7 +210,7 @@ static void lite5200_pm_finish(void)
+ 
+ static struct platform_suspend_ops lite5200_pm_ops = {
+ 	.valid		= lite5200_pm_valid,
+-	.set_target	= lite5200_pm_set_target,
++	.open		= lite5200_pm_open,
+ 	.prepare	= lite5200_pm_prepare,
+ 	.enter		= lite5200_pm_enter,
+ 	.finish		= lite5200_pm_finish,
