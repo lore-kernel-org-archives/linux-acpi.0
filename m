@@ -1,46 +1,616 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: controlling ACPI IRQ routing
-Date: Fri, 28 Dec 2007 14:06:19 +0800
-Message-ID: <1198821979.20548.9.camel@sli10-desk.sh.intel.com>
-References: <47742083.5060903@howardsilvan.com>
-	 <1198814721.20418.3.camel@sli10-desk.sh.intel.com>
-	 <477489B8.20700@howardsilvan.com>
+From: Joe Shisei Niski <joeniski@easystreet.net>
+Subject: dmidecode (Re: laptop and suspend/hibernate woes)
+Date: Fri, 28 Dec 2007 09:18:10 -0800
+Message-ID: <47752FD2.9050108@easystreet.net>
+References: <476EFF6E.1010108@easystreet.net> <20071224012040.GU4925@syrinxpc.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------040009010908040009040300"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:38947 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365AbXL1GG7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Dec 2007 01:06:59 -0500
-In-Reply-To: <477489B8.20700@howardsilvan.com>
+Received: from rv-out-0910.google.com ([209.85.198.184]:31662 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753588AbXL1RST (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Dec 2007 12:18:19 -0500
+Received: by rv-out-0910.google.com with SMTP id k20so3456200rvb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Dec 2007 09:18:18 -0800 (PST)
+In-Reply-To: <20071224012040.GU4925@syrinxpc.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Howard <faxguy@howardsilvan.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------040009010908040009040300
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Greetings - when trying to deal with suspend/hibernate woes on my new 
+laptop under Ubuntu 7.10, i saw a message to send the dmidecode output 
+to you. It's attached to this message.
+
+Below is part of an email thread from my local Linux user group that 
+provides background on the specific problems i'm having, just for your 
+information.
+
+Regards,
+Joe
+==================================================================
+
+One laptop is about six months old,  the other is just under 3 yrs old,
+and the latter's BIOS has been updated to no avail.
+
+The symptoms of my suspend/hibernate problems are fairly common:
+- suspend: screen goes blank, then the dialog appears showing that the
+screen is locked. When i unlock it, there's an alert telling me that
+there was a suspend problem and to check the docs.
+- hibernate: screen flashes a bit, goes dark. Sometimes the "locked
+screen" dialog appears, sometimes not (depending on boot params) and i
+have to power-cycle the machine.
+
+potentially useful lines from the 120 produced by "dmesg | grep -i acpi"
+on the newer one, with commentary in <>:
+-------------
+ACPI: BIOS bug: multiple APIC/MADT found, using 0
+ACPI: If "acpi_apic_instance=2" works better, notify
+linux-acpi@vger.kernel.org
+< using "acpi_apic_instance=2" on the kernel boot command line made no
+difference in behavior, although the first of these lines reflected that
+instance 2 was in use>
+
+ACPI: Looking for DSDT in initramfs... error, file /DSDT.aml not found.
+<this one disturbs me - i found a few references to it, but nothing that
+adresses it directly>
+
+ACPI: System BIOS is requesting _OSI(Linux)
+ACPI: Please test with "acpi_osi=!Linux"
+<adding "acpi_osi=!Linux" to the command line made no difference, and
+these messages still appeared>
+
+<the following lines tell me that hardware detection is working ok>
+ACPI: Interpreter enabled
+ACPI: (supports S0 S3 S4 S5)
+ACPI: Using IOAPIC for interrupt routing
+
+pnp: PnP ACPI init
+ACPI: bus type pnp registered
+pnp: PnP ACPI: found 12 devices
+ACPI: ACPI bus type pnp unregistered
+PCI: Using ACPI for IRQ routing
+
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+ACPI: Processor [CPU0] (supports 8 throttling states)
+
+ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])
+ACPI: Processor [CPU1] (supports 8 throttling states)
+ACPI: Invalid passive threshold
+
+ACPI: Power Button (FF) [PWRF]
+ACPI: Power Button (CM) [PWB]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Lid Switch [LID]
+
+< the last line repeats 9 or 10 times>
+ACPI: Invalid passive threshold
+------------------
+
+i also tried boot parameters "pci=noacpi" which didn't fix
+suspend/hibernate but did significantly slow the loading of Gnome.
+"noapic" made no difference.
+
+for what it's worth, i'm using the native Nvidia drivers, but have
+followed all the tips for modifying /etc/default/acpi-support and
+xorg.conf (which i know only too well from trying to get the other
+laptop with its ATI video to behave).
+
+i've also tried disabling compiz (tried that first), though it made no
+difference in any of the command line boot options i ran through.
+
+At one point, i saw tan error when trying to hibernate, "swsusp: cannot
+find swap device, try swapon -a" - it turns out that the failed
+hibernate attemps had corrupted the swap partition. Fixed that, and
+added "resume=UUID=<swap partition UUID>" to Grub, and it seems like
+swap works even after a hibernate failure.
+
+i found this very detailed ACPI how-to on the Gentoo wiki, and may have
+to try the DSDT override, but i don't have the stomach for it right now.
+
+http://gentoo-wiki.com/HOWTO_Fix_Common_ACPI_Problems
+
+Again, thanks for the sugestion, it pointed me to more info than i'd
+previously found.
 
 
-On Thu, 2007-12-27 at 21:29 -0800, Lee Howard wrote:
-> Shaohua Li wrote:
-> > In IOAPIC mode, interrupt priority isn't related with the pin (in your
-> > case, irq 16 or 19), but the vector of the pin. How vector of a pin is
-> > allocated is quite random. Usually driver who calls pci_enable_device
-> > earier will get a lower priority vector.
-> 
-> You used the words "random" and "usually".  Could you elaborate on
-> the 
-> randomness and when usually doesn't apply?
-> 
-> So the means to prioritize a driver is to see that it gets installed 
-> earlier?  There is no other mechanism to "reserve" pin vector 
-> allocations for a specific device or driver?
-Currently vector is allocated when pci_enable_device is called. So which
-vector is allocated depends on how many drivers already called the
-routine. The first vector is 0x31, later higher priority (higher) vector
-will be allocated. In latest kernel, a vector of a irq could be variable
-when irq affinity is set, so it's much complex. There is no existing
-method to reserve a vector for a device.
+Joe
 
-Thanks,
-Shaohua
+Aaron Burt wrote:
+> On Sun, Dec 23, 2007 at 04:38:06PM -0800, Joe Shisei Niski wrote:
+>   
+>> Hi - anyone out there with experience getting their laptop to suspend or 
+>> hibernate under Ubuntu? i have two laptops i really love (Sager/Clevo, 
+>> nice high-end development boxes) but i haven't been able to get them to 
+>> suspend or hibernate unter Ubuntu 7.04 or 7.10, or with several 
+>> different versions of OpenSuse. Stanby & Hibernate work fine on Windows.
+>>     
+>
+> Hm.  How old are they, and have you updated the BIOS?  You might want to
+> do something like "dmesg | grep -i acpi" and see what it says.  I'm
+> gonna guess that the kernel doesn't like the version of ACPI on there.
+>
+> I'll bet that it'll work OK if you add "acpi=force" to the kernel
+> commandline (either edit /boot/grub/menu.lst or try adding it
+> temporarily in GRUB at boot-time.)
+>
+> _______________________________________________
+> PLUG mailing list
+> PLUG@lists.pdxlinux.org
+> http://lists.pdxlinux.org/mailman/listinfo/plug
+>
+>   
 
+-- 
+
+________________________________________
+Joe Shisei Niski
+Portland, Oregon, USA
+
+
+--------------040009010908040009040300
+Content-Type: text/plain;
+ name="dmidecode_clevo_2007_12_28.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmidecode_clevo_2007_12_28.txt"
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+42 structures occupying 1449 bytes.
+Table at 0xBFEDF000.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Phoenix
+	Version: SROSA001.86C.
+	Release Date: 10/26/2007
+	Address: 0xE5920
+	Runtime Size: 108256 bytes
+	ROM Size: 1024 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		BIOS boot specification is supported
+		Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Clevo Co.
+	Product Name: M570RU
+	Version: CLEVO:M570RU-1.00.04SL
+	Serial Number: Not Applicable
+	UUID: 0090F560-EE55-0000-0000-000000000000
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Clevo Co.
+	Product Name: SANTA ROSA CRB
+	Version: Not Applicable
+	Serial Number: Not Applicable
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer: No Enclosure
+	Type: Other
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag: No Asset Tag
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: FA 06 00 00 FF FB EB BF
+	Version: CPU Version
+	Voltage: 3.3 V
+	External Clock: Unknown
+	Max Speed: 4096 MHz
+	Current Speed: 2400 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 64 KB
+	Maximum Size: 64 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 4096 KB
+	Maximum Size: 4096 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J19
+	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+	External Reference Designator: COM 1
+	External Connector Type: DB-9 male
+	Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J1A1
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J1A1
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Mouse Port
+
+Handle 0x000A, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J8B3
+	Type: 32-bit PCI
+	Current Usage: Available
+	Length: Long
+	ID: 3
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot S9B1
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000C, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PEG Slot J6B2
+	Type: 32-bit PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 6
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000D, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J6B1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 7
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000E, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J6D1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 8
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000F, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J8B4
+	Type: 32-bit PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 9
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0010, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J8D1
+	Type: 32-bit PCI Express
+	Current Usage: In Use
+	Length: Long
+	ID: 10
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0011, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Express Slot J7B1
+	Type: 32-bit PCI Express
+	Current Usage: Available
+	Length: Long
+	ID: 11
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x0012, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x0013, DMI type 11, 5 bytes
+OEM Strings
+	String 1: This is the Intel Crestline
+	String 2: Clevo Co.
+
+Handle 0x0014, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x0015, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Not Full
+	Change Token: 0x00000001
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x0016, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 1000 MB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0017, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0016
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 2048 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: Mfg 0
+	Serial Number: 1234-B0
+	Asset Tag: Not Specified
+	Part Number: SODIMM000
+
+Handle 0x0018, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0016
+	Error Information Handle: No Error
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 2048 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: 667 MHz (1.5 ns)
+	Manufacturer: Mfg 1
+	Serial Number: 1234-B1
+	Asset Tag: Not Specified
+	Part Number: SODIMM001
+
+Handle 0x0019, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x000FFFFFFFF
+	Range Size: 4 GB
+	Physical Array Handle: 0x0016
+	Partition Width: 0
+
+Handle 0x001A, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Device Handle: 0x0017
+	Memory Array Mapped Address Handle: 0x0019
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x001B, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00080000000
+	Ending Address: 0x000FFFFFFFF
+	Range Size: 2 GB
+	Physical Device Handle: 0x0018
+	Memory Array Mapped Address Handle: 0x0019
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x001C, DMI type 22, 26 bytes
+Portable Battery
+	Location: Rear
+	Manufacturer: Intel Corporation
+	Name: Intel Corporation
+	Chemistry: Lithium Ion
+	Design Capacity: 1000 mWh
+	Design Voltage: 19 mV
+	SBDS Version: BATT_1234
+	Maximum Error: 100%
+	SBDS Serial Number: 0001
+	SBDS Manufacture Date: 1980-00-01
+	OEM-specific Information: 0x00000000
+
+Handle 0x001D, DMI type 23, 13 bytes
+System Reset
+	Status: Enabled
+	Watchdog Timer: Present
+	Boot Option: Do Not Reboot
+	Boot Option On Limit: Do Not Reboot
+	Reset Count: Unknown
+	Reset Limit: Unknown
+	Timer Interval: Unknown
+	Timeout: Unknown
+
+Handle 0x001E, DMI type 24, 5 bytes
+Hardware Security
+	Power-On Password Status: Disabled
+	Keyboard Password Status: Unknown
+	Administrator Password Status: Disabled
+	Front Panel Reset Status: Unknown
+
+Handle 0x001F, DMI type 25, 9 bytes
+	System Power Controls
+	Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0020, DMI type 26, 20 bytes
+Voltage Probe
+	Description: Voltage Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0021, DMI type 27, 12 bytes
+Cooling Device
+	Temperature Probe Handle: 0x0022
+	Type: Fan
+	Status: OK
+	OEM-specific Information: 0x00000000
+
+Handle 0x0022, DMI type 28, 20 bytes
+Temperature Probe
+	Description: Temperature Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0023, DMI type 29, 20 bytes
+Electrical Current Probe
+	Description: Electrical Current Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x0024, DMI type 30, 6 bytes
+Out-of-band Remote Access
+	Manufacturer Name: Intel
+	Inbound Connection: Enabled
+	Outbound Connection: Disabled
+
+Handle 0x0025, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x0026, DMI type 129, 16 bytes
+OEM-specific Type
+	Header and Data:
+		81 10 26 00 01 01 02 01 00 00 00 01 00 00 08 01
+	Strings:
+		Intel_ASF_001
+		Intel_ASF_001
+
+Handle 0x0027, DMI type 136, 6 bytes
+OEM-specific Type
+	Header and Data:
+		88 06 27 00 FF FF
+
+Handle 0x0028, DMI type 150, 14 bytes
+OEM-specific Type
+	Header and Data:
+		96 0E 28 00 01 01 00 00 00 00 00 00 00 00
+	Strings:
+		ABSOLUTE(PHOENIX) CLM
+
+Handle 0x0029, DMI type 127, 4 bytes
+End Of Table
+
+
+--------------040009010908040009040300--
