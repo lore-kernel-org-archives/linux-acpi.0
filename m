@@ -1,35 +1,46 @@
-From: Lee Howard <faxguy@howardsilvan.com>
-Subject: Re: controlling ACPI IRQ routing
-Date: Thu, 27 Dec 2007 21:29:28 -0800
-Message-ID: <477489B8.20700@howardsilvan.com>
-References: <47742083.5060903@howardsilvan.com> <1198814721.20418.3.camel@sli10-desk.sh.intel.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Suspend code ordering (again)
+Date: Thu, 27 Dec 2007 21:41:32 -0800 (PST)
+Message-ID: <alpine.LFD.0.9999.0712272138110.21557@woody.linux-foundation.org>
+References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no>
+	<fa.XycBwhGuyvtVl/QW5HONqLwOags@ifi.uio.no>
+	<4773E9EE.40107@shaw.ca> <200712272100.20282.rjw@sisk.pl>
+	<47744291.30100@shaw.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from frodo.howardsilvan.com ([66.119.206.113]:42236 "EHLO
-	mail.howardsilvan.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbXL1F3a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Dec 2007 00:29:30 -0500
-In-Reply-To: <1198814721.20418.3.camel@sli10-desk.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <47744291.30100@shaw.ca>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Robert Hancock <hancockr@shaw.ca>
+Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, pm list <linux-pm@lists.linux-foundation.org>, "H. Peter Anvin" <hpa@kernel.org>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-Shaohua Li wrote:
-> In IOAPIC mode, interrupt priority isn't related with the pin (in your
-> case, irq 16 or 19), but the vector of the pin. How vector of a pin is
-> allocated is quite random. Usually driver who calls pci_enable_device
-> earier will get a lower priority vector.
 
-You used the words "random" and "usually".  Could you elaborate on the 
-randomness and when usually doesn't apply?
 
-So the means to prioritize a driver is to see that it gets installed 
-earlier?  There is no other mechanism to "reserve" pin vector 
-allocations for a specific device or driver?
+On Thu, 27 Dec 2007, Robert Hancock wrote:
+> 
+> I doubt they would prefer the later ordering in any way that matters, if the
+> Windows version they were designed for uses the earlier ordering.
 
-Thanks,
+Well, I wouldn't say it's abotu "preferring" one over the other. It's very 
+possible that the BIOS writers were *intending* to prefer ACPI 2.0, and it 
+may even be likely that they thought that they wrote it that way, but the 
+real issue is that it has apparently never ever been *tested* that way.
 
-Lee.
+So yes, maybe the vendors actually thought they were a good ACPI-2.0 
+implementation, but if Windows doesn't do the ordering that the 2.0 spec 
+expects, then that is pretty much just a theoretical thing.
+
+But yeah, it would be really nice to have this verified some way. Somebody 
+must already know (whether it's a VM person or a BIOS writer, and whether 
+they'd tell us, is obviously another issue).
+
+		Linus
