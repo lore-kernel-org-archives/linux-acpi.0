@@ -1,50 +1,120 @@
-From: Robert Hancock <hancockr@shaw.ca>
-Subject: Re: Suspend code ordering (again)
-Date: Thu, 27 Dec 2007 18:25:53 -0600
-Message-ID: <47744291.30100@shaw.ca>
-References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no>
- <fa.XycBwhGuyvtVl/QW5HONqLwOags@ifi.uio.no> <4773E9EE.40107@shaw.ca>
- <200712272100.20282.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: controlling ACPI IRQ routing
+Date: Fri, 28 Dec 2007 12:05:21 +0800
+Message-ID: <1198814721.20418.3.camel@sli10-desk.sh.intel.com>
+References: <47742083.5060903@howardsilvan.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from idcmail-mo1so.shaw.ca ([24.71.223.10]:36274 "EHLO
-	pd2mo1so.prod.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753773AbXL1A0T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Dec 2007 19:26:19 -0500
-In-reply-to: <200712272100.20282.rjw@sisk.pl>
+Received: from mga03.intel.com ([143.182.124.21]:7031 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754016AbXL1EFv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Dec 2007 23:05:51 -0500
+In-Reply-To: <47742083.5060903@howardsilvan.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, "H. Peter Anvin" <hpa@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Lee Howard <faxguy@howardsilvan.com>
+Cc: linux-acpi@vger.kernel.org
 
-Rafael J. Wysocki wrote:
->> Also, as was pointed out, pre-Vista versions of Windows follow ACPI 1.0 
->> and Vista follows 3.0, so 2.0 doesn't really matter since BIOS people 
->> won't test against it. 1.0 specifies that _PTS is to be called before 
->> suspending devices and 3.0 says that the AML must not depend on any 
->> specific device power state, so in both cases it should be safe to call 
->> _PTS before suspending, no?
+
+On Fri, 2007-12-28 at 06:00 +0800, Lee Howard wrote:
+> Hello.
 > 
-> Well, IMO, if we take one option only (whichever that is) and there are systems
-> that follow the other one, they will likely break.
+> I frequently work with certain Asterisk-compatible PCI telephony
+> interfaces that use the "zaptel" module/driver.  This module generates
+> 1000 interrupts per second (yes, I know...) and any noticeable latency
+> in handling that interrupt can cause significant problems for
+> modulated
+> data audio (such as fax) passing through those telephony interfaces.
 > 
-> Apart from this, there are BIOSes that openly claim ACPI 2.0 support (for
-> example, the one in my HP nx6325 does that) and they may actually prefer the
-> post-ACPI-1.0 ordering even if they work with the pre-ACPI-2.0 one.
+> It's become apparent that IRQ priorities seem to have to a lot to do
+> with the performance of the zaptel driver.  For example, if the zaptel
+> device sits on interrupt 16, and the network interfaces and hard drive
+> interfaces are on higher-numbered interrupts then things tend to go
+> well.  But if the zaptel device sits on interrupt 19, and the network
+> interfaces and hard drive interfaces are on lesser-numbered interrupts
+> (such as 16, 17, and 18) then things tend to go poorly.
+> 
+> The zaptel driver comes with a utility called "zttest" which basically
+> indicates the reliability for the application to retrieve audio
+> samples
+> from the device driver before too much time passes... or in other
+> words,
+> the latency (or lack thereof) in handling device interrupts.  A good
+> zttest score on a well-configured system is 100%, although scores as
+> low
+> as 99.98% seem to be tolerable for modulated data audio.  However,
+> anything less... 99.97%, 99.96, I've even seen 99.91% and worse...
+> these
+> constitute poor scores and inevitably indicate that audio samples will
+> be lost during usage.  (You can see that the difference between "good"
+> and "poor" is rather a narrow margin.) Lost audio samples is tolerable
+> for voice applications, but it is detrimental to data/fax
+> applications.
+> 
+> Usually the trick, then, has been to simply start rearranging the PCI
+> cards in the system and disabling unused devices (such as serial,
+> parallel, and USB ports with the respective drivers) until some
+> combination was reached where zttest scores were good - inevitably
+> meaning that the device had a high-priority (low-numbered) interrupt.
+> 
+> Recently this trick is seemingly more and more difficult to perform...
+> and it's especially difficult in cases where (like on a 1U rack-mount
+> server) there is but one PCI slot and the motherboard BIOS offers no
+> helpful IRQ configuration mechanism.  For example, a recent
+> installation
+> of Fedora 8 on such a server put the zaptel device at a low-priority
+> interrupt.  After hours of futile BIOS option changes and tests and
+> even
+> after testing a kernel (2.6.23.11) patched with Ingo Molnar's "rt"
+> Real-Time patches (and using chrt for the associated IRQ to increase
+> priority) nothing seemed to help.  Then I simply reverted to an old
+> 2.6.20 kernel from Fedora Core 5 that we had used successfully on
+> previous deployments on similar hardware... and all was fine.  And, of
+> course, the apparent difference was that the 2.6.23.11 kernel put the
+> device interrupt high-numbered while the 2.6.20 kernel put the device
+> interrupt low-numbered.
+> 
+> Sometimes, however, it's just not ideal ... or even possible ... to
+> downgrade to a "known good" kernel.  It's certainly not desirable.  So
+> my question is, "How can we deliberately control the IRQ routing
+> assignments made by ACPI so that certain PCI devices get the
+> highest-priority interrupts?"
+> 
+> I've looked into the pirq kernel option ... only to find that it's
+> insanely difficult to understand *how* to use... and simply trying it
+> out with various values doesn't seem to accomplish much as far as I
+> can
+> tell.  (Yes, I have read Documentation/i386/IO-APIC.txt many times...
+> not that it reading it makes the pirq usage any easier to understand.)
+> 
+> I've looked into the setpci utility... but besides the man page for it
+> being mostly unhelpful, it's difficult to know whether or not using
+> setpci will actually do anything for us in this respect, as there
+> seems
+> to be a lot of conflicting information in various posts and mail
+> archives on whether or not an IRQ assignment can actually be changed
+> by
+> using setpci.  And then there's the fear that by using setpci
+> incorrectly I may actually break the hardware.
+> 
+> I'm fairly certain that this is simply a matter of ACPI tuning...
+> because with one kernel the interrupt assignments are one way while
+> with
+> another kernel the interrupt assignments are a different way... and
+> both
+> kernels use IO-APIC and IRQ routing by ACPI.
+> 
+> I would appreciate any feedback or assistance in this matter.  How can
+> we deliberately control the IRQ routing assignments made by ACPI so
+> that
+> certain PCI devices get the highest-priority interrupts?
+In IOAPIC mode, interrupt priority isn't related with the pin (in your
+case, irq 16 or 19), but the vector of the pin. How vector of a pin is
+allocated is quite random. Usually driver who calls pci_enable_device
+earier will get a lower priority vector.
 
-I doubt they would prefer the later ordering in any way that matters, if 
-the Windows version they were designed for uses the earlier ordering.
-
-It would be best if somebody could manage to find out what ordering 
-Windows XP (and Windows Vista, for good measure) actually use, then we 
-could just use that. Virtual machine trickery might be an option - the 
-only complication being that it'll be using the DSDT for the fake 
-machine and not the real one..
-
--- 
-Robert Hancock      Saskatoon, SK, Canada
-To email, remove "nospam" from hancockr@nospamshaw.ca
-Home Page: http://www.roberthancock.com/
+Thanks,
+Shaohua
 
