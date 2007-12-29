@@ -1,257 +1,64 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: [PATCH linux-acpi] Correct wakeup set error and append a new
-	column PCI ID
-Date: Sat, 29 Dec 2007 16:22:33 +0800
-Message-ID: <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
-Reply-To: yi.y.yang@intel.com
+From: Len Brown <lenb@kernel.org>
+Subject: Re: controlling ACPI IRQ routing
+Date: Sat, 29 Dec 2007 03:39:48 -0500
+Message-ID: <200712290339.48354.lenb@kernel.org>
+References: <47742083.5060903@howardsilvan.com> <477489B8.20700@howardsilvan.com> <1198821979.20548.9.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57627 "EHLO mga02.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:47125 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752325AbXL2IYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 Dec 2007 03:24:01 -0500
-In-Reply-To: <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
+	id S1752479AbXL2IkL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Dec 2007 03:40:11 -0500
+In-Reply-To: <1198821979.20548.9.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Lee Howard <faxguy@howardsilvan.com>, linux-acpi@vger.kernel.org
 
-Subject: ACPI: Correct wakeup set error and append a new column PCI ID
-From: Yi Yang <yi.y.yang@intel.com>
+On Friday 28 December 2007 01:06, Shaohua Li wrote:
+> 
+> On Thu, 2007-12-27 at 21:29 -0800, Lee Howard wrote:
+> > Shaohua Li wrote:
+> > > In IOAPIC mode, interrupt priority isn't related with the pin (in your
+> > > case, irq 16 or 19), but the vector of the pin. How vector of a pin is
+> > > allocated is quite random. Usually driver who calls pci_enable_device
+> > > earier will get a lower priority vector.
+> > 
+> > You used the words "random" and "usually".  Could you elaborate on
+> > the 
+> > randomness and when usually doesn't apply?
+> > 
+> > So the means to prioritize a driver is to see that it gets installed 
+> > earlier?  There is no other mechanism to "reserve" pin vector 
+> > allocations for a specific device or driver?
 
-The user can't get any information when echo an invalid value to
-/proc/acpi/wakeup although it is failed, but the user can set
-/proc/acpi/wakeup successfully if echo an value whose prefix is a
-valid value for /proc/acpi/wakeup no matter what the suffix is.
+> Currently vector is allocated when pci_enable_device is called. So which
+> vector is allocated depends on how many drivers already called the
+> routine. The first vector is 0x31, later higher priority (higher) vector
+> will be allocated. In latest kernel, a vector of a irq could be variable
+> when irq affinity is set, so it's much complex. There is no existing
+> method to reserve a vector for a device.
 
-/proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
+1000 interrupts/second isn't a lot on modern hardware.
+Indeed, many linux distros run with 1000 clock ticks/second today.
 
-This patch will fix the aforementioned issues, it will return the error
-information if input is an invalid value, it also make /proc/acpi/wakeup
-case-insensitive, i.e. it consider 'SLPB' and 'sLpb'are the same.
+I don't understand why interrupt priority has anything to do
+with what you are seeing.  To notice such a thing, you'd have
+to have a lot of competing interrupts firing at the same time
+and the messages queued up inside the LAPIC and the processor
+spending a large % of its time in interrupt context.
+(does top(1) say that you're running a large %sys?)
 
-In addtion, this patch appends a new column 'PCI ID' to /proc/acpi/wakeup
-, the user can use it to get the corresponding device name very
-conveniently because PCI ID is a unique identifier and platform-independent.
+What is the total interrupt rate on the system when this
+device is doing 1000/second?
 
-Before applying this patch, the output is:
+Are there multiple cores on the system?  If so,
+are the interrupts bound to certain cores or is
+irqbalance running?
 
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node
-C093      S5     disabled  pci:0000:00:1e.0
-C0E8      S3     disabled  pci:0000:00:1d.0
-C0EF      S3     disabled  pci:0000:00:1d.1
-C0F0      S3     disabled  pci:0000:00:1d.2
-C0F1      S3     disabled  pci:0000:00:1d.3
-C0F2      S3     disabled  pci:0000:00:1d.7
-C0F9      S0     disabled  pci:0000:00:1c.0
-C21D      S0     disabled  pci:0000:08:00.0
-C109      S5     disabled  pci:0000:00:1c.1
-C228      S5     disabled  pci:0000:10:00.0
-C10F      S5     disabled  pci:0000:00:1c.3
-C229      S5     disabled
-[root@localhost ~]# echo "xyzw" > /proc/acpi/wakeup
-[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node
-C093      S5     enabled   pci:0000:00:1e.0
-C0E8      S3     disabled  pci:0000:00:1d.0
-C0EF      S3     disabled  pci:0000:00:1d.1
-C0F0      S3     disabled  pci:0000:00:1d.2
-C0F1      S3     disabled  pci:0000:00:1d.3
-C0F2      S3     disabled  pci:0000:00:1d.7
-C0F9      S0     disabled  pci:0000:00:1c.0
-C21D      S0     disabled  pci:0000:08:00.0
-C109      S5     disabled  pci:0000:00:1c.1
-C228      S5     disabled  pci:0000:10:00.0
-C10F      S5     disabled  pci:0000:00:1c.3
-C229      S5     disabled
-[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node
-C093      S5     disabled  pci:0000:00:1e.0
-C0E8      S3     disabled  pci:0000:00:1d.0
-C0EF      S3     disabled  pci:0000:00:1d.1
-C0F0      S3     disabled  pci:0000:00:1d.2
-C0F1      S3     disabled  pci:0000:00:1d.3
-C0F2      S3     disabled  pci:0000:00:1d.7
-C0F9      S0     disabled  pci:0000:00:1c.0
-C21D      S0     disabled  pci:0000:08:00.0
-C109      S5     disabled  pci:0000:00:1c.1
-C228      S5     disabled  pci:0000:10:00.0
-C10F      S5     disabled  pci:0000:00:1c.3
-C229      S5     disabled
-[root@localhost ~]# echo "c093" > /proc/acpi/wakeup
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node
-C093      S5     disabled  pci:0000:00:1e.0
-C0E8      S3     disabled  pci:0000:00:1d.0
-C0EF      S3     disabled  pci:0000:00:1d.1
-C0F0      S3     disabled  pci:0000:00:1d.2
-C0F1      S3     disabled  pci:0000:00:1d.3
-C0F2      S3     disabled  pci:0000:00:1d.7
-C0F9      S0     disabled  pci:0000:00:1c.0
-C21D      S0     disabled  pci:0000:08:00.0
-C109      S5     disabled  pci:0000:00:1c.1
-C228      S5     disabled  pci:0000:10:00.0
-C10F      S5     disabled  pci:0000:00:1c.3
-C229      S5     disabled
-[root@localhost ~]#
-
-After applying this patch, the output is:
-
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node           PCI ID
-C093      S5     disabled  pci:0000:00:1e.0     0x2448
-C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-C228      S5     disabled  pci:0000:10:00.0     0x4222
-C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-C229      S5     disabled
-[root@localhost ~]# echo "xyzw" > /proc/acpi/wakeup
--bash: echo: write error: Invalid argument
-[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
--bash: echo: write error: Invalid argument
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node           PCI ID
-C093      S5     disabled  pci:0000:00:1e.0     0x2448
-C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-C228      S5     disabled  pci:0000:10:00.0     0x4222
-C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-C229      S5     disabled
-[root@localhost ~]# echo "c093" > /proc/acpi/wakeup
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node           PCI ID
-C093      S5     enabled   pci:0000:00:1e.0     0x2448
-C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-C228      S5     disabled  pci:0000:10:00.0     0x4222
-C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-C229      S5     disabled
-[root@localhost ~]# echo "C093" > /proc/acpi/wakeup
-[root@localhost ~]# cat /proc/acpi/wakeup
-Device  S-state   Status   Sysfs node           PCI ID
-C093      S5     disabled  pci:0000:00:1e.0     0x2448
-C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-C228      S5     disabled  pci:0000:10:00.0     0x4222
-C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-C229      S5     disabled
-[root@localhost ~]#
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
----
- proc.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
-index f8df521..a19b6bd 100644
---- a/drivers/acpi/sleep/proc.c
-+++ b/drivers/acpi/sleep/proc.c
-@@ -3,6 +3,7 @@
- #include <linux/suspend.h>
- #include <linux/bcd.h>
- #include <asm/uaccess.h>
-+#include <linux/pci.h>
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -343,7 +344,7 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct list_head *node, *next;
- 
--	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
-+	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\t\tPCI ID\n");
- 
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-@@ -362,9 +363,9 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
- 			   dev->wakeup.flags.run_wake ? '*' : ' ',
- 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
- 		if (ldev)
--			seq_printf(seq, "%s:%s",
-+			seq_printf(seq, "%s:%-12s\t0x%04x",
- 				   ldev->bus ? ldev->bus->name : "no-bus",
--				   ldev->bus_id);
-+				   ldev->bus_id, to_pci_dev(ldev)->device);
- 		seq_printf(seq, "\n");
- 		put_device(ldev);
- 
-@@ -380,18 +381,18 @@ acpi_system_write_wakeup_device(struct file *file,
- 				size_t count, loff_t * ppos)
- {
- 	struct list_head *node, *next;
--	char strbuf[5];
--	char str[5] = "";
-+	char str[6] = "";
- 	int len = count;
- 	struct acpi_device *found_dev = NULL;
- 
--	if (len > 4)
--		len = 4;
-+	if (len > 5)
-+		return -EINVAL;
- 
--	if (copy_from_user(strbuf, buffer, len))
-+	if (copy_from_user(str, buffer, len))
- 		return -EFAULT;
--	strbuf[len] = '\0';
--	sscanf(strbuf, "%s", str);
-+	str[len] = '\0';
-+	if (str[len-1] == '\n')
-+		str[len-1] = '\0';
- 
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
-@@ -400,7 +401,7 @@ acpi_system_write_wakeup_device(struct file *file,
- 		if (!dev->wakeup.flags.valid)
- 			continue;
- 
--		if (!strncmp(dev->pnp.bus_id, str, 4)) {
-+		if (!strnicmp(dev->pnp.bus_id, str, 4)) {
- 			dev->wakeup.state.enabled =
- 			    dev->wakeup.state.enabled ? 0 : 1;
- 			found_dev = dev;
-@@ -429,7 +430,10 @@ acpi_system_write_wakeup_device(struct file *file,
- 		}
- 	}
- 	spin_unlock(&acpi_device_lock);
--	return count;
-+	if (found_dev == NULL)
-+		return -EINVAL;
-+	else
-+		return count;
- }
- 
- static int
-
+-Len
 
