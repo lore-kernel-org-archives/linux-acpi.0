@@ -1,520 +1,257 @@
-From: Jan-Simon =?iso-8859-1?q?M=F6ller?= <dl9pf@gmx.de>
-Subject: Brightness control keys got lost
-Date: Fri, 28 Dec 2007 23:00:51 +0100
-Message-ID: <200712282300.51705.dl9pf@gmx.de>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH linux-acpi] Correct wakeup set error and append a new
+	column PCI ID
+Date: Sat, 29 Dec 2007 16:22:33 +0800
+Message-ID: <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51517 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752435AbXL1WAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Dec 2007 17:00:55 -0500
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:57627 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752325AbXL2IYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Dec 2007 03:24:01 -0500
+In-Reply-To: <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 
-I build a snapshot of the acpi.git tree (2.6.23, 21. Okt 07) and had a working backlight control on my FSC Esprimo V5505.
-With a build from mainline (of today) and also from acpi (also of today) the key's don't work any more.
+Subject: ACPI: Correct wakeup set error and append a new column PCI ID
+From: Yi Yang <yi.y.yang@intel.com>
 
+The user can't get any information when echo an invalid value to
+/proc/acpi/wakeup although it is failed, but the user can set
+/proc/acpi/wakeup successfully if echo an value whose prefix is a
+valid value for /proc/acpi/wakeup no matter what the suffix is.
 
-The Volume-up/down/mute (Fn-F4/F5), the s2ram button (Fn-F12) work. 
-Left are Brightness, Display-change, WLan/BT-Switch and Touchpad-switch.
+/proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
 
-Brightness are Fn-F8/down and Fn-F9/up
-dmesg if "backlight down" is pressed:
-atkbd.c: Unknown key released (translated set 2, code 0xd9 on isa0060/serio0).
-atkbd.c: Use 'setkeycodes e059 <keycode>' to make it known.
+This patch will fix the aforementioned issues, it will return the error
+information if input is an invalid value, it also make /proc/acpi/wakeup
+case-insensitive, i.e. it consider 'SLPB' and 'sLpb'are the same.
 
-no output on "backlight up"
+In addtion, this patch appends a new column 'PCI ID' to /proc/acpi/wakeup
+, the user can use it to get the corresponding device name very
+conveniently because PCI ID is a unique identifier and platform-independent.
 
-Display is Fn-F10:
-Dec 28 22:53:51 legolas kernel: atkbd.c: Unknown key released (translated set 2, code 0xa9 on isa0060/serio0).
-Dec 28 22:53:51 legolas kernel: atkbd.c: Use 'setkeycodes e029 <keycode>' to make it known.
+Before applying this patch, the output is:
 
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+C093      S5     disabled  pci:0000:00:1e.0
+C0E8      S3     disabled  pci:0000:00:1d.0
+C0EF      S3     disabled  pci:0000:00:1d.1
+C0F0      S3     disabled  pci:0000:00:1d.2
+C0F1      S3     disabled  pci:0000:00:1d.3
+C0F2      S3     disabled  pci:0000:00:1d.7
+C0F9      S0     disabled  pci:0000:00:1c.0
+C21D      S0     disabled  pci:0000:08:00.0
+C109      S5     disabled  pci:0000:00:1c.1
+C228      S5     disabled  pci:0000:10:00.0
+C10F      S5     disabled  pci:0000:00:1c.3
+C229      S5     disabled
+[root@localhost ~]# echo "xyzw" > /proc/acpi/wakeup
+[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+C093      S5     enabled   pci:0000:00:1e.0
+C0E8      S3     disabled  pci:0000:00:1d.0
+C0EF      S3     disabled  pci:0000:00:1d.1
+C0F0      S3     disabled  pci:0000:00:1d.2
+C0F1      S3     disabled  pci:0000:00:1d.3
+C0F2      S3     disabled  pci:0000:00:1d.7
+C0F9      S0     disabled  pci:0000:00:1c.0
+C21D      S0     disabled  pci:0000:08:00.0
+C109      S5     disabled  pci:0000:00:1c.1
+C228      S5     disabled  pci:0000:10:00.0
+C10F      S5     disabled  pci:0000:00:1c.3
+C229      S5     disabled
+[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+C093      S5     disabled  pci:0000:00:1e.0
+C0E8      S3     disabled  pci:0000:00:1d.0
+C0EF      S3     disabled  pci:0000:00:1d.1
+C0F0      S3     disabled  pci:0000:00:1d.2
+C0F1      S3     disabled  pci:0000:00:1d.3
+C0F2      S3     disabled  pci:0000:00:1d.7
+C0F9      S0     disabled  pci:0000:00:1c.0
+C21D      S0     disabled  pci:0000:08:00.0
+C109      S5     disabled  pci:0000:00:1c.1
+C228      S5     disabled  pci:0000:10:00.0
+C10F      S5     disabled  pci:0000:00:1c.3
+C229      S5     disabled
+[root@localhost ~]# echo "c093" > /proc/acpi/wakeup
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+C093      S5     disabled  pci:0000:00:1e.0
+C0E8      S3     disabled  pci:0000:00:1d.0
+C0EF      S3     disabled  pci:0000:00:1d.1
+C0F0      S3     disabled  pci:0000:00:1d.2
+C0F1      S3     disabled  pci:0000:00:1d.3
+C0F2      S3     disabled  pci:0000:00:1d.7
+C0F9      S0     disabled  pci:0000:00:1c.0
+C21D      S0     disabled  pci:0000:08:00.0
+C109      S5     disabled  pci:0000:00:1c.1
+C228      S5     disabled  pci:0000:10:00.0
+C10F      S5     disabled  pci:0000:00:1c.3
+C229      S5     disabled
+[root@localhost ~]#
 
-Touchpad-Switch Fn-F6 (touchpad stops working atm, if used):
-First time pressed:
-Dec 28 22:55:22 legolas kernel: atkbd.c: Unknown key released (translated set 2, code 0xf1 on isa0060/serio0).
-Dec 28 22:55:22 legolas kernel: atkbd.c: Use 'setkeycodes e071 <keycode>' to make it known.
+After applying this patch, the output is:
 
-2nd time pressed:
-Dec 28 22:55:23 legolas kernel: atkbd.c: Unknown key pressed (translated set 2, code 0xf2 on isa0060/serio0).
-Dec 28 22:55:23 legolas kernel: atkbd.c: Use 'setkeycodes e072 <keycode>' to make it known.
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     disabled  pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+C228      S5     disabled  pci:0000:10:00.0     0x4222
+C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+C229      S5     disabled
+[root@localhost ~]# echo "xyzw" > /proc/acpi/wakeup
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "C093xxxxxxxxx" > /proc/acpi/wakeup
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     disabled  pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+C228      S5     disabled  pci:0000:10:00.0     0x4222
+C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+C229      S5     disabled
+[root@localhost ~]# echo "c093" > /proc/acpi/wakeup
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     enabled   pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+C228      S5     disabled  pci:0000:10:00.0     0x4222
+C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+C229      S5     disabled
+[root@localhost ~]# echo "C093" > /proc/acpi/wakeup
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     disabled  pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+C228      S5     disabled  pci:0000:10:00.0     0x4222
+C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+C229      S5     disabled
+[root@localhost ~]#
 
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+---
+ proc.c |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-WLAN/Bluetooth-Switch Fn-F1:
-No effect, no dmesg (which is fine for me, imho).
-
-
-
-
-
-dmidecode:
-SMBIOS 2.4 present.
-43 structures occupying 1553 bytes.
-Table at 0x7F6DF000.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Phoenix Technologies LTD
-        Version: R01-A0W
-        Release Date: 10/24/2007
-        Address: 0xE6270
-        Runtime Size: 105872 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PC Card (PCMCIA) is supported
-                PNP is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                ACPI is supported
-                USB legacy is supported
-                AGP is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-        Manufacturer: FUJITSU SIEMENS
-        Product Name: ESPRIMO Mobile V5505
-        Version: 20
-        Serial Number: YKAJ018877
-        UUID: B89830A0-44C5-11DC-BE91-0016D38D8034
-        Wake-up Type: Power Switch
-        SKU Number: Not Specified
-        Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: FUJITSU SIEMENS
-        Product Name: ESPRIMO Mobile V5505
-        Version: Not Applicable
-        Serial Number: 914V0Z1003G73103DDDKS0B
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-        Manufacturer: FUJITSU SIEMENS
-        Type: Notebook
-        Lock: Not Present
-        Version: A2040
-        Serial Number: YKAJ018877
-        Asset Tag: No Asset Tag
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-        OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-        Socket Designation: U2E1
-        Type: Central Processor
-        Family: Other
-        Manufacturer: Intel
-        ID: FA 06 00 00 FF FB EB BF
-        Version: CPU Version
-        Voltage: 3.3 V
-        External Clock: Unknown
-        Max Speed: 4096 MHz
-        Current Speed: 2000 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Socketed, Level 2
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 4096 KB
-        Maximum Size: 4096 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Burst
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
-
-Handle 0x0007, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J19
-        Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
-        External Reference Designator: COM 1
-        External Connector Type: DB-9 male
-        Port Type: Serial Port 16550A Compatible
-
-Handle 0x0008, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J1A1
-        Internal Connector Type: None
-        External Reference Designator: Keyboard
-        External Connector Type: Circular DIN-8 male
-        Port Type: Keyboard Port
-
-Handle 0x0009, DMI type 8, 9 bytes
-Port Connector Information
-        Internal Reference Designator: J1A1
-        Internal Connector Type: None
-        External Reference Designator: PS/2 Mouse
-        External Connector Type: Circular DIN-8 male
-        Port Type: Mouse Port
-
-Handle 0x000A, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Slot J8B3
-        Type: 32-bit PCI
-        Current Usage: Available
-        Length: Long
-        ID: 3
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x000B, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Slot S9B1
-        Type: 32-bit PCI
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x000C, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PEG Slot J6B2
-        Type: 32-bit PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 6
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x000D, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J6B1
-        Type: 32-bit PCI Express
-        Current Usage: In Use
-        Length: Long
-        ID: 7
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x000E, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J6D1
-        Type: 32-bit PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 8
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x000F, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J8B4
-        Type: 32-bit PCI Express
-        Current Usage: In Use
-        Length: Long
-        ID: 9
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x0010, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J8D1
-        Type: 32-bit PCI Express
-        Current Usage: Available
-        Length: Long
-        ID: 10
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x0011, DMI type 9, 13 bytes
-System Slot Information
-        Designation: PCI Express Slot J7B1
-        Type: 32-bit PCI Express
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
-
-Handle 0x0012, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Sound
-        Status: Disabled
-        Description: HD-Audio
-
-Handle 0x0013, DMI type 11, 5 bytes
-OEM Strings
-        String 1: This is the Intel Crestline
-        String 2: Chipset CRB Platform
-
-Handle 0x0014, DMI type 12, 5 bytes
-System Configuration Options
-        Option 1: Jumper settings can be described here.
-
-Handle 0x0015, DMI type 15, 29 bytes
-System Event Log
-        Area Length: 16 bytes
-        Header Start Offset: 0x0000
-        Header Length: 16 bytes
-        Data Start Offset: 0x0010
-        Access Method: General-purpose non-volatile data functions
-        Access Address: 0x0000
-        Status: Valid, Not Full
-        Change Token: 0x00000001
-        Header Format: Type 1
-        Supported Log Type Descriptors: 3
-        Descriptor 1: POST error
-        Data Format 1: POST results bitmap
-        Descriptor 2: Single-bit ECC memory error
-        Data Format 2: Multiple-event
-        Descriptor 3: Multi-bit ECC memory error
-        Data Format 3: Multiple-event
-
-Handle 0x0016, DMI type 16, 15 bytes
-Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 4 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
-
-Handle 0x0017, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x0016
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M1
-        Bank Locator: Bank 0
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 0
-        Serial Number: 1234-B0
-        Asset Tag: Not Specified
-        Part Number: SODIMM000
-
-Handle 0x0018, DMI type 17, 27 bytes
-Memory Device
-        Array Handle: 0x0016
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M2
-        Bank Locator: Bank 1
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 1
-        Serial Number: 1234-B1
-        Asset Tag: Not Specified
-        Part Number: SODIMM001
-
-Handle 0x0019, DMI type 19, 15 bytes
-Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 2 GB
-        Physical Array Handle: 0x0016
-        Partition Width: 0
-
-Handle 0x001A, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x0017
-        Memory Array Mapped Address Handle: 0x0019
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
-
-Handle 0x001B, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00040000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x0018
-        Memory Array Mapped Address Handle: 0x0019
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
-
-Handle 0x001C, DMI type 22, 26 bytes
-Portable Battery
-        Location: main
-        Manufacturer: Foxlink
-        Manufacture Date: Panasonic
-        Serial Number: e00513301B32B21030742
-        Name:
-        Chemistry: Lithium Ion
-        Design Capacity: 48840 mWh
-        Design Voltage: 11100 mV
-        SBDS Version: 00
-        Maximum Error: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x001D, DMI type 23, 13 bytes
-System Reset
-        Status: Enabled
-        Watchdog Timer: Present
-        Boot Option: Do Not Reboot
-        Boot Option On Limit: Do Not Reboot
-        Reset Count: Unknown
-        Reset Limit: Unknown
-        Timer Interval: Unknown
-        Timeout: Unknown
-
-Handle 0x001E, DMI type 24, 5 bytes
-Hardware Security
-        Power-On Password Status: Disabled
-        Keyboard Password Status: Unknown
-        Administrator Password Status: Disabled
-        Front Panel Reset Status: Unknown
-
-Handle 0x001F, DMI type 25, 9 bytes
-        System Power Controls
-        Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x0020, DMI type 26, 20 bytes
-Voltage Probe
-        Description: Voltage Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x0021, DMI type 27, 12 bytes
-Cooling Device
-        Temperature Probe Handle: 0x0022
-        Type: Fan
-        Status: OK
-        OEM-specific Information: 0x00000000
-
-Handle 0x0022, DMI type 28, 20 bytes
-Temperature Probe
-        Description: Temperature Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x0023, DMI type 29, 20 bytes
-Electrical Current Probe
-        Description: Electrical Current Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
-
-Handle 0x0024, DMI type 30, 6 bytes
-Out-of-band Remote Access
-        Manufacturer Name: Intel
-        Inbound Connection: Enabled
-        Outbound Connection: Disabled
-
-Handle 0x0025, DMI type 32, 20 bytes
-System Boot Information
-        Status: <OUT OF SPEC>
-
-Handle 0x0026, DMI type 129, 10 bytes
-OEM-specific Type
-        Header and Data:
-                81 0A 26 00 01 01 02 01 01 02
-        Strings:
-                Intel_ASF
-                Intel_ASF_001
-
-Handle 0x0027, DMI type 136, 6 bytes
-OEM-specific Type
-        Header and Data:
-                88 06 27 00 FF FF
-
-Handle 0x0028, DMI type 150, 14 bytes
-OEM-specific Type
-        Header and Data:
-                96 0E 28 00 01 01 00 00 00 00 00 00 00 00
-        Strings:
-                ABSOLUTE(PHOENIX) CLM
-
-Handle 0x0029, DMI type 200, 7 bytes
-OEM-specific Type
-        Header and Data:
-                C8 07 29 00 01 02 03
-        Strings:
-                17C0
-
-                0001
-
-Handle 0x002A, DMI type 127, 4 bytes
-End Of Table
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+index f8df521..a19b6bd 100644
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -3,6 +3,7 @@
+ #include <linux/suspend.h>
+ #include <linux/bcd.h>
+ #include <asm/uaccess.h>
++#include <linux/pci.h>
+ 
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -343,7 +344,7 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	struct list_head *node, *next;
+ 
+-	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
++	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\t\tPCI ID\n");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+@@ -362,9 +363,9 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ 			   dev->wakeup.flags.run_wake ? '*' : ' ',
+ 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
+ 		if (ldev)
+-			seq_printf(seq, "%s:%s",
++			seq_printf(seq, "%s:%-12s\t0x%04x",
+ 				   ldev->bus ? ldev->bus->name : "no-bus",
+-				   ldev->bus_id);
++				   ldev->bus_id, to_pci_dev(ldev)->device);
+ 		seq_printf(seq, "\n");
+ 		put_device(ldev);
+ 
+@@ -380,18 +381,18 @@ acpi_system_write_wakeup_device(struct file *file,
+ 				size_t count, loff_t * ppos)
+ {
+ 	struct list_head *node, *next;
+-	char strbuf[5];
+-	char str[5] = "";
++	char str[6] = "";
+ 	int len = count;
+ 	struct acpi_device *found_dev = NULL;
+ 
+-	if (len > 4)
+-		len = 4;
++	if (len > 5)
++		return -EINVAL;
+ 
+-	if (copy_from_user(strbuf, buffer, len))
++	if (copy_from_user(str, buffer, len))
+ 		return -EFAULT;
+-	strbuf[len] = '\0';
+-	sscanf(strbuf, "%s", str);
++	str[len] = '\0';
++	if (str[len-1] == '\n')
++		str[len-1] = '\0';
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+@@ -400,7 +401,7 @@ acpi_system_write_wakeup_device(struct file *file,
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 
+-		if (!strncmp(dev->pnp.bus_id, str, 4)) {
++		if (!strnicmp(dev->pnp.bus_id, str, 4)) {
+ 			dev->wakeup.state.enabled =
+ 			    dev->wakeup.state.enabled ? 0 : 1;
+ 			found_dev = dev;
+@@ -429,7 +430,10 @@ acpi_system_write_wakeup_device(struct file *file,
+ 		}
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+-	return count;
++	if (found_dev == NULL)
++		return -EINVAL;
++	else
++		return count;
+ }
+ 
+ static int
 
 
-Could anyone point me in the right direction ?
-
-TIA
-Jan-Simon
