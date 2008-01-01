@@ -1,72 +1,67 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new column PCI ID
-Date: Wed, 2 Jan 2008 00:20:11 +0100
-Message-ID: <20080101232011.GA2545@ucw.cz>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1198744900.3640.4.camel@yangyi-dev.bj.intel.com> <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/4] PM: Do not destroy/create devices while suspended (rev. 2)
+Date: Wed, 2 Jan 2008 00:32:44 +0100
+Message-ID: <200801020032.45529.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:56523 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838AbYAAXVV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jan 2008 18:21:21 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:38105 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755412AbYAAXk4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jan 2008 18:40:56 -0500
 Content-Disposition: inline
-In-Reply-To: <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yi Yang <yi.y.yang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>, Greg KH <gregkh@suse.de>
 
-Hi!
+Hi,
 
-> /proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
+Some device drivers register CPU hotplug notifiers and use them to dest=
+roy
+device objects when removing the corresponding CPUs and to create these=
+ objects
+when adding the CPUs back.
 
-Why?
+Unfortunately, this is not the right thing to do during suspend/hiberna=
+tion,
+since in that cases the CPU hotplug notifiers are called after suspendi=
+ng
+devices and before resuming them, so the operations in question are car=
+ried
+out on the objects representing suspended devices which shouldn't be
+unregistered behing the PM core's back. =A0Although right now it usuall=
+y doesn't
+lead to any practical complications, it will predictably deadlock if
+gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch is appl=
+ied.
 
-> In addtion, this patch appends a new column 'PCI ID' to /proc/acpi/wakeup
-> , the user can use it to get the corresponding device name very
-> conveniently because PCI ID is a unique identifier and platform-independent.
+The solution is to prevent drivers from removing/adding devices from wi=
+thin
+CPU hotplug notifiers during suspend/hibernation using the FROZEN bit
+in the notifier's action argument.  However, this has to be done with c=
+are,
+since the devices objects related to the nonboot CPUs that failed to go=
+ online
+during resume should not be present in the system.  For this reason, it=
+ seems
+reasonable to introduce a mechanism allowing drivers to ask the PM core=
+ to
+remove device objects corresponding to suspended devices on their behal=
+f.
 
-Userland interface change...?
+The first patch in the series introduces such a mechanism.  The remaini=
+ng three
+patches modify the MSR, x86-64 MCE and cpuid drivers in accordance with=
+ the
+above approach.
 
-Maybe this file should be left for compatibility and we should present
-something reasonable in /sys? Can't you already get PCI ID from sysfs
-node?
-								Pavel
+Thanks,
+Rafael
 
-> [root@localhost ~]# cat /proc/acpi/wakeup
-> Device  S-state   Status   Sysfs node
-> C093      S5     disabled  pci:0000:00:1e.0
-> C0E8      S3     disabled  pci:0000:00:1d.0
-> C0EF      S3     disabled  pci:0000:00:1d.1
-> C0F0      S3     disabled  pci:0000:00:1d.2
-> C0F1      S3     disabled  pci:0000:00:1d.3
-> C0F2      S3     disabled  pci:0000:00:1d.7
-> C0F9      S0     disabled  pci:0000:00:1c.0
-> C21D      S0     disabled  pci:0000:08:00.0
-> C109      S5     disabled  pci:0000:00:1c.1
-> C228      S5     disabled  pci:0000:10:00.0
-> C10F      S5     disabled  pci:0000:00:1c.3
-> C229      S5     disabled
-> [root@localhost ~]#
-> 
-> After applying this patch, the output is:
-> 
-> [root@localhost ~]# cat /proc/acpi/wakeup
-> Device  S-state   Status   Sysfs node           PCI ID
-> C093      S5     disabled  pci:0000:00:1e.0     0x2448
-> C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-> C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-> C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-> C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-> C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-> C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-> C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-> C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-> C228      S5     disabled  pci:0000:10:00.0     0x4222
-> C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-> C229      S5     disabled
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
