@@ -1,63 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Fw: [Bugme-new] [Bug 9663] New: in 2.6.24-rc6 function keys on my notebook doesn`t work
-Date: Tue, 1 Jan 2008 20:33:18 +0100
-Message-ID: <200801012033.19189.rjw@sisk.pl>
-References: <20071229183638.a601641d.akpm@linux-foundation.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Kohjinsha sleep problems
+Date: Tue, 1 Jan 2008 23:19:55 +0000
+Message-ID: <20080101231955.GA1931@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37261 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754330AbYAATbX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Jan 2008 14:31:23 -0500
-In-Reply-To: <20071229183638.a601641d.akpm@linux-foundation.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:46918 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754701AbYAAWVx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jan 2008 17:21:53 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>, msnkipa@mail.ru
+To: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-On Sunday, 30 of December 2007, Andrew Morton wrote:
-> 
-> Another regression.
+Hi!
 
-Added to the list, thanks.
+On kohjinsha, wakeup code does not seem to be reached at all. I tried
+looking around FACS, but it seems very empty:
 
+(none):/data/l/kohji# acpidump -t FACS
+FACS @ 0x1f7bffc0
+  0000: 46 41 43 53 40 00 00 00 00 00 00 00 00 00 00 00
+FACS@...........
+  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+................
+  0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+................
+  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+................
 
-> Begin forwarded message:
-> 
-> Date: Sat, 29 Dec 2007 16:07:30 -0800 (PST)
-> From: bugme-daemon@bugzilla.kernel.org
-> To: bugme-new@lists.osdl.org
-> Subject: [Bugme-new] [Bug 9663] New: in 2.6.24-rc6 function keys on my notebook doesn`t work
-> 
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9663
-> 
->            Summary: in 2.6.24-rc6 function keys on my notebook doesn`t work
->            Product: ACPI
->            Version: 2.5
->      KernelVersion: 2.6.24-rc6
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: high
->           Priority: P1
->          Component: ACPICA-Core
->         AssignedTo: acpi_acpica-core@kernel-bugs.osdl.org
->         ReportedBy: msnkipa@mail.ru
-> 
-> 
-> Most recent kernel where this bug did not occur: 2.6.23.12
-> Distribution: debian unstable
-> Hardware Environment: toshiba u300-13m
-> Software Environment: -
-> Problem Description: function keys that tune the brightness of lcd on my
-> notebook stop to work. function key that enable/disable touchpad stop to work.
-> on 2.6.23.12 kernel it work fine, but atkbd.c always report about unknown key
-> code but keys work! on .24 kernel no such reports happen but keys doesn`t work!
-> 
-> Steps to reproduce: install 2.6.24-rc6 kernel
+(none):/data/l/kohji# iasl -d FACS.aml
+
+Intel ACPI Component Architecture
+AML Disassembler version 20060912 [Dec 20 2006]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+Loading Acpi table from file FACS.aml
+iasl[1864]: segfault at 080e5000 eip 08062f5c esp bf9d1e50 error 4
+Segmentation fault
+(none):/data/l/kohji#
+
+In dmesg I find:
+
+DMI 2.3 present.
+ACPI: RSDP 000E9010, 0014 (r0 OID_00)
+ACPI: RSDT 1F7B1E40, 0030 (r1 AMD    RSDT_000 31303030 AMD  31303030)
+ACPI: FACP 1F7B1D40, 0084 (r1 AMD    FACP_000 31303030 AMD  31303030)
+ACPI: DSDT 1F7B0000, 1D30 (r1 INSYDE CS553x       1007 INTL 20030122)
+ACPI: FACS 1F7BFFC0, 0040
+ACPI: BOOT 1F7B1DD0, 0028 (r1 AMD    BOOT_000 31303030 AMD  31303030)
+ACPI: DBGP 1F7B1E00, 0034 (r1 AMD    DBGP_000 31303030 AMD  31303030)
+ACPI: PM-Timer IO Port: 0x9c10
+
+What should be done to debug this? I guess FACS is strictly neccessary
+for sleep support?
+							Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
