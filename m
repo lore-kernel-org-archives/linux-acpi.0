@@ -1,62 +1,72 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Kohjinsha sleep problems
-Date: Tue, 1 Jan 2008 23:19:55 +0000
-Message-ID: <20080101231955.GA1931@ucw.cz>
+Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new column PCI ID
+Date: Wed, 2 Jan 2008 00:20:11 +0100
+Message-ID: <20080101232011.GA2545@ucw.cz>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1198744900.3640.4.camel@yangyi-dev.bj.intel.com> <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:46918 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:56523 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754701AbYAAWVx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jan 2008 17:21:53 -0500
+	with ESMTP id S1755838AbYAAXVV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jan 2008 18:21:21 -0500
 Content-Disposition: inline
+In-Reply-To: <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Yi Yang <yi.y.yang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 
 Hi!
 
-On kohjinsha, wakeup code does not seem to be reached at all. I tried
-looking around FACS, but it seems very empty:
+> /proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
 
-(none):/data/l/kohji# acpidump -t FACS
-FACS @ 0x1f7bffc0
-  0000: 46 41 43 53 40 00 00 00 00 00 00 00 00 00 00 00
-FACS@...........
-  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-................
-  0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-................
-  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-................
+Why?
 
-(none):/data/l/kohji# iasl -d FACS.aml
+> In addtion, this patch appends a new column 'PCI ID' to /proc/acpi/wakeup
+> , the user can use it to get the corresponding device name very
+> conveniently because PCI ID is a unique identifier and platform-independent.
 
-Intel ACPI Component Architecture
-AML Disassembler version 20060912 [Dec 20 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
+Userland interface change...?
 
-Loading Acpi table from file FACS.aml
-iasl[1864]: segfault at 080e5000 eip 08062f5c esp bf9d1e50 error 4
-Segmentation fault
-(none):/data/l/kohji#
+Maybe this file should be left for compatibility and we should present
+something reasonable in /sys? Can't you already get PCI ID from sysfs
+node?
+								Pavel
 
-In dmesg I find:
+> [root@localhost ~]# cat /proc/acpi/wakeup
+> Device  S-state   Status   Sysfs node
+> C093      S5     disabled  pci:0000:00:1e.0
+> C0E8      S3     disabled  pci:0000:00:1d.0
+> C0EF      S3     disabled  pci:0000:00:1d.1
+> C0F0      S3     disabled  pci:0000:00:1d.2
+> C0F1      S3     disabled  pci:0000:00:1d.3
+> C0F2      S3     disabled  pci:0000:00:1d.7
+> C0F9      S0     disabled  pci:0000:00:1c.0
+> C21D      S0     disabled  pci:0000:08:00.0
+> C109      S5     disabled  pci:0000:00:1c.1
+> C228      S5     disabled  pci:0000:10:00.0
+> C10F      S5     disabled  pci:0000:00:1c.3
+> C229      S5     disabled
+> [root@localhost ~]#
+> 
+> After applying this patch, the output is:
+> 
+> [root@localhost ~]# cat /proc/acpi/wakeup
+> Device  S-state   Status   Sysfs node           PCI ID
+> C093      S5     disabled  pci:0000:00:1e.0     0x2448
+> C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+> C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+> C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+> C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+> C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+> C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+> C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+> C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+> C228      S5     disabled  pci:0000:10:00.0     0x4222
+> C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+> C229      S5     disabled
 
-DMI 2.3 present.
-ACPI: RSDP 000E9010, 0014 (r0 OID_00)
-ACPI: RSDT 1F7B1E40, 0030 (r1 AMD    RSDT_000 31303030 AMD  31303030)
-ACPI: FACP 1F7B1D40, 0084 (r1 AMD    FACP_000 31303030 AMD  31303030)
-ACPI: DSDT 1F7B0000, 1D30 (r1 INSYDE CS553x       1007 INTL 20030122)
-ACPI: FACS 1F7BFFC0, 0040
-ACPI: BOOT 1F7B1DD0, 0028 (r1 AMD    BOOT_000 31303030 AMD  31303030)
-ACPI: DBGP 1F7B1E00, 0034 (r1 AMD    DBGP_000 31303030 AMD  31303030)
-ACPI: PM-Timer IO Port: 0x9c10
-
-What should be done to debug this? I guess FACS is strictly neccessary
-for sleep support?
-							Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
