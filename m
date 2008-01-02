@@ -1,32 +1,85 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended (rev. 2)
-Date: Wed, 2 Jan 2008 12:29:42 -0800
-Message-ID: <200801021229.43555.david-b@pacbell.net>
-References: <200801020032.45529.rjw@sisk.pl> <20080102175400.3C2E0EF588@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080102201451.GC3985@elte.hu>
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
+Date: Thu, 03 Jan 2008 08:25:41 +1100
+Message-ID: <477C0155.70902@nigel.suspend2.net>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>	<62e5edd40801020208s268aeacbj96481f5a317b8ea7@mail.gmail.com> <200801021512.54140.rjw@sisk.pl>
+Reply-To: nigel@nigel.suspend2.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:46730 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754170AbYABU3q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 15:29:46 -0500
-In-Reply-To: <20080102201451.GC3985@elte.hu>
-Content-Disposition: inline
+Received: from home.nigel.suspend2.net ([203.171.70.205]:47497 "EHLO
+	server1.example.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752888AbYABVZz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 16:25:55 -0500
+In-Reply-To: <200801021512.54140.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: kay.sievers@vrfy.org, a.zummo@towertech.it, stern@rowland.harvard.edu, rjw@sisk.pl, pavel@suse.cz, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, gregkh@suse.de, akpm@linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: =?ISO-8859-15?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>, pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday 02 January 2008, Ingo Molnar wrote:
-> 
-> then please provide a kernel config option for the new driver to take 
-> over 10:135 too. There's nothing worse to the adoption of new kernel 
-> features necessiating user-space attention. I've got several images of 
-> old distros that i dont want to reconfigure in any way, and it would be 
-> nice to have a drop-in /dev/rtc replacement for them. Really. This is 
-> how we do it for just about everything else too.
+Hi.
 
-I'll let someone else chase that particular issue.  :)
+Rafael J. Wysocki wrote:
+> On Wednesday, 2 of January 2008, Erik Andr=E9n wrote:
+>> Hi,
+>>
+>> 2008/1/2, Shaohua Li <shaohua.li@intel.com>:
+>>> ACPI defines a hardware signature. BIOS calculates the signature
+>>> according to hardware configure, if hardware changes, the signature=
+ will
+>>> change, in this case, S4 resume should fail.
+>>>
+>>> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+>>> ---
+>>
+>> Would it be possible to extend this mechanism to prevent the followi=
+ng
+>> scenario:
+>>
+>> 1. Linux image A is suspended to disk
+>> 2. Linux image B is booted and various changes to the system are don=
+e.
+>> 3. Linux image B is shut down
+>> 4. Linux image A is booted, restoring the suspend to disk image.
+>> 5. Chaos is ensured as the file system state is changed in regard to=
+ how
+>> linux image A expects it.
+>>
+>> Correct behaviour would naturally be that image A detects that chang=
+es have
+>> been made under its feet and proceed to perform a normal boot instea=
+d of
+>> resuming the stored suspend-to-disk image.
+>=20
+> It should be possible in theory.
+>=20
+>> Is there another mechanism preventing this?
+>=20
+> Not at the kernel level, but you can prevent this from happening by r=
+unning
+> mkswap on all swap spaces that refuse to come up after a fresh boot.
 
+We really should do something about this. It should be possible to
+handle this properly if something along the following lines was impleme=
+nted:
+
+1) Each filesystem implements a function taking a pointer to a struct
+block_device and returns a mount count for that filesystem without
+making any modifications to the filesystem.
+2) Hibernation implementations store the major & minor numbers and moun=
+t
+counts for each mounted filesystem in the image header when hibernating=
+,
+and recheck those values at resume time. If the mount count on any
+filesystem has changes, we warn the user, invalidate the image and boot
+normally.
+
+Regards,
+
+Nigel
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
