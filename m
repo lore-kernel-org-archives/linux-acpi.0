@@ -1,61 +1,140 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [linux-pm] [patch] hibernation: utilize ACPI hardware signature
-Date: Wed, 02 Jan 2008 10:29:52 +0100
-Message-ID: <1199266193.4172.76.camel@johannes.berg>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
-	 <200801020937.13808.maximlevitsky@gmail.com>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: kpowersave stuck at battery charging
+Date: Wed, 2 Jan 2008 12:48:49 +0300
+Message-ID: <200801021248.55844.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Nv8dETkyLs45MBrWNI41"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crystal.sipsolutions.net ([195.210.38.204]:42335 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753306AbYABJaM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 04:30:12 -0500
-In-Reply-To: <200801020937.13808.maximlevitsky@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0542894168=="
+Return-path: <hal-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Mime-version: 1.0
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: hal@lists.freedesktop.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: linux-pm@lists.linux-foundation.org, linux acpi <linux-acpi@vger.kernel.org>
 
+--===============0542894168==
+Content-Type: multipart/signed;
+  boundary="nextPart1573125.q275fWChfk";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
---=-Nv8dETkyLs45MBrWNI41
-Content-Type: text/plain
+--nextPart1573125.q275fWChfk
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
+This is did not happen before; I am not sure right now what caused this (i.=
+e.=20
+battery aging or some software change) nor whether this is kernel/HAL/kpowe=
+rsave=20
+issue.
 
-> Once reading the ACPI spec I noticed that ACPI supports this feature
-> so it is qute nice to implement it, since this will prevent resume from d=
-isk what hardware was changed.
->=20
-> But.. how many bioses are broken regarding this feature....
+kpowersave is stuck at assuming battery is loading and at 94%. Sysfs displa=
+ys=20
+battery state as Full:
 
-If they are broken though, how likely is it they'll have a changing
-signature? I'd expect the most likely broken case is they just don't
-calculate it at all and leave it constant.
+UEVENT[1199264702.345795]=20
+change   /devices/LNXSYSTM:00/device:00/PNP0C0A:00/power_supply/BAT1=20
+(power_supply)
+ACTION=3Dchange
+DEVPATH=3D/devices/LNXSYSTM:00/device:00/PNP0C0A:00/power_supply/BAT1
+SUBSYSTEM=3Dpower_supply
+POWER_SUPPLY_NAME=3DBAT1
+POWER_SUPPLY_TYPE=3DBattery
+POWER_SUPPLY_STATUS=3DFull
+POWER_SUPPLY_PRESENT=3D1
+POWER_SUPPLY_TECHNOLOGY=3DLi-ion
+POWER_SUPPLY_VOLTAGE_MIN_DESIGN=3D10800000
+POWER_SUPPLY_VOLTAGE_NOW=3D11340000
+POWER_SUPPLY_CURRENT_NOW=3D0
+POWER_SUPPLY_ENERGY_FULL_DESIGN=3D38880000
+POWER_SUPPLY_ENERGY_FULL=3D37530000
+POWER_SUPPLY_ENERGY_NOW=3D35640000
+POWER_SUPPLY_MODEL_NAME=3DXM2038P04
+POWER_SUPPLY_MANUFACTURER=3D
+SEQNUM=3D6472
 
-johannes
+HAL did not set (dis-)charging either:
 
---=-Nv8dETkyLs45MBrWNI41
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+{pts/0}% lshal -l -u /org/freedesktop/Hal/devices/computer_power_supply_0
+udi =3D '/org/freedesktop/Hal/devices/computer_power_supply_0'
+  battery.charge_level.current =3D 35640  (0x8b38)  (int)
+  battery.charge_level.last_full =3D 37530  (0x929a)  (int)
+  battery.charge_level.percentage =3D 94  (0x5e)  (int)
+  battery.charge_level.rate =3D 0  (0x0)  (int)
+  battery.current =3D 0  (0x0)  (int)
+  battery.present =3D true  (bool)
+  battery.rechargeable.is_charging =3D false  (bool)
+  battery.rechargeable.is_discharging =3D false  (bool)
+  battery.reporting.current =3D 35640  (0x8b38)  (int)
+  battery.reporting.design =3D 38880  (0x97e0)  (int)
+  battery.reporting.last_full =3D 37530  (0x929a)  (int)
+  battery.reporting.technology =3D 'Li-ion'  (string)
+  battery.reporting.unit =3D 'mWh'  (string)
+  battery.technology =3D 'lithium-ion'  (string)
+  battery.type =3D 'primary'  (string)
+  battery.vendor =3D ''  (string)
+  battery.voltage.current =3D 11340  (0x2c4c)  (int)
+  info.capabilities =3D {'battery'} (string list)
+  info.category =3D 'battery'  (string)
+  info.parent =3D '/org/freedesktop/Hal/devices/computer'  (string)
+  info.product =3D 'Li-ion'  (string)
+  info.udi =3D '/org/freedesktop/Hal/devices/computer_power_supply_0'  (str=
+ing)
+  linux.hotplug_type =3D 2  (0x2)  (int)
+  linux.subsystem =3D 'power_supply'  (string)
+  linux.sysfs_path=20
+=3D '/sys/devices/LNXSYSTM:00/device:00/PNP0C0A:00/power_supply/BAT1'  (str=
+ing)
+
+Kernel 2.6.24-rc6, HAL 0.5.10, kpowersave 0.7.3.
+
+I suspect this is kpowersave which ignores is_(dis)charging attribute and j=
+ust=20
+compares energy_full with energy_now. According to ACPI spec, energy_full=20
+gives "predicted full charge capacity" - actually it is called Last Full Ch=
+arge=20
+Capacity. At least this is what ACPI battery code implements. As such this =
+is=20
+purely informational and cannot be relied upon for deciding when charging i=
+s=20
+complete. Actually HAL /proc/acpi/battery code did not even use this proper=
+ty.
+
+So
+
+=2D does ACPI battery code misuse POWER_SUPPLY_PROP_ENERGY_FULL?
+=2D does HAL misuse .../energy_full?
+=2D does kpowersave misuse battery.charge_level.last_full?
+
+--nextPart1573125.q275fWChfk
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Comment: Johannes Berg (powerbook)
+Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQIVAwUAR3tZj6Vg1VMiehFYAQI6/hAAmedwsU9T8pw7GheWWqyHMlJ2VYU29Sut
-BsxlUZ9VKHZ+weBOHVvYliGi8ztFPzyleu5bF5lwjNJW5Z7TgL8Ma1J9OhmXqVs9
-nXEsYECtoOqf1qS06uX2VgtzaUI9mm4xA1sBKdNQq3zRexwaB9oBAhkD7z+Qvnq9
-m8YyPDUJVNypMfy7H8NppWmkFL3T04Eogx5xlLni3e72YBcXOXiz69rFHUVmzvHr
-CsUxzMAZZQGbuWqxWGLgCkEEJBCDbrF6SE2okizRN1PYQ1WsJbyUH2ehqTvfb4vf
-aEuBCuZp5hZPNa2WuZ9yDfkK+Qj9Ca8KGY0AVYqusbvtlcEpFRUZP33rgO4L4F5Q
-RQS9nb0kutvxu0TIe7MwsaRIk6/I4uykKNHL3C+guEKMHLlqikr8ifZygnqIj0Cx
-SOjaqILJQqEWPEvEwbH5+Nbj3v6XuKUOEu39x80TkIwJsGlOI51vfMDiyFNHEopo
-JQc7W0D0l/lHOUl1M2eaAKbLe3F2+rLUqEVLCnu/iYSJmdYsTlULDnoVikReK3CM
-l3t3beSgMqeIvO/FQyP8XkfqddIIbP5AxAlMjJP6I2JyFO6SIKfUXQJ+9Tp1t8io
-UYrFB6bAkpxkiMdfQI7IDFYX6Y1DEgZq0WMJse3idFbZ6xOcGfMVeLmOa0oRnIjh
-+eQnOALHZEE=
-=zCLQ
+iD8DBQBHe14DR6LMutpd94wRApFfAJ9M+mD1BrJ2DgMifbObMrNaP6sWggCfUxNm
+QgE8pUfLFfb5n7f29vT6oYI=
+=LV8P
 -----END PGP SIGNATURE-----
 
---=-Nv8dETkyLs45MBrWNI41--
+--nextPart1573125.q275fWChfk--
 
+--===============0542894168==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0542894168==--
