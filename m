@@ -1,93 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Wed, 2 Jan 2008 23:18:58 +0100
-Message-ID: <200801022318.59392.rjw@sisk.pl>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801021512.54140.rjw@sisk.pl> <477C0155.70902@nigel.suspend2.net>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Wed, 02 Jan 2008 18:41:55 -0500
+Message-ID: <477C2143.8090406@rtr.ca>
+References: <200711302153.lAULrZ7n026255@imap1.linux-foundation.org>	<924EFEDD5F540B4284297C4DC59F3DEE2FAE6A@orsmsx423.amr.corp.intel.com>	<20071130142058.816d1693.akpm@linux-foundation.org>	<924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>	<4750CC78.9070105@rtr.ca>	<20071130190227.1976e682@laptopd505.fenrus.org>	<4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43838 "EHLO ogre.sisk.pl"
+Received: from rtr.ca ([76.10.145.34]:3404 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751814AbYABWRC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 17:17:02 -0500
-In-Reply-To: <477C0155.70902@nigel.suspend2.net>
-Content-Disposition: inline
+	id S1757197AbYABXl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2008 18:41:57 -0500
+In-Reply-To: <4750D585.1030200@rtr.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nigel@nigel.suspend2.net
-Cc: Erik =?iso-8859-15?q?Andr=E9n?= <erik.andren@gmail.com>, pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, 2 of January 2008, Nigel Cunningham wrote:
-> Hi.
->=20
-> Rafael J. Wysocki wrote:
-> > On Wednesday, 2 of January 2008, Erik Andr=E9n wrote:
-> >> Hi,
-> >>
-> >> 2008/1/2, Shaohua Li <shaohua.li@intel.com>:
-> >>> ACPI defines a hardware signature. BIOS calculates the signature
-> >>> according to hardware configure, if hardware changes, the signatu=
-re will
-> >>> change, in this case, S4 resume should fail.
-> >>>
-> >>> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> >>> ---
-> >>
-> >> Would it be possible to extend this mechanism to prevent the follo=
-wing
-> >> scenario:
-> >>
-> >> 1. Linux image A is suspended to disk
-> >> 2. Linux image B is booted and various changes to the system are d=
-one.
-> >> 3. Linux image B is shut down
-> >> 4. Linux image A is booted, restoring the suspend to disk image.
-> >> 5. Chaos is ensured as the file system state is changed in regard =
-to how
-> >> linux image A expects it.
-> >>
-> >> Correct behaviour would naturally be that image A detects that cha=
-nges have
-> >> been made under its feet and proceed to perform a normal boot inst=
-ead of
-> >> resuming the stored suspend-to-disk image.
-> >=20
-> > It should be possible in theory.
-> >=20
-> >> Is there another mechanism preventing this?
-> >=20
-> > Not at the kernel level, but you can prevent this from happening by=
- running
-> > mkswap on all swap spaces that refuse to come up after a fresh boot=
-=2E
->=20
-> We really should do something about this. It should be possible to
-> handle this properly if something along the following lines was imple=
-mented:
->=20
-> 1) Each filesystem implements a function taking a pointer to a struct
-> block_device and returns a mount count for that filesystem without
-> making any modifications to the filesystem.
-> 2) Hibernation implementations store the major & minor numbers and mo=
-unt
-> counts for each mounted filesystem in the image header when hibernati=
-ng,
-> and recheck those values at resume time. If the mount count on any
-> filesystem has changes, we warn the user, invalidate the image and bo=
-ot
-> normally.
+Arjan van de Ven wrote:
+> On Fri, 30 Nov 2007 22:31:17 -0500
+> Mark Lord <lkml@rtr.ca> wrote:
+> 
+>> Arjan van de Ven wrote:
+>>> On Fri, 30 Nov 2007 22:14:08 -0500
+>>> Mark Lord <lkml@rtr.ca> wrote:
+>>>
+>>>>> in -mm there is.. the QoS stuff allows you to set maximum
+>>>>> tolerable
+>>>> ..
+>>>>
+>>>> That's encouraging, I think, but not for 2.6.24.
+>>>>
+>>>>> latency. If your app cant take any latency, you should set
+>>>>> those... and the side effect is that the kernel will not do
+>>>>> long-latency C-states or P-state transitions..
+>>>> ..
+>>>>
+>>>> I don't mind the cpufreq changing (actually, I want it to drop in
+>>>> cpugfreq to save power and keep the fan off), but the C-states just
+>>>> kill this app.
+>>>>
+>>>> The app is VMware.  I force the max_state=1 when launching,
+>>> ah but then its' even easier... and can be done in 2.6.24 already.
+>>> VMWare after all has a kernel module, and the latency stuff is in
+>>> 2.6.23 and 2.6.24 available inside the kernel already.
+>> ..
+>>
+>> Oh, I'm perfectly happy to write my own kernel module if that's what
+> 
+> all you need to do in your kernel module is call
+> 
+> add_latency_constraint("mark_wants_his_mouse", 5);
+> 
+> or so
+..
 
-That may quickly become complicated.
+Dredging up an old regression again now:
 
-=46or example, boot kernel need not contain all drivers used by the hib=
-ernated
-ones, so some filesystems may be physically inaccessible to them.
+The "make my own module to replace /sys/.../max_cstate" doesn't work
+for the single-core machine we use a lot around here.
 
-Greetings,
-Rafael
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VMware is totally sluggish unless I go to another text window and do this:
+
+    while ( true ); do echo -n ; done
+
+At which point VMware performs well again,
+the same as with "echo 1 > max_cstate" in 2.6.23.
+
+Anyone got any suggestions on how to fix this regression
+or work around it for 2.6.24 ?
+
+Thanks 
+
+
