@@ -1,53 +1,85 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new column PCI ID
-Date: Wed, 2 Jan 2008 17:09:43 +0100
-Message-ID: <20080102160943.GA17187@ucw.cz>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1198744900.3640.4.camel@yangyi-dev.bj.intel.com> <1198916553.3806.2.camel@yangyi-dev.bj.intel.com> <20080101232011.GA2545@ucw.cz> <1199239440.3806.18.camel@yangyi-dev.bj.intel.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: kpowersave stuck at battery charging
+Date: Wed, 02 Jan 2008 19:18:33 +0300
+Message-ID: <477BB959.1040207@gmail.com>
+References: <200801021248.55844.arvidjaar@mail.ru> <477B6AA5.5020803@gmail.com> <200801021610.45582.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:33210 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759617AbYABQJw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 11:09:52 -0500
-Content-Disposition: inline
-In-Reply-To: <1199239440.3806.18.camel@yangyi-dev.bj.intel.com>
+Received: from nf-out-0910.google.com ([64.233.182.190]:26084 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023AbYABQSq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 11:18:46 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so347829nfb.21
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jan 2008 08:18:44 -0800 (PST)
+In-Reply-To: <200801021610.45582.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yi Yang <yi.y.yang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: hal@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed 2008-01-02 10:03:59, Yi Yang wrote:
-> On Wed, 2008-01-02 at 00:20 +0100, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > /proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
-> > 
-> > Why?
-> A user uses device bus id like 'C093' to enable or disable wakeup of the
-> device, for example
-> 
-> echo "C093" > /proc/acpi/wakeup
-> 
-> but i think "c093" should also be ok. i.e.
+Andrey Borzenkov wrote:
+> On Wednesday 02 January 2008, Alexey Starikovskiy wrote:
+>   
+>> Andrey Borzenkov wrote:
+>>     
+>>> This is did not happen before; I am not sure right now what caused this 
+>>>       
+> (i.e. 
+>   
+>>> battery aging or some software change) nor whether this is 
+>>>       
+> kernel/HAL/kpowersave 
+>   
+>>> issue.
+>>>
+>>> kpowersave is stuck at assuming battery is loading and at 94%. Sysfs 
+>>>       
+> displays 
+>   
+>>> battery state as Full:
+>>>
+>>>   
+>>>       
+>> Frequent battery charging shortens lifetime of the battery, so some (may 
+>> be all now)
+>> notebook manufacturers do not start charging  battery until it discharge 
+>> to some degree (~90%).
+>>     
+>
+> I thought Li-Ion batteries do not have memory effect. Actually I remember to 
+> have read recommendation to avoid deep discharges of Li-Ion battery, it was 
+> adviced to charge it as often as possible.
+>   
+IBM has advice to not re-charge battery until it discharged to 95%.
+It was implemented in their batteries/notebooks.
+There is no memory effect in Li-Ion batteries, there is only limited 
+number of
+charge cycles -- about 1000 times, thus "as often as possible" is advice
+of the battery seller :)
+>   
+>> It could be your case. Please try to discharge battery to, say, 89% and 
+>> then check if it charges to the
+>> 100%.
+>>     
+>
+> That is exactly the question - how do you compute 100%? As far as I can tell the 
+> only possibility is - when battery stops charging. At this point you have to 
+> assume battery is fully charged.
+>   
+Last charge would be good reference. Think of the battery as constantly
+degrading resource.
+> I tried to discharge battery (it was around 78%) and plug AC in again. It went 
+> on Charging until the same limit after that state changed to Full (well, in case 
+> of ACPI battery we really only can state - not (dis-)charging, there is no 
+> special Full state flag); kpowersave still believes battery is not fully 
+> charged. Main interface shows 84% (no Charging) - tooltip states it is being 
+> charged.
+>
+>   
+So, that is the state of your battery. If you buy new one, it will go 
+high again.
 
-Why do you think so? Unix is generally case-sensitive. I see ascii
-text in .../wakeup. Maybe some bios vendor is crazy enough to have
-wakeup devices called 'wake', 'Wake', 'wAke', 'waKe', 'wakE'?
-
-> > Maybe this file should be left for compatibility and we should present
-> > something reasonable in /sys? Can't you already get PCI ID from sysfs
-> > node?
-> PCI ID can be gotten from sysfs, but it is a unique identifier for a
-> device, a user can get device name from /usr/share/hwdata/pci.ids in any
-> dstribution by PCI ID, he/she is unnecessary to use bus number to get
-> device name, bus number is platform-specific, but PCI ID is
-> platform-independent.
-
-If the same info can be gotten from 'sysfs node' field, new field
-should not be added.
-
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+Alex.
