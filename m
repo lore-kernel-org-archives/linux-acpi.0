@@ -1,52 +1,41 @@
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended
- (rev. 2)
-Date: Wed, 2 Jan 2008 19:34:15 +0100
-Message-ID: <20080102193415.1d7af667@i1501.lan.towertech.it>
-References: <200801020032.45529.rjw@sisk.pl>
-	<20080102105217.GA14731@elte.hu>
-	<200801021356.59865.rjw@sisk.pl>
-	<20080102131529.GA32160@elte.hu>
-	<3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com>
-	<20080102160137.GA21046@elte.hu>
-	<20080102175400.3C2E0EF588@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-	<20080102190537.2fc735fe@i1501.lan.towertech.it>
-	<20080102181254.3469E28CE0F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+	(rev. 2)
+Date: Wed, 2 Jan 2008 21:14:51 +0100
+Message-ID: <20080102201451.GC3985@elte.hu>
+References: <200801020032.45529.rjw@sisk.pl> <20080102105217.GA14731@elte.hu> <200801021356.59865.rjw@sisk.pl> <20080102131529.GA32160@elte.hu> <3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com> <20080102160137.GA21046@elte.hu> <20080102175400.3C2E0EF588@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0.towertech.it ([213.215.222.73]:49358 "HELO mx0.towertech.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752330AbYABSef (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2008 13:34:35 -0500
-In-Reply-To: <20080102181254.3469E28CE0F@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:49627 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752647AbYABUPi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2008 15:15:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20080102175400.3C2E0EF588@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: stern@rowland.harvard.edu, rjw@sisk.pl, pavel@suse.cz, mingo@elte.hu, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, kay.sievers@vrfy.org, gregkh@suse.de, akpm@linux-foundation.org
+Cc: kay.sievers@vrfy.org, a.zummo@towertech.it, stern@rowland.harvard.edu, rjw@sisk.pl, pavel@suse.cz, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, gregkh@suse.de, akpm@linux-foundation.org
 
-On Wed, 02 Jan 2008 10:12:54 -0800
-David Brownell <david-b@pacbell.net> wrote:
 
-> > > It'd need to have some NTP sync solution for RTC_LIB devices, but
-> > > ISTR the gentime stuff still assumes an update_persistent_clock()
-> > > that doesn't sleep ... and hence can't be used with I2C based RTCs.
-> >
-> > I still believe NTP sync stuff should be done outside of the kernel.
-> > given the mean accuracy of RTC chips and other sync factors, imho
-> > you haven't so much to gain with an in-kernel sync code.
+* David Brownell <david-b@pacbell.net> wrote:
+
+> I've been trying to make sure the x86 world could realistically switch 
+> to the RTC framework used by other Linux platforms, hence e.g. the 
+> util-unix-ng updates, but never assumed there would be no userspace 
+> changes.  After all, userspace was using a mishmash of tools that were 
+> far from platform-agnostic, and moving away from x86-dependency 
+> implies such things will change.
 > 
-> Then the kernel/time/ntp.c stuff should be removed on all systems?
+> However I *do* think that symlinking rtc to /dev/rtc0 should make it 
+> practical to use most older binaries.
 
- I'd say yes, but I think that would be dangerous to my own life :)
+then please provide a kernel config option for the new driver to take 
+over 10:135 too. There's nothing worse to the adoption of new kernel 
+features necessiating user-space attention. I've got several images of 
+old distros that i dont want to reconfigure in any way, and it would be 
+nice to have a drop-in /dev/rtc replacement for them. Really. This is 
+how we do it for just about everything else too.
 
--- 
-
- Best regards,
-
- Alessandro Zummo,
-  Tower Technologies - Torino, Italy
-
-  http://www.towertech.it
-
+	Ingo
