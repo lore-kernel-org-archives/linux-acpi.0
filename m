@@ -1,44 +1,61 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: [linux-pm] [patch] hibernation: utilize ACPI hardware signature
-Date: Wed, 2 Jan 2008 09:37:13 +0200
-Message-ID: <200801020937.13808.maximlevitsky@gmail.com>
+Date: Wed, 02 Jan 2008 10:29:52 +0100
+Message-ID: <1199266193.4172.76.camel@johannes.berg>
 References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
+	 <200801020937.13808.maximlevitsky@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Nv8dETkyLs45MBrWNI41"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:60775 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503AbYABHhT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 02:37:19 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so2490338ugc.16
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Jan 2008 23:37:18 -0800 (PST)
-In-Reply-To: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from crystal.sipsolutions.net ([195.210.38.204]:42335 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753306AbYABJaM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 04:30:12 -0500
+In-Reply-To: <200801020937.13808.maximlevitsky@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: linux-pm@lists.linux-foundation.org, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday, 2 January 2008 08:59:22 Shaohua Li wrote:
-> ACPI defines a hardware signature. BIOS calculates the signature
-> according to hardware configure, if hardware changes, the signature will
-> change, in this case, S4 resume should fail.
-> 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> ---
->  drivers/acpi/sleep/main.c |   13 +++++++++++++
->  include/linux/suspend.h   |    5 +++++
->  kernel/power/disk.c       |   21 ++++++++++++++++++---
->  kernel/power/power.h      |    6 +++---
->  kernel/power/swap.c       |   24 +++++++++++++++---------
->  5 files changed, 54 insertions(+), 15 deletions(-)
 
-Once reading the ACPI spec I noticed that ACPI supports this feature
-so it is qute nice to implement it, since this will prevent resume from disk what hardware was changed.
+--=-Nv8dETkyLs45MBrWNI41
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-But.. how many bioses are broken regarding this feature....
 
-Regards,
-	Maxim Levitsky
+> Once reading the ACPI spec I noticed that ACPI supports this feature
+> so it is qute nice to implement it, since this will prevent resume from d=
+isk what hardware was changed.
+>=20
+> But.. how many bioses are broken regarding this feature....
+
+If they are broken though, how likely is it they'll have a changing
+signature? I'd expect the most likely broken case is they just don't
+calculate it at all and leave it constant.
+
+johannes
+
+--=-Nv8dETkyLs45MBrWNI41
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iQIVAwUAR3tZj6Vg1VMiehFYAQI6/hAAmedwsU9T8pw7GheWWqyHMlJ2VYU29Sut
+BsxlUZ9VKHZ+weBOHVvYliGi8ztFPzyleu5bF5lwjNJW5Z7TgL8Ma1J9OhmXqVs9
+nXEsYECtoOqf1qS06uX2VgtzaUI9mm4xA1sBKdNQq3zRexwaB9oBAhkD7z+Qvnq9
+m8YyPDUJVNypMfy7H8NppWmkFL3T04Eogx5xlLni3e72YBcXOXiz69rFHUVmzvHr
+CsUxzMAZZQGbuWqxWGLgCkEEJBCDbrF6SE2okizRN1PYQ1WsJbyUH2ehqTvfb4vf
+aEuBCuZp5hZPNa2WuZ9yDfkK+Qj9Ca8KGY0AVYqusbvtlcEpFRUZP33rgO4L4F5Q
+RQS9nb0kutvxu0TIe7MwsaRIk6/I4uykKNHL3C+guEKMHLlqikr8ifZygnqIj0Cx
+SOjaqILJQqEWPEvEwbH5+Nbj3v6XuKUOEu39x80TkIwJsGlOI51vfMDiyFNHEopo
+JQc7W0D0l/lHOUl1M2eaAKbLe3F2+rLUqEVLCnu/iYSJmdYsTlULDnoVikReK3CM
+l3t3beSgMqeIvO/FQyP8XkfqddIIbP5AxAlMjJP6I2JyFO6SIKfUXQJ+9Tp1t8io
+UYrFB6bAkpxkiMdfQI7IDFYX6Y1DEgZq0WMJse3idFbZ6xOcGfMVeLmOa0oRnIjh
++eQnOALHZEE=
+=zCLQ
+-----END PGP SIGNATURE-----
+
+--=-Nv8dETkyLs45MBrWNI41--
+
