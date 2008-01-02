@@ -1,118 +1,80 @@
-From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-Subject: Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Wed, 2 Jan 2008 11:08:08 +0100
-Message-ID: <62e5edd40801020208s268aeacbj96481f5a317b8ea7@mail.gmail.com>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended
+	(rev. 2)
+Date: Wed, 2 Jan 2008 17:01:37 +0100
+Message-ID: <20080102160137.GA21046@elte.hu>
+References: <200801020032.45529.rjw@sisk.pl> <20080102105217.GA14731@elte.hu> <200801021356.59865.rjw@sisk.pl> <20080102131529.GA32160@elte.hu> <3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0666108640054631749=="
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Mime-version: 1.0
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:33976 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754161AbYABQCn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2008 11:02:43 -0500
+Content-Disposition: inline
+In-Reply-To: <3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
---===============0666108640054631749==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_21169_24593906.1199268488444"
-
-------=_Part_21169_24593906.1199268488444
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi,
-
-2008/1/2, Shaohua Li <shaohua.li@intel.com>:
->
-> ACPI defines a hardware signature. BIOS calculates the signature
-> according to hardware configure, if hardware changes, the signature will
-> change, in this case, S4 resume should fail.
->
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> ---
+To: Kay Sievers <kay.sievers@vrfy.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Greg KH <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
 
 
-Would it be possible to extend this mechanism to prevent the following
-scenario:
+* Kay Sievers <kay.sievers@vrfy.org> wrote:
 
-1. Linux image A is suspended to disk
-2. Linux image B is booted and various changes to the system are done.
-3. Linux image B is shut down
-4. Linux image A is booted, restoring the suspend to disk image.
-5. Chaos is ensured as the file system state is changed in regard to how
-linux image A expects it.
+> > shouldnt we provide a Kconfig way of replacing dev 10:135 with the 
+> > new driver's 254:0 device? (while keeping all the current modes of 
+> > operation as well, of course.) It's all supposed to be 100% ioctl 
+> > ABI compatible with the old driver, right?
+> 
+> It's not compatible enough to "fake" only the old major/minor. Userspace
+> must be fixed not to depend on stuff like:  /proc/sys/dev/rtc/max-user-freq:
+>   http://lkml.org/lkml/2007/8/4/183
 
-Correct behaviour would naturally be that image A detects that changes have
-been made under its feet and proceed to perform a normal boot instead of
-resuming the stored suspend-to-disk image.
+i think that should be fixed by providing a compatible 
+/proc/sys/dev/rtc/max-user-freq implementation in the new driver too.
 
-Is there another mechanism preventing this?
-I remember destroying a system by doing this sequence of operations a coupl=
-e
-of years ago.
+> > That way distros could start migrating to it
+> > as well, without depending on any udev hackery.
+> 
+> It's in the default udev setup:
+>   KERNEL=="rtc|rtc0",             MODE="0644"
+>   KERNEL=="rtc0",                 SYMLINK+="rtc"
 
-With kind regards,
-Erik Andr=E9n
+but if it breaks max-user-freq (which is needed by qemu for example) 
+then distros would likely disable it, right?
 
+or this rule might be broken in some way. For example my Fedora 8 box 
+has this in /etc/udev/rules.d/50-udev-default.rules:
 
--
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ # miscellaneous
+ KERNEL=="fuse",                 MODE="0666"
+ KERNEL=="rtc|rtc0",             MODE="0644"
+ KERNEL=="rtc0",                 SYMLINK+="rtc"
 
-------=_Part_21169_24593906.1199268488444
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+still i've got:
 
-Hi,<br><br><div><span class=3D"gmail_quote">2008/1/2, Shaohua Li &lt;<a hre=
-f=3D"mailto:shaohua.li@intel.com">shaohua.li@intel.com</a>&gt;:</span><bloc=
-kquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, =
-204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-ACPI defines a hardware signature. BIOS calculates the signature<br>accordi=
-ng to hardware configure, if hardware changes, the signature will<br>change=
-, in this case, S4 resume should fail.<br><br>Signed-off-by: Shaohua Li &lt=
-;
-<a href=3D"mailto:shaohua.li@intel.com">shaohua.li@intel.com</a>&gt;<br>---=
-</blockquote><div><br>Would it be possible to extend this mechanism to prev=
-ent the following scenario:<br><br>1. Linux image A is suspended to disk<br=
->
-2. Linux image B is booted and various changes to the system are done.<br>3=
-. Linux image B is shut down<br>4. Linux image A is booted, restoring the s=
-uspend to disk image.<br>5. Chaos is ensured as the file system state is ch=
-anged in regard to how linux image A expects it.
-<br><br>Correct behaviour would naturally be that image A detects that chan=
-ges have been made under its feet and proceed to perform a normal boot inst=
-ead of resuming the stored suspend-to-disk image.<br><br>Is there another m=
-echanism preventing this?
-<br>I remember destroying a system by doing this sequence of operations a c=
-ouple of years ago.<br><br>With kind regards,<br>Erik Andr=E9n<br><br><br><=
-/div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(=
-204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
--<br>To unsubscribe from this list: send the line &quot;unsubscribe linux-a=
-cpi&quot; in<br>the body of a message to <a href=3D"mailto:majordomo@vger.k=
-ernel.org">majordomo@vger.kernel.org</a><br>More majordomo info at&nbsp;&nb=
-sp;<a href=3D"http://vger.kernel.org/majordomo-info.html">
-http://vger.kernel.org/majordomo-info.html</a><br></blockquote></div><br>
+ crw------- 1 root root  10, 135 Dec 28 08:13 /dev/rtc
+ crw-r--r-- 1 root root 254,   0 Dec 28 08:13 /dev/rtc0
 
-------=_Part_21169_24593906.1199268488444--
+_and_ my distro kernel doesnt even have CONFIG_RTC enabled - i run the 
+Fedora 9 devel/rawhide kernel on this box:
 
---===============0666108640054631749==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+ # CONFIG_RTC is not set
+ # CONFIG_GEN_RTC is not set
+ # CONFIG_HPET_RTC_IRQ is not set
+ CONFIG_RTC_LIB=y
+ CONFIG_RTC_CLASS=y
+ # CONFIG_RTC_HCTOSYS is not set
+ # CONFIG_RTC_DEBUG is not set
+ # RTC interfaces
+ CONFIG_RTC_INTF_SYSFS=y
+ CONFIG_RTC_INTF_PROC=y
+ CONFIG_RTC_INTF_DEV=y
+ # CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
+ # CONFIG_RTC_DRV_TEST is not set
 
+udev-116-3.fc8. Maybe i just misunderstood what the grand plan was here 
+- i assumed it was to smoothly convert from old driver to new driver, 
+without forcing any changes on user-space.
 
---===============0666108640054631749==--
+	Ingo
