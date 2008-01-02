@@ -1,125 +1,133 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended (rev. 2)
-Date: Wed, 2 Jan 2008 13:56:58 +0100
-Message-ID: <200801021356.59865.rjw@sisk.pl>
-References: <200801020032.45529.rjw@sisk.pl> <20080102105217.GA14731@elte.hu>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: kpowersave stuck at battery charging
+Date: Wed, 2 Jan 2008 16:10:40 +0300
+Message-ID: <200801021610.45582.arvidjaar@mail.ru>
+References: <200801021248.55844.arvidjaar@mail.ru> <477B6AA5.5020803@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41197 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752654AbYABMzC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 07:55:02 -0500
-In-Reply-To: <20080102105217.GA14731@elte.hu>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0225846088=="
+Return-path: <hal-bounces@lists.freedesktop.org>
+In-Reply-To: <477B6AA5.5020803@gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Mime-version: 1.0
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: hal@lists.freedesktop.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Alexey Starikovskiy <aystarik@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Greg KH <gregkh@suse.de>
 
-On Wednesday, 2 of January 2008, Ingo Molnar wrote:
->=20
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
->=20
-> > Hi,
-> >=20
-> > Some device drivers register CPU hotplug notifiers and use them to=20
-> > destroy device objects when removing the corresponding CPUs and to=20
-> > create these objects when adding the CPUs back.
-> >=20
-> > Unfortunately, this is not the right thing to do during=20
-> > suspend/hibernation, since in that cases the CPU hotplug notifiers =
-are=20
-> > called after suspending devices and before resuming them, so the=20
-> > operations in question are carried out on the objects representing=20
-> > suspended devices which shouldn't be unregistered behing the PM cor=
-e's=20
-> > back. =A0Although right now it usually doesn't lead to any practica=
-l=20
-> > complications, it will predictably deadlock if=20
-> > gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch is=20
-> > applied.
-> >=20
-> > The solution is to prevent drivers from removing/adding devices fro=
-m=20
-> > within CPU hotplug notifiers during suspend/hibernation using the=20
-> > FROZEN bit in the notifier's action argument.  However, this has to=
- be=20
-> > done with care, since the devices objects related to the nonboot CP=
-Us=20
-> > that failed to go online during resume should not be present in the=
+--===============0225846088==
+Content-Type: multipart/signed;
+  boundary="nextPart63125426.BmrP7KHJX4";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart63125426.BmrP7KHJX4
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Wednesday 02 January 2008, Alexey Starikovskiy wrote:
+> Andrey Borzenkov wrote:
+> > This is did not happen before; I am not sure right now what caused this=
 =20
-> > system.  For this reason, it seems reasonable to introduce a mechan=
-ism=20
-> > allowing drivers to ask the PM core to remove device objects=20
-> > corresponding to suspended devices on their behalf.
-> >=20
-> > The first patch in the series introduces such a mechanism.  The=20
-> > remaining three patches modify the MSR, x86-64 MCE and cpuid driver=
-s=20
-> > in accordance with the above approach.
->=20
-> btw., it would be really, really cool if there was a scriptable way i=
+(i.e.=20
+> > battery aging or some software change) nor whether this is=20
+kernel/HAL/kpowersave=20
+> > issue.
+> >
+> > kpowersave is stuck at assuming battery is loading and at 94%. Sysfs=20
+displays=20
+> > battery state as Full:
+> >
+> >  =20
+> Frequent battery charging shortens lifetime of the battery, so some (may=
 =20
-> could test suspend/resume functionality.
+> be all now)
+> notebook manufacturers do not start charging  battery until it discharge=
+=20
+> to some degree (~90%).
 
-=46irst, there are patches queued for 2.6.25 that allow you to test var=
-ious
-phases of suspend (specifically, patches 09-11 in the series at
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.24-rc6/patches/).
+I thought Li-Ion batteries do not have memory effect. Actually I remember t=
+o=20
+have read recommendation to avoid deep discharges of Li-Ion battery, it was=
+=20
+adviced to charge it as often as possible.
 
-With these patches applied you can do something like:
-# echo core > /sys/power/pm_test
-# echo mem > /sys/power/state
-and it will run the suspend code up to, but not including, entering the=
- sleep
-state (it will busy wait for 5 sec. instead).  Then, it will run the re=
-sume
-code.
+> It could be your case. Please try to discharge battery to, say, 89% and=20
+> then check if it charges to the
+> 100%.
 
-There are 6 testing levels available, documented in patch 11 and in the
-changelogs.
+That is exactly the question - how do you compute 100%? As far as I can tel=
+l the=20
+only possibility is - when battery stops charging. At this point you have t=
+o=20
+assume battery is fully charged.
 
-Second, there's the rtc wakealarm thing that can be used to test the re=
-al
-suspend.
+I tried to discharge battery (it was around 78%) and plug AC in again. It w=
+ent=20
+on Charging until the same limit after that state changed to Full (well, in=
+ case=20
+of ACPI battery we really only can state - not (dis-)charging, there is no=
+=20
+special Full state flag); kpowersave still believes battery is not fully=20
+charged. Main interface shows 84% (no Charging) - tooltip states it is bein=
+g=20
+charged.
 
-> Pavel has this /dev/rtc thing to set up an alarm (not sure how functi=
-onal it
-> is) - would it be possible to have it as a "suspend for 10 seconds th=
-en
-> resume" debug functionality?
+POWER_SUPPLY_NAME=3DBAT1
+POWER_SUPPLY_TYPE=3DBattery
+POWER_SUPPLY_STATUS=3DFull
+POWER_SUPPLY_PRESENT=3D1
+POWER_SUPPLY_TECHNOLOGY=3DLi-ion
+POWER_SUPPLY_VOLTAGE_MIN_DESIGN=3D10800000
+POWER_SUPPLY_VOLTAGE_NOW=3D11340000
+POWER_SUPPLY_CURRENT_NOW=3D0
+POWER_SUPPLY_ENERGY_FULL_DESIGN=3D38880000
+POWER_SUPPLY_ENERGY_FULL=3D37530000
+POWER_SUPPLY_ENERGY_NOW=3D35640000
+POWER_SUPPLY_MODEL_NAME=3DXM2038P04
+POWER_SUPPLY_MANUFACTURER=3D
 
-Well, we have the following test script in the userland suspend package=
- that
-is supposed to work right now:
+This would indicate that my battery lost 6% of capacity in new year, but=20
+question still remains - how should user tools properly calculate charge le=
+vel?
 
-#!/bin/bash
-date
-cd /sys/class/rtc/rtc0
-echo $(( $(cat since_epoch) + 20 )) > wakealarm
-s2ram
-date
+> > - does ACPI battery code misuse POWER_SUPPLY_PROP_ENERGY_FULL?
+> > - does HAL misuse .../energy_full?
+> > - does kpowersave misuse battery.charge_level.last_full?
+> >  =20
+>=20
+>=20
 
-provided that the new rtc driver code is compiled (and the old one is n=
-ot).
 
-> That way any suspend breakage would be detectable (and bisectable) in
-> automated testing - if the resume does not come back after 10-20 seco=
-nds then
-> the test failed.=20
 
-Yes, but please note that some systems require user space manipulations=
- of the
-graphics adapter for suspend to work and to detect a breakage of such a=
- system
-you need to boot it into X and use s2ram to suspend.
+--nextPart63125426.BmrP7KHJX4
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Greetings,
-Rafael
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBHe41RR6LMutpd94wRAsYyAJ9lw7Gp5k6E454vQn5deW0SKekUPwCgyvo0
+BmDstblKaMT4ypzqD4wcVss=
+=YF22
+-----END PGP SIGNATURE-----
+
+--nextPart63125426.BmrP7KHJX4--
+
+--===============0225846088==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0225846088==--
