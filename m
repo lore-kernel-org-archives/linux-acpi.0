@@ -1,85 +1,50 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: kpowersave stuck at battery charging
-Date: Wed, 02 Jan 2008 19:18:33 +0300
-Message-ID: <477BB959.1040207@gmail.com>
-References: <200801021248.55844.arvidjaar@mail.ru> <477B6AA5.5020803@gmail.com> <200801021610.45582.arvidjaar@mail.ru>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/4] PM: Introduce destroy_suspended_device()
+Date: Wed, 2 Jan 2008 11:41:36 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0801021122070.5062-100000@iolanthe.rowland.org>
+References: <200801021433.47651.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:26084 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023AbYABQSq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 11:18:46 -0500
-Received: by nf-out-0910.google.com with SMTP id g13so347829nfb.21
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jan 2008 08:18:44 -0800 (PST)
-In-Reply-To: <200801021610.45582.arvidjaar@mail.ru>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44013 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754521AbYABQlh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 11:41:37 -0500
+In-Reply-To: <200801021433.47651.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: hal@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Ingo Molnar <mingo@elte.hu>, Greg KH <gregkh@suse.de>
 
-Andrey Borzenkov wrote:
-> On Wednesday 02 January 2008, Alexey Starikovskiy wrote:
->   
->> Andrey Borzenkov wrote:
->>     
->>> This is did not happen before; I am not sure right now what caused this 
->>>       
-> (i.e. 
->   
->>> battery aging or some software change) nor whether this is 
->>>       
-> kernel/HAL/kpowersave 
->   
->>> issue.
->>>
->>> kpowersave is stuck at assuming battery is loading and at 94%. Sysfs 
->>>       
-> displays 
->   
->>> battery state as Full:
->>>
->>>   
->>>       
->> Frequent battery charging shortens lifetime of the battery, so some (may 
->> be all now)
->> notebook manufacturers do not start charging  battery until it discharge 
->> to some degree (~90%).
->>     
->
-> I thought Li-Ion batteries do not have memory effect. Actually I remember to 
-> have read recommendation to avoid deep discharges of Li-Ion battery, it was 
-> adviced to charge it as often as possible.
->   
-IBM has advice to not re-charge battery until it discharged to 95%.
-It was implemented in their batteries/notebooks.
-There is no memory effect in Li-Ion batteries, there is only limited 
-number of
-charge cycles -- about 1000 times, thus "as often as possible" is advice
-of the battery seller :)
->   
->> It could be your case. Please try to discharge battery to, say, 89% and 
->> then check if it charges to the
->> 100%.
->>     
->
-> That is exactly the question - how do you compute 100%? As far as I can tell the 
-> only possibility is - when battery stops charging. At this point you have to 
-> assume battery is fully charged.
->   
-Last charge would be good reference. Think of the battery as constantly
-degrading resource.
-> I tried to discharge battery (it was around 78%) and plug AC in again. It went 
-> on Charging until the same limit after that state changed to Full (well, in case 
-> of ACPI battery we really only can state - not (dis-)charging, there is no 
-> special Full state flag); kpowersave still believes battery is not fully 
-> charged. Main interface shows 84% (no Charging) - tooltip states it is being 
-> charged.
->
->   
-So, that is the state of your battery. If you buy new one, it will go 
-high again.
+On Wed, 2 Jan 2008, Rafael J. Wysocki wrote:
 
-Regards,
-Alex.
+> On Wednesday, 2 of January 2008, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > It sometimes is necessary to destroy a device object during a suspend or
+> > hibernation, but the PM core is supposed to control all device objects in that
+> > cases.  For this reason, it is necessary to introduce a mechanism allowing one
+> > to ask the PM core to remove a device object corresponding to a suspended
+> > device on one's behalf.
+> > 
+> > Define function destroy_suspended_device() that will schedule the removal of
+> > a device object corresponding to a suspended device by the PM core during the
+> > subsequent resume.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Sorry, a small fix is needed for this patch.  Namely, dpm_sysfs_remove(dev)
+> should not be called by device_pm_schedule_removal(), because it will be called
+> anyway from device_pm_remove() when the device object is finally unregistered
+> (we're talking here about unlikely error paths only, but still).
+
+The situation is a little confusing, because the source files under 
+drivers/base/power are maintained in Greg's tree and he already has 
+gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch 
+installed.  That patch conflicts with this one.
+
+One of the these two patches will have to be rewritten to apply on top 
+of the other.  Which do you think should be changed?
+
+Alan Stern
+
