@@ -1,80 +1,53 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended
-	(rev. 2)
-Date: Wed, 2 Jan 2008 17:01:37 +0100
-Message-ID: <20080102160137.GA21046@elte.hu>
-References: <200801020032.45529.rjw@sisk.pl> <20080102105217.GA14731@elte.hu> <200801021356.59865.rjw@sisk.pl> <20080102131529.GA32160@elte.hu> <3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new column PCI ID
+Date: Wed, 2 Jan 2008 17:09:43 +0100
+Message-ID: <20080102160943.GA17187@ucw.cz>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1198744900.3640.4.camel@yangyi-dev.bj.intel.com> <1198916553.3806.2.camel@yangyi-dev.bj.intel.com> <20080101232011.GA2545@ucw.cz> <1199239440.3806.18.camel@yangyi-dev.bj.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:33976 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754161AbYABQCn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2008 11:02:43 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:33210 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759617AbYABQJw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2008 11:09:52 -0500
 Content-Disposition: inline
-In-Reply-To: <3ae72650801020655h6ec31ce8n5cd9014c00c9f6ad@mail.gmail.com>
+In-Reply-To: <1199239440.3806.18.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kay Sievers <kay.sievers@vrfy.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, Greg KH <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
+To: Yi Yang <yi.y.yang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 
-
-* Kay Sievers <kay.sievers@vrfy.org> wrote:
-
-> > shouldnt we provide a Kconfig way of replacing dev 10:135 with the 
-> > new driver's 254:0 device? (while keeping all the current modes of 
-> > operation as well, of course.) It's all supposed to be 100% ioctl 
-> > ABI compatible with the old driver, right?
+On Wed 2008-01-02 10:03:59, Yi Yang wrote:
+> On Wed, 2008-01-02 at 00:20 +0100, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > /proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
+> > 
+> > Why?
+> A user uses device bus id like 'C093' to enable or disable wakeup of the
+> device, for example
 > 
-> It's not compatible enough to "fake" only the old major/minor. Userspace
-> must be fixed not to depend on stuff like:  /proc/sys/dev/rtc/max-user-freq:
->   http://lkml.org/lkml/2007/8/4/183
-
-i think that should be fixed by providing a compatible 
-/proc/sys/dev/rtc/max-user-freq implementation in the new driver too.
-
-> > That way distros could start migrating to it
-> > as well, without depending on any udev hackery.
+> echo "C093" > /proc/acpi/wakeup
 > 
-> It's in the default udev setup:
->   KERNEL=="rtc|rtc0",             MODE="0644"
->   KERNEL=="rtc0",                 SYMLINK+="rtc"
+> but i think "c093" should also be ok. i.e.
 
-but if it breaks max-user-freq (which is needed by qemu for example) 
-then distros would likely disable it, right?
+Why do you think so? Unix is generally case-sensitive. I see ascii
+text in .../wakeup. Maybe some bios vendor is crazy enough to have
+wakeup devices called 'wake', 'Wake', 'wAke', 'waKe', 'wakE'?
 
-or this rule might be broken in some way. For example my Fedora 8 box 
-has this in /etc/udev/rules.d/50-udev-default.rules:
+> > Maybe this file should be left for compatibility and we should present
+> > something reasonable in /sys? Can't you already get PCI ID from sysfs
+> > node?
+> PCI ID can be gotten from sysfs, but it is a unique identifier for a
+> device, a user can get device name from /usr/share/hwdata/pci.ids in any
+> dstribution by PCI ID, he/she is unnecessary to use bus number to get
+> device name, bus number is platform-specific, but PCI ID is
+> platform-independent.
 
- # miscellaneous
- KERNEL=="fuse",                 MODE="0666"
- KERNEL=="rtc|rtc0",             MODE="0644"
- KERNEL=="rtc0",                 SYMLINK+="rtc"
+If the same info can be gotten from 'sysfs node' field, new field
+should not be added.
 
-still i've got:
 
- crw------- 1 root root  10, 135 Dec 28 08:13 /dev/rtc
- crw-r--r-- 1 root root 254,   0 Dec 28 08:13 /dev/rtc0
-
-_and_ my distro kernel doesnt even have CONFIG_RTC enabled - i run the 
-Fedora 9 devel/rawhide kernel on this box:
-
- # CONFIG_RTC is not set
- # CONFIG_GEN_RTC is not set
- # CONFIG_HPET_RTC_IRQ is not set
- CONFIG_RTC_LIB=y
- CONFIG_RTC_CLASS=y
- # CONFIG_RTC_HCTOSYS is not set
- # CONFIG_RTC_DEBUG is not set
- # RTC interfaces
- CONFIG_RTC_INTF_SYSFS=y
- CONFIG_RTC_INTF_PROC=y
- CONFIG_RTC_INTF_DEV=y
- # CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
- # CONFIG_RTC_DRV_TEST is not set
-
-udev-116-3.fc8. Maybe i just misunderstood what the grand plan was here 
-- i assumed it was to smoothly convert from old driver to new driver, 
-without forcing any changes on user-space.
-
-	Ingo
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
