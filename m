@@ -1,47 +1,42 @@
 From: Nigel Cunningham <nigel@nigel.suspend2.net>
 Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Thu, 03 Jan 2008 19:26:56 +1100
-Message-ID: <477C9C50.4060907@nigel.suspend2.net>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801021512.54140.rjw@sisk.pl> <477C0155.70902@nigel.suspend2.net> <200801022318.59392.rjw@sisk.pl>
+Date: Thu, 03 Jan 2008 19:31:13 +1100
+Message-ID: <477C9D51.5000604@nigel.suspend2.net>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801021505.39789.rjw@sisk.pl> <477C019D.1070001@nigel.suspend2.net> <200801022301.45706.rjw@sisk.pl>
 Reply-To: nigel@nigel.suspend2.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from home.nigel.suspend2.net ([203.171.70.205]:51676 "EHLO
+Received: from home.nigel.suspend2.net ([203.171.70.205]:33686 "EHLO
 	server1.example.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753092AbYACI1A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2008 03:27:00 -0500
-In-Reply-To: <200801022318.59392.rjw@sisk.pl>
+	with ESMTP id S1756722AbYACIbQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2008 03:31:16 -0500
+In-Reply-To: <200801022301.45706.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: =?ISO-8859-15?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>, pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@suse.cz>
 
 Hi.
 
 Rafael J. Wysocki wrote:
->>>> Is there another mechanism preventing this?
->>> Not at the kernel level, but you can prevent this from happening by running
->>> mkswap on all swap spaces that refuse to come up after a fresh boot.
->> We really should do something about this. It should be possible to
->> handle this properly if something along the following lines was implemented:
->>
->> 1) Each filesystem implements a function taking a pointer to a struct
->> block_device and returns a mount count for that filesystem without
->> making any modifications to the filesystem.
->> 2) Hibernation implementations store the major & minor numbers and mount
->> counts for each mounted filesystem in the image header when hibernating,
->> and recheck those values at resume time. If the mount count on any
->> filesystem has changes, we warn the user, invalidate the image and boot
->> normally.
+>> I suppose we can always disable this when we start to support hardware
+>> changing over hibernate (I have ideas in this direction - memory cold
+>> plugging, for a start).
 > 
-> That may quickly become complicated.
-> 
-> For example, boot kernel need not contain all drivers used by the hibernated
-> ones, so some filesystems may be physically inaccessible to them.
+> Well, if we support such features, we won't be following ACPI any more.
 
-Mmmm. That's true, and I'd never heard that point raised before or
-thought of it myself. Thanks!
+Mmm. Apparently I'm not as focused on specs as you :).
+
+I was starting to think through whether it could make for a new and much
+faster was to boot live cds - something along the lines of complete
+redetection of hardware and memory cold plugging. Of course it's only in
+the 'I wonder if this would be possible' stage at the mo, but seemed at
+least feasible - keep the e820 tables from boot, make _init routines not
+get thrown away and do something like the kexec device shutdown etc
+around an atomic restore.
+
+I know there'd be limitations, but perhaps worth thinking about...
 
 Nigel
