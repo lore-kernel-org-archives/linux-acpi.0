@@ -1,46 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Thu, 3 Jan 2008 17:58:02 +0100
-Message-ID: <200801031758.03056.rjw@sisk.pl>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801022301.45706.rjw@sisk.pl> <477C9D51.5000604@nigel.suspend2.net>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH, RFC] HP WMI hotkey driver
+Date: Thu, 3 Jan 2008 11:58:02 -0500
+Message-ID: <d120d5000801030858o7a1f5112g1041186636852ab7@mail.gmail.com>
+References: <20071218235137.12838.75397.stgit@localhost>
+	 <20071226224812.GA32652@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48266 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752006AbYACQ4I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2008 11:56:08 -0500
-In-Reply-To: <477C9D51.5000604@nigel.suspend2.net>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20071226224812.GA32652@srcf.ucam.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nigel@nigel.suspend2.net
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@suse.cz>
 
-On Thursday, 3 of January 2008, Nigel Cunningham wrote:
-> Hi.
-> 
-> Rafael J. Wysocki wrote:
-> >> I suppose we can always disable this when we start to support hardware
-> >> changing over hibernate (I have ideas in this direction - memory cold
-> >> plugging, for a start).
-> > 
-> > Well, if we support such features, we won't be following ACPI any more.
-> 
-> Mmm. Apparently I'm not as focused on specs as you :).
-> 
-> I was starting to think through whether it could make for a new and much
-> faster was to boot live cds - something along the lines of complete
-> redetection of hardware and memory cold plugging. Of course it's only in
-> the 'I wonder if this would be possible' stage at the mo, but seemed at
-> least feasible - keep the e820 tables from boot, make _init routines not
-> get thrown away and do something like the kexec device shutdown etc
-> around an atomic restore.
-> 
-> I know there'd be limitations, but perhaps worth thinking about...
+Hi Matthew,
 
-Well, what if the new e820 map is incompatible with the old one?
+On Dec 26, 2007 5:48 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> +       } else
+> +               printk (KERN_INFO "HP WMI: Unknown response received\n");
+> +
+> +       return;
 
-Rafael
+No need for empty returns.
+
+> +}
+> +
+> +static int __init hp_wmi_init(void)
+> +{
+> +       int err;
+> +       const struct key_entry *key;
+> +
+> +       if (!wmi_has_guid(HPWMI_GUID)) {
+> +               printk ("Unable to locate guid\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       err = wmi_install_notify_handler (hp_wmi_notify, NULL);
+> +       if (err)
+> +               return err;
+> +
+> +       hp_wmi_input_dev = input_allocate_device();
+> +
+> +       hp_wmi_input_dev->name = "HP WMI hotkeys";
+> +       hp_wmi_input_dev->phys = "wmi/input0";
+> +       hp_wmi_input_dev->id.bustype = BUS_HOST;
+> +       hp_wmi_input_dev->getkeycode = hp_wmi_getkeycode;
+> +       hp_wmi_input_dev->setkeycode = hp_wmi_setkeycode;
+> +
+
+There is no sysfs device to attach the input device to, by any chance?
+
+> +       for (key = hp_wmi_keymap; key->type != KE_END; key++) {
+> +               set_bit(EV_KEY, hp_wmi_input_dev->evbit);
+> +               set_bit(key->keycode, hp_wmi_input_dev->keybit);
+> +       }
+> +
+> +       err = input_register_device (hp_wmi_input_dev);
+> +
+> +       if (err) {
+> +               input_free_device (hp_wmi_input_dev);
+> +               return err;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static void __exit hp_wmi_exit(void)
+> +{
+> +       wmi_remove_notify_handler();
+> +       input_unregister_device (hp_wmi_input_dev);
+> +       input_free_device (hp_wmi_input_dev);
+
+Do not call input_free_device after input_unregister_device, it may
+cause freeing already freed memory.
+
+-- 
+Dmitry
