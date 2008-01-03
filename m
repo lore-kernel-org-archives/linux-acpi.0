@@ -1,70 +1,96 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new
-	column PCI ID
-Date: Thu, 03 Jan 2008 10:11:25 +0800
-Message-ID: <1199326285.3806.45.camel@yangyi-dev.bj.intel.com>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
-	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
-	 <20080101232011.GA2545@ucw.cz>
-	 <1199239440.3806.18.camel@yangyi-dev.bj.intel.com>
-	 <20080102160943.GA17187@ucw.cz>
-Reply-To: yi.y.yang@intel.com
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Wed, 02 Jan 2008 23:18:55 -0500
+Message-ID: <477C622F.6010304@rtr.ca>
+References: <200711302153.lAULrZ7n026255@imap1.linux-foundation.org>	<924EFEDD5F540B4284297C4DC59F3DEE2FAE6A@orsmsx423.amr.corp.intel.com>	<20071130142058.816d1693.akpm@linux-foundation.org>	<924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>	<4750CC78.9070105@rtr.ca>	<20071130190227.1976e682@laptopd505.fenrus.org>	<4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca> <477C2143.8090406@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:57737 "EHLO mga11.intel.com"
+Received: from rtr.ca ([76.10.145.34]:4273 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753943AbYACCOB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2008 21:14:01 -0500
-In-Reply-To: <20080102160943.GA17187@ucw.cz>
+	id S1752108AbYACES4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2008 23:18:56 -0500
+In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 2008-01-02 at 17:09 +0100, Pavel Machek wrote:
-> On Wed 2008-01-02 10:03:59, Yi Yang wrote:
-> > On Wed, 2008-01-02 at 00:20 +0100, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > /proc/acpi/wakeup is also case-sensitive, case-insensitive is better.
-> > > 
-> > > Why?
-> > A user uses device bus id like 'C093' to enable or disable wakeup of the
-> > device, for example
-> > 
-> > echo "C093" > /proc/acpi/wakeup
-> > 
-> > but i think "c093" should also be ok. i.e.
+Pallipadi, Venkatesh wrote:
+>  
 > 
-> Why do you think so? Unix is generally case-sensitive. I see ascii
-> text in .../wakeup. Maybe some bios vendor is crazy enough to have
-> wakeup devices called 'wake', 'Wake', 'wAke', 'waKe', 'wakE'?
-Of course, when you cat/proc/acpi/wakeup, you get "wake", but when you
-want to enable or disable wakeup of the device "wake", you can
-
-echo "wAke" > /proc/acpi/wakeup
-
-or
-
-echo "wake" > /proc/acpi/wakeup
-
-Don't you think it is reasonable? This is just for user's convenience.
-
+>> -----Original Message-----
+>> From: Mark Lord [mailto:lkml@rtr.ca] 
+>> Sent: Wednesday, January 02, 2008 3:42 PM
+>> To: Arjan van de Ven
+>> Cc: Pallipadi, Venkatesh; Andrew Morton; abelay@novell.com; 
+>> lenb@kernel.org; Ingo Molnar; linux-kernel@vger.kernel.org; 
+>> linux-acpi@vger.kernel.org
+>> Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch 
+>> added to -mm tree
+>>
+>> Arjan van de Ven wrote:
+>>> On Fri, 30 Nov 2007 22:31:17 -0500
+>>> Mark Lord <lkml@rtr.ca> wrote:
+>>>
+>>>> Arjan van de Ven wrote:
+>>>>> On Fri, 30 Nov 2007 22:14:08 -0500
+>>>>> Mark Lord <lkml@rtr.ca> wrote:
+>>>>>
+>>>>>>> in -mm there is.. the QoS stuff allows you to set maximum
+>>>>>>> tolerable
+>>>>>> ..
+>>>>>>
+>>>>>> That's encouraging, I think, but not for 2.6.24.
+>>>>>>
+>>>>>>> latency. If your app cant take any latency, you should set
+>>>>>>> those... and the side effect is that the kernel will not do
+>>>>>>> long-latency C-states or P-state transitions..
+>>>>>> ..
+>>>>>>
+>>>>>> I don't mind the cpufreq changing (actually, I want it to drop in
+>>>>>> cpugfreq to save power and keep the fan off), but the 
+>> C-states just
+>>>>>> kill this app.
+>>>>>>
+>>>>>> The app is VMware.  I force the max_state=1 when launching,
+>>>>> ah but then its' even easier... and can be done in 2.6.24 already.
+>>>>> VMWare after all has a kernel module, and the latency stuff is in
+>>>>> 2.6.23 and 2.6.24 available inside the kernel already.
+>>>> ..
+>>>>
+>>>> Oh, I'm perfectly happy to write my own kernel module if that's what
+>>> all you need to do in your kernel module is call
+>>>
+>>> add_latency_constraint("mark_wants_his_mouse", 5);
+>>>
+>>> or so
+>> ..
+>>
+>> Dredging up an old regression again now:
+>>
+>> The "make my own module to replace /sys/.../max_cstate" doesn't work
+>> for the single-core machine we use a lot around here.
+>>
+>> VMware is totally sluggish unless I go to another text window 
+>> and do this:
+>>
+>>    while ( true ); do echo -n ; done
+>>
+>> At which point VMware performs well again,
+>> the same as with "echo 1 > max_cstate" in 2.6.23.
+>>
+>> Anyone got any suggestions on how to fix this regression
+>> or work around it for 2.6.24 ?
+>>
 > 
-> > > Maybe this file should be left for compatibility and we should present
-> > > something reasonable in /sys? Can't you already get PCI ID from sysfs
-> > > node?
-> > PCI ID can be gotten from sysfs, but it is a unique identifier for a
-> > device, a user can get device name from /usr/share/hwdata/pci.ids in any
-> > dstribution by PCI ID, he/she is unnecessary to use bus number to get
-> > device name, bus number is platform-specific, but PCI ID is
-> > platform-independent.
-> 
-> If the same info can be gotten from 'sysfs node' field, new field
-> should not be added.
-> 
-> 
+> Easiest and clean way to do it is to have a driver with
+> set_acceptable_latency() for 1uS or so in init and
+> remove_acceptable_latency() at exit.
+..
 
+As noted, I already do that.  It helps with my Core2Duo machine,
+but not with the single-core case.  Bummer.
+
+-ml
