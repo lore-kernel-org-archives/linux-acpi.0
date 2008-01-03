@@ -1,8 +1,8 @@
 From: Yi Yang <yi.y.yang@intel.com>
 Subject: Re: [PATCH linux-acpi] Correct wakeup set error and append a new
 	column PCI ID
-Date: Thu, 03 Jan 2008 10:02:00 +0800
-Message-ID: <1199325720.3806.38.camel@yangyi-dev.bj.intel.com>
+Date: Thu, 03 Jan 2008 10:11:25 +0800
+Message-ID: <1199326285.3806.45.camel@yangyi-dev.bj.intel.com>
 References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
 	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
 	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
@@ -14,10 +14,10 @@ Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24493 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:57737 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753934AbYACCEh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2008 21:04:37 -0500
+	id S1753943AbYACCOB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2008 21:14:01 -0500
 In-Reply-To: <20080102160943.GA17187@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -42,8 +42,16 @@ On Wed, 2008-01-02 at 17:09 +0100, Pavel Machek wrote:
 > Why do you think so? Unix is generally case-sensitive. I see ascii
 > text in .../wakeup. Maybe some bios vendor is crazy enough to have
 > wakeup devices called 'wake', 'Wake', 'wAke', 'waKe', 'wakE'?
-This is just for users' convenience, i believe you must think 0xff and
-0xFF are the same.
+Of course, when you cat/proc/acpi/wakeup, you get "wake", but when you
+want to enable or disable wakeup of the device "wake", you can
+
+echo "wAke" > /proc/acpi/wakeup
+
+or
+
+echo "wake" > /proc/acpi/wakeup
+
+Don't you think it is reasonable? This is just for user's convenience.
 
 > 
 > > > Maybe this file should be left for compatibility and we should present
@@ -57,22 +65,6 @@ This is just for users' convenience, i believe you must think 0xff and
 > 
 > If the same info can be gotten from 'sysfs node' field, new field
 > should not be added.
-Assume you are a user of /proc/acpi/wakeup, when you
-cat /proc/acpi/wakeup, you only get PCI bus id, then you need use PCI
-bus id to get the device info, that is platform-specific, if you want to
-use this PCI bus id to get the device info from another machines, that
-is absolutely impossible, but it is ok if it is PCI ID.
-
-Moreover, you can very easily get the device info
-from /usr/share/hwdata/pci.ids.
-
-grep <PCI ID> /usr/share/hwdata/pci.ids
-
-That is more convenient than PCI bus id.
-
-If we can provide PCI ID in /proc/acpi/wakeup, why we let users get that
-from /sys/devices/pci...?
-
 > 
 > 
 
