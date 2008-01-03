@@ -1,42 +1,42 @@
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
-Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Thu, 03 Jan 2008 19:31:13 +1100
-Message-ID: <477C9D51.5000604@nigel.suspend2.net>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801021505.39789.rjw@sisk.pl> <477C019D.1070001@nigel.suspend2.net> <200801022301.45706.rjw@sisk.pl>
-Reply-To: nigel@nigel.suspend2.net
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 2/7] ACPI: Separate invocations of _GTS and _BFS
+	from _PTS and _WAK
+Date: Thu, 3 Jan 2008 11:42:20 +0100
+Message-ID: <20080103104220.GA1732@elf.ucw.cz>
+References: <200712271903.53961.rjw@sisk.pl> <200712271915.17174.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from home.nigel.suspend2.net ([203.171.70.205]:33686 "EHLO
-	server1.example.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756722AbYACIbQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2008 03:31:16 -0500
-In-Reply-To: <200801022301.45706.rjw@sisk.pl>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:58346 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbYACKmO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2008 05:42:14 -0500
+Content-Disposition: inline
+In-Reply-To: <200712271915.17174.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@suse.cz>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi.
-
-Rafael J. Wysocki wrote:
->> I suppose we can always disable this when we start to support hardware
->> changing over hibernate (I have ideas in this direction - memory cold
->> plugging, for a start).
+On Thu 2007-12-27 19:15:16, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Well, if we support such features, we won't be following ACPI any more.
+> The execution of ACPI global control methods _GTS and _BFS is
+> currently tied to the preparation to enter a sleep state and to the
+> leaving of the sleep state, respectively.  However, these functions
+> are called before disabling the nonboot CPUs and after enabling
+> them, respectively (in fact, on ACPI 1.0x systems the first of them
+> ought to be called before suspending devices), while according to the
+> ACPI specification, _GTS is to be executed right prior to entering
+> the system sleep state and _BFS is to be executed right after the
+> platfor firmware has returned control to the OS on wake up.
+> 
+> Move the execution of _GTS and _BFS to the right places.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Mmm. Apparently I'm not as focused on specs as you :).
+Seems ok to me, but it is 2.6.25 material earliest, right?
 
-I was starting to think through whether it could make for a new and much
-faster was to boot live cds - something along the lines of complete
-redetection of hardware and memory cold plugging. Of course it's only in
-the 'I wonder if this would be possible' stage at the mo, but seemed at
-least feasible - keep the e820 tables from boot, make _init routines not
-get thrown away and do something like the kexec device shutdown etc
-around an atomic restore.
-
-I know there'd be limitations, but perhaps worth thinking about...
-
-Nigel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
