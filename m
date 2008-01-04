@@ -1,52 +1,131 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Asus P1-AH2 won't suspend (regression)
-Date: Fri, 4 Jan 2008 17:56:33 +0100
-Message-ID: <200801041756.33733.rjw@sisk.pl>
-References: <20080104144238.GA5176@zoy.org>
+Subject: Re: [patch] hibernation: utilize ACPI hardware signature
+Date: Fri, 4 Jan 2008 21:44:19 +0100
+Message-ID: <200801042144.20279.rjw@sisk.pl>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801031804.30947.rjw@sisk.pl> <1199425291.20053.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53176 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:53844 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752715AbYADQyb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jan 2008 11:54:31 -0500
-In-Reply-To: <20080104144238.GA5176@zoy.org>
+	id S1755099AbYADUmM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jan 2008 15:42:12 -0500
+In-Reply-To: <1199425291.20053.2.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michel Lespinasse <walken@zoy.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>
 
-On Friday, 4 of January 2008, Michel Lespinasse wrote:
-> Hi,
+On Friday, 4 of January 2008, Shaohua Li wrote:
 > 
-> I'm unable to get an asus P1-AH2 system to suspend (to ram). The issue
-> occurs at suspend time: the system displays "Suspending console(s)" but
-> does not turn off the screen and system fans.
-> 
-> I used to have suspend/resume working fine on this system using a
-> 2.6.20.x kernel. Yes, I know this is a huge range... suspend has
-> been broken on this sytem since at least 2.6.22.x
-> 
-> I tried running 2.6.24-rc6 with verbose PM debugging and suspend/resume
-> event tracing. Still no luck, the last message I see is still
-> "Suspending console(s)". The information from event tracing seems to be:
->   Magic number: 8:471:282
->   hash matches device tty19
-> 
-> I'm not sure if that's any help. Is there any way to help figure out the
-> problem besides a git bisect ? would extra event traces during/after the
-> suspend console stage help ???
-> 
-> This is with an x86_64 kernel. .config file can be found at
-> http://lespinasse.org/config-2.6.24-rc6 if that's any help.
+> On Fri, 2008-01-04 at 01:04 +0800, Rafael J. Wysocki wrote:
+> > On Thursday, 3 of January 2008, Shaohua Li wrote:
+> > >
+> > > On Wed, 2008-01-02 at 22:05 +0800, Rafael J. Wysocki wrote:
+> > > > On Wednesday, 2 of January 2008, Shaohua Li wrote:
+> > > > > ACPI defines a hardware signature. BIOS calculates the signature
+> > > > > according to hardware configure, if hardware changes, the
+> > signature
+> > > > will
+> > > > > change, in this case, S4 resume should fail.
+> > > >
+> > > > The idea is fine, but I'd prefer to do that in a more
+> > straightforward
+> > > > way.
+> > > > Namely, we can just:
+> > > > * write the signature into a variable in, for example,
+> > > >   acpi_hibernation_prepare() (then, the "old" signature value will
+> > be
+> > > >   automatically saved in the image)
+> > > > * compare it with a the "new" value read from the BIOS in
+> > > >   acpi_hibernation_leave() and panic if there's a mismatch
+> > > > * add a configuration option to disable this behavior (just in
+> > case)
+> > > > This way we can avoid modifying the entire generic interface to
+> > add
+> > > > the feature
+> > > > specific to ACPI.
+> > > it would be better we do the check in boot kernel.
+> > Franky, I think we should also check in the image kernel, in case the
+> > boot
+> > one doesn't support ACPI as I said.
+> Ok, makes sense. I changed to check the signature in .higberation_leave
 
-Please try the patch series from:
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.24-rc6/patches/
-on top of 2.6.24-rc6 (patches 28-34 are relevant in particular) and see if that
-helps.
+Thanks, comments below.
 
-Thanks,
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> ---
+>  drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+> 
+> Index: linux/drivers/acpi/sleep/main.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep/main.c	2008-01-03 13:37:08.000000000 +0800
+> +++ linux/drivers/acpi/sleep/main.c	2008-01-04 13:36:10.000000000 +0800
+> @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+>  	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+>  }
+>  
+> +static unsigned long s4_hardware_signature;
+> +static struct acpi_table_facs *facs;
+> +static int nosigcheck;
+
+Use bool perhaps?
+
+> +
+> +static int __init acpi_s4_nosigcheck(char *str)
+> +{
+> +	nosigcheck = 1;
+
+And "true" here?
+
+> +	return 1;
+> +}
+> +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> +
+
+Please put this function at the end of the file.  Also, I'd call it
+"acpi_s4_nosig", but whatever.
+
+>  static void acpi_hibernation_leave(void)
+>  {
+>  	/*
+> @@ -263,6 +274,11 @@ static void acpi_hibernation_leave(void)
+>  	 * enable it here.
+>  	 */
+>  	acpi_enable();
+> +	if (facs && s4_hardware_signature != facs->hardware_signature) {
+
+I think we don't need to evaluate the condition if nosigcheck is true, but ...
+
+> +		printk(KERN_EMERG"PM: Hardware changed in the S4 circle, can't resume\n");
+> +		if (!nosigcheck)
+> +			panic("S4 resume error");
+> +	}
+>  }
+>  
+>  static void acpi_hibernation_finish(void)
+> @@ -449,6 +465,10 @@ int __init acpi_sleep_init(void)
+>  		sleep_states[ACPI_STATE_S4] = 1;
+>  		printk(" S4");
+>  	}
+
+... I'd put "if (!nosigcheck)" around the following 4 lines and then we
+wouldn't need to check nosigcheck in acpi_hibernation_leave(), because facs
+would be NULL.
+
+Also, please put that into the block that contains the 'printk(" S4")' above.
+
+> +	acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+> +		(struct acpi_table_header **)&facs);
+> +	if (facs)
+> +		s4_hardware_signature = facs->hardware_signature;
+>  #endif
+>  	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+>  	if (ACPI_SUCCESS(status)) {
+
+Greetings,
 Rafael
