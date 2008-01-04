@@ -1,144 +1,43 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: [PATCH linux-acpi] fix acpi fan state set error
-Date: Fri, 04 Jan 2008 16:16:42 +0800
-Message-ID: <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
-	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
-Reply-To: yi.y.yang@intel.com
+From: Michel Lespinasse <walken@zoy.org>
+Subject: Asus P1-AH2 won't suspend (regression)
+Date: Fri, 4 Jan 2008 06:42:38 -0800
+Message-ID: <20080104144238.GA5176@zoy.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:50036 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753356AbYADIZQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Jan 2008 03:25:16 -0500
-In-Reply-To: <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+Received: from server.lespinasse.org ([64.142.28.226]:48229 "EHLO
+	server.lespinasse.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185AbYADPQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2008 10:16:07 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Subject: ACPI: fix acpi fan state set error
-From: Yi Yang <yi.y.yang@intel.com>
+Hi,
 
-Under /proc/acpi, there is a fan control interface, a user can
-set 0 or 3 to /proc/acpi/fan/*/state, 0 denotes D0 state, 3
-denotes D3 state, but in current implementation, a user can
-set a fan to D1 state by any char excluding '1', '2' and '3'.
+I'm unable to get an asus P1-AH2 system to suspend (to ram). The issue
+occurs at suspend time: the system displays "Suspending console(s)" but
+does not turn off the screen and system fans.
 
-For example:
+I used to have suspend/resume working fine on this system using a
+2.6.20.x kernel. Yes, I know this is a huge range... suspend has
+been broken on this sytem since at least 2.6.22.x
 
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "xxxxx" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  on
+I tried running 2.6.24-rc6 with verbose PM debugging and suspend/resume
+event tracing. Still no luck, the last message I see is still
+"Suspending console(s)". The information from event tracing seems to be:
+  Magic number: 8:471:282
+  hash matches device tty19
 
-Obviously, such inputs as "" and "xxxxx" are invalid for fan state.
+I'm not sure if that's any help. Is there any way to help figure out the
+problem besides a git bisect ? would extra event traces during/after the
+suspend console stage help ???
 
-This patch fixes this issue, it strictly limits fan state only to
-accept 0, 1, 2 and 3, any other inputs are invalid.
+This is with an x86_64 kernel. .config file can be found at
+http://lespinasse.org/config-2.6.24-rc6 if that's any help.
 
-Before applying this patch, the test result is:
+Thanks,
 
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "xxxxx" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost acpi]# echo "3" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "3x" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost acpi]# echo "-1x" > /proc/acpi/fan/C31B/state
-[root@localhost acpi]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost acpi]#
-
-
-After applying this patch, the test result is:
-
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "" > /proc/acpi/fan/C31B/state
--bash: echo: write error: Invalid argument
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "3" > /proc/acpi/fan/C31B/state
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "xxxxx" > /proc/acpi/fan/C31B/state
--bash: echo: write error: Invalid argument
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "-1x" > /proc/acpi/fan/C31B/state
--bash: echo: write error: Invalid argument
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "0" > //proc/acpi/fan/C31B/state
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost ~]# echo "4" > //proc/acpi/fan/C31B/state
--bash: echo: write error: Invalid argument
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost ~]# echo "3" > //proc/acpi/fan/C31B/state
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  off
-[root@localhost ~]# echo "0" > //proc/acpi/fan/C31B/state
-[root@localhost ~]# cat /proc/acpi/fan/C31B/state
-status:                  on
-[root@localhost ~]# echo "3x" > //proc/acpi/fan/C31B/state
--bash: echo: write error: Invalid argument
-[root@localhost ~]#
-
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
----
- fan.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index a5a5532..53f7c72 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -98,7 +98,7 @@ acpi_fan_write_state(struct file *file, const char __user * buffer,
- 	int result = 0;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_device *device = m->private;
--	char state_string[12] = { '\0' };
-+	char state_string[3] = { '\0' };
- 
- 	if (count > sizeof(state_string) - 1)
- 		return -EINVAL;
-@@ -107,6 +107,12 @@ acpi_fan_write_state(struct file *file, const char __user * buffer,
- 		return -EFAULT;
- 
- 	state_string[count] = '\0';
-+	if ((state_string[0] < '0') || (state_string[0] > '3'))
-+		return -EINVAL;
-+	if (state_string[1] == '\n')
-+		state_string[1] = '\0';
-+	if (state_string[1] != '\0')
-+		return -EINVAL;
- 
- 	result = acpi_bus_set_power(device->handle,
- 				    simple_strtoul(state_string, NULL, 0));
-
-
+-- 
+Michel Lespinasse
