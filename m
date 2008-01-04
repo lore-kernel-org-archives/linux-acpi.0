@@ -1,42 +1,55 @@
-From: Alessandro Guido <alessandro.guido@gmail.com>
-Subject: Re: Kohjinsha sleep problems
-Date: Fri, 4 Jan 2008 22:33:44 +0100
-Message-ID: <200801042233.44827.alessandro.guido@gmail.com>
-References: <20080101231955.GA1931@ucw.cz>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Fri, 04 Jan 2008 16:52:48 -0500
+Message-ID: <477EAAB0.1000101@rtr.ca>
+References: <20071130142058.816d1693.akpm@linux-foundation.org> <924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com> <4750CC78.9070105@rtr.ca> <20071130190227.1976e682@laptopd505.fenrus.org> <4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca> <477C2143.8090406@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com> <477C622F.6010304@rtr.ca> <20080104021619.GA15409@linux-os.sc.intel.com> <477DA529.4000500@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:42239 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526AbYADVdz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jan 2008 16:33:55 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so3669803fga.17
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Jan 2008 13:33:54 -0800 (PST)
-In-Reply-To: <20080101231955.GA1931@ucw.cz>
-Content-Disposition: inline
+Received: from rtr.ca ([76.10.145.34]:3117 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752230AbYADVwu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jan 2008 16:52:50 -0500
+In-Reply-To: <477DA529.4000500@rtr.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-Il Wednesday 02 January 2008 00:19:55 Pavel Machek ha scritto:
-> Hi!
->
-> On kohjinsha, wakeup code does not seem to be reached at all. I tried
-> looking around FACS, but it seems very empty:
->
-> ...
+Mark Lord wrote:
+> Venki Pallipadi wrote:
+>> Reintroduce run time configurable max_cstate for !CPU_IDLE case.
+>>
+>> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+>>
+>> Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
+>> ===================================================================
+>> --- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
+>> +++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
+>> @@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
+>>  #define PM_TIMER_TICKS_TO_US(p)        (((p) * 
+>> 1000)/(PM_TIMER_FREQUENCY/1000))
+>>  
+>>  static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+>> +#ifdef CONFIG_CPU_IDLE
+>>  module_param(max_cstate, uint, 0000);
+>> +#else
+>> +module_param(max_cstate, uint, 0644);
+>> +#endif
+>>  static unsigned int nocst __read_mostly;
+>>  module_param(nocst, uint, 0000);
+>>  
+> ..
+> 
+> I'll try and re-test with this on Friday.
+..
 
-The same on my laptop:
+Okay, with !CONFIG_CPU_IDLE, this works fine -- same as 2.6.23 and earlier.
 
-FACS @ 0x2fefafc0
-  0000: 46 41 43 53 40 00 00 00 62 12 00 00 00 00 00 00  FACS@...b.......
-  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> Meanwhile, can you give a short summary of how behaviour differs
+> between CONFIG_CPU_IDLE and !CONFIG_CPU_IDLE  ??
+> 
+> I'm not at all clear on how this really affects things.
 
-
-I've never been able to resume from STR with Linux (works with Windows Vista). 
-STD works, although I have to press the power button in order to resume.
+???
