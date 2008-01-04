@@ -1,52 +1,36 @@
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
-Subject: Re: [linux-pm] Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Fri, 04 Jan 2008 09:10:12 +1100
-Message-ID: <477D5D44.5060401@nigel.suspend2.net>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801022301.45706.rjw@sisk.pl> <477C9D51.5000604@nigel.suspend2.net> <200801031758.03056.rjw@sisk.pl>
-Reply-To: nigel@nigel.suspend2.net
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Thu, 3 Jan 2008 18:16:19 -0800
+Message-ID: <20080104021619.GA15409@linux-os.sc.intel.com>
+References: <20071130142058.816d1693.akpm@linux-foundation.org> <924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com> <4750CC78.9070105@rtr.ca> <20071130190227.1976e682@laptopd505.fenrus.org> <4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca> <477C2143.8090406@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com> <477C622F.6010304@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from home.nigel.suspend2.net ([203.171.70.205]:54389 "EHLO
-	server1.example.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752827AbYACWKM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2008 17:10:12 -0500
-In-Reply-To: <200801031758.03056.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756694AbYADCQd@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <477C622F.6010304@rtr.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Lord <lkml@rtr.ca>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@suse.cz>
 
-Hi.
 
-Rafael J. Wysocki wrote:
-> On Thursday, 3 of January 2008, Nigel Cunningham wrote:
->> Hi.
->>
->> Rafael J. Wysocki wrote:
->>>> I suppose we can always disable this when we start to support hardware
->>>> changing over hibernate (I have ideas in this direction - memory cold
->>>> plugging, for a start).
->>> Well, if we support such features, we won't be following ACPI any more.
->> Mmm. Apparently I'm not as focused on specs as you :).
->>
->> I was starting to think through whether it could make for a new and much
->> faster was to boot live cds - something along the lines of complete
->> redetection of hardware and memory cold plugging. Of course it's only in
->> the 'I wonder if this would be possible' stage at the mo, but seemed at
->> least feasible - keep the e820 tables from boot, make _init routines not
->> get thrown away and do something like the kexec device shutdown etc
->> around an atomic restore.
->>
->> I know there'd be limitations, but perhaps worth thinking about...
-> 
-> Well, what if the new e820 map is incompatible with the old one?
+Reintroduce run time configurable max_cstate for !CPU_IDLE case.
 
-In the worst case, you tell the user about it and carry on with the old
-one. Perhaps this would be the killer for the live cd idea - perhaps
-e820 maps vary too much, there'd be no possible workaround and this
-would never be practical. It's worth at least thinking about, though,
-isn't it?
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Nigel
+Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
++++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
+@@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
+ #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
++#ifdef CONFIG_CPU_IDLE
+ module_param(max_cstate, uint, 0000);
++#else
++module_param(max_cstate, uint, 0644);
++#endif
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
+ 
