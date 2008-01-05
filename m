@@ -1,158 +1,267 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 4/7] ACPI Suspend: Call _PTS before suspending devices
-Date: Sat, 5 Jan 2008 23:48:34 +0100
-Message-ID: <200801052348.35899.rjw@sisk.pl>
+Subject: [RFC][PATCH 1/7] Suspend: Introduce open() and close() callbacks
+Date: Sat, 5 Jan 2008 23:38:51 +0100
+Message-ID: <200801052338.52923.rjw@sisk.pl>
 References: <200801052332.44500.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58215 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:58226 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752731AbYAEXQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jan 2008 18:16:13 -0500
+	id S1752748AbYAEXQO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jan 2008 18:16:14 -0500
 In-Reply-To: <200801052332.44500.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, David Brownell <david-b@pacbell.net>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The ACPI 1.0 specification wants us to put devices into low power
-states after executing the _PTS global control methods, while ACPI
-2.0 and later want us to do that in the reverse order.  The current
-suspend code follows ACPI 2.0 in that respect which causes some
-ACPI 1.0x systems to hang during suspend (ref.
-http://bugzilla.kernel.org/show_bug.cgi?id=9528).
+On ACPI systems the target state set by acpi_pm_set_target() is
+reset by acpi_pm_finish(), but that need not be called in the
+suspend fails.  All platforms that use the .set_target() global
+suspend callback are affected by analogous issues.
 
-Make the suspend code execute _PTS before putting devices into low
-power (ie. in accordance with ACPI 1.0x) and provide a command line
-option to override the default if need be.
+For this reason, we need an additional global suspend callback that
+will reset the target state regardless of whether or not the suspend
+is successful.  Also, it is reasonable to rename the .set_target()
+callback, since it will be used for a different purpose on ACPI
+systems (due to ACPI 1.0x code ordering requirements).
+
+Introduce the global suspend callback .close() to be executed at the
+end of the suspend sequence and rename the .set_target() global
+suspend callback to .open().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@suse.cz>
 ---
- Documentation/kernel-parameters.txt |    5 +++
- drivers/acpi/sleep/main.c           |   51 ++++++++++++++++++++++++++----------
- 2 files changed, 43 insertions(+), 13 deletions(-)
+ arch/arm/mach-at91/pm.c                   |   17 +++++++++++++----
+ arch/powerpc/platforms/52xx/lite5200_pm.c |   10 ++++++++--
+ drivers/acpi/sleep/main.c                 |   22 ++++++++++++++++++----
+ include/linux/suspend.h                   |   24 ++++++++++++++----------
+ kernel/power/main.c                       |    9 ++++++---
+ 5 files changed, 59 insertions(+), 23 deletions(-)
 
+Index: linux-2.6/include/linux/suspend.h
+===================================================================
+--- linux-2.6.orig/include/linux/suspend.h
++++ linux-2.6/include/linux/suspend.h
+@@ -38,18 +38,16 @@ typedef int __bitwise suspend_state_t;
+  *	There is the %suspend_valid_only_mem function available that can be
+  *	assigned to this if the platform only supports mem sleep.
+  *
+- * @set_target: Tell the platform which system sleep state is going to be
+- *	entered.
+- *	@set_target() is executed right prior to suspending devices.  The
+- *	information conveyed to the platform code by @set_target() should be
+- *	disregarded by the platform as soon as @finish() is executed and if
+- *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
++ * @open: Initialise a transition to given system sleep state.
++ *	@open() is executed right prior to suspending devices.  The information
++ *	conveyed to the platform code by @open() should be disregarded by it as
++ *	soon as @close() is executed.  If @open() fails (ie. returns nonzero),
+  *	@prepare(), @enter() and @finish() will not be called by the PM core.
+  *	This callback is optional.  However, if it is implemented, the argument
+  *	passed to @enter() is meaningless and should be ignored.
+  *
+  * @prepare: Prepare the platform for entering the system sleep state indicated
+- *	by @set_target().
++ *	by @open().
+  *	@prepare() is called right after devices have been suspended (ie. the
+  *	appropriate .suspend() method has been executed for each device) and
+  *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
+@@ -57,8 +55,8 @@ typedef int __bitwise suspend_state_t;
+  *	error code otherwise, in which case the system cannot enter the desired
+  *	sleep state (@enter() and @finish() will not be called in that case).
+  *
+- * @enter: Enter the system sleep state indicated by @set_target() or
+- *	represented by the argument if @set_target() is not implemented.
++ * @enter: Enter the system sleep state indicated by @open() or represented by
++ *	the argument if @open() is not implemented.
+  *	This callback is mandatory.  It returns 0 on success or a negative
+  *	error code otherwise, in which case the system cannot enter the desired
+  *	sleep state.
+@@ -69,13 +67,19 @@ typedef int __bitwise suspend_state_t;
+  *	This callback is optional, but should be implemented by the platforms
+  *	that implement @prepare().  If implemented, it is always called after
+  *	@enter() (even if @enter() fails).
++ *
++ * @close: Called by the PM core right after resuming devices, to indicate to
++ *	the platform that the system has returned to the working state.
++ *	This callback is optional, but should be implemented by the platforms
++ *	that implement @open().
+  */
+ struct platform_suspend_ops {
+ 	int (*valid)(suspend_state_t state);
+-	int (*set_target)(suspend_state_t state);
++	int (*open)(suspend_state_t state);
+ 	int (*prepare)(void);
+ 	int (*enter)(suspend_state_t state);
+ 	void (*finish)(void);
++	void (*close)(void);
+ };
+ 
+ #ifdef CONFIG_SUSPEND
 Index: linux-2.6/drivers/acpi/sleep/main.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/sleep/main.c
 +++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -26,6 +26,21 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
+@@ -63,11 +63,11 @@ static u32 acpi_suspend_states[] = {
+ static int init_8259A_after_S1;
  
- #ifdef CONFIG_PM_SLEEP
- static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+static bool acpi_sleep_finish_wake_up;
-+
-+/*
-+ * ACPI 2.0 and later want us to execute _PTS after suspending devices, so we
-+ * allow the user to request that behavior by using the 'acpi_new_pts_ordering'
-+ * kernel command line option that causes the following variable to be set.
-+ */
-+static bool new_pts_ordering;
-+
-+static int __init acpi_new_pts_ordering(char *str)
-+{
-+	new_pts_ordering = true;
-+	return 1;
-+}
-+__setup("acpi_new_pts_ordering", acpi_new_pts_ordering);
- #endif
+ /**
+- *	acpi_pm_set_target - Set the target system sleep state to the state
++ *	acpi_pm_open - Set the target system sleep state to the state
+  *		associated with given @pm_state, if supported.
+  */
  
- int acpi_sleep_prepare(u32 acpi_state)
-@@ -74,6 +89,14 @@ static int acpi_pm_open(suspend_state_t 
- 
- 	if (sleep_states[acpi_state]) {
- 		acpi_target_sleep_state = acpi_state;
-+		if (new_pts_ordering)
-+			return 0;
-+
-+		error = acpi_sleep_prepare(acpi_state);
-+		if (error)
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+		else
-+			acpi_sleep_finish_wake_up = true;
- 	} else {
- 		printk(KERN_ERR "ACPI does not support this state: %d\n",
- 			pm_state);
-@@ -91,15 +114,17 @@ static int acpi_pm_open(suspend_state_t 
- 
- static int acpi_pm_prepare(void)
+-static int acpi_pm_set_target(suspend_state_t pm_state)
++static int acpi_pm_open(suspend_state_t pm_state)
  {
--	int error;
-+	if (new_pts_ordering) {
-+		int error = acpi_sleep_prepare(acpi_target_sleep_state);
- 
--	error = acpi_sleep_prepare(acpi_target_sleep_state);
--	if (error)
--		acpi_target_sleep_state = ACPI_STATE_S0;
--	else if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
--		error = -EFAULT;
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+			return error;
-+		}
-+		acpi_sleep_finish_wake_up = true;
-+	}
- 
--	return error;
-+	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 	int error = 0;
+@@ -164,7 +164,7 @@ static int acpi_pm_enter(suspend_state_t
  }
  
  /**
-@@ -123,10 +148,8 @@ static int acpi_pm_enter(suspend_state_t
- 	if (acpi_state == ACPI_STATE_S3) {
- 		int error = acpi_save_state_mem();
- 
--		if (error) {
--			acpi_target_sleep_state = ACPI_STATE_S0;
-+		if (error)
- 			return error;
--		}
- 	}
- 
- 	local_irq_save(flags);
-@@ -187,6 +210,7 @@ static void acpi_pm_finish(void)
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_sleep_finish_wake_up = false;
- 
- #ifdef CONFIG_X86
- 	if (init_8259A_after_S1) {
-@@ -203,10 +227,11 @@ static void acpi_pm_finish(void)
- static void acpi_pm_close(void)
- {
- 	/*
--	 * This is necessary in case acpi_pm_finish() is not called during a
--	 * failing transition to a sleep state.
-+	 * This is necessary in case acpi_pm_finish() is not called directly
-+	 * during a failing transition to a sleep state.
- 	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	if (acpi_sleep_finish_wake_up)
-+		acpi_pm_finish();
+- *	acpi_pm_finish - Finish up suspend sequence.
++ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+  *
+  *	This is called after we wake back up (or if entering the sleep state
+  *	failed). 
+@@ -190,6 +190,19 @@ static void acpi_pm_finish(void)
+ #endif
  }
  
- static int acpi_pm_state_valid(suspend_state_t pm_state)
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -167,6 +167,11 @@ and is between 256 and 4096 characters. 
- 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
- 			Format: <irq>,<irq>...
- 
-+	acpi_new_pts_ordering [HW,ACPI]
-+			Enforce the ACPI 2.0 ordering of the _PTS control
-+			method wrt putting devices into low power states
-+			default: pre ACPI 2.0 ordering of _PTS
++/**
++ *	acpi_pm_close - Finish up suspend sequence.
++ */
 +
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
++static void acpi_pm_close(void)
++{
++	/*
++	 * This is necessary in case acpi_pm_finish() is not called during a
++	 * failing transition to a sleep state.
++	 */
++	acpi_target_sleep_state = ACPI_STATE_S0;
++}
++
+ static int acpi_pm_state_valid(suspend_state_t pm_state)
+ {
+ 	u32 acpi_state;
+@@ -208,10 +221,11 @@ static int acpi_pm_state_valid(suspend_s
  
- 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+ static struct platform_suspend_ops acpi_pm_ops = {
+ 	.valid = acpi_pm_state_valid,
+-	.set_target = acpi_pm_set_target,
++	.open = acpi_pm_open,
+ 	.prepare = acpi_pm_prepare,
+ 	.enter = acpi_pm_enter,
+ 	.finish = acpi_pm_finish,
++	.close = acpi_pm_close,
+ };
+ 
+ /*
+Index: linux-2.6/arch/arm/mach-at91/pm.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-at91/pm.c
++++ linux-2.6/arch/arm/mach-at91/pm.c
+@@ -52,7 +52,7 @@ static suspend_state_t target_state;
+ /*
+  * Called after processes are frozen, but before we shutdown devices.
+  */
+-static int at91_pm_set_target(suspend_state_t state)
++static int at91_pm_open(suspend_state_t state)
+ {
+ 	target_state = state;
+ 	return 0;
+@@ -197,11 +197,20 @@ error:
+ 	return 0;
+ }
+ 
++/*
++ * Called right prior to thawing processes.
++ */
++static void at91_pm_close(void)
++{
++	target_state = PM_SUSPEND_ON;
++}
++
+ 
+ static struct platform_suspend_ops at91_pm_ops ={
+-	.valid		= at91_pm_valid_state,
+-	.set_target	= at91_pm_set_target,
+-	.enter		= at91_pm_enter,
++	.valid	= at91_pm_valid_state,
++	.open	= at91_pm_open,
++	.enter	= at91_pm_enter,
++	.close	= at91_pm_close,
+ };
+ 
+ static int __init at91_pm_init(void)
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -253,10 +253,10 @@ int suspend_devices_and_enter(suspend_st
+ 	if (!suspend_ops)
+ 		return -ENOSYS;
+ 
+-	if (suspend_ops->set_target) {
+-		error = suspend_ops->set_target(state);
++	if (suspend_ops->open) {
++		error = suspend_ops->open(state);
+ 		if (error)
+-			return error;
++			goto Close;
+ 	}
+ 	suspend_console();
+ 	error = device_suspend(PMSG_SUSPEND);
+@@ -289,6 +289,9 @@ int suspend_devices_and_enter(suspend_st
+ 	device_resume();
+  Resume_console:
+ 	resume_console();
++ Close:
++	if (suspend_ops->close)
++		suspend_ops->close();
+ 	return error;
+ }
+ 
+Index: linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
+===================================================================
+--- linux-2.6.orig/arch/powerpc/platforms/52xx/lite5200_pm.c
++++ linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -31,7 +31,7 @@ static int lite5200_pm_valid(suspend_sta
+ 	}
+ }
+ 
+-static int lite5200_pm_set_target(suspend_state_t state)
++static int lite5200_pm_open(suspend_state_t state)
+ {
+ 	if (lite5200_pm_valid(state)) {
+ 		lite5200_pm_target_state = state;
+@@ -208,12 +208,18 @@ static void lite5200_pm_finish(void)
+ 		mpc52xx_pm_finish();
+ }
+ 
++static void lite5200_pm_close(void)
++{
++	lite5200_pm_target_state = PM_SUSPEND_ON;
++}
++
+ static struct platform_suspend_ops lite5200_pm_ops = {
+ 	.valid		= lite5200_pm_valid,
+-	.set_target	= lite5200_pm_set_target,
++	.open		= lite5200_pm_open,
+ 	.prepare	= lite5200_pm_prepare,
+ 	.enter		= lite5200_pm_enter,
+ 	.finish		= lite5200_pm_finish,
++	.close		= lite5200_pm_close,
+ };
+ 
+ int __init lite5200_pm_init(void)
 
