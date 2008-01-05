@@ -1,61 +1,86 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: controlling ACPI IRQ routing
-Date: Sat, 5 Jan 2008 00:48:29 -0500
-Message-ID: <200801050048.29908.lenb@kernel.org>
-References: <47742083.5060903@howardsilvan.com> <1198821979.20548.9.camel@sli10-desk.sh.intel.com> <477C269B.4080407@howardsilvan.com>
+Date: Sat, 5 Jan 2008 00:51:20 -0500
+Message-ID: <200801050051.20947.lenb@kernel.org>
+References: <47742083.5060903@howardsilvan.com> <47769494.3080503@howardsilvan.com> <20080102151142.73362648@citycable.ch>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43926 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:44002 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104AbYAEFsp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jan 2008 00:48:45 -0500
-In-Reply-To: <477C269B.4080407@howardsilvan.com>
+	id S1751209AbYAEFvh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jan 2008 00:51:37 -0500
+In-Reply-To: <20080102151142.73362648@citycable.ch>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Howard <faxguy@howardsilvan.com>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
+To: Dominique Michel <dominique.michel@citycable.ch>
+Cc: Lee Howard <faxguy@howardsilvan.com>, linux-acpi@vger.kernel.org
 
-On Wednesday 02 January 2008 19:04, Lee Howard wrote:
-> Shaohua Li wrote:
-> > Currently vector is allocated when pci_enable_device is called. So which
-> > vector is allocated depends on how many drivers already called the
-> > routine. The first vector is 0x31, later higher priority (higher) vector
-> > will be allocated. In latest kernel, a vector of a irq could be variable
-> > when irq affinity is set, so it's much complex. There is no existing
-> > method to reserve a vector for a device.
-> 
-> The systems I've been using are all single-processor AMD x86 or x86_64 
-> systems.  So I doubt that IRQ affinity applies in these cases.
-> 
-> I've made the driver get "preloaded" through mkinitrd/initrd on 
-> boot-time, but that doesn't seem to make a difference in device performance.
-> 
-> Is it possible to see in 'dmesg' output which vector was allocated to 
-> which IRQ/device?
+On Wednesday 02 January 2008 09:11, Dominique Michel wrote:
+> Le Sat, 29 Dec 2007 10:40:20 -0800,
+> Lee Howard <faxguy@howardsilvan.com> a =C3=A9crit :
+>=20
+>=20
+> > # cat /proc/interrupts
+> >            CPU0     =20
+> >   0: 1051464247   IO-APIC-edge      timer
+> >   1:          8   IO-APIC-edge      i8042
+> >   8:          0   IO-APIC-edge      rtc
+> >   9:          0   IO-APIC-fasteoi   acpi
+> >  12:        104   IO-APIC-edge      i8042
+> >  14:    9414304   IO-APIC-edge      ide0
+> >  16: 1051172722   IO-APIC-fasteoi   wct4xxp
+> >  19:          1   IO-APIC-fasteoi   eth1
+> >  21:  158008518   IO-APIC-fasteoi   eth0
+> >  22:    6974044   IO-APIC-fasteoi   libata
+> >  23:    7071112   IO-APIC-fasteoi   libata
+> > NMI:          0
+> > LOC: 1051371544
+> > ERR:          0
+> >=20
+> >=20
+>=20
+> Based on that, you may want to use rtirq. It is a boot script (need s=
+chedutils
+> as dependency) with associated config scripts. http://alsa.opensrc.or=
+g/Rtirq
+>=20
+> In /etc/conf.d/rtirq, you will find:
+>=20
+> # IRQ thread service names
+> # (space separated list, from higher to lower priority).
+> RTIRQ_NAME_LIST=3D"rtc snd usb i8042"
+>=20
+> The most important things is that the devices listed here doesn't hav=
+e any
+> shared IRQ with some other device and that the rtc remain the first l=
+isted
+> device (the one with the higer priority), or the system will hang soo=
+n or later.
+>=20
+> This setup is for audio workstation but is very easy to adapt to any =
+kind of
+> work.
+>=20
 
-no.  the vectors are chosesn when the IOAPIC is programmed
-and today, linux just prints out the GSI (which is the IOAPIC pin #)
-and the IRQ, which is a corresponding data structure.
+I've got no experience with the thread priority thing above.
+However, the better way to handle quality of service contention
+is to not do the things you don't care about.
 
->> In IOAPIC mode, interrupt priority isn't related with the pin (in your
->> case, irq 16 or 19), but the vector of the pin.
+Does the system really need HZ=3D1000?  you could slow that down to 100=
+,
+or run CONFIG_NO_HZ to reduce it even more...
+Also, on a UP, the LAPIC timer interrupt is redundant --
+you could build your kernel w/o APIC support or boot with nolapic.
 
->Just to help my understanding a bit... does the Linux ACPI driver 
->determine which IRQ numbers are given to certain devices?  And if so, 
->how does it make those assignments?
-
-Yes.  It uses a PCI Routing Table (_PRT) in the DSDT.
-The _PRT may either hard-code the relationship between
-PCI interrupt pin (as is typical in IOAPIC mode)
-or use a PCI Interrupt Link Device (as is common in PIC mode)
-that can be programmed to a number of differet input pins.
-
-This is used to minimize interrupt line sharing.
-But on your system, you have no interrupt line sharing,
-so that isnt' the problem.
+This would get rid of the only interrupts which are frequent
+enough to be competing with the device, clock ticks.
 
 -Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
