@@ -1,267 +1,189 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 1/7] Suspend: Introduce open() and close() callbacks
-Date: Sat, 5 Jan 2008 23:38:51 +0100
-Message-ID: <200801052338.52923.rjw@sisk.pl>
+Subject: [RFC][PATCH 5/7] Hibernation: Introduce open() and close() callbacks
+Date: Sat, 5 Jan 2008 23:50:01 +0100
+Message-ID: <200801052350.02234.rjw@sisk.pl>
 References: <200801052332.44500.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58226 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:58242 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752748AbYAEXQO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jan 2008 18:16:14 -0500
+	id S1752762AbYAEXQQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jan 2008 18:16:16 -0500
 In-Reply-To: <200801052332.44500.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, David Brownell <david-b@pacbell.net>
+Cc: Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-On ACPI systems the target state set by acpi_pm_set_target() is
-reset by acpi_pm_finish(), but that need not be called in the
-suspend fails.  All platforms that use the .set_target() global
-suspend callback are affected by analogous issues.
-
-For this reason, we need an additional global suspend callback that
-will reset the target state regardless of whether or not the suspend
-is successful.  Also, it is reasonable to rename the .set_target()
-callback, since it will be used for a different purpose on ACPI
-systems (due to ACPI 1.0x code ordering requirements).
-
-Introduce the global suspend callback .close() to be executed at the
-end of the suspend sequence and rename the .set_target() global
-suspend callback to .open().
+Introduce global hibernation callback .close() and rename global
+hibernation callback .start() to .open(), in analogy with the
+recent modifications of the global suspend callbacks.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@suse.cz>
 ---
- arch/arm/mach-at91/pm.c                   |   17 +++++++++++++----
- arch/powerpc/platforms/52xx/lite5200_pm.c |   10 ++++++++--
- drivers/acpi/sleep/main.c                 |   22 ++++++++++++++++++----
- include/linux/suspend.h                   |   24 ++++++++++++++----------
- kernel/power/main.c                       |    9 ++++++---
- 5 files changed, 59 insertions(+), 23 deletions(-)
+ drivers/acpi/sleep/main.c |   14 ++++++++++++--
+ include/linux/suspend.h   |    8 ++++++--
+ kernel/power/disk.c       |   33 ++++++++++++++++++++++++---------
+ 3 files changed, 42 insertions(+), 13 deletions(-)
 
 Index: linux-2.6/include/linux/suspend.h
 ===================================================================
 --- linux-2.6.orig/include/linux/suspend.h
 +++ linux-2.6/include/linux/suspend.h
-@@ -38,18 +38,16 @@ typedef int __bitwise suspend_state_t;
-  *	There is the %suspend_valid_only_mem function available that can be
-  *	assigned to this if the platform only supports mem sleep.
+@@ -138,9 +138,12 @@ extern void mark_free_pages(struct zone 
   *
-- * @set_target: Tell the platform which system sleep state is going to be
-- *	entered.
-- *	@set_target() is executed right prior to suspending devices.  The
-- *	information conveyed to the platform code by @set_target() should be
-- *	disregarded by the platform as soon as @finish() is executed and if
-- *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
-+ * @open: Initialise a transition to given system sleep state.
-+ *	@open() is executed right prior to suspending devices.  The information
-+ *	conveyed to the platform code by @open() should be disregarded by it as
-+ *	soon as @close() is executed.  If @open() fails (ie. returns nonzero),
-  *	@prepare(), @enter() and @finish() will not be called by the PM core.
-  *	This callback is optional.  However, if it is implemented, the argument
-  *	passed to @enter() is meaningless and should be ignored.
+  * All three methods must be assigned.
   *
-  * @prepare: Prepare the platform for entering the system sleep state indicated
-- *	by @set_target().
-+ *	by @open().
-  *	@prepare() is called right after devices have been suspended (ie. the
-  *	appropriate .suspend() method has been executed for each device) and
-  *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
-@@ -57,8 +55,8 @@ typedef int __bitwise suspend_state_t;
-  *	error code otherwise, in which case the system cannot enter the desired
-  *	sleep state (@enter() and @finish() will not be called in that case).
+- * @start: Tell the platform driver that we're starting hibernation.
++ * @open: Tell the platform driver that we're starting hibernation.
+  *	Called right after shrinking memory and before freezing devices.
   *
-- * @enter: Enter the system sleep state indicated by @set_target() or
-- *	represented by the argument if @set_target() is not implemented.
-+ * @enter: Enter the system sleep state indicated by @open() or represented by
-+ *	the argument if @open() is not implemented.
-  *	This callback is mandatory.  It returns 0 on success or a negative
-  *	error code otherwise, in which case the system cannot enter the desired
-  *	sleep state.
-@@ -69,13 +67,19 @@ typedef int __bitwise suspend_state_t;
-  *	This callback is optional, but should be implemented by the platforms
-  *	that implement @prepare().  If implemented, it is always called after
-  *	@enter() (even if @enter() fails).
-+ *
 + * @close: Called by the PM core right after resuming devices, to indicate to
 + *	the platform that the system has returned to the working state.
-+ *	This callback is optional, but should be implemented by the platforms
-+ *	that implement @open().
++ *
+  * @pre_snapshot: Prepare the platform for creating the hibernation image.
+  *	Called right after devices have been frozen and before the nonboot
+  *	CPUs are disabled (runs with IRQs on).
+@@ -175,7 +178,8 @@ extern void mark_free_pages(struct zone 
+  *	thawing devices (runs with IRQs on).
   */
- struct platform_suspend_ops {
- 	int (*valid)(suspend_state_t state);
--	int (*set_target)(suspend_state_t state);
-+	int (*open)(suspend_state_t state);
- 	int (*prepare)(void);
- 	int (*enter)(suspend_state_t state);
- 	void (*finish)(void);
+ struct platform_hibernation_ops {
+-	int (*start)(void);
++	int (*open)(void);
 +	void (*close)(void);
- };
- 
- #ifdef CONFIG_SUSPEND
-Index: linux-2.6/drivers/acpi/sleep/main.c
+ 	int (*pre_snapshot)(void);
+ 	void (*finish)(void);
+ 	int (*prepare)(void);
+Index: linux-2.6/kernel/power/disk.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -63,11 +63,11 @@ static u32 acpi_suspend_states[] = {
- static int init_8259A_after_S1;
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -54,8 +54,8 @@ static struct platform_hibernation_ops *
+ 
+ void hibernation_set_ops(struct platform_hibernation_ops *ops)
+ {
+-	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
+-	    && ops->prepare && ops->enter && ops->pre_restore
++	if (ops && !(ops->open && ops->close &&  ops->pre_snapshot
++	    && ops->prepare && ops->finish && ops->enter && ops->pre_restore
+ 	    && ops->restore_cleanup)) {
+ 		WARN_ON(1);
+ 		return;
+@@ -100,14 +100,25 @@ static int hibernation_test(int level) {
+ #endif /* !CONFIG_PM_DEBUG */
  
  /**
-- *	acpi_pm_set_target - Set the target system sleep state to the state
-+ *	acpi_pm_open - Set the target system sleep state to the state
-  *		associated with given @pm_state, if supported.
+- *	platform_start - tell the platform driver that we're starting
++ *	platform_open - tell the platform driver that we're starting
+  *	hibernation
   */
  
--static int acpi_pm_set_target(suspend_state_t pm_state)
-+static int acpi_pm_open(suspend_state_t pm_state)
+-static int platform_start(int platform_mode)
++static int platform_open(int platform_mode)
  {
- 	u32 acpi_state = acpi_suspend_states[pm_state];
- 	int error = 0;
-@@ -164,7 +164,7 @@ static int acpi_pm_enter(suspend_state_t
- }
- 
- /**
-- *	acpi_pm_finish - Finish up suspend sequence.
-+ *	acpi_pm_finish - Instruct the platform to leave a sleep state.
-  *
-  *	This is called after we wake back up (or if entering the sleep state
-  *	failed). 
-@@ -190,6 +190,19 @@ static void acpi_pm_finish(void)
- #endif
- }
- 
+ 	return (platform_mode && hibernation_ops) ?
+-		hibernation_ops->start() : 0;
++		hibernation_ops->open() : 0;
++}
++
 +/**
-+ *	acpi_pm_close - Finish up suspend sequence.
++ *	platform_close - tell the platform driver that we've entered the
++ *	working state
 + */
 +
-+static void acpi_pm_close(void)
++static void platform_close(int platform_mode)
 +{
-+	/*
-+	 * This is necessary in case acpi_pm_finish() is not called during a
-+	 * failing transition to a sleep state.
-+	 */
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+
- static int acpi_pm_state_valid(suspend_state_t pm_state)
- {
- 	u32 acpi_state;
-@@ -208,10 +221,11 @@ static int acpi_pm_state_valid(suspend_s
- 
- static struct platform_suspend_ops acpi_pm_ops = {
- 	.valid = acpi_pm_state_valid,
--	.set_target = acpi_pm_set_target,
-+	.open = acpi_pm_open,
- 	.prepare = acpi_pm_prepare,
- 	.enter = acpi_pm_enter,
- 	.finish = acpi_pm_finish,
-+	.close = acpi_pm_close,
- };
- 
- /*
-Index: linux-2.6/arch/arm/mach-at91/pm.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-at91/pm.c
-+++ linux-2.6/arch/arm/mach-at91/pm.c
-@@ -52,7 +52,7 @@ static suspend_state_t target_state;
- /*
-  * Called after processes are frozen, but before we shutdown devices.
-  */
--static int at91_pm_set_target(suspend_state_t state)
-+static int at91_pm_open(suspend_state_t state)
- {
- 	target_state = state;
- 	return 0;
-@@ -197,11 +197,20 @@ error:
- 	return 0;
++	if (platform_mode && hibernation_ops)
++		hibernation_ops->close();
  }
  
-+/*
-+ * Called right prior to thawing processes.
-+ */
-+static void at91_pm_close(void)
-+{
-+	target_state = PM_SUSPEND_ON;
-+}
-+
+ /**
+@@ -237,9 +248,9 @@ int hibernation_snapshot(int platform_mo
+ 	if (error)
+ 		return error;
  
- static struct platform_suspend_ops at91_pm_ops ={
--	.valid		= at91_pm_valid_state,
--	.set_target	= at91_pm_set_target,
--	.enter		= at91_pm_enter,
-+	.valid	= at91_pm_valid_state,
-+	.open	= at91_pm_open,
-+	.enter	= at91_pm_enter,
-+	.close	= at91_pm_close,
- };
+-	error = platform_start(platform_mode);
++	error = platform_open(platform_mode);
+ 	if (error)
+-		return error;
++		goto Close;
  
- static int __init at91_pm_init(void)
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -253,10 +253,10 @@ int suspend_devices_and_enter(suspend_st
- 	if (!suspend_ops)
- 		return -ENOSYS;
- 
--	if (suspend_ops->set_target) {
--		error = suspend_ops->set_target(state);
-+	if (suspend_ops->open) {
-+		error = suspend_ops->open(state);
- 		if (error)
--			return error;
-+			goto Close;
- 	}
  	suspend_console();
- 	error = device_suspend(PMSG_SUSPEND);
-@@ -289,6 +289,9 @@ int suspend_devices_and_enter(suspend_st
+ 	error = device_suspend(PMSG_FREEZE);
+@@ -272,6 +283,8 @@ int hibernation_snapshot(int platform_mo
  	device_resume();
   Resume_console:
  	resume_console();
 + Close:
-+	if (suspend_ops->close)
-+		suspend_ops->close();
++	platform_close(platform_mode);
  	return error;
  }
  
-Index: linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -373,9 +386,9 @@ int hibernation_platform_enter(void)
+ 	 * hibernation_ops->finish() before saving the image, so we should let
+ 	 * the firmware know that we're going to enter the sleep state after all
+ 	 */
+-	error = hibernation_ops->start();
++	error = hibernation_ops->open();
+ 	if (error)
+-		return error;
++		goto Close;
+ 
+ 	suspend_console();
+ 	error = device_suspend(PMSG_SUSPEND);
+@@ -409,6 +422,8 @@ int hibernation_platform_enter(void)
+ 	device_resume();
+  Resume_console:
+ 	resume_console();
++ Close:
++	hibernation_ops->close();
+ 	return error;
+ }
+ 
+Index: linux-2.6/drivers/acpi/sleep/main.c
 ===================================================================
---- linux-2.6.orig/arch/powerpc/platforms/52xx/lite5200_pm.c
-+++ linux-2.6/arch/powerpc/platforms/52xx/lite5200_pm.c
-@@ -31,7 +31,7 @@ static int lite5200_pm_valid(suspend_sta
- 	}
- }
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -281,7 +281,7 @@ static struct dmi_system_id __initdata a
+ #endif /* CONFIG_SUSPEND */
  
--static int lite5200_pm_set_target(suspend_state_t state)
-+static int lite5200_pm_open(suspend_state_t state)
+ #ifdef CONFIG_HIBERNATION
+-static int acpi_hibernation_start(void)
++static int acpi_hibernation_open(void)
  {
- 	if (lite5200_pm_valid(state)) {
- 		lite5200_pm_target_state = state;
-@@ -208,12 +208,18 @@ static void lite5200_pm_finish(void)
- 		mpc52xx_pm_finish();
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+ 	return 0;
+@@ -341,6 +341,15 @@ static void acpi_hibernation_finish(void
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
  }
  
-+static void lite5200_pm_close(void)
++static void acpi_hibernation_close(void)
 +{
-+	lite5200_pm_target_state = PM_SUSPEND_ON;
++	/*
++	 * This is necessary in case acpi_hibernation_finish() is not called
++	 * during a failing transition to the sleep state.
++	 */
++	acpi_target_sleep_state = ACPI_STATE_S0;
 +}
 +
- static struct platform_suspend_ops lite5200_pm_ops = {
- 	.valid		= lite5200_pm_valid,
--	.set_target	= lite5200_pm_set_target,
-+	.open		= lite5200_pm_open,
- 	.prepare	= lite5200_pm_prepare,
- 	.enter		= lite5200_pm_enter,
- 	.finish		= lite5200_pm_finish,
-+	.close		= lite5200_pm_close,
- };
+ static int acpi_hibernation_pre_restore(void)
+ {
+ 	acpi_status status;
+@@ -356,7 +365,8 @@ static void acpi_hibernation_restore_cle
+ }
  
- int __init lite5200_pm_init(void)
+ static struct platform_hibernation_ops acpi_hibernation_ops = {
+-	.start = acpi_hibernation_start,
++	.open = acpi_hibernation_open,
++	.close = acpi_hibernation_close,
+ 	.pre_snapshot = acpi_hibernation_prepare,
+ 	.finish = acpi_hibernation_finish,
+ 	.prepare = acpi_hibernation_prepare,
 
