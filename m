@@ -1,59 +1,123 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
-Date: Sat, 05 Jan 2008 11:27:21 -0500
-Message-ID: <477FAFE9.6090809@rtr.ca>
-References: <20071130142058.816d1693.akpm@linux-foundation.org> <924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com> <4750CC78.9070105@rtr.ca> <20071130190227.1976e682@laptopd505.fenrus.org> <4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca> <477C2143.8090406@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com> <477C622F.6010304@rtr.ca> <20080104021619.GA15409@linux-os.sc.intel.com> <477DA529.4000500@rtr.ca> <477EAAB0.1000101@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FCC51@orsmsx423.amr.corp.intel.com>
+From: AnMaster <anmaster@tele2.se>
+Subject: DSDT problems with Asus K8V-X SE
+Date: Sat, 05 Jan 2008 17:58:50 +0100
+Message-ID: <477FB74A.7080908@tele2.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:1203 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753907AbYAEQ1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jan 2008 11:27:24 -0500
-In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE4FCC51@orsmsx423.amr.corp.intel.com>
+Received: from mailfe15.swip.net ([212.247.155.193]:39454 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755166AbYAER6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jan 2008 12:58:54 -0500
+Received: from [83.177.0.77] (account mj530768@tele2.se HELO [192.168.0.64])
+  by mailfe15.swip.net (CommuniGate Pro SMTP 5.1.13)
+  with ESMTPA id 20569235 for linux-acpi@vger.kernel.org; Sat, 05 Jan 2008 17:58:51 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
 
-Pallipadi, Venkatesh wrote:
->> -----Original Message-----
->> From: Mark Lord [mailto:lkml@rtr.ca] 
-..
->> Okay, with !CONFIG_CPU_IDLE, this works fine -- same as 2.6.23 
->> and earlier.
->>
-> 
-> Good to know. Atleast we do not have a regression for 2.6.24 now.
-..
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-Agreed.  We're happy here, for now.
+Hello,
 
->>> Meanwhile, can you give a short summary of how behaviour differs
->>> between CONFIG_CPU_IDLE and !CONFIG_CPU_IDLE  ??
->>>
->>> I'm not at all clear on how this really affects things.
-> 
-> With CPU_IDLE, the C-state policy is removed from acpi driver. Ideally
-> policy should have nothing to do with ACPI, as ACPI only provides the
-> C-state mechanisms. So, with CPU_IDLE, it is not easy to control this
-> variable through a acpi driver module at run time. Also, the latency
-> interface that was mentioned before is to serve the same purpose in a
-> more clear manner (based on the wakeup latency) instead of a C-state
-> number which may not mean much from the end user point of view.
-> 
-> I will look at why latency does not work on a single core system
-> soon(Was that with UP kernel or SMP kernel?). That way we will have a
-> proper cover for this with CPU_IDLE in future.
-..
+I'm not sure if this is the right mailing list to post DSDT problems to, but someone said acpi-devel
+at sf.net and when I found that it directed here.
 
-That was with a UP kernel on a UP box.
+My problem is a broken DSDT, I have tried to fix it, but I don't know if I did it the right way, nor
+how to solve the warning that remains when the errors are gone.
 
-The latency thingie really seemed to have little or no effect,
-whereas setting max_cstate=1 has a quite noticeable positive impact.
+http://rage.kuonet.org/~anmaster/acpi/dsdt.dsl.pre-fix is the one I get when decompiling.
+http://rage.kuonet.org/~anmaster/acpi/dsdt.dsl.fix is the my try at fixing it.
 
-Things seemed okay (with the latency thingie) on the SMP machine,
-but with two cores it is probably simply more forgiving.  
+The errors I get with the unfixed DSDT are as below. I want to know if my fix is correct and what to
+do about the remaining warning (Not all control paths return a value (STM_)).
 
-cheers
+The motherboard in question is an Asus K8V-X SE. I found a custom DSDT for "Asus K8V-X SE Delux" but
+it didn't work (lock up at boot) for me.
+
+Errors:
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20060912 [Mar 15 2007]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+dsdt.dsl.pre-fix  2655:                 Method (STM, 0, Serialized)
+Warning  1086 -                                   ^ Not all control paths return a value (STM_)
+
+dsdt.dsl.pre-fix  2888:                 Field (WAU1, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2890:                     U184,   8
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2894:                 Field (U1D3, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2896:                     UR49,   3
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2900:                 Field (UBP1, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2902:                     U1PE,   1
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2927:                 Field (WAU2, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2929:                     U284,   8
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2933:                 Field (UBP2, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2935:                     U2PE,   1
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2960:                 Field (WAU3, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2962:                     U384,   8
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2966:                 Field (UBP3, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2968:                     U3PE,   1
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2993:                 Field (WAU4, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  2995:                     U484,   8
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  2999:                 Field (UBP4, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  3001:                     U4PE,   1
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+dsdt.dsl.pre-fix  3026:                 Field (WAU5, WordAcc, NoLock, Preserve)
+Error    4026 -                                   ^ Access width is greater than region size
+
+dsdt.dsl.pre-fix  3028:                     U584,   8
+Error    4027 -                                ^ Access width of Field Unit extends beyond region limit
+
+ASL Input:  dsdt.dsl.pre-fix - 3926 lines, 127747 bytes, 1417 keywords
+Compilation complete. 20 Errors, 1 Warnings, 0 Remarks, 453 Optimizations
+
+
+Regards,
+
+Arvid Norlander
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQFHf7dIWmK6ng/aMNkRCmk6AJ98QeMhBytllsUMh2siMqRjuDRd1gCcCMM7
+nH/ijRZy5ycz1cLocb73thY=
+=FlU8
+-----END PGP SIGNATURE-----
