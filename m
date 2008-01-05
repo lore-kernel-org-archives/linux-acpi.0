@@ -1,47 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Sat, 5 Jan 2008 22:13:38 +0100
-Message-ID: <200801052213.39891.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0801051537450.26040-100000@netrider.rowland.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Kohjinsha sleep problems
+Date: Sat, 5 Jan 2008 22:35:36 +0100
+Message-ID: <20080105213536.GA2307@elf.ucw.cz>
+References: <20080101231955.GA1931@ucw.cz> <200801042233.44827.alessandro.guido@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57811 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756954AbYAEVLk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Jan 2008 16:11:40 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0801051537450.26040-100000@netrider.rowland.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:50475 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757046AbYAEVf1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Jan 2008 16:35:27 -0500
 Content-Disposition: inline
+In-Reply-To: <200801042233.44827.alessandro.guido@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alessandro Guido <alessandro.guido@gmail.com>
+Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-On Saturday, 5 of January 2008, Alan Stern wrote:
-> On Sat, 5 Jan 2008, Rafael J. Wysocki wrote:
+HI!
+
+> > On kohjinsha, wakeup code does not seem to be reached at all. I tried
+> > looking around FACS, but it seems very empty:
+> >
+> > ...
 > 
-> > > Another thing to watch out for: Just in case somebody ends up calling
-> > > destroy_suspended_device(dev) from within dev's own resume method, you 
-> > > should interchange the resume_device() and the list_move_tail() 
-> > > calls in dpm_resume().
-> > 
-> > However, if we unregister them all at once after releasing pm_sleep_rwsem,
-> > that shouldn't be necessary, right?
+> The same on my laptop:
 > 
-> It's still necessary, because destroy_suspended_device() still has to
-> move the device from one list to another.  You don't want it to end up 
-> on the dpm_locked list.
+> FACS @ 0x2fefafc0
+>   0000: 46 41 43 53 40 00 00 00 62 12 00 00 00 00 00 00  FACS@...b.......
+>   0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>   0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>   0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> 
+> 
+> I've never been able to resume from STR with Linux (works with Windows Vista). 
+> STD works, although I have to press the power button in order to
+> resume.
 
-Hmm.  That means we'd have to do the same thing in dpm_power_up() in case
-someone calls destroy_suspended_device() from resume_device_early(dev).
+Hmm, it is pretty empty on thinkpad x60, too, and s2ram actually works
+here:
 
-Still, even doing that is not enough, since someone can call
-destroy_suspended_device() from a .suspend() routine and then the device
-will end up on a wrong list just as well.
+root@amd:/home/pavel# acpidump -t FACS
+FACS @ 0x7f6f4000
+  0000: 46 41 43 53 40 00 00 00 95 15 00 00 00 00 00 00 FACS@...........
+  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+  0020: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 
-Greetings,
-Rafael
+...and iasl actually segfaults here, too :-(
 
+root@amd:/data/l/kohji# iasl -d FACS.x60.aml 
 
+Intel ACPI Component Architecture
+AML Disassembler version 20061109 [May 18 2007]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+Loading Acpi table from file FACS.x60.aml
+Segmentation fault (core dumped)
+root@amd:/data/l/kohji# 
+
+...hmm, if it is buffer overflow, we have security problem in
+iasl. Anyway, how do I decode FACS?
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
