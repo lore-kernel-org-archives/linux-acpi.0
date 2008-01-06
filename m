@@ -1,66 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Sun, 6 Jan 2008 20:57:00 +0100
-Message-ID: <200801062057.01677.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0801061203510.7367-100000@netrider.rowland.org> <200801062005.12097.rjw@sisk.pl>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Sun, 06 Jan 2008 16:34:16 -0500
+Message-ID: <47814958.3070208@rtr.ca>
+References: <20071130142058.816d1693.akpm@linux-foundation.org> <924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com> <4750CC78.9070105@rtr.ca> <20071130190227.1976e682@laptopd505.fenrus.org> <4750D180.6080001@rtr.ca> <20071130191816.3e744205@laptopd505.fenrus.org> <4750D585.1030200@rtr.ca> <477C2143.8090406@rtr.ca> <924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com> <477C622F.6010304@rtr.ca> <20080104021619.GA15409@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33335 "EHLO ogre.sisk.pl"
+Received: from rtr.ca ([76.10.145.34]:2422 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752858AbYAFTyz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Jan 2008 14:54:55 -0500
-In-Reply-To: <200801062005.12097.rjw@sisk.pl>
-Content-Disposition: inline
+	id S1753029AbYAFVeU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jan 2008 16:34:20 -0500
+In-Reply-To: <20080104021619.GA15409@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-On Sunday, 6 of January 2008, Rafael J. Wysocki wrote:
-> On Sunday, 6 of January 2008, Alan Stern wrote:
-> > On Sun, 6 Jan 2008, Rafael J. Wysocki wrote:
-> > 
-> > > > If you can figure out a way to disable the warning in device_del() for 
-> > > > just the one device being unregistered by 
-> > > > device_pm_destroy_suspended(),
-> > > 
-> > > Something like this, perhaps:
-> > > 
-> > > @@ -905,6 +915,18 @@ void device_del(struct device * dev)
-> > >  	struct device * parent = dev->parent;
-> > >  	struct class_interface *class_intf;
-> > >  
-> > > +	if (down_trylock(&dev->sem)) {
-> > > +		if (pm_sleep_lock()) {
-> > > +			dev_warn(dev, "Illegal %s during suspend\n",
-> > > +				__FUNCTION__);
-> > > +			dump_stack();
-> > > +		} else {
-> > > +			pm_sleep_unlock();
-> > > +		}
-> > > +	} else {
-> > > +		up(&dev->sem);
-> > > +	}
-> > > +
-> > >  	if (parent)
-> > >  		klist_del(&dev->knode_parent);
-> > >  	if (MAJOR(dev->devt))
-> > 
-> > Bizarre, but it should work.
+Venki Pallipadi wrote:
+> Reintroduce run time configurable max_cstate for !CPU_IDLE case.
 > 
-> OK
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 > 
-> Still, shouldn't we fail the removal of the device apart from giving the
-> warning?
+> Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
+> @@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
+>  #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+>  
+>  static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+> +#ifdef CONFIG_CPU_IDLE
+>  module_param(max_cstate, uint, 0000);
+> +#else
+> +module_param(max_cstate, uint, 0644);
+> +#endif
+>  static unsigned int nocst __read_mostly;
+>  module_param(nocst, uint, 0000);
+>  
+..
 
-Actually, having thought about it a bit more, I don't see the point in
-preventing the removal of the device from the list in device_pm_remove() if
-we allow all of the operations in device_del() preceding it to be performed.
+Can we get this patch upstream so that a stock 2.6.24 will work here?
 
-Shouldn't we just take pm_sleep_rwsem in device_del() upfront and block on that
-if locked?
-
-Rafael
+Thanks
