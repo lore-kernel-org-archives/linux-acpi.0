@@ -1,346 +1,342 @@
-From: "David Goguen" <dgoguen@gmail.com>
-Subject: Toshiba Satellite u305-7477 dmidecode output
-Date: Sun, 6 Jan 2008 01:26:14 -1000
-Message-ID: <d8dde2940801060326k7c1a1d29wd199527aa68df520@mail.gmail.com>
+From: Stefan Becker <zorak1103@gmx.de>
+Subject: dmidecode 2.9
+Date: Sun, 06 Jan 2008 12:41:26 +0100
+Message-ID: <4780BE66.8050605@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:59594 "EHLO
-	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbYAFL0Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2008 06:26:16 -0500
-Received: by py-out-1112.google.com with SMTP id u52so11968357pyb.10
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Jan 2008 03:26:15 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:44348 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752589AbYAFLla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jan 2008 06:41:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 # dmidecode 2.9
 SMBIOS 2.4 present.
-30 structures occupying 1044 bytes.
-Table at 0x000DF010.
+29 structures occupying 1046 bytes.
+Table at 0x000DC010.
 
 Handle 0x0000, DMI type 0, 24 bytes
 BIOS Information
-        Vendor: TOSHIBA
-        Version: V2.50
-        Release Date: 08/30/2007
-        Address: 0xE7860
-        Runtime Size: 100256 bytes
-        ROM Size: 1024 kB
-        Characteristics:
-                ISA is supported
-                PCI is supported
-                PC Card (PCMCIA) is supported
-                PNP is supported
-                BIOS is upgradeable
-                BIOS shadowing is allowed
-                ESCD support is available
-                Boot from CD is supported
-                ACPI is supported
-                USB legacy is supported
-                BIOS boot specification is supported
-                Targeted content distribution is supported
+    Vendor: Phoenix Technologies LTD
+    Version: 00YJ
+    Release Date: 08/03/2007
+    Address: 0xE4F40
+    Runtime Size: 110784 bytes
+    ROM Size: 1024 kB
+    Characteristics:
+        ISA is supported
+        PCI is supported
+        PC Card (PCMCIA) is supported
+        PNP is supported
+        APM is supported
+        BIOS is upgradeable
+        BIOS shadowing is allowed
+        ESCD support is available
+        Boot from CD is supported
+        ACPI is supported
+        USB legacy is supported
+        LS-120 boot is supported
+        ATAPI Zip drive boot is supported
+        BIOS boot specification is supported
+        Targeted content distribution is supported
 
 Handle 0x0001, DMI type 1, 27 bytes
 System Information
-        Manufacturer: TOSHIBA
-        Product Name: Satellite U305
-        Version: PSU30U-054012
-        Serial Number: X7068484W
-        UUID: 607BC0A3-0E91-D811-8DB6-001B24BBF5FC
-        Wake-up Type: Power Switch
-        SKU Number: Not Specified
-        Family: Not Specified
+    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
+    Product Name: R59P/R60P/R61P
+    Version: 00YJ
+    Serial Number: 012Z93FP904750
+    UUID: C0974B31-D21D-B211-8000-FF06B87D96A9
+    Wake-up Type: Power Switch
+    SKU Number: Not Specified
+    Family: Not Specified
 
 Handle 0x0002, DMI type 2, 8 bytes
 Base Board Information
-        Manufacturer: TOSHIBA
-        Product Name: Satellite U305
-        Version: Not Applicable
-        Serial Number: X7068484W
+    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
+    Product Name: R59P/R60P/R61P
+    Version:     
+    Serial Number: 123490EN400015
 
 Handle 0x0003, DMI type 3, 17 bytes
 Chassis Information
-        Manufacturer: TOSHIBA
-        Type: Other
-        Lock: Not Present
-        Version: N/A
-        Serial Number: None
-        Asset Tag:
-        Boot-up State: Safe
-        Power Supply State: Safe
-        Thermal State: Safe
-        Security Status: None
-        OEM Information: 0x42553153
+    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
+    Type: Other
+    Lock: Not Present
+    Version: N/A
+    Serial Number: None
+    Asset Tag: No Asset Tag
+    Boot-up State: Safe
+    Power Supply State: Safe
+    Thermal State: Safe
+    Security Status: None
+    OEM Information: 0x00001234
 
 Handle 0x0004, DMI type 4, 35 bytes
 Processor Information
-        Socket Designation: U2E1
-        Type: Central Processor
-        Family: Other
-        Manufacturer: Intel
-        ID: FD 06 00 00 FF FB EB BF
-        Version: CPU Version
-        Voltage: 3.3 V
-        External Clock: 200 MHz
-        Max Speed: 4096 MHz
-        Current Speed: 2000 MHz
-        Status: Populated, Enabled
-        Upgrade: ZIF Socket
-        L1 Cache Handle: 0x0005
-        L2 Cache Handle: 0x0006
-        L3 Cache Handle: Not Provided
-        Serial Number: Not Specified
-        Asset Tag: Not Specified
-        Part Number: Not Specified
+    Socket Designation: U2E1
+    Type: Central Processor
+    Family: <OUT OF SPEC>
+    Manufacturer: Intel
+    ID: FD 06 00 00 FF FB EB BF
+    Version: A0
+    Voltage: 3.3 V
+    External Clock: Unknown
+    Max Speed: 4096 MHz
+    Current Speed: 1494 MHz
+    Status: Populated, Enabled
+    Upgrade: ZIF Socket
+    L1 Cache Handle: 0x0005
+    L2 Cache Handle: 0x0006
+    L3 Cache Handle: Not Provided
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
 
 Handle 0x0005, DMI type 7, 19 bytes
 Cache Information
-        Socket Designation: L1 Cache
-        Configuration: Enabled, Socketed, Level 1
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 64 KB
-        Maximum Size: 64 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Asynchronous
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
+    Socket Designation: L1 Cache
+    Configuration: Enabled, Socketed, Level 1
+    Operational Mode: Write Back
+    Location: Internal
+    Installed Size: 64 KB
+    Maximum Size: 64 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+        Asynchronous
+    Installed SRAM Type: Asynchronous
+    Speed: Unknown
+    Error Correction Type: Unknown
+    System Type: Unknown
+    Associativity: Unknown
 
 Handle 0x0006, DMI type 7, 19 bytes
 Cache Information
-        Socket Designation: L2 Cache
-        Configuration: Enabled, Socketed, Level 2
-        Operational Mode: Write Back
-        Location: Internal
-        Installed Size: 2048 KB
-        Maximum Size: 4096 KB
-        Supported SRAM Types:
-                Burst
-                Pipeline Burst
-                Asynchronous
-        Installed SRAM Type: Burst
-        Speed: Unknown
-        Error Correction Type: Unknown
-        System Type: Unknown
-        Associativity: Unknown
+    Socket Designation: L2 Cache
+    Configuration: Enabled, Socketed, Level 2
+    Operational Mode: Write Back
+    Location: Internal
+    Installed Size: 2048 KB
+    Maximum Size: 4096 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+    Installed SRAM Type: Burst
+    Speed: Unknown
+    Error Correction Type: Unknown
+    System Type: Unknown
+    Associativity: Unknown
 
 Handle 0x0007, DMI type 9, 13 bytes
 System Slot Information
-        Designation: PCI Slot J8B3
-        Type: 32-bit PCI
-        Current Usage: Unknown
-        Length: Long
-        ID: 0
-        Characteristics:
-                5.0 V is provided
-                3.3 V is provided
+    Designation: Mini PCIE Card Slot   
+    Type: 32-bit PCI Express
+    Current Usage: Unknown
+    Length: Long
+    ID: 0
+    Characteristics:
+        5.0 V is provided
+        3.3 V is provided
+        Hot-plug devices are supported
 
-Handle 0x0008, DMI type 10, 6 bytes
-On Board Device Information
-        Type: Sound
-        Status: Disabled
-        Description: HD-Audio
-
-Handle 0x0009, DMI type 11, 5 bytes
+Handle 0x0008, DMI type 11, 5 bytes
 OEM Strings
-        String 1: PSU30U-054012,SQ004398V06,11B
+    String 1: BBBBAAAAAAAA
+    String 2: 2008/01
 
-Handle 0x000A, DMI type 12, 5 bytes
+Handle 0x0009, DMI type 12, 5 bytes
 System Configuration Options
-        Option 1: Jumper settings can be described here.
+    Option 1: Jumper settings can be described here.
 
-Handle 0x000B, DMI type 15, 29 bytes
-System Event Log
-        Area Length: 16 bytes
-        Header Start Offset: 0x0000
-        Header Length: 16 bytes
-        Data Start Offset: 0x0010
-        Access Method: General-purpose non-volatile data functions
-        Access Address: 0x0000
-        Status: Valid, Not Full
-        Change Token: 0x000000AF
-        Header Format: Type 1
-        Supported Log Type Descriptors: 3
-        Descriptor 1: POST error
-        Data Format 1: POST results bitmap
-        Descriptor 2: Single-bit ECC memory error
-        Data Format 2: Multiple-event
-        Descriptor 3: Multi-bit ECC memory error
-        Data Format 3: Multiple-event
-
-Handle 0x000C, DMI type 16, 15 bytes
+Handle 0x000A, DMI type 16, 15 bytes
 Physical Memory Array
-        Location: System Board Or Motherboard
-        Use: System Memory
-        Error Correction Type: None
-        Maximum Capacity: 4 GB
-        Error Information Handle: Not Provided
-        Number Of Devices: 2
+    Location: System Board Or Motherboard
+    Use: System Memory
+    Error Correction Type: None
+    Maximum Capacity: 1 GB
+    Error Information Handle: Not Provided
+    Number Of Devices: 2
 
-Handle 0x000D, DMI type 17, 27 bytes
+Handle 0x000B, DMI type 17, 27 bytes
 Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M1
-        Bank Locator: Bank 0
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 0
-        Serial Number: 1234-B0
-        Asset Tag: Not Specified
-        Part Number: SODIMM000
+    Array Handle: 0x000A
+    Error Information Handle: No Error
+    Total Width: 64 bits
+    Data Width: 64 bits
+    Size: 1024 MB
+    Form Factor: DIMM
+    Set: 1
+    Locator: J400
+    Bank Locator: Channel A0
+    Type: DRAM
+    Type Detail: Synchronous
+    Speed: Unknown
+    Manufacturer: Not Specified
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
 
-Handle 0x000E, DMI type 17, 27 bytes
+Handle 0x000C, DMI type 17, 27 bytes
 Memory Device
-        Array Handle: 0x000C
-        Error Information Handle: No Error
-        Total Width: 64 bits
-        Data Width: 64 bits
-        Size: 1024 MB
-        Form Factor: SODIMM
-        Set: 1
-        Locator: M2
-        Bank Locator: Bank 1
-        Type: DDR2
-        Type Detail: Synchronous
-        Speed: 667 MHz (1.5 ns)
-        Manufacturer: Mfg 1
-        Serial Number: 1234-B1
-        Asset Tag: Not Specified
-        Part Number: SODIMM001
+    Array Handle: 0x000A
+    Error Information Handle: No Error
+    Total Width: 64 bits
+    Data Width: 64 bits
+    Size: 1024 MB
+    Form Factor: DIMM
+    Set: 3
+    Locator: J501
+    Bank Locator: Channel B0
+    Type: DRAM
+    Type Detail: Synchronous
+    Speed: Unknown
+    Manufacturer: Not Specified
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
 
-Handle 0x000F, DMI type 19, 15 bytes
+Handle 0x000D, DMI type 18, 23 bytes
+32-bit Memory Error Information
+    Type: OK
+    Granularity: Unknown
+    Operation: Unknown
+    Vendor Syndrome: Unknown
+    Memory Array Address: Unknown
+    Device Address: Unknown
+    Resolution: Unknown
+
+Handle 0x000E, DMI type 19, 15 bytes
 Memory Array Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 2 GB
-        Physical Array Handle: 0x000C
-        Partition Width: 0
+    Starting Address: 0x00000000000
+    Ending Address: 0x0007FFFFFFF
+    Range Size: 2 GB
+    Physical Array Handle: 0x000A
+    Partition Width: 0
 
-Handle 0x0010, DMI type 20, 19 bytes
+Handle 0x000F, DMI type 20, 19 bytes
 Memory Device Mapped Address
-        Starting Address: 0x00000000000
-        Ending Address: 0x0003FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x000D
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
+    Starting Address: 0x00000000000
+    Ending Address: 0x0003FFFFFFF
+    Range Size: 1 GB
+    Physical Device Handle: 0x000B
+    Memory Array Mapped Address Handle: 0x000E
+    Partition Row Position: 2
+    Interleave Position: 1
+    Interleaved Data Depth: 6
 
-Handle 0x0011, DMI type 20, 19 bytes
-Memory Device Mapped Address
-        Starting Address: 0x00040000000
-        Ending Address: 0x0007FFFFFFF
-        Range Size: 1 GB
-        Physical Device Handle: 0x000E
-        Memory Array Mapped Address Handle: 0x000F
-        Partition Row Position: Unknown
-        Interleave Position: Unknown
-        Interleaved Data Depth: Unknown
+Handle 0x0010, DMI type 21, 7 bytes
+Built-in Pointing Device
+    Type: Touch Pad
+    Interface: PS/2
+    Buttons: 4
+
+Handle 0x0011, DMI type 22, 26 bytes
+Portable Battery
+    Location: Rear
+    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
+    Name: SAMSUNG ELECTRONICS CO., LTD.
+    Chemistry: Lithium Ion
+    Design Capacity: 1000 mWh
+    Design Voltage: 19 mV
+    SBDS Version: BATT_1234
+    Maximum Error: Unknown
+    SBDS Serial Number: 0000
+    SBDS Manufacture Date: 1980-00-00
+    OEM-specific Information: 0x00000000
 
 Handle 0x0012, DMI type 23, 13 bytes
 System Reset
-        Status: Enabled
-        Watchdog Timer: Present
-        Boot Option: Do Not Reboot
-        Boot Option On Limit: Do Not Reboot
-        Reset Count: Unknown
-        Reset Limit: Unknown
-        Timer Interval: Unknown
-        Timeout: Unknown
+    Status: Enabled
+    Watchdog Timer: Present
+    Boot Option: Do Not Reboot
+    Boot Option On Limit: Do Not Reboot
+    Reset Count: Unknown
+    Reset Limit: Unknown
+    Timer Interval: Unknown
+    Timeout: Unknown
 
 Handle 0x0013, DMI type 24, 5 bytes
 Hardware Security
-        Power-On Password Status: Disabled
-        Keyboard Password Status: Unknown
-        Administrator Password Status: Enabled
-        Front Panel Reset Status: Unknown
+    Power-On Password Status: Enabled
+    Keyboard Password Status: Unknown
+    Administrator Password Status: Enabled
+    Front Panel Reset Status: Unknown
 
 Handle 0x0014, DMI type 25, 9 bytes
-        System Power Controls
-        Next Scheduled Power-on: 12-31 23:59:59
+    System Power Controls
+    Next Scheduled Power-on: 12-31 23:59:59
 
-Handle 0x0015, DMI type 26, 20 bytes
+Handle 0x0015, DMI type 26, 22 bytes
 Voltage Probe
-        Description: Voltage Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
+    Description: Voltage Probe 1
+    Location: Processor
+    Status: OK
+    Maximum Value: Unknown
+    Minimum Value: Unknown
+    Resolution: Unknown
+    Tolerance: Unknown
+    Accuracy: Unknown
+    OEM-specific Information: 0x00000000
+    Nominal Value: 8.192 V
 
-Handle 0x0016, DMI type 27, 12 bytes
+Handle 0x0016, DMI type 27, 14 bytes
 Cooling Device
-        Temperature Probe Handle: 0x0017
-        Type: Fan
-        Status: OK
-        OEM-specific Information: 0x00000000
+    Temperature Probe Handle: 0x0018
+    Type: Fan
+    Status: OK
+    Cooling Unit Group: 255
+    OEM-specific Information: 0x00000000
+    Nominal Speed: Unknown Or Non-rotating
 
-Handle 0x0017, DMI type 28, 20 bytes
+Handle 0x0017, DMI type 27, 12 bytes
+Cooling Device
+    Temperature Probe Handle: 0x0018
+    Type: Fan
+    Status: OK
+    Cooling Unit Group: 255
+    OEM-specific Information: 0x00000000
+
+Handle 0x0018, DMI type 28, 22 bytes
 Temperature Probe
-        Description: Temperature Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
+    Description: Temperature Probe 1
+    Location: Processor
+    Status: OK
+    Maximum Value: Unknown
+    Minimum Value Unknown
+    Resolution: Unknown
+    Tolerance: Unknown
+    Accuracy: Unknown
+    OEM-specific Information: 0x00000000
+    Nominal Value: Unknown
 
-Handle 0x0018, DMI type 29, 20 bytes
+Handle 0x0019, DMI type 29, 22 bytes
 Electrical Current Probe
-        Description: Electrical Current Probe
-        Location: Processor
-        Status: OK
-        Maximum Value: Unknown
-        Minimum Value: Unknown
-        Resolution: Unknown
-        Tolerance: Unknown
-        Accuracy: Unknown
-        OEM-specific Information: 0x00000000
+    Description: Electrical Current Probe 1
+    Location: Processor
+    Status: OK
+    Maximum Value: Unknown
+    Minimum Value: Unknown
+    Resolution: Unknown
+    Tolerance: Unknown
+    Accuracy: Unknown
+    OEM-specific Information: 0x00000000
+    Nominal Value: Unknown
 
-Handle 0x0019, DMI type 30, 6 bytes
+Handle 0x001A, DMI type 30, 6 bytes
 Out-of-band Remote Access
-        Manufacturer Name: Intel
-        Inbound Connection: Enabled
-        Outbound Connection: Disabled
+    Manufacturer Name: Intel
+    Inbound Connection: Enabled
+    Outbound Connection: Disabled
 
-Handle 0x001A, DMI type 32, 20 bytes
+Handle 0x001B, DMI type 32, 20 bytes
 System Boot Information
-        Status: <OUT OF SPEC>
+    Status: <OUT OF SPEC>
 
-Handle 0x001B, DMI type 129, 10 bytes
-OEM-specific Type
-        Header and Data:
-                81 0A 1B 00 01 01 02 01 01 02
-        Strings:
-                Intel_ASF
-                Intel_ASF_001
-
-Handle 0x001C, DMI type 136, 6 bytes
-OEM-specific Type
-        Header and Data:
-                88 06 1C 00 FF FF
-
-Handle 0x001D, DMI type 127, 4 bytes
+Handle 0x001C, DMI type 127, 4 bytes
 End Of Table
+
