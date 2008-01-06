@@ -1,23 +1,23 @@
 From: meister@netz00.com
 Subject: dmidecode
-Date: Sun,  6 Jan 2008 02:22:54 +0100
-Message-ID: <20080106022254.my2p02624u8ko4s8@webmail.netz00.com>
+Date: Sun,  6 Jan 2008 02:16:41 +0100
+Message-ID: <20080106021641.4yvxl28rw40s40kg@webmail.netz00.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="=_za0noqntu9a"
+	boundary="=_37009ylkiwah"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from s15248684.onlinehome-server.info ([87.106.64.27]:59411 "EHLO
+Received: from s15248684.onlinehome-server.info ([87.106.64.27]:59419 "EHLO
 	s15248684.onlinehome-server.info" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754530AbYAFBWM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jan 2008 20:22:12 -0500
+	by vger.kernel.org with ESMTP id S1758660AbYAFBWk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Jan 2008 20:22:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 This message is in MIME format.
 
---=_za0noqntu9a
+--=_37009ylkiwah
 Content-Type: text/plain;
 	charset=ISO-8859-1;
 	DelSp="Yes";
@@ -27,7 +27,7 @@ Content-Transfer-Encoding: 7bit
 
 
 
---=_za0noqntu9a
+--=_37009ylkiwah
 Content-Type: text/plain;
 	charset=UTF-8;
 	name="mbp_acpi_osi.dmi.txt"
@@ -470,7 +470,7 @@ Handle 0xFFFD, DMI type 127, 4 bytes
 End Of Table
 
 
---=_za0noqntu9a
+--=_37009ylkiwah
 Content-Type: text/plain;
 	charset=UTF-8;
 	name="boot.msg"
@@ -1338,4 +1338,4 @@ Master Resource Control: runlevel 5 has been reached
 Skipped services in runlevel 5: splash
 <notice>killproc: kill(2328,3)
 
---=_za0noqntu9a--
+--=_37009ylkiwah--
