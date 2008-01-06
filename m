@@ -1,83 +1,98 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Sun, 6 Jan 2008 14:19:51 +0100
-Message-ID: <200801061419.52277.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0801052249060.8784-100000@netrider.rowland.org>
+From: Lee Howard <faxguy@howardsilvan.com>
+Subject: Re: controlling ACPI IRQ routing
+Date: Sun, 06 Jan 2008 08:38:02 -0800
+Message-ID: <478103EA.6070503@howardsilvan.com>
+References: <47742083.5060903@howardsilvan.com> <47769494.3080503@howardsilvan.com> <20080102151142.73362648@citycable.ch> <200801050051.20947.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60269 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754275AbYAFNRX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Jan 2008 08:17:23 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0801052249060.8784-100000@netrider.rowland.org>
-Content-Disposition: inline
+Received: from frodo.howardsilvan.com ([66.119.206.113]:37671 "EHLO
+	mail.howardsilvan.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756541AbYAFQiE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2008 11:38:04 -0500
+In-Reply-To: <200801050051.20947.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday, 6 of January 2008, Alan Stern wrote:
-> On Sat, 5 Jan 2008, Rafael J. Wysocki wrote:
-> 
-> > On Saturday, 5 of January 2008, Alan Stern wrote:
-> > > On Sat, 5 Jan 2008, Rafael J. Wysocki wrote:
-> 
-> > > > Still, even doing that is not enough, since someone can call
-> > > > destroy_suspended_device() from a .suspend() routine and then the device
-> > > > will end up on a wrong list just as well.
-> > > 
-> > > That should never happen.  The whole idea of destroy_suspended_device()
-> > > is that the device couldn't be resumed and in fact should be
-> > > unregistered because it is no longer working or no longer present.  A
-> > > suspend routine won't detect this sort of thing since it doesn't try to
-> > > resume the device.
-> > > 
-> > > But it wouldn't hurt to mention in the kerneldoc that 
-> > > destroy_suspended_device() is meant to be called only during a system 
-> > > resume.
-> > 
-> > Hmm.  Please have a look at the appended patch.
-> > 
-> > I have removed the warning from device_del() and used list_empty() to detect
-> > removed devices in the .suspend() routines.  Is that viable?
-> 
-> It's not good.
-> 
-> The warning in device_del() is vital.  It's what will tell people where
-> the problem is when a deadlock occurs during system resume because some
-> driver has mistakenly tried to unregister a device at the wrong time.  
-> It would have pointed immediately to the msr driver in the case of the
-> bug Andrew found, for instance.
-> 
-> If you can figure out a way to disable the warning in device_del() for 
-> just the one device being unregistered by 
-> device_pm_destroy_suspended(),
+Len Brown wrote:
+> On Wednesday 02 January 2008 09:11, Dominique Michel wrote:
+>  =20
+>> Le Sat, 29 Dec 2007 10:40:20 -0800,
+>> Lee Howard <faxguy@howardsilvan.com> a =C3=A9crit :
+>>
+>>
+>>    =20
+>>> # cat /proc/interrupts
+>>>            CPU0     =20
+>>>   0: 1051464247   IO-APIC-edge      timer
+>>>   1:          8   IO-APIC-edge      i8042
+>>>   8:          0   IO-APIC-edge      rtc
+>>>   9:          0   IO-APIC-fasteoi   acpi
+>>>  12:        104   IO-APIC-edge      i8042
+>>>  14:    9414304   IO-APIC-edge      ide0
+>>>  16: 1051172722   IO-APIC-fasteoi   wct4xxp
+>>>  19:          1   IO-APIC-fasteoi   eth1
+>>>  21:  158008518   IO-APIC-fasteoi   eth0
+>>>  22:    6974044   IO-APIC-fasteoi   libata
+>>>  23:    7071112   IO-APIC-fasteoi   libata
+>>> NMI:          0
+>>> LOC: 1051371544
+>>> ERR:          0
+>>>
+>>>
+>>>      =20
+>> Based on that, you may want to use rtirq. It is a boot script (need =
+schedutils
+>> as dependency) with associated config scripts. http://alsa.opensrc.o=
+rg/Rtirq
+>>
+>> In /etc/conf.d/rtirq, you will find:
+>>
+>> # IRQ thread service names
+>> # (space separated list, from higher to lower priority).
+>> RTIRQ_NAME_LIST=3D"rtc snd usb i8042"
+>>
+>> The most important things is that the devices listed here doesn't ha=
+ve any
+>> shared IRQ with some other device and that the rtc remain the first =
+listed
+>> device (the one with the higer priority), or the system will hang so=
+on or later.
+>>
+>> This setup is for audio workstation but is very easy to adapt to any=
+ kind of
+>> work.
+>>
+>>    =20
+>
+> I've got no experience with the thread priority thing above.
+> However, the better way to handle quality of service contention
+> is to not do the things you don't care about.
+>
+> Does the system really need HZ=3D1000?  you could slow that down to 1=
+00,
+> or run CONFIG_NO_HZ to reduce it even more...
+> Also, on a UP, the LAPIC timer interrupt is redundant --
+> you could build your kernel w/o APIC support or boot with nolapic.
+>
+> This would get rid of the only interrupts which are frequent
+> enough to be competing with the device, clock ticks.
 
-Something like this, perhaps:
+If I boot with nolapic then XT-PIC is used, and the wcfxo device ends u=
+p=20
+sharing an IRQ with libata which results in worse performance than with=
+=20
+it the way that it is.
 
-@@ -905,6 +915,18 @@ void device_del(struct device * dev)
- 	struct device * parent = dev->parent;
- 	struct class_interface *class_intf;
- 
-+	if (down_trylock(&dev->sem)) {
-+		if (pm_sleep_lock()) {
-+			dev_warn(dev, "Illegal %s during suspend\n",
-+				__FUNCTION__);
-+			dump_stack();
-+		} else {
-+			pm_sleep_unlock();
-+		}
-+	} else {
-+		up(&dev->sem);
-+	}
-+
- 	if (parent)
- 		klist_del(&dev->knode_parent);
- 	if (MAJOR(dev->devt))
+Thanks,
 
-> I suppose that would be okay. 
-
-Rafael
+Lee.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
