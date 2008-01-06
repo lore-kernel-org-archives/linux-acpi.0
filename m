@@ -1,342 +1,74 @@
-From: Stefan Becker <zorak1103@gmx.de>
-Subject: dmidecode 2.9
-Date: Sun, 06 Jan 2008 12:41:26 +0100
-Message-ID: <4780BE66.8050605@gmx.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 1/7] Suspend: Introduce open() and close() callbacks
+Date: Sun, 6 Jan 2008 14:15:46 +0100
+Message-ID: <200801061415.47557.rjw@sisk.pl>
+References: <200801052332.44500.rjw@sisk.pl> <200801052338.52923.rjw@sisk.pl> <200801051631.19629.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44348 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752589AbYAFLla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Jan 2008 06:41:30 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:60236 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480AbYAFNNp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2008 08:13:45 -0500
+In-Reply-To: <200801051631.19629.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-29 structures occupying 1046 bytes.
-Table at 0x000DC010.
+On Sunday, 6 of January 2008, David Brownell wrote:
+> On Saturday 05 January 2008, Rafael J. Wysocki wrote:
+> > + * @open: Initialise a transition to given system sleep state.
+> > + *=A0=A0=A0=A0=A0@open() is executed right prior to suspending dev=
+ices. =A0The information
+> > + *=A0=A0=A0=A0=A0conveyed to the platform code by @open() should b=
+e disregarded by it as
+> > + *=A0=A0=A0=A0=A0soon as @close() is executed. =A0If @open() fails=
+ (ie. returns nonzero),
+> > =A0 *=A0=A0=A0=A0=A0@prepare(), @enter() and @finish() will not be =
+called by the PM core.
+> > =A0 *=A0=A0=A0=A0=A0This callback is optional. =A0However, if it is=
+ implemented, the argument
+> > =A0 *=A0=A0=A0=A0=A0passed to @enter() is meaningless and should be=
+ ignored.
+>                                 ^^^^^^^^^^^
+> Surely this should say "redundant", not "meaningless"?  =20
+>=20
+>=20
+> > + * @close: Called by the PM core right after resuming devices, to =
+indicate to
+> > + *=A0=A0=A0=A0=A0the platform that the system has returned to the =
+working state.
+>=20
+> Or the state transition has aborted ...
+>=20
+> > + *=A0=A0=A0=A0=A0This callback is optional, but should be implemen=
+ted by the platforms
+> > + *=A0=A0=A0=A0=A0that implement @open().
+>=20
+> "..., but platforms which implement @open() should also provide a @cl=
+ose()
+> which cleans up transitions which aborted before @enter()."
+>=20
+> Otherwise it seems rather unclear why this exists, since all platform=
+s know
+> that things are "normal" as soon as enter() gets back from its transi=
+tion.
+> (What can I say ... I like to see things be clear!)  Yes, systems may=
+ do more
+> than that when it gets this call; but the minimum involves just that =
+cleanup.
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-    Vendor: Phoenix Technologies LTD
-    Version: 00YJ
-    Release Date: 08/03/2007
-    Address: 0xE4F40
-    Runtime Size: 110784 bytes
-    ROM Size: 1024 kB
-    Characteristics:
-        ISA is supported
-        PCI is supported
-        PC Card (PCMCIA) is supported
-        PNP is supported
-        APM is supported
-        BIOS is upgradeable
-        BIOS shadowing is allowed
-        ESCD support is available
-        Boot from CD is supported
-        ACPI is supported
-        USB legacy is supported
-        LS-120 boot is supported
-        ATAPI Zip drive boot is supported
-        BIOS boot specification is supported
-        Targeted content distribution is supported
+Thanks for the comments.  They will be taken into account in the final =
+version
+of the patch.
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-    Product Name: R59P/R60P/R61P
-    Version: 00YJ
-    Serial Number: 012Z93FP904750
-    UUID: C0974B31-D21D-B211-8000-FF06B87D96A9
-    Wake-up Type: Power Switch
-    SKU Number: Not Specified
-    Family: Not Specified
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-    Product Name: R59P/R60P/R61P
-    Version:     
-    Serial Number: 123490EN400015
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-    Type: Other
-    Lock: Not Present
-    Version: N/A
-    Serial Number: None
-    Asset Tag: No Asset Tag
-    Boot-up State: Safe
-    Power Supply State: Safe
-    Thermal State: Safe
-    Security Status: None
-    OEM Information: 0x00001234
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-    Socket Designation: U2E1
-    Type: Central Processor
-    Family: <OUT OF SPEC>
-    Manufacturer: Intel
-    ID: FD 06 00 00 FF FB EB BF
-    Version: A0
-    Voltage: 3.3 V
-    External Clock: Unknown
-    Max Speed: 4096 MHz
-    Current Speed: 1494 MHz
-    Status: Populated, Enabled
-    Upgrade: ZIF Socket
-    L1 Cache Handle: 0x0005
-    L2 Cache Handle: 0x0006
-    L3 Cache Handle: Not Provided
-    Serial Number: Not Specified
-    Asset Tag: Not Specified
-    Part Number: Not Specified
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-    Socket Designation: L1 Cache
-    Configuration: Enabled, Socketed, Level 1
-    Operational Mode: Write Back
-    Location: Internal
-    Installed Size: 64 KB
-    Maximum Size: 64 KB
-    Supported SRAM Types:
-        Burst
-        Pipeline Burst
-        Asynchronous
-    Installed SRAM Type: Asynchronous
-    Speed: Unknown
-    Error Correction Type: Unknown
-    System Type: Unknown
-    Associativity: Unknown
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-    Socket Designation: L2 Cache
-    Configuration: Enabled, Socketed, Level 2
-    Operational Mode: Write Back
-    Location: Internal
-    Installed Size: 2048 KB
-    Maximum Size: 4096 KB
-    Supported SRAM Types:
-        Burst
-        Pipeline Burst
-    Installed SRAM Type: Burst
-    Speed: Unknown
-    Error Correction Type: Unknown
-    System Type: Unknown
-    Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-    Designation: Mini PCIE Card Slot   
-    Type: 32-bit PCI Express
-    Current Usage: Unknown
-    Length: Long
-    ID: 0
-    Characteristics:
-        5.0 V is provided
-        3.3 V is provided
-        Hot-plug devices are supported
-
-Handle 0x0008, DMI type 11, 5 bytes
-OEM Strings
-    String 1: BBBBAAAAAAAA
-    String 2: 2008/01
-
-Handle 0x0009, DMI type 12, 5 bytes
-System Configuration Options
-    Option 1: Jumper settings can be described here.
-
-Handle 0x000A, DMI type 16, 15 bytes
-Physical Memory Array
-    Location: System Board Or Motherboard
-    Use: System Memory
-    Error Correction Type: None
-    Maximum Capacity: 1 GB
-    Error Information Handle: Not Provided
-    Number Of Devices: 2
-
-Handle 0x000B, DMI type 17, 27 bytes
-Memory Device
-    Array Handle: 0x000A
-    Error Information Handle: No Error
-    Total Width: 64 bits
-    Data Width: 64 bits
-    Size: 1024 MB
-    Form Factor: DIMM
-    Set: 1
-    Locator: J400
-    Bank Locator: Channel A0
-    Type: DRAM
-    Type Detail: Synchronous
-    Speed: Unknown
-    Manufacturer: Not Specified
-    Serial Number: Not Specified
-    Asset Tag: Not Specified
-    Part Number: Not Specified
-
-Handle 0x000C, DMI type 17, 27 bytes
-Memory Device
-    Array Handle: 0x000A
-    Error Information Handle: No Error
-    Total Width: 64 bits
-    Data Width: 64 bits
-    Size: 1024 MB
-    Form Factor: DIMM
-    Set: 3
-    Locator: J501
-    Bank Locator: Channel B0
-    Type: DRAM
-    Type Detail: Synchronous
-    Speed: Unknown
-    Manufacturer: Not Specified
-    Serial Number: Not Specified
-    Asset Tag: Not Specified
-    Part Number: Not Specified
-
-Handle 0x000D, DMI type 18, 23 bytes
-32-bit Memory Error Information
-    Type: OK
-    Granularity: Unknown
-    Operation: Unknown
-    Vendor Syndrome: Unknown
-    Memory Array Address: Unknown
-    Device Address: Unknown
-    Resolution: Unknown
-
-Handle 0x000E, DMI type 19, 15 bytes
-Memory Array Mapped Address
-    Starting Address: 0x00000000000
-    Ending Address: 0x0007FFFFFFF
-    Range Size: 2 GB
-    Physical Array Handle: 0x000A
-    Partition Width: 0
-
-Handle 0x000F, DMI type 20, 19 bytes
-Memory Device Mapped Address
-    Starting Address: 0x00000000000
-    Ending Address: 0x0003FFFFFFF
-    Range Size: 1 GB
-    Physical Device Handle: 0x000B
-    Memory Array Mapped Address Handle: 0x000E
-    Partition Row Position: 2
-    Interleave Position: 1
-    Interleaved Data Depth: 6
-
-Handle 0x0010, DMI type 21, 7 bytes
-Built-in Pointing Device
-    Type: Touch Pad
-    Interface: PS/2
-    Buttons: 4
-
-Handle 0x0011, DMI type 22, 26 bytes
-Portable Battery
-    Location: Rear
-    Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-    Name: SAMSUNG ELECTRONICS CO., LTD.
-    Chemistry: Lithium Ion
-    Design Capacity: 1000 mWh
-    Design Voltage: 19 mV
-    SBDS Version: BATT_1234
-    Maximum Error: Unknown
-    SBDS Serial Number: 0000
-    SBDS Manufacture Date: 1980-00-00
-    OEM-specific Information: 0x00000000
-
-Handle 0x0012, DMI type 23, 13 bytes
-System Reset
-    Status: Enabled
-    Watchdog Timer: Present
-    Boot Option: Do Not Reboot
-    Boot Option On Limit: Do Not Reboot
-    Reset Count: Unknown
-    Reset Limit: Unknown
-    Timer Interval: Unknown
-    Timeout: Unknown
-
-Handle 0x0013, DMI type 24, 5 bytes
-Hardware Security
-    Power-On Password Status: Enabled
-    Keyboard Password Status: Unknown
-    Administrator Password Status: Enabled
-    Front Panel Reset Status: Unknown
-
-Handle 0x0014, DMI type 25, 9 bytes
-    System Power Controls
-    Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x0015, DMI type 26, 22 bytes
-Voltage Probe
-    Description: Voltage Probe 1
-    Location: Processor
-    Status: OK
-    Maximum Value: Unknown
-    Minimum Value: Unknown
-    Resolution: Unknown
-    Tolerance: Unknown
-    Accuracy: Unknown
-    OEM-specific Information: 0x00000000
-    Nominal Value: 8.192 V
-
-Handle 0x0016, DMI type 27, 14 bytes
-Cooling Device
-    Temperature Probe Handle: 0x0018
-    Type: Fan
-    Status: OK
-    Cooling Unit Group: 255
-    OEM-specific Information: 0x00000000
-    Nominal Speed: Unknown Or Non-rotating
-
-Handle 0x0017, DMI type 27, 12 bytes
-Cooling Device
-    Temperature Probe Handle: 0x0018
-    Type: Fan
-    Status: OK
-    Cooling Unit Group: 255
-    OEM-specific Information: 0x00000000
-
-Handle 0x0018, DMI type 28, 22 bytes
-Temperature Probe
-    Description: Temperature Probe 1
-    Location: Processor
-    Status: OK
-    Maximum Value: Unknown
-    Minimum Value Unknown
-    Resolution: Unknown
-    Tolerance: Unknown
-    Accuracy: Unknown
-    OEM-specific Information: 0x00000000
-    Nominal Value: Unknown
-
-Handle 0x0019, DMI type 29, 22 bytes
-Electrical Current Probe
-    Description: Electrical Current Probe 1
-    Location: Processor
-    Status: OK
-    Maximum Value: Unknown
-    Minimum Value: Unknown
-    Resolution: Unknown
-    Tolerance: Unknown
-    Accuracy: Unknown
-    OEM-specific Information: 0x00000000
-    Nominal Value: Unknown
-
-Handle 0x001A, DMI type 30, 6 bytes
-Out-of-band Remote Access
-    Manufacturer Name: Intel
-    Inbound Connection: Enabled
-    Outbound Connection: Disabled
-
-Handle 0x001B, DMI type 32, 20 bytes
-System Boot Information
-    Status: <OUT OF SPEC>
-
-Handle 0x001C, DMI type 127, 4 bytes
-End Of Table
-
+Greetings,
+Rafael
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
