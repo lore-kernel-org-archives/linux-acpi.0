@@ -1,48 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Re: [PATCH] PM: Acquire device locks on suspend
-Date: Mon, 7 Jan 2008 01:49:47 +0100
-Message-ID: <200801070149.47958.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0801061734150.20032-100000@netrider.rowland.org> <49505.::ffff:91.5.86.36.1199663162.squirrel@secure.sipsolutions.net> <200801070059.16741.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: brightness control on thinkpad t61p
+Date: Sun, 6 Jan 2008 23:36:23 -0200
+Message-ID: <20080107013623.GA6667@khazad-dum.debian.net>
+References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224073406.GA1018@srcf.ucam.org> <20071226141027.6d1a509f.akpm@linux-foundation.org> <20071226222321.GA32297@srcf.ucam.org> <20071227123358.GB25535@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34213 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbYAGArs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Jan 2008 19:47:48 -0500
-In-Reply-To: <200801070059.16741.rjw@sisk.pl>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:35137 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752161AbYAGBg2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2008 20:36:28 -0500
 Content-Disposition: inline
+In-Reply-To: <20071227123358.GB25535@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Monday, 7 of January 2008, Rafael J. Wysocki wrote:
-> On Monday, 7 of January 2008, Johannes Berg wrote:
-> > Rafael J. Wysocki wrote:
+On Thu, 27 Dec 2007, Henrique de Moraes Holschuh wrote:
+> On Wed, 26 Dec 2007, Matthew Garrett wrote:
+> > On Wed, Dec 26, 2007 at 02:10:27PM -0800, Andrew Morton wrote:
 > > 
-> > >> I don't see anything wrong with it.  All that will happen is that the
-> > >> removal will start before the suspend and finish after the resume.
-> > >
-> > > In that case, we'll attempt to call the device's .suspend() and .resume()
-> > > routines, but we shouldn't do that, IMHO.
+> > > Vice versa for me.  The thinkpad_acpi driver in 2.6.23 _does_ work,
+> > > but its interface vanished in 2.6.24-rc5 and the acpi driver does not
+> > > work.
 > > 
-> > I don't see anything wrong with that since the driver must be prepared to
-> > handle that even in the regular case, it's the only thing you can
-> > guarantee: no more method calls after removal finishes. Am I totally
-> > misunderstanding things?
+> > As I said, the interface for the ACPI backlight driver is confusing. 10 
+> > will only work if the firmware supports it - have you tried other 
+> > values?
 > 
-> Well, we are towards the end of device removal at this point, having called
-> bus_remove_device(dev) for example, but still we've got it on dpm_active ...
-> 
-> This may not be technically wrong (ie. we should be able to recover from
-> that), but it seems conceptually wrong and with pm_sleep_rwsem in place it
-> can be avoided.
+> Not on a thinkpad.  The AML code is not that stupid, it rounds down to the
+> nearest supported value.   It takes a brightness percentage (0 to 100), maps
+> it through a table to get the visual brightness -> hardware brightness curve
+> right (it is non-linear), then does what thinkpad-acpi does to set backlight
+> brightness.
 
-No, it can't, without major complications.
+Bah, I spoke too soon.  Latest round of BIOSes seems to have broken this,
+either that or I completely misunderstood the older AML code.
 
-Well, I think I'll just send a patch that should work most of the time ...
+Rounding to the nearest supplied _BCL value before we call _BCM apparently
+will be needed on thinkpads as well.
 
-Rafael
+Oh, just another datapoint for Andrew: your thinkpad backlight firmware
+behaves differently before and after something calls _BCL.  And I believe it
+also behaves differently before Linux boots (my guess is that it changes
+behaviour when ACPI inits), so it is getting more and more complicated to
+debug this thing without direct access to one such thinkpad.
+
+I heavily recommend calling the ACPI _BCL method (e.g. by loading ACPI video
+and unloading it later if you don't want it), so that at least you have a
+small chance of things working consistently :) The AML code is supposed to
+just issue normal ACPI events and leave the backlight hardware alone after
+you call _BCL.
+
+But if X.org is messing with the BIOS scratch registers, not even ACPI
+video.c will work, as the SMBIOS crap the thinkpad AML code calls to
+implement BQC/BCQ and BCM will be disabled.  In that case, X.org has to be
+able to modify the hardware directly (through xbacklight) in order to get
+anything done.
+
+I am seriously considering a call to _BCM in thinkpad-acpi, to make sure we
+get a more-or-less sane thinkpad behaviour on these newer Lenovo BIOSes,
+even if the user doesn't want to use ACPI video.c for some reason.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
