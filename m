@@ -1,70 +1,158 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: brightness control on thinkpad t61p
-Date: Sun, 6 Jan 2008 23:36:23 -0200
-Message-ID: <20080107013623.GA6667@khazad-dum.debian.net>
-References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224073406.GA1018@srcf.ucam.org> <20071226141027.6d1a509f.akpm@linux-foundation.org> <20071226222321.GA32297@srcf.ucam.org> <20071227123358.GB25535@khazad-dum.debian.net>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch] hibernation: utilize ACPI hardware signature
+Date: Mon, 07 Jan 2008 09:46:49 +0800
+Message-ID: <1199670409.13339.2.camel@sli10-desk.sh.intel.com>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
+	 <200801031804.30947.rjw@sisk.pl>
+	 <1199425291.20053.2.camel@sli10-desk.sh.intel.com>
+	 <200801042144.20279.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:35137 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752161AbYAGBg2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Jan 2008 20:36:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20071227123358.GB25535@khazad-dum.debian.net>
+Received: from mga02.intel.com ([134.134.136.20]:45023 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752339AbYAGBrZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Jan 2008 20:47:25 -0500
+In-Reply-To: <200801042144.20279.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>
 
-On Thu, 27 Dec 2007, Henrique de Moraes Holschuh wrote:
-> On Wed, 26 Dec 2007, Matthew Garrett wrote:
-> > On Wed, Dec 26, 2007 at 02:10:27PM -0800, Andrew Morton wrote:
-> > 
-> > > Vice versa for me.  The thinkpad_acpi driver in 2.6.23 _does_ work,
-> > > but its interface vanished in 2.6.24-rc5 and the acpi driver does not
-> > > work.
-> > 
-> > As I said, the interface for the ACPI backlight driver is confusing. 10 
-> > will only work if the firmware supports it - have you tried other 
-> > values?
+
+On Sat, 2008-01-05 at 04:44 +0800, Rafael J. Wysocki wrote:
+> On Friday, 4 of January 2008, Shaohua Li wrote:
+> >
+> > On Fri, 2008-01-04 at 01:04 +0800, Rafael J. Wysocki wrote:
+> > > On Thursday, 3 of January 2008, Shaohua Li wrote:
+> > > >
+> > > > On Wed, 2008-01-02 at 22:05 +0800, Rafael J. Wysocki wrote:
+> > > > > On Wednesday, 2 of January 2008, Shaohua Li wrote:
+> > > > > > ACPI defines a hardware signature. BIOS calculates the
+> signature
+> > > > > > according to hardware configure, if hardware changes, the
+> > > signature
+> > > > > will
+> > > > > > change, in this case, S4 resume should fail.
+> > > > >
+> > > > > The idea is fine, but I'd prefer to do that in a more
+> > > straightforward
+> > > > > way.
+> > > > > Namely, we can just:
+> > > > > * write the signature into a variable in, for example,
+> > > > >   acpi_hibernation_prepare() (then, the "old" signature value
+> will
+> > > be
+> > > > >   automatically saved in the image)
+> > > > > * compare it with a the "new" value read from the BIOS in
+> > > > >   acpi_hibernation_leave() and panic if there's a mismatch
+> > > > > * add a configuration option to disable this behavior (just in
+> > > case)
+> > > > > This way we can avoid modifying the entire generic interface
+> to
+> > > add
+> > > > > the feature
+> > > > > specific to ACPI.
+> > > > it would be better we do the check in boot kernel.
+> > > Franky, I think we should also check in the image kernel, in case
+> the
+> > > boot
+> > > one doesn't support ACPI as I said.
+> > Ok, makes sense. I changed to check the signature
+> in .higberation_leave
 > 
-> Not on a thinkpad.  The AML code is not that stupid, it rounds down to the
-> nearest supported value.   It takes a brightness percentage (0 to 100), maps
-> it through a table to get the visual brightness -> hardware brightness curve
-> right (it is non-linear), then does what thinkpad-acpi does to set backlight
-> brightness.
+> Thanks, comments below.
+> 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > ---
+> >  drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
+> >  1 file changed, 20 insertions(+)
+> >
+> > Index: linux/drivers/acpi/sleep/main.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-03
+> 13:37:08.000000000 +0800
+> > +++ linux/drivers/acpi/sleep/main.c   2008-01-04 13:36:10.000000000
+> +0800
+> > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+> >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+> >  }
+> > 
+> > +static unsigned long s4_hardware_signature;
+> > +static struct acpi_table_facs *facs;
+> > +static int nosigcheck;
+> 
+> Use bool perhaps?
+> 
+> > +
+> > +static int __init acpi_s4_nosigcheck(char *str)
+> > +{
+> > +     nosigcheck = 1;
+> 
+> And "true" here?
+> 
+> > +     return 1;
+> > +}
+> > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> > +
+> 
+> Please put this function at the end of the file.  Also, I'd call it
+> "acpi_s4_nosig", but whatever.
+Fixed all except this one, the routine is defined with HIBERATION
+configed.
 
-Bah, I spoke too soon.  Latest round of BIOSes seems to have broken this,
-either that or I completely misunderstood the older AML code.
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+---
+ drivers/acpi/sleep/main.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-Rounding to the nearest supplied _BCL value before we call _BCM apparently
-will be needed on thinkpads as well.
+Index: linux/drivers/acpi/sleep/main.c
+===================================================================
+--- linux.orig/drivers/acpi/sleep/main.c	2008-01-04 13:44:40.000000000 +0800
++++ linux/drivers/acpi/sleep/main.c	2008-01-07 09:31:42.000000000 +0800
+@@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+ 
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++static int __init acpi_s4_nosigcheck(char *str)
++{
++	nosigcheck = true;
++	return 1;
++}
++__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
++
+ static void acpi_hibernation_leave(void)
+ {
+ 	/*
+@@ -263,6 +274,10 @@ static void acpi_hibernation_leave(void)
+ 	 * enable it here.
+ 	 */
+ 	acpi_enable();
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG"PM: Hardware changed in the S4 circle, can't resume\n");
++		panic("S4 resume error");
++	}
+ }
+ 
+ static void acpi_hibernation_finish(void)
+@@ -448,6 +463,13 @@ int __init acpi_sleep_init(void)
+ 		hibernation_set_ops(&acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
+ 	}
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
 
-Oh, just another datapoint for Andrew: your thinkpad backlight firmware
-behaves differently before and after something calls _BCL.  And I believe it
-also behaves differently before Linux boots (my guess is that it changes
-behaviour when ACPI inits), so it is getting more and more complicated to
-debug this thing without direct access to one such thinkpad.
 
-I heavily recommend calling the ACPI _BCL method (e.g. by loading ACPI video
-and unloading it later if you don't want it), so that at least you have a
-small chance of things working consistently :) The AML code is supposed to
-just issue normal ACPI events and leave the backlight hardware alone after
-you call _BCL.
-
-But if X.org is messing with the BIOS scratch registers, not even ACPI
-video.c will work, as the SMBIOS crap the thinkpad AML code calls to
-implement BQC/BCQ and BCM will be disabled.  In that case, X.org has to be
-able to modify the hardware directly (through xbacklight) in order to get
-anything done.
-
-I am seriously considering a call to _BCM in thinkpad-acpi, to make sure we
-get a more-or-less sane thinkpad behaviour on these newer Lenovo BIOSes,
-even if the user doesn't want to use ACPI video.c for some reason.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
