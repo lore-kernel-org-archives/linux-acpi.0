@@ -1,105 +1,337 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
-Date: Sun, 6 Jan 2008 23:18:48 -0800
-Message-ID: <20080106231848.762e93c1.akpm@linux-foundation.org>
-References: <20071130142058.816d1693.akpm@linux-foundation.org>
-	<924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>
-	<4750CC78.9070105@rtr.ca>
-	<20071130190227.1976e682@laptopd505.fenrus.org>
-	<4750D180.6080001@rtr.ca>
-	<20071130191816.3e744205@laptopd505.fenrus.org>
-	<4750D585.1030200@rtr.ca>
-	<477C2143.8090406@rtr.ca>
-	<924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com>
-	<477C622F.6010304@rtr.ca>
-	<20080104021619.GA15409@linux-os.sc.intel.com>
-	<47814958.3070208@rtr.ca>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH] ACPI: fix processor throttling set error
+Date: Mon, 07 Jan 2008 14:56:01 +0800
+Message-ID: <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
+	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+	 <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755551AbYAGHTv@vger.kernel.org>
-In-Reply-To: <47814958.3070208@rtr.ca>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756080AbYAGHp6@vger.kernel.org>
+In-Reply-To: <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@infradead.org>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 06 Jan 2008 16:34:16 -0500 Mark Lord <lkml@rtr.ca> wrote:
+Subject: ACPI: fix processor throttling set error
+From: Yi Yang <yi.y.yang@intel.com>
 
-> Venki Pallipadi wrote:
-> > Reintroduce run time configurable max_cstate for !CPU_IDLE case.
-> > 
-> > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> > 
-> > Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
-> > ===================================================================
-> > --- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
-> > +++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
-> > @@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
-> >  #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
-> >  
-> >  static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
-> > +#ifdef CONFIG_CPU_IDLE
-> >  module_param(max_cstate, uint, 0000);
-> > +#else
-> > +module_param(max_cstate, uint, 0644);
-> > +#endif
-> >  static unsigned int nocst __read_mostly;
-> >  module_param(nocst, uint, 0000);
-> >  
-> ..
-> 
-> Can we get this patch upstream so that a stock 2.6.24 will work here?
-> 
+When echo some invalid values to /proc/acpi/processor/*/throttling,
+there isn't any error info returned, on the contray, it sets
+throttling value to some T* successfully, obviously, this is incorrect,
+a correct way should be to let it fail and return error info.
 
-umm, OK, I queued it for 2.6.24.  I'll give people a day or so to comment
-on this.
+This patch fixed the aforementioned issue, it also enables
+/proc/acpi/processor/*/throttling to accept such values as 't0' and 'T0',
+it also strictly limits /proc/acpi/processor/*/throttling only to accept
+ "*", "t*" and "T*", "*" is the throttling state value the processor can
+support, current, it is 0 - 7.
 
-I had to invent some silly changlelog for it.  Please review it for
-accuracy and completeness?
+Before applying this patch, the test result is below:
 
-It isn't complete, really.  How come we only make max_cstate writeable if
-CONFIG_CPU_IDLE=n?  What happens to people who were reliant upon writeable
-max_cstate who now enable CPU_IDLE?  Things still break?  What is the
-rationale behind this?  What constraints led us to this decision?
+[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T1
+state available: T0 to T7
+states:
+    T0:                  100%
+   *T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost acpi]# echo "1xxxxxx" > /proc/acpi/processor/CPU0/throttling
+[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T1
+state available: T0 to T7
+states:
+    T0:                  100%
+   *T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost acpi]# echo "0" > /proc/acpi/processor/CPU0/throttling
+[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost acpi]# cd /
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "T0" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "T7" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "T100" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "2xxxx" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T2
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  87%
+   *T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost /]# echo "7777" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost /]# echo "7xxx" > /proc/acpi/processor/CPU0/throttling
+[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T7
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+   *T7:                  12%
+[root@localhost /]#
 
 
+After applying this patch, the test result is below:
 
+[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "0" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo "t0" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo "T0" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+    T7:                  12%
+[root@localhost linux-2.6.24-rc6]# echo "T7" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T7
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+   *T7:                  12%
+[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# vi drivers/acpi/processor_throttling.c
+[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "t7" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo "t70" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "7000" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo -n > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo $?
+0
+[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T7
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+   *T7:                  12%
+[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
+state count:             8
+active state:            T7
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  87%
+    T2:                  75%
+    T3:                  62%
+    T4:                  50%
+    T5:                  37%
+    T6:                  25%
+   *T7:                  12%
+[root@localhost linux-2.6.24-rc6]# echo t0 > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo T0 > /proc/acpi/processor/CPU0/throttling
+[root@localhost linux-2.6.24-rc6]# echo Tt0 > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]# echo T > /proc/acpi/processor/CPU0/throttling
+-bash: echo: write error: Invalid argument
+[root@localhost linux-2.6.24-rc6]#
 
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-
-This was writeable in 2.6.23 but the cpuidle merge made it read-only.  But
-some people's scripts (ie: Mark's) were writing to it.
-
-As an unhappy compromise, make max_cstate writeable again if the kernel was
-configured without CONFIG_CPU_IDLE.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Mark Lord <lkml@rtr.ca>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
 ---
+ processor_throttling.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
- drivers/acpi/processor_idle.c |    4 ++++
- 1 file changed, 4 insertions(+)
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 6742d7b..10035a6 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -898,7 +898,10 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
+ 	int result = 0;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_processor *pr = m->private;
+-	char state_string[12] = { '\0' };
++	char state_string[5] = "";
++	char *charp = NULL;
++	size_t state_val = 0;
++	char tmpbuf[5] = "";
+ 
+ 	if (!pr || (count > sizeof(state_string) - 1))
+ 		return -EINVAL;
+@@ -907,10 +910,23 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
+ 		return -EFAULT;
+ 
+ 	state_string[count] = '\0';
++	if ((count > 0) && (state_string[count-1] == '\n'))
++		state_string[count-1] = '\0';
+ 
+-	result = acpi_processor_set_throttling(pr,
+-					       simple_strtoul(state_string,
+-							      NULL, 0));
++	charp = state_string;
++	if ((state_string[0] == 't') || (state_string[0] == 'T'))
++		charp++;
++
++	state_val = simple_strtoul(charp, NULL, 0);
++	if (state_val >= pr->throttling.state_count)
++		return -EINVAL;
++
++	snprintf(tmpbuf, 5, "%d", state_val);
++
++	if (strcmp(tmpbuf, charp) != 0)
++		return -EINVAL;
++
++	result = acpi_processor_set_throttling(pr, state_val);
+ 	if (result)
+ 		return result;
+ 
 
-diff -puN drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~reintroduce-run-time-configurable-max_cstate-for-cpu_idle-case
-+++ a/drivers/acpi/processor_idle.c
-@@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
- #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
- 
- static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
-+#ifdef CONFIG_CPU_IDLE
- module_param(max_cstate, uint, 0000);
-+#else
-+module_param(max_cstate, uint, 0644);
-+#endif
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
- 
-_
 
