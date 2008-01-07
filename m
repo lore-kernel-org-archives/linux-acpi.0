@@ -1,90 +1,110 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
-Date: Mon, 7 Jan 2008 06:07:07 -0800
-Message-ID: <20080107060707.55af6d9c@laptopd505.fenrus.org>
-References: <20071130142058.816d1693.akpm@linux-foundation.org>
-	<924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>
-	<4750CC78.9070105@rtr.ca>
-	<20071130190227.1976e682@laptopd505.fenrus.org>
-	<4750D180.6080001@rtr.ca>
-	<20071130191816.3e744205@laptopd505.fenrus.org>
-	<4750D585.1030200@rtr.ca>
-	<477C2143.8090406@rtr.ca>
-	<924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com>
-	<477C622F.6010304@rtr.ca>
-	<20080104021619.GA15409@linux-os.sc.intel.com>
-	<47814958.3070208@rtr.ca>
-	<20080106231848.762e93c1.akpm@linux-foundation.org>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: pnpacpi: exceeded the max number of IO resources: 24
+Date: Mon, 7 Jan 2008 15:18:06 +0100
+Message-ID: <200801071518.07039.elendil@planet.nl>
+References: <200712240612.46786.elendil@planet.nl> <200801070048.19468.elendil@planet.nl> <1199682448.2379.12.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:34570 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbYAGOIy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 09:08:54 -0500
-In-Reply-To: <20080106231848.762e93c1.akpm@linux-foundation.org>
+Received: from hpsmtp-eml17.kpnxchange.com ([213.75.38.117]:33249 "EHLO
+	hpsmtp-eml17.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753121AbYAGOSJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 09:18:09 -0500
+In-Reply-To: <1199682448.2379.12.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mark Lord <lkml@rtr.ca>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, 6 Jan 2008 23:18:48 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+(Mail below was sent to me privately, forwarding to the lists.)
 
-> On Sun, 06 Jan 2008 16:34:16 -0500 Mark Lord <lkml@rtr.ca> wrote:
-> 
-> > Venki Pallipadi wrote:
-> > > Reintroduce run time configurable max_cstate for !CPU_IDLE case.
-> > > 
-> > > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> > > 
-> > > Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
-> > > ===================================================================
-> > > --- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
-> > > +++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
-> > > @@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
-> > >  #define PM_TIMER_TICKS_TO_US(p)		(((p) *
-> > > 1000)/(PM_TIMER_FREQUENCY/1000)) 
-> > >  static unsigned int max_cstate __read_mostly =
-> > > ACPI_PROCESSOR_MAX_POWER; +#ifdef CONFIG_CPU_IDLE
-> > >  module_param(max_cstate, uint, 0000);
-> > > +#else
-> > > +module_param(max_cstate, uint, 0644);
-> > > +#endif
-> > >  static unsigned int nocst __read_mostly;
-> > >  module_param(nocst, uint, 0000);
-> > >  
-> > ..
-> > 
-> > Can we get this patch upstream so that a stock 2.6.24 will work
-> > here?
-> > 
-> 
-> umm, OK, I queued it for 2.6.24.  I'll give people a day or so to
-> comment on this.
-> 
-> I had to invent some silly changlelog for it.  Please review it for
-> accuracy and completeness?
-> 
-> It isn't complete, really.  How come we only make max_cstate
-> writeable if CONFIG_CPU_IDLE=n?  What happens to people who were
-> reliant upon writeable max_cstate who now enable CPU_IDLE?  Things
-> still break?  What is the rationale behind this?  What constraints
-> led us to this decision?
+On Mon, 2008-01-07 at 00:48 +0100, Frans Pop wrote:
+> (Adding the kernel list back. Any reason you did not send the reply
+> there?)
+>
+> Sorry for the late reply: Christmas, New Year, the flue, etc.
 
+> Thank you for caring this problem.
 
+> On Friday 28 December 2007, Zhao Yakui wrote:
+> > On Mon, 2007-12-24 at 06:12 +0100, Frans Pop wrote:
+> > > During boot with v2.6.24-rc6-125-g5356f66 on my Toshiba Satellite
+> > > A40 laptop, I suddenly get the following message (repeated 22
+> > > times!): pnpacpi: exceeded the max number of IO resources: 24
+> > >
+> > > Last time I tested 2.6.24 on that box was after the initial merge,
+> > > but before -rc1. Then those lines were not present.
+> > >
+> > > Looks like the messages originate from a7839e96 by Zhao Yakui and
+> > > that patch just adds the kernel messages so it was probably a
+> > > hidden issue before, but I cannot determine if I should be worried
+> > > or not.
+> >
+> > Thanks for caring this problem.
+>
+> And thank you for the reply, although I must admit that I'm still
+> confused.
+>
+> > In the patch of a7839e96 the predefined PNP constant is changed. For
+> > example: IO is changed from 8 to 24, Mem is changed from 4 to 12.
+> > That means that more resources will be obtained from the PNP device
+> > defined in ACPI table. So the system will print more message.
+>
+> OK. The change for Mem from 4 to 12 could explain the extra "iomem
+> range" messages (although I don't quite understand why resources that
+> "could not be reserved" still use a slot).
 
-if we take a step back; Mark afaics only wants to put 1 in there...
-And that makes sense; either you want the "no latency" C1, or you want the lot
-(esp given that C2 and deeper are at the whim of the bios, what they mean varies
-over time. Actually even C1 does that on some AMD systems);
+The resources of PNP device are obtained by calling the _CRS method.
+Maybe some resources has been reserved. For example: Some system will
+reserve the following resources.
+   BIOS-e820: 00000000fec00000 - 00000000fed40000 (reserved)
+   BIOS-e820: 00000000fed45000 - 0000000100000000 (reserved)
+So the system will report that some resources can't be reserved.
 
-Longer term I'd suggest we make an option that basically is "C1 only",
-(or technically, "use hlt only")
-that solves Marks VMWARE thing, and is a lot closer to what people really want.
-Well, that and if VMWARE really can't deal with latency in their kernel module
-they should use the proper code for that. It's also a ton easier to implement, since
-it basically is "don't use the CPUIDLE idle loop, but use the traditional hlt one"
+> I do not yet see how the "ioport range" messages increased from 0 to 16
+> is explained, but I'm not too worried about that.
+>
+> > At the same time another problem maybe happens. If the number of
+> > resources defined in BIOS still exceeds the predefined PNP constant,
+> > it will report that pnpacpi: exceeded the max number of IO resources:
+> > 24. Although it can be fixed by changed the pnp constant bigger, it
+> > is inappropriate because it will waste a lot of memory in most cases.
+> >
+> > Of course the above error message is harmless.
+>
+> Are the _errors_ really harmless?
 
+The error message is harmless. It only tells us that the resource
+definition of PNP device exceeds the predefined PNP constant and maybe
+there will be potential problem if some important resources can't be
+reserved. For example about 90 IOPORT resources are defined in some PNP
+device. So it will print the message. Of course it is more appropriate
+to change the message level from ERR to DEBUG.
 
+> Your commit message was:
+> "It brings that some resources can't be reserved and resource
+> confilicts. This will cause PCI resources are assigned wrongly in some
+> systems, and cause hang. This is a regression since we deleted ACPI
+> motherboard driver and use PNP system driver."
+>
+> That text seems to indicate that not reserving the remaining resources
+> _can_ cause real problems. Do we know what PCI resources are now not
+> being correctly reserved on my laptop (and other machines)? The fact
+> that the message is repeated 22 times seems to indicate that in my case
+> quite a lot of resources are being ignored.
+>
+> Should the memory allocation maybe be made dynamic instead of static if
+> the memory waste is really such a problem? Apparently the number of PCI
+> resources can vary wildly from one machine to another.
+
+It is more appropriate to use dynamic memory allocation for Pnp device
+than to increase the PNP constant bigger. Now Thomas is working on it.
+Maybe he will submit the patch very soon.
+
+> If the error messages really are harmless, shouldn't they be changed
+> from ERR to DEBUG? As it is, the messages are extremely ugly and will
+> probably cause a lot of people to file bug reports as it _looks_ like
+> there is an error.
