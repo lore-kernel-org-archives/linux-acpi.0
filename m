@@ -1,337 +1,362 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: [PATCH] ACPI: fix processor throttling set error
-Date: Mon, 07 Jan 2008 14:56:01 +0800
-Message-ID: <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
-	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
-	 <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
-Reply-To: yi.y.yang@intel.com
+From: Cleri Aloisio Azevedo <cleri@tdkom.net.br>
+Subject: DMIDECODE
+Date: Mon, 07 Jan 2008 09:47:36 -0200
+Message-ID: <47821158.1090205@tdkom.net.br>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756080AbYAGHp6@vger.kernel.org>
-In-Reply-To: <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ramulus.tdkom.psi.br ([200.152.65.11]:37233 "HELO
+	ramulus.tdkom.psi.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754180AbYAGLyW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 06:54:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Subject: ACPI: fix processor throttling set error
-From: Yi Yang <yi.y.yang@intel.com>
+# dmidecode 2.9
+SMBIOS 2.4 present.
+27 structures occupying 867 bytes.
+Table at 0x000DC010.
 
-When echo some invalid values to /proc/acpi/processor/*/throttling,
-there isn't any error info returned, on the contray, it sets
-throttling value to some T* successfully, obviously, this is incorrect,
-a correct way should be to let it fail and return error info.
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Hewlett-Packard
+        Version: F.34
+        Release Date: 06/02/2007
+        Address: 0xE7F70
+        Runtime Size: 98448 bytes
+        ROM Size: 1024 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PC Card (PCMCIA) is supported
+                PNP is supported
+                APM is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                ACPI is supported
+                USB legacy is supported
+                AGP is supported
+                BIOS boot specification is supported
+                Targeted content distribution is supported
+        BIOS Revision: 15.52
+        Firmware Revision: 62.87
 
-This patch fixed the aforementioned issue, it also enables
-/proc/acpi/processor/*/throttling to accept such values as 't0' and 'T0',
-it also strictly limits /proc/acpi/processor/*/throttling only to accept
- "*", "t*" and "T*", "*" is the throttling state value the processor can
-support, current, it is 0 - 7.
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Hewlett-Packard
+        Product Name: HP Pavilion dv2000 (GA537UA#ABA)
+        Version: F.34
+        Serial Number: 2CE7250XMH
+        UUID: D712EB60-1EC3-11DC-BF89-CEBE5E4FD534
+        Wake-up Type: Power Switch
+        SKU Number: GA537UA#ABA
+        Family: 103C_5335KV
 
-Before applying this patch, the test result is below:
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: Wistron
+        Product Name: 30B5
+        Version: 62.57
+        Serial Number:
 
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T1
-state available: T0 to T7
-states:
-    T0:                  100%
-   *T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# echo "1xxxxxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T1
-state available: T0 to T7
-states:
-    T0:                  100%
-   *T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# echo "0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost acpi]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost acpi]# cd /
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "T100" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "2xxxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T2
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-   *T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost /]# echo "7777" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost /]# echo "7xxx" > /proc/acpi/processor/CPU0/throttling
-[root@localhost /]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost /]#
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: Wistron
+        Type: Notebook
+        Lock: Not Present
+        Version: N/A
+        Serial Number:
+        Asset Tag:
+        Boot-up State: Unknown
+        Power Supply State: Unknown
+        Thermal State: Unknown
+        Security Status: Unknown
+        OEM Information: 0x00001201
 
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: U1
+        Type: Central Processor
+        Family: Opteron
+        Manufacturer: AMD
+        ID: 82 0F 04 00 FF FB 8B 17
+        Signature: Family 15, Model 72, Stepping 2
+        Flags:
+                FPU (Floating-point unit on-chip)
+                VME (Virtual mode extension)
+                DE (Debugging extension)
+                PSE (Page size extension)
+                TSC (Time stamp counter)
+                MSR (Model specific registers)
+                PAE (Physical address extension)
+                MCE (Machine check exception)
+                CX8 (CMPXCHG8 instruction supported)
+                APIC (On-chip APIC hardware supported)
+                SEP (Fast system call)
+                MTRR (Memory type range registers)
+                PGE (Page global enable)
+                MCA (Machine check architecture)
+                CMOV (Conditional move instruction supported)
+                PAT (Page attribute table)
+                PSE-36 (36-bit page size extension)
+                CLFSH (CLFLUSH instruction supported)
+                MMX (MMX technology supported)
+                FXSR (Fast floating-point save and restore)
+                SSE (Streaming SIMD extensions)
+                SSE2 (Streaming SIMD extensions 2)
+                HTT (Hyper-threading technology)
+        Version: AMD Turion(tm) 64 X2
+        Voltage: 3.3 V
+        External Clock: 200 MHz
+        Max Speed: 1800 MHz
+        Current Speed: 1800 MHz
+        Status: Populated, Enabled
+        Upgrade: Slot 1
+        L1 Cache Handle: 0x0005
+        L2 Cache Handle: 0x0006
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
 
-After applying this patch, the test result is below:
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L1 Cache
+        Configuration: Enabled, Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 16 KB
+        Maximum Size: 16 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Asynchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
 
-[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "t0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "T0" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T0
-state available: T0 to T7
-states:
-   *T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-    T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo "T7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# vi drivers/acpi/processor_throttling.c
-[root@localhost linux-2.6.24-rc6]# echo "T8" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "t7" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo "t70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "7000" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "70" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo "xxx" > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo -n > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo $?
-0
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo -n "" > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# cat /proc/acpi/processor/CPU0/throttling
-state count:             8
-active state:            T7
-state available: T0 to T7
-states:
-    T0:                  100%
-    T1:                  87%
-    T2:                  75%
-    T3:                  62%
-    T4:                  50%
-    T5:                  37%
-    T6:                  25%
-   *T7:                  12%
-[root@localhost linux-2.6.24-rc6]# echo t0 > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo T0 > /proc/acpi/processor/CPU0/throttling
-[root@localhost linux-2.6.24-rc6]# echo Tt0 > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]# echo T > /proc/acpi/processor/CPU0/throttling
--bash: echo: write error: Invalid argument
-[root@localhost linux-2.6.24-rc6]#
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Socketed, Level 2
+        Operational Mode: Write Back
+        Location: External
+        Installed Size: 1024 KB
+        Maximum Size: 2048 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Synchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
 
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
----
- processor_throttling.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCMCIA Slot CBUS1
+        Type: 32-bit PC Card (PCMCIA)
+        Current Usage: Available
+        Length: Long
+        ID: Adapter 0, Socket 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+                PC Card-16 is supported
+                Cardbus is supported
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 6742d7b..10035a6 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -898,7 +898,10 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
- 	int result = 0;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_processor *pr = m->private;
--	char state_string[12] = { '\0' };
-+	char state_string[5] = "";
-+	char *charp = NULL;
-+	size_t state_val = 0;
-+	char tmpbuf[5] = "";
- 
- 	if (!pr || (count > sizeof(state_string) - 1))
- 		return -EINVAL;
-@@ -907,10 +910,23 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
- 		return -EFAULT;
- 
- 	state_string[count] = '\0';
-+	if ((count > 0) && (state_string[count-1] == '\n'))
-+		state_string[count-1] = '\0';
- 
--	result = acpi_processor_set_throttling(pr,
--					       simple_strtoul(state_string,
--							      NULL, 0));
-+	charp = state_string;
-+	if ((state_string[0] == 't') || (state_string[0] == 'T'))
-+		charp++;
-+
-+	state_val = simple_strtoul(charp, NULL, 0);
-+	if (state_val >= pr->throttling.state_count)
-+		return -EINVAL;
-+
-+	snprintf(tmpbuf, 5, "%d", state_val);
-+
-+	if (strcmp(tmpbuf, charp) != 0)
-+		return -EINVAL;
-+
-+	result = acpi_processor_set_throttling(pr, state_val);
- 	if (result)
- 		return result;
- 
+Handle 0x0008, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Video
+        Status: Enabled
+        Description: 128
 
+Handle 0x0009, DMI type 11, 5 bytes
+OEM Strings
+        String 1: $HP$
+        String 2: LOC#ABA
+
+Handle 0x000A, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 0 bytes
+        Header Start Offset: 0x0000
+        Data Start Offset: 0x0000
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Invalid, Not Full
+        Change Token: 0x00000000
+        Header Format: No Header
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
+
+Handle 0x000B, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 4 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x000C, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000B
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M1
+        Bank Locator: Bank 0
+        Type: DDR
+        Type Detail: Synchronous
+        Speed: 667 MHz (1.5 ns)
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000B
+        Error Information Handle: No Error
+        Total Width: 32 bits
+        Data Width: 32 bits
+        Size: 1024 MB
+        Form Factor: SODIMM
+        Set: 1
+        Locator: M2
+        Bank Locator: Bank 1
+        Type: DDR
+        Type Detail: Synchronous
+        Speed: 667 MHz (1.5 ns)
+        Manufacturer: Not Specified
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+
+Handle 0x000E, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 2 GB
+        Physical Array Handle: 0x000B
+        Partition Width: 0
+
+Handle 0x000F, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 2 GB
+        Physical Device Handle: 0x000C
+        Memory Array Mapped Address Handle: 0x000E
+        Partition Row Position: 1
+
+Handle 0x0010, DMI type 23, 13 bytes
+System Reset
+        Status: Enabled
+        Watchdog Timer: Present
+        Boot Option: Do Not Reboot
+        Boot Option On Limit: Do Not Reboot
+        Reset Count: Unknown
+        Reset Limit: Unknown
+        Timer Interval: Unknown
+        Timeout: Unknown
+
+Handle 0x0011, DMI type 24, 5 bytes
+Hardware Security
+        Power-On Password Status: Disabled
+        Keyboard Password Status: Unknown
+        Administrator Password Status: Enabled
+        Front Panel Reset Status: Unknown
+
+Handle 0x0012, DMI type 25, 9 bytes
+        System Power Controls
+        Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0013, DMI type 26, 20 bytes
+Voltage Probe
+        Description: Voltage Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x0014, DMI type 27, 12 bytes
+Cooling Device
+        Temperature Probe Handle: 0x0015
+        Type: Fan
+        Status: OK
+        OEM-specific Information: 0x00000000
+
+Handle 0x0015, DMI type 28, 20 bytes
+Temperature Probe
+        Description: Temperature Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x0016, DMI type 29, 20 bytes
+Electrical Current Probe
+        Description: Electrical Current Probe
+        Location: Processor
+        Status: OK
+        Maximum Value: Unknown
+        Minimum Value: Unknown
+        Resolution: Unknown
+        Tolerance: Unknown
+        Accuracy: Unknown
+        OEM-specific Information: 0x00000000
+
+Handle 0x0017, DMI type 30, 6 bytes
+Out-of-band Remote Access
+        Manufacturer Name: Intel
+        Inbound Connection: Enabled
+        Outbound Connection: Disabled
+
+Handle 0x0018, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x0019, DMI type 150, 14 bytes
+OEM-specific Type
+        Header and Data:
+                96 0E 19 00 01 01 00 00 00 00 00 00 00 00
+        Strings:
+                ABSOLUTE(PHOENIX) CLM
+
+Handle 0x001A, DMI type 127, 4 bytes
+End Of Table
+
+-- 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Cleri Aloisio Azevedo - cleri@tdkom.net.br
+Diretor de Tecnologia
+Fone: +55 14 3324-2324
+iVOZ: 1001
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+TDKOM - A Melhor Internet
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
