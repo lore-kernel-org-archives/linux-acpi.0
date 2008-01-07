@@ -1,379 +1,90 @@
-From: =?iso-8859-1?Q?=22Alexander_D=E4hn=22?= <ADaehn@gmx.net>
-Subject: dmidecode
-Date: Mon, 07 Jan 2008 14:14:22 +0100
-Message-ID: <20080107131422.69840@gmx.net>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Mon, 7 Jan 2008 06:07:07 -0800
+Message-ID: <20080107060707.55af6d9c@laptopd505.fenrus.org>
+References: <20071130142058.816d1693.akpm@linux-foundation.org>
+	<924EFEDD5F540B4284297C4DC59F3DEE2FAEAF@orsmsx423.amr.corp.intel.com>
+	<4750CC78.9070105@rtr.ca>
+	<20071130190227.1976e682@laptopd505.fenrus.org>
+	<4750D180.6080001@rtr.ca>
+	<20071130191816.3e744205@laptopd505.fenrus.org>
+	<4750D585.1030200@rtr.ca>
+	<477C2143.8090406@rtr.ca>
+	<924EFEDD5F540B4284297C4DC59F3DEE4FC485@orsmsx423.amr.corp.intel.com>
+	<477C622F.6010304@rtr.ca>
+	<20080104021619.GA15409@linux-os.sc.intel.com>
+	<47814958.3070208@rtr.ca>
+	<20080106231848.762e93c1.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39094 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755084AbYAGNOY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jan 2008 08:14:24 -0500
+Received: from pentafluge.infradead.org ([213.146.154.40]:34570 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574AbYAGOIy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 09:08:54 -0500
+In-Reply-To: <20080106231848.762e93c1.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mark Lord <lkml@rtr.ca>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, abelay@novell.com, lenb@kernel.org, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-# dmidecode 2.9
-SMBIOS 2.4 present.
-29 structures occupying 1023 bytes.
-Table at 0x000DC010.
+On Sun, 6 Jan 2008 23:18:48 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: 06YE
-	Release Date: 07/18/2007
-	Address: 0xE53C0
-	Runtime Size: 109632 bytes
-	ROM Size: 1024 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		ACPI is supported
-		USB legacy is supported
-		LS-120 boot is supported
-		ATAPI Zip drive boot is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
+> On Sun, 06 Jan 2008 16:34:16 -0500 Mark Lord <lkml@rtr.ca> wrote:
+> 
+> > Venki Pallipadi wrote:
+> > > Reintroduce run time configurable max_cstate for !CPU_IDLE case.
+> > > 
+> > > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> > > 
+> > > Index: linux-2.6.24-rc/drivers/acpi/processor_idle.c
+> > > ===================================================================
+> > > --- linux-2.6.24-rc.orig/drivers/acpi/processor_idle.c
+> > > +++ linux-2.6.24-rc/drivers/acpi/processor_idle.c
+> > > @@ -76,7 +76,11 @@ static void (*pm_idle_save) (void) __rea
+> > >  #define PM_TIMER_TICKS_TO_US(p)		(((p) *
+> > > 1000)/(PM_TIMER_FREQUENCY/1000)) 
+> > >  static unsigned int max_cstate __read_mostly =
+> > > ACPI_PROCESSOR_MAX_POWER; +#ifdef CONFIG_CPU_IDLE
+> > >  module_param(max_cstate, uint, 0000);
+> > > +#else
+> > > +module_param(max_cstate, uint, 0644);
+> > > +#endif
+> > >  static unsigned int nocst __read_mostly;
+> > >  module_param(nocst, uint, 0000);
+> > >  
+> > ..
+> > 
+> > Can we get this patch upstream so that a stock 2.6.24 will work
+> > here?
+> > 
+> 
+> umm, OK, I queued it for 2.6.24.  I'll give people a day or so to
+> comment on this.
+> 
+> I had to invent some silly changlelog for it.  Please review it for
+> accuracy and completeness?
+> 
+> It isn't complete, really.  How come we only make max_cstate
+> writeable if CONFIG_CPU_IDLE=n?  What happens to people who were
+> reliant upon writeable max_cstate who now enable CPU_IDLE?  Things
+> still break?  What is the rationale behind this?  What constraints
+> led us to this decision?
 
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-	Product Name: R40P/R41P
-	Version: 03YE
-	Serial Number: 493W93BP400266
-	UUID: A02D6752-E31D-B211-8000-B088A6A8A834
-	Wake-up Type: Power Switch
-	SKU Number: Not Specified
-	Family: Not Specified
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-	Product Name: R40P/R41P
-	Version:    =20
-	Serial Number: 123490EN400015
 
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-	Type: Other
-	Lock: Not Present
-	Version: N/A
-	Serial Number: None
-	Asset Tag: No Asset Tag
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00001234
+if we take a step back; Mark afaics only wants to put 1 in there...
+And that makes sense; either you want the "no latency" C1, or you want the lot
+(esp given that C2 and deeper are at the whim of the bios, what they mean varies
+over time. Actually even C1 does that on some AMD systems);
 
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: U2E1
-	Type: Central Processor
-	Family: Celeron D
-	Manufacturer: Intel
-	ID: E8 06 00 00 FF FB E9 BF
-	Signature: Type 0, Family 6, Model 14, Stepping 8
-	Flags:
-		FPU (Floating-point unit on-chip)
-		VME (Virtual mode extension)
-		DE (Debugging extension)
-		PSE (Page size extension)
-		TSC (Time stamp counter)
-		MSR (Model specific registers)
-		PAE (Physical address extension)
-		MCE (Machine check exception)
-		CX8 (CMPXCHG8 instruction supported)
-		APIC (On-chip APIC hardware supported)
-		SEP (Fast system call)
-		MTRR (Memory type range registers)
-		PGE (Page global enable)
-		MCA (Machine check architecture)
-		CMOV (Conditional move instruction supported)
-		PAT (Page attribute table)
-		CLFSH (CLFLUSH instruction supported)
-		DS (Debug store)
-		ACPI (ACPI supported)
-		MMX (MMX technology supported)
-		FXSR (Fast floating-point save and restore)
-		SSE (Streaming SIMD extensions)
-		SSE2 (Streaming SIMD extensions 2)
-		SS (Self-snoop)
-		HTT (Hyper-threading technology)
-		TM (Thermal monitor supported)
-		PBE (Pending break enabled)
-	Version: A0
-	Voltage: 3.3 V
-	External Clock: Unknown
-	Max Speed: 2048 MHz
-	Current Speed: 1729 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: Not Provided
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
+Longer term I'd suggest we make an option that basically is "C1 only",
+(or technically, "use hlt only")
+that solves Marks VMWARE thing, and is a lot closer to what people really want.
+Well, that and if VMWARE really can't deal with latency in their kernel module
+they should use the proper code for that. It's also a ton easier to implement, since
+it basically is "don't use the CPUIDLE idle loop, but use the traditional hlt one"
 
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 64 KB
-	Maximum Size: 64 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Asynchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
 
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 2048 KB
-	Maximum Size: 4096 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-	Installed SRAM Type: Burst
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0007, DMI type 9, 13 bytes
-System Slot Information
-	Designation: CARDBUS 0
-	Type: 32-bit PC Card (PCMCIA)
-	Current Usage: Unknown
-	Length: Other
-	ID: Adapter 0, Socket 0
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PC Card-16 is supported
-		Cardbus is supported
-
-Handle 0x0008, DMI type 11, 5 bytes
-OEM Strings
-	String 1: AABBAAAAAAAA
-	String 2: 2007/05
-
-Handle 0x0009, DMI type 12, 5 bytes
-System Configuration Options
-	Option 1: Jumper settings can be described here.
-
-Handle 0x000A, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 1 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x000B, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: 1
-	Locator: J400
-	Bank Locator: Channel A0
-	Type: DRAM
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x000C, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: No Error
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: DIMM
-	Set: 3
-	Locator: J501
-	Bank Locator: Channel B0
-	Type: DRAM
-	Type Detail: Synchronous
-	Speed: Unknown
-	Manufacturer: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Part Number: Not Specified
-
-Handle 0x000D, DMI type 18, 23 bytes
-32-bit Memory Error Information
-	Type: OK
-	Granularity: Unknown
-	Operation: Unknown
-	Vendor Syndrome: Unknown
-	Memory Array Address: Unknown
-	Device Address: Unknown
-	Resolution: Unknown
-
-Handle 0x000E, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x000A
-	Partition Width: 0
-
-Handle 0x000F, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000B
-	Memory Array Mapped Address Handle: 0x000E
-	Partition Row Position: 2
-	Interleave Position: 1
-	Interleaved Data Depth: 6
-
-Handle 0x0010, DMI type 21, 7 bytes
-Built-in Pointing Device
-	Type: Touch Pad
-	Interface: PS/2
-	Buttons: 4
-
-Handle 0x0011, DMI type 22, 26 bytes
-Portable Battery
-	Location: Rear
-	Manufacturer: SAMSUNG ELECTRONICS CO., LTD.
-	Name: SAMSUNG ELECTRONICS CO., LTD.
-	Chemistry: Lithium Ion
-	Design Capacity: 1000 mWh
-	Design Voltage: 19 mV
-	SBDS Version: BATT_1234
-	Maximum Error: Unknown
-	SBDS Serial Number: 0000
-	SBDS Manufacture Date: 1980-00-00
-	OEM-specific Information: 0x00000000
-
-Handle 0x0012, DMI type 23, 13 bytes
-System Reset
-	Status: Enabled
-	Watchdog Timer: Present
-	Boot Option: Do Not Reboot
-	Boot Option On Limit: Do Not Reboot
-	Reset Count: Unknown
-	Reset Limit: Unknown
-	Timer Interval: Unknown
-	Timeout: Unknown
-
-Handle 0x0013, DMI type 24, 5 bytes
-Hardware Security
-	Power-On Password Status: Disabled
-	Keyboard Password Status: Unknown
-	Administrator Password Status: Disabled
-	Front Panel Reset Status: Unknown
-
-Handle 0x0014, DMI type 25, 9 bytes
-	System Power Controls
-	Next Scheduled Power-on: 12-31 23:59:59
-
-Handle 0x0015, DMI type 26, 22 bytes
-Voltage Probe
-	Description: Voltage Probe 1
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-	Nominal Value: 8.192 V
-
-Handle 0x0016, DMI type 27, 14 bytes
-Cooling Device
-	Temperature Probe Handle: 0x0018
-	Type: Fan
-	Status: OK
-	Cooling Unit Group: 255
-	OEM-specific Information: 0x00000000
-	Nominal Speed: Unknown Or Non-rotating
-
-Handle 0x0017, DMI type 27, 12 bytes
-Cooling Device
-	Temperature Probe Handle: 0x0018
-	Type: Fan
-	Status: OK
-	Cooling Unit Group: 255
-	OEM-specific Information: 0x00000000
-
-Handle 0x0018, DMI type 28, 22 bytes
-Temperature Probe
-	Description: Temperature Probe 1
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-	Nominal Value: Unknown
-
-Handle 0x0019, DMI type 29, 22 bytes
-Electrical Current Probe
-	Description: Electrical Current Probe 1
-	Location: Processor
-	Status: OK
-	Maximum Value: Unknown
-	Minimum Value: Unknown
-	Resolution: Unknown
-	Tolerance: Unknown
-	Accuracy: Unknown
-	OEM-specific Information: 0x00000000
-	Nominal Value: Unknown
-
-Handle 0x001A, DMI type 30, 6 bytes
-Out-of-band Remote Access
-	Manufacturer Name: Intel
-	Inbound Connection: Enabled
-	Outbound Connection: Disabled
-
-Handle 0x001B, DMI type 32, 20 bytes
-System Boot Information
-	Status: <OUT OF SPEC>
-
-Handle 0x001C, DMI type 127, 4 bytes
-End Of Table
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt?
-Der kann`s mit allen: http://www.gmx.net/de/go/multimessenger?did=3D10
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
