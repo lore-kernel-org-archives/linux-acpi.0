@@ -1,32 +1,35 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: brightness control on thinkpad t61p
-Date: Mon, 7 Jan 2008 19:48:33 +0000
-Message-ID: <20080107194833.GA22506@srcf.ucam.org>
-References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224073406.GA1018@srcf.ucam.org> <20071226141027.6d1a509f.akpm@linux-foundation.org> <20071226222321.GA32297@srcf.ucam.org> <20071227123358.GB25535@khazad-dum.debian.net> <20080107013623.GA6667@khazad-dum.debian.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 5/8] rtc: don't write RTC century when setting a wake
+ alarm
+Date: Mon, 7 Jan 2008 12:02:21 -0800
+Message-ID: <20080107120221.ff956e28.akpm@linux-foundation.org>
+References: <200712132353.lBDNrct8024833@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:41656 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752383AbYAGTsp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 14:48:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20080107013623.GA6667@khazad-dum.debian.net>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38670 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755402AbYAGUEO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 15:04:14 -0500
+In-Reply-To: <200712132353.lBDNrct8024833@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, lkml@rtr.ca, david-b@pacbell.net, mlord@pobox.com
 
-On Sun, Jan 06, 2008 at 11:36:23PM -0200, Henrique de Moraes Holschuh wrote:
+On Thu, 13 Dec 2007 15:53:38 -0800
+akpm@linux-foundation.org wrote:
 
-> Bah, I spoke too soon.  Latest round of BIOSes seems to have broken this,
-> either that or I completely misunderstood the older AML code.
+> From: Mark Lord <lkml@rtr.ca>
 > 
-> Rounding to the nearest supplied _BCL value before we call _BCM apparently
-> will be needed on thinkpads as well.
+> Fix /proc/acpi/alarm to not overwrite the RTC century field when setting a
+> wake alarm.  The alarm hardware doesn't have a century field, and we really
+> should not be fiddling with the RTC century field here.
 
-We should just stop exposing the 0-100 range, and instead map it into a 
-contiguous (smaller) range. I've posted a patch to do that.
+So this bugfix was summarily ignored without comment and a different one
+was merged which caused this patch to get 100% rejects.  Great stuff.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I'll drop this one.  Mark, could you please redo and retest and we'll have
+another go.
+
+
