@@ -1,58 +1,42 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Mon, 7 Jan 2008 16:32:13 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0801071622560.6739-100000@iolanthe.rowland.org>
-References: <200801072137.43401.rjw@sisk.pl>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: + restore-missing-sysfs-max_cstate-attr.patch added to -mm tree
+Date: Mon, 07 Jan 2008 16:33:27 -0500
+Message-ID: <47829AA7.3020304@rtr.ca>
+References: <20071130142058.816d1693.akpm@linux-foundation.org> <20080106231848.762e93c1.akpm@linux-foundation.org> <4782400D.2040802@rtr.ca> <200801071412.59964.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40032 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753265AbYAGVcO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 16:32:14 -0500
-In-Reply-To: <200801072137.43401.rjw@sisk.pl>
+Received: from rtr.ca ([76.10.145.34]:2300 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756808AbYAGVdZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jan 2008 16:33:25 -0500
+In-Reply-To: <200801071412.59964.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@infradead.org>, abelay@novell.com, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@sisk.pl
 
-On Mon, 7 Jan 2008, Rafael J. Wysocki wrote:
+Len Brown wrote:
+> 1. Why does VMware need max_cstate=1 to load quickly?
+..
 
-> > > Do you mean it might have been released already by another thread
-> > > calling device_pm_destroy_suspended() on the same device?
-> > 
-> > I was thinking that it might be called before lock_all_devices().
-> 
-> I've added pm_sleep_start_end_mtx and the locking dance in
-> device_pm_destroy_suspended() specifically to prevent this from happening.
+Eh?  Nothing to do with "loading" anything,
+but rather it's simple responsiveness to guest keyboard
+input that we're experiencing trouble with.
+The guest OS is probably "broken" in that regard,
+but setting max_cstate=1 makes it usable here.
 
-Yes, I see.  What about the fact that device_suspend() locks 
-pm_sleep_start_end_mtx first and pm_sleep_rwsem second, whereas 
-device_pm_destroy_suspended() locks pm_sleep_start_end_mtx while 
-holding pm_sleep_rwsem?  That should produce a lockdep warning.
+> 2. Why does the "max_csate=1" workaround help only
+>    on the dual-core boxes, while the single-core
+>    boxes still fail to load quickly?
+..
 
-> > However let's ignore that possibility and simplify the discussion by 
-> > assuming that destroy_suspended_device() is never called except by a 
-> > suspend or resume method for that device or one of its ancestors.  
-> 
-> It may also be called by one of the CPU hotplug notifiers.
+Eh?  Setting max_cstate=1 helps on both single/dual core
+boxes/kernels here.  The alternative (newer) latency thing
+(that requires a custom kernel module to change on the fly)
+is the thing that had no effect at all on our single-core box,
+but did seem to help the dual-core more (not verified completely
+on dual-core though).
 
-This suggests another approach, simpler but not as general.  So far all
-the problems we've seen have been associated with those CPU notifiers.  
-Suppose the notifications about CPUs that failed to come back up were
-delayed until after the resume was complete?  Drivers like msr would
-then have to check in their resume handler whether the CPU was actually 
-up, but no other changes would be needed.
-
-In this way we could fix the immediate problem.  It wouldn't help with 
-other sorts of devices that need to be unregistered during a suspend, 
-though.
-
-> Okay, well, now I'm leaning towards the asynchronous approach.
-> 
-> I'll prepare a new patch and send it later today.
-
-Okay.
-
-Alan Stern
-
+Cheers
