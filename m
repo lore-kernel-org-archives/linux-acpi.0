@@ -1,157 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 4/7] ACPI suspend: Call _PTS before suspending devices
-Date: Tue, 8 Jan 2008 00:07:39 +0100
-Message-ID: <200801080007.40193.rjw@sisk.pl>
-References: <200801080002.25044.rjw@sisk.pl>
+Subject: [PATCH 0/7] Fix the ACPI 1.0 vs ACPI 2.0 suspend ordering issue (rev. 3)
+Date: Tue, 8 Jan 2008 00:02:23 +0100
+Message-ID: <200801080002.25044.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38884 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:38879 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753866AbYAGXKY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jan 2008 18:10:24 -0500
-In-Reply-To: <200801080002.25044.rjw@sisk.pl>
+	id S1753833AbYAGXKX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jan 2008 18:10:23 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, pm list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Alexey Starikovskiy <aystarik@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Len,
 
-The ACPI 1.0 specification wants us to put devices into low power
-states after executing the _PTS global control method, while ACPI
-2.0 and later want us to do that in the reverse order.  The current
-suspend code follows ACPI 2.0 in that respect which causes some
-ACPI 1.0x systems to hang during suspend (ref.
-http://bugzilla.kernel.org/show_bug.cgi?id=9528).
+The following patchset is intended to fix the ACPI 1.0 vs ACPI 2.0 susp=
+end
+ordering issue described at http://bugzilla.kernel.org/show_bug.cgi?id=3D=
+9528 and
+in a recent LKML thread (http://lkml.org/lkml/2007/12/25/37).
 
-Make the suspend code execute _PTS before putting devices into low
-power states (ie. in accordance with ACPI 1.0x) and provide a command
-line option to override the default if need be.
+The patches actually do more than that, as I think it's reasonable to u=
+ntangle
+some ACPI-specific suspend code when we're at it. =A0The details are de=
+scribed in
+the changelogs.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- Documentation/kernel-parameters.txt |    5 +++
- drivers/acpi/sleep/main.c           |   51 ++++++++++++++++++++++++++----------
- 2 files changed, 43 insertions(+), 13 deletions(-)
+The patches are intended for 2.6.25.
 
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -26,6 +26,21 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
- 
- #ifdef CONFIG_PM_SLEEP
- static u32 acpi_target_sleep_state = ACPI_STATE_S0;
-+static bool acpi_sleep_finish_wake_up;
-+
-+/*
-+ * ACPI 2.0 and later want us to execute _PTS after suspending devices, so we
-+ * allow the user to request that behavior by using the 'acpi_new_pts_ordering'
-+ * kernel command line option that causes the following variable to be set.
-+ */
-+static bool new_pts_ordering;
-+
-+static int __init acpi_new_pts_ordering(char *str)
-+{
-+	new_pts_ordering = true;
-+	return 1;
-+}
-+__setup("acpi_new_pts_ordering", acpi_new_pts_ordering);
- #endif
- 
- int acpi_sleep_prepare(u32 acpi_state)
-@@ -74,6 +89,14 @@ static int acpi_pm_begin(suspend_state_t
- 
- 	if (sleep_states[acpi_state]) {
- 		acpi_target_sleep_state = acpi_state;
-+		if (new_pts_ordering)
-+			return 0;
-+
-+		error = acpi_sleep_prepare(acpi_state);
-+		if (error)
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+		else
-+			acpi_sleep_finish_wake_up = true;
- 	} else {
- 		printk(KERN_ERR "ACPI does not support this state: %d\n",
- 			pm_state);
-@@ -91,15 +114,17 @@ static int acpi_pm_begin(suspend_state_t
- 
- static int acpi_pm_prepare(void)
- {
--	int error;
-+	if (new_pts_ordering) {
-+		int error = acpi_sleep_prepare(acpi_target_sleep_state);
- 
--	error = acpi_sleep_prepare(acpi_target_sleep_state);
--	if (error)
--		acpi_target_sleep_state = ACPI_STATE_S0;
--	else if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
--		error = -EFAULT;
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+			return error;
-+		}
-+		acpi_sleep_finish_wake_up = true;
-+	}
- 
--	return error;
-+	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
- }
- 
- /**
-@@ -123,10 +148,8 @@ static int acpi_pm_enter(suspend_state_t
- 	if (acpi_state == ACPI_STATE_S3) {
- 		int error = acpi_save_state_mem();
- 
--		if (error) {
--			acpi_target_sleep_state = ACPI_STATE_S0;
-+		if (error)
- 			return error;
--		}
- 	}
- 
- 	local_irq_save(flags);
-@@ -187,6 +210,7 @@ static void acpi_pm_finish(void)
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_sleep_finish_wake_up = false;
- 
- #ifdef CONFIG_X86
- 	if (init_8259A_after_S1) {
-@@ -203,10 +227,11 @@ static void acpi_pm_finish(void)
- static void acpi_pm_end(void)
- {
- 	/*
--	 * This is necessary in case acpi_pm_finish() is not called during a
--	 * failing transition to a sleep state.
-+	 * This is necessary in case acpi_pm_finish() is not called directly
-+	 * during a failing transition to a sleep state.
- 	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	if (acpi_sleep_finish_wake_up)
-+		acpi_pm_finish();
- }
- 
- static int acpi_pm_state_valid(suspend_state_t pm_state)
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -167,6 +167,11 @@ and is between 256 and 4096 characters. 
- 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
- 			Format: <irq>,<irq>...
- 
-+	acpi_new_pts_ordering [HW,ACPI]
-+			Enforce the ACPI 2.0 ordering of the _PTS control
-+			method wrt putting devices into low power states
-+			default: pre ACPI 2.0 ordering of _PTS
-+
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
- 
- 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+Please add them to the suspend branch.
+
+Thanks,
+Rafael
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
