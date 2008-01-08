@@ -1,157 +1,207 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: Suspend code ordering (again)
-Date: Tue, 08 Jan 2008 11:03:14 +0800
-Message-ID: <1199761394.28914.1.camel@sli10-desk.sh.intel.com>
-References: <fa.Tr7qmPdet0rF2FSRX/94s2UEMSE@ifi.uio.no>
-	 <fa.XycBwhGuyvtVl/QW5HONqLwOags@ifi.uio.no> <4773E9EE.40107@shaw.ca>
-	 <200712272100.20282.rjw@sisk.pl>  <47744291.30100@shaw.ca>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH] ACPI: fix processor limit set error
+Date: Tue, 08 Jan 2008 11:21:26 +0800
+Message-ID: <1199762486.3551.22.camel@yangyi-dev.bj.intel.com>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
+	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+	 <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
+	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-vOebPy0ZK62EbU+isXKW"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36714 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752602AbYAHDCp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jan 2008 22:02:45 -0500
-In-Reply-To: <47744291.30100@shaw.ca>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, "H. Peter Anvin" <hpa@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-
-
---=-vOebPy0ZK62EbU+isXKW
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:42410 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755266AbYAHG5Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jan 2008 01:57:25 -0500
+In-Reply-To: <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+
+Subject: ACPI: fix processor limit set error
+From: Yi Yang <yi.y.yang@intel.com>
+
+when echo some invalid values to /proc/acpi/processor/CPU*/limit,
+it doesn't return any error info, on the contrary, it successes
+and sets some other values, for example:
+
+[root@localhost /]# echo "0:0A" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]# echo "0:0F" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]# echo "0:0 0:1 0:2" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]#
+
+A correct way is that it should fail and return error info.
+
+This patch fixed this issue, it accepts not only such inputs as "*:*",
+but also accepts such inputs as "p*:t*" or "P*:T*" or "p*:*" or "*:t*",
+the former "*" in inputs means the allowed processor performance state,
+currently it is only a stub and not set to the processor limit data
+structure, the latter "*" means the allowed processor throttling state
+which rages from 0 to 7 generally. This patch strictly limits inputs to
+meet the above conditions, any input which can't meet the above conditions
+is considered as invalid input.
+
+Before applying this patch, the test result is below:
+
+[root@localhost /]# echo "0:0A" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]# echo "0:0F" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]# echo "10:2F" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T2
+user limit:              P0:T2
+thermal limit:           P0:T0
+[root@localhost /]# echo "0:0 0:1 0:2" >/proc/acpi/processor/CPU0/limit
+[root@localhost /]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost /]#
+
+After applying this patch, the test result is below:
+
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+[root@localhost ~]# echo "0:0A" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "0:0F" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "P0:T1" > /proc/acpi/processor/CPU0/limit
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T1
+user limit:              P0:T1
+thermal limit:           P0:T0
+[root@localhost ~]# echo "p0:t1" > /proc/acpi/processor/CPU0/limit
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T1
+user limit:              P0:T1
+thermal limit:           P0:T0
+[root@localhost ~]# echo "p0:x1" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "q0:x1" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "p0:1" > /proc/acpi/processor/CPU0/limit
+[root@localhost ~]# echo "q0:x1" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T1
+user limit:              P0:T1
+thermal limit:           P0:T0
+[root@localhost ~]# echo "0:t1" > /proc/acpi/processor/CPU0/limit
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T1
+user limit:              P0:T1
+thermal limit:           P0:T0
+[root@localhost ~]# echo "0:t1F" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "" > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "0:0 0:0 0:2 " > /proc/acpi/processor/CPU0/limit
+-bash: echo: write error: Invalid argument
+[root@localhost ~]# echo "P0:T1" > /proc/acpi/processor/CPU0/limit
+[root@localhost ~]# cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T1
+user limit:              P0:T1
+thermal limit:           P0:T0
+[root@localhost ~]#
 
 
-On Fri, 2007-12-28 at 08:25 +0800, Robert Hancock wrote:
-> Rafael J. Wysocki wrote: 
-> >> Also, as was pointed out, pre-Vista versions of Windows follow ACPI
-> 1.0 
-> >> and Vista follows 3.0, so 2.0 doesn't really matter since BIOS
-> people 
-> >> won't test against it. 1.0 specifies that _PTS is to be called
-> before 
-> >> suspending devices and 3.0 says that the AML must not depend on
-> any 
-> >> specific device power state, so in both cases it should be safe to
-> call 
-> >> _PTS before suspending, no? 
-> > 
-> > Well, IMO, if we take one option only (whichever that is) and there
-> are systems 
-> > that follow the other one, they will likely break. 
-> > 
-> > Apart from this, there are BIOSes that openly claim ACPI 2.0 support
-> (for 
-> > example, the one in my HP nx6325 does that) and they may actually
-> prefer the 
-> > post-ACPI-1.0 ordering even if they work with the pre-ACPI-2.0 one.
-> 
-> I doubt they would prefer the later ordering in any way that matters,
-> if 
-> the Windows version they were designed for uses the earlier ordering.
-> 
-> It would be best if somebody could manage to find out what ordering 
-> Windows XP (and Windows Vista, for good measure) actually use, then
-> we 
-> could just use that. Virtual machine trickery might be an option -
-> the 
-> only complication being that it'll be using the DSDT for the fake 
-> machine and not the real one..
-I modified Qemu and use it to observe how winxp does suspend/resume. So
-far, I just get some data for s4 suspend. I did have some interesting
-finding.
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+---
+ processor_thermal.c |   42 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 11 deletions(-)
 
-1. xp seems not save pci config space. Or it appears just save config
-PCICMD.
-2. the order winxp does looks like
-	a. save config (PCICMD), put device to D3 (it appears only for ne2000
-NIC)
-	b. _PTS
-	c. write mem to disk
-	d. write ACPI PM1_control register, then system shutdown
-3. xp write ACPI GBL_EN bit just after _PTS (for both S4/S5), don't know
-why
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 06e6f3f..262d56e 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -349,9 +349,11 @@ static ssize_t acpi_processor_write_limit(struct file * file,
+ 	int result = 0;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_processor *pr = m->private;
+-	char limit_string[25] = { '\0' };
++	char limit_string[10] = "";
+ 	int px = 0;
+ 	int tx = 0;
++	char *tmpp = NULL;
++	char tmpstring[10] = "";
+ 
+ 
+ 	if (!pr || (count > sizeof(limit_string) - 1)) {
+@@ -363,21 +365,39 @@ static ssize_t acpi_processor_write_limit(struct file * file,
+ 	}
+ 
+ 	limit_string[count] = '\0';
++	if ((count > 0) && (limit_string[count-1] == '\n'))
++		limit_string[count-1] = '\0';
+ 
+-	if (sscanf(limit_string, "%d:%d", &px, &tx) != 2) {
+-		printk(KERN_ERR PREFIX "Invalid data format\n");
++	tmpp = memchr(limit_string, ':', count);
++	if (tmpp == NULL)
++		return -EINVAL;
++
++	*tmpp = '\0';
++	tmpp = limit_string;
++	if ((limit_string[0] == 'p') || (limit_string[0] == 'P'))
++		tmpp++;
++	px = simple_strtoul(tmpp, NULL, 0);
++	snprintf(tmpstring, 10, "%d", px);
++	if (strcmp(tmpp, tmpstring) != 0)
++		return -EINVAL;
++
++	tmpp += strlen(tmpp) + 1;
++	if ((tmpp[0] == 't') || (tmpp[0] == 'T'))
++		tmpp++;
++	tx = simple_strtoul(tmpp, NULL, 0);
++	if (tx > (pr->throttling.state_count - 1))
++		return -EINVAL;
++	snprintf(tmpstring, 10, "%d", tx);
++	if (strcmp(tmpp, tmpstring) != 0)
+ 		return -EINVAL;
+-	}
+ 
+ 	if (pr->flags.throttling) {
+-		if ((tx < 0) || (tx > (pr->throttling.state_count - 1))) {
+-			printk(KERN_ERR PREFIX "Invalid tx\n");
+-			return -EINVAL;
+-		}
+ 		pr->limit.user.tx = tx;
+-	}
+-
+-	result = acpi_processor_apply_limit(pr);
++		result = acpi_processor_apply_limit(pr);
++		if (result != 0)
++			return result;
++	} else
++		return -ENODEV;
+ 
+ 	return count;
+ }
 
-Attached is the log winxp does s4 suspend, it only includes pci config
-read/write and ACPI register read/write.
-
-I managed to make xp enter S3, but fails, so can't get the data for S3
-so far. Anybody has other ideas which need to verify winxp, pls let me
-know.
-
-Thanks,
-Shaohua
-
---=-vOebPy0ZK62EbU+isXKW
-Content-Disposition: attachment; filename=xplog
-Content-Type: text/plain; name=xplog; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-PCI NE2000 read addr 4, val 7
-PCI NE2000 read addr 50, val 1
-PCI NE2000 read addr 52, val c9c2
-PCI NE2000 read addr 54, val 8000
-PCI NE2000 write addr 54, val 8003
-PCI NE2000 read addr 54, val 8003
-PCI NE2000 read addr 4, val 7
-PCI NE2000 write addr 4, val 0
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 0, val 71138086
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 64, val 8000000
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 0, val 71138086
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 64, val 8000000
-PCI Cirrus VGA read addr 4, val 7
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PIIX3 IDE read addr 4, val 7
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 0, val 71138086
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 5c, val 90000000
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 0, val 71138086
-PCI PIIX3 read addr 0, val 70008086
-PCI PIIX3 read addr 4, val 7
-PCI PIIX3 read addr 8, val 6010000
-PCI PIIX3 read addr c, val 800000
-PCI PM read addr 5c, val 90000000
-ACPI: DBG: 0x00000002
-PM readw port=0x0002 val=0xb002
-PM writew port=0x0002 val=0x0020
-PM readw port=0x0002 val=0xb002
-PM readw port=0x0004 val=0xb004
-PM readw port=0x0004 val=0xb004
-PM writew port=0x0004 val=0x2801
-type 2
-
---=-vOebPy0ZK62EbU+isXKW--
 
