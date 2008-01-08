@@ -1,31 +1,62 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: brightness control on thinkpad t61p
-Date: Tue, 8 Jan 2008 12:18:20 +0000
-Message-ID: <20080108121819.GA1324@srcf.ucam.org>
-References: <20071223000057.739d5891.akpm@linux-foundation.org> <20071224073406.GA1018@srcf.ucam.org> <20071226141027.6d1a509f.akpm@linux-foundation.org> <20071226222321.GA32297@srcf.ucam.org> <20071227123358.GB25535@khazad-dum.debian.net> <20080107013623.GA6667@khazad-dum.debian.net> <20080107194833.GA22506@srcf.ucam.org> <20080108003246.GA15587@khazad-dum.debian.net> <20080108004559.GA27177@srcf.ucam.org> <20080108120653.GA23216@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PATCH] thinkpad-acpi patches for 2.6.25 (replaces batch 1)
+Date: Tue,  8 Jan 2008 13:02:37 -0200
+Message-ID: <1199804577-32017-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:34290 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbYAHMSa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jan 2008 07:18:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20080108120653.GA23216@khazad-dum.debian.net>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52405 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752349AbYAHPDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jan 2008 10:03:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Tue, Jan 08, 2008 at 10:06:53AM -0200, Henrique de Moraes Holschuh wrote:
 
-> Is there a *real* technical reason why we can't just round to the nearest?
-> That will work well with any firmware, and it will not remove functionality
-> from any box, while at the same time plugging the current issues nicely.
+Len,
 
-Yes. Software makes the assumption that writing a value larger than the 
-current value will result in the value increasing, which isn't 
-necessarily true if you round it.
+This patchset has my current thinkpad-acpi queue.  The target is 2.6.25.
+
+This set *replaces* the previous batch 1 I sent. I have changed a few of the
+patches, and added a few new ones in different points of the stack.   It is
+simpler to just resubmit them all than to ask you to replace this-and-that
+patch in various points of the stack :)
+
+As usual, the patch set is available at:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+
+The branch root is latest Linus' tree.
+
+Shortlog of the above branch:
+
+Henrique de Moraes Holschuh (20):
+      ACPI: thinkpad-acpi: document keymap gotcha's (v2)
+      ACPI: thinkpad-acpi: refactor hotkey_get and hotkey_set (v2)
+      ACPI: thinkpad-acpi: prepare for NVRAM polling support
+      ACPI: thinkpad-acpi: add CMOS NVRAM polling for hot keys (v9)
+      ACPI: thinkpad-acpi: bump up version to 0.18
+      ACPI: thinkpad-acpi: spring cleanup part 1
+      ACPI: thinkpad-acpi: spring cleanup part 2
+      ACPI: thinkpad-acpi: spring cleanup part 3
+      ACPI: thinkpad-acpi: spring cleanup part 4
+      ACPI: thinkpad-acpi: module glue cleanups
+      ACPI: thinkpad-acpi: rename IBM in defines
+      ACPI: thinkpad-acpi: some checkpatch.pl fluff
+      ACPI: thinkpad-acpi: add suspend handler
+      ACPI: thinkpad-acpi: cleanup hotkey_notify and HKEY log messages
+      ACPI: thinkpad-acpi: wakeup on hotunplug reporting
+      ACPI: thinkpad-acpi: add X61t HKEY events
+      ACPI: thinkpad-acpi: silence _sta warning
+      ACPI: thinkpad-acpi: add poll() support to some sysfs attributes
+      ACPI: thinkpad-acpi: update copyright dates to 2008
+      ACPI: thinkpad-acpi: bump up version to 0.19
+
+Please merge for acpi-test.
+
+Thanks.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
