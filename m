@@ -1,41 +1,41 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: brightness control on thinkpad t61p
-Date: Tue, 8 Jan 2008 15:36:39 -0200
-Message-ID: <20080108173639.GB6182@khazad-dum.debian.net>
-References: <20080108003246.GA15587@khazad-dum.debian.net> <20080108004559.GA27177@srcf.ucam.org> <20080108120653.GA23216@khazad-dum.debian.net> <20080108121819.GA1324@srcf.ucam.org> <20080108124820.GB23216@khazad-dum.debian.net> <1199807102.6053.31.camel@localhost.localdomain> <20080108155401.GA4954@srcf.ucam.org> <1199809771.6053.42.camel@localhost.localdomain> <20080108164928.GA6182@khazad-dum.debian.net> <1199811397.6053.55.camel@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: USB D3 vs system S3
+Date: Tue, 8 Jan 2008 15:47:00 -0500
+Message-ID: <200801081547.00473.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:59294 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751619AbYAHRgp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jan 2008 12:36:45 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-In-Reply-To: <1199811397.6053.55.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-usb-devel>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-usb-devel-bounces@lists.sourceforge.net
+Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
+To: Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, gregkh@suse.de
+Cc: linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>, USB development list <linux-usb-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Tue, 08 Jan 2008, Richard Purdie wrote:
-> > So be it, then.  But my request that we get a way to add the information we
-> > are losing to the backlight class still stands.
-> 
-> The thing is does this 0-100 value have a use to userspace? Its
+FYI,
+I think we may have an issue here where the entire Linux suspend order
+is being proposed to change, when in fact the underlying issue
+may really be that USB is in D3 on S3 for this box when it is
+not supposed to be deeper below D1.
 
-You can request something like "middle brightness please" (although whether
-you get middle power comsumption or middle brightness is undetermined in the
-ACPI spec).
+http://bugzilla.kernel.org/show_bug.cgi?id=9528
 
-> extremely device specific and can't be exported from the class in a
-> generic way suggesting it should really be something exported by the
-> driver itself. You still have to ask whether userspace actually needs
-> this value though?
+-Len
 
-To just cycle brightness up and down, it certainly doesn't need it.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-------------------------------------------------------------------------
+Check out the new SourceForge.net Marketplace.
+It's the best place to buy or sell services for
+just about anything Open Source.
+http://ad.doubleclick.net/clk;164216239;13503038;w?http://sf.net/marketplace
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
