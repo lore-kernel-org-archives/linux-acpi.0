@@ -1,119 +1,387 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
-Date: Wed, 9 Jan 2008 20:52:10 -0800
-Message-ID: <20080109205210.1f8a83bb@deepthought>
-References: <bug-9721-10286@http.bugzilla.kernel.org/>
-	<20080109160300.304ec687.akpm@linux-foundation.org>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
+Date: Thu, 10 Jan 2008 06:21:46 +0800
+Message-ID: <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1198744900.3640.4.camel@yangyi-dev.bj.intel.com>
+	 <1198916553.3806.2.camel@yangyi-dev.bj.intel.com>
+	 <1199434602.19185.1.camel@yangyi-dev.bj.intel.com>
+	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080109160300.304ec687.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, supersud501@yahoo.de
-Cc: netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:4282 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752759AbYAJHQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2008 02:16:09 -0500
+In-Reply-To: <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 
-On Wed, 9 Jan 2008 16:03:00 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+Subject: ACPI: convert procfs to sysfs for /proc/acpi/wakeup
+From: Yi Yang <yi.y.yang@intel.com>
 
-> 
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
-> 
-> On Wed,  9 Jan 2008 13:05:34 -0800 (PST)
-> bugme-daemon@bugzilla.kernel.org wrote:
-> 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=9721
-> > 
-> >            Summary: wake on lan fails with sky2 module
-> >            Product: ACPI
-> >            Version: 2.5
-> >      KernelVersion: 2.6.24-rc7
-> >           Platform: All
-> >         OS/Version: Linux
-> >               Tree: Mainline
-> >             Status: NEW
-> >           Severity: normal
-> >           Priority: P1
-> >          Component: Power-Sleep-Wake
-> >         AssignedTo: acpi_power-sleep-wake@kernel-bugs.osdl.org
-> >         ReportedBy: supersud501@yahoo.de
-> 
-> This post-2.6.23 regression was assigned to ACPI but is quite possibly a
-> net driver problem?
-> 
-> > 
-> > Latest working kernel version: 2.6.23.12
-> > Earliest failing kernel version: 2.6.24-rc6 (not tested earlier kernel,
-> > 2.6.24-rc7 still failing)
-> > Distribution: Ubuntu 8.04 (but Kernel build from Kernel.org and system modifiet
-> > to make wake on lan work, i.e. network cards are not shutted down on poweroff)
-> > Hardware Environment: Marvell Technology Group Ltd. 88E8053 PCI-E Gigabit
-> > Ethernet Controller (rev 20) onboard Asus P5W DH motherboard, uses module SKY2
-> > Software Environment:
-> > Problem Description:
-> > 
-> > When enabling wake on lan with: 'ethtool -s eth0 wol' i get the following
-> > status:
-> > 
-> > 21:56:29 ~ # sudo ethtool eth0
-> > Settings for eth0:
-> >         Supported ports: [ TP ]
-> >         Supported link modes:   10baseT/Half 10baseT/Full 
-> >                                 100baseT/Half 100baseT/Full 
-> >                                 1000baseT/Half 1000baseT/Full 
-> >         Supports auto-negotiation: Yes
-> >         Advertised link modes:  10baseT/Half 10baseT/Full 
-> >                                 100baseT/Half 100baseT/Full 
-> >                                 1000baseT/Half 1000baseT/Full 
-> >         Advertised auto-negotiation: Yes
-> >         Speed: 100Mb/s
-> >         Duplex: Full
-> >         Port: Twisted Pair
-> >         PHYAD: 0
-> >         Transceiver: internal
-> >         Auto-negotiation: on
-> >         Supports Wake-on: pg
-> >         Wake-on: g    <---- wol enabled
-> >         Current message level: 0x000000ff (255)
-> >         Link detected: yes
-> > 
-> > but after shutting down the pc doesn't wake up when magic packet is sent.
-> > 
-> > the status lights of the network card are still on (so the card seems to be
-> > online).
-> > 
-> > same system with only changed kernel to 2.6.23.12 and same procedure like
-> > above: wake on lan works.
-> > 
-> > Steps to reproduce: enable wol on your network card using SKY2 module and it
-> > doesn't work too?
-> > 
-> > if you need more information, just tell me, it's my first bug report.
-> > regards
-> > 
+/proc/acpi/wakeup is deprecated but it has to exist because
+we haven't a sysfs interface to replace it yet, this patch
+converts /proc/acpi/wakeup to sysfs interface, under every
+acpi device sysfs node, a user can see a directory "wakeup"
+if the acpi device can support wakeup, there are six files
+under this directory:
+
+acpi_bus_id  bus_id  pci_id  run_wakeup  sleep_state  status
+
+All the files are read-only exclude "status" which is used
+to enable or disable wakeup of the acpi device.
+
+"acpi_bus_id" is acpi bus ID of the acpi device.
+
+"bus_id" is pci bus id of the device associated to the acpi
+device, it will be empty if there isn't any device associated
+to it.
+
+"pci_id" is PCI ID of the pci device associated to the acpi
+device, it will be empty if there isn't any device associated
+to it.
+
+"run_wake" is a flag indicating if a wakeup process is being
+handled.
+
+"sleep_state" is sleep state of the acpi device such as "S0".
+
+"status" is wakeup status of the acpi device, it is enabled
+or disabled, a user can change it be echoing "0", "1",
+"disabled" or "enabled" to /sys/devices/.../wakeup/status. 
+
+Here is the test result:
+
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     disabled  pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
+C21D      S0     disabled  pci:0000:08:00.0     0x16fd
+C109      S5     disabled  pci:0000:00:1c.1     0x27d2
+C228      S5     disabled  pci:0000:10:00.0     0x4222
+C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
+C229      S5     disabled
+[root@localhost ~]# find /sys -name "*" | grep sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:05/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:0d/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:11/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:15/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:19/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:1d/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2b/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2b/device:2c/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2d/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2d/device:2e/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/wakeup/sleep_state
+/sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/sleep_state
+[root@localhost ~]# ls /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup
+acpi_bus_id  bus_id  pci_id  run_wakeup  sleep_state  status
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/acpi_bus_id
+cat: /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/acpi_bus_id: No such file or directory
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/acpi_bus_id
+C229
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/sleep_state
+S5
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
+disabled
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/bus_id
+
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/pci_id
+
+[root@localhost ~]# echo 1 > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
+enabled
+[root@localhost ~]# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node           PCI ID
+C093      S5     disabled  pci:0000:00:1e.0     0x2448
+C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
+C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
+C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
+C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
+C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
+C0F9      S0     enabled   pci:0000:00:1c.0     0x27d0
+C21D      S0     enabled   pci:0000:08:00.0     0x16fd
+C109      S5     enabled   pci:0000:00:1c.1     0x27d2
+C228      S5     enabled   pci:0000:10:00.0     0x4222
+C10F      S5     enabled   pci:0000:00:1c.3     0x27d6
+C229      S5     enabled
+[root@localhost ~]# vi /var/log/dmesg
+[root@localhost ~]# dmesg | grep "same GPE"
+ACPI: 'C0F9' and 'C229' have the same GPE, can't disable/enable one seperately
+ACPI: 'C21D' and 'C229' have the same GPE, can't disable/enable one seperately
+ACPI: 'C109' and 'C229' have the same GPE, can't disable/enable one seperately
+ACPI: 'C228' and 'C229' have the same GPE, can't disable/enable one seperately
+ACPI: 'C10F' and 'C229' have the same GPE, can't disable/enable one seperately
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/*/wakeup/status
+disabled
+disabled
+disabled
+disabled
+disabled
+disabled
+enabled
+enabled
+enabled
+[root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/*/*/wakeup/status
+enabled
+enabled
+enabled
+[root@localhost ~]#
 
 
-Wake from power off works on 2.6.24-rc7 for me.
-Wake from suspend doesn't because Network Manager, HAL, or some other
-user space tool gets confused.
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+---
+ scan.c |  184 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 180 insertions(+), 4 deletions(-)
 
-I just rechecked it with Fujitsu Lifebook, which has sky2 (88E8055).
-There many variations of this chip, and it maybe chip specific problem
-or ACPI/BIOS issues.  If you don't enable Wake on Lan in BIOS, the
-driver can't do it for you. Also, check how you are shutting down.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5b4d462..c3786a0 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -6,8 +6,10 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/acpi.h>
++#include <linux/pci.h>
+ 
+ #include <acpi/acpi_drivers.h>
++#include <acpi/acpi_bus.h>
+ #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+ 
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+@@ -188,8 +190,171 @@ acpi_device_path_show(struct device *dev, struct device_attribute *attr, char *b
+   end:
+ 	return result;
+ }
++
+ static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+ 
++static char enabled[] = "enabled";
++static char disabled[] = "disabled";
++static char unsupported[] = "unsupported";
++
++static ssize_t
++acpi_device_status_show(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	int result = 0;
++	char *tmpp = NULL;
++
++	if (!acpi_dev->wakeup.flags.valid)
++		tmpp = unsupported;
++	else
++		tmpp = acpi_dev->wakeup.state.enabled ? enabled : disabled;
++	result = sprintf(buf, "%s\n", tmpp);
++	return result;
++}
++
++static ssize_t
++acpi_device_status_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t count)
++{
++	struct list_head *node, *next;
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	size_t len = count;
++	char *tmpp = NULL;
++
++	tmpp = memchr(buf, '\n', count);
++	if (tmpp != NULL)
++		len = tmpp - buf;
++
++	spin_lock(&acpi_device_lock);
++	if ((len == 1) && ((buf[0] == '0') || (buf[0] == '1')))
++		acpi_dev->wakeup.state.enabled = buf[0] - '0';
++	else if ((len == strlen(enabled))
++		 && (strnicmp(buf, enabled, strlen(enabled)) == 0))
++		acpi_dev->wakeup.state.enabled = 1;
++	else if ((len == strlen(disabled))
++		 && (strnicmp(buf, disabled, strlen(disabled)) == 0))
++		acpi_dev->wakeup.state.enabled = 0;
++	else {
++		spin_unlock(&acpi_device_lock);
++		return -EINVAL;
++	}
++
++	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
++		struct acpi_device *dev = container_of(node,
++						       struct
++						       acpi_device,
++						       wakeup_list);
++
++		if ((dev != acpi_dev)
++		    && (dev->wakeup.gpe_number == acpi_dev->wakeup.gpe_number)
++		    && (dev->wakeup.gpe_device ==
++				acpi_dev->wakeup.gpe_device)) {
++			printk(KERN_WARNING
++			       "ACPI: '%s' and '%s' have the same GPE, "
++			       "can't disable/enable one seperately\n",
++			       dev->pnp.bus_id, acpi_dev->pnp.bus_id);
++			dev->wakeup.state.enabled =
++					acpi_dev->wakeup.state.enabled;
++		}
++	}
++	spin_unlock(&acpi_device_lock);
++
++	return count;
++}
++
++static DEVICE_ATTR(status, 0644, acpi_device_status_show,
++			acpi_device_status_store);
++
++static ssize_t
++acpi_device_acpi_bus_id_show(struct device *dev, struct device_attribute *attr,
++				char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++
++	return sprintf(buf, "%s\n", acpi_dev->pnp.bus_id);
++}
++
++static DEVICE_ATTR(acpi_bus_id, 0444, acpi_device_acpi_bus_id_show, NULL);
++
++
++static ssize_t
++acpi_device_sleep_state_show(struct device *dev, struct device_attribute *attr,
++				char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++
++	return sprintf(buf, "S%d\n", (u32) acpi_dev->wakeup.sleep_state);
++}
++
++static DEVICE_ATTR(sleep_state, 0444, acpi_device_sleep_state_show, NULL);
++
++static ssize_t
++acpi_device_run_wakeup_show(struct device *dev, struct device_attribute *attr,
++			    char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++
++	return sprintf(buf, "%d\n", acpi_dev->wakeup.flags.run_wake ? 1 : 0);
++}
++
++static DEVICE_ATTR(run_wakeup, 0444, acpi_device_run_wakeup_show, NULL);
++
++static ssize_t
++acpi_device_bus_id_show(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	struct device *ldev = NULL;
++	int result = 0;
++
++	ldev = acpi_get_physical_device(acpi_dev->handle);
++	if (ldev)
++		result = sprintf(buf, "%s:%s\n",
++				 ldev->bus ? ldev->bus->name : "no-bus",
++				 ldev->bus_id);
++	else
++		result = sprintf(buf, "\n");
++
++	return result;
++}
++
++static DEVICE_ATTR(bus_id, 0444, acpi_device_bus_id_show, NULL);
++
++static ssize_t
++acpi_device_pci_id_show(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	struct device *ldev = NULL;
++	int result = 0;
++
++	ldev = acpi_get_physical_device(acpi_dev->handle);
++	if (ldev)
++		result = sprintf(buf, "0x%04x\n", to_pci_dev(ldev)->device);
++	else
++		result = sprintf(buf, "\n");
++
++	return result;
++}
++
++static DEVICE_ATTR(pci_id, 0444, acpi_device_pci_id_show, NULL);
++
++static struct attribute *acpi_wakeup_attrs[] = {
++	&dev_attr_acpi_bus_id.attr,
++	&dev_attr_sleep_state.attr,
++	&dev_attr_status.attr,
++	&dev_attr_run_wakeup.attr,
++	&dev_attr_bus_id.attr,
++	&dev_attr_pci_id.attr,
++	NULL,
++};
++
++static struct attribute_group acpi_wakeup_attr_group = {
++	.name   = "wakeup",
++	.attrs  = acpi_wakeup_attrs,
++};
++
+ static int acpi_device_setup_files(struct acpi_device *dev)
+ {
+ 	acpi_status status;
+@@ -201,19 +366,19 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+ 	 */
+ 	if(dev->handle) {
+ 		result = device_create_file(&dev->dev, &dev_attr_path);
+-		if(result)
++		if (result)
+ 			goto end;
+ 	}
+ 
+ 	if(dev->flags.hardware_id) {
+ 		result = device_create_file(&dev->dev, &dev_attr_hid);
+-		if(result)
++		if (result)
+ 			goto end;
+ 	}
+ 
+ 	if (dev->flags.hardware_id || dev->flags.compatible_ids){
+ 		result = device_create_file(&dev->dev, &dev_attr_modalias);
+-		if(result)
++		if (result)
+ 			goto end;
+ 	}
+ 
+@@ -222,8 +387,16 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+          * hot-removal function from userland.
+          */
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+-	if (ACPI_SUCCESS(status))
++	if (ACPI_SUCCESS(status)) {
+ 		result = device_create_file(&dev->dev, &dev_attr_eject);
++		if (result)
++			goto end;
++	}
++
++	if (dev->wakeup.flags.valid)
++		result = sysfs_create_group(&dev->dev.kobj,
++				&acpi_wakeup_attr_group);
++
+   end:
+ 	return result;
+ }
+@@ -248,6 +421,9 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+ 		device_remove_file(&dev->dev, &dev_attr_hid);
+ 	if(dev->handle)
+ 		device_remove_file(&dev->dev, &dev_attr_path);
++
++	if (dev->wakeup.flags.valid)
++		sysfs_remove_group(&dev->dev.kobj, &acpi_wakeup_attr_group);
+ }
+ /* --------------------------------------------------------------------------
+ 			ACPI Bus operations
 
-Also since the device has to restart the PHY, it could be a switch
-issue if you have some fancy pants switch doing intrusion detection
-or something, but I doubt that.
 
-Is it a clean or fast shutdown, most distributions mark network
-devices as down on shutdown, but if the distribution does something 
-stupid like remove the driver module, then the driver is unable to setup Wake On Lan.
-The wake on lan setup is done in one place in the driver, add
-a printk to see if it is ever called.
-
-
--- 
-Stephen Hemminger <stephen.hemminger@vyatta.com>
