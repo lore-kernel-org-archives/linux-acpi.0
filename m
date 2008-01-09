@@ -1,38 +1,40 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: USB D3 vs system S3
-Date: Wed, 9 Jan 2008 16:38:45 +0000
-Message-ID: <200801091638.46706.carlos@strangeworlds.co.uk>
-References: <Pine.LNX.4.44L0.0801091105220.4652-100000@iolanthe.rowland.org>
+Date: Wed, 9 Jan 2008 12:16:13 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0801091213250.2880-100000@iolanthe.rowland.org>
+References: <200801091638.46706.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slackadelic.com ([65.196.224.53]:42242 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122AbYAIQiw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 11:38:52 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0801091105220.4652-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:40048 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752402AbYAIRQO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 12:16:14 -0500
+In-Reply-To: <200801091638.46706.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Cc: Len Brown <lenb@kernel.org>, David Brownell <david-b@pacbell.net>, gregkh@suse.de, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>, USB development list <linux-usb-devel@lists.sourceforge.net>
 
-On Wednesday 09 January 2008 16:07:04 Alan Stern wrote:
-> Currently there's no need to change anything.
+On Wed, 9 Jan 2008, Carlos Corbacho wrote:
 
-Ok.
+> On Wednesday 09 January 2008 16:07:04 Alan Stern wrote:
+> > Currently there's no need to change anything.
+> 
+> Ok.
+> 
+> > The USB autosuspend code affects only the controller's USB interface --
+> > it doesn't touch the PCI side.  An autosuspended controller will remain
+> > in D0.  Until somebody tries writing autosuspend code for PCI
+> > devices...
+> 
+> Is this likely to happen?
 
-> The USB autosuspend code affects only the controller's USB interface --
-> it doesn't touch the PCI side.  An autosuspended controller will remain
-> in D0.  Until somebody tries writing autosuspend code for PCI
-> devices...
+I don't know of anybody working on it.  A minimal prerequisite is that 
+PCI runtime wakeup processing needs to work right -- which it doesn't.  
+See 
 
-Is this likely to happen?
+	http://bugzilla.kernel.org/show_bug.cgi?id=6892
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Alan Stern
+
