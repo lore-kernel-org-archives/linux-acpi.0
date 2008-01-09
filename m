@@ -1,40 +1,52 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: USB D3 vs system S3
-Date: Wed, 9 Jan 2008 12:16:13 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0801091213250.2880-100000@iolanthe.rowland.org>
-References: <200801091638.46706.carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] PM: Acquire device locks on suspend
+Date: Wed, 9 Jan 2008 16:01:48 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0801091543300.2856-100000@iolanthe.rowland.org>
+References: <200801080125.38080.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40048 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:38135 "HELO
 	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752402AbYAIRQO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 12:16:14 -0500
-In-Reply-To: <200801091638.46706.carlos@strangeworlds.co.uk>
+	with SMTP id S1755742AbYAIVBu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 16:01:50 -0500
+In-Reply-To: <200801080125.38080.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <lenb@kernel.org>, David Brownell <david-b@pacbell.net>, gregkh@suse.de, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>, USB development list <linux-usb-devel@lists.sourceforge.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 9 Jan 2008, Carlos Corbacho wrote:
+On Tue, 8 Jan 2008, Rafael J. Wysocki wrote:
 
-> On Wednesday 09 January 2008 16:07:04 Alan Stern wrote:
-> > Currently there's no need to change anything.
+> Appended is what I managed to put together today.
 > 
-> Ok.
+> It probably still has some problems, but I'm not seeing them right now (too
+> tired).  At least, it doesn't break my system. ;-)
 > 
-> > The USB autosuspend code affects only the controller's USB interface --
-> > it doesn't touch the PCI side.  An autosuspended controller will remain
-> > in D0.  Until somebody tries writing autosuspend code for PCI
-> > devices...
-> 
-> Is this likely to happen?
+> Please review.
 
-I don't know of anybody working on it.  A minimal prerequisite is that 
-PCI runtime wakeup processing needs to work right -- which it doesn't.  
-See 
+Okay, this seems to be better.  I like the way the complicated tests 
+are all localized in power/main.c.
 
-	http://bugzilla.kernel.org/show_bug.cgi?id=6892
+In dpm_resume() you shouldn't need to use dpm_list_mtx at all, because
+the list_move_tail() comes before the resume_device().  It's the same
+as in dpm_power_up().
+
+The same is true for dpm_suspend().  Once all the device have been 
+locked, there shouldn't be any other tasks accessing the dpm lists.  
+Hence there should be no need to protect the list.
+
+Which reminds me, the kerneldoc for device_pm_schedule_removal() is 
+inaccurate.  The routine always just moves the device to dpm_destroy 
+list for later processing.
+
+Also, the kerneldoc for destroy_suspended_device() should contain an 
+extra paragraph warning that the routine should never be called except 
+within the scope of a system sleep transition.  In practice this means 
+it has to be directly or indirectly invoked by a suspend or resume 
+method.
+
+It looks good.
 
 Alan Stern
 
