@@ -1,52 +1,59 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Wed, 9 Jan 2008 16:01:48 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0801091543300.2856-100000@iolanthe.rowland.org>
-References: <200801080125.38080.rjw@sisk.pl>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: USB D3 vs system S3
+Date: Wed, 9 Jan 2008 13:03:23 -0800
+Message-ID: <200801091303.23426.david-b@pacbell.net>
+References: <Pine.LNX.4.44L0.0801091213250.2880-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38135 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755742AbYAIVBu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 16:01:50 -0500
-In-Reply-To: <200801080125.38080.rjw@sisk.pl>
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:44008 "HELO
+	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750825AbYAIVDo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Jan 2008 16:03:44 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0801091213250.2880-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, gregkh@suse.de, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>, USB development list <linux-usb-devel@lists.sourceforge.net>
 
-On Tue, 8 Jan 2008, Rafael J. Wysocki wrote:
+On Wednesday 09 January 2008, Alan Stern wrote:
+>=20
+> > > The USB autosuspend code affects only the controller's USB interf=
+ace --
+> > > it doesn't touch the PCI side. =A0An autosuspended controller wil=
+l remain
+> > > in D0. =A0Until somebody tries writing autosuspend code for PCI
+> > > devices...
+> >=20
+> > Is this likely to happen?
+>=20
+> I don't know of anybody working on it. =A0A minimal prerequisite is t=
+hat=20
+> PCI runtime wakeup processing needs to work right -- which it doesn't=
+=2E =A0
+> See=20
+>=20
+> =A0=A0=A0=A0=A0=A0=A0=A0http://bugzilla.kernel.org/show_bug.cgi?id=3D=
+6892
 
-> Appended is what I managed to put together today.
-> 
-> It probably still has some problems, but I'm not seeing them right now (too
-> tired).  At least, it doesn't break my system. ;-)
-> 
-> Please review.
+And while most of the non-PCI USB host platforms to which I have access
+don't have that type of issue, their hardware isn't actually set up to
+offer an analogue of runtime PCI_D3 (for example) power states.
 
-Okay, this seems to be better.  I like the way the complicated tests 
-are all localized in power/main.c.
+In more detail:  they generally have some clocks that could be disabled=
+,
+but for various reasons they need to be left running.  Disabling those
+clocks prevents wakeup from working ... yes, a multi-MHz clock just to
+detect the D+ (or D-) pullup as it kicks in.  Systems using an external
+PHY will sometimes offer an alternative, when the PHY can issue those
+wakeup IRQs by itself, but that seems oddly uncommon.
 
-In dpm_resume() you shouldn't need to use dpm_list_mtx at all, because
-the list_move_tail() comes before the resume_device().  It's the same
-as in dpm_power_up().
+- Dave
 
-The same is true for dpm_suspend().  Once all the device have been 
-locked, there shouldn't be any other tasks accessing the dpm lists.  
-Hence there should be no need to protect the list.
-
-Which reminds me, the kerneldoc for device_pm_schedule_removal() is 
-inaccurate.  The routine always just moves the device to dpm_destroy 
-list for later processing.
-
-Also, the kerneldoc for destroy_suspended_device() should contain an 
-extra paragraph warning that the routine should never be called except 
-within the scope of a system sleep transition.  In practice this means 
-it has to be directly or indirectly invoked by a suspend or resume 
-method.
-
-It looks good.
-
-Alan Stern
-
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
