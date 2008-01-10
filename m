@@ -1,172 +1,65 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Yi Yang <yi.y.yang@intel.com>
 Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
-Date: Fri, 11 Jan 2008 16:16:22 +0800
-Message-ID: <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
+Date: Fri, 11 Jan 2008 07:55:42 +0800
+Message-ID: <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
 References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
 	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
 	 <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
 	 <200801100943.08780.maximlevitsky@gmail.com>
+	 <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:21551 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:4015 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751918AbYAKIMw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2008 03:12:52 -0500
-In-Reply-To: <200801100943.08780.maximlevitsky@gmail.com>
+	id S1754742AbYAKJFH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2008 04:05:07 -0500
+In-Reply-To: <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>, yi.y.yang@intel.com, david-b@pacbell.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>, david-b@pacbell.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
 
-On Thu, 2008-01-10 at 09:43 +0200, Maxim Levitsky wrote:
-> On Thursday, 10 January 2008 00:21:46 Yi Yang wrote:
-> > Subject: ACPI: convert procfs to sysfs for /proc/acpi/wakeup
-> > From: Yi Yang <yi.y.yang@intel.com>
-> > 
-> > /proc/acpi/wakeup is deprecated but it has to exist because
-> > we haven't a sysfs interface to replace it yet, this patch
-> > converts /proc/acpi/wakeup to sysfs interface, under every
-> > acpi device sysfs node, a user can see a directory "wakeup"
-> > if the acpi device can support wakeup, there are six files
-> > under this directory:
-> > 
-> > acpi_bus_id  bus_id  pci_id  run_wakeup  sleep_state  status
-> > 
-> > All the files are read-only exclude "status" which is used
-> > to enable or disable wakeup of the acpi device.
-> > 
-> > "acpi_bus_id" is acpi bus ID of the acpi device.
-> > 
-> > "bus_id" is pci bus id of the device associated to the acpi
-> > device, it will be empty if there isn't any device associated
-> > to it.
-> > 
-> > "pci_id" is PCI ID of the pci device associated to the acpi
-> > device, it will be empty if there isn't any device associated
-> > to it.
-> > 
-> > "run_wake" is a flag indicating if a wakeup process is being
-> > handled.
-> > 
-> > "sleep_state" is sleep state of the acpi device such as "S0".
-> > 
-> > "status" is wakeup status of the acpi device, it is enabled
-> > or disabled, a user can change it be echoing "0", "1",
-> > "disabled" or "enabled" to /sys/devices/.../wakeup/status. 
-> > 
-> > Here is the test result:
-> > 
-> > [root@localhost ~]# cat /proc/acpi/wakeup
-> > Device  S-state   Status   Sysfs node           PCI ID
-> > C093      S5     disabled  pci:0000:00:1e.0     0x2448
-> > C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-> > C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-> > C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-> > C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-> > C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-> > C0F9      S0     disabled  pci:0000:00:1c.0     0x27d0
-> > C21D      S0     disabled  pci:0000:08:00.0     0x16fd
-> > C109      S5     disabled  pci:0000:00:1c.1     0x27d2
-> > C228      S5     disabled  pci:0000:10:00.0     0x4222
-> > C10F      S5     disabled  pci:0000:00:1c.3     0x27d6
-> > C229      S5     disabled
-> > [root@localhost ~]# find /sys -name "*" | grep sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:05/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:0d/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:11/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:15/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:19/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:1d/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2b/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2b/device:2c/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2d/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2d/device:2e/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/wakeup/sleep_state
-> > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/sleep_state
-> > [root@localhost ~]# ls /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup
-> > acpi_bus_id  bus_id  pci_id  run_wakeup  sleep_state  status
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/acpi_bus_id
-> > cat: /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/acpi_bus_id: No such file or directory
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/acpi_bus_id
-> > C229
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/sleep_state
-> > S5
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
-> > disabled
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/bus_id
-> > 
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/pci_id
-> > 
-> > [root@localhost ~]# echo 1 > /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/device:2f/device:30/wakeup/status
-> > enabled
-> > [root@localhost ~]# cat /proc/acpi/wakeup
-> > Device  S-state   Status   Sysfs node           PCI ID
-> > C093      S5     disabled  pci:0000:00:1e.0     0x2448
-> > C0E8      S3     disabled  pci:0000:00:1d.0     0x27c8
-> > C0EF      S3     disabled  pci:0000:00:1d.1     0x27c9
-> > C0F0      S3     disabled  pci:0000:00:1d.2     0x27ca
-> > C0F1      S3     disabled  pci:0000:00:1d.3     0x27cb
-> > C0F2      S3     disabled  pci:0000:00:1d.7     0x27cc
-> > C0F9      S0     enabled   pci:0000:00:1c.0     0x27d0
-> > C21D      S0     enabled   pci:0000:08:00.0     0x16fd
-> > C109      S5     enabled   pci:0000:00:1c.1     0x27d2
-> > C228      S5     enabled   pci:0000:10:00.0     0x4222
-> > C10F      S5     enabled   pci:0000:00:1c.3     0x27d6
-> > C229      S5     enabled
-> > [root@localhost ~]# vi /var/log/dmesg
-> > [root@localhost ~]# dmesg | grep "same GPE"
-> > ACPI: 'C0F9' and 'C229' have the same GPE, can't disable/enable one seperately
-> > ACPI: 'C21D' and 'C229' have the same GPE, can't disable/enable one seperately
-> > ACPI: 'C109' and 'C229' have the same GPE, can't disable/enable one seperately
-> > ACPI: 'C228' and 'C229' have the same GPE, can't disable/enable one seperately
-> > ACPI: 'C10F' and 'C229' have the same GPE, can't disable/enable one seperately
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/*/wakeup/status
-> > disabled
-> > disabled
-> > disabled
-> > disabled
-> > disabled
-> > disabled
-> > enabled
-> > enabled
-> > enabled
-> > [root@localhost ~]# cat /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/*/*/wakeup/status
-> > enabled
-> > enabled
-> > enabled
-> > [root@localhost ~]#
+> > I think that it would be much much better to place wake-up attributes under
+> > corresponding PCI and PNP devices.
+> > Probably it is even better to link this code to PCI code, so PCI drivers will be aware of ACPI.
+> I like this idea, maxim. :)
+> And that's what we actually did about half a year ago.
 > 
+> Yi,
+> Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=6892
+> and David's patch set here:
+> http://marc.info/?l=linux-mm-commits&m=117701595209299&w=2
+> http://marc.info/?l=linux-mm-commits&m=117701866524935&w=2
+> You can have a look at this thread as well:
+> http://marc.info/?l=linux-acpi&m=119982937409968&w=2
 > 
-> I think that it would be much much better to place wake-up attributes under
-> corresponding PCI and PNP devices.
-> Probably it is even better to link this code to PCI code, so PCI drivers will be aware of ACPI.
-I like this idea, maxim. :)
-And that's what we actually did about half a year ago.
+I checked those patches you mentioned, they did bind two wakeup flag to
+some extent, but they can't be exchanged to use and they are just partly
+in current linus tree, two flags bind isn't in linus tree.
 
-Yi,
-Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=6892
-and David's patch set here:
-http://marc.info/?l=linux-mm-commits&m=117701595209299&w=2
-http://marc.info/?l=linux-mm-commits&m=117701866524935&w=2
-You can have a look at this thread as well:
-http://marc.info/?l=linux-acpi&m=119982937409968&w=2
+According to my test on the latest linus tree, wakeup flag of
+acpi_device hasn't any association with device's, i don't know if they
+are the same thing. if we enbale or disable it manually, what will
+happen? From source code, it is just a flag, it doesn't trigger any
+event or hardware operation.
 
-thanks,
-Rui
-> For example it will fix the 'EHCI instantly wakes up the system from S4' on my system, since here USB doesn't wake
-> up anything from S4, and ACPI tables correctly show that.
+> thanks,
+> Rui
+> > For example it will fix the 'EHCI instantly wakes up the system from S4' on my system, since here USB doesn't wake
+> > up anything from S4, and ACPI tables correctly show that.
+> > 
+> > If ehci driver was aware of that it could disable #PME on entrance to S4.
+> > And we even can reuse its 'wakeup' attribute, thus enabling wakeup automatically.
+> > 
+> > Going ever further, I think that it will be great to get rid of ACPI device tree, since
+> > most acpi devices are ether PCI of PNP ones.
+> > 
+> > Or, even better have a small ACPI tree, that will contain 'true' ACPI devices, like cpus
+> > thermal sensors, buttons, etc. 
+> > 
 > 
-> If ehci driver was aware of that it could disable #PME on entrance to S4.
-> And we even can reuse its 'wakeup' attribute, thus enabling wakeup automatically.
 > 
-> Going ever further, I think that it will be great to get rid of ACPI device tree, since
-> most acpi devices are ether PCI of PNP ones.
-> 
-> Or, even better have a small ACPI tree, that will contain 'true' ACPI devices, like cpus
-> thermal sensors, buttons, etc. 
-> 
-
 
