@@ -1,26 +1,63 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
-Date: Thu, 10 Jan 2008 10:30:20 +0000
-Message-ID: <20080110103019.GA9403@srcf.ucam.org>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1199688961.3551.19.camel@yangyi-dev.bj.intel.com> <1199917306.9596.3.camel@yangyi-dev.bj.intel.com> <200801100943.08780.maximlevitsky@gmail.com> <1199923176.3827.13.camel@yangyi-dev.bj.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] PM: Acquire device locks on suspend
+Date: Thu, 10 Jan 2008 10:35:19 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0801101033390.4267-100000@iolanthe.rowland.org>
+References: <200801100029.26465.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754902AbYAJKao@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1199923176.3827.13.camel@yangyi-dev.bj.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yi Yang <yi.y.yang@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:50041 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755240AbYAJPfV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2008 10:35:21 -0500
+In-Reply-To: <200801100029.26465.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, Jan 10, 2008 at 07:59:36AM +0800, Yi Yang wrote:
+On Thu, 10 Jan 2008, Rafael J. Wysocki wrote:
 
-> Maybe this is a good idea, but i don't know the relationships between
-> acpi devices, devices, pci devices and pnp devices. If we can merge all
-> these things together, that will be a great job.
+> On Wednesday, 9 of January 2008, Alan Stern wrote:
+> > On Wed, 9 Jan 2008, Rafael J. Wysocki wrote:
+> > 
+> > > > In dpm_resume() you shouldn't need to use dpm_list_mtx at all, because
+> > > > the list_move_tail() comes before the resume_device().  It's the same
+> > > > as in dpm_power_up().
+> > > 
+> > > Still, device_pm_schedule_removal() can (in theory) be called concurrently
+> > > with dpm_resume() by another thread and this might corrupt the list without
+> > > the locking.
+> > 
+> > Any thread doing that would be in violation of the restrictions you're 
+> > going to add to the kerneldoc for destroy_suspended_device().
+> > 
+> > However the overhead for the locking isn't critical.  There won't be
+> > any contention (if everything is working right) and it isn't a hot path
+> > anyway.  So you can leave the extra locking in if you want.  But then
+> > you should put it in all the routines where the lists get manipulated,
+> > not just some of them.  That is: device_power_down(), dpm_power_up(),
+> > and even unregister_dropped_devices().
+> 
+> Except for those run on one CPU with interrupts disabled, I think.
 
-Let's not merge this yet, then, otherwise we'll be forced to carry 
-around a sysfs API that's of no real use.
+Not unregister_dropped_devices()!
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> > > > Also, the kerneldoc for destroy_suspended_device() should contain an 
+> > > > extra paragraph warning that the routine should never be called except 
+> > > > within the scope of a system sleep transition.  In practice this means 
+> > > > it has to be directly or indirectly invoked by a suspend or resume 
+> > > > method.
+> > > 
+> > > Or by a CPU hotplug notifier (that will be the majority of cases, IMO).
+> > 
+> > In your patch the call is made in response to a CPU_UP_CANCELED_FROZEN
+> > notification.  Isn't it true that this notification is issued only as
+> > part of a system sleep transition?
+> 
+> Yes, it is.
+
+So it counts as being indirectly invoked by a resume method.
+
+Alan Stern
+
