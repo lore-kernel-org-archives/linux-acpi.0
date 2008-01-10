@@ -1,59 +1,168 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI: Fix acpi_pm_device_sleep_state()
-Date: Fri, 11 Jan 2008 00:10:38 +0100
-Message-ID: <200801110010.38658.rjw@sisk.pl>
+Subject: Re: [patch] hibernation: utilize ACPI hardware signature
+Date: Fri, 11 Jan 2008 00:39:39 +0100
+Message-ID: <200801110039.40523.rjw@sisk.pl>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801042144.20279.rjw@sisk.pl> <1199670409.13339.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54373 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:54513 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751010AbYAJXI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Jan 2008 18:08:27 -0500
+	id S1752638AbYAJXhK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2008 18:37:10 -0500
+In-Reply-To: <1199670409.13339.2.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Monday, 7 of January 2008, Shaohua Li wrote:
+> 
+> On Sat, 2008-01-05 at 04:44 +0800, Rafael J. Wysocki wrote:
+> > On Friday, 4 of January 2008, Shaohua Li wrote:
+> > >
+> > > On Fri, 2008-01-04 at 01:04 +0800, Rafael J. Wysocki wrote:
+> > > > On Thursday, 3 of January 2008, Shaohua Li wrote:
+> > > > >
+> > > > > On Wed, 2008-01-02 at 22:05 +0800, Rafael J. Wysocki wrote:
+> > > > > > On Wednesday, 2 of January 2008, Shaohua Li wrote:
+> > > > > > > ACPI defines a hardware signature. BIOS calculates the
+> > signature
+> > > > > > > according to hardware configure, if hardware changes, the
+> > > > signature
+> > > > > > will
+> > > > > > > change, in this case, S4 resume should fail.
+> > > > > >
+> > > > > > The idea is fine, but I'd prefer to do that in a more
+> > > > straightforward
+> > > > > > way.
+> > > > > > Namely, we can just:
+> > > > > > * write the signature into a variable in, for example,
+> > > > > >   acpi_hibernation_prepare() (then, the "old" signature value
+> > will
+> > > > be
+> > > > > >   automatically saved in the image)
+> > > > > > * compare it with a the "new" value read from the BIOS in
+> > > > > >   acpi_hibernation_leave() and panic if there's a mismatch
+> > > > > > * add a configuration option to disable this behavior (just in
+> > > > case)
+> > > > > > This way we can avoid modifying the entire generic interface
+> > to
+> > > > add
+> > > > > > the feature
+> > > > > > specific to ACPI.
+> > > > > it would be better we do the check in boot kernel.
+> > > > Franky, I think we should also check in the image kernel, in case
+> > the
+> > > > boot
+> > > > one doesn't support ACPI as I said.
+> > > Ok, makes sense. I changed to check the signature
+> > in .higberation_leave
+> > 
+> > Thanks, comments below.
+> > 
+> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > ---
+> > >  drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
+> > >  1 file changed, 20 insertions(+)
+> > >
+> > > Index: linux/drivers/acpi/sleep/main.c
+> > > ===================================================================
+> > > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-03
+> > 13:37:08.000000000 +0800
+> > > +++ linux/drivers/acpi/sleep/main.c   2008-01-04 13:36:10.000000000
+> > +0800
+> > > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+> > >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+> > >  }
+> > > 
+> > > +static unsigned long s4_hardware_signature;
+> > > +static struct acpi_table_facs *facs;
+> > > +static int nosigcheck;
+> > 
+> > Use bool perhaps?
+> > 
+> > > +
+> > > +static int __init acpi_s4_nosigcheck(char *str)
+> > > +{
+> > > +     nosigcheck = 1;
+> > 
+> > And "true" here?
+> > 
+> > > +     return 1;
+> > > +}
+> > > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> > > +
+> > 
+> > Please put this function at the end of the file.  Also, I'd call it
+> > "acpi_s4_nosig", but whatever.
+> Fixed all except this one, the routine is defined with HIBERATION
+> configed.
 
-Fix acpi_pm_device_sleep_state() to return the value returned
-by _SxD if the device is supposed to wake up the system from
-given sleep state and the evaluation of _SxW fails (e.g. _SxW
-is not present).
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/acpi/sleep/main.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/drivers/acpi/sleep/main.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep/main.c
-+++ linux-2.6/drivers/acpi/sleep/main.c
-@@ -472,11 +472,20 @@ int acpi_pm_device_sleep_state(struct de
- 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
- 	    (wake && adev->wakeup.state.enabled &&
- 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
-+		acpi_status status;
-+
- 		acpi_method[3] = 'W';
--		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
--		/* Sanity check */
--		if (d_max < d_min)
-+		status = acpi_evaluate_integer(handle, acpi_method, NULL,
-+						&d_max);
-+		if (ACPI_FAILURE(status)) {
-+			d_max = d_min;
-+		} else if (d_max < d_min) {
-+			/* Warn the user of the broken DSDT */
-+			printk(KERN_WARNING "ACPI: Wrong value from %s\n",
-+				acpi_method);
-+			/* Sanitize it */
- 			d_min = d_max;
-+		}
- 	}
+I've just realized that we're not doing the right thing here ...
  
- 	if (d_min_p)
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> ---
+>  drivers/acpi/sleep/main.c |   22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+> 
+> Index: linux/drivers/acpi/sleep/main.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep/main.c	2008-01-04 13:44:40.000000000 +0800
+> +++ linux/drivers/acpi/sleep/main.c	2008-01-07 09:31:42.000000000 +0800
+> @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+>  	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+>  }
+>  
+> +static unsigned long s4_hardware_signature;
+> +static struct acpi_table_facs *facs;
+> +static bool nosigcheck;
+> +
+> +static int __init acpi_s4_nosigcheck(char *str)
+> +{
+> +	nosigcheck = true;
+> +	return 1;
+> +}
+> +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> +
+>  static void acpi_hibernation_leave(void)
+>  {
+>  	/*
+> @@ -263,6 +274,10 @@ static void acpi_hibernation_leave(void)
+>  	 * enable it here.
+>  	 */
+>  	acpi_enable();
+> +	if (facs && s4_hardware_signature != facs->hardware_signature) {
+
+... because we should read the signature from the hardware here, while we're
+comparing two values read from memory.  They will always be equal. :-)
+
+> +		printk(KERN_EMERG"PM: Hardware changed in the S4 circle, can't resume\n");
+> +		panic("S4 resume error");
+> +	}
+>  }
+>  
+>  static void acpi_hibernation_finish(void)
+> @@ -448,6 +463,13 @@ int __init acpi_sleep_init(void)
+>  		hibernation_set_ops(&acpi_hibernation_ops);
+>  		sleep_states[ACPI_STATE_S4] = 1;
+>  		printk(" S4");
+> +		if (!nosigcheck) {
+> +			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+> +				(struct acpi_table_header **)&facs);
+> +			if (facs)
+> +				s4_hardware_signature =
+> +					facs->hardware_signature;
+> +		}
+>  	}
+>  #endif
+>  	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+> 
+> 
+> -
+
+Greetings,
+Rafael
