@@ -1,65 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Thu, 10 Jan 2008 00:29:25 +0100
-Message-ID: <200801100029.26465.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0801091734180.2856-100000@iolanthe.rowland.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
+Date: Wed, 9 Jan 2008 16:03:00 -0800
+Message-ID: <20080109160300.304ec687.akpm@linux-foundation.org>
+References: <bug-9721-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49233 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212AbYAIX10 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Jan 2008 18:27:26 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0801091734180.2856-100000@iolanthe.rowland.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <bug-9721-10286@http.bugzilla.kernel.org/>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: bugme-daemon@bugzilla.kernel.org, supersud501@yahoo.de
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wednesday, 9 of January 2008, Alan Stern wrote:
-> On Wed, 9 Jan 2008, Rafael J. Wysocki wrote:
+
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
+
+On Wed,  9 Jan 2008 13:05:34 -0800 (PST)
+bugme-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=9721
 > 
-> > > In dpm_resume() you shouldn't need to use dpm_list_mtx at all, because
-> > > the list_move_tail() comes before the resume_device().  It's the same
-> > > as in dpm_power_up().
-> > 
-> > Still, device_pm_schedule_removal() can (in theory) be called concurrently
-> > with dpm_resume() by another thread and this might corrupt the list without
-> > the locking.
+>            Summary: wake on lan fails with sky2 module
+>            Product: ACPI
+>            Version: 2.5
+>      KernelVersion: 2.6.24-rc7
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Power-Sleep-Wake
+>         AssignedTo: acpi_power-sleep-wake@kernel-bugs.osdl.org
+>         ReportedBy: supersud501@yahoo.de
+
+This post-2.6.23 regression was assigned to ACPI but is quite possibly a
+net driver problem?
+
 > 
-> Any thread doing that would be in violation of the restrictions you're 
-> going to add to the kerneldoc for destroy_suspended_device().
+> Latest working kernel version: 2.6.23.12
+> Earliest failing kernel version: 2.6.24-rc6 (not tested earlier kernel,
+> 2.6.24-rc7 still failing)
+> Distribution: Ubuntu 8.04 (but Kernel build from Kernel.org and system modifiet
+> to make wake on lan work, i.e. network cards are not shutted down on poweroff)
+> Hardware Environment: Marvell Technology Group Ltd. 88E8053 PCI-E Gigabit
+> Ethernet Controller (rev 20) onboard Asus P5W DH motherboard, uses module SKY2
+> Software Environment:
+> Problem Description:
 > 
-> However the overhead for the locking isn't critical.  There won't be
-> any contention (if everything is working right) and it isn't a hot path
-> anyway.  So you can leave the extra locking in if you want.  But then
-> you should put it in all the routines where the lists get manipulated,
-> not just some of them.  That is: device_power_down(), dpm_power_up(),
-> and even unregister_dropped_devices().
-
-Except for those run on one CPU with interrupts disabled, I think.
-
-> > > Also, the kerneldoc for destroy_suspended_device() should contain an 
-> > > extra paragraph warning that the routine should never be called except 
-> > > within the scope of a system sleep transition.  In practice this means 
-> > > it has to be directly or indirectly invoked by a suspend or resume 
-> > > method.
-> > 
-> > Or by a CPU hotplug notifier (that will be the majority of cases, IMO).
+> When enabling wake on lan with: 'ethtool -s eth0 wol' i get the following
+> status:
 > 
-> In your patch the call is made in response to a CPU_UP_CANCELED_FROZEN
-> notification.  Isn't it true that this notification is issued only as
-> part of a system sleep transition?
-
-Yes, it is.
-
-> We wouldn't want to allow destroy_suspended_device() to be called when an
-> arbitrary CPU hotplug notification occurs.
-
-Of course.
-
-Greetings,
-Rafael
+> 21:56:29 ~ # sudo ethtool eth0
+> Settings for eth0:
+>         Supported ports: [ TP ]
+>         Supported link modes:   10baseT/Half 10baseT/Full 
+>                                 100baseT/Half 100baseT/Full 
+>                                 1000baseT/Half 1000baseT/Full 
+>         Supports auto-negotiation: Yes
+>         Advertised link modes:  10baseT/Half 10baseT/Full 
+>                                 100baseT/Half 100baseT/Full 
+>                                 1000baseT/Half 1000baseT/Full 
+>         Advertised auto-negotiation: Yes
+>         Speed: 100Mb/s
+>         Duplex: Full
+>         Port: Twisted Pair
+>         PHYAD: 0
+>         Transceiver: internal
+>         Auto-negotiation: on
+>         Supports Wake-on: pg
+>         Wake-on: g    <---- wol enabled
+>         Current message level: 0x000000ff (255)
+>         Link detected: yes
+> 
+> but after shutting down the pc doesn't wake up when magic packet is sent.
+> 
+> the status lights of the network card are still on (so the card seems to be
+> online).
+> 
+> same system with only changed kernel to 2.6.23.12 and same procedure like
+> above: wake on lan works.
+> 
+> Steps to reproduce: enable wol on your network card using SKY2 module and it
+> doesn't work too?
+> 
+> if you need more information, just tell me, it's my first bug report.
+> regards
+> 
+> 
+> -- 
+> Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=email
+> ------- You are receiving this mail because: -------
+> You are on the CC list for the bug, or are watching someone who is.
