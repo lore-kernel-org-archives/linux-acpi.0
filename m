@@ -1,44 +1,137 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend
-Date: Thu, 10 Jan 2008 12:04:06 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0801101202470.2727-100000@iolanthe.rowland.org>
-References: <200801101759.10701.rjw@sisk.pl>
+From: supersud501 <supersud501@yahoo.de>
+Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
+Date: Thu, 10 Jan 2008 20:35:31 +0100
+Message-ID: <47867383.9010309@yahoo.de>
+References: <bug-9721-10286@http.bugzilla.kernel.org/>	<20080109160300.304ec687.akpm@linux-foundation.org> <20080109205210.1f8a83bb@deepthought>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:49965 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755215AbYAJREH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jan 2008 12:04:07 -0500
-In-Reply-To: <200801101759.10701.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080109205210.1f8a83bb@deepthought>
+Sender: netdev-owner@vger.kernel.org
+To: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Greg KH <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 10 Jan 2008, Rafael J. Wysocki wrote:
 
-> > > > > > Also, the kerneldoc for destroy_suspended_device() should contain an 
-> > > > > > extra paragraph warning that the routine should never be called except 
-> > > > > > within the scope of a system sleep transition.  In practice this means 
-> > > > > > it has to be directly or indirectly invoked by a suspend or resume 
-> > > > > > method.
-> > > > > 
-> > > > > Or by a CPU hotplug notifier (that will be the majority of cases, IMO).
-> > > > 
-> > > > In your patch the call is made in response to a CPU_UP_CANCELED_FROZEN
-> > > > notification.  Isn't it true that this notification is issued only as
-> > > > part of a system sleep transition?
-> > > 
-> > > Yes, it is.
-> > 
-> > So it counts as being indirectly invoked by a resume method.
+
+Stephen Hemminger schrieb:
+> On Wed, 9 Jan 2008 16:03:00 -0800
+> Andrew Morton <akpm@linux-foundation.org> wrote:
 > 
-> Rather, by the resume core.  Technically, it's invoked by
-> enable_nonboot_cpus(), which is not a resume method literally.
+>> (switched to email.  Please respond via emailed reply-to-all, not via the
+>> bugzilla web interface).
+>>
+>> On Wed,  9 Jan 2008 13:05:34 -0800 (PST)
+>> bugme-daemon@bugzilla.kernel.org wrote:
+>>
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=9721
+>>>
+>>>            Summary: wake on lan fails with sky2 module
+>>>            Product: ACPI
+>>>            Version: 2.5
+>>>      KernelVersion: 2.6.24-rc7
+>>>           Platform: All
+>>>         OS/Version: Linux
+>>>               Tree: Mainline
+>>>             Status: NEW
+>>>           Severity: normal
+>>>           Priority: P1
+>>>          Component: Power-Sleep-Wake
+>>>         AssignedTo: acpi_power-sleep-wake@kernel-bugs.osdl.org
+>>>         ReportedBy: supersud501@yahoo.de
+>> This post-2.6.23 regression was assigned to ACPI but is quite possibly a
+>> net driver problem?
+>>
+>>> Latest working kernel version: 2.6.23.12
+>>> Earliest failing kernel version: 2.6.24-rc6 (not tested earlier kernel,
+>>> 2.6.24-rc7 still failing)
+>>> Distribution: Ubuntu 8.04 (but Kernel build from Kernel.org and system modifiet
+>>> to make wake on lan work, i.e. network cards are not shutted down on poweroff)
+>>> Hardware Environment: Marvell Technology Group Ltd. 88E8053 PCI-E Gigabit
+>>> Ethernet Controller (rev 20) onboard Asus P5W DH motherboard, uses module SKY2
+>>> Software Environment:
+>>> Problem Description:
+>>>
+>>> When enabling wake on lan with: 'ethtool -s eth0 wol' i get the following
+>>> status:
+>>>
+>>> 21:56:29 ~ # sudo ethtool eth0
+>>> Settings for eth0:
+>>>         Supported ports: [ TP ]
+>>>         Supported link modes:   10baseT/Half 10baseT/Full 
+>>>                                 100baseT/Half 100baseT/Full 
+>>>                                 1000baseT/Half 1000baseT/Full 
+>>>         Supports auto-negotiation: Yes
+>>>         Advertised link modes:  10baseT/Half 10baseT/Full 
+>>>                                 100baseT/Half 100baseT/Full 
+>>>                                 1000baseT/Half 1000baseT/Full 
+>>>         Advertised auto-negotiation: Yes
+>>>         Speed: 100Mb/s
+>>>         Duplex: Full
+>>>         Port: Twisted Pair
+>>>         PHYAD: 0
+>>>         Transceiver: internal
+>>>         Auto-negotiation: on
+>>>         Supports Wake-on: pg
+>>>         Wake-on: g    <---- wol enabled
+>>>         Current message level: 0x000000ff (255)
+>>>         Link detected: yes
+>>>
+>>> but after shutting down the pc doesn't wake up when magic packet is sent.
+>>>
+>>> the status lights of the network card are still on (so the card seems to be
+>>> online).
+>>>
+>>> same system with only changed kernel to 2.6.23.12 and same procedure like
+>>> above: wake on lan works.
+>>>
+>>> Steps to reproduce: enable wol on your network card using SKY2 module and it
+>>> doesn't work too?
+>>>
+>>> if you need more information, just tell me, it's my first bug report.
+>>> regards
+>>>
+> 
+> 
+> Wake from power off works on 2.6.24-rc7 for me.
+> Wake from suspend doesn't because Network Manager, HAL, or some other
+> user space tool gets confused.
+> 
+> I just rechecked it with Fujitsu Lifebook, which has sky2 (88E8055).
+> There many variations of this chip, and it maybe chip specific problem
+> or ACPI/BIOS issues.  If you don't enable Wake on Lan in BIOS, the
+> driver can't do it for you. Also, check how you are shutting down.
+> 
+> Also since the device has to restart the PHY, it could be a switch
+> issue if you have some fancy pants switch doing intrusion detection
+> or something, but I doubt that.
+> 
+> Is it a clean or fast shutdown, most distributions mark network
+> devices as down on shutdown, but if the distribution does something 
+> stupid like remove the driver module, then the driver is unable to setup Wake On Lan.
+> The wake on lan setup is done in one place in the driver, add
+> a printk to see if it is ever called.
+> 
+> 
 
-Okay, then the routine should only be called directly or indirectly 
-from a suspend or resume method or from the suspend or resume core.
+I only tried wake from shutdown (poweroff), and like i wrote, on the 
+same system with kernel 2.6.23.12 (nothing changed but vmlinuz and 
+initrd, with the same kernel config on 2.6.24-rc6/7 (make oldconfig, 
+default answer to all questions)), it works. so it seems to me like a 
+problem in the kernel.
 
-Alan Stern
+every wake-up setting (wake up by pci-device, rtc-alarm, modem ...) in 
+bios is also enabled, otherwise it couldn't work in 2.6.23.12 (and windows).
 
+if you say your sky2-card works, it might be a acpi-problem not related 
+to sky2 like i thought - when i am at home i'll try to start my pc with 
+a timer (--> /proc/acpi/alarm) from kernel 2.6.24-rc7 to check if 
+acpi-wakeup works and report back (if it is any help in finding the 
+source of my problem).
+
+and regarding "printk" i'll try to find out what you mean (my first 
+steps into kernel debugging :) - i think you mean adding a line in the 
+source to print out something when the function is called)
+
+regards
