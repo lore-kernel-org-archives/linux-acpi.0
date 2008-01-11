@@ -1,162 +1,133 @@
-From: Chodorenko Michail <misha@one.by>
-Subject: acer extensa 5220 dmidecode
-Date: Fri, 11 Jan 2008 20:44:24 +0200
-Message-ID: <ea6da9045ea64107ffbda030a504fb5f@one.by>
+From: supersud501 <supersud501@yahoo.de>
+Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
+Date: Fri, 11 Jan 2008 21:23:32 +0100
+Message-ID: <4787D044.1070509@yahoo.de>
+References: <bug-9721-10286@http.bugzilla.kernel.org/>	<20080109160300.304ec687.akpm@linux-foundation.org> <20080109205210.1f8a83bb@deepthought>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="=_f04b47598511e49570b2f0ac01bccd9a"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from etm005.nl.ded.neolocation.net ([85.17.111.100]:43953 "EHLO
-	office.one.by" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757464AbYAKSoi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2008 13:44:38 -0500
-Received: from localhost (office.one.by [127.0.0.1])
-	by office.one.by (Postfix) with ESMTP id 8D51C408009
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Jan 2008 20:44:32 +0200 (EET)
-Received: from office.one.by ([127.0.0.1])
-	by localhost (office.one.by [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id ovuiA5t3Fvmy for <linux-acpi@vger.kernel.org>;
-	Fri, 11 Jan 2008 20:44:25 +0200 (EET)
-Received: from webmail (unknown [84.201.225.26])
-	by office.one.by (Postfix) with ESMTP id B3DAC408007
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Jan 2008 20:44:24 +0200 (EET)
+Received: from smtp001.mail.ukl.yahoo.com ([217.12.11.32]:43117 "HELO
+	smtp001.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759571AbYAKUaO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2008 15:30:14 -0500
+In-Reply-To: <20080109205210.1f8a83bb@deepthought>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
---=_f04b47598511e49570b2f0ac01bccd9a
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; name="acer_extensa_5220_dmidecode.txt"; charset="UTF-8"
-Content-Disposition: attachment; filename="acer_extensa_5220_dmidecode.txt"
-
-IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMjggc3RydWN0dXJlcyBvY2N1cHlp
-bmcgMTE3OSBieXRlcy4KVGFibGUgYXQgMHgxRjZFMDAwMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
-eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogUGhvZW5peCBUZWNobm9s
-b2dpZXMgTFRECglWZXJzaW9uOiBWMS4yMiAgICAgICAgICAKCVJlbGVhc2UgRGF0ZTogMTAvMjIv
-MjAwNwoJQWRkcmVzczogMHhFNThDMAoJUnVudGltZSBTaXplOiAxMDgzNTIgYnl0ZXMKCVJPTSBT
-aXplOiAxMDI0IGtCCglDaGFyYWN0ZXJpc3RpY3M6CgkJSVNBIGlzIHN1cHBvcnRlZAoJCVBDSSBp
-cyBzdXBwb3J0ZWQKCQlQQyBDYXJkIChQQ01DSUEpIGlzIHN1cHBvcnRlZAoJCVBOUCBpcyBzdXBw
-b3J0ZWQKCQlCSU9TIGlzIHVwZ3JhZGVhYmxlCgkJQklPUyBzaGFkb3dpbmcgaXMgYWxsb3dlZAoJ
-CUVTQ0Qgc3VwcG9ydCBpcyBhdmFpbGFibGUKCQlCb290IGZyb20gQ0QgaXMgc3VwcG9ydGVkCgkJ
-QUNQSSBpcyBzdXBwb3J0ZWQKCQlVU0IgbGVnYWN5IGlzIHN1cHBvcnRlZAoJCUFHUCBpcyBzdXBw
-b3J0ZWQKCQlCSU9TIGJvb3Qgc3BlY2lmaWNhdGlvbiBpcyBzdXBwb3J0ZWQKCQlUYXJnZXRlZCBj
-b250ZW50IGRpc3RyaWJ1dGlvbiBpcyBzdXBwb3J0ZWQKCkhhbmRsZSAweDAwMDEsIERNSSB0eXBl
-IDEsIDI3IGJ5dGVzClN5c3RlbSBJbmZvcm1hdGlvbgoJTWFudWZhY3R1cmVyOiBBY2VyICAgICAg
-ICAgICAKCVByb2R1Y3QgTmFtZTogRXh0ZW5zYSA1MjIwICAgICAgICAgICAgICAgICAgIAoJVmVy
-c2lvbjogMDEwMCAgICAgICAgICAgCglTZXJpYWwgTnVtYmVyOiBMWEU4NzBDMDIzNzM3MUQ4QzAy
-MDAwICAgICAgICAKCVVVSUQ6IDEwNzMxRjgwLTY1OEEtMTFEQy04NjY5LTg2MjQwQzc2MUFGNQoJ
-V2FrZS11cCBUeXBlOiBQb3dlciBTd2l0Y2gKCVNLVSBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCUZh
-bWlseTogTm90IFNwZWNpZmllZAoKSGFuZGxlIDB4MDAwMiwgRE1JIHR5cGUgMiwgOCBieXRlcwpC
-YXNlIEJvYXJkIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IEFjZXIgICAgICAgICAgIAoJUHJv
-ZHVjdCBOYW1lOiBDb2x1bWJpYSAgICAgICAgICAgICAgICAgICAgICAgCglWZXJzaW9uOiBSZXYg
-ICAgICAgICAgICAKCVNlcmlhbCBOdW1iZXI6IExYRTg3MEMwMjM3MzcxRDhDMDIwMDAgICAgICAg
-IAoKSGFuZGxlIDB4MDAwMywgRE1JIHR5cGUgMywgMTcgYnl0ZXMKQ2hhc3NpcyBJbmZvcm1hdGlv
-bgoJTWFudWZhY3R1cmVyOiBBY2VyICAgICAgICAgICAKCVR5cGU6IE5vdGVib29rCglMb2NrOiBO
-b3QgUHJlc2VudAoJVmVyc2lvbjogTi9BICAgICAgICAgICAgCglTZXJpYWwgTnVtYmVyOiBOb25l
-ICAgICAgICAgICAKCUFzc2V0IFRhZzogTm9uZSAgICAgICAgICAgICAgICAgICAgICAgICAgICAK
-CUJvb3QtdXAgU3RhdGU6IFNhZmUKCVBvd2VyIFN1cHBseSBTdGF0ZTogU2FmZQoJVGhlcm1hbCBT
-dGF0ZTogU2FmZQoJU2VjdXJpdHkgU3RhdHVzOiBOb25lCglPRU0gSW5mb3JtYXRpb246IDB4MDAw
-MDEyMzQKCkhhbmRsZSAweDAwMDQsIERNSSB0eXBlIDQsIDM1IGJ5dGVzClByb2Nlc3NvciBJbmZv
-cm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBVMkUxCglUeXBlOiBDZW50cmFsIFByb2Nlc3Nv
-cgoJRmFtaWx5OiBPdGhlcgoJTWFudWZhY3R1cmVyOiBJbnRlbAoJSUQ6IDYxIDA2IDAxIDAwIEZG
-IEZCIEVCIEFGCglWZXJzaW9uOiBDUFUgVmVyc2lvbgoJVm9sdGFnZTogMy4zIFYKCUV4dGVybmFs
-IENsb2NrOiAxMzMgTUh6CglNYXggU3BlZWQ6IDE3MzAgTUh6CglDdXJyZW50IFNwZWVkOiAxNzMw
-IE1IegoJU3RhdHVzOiBQb3B1bGF0ZWQsIEVuYWJsZWQKCVVwZ3JhZGU6IFpJRiBTb2NrZXQKCUwx
-IENhY2hlIEhhbmRsZTogMHgwMDA1CglMMiBDYWNoZSBIYW5kbGU6IDB4MDAwNgoJTDMgQ2FjaGUg
-SGFuZGxlOiBOb3QgUHJvdmlkZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCUFzc2V0
-IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhhbmRsZSAw
-eDAwMDUsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0aW9uCglTb2NrZXQgRGVz
-aWduYXRpb246IEwxIENhY2hlCglDb25maWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2
-ZWwgMQoJT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawoJTG9jYXRpb246IEludGVybmFsCglJ
-bnN0YWxsZWQgU2l6ZTogNjQgS0IKCU1heGltdW0gU2l6ZTogNjQgS0IKCVN1cHBvcnRlZCBTUkFN
-IFR5cGVzOgoJCUJ1cnN0CgkJUGlwZWxpbmUgQnVyc3QKCQlBc3luY2hyb25vdXMKCUluc3RhbGxl
-ZCBTUkFNIFR5cGU6IEFzeW5jaHJvbm91cwoJU3BlZWQ6IFVua25vd24KCUVycm9yIENvcnJlY3Rp
-b24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24KCUFzc29jaWF0aXZpdHk6IFVu
-a25vd24KCkhhbmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0
-aW9uCglTb2NrZXQgRGVzaWduYXRpb246IEwyIENhY2hlCglDb25maWd1cmF0aW9uOiBFbmFibGVk
-LCBTb2NrZXRlZCwgTGV2ZWwgMgoJT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawoJTG9jYXRp
-b246IEludGVybmFsCglJbnN0YWxsZWQgU2l6ZTogMTAyNCBLQgoJTWF4aW11bSBTaXplOiA0MDk2
-IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5lIEJ1cnN0CgkJQXN5
-bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBCdXJzdAoJU3BlZWQ6IFVua25vd24KCUVy
-cm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24KCUFzc29j
-aWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAwMDcsIERNSSB0eXBlIDksIDEzIGJ5dGVzClN5
-c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjogUENJIFNsb3QgSjhCMwoJVHlwZTog
-MzItYml0IFBDSQoJQ3VycmVudCBVc2FnZTogVW5rbm93bgoJTGVuZ3RoOiBMb25nCglJRDogMAoJ
-Q2hhcmFjdGVyaXN0aWNzOgoJCTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQK
-CkhhbmRsZSAweDAwMDgsIERNSSB0eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0
-aW9uCglEZXNpZ25hdGlvbjogUENJIFNsb3QgUzlCMQoJVHlwZTogMzItYml0IFBDSQoJQ3VycmVu
-dCBVc2FnZTogVW5rbm93bgoJTGVuZ3RoOiBMb25nCglJRDogMAoJQ2hhcmFjdGVyaXN0aWNzOgoJ
-CTUuMCBWIGlzIHByb3ZpZGVkCgkJMy4zIFYgaXMgcHJvdmlkZWQKCkhhbmRsZSAweDAwMDksIERN
-SSB0eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlvbjog
-UEVHIFNsb3QgSjZCMgoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBB
-dmFpbGFibGUKCUxlbmd0aDogTG9uZwoJSUQ6IDYKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBp
-cyBwcm92aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBBLCBETUkgdHlwZSA5
-LCAxMyBieXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBDSSBFeHBy
-ZXNzIFNsb3QgSjZCMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBJ
-biBVc2UKCUxlbmd0aDogTG9uZwoJSUQ6IDcKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBpcyBw
-cm92aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBCLCBETUkgdHlwZSA5LCAx
-MyBieXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBDSSBFeHByZXNz
-IFNsb3QgSjZEMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBJbiBV
-c2UKCUxlbmd0aDogTG9uZwoJSUQ6IDgKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBpcyBwcm92
-aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBDLCBETUkgdHlwZSA5LCAxMyBi
-eXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBDSSBFeHByZXNzIFNs
-b3QgSjhCNAoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBBdmFpbGFi
-bGUKCUxlbmd0aDogTG9uZwoJSUQ6IDkKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBpcyBwcm92
-aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBELCBETUkgdHlwZSA5LCAxMyBi
-eXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBDSSBFeHByZXNzIFNs
-b3QgSjhEMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBBdmFpbGFi
-bGUKCUxlbmd0aDogTG9uZwoJSUQ6IDkKCUNoYXJhY3RlcmlzdGljczoKCQk1LjAgViBpcyBwcm92
-aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSA5LCAxMyBi
-eXRlcwpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbgoJRGVzaWduYXRpb246IFBDSSBFeHByZXNzIFNs
-b3QgSjdCMQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzCglDdXJyZW50IFVzYWdlOiBVbmtub3du
-CglMZW5ndGg6IExvbmcKCUlEOiAwCglDaGFyYWN0ZXJpc3RpY3M6CgkJNS4wIFYgaXMgcHJvdmlk
-ZWQKCQkzLjMgViBpcyBwcm92aWRlZAoKSGFuZGxlIDB4MDAwRiwgRE1JIHR5cGUgMTEsIDUgYnl0
-ZXMKT0VNIFN0cmluZ3MKCVN0cmluZyAxOiBUaGlzIGlzIHRoZSBJbnRlbCBDcmVzdGxpbmUKCVN0
-cmluZyAyOiBDaGlwc2V0IENSQiBQbGF0Zm9ybQoKSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMTYs
-IDE1IGJ5dGVzClBoeXNpY2FsIE1lbW9yeSBBcnJheQoJTG9jYXRpb246IFN5c3RlbSBCb2FyZCBP
-ciBNb3RoZXJib2FyZAoJVXNlOiBTeXN0ZW0gTWVtb3J5CglFcnJvciBDb3JyZWN0aW9uIFR5cGU6
-IE5vbmUKCU1heGltdW0gQ2FwYWNpdHk6IDIgR0IKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTog
-Tm90IFByb3ZpZGVkCglOdW1iZXIgT2YgRGV2aWNlczogMgoKSGFuZGxlIDB4MDAxMSwgRE1JIHR5
-cGUgMTcsIDI3IGJ5dGVzCk1lbW9yeSBEZXZpY2UKCUFycmF5IEhhbmRsZTogMHgwMDEwCglFcnJv
-ciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yCglUb3RhbCBXaWR0aDogNjQgYml0cwoJRGF0
-YSBXaWR0aDogNjQgYml0cwoJU2l6ZTogNTEyIE1CCglGb3JtIEZhY3RvcjogU09ESU1NCglTZXQ6
-IDEKCUxvY2F0b3I6IE0xCglCYW5rIExvY2F0b3I6IEJhbmsgMAoJVHlwZTogRERSMgoJVHlwZSBE
-ZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDogNTMzIE1IeiAoMS45IG5zKQoJTWFudWZhY3R1cmVy
-OiBNZmcgMAoJU2VyaWFsIE51bWJlcjogMTIzNC1CMAoJQXNzZXQgVGFnOiBOb3QgU3BlY2lmaWVk
-CglQYXJ0IE51bWJlcjogU09ESU1NMDAwCgpIYW5kbGUgMHgwMDEyLCBETUkgdHlwZSAxNywgMjcg
-Ynl0ZXMKTWVtb3J5IERldmljZQoJQXJyYXkgSGFuZGxlOiAweDAwMTAKCUVycm9yIEluZm9ybWF0
-aW9uIEhhbmRsZTogTm8gRXJyb3IKCVRvdGFsIFdpZHRoOiBVbmtub3duCglEYXRhIFdpZHRoOiBV
-bmtub3duCglTaXplOiBObyBNb2R1bGUgSW5zdGFsbGVkCglGb3JtIEZhY3RvcjogU09ESU1NCglT
-ZXQ6IDEKCUxvY2F0b3I6IE0yCglCYW5rIExvY2F0b3I6IEJhbmsgMQoJVHlwZTogRERSMgoJVHlw
-ZSBEZXRhaWw6IFN5bmNocm9ub3VzCglTcGVlZDogNTMzIE1IeiAoMS45IG5zKQoJTWFudWZhY3R1
-cmVyOiBNZmcgMQoJU2VyaWFsIE51bWJlcjogMTIzNC1CMQoJQXNzZXQgVGFnOiBOb3QgU3BlY2lm
-aWVkCglQYXJ0IE51bWJlcjogU09ESU1NMDAxCgpIYW5kbGUgMHgwMDEzLCBETUkgdHlwZSAxOSwg
-MTUgYnl0ZXMKTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAw
-eDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDAxRkZGRkZGRgoJUmFuZ2UgU2l6ZTog
-NTEyIE1CCglQaHlzaWNhbCBBcnJheSBIYW5kbGU6IDB4MDAxMAoJUGFydGl0aW9uIFdpZHRoOiAw
-CgpIYW5kbGUgMHgwMDE0LCBETUkgdHlwZSAyMCwgMTkgYnl0ZXMKTWVtb3J5IERldmljZSBNYXBw
-ZWQgQWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAwMDAwMAoJRW5kaW5nIEFkZHJl
-c3M6IDB4MDAwMUZGRkZGRkYKCVJhbmdlIFNpemU6IDUxMiBNQgoJUGh5c2ljYWwgRGV2aWNlIEhh
-bmRsZTogMHgwMDExCglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTMK
-CVBhcnRpdGlvbiBSb3cgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmUgUG9zaXRpb246IFVu
-a25vd24KCUludGVybGVhdmVkIERhdGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTUsIERN
-SSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGlu
-ZyBBZGRyZXNzOiAweDAwMDFGRkZGQzAwCglFbmRpbmcgQWRkcmVzczogMHgwMDAxRkZGRkZGRgoJ
-UmFuZ2UgU2l6ZTogMSBrQgoJUGh5c2ljYWwgRGV2aWNlIEhhbmRsZTogMHgwMDEyCglNZW1vcnkg
-QXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTMKCVBhcnRpdGlvbiBSb3cgUG9zaXRp
-b246IFVua25vd24KCUludGVybGVhdmUgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmVkIERh
-dGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTYsIERNSSB0eXBlIDMyLCAyMCBieXRlcwpT
-eXN0ZW0gQm9vdCBJbmZvcm1hdGlvbgoJU3RhdHVzOiA8T1VUIE9GIFNQRUM+CgpIYW5kbGUgMHgw
-MDE3LCBETUkgdHlwZSAxMjksIDEwIGJ5dGVzCk9FTS1zcGVjaWZpYyBUeXBlCglIZWFkZXIgYW5k
-IERhdGE6CgkJODEgMEEgMTcgMDAgMDEgMDEgMDIgMDEgMDEgMDIKCVN0cmluZ3M6CgkJSW50ZWxf
-QVNGCgkJSW50ZWxfQVNGXzAwMQoKSGFuZGxlIDB4MDAxOCwgRE1JIHR5cGUgMTM2LCA2IGJ5dGVz
-Ck9FTS1zcGVjaWZpYyBUeXBlCglIZWFkZXIgYW5kIERhdGE6CgkJODggMDYgMTggMDAgRkYgRkYK
-CkhhbmRsZSAweDAwMTksIERNSSB0eXBlIDE1MCwgMTQgYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUK
-CUhlYWRlciBhbmQgRGF0YToKCQk5NiAwRSAxOSAwMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMAoJU3RyaW5nczoKCQlBQlNPTFVURShQSE9FTklYKSBDTE0KCkhhbmRsZSAweDAwMUEsIERN
-SSB0eXBlIDIwMCwgNyBieXRlcwpPRU0tc3BlY2lmaWMgVHlwZQoJSGVhZGVyIGFuZCBEYXRhOgoJ
-CUM4IDA3IDFBIDAwIDAxIDAyIDAzCglTdHJpbmdzOgoJCTE3QzAKCQkgICAgICAgICAgICAgCgkJ
-MDAwMQoKSGFuZGxlIDB4MDAxQiwgRE1JIHR5cGUgMTI3LCA0IGJ5dGVzCkVuZCBPZiBUYWJsZQoK
---=_f04b47598511e49570b2f0ac01bccd9a--
+To: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
+
+Stephen Hemminger wrote:
+> On Wed, 9 Jan 2008 16:03:00 -0800
+> Andrew Morton <akpm@linux-foundation.org> wrote:
+> 
+>> (switched to email.  Please respond via emailed reply-to-all, not via the
+>> bugzilla web interface).
+>>
+>> On Wed,  9 Jan 2008 13:05:34 -0800 (PST)
+>> bugme-daemon@bugzilla.kernel.org wrote:
+>>
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=9721
+>>>
+>>>            Summary: wake on lan fails with sky2 module
+>>>            Product: ACPI
+>>>            Version: 2.5
+>>>      KernelVersion: 2.6.24-rc7
+>>>           Platform: All
+>>>         OS/Version: Linux
+>>>               Tree: Mainline
+>>>             Status: NEW
+>>>           Severity: normal
+>>>           Priority: P1
+>>>          Component: Power-Sleep-Wake
+>>>         AssignedTo: acpi_power-sleep-wake@kernel-bugs.osdl.org
+>>>         ReportedBy: supersud501@yahoo.de
+>> This post-2.6.23 regression was assigned to ACPI but is quite possibly a
+>> net driver problem?
+>>
+>>> Latest working kernel version: 2.6.23.12
+>>> Earliest failing kernel version: 2.6.24-rc6 (not tested earlier kernel,
+>>> 2.6.24-rc7 still failing)
+>>> Distribution: Ubuntu 8.04 (but Kernel build from Kernel.org and system modifiet
+>>> to make wake on lan work, i.e. network cards are not shutted down on poweroff)
+>>> Hardware Environment: Marvell Technology Group Ltd. 88E8053 PCI-E Gigabit
+>>> Ethernet Controller (rev 20) onboard Asus P5W DH motherboard, uses module SKY2
+>>> Software Environment:
+>>> Problem Description:
+>>>
+>>> When enabling wake on lan with: 'ethtool -s eth0 wol' i get the following
+>>> status:
+>>>
+>>> 21:56:29 ~ # sudo ethtool eth0
+>>> Settings for eth0:
+>>>         Supported ports: [ TP ]
+>>>         Supported link modes:   10baseT/Half 10baseT/Full 
+>>>                                 100baseT/Half 100baseT/Full 
+>>>                                 1000baseT/Half 1000baseT/Full 
+>>>         Supports auto-negotiation: Yes
+>>>         Advertised link modes:  10baseT/Half 10baseT/Full 
+>>>                                 100baseT/Half 100baseT/Full 
+>>>                                 1000baseT/Half 1000baseT/Full 
+>>>         Advertised auto-negotiation: Yes
+>>>         Speed: 100Mb/s
+>>>         Duplex: Full
+>>>         Port: Twisted Pair
+>>>         PHYAD: 0
+>>>         Transceiver: internal
+>>>         Auto-negotiation: on
+>>>         Supports Wake-on: pg
+>>>         Wake-on: g    <---- wol enabled
+>>>         Current message level: 0x000000ff (255)
+>>>         Link detected: yes
+>>>
+>>> but after shutting down the pc doesn't wake up when magic packet is sent.
+>>>
+>>> the status lights of the network card are still on (so the card seems to be
+>>> online).
+>>>
+>>> same system with only changed kernel to 2.6.23.12 and same procedure like
+>>> above: wake on lan works.
+>>>
+>>> Steps to reproduce: enable wol on your network card using SKY2 module and it
+>>> doesn't work too?
+>>>
+>>> if you need more information, just tell me, it's my first bug report.
+>>> regards
+>>>
+> 
+> 
+> Wake from power off works on 2.6.24-rc7 for me.
+> Wake from suspend doesn't because Network Manager, HAL, or some other
+> user space tool gets confused.
+> 
+> I just rechecked it with Fujitsu Lifebook, which has sky2 (88E8055).
+> There many variations of this chip, and it maybe chip specific problem
+> or ACPI/BIOS issues.  If you don't enable Wake on Lan in BIOS, the
+> driver can't do it for you. Also, check how you are shutting down.
+> 
+> Also since the device has to restart the PHY, it could be a switch
+> issue if you have some fancy pants switch doing intrusion detection
+> or something, but I doubt that.
+> 
+> Is it a clean or fast shutdown, most distributions mark network
+> devices as down on shutdown, but if the distribution does something 
+> stupid like remove the driver module, then the driver is unable to setup Wake On Lan.
+> The wake on lan setup is done in one place in the driver, add
+> a printk to see if it is ever called.
+> 
+> 
+
+
+I tried ACPI wakeup with /proc/acpi/alarm (like i described in my last 
+mail) and it worked... so ACPI wakeup seems to work.
+
+i'll try to do the printk-thing when i find some time to mess around 
+with the sources (maybe tomorrow). if someone has some brief 
+instructions (maybe a link to a helpfull site for kernel debugging) for 
+me i would be thankfull and could provide some more info faster.
+
+some steps for me to identify the source of the problem (is it really 
+sky2?) would be really helpfull...
