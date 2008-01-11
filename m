@@ -1,162 +1,84 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [patch] hibernation: utilize ACPI hardware signature
-Date: Fri, 11 Jan 2008 09:07:12 +0800
-Message-ID: <1200013632.21533.1.camel@sli10-desk.sh.intel.com>
-References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com>
-	 <200801042144.20279.rjw@sisk.pl>
-	 <1199670409.13339.2.camel@sli10-desk.sh.intel.com>
-	 <200801110039.40523.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/2] ACPI: EC: Do the byte access with a fast path
+Date: Thu, 10 Jan 2008 20:50:54 -0500
+Message-ID: <200801102050.54914.lenb@kernel.org>
+References: <20080110234250.26720.16527.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:1315 "EHLO mga03.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:49817 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752820AbYAKBdI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Jan 2008 20:33:08 -0500
-In-Reply-To: <200801110039.40523.rjw@sisk.pl>
+	id S1752402AbYAKBvP (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2008 20:51:15 -0500
+In-Reply-To: <20080110234250.26720.16527.stgit@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
+applied to acpi test.
 
-On Fri, 2008-01-11 at 07:39 +0800, Rafael J. Wysocki wrote:
-> On Monday, 7 of January 2008, Shaohua Li wrote:
-> >
-> > On Sat, 2008-01-05 at 04:44 +0800, Rafael J. Wysocki wrote:
-> > > On Friday, 4 of January 2008, Shaohua Li wrote:
-> > > >
-> > > > On Fri, 2008-01-04 at 01:04 +0800, Rafael J. Wysocki wrote:
-> > > > > On Thursday, 3 of January 2008, Shaohua Li wrote:
-> > > > > >
-> > > > > > On Wed, 2008-01-02 at 22:05 +0800, Rafael J. Wysocki wrote:
-> > > > > > > On Wednesday, 2 of January 2008, Shaohua Li wrote:
-> > > > > > > > ACPI defines a hardware signature. BIOS calculates the
-> > > signature
-> > > > > > > > according to hardware configure, if hardware changes,
-> the
-> > > > > signature
-> > > > > > > will
-> > > > > > > > change, in this case, S4 resume should fail.
-> > > > > > >
-> > > > > > > The idea is fine, but I'd prefer to do that in a more
-> > > > > straightforward
-> > > > > > > way.
-> > > > > > > Namely, we can just:
-> > > > > > > * write the signature into a variable in, for example,
-> > > > > > >   acpi_hibernation_prepare() (then, the "old" signature
-> value
-> > > will
-> > > > > be
-> > > > > > >   automatically saved in the image)
-> > > > > > > * compare it with a the "new" value read from the BIOS in
-> > > > > > >   acpi_hibernation_leave() and panic if there's a mismatch
-> > > > > > > * add a configuration option to disable this behavior
-> (just in
-> > > > > case)
-> > > > > > > This way we can avoid modifying the entire generic
-> interface
-> > > to
-> > > > > add
-> > > > > > > the feature
-> > > > > > > specific to ACPI.
-> > > > > > it would be better we do the check in boot kernel.
-> > > > > Franky, I think we should also check in the image kernel, in
-> case
-> > > the
-> > > > > boot
-> > > > > one doesn't support ACPI as I said.
-> > > > Ok, makes sense. I changed to check the signature
-> > > in .higberation_leave
-> > >
-> > > Thanks, comments below.
-> > >
-> > > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > > > ---
-> > > >  drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
-> > > >  1 file changed, 20 insertions(+)
-> > > >
-> > > > Index: linux/drivers/acpi/sleep/main.c
-> > > >
-> ===================================================================
-> > > > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-03
-> > > 13:37:08.000000000 +0800
-> > > > +++ linux/drivers/acpi/sleep/main.c   2008-01-04
-> 13:36:10.000000000
-> > > +0800
-> > > > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
-> > > >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-> > > >  }
-> > > >
-> > > > +static unsigned long s4_hardware_signature;
-> > > > +static struct acpi_table_facs *facs;
-> > > > +static int nosigcheck;
-> > >
-> > > Use bool perhaps?
-> > >
-> > > > +
-> > > > +static int __init acpi_s4_nosigcheck(char *str)
-> > > > +{
-> > > > +     nosigcheck = 1;
-> > >
-> > > And "true" here?
-> > >
-> > > > +     return 1;
-> > > > +}
-> > > > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
-> > > > +
-> > >
-> > > Please put this function at the end of the file.  Also, I'd call
-> it
-> > > "acpi_s4_nosig", but whatever.
-> > Fixed all except this one, the routine is defined with HIBERATION
-> > configed.
+thanks,
+-Len
+
+On Thursday 10 January 2008 18:42, Alexey Starikovskiy wrote:
+> Specification allows only byte access for EC region, so
+> make it separate from bug-compatible multy-byte access.
+> Also do not allow return of garbage in supplied *value.
 > 
-> I've just realized that we're not doing the right thing here ...
+> Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9341
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+> ---
 > 
-> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > ---
-> >  drivers/acpi/sleep/main.c |   22 ++++++++++++++++++++++
-> >  1 file changed, 22 insertions(+)
-> >
-> > Index: linux/drivers/acpi/sleep/main.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-04
-> 13:44:40.000000000 +0800
-> > +++ linux/drivers/acpi/sleep/main.c   2008-01-07 09:31:42.000000000
-> +0800
-> > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
-> >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-> >  }
-> > 
-> > +static unsigned long s4_hardware_signature;
-> > +static struct acpi_table_facs *facs;
-> > +static bool nosigcheck;
-> > +
-> > +static int __init acpi_s4_nosigcheck(char *str)
-> > +{
-> > +     nosigcheck = true;
-> > +     return 1;
-> > +}
-> > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
-> > +
-> >  static void acpi_hibernation_leave(void)
-> >  {
-> >       /*
-> > @@ -263,6 +274,10 @@ static void acpi_hibernation_leave(void)
-> >        * enable it here.
-> >        */
-> >       acpi_enable();
-> > +     if (facs && s4_hardware_signature != facs->hardware_signature)
-> {
+>  drivers/acpi/ec.c |   15 +++++++++++----
+>  1 files changed, 11 insertions(+), 4 deletions(-)
 > 
-> ... because we should read the signature from the hardware here, while
-> we're
-> comparing two values read from memory.  They will always be equal. :-)
-No, facs isn't a copy of ACPI FACS table (imagine how we sets
-facs->waking_vector). It's mapped to BIOS table.
-
-Thanks,
-Shaohua
-
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 97dc161..1de0905 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -563,7 +563,7 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+>  		      void *handler_context, void *region_context)
+>  {
+>  	struct acpi_ec *ec = handler_context;
+> -	int result = 0, i = 0;
+> +	int result = 0, i;
+>  	u8 temp = 0;
+>  
+>  	if ((address > 0xFF) || !value || !handler_context)
+> @@ -575,7 +575,16 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+>  	if (bits != 8 && acpi_strict)
+>  		return AE_BAD_PARAMETER;
+>  
+> -	while (bits - i > 0) {
+> +	if (function == ACPI_READ) {
+> +		result = acpi_ec_read(ec, address, &temp);
+> +		*value = temp;
+> +	} else {
+> +		temp = 0xff & (*value);
+> +		result = acpi_ec_write(ec, address, temp);
+> +	}
+> +
+> +	for (i = 8; unlikely(bits - i > 0); i += 8) {
+> +		++address;
+>  		if (function == ACPI_READ) {
+>  			result = acpi_ec_read(ec, address, &temp);
+>  			(*value) |= ((acpi_integer)temp) << i;
+> @@ -583,8 +592,6 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+>  			temp = 0xff & ((*value) >> i);
+>  			result = acpi_ec_write(ec, address, temp);
+>  		}
+> -		i += 8;
+> -		++address;
+>  	}
+>  
+>  	switch (result) {
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
