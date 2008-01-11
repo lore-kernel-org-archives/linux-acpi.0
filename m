@@ -1,65 +1,61 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
-Date: Fri, 11 Jan 2008 07:55:42 +0800
-Message-ID: <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
-	 <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
-	 <200801100943.08780.maximlevitsky@gmail.com>
-	 <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
-Reply-To: yi.y.yang@intel.com
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] PM: Acquire device locks on suspend (rev. 3)
+Date: Fri, 11 Jan 2008 10:07:38 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0801111006410.4263-100000@iolanthe.rowland.org>
+References: <200801110216.35446.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4015 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754742AbYAKJFH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Jan 2008 04:05:07 -0500
-In-Reply-To: <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:55016 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756100AbYAKPHk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2008 10:07:40 -0500
+In-Reply-To: <200801110216.35446.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, david-b@pacbell.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <gregkh@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, Andrew Morton <akpm@linux-foundation.org>
 
-> > I think that it would be much much better to place wake-up attributes under
-> > corresponding PCI and PNP devices.
-> > Probably it is even better to link this code to PCI code, so PCI drivers will be aware of ACPI.
-> I like this idea, maxim. :)
-> And that's what we actually did about half a year ago.
-> 
-> Yi,
-> Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=6892
-> and David's patch set here:
-> http://marc.info/?l=linux-mm-commits&m=117701595209299&w=2
-> http://marc.info/?l=linux-mm-commits&m=117701866524935&w=2
-> You can have a look at this thread as well:
-> http://marc.info/?l=linux-acpi&m=119982937409968&w=2
-> 
-I checked those patches you mentioned, they did bind two wakeup flag to
-some extent, but they can't be exchanged to use and they are just partly
-in current linus tree, two flags bind isn't in linus tree.
+On Fri, 11 Jan 2008, Rafael J. Wysocki wrote:
 
-According to my test on the latest linus tree, wakeup flag of
-acpi_device hasn't any association with device's, i don't know if they
-are the same thing. if we enbale or disable it manually, what will
-happen? From source code, it is just a flag, it doesn't trigger any
-event or hardware operation.
+> Hi,
+>=20
+> The patch below is intended as a replacement for
+> gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch that =
+deadlocked
+> suspend and hibernation on some systems. =C2=A0The present patch cont=
+ains some
+> safeguards against deadlocks in the relevant cases and a mechanism to=
+ print
+> warnings if a deadlock is probable.
+>=20
+> Greetings,
+> Rafael
+>=20
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>, Alan Stern <stern@rowland.harv=
+ard.edu>
+>=20
+> This patch reorganizes the way suspend and resume notifications are
+> sent to drivers.  The major changes are that now the PM core acquires
+> every device semaphore before calling the methods, and calls to
+> device_add() during suspends will fail, while calls to device_del()
+> during suspends will block.
+>=20
+> It also provides a way to safely remove a suspended device with the
+> help of the PM core, by using the device_pm_schedule_removal() callba=
+ck
+> introduced specifically for this purpose, and updates two drivers (ms=
+r
+> and cpuid) that need to use it.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-> thanks,
-> Rui
-> > For example it will fix the 'EHCI instantly wakes up the system from S4' on my system, since here USB doesn't wake
-> > up anything from S4, and ACPI tables correctly show that.
-> > 
-> > If ehci driver was aware of that it could disable #PME on entrance to S4.
-> > And we even can reuse its 'wakeup' attribute, thus enabling wakeup automatically.
-> > 
-> > Going ever further, I think that it will be great to get rid of ACPI device tree, since
-> > most acpi devices are ether PCI of PNP ones.
-> > 
-> > Or, even better have a small ACPI tree, that will contain 'true' ACPI devices, like cpus
-> > thermal sensors, buttons, etc. 
-> > 
-> 
-> 
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
