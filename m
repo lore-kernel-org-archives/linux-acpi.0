@@ -1,61 +1,165 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: Acquire device locks on suspend (rev. 3)
-Date: Fri, 11 Jan 2008 10:07:38 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0801111006410.4263-100000@iolanthe.rowland.org>
-References: <200801110216.35446.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch] hibernation: utilize ACPI hardware signature
+Date: Fri, 11 Jan 2008 18:20:47 +0100
+Message-ID: <200801111820.48462.rjw@sisk.pl>
+References: <1199257162.14632.4.camel@sli10-desk.sh.intel.com> <200801110039.40523.rjw@sisk.pl> <1200013632.21533.1.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55016 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756100AbYAKPHk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jan 2008 10:07:40 -0500
-In-Reply-To: <200801110216.35446.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:58035 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760409AbYAKRSR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Jan 2008 12:18:17 -0500
+In-Reply-To: <1200013632.21533.1.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, Andrew Morton <akpm@linux-foundation.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>
 
-On Fri, 11 Jan 2008, Rafael J. Wysocki wrote:
+On Friday, 11 of January 2008, Shaohua Li wrote:
+> 
+> On Fri, 2008-01-11 at 07:39 +0800, Rafael J. Wysocki wrote:
+> > On Monday, 7 of January 2008, Shaohua Li wrote:
+> > >
+> > > On Sat, 2008-01-05 at 04:44 +0800, Rafael J. Wysocki wrote:
+> > > > On Friday, 4 of January 2008, Shaohua Li wrote:
+> > > > >
+> > > > > On Fri, 2008-01-04 at 01:04 +0800, Rafael J. Wysocki wrote:
+> > > > > > On Thursday, 3 of January 2008, Shaohua Li wrote:
+> > > > > > >
+> > > > > > > On Wed, 2008-01-02 at 22:05 +0800, Rafael J. Wysocki wrote:
+> > > > > > > > On Wednesday, 2 of January 2008, Shaohua Li wrote:
+> > > > > > > > > ACPI defines a hardware signature. BIOS calculates the
+> > > > signature
+> > > > > > > > > according to hardware configure, if hardware changes,
+> > the
+> > > > > > signature
+> > > > > > > > will
+> > > > > > > > > change, in this case, S4 resume should fail.
+> > > > > > > >
+> > > > > > > > The idea is fine, but I'd prefer to do that in a more
+> > > > > > straightforward
+> > > > > > > > way.
+> > > > > > > > Namely, we can just:
+> > > > > > > > * write the signature into a variable in, for example,
+> > > > > > > >   acpi_hibernation_prepare() (then, the "old" signature
+> > value
+> > > > will
+> > > > > > be
+> > > > > > > >   automatically saved in the image)
+> > > > > > > > * compare it with a the "new" value read from the BIOS in
+> > > > > > > >   acpi_hibernation_leave() and panic if there's a mismatch
+> > > > > > > > * add a configuration option to disable this behavior
+> > (just in
+> > > > > > case)
+> > > > > > > > This way we can avoid modifying the entire generic
+> > interface
+> > > > to
+> > > > > > add
+> > > > > > > > the feature
+> > > > > > > > specific to ACPI.
+> > > > > > > it would be better we do the check in boot kernel.
+> > > > > > Franky, I think we should also check in the image kernel, in
+> > case
+> > > > the
+> > > > > > boot
+> > > > > > one doesn't support ACPI as I said.
+> > > > > Ok, makes sense. I changed to check the signature
+> > > > in .higberation_leave
+> > > >
+> > > > Thanks, comments below.
+> > > >
+> > > > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > > > ---
+> > > > >  drivers/acpi/sleep/main.c |   20 ++++++++++++++++++++
+> > > > >  1 file changed, 20 insertions(+)
+> > > > >
+> > > > > Index: linux/drivers/acpi/sleep/main.c
+> > > > >
+> > ===================================================================
+> > > > > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-03
+> > > > 13:37:08.000000000 +0800
+> > > > > +++ linux/drivers/acpi/sleep/main.c   2008-01-04
+> > 13:36:10.000000000
+> > > > +0800
+> > > > > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+> > > > >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+> > > > >  }
+> > > > >
+> > > > > +static unsigned long s4_hardware_signature;
+> > > > > +static struct acpi_table_facs *facs;
+> > > > > +static int nosigcheck;
+> > > >
+> > > > Use bool perhaps?
+> > > >
+> > > > > +
+> > > > > +static int __init acpi_s4_nosigcheck(char *str)
+> > > > > +{
+> > > > > +     nosigcheck = 1;
+> > > >
+> > > > And "true" here?
+> > > >
+> > > > > +     return 1;
+> > > > > +}
+> > > > > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> > > > > +
+> > > >
+> > > > Please put this function at the end of the file.  Also, I'd call
+> > it
+> > > > "acpi_s4_nosig", but whatever.
+> > > Fixed all except this one, the routine is defined with HIBERATION
+> > > configed.
+> > 
+> > I've just realized that we're not doing the right thing here ...
+> > 
+> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > > ---
+> > >  drivers/acpi/sleep/main.c |   22 ++++++++++++++++++++++
+> > >  1 file changed, 22 insertions(+)
+> > >
+> > > Index: linux/drivers/acpi/sleep/main.c
+> > > ===================================================================
+> > > --- linux.orig/drivers/acpi/sleep/main.c      2008-01-04
+> > 13:44:40.000000000 +0800
+> > > +++ linux/drivers/acpi/sleep/main.c   2008-01-07 09:31:42.000000000
+> > +0800
+> > > @@ -256,6 +256,17 @@ static int acpi_hibernation_enter(void)
+> > >       return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+> > >  }
+> > > 
+> > > +static unsigned long s4_hardware_signature;
+> > > +static struct acpi_table_facs *facs;
+> > > +static bool nosigcheck;
+> > > +
+> > > +static int __init acpi_s4_nosigcheck(char *str)
+> > > +{
+> > > +     nosigcheck = true;
+> > > +     return 1;
+> > > +}
+> > > +__setup("acpi_s4_nosigcheck", acpi_s4_nosigcheck);
+> > > +
+> > >  static void acpi_hibernation_leave(void)
+> > >  {
+> > >       /*
+> > > @@ -263,6 +274,10 @@ static void acpi_hibernation_leave(void)
+> > >        * enable it here.
+> > >        */
+> > >       acpi_enable();
+> > > +     if (facs && s4_hardware_signature != facs->hardware_signature)
+> > {
+> > 
+> > ... because we should read the signature from the hardware here, while
+> > we're
+> > comparing two values read from memory.  They will always be equal. :-)
+> No, facs isn't a copy of ACPI FACS table (imagine how we sets
+> facs->waking_vector). It's mapped to BIOS table.
 
-> Hi,
->=20
-> The patch below is intended as a replacement for
-> gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch that =
-deadlocked
-> suspend and hibernation on some systems. =C2=A0The present patch cont=
-ains some
-> safeguards against deadlocks in the relevant cases and a mechanism to=
- print
-> warnings if a deadlock is probable.
->=20
-> Greetings,
-> Rafael
->=20
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>, Alan Stern <stern@rowland.harv=
-ard.edu>
->=20
-> This patch reorganizes the way suspend and resume notifications are
-> sent to drivers.  The major changes are that now the PM core acquires
-> every device semaphore before calling the methods, and calls to
-> device_add() during suspends will fail, while calls to device_del()
-> during suspends will block.
->=20
-> It also provides a way to safely remove a suspended device with the
-> help of the PM core, by using the device_pm_schedule_removal() callba=
-ck
-> introduced specifically for this purpose, and updates two drivers (ms=
-r
-> and cpuid) that need to use it.
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Ah, ok.  Thanks for the clarification.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+I'll rebase your patch on top of the suspend branch.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Greetings,
+Rafael
