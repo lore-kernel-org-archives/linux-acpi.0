@@ -1,53 +1,94 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 2/2] ACPI: EC: Some hardware requires burst mode to operate
-	properly
-Date: Fri, 11 Jan 2008 02:42:57 +0300
-Message-ID: <20080110234257.26720.77000.stgit@localhost.localdomain>
-References: <20080110234250.26720.16527.stgit@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/3] PM: Remove obsolete /sys/devices/.../power/state docs
+Date: Fri, 11 Jan 2008 01:26:57 +0100
+Message-ID: <200801110126.57737.rjw@sisk.pl>
+References: <200801110118.46106.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:33631 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753740AbYAJXnV (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 10 Jan 2008 18:43:21 -0500
-In-Reply-To: <20080110234250.26720.16527.stgit@localhost.localdomain>
+Received: from ogre.sisk.pl ([217.79.144.158]:54698 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751555AbYAKAZa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Jan 2008 19:25:30 -0500
+In-Reply-To: <200801110118.46106.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-Burst mode temporary (50 ms) locks EC to do only transactions with
-driver, without it some hardware returns abstract garbage.
+From: David Brownell <david-b@pacbell.net>
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9341
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+The /sys/devices/.../power/state files have been gone for a while
+now, but I just noticed some documentation that still refers to
+them.  (Fortunately described as DEPRECATED and WILL REMOVE).
+
+Time to remove that obsolete documentation too ...
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
 
- drivers/acpi/ec.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ Documentation/power/devices.txt |   49 ----------------------------------------
+ 1 file changed, 49 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 1de0905..98a5388 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -575,6 +575,8 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 	if (bits != 8 && acpi_strict)
- 		return AE_BAD_PARAMETER;
- 
-+	acpi_ec_burst_enable(ec);
-+
- 	if (function == ACPI_READ) {
- 		result = acpi_ec_read(ec, address, &temp);
- 		*value = temp;
-@@ -594,6 +596,8 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 		}
- 	}
- 
-+	acpi_ec_burst_disable(ec);
-+
- 	switch (result) {
- 	case -EINVAL:
- 		return AE_BAD_PARAMETER;
-
+Index: linux-2.6/Documentation/power/devices.txt
+===================================================================
+--- linux-2.6.orig/Documentation/power/devices.txt
++++ linux-2.6/Documentation/power/devices.txt
+@@ -502,52 +502,3 @@ If the CPU can have a "cpufreq" driver, 
+ to shift to lower voltage settings and reduce the power cost of executing
+ a given number of instructions.  (Without voltage adjustment, it's rare
+ for cpufreq to save much power; the cost-per-instruction must go down.)
+-
+-
+-/sys/devices/.../power/state files
+-==================================
+-For now you can also test some of this functionality using sysfs.
+-
+-	DEPRECATED:  USE "power/state" ONLY FOR DRIVER TESTING, AND
+-	AVOID USING dev->power.power_state IN DRIVERS.
+-
+-	THESE WILL BE REMOVED.  IF THE "power/state" FILE GETS REPLACED,
+-	IT WILL BECOME SOMETHING COUPLED TO THE BUS OR DRIVER.
+-
+-In each device's directory, there is a 'power' directory, which contains
+-at least a 'state' file.  The value of this field is effectively boolean,
+-PM_EVENT_ON or PM_EVENT_SUSPEND.
+-
+-   *	Reading from this file displays a value corresponding to
+-	the power.power_state.event field.  All nonzero values are
+-	displayed as "2", corresponding to a low power state; zero
+-	is displayed as "0", corresponding to normal operation.
+-
+-   *	Writing to this file initiates a transition using the
+-   	specified event code number; only '0', '2', and '3' are
+-	accepted (without a newline); '2' and '3' are both
+-	mapped to PM_EVENT_SUSPEND.
+-
+-On writes, the PM core relies on that recorded event code and the device/bus
+-capabilities to determine whether it uses a partial suspend() or resume()
+-sequence to change things so that the recorded event corresponds to the
+-numeric parameter.
+-
+-   -	If the bus requires the irqs-disabled suspend_late()/resume_early()
+-	phases, writes fail because those operations are not supported here.
+-
+-   -	If the recorded value is the expected value, nothing is done.
+-
+-   -	If the recorded value is nonzero, the device is partially resumed,
+-	using the bus.resume() and/or class.resume() methods.
+-
+-   -	If the target value is nonzero, the device is partially suspended,
+-	using the class.suspend() and/or bus.suspend() methods and the
+-	PM_EVENT_SUSPEND message.
+-
+-Drivers have no way to tell whether their suspend() and resume() calls
+-have come through the sysfs power/state file or as part of entering a
+-system sleep state, except that when accessed through sysfs the normal
+-parent/child sequencing rules are ignored.  Drivers (such as bus, bridge,
+-or hub drivers) which expose child devices may need to enforce those rules
+-on their own.
