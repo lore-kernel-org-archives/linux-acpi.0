@@ -1,55 +1,91 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended (rev. 2)
-Date: Sat, 12 Jan 2008 12:25:43 +0100
-Message-ID: <200801121225.44688.rjw@sisk.pl>
-References: <20080112005619.GA4665@suse.de> <Pine.LNX.4.44L0.0801112208030.21411-100000@netrider.rowland.org> <20080112042946.GA30093@suse.de>
+Subject: Re: [PATCH] ACPI: Fix acpi_pm_device_sleep_state()
+Date: Sat, 12 Jan 2008 12:36:52 +0100
+Message-ID: <200801121236.52430.rjw@sisk.pl>
+References: <200801110010.38658.rjw@sisk.pl> <200801112346.04744.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33066 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:33092 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754804AbYALLW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jan 2008 06:22:59 -0500
-In-Reply-To: <20080112042946.GA30093@suse.de>
+	id S1758856AbYALLeg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2008 06:34:36 -0500
+In-Reply-To: <200801112346.04744.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, pavel@suse.cz, mingo@elte.hu, tglx@linutronix.de, ak@suse.de
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Saturday, 12 of January 2008, Greg KH wrote:
-> On Fri, Jan 11, 2008 at 10:11:52PM -0500, Alan Stern wrote:
-> > On Fri, 11 Jan 2008, Greg KH wrote:
+On Saturday, 12 of January 2008, Len Brown wrote:
+> On Thursday 10 January 2008 18:10, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
 > > 
-> > > On Fri, Jan 11, 2008 at 04:49:04PM -0800, Andrew Morton wrote:
+> > Fix acpi_pm_device_sleep_state() to return the value returned
+> > by _SxD if the device is supposed to wake up the system from
+> > given sleep state and the evaluation of _SxW fails (e.g. _SxW
+> > is not present).
 > > 
-> > > > err, no.  pm-introduce-destroy_suspended_device.patch demolishes
-> > > > pm-acquire-device-locks-on-suspend-rev-3.patch
-> > > > 
-> > > > Confused, giving up.
-> > > 
-> > > I'm confused too, I have no idea what the proper order of things should
-> > > be either.  Anyone want to give me a hint?
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/acpi/sleep/main.c |   15 ++++++++++++---
+> >  1 file changed, 12 insertions(+), 3 deletions(-)
 > > 
-> > Sorry for the confusion.  The correct patch to apply is 
-> > pm-acquire-device-locks-on-suspend-rev-3 (plus the attending 
-> > style-fixups).  It encompasses those earlier patches.
+> > Index: linux-2.6/drivers/acpi/sleep/main.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/sleep/main.c
+> > +++ linux-2.6/drivers/acpi/sleep/main.c
+> > @@ -472,11 +472,20 @@ int acpi_pm_device_sleep_state(struct de
+> >  	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+> >  	    (wake && adev->wakeup.state.enabled &&
+> >  	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
+> > +		acpi_status status;
+> > +
+> >  		acpi_method[3] = 'W';
+> > -		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
+> > -		/* Sanity check */
+> > -		if (d_max < d_min)
+> > +		status = acpi_evaluate_integer(handle, acpi_method, NULL,
+> > +						&d_max);
+> > +		if (ACPI_FAILURE(status)) {
+> > +			d_max = d_min;
+> > +		} else if (d_max < d_min) {
+> > +			/* Warn the user of the broken DSDT */
+> > +			printk(KERN_WARNING "ACPI: Wrong value from %s\n",
+> > +				acpi_method);
+> > +			/* Sanitize it */
+> >  			d_min = d_max;
+> > +		}
+> >  	}
+> >  
+> >  	if (d_min_p)
+> > 
 > 
-> Can someone resend this to me?  Do I need to drop the patch I currently
-> have in my tree as well?  Or put it before/after that one?
+> this patch looks correct, it fixes the bug where 
+> _SxD=2, _PRW=x, _SxW was absent, we would return D3 as legal,
+> when we should have returned D2.
 > 
-> > The real problem is that our current email workflow patterns don't 
-> > provide a standardized way for maintainers to tell when a new patch 
-> > submission is meant to override or replace an earlier submission (or 
-> > even a set of earlier submissions).  Does anybody have some suggestions 
-> > for a good way to do this?
+> applied to acpi test.
 > 
-> Yeah, just tell me what you want me to do with it (drop an old one,
-> replace it, add it, etc.)  We usually can handle this pretty well :)
+> BTW.  We currently don't use *d_min_p
+> and I can't imagine when and why we ever would,
+> so it would be fine with me if you simplify by deleting it.
 
-I'll repost the new patch along with instructions what to do with it.
+It was requested by someone.  I can imagine that if _SxW > _SxD, a driver can
+decide which state to choose on the basis of some policy we don't know of.
 
-Greetings,
+> Also, the last line of this block comment can be deleted,
+> though that was true before this patch also:
+
+Not sure what you mean here ...
+ 
+> acpi_pci_choose_state() block comment can now be updated to delete this line:
+> 
+> * currently we simply return _SxD, if present.
+
+Yes, I'll do that in a separate patch.
+
+Thanks,
 Rafael
