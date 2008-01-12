@@ -1,222 +1,91 @@
-From: "Erwan Velu" <erwanaliasr1@gmail.com>
-Subject: ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFFE [20070126]
-Date: Sat, 12 Jan 2008 09:43:43 +0100
-Message-ID: <b43bf5490801120043n2ff07a9dsfe1d8a74304b8c25@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
+Date: Sat, 12 Jan 2008 04:16:08 -0500
+Message-ID: <200801120416.08631.lenb@kernel.org>
+References: <20080112022348.GC27524@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_5809_7157286.1200127423604"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.181]:34345 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756056AbYALIno (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 03:43:44 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so2278973wah.23
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Jan 2008 00:43:43 -0800 (PST)
+Received: from hera.kernel.org ([140.211.167.34]:50780 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758884AbYALJQY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2008 04:16:24 -0500
+In-Reply-To: <20080112022348.GC27524@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-------=_Part_5809_7157286.1200127423604
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Friday 11 January 2008 21:23, Henrique de Moraes Holschuh wrote:
+> While helping a user find out what happened to his mute key, I found out
+> that the Lenovo BIOSes need the OSI string Linux defined to behave properly
+> in Linux.
+> 
+> Lenovo has been attempting to make things a bit easier for Linux on their
+> ThinkPads, by disabling the more obnoxious behaviours of the firmware (used
+> by their Windows drivers) when in Linux.  It looks like they used the OSI
+> string for that.
+> 
+> It is probably worthwhile to give a head's up: regressions involving
+> thinkpads and 2.6.23+ should probably have a 'please test with
+> acpi_osi="Linux"' step added if there is any chance ACPI AML code, BIOS or
+> SMBIOS code, or EC behaviour could be involved.
+> 
+> The most concrete example I have right now of changed behaviour is the Mute
+> key on the T61, which just plain disappears if acpi_osi="!Linux" (2.6.23
+> default).
+> 
+> I have also seen some hacked DSDTs around (mostly for older T4x models)
+> which used the Linux OSI string to fix or work around AML weirdness.  Those
+> would break in 2.6.23 (and 2.6.24?) as well.
+> 
+> Now, what should we do about it?  Add a quirk to always define the Linux OSI
+> string on ThinkPads (based on DMI information)?  All IBM ones (which won't
+> have BIOS revisions anymore, anyway) deal well with it, and Lenovo ones
+> seem to benefit from it.
+> 
+> We could also ask Lenovo to change the BIOS to stop paying attention to that
+> OSI string, but they will likely want/need a trigger for the AML code to
+> know it should change behaviour anyway, and the OSI string *does* look like
+> the proper thing to use IMHO.  I don't know if we could get them to arrive
+> to a behaviour that is acceptable both to us, and also to their Windows
+> drivers...
+> 
 
-Hey folks,
+I discussed this with Lenovo a few months ago
+and made it clear that Linux will unlikely
+default to answer yes to OSI(Linux) in the future --
+for all the reasons I stated when I disabled it.
 
-I'm running a 2.6.24-rc7 on my Samsung R70 in 64bit mode.
-While booting up, the ACPI shows me this error :
+However, they told me they wanted to use OSI(Linux)
+to enable the backlight (via video re-post) on S3 resume,
+and the problem at hand was a distro kernel which still
+had OSI(Linux), so that is what they did.
 
-ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFFE [20070126]
-Pid: 1950, comm: modprobe Not tainted 2.6.24-laptop-0.rc7.1mdv #1
+I was unaware that they're using it for anything else,
+and the fact that they are lends further support to
+the case that as an OS interface string "Linux"
+is too vague to be meaningful.
 
-Call Trace:
- [<ffffffff8038bd86>] acpi_ut_update_ref_count+0x50/0x9d
- [<ffffffff8038c231>] acpi_format_exception+0x2c/0x35
- [<ffffffff8038afcb>] acpi_ut_exception+0x25/0x8c
- [<ffffffff8037662c>] acpi_evaluate_integer+0xb6/0xc7
- [<ffffffff8821dd0a>] :video:acpi_video_bus_add+0xcc9/0xce2
- [<ffffffff802c45e8>] ifind+0x58/0xd0
- [<ffffffff8038f33c>] acpi_device_probe+0x43/0x91
- [<ffffffff803c31cc>] driver_probe_device+0x9c/0x1b0
- [<ffffffff803c3499>] __driver_attach+0xc9/0xd0
- [<ffffffff803c33d0>] __driver_attach+0x0/0xd0
- [<ffffffff803c23ad>] bus_for_each_dev+0x4d/0x80
- [<ffffffff803c281c>] bus_add_driver+0xac/0x220
- [<ffffffff8822303c>] :video:acpi_video_init+0x3c/0x5e
- [<ffffffff802622ae>] sys_init_module+0x18e/0x19a0
- [<ffffffff802522b0>] autoremove_wake_function+0x0/0x30
- [<ffffffff8020c34e>] system_call+0x7e/0x83
+They seemed open to looking for another string, say
+"Needs S3 video re-post".  However, we didn't
+agree on such a string, and so it isn't in Linux
+or the Lenovo BIOS.
 
-ACPI Exception (video-1721): UNKNOWN_STATUS_CODE, Cant attach device [20070126]
-input: Video Bus as /class/input/input7
+I think until we have native Linux graphics driver for (fast)
+backlight restore, we need to add a DMI to enable OSI(Linux)
+for the offending Lenovo models.   We'll need to have
+some coordination with the graphics guys so that they
+can turn this off from user-space when they don't need it.
 
-I would love helping you in fixing that. I'm attaching the complete
-dmesg and dmidecode.
+The reason it shoudl be turned off is that backlight enabling
+backlight from a native graphics driver is much faster than running
+through the video BIOS POST.  So if we keep the OSI(Linux)
+video BIOS POST workaround in place permanently, it would
+put Linux at a permanent performance disadvantage to Windows.
 
-------=_Part_5809_7157286.1200127423604
-Content-Type: application/octet-stream; name=dmidecode
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fbbws1mi
-Content-Disposition: attachment; filename=dmidecode
-
-IyBkbWlkZWNvZGUgMi45ClNNQklPUyAyLjQgcHJlc2VudC4KMzUgc3RydWN0dXJlcyBvY2N1cHlp
-bmcgMTIzMSBieXRlcy4KVGFibGUgYXQgMHgwMDBEQzAxMC4KCkhhbmRsZSAweDAwMDAsIERNSSB0
-eXBlIDAsIDI0IGJ5dGVzCkJJT1MgSW5mb3JtYXRpb24KCVZlbmRvcjogUGhvZW5peCBUZWNobm9s
-b2dpZXMgTFRECglWZXJzaW9uOiAwNkFCCglSZWxlYXNlIERhdGU6IDA5LzA0LzIwMDcKCUFkZHJl
-c3M6IDB4RTVFQTAKCVJ1bnRpbWUgU2l6ZTogMTA2ODQ4IGJ5dGVzCglST00gU2l6ZTogNjQga0IK
-CUNoYXJhY3RlcmlzdGljczoKCQlJU0EgaXMgc3VwcG9ydGVkCgkJUENJIGlzIHN1cHBvcnRlZAoJ
-CVBDIENhcmQgKFBDTUNJQSkgaXMgc3VwcG9ydGVkCgkJUE5QIGlzIHN1cHBvcnRlZAoJCUJJT1Mg
-aXMgdXBncmFkZWFibGUKCQlCSU9TIHNoYWRvd2luZyBpcyBhbGxvd2VkCgkJRVNDRCBzdXBwb3J0
-IGlzIGF2YWlsYWJsZQoJCUJvb3QgZnJvbSBDRCBpcyBzdXBwb3J0ZWQKCQlBQ1BJIGlzIHN1cHBv
-cnRlZAoJCVVTQiBsZWdhY3kgaXMgc3VwcG9ydGVkCgkJQUdQIGlzIHN1cHBvcnRlZAoJCUJJT1Mg
-Ym9vdCBzcGVjaWZpY2F0aW9uIGlzIHN1cHBvcnRlZAoJCVRhcmdldGVkIGNvbnRlbnQgZGlzdHJp
-YnV0aW9uIGlzIHN1cHBvcnRlZAoKSGFuZGxlIDB4MDAwMSwgRE1JIHR5cGUgMSwgMjcgYnl0ZXMK
-U3lzdGVtIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IFNBTVNVTkcgRUxFQ1RST05JQ1MgQ08u
-LCBMVEQuCglQcm9kdWN0IE5hbWU6IFNSNzBTL1NSNzFTCglWZXJzaW9uOiAwNUFCCglTZXJpYWwg
-TnVtYmVyOiAyMDBZOTNDUDgwMDA2NwoJVVVJRDogMjBCN0U3MkUtRDIxRC1CMjExLTgwMDAtQTRB
-NDY5OTQ4NTE3CglXYWtlLXVwIFR5cGU6IFBvd2VyIFN3aXRjaAoJU0tVIE51bWJlcjogTm90IFNw
-ZWNpZmllZAoJRmFtaWx5OiBOb3QgU3BlY2lmaWVkCgpIYW5kbGUgMHgwMDAyLCBETUkgdHlwZSAy
-LCA4IGJ5dGVzCkJhc2UgQm9hcmQgSW5mb3JtYXRpb24KCU1hbnVmYWN0dXJlcjogU0FNU1VORyBF
-TEVDVFJPTklDUyBDTy4sIExURC4KCVByb2R1Y3QgTmFtZTogU1I3MFMvU1I3MVMKCVZlcnNpb246
-ICAgICAKCVNlcmlhbCBOdW1iZXI6IDEyMzQ5MEVONDAwMDE1CgpIYW5kbGUgMHgwMDAzLCBETUkg
-dHlwZSAzLCAxNyBieXRlcwpDaGFzc2lzIEluZm9ybWF0aW9uCglNYW51ZmFjdHVyZXI6IFNBTVNV
-TkcgRUxFQ1RST05JQ1MgQ08uLCBMVEQuCglUeXBlOiBOb3RlYm9vawoJTG9jazogTm90IFByZXNl
-bnQKCVZlcnNpb246IE4vQQoJU2VyaWFsIE51bWJlcjogTm9uZQoJQXNzZXQgVGFnOiBObyBBc3Nl
-dCBUYWcKCUJvb3QtdXAgU3RhdGU6IFNhZmUKCVBvd2VyIFN1cHBseSBTdGF0ZTogU2FmZQoJVGhl
-cm1hbCBTdGF0ZTogU2FmZQoJU2VjdXJpdHkgU3RhdHVzOiBOb25lCglPRU0gSW5mb3JtYXRpb246
-IDB4MDAwMDEyMzQKCkhhbmRsZSAweDAwMDQsIERNSSB0eXBlIDQsIDM1IGJ5dGVzClByb2Nlc3Nv
-ciBJbmZvcm1hdGlvbgoJU29ja2V0IERlc2lnbmF0aW9uOiBVMkUxCglUeXBlOiBDZW50cmFsIFBy
-b2Nlc3NvcgoJRmFtaWx5OiBPdGhlcgoJTWFudWZhY3R1cmVyOiBJbnRlbAoJSUQ6IEZBIDA2IDAw
-IDAwIEZGIEZCIEVCIEJGCglWZXJzaW9uOiBDUFUgVmVyc2lvbgoJVm9sdGFnZTogMy4zIFYKCUV4
-dGVybmFsIENsb2NrOiBVbmtub3duCglNYXggU3BlZWQ6IDQwOTYgTUh6CglDdXJyZW50IFNwZWVk
-OiAyMDAwIE1IegoJU3RhdHVzOiBQb3B1bGF0ZWQsIEVuYWJsZWQKCVVwZ3JhZGU6IFpJRiBTb2Nr
-ZXQKCUwxIENhY2hlIEhhbmRsZTogMHgwMDA1CglMMiBDYWNoZSBIYW5kbGU6IDB4MDAwNgoJTDMg
-Q2FjaGUgSGFuZGxlOiBOb3QgUHJvdmlkZWQKCVNlcmlhbCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQK
-CUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6IE5vdCBTcGVjaWZpZWQKCkhh
-bmRsZSAweDAwMDUsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIEluZm9ybWF0aW9uCglTb2Nr
-ZXQgRGVzaWduYXRpb246IEwxIENhY2hlCglDb25maWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRl
-ZCwgTGV2ZWwgMQoJT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawoJTG9jYXRpb246IEludGVy
-bmFsCglJbnN0YWxsZWQgU2l6ZTogNjQgS0IKCU1heGltdW0gU2l6ZTogNjQgS0IKCVN1cHBvcnRl
-ZCBTUkFNIFR5cGVzOgoJCUJ1cnN0CgkJUGlwZWxpbmUgQnVyc3QKCQlBc3luY2hyb25vdXMKCUlu
-c3RhbGxlZCBTUkFNIFR5cGU6IEFzeW5jaHJvbm91cwoJU3BlZWQ6IFVua25vd24KCUVycm9yIENv
-cnJlY3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24KCUFzc29jaWF0aXZp
-dHk6IFVua25vd24KCkhhbmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzCkNhY2hlIElu
-Zm9ybWF0aW9uCglTb2NrZXQgRGVzaWduYXRpb246IEwyIENhY2hlCglDb25maWd1cmF0aW9uOiBF
-bmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMgoJT3BlcmF0aW9uYWwgTW9kZTogV3JpdGUgQmFjawoJ
-TG9jYXRpb246IEludGVybmFsCglJbnN0YWxsZWQgU2l6ZTogNDA5NiBLQgoJTWF4aW11bSBTaXpl
-OiA0MDk2IEtCCglTdXBwb3J0ZWQgU1JBTSBUeXBlczoKCQlCdXJzdAoJCVBpcGVsaW5lIEJ1cnN0
-CgkJQXN5bmNocm9ub3VzCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBCdXJzdAoJU3BlZWQ6IFVua25v
-d24KCUVycm9yIENvcnJlY3Rpb24gVHlwZTogVW5rbm93bgoJU3lzdGVtIFR5cGU6IFVua25vd24K
-CUFzc29jaWF0aXZpdHk6IFVua25vd24KCkhhbmRsZSAweDAwMDcsIERNSSB0eXBlIDgsIDkgYnl0
-ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBEZXNpZ25h
-dG9yOiBKMTkKCUludGVybmFsIENvbm5lY3RvciBUeXBlOiA5IFBpbiBEdWFsIElubGluZSAocGlu
-IDEwIGN1dCkKCUV4dGVybmFsIFJlZmVyZW5jZSBEZXNpZ25hdG9yOiBDT00gMQoJRXh0ZXJuYWwg
-Q29ubmVjdG9yIFR5cGU6IERCLTkgbWFsZQoJUG9ydCBUeXBlOiBTZXJpYWwgUG9ydCAxNjU1MEEg
-Q29tcGF0aWJsZQoKSGFuZGxlIDB4MDAwOCwgRE1JIHR5cGUgOCwgOSBieXRlcwpQb3J0IENvbm5l
-Y3RvciBJbmZvcm1hdGlvbgoJSW50ZXJuYWwgUmVmZXJlbmNlIERlc2lnbmF0b3I6IEoxQTEKCUlu
-dGVybmFsIENvbm5lY3RvciBUeXBlOiBOb25lCglFeHRlcm5hbCBSZWZlcmVuY2UgRGVzaWduYXRv
-cjogS2V5Ym9hcmQKCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBDaXJjdWxhciBESU4tOCBtYWxl
-CglQb3J0IFR5cGU6IEtleWJvYXJkIFBvcnQKCkhhbmRsZSAweDAwMDksIERNSSB0eXBlIDgsIDkg
-Ynl0ZXMKUG9ydCBDb25uZWN0b3IgSW5mb3JtYXRpb24KCUludGVybmFsIFJlZmVyZW5jZSBEZXNp
-Z25hdG9yOiBKMUExCglJbnRlcm5hbCBDb25uZWN0b3IgVHlwZTogTm9uZQoJRXh0ZXJuYWwgUmVm
-ZXJlbmNlIERlc2lnbmF0b3I6IFBTLzIgTW91c2UKCUV4dGVybmFsIENvbm5lY3RvciBUeXBlOiBD
-aXJjdWxhciBESU4tOCBtYWxlCglQb3J0IFR5cGU6IE1vdXNlIFBvcnQKCkhhbmRsZSAweDAwMEEs
-IERNSSB0eXBlIDksIDEzIGJ5dGVzClN5c3RlbSBTbG90IEluZm9ybWF0aW9uCglEZXNpZ25hdGlv
-bjogQ0FSREJVUyAwCglUeXBlOiAzMi1iaXQgUEMgQ2FyZCAoUENNQ0lBKQoJQ3VycmVudCBVc2Fn
-ZTogVW5rbm93bgoJTGVuZ3RoOiBPdGhlcgoJSUQ6IEFkYXB0ZXIgMCwgU29ja2V0IDAKCUNoYXJh
-Y3RlcmlzdGljczoKCQk1LjAgViBpcyBwcm92aWRlZAoJCTMuMyBWIGlzIHByb3ZpZGVkCgkJUEMg
-Q2FyZC0xNiBpcyBzdXBwb3J0ZWQKCQlDYXJkYnVzIGlzIHN1cHBvcnRlZAoKSGFuZGxlIDB4MDAw
-QiwgRE1JIHR5cGUgMTAsIDYgYnl0ZXMKT24gQm9hcmQgRGV2aWNlIEluZm9ybWF0aW9uCglUeXBl
-OiBTb3VuZAoJU3RhdHVzOiBEaXNhYmxlZAoJRGVzY3JpcHRpb246IEhELUF1ZGlvCgpIYW5kbGUg
-MHgwMDBDLCBETUkgdHlwZSAxMSwgNSBieXRlcwpPRU0gU3RyaW5ncwoJU3RyaW5nIDE6IEJBQkJB
-QUFBQUFBQQoJU3RyaW5nIDI6IDIwMDgvMDEKCkhhbmRsZSAweDAwMEQsIERNSSB0eXBlIDEyLCA1
-IGJ5dGVzClN5c3RlbSBDb25maWd1cmF0aW9uIE9wdGlvbnMKCU9wdGlvbiAxOiBKdW1wZXIgc2V0
-dGluZ3MgY2FuIGJlIGRlc2NyaWJlZCBoZXJlLgoKSGFuZGxlIDB4MDAwRSwgRE1JIHR5cGUgMTUs
-IDI5IGJ5dGVzClN5c3RlbSBFdmVudCBMb2cKCUFyZWEgTGVuZ3RoOiAxNiBieXRlcwoJSGVhZGVy
-IFN0YXJ0IE9mZnNldDogMHgwMDAwCglIZWFkZXIgTGVuZ3RoOiAxNiBieXRlcwoJRGF0YSBTdGFy
-dCBPZmZzZXQ6IDB4MDAxMAoJQWNjZXNzIE1ldGhvZDogR2VuZXJhbC1wdXJwb3NlIG5vbi12b2xh
-dGlsZSBkYXRhIGZ1bmN0aW9ucwoJQWNjZXNzIEFkZHJlc3M6IDB4MDAwMAoJU3RhdHVzOiBWYWxp
-ZCwgTm90IEZ1bGwKCUNoYW5nZSBUb2tlbjogMHgwMDAwMDBCMAoJSGVhZGVyIEZvcm1hdDogVHlw
-ZSAxCglTdXBwb3J0ZWQgTG9nIFR5cGUgRGVzY3JpcHRvcnM6IDMKCURlc2NyaXB0b3IgMTogUE9T
-VCBlcnJvcgoJRGF0YSBGb3JtYXQgMTogUE9TVCByZXN1bHRzIGJpdG1hcAoJRGVzY3JpcHRvciAy
-OiBTaW5nbGUtYml0IEVDQyBtZW1vcnkgZXJyb3IKCURhdGEgRm9ybWF0IDI6IE11bHRpcGxlLWV2
-ZW50CglEZXNjcmlwdG9yIDM6IE11bHRpLWJpdCBFQ0MgbWVtb3J5IGVycm9yCglEYXRhIEZvcm1h
-dCAzOiBNdWx0aXBsZS1ldmVudAoKSGFuZGxlIDB4MDAwRiwgRE1JIHR5cGUgMTYsIDE1IGJ5dGVz
-ClBoeXNpY2FsIE1lbW9yeSBBcnJheQoJTG9jYXRpb246IFN5c3RlbSBCb2FyZCBPciBNb3RoZXJi
-b2FyZAoJVXNlOiBTeXN0ZW0gTWVtb3J5CglFcnJvciBDb3JyZWN0aW9uIFR5cGU6IE5vbmUKCU1h
-eGltdW0gQ2FwYWNpdHk6IDEwMDAgTUIKCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm90IFBy
-b3ZpZGVkCglOdW1iZXIgT2YgRGV2aWNlczogMgoKSGFuZGxlIDB4MDAxMCwgRE1JIHR5cGUgMTcs
-IDI3IGJ5dGVzCk1lbW9yeSBEZXZpY2UKCUFycmF5IEhhbmRsZTogMHgwMDBGCglFcnJvciBJbmZv
-cm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yCglUb3RhbCBXaWR0aDogNjQgYml0cwoJRGF0YSBXaWR0
-aDogNjQgYml0cwoJU2l6ZTogMTAyNCBNQgoJRm9ybSBGYWN0b3I6IFNPRElNTQoJU2V0OiAxCglM
-b2NhdG9yOiBNMQoJQmFuayBMb2NhdG9yOiBCYW5rIDAKCVR5cGU6IEREUjIKCVR5cGUgRGV0YWls
-OiBTeW5jaHJvbm91cwoJU3BlZWQ6IDY2NyBNSHogKDEuNSBucykKCU1hbnVmYWN0dXJlcjogTWZn
-IDAKCVNlcmlhbCBOdW1iZXI6IDEyMzQtQjAKCUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFy
-dCBOdW1iZXI6IFNPRElNTTAwMAoKSGFuZGxlIDB4MDAxMSwgRE1JIHR5cGUgMTcsIDI3IGJ5dGVz
-Ck1lbW9yeSBEZXZpY2UKCUFycmF5IEhhbmRsZTogMHgwMDBGCglFcnJvciBJbmZvcm1hdGlvbiBI
-YW5kbGU6IE5vIEVycm9yCglUb3RhbCBXaWR0aDogNjQgYml0cwoJRGF0YSBXaWR0aDogNjQgYml0
-cwoJU2l6ZTogMTAyNCBNQgoJRm9ybSBGYWN0b3I6IFNPRElNTQoJU2V0OiAxCglMb2NhdG9yOiBN
-MgoJQmFuayBMb2NhdG9yOiBCYW5rIDEKCVR5cGU6IEREUjIKCVR5cGUgRGV0YWlsOiBTeW5jaHJv
-bm91cwoJU3BlZWQ6IDY2NyBNSHogKDEuNSBucykKCU1hbnVmYWN0dXJlcjogTWZnIDEKCVNlcmlh
-bCBOdW1iZXI6IDEyMzQtQjEKCUFzc2V0IFRhZzogTm90IFNwZWNpZmllZAoJUGFydCBOdW1iZXI6
-IFNPRElNTTAwMQoKSGFuZGxlIDB4MDAxMiwgRE1JIHR5cGUgMTksIDE1IGJ5dGVzCk1lbW9yeSBB
-cnJheSBNYXBwZWQgQWRkcmVzcwoJU3RhcnRpbmcgQWRkcmVzczogMHgwMDAwMDAwMDAwMAoJRW5k
-aW5nIEFkZHJlc3M6IDB4MDAwN0ZGRkZGRkYKCVJhbmdlIFNpemU6IDIgR0IKCVBoeXNpY2FsIEFy
-cmF5IEhhbmRsZTogMHgwMDBGCglQYXJ0aXRpb24gV2lkdGg6IDAKCkhhbmRsZSAweDAwMTMsIERN
-SSB0eXBlIDIwLCAxOSBieXRlcwpNZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGlu
-ZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDAzRkZGRkZGRgoJ
-UmFuZ2UgU2l6ZTogMSBHQgoJUGh5c2ljYWwgRGV2aWNlIEhhbmRsZTogMHgwMDEwCglNZW1vcnkg
-QXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMTIKCVBhcnRpdGlvbiBSb3cgUG9zaXRp
-b246IFVua25vd24KCUludGVybGVhdmUgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmVkIERh
-dGEgRGVwdGg6IFVua25vd24KCkhhbmRsZSAweDAwMTQsIERNSSB0eXBlIDIwLCAxOSBieXRlcwpN
-ZW1vcnkgRGV2aWNlIE1hcHBlZCBBZGRyZXNzCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDQwMDAw
-MDAwCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRgoJUmFuZ2UgU2l6ZTogMSBHQgoJUGh5
-c2ljYWwgRGV2aWNlIEhhbmRsZTogMHgwMDExCglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3Mg
-SGFuZGxlOiAweDAwMTIKCVBhcnRpdGlvbiBSb3cgUG9zaXRpb246IFVua25vd24KCUludGVybGVh
-dmUgUG9zaXRpb246IFVua25vd24KCUludGVybGVhdmVkIERhdGEgRGVwdGg6IFVua25vd24KCkhh
-bmRsZSAweDAwMTUsIERNSSB0eXBlIDIyLCAyNiBieXRlcwpQb3J0YWJsZSBCYXR0ZXJ5CglMb2Nh
-dGlvbjogUmVhcgoJTWFudWZhY3R1cmVyOiBJbnRlbCBDb3Jwb3JhdGlvbgoJTmFtZTogSW50ZWwg
-Q29ycG9yYXRpb24KCUNoZW1pc3RyeTogTGl0aGl1bSBJb24KCURlc2lnbiBDYXBhY2l0eTogMTAw
-MCBtV2gKCURlc2lnbiBWb2x0YWdlOiAxOSBtVgoJU0JEUyBWZXJzaW9uOiBCQVRUXzEyMzQKCU1h
-eGltdW0gRXJyb3I6IDEwMCUKCVNCRFMgU2VyaWFsIE51bWJlcjogMDAwMQoJU0JEUyBNYW51ZmFj
-dHVyZSBEYXRlOiAxOTgwLTAwLTAxCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAw
-MDAKCkhhbmRsZSAweDAwMTYsIERNSSB0eXBlIDIzLCAxMyBieXRlcwpTeXN0ZW0gUmVzZXQKCVN0
-YXR1czogRW5hYmxlZAoJV2F0Y2hkb2cgVGltZXI6IFByZXNlbnQKCUJvb3QgT3B0aW9uOiBEbyBO
-b3QgUmVib290CglCb290IE9wdGlvbiBPbiBMaW1pdDogRG8gTm90IFJlYm9vdAoJUmVzZXQgQ291
-bnQ6IFVua25vd24KCVJlc2V0IExpbWl0OiBVbmtub3duCglUaW1lciBJbnRlcnZhbDogVW5rbm93
-bgoJVGltZW91dDogVW5rbm93bgoKSGFuZGxlIDB4MDAxNywgRE1JIHR5cGUgMjQsIDUgYnl0ZXMK
-SGFyZHdhcmUgU2VjdXJpdHkKCVBvd2VyLU9uIFBhc3N3b3JkIFN0YXR1czogRW5hYmxlZAoJS2V5
-Ym9hcmQgUGFzc3dvcmQgU3RhdHVzOiBVbmtub3duCglBZG1pbmlzdHJhdG9yIFBhc3N3b3JkIFN0
-YXR1czogRW5hYmxlZAoJRnJvbnQgUGFuZWwgUmVzZXQgU3RhdHVzOiBVbmtub3duCgpIYW5kbGUg
-MHgwMDE4LCBETUkgdHlwZSAyNSwgOSBieXRlcwoJU3lzdGVtIFBvd2VyIENvbnRyb2xzCglOZXh0
-IFNjaGVkdWxlZCBQb3dlci1vbjogMTItMzEgMjM6NTk6NTkKCkhhbmRsZSAweDAwMTksIERNSSB0
-eXBlIDI2LCAyMCBieXRlcwpWb2x0YWdlIFByb2JlCglEZXNjcmlwdGlvbjogVm9sdGFnZSBQcm9i
-ZQoJTG9jYXRpb246IFByb2Nlc3NvcgoJU3RhdHVzOiBPSwoJTWF4aW11bSBWYWx1ZTogVW5rbm93
-bgoJTWluaW11bSBWYWx1ZTogVW5rbm93bgoJUmVzb2x1dGlvbjogVW5rbm93bgoJVG9sZXJhbmNl
-OiBVbmtub3duCglBY2N1cmFjeTogVW5rbm93bgoJT0VNLXNwZWNpZmljIEluZm9ybWF0aW9uOiAw
-eDAwMDAwMDAwCgpIYW5kbGUgMHgwMDFBLCBETUkgdHlwZSAyNywgMTIgYnl0ZXMKQ29vbGluZyBE
-ZXZpY2UKCVRlbXBlcmF0dXJlIFByb2JlIEhhbmRsZTogMHgwMDFCCglUeXBlOiBGYW4KCVN0YXR1
-czogT0sKCU9FTS1zcGVjaWZpYyBJbmZvcm1hdGlvbjogMHgwMDAwMDAwMAoKSGFuZGxlIDB4MDAx
-QiwgRE1JIHR5cGUgMjgsIDIwIGJ5dGVzClRlbXBlcmF0dXJlIFByb2JlCglEZXNjcmlwdGlvbjog
-VGVtcGVyYXR1cmUgUHJvYmUKCUxvY2F0aW9uOiBQcm9jZXNzb3IKCVN0YXR1czogT0sKCU1heGlt
-dW0gVmFsdWU6IFVua25vd24KCU1pbmltdW0gVmFsdWUgVW5rbm93bgoJUmVzb2x1dGlvbjogVW5r
-bm93bgoJVG9sZXJhbmNlOiBVbmtub3duCglBY2N1cmFjeTogVW5rbm93bgoJT0VNLXNwZWNpZmlj
-IEluZm9ybWF0aW9uOiAweDAwMDAwMDAwCgpIYW5kbGUgMHgwMDFDLCBETUkgdHlwZSAyOSwgMjAg
-Ynl0ZXMKRWxlY3RyaWNhbCBDdXJyZW50IFByb2JlCglEZXNjcmlwdGlvbjogRWxlY3RyaWNhbCBD
-dXJyZW50IFByb2JlCglMb2NhdGlvbjogUHJvY2Vzc29yCglTdGF0dXM6IE9LCglNYXhpbXVtIFZh
-bHVlOiBVbmtub3duCglNaW5pbXVtIFZhbHVlOiBVbmtub3duCglSZXNvbHV0aW9uOiBVbmtub3du
-CglUb2xlcmFuY2U6IFVua25vd24KCUFjY3VyYWN5OiBVbmtub3duCglPRU0tc3BlY2lmaWMgSW5m
-b3JtYXRpb246IDB4MDAwMDAwMDAKCkhhbmRsZSAweDAwMUQsIERNSSB0eXBlIDMwLCA2IGJ5dGVz
-Ck91dC1vZi1iYW5kIFJlbW90ZSBBY2Nlc3MKCU1hbnVmYWN0dXJlciBOYW1lOiBJbnRlbAoJSW5i
-b3VuZCBDb25uZWN0aW9uOiBFbmFibGVkCglPdXRib3VuZCBDb25uZWN0aW9uOiBEaXNhYmxlZAoK
-SGFuZGxlIDB4MDAxRSwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzClN5c3RlbSBCb290IEluZm9ybWF0
-aW9uCglTdGF0dXM6IDxPVVQgT0YgU1BFQz4KCkhhbmRsZSAweDAwMUYsIERNSSB0eXBlIDEyOSwg
-MTYgYnl0ZXMKT0VNLXNwZWNpZmljIFR5cGUKCUhlYWRlciBhbmQgRGF0YToKCQk4MSAxMCAxRiAw
-MCAwMSAwMSAwMiAwMSAwMCAwMCAwMCAwMSAwMCAwMCAwOCAwMQoJU3RyaW5nczoKCQlJbnRlbF9B
-U0ZfMDAxCgkJSW50ZWxfQVNGXzAwMQoKSGFuZGxlIDB4MDAyMCwgRE1JIHR5cGUgMTM2LCA2IGJ5
-dGVzCk9FTS1zcGVjaWZpYyBUeXBlCglIZWFkZXIgYW5kIERhdGE6CgkJODggMDYgMjAgMDAgRkYg
-RkYKCkhhbmRsZSAweDAwMjEsIERNSSB0eXBlIDE1MCwgMTQgYnl0ZXMKT0VNLXNwZWNpZmljIFR5
-cGUKCUhlYWRlciBhbmQgRGF0YToKCQk5NiAwRSAyMSAwMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMAoJU3RyaW5nczoKCQlBQlNPTFVURShQSE9FTklYKSBDTE0KCkhhbmRsZSAweDAwMjIs
-IERNSSB0eXBlIDEyNywgNCBieXRlcwpFbmQgT2YgVGFibGUKCg==
-------=_Part_5809_7157286.1200127423604--
+cheers,
+-Len
