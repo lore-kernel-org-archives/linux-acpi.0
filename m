@@ -1,53 +1,71 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: 2.6.24-rc4 hwmon it87 probe fails
-Date: Sat, 12 Jan 2008 10:56:58 +0100
-Message-ID: <20080112105658.6fb3995f@hyperion.delvare>
-References: <fa.QPUBl9Xd2PDsImgWn6hbR+ShV1U@ifi.uio.no>
-	<fa.ri5Klmu4+MwjYC8x5nSms+xKXfI@ifi.uio.no>
-	<fa.B/J+j9kGGZ1+gW9FrfHky+cj0Eo@ifi.uio.no>
-	<fa.Xv3BmMxnCGLOeEijySte5mKDO5k@ifi.uio.no>
-	<4769C0E2.4000500@shaw.ca>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/4] PM: Do not destroy/create devices while suspended (rev. 2)
+Date: Sat, 12 Jan 2008 12:20:21 +0100
+Message-ID: <200801121220.23223.rjw@sisk.pl>
+References: <200801020032.45529.rjw@sisk.pl> <20080111164613.7791bb94.akpm@linux-foundation.org> <20080111164904.3ca81602.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-106-saturday.nerim.net ([62.4.16.106]:61412 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760646AbYALJ5A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 04:57:00 -0500
-In-Reply-To: <4769C0E2.4000500@shaw.ca>
+Received: from ogre.sisk.pl ([217.79.144.158]:33041 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762361AbYALLRs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2008 06:17:48 -0500
+In-Reply-To: <20080111164904.3ca81602.akpm@linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>, Mike Houston <mikeserv@bmts.com>, Adrian Bunk <bunk@stusta.de>, Elvis Pranskevichus <el@prans.net>, mhoffman@lightlink.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Adam Belay <ambx1@neo.rr.com>, Zhao Yakui <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, lenb@kernel.org, linux-kernel@vger.kernel.org, pavel@suse.cz, mingo@elte.hu, gregkh@suse.de, tglx@linutronix.de, ak@suse.de
 
-Hi Robert,
+On Saturday, 12 of January 2008, Andrew Morton wrote:
+> On Fri, 11 Jan 2008 16:46:13 -0800
+> Andrew Morton <akpm@linux-foundation.org> wrote:
+> 
+> > > The first patch in the series introduces such a mechanism.  The remaining three
+> > > patches modify the MSR, x86-64 MCE and cpuid drivers in accordance with the
+> > > above approach.
+> > 
+> > These patches are a preresuisite to
+> > gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch and its
+> > later fixed-up versions.
+> > 
+> > So what I have now is
+> > 
+> > revert-gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+> > pm-introduce-destroy_suspended_device.patch
+> > pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch
+> > pm-do-not-destroy-create-devices-while-suspended-in-mce_64c.patch
+> > pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
+> > pm-acquire-device-locks-on-suspend-rev-3.patch
+> > pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+> > pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
+> > 
+> > So what needs to happen in Greg's tree is
+> > 
+> > a) drop the old gregkh-driver-pm-acquire-device-locks-prior-to-suspending.patch
+> > 
+> > b) apply these four patches
+> > 
+> > c) apply the new pm-acquire-device-locks-on-suspend-rev-3.patch (and its fixups)
+> 
+> err, no.  pm-introduce-destroy_suspended_device.patch demolishes
+> pm-acquire-device-locks-on-suspend-rev-3.patch
+> 
+> Confused, giving up.
 
-On Wed, 19 Dec 2007 19:09:54 -0600, Robert Hancock wrote:
-> It's quite possible that the BIOS accesses the device either from ACPI 
-> AML or possibly even from SMI. In that case it would be quite reasonable 
-> for the BIOS to reserve that region to prevent another driver from 
-> loading and trying to take conflicting control of the device. One has to 
-> be careful before assuming that any such reservation is bogus.
+Sorry, I didn't know you still had pm-introduce-destroy_suspended_device.patch.
 
-Again I am all for honoring such BIOS requests so as to prevent
-conflicts between ACPI or SMI and native drivers. The problem is that
-no two BIOS out there do the same in this respect. I couldn't see any
-correlation between machines declaring their hwmon device in PNP and
-machines where ACPI or SMI access the device in question. Many boards
-declare their device and seemingly never touch it so it's fine for
-Linux to drive them. Some boards no not declare the devices but still
-access them in our back.
+Please drop:
 
-Thomas' patches should deal with the ACPI AML case in most cases, but
-not with SMI.
+pm-do-not-destroy-create-devices-while-suspended-in-msrc-rev-2.patch
+pm-do-not-destroy-create-devices-while-suspended-in-mce_64c.patch
+pm-do-not-destroy-create-devices-while-suspended-in-cpuidc.patch
+pm-acquire-device-locks-on-suspend-rev-3.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes.patch
+pm-acquire-device-locks-on-suspend-rev-3-checkpatch-fixes-2.patch
 
-So either the PNP code in Linux isn't exporting enough details to
-differentiate, or even the PNP code has no way to tell these cases
-apart. In the latter case there's not much we can do. In the former
-case, let's have the PNP code export the information so that hwmon
-drivers can decide whether they should bind to the devices or not by
-default.
-
--- 
-Jean Delvare
+and I'll resend a new checkpatch.pl-compliant version of the
+pm-acquire-device-locks-on-suspend patch with appropriate sign-offs to you
+and Greg.
