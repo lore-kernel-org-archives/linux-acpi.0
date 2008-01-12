@@ -1,63 +1,29 @@
-From: giggz <giggzounet@gmail.com>
-Subject: Re: Problem with the Fn+F3 key. acpi problem ?
-Date: Sat, 12 Jan 2008 16:02:53 +0100
-Message-ID: <fmakts$gqs$1@ger.gmane.org>
-References: <fmaaj5$jsl$1@ger.gmane.org> <20080112121714.GB15173@srcf.ucam.org> <fmac61$oc8$1@ger.gmane.org> <20080112124619.GA15578@srcf.ucam.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
+Date: Sat, 12 Jan 2008 15:49:16 +0000
+Message-ID: <20080112154916.6bca2395@lxorguk.ukuu.org.uk>
+References: <20080112022348.GC27524@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:44779 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758236AbYALPEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jan 2008 10:04:45 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JDhuX-0005nm-Cn
-	for linux-acpi@vger.kernel.org; Sat, 12 Jan 2008 15:04:37 +0000
-Received: from cam44-1-82-67-121-239.fbx.proxad.net ([82.67.121.239])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Jan 2008 15:04:37 +0000
-Received: from giggzounet by cam44-1-82-67-121-239.fbx.proxad.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Jan 2008 15:04:37 +0000
-In-Reply-To: <20080112124619.GA15578@srcf.ucam.org>
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:52992 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751613AbYALPvw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 10:51:52 -0500
+In-Reply-To: <20080112022348.GC27524@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Matthew Garrett a =E9crit :
-> On Sat, Jan 12, 2008 at 01:33:38PM +0100, giggz wrote:
->=20
->> What is the acpi video module ?
->=20
-> If you have /proc/acpi/video, it's loaded.
->=20
->> I don't have any /var/log/acpid.log
+> Now, what should we do about it?  Add a quirk to always define the Linux OSI
+> string on ThinkPads (based on DMI information)?  All IBM ones (which won't
+> have BIOS revisions anymore, anyway) deal well with it, and Lenovo ones
+> seem to benefit from it.
 
-it seems to be normal that I don't have any /var/log/acpid.log :
-according to the NEWS.debian.gz from acpid package :
+If Lenovo systems do the right thing then I guess submit a patch which
+checks for a DMI identifier string for Lenovo and if so don't lie to the
+ACPI interpreter.
 
-" Starting with version 1.0.6 acpid uses syslog instead of its own logg=
-ing
-  mechanism. During the upgrade of this package the old log files and t=
-he
-  logrotate configuration file are backed up to
-  /var/backups/acpid-cruft.tar.gz and are removed from the filesystem."
-
-So if I understand I must look at the syslog and message...but I don't
-see anything in these two file...
-
-How can I increase the level of debugging ?
-
->=20
-> In that case, try catting /proc/acpi/event and hit the button.
->=20
-
-Have a nice we
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan
