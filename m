@@ -1,43 +1,47 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Problem with the Fn+F3 key. acpi problem ?
-Date: Sat, 12 Jan 2008 12:17:14 +0000
-Message-ID: <20080112121714.GB15173@srcf.ucam.org>
-References: <fmaaj5$jsl$1@ger.gmane.org>
+From: supersud501 <supersud501@yahoo.de>
+Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
+Date: Sat, 12 Jan 2008 13:24:49 +0100
+Message-ID: <4788B191.1060001@yahoo.de>
+References: <bug-9721-10286@http.bugzilla.kernel.org/> <200801112216.08992.rjw@sisk.pl> <4787EB69.9060900@yahoo.de> <200801120010.22440.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:57219 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756797AbYALMRV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 07:17:21 -0500
-Content-Disposition: inline
-In-Reply-To: <fmaaj5$jsl$1@ger.gmane.org>
+Received: from smtp010.mail.ukl.yahoo.com ([217.12.11.79]:39461 "HELO
+	smtp010.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1761482AbYALMYv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jan 2008 07:24:51 -0500
+In-Reply-To: <200801120010.22440.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: giggz <giggzounet@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Sat, Jan 12, 2008 at 01:06:30PM +0100, giggz wrote:
 
-> I want to associate a script (which works fine) to a key (Fn+F3). This
-> key is for the video output switching and my script is a video output
-> switch using xrandr.
-> But when I try to associate Fn+F3 it doesn't work. I have try with the
-> xen command to catch the keycode, but nothing happends when I press on
-> the key. All the others Fn+F* works fine (help, hibernate, luminosity,
-> sound...).
-> So I want to report a bug, but I don't know if it is an acpi problem or
-> a xorg problem... If anyone could help me...?
 
-Does pressing the key generate any output in dmesg? If so, you need to 
-run the setkeycodes command to bind it to a keycode. If not, make sure 
-you have the acpi video module loaded, do 
+Rafael J. Wysocki wrote:
+> On Friday, 11 of January 2008, supersud501 wrote:
+>> Rafael J. Wysocki wrote:
+>>>> http://bugzilla.kernel.org/show_bug.cgi?id=9721
+> 
+>> allright, didn't see that before, sorry, here are the results:
+>>
+>> kernel 2.6.23.12 acpi=off: when shutting down the system doesn't 
+>> poweroff (of course), but pressing the powerbutton does the trick. and 
+>> wake on lan: WORKS
+>>
+>> kernel 2.6.24-rc7 acpi=off: computer doesn't power off, either (so 
+>> acpi=off works), but wol still DOESN'T work :(
+>>
+>> so no acpi-problem?
+> 
+> No, I don't think it's an ACPI problem.
+> 
+> Since it seems to be 100% reproducible, it would be very helpful if you could
+> use git-bisect to identify the offending commit.
+> 
 
-echo -n 4 >/proc/acpi/video/foo/DOS
-
-and check whether it generates an acpi event (there'll be a log message 
-in /var/log/acpid.log). If so, sufficiently recent kernels ought to 
-generate an input event.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I'll do the git-bisect (just downloading linux-2.6.git), but i forgot to 
+mention one little thing: i'm using x64 version of kernel - does this 
+play an important role?
