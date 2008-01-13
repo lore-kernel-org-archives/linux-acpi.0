@@ -1,48 +1,26 @@
 From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 2/6] sony-laptop: Add Vaio N series to the special init sequence to enable Fn keys
-Date: Sun, 13 Jan 2008 13:23:28 +0900
-Message-ID: <1200198212-10526-3-git-send-email-malattia@linux.it>
-References: <1200198212-10526-1-git-send-email-malattia@linux.it>
- <1200198212-10526-2-git-send-email-malattia@linux.it>
+Subject: [PATCH 0/6] sony-laptop for 2.6.25
+Date: Sun, 13 Jan 2008 13:12:28 +0900
+Message-ID: <1200197554-9598-1-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi13.ns.itscom.net ([219.110.2.183]:57029 "EHLO
-	mtoichi13.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193AbYAMEXz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 23:23:55 -0500
-In-Reply-To: <1200198212-10526-2-git-send-email-malattia@linux.it>
+Received: from mfbichi11.ns.itscom.net ([219.110.2.189]:64133 "EHLO
+	mfbichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbYAMG7f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 01:59:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org
 
-Also the recent Vaio N series need some more calls into the DSDT
-to enable reporting of FN key events to be delivered to the SNC device.
+Hi Len,
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/misc/sony-laptop.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+finally had some time to update the sony-laptop driver.
+Apologies for not removing acpi_bus_generate_genetlink_event from
+the irq handler... but I didn't forget about that at least.
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 4211ca7..550f9d9 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -875,6 +875,15 @@ static const struct dmi_system_id sony_nc_ids[] = {
- 				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-C"),
- 			},
- 		},
-+		{
-+			.ident = "Sony Vaio N Series",
-+			.callback = sony_nc_C_enable,
-+			.driver_data = sony_C_events,
-+			.matches = {
-+				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
-+			},
-+		},
- 		{ }
- };
- 
+ drivers/misc/sony-laptop.c |  485 ++++++++++++++++++++++++++-------------------
+ include/linux/sonypi.h     |    2 
+ 2 files changed, 286 insertions(+), 201 deletions(-)
+
 -- 
-1.5.3.7
-
+mattia
