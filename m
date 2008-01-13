@@ -1,55 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 3/6] sony-laptop: refactor model types
-Date: Sun, 13 Jan 2008 02:17:40 -0500
-Message-ID: <200801130217.40492.lenb@kernel.org>
-References: <1200198212-10526-1-git-send-email-malattia@linux.it> <1200198212-10526-3-git-send-email-malattia@linux.it> <1200198212-10526-4-git-send-email-malattia@linux.it>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH] sony-laptop: printk more info in sony_pic_call[123]
+Date: Sun, 13 Jan 2008 13:12:29 +0900
+Message-ID: <1200197554-9598-2-git-send-email-malattia@linux.it>
+References: <1200197554-9598-1-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37120 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911AbYAMHR6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Jan 2008 02:17:58 -0500
-In-Reply-To: <1200198212-10526-4-git-send-email-malattia@linux.it>
-Content-Disposition: inline
+Received: from mfbichi11.ns.itscom.net ([219.110.2.189]:54873 "EHLO
+	mfbichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbYAMIPd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 03:15:33 -0500
+In-Reply-To: <1200197554-9598-1-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
 
-$ scripts/checkpatch.pl ~/Documents/sony3.patch
-ERROR: "foo * bar" should be "foo *bar"
-#66: FILE: drivers/misc/sony-laptop.c:1200:
-+       struct sonypi_event *   events;
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+---
+ drivers/misc/sony-laptop.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-WARNING: line over 80 characters
-#253: FILE: drivers/misc/sony-laptop.c:2380:
-+               data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->control->evport_offset);
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index b0f6803..4211ca7 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1451,7 +1451,7 @@ static u8 sony_pic_call1(u8 dev)
+ 	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
+ 	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
++	dprintk("sony_pic_call1(0x%.2x): 0x%.4x\n", dev, (v2 << 8) | v1);
+ 	return v2;
+ }
+ 
+@@ -1466,7 +1466,7 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
+ 			ITERATIONS_LONG);
+ 	outb(fn, spic_dev.cur_ioport->io1.minimum);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call2: 0x%.4x\n", v1);
++	dprintk("sony_pic_call2(0x%.2x - 0x%.2x): 0x%.4x\n", dev, fn, v1);
+ 	return v1;
+ }
+ 
+@@ -1481,7 +1481,7 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
+ 	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
+ 	outb(v, spic_dev.cur_ioport->io1.minimum);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call3: 0x%.4x\n", v1);
++	dprintk("sony_pic_call3(0x%.2x - 0x%.2x - 0x%.2x): 0x%.4x\n", dev, fn, v, v1);
+ 	return v1;
+ }
+ 
+-- 
+1.5.3.7
 
-WARNING: line over 80 characters
-#257: FILE: drivers/misc/sony-laptop.c:2383:
-+                       ev, data_mask, dev->cur_ioport->io1.minimum, dev->control->evport_offset);
-
-WARNING: line over 80 characters
-#284: FILE: drivers/misc/sony-laptop.c:2400:
-+                                       dev->control->event_types[i].events[j].event;
-
-ERROR: use tabs not spaces
-#289: FILE: drivers/misc/sony-laptop.c:2405:
-+  ^Idprintk("unknown event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",$
-
-WARNING: line over 80 characters
-#290: FILE: drivers/misc/sony-laptop.c:2406:
-+                       ev, data_mask, dev->cur_ioport->io1.minimum, dev->control->evport_offset);
-
-ERROR: use tabs not spaces
-#290: FILE: drivers/misc/sony-laptop.c:2406:
-+ ^I^I^Iev, data_mask, dev->cur_ioport->io1.minimum, dev->control->evport_offset);$
-
-ERROR: use tabs not spaces
-#296: FILE: drivers/misc/sony-laptop.c:2411:
-+ ^Iacpi_bus_generate_proc_event(dev->acpi_dev, 1, device_event);$
-
-total: 4 errors, 4 warnings, 261 lines checked
