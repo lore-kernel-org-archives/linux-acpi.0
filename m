@@ -1,78 +1,100 @@
-From: supersud501 <supersud501@yahoo.de>
-Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
-Date: Sun, 13 Jan 2008 16:08:38 +0100
-Message-ID: <478A2976.9000204@yahoo.de>
-References: <bug-9721-10286@http.bugzilla.kernel.org/> <200801112216.08992.rjw@sisk.pl> <4787EB69.9060900@yahoo.de> <200801120010.22440.rjw@sisk.pl> <478A1083.5060406@yahoo.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
+Date: Sun, 13 Jan 2008 16:58:01 +0000
+Message-ID: <20080113165801.GA4132@ucw.cz>
+References: <20080112022348.GC27524@khazad-dum.debian.net> <200801120416.08631.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp001.mail.ukl.yahoo.com ([217.12.11.32]:47315 "HELO
-	smtp001.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751372AbYAMPIl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Jan 2008 10:08:41 -0500
-In-Reply-To: <478A1083.5060406@yahoo.de>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1063 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752071AbYAMQ6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Jan 2008 11:58:14 -0500
+Content-Disposition: inline
+In-Reply-To: <200801120416.08631.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Sat 2008-01-12 04:16:08, Len Brown wrote:
+> On Friday 11 January 2008 21:23, Henrique de Moraes Holschuh wrote:
+> > While helping a user find out what happened to his mute key, I found out
+> > that the Lenovo BIOSes need the OSI string Linux defined to behave properly
+> > in Linux.
+> > 
+> > Lenovo has been attempting to make things a bit easier for Linux on their
+> > ThinkPads, by disabling the more obnoxious behaviours of the firmware (used
+> > by their Windows drivers) when in Linux.  It looks like they used the OSI
+> > string for that.
+> > 
+> > It is probably worthwhile to give a head's up: regressions involving
+> > thinkpads and 2.6.23+ should probably have a 'please test with
+> > acpi_osi="Linux"' step added if there is any chance ACPI AML code, BIOS or
+> > SMBIOS code, or EC behaviour could be involved.
+> > 
+> > The most concrete example I have right now of changed behaviour is the Mute
+> > key on the T61, which just plain disappears if acpi_osi="!Linux" (2.6.23
+> > default).
+> > 
+> > I have also seen some hacked DSDTs around (mostly for older T4x models)
+> > which used the Linux OSI string to fix or work around AML weirdness.  Those
+> > would break in 2.6.23 (and 2.6.24?) as well.
+> > 
+> > Now, what should we do about it?  Add a quirk to always define the Linux OSI
+> > string on ThinkPads (based on DMI information)?  All IBM ones (which won't
+> > have BIOS revisions anymore, anyway) deal well with it, and Lenovo ones
+> > seem to benefit from it.
+> > 
+> > We could also ask Lenovo to change the BIOS to stop paying attention to that
+> > OSI string, but they will likely want/need a trigger for the AML code to
+> > know it should change behaviour anyway, and the OSI string *does* look like
+> > the proper thing to use IMHO.  I don't know if we could get them to arrive
+> > to a behaviour that is acceptable both to us, and also to their Windows
+> > drivers...
+> > 
+> 
+> I discussed this with Lenovo a few months ago
+> and made it clear that Linux will unlikely
+> default to answer yes to OSI(Linux) in the future --
+> for all the reasons I stated when I disabled it.
+> 
+> However, they told me they wanted to use OSI(Linux)
+> to enable the backlight (via video re-post) on S3 resume,
+> and the problem at hand was a distro kernel which still
+> had OSI(Linux), so that is what they did.
+> 
+> I was unaware that they're using it for anything else,
+> and the fact that they are lends further support to
+> the case that as an OS interface string "Linux"
+> is too vague to be meaningful.
+> 
+> They seemed open to looking for another string, say
+> "Needs S3 video re-post".  However, we didn't
+> agree on such a string, and so it isn't in Linux
+> or the Lenovo BIOS.
+> 
+> I think until we have native Linux graphics driver for (fast)
+> backlight restore, we need to add a DMI to enable OSI(Linux)
+> for the offending Lenovo models.   We'll need to have
+> some coordination with the graphics guys so that they
+> can turn this off from user-space when they don't need it.
+> 
+> The reason it shoudl be turned off is that backlight enabling
+> backlight from a native graphics driver is much faster than running
+> through the video BIOS POST.  So if we keep the OSI(Linux)
+> video BIOS POST workaround in place permanently, it would
+> put Linux at a permanent performance disadvantage to Windows.
 
+Hmm, they should not need to do anything.
 
-supersud501 wrote:
-> 
-> 
-> Rafael J. Wysocki wrote:
-> 
->>
->> Since it seems to be 100% reproducible, it would be very helpful if 
->> you could
->> use git-bisect to identify the offending commit.
->>
-> 
-> allright, bisect found the offending commit, here's what i've done:
-> 
-> first i started bisect with the following command (since i assumed it is 
-> a net-driver problem):
-> 
-> git-bisect start 'v2.6.24-rc6' 'v2.6.23' '--' 'drivers/net/'
-> 
-> after building many kernels and saying good/bad if wol worked/didn't 
-> work etc. it identified the following commit:
-> 
-> # bad: [ac93a3946b676025fa55356180e8321639744b31] sky2: enable PCI 
-> config writes
-> 
-> and refs/bisect/bad gives:
-> 
-> 14:16:53 /usr/src/linux-2.6/.git # cat refs/bisect/bad
-> ac93a3946b676025fa55356180e8321639744b31
-> 
-> 
-> need some more info?
-> 
+When linux calls video BIOS with lcall (acpi_sleep=s3_bios), they
+should turn on backlight and put video into text mode. They should
+also make sure mode setting works after that.
 
-i just checked it: commented out the passage of the commit in kernel 
-2.6.24-rc7-git4 and compiled it: wol WORKS. so this one line is causing 
-my wol-disturbance...
+I don't see how ACPI fits into this picture, and I think it can work
+well without ACPI tricks.
 
-
-but i noticed another "bug" on 2.6.24-rc7-git with sky2: dmesg shows a 
-lot of lines every 5 seconds:
-
-[...]
-[  357.400462] sky2 0000:02:00.0: error interrupt status=0xc0000000
-[  362.442039] printk: 41 messages suppressed.
-[  362.442043] sky2 0000:02:00.0: error interrupt status=0x80000000
-[  367.439151] printk: 18 messages suppressed.
-[  367.439156] sky2 0000:02:00.0: error interrupt status=0x80000000
-[  372.436267] printk: 30 messages suppressed.
-[  372.436271] sky2 0000:02:00.0: error interrupt status=0x80000000
-[  377.350236] printk: 19 messages suppressed.
-[...]
-
-since i do not notice any errors (yet) i'll wait till next rc, maybe it 
-will be gone then...
-
-but i'm happy wol works again on 2.6.24 :)
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
