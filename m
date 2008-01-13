@@ -1,54 +1,47 @@
 From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 1/6] sony-laptop: printk more info in sony_pic_call[123]
-Date: Sun, 13 Jan 2008 13:23:27 +0900
-Message-ID: <1200198212-10526-2-git-send-email-malattia@linux.it>
+Subject: [PATCH 2/6] sony-laptop: Add Vaio N series to the special init sequence to enable Fn keys
+Date: Sun, 13 Jan 2008 13:23:28 +0900
+Message-ID: <1200198212-10526-3-git-send-email-malattia@linux.it>
 References: <1200198212-10526-1-git-send-email-malattia@linux.it>
+ <1200198212-10526-2-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:48440 "EHLO
-	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188AbYAMEXu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 23:23:50 -0500
-In-Reply-To: <1200198212-10526-1-git-send-email-malattia@linux.it>
+Received: from mtoichi13.ns.itscom.net ([219.110.2.183]:57029 "EHLO
+	mtoichi13.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753193AbYAMEXz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 23:23:55 -0500
+In-Reply-To: <1200198212-10526-2-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
 
+Also the recent Vaio N series need some more calls into the DSDT
+to enable reporting of FN key events to be delivered to the SNC device.
+
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/misc/sony-laptop.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/sony-laptop.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index b0f6803..4211ca7 100644
+index 4211ca7..550f9d9 100644
 --- a/drivers/misc/sony-laptop.c
 +++ b/drivers/misc/sony-laptop.c
-@@ -1451,7 +1451,7 @@ static u8 sony_pic_call1(u8 dev)
- 	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
- 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
- 	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
--	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
-+	dprintk("sony_pic_call1(0x%.2x): 0x%.4x\n", dev, (v2 << 8) | v1);
- 	return v2;
- }
- 
-@@ -1466,7 +1466,7 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
- 			ITERATIONS_LONG);
- 	outb(fn, spic_dev.cur_ioport->io1.minimum);
- 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
--	dprintk("sony_pic_call2: 0x%.4x\n", v1);
-+	dprintk("sony_pic_call2(0x%.2x - 0x%.2x): 0x%.4x\n", dev, fn, v1);
- 	return v1;
- }
- 
-@@ -1481,7 +1481,7 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
- 	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
- 	outb(v, spic_dev.cur_ioport->io1.minimum);
- 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
--	dprintk("sony_pic_call3: 0x%.4x\n", v1);
-+	dprintk("sony_pic_call3(0x%.2x - 0x%.2x - 0x%.2x): 0x%.4x\n", dev, fn, v, v1);
- 	return v1;
- }
+@@ -875,6 +875,15 @@ static const struct dmi_system_id sony_nc_ids[] = {
+ 				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-C"),
+ 			},
+ 		},
++		{
++			.ident = "Sony Vaio N Series",
++			.callback = sony_nc_C_enable,
++			.driver_data = sony_C_events,
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
++			},
++		},
+ 		{ }
+ };
  
 -- 
 1.5.3.7
