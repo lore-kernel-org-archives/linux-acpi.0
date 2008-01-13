@@ -1,46 +1,29 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: remove P2B-S from blacklist.
-Date: Sat, 12 Jan 2008 19:29:04 -0500
-Message-ID: <200801121929.05069.lenb@kernel.org>
-References: <20070606073407.GA1010@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH 0/6 try2] sony-laptop for 2.6.25
+Date: Sun, 13 Jan 2008 13:23:26 +0900
+Message-ID: <1200198212-10526-1-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50006 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751478AbYAMA3s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Jan 2008 19:29:48 -0500
-In-Reply-To: <20070606073407.GA1010@redhat.com>
-Content-Disposition: inline
+Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:35100 "EHLO
+	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085AbYAMEXr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Jan 2008 23:23:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-Applied.
+Gah,
+numbered patches this time.
 
-thanks,
--Len
+As said these are just some updates for 2.6.25.
+I still have pending code for the HD accelerometer and still need to
+remove the acpi_bus_generate_genetlink_event call from the ISR.
+My spare time is not very much recently but we will get there.
 
-On Wednesday 06 June 2007 03:34, Dave Jones wrote:
-> According to http://bugzilla.kernel.org/show_bug.cgi?id=6933
-> The latest BIOS for the P2B-S works fine.
-> Remove it from the blacklist.
-> 
-> Signed-off-by: Dave Jones <davej@redhat.com>
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index 3ec110c..7c24a8d 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -67,8 +67,6 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
->  	/* IBM 600E - _ADR should return 7, but it returns 1 */
->  	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
->  	 "Incorrect _ADR", 1},
-> -	{"ASUS\0\0", "P2B-S   ", 0, ACPI_SIG_DSDT, all_versions,
-> -	 "Bogus PCI routing", 1},
->  
->  	{""}
->  };
+cheers
+---
+ drivers/misc/sony-laptop.c |  485 ++++++++++++++++++++++++++-------------------
+ include/linux/sonypi.h     |    2 
+ 2 files changed, 286 insertions(+), 201 deletions(-)
+-- 
+mattia
