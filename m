@@ -1,23 +1,45 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Rationalise ACPI backlight implementation
-Date: Mon, 14 Jan 2008 01:51:21 +0000
-Message-ID: <20080114015121.GB2317@srcf.ucam.org>
-References: <20071226020325.GA21099@srcf.ucam.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
+Date: Sun, 13 Jan 2008 23:57:18 -0200
+Message-ID: <20080114015718.GA15124@khazad-dum.debian.net>
+References: <20080112022348.GC27524@khazad-dum.debian.net> <200801120416.08631.lenb@kernel.org> <20080113165801.GA4132@ucw.cz> <20080113234129.GE10693@khazad-dum.debian.net> <20080114003553.GA1698@srcf.ucam.org> <20080114015009.GA2317@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:51315 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753353AbYANBv1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 20:51:27 -0500
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39162 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752669AbYANB5Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Jan 2008 20:57:24 -0500
 Content-Disposition: inline
-In-Reply-To: <20071226020325.GA21099@srcf.ucam.org>
+In-Reply-To: <20080114015009.GA2317@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Len, I've had no feedback on this - the backlight maintainer thinks it's 
-the right way to go, so I'd like to get it queued for .25 at least.
+On Mon, 14 Jan 2008, Matthew Garrett wrote:
+> On Mon, Jan 14, 2008 at 12:35:54AM +0000, Matthew Garrett wrote:
+> > No. This breaks on the R50e, at least - I suspect it'd also have 
+> > problems on any nvidia based machines, but I don't have one to hand at 
+> > the moment. It can be set at runtime already.
+> 
+> Just to clarify this further, in the relatively near-term future we're 
+> not going to want the low-level ACPI code to do anything video-related 
+> on a lot of hardware. The in-kernel modesetting code for Intel machines 
+> will be able to handle this significantly more effectively.
+
+Yeah, but we have a ton of machines (thinkpads among them) with ATI, and
+other GPUs.
+
+Whitelists would need to be reasonably specific, anyway (not "all
+thinkpads"), so it just means "don't do it on certain R50e", or whatever.
+
+It is no easy problem, and the fix might not be as simple as one could wish,
+either.
+
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
