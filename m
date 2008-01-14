@@ -1,45 +1,57 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
-Date: Mon, 14 Jan 2008 11:06:33 -0200
-Message-ID: <20080114130633.GD20222@khazad-dum.debian.net>
-References: <20080112022348.GC27524@khazad-dum.debian.net> <200801120416.08631.lenb@kernel.org> <20080113165801.GA4132@ucw.cz> <20080113234129.GE10693@khazad-dum.debian.net> <20080114003553.GA1698@srcf.ucam.org> <20080114015009.GA2317@srcf.ucam.org> <20080114015718.GA15124@khazad-dum.debian.net> <20080114020352.GA2502@srcf.ucam.org>
+From: Toby Cubitt <tsc25@cantab.net>
+Subject: Rotating tablet screen updates lid state but doesn't generate an event
+Date: Mon, 14 Jan 2008 13:39:23 +0000
+Message-ID: <478B660B.3030706@cantab.net>
+Reply-To: Toby Cubitt <t.s.cubitt.98-dated-1200750052.7226bb@cantab.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39661 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbYANNGi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jan 2008 08:06:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20080114020352.GA2502@srcf.ucam.org>
+Received: from mail.geekisp.com ([216.168.135.169]:35158 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750791AbYANNqg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2008 08:46:36 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, 14 Jan 2008, Matthew Garrett wrote:
-> Userspace is in a better position to make this determination. Of course, 
+Hi,
 
-That's fine with me.
+I hope this is the right list to post this kind of question.
 
-> this also means not passing the Linux OSI to the firmware. Our hardware 
-> interaction is sufficiently in flux that any attempt to work around it 
-> in the firmware is just going to lead to bizarre breakage down the road.
+I'm running a 2.6.23 kernel (with the tuxonice and Gentoo patchsets
+applied) on a Toshiba Portege M400 tablet PC, and I have the legacy
+/proc/acpi support built into the kernel (CONFIG_ACPI_PROCFS=y and
+CONFIG_ACPI_PROC_EVENT=y), since acpid still depends on it for now. I
+also have Toshiba ACPI support built into the kernel, in case that's
+also relevant (CONFIG_ACPI_TOSHIBA=y).
 
-The Linux OSI string does more. I just found out that it also drives the
-MUTE key behaviour (and you want the behaviour *with* the Linux OSI string
-loaded).
+When I open or close the lid as on a normal laptop,
+/proc/acpi/button/lid/LID/state is updated and acpi
+"button/lid" events are generated in /proc/acpi/event, as expected.
+However, when I rotate the screen into tablet mode, although the lid
+state is updated to "closed", nothing is generated in /proc/acpi/event.
+Then, when I lift the lid to rotate it back to normal laptop position, a
+"button/lid" event _is_ generated in /proc/acpi/event, identical to
+normal lid events (and the lid state is updated to "open").
 
-Some of the behaviours are actually linux-version agnostic.  E.g. we'll
-always prefer that the Mute key send a KEY_MUTE event over the keyboard
-controller *without* touching the hardware (which is what it does if the
-Linux OSI string is *present*) in ThinkPads where there is no
-firmware-specific mixer hardware (i.e. the T61 and probably X61).  For such
-uses, the OSI string is fine.
+So it seems as though acpi is correctly identifying closing the lid and
+rotating the screen into tablet mode as two different types of events,
+but isn't writing anything to /proc/acpi/event for the latter. On the
+other hand, it is generating identical events for both opening the lid
+and rotating the screen back to laptop mode.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I guess the correct behaviour would be along the lines of what
+apparently happens in Thinkpad tablets: opening and closing the lid
+should generate "button/lid" events, and rotating the screen to and from
+tablet mode should generate a different type of event. (Though if
+the kernel just generated any event other than "button/lid" when the
+screen was rotated to tablet mode, it would still be usable.)
+
+I'm happy to provide more information if it would be helpful, but I have
+no experience at all in helping debug kernel code, so I'm not sure what
+I should be telling you.
+
+Thanks for any help,
+
+Toby
