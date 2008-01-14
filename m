@@ -1,73 +1,56 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] Reset ACPI backlight on resume
-Date: Mon, 14 Jan 2008 03:13:05 +0000
-Message-ID: <20080114031305.GA3111@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH 1/6] sony-laptop: printk more info in sony_pic_call[123]
+Date: Mon, 14 Jan 2008 18:05:41 +0900
+Message-ID: <1200301546-6079-2-git-send-email-malattia@linux.it>
+References: <1200301546-6079-1-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:46724 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbYANDNM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 22:13:12 -0500
-Content-Disposition: inline
+Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:50567 "EHLO
+	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931AbYANJMc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2008 04:12:32 -0500
+In-Reply-To: <1200301546-6079-1-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
 
-Some machines seem to need the backlight brightness to be reset on 
-resume. Add support for doing so to the video module.
-
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
+ drivers/misc/sony-laptop.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index b8ce6dc..09a85eb 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -74,6 +74,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device, int type);
-+static int acpi_video_resume(struct acpi_device *device);
- 
- static const struct acpi_device_id video_device_ids[] = {
- 	{ACPI_VIDEO_HID, 0},
-@@ -88,6 +89,7 @@ static struct acpi_driver acpi_video_bus = {
- 	.ops = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
-+		.resume = acpi_video_resume,
- 		},
- };
- 
-@@ -1896,6 +1900,25 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index b0f6803..0435b3d 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1451,7 +1451,7 @@ static u8 sony_pic_call1(u8 dev)
+ 	outb(dev, spic_dev.cur_ioport->io1.minimum + 4);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum + 4);
+ 	v2 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call1: 0x%.4x\n", (v2 << 8) | v1);
++	dprintk("sony_pic_call1(0x%.2x): 0x%.4x\n", dev, (v2 << 8) | v1);
+ 	return v2;
  }
  
- static int instance;
-+static int acpi_video_resume(struct acpi_device *device)
-+{
-+	struct acpi_video_bus *video;
-+	struct acpi_video_device *video_device;
-+	int i;
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+
-+	video = acpi_driver_data(device);
-+
-+	for (i=0; i<video->attached_count; i++) {
-+		video_device = video->attached_array[i].bind_info;
-+		if (video_device && video_device->backlight)
-+			acpi_video_set_brightness(video_device->backlight);
-+	}		
-+	return AE_OK;
-+}
-+
- static int acpi_video_bus_add(struct acpi_device *device)
- {
- 	acpi_status status;
-
+@@ -1466,7 +1466,7 @@ static u8 sony_pic_call2(u8 dev, u8 fn)
+ 			ITERATIONS_LONG);
+ 	outb(fn, spic_dev.cur_ioport->io1.minimum);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call2: 0x%.4x\n", v1);
++	dprintk("sony_pic_call2(0x%.2x - 0x%.2x): 0x%.4x\n", dev, fn, v1);
+ 	return v1;
+ }
+ 
+@@ -1481,7 +1481,8 @@ static u8 sony_pic_call3(u8 dev, u8 fn, u8 v)
+ 	wait_on_command(inb_p(spic_dev.cur_ioport->io1.minimum + 4) & 2, ITERATIONS_LONG);
+ 	outb(v, spic_dev.cur_ioport->io1.minimum);
+ 	v1 = inb_p(spic_dev.cur_ioport->io1.minimum);
+-	dprintk("sony_pic_call3: 0x%.4x\n", v1);
++	dprintk("sony_pic_call3(0x%.2x - 0x%.2x - 0x%.2x): 0x%.4x\n",
++			dev, fn, v, v1);
+ 	return v1;
+ }
+ 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.5.3.7
+
