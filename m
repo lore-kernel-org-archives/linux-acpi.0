@@ -1,129 +1,261 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
-Date: Mon, 14 Jan 2008 08:39:26 -0800
-Message-ID: <20080114083926.03232343@deepthought>
-References: <bug-9721-10286@http.bugzilla.kernel.org/>
-	<200801112216.08992.rjw@sisk.pl>
-	<4787EB69.9060900@yahoo.de>
-	<200801120010.22440.rjw@sisk.pl>
-	<478A1083.5060406@yahoo.de>
-	<478A2976.9000204@yahoo.de>
-	<20080113112712.e93f07a4.akpm@linux-foundation.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH, RFC] HP WMI hotkey driver, RFKill query?
+Date: Mon, 14 Jan 2008 17:41:07 +0000
+Message-ID: <20080114174107.GA14494@srcf.ucam.org>
+References: <20071218235137.12838.75397.stgit@localhost> <20071226224812.GA32652@srcf.ucam.org> <d120d5000801030858o7a1f5112g1041186636852ab7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56936 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751279AbYANQmj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jan 2008 11:42:39 -0500
-In-Reply-To: <20080113112712.e93f07a4.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <d120d5000801030858o7a1f5112g1041186636852ab7@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: supersud501 <supersud501@yahoo.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Sun, 13 Jan 2008 11:27:12 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+On Thu, Jan 03, 2008 at 11:58:02AM -0500, Dmitry Torokhov wrote:
 
-> On Sun, 13 Jan 2008 16:08:38 +0100 supersud501 <supersud501@yahoo.de> wrote:
-> 
-> > 
-> > 
-> > supersud501 wrote:
-> > > 
-> > > 
-> > > Rafael J. Wysocki wrote:
-> > > 
-> > >>
-> > >> Since it seems to be 100% reproducible, it would be very helpful if 
-> > >> you could
-> > >> use git-bisect to identify the offending commit.
-> > >>
-> > > 
-> > > allright, bisect found the offending commit, here's what i've done:
-> > > 
-> > > first i started bisect with the following command (since i assumed it is 
-> > > a net-driver problem):
-> > > 
-> > > git-bisect start 'v2.6.24-rc6' 'v2.6.23' '--' 'drivers/net/'
-> > > 
-> > > after building many kernels and saying good/bad if wol worked/didn't 
-> > > work etc. it identified the following commit:
-> > > 
-> > > # bad: [ac93a3946b676025fa55356180e8321639744b31] sky2: enable PCI 
-> > > config writes
-> > > 
-> > > and refs/bisect/bad gives:
-> > > 
-> > > 14:16:53 /usr/src/linux-2.6/.git # cat refs/bisect/bad
-> > > ac93a3946b676025fa55356180e8321639744b31
-> > > 
-> > > 
-> > > need some more info?
-> > > 
-> > 
-> > i just checked it: commented out the passage of the commit in kernel 
-> > 2.6.24-rc7-git4 and compiled it: wol WORKS. so this one line is causing 
-> > my wol-disturbance...
-> > 
-> > 
-> 
-> So simply reverting this:
-> 
-> commit ac93a3946b676025fa55356180e8321639744b31
-> Author: Stephen Hemminger <shemminger@linux-foundation.org>
-> Date:   Mon Nov 5 15:52:08 2007 -0800
-> 
->     sky2: enable PCI config writes
->     
->     On some boards, PCI configuration space access is turned off by default.
->     The 2.6.24 driver doesn't turn it on, and should have.
->     
->     Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
->     Signed-off-by: Jeff Garzik <jeff@garzik.org>
-> 
-> diff --git a/drivers/net/sky2.c b/drivers/net/sky2.c
-> index c27c7d6..4f41a94 100644
-> --- a/drivers/net/sky2.c
-> +++ b/drivers/net/sky2.c
-> @@ -2791,6 +2791,9 @@ static void sky2_reset(struct sky2_hw *hw)
->  	sky2_write8(hw, B0_CTST, CS_RST_SET);
->  	sky2_write8(hw, B0_CTST, CS_RST_CLR);
->  
-> +	/* allow writes to PCI config */
-> +	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
-> +
->  	/* clear PCI errors, if any */
->  	pci_read_config_word(pdev, PCI_STATUS, &status);
->  	status |= PCI_STATUS_ERROR_BITS;
-> 
-> fixes this regression?
-> 
-> If so, we should revert that change.
-> 
-> > but i noticed another "bug" on 2.6.24-rc7-git with sky2: dmesg shows a 
-> > lot of lines every 5 seconds:
-> > 
-> > [...]
-> > [  357.400462] sky2 0000:02:00.0: error interrupt status=0xc0000000
-> > [  362.442039] printk: 41 messages suppressed.
-> > [  362.442043] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > [  367.439151] printk: 18 messages suppressed.
-> > [  367.439156] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > [  372.436267] printk: 30 messages suppressed.
-> > [  372.436271] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > [  377.350236] printk: 19 messages suppressed.
-> > [...]
-> > 
-> > since i do not notice any errors (yet) i'll wait till next rc, maybe it 
-> > will be gone then...
-> 
-> That's not good.  is this new behaviour?
-> 
+> There is no sysfs device to attach the input device to, by any chance?
 
-No, reverting that change will break other systems (including mine).
+Not as far as I can tell, but I may be misinterpreting this. Carlos?
+
+I've fixed up the other bits and updated it to match the latest WMI 
+code. I've also added a couple of extra key events. The main one I'm 
+worried about is KEY_WLAN. The button automatically disables the 
+hardware, so it's not required that userspace do anything - however, it 
+would be nice for network-manager to get the additional notification. Is 
+KEY_WLAN the correct thing to be sending here? There's the added 
+confusion of it also triggering the removal of the bluetooth hardware, 
+but since the entire device vanishes in that case I think userspace will 
+already notice.
+
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index 8f5c7b9..6a6dd9a 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -183,4 +183,13 @@ config HP_SDC_RTC
+ 	  Say Y here if you want to support the built-in real time clock
+ 	  of the HP SDC controller.
+ 
++config INPUT_HP_WMI
++       tristate "HP WMI hotkey interface"
++       depends on ACPI_WMI
++       help
++         Say Y here if you want to support WMI-based hotkeys on HP laptops.
++
++	 To compile this driver as a module, choose M here: the module will
++	 be called hp_wmiinput.
++
+ endif
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 3585b50..8a3bf11 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -18,3 +18,4 @@ obj-$(CONFIG_INPUT_POWERMATE)		+= powermate.o
+ obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+ obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
++obj-$(CONFIG_INPUT_HP_WMI)		+= hp_wmiinput.o
+\ No newline at end of file
+diff --git a/drivers/input/misc/hp_wmiinput.c b/drivers/input/misc/hp_wmiinput.c
+new file mode 100644
+index 0000000..85da258
+--- /dev/null
++++ b/drivers/input/misc/hp_wmiinput.c
+@@ -0,0 +1,191 @@
++/*
++ * HP WMI hotkeys
++ *
++ * Copyright (C) 2007 Matthew Garrett <mjg59@srcf.ucam.org>
++ *
++ * Portions based on wistron_btns.c:
++ * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
++ * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
++ * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/input.h>
++#include <acpi/acpi_drivers.h>
++
++MODULE_AUTHOR("Matthew Garrett");
++MODULE_DESCRIPTION("HP laptop WMI hotkeys driver");
++MODULE_LICENSE("GPL");
++
++MODULE_ALIAS("wmi:95F24279-4D7B-4334-9387-ACCDC67EF61C");
++
++#define HPWMI_GUID "95F24279-4D7B-4334-9387-ACCDC67EF61C"
++
++struct key_entry {
++        char type;              /* See KE_* below */
++        u8 code;
++        union {
++                u16 keycode;            /* For KE_KEY */
++                struct {                /* For KE_SW */
++                        u8 code;
++                        u8 value;
++                } sw;
++        };
++};
++
++enum {KE_KEY, KE_END };
++
++static struct key_entry hp_wmi_keymap[] = {
++	/* 0x01 seems to be docking stations? */
++	{ KE_KEY, 0x02, {KEY_BRIGHTNESSUP} },
++	{ KE_KEY, 0x03, {KEY_BRIGHTNESSDOWN} },
++	{ KE_KEY, 0x04, {KEY_HELP} },
++	{ KE_KEY, 0x05, {KEY_WLAN} },
++	{ KE_END, 0 }
++};
++
++static struct input_dev *hp_wmi_input_dev;
++
++static struct key_entry *hp_wmi_get_entry_by_scancode (int code)
++{
++	struct key_entry *key;
++
++        for (key = hp_wmi_keymap; key->type != KE_END; key++)
++                if (code == key->code)
++                        return key;
++
++        return NULL;
++}
++
++static struct key_entry *hp_wmi_get_entry_by_keycode(int keycode)
++{
++        struct key_entry *key;
++
++        for (key = hp_wmi_keymap; key->type != KE_END; key++)
++                if (key->type == KE_KEY && keycode == key->keycode)
++                        return key;
++
++        return NULL;
++}
++
++static int hp_wmi_getkeycode(struct input_dev *dev, int scancode, int *keycode)
++{
++	struct key_entry *key = hp_wmi_get_entry_by_scancode(scancode);
++
++        if (key && key->type == KE_KEY) {
++                *keycode = key->keycode;
++                return 0;
++        }
++
++        return -EINVAL;
++}
++
++static int hp_wmi_setkeycode(struct input_dev *dev, int scancode, int keycode)
++{
++	struct key_entry *key;
++
++        int old_keycode;
++
++        if (keycode < 0 || keycode > KEY_MAX)
++                return -EINVAL;
++
++        key = hp_wmi_get_entry_by_scancode(scancode);
++        if (key && key->type == KE_KEY) {
++                old_keycode = key->keycode;
++                key->keycode = keycode;
++                set_bit(keycode, dev->keybit);
++                if (!hp_wmi_get_entry_by_keycode(old_keycode))
++                        clear_bit(old_keycode, dev->keybit);
++                return 0;
++        }
++
++        return -EINVAL;
++}	
++
++void hp_wmi_notify (u32 value, void* context)
++{
++	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
++	static struct key_entry *key;
++	union acpi_object *obj;
++
++	wmi_get_event_data (value, &response);
++	
++	obj = (union acpi_object *) response.pointer;
++
++	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
++		int eventcode = *((u8 *) obj->buffer.pointer);
++		key = hp_wmi_get_entry_by_scancode (eventcode);
++		if (key) {
++			input_report_key (hp_wmi_input_dev, key->keycode, 1);
++			input_sync (hp_wmi_input_dev);
++			input_report_key (hp_wmi_input_dev, key->keycode, 0);
++			input_sync (hp_wmi_input_dev);
++		} else
++			printk (KERN_INFO "HP WMI: Unknown key pressed - %x\n",
++				eventcode);
++	} else
++		printk (KERN_INFO "HP WMI: Unknown response received\n");
++}
++
++static int __init hp_wmi_init(void)
++{
++	int err;
++	const struct key_entry *key;
++
++	if (!wmi_has_guid(HPWMI_GUID)) {
++		printk ("Unable to locate guid\n");
++		return -ENODEV;
++	}
++
++	err = wmi_install_notify_handler (HPWMI_GUID, hp_wmi_notify, NULL);
++	if (err)
++		return err;
++	
++	hp_wmi_input_dev = input_allocate_device();
++
++	hp_wmi_input_dev->name = "HP WMI hotkeys";
++	hp_wmi_input_dev->phys = "wmi/input0";
++	hp_wmi_input_dev->id.bustype = BUS_HOST;
++	hp_wmi_input_dev->getkeycode = hp_wmi_getkeycode;
++	hp_wmi_input_dev->setkeycode = hp_wmi_setkeycode;
++	
++	for (key = hp_wmi_keymap; key->type != KE_END; key++) {
++		set_bit(EV_KEY, hp_wmi_input_dev->evbit);
++		set_bit(key->keycode, hp_wmi_input_dev->keybit);
++	}
++	
++	err = input_register_device (hp_wmi_input_dev);
++
++	if (err) {
++		input_free_device (hp_wmi_input_dev);
++		return err;
++	}
++
++	return 0;
++}
++
++static void __exit hp_wmi_exit(void)
++{
++	wmi_remove_notify_handler(HPWMI_GUID);
++	input_unregister_device (hp_wmi_input_dev);
++}
++
++module_init(hp_wmi_init);
++module_exit(hp_wmi_exit);
 
 -- 
-Stephen Hemminger <stephen.hemminger@vyatta.com>
+Matthew Garrett | mjg59@srcf.ucam.org
