@@ -1,63 +1,39 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 9747] New: Oops on boot from laptop mode
- writing to /proc/acpi/processor/CPU0/throttling
-Date: Mon, 14 Jan 2008 13:25:20 -0800
-Message-ID: <20080114132520.e2e62337.akpm@linux-foundation.org>
-References: <bug-9747-10286@http.bugzilla.kernel.org/>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH, RFC] HP WMI hotkey driver, RFKill query?
+Date: Mon, 14 Jan 2008 22:25:10 +0000
+Message-ID: <200801142225.11066.carlos@strangeworlds.co.uk>
+References: <20071218235137.12838.75397.stgit@localhost> <20080114174107.GA14494@srcf.ucam.org> <200801141827.34059.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44422 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbYANV0O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jan 2008 16:26:14 -0500
-In-Reply-To: <bug-9747-10286@http.bugzilla.kernel.org/>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <200801141827.34059.carlos@strangeworlds.co.uk>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, huggie@earth.li, Zhao Yakui <yakui.zhao@intel.com>
-Cc: bugme-daemon@bugzilla.kernel.org
 
-On Mon, 14 Jan 2008 11:19:42 -0800 (PST)
-bugme-daemon@bugzilla.kernel.org wrote:
+On Monday 14 January 2008 18:27:33 Carlos Corbacho wrote:
+> On Monday 14 January 2008 17:41:07 Matthew Garrett wrote:
+> > On Thu, Jan 03, 2008 at 11:58:02AM -0500, Dmitry Torokhov wrote:
+> > > There is no sysfs device to attach the input device to, by any chance?
+> >
+> > Not as far as I can tell, but I may be misinterpreting this. Carlos?
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9747
-> 
->            Summary: Oops on boot from laptop mode writing to
->                     /proc/acpi/processor/CPU0/throttling
->            Product: ACPI
->            Version: 2.5
->      KernelVersion: 2.6.24-rc7
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Config-Processors
->         AssignedTo: acpi_config-processors@kernel-bugs.osdl.org
->         ReportedBy: huggie@earth.li
-> 
-> 
-> Latest working kernel version: Unsure.  Later than 2.6.24-rc2
-> Earliest failing kernel version: 2.6.24-rc6 (possibly earlier)
-> Distribution: Debian
-> Hardware Environment: Toshiba Portege r500
-> Software Environment:
-> Problem Description:
-> 
-> When I boot laptop-mode fires up and tries to write to
-> /proc/acpi/processor/CPU0/throttling which contains <not supported>
-> 
-> I don't quite know what I've done to get it to contain <not supported> but
-> anyway that'll be more fun to track down I'm sure.
-> 
-> In any case, in this configuration I get this oops even if all I do is
-> echo stuff >/proc/acpi/processor/CPU0/throttling
-> 
-> [   32.378673] Unable to handle kernel NULL pointer dereference at
-> 0000000000000
-> 000 RIP: 
+What would be better - to have WMI itself as the parent device, or should I 
+add something like this to WMI:
 
-Guys, this is a serious post-2.6.23 regression.
+wmi_get_dev(const char *guid, struct device *dev)
+
+to return the virtual device associated with a GUID, and then allow that to be 
+used as the parent? (trade off is that this driver would then become 
+dependent on the WMI sysfs patch going in as well, rather than just on the 
+in-kernel WMI support).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
