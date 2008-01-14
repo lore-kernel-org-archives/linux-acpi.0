@@ -1,73 +1,45 @@
-From: Johan Lans <apansson@apspektakel.com>
-Subject: acpid: can't open /proc/acpi/event: No such file or directory
-Date: Mon, 14 Jan 2008 13:28:05 +0100
-Message-ID: <478B5555.4060904@apspektakel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
+Date: Mon, 14 Jan 2008 11:06:33 -0200
+Message-ID: <20080114130633.GD20222@khazad-dum.debian.net>
+References: <20080112022348.GC27524@khazad-dum.debian.net> <200801120416.08631.lenb@kernel.org> <20080113165801.GA4132@ucw.cz> <20080113234129.GE10693@khazad-dum.debian.net> <20080114003553.GA1698@srcf.ucam.org> <20080114015009.GA2317@srcf.ucam.org> <20080114015718.GA15124@khazad-dum.debian.net> <20080114020352.GA2502@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:46794 "EHLO
-	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750895AbYANM2L (ORCPT
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39661 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751193AbYANNGi (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jan 2008 07:28:11 -0500
-Received: from c80-217-107-53.bredband.comhem.se ([80.217.107.53]:1307 helo=[192.168.2.103])
-	by ch-smtp01.sth.basefarm.net with esmtp (Exim 4.68)
-	(envelope-from <apansson@apspektakel.com>)
-	id 1JEOQE-00023j-4E
-	for linux-acpi@vger.kernel.org; Mon, 14 Jan 2008 13:28:10 +0100
+	Mon, 14 Jan 2008 08:06:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20080114020352.GA2502@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi
-I'm trying to set up ACPI, on my gentoo system, so that I can use the 
-power button to hibernate the system. I compiled the kernel (2.6.23) 
-with the folowing ACPI options:
+On Mon, 14 Jan 2008, Matthew Garrett wrote:
+> Userspace is in a better position to make this determination. Of course, 
 
-# Power management options (ACPI, APM)
-CONFIG_ACPI=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_PROCFS=y
-CONFIG_ACPI_PROC_EVENT=y
-CONFIG_ACPI_AC=y
-CONFIG_ACPI_BATTERY=y
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_FAN=y
-# CONFIG_ACPI_DOCK is not set
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_HOTPLUG_CPU=y
-CONFIG_ACPI_THERMAL=y
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_TOSHIBA is not set
-CONFIG_ACPI_BLACKLIST_YEAR=0
-CONFIG_ACPI_DEBUG=y
-# CONFIG_ACPI_DEBUG_FUNC_TRACE is not set
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_SYSTEM=y
-CONFIG_ACPI_CONTAINER=y
-# CONFIG_ACPI_SBS is not set
-CONFIG_PNPACPI=y
-# CONFIG_THINKPAD_ACPI is not set
-CONFIG_BLK_DEV_IDEACPI=y
-CONFIG_ATA_ACPI=y
+That's fine with me.
 
-I've emerged ACPI and ACPID.
-Now, when I boot into this kernel and try to start ACPID, I get this:
+> this also means not passing the Linux OSI to the firmware. Our hardware 
+> interaction is sufficiently in flux that any attempt to work around it 
+> in the firmware is just going to lead to bizarre breakage down the road.
 
-ellen linux # /etc/init.d/acpid start
- * Service acpid starting
-acpid: can't open /proc/acpi/event: No such file or directory            
-                                                                        
-       [ !! ]
- * ERROR:  acpid failed to start
+The Linux OSI string does more. I just found out that it also drives the
+MUTE key behaviour (and you want the behaviour *with* the Linux OSI string
+loaded).
 
-Any ideas? I thought the CONFIG_ACPI_PROC_EVENT=y option would fix this.
+Some of the behaviours are actually linux-version agnostic.  E.g. we'll
+always prefer that the Mute key send a KEY_MUTE event over the keyboard
+controller *without* touching the hardware (which is what it does if the
+Linux OSI string is *present*) in ThinkPads where there is no
+firmware-specific mixer hardware (i.e. the T61 and probably X61).  For such
+uses, the OSI string is fine.
 
-I don't know much about ACPI, but the dmesg gives a lot of output on 
-acpi during boot, and there seems to be no error in that, so I think 
-acpi is activated like it should. I can post that output too if it helps.
-
-thanks for any help
-/Johan
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
