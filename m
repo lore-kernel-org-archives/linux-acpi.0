@@ -1,76 +1,97 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 9721] New: wake on lan fails with sky2 module
-Date: Mon, 14 Jan 2008 12:50:47 -0800
-Message-ID: <20080114125047.2c161b18.akpm@linux-foundation.org>
-References: <bug-9721-10286@http.bugzilla.kernel.org/>
-	<200801112216.08992.rjw@sisk.pl>
-	<4787EB69.9060900@yahoo.de>
-	<200801120010.22440.rjw@sisk.pl>
-	<478A1083.5060406@yahoo.de>
-	<478A2976.9000204@yahoo.de>
-	<20080113112712.e93f07a4.akpm@linux-foundation.org>
-	<20080114083926.03232343@deepthought>
+From: supersud501 <supersud501@yahoo.de>
+Subject: Re: [RFT] sky2: wake-on-lan configuration issues
+Date: Mon, 14 Jan 2008 22:05:28 +0100
+Message-ID: <478BCE98.5030709@yahoo.de>
+References: <bug-9721-10286@http.bugzilla.kernel.org/>	<478A743C.9050405@yahoo.de>	<20080113125708.070b4843.akpm@linux-foundation.org>	<200801132227.59229.rjw@sisk.pl>	<478A965E.8070306@yahoo.de> <20080114101439.72304b92@deepthought>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080114083926.03232343@deepthought>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: supersud501@yahoo.de, rjw@sisk.pl, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp006.mail.ukl.yahoo.com ([217.12.11.95]:31814 "HELO
+	smtp006.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751035AbYANVFc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2008 16:05:32 -0500
+In-Reply-To: <20080114101439.72304b92@deepthought>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Mon, 14 Jan 2008 08:39:26 -0800
-Stephen Hemminger <shemminger@linux-foundation.org> wrote:
 
-> > diff --git a/drivers/net/sky2.c b/drivers/net/sky2.c
-> > index c27c7d6..4f41a94 100644
-> > --- a/drivers/net/sky2.c
-> > +++ b/drivers/net/sky2.c
-> > @@ -2791,6 +2791,9 @@ static void sky2_reset(struct sky2_hw *hw)
-> >  	sky2_write8(hw, B0_CTST, CS_RST_SET);
-> >  	sky2_write8(hw, B0_CTST, CS_RST_CLR);
-> >  
-> > +	/* allow writes to PCI config */
-> > +	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
-> > +
-> >  	/* clear PCI errors, if any */
-> >  	pci_read_config_word(pdev, PCI_STATUS, &status);
-> >  	status |= PCI_STATUS_ERROR_BITS;
-> > 
-> > fixes this regression?
-> > 
-> > If so, we should revert that change.
-> > 
-> > > but i noticed another "bug" on 2.6.24-rc7-git with sky2: dmesg shows a 
-> > > lot of lines every 5 seconds:
-> > > 
-> > > [...]
-> > > [  357.400462] sky2 0000:02:00.0: error interrupt status=0xc0000000
-> > > [  362.442039] printk: 41 messages suppressed.
-> > > [  362.442043] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > > [  367.439151] printk: 18 messages suppressed.
-> > > [  367.439156] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > > [  372.436267] printk: 30 messages suppressed.
-> > > [  372.436271] sky2 0000:02:00.0: error interrupt status=0x80000000
-> > > [  377.350236] printk: 19 messages suppressed.
-> > > [...]
-> > > 
-> > > since i do not notice any errors (yet) i'll wait till next rc, maybe it 
-> > > will be gone then...
-> > 
-> > That's not good.  is this new behaviour?
-> > 
+
+Stephen Hemminger wrote:
+> Please test this patch against Linus's current (approx 2.6.24-rc7-git5).
+> Ignore Andrew's premature reversion attempt...
 > 
-> No, reverting that change will break other systems (including mine).
+> This patch disables config mode access after clearing PCI settings.
+> 
+> Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+> 
+> --- a/drivers/net/sky2.c	2008-01-14 09:44:22.000000000 -0800
+> +++ b/drivers/net/sky2.c	2008-01-14 09:44:51.000000000 -0800
+> @@ -621,6 +621,7 @@ static void sky2_phy_power(struct sky2_h
+>  	static const u32 phy_power[] = { PCI_Y2_PHY1_POWD, PCI_Y2_PHY2_POWD };
+>  	static const u32 coma_mode[] = { PCI_Y2_PHY1_COMA, PCI_Y2_PHY2_COMA };
+>  
+> +	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+>  	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
+>  	/* Turn on/off phy power saving */
+>  	if (onoff)
+> @@ -632,7 +633,8 @@ static void sky2_phy_power(struct sky2_h
+>  		reg1 |= coma_mode[port];
+>  
+>  	sky2_pci_write32(hw, PCI_DEV_REG1, reg1);
+> -	reg1 = sky2_pci_read32(hw, PCI_DEV_REG1);
+> +	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+> +	sky2_pci_read32(hw, PCI_DEV_REG1);
+>  
+>  	udelay(100);
+>  }
+> @@ -2426,6 +2428,7 @@ static void sky2_hw_intr(struct sky2_hw 
+>  	if (status & (Y2_IS_MST_ERR | Y2_IS_IRQ_STAT)) {
+>  		u16 pci_err;
+>  
+> +		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+>  		pci_err = sky2_pci_read16(hw, PCI_STATUS);
+>  		if (net_ratelimit())
+>  			dev_err(&pdev->dev, "PCI hardware error (0x%x)\n",
+> @@ -2433,12 +2436,14 @@ static void sky2_hw_intr(struct sky2_hw 
+>  
+>  		sky2_pci_write16(hw, PCI_STATUS,
+>  				      pci_err | PCI_STATUS_ERROR_BITS);
+> +		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+>  	}
+>  
+>  	if (status & Y2_IS_PCI_EXP) {
+>  		/* PCI-Express uncorrectable Error occurred */
+>  		u32 err;
+>  
+> +		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_ON);
+>  		err = sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
+>  		sky2_write32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS,
+>  			     0xfffffffful);
+> @@ -2446,6 +2451,7 @@ static void sky2_hw_intr(struct sky2_hw 
+>  			dev_err(&pdev->dev, "PCI Express error (0x%x)\n", err);
+>  
+>  		sky2_read32(hw, Y2_CFG_AER + PCI_ERR_UNCOR_STATUS);
+> +		sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+>  	}
+>  
+>  	if (status & Y2_HWE_L1_MASK)
+> @@ -2811,6 +2817,7 @@ static void sky2_reset(struct sky2_hw *h
+>  	}
+>  
+>  	sky2_power_on(hw);
+> +	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+>  
+>  	for (i = 0; i < hw->ports; i++) {
+>  		sky2_write8(hw, SK_REG(i, GMAC_LINK_CTRL), GMLC_RST_SET);
+> 
 
-Reverting which change?  ac93a3946b676025fa55356180e8321639744b31?
+yes, that did it! just tested it (current linus git tree with patched 
+sky with above patch), everything is clean now (dmesg output) and wol 
+works even with the commit ac93a3946b676025fa55356180e8321639744b31
 
-Linus has very clearly stated on multiple occasions that patches which
-fix machine A and break machine B will be reverted.  For good reasons.
-I don't have a copy of those reasons handy, but it should be a well-known
-thing.
-
-If you're really interested we can cc him for a reminder, but the effects
-of that upon ac93a3946b676025fa55356180e8321639744b31 might be quick.  And
-terminal.
+so it the bug is fixed without the need to revert 
+ac93a3946b676025fa55356180e8321639744b31.
