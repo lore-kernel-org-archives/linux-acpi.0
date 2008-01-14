@@ -1,32 +1,23 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Lenovo ThinkPads need acpi_osi="Linux"
-Date: Mon, 14 Jan 2008 01:50:09 +0000
-Message-ID: <20080114015009.GA2317@srcf.ucam.org>
-References: <20080112022348.GC27524@khazad-dum.debian.net> <200801120416.08631.lenb@kernel.org> <20080113165801.GA4132@ucw.cz> <20080113234129.GE10693@khazad-dum.debian.net> <20080114003553.GA1698@srcf.ucam.org>
+Subject: Re: [PATCH] Rationalise ACPI backlight implementation
+Date: Mon, 14 Jan 2008 01:51:21 +0000
+Message-ID: <20080114015121.GB2317@srcf.ucam.org>
+References: <20071226020325.GA21099@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:51299 "EHLO
+Received: from cavan.codon.org.uk ([78.32.9.130]:51315 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753008AbYANBuS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 20:50:18 -0500
+	with ESMTP id S1753353AbYANBv1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Jan 2008 20:51:27 -0500
 Content-Disposition: inline
-In-Reply-To: <20080114003553.GA1698@srcf.ucam.org>
+In-Reply-To: <20071226020325.GA21099@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Mon, Jan 14, 2008 at 12:35:54AM +0000, Matthew Garrett wrote:
-
-> No. This breaks on the R50e, at least - I suspect it'd also have 
-> problems on any nvidia based machines, but I don't have one to hand at 
-> the moment. It can be set at runtime already.
-
-Just to clarify this further, in the relatively near-term future we're 
-not going to want the low-level ACPI code to do anything video-related 
-on a lot of hardware. The in-kernel modesetting code for Intel machines 
-will be able to handle this significantly more effectively.
-
+Len, I've had no feedback on this - the backlight maintainer thinks it's 
+the right way to go, so I'd like to get it queued for .25 at least.
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
