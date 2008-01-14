@@ -1,48 +1,73 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 2/6] sony-laptop: Add Vaio N series to the special init sequence to enable Fn keys
-Date: Mon, 14 Jan 2008 18:05:42 +0900
-Message-ID: <1200301546-6079-3-git-send-email-malattia@linux.it>
-References: <1200301546-6079-1-git-send-email-malattia@linux.it>
- <1200301546-6079-2-git-send-email-malattia@linux.it>
+From: Johan Lans <apansson@apspektakel.com>
+Subject: acpid: can't open /proc/acpi/event: No such file or directory
+Date: Mon, 14 Jan 2008 13:28:05 +0100
+Message-ID: <478B5555.4060904@apspektakel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi15.ns.itscom.net ([219.110.2.185]:49230 "EHLO
-	mtoichi15.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbYANJMr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2008 04:12:47 -0500
-In-Reply-To: <1200301546-6079-2-git-send-email-malattia@linux.it>
+Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:46794 "EHLO
+	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750895AbYANM2L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2008 07:28:11 -0500
+Received: from c80-217-107-53.bredband.comhem.se ([80.217.107.53]:1307 helo=[192.168.2.103])
+	by ch-smtp01.sth.basefarm.net with esmtp (Exim 4.68)
+	(envelope-from <apansson@apspektakel.com>)
+	id 1JEOQE-00023j-4E
+	for linux-acpi@vger.kernel.org; Mon, 14 Jan 2008 13:28:10 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+To: linux-acpi@vger.kernel.org
 
-Also the recent Vaio N series need some more calls into the DSDT
-to enable reporting of FN key events to be delivered to the SNC device.
+Hi
+I'm trying to set up ACPI, on my gentoo system, so that I can use the 
+power button to hibernate the system. I compiled the kernel (2.6.23) 
+with the folowing ACPI options:
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/misc/sony-laptop.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+# Power management options (ACPI, APM)
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_PROCFS=y
+CONFIG_ACPI_PROC_EVENT=y
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_FAN=y
+# CONFIG_ACPI_DOCK is not set
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_HOTPLUG_CPU=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+CONFIG_ACPI_DEBUG=y
+# CONFIG_ACPI_DEBUG_FUNC_TRACE is not set
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_CONTAINER=y
+# CONFIG_ACPI_SBS is not set
+CONFIG_PNPACPI=y
+# CONFIG_THINKPAD_ACPI is not set
+CONFIG_BLK_DEV_IDEACPI=y
+CONFIG_ATA_ACPI=y
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 0435b3d..7a32b35 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -875,6 +875,15 @@ static const struct dmi_system_id sony_nc_ids[] = {
- 				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-C"),
- 			},
- 		},
-+		{
-+			.ident = "Sony Vaio N Series",
-+			.callback = sony_nc_C_enable,
-+			.driver_data = sony_C_events,
-+			.matches = {
-+				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
-+			},
-+		},
- 		{ }
- };
- 
--- 
-1.5.3.7
+I've emerged ACPI and ACPID.
+Now, when I boot into this kernel and try to start ACPID, I get this:
 
+ellen linux # /etc/init.d/acpid start
+ * Service acpid starting
+acpid: can't open /proc/acpi/event: No such file or directory            
+                                                                        
+       [ !! ]
+ * ERROR:  acpid failed to start
+
+Any ideas? I thought the CONFIG_ACPI_PROC_EVENT=y option would fix this.
+
+I don't know much about ACPI, but the dmesg gives a lot of output on 
+acpi during boot, and there seems to be no error in that, so I think 
+acpi is activated like it should. I can post that output too if it helps.
+
+thanks for any help
+/Johan
