@@ -1,61 +1,69 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: sata_nv does not function in kernel > 2.6.20.21... possible ACPI or PCI involvement?
-Date: Tue, 15 Jan 2008 09:47:07 -0700
-Message-ID: <200801150947.07998.bjorn.helgaas@hp.com>
-References: <20080112205939.GA5291@mhcomputing.net> <200801141702.26914.bjorn.helgaas@hp.com> <20080115043804.GA17040@mhcomputing.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI Error (utglobal-0126)
+Date: Tue, 15 Jan 2008 11:57:22 -0500
+Message-ID: <200801151157.22272.lenb@kernel.org>
+References: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:14925 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217AbYAOQqs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2008 11:46:48 -0500
-In-Reply-To: <20080115043804.GA17040@mhcomputing.net>
+Received: from hera.kernel.org ([140.211.167.34]:36653 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891AbYAOQ5i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jan 2008 11:57:38 -0500
+In-Reply-To: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@atrey.karlin.mff.cuni.cz
-Cc: Matthew Hall <mhall@mhcomputing.net>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>
+To: Erwan Velu <erwanaliasr1@gmail.com>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 14 January 2008 09:38:04 pm Matthew Hall wrote:
-> On Mon, Jan 14, 2008 at 05:02:26PM -0700, Bjorn Helgaas wrote:
-> > I think this is a bug in the BIOS description of the motherboard
-> > device.  In 2.6.20, the PNP system driver reserved ioport resources
-> > but ignored mmio resources.  In 2.6.23, the system driver reserves
-> > both ioport and mmio resources, which I think is more correct, but
-> > exposes this bug.
+On Tuesday 15 January 2008 08:10, Erwan Velu wrote:
+> Hey folks,
 > 
-> Bjorn,
+> I'm running a 2.6.24-rc7 on my Samsung R70 in 64bit mode.
+> While booting up, the ACPI shows me this error :
 > 
-> I complained to Supermicro and mentioned that the beta BIOS they 
-> provided to one of the customers in the Redhat Bugzilla threads did not 
-> solve the issue at all. I also included links to both Bugzilla threads 
-> as well as a link to the mail you sent back to me as snipped above which 
-> contained your excellent analysis of the problem.
-
-My patch is based on the assumption that a PCI resource (like the
-SATA BAR here) is completely discoverable and configurable through
-the standard PCI mechanisms, and it therefore should not also be
-described as a resource of an ACPI device.
-
-If Supermicro went to the trouble of providing a beta BIOS, maybe
-they're interested enough to shed some light on why their BIOS does
-it this way.  It's possible that my assumption is wrong, and Linux
-is just not doing the right thing.  If you have a Supermicro contact,
-you might pass this by them.
-
-> > I posted the attached test patch to the redhat bugzilla above, but
-> > nobody's tested it yet.  Can you try it?
+> ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFFE [20070126]
+> Pid: 1950, comm: modprobe Not tainted 2.6.24-laptop-0.rc7.1mdv #1
 > 
-> The patch applied, booted, ran, and solved the problem perfectly. Do you 
-> want any output or configuration files to verify anything? Let me know 
-> if there is anything I can do to help. Other than that if you think it 
-> is safe to apply this, I am in favor of adding it to the mainline or 
-> other appropriate tree.
+> Call Trace:
+>  [<ffffffff8038bd86>] acpi_ut_update_ref_count+0x50/0x9d
+>  [<ffffffff8038c231>] acpi_format_exception+0x2c/0x35
+>  [<ffffffff8038afcb>] acpi_ut_exception+0x25/0x8c
+>  [<ffffffff8037662c>] acpi_evaluate_integer+0xb6/0xc7
+>  [<ffffffff8821dd0a>] :video:acpi_video_bus_add+0xcc9/0xce2
+>  [<ffffffff802c45e8>] ifind+0x58/0xd0
+>  [<ffffffff8038f33c>] acpi_device_probe+0x43/0x91
+>  [<ffffffff803c31cc>] driver_probe_device+0x9c/0x1b0
+>  [<ffffffff803c3499>] __driver_attach+0xc9/0xd0
+>  [<ffffffff803c33d0>] __driver_attach+0x0/0xd0
+>  [<ffffffff803c23ad>] bus_for_each_dev+0x4d/0x80
+>  [<ffffffff803c281c>] bus_add_driver+0xac/0x220
+>  [<ffffffff8822303c>] :video:acpi_video_init+0x3c/0x5e
+>  [<ffffffff802622ae>] sys_init_module+0x18e/0x19a0
+>  [<ffffffff802522b0>] autoremove_wake_function+0x0/0x30
+>  [<ffffffff8020c34e>] system_call+0x7e/0x83
+> 
+> ACPI Exception (video-1721): UNKNOWN_STATUS_CODE, Cant attach device [20070126]
+> input: Video Bus as /class/input/input7
+> 
+> I would love helping you in fixing that.
+> How Can I Help ?
 
-I'll clean up the patch and post it.  With luck, it might show up in
-the -mm tree soon and then in 2.6.25.
+you just did:-)
 
-Bjorn
+Rui,
+acpi_video_bus_get_one_device() is returning -errno style status,
+but acpi_video_bus_get_devices() is expecting an ACPICA style status
+
+                status = acpi_video_bus_get_one_device(dev, video);
+                if (ACPI_FAILURE(status)) {
+                        ACPI_EXCEPTION((AE_INFO, status, "Cant attach device"));
+                        continue;
+                }
+
+looks like this was true in 2.6.23 as well...
+
+-Len
