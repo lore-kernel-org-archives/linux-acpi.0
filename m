@@ -1,135 +1,304 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: sata_nv does not function in kernel > 2.6.20.21... possible ACPI or PCI involvement?
-Date: Mon, 14 Jan 2008 17:02:26 -0700
-Message-ID: <200801141702.26914.bjorn.helgaas@hp.com>
-References: <20080112205939.GA5291@mhcomputing.net>
+From: "HasiHeike@versanet.de" <HasiHeike@versanet.de>
+Subject: dmidecode from hp pavilion dv9047ea Turion X2
+Date: Tue, 15 Jan 2008 02:31:58 +0100
+Message-ID: <478C0D0E.1050402@versanet.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:32031 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751403AbYAOACO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jan 2008 19:02:14 -0500
-In-Reply-To: <20080112205939.GA5291@mhcomputing.net>
-Content-Disposition: inline
+Received: from mail.terralink.de ([217.9.16.16]:50131 "EHLO mail.terralink.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750708AbYAOAzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jan 2008 19:55:19 -0500
+Received: from [192.168.0.5] (Vaee7.v.pppool.de [89.57.174.231])
+	by mail.terralink.de (Postfix) with ESMTP id 4E6A1B825
+	for <linux-acpi@vger.kernel.org>; Tue, 15 Jan 2008 01:32:00 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@atrey.karlin.mff.cuni.cz
-Cc: Matthew Hall <mhall@mhcomputing.net>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>
+To: linux-acpi@vger.kernel.org
 
-On Saturday 12 January 2008 01:59:39 pm Matthew Hall wrote:
-> Jeff Garzik forwarded me here to get some assistance resolving a 
-> functionality regression in my sata_nv controller driver in recent Linux 
-> kernels. I have attached the same data here that I ended up sending to 
-> Jeff + others on the linux-ide list already. I assume you will probably 
-> need other different data from Jeff so please let me know if any other 
-> omitted information is required for diagnostics and I will respond ASAP.
-> 
-> I am using the Supermicro H8DCE motherboard. Some (not all) of the SATA
-> channels quit working due to some kind of resource conflict when I
-> upgrade to any kernel above 2.6.20.xx series, in my case I am running
-> 2.6.20.21 SMP x86_64 presently.
-> 
-> The boot error which appears in dmesg for the missing SATA channels on
-> 2.6.23.12 is pasted below.
+# dmidecode 2.9
+SMBIOS 2.4 present.
+20 structures occupying 822 bytes.
+Table at 0x000F1C80.
 
-This looks like the same problem reported here:
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: Hewlett-Packard
+        Version: F.3B
+        Release Date: 10/02/2007
+        Address: 0xE6A30
+        Runtime Size: 103888 bytes
+        ROM Size: 1024 kB
+        Characteristics:
+                ISA is supported
+                PCI is supported
+                PNP is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                ESCD support is available
+                Boot from CD is supported
+                Selectable boot is supported
+                Print screen service is supported (int 5h)
+                8042 keyboard services are supported (int 9h)
+                Serial services are supported (int 14h)
+                Printer services are supported (int 17h)
+                ACPI is supported
+                USB legacy is supported
+                AGP is supported
+                Smart battery is supported
+                BIOS boot specification is supported
+                Targeted content distribution is supported
 
-  https://bugzilla.redhat.com/show_bug.cgi?id=313491
-  https://bugzilla.redhat.com/show_bug.cgi?id=280641
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Hewlett-Packard
+        Product Name: HP Pavilion dv9000 (RE372EA#ABD)
+        Version: Rev 1
+        Serial Number: CNF6330ND6
+        UUID: 434E4636-3333-304E-4436-00163674AE3C
+        Wake-up Type: Power Switch
+        SKU Number: RE372EA#ABD
+        Family: 103C_5335KV
 
-> PCI: Unable to reserve mem region #6:1000@dfefe000 for device 0000:80:07.0
-> PCI: Unable to reserve mem region #6:1000@dfefd000 for device 0000:80:08.0
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+        Manufacturer: Quanta
+        Product Name: 30B9
+        Version: 65.29
+        Serial Number: None
 
-Your 2.6.23.12 /proc/iomem shows this:
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+        Manufacturer: Quanta
+        Type: Notebook
+        Lock: Not Present
+        Version: N/A
+        Serial Number: None
+        Asset Tag:
+        Boot-up State: Safe
+        Power Supply State: Safe
+        Thermal State: Safe
+        Security Status: Unknown
+        OEM Information: 0x00000000
 
-  dfefd000-dfefdfff : 0000:80:08.0
-    dfefd000-dfefd3ff : pnp 00:07
-  dfefe000-dfefefff : 0000:80:07.0
-    dfefe000-dfefe3ff : pnp 00:07
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+        Socket Designation: Socket S1
+        Type: Central Processor
+        Family: Opteron
+        Manufacturer: AMD
+        ID: 82 0F 04 00 FF FB 8B 17
+        Signature: Family 15, Model 72, Stepping 2
+        Flags:
+                FPU (Floating-point unit on-chip)
+                VME (Virtual mode extension)
+                DE (Debugging extension)
+                PSE (Page size extension)
+                TSC (Time stamp counter)
+                MSR (Model specific registers)
+                PAE (Physical address extension)
+                MCE (Machine check exception)
+                CX8 (CMPXCHG8 instruction supported)
+                APIC (On-chip APIC hardware supported)
+                SEP (Fast system call)
+                MTRR (Memory type range registers)
+                PGE (Page global enable)
+                MCA (Machine check architecture)
+                CMOV (Conditional move instruction supported)
+                PAT (Page attribute table)
+                PSE-36 (36-bit page size extension)
+                CLFSH (CLFLUSH instruction supported)
+                MMX (MMX technology supported)
+                FXSR (Fast floating-point save and restore)
+                SSE (Streaming SIMD extensions)
+                SSE2 (Streaming SIMD extensions 2)
+                HTT (Hyper-threading technology)
+        Version: AMD Turion(tm) 64 X2 Mobile TL52
+        Voltage: 1.6 V
+        External Clock: 200 MHz
+        Max Speed: 1600 MHz
+        Current Speed: 1600 MHz
+        Status: Populated, Enabled
+        Upgrade: None
+        L1 Cache Handle: 0x0005
+        L2 Cache Handle: 0x0006
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
 
-That means the dfefd000-dfefd3ff range is mentioned both as a
-resource of an ACPI motherboard device (we call it "pnp 00:07"
-above) and as a BAR of the SATA PCI device 0000:80:08.0.
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L1 Cache
+        Configuration: Enabled, Not Socketed, Level 1
+        Operational Mode: Write Back
+        Location: Internal
+        Installed Size: 64 KB
+        Maximum Size: 64 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Asynchronous
+        Installed SRAM Type: Asynchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unknown
+        Associativity: Unknown
 
-The PNP "system" driver reserves that range to keep us from
-putting another device on top of it, and the sata_nv reservation
-fails because it extends past the end of the PNP reservation.
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+        Socket Designation: L2 Cache
+        Configuration: Enabled, Not Socketed, Level 2
+        Operational Mode: Write Through
+        Location: Internal
+        Installed Size: 1024 KB
+        Maximum Size: 1024 KB
+        Supported SRAM Types:
+                Burst
+                Pipeline Burst
+                Synchronous
+        Installed SRAM Type: Synchronous
+        Speed: Unknown
+        Error Correction Type: Unknown
+        System Type: Unified
+        Associativity: Unknown
 
-I think this is a bug in the BIOS description of the motherboard
-device.  In 2.6.20, the PNP system driver reserved ioport resources
-but ignored mmio resources.  In 2.6.23, the system driver reserves
-both ioport and mmio resources, which I think is more correct, but
-exposes this bug.
+Handle 0x0007, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot 1
+        Type: 64-bit PCI Express
+        Current Usage: Available
+        Length: Short
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
 
-I posted the attached test patch to the redhat bugzilla above, but
-nobody's tested it yet.  Can you try it?
+Handle 0x0008, DMI type 9, 13 bytes
+System Slot Information
+        Designation: PCI Express Slot 2
+        Type: 64-bit PCI Express
+        Current Usage: Available
+        Length: Short
+        ID: 0
+        Characteristics:
+                5.0 V is provided
+                3.3 V is provided
+                PME signal is supported
+                Hot-plug devices are supported
 
-Bjorn
+Handle 0x0009, DMI type 10, 6 bytes
+On Board Device Information
+        Type: Video
+        Status: Enabled
+        Description:
 
+Handle 0x000A, DMI type 11, 5 bytes
+OEM Strings
+        String 1: $HP$
+        String 2: LOC#
 
-Index: w/drivers/pnp/quirks.c
-===================================================================
---- w.orig/drivers/pnp/quirks.c	2007-10-11 15:36:12.000000000 -0600
-+++ w/drivers/pnp/quirks.c	2007-10-11 16:35:49.000000000 -0600
-@@ -108,6 +108,47 @@
- 		       "pnp: SB audio device quirk - increasing port range\n");
- }
- 
-+static int overlaps(resource_size_t start1, resource_size_t end1,
-+		    resource_size_t start2, resource_size_t end2)
-+{
-+	if (start2 <= start1 && start1 < end2)
-+		return 1;
-+	if (start2 <= end1 && end1 < end2)
-+		return 1;
-+	return 0;
-+}
-+
-+
-+#include <linux/pci.h>
-+
-+static void quirk_supermicro_motherboard(struct pnp_dev *dev)
-+{
-+	struct pci_dev *pdev = NULL;
-+	int i, j;
-+
-+	for_each_pci_dev(pdev) {
-+		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-+			if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM) ||
-+			    pci_resource_len(pdev, i) == 0)
-+				continue;
-+
-+			for (j = 0; j < PNP_MAX_MEM; j++) {
-+				if (!pnp_mem_valid(dev, j) ||
-+				    pnp_mem_len(dev, j) == 0)
-+					continue;
-+
-+				if (overlaps(pnp_mem_start(dev, j),
-+					     pnp_mem_end(dev, j),
-+					     pci_resource_start(pdev, i),
-+					     pci_resource_end(pdev, i))) {
-+					dev_warn(&dev->dev, "mem resource overlaps %s BAR %d, disabling\n", pci_name(pdev), i);
-+					pnp_mem_flags(dev, j) = 0;
-+				}
-+			}
-+		}
-+	}
-+}
-+
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -128,6 +169,8 @@
- 	{"CTL0043", quirk_sb16audio_resources},
- 	{"CTL0044", quirk_sb16audio_resources},
- 	{"CTL0045", quirk_sb16audio_resources},
-+	{"PNP0c01", quirk_supermicro_motherboard},
-+	{"PNP0c02", quirk_supermicro_motherboard},
- 	{""}
- };
- 
+Handle 0x000B, DMI type 15, 29 bytes
+System Event Log
+        Area Length: 16 bytes
+        Header Start Offset: 0x0000
+        Header Length: 16 bytes
+        Data Start Offset: 0x0010
+        Access Method: General-purpose non-volatile data functions
+        Access Address: 0x0000
+        Status: Valid, Not Full
+        Change Token: 0x000000F6
+        Header Format: Type 1
+        Supported Log Type Descriptors: 3
+        Descriptor 1: POST error
+        Data Format 1: POST results bitmap
+        Descriptor 2: Single-bit ECC memory error
+        Data Format 2: Multiple-event
+        Descriptor 3: Multi-bit ECC memory error
+        Data Format 3: Multiple-event
 
+Handle 0x000C, DMI type 16, 15 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: None
+        Maximum Capacity: 2 GB
+        Error Information Handle: Not Provided
+        Number Of Devices: 2
+
+Handle 0x000D, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000C
+        Error Information Handle: No Error
+        Total Width: 64 bits
+        Data Width: 64 bits
+        Size: 1024 MB
+        Form Factor: DIMM
+        Set: 1
+        Locator: DIMM 1
+        Bank Locator: Bank 0,1
+        Type: DDR2
+        Type Detail: Synchronous
+        Speed: 667 MHz (1.5 ns)
+        Manufacturer: F7F7460000000000
+        Serial Number: FFFFFFFF
+        Asset Tag: Not Specified
+        Part Number: MDT DDR2
+
+Handle 0x000E, DMI type 17, 27 bytes
+Memory Device
+        Array Handle: 0x000C
+        Error Information Handle: No Error
+        Total Width: 64 bits
+        Data Width: 64 bits
+        Size: 1024 MB
+        Form Factor: DIMM
+        Set: 1
+        Locator: DIMM 2
+        Bank Locator: Bank 2,3
+        Type: DDR2
+        Type Detail: Unknown
+        Speed: 667 MHz (1.5 ns)
+        Manufacturer: F7F7460000000000
+        Serial Number: FFFFFFFF
+        Asset Tag: Not Specified
+        Part Number: MDT DDR2
+
+Handle 0x000F, DMI type 19, 15 bytes
+Memory Array Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 2 GB
+        Physical Array Handle: 0x000C
+        Partition Width: 0
+
+Handle 0x0010, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00000000000
+        Ending Address: 0x0003FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x000D
+        Memory Array Mapped Address Handle: 0x000F
+        Partition Row Position: 2
+        Interleave Position: 2
+        Interleaved Data Depth: 2
+
+Handle 0x0011, DMI type 20, 19 bytes
+Memory Device Mapped Address
+        Starting Address: 0x00040000000
+        Ending Address: 0x0007FFFFFFF
+        Range Size: 1 GB
+        Physical Device Handle: 0x000E
+        Memory Array Mapped Address Handle: 0x000F
+        Partition Row Position: 2
+        Interleave Position: 2
+        Interleaved Data Depth: 2
+
+Handle 0x0012, DMI type 32, 20 bytes
+System Boot Information
+        Status: <OUT OF SPEC>
+
+Handle 0x0013, DMI type 127, 4 bytes
+End Of Table
 
