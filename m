@@ -1,33 +1,37 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/3] More updates for 2.6.25
-Date: Wed, 16 Jan 2008 12:44:46 +0100
-Message-ID: <20080116114446.GB22460@elf.ucw.cz>
-References: <200801110118.46106.rjw@sisk.pl> <200801152322.33984.lenb@kernel.org>
+Date: Wed, 16 Jan 2008 13:37:18 +0100
+Message-ID: <200801161337.19070.rjw@sisk.pl>
+References: <200801110118.46106.rjw@sisk.pl> <200801152322.33984.lenb@kernel.org> <20080116114446.GB22460@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59471 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751453AbYAPLoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2008 06:44:37 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:53522 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752619AbYAPMfA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2008 07:35:00 -0500
+In-Reply-To: <20080116114446.GB22460@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <200801152322.33984.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue 2008-01-15 23:22:33, Len Brown wrote:
-> On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
-> > Len,
+On Wednesday, 16 of January 2008, Pavel Machek wrote:
+> On Tue 2008-01-15 23:22:33, Len Brown wrote:
+> > On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
+> > > Len,
+> > > 
+> > > Please add the following three patches to the suspend branch.
 > > 
-> > Please add the following three patches to the suspend branch.
+> > Applied (and suspend branch has been re-based to latest linus tree)
 > 
-> Applied (and suspend branch has been re-based to latest linus tree)
+> Was that "lets reorder notifications, old order was more logical, but
+> it fixes apm?" series?
 
-Was that "lets reorder notifications, old order was more logical, but
-it fixes apm?" series?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Yes, plus the docs update from Dave Brownell.
+
+Greetings,
+Rafael
