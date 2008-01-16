@@ -1,35 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH, RFC] HP WMI hotkey driver, RFKill query?
-Date: Wed, 16 Jan 2008 01:49:47 +0000
-Message-ID: <20080116014947.GA7101@srcf.ucam.org>
-References: <20071218235137.12838.75397.stgit@localhost> <200801142225.11066.carlos@strangeworlds.co.uk> <20080115155215.ZZRA012@mailhub.coreip.homeip.net> <200801160138.36347.carlos@strangeworlds.co.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/2] Suspend: Clean up suspend_64.c
+Date: Tue, 15 Jan 2008 23:19:27 -0500
+Message-ID: <200801152319.27677.lenb@kernel.org>
+References: <200712162346.10241.rjw@sisk.pl> <200712170030.23670.rjw@sisk.pl> <20071217002612.GE5692@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:59431 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756671AbYAPBuB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2008 20:50:01 -0500
+Received: from hera.kernel.org ([140.211.167.34]:52987 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751554AbYAPEUH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jan 2008 23:20:07 -0500
+In-Reply-To: <20071217002612.GE5692@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <200801160138.36347.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>, Borislav Petkov <bbpetkov@yahoo.de>
 
-On Wed, Jan 16, 2008 at 01:38:35AM +0000, Carlos Corbacho wrote:
+Applied.
 
-> The question is, would exporting the GUID virtual device and using that as the 
-> parent make more sense? So, in the case of hp-wmi, it only uses the GUID 
-> 95F24279-4D7B-4334-9387-ACCDC67EF61C, so should we use the virtual device 
-> associated with that GUID as the parent, or just have WMI itself as the 
-> parent device? I'm really not sure which would be the better way to go.
+thanks,
+-Len
 
-It's possible for a driver to bind itself to multiple GUIDs, and I guess 
-it's /potentially/ possible for a machine to have multiple event GUIDs. 
-I'm not sure whether those should be created as separate input devices, 
-or whether it would make sense for a driver to bind them into a single 
-input driver. If the latter, wmi probably ought to be the parent?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+On Sunday 16 December 2007 19:26, Pavel Machek wrote:
+> On Mon 2007-12-17 00:30:22, Rafael J. Wysocki wrote:
+> > From: Borislav Petkov <bbpetkov@yahoo.de>
+> > 
+> > There's a freakishly long comment in suspend_64.c, shorten it.
+> > 
+> > Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> ACK.
+> 
