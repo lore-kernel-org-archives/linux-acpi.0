@@ -1,139 +1,108 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: sata_nv does not function in kernel > 2.6.20.21... possible ACPI or PCI involvement?
-Date: Tue, 15 Jan 2008 15:02:07 -0700
-Message-ID: <200801151502.08102.bjorn.helgaas@hp.com>
-References: <20080112205939.GA5291@mhcomputing.net> <200801141702.26914.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI Error (utglobal-0126)
+Date: Wed, 16 Jan 2008 09:38:14 +0800
+Message-ID: <1200447494.2935.14.camel@acpi-sony.sh.intel.com>
+References: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:44822 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757926AbYAOWBp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jan 2008 17:01:45 -0500
-In-Reply-To: <200801141702.26914.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:21774 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753197AbYAPBdM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jan 2008 20:33:12 -0500
+In-Reply-To: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@atrey.karlin.mff.cuni.cz
-Cc: Matthew Hall <mhall@mhcomputing.net>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Robert Hancock <hancockr@shaw.ca>
+To: Erwan Velu <erwanaliasr1@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 14 January 2008 05:02:26 pm Bjorn Helgaas wrote:
-> This looks like the same problem reported here:
+Hi,
+
+On Tue, 2008-01-15 at 14:10 +0100, Erwan Velu wrote:
+> Hey folks,
 > 
->   https://bugzilla.redhat.com/show_bug.cgi?id=313491
->   https://bugzilla.redhat.com/show_bug.cgi?id=280641
+> I'm running a 2.6.24-rc7 on my Samsung R70 in 64bit mode.
+> While booting up, the ACPI shows me this error :
 > 
-> > PCI: Unable to reserve mem region #6:1000@dfefe000 for device 0000:80:07.0
-> > PCI: Unable to reserve mem region #6:1000@dfefd000 for device 0000:80:08.0
+> ACPI Error (utglobal-0126): Unknown exception code: 0xFFFFFFFE [20070126]
+Hmm, return value is -ENOENT which means video bus failed to evaluated
+the _ADR method of the video device.
+Please open a bug at
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and assign it to me.
+Please attach the dmesg output and acpidump as well.
+
+> Pid: 1950, comm: modprobe Not tainted 2.6.24-laptop-0.rc7.1mdv #1
 > 
-> Your 2.6.23.12 /proc/iomem shows this:
+> Call Trace:
+>  [<ffffffff8038bd86>] acpi_ut_update_ref_count+0x50/0x9d
+>  [<ffffffff8038c231>] acpi_format_exception+0x2c/0x35
+>  [<ffffffff8038afcb>] acpi_ut_exception+0x25/0x8c
+>  [<ffffffff8037662c>] acpi_evaluate_integer+0xb6/0xc7
+>  [<ffffffff8821dd0a>] :video:acpi_video_bus_add+0xcc9/0xce2
+>  [<ffffffff802c45e8>] ifind+0x58/0xd0
+>  [<ffffffff8038f33c>] acpi_device_probe+0x43/0x91
+>  [<ffffffff803c31cc>] driver_probe_device+0x9c/0x1b0
+>  [<ffffffff803c3499>] __driver_attach+0xc9/0xd0
+>  [<ffffffff803c33d0>] __driver_attach+0x0/0xd0
+>  [<ffffffff803c23ad>] bus_for_each_dev+0x4d/0x80
+>  [<ffffffff803c281c>] bus_add_driver+0xac/0x220
+>  [<ffffffff8822303c>] :video:acpi_video_init+0x3c/0x5e
+>  [<ffffffff802622ae>] sys_init_module+0x18e/0x19a0
+>  [<ffffffff802522b0>] autoremove_wake_function+0x0/0x30
+>  [<ffffffff8020c34e>] system_call+0x7e/0x83
 > 
->   dfefd000-dfefdfff : 0000:80:08.0
->     dfefd000-dfefd3ff : pnp 00:07
->   dfefe000-dfefefff : 0000:80:07.0
->     dfefe000-dfefe3ff : pnp 00:07
+> ACPI Exception (video-1721): UNKNOWN_STATUS_CODE, Cant attach device [20070126]
+> input: Video Bus as /class/input/input7
 > 
-> That means the dfefd000-dfefd3ff range is mentioned both as a
-> resource of an ACPI motherboard device (we call it "pnp 00:07"
-> above) and as a BAR of the SATA PCI device 0000:80:08.0.
+Please try this patch first.
+From: Zhang Rui <rui.zhang@intel.com>
 
-Hmm...  The PNP quirk below is appealingly simple, and Matthew
-confirmed that it fixes the problem on his box.
+acpi_video_bus_get_one_device() is returning -errno style status,
+but acpi_video_bus_get_devices() is expecting an ACPICA style status
 
-But now I'm a little hesitant.  It relies on the fact that we've
-discovered the SATA PCI device before running the quirks for the
-PNP system device.  That happens to be the case now, but I don't
-think we should rely on it.
+Fix this and check the return value of acpi_video_device_enumerate as well.
 
-The ACPI root bridge device and the PNP system device are both
-discovered via the ACPI namespace.  We currently treat them
-differently -- one is treated as an ACPI device, and the other
-is treated as a PNP device via the PNPACPI backend.  But that
-distinction seems artificial to me, and I can imagine that the
-ACPI PCI root bridge driver could someday be integrated into PNP.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-In that case, the PNP system device might be discovered and have
-its quirks run before the PCI root bridge is discovered and scanned.
-
-As much as I'd like to have a generic quirk that would work around
-this defect and others like it, I think the safest thing would be
-to do something specific to the Supermicro H8DCE BIOS, since all
-the reports I've seen are on that box:
-
-    https://bugzilla.redhat.com/show_bug.cgi?id=280641
-    https://bugzilla.redhat.com/show_bug.cgi?id=313491
-    http://lkml.org/lkml/2008/1/9/449
-
-Matthew, could you collect the dmidecode output?
-
-Bjorn
-
-
-> Index: w/drivers/pnp/quirks.c
-> ===================================================================
-> --- w.orig/drivers/pnp/quirks.c	2007-10-11 15:36:12.000000000 -0600
-> +++ w/drivers/pnp/quirks.c	2007-10-11 16:35:49.000000000 -0600
-> @@ -108,6 +108,47 @@
->  		       "pnp: SB audio device quirk - increasing port range\n");
->  }
->  
-> +static int overlaps(resource_size_t start1, resource_size_t end1,
-> +		    resource_size_t start2, resource_size_t end2)
-> +{
-> +	if (start2 <= start1 && start1 < end2)
-> +		return 1;
-> +	if (start2 <= end1 && end1 < end2)
-> +		return 1;
-> +	return 0;
-> +}
-> +
-> +
-> +#include <linux/pci.h>
-> +
-> +static void quirk_supermicro_motherboard(struct pnp_dev *dev)
-> +{
-> +	struct pci_dev *pdev = NULL;
-> +	int i, j;
-> +
-> +	for_each_pci_dev(pdev) {
-> +		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-> +			if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM) ||
-> +			    pci_resource_len(pdev, i) == 0)
-> +				continue;
-> +
-> +			for (j = 0; j < PNP_MAX_MEM; j++) {
-> +				if (!pnp_mem_valid(dev, j) ||
-> +				    pnp_mem_len(dev, j) == 0)
-> +					continue;
-> +
-> +				if (overlaps(pnp_mem_start(dev, j),
-> +					     pnp_mem_end(dev, j),
-> +					     pci_resource_start(pdev, i),
-> +					     pci_resource_end(pdev, i))) {
-> +					dev_warn(&dev->dev, "mem resource overlaps %s BAR %d, disabling\n", pci_name(pdev), i);
-> +					pnp_mem_flags(dev, j) = 0;
-> +				}
-> +			}
-> +		}
-> +	}
-> +}
-> +
->  /*
->   *  PnP Quirks
->   *  Cards or devices that need some tweaking due to incomplete resource info
-> @@ -128,6 +169,8 @@
->  	{"CTL0043", quirk_sb16audio_resources},
->  	{"CTL0044", quirk_sb16audio_resources},
->  	{"CTL0045", quirk_sb16audio_resources},
-> +	{"PNP0c01", quirk_supermicro_motherboard},
-> +	{"PNP0c02", quirk_supermicro_motherboard},
->  	{""}
->  };
->  
-> 
-> 
-> 
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -1530,7 +1530,7 @@ static int acpi_video_device_enumerate(s
+ 	status = acpi_evaluate_object(video->device->handle, "_DOD", NULL, &buffer);
+ 	if (!ACPI_SUCCESS(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _DOD"));
+-		return status;
++		return -EIO;
+ 	}
+ 
+ 	dod = buffer.pointer;
+@@ -1699,13 +1699,18 @@ acpi_video_bus_get_devices(struct acpi_v
+ 	int status = 0;
+ 	struct acpi_device *dev;
+ 
+-	acpi_video_device_enumerate(video);
++	status = acpi_video_device_enumerate(video);
++	if (status) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Failed to enumerate devices\n"));;
++		return status;
++	}
+ 
+ 	list_for_each_entry(dev, &device->children, node) {
+ 
+ 		status = acpi_video_bus_get_one_device(dev, video);
+-		if (ACPI_FAILURE(status)) {
+-			ACPI_EXCEPTION((AE_INFO, status, "Cant attach device"));
++		if (status) {
++			ACPI_EXCEPTION((AE_INFO, AE_ERROR, "Cant attach device"));
+ 			continue;
+ 		}
+ 	}
 
 
