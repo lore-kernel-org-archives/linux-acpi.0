@@ -1,37 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/3] More updates for 2.6.25
-Date: Wed, 16 Jan 2008 13:37:18 +0100
-Message-ID: <200801161337.19070.rjw@sisk.pl>
-References: <200801110118.46106.rjw@sisk.pl> <200801152322.33984.lenb@kernel.org> <20080116114446.GB22460@elf.ucw.cz>
+From: Corentin CHARY <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Subject: [PATCH 0/2] asus-laptop update
+Date: Wed, 16 Jan 2008 16:52:21 +0100
+Message-ID: <200801161652.22122.corentincj@iksaif.net>
+Reply-To: corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53522 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619AbYAPMfA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2008 07:35:00 -0500
-In-Reply-To: <20080116114446.GB22460@elf.ucw.cz>
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wednesday, 16 of January 2008, Pavel Machek wrote:
-> On Tue 2008-01-15 23:22:33, Len Brown wrote:
-> > On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
-> > > Len,
-> > > 
-> > > Please add the following three patches to the suspend branch.
-> > 
-> > Applied (and suspend branch has been re-based to latest linus tree)
-> 
-> Was that "lets reorder notifications, old order was more logical, but
-> it fixes apm?" series?
+Hi Len,
+Here is two patch for asus-laptop.
+Wlan/Bluetooth and LEDs should work better now.
+Thanks to Fabien Crespel
 
-Yes, plus the docs update from Dave Brownell.
+-- 
+Corentin 'Iksaif' CHARY
+http://xf.iksaif.net
 
-Greetings,
-Rafael
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
