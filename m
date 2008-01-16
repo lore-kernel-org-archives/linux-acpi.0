@@ -1,32 +1,33 @@
-From: "Erwan Velu" <erwanaliasr1@gmail.com>
-Subject: Re: ACPI Error (utglobal-0126)
-Date: Wed, 16 Jan 2008 10:20:31 +0100
-Message-ID: <b43bf5490801160120l38eb039brd52eec5da5511807@mail.gmail.com>
-References: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
-	 <1200447494.2935.14.camel@acpi-sony.sh.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/3] More updates for 2.6.25
+Date: Wed, 16 Jan 2008 12:44:46 +0100
+Message-ID: <20080116114446.GB22460@elf.ucw.cz>
+References: <200801110118.46106.rjw@sisk.pl> <200801152322.33984.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:34367 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbYAPJUc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jan 2008 04:20:32 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so316923wah.23
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jan 2008 01:20:31 -0800 (PST)
-In-Reply-To: <1200447494.2935.14.camel@acpi-sony.sh.intel.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59471 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751453AbYAPLoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2008 06:44:37 -0500
 Content-Disposition: inline
+In-Reply-To: <200801152322.33984.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-[...]
-> Please try this patch first.
-> From: Zhang Rui <rui.zhang@intel.com>
+On Tue 2008-01-15 23:22:33, Len Brown wrote:
+> On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
+> > Len,
+> > 
+> > Please add the following three patches to the suspend branch.
+> 
+> Applied (and suspend branch has been re-based to latest linus tree)
 
-I'm sorry but I can't patch my 2.6.24-rc7 or even the rc8 with that
-patch. The patch is rejected. On which kernel should I apply that
-patch ?
-
-Erwan,
+Was that "lets reorder notifications, old order was more logical, but
+it fixes apm?" series?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
