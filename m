@@ -1,30 +1,32 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/3] More updates for 2.6.25
-Date: Tue, 15 Jan 2008 23:22:33 -0500
-Message-ID: <200801152322.33984.lenb@kernel.org>
-References: <200801110118.46106.rjw@sisk.pl>
+From: "Erwan Velu" <erwanaliasr1@gmail.com>
+Subject: Re: ACPI Error (utglobal-0126)
+Date: Wed, 16 Jan 2008 10:20:31 +0100
+Message-ID: <b43bf5490801160120l38eb039brd52eec5da5511807@mail.gmail.com>
+References: <b43bf5490801150510v55ddb2feq3be947536c4c28c5@mail.gmail.com>
+	 <1200447494.2935.14.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36284 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753343AbYAPEXX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jan 2008 23:23:23 -0500
-In-Reply-To: <200801110118.46106.rjw@sisk.pl>
+Received: from wa-out-1112.google.com ([209.85.146.177]:34367 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194AbYAPJUc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jan 2008 04:20:32 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so316923wah.23
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Jan 2008 01:20:31 -0800 (PST)
+In-Reply-To: <1200447494.2935.14.camel@acpi-sony.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
-> Len,
-> 
-> Please add the following three patches to the suspend branch.
+[...]
+> Please try this patch first.
+> From: Zhang Rui <rui.zhang@intel.com>
 
-Applied (and suspend branch has been re-based to latest linus tree)
+I'm sorry but I can't patch my 2.6.24-rc7 or even the rc8 with that
+patch. The patch is rejected. On which kernel should I apply that
+patch ?
 
-thanks,
--Len
+Erwan,
