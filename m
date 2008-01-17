@@ -1,113 +1,37 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.24-rc8-mm1
-Date: Thu, 17 Jan 2008 10:40:21 -0800
-Message-ID: <20080117104021.25a8e562.akpm@linux-foundation.org>
-References: <20080117023514.9df393cf.akpm@linux-foundation.org>
-	<20080117124622.GA18450@balbir.in.ibm.com>
+From: Matthew Hall <mhall@mhcomputing.net>
+Subject: Re: sata_nv does not function in kernel > 2.6.20.21... possible
+	ACPI or PCI involvement?
+Date: Thu, 17 Jan 2008 19:04:03 +0000
+Message-ID: <20080117190403.GA20483@mhcomputing.net>
+References: <20080112205939.GA5291@mhcomputing.net> <200801141702.26914.bjorn.helgaas@hp.com> <20080115043804.GA17040@mhcomputing.net> <200801161407.38280.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20080117124622.GA18450@balbir.in.ibm.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: e1000-devel-bounces@lists.sourceforge.net
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: balbir@linux.vnet.ibm.com
-Cc: Thomas@sc8-sf-spam2.sourceforge.net, Intel E/100 mailing list <e1000-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org, Linux ACPI mailing list <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Ingo Molnar <mingo@elte.hu>, Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ip-163-246-113-216.pool.grokthis.net ([216.113.246.163]:1824
+	"EHLO mail.mhcomputing.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754502AbYAQTEF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 14:04:05 -0500
+Content-Disposition: inline
+In-Reply-To: <200801161407.38280.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Thu, 17 Jan 2008 18:16:22 +0530 Balbir Singh <balbir@linux.vnet.ibm.com> wrote:
+On Wed, Jan 16, 2008 at 02:07:37PM -0700, Bjorn Helgaas wrote:
+> Matthew,
 
-> * Andrew Morton <akpm@linux-foundation.org> [2008-01-17 02:35:14]:
-> 
-> > 
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.24-rc8/2.6.24-rc8-mm1/
-> > 
-> > - selinux is busted on one of my two selinux-enabled test machines.
-> > 
-> > - suspend-to-ram and suspend-to-disk are totally hosed on one of my test
-> >   machines.  I guess I get to bisect this.
-> > 
-> > - git-nfsd is dropped due to conflicts with git-nfs
-> > 
-> > - git-newsetup is dropped due to conflicts with git-x86 (I think)
-> > 
-> > - git-perfmon is dropped due to conflicts with git-x86 (I think)
-> > 
-> > - git-kgdb is dropped due to conflicts with git-damn-near-everything
-> > 
-> > - git-block is dropped due to conflicts with the IDE tree
-> > 
-> > - kvm probably doesn't work properly because I couldn't be bothered fixing
-> >   the conflicts between git-kvm and the driver tree
-> > 
-> > - the volume of rejects and build errors which are caused by subsystem
-> >   maintainers fiddling with other people's stuff is quite out of control. 
-> >   Something needs to happen here.
-> 
-> Hi, Andrew,
-> 
-> May be it was one of the conflicts, but my system fails to get
-> ethernet working with this version. I see
-> 
-> e100: Intel(R) PRO/100 Network Driver, 3. 5.23-k4-NAPI
-> e100: Copyright(c) 1999-2006 Intel Corporation
-> ACPI: PCI Interrupt 0000:04:08.0[A] -> GSI 20 (level, low) -> IRQ 20
-> modprobe:2584 conflicting cache attribute 50000000-50001000
-> uncached<->default
-> e100: 0000:04:08.0: e100_probe: Cannot map device registers, aborting.
-> ACPI: PCI interrupt for device 0000:04:08.0 disabled
-> e100: probe of 0000:04:08.0 failed with error -12
-> 
-> Other interesting boot information
-> 
-> Using ACPI (MADT) for SMP configuration information
-> PM: Registered nosave memory: 000000000008f000 - 00000000000a0000
-> PM: Registered nosave memory: 00000000000a0000 - 00000000000e0000
-> PM: Registered nosave memory: 00000000000e0000 - 0000000000100000
-> PM: Registered nosave memory: 000000003e5d1000 - 000000003e6e5000
-> PM: Registered nosave memory: 000000003f574000 - 000000003f57c000
-> PM: Registered nosave memory: 000000003f62d000 - 000000003f631000
-> PM: Registered nosave memory: 000000003f6a7000 - 000000003f6e9000
-> PM: Registered nosave memory: 000000003f6ed000 - 000000003f6ff000
-> Allocating PCI resources starting at 50000000 (gap: 40000000:bff80000)
-> 
->  PCI: Bridge: 0000:00:1c.0
->    IO window: disabled.
->    MEM window:
-> 0x50300000-0x503fffff
->    PREFETCH window: disabled.
->  PCI: Bridge: 0000:00:1c.2
->    IO window: disabled.
->    MEM window:
-> 0x50400000-0x504fffff
->    PREFETCH window: disabled.
->  PCI: Bridge: 0000:00:1c.3
->    IO window: disabled.
->    MEM window:
-> 0x50500000-0x505fffff
->    PREFETCH window: disabled.
->  PCI: Bridge: 0000:00:1e.0
->    IO window: 1000-1fff
->    MEM window:
-> 0x50000000-0x500fffff
->    PREFETCH window: disabled.
-> 
-> I am yet to get down to the root cause, thought I'd report it first to
-> the x86 and ACPI list to see if someone has seen the problem before.
-> 
+Bjorn,
 
-It appears that the new PAT code didn't like e100's pci_iomap().  Venki, can you
-take a look please?
+> Can you please try the revised patch below?
 
+It works on my machine! I just had to change the first hunk to get the 
+includes to work because your file had a few more includes than mine 
+since it was newer code.
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+> Thanks,
+>   Bjorn
+
+Best Regards,
+Matthew Hall
