@@ -1,54 +1,51 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Thu, 17 Jan 2008 12:02:38 +0000
-Message-ID: <20080117120237.GA31912@srcf.ucam.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <20071207225025.GA2055@srcf.ucam.org> <1197290906.28990.329.camel@queen.suse.de> <20080117031154.GA26703@srcf.ucam.org> <20080117033936.GB26703@srcf.ucam.org> <1200567431.23376.459.camel@queen.suse.de>
+Subject: Re: [PATCH 6/10] ACPI: register ACPI Video LCD as generic thermal cooling device
+Date: Thu, 17 Jan 2008 12:24:31 +0000
+Message-ID: <20080117122431.GA32133@srcf.ucam.org>
+References: <1200556282.2935.122.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:48719 "EHLO
+Received: from cavan.codon.org.uk ([78.32.9.130]:34254 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbYAQMCx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 07:02:53 -0500
+	with ESMTP id S1751238AbYAQMYq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 07:24:46 -0500
 Content-Disposition: inline
-In-Reply-To: <1200567431.23376.459.camel@queen.suse.de>
+In-Reply-To: <1200556282.2935.122.camel@acpi-sony.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
 
-On Thu, Jan 17, 2008 at 11:57:11AM +0100, Thomas Renninger wrote:
+On Thu, Jan 17, 2008 at 03:51:22PM +0800, Zhang Rui wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
+> 
+> Register ACPI video device as thermal cooling devices as they may be listed
+> in _TZD method and the backlight control can be used for throttling.
 
-> Does it make sense to add this as a separate function, searching for a
-> physical PCI device for an ACPI device may pop up more often in the
-> future? This is a kind of _STA (present or not) function for PCI ACPI
-> devices then.
+I'm worried to some extent about how ungeneric this is. A thermal zone 
+may cover any devices, not just processor and video ones. Perhaps this 
+should be added to the acpi_device struct instead, and then let 
+individual drivers implement whatever callbacks are appropriate?
 
-No, I don't think this can be done generically - _ADR for a SATA device 
-has a format that looks similar to the one for PCI devices, for 
-instance. I think you need to have knowledge of the specific device 
-type.
+> +static int
+> +video_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
+> +{
+> +	struct acpi_device *device = cdev->devdata;
+> +	struct acpi_video_device *video = acpi_driver_data(device);
+> +	int level;
+> +
+> +	if ( state >= video->brightness->count - 2)
+> +		return -EINVAL;
+> +
+> +	state = video->brightness->count - state;
+> +	level = video->brightness->levels[state -1];
+> +	return acpi_video_device_lcd_set_level(video, level);
 
-> This has been tested on a Dell 610 only then?
-> This sounds like an older machine, I wonder whether the video driver is
-> useful on this one at all and whether Windows had to check whether the
-> devices are present also...
+This all seems like duplication of the backlight interface?
 
-Also on an HP 2510p. I suspect that the Windows behaviour is to leave 
-this up to the graphics driver rather than handling it in the core. 
-Toshiba seem to have implemented the complete spec for some time, but 
-several other vendors only implemented the section for display output 
-switching and obtaining the EDID.
-
-> Please tell me if you have tested more machines, I try to give it a test
-> on a Toshiba, Lenovo and whatever I find with a Vista capable BIOS (IMO
-> this should be the most important criterion for finding the devices, I
-> doubt older Windows Versions made much use of ACPI graphics devices) as
-> soon as I find some time...
-
-Yes, I've tested it on some other machines - the HP is the only one I've 
-tested with a designed for Vista badge, but it should be correct in 
-these cases as well.
+(Speaking of which - Len, what's happening with my patches to the video 
+driver? Some feedback would be nice)
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
