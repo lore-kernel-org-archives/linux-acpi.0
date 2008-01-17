@@ -1,42 +1,60 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
-Date: Thu, 17 Jan 2008 12:51:39 -0800
-Message-ID: <478FBFDB.4000600@oracle.com>
-References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com> <20080117092030.a9dfe528.randy.dunlap@oracle.com> <200801171451.18613.lenb@kernel.org>
+From: Theodore Tso <tytso@MIT.EDU>
+Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
+Date: Thu, 17 Jan 2008 16:31:35 -0500
+Message-ID: <20080117213135.GF5547@mit.edu>
+References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <0bf08de2227cabeb40a6ea72b3fa188a2e325335.1200565331.git.len.brown@intel.com> <20080117122832.GB32133@srcf.ucam.org> <200801171504.26361.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:54479 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483AbYAQUw3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 15:52:29 -0500
-In-Reply-To: <200801171451.18613.lenb@kernel.org>
+Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:33545 "EHLO
+	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751300AbYAQVcH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 16:32:07 -0500
+Content-Disposition: inline
+In-Reply-To: <200801171504.26361.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Len Brown wrote:
->>> +static int
->>> +memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
->>> +			     unsigned long *max_state)
->> Don't put 'static int' (return type etc.) on a line by itself.
->> That format is not wanted in Linux.   (many places here)
+On Thu, Jan 17, 2008 at 03:04:26PM -0500, Len Brown wrote:
+> On Thursday 17 January 2008 07:28, Matthew Garrett wrote:
+> > On Thu, Jan 17, 2008 at 05:24:50AM -0500, Len Brown wrote:
+> > 
+> > > +	{
+> > > +	.callback = dmi_enable_osi_linux,
+> > > +	.ident = "Lenovo ThinkPad T61",
+> > > +	.matches = {
+> > > +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> > > +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
+> > > +		},
+> > > +	},
+> > > +
+> > 
+> > If we add it for specific devices, aren't vendors going to assume that 
+> > future versions of that device will also be able to rely on this 
+> > behaviour?
 > 
-> if checkpatch.pl and Lindent are happey (which they are not, totally)
-> then I'm satisifed witht he Linux style of the code.
+> When the new product comes out and they
+> try Linux on it, OSI(Linux) will return FALSE unless
+> somebody (later) adds the new product to the white-list.
 > 
-> Randy, if you feel strongly about this this style nit,
-> then change Lindent to implement it -- nagging
-> developers about trivia is a waste of everybody's time.
-> 
-> thanks,
-> -Len
+> So if a vendor really cares about Linux, they'll know
+> during development that they can't count on OSI(Linux) returning TRUE.
 
-http://marc.info/?l=linux-kernel&m=105451996829576&w=2
+Maye the whitelist should use very specific BIOS version numbers as
+part of the DMI_MATCH, and we encourage the vendors to remove the
+OSI(Linux) specific hacks moving forward?  After all, the workarounds
+are only needed for the very latest BIOS versions, and if we can
+manage to convince vendors to make them go away, then maybe after some
+particular BIOS version, we won't need to do anything special.
 
-Thanks.
+Perhaps if there was a well documented, "this is what we want" from
+the Linux community, which can then get communicated to Lenovo, HP,
+Dell, etc.?  This document could include a request that Laptop vendors
+document how various things work when they do vendor-specific things,
+and also documenting what Linux is doing today because we believe it's
+what is the Windows-compatible behaviour.
 
--- 
-~Randy
+						- Ted
