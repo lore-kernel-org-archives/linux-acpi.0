@@ -1,16 +1,16 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 6/10] ACPI: register ACPI Video LCD as generic thermal
-	cooling device
-Date: Thu, 17 Jan 2008 15:51:22 +0800
-Message-ID: <1200556282.2935.122.camel@acpi-sony.sh.intel.com>
+Subject: [PATCH 4/10] ACPI: register ACPI Fan as generic thermal cooling
+	device
+Date: Thu, 17 Jan 2008 15:51:24 +0800
+Message-ID: <1200556284.2935.124.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54938 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:29318 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755553AbYAQHqI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2008 02:46:08 -0500
+	id S1755635AbYAQHqO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 02:46:14 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -18,139 +18,162 @@ Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kerne
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Register ACPI video device as thermal cooling devices as they may be listed
-in _TZD method and the backlight control can be used for throttling.
+Register ACPI Fan as thermal cooling device.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
 ---
- drivers/acpi/video.c |   78 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 77 insertions(+), 1 deletion(-)
+ drivers/acpi/fan.c |   90 ++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 83 insertions(+), 7 deletions(-)
 
-Index: linux-2.6/drivers/acpi/video.c
+Index: linux-2.6/drivers/acpi/fan.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -34,6 +34,7 @@
+--- linux-2.6.orig/drivers/acpi/fan.c
++++ linux-2.6/drivers/acpi/fan.c
+@@ -30,7 +30,7 @@
+ #include <linux/proc_fs.h>
  #include <linux/seq_file.h>
- #include <linux/input.h>
- #include <linux/backlight.h>
-+#include <linux/thermal.h>
- #include <linux/video_output.h>
  #include <asm/uaccess.h>
+-
++#include <linux/thermal.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
-@@ -179,6 +180,7 @@ struct acpi_video_device {
- 	struct acpi_device *dev;
- 	struct acpi_video_device_brightness *brightness;
- 	struct backlight_device *backlight;
-+	struct thermal_cooling_device *cdev;
- 	struct output_device *output_dev;
+@@ -64,9 +64,55 @@ static struct acpi_driver acpi_fan_drive
+ 		},
  };
  
-@@ -334,6 +336,54 @@ static struct output_properties acpi_out
- 	.set_state = acpi_video_output_set,
- 	.get_status = acpi_video_output_get,
- };
-+
-+
 +/* thermal cooling device callbacks */
-+static int video_get_max_state(struct thermal_cooling_device *cdev, char *buf)
++static int fan_get_max_state(struct thermal_cooling_device *cdev, char *buf)
 +{
-+	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+
-+	return sprintf(buf, "%d\n", video->brightness->count - 3);
++	/* ACPI fan device only support two states: ON/OFF */
++	return sprintf(buf, "1\n");
 +}
 +
-+static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
++static int fan_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
 +{
 +	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+	unsigned long level;
 +	int state;
++	int result;
 +
-+	acpi_video_device_lcd_get_level_current(video, &level);
-+	for (state = 2; state < video->brightness->count; state++)
-+		if (level == video->brightness->levels[state])
-+			return sprintf(buf, "%d\n",
-+				       video->brightness->count - state - 1);
++	if (!device)
++		return -EINVAL;
 +
-+	return -EINVAL;
++	result = acpi_bus_get_power(device->handle, &state);
++	if (result)
++		return result;
++
++	return sprintf(buf, "%s\n", state == ACPI_STATE_D3 ? "0" :
++			 (state == ACPI_STATE_D0 ? "1" : "unknown"));
 +}
 +
 +static int
-+video_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
++fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
 +{
 +	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+	int level;
++	int result;
 +
-+	if ( state >= video->brightness->count - 2)
++	if (!device || (state != 0 && state != 1))
 +		return -EINVAL;
 +
-+	state = video->brightness->count - state;
-+	level = video->brightness->levels[state -1];
-+	return acpi_video_device_lcd_set_level(video, level);
++	result = acpi_bus_set_power(device->handle,
++				state ? ACPI_STATE_D0 : ACPI_STATE_D3);
++
++	return result;
 +}
 +
-+static struct thermal_cooling_device_ops video_cooling_ops = {
-+	.get_max_state = video_get_max_state,
-+	.get_cur_state = video_get_cur_state,
-+	.set_cur_state = video_set_cur_state,
++static struct thermal_cooling_device_ops fan_cooling_ops = {
++	.get_max_state = fan_get_max_state,
++	.get_cur_state = fan_get_cur_state,
++	.set_cur_state = fan_set_cur_state,
 +};
 +
  /* --------------------------------------------------------------------------
-                                Video Management
+                               FS Interface (/proc)
     -------------------------------------------------------------------------- */
-@@ -653,6 +703,7 @@ static void acpi_video_device_find_cap(s
++#ifdef CONFIG_ACPI_PROCFS
  
- 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		unsigned long tmp;
-+		int result;
- 		static int count = 0;
- 		char *name;
- 		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-@@ -666,8 +717,25 @@ static void acpi_video_device_find_cap(s
- 		device->backlight->props.max_brightness = max_level;
- 		device->backlight->props.brightness = (int)tmp;
- 		backlight_update_status(device->backlight);
--
- 		kfree(name);
-+
-+		device->cdev = thermal_cooling_device_register("LCD",
-+					device->dev, &video_cooling_ops);
-+		if (device->cdev) {
-+			printk(KERN_INFO PREFIX
-+				"%s is registered as cooling_device%d\n",
-+				device->dev->dev.bus_id, device->cdev->id);
-+			result = sysfs_create_link(&device->dev->dev.kobj,
-+					  &device->cdev->device.kobj,
-+					  "thermal_cooling");
-+			if (result)
-+				printk(KERN_ERR PREFIX "Create sysfs link\n");
-+			result = sysfs_create_link(&device->cdev->device.kobj,
-+					  &device->dev->dev.kobj,
-+					  "device");
-+                        if (result)
-+				printk(KERN_ERR PREFIX "Create sysfs link\n");
-+		}
- 	}
- 	if (device->cap._DCS && device->cap._DSS){
- 		static int count = 0;
-@@ -1729,6 +1797,14 @@ static int acpi_video_bus_put_one_device
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
- 	backlight_device_unregister(device->backlight);
-+	if (device->cdev) {
-+		sysfs_remove_link(&device->dev->dev.kobj,
-+				  "thermal_cooling");
-+		sysfs_remove_link(&device->cdev->device.kobj,
-+				  "device");
-+		thermal_cooling_device_unregister(device->cdev);
-+		device->cdev = NULL;
-+	}
- 	video_output_unregister(device->output_dev);
+ static struct proc_dir_entry *acpi_fan_dir;
+ 
+@@ -167,7 +213,17 @@ static int acpi_fan_remove_fs(struct acp
  
  	return 0;
+ }
++#else
++static int acpi_fan_add_fs(struct acpi_device *device)
++{
++	return 0;
++}
+ 
++static int acpi_fan_remove_fs(struct acpi_device *device)
++{
++	return 0;
++}
++#endif
+ /* --------------------------------------------------------------------------
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+@@ -175,9 +231,8 @@ static int acpi_fan_remove_fs(struct acp
+ static int acpi_fan_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+-	struct acpi_fan *fan = NULL;
+ 	int state = 0;
+-
++	struct thermal_cooling_device *cdev;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+@@ -191,6 +246,25 @@ static int acpi_fan_add(struct acpi_devi
+ 		goto end;
+ 	}
+ 
++	cdev = thermal_cooling_device_register("Fan", device,
++						&fan_cooling_ops);
++	if (cdev)
++		printk(KERN_INFO PREFIX
++			"%s is registered as cooling_device%d\n",
++			device->dev.bus_id, cdev->id);
++	else
++		goto end;
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
++					"thermal_cooling");
++	if (result)
++		return result;
++
++	result = sysfs_create_link(&cdev->device.kobj, &device->dev.kobj,
++                                       "device");
++        if (result)
++                return result;
++
+ 	result = acpi_fan_add_fs(device);
+ 	if (result)
+ 		goto end;
+@@ -200,18 +274,20 @@ static int acpi_fan_add(struct acpi_devi
+ 	       !device->power.state ? "on" : "off");
+ 
+       end:
+-	if (result)
+-		kfree(fan);
+-
+ 	return result;
+ }
+ 
+ static int acpi_fan_remove(struct acpi_device *device, int type)
+ {
+-	if (!device || !acpi_driver_data(device))
++	struct thermal_cooling_device *cdev = acpi_driver_data(device);
++
++	if (!device || !cdev)
+ 		return -EINVAL;
+ 
+ 	acpi_fan_remove_fs(device);
++	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++	sysfs_remove_link(&cdev->device.kobj, "device");
++	thermal_cooling_device_unregister(cdev);
+ 
+ 	return 0;
+ }
 
 
