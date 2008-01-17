@@ -1,49 +1,54 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [PATCH 2/2] asus-laptop add kill switch support
-Date: Thu, 17 Jan 2008 12:15:12 +0100
-Message-ID: <200801171215.13098.corentincj@iksaif.net>
-References: <200801161657.50967.corentincj@iksaif.net> <200801170552.23947.lenb@kernel.org>
-Reply-To: corentincj@iksaif.net
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
+Date: Thu, 17 Jan 2008 12:02:38 +0000
+Message-ID: <20080117120237.GA31912@srcf.ucam.org>
+References: <1197032113.28990.155.camel@queen.suse.de> <20071207225025.GA2055@srcf.ucam.org> <1197290906.28990.329.camel@queen.suse.de> <20080117031154.GA26703@srcf.ucam.org> <20080117033936.GB26703@srcf.ucam.org> <1200567431.23376.459.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:59579 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751238AbYAQLPQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2008 06:15:16 -0500
-In-Reply-To: <200801170552.23947.lenb@kernel.org>
+Received: from cavan.codon.org.uk ([78.32.9.130]:48719 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481AbYAQMCx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 07:02:53 -0500
 Content-Disposition: inline
+In-Reply-To: <1200567431.23376.459.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org, Fabien Crespel <fabien@crespel.net>
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On Thursday 17 January 2008 11:52:23 Len Brown wrote:
-> On Wednesday 16 January 2008 10:57, Corentin CHARY wrote:
-> > From: Corentin CHARY <corentincj@iksaif.net>
-> >
-> > Note: All this work have been done by Fabien Crespel and the original
-> >       patch was from him. Thks again ;).
->
-> Then the "From:" line above should have Fabien's e-mail address --
-> as the original author, and Fabien should be the 1st Sign-off below.
-> You should be the 2nd Sign-off, as the patch passed through
-> you (with or without modification).
->
-> I can do this edit for you, of course, but need to hear
-> from you that you agree; since otherwise it would defeat
-> the entire concept of the signed-off-by certification.
->
-> thanks,
-> -Len
->
-> > Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+On Thu, Jan 17, 2008 at 11:57:11AM +0100, Thomas Renninger wrote:
 
-Oups ... sorry.
-Of course you can edit ;)
+> Does it make sense to add this as a separate function, searching for a
+> physical PCI device for an ACPI device may pop up more often in the
+> future? This is a kind of _STA (present or not) function for PCI ACPI
+> devices then.
+
+No, I don't think this can be done generically - _ADR for a SATA device 
+has a format that looks similar to the one for PCI devices, for 
+instance. I think you need to have knowledge of the specific device 
+type.
+
+> This has been tested on a Dell 610 only then?
+> This sounds like an older machine, I wonder whether the video driver is
+> useful on this one at all and whether Windows had to check whether the
+> devices are present also...
+
+Also on an HP 2510p. I suspect that the Windows behaviour is to leave 
+this up to the graphics driver rather than handling it in the core. 
+Toshiba seem to have implemented the complete spec for some time, but 
+several other vendors only implemented the section for display output 
+switching and obtaining the EDID.
+
+> Please tell me if you have tested more machines, I try to give it a test
+> on a Toshiba, Lenovo and whatever I find with a Vista capable BIOS (IMO
+> this should be the most important criterion for finding the devices, I
+> doubt older Windows Versions made much use of ACPI graphics devices) as
+> soon as I find some time...
+
+Yes, I've tested it on some other machines - the HP is the only one I've 
+tested with a designed for Vista badge, but it should be correct in 
+these cases as well.
 
 -- 
-Corentin 'Iksaif' CHARY
-http://xf.iksaif.net
+Matthew Garrett | mjg59@srcf.ucam.org
