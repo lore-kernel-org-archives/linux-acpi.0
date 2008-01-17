@@ -1,106 +1,92 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Set pnp_init_resource_table, pnp_resource_change, pnp_manual_config_dev deprecated
-Date: Wed, 16 Jan 2008 16:56:58 -0500
-Message-ID: <200801161656.58603.lenb@kernel.org>
-References: <a8e1da0711290111m65b071cft90b4361ec0155096@mail.gmail.com> <1196389939.7234.1.camel@sli10-desk.sh.intel.com> <1196417657.23251.293.camel@queen.suse.de>
+Subject: Re: [PATCH] Enable _OSI(Linux) for Xen HVM domains
+Date: Wed, 16 Jan 2008 19:44:48 -0500
+Message-ID: <200801161944.48250.lenb@kernel.org>
+References: <1194375906.31834.211.camel@bling>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56094 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56091 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750894AbYAQBAG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jan 2008 20:00:06 -0500
-In-Reply-To: <1196417657.23251.293.camel@queen.suse.de>
+	id S1751759AbYAQA77 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jan 2008 19:59:59 -0500
+In-Reply-To: <1194375906.31834.211.camel@bling>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Shaohua Li <shaohua.li@intel.com>, Rene Herman <rene.herman@keyaccess.nl>, Dave Young <hidave.darkstar@gmail.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Alex Williamson <alex.williamson@hp.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Keir Fraser <keir@xensource.com>
 
-Thomas,
-If you send me a checkpatch.pl clean version, I'll apply it for 2.6.25.
+On Tuesday 06 November 2007 14:05, Alex Williamson wrote:
+> 
+>    I'd like to enable _OSI(Linux) for Xen HVM domains.  As I understand
+> it, the main reason for disabling _OSI(Linux) by default is to avoid
+> dealing with a myriad of systems with broken Linux code paths in their
+> BIOS (while we know the Windows code path is functional).  With fully
+> virtualized Xen domains, the "BIOS" code is provided from the Xen
+> project (or separate open source tree in the case on ia64).  We can
+> therefore verify the Linux code path works and we can take advantage of
+> the _OSI call to make optimization in the hypervisor based on the
+> guest's response.  The patch below enables this feature on both x86 and
+> ia64 Xen via the existing DMI hook.  Thanks,
+> 
+> 	Alex
+> 
+> Signed-off-by: Alex Williamson <alex.williamson@hp.com>
+> Acked-by: Keir Fraser <keir@xensource.com>
+> --
+> 
+> diff -r c7f1be4e5832 drivers/acpi/osl.c
+> --- a/drivers/acpi/osl.c	Thu Nov 01 12:09:33 2007 -0700
+> +++ b/drivers/acpi/osl.c	Fri Nov 02 15:30:23 2007 -0700
+> @@ -1225,6 +1225,14 @@ static struct dmi_system_id acpi_osl_dmi
+>  		     DMI_MATCH(DMI_BOARD_NAME, "MPAD-MSAE Customer Reference Boards"),
+>  		     },
+>  	 },
+> +	{
+> +	 .callback = dmi_osi_linux,
+> +	 .ident = "Xen HVM domU",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Xen"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "HVM domU"),
+> +		     },
+> +	 },
+>  	{}
+>  };
+>  #endif /* CONFIG_DMI */
+> 
+> 
 
-Also, how is the dynamic allocation of pnp resources coming along?
-We'll be wanting to do that on day1 of 2.6.25 integration window.
+Hi Alex,
+
+I think it is fine for the "BIOS" to use the OSI mechanism to ask about the OS.
+However, the string "Linux" is probably not a good choice for the string.
+
+The reason we deleted OSI(Linux) by default is because it is ill-defined.
+A good OSI string would be much more specific, ie. label something
+that is well defined, or at least include version information.
+
+eg. "ACPI 3.0 Thermal Model" means that an OS implements the
+ACPI 3.0 extensions to the thermal model (which we don't, BTW).
+
+The problem with "Linux" is that
+A. it is usually used by mistake, inherited from the Intel
+   reference BIOS which unfortunately referenced it.
+   Sometimes it does things like disable the HPET -- totally random.
+
+B. it is used on purpose, but for reasons that
+   may not be valid in all versions of Linux.
+   eg. the enabling S3 video re-post on resume.
+   This is very snappy, until you have a native Linux
+   graphics device driver than can do it in a fraction
+   of the time... etc.
+
+so if you're looking at a specific property of the OS,
+it would be better to build that string into the OS --
+giving you the option to no longer build in that string
+if that specific property changes in a different version...
 
 thanks,
 -Len
-
-> I don't know how many externally built drivers, which are making use of
-> this, could still be out there?
-> What is the general policy for removing such old, rarely used and "being
-> more a workaround than an interface" exported symbols?
-> 
-> This should be 2.6.24 material:
-> 
-> Mark pnp_init_resource_table, pnp_resource_change, pnp_manual_config_dev deprecated
-> 
-> Thanks to Rene Herman, the remaining calls to those functions got eliminated
-> in the sound/isa layer recently.
-> Those functions are a workaround for wrong BIOS pnp information and give
-> drivers the possibility to override BIOS exported PNP resources.
-> This can be done through sysfs since 2.6, therefore these functions should
-> vanish rather soon, as dynamic allocation for PNP resources is depending
-> on it.
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> 
-> ---
->  include/linux/pnp.h |   14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> Index: linux-2.6.24-rc3-mm2/include/linux/pnp.h
-> ===================================================================
-> --- linux-2.6.24-rc3-mm2.orig/include/linux/pnp.h
-> +++ linux-2.6.24-rc3-mm2/include/linux/pnp.h
-> @@ -387,8 +387,8 @@ int pnp_register_dma_resource(struct pnp
->  int pnp_register_port_resource(struct pnp_option *option,
->  			       struct pnp_port *data);
->  int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
-> -void pnp_init_resource_table(struct pnp_resource_table *table);
-> -int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
-> +void __deprecated pnp_init_resource_table(struct pnp_resource_table *table);
-> +int __deprecated pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
->  			  int mode);
->  int pnp_auto_config_dev(struct pnp_dev *dev);
->  int pnp_validate_config(struct pnp_dev *dev);
-> @@ -396,8 +396,8 @@ int pnp_start_dev(struct pnp_dev *dev);
->  int pnp_stop_dev(struct pnp_dev *dev);
->  int pnp_activate_dev(struct pnp_dev *dev);
->  int pnp_disable_dev(struct pnp_dev *dev);
-> -void pnp_resource_change(struct resource *resource, resource_size_t start,
-> -			 resource_size_t size);
-> +void __deprecated pnp_resource_change(struct resource *resource, resource_size_t start,
-> +				      resource_size_t size);
->  
->  /* protocol helpers */
->  int pnp_is_active(struct pnp_dev *dev);
-> @@ -436,15 +436,15 @@ static inline int pnp_register_irq_resou
->  static inline int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data) { return -ENODEV; }
->  static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
->  static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
-> -static inline void pnp_init_resource_table(struct pnp_resource_table *table) { }
-> -static inline int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
-> +static inline void __deprecated pnp_init_resource_table(struct pnp_resource_table *table) { }
-> +static inline int __deprecated pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
->  static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
->  static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
->  static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
->  static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
->  static inline int pnp_activate_dev(struct pnp_dev *dev) { return -ENODEV; }
->  static inline int pnp_disable_dev(struct pnp_dev *dev) { return -ENODEV; }
-> -static inline void pnp_resource_change(struct resource *resource, resource_size_t start, resource_size_t size) { }
-> +static inline void __deprecated pnp_resource_change(struct resource *resource, resource_size_t start, resource_size_t size) { }
->  
->  /* protocol helpers */
->  static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
