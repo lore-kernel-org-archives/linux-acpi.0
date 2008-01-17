@@ -1,48 +1,149 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RFT] sky2: wake-on-lan configuration issues
-Date: Thu, 17 Jan 2008 15:22:46 -0800
-Message-ID: <20080117152246.3ae65e24.akpm@linux-foundation.org>
-References: <bug-9721-10286@http.bugzilla.kernel.org/>
-	<478A743C.9050405@yahoo.de>
-	<20080113125708.070b4843.akpm@linux-foundation.org>
-	<200801132227.59229.rjw@sisk.pl>
-	<478A965E.8070306@yahoo.de>
-	<20080114101439.72304b92@deepthought>
-	<478BCE98.5030709@yahoo.de>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: 2.6.24-rc8-mm1
+Date: Thu, 17 Jan 2008 15:33:55 -0800
+Message-ID: <20080117233355.GA13590@linux-os.sc.intel.com>
+References: <20080117023514.9df393cf.akpm@linux-foundation.org> <20080117124622.GA18450@balbir.in.ibm.com> <20080117104021.25a8e562.akpm@linux-foundation.org> <924EFEDD5F540B4284297C4DC59F3DEE5E909A@orsmsx423.amr.corp.intel.com> <20080117114032.1f9f1df5.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52261 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706AbYAQXXS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2008 18:23:18 -0500
-In-Reply-To: <478BCE98.5030709@yahoo.de>
+Received: from mga02.intel.com ([134.134.136.20]:2606 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754304AbYAQXeM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 18:34:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20080117114032.1f9f1df5.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: supersud501 <supersud501@yahoo.de>
-Cc: shemminger@linux-foundation.org, rjw@sisk.pl, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, balbir@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, Linux ACPI mailing list <linux-acpi@vger.kernel.org>, Intel E/100 mailing list <e1000-devel@lists.sourceforge.net>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, 14 Jan 2008 22:05:28 +0100
-supersud501 <supersud501@yahoo.de> wrote:
-
+On Thu, Jan 17, 2008 at 11:40:32AM -0800, Andrew Morton wrote:
+> On Thu, 17 Jan 2008 11:22:19 -0800 "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com> wrote:
 > 
-> 
-> Stephen Hemminger wrote:
-> > Please test this patch against Linus's current (approx 2.6.24-rc7-git5).
-> > Ignore Andrew's premature reversion attempt...
+> >  
+> > The problem is
+> > >> modprobe:2584 conflicting cache attribute 50000000-50001000
+> > >> uncached<->default
 > > 
-> > This patch disables config mode access after clearing PCI settings.
-> > 
->
-> ...
+> > Some address range here is being mapped with conflicting types.
+> > Somewhere the range was mapped with default (write-back). Later
+> > pci_iomap() is mapping that region as uncacheable which is basically
+> > aliasing. PAT code detects the aliasing and fails the second uncacheable
+> > request which leads in the failure.
 > 
-> yes, that did it! just tested it (current linus git tree with patched 
-> sky with above patch), everything is clean now (dmesg output) and wol 
-> works even with the commit ac93a3946b676025fa55356180e8321639744b31
+> It sounds to me like you need considerably more runtime debugging and
+> reporting support in that code.  Ensure that it generates enough output
+> both during regular operation and during failures for you to be able to
+> diagnose things in a single iteration.
 > 
-> so it the bug is fixed without the need to revert 
-> ac93a3946b676025fa55356180e8321639744b31.
+> We can always take it out later.
+> 
+> 
 
-Are we putting this into 2.6.24?
+Patch below makes the interesting printks from PAT non DEBUG.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+Index: linux-2.6.git/arch/x86/mm/ioremap.c
+===================================================================
+--- linux-2.6.git.orig/arch/x86/mm/ioremap.c	2008-01-17 03:18:59.000000000 -0800
++++ linux-2.6.git/arch/x86/mm/ioremap.c	2008-01-17 08:11:51.000000000 -0800
+@@ -25,10 +25,13 @@
+  */
+ void __iomem *ioremap_wc(unsigned long phys_addr, unsigned long size)
+ {
+-	if (pat_wc_enabled)
++	if (pat_wc_enabled) {
++		printk(KERN_INFO "ioremap_wc: addr %lx, size %lx\n",
++		       phys_addr, size);
+ 		return __ioremap(phys_addr, size, _PAGE_WC);
+-	else
++	} else {
+ 		return ioremap_nocache(phys_addr, size);
++	}
+ }
+ EXPORT_SYMBOL(ioremap_wc);
+ 
+Index: linux-2.6.git/arch/x86/mm/ioremap_32.c
+===================================================================
+--- linux-2.6.git.orig/arch/x86/mm/ioremap_32.c	2008-01-17 03:18:59.000000000 -0800
++++ linux-2.6.git/arch/x86/mm/ioremap_32.c	2008-01-17 08:10:58.000000000 -0800
+@@ -164,6 +164,8 @@
+ 
+ void __iomem *ioremap_nocache (unsigned long phys_addr, unsigned long size)
+ {
++	printk(KERN_INFO "ioremap_nocache: addr %lx, size %lx\n",
++	       phys_addr, size);
+ 	return __ioremap(phys_addr, size, _PAGE_UC);
+ }
+ EXPORT_SYMBOL(ioremap_nocache);
+Index: linux-2.6.git/arch/x86/mm/ioremap_64.c
+===================================================================
+--- linux-2.6.git.orig/arch/x86/mm/ioremap_64.c	2008-01-17 03:18:59.000000000 -0800
++++ linux-2.6.git/arch/x86/mm/ioremap_64.c	2008-01-17 08:10:13.000000000 -0800
+@@ -144,7 +144,7 @@
+ 
+ void __iomem *ioremap_nocache (unsigned long phys_addr, unsigned long size)
+ {
+-	printk(KERN_DEBUG "ioremap_nocache: addr %lx, size %lx\n",
++	printk(KERN_INFO "ioremap_nocache: addr %lx, size %lx\n",
+ 	       phys_addr, size);
+ 	return __ioremap(phys_addr, size, _PAGE_UC);
+ }
+Index: linux-2.6.git/arch/x86/mm/pat.c
+===================================================================
+--- linux-2.6.git.orig/arch/x86/mm/pat.c	2008-01-17 03:18:59.000000000 -0800
++++ linux-2.6.git/arch/x86/mm/pat.c	2008-01-17 08:06:23.000000000 -0800
+@@ -170,7 +170,7 @@
+ 
+ 			if (!fattr && attr != ml->attr) {
+ 				printk(
+-	KERN_DEBUG "%s:%d conflicting cache attribute %Lx-%Lx %s<->%s\n",
++	KERN_WARNING "%s:%d conflicting cache attribute %Lx-%Lx %s<->%s\n",
+ 					current->comm, current->pid,
+ 					start, end,
+ 					cattr_name(attr), cattr_name(ml->attr));
+@@ -205,7 +205,7 @@
+ 	list_for_each_entry(ml, &mattr_list, nd) {
+ 		if (ml->start == start && ml->end == end) {
+ 			if (ml->attr != attr)
+-				printk(KERN_DEBUG
++				printk(KERN_WARNING
+ 	"%s:%d conflicting cache attributes on free %Lx-%Lx %s<->%s\n",
+ 			current->comm, current->pid, start, end,
+ 			cattr_name(attr), cattr_name(ml->attr));
+@@ -217,7 +217,7 @@
+ 	}
+ 	spin_unlock(&mattr_lock);
+ 	if (err)
+-		printk(KERN_DEBUG "%s:%d freeing invalid mattr %Lx-%Lx %s\n",
++		printk(KERN_WARNING "%s:%d freeing invalid mattr %Lx-%Lx %s\n",
+ 			current->comm, current->pid,
+ 			start, end, cattr_name(attr));
+ 	return err;
+Index: linux-2.6.git/include/asm-x86/io_32.h
+===================================================================
+--- linux-2.6.git.orig/include/asm-x86/io_32.h	2008-01-17 06:28:06.000000000 -0800
++++ linux-2.6.git/include/asm-x86/io_32.h	2008-01-17 08:09:30.000000000 -0800
+@@ -113,6 +113,8 @@
+ 
+ static inline void __iomem * ioremap(unsigned long offset, unsigned long size)
+ {
++	printk(KERN_INFO "ioremap: addr %lx, size %lx\n",
++	       offset, size);
+ 	return __ioremap(offset, size, 0);
+ }
+ 
+Index: linux-2.6.git/include/asm-x86/io_64.h
+===================================================================
+--- linux-2.6.git.orig/include/asm-x86/io_64.h	2008-01-17 08:08:23.000000000 -0800
++++ linux-2.6.git/include/asm-x86/io_64.h	2008-01-17 08:08:44.000000000 -0800
+@@ -154,7 +154,7 @@
+ 
+ static inline void __iomem * ioremap (unsigned long offset, unsigned long size)
+ {
+-	printk(KERN_DEBUG "ioremap: addr %lx, size %lx\n",
++	printk(KERN_INFO "ioremap: addr %lx, size %lx\n",
+ 	       offset, size);
+ 	return __ioremap(offset, size, 0);
+ }
