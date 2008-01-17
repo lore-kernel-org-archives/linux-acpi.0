@@ -1,87 +1,65 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Thu, 17 Jan 2008 03:39:36 +0000
-Message-ID: <20080117033936.GB26703@srcf.ucam.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <20071207225025.GA2055@srcf.ucam.org> <1197290906.28990.329.camel@queen.suse.de> <20080117031154.GA26703@srcf.ucam.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 0/10] generic thermal management
+Date: Thu, 17 Jan 2008 15:50:38 +0800
+Message-ID: <1200556238.2935.115.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:57142 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbYAQDjt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jan 2008 22:39:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20080117031154.GA26703@srcf.ucam.org>
+Received: from mga11.intel.com ([192.55.52.93]:65382 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751033AbYAQHpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 02:45:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, rui.zhang@intel.com, sujith.thomas@intel.com
 
-Vendors often ship machines with a choice of integrated or discrete 
-graphics, and use the same DSDT for both. As a result, the ACPI video 
-module will locate devices that may not exist on this specific platform. 
-Attempt to determine whether the device exists or not, and abort the 
-device creation if it doesn't.
+Hi, all,
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+This patch series introduces a new generic thermal sysfs driver
+which provides a set of interfaces for thermal zone devices (sensors)
+and thermal cooling devices (fan, processor...) to register with the
+thermal management solution and to be a part of it.
 
----
+And it also includes the implementation for ACPI thermal zone.
+Standard sysfs I/F should be available for all ACPI thermal zones
+with this patch series applied.
 
-I'm still not convinced that this can be done reliably, especially if 
-anyone ever produces ACPI devices that aren't PCI-based. On the other 
-hand, I believe that this will work correctly (ie, discard devices for 
-integrated hardware if discrete hardware is present, and vice-versa) in 
-all existing cases. The most irritating feature is that there's no good 
-way to determine if an _ADR method refers to a PCI device or not - 0x00 
-could mean the PCI host bridge or the first video device hanging off an 
-AGP bridge. So far all the implementations I've seen use low numbers for 
-devices that aren't directly on the root PCI bus, so I've just assumed 
-that they'll always be less than 0x10000. If someone puts a graphics 
-core in their host bridge, this will break. But that would seem a mad 
-thing to do, so I'm going to pretend it's impossible.
+Patch 01 creates the new generic thermal sysfs driver.
+	 It defines two kinds of devices, thermal zone device and
+	 thermal cooling device.
+	 A thermal zone device usually contains a sensor to monitor the
+	 temperature, several trip points and a bunch of cooling devices
+	 associated with them.
+	 A thermal cooling device is a device that can be throttled
+	 to cool the system.
+	 The generic thermal sysfs driver creates the standard sysfs I/F
+	 for any registered thermal zone and thermal cooling device.
+	 And binds the cooling devices to thermal zones if possible.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 12b2adb..1906eff 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1266,8 +1266,37 @@ acpi_video_bus_write_DOS(struct file *file,
- 
- static int acpi_video_bus_add_fs(struct acpi_device *device)
- {
-+	long device_id;
-+	int status;
- 	struct proc_dir_entry *entry = NULL;
- 	struct acpi_video_bus *video;
-+	struct device *dev;
-+	
-+	status =
-+	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-+
-+	if (!ACPI_SUCCESS(status))
-+		return -ENODEV;
-+
-+	/* We need to attempt to determine whether the _ADR refers to a
-+	   PCI device or not. There's no terribly good way to do this,
-+	   so the best we can hope for is to assume that there'll never
-+	   be a video device in the host bridge */
-+	if (device_id >= 0x10000) {
-+		/* It looks like a PCI device. Does it exist? */
-+		dev = acpi_get_physical_device(device->handle);
-+	} else {
-+		/* It doesn't look like a PCI device. Does its parent
-+		   exist? */
-+		acpi_handle phandle;
-+		if (acpi_get_parent(device->handle, &phandle))
-+			return -ENODEV;
-+		dev = acpi_get_physical_device(phandle);
-+	}
-+	if (!dev)
-+		return -ENODEV;
-+	put_device(dev);
-+
- 
- 
- 	video = acpi_driver_data(device);
+Patch 02 registers ACPI thermal zone as thermal zone device.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Patch 03 is a fix of violations of ACPI spec in ACPI thermal driver.
+
+Patch 04 registers ACPI Fan as thermal cooling device.
+
+Patch 05 registers ACPI Processor as thermal cooling device.
+
+Patch 06 registers ACPI Video LCD as thermal cooling device.
+	 Because throttling the backlight of LCD can cool the system as well.
+
+Patch 09 creates a new platform specific driver, intel_menlow.
+	 which is the thermal enhancement driver for intel menlow platform.
+	 It programs the sensor of each thermal zone and registers the
+	 intel memory controller (hardware id INT0002) as thermal cooling device.
+
+Patch 07 08 and 10 are minor fixes, please refer to the changelog of each patch.
+
+I've tested them and they work well on several systems.
+I'd like to get some feedbacks from the list. Any comments are appreciated. :)
+
+Thanks,
+Rui
+
+
