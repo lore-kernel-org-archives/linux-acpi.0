@@ -1,88 +1,257 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Thu, 17 Jan 2008 12:46:20 -0200
-Message-ID: <20080117144620.GA32346@khazad-dum.debian.net>
-References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <0bf08de2227cabeb40a6ea72b3fa188a2e325335.1200565331.git.len.brown@intel.com> <20080117122832.GB32133@srcf.ucam.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
+Date: Thu, 17 Jan 2008 09:20:30 -0800
+Message-ID: <20080117092030.a9dfe528.randy.dunlap@oracle.com>
+References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:44723 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750847AbYAQOq0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Jan 2008 09:46:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20080117122832.GB32133@srcf.ucam.org>
+Received: from rgminet01.oracle.com ([148.87.113.118]:43013 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548AbYAQRVY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 12:21:24 -0500
+In-Reply-To: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
 
-On Thu, 17 Jan 2008, Matthew Garrett wrote:
-> On Thu, Jan 17, 2008 at 05:24:50AM -0500, Len Brown wrote:
+On Thu, 17 Jan 2008 15:51:17 +0800 Zhang Rui wrote:
+
+> From: Thomas Sujith <sujith.thomas@intel.com>
 > 
-> > +	{
-> > +	.callback = dmi_enable_osi_linux,
-> > +	.ident = "Lenovo ThinkPad T61",
-> > +	.matches = {
-> > +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> > +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
-> > +		},
-> > +	},
-> > +
+> Intel menlow platform specific driver for thermal management.
 > 
-> If we add it for specific devices, aren't vendors going to assume that 
-> future versions of that device will also be able to rely on this 
-> behaviour? I'm very reluctant to add whitelisting - I suspect it makes 
-> more sense for us to just be compatible with Windows. My experiments 
-> with the T61 suggested that it was possible to get everything working 
-> without this, but I'll need to go back and check what the behaviour 
-> actually was to be sure.
+> Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/misc/Kconfig        |   10 
+>  drivers/misc/Makefile       |    1 
+>  drivers/misc/intel_menlow.c |  527 ++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 538 insertions(+)
+> 
+> Index: linux-2.6/drivers/misc/intel_menlow.c
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6/drivers/misc/intel_menlow.c
+> @@ -0,0 +1,527 @@
+> +/*
+> +*  intel_menlow.c - Intel menlow Driver for thermal management extension
+> +*
+> +*  Copyright (C) 2008 Intel Corp
+> +*  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
+> +*  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
+> +* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> +*
+> +*  This driver creates the sys I/F for programming the sensors.
+> +*  It also implements the driver for intel menlow memory controller (hardware
+> +*  id is INT0002) which makes use of the platform specific ACPI methods
+> +*  to get/set bandwidth.
+> +*/
+> +
 
-There is interesting data for you about the T61 and X61 in the
-linux-thinkpad ML (also available through gmane).
+> +static int
+> +memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
+> +			     unsigned long *max_state)
 
-The T61 *latest BIOS* (this can well make a difference):
+Don't put 'static int' (return type etc.) on a line by itself.
+That format is not wanted in Linux.   (many places here)
 
-  without OSI(Linux)
-    * Mutes in firmware (but nobody knows HOW or WHAT it mutes)
-    * Doesn't propagate the MUTE event through ACPI or Keyboard
-    * Mute can be detected throgh NVRAM (probably)
-    * Uses Volume UP/DOWN press to unmute in firmware
+> +{
+> +	struct acpi_device *device = cdev->devdata;
+> +	acpi_handle handle = device->handle;
+> +	unsigned long value;
+> +	struct acpi_object_list arg_list;
+> +	union acpi_object arg;
+> +	acpi_status status = AE_OK;
+> +
+> +	arg_list.count = 1;
+> +	arg_list.pointer = &arg;
+> +	arg.type = ACPI_TYPE_INTEGER;
+> +	arg.integer.value = MEMORY_ARG_MAX_BANDWIDTH;
+> +	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
+> +				       &arg_list, &value);
+> +	if (ACPI_FAILURE(status))
+> +		return -EFAULT;
+> +
+> +	*max_state = value - 1;
+> +	return 0;
+> +}
+> +
+> +
+> +/*
+> + * Memory Device Management
+> + */
+> +static int intel_menlow_memory_add(struct acpi_device *device)
+> +{
+> +	int result = -ENODEV;
+> +	acpi_status status = AE_OK;
+> +	acpi_handle dummy;
+> +	struct thermal_cooling_device *cdev;
+> +
+> +	if (!device)
+> +		return -EINVAL;
+> +
+> +	status = acpi_get_handle(device->handle, MEMORY_GET_BANDWIDTH, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto end;
+> +
+> +	status = acpi_get_handle(device->handle, MEMORY_SET_BANDWIDTH, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto end;
+> +
+> +	cdev = thermal_cooling_device_register("Memory controller", device,
+> +					       &memory_cooling_ops);
+> +	acpi_driver_data(device) = cdev;
+> +	if (!cdev)
+> +		result = -ENODEV;
+> +	else {
+> +		result =
+> +		    sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
+> +				      "thermal_cooling");
+> +		if (result)
+> +			goto end;
+> +		result =
+> +		    sysfs_create_link(&cdev->device.kobj, &device->dev.kobj,
+> +				      "device");
+> +		if (result)
+> +			goto end;
+> +	}
+> +
+> +      end:
 
-    * Propagates volume up/down through the keyboard
-    * does not change volume up/down in firmware
+Labels should begin in column 0 or 1.  Only.
 
-  with OSI(Linux)
-    * Does not mute in firmware
-    * Propagates MUTE even through keyboard
-    * Propagates volume up/down through the keyboard
-    * does not change volume up/down in firmware
+> +	return result;
+> +}
+> +
+> +
+> +const static struct acpi_device_id intel_menlow_memory_ids[] = {
+> +	{"INT0002", 0},
+> +	{"", 0},
 
-And I hear the T61 has some weirdness in the HDA mixer too, but I don't know
-what ALSA is doing.  One should also test if the missing ALSA registers are
-available with/without OSI(Linux), and do it using a *proper* full alsa
-client, like amixer, because the GUI ones can't deal with stuff like two
-mute controls in one single channel, etc.  And look at the ALSA code to see
-if they are not special-casing the thinkpad in some way that is actually
-hurting instead of helping (depending on OSI(Linux) state).
+or just	{} for the terminating entry, right?
 
-Nobody managed to find how the firmware was muting the sound yet.  Maybe
-Lenovo just dumbed down the extra mixer to a mute/unmute thing (it has full
-volume control in older thinkpads), instead of just removing it entirely.
+> +};
 
-The X61 seems to be nearly the same as the T61.
+> +/*
+> + * sensor_get_auxtrip
+> + * -----------------
+> + * get the current auxtrip value from sensor through proprietory ACPI methods
+> + * name: Thermalzone name
+> + * auxtype : AUX0/AUX1
+> + * buf: syfs buffer
+> + */
 
-I really, really prefer the old firmware that just *always worked* in the
-volume control.  Now Lenovo switched tactics for one reason or another, and
-IMHO, the only sane way forward is to try to get to the least surprising
-behaviour (which happens to be the one we get with OSI(Linux).
+It would be Good to use kernel-doc format if someone is going to
+add function documentation at all...  (ref. multiple places)
 
-I suggest that any "experiments" be carried out in the open in the
-linux-thinkpad mailinglist, requesting input from other people.
+See Documentation/kernel-doc-nano-HOWTO.txt .
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+> +static int sensor_get_auxtrip(acpi_handle handle, int index, int *value)
+> +{
+> +	acpi_status status;
+> +
+> +	if ((index != 0 && index != 1) || !value)
+> +		return -EINVAL;
+> +
+> +	status = acpi_evaluate_integer(handle, index ? GET_AUX1 : GET_AUX0,
+> +				       NULL, (unsigned long *)value);
+> +	if (ACPI_FAILURE(status))
+> +		return -EIO;
+> +
+> +	return 0;
+> +}
+> +
+
+> +static acpi_status
+> +intel_menlow_register_sensor(acpi_handle handle, u32 lvl,
+> +			     void *context, void **rv)
+> +{
+> +	acpi_status status;
+> +	acpi_handle dummy;
+> +	struct thermal_zone_device *thermal;
+> +	int result;
+> +
+> +	result = acpi_bus_get_private_data(handle, (void **)&thermal);
+> +	if (result)
+> +		return 0;
+> +
+> +	/* _TZ must have the AUX0/1 methods */
+> +	status = acpi_get_handle(handle, GET_AUX0, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto not_found;
+> +
+> +	status = acpi_get_handle(handle, SET_AUX0, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto not_found;
+> +
+> +	result = intel_menlow_add_one_attribute("aux0", 0644,
+> +						aux0_show, aux0_store,
+> +						&thermal->device, handle);
+> +	if (result)
+> +		return AE_ERROR;
+> +
+> +	status = acpi_get_handle(handle, GET_AUX1, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto not_found;
+> +
+> +	status = acpi_get_handle(handle, SET_AUX1, &dummy);
+> +	if (ACPI_FAILURE(status))
+> +		goto not_found;
+> +
+> +	result = intel_menlow_add_one_attribute("aux1", 0644,
+> +						aux1_show, aux1_store,
+> +						&thermal->device, handle);
+> +	if (result)
+> +		return AE_ERROR;
+> +
+> +	/*
+> +	 * create the "dabney_enabled" attribute which means the user app
+> +	 * should be loaded or not
+> +	 */
+> +
+> +	result = intel_menlow_add_one_attribute("bios_enabled", 0444,
+> +						bios_enabled_show, NULL,
+> +						&thermal->device, handle);
+> +	if (result)
+> +		return AE_ERROR;
+> +
+> +      not_found:
+
+Don't indent labels so much.  It hides them.
+
+> +	if (status == AE_NOT_FOUND)
+> +		return AE_OK;
+> +	else
+> +		return status;
+> +}
+
+> Index: linux-2.6/drivers/misc/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/misc/Kconfig
+> +++ linux-2.6/drivers/misc/Kconfig
+> @@ -232,4 +232,14 @@ config ATMEL_SSC
+>  
+>  	  If unsure, say N.
+>  
+> +config INTEL_MENLOW
+> +        tristate "Thermal Management driver for Intel menlow platform"
+> +        depends on ACPI_THERMAL
+> +	default n
+
+Documentation/CodingStyle has info on Kconfig style.
+Please read & use it and be more careful.
+
+> +        ---help---
+> +          ACPI thermal management enhancement driver on
+> +	  Intel Menlow platform.
+> +
+> +          If you are not sure, say N here.
+> +
+>  endif # MISC_DEVICES
+
+
+---
+~Randy
