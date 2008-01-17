@@ -1,51 +1,41 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 6/10] ACPI: register ACPI Video LCD as generic thermal cooling device
-Date: Thu, 17 Jan 2008 12:24:31 +0000
-Message-ID: <20080117122431.GA32133@srcf.ucam.org>
-References: <1200556282.2935.122.camel@acpi-sony.sh.intel.com>
+Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
+Date: Thu, 17 Jan 2008 12:28:32 +0000
+Message-ID: <20080117122832.GB32133@srcf.ucam.org>
+References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <0bf08de2227cabeb40a6ea72b3fa188a2e325335.1200565331.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:34254 "EHLO
+Received: from cavan.codon.org.uk ([78.32.9.130]:38010 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbYAQMYq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 07:24:46 -0500
+	with ESMTP id S1751780AbYAQM2u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 07:28:50 -0500
 Content-Disposition: inline
-In-Reply-To: <1200556282.2935.122.camel@acpi-sony.sh.intel.com>
+In-Reply-To: <0bf08de2227cabeb40a6ea72b3fa188a2e325335.1200565331.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Thu, Jan 17, 2008 at 03:51:22PM +0800, Zhang Rui wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> Register ACPI video device as thermal cooling devices as they may be listed
-> in _TZD method and the backlight control can be used for throttling.
+On Thu, Jan 17, 2008 at 05:24:50AM -0500, Len Brown wrote:
 
-I'm worried to some extent about how ungeneric this is. A thermal zone 
-may cover any devices, not just processor and video ones. Perhaps this 
-should be added to the acpi_device struct instead, and then let 
-individual drivers implement whatever callbacks are appropriate?
-
-> +static int
-> +video_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
-> +{
-> +	struct acpi_device *device = cdev->devdata;
-> +	struct acpi_video_device *video = acpi_driver_data(device);
-> +	int level;
+> +	{
+> +	.callback = dmi_enable_osi_linux,
+> +	.ident = "Lenovo ThinkPad T61",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
+> +		},
+> +	},
 > +
-> +	if ( state >= video->brightness->count - 2)
-> +		return -EINVAL;
-> +
-> +	state = video->brightness->count - state;
-> +	level = video->brightness->levels[state -1];
-> +	return acpi_video_device_lcd_set_level(video, level);
 
-This all seems like duplication of the backlight interface?
-
-(Speaking of which - Len, what's happening with my patches to the video 
-driver? Some feedback would be nice)
+If we add it for specific devices, aren't vendors going to assume that 
+future versions of that device will also be able to rely on this 
+behaviour? I'm very reluctant to add whitelisting - I suspect it makes 
+more sense for us to just be compatible with Windows. My experiments 
+with the T61 suggested that it was possible to get everything working 
+without this, but I'll need to go back and check what the behaviour 
+actually was to be sure.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
