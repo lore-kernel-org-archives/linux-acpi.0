@@ -1,32 +1,42 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: IT SAID " Please send dmidecode to linux-acpi@vger.kernel.org" ...
-Date: Fri, 18 Jan 2008 17:18:09 -0500
-Message-ID: <200801181718.09891.lenb@kernel.org>
-References: <473F2D96.8040305@praxisarzt.de>
+Subject: Re: dmidecode_out.txt (Acer Aspire 5610)
+Date: Fri, 18 Jan 2008 17:22:34 -0500
+Message-ID: <200801181722.35021.lenb@kernel.org>
+References: <200711141655.22037.assistinfo22@orange.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56617 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:52417 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762013AbYARWSZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 17:18:25 -0500
-In-Reply-To: <473F2D96.8040305@praxisarzt.de>
+	id S932525AbYARWWu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2008 17:22:50 -0500
+In-Reply-To: <200711141655.22037.assistinfo22@orange.fr>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "W. Conrad GP" <conrad@praxisarzt.de>
+To: assistinfo22@orange.fr
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 17 November 2007 13:06, W. Conrad GP wrote:
-> =A0 =A0 =A0 =A0 Manufacturer: TOSHIBA
-> =A0 =A0 =A0 =A0 Product Name: Satellite A210
+On Wednesday 14 November 2007 10:55, assistinfo wrote:
+> hi !!
+> 
+> it's for you =>
+> 
+> [   21.093044] ACPI: System BIOS is requesting _OSI(Linux)
+> [   21.093048] ACPI: Please test with "acpi_osi=!Linux"
+> [   21.093051] Please send dmidecode to linux-acpi@vger.kernel.org
+> 
 
-With 2.6.22, did you notice any functional difference with "acpi_osi=3D=
-!Linux"?
+System Information
+	Manufacturer: Acer            
+	Product Name: Aspire 5610     
+
+With 2.6.22, did you notice any functional difference with "acpi_osi=!Linux"?
 
 (or since the default changed at 2.6.23, with 2.6.23 or later
- do you notice any difference with "acpi_osi=3DLinux"?)
+ do you notice any difference with "acpi_osi=Linux"?)
 
 Please send me the output from acpidump.
 If you don't have acpidump, you can get it from pmtools here:
@@ -34,8 +44,3 @@ http://www.lesswatts.org/projects/acpi/utilities.php
 
 thanks,
 -Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
