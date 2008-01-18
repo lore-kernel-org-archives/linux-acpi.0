@@ -1,26 +1,26 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode for Dell PE-1900
-Date: Fri, 18 Jan 2008 16:40:09 -0500
-Message-ID: <200801181640.09874.lenb@kernel.org>
-References: <4760696D.3090304@amixsi.com.br>
+Subject: Re: dmidecode on Dell PowerEdge SC440
+Date: Fri, 18 Jan 2008 16:42:34 -0500
+Message-ID: <200801181642.34260.lenb@kernel.org>
+References: <47738D55.30204@stepservizi.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45586 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:37213 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755390AbYARVkd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 16:40:33 -0500
-In-Reply-To: <4760696D.3090304@amixsi.com.br>
+	id S1755359AbYARVnL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 16:43:11 -0500
+In-Reply-To: <47738D55.30204@stepservizi.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Railson de Castro Guilherme <railson@amixsi.com.br>
+To: Alessio Sias <asias@stepservizi.net>
 Cc: linux-acpi@vger.kernel.org
 
-On Wednesday 12 December 2007 18:06, Railson de Castro Guilherme wrote:
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Dell Inc.
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: PowerEdge 1900
+On Thursday 27 December 2007 06:32, Alessio Sias wrote:
+> =A0 =A0 =A0 =A0 Manufacturer: Dell Inc.
+> =A0 =A0 =A0 =A0 Product Name: PowerEdge SC440
 
 Did you get messages about OSI(Linux) in your dmesg?
 
