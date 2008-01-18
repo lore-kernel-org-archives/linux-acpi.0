@@ -1,48 +1,44 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode (HP pavilion dv5000)
-Date: Fri, 18 Jan 2008 18:27:47 -0500
-Message-ID: <200801181827.47446.lenb@kernel.org>
-References: <4679A480.1020507@cosy.sbg.ac.at>
+Subject: Re: Dell Optiplex GX620 BIOS A11 dmidecode kernel 2.6.22
+Date: Fri, 18 Jan 2008 18:34:20 -0500
+Message-ID: <200801181834.20589.lenb@kernel.org>
+References: <20070709094914.273BC11484@nebuchadnezzar.smejdil.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42625 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:34302 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762658AbYARX2K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 18:28:10 -0500
-In-Reply-To: <4679A480.1020507@cosy.sbg.ac.at>
+	id S1754138AbYARXeh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 18:34:37 -0500
+In-Reply-To: <20070709094914.273BC11484@nebuchadnezzar.smejdil.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Tamme <mtamme@cosy.sbg.ac.at>
+To: Michal Semler <cijoml@compare.cz>
 Cc: linux-acpi@vger.kernel.org
 
-On Wednesday 20 June 2007 18:04, Martin Tamme wrote:
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Hewlett-Packard
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: HP Pavilion dv5000 (RG959EA#ABD=
-)
-> =A0=A0=A0=A0=A0=A0=A0=A0Version: F.23
-> =A0=A0=A0=A0=A0=A0=A0=A0Serial Number: CND63436SJ
-> =A0=A0=A0=A0=A0=A0=A0=A0UUID: CAB23257-2998-11DB-BA5A-0016D43EC990
-> =A0=A0=A0=A0=A0=A0=A0=A0Wake-up Type: Power Switch
-> =A0=A0=A0=A0=A0=A0=A0=A0SKU Number: RG959EA#ABD
-> =A0=A0=A0=A0=A0=A0=A0=A0Family: 103C_5335KV
+On Monday 09 July 2007 05:49, Michal Semler wrote:
+> System Information
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: Dell Inc.
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: OptiPlex GX620
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: Not Specified
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Serial Number: JLG4Q2J
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 UUID: 44454C4C-4C00-1047-8034-CAC04F51324=
+A
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch=20
 >=20
-> Handle 0x0002, DMI type 2, 8 bytes
+> Handle 0x0200, DMI type 2, 8 bytes
 > Base Board Information
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Hewlett-Packard
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: 30A7
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: Dell Inc.
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: 0FH884
 
-With 2.6.22, did you notice any functional difference with "acpi_osi=3D=
-!Linux"?
+Michal, I didn't see an acpidump in that e-mail, can you send it to me?
 
-(or since the default changed at 2.6.23, with 2.6.23 or later
- do you notice any difference with "acpi_osi=3DLinux"?)
-
-Please send me the output from acpidump.
-If you don't have acpidump, you can get it from pmtools here:
-http://www.lesswatts.org/projects/acpi/utilities.php
+also, do you notice any _functional_ difference after booting with
+"acpi_osi=3DLinux"
+vs
+"acpi_osi=3D!Linux"?
 
 thanks,
 -Len
