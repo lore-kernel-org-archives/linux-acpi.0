@@ -1,26 +1,26 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Dmidecode - AMILO XI 1546
-Date: Fri, 18 Jan 2008 17:16:30 -0500
-Message-ID: <200801181716.30671.lenb@kernel.org>
-References: <1195390607.6906.2.camel@localhost>
+Subject: Re: IT SAID " Please send dmidecode to linux-acpi@vger.kernel.org" ...
+Date: Fri, 18 Jan 2008 17:18:09 -0500
+Message-ID: <200801181718.09891.lenb@kernel.org>
+References: <473F2D96.8040305@praxisarzt.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56581 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56617 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932650AbYARWQr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 17:16:47 -0500
-In-Reply-To: <1195390607.6906.2.camel@localhost>
+	id S1762013AbYARWSZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 17:18:25 -0500
+In-Reply-To: <473F2D96.8040305@praxisarzt.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Piet <piet@powderfinger.be>
+To: "W. Conrad GP" <conrad@praxisarzt.de>
 Cc: linux-acpi@vger.kernel.org
 
-On Sunday 18 November 2007 07:56, Piet wrote:
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: FUJITSU SIEMENS
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: AMILO XI 1546
+On Saturday 17 November 2007 13:06, W. Conrad GP wrote:
+> =A0 =A0 =A0 =A0 Manufacturer: TOSHIBA
+> =A0 =A0 =A0 =A0 Product Name: Satellite A210
 
 With 2.6.22, did you notice any functional difference with "acpi_osi=3D=
 !Linux"?
