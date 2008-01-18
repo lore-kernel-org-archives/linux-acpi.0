@@ -1,54 +1,105 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode acpi_osi=!Linux (ACTEBIS SAM#451B)
-Date: Fri, 18 Jan 2008 18:55:36 -0500
-Message-ID: <200801181855.36846.lenb@kernel.org>
-References: <49699.212.238.156.107.1184415372.squirrel@mail.de-vos.net> <200707141628.07178.maggu2810@web.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/5] WMI
+Date: Fri, 18 Jan 2008 23:58:18 +0000
+Message-ID: <20080118235818.3123.95800.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45457 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757487AbYARXzy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jan 2008 18:55:54 -0500
-In-Reply-To: <200707141628.07178.maggu2810@web.de>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:43950 "EHLO
+	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756738AbYARX6w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2008 18:58:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Rathgeb <maggu2810@web.de>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Saturday 14 July 2007 10:28, Markus Rathgeb wrote:
-> Hi!
-> I saw a lot of the dmidecode messages and attached my dmidecode output (with 
-> kernel.parameter acpi_osi=!Linux).
-> But there is no different if I use this parameter or not.
+ANYWR - Another New Year WMI release
 
-so you see no functional difference when booting with
+Len,
 
-"acpi_osi=Linux"        (default for 2.6.22 and earlier)
-vs.
-"acpi_osi=!Linux"       (default for 2.6.23 and later)
+Can you please review at least the first two patches in this series, as I
+would still really like to try and get them into 2.6.25.
 
-Also, please send me the output from acpidump.
+-Carlos
 
-thanks,
--Len
+===
 
-ps
-If you don't have acpidump, you can get it from pmtools here:
-http://www.lesswatts.org/projects/acpi/utilities.php
+Patch #1: (WMI - driver and in kernel interface) - Fix ACPI debug issues
+
+Fix the compile errors with ACPI debugging enabled.
+
+Len: For you to review, and to go upstream.
+
+====
+
+Patch #2: (acer-wmi) - No change
+
+Len: For you to review, and to go upstream.
+
+====
+
+Patch #3: (tc1100-wmi) - No Change
+
+RFC only, needs actual testing on the hardware, and probably very broken.
+Waiting on Matthew Garrett to get some free time to test this.
+
+====
+
+Patch #4: (WMI sysfs interface) - Added new in-kernel function
+
+RFC only (see patch #5 for reason and discussion). Adds interface under
+/sys/devices/virtual/wmi
+
+Also adds a function to return the (virtual) device associated with a GUID for
+use by other parts of the kernel that want to set a parent device.
+
+====
+
+Patch #5: (WMI sysfs workaround) - No change
+
+Temporary hack, needed to get patch #4 working, due to a limitation on bus_id
+length (Kay Sievers is apparently working on this, ref Greg KH[1]).
+
+Apparently, the necessary fixes _might_ go into 2.6.25 as well, or worst case
+scenario is 2.6.26[2]. So we can either:
+
+1) Hold off on patch #4 until the necessary fixes go in (this might be 2.6.25
+if we're lucky, or we end up putting off WMI sysfs support until 2.6.26)
+
+or
+
+2) Apply patch #4, and #5 on top as a temporary hack, and then revert #5 as
+soon as the necessary changes go in. (For bisection purposes, #4 and #5 should
+be merged if we go ahead with this).
+
+I don't know what would be the best solution here.
+
+[1] http://lkml.org/lkml/2007/12/4/30
+[2] http://www.nabble.com/Re:-Fix-Firmware-class-name-collision-p14352966.html
 ---
-System Information
-        Manufacturer: ACTEBIS
-        Product Name: SAM#451B
-        Version: VT8385/VT8235
-        Serial Number: 000009
-        UUID: 80427E3E-4364-0010-937C-000930CFCFFC
-        Wake-up Type: Power Switch
 
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: ACTEBIS
-        Product Name: SAM#451B
+Carlos Corbacho (5):
+      [WIP] ACPI: WMI: Limit size of device string to 19 characters
+      [RFC] ACPI: WMI: Add sysfs userspace interface
+      [RFC] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
+      acer-wmi: Add driver for newer Acer laptops
+      ACPI: WMI: Add ACPI-WMI mapping driver
+
+
+ MAINTAINERS               |    7 
+ drivers/acpi/Kconfig      |   11 
+ drivers/acpi/Makefile     |    1 
+ drivers/acpi/wmi.c        | 1190 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/misc/Kconfig      |   25 +
+ drivers/misc/Makefile     |    2 
+ drivers/misc/acer-wmi.c   | 1100 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/misc/tc1100-wmi.c |  290 +++++++++++
+ include/linux/acpi.h      |   21 +
+ 9 files changed, 2647 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/acpi/wmi.c
+ create mode 100644 drivers/misc/acer-wmi.c
+ create mode 100644 drivers/misc/tc1100-wmi.c
+
+
