@@ -1,331 +1,612 @@
-From: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
-Subject: Re: dmidecode from hp pavilion dv9047ea Turion X2
-Date: Fri, 18 Jan 2008 02:09:45 +0000
-Message-ID: <20080118020945.3e41bb91.miknix@gmail.com>
-References: <478C0D0E.1050402@versanet.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
+Date: Fri, 18 Jan 2008 11:32:55 +0800
+Message-ID: <1200627175.2935.174.camel@acpi-sony.sh.intel.com>
+References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
+	 <20080117092030.a9dfe528.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:59860 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756756AbYARCFX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Jan 2008 21:05:23 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so420180ugc.16
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Jan 2008 18:05:21 -0800 (PST)
-In-Reply-To: <478C0D0E.1050402@versanet.de>
+Received: from mga11.intel.com ([192.55.52.93]:33125 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750946AbYARD1f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Jan 2008 22:27:35 -0500
+In-Reply-To: <20080117092030.a9dfe528.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "HasiHeike@versanet.de" <HasiHeike@versanet.de>
-Cc: linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>, sam@ravnborg.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, "Thomas, Sujith" <sujith.thomas@intel.com>
 
-On Tue, 15 Jan 2008 02:31:58 +0100
-"HasiHeike@versanet.de" <HasiHeike@versanet.de> wrote:
+Hi, Randy and Sam,
 
-> # dmidecode 2.9
-> SMBIOS 2.4 present.
-> 20 structures occupying 822 bytes.
-> Table at 0x000F1C80.
-> 
-> Handle 0x0000, DMI type 0, 24 bytes
-> BIOS Information
->         Vendor: Hewlett-Packard
->         Version: F.3B
->         Release Date: 10/02/2007
->         Address: 0xE6A30
->         Runtime Size: 103888 bytes
->         ROM Size: 1024 kB
->         Characteristics:
->                 ISA is supported
->                 PCI is supported
->                 PNP is supported
->                 BIOS is upgradeable
->                 BIOS shadowing is allowed
->                 ESCD support is available
->                 Boot from CD is supported
->                 Selectable boot is supported
->                 Print screen service is supported (int 5h)
->                 8042 keyboard services are supported (int 9h)
->                 Serial services are supported (int 14h)
->                 Printer services are supported (int 17h)
->                 ACPI is supported
->                 USB legacy is supported
->                 AGP is supported
->                 Smart battery is supported
->                 BIOS boot specification is supported
->                 Targeted content distribution is supported
-> 
-> Handle 0x0001, DMI type 1, 27 bytes
-> System Information
->         Manufacturer: Hewlett-Packard
->         Product Name: HP Pavilion dv9000 (RE372EA#ABD)
->         Version: Rev 1
->         Serial Number: CNF6330ND6
->         UUID: 434E4636-3333-304E-4436-00163674AE3C
->         Wake-up Type: Power Switch
->         SKU Number: RE372EA#ABD
->         Family: 103C_5335KV
-> 
-> Handle 0x0002, DMI type 2, 8 bytes
-> Base Board Information
->         Manufacturer: Quanta
->         Product Name: 30B9
->         Version: 65.29
->         Serial Number: None
-> 
-> Handle 0x0003, DMI type 3, 17 bytes
-> Chassis Information
->         Manufacturer: Quanta
->         Type: Notebook
->         Lock: Not Present
->         Version: N/A
->         Serial Number: None
->         Asset Tag:
->         Boot-up State: Safe
->         Power Supply State: Safe
->         Thermal State: Safe
->         Security Status: Unknown
->         OEM Information: 0x00000000
-> 
-> Handle 0x0004, DMI type 4, 35 bytes
-> Processor Information
->         Socket Designation: Socket S1
->         Type: Central Processor
->         Family: Opteron
->         Manufacturer: AMD
->         ID: 82 0F 04 00 FF FB 8B 17
->         Signature: Family 15, Model 72, Stepping 2
->         Flags:
->                 FPU (Floating-point unit on-chip)
->                 VME (Virtual mode extension)
->                 DE (Debugging extension)
->                 PSE (Page size extension)
->                 TSC (Time stamp counter)
->                 MSR (Model specific registers)
->                 PAE (Physical address extension)
->                 MCE (Machine check exception)
->                 CX8 (CMPXCHG8 instruction supported)
->                 APIC (On-chip APIC hardware supported)
->                 SEP (Fast system call)
->                 MTRR (Memory type range registers)
->                 PGE (Page global enable)
->                 MCA (Machine check architecture)
->                 CMOV (Conditional move instruction supported)
->                 PAT (Page attribute table)
->                 PSE-36 (36-bit page size extension)
->                 CLFSH (CLFLUSH instruction supported)
->                 MMX (MMX technology supported)
->                 FXSR (Fast floating-point save and restore)
->                 SSE (Streaming SIMD extensions)
->                 SSE2 (Streaming SIMD extensions 2)
->                 HTT (Hyper-threading technology)
->         Version: AMD Turion(tm) 64 X2 Mobile TL52
->         Voltage: 1.6 V
->         External Clock: 200 MHz
->         Max Speed: 1600 MHz
->         Current Speed: 1600 MHz
->         Status: Populated, Enabled
->         Upgrade: None
->         L1 Cache Handle: 0x0005
->         L2 Cache Handle: 0x0006
->         L3 Cache Handle: Not Provided
->         Serial Number: Not Specified
->         Asset Tag: Not Specified
->         Part Number: Not Specified
-> 
-> Handle 0x0005, DMI type 7, 19 bytes
-> Cache Information
->         Socket Designation: L1 Cache
->         Configuration: Enabled, Not Socketed, Level 1
->         Operational Mode: Write Back
->         Location: Internal
->         Installed Size: 64 KB
->         Maximum Size: 64 KB
->         Supported SRAM Types:
->                 Burst
->                 Pipeline Burst
->                 Asynchronous
->         Installed SRAM Type: Asynchronous
->         Speed: Unknown
->         Error Correction Type: Unknown
->         System Type: Unknown
->         Associativity: Unknown
-> 
-> Handle 0x0006, DMI type 7, 19 bytes
-> Cache Information
->         Socket Designation: L2 Cache
->         Configuration: Enabled, Not Socketed, Level 2
->         Operational Mode: Write Through
->         Location: Internal
->         Installed Size: 1024 KB
->         Maximum Size: 1024 KB
->         Supported SRAM Types:
->                 Burst
->                 Pipeline Burst
->                 Synchronous
->         Installed SRAM Type: Synchronous
->         Speed: Unknown
->         Error Correction Type: Unknown
->         System Type: Unified
->         Associativity: Unknown
-> 
-> Handle 0x0007, DMI type 9, 13 bytes
-> System Slot Information
->         Designation: PCI Express Slot 1
->         Type: 64-bit PCI Express
->         Current Usage: Available
->         Length: Short
->         ID: 0
->         Characteristics:
->                 5.0 V is provided
->                 3.3 V is provided
-> 
-> Handle 0x0008, DMI type 9, 13 bytes
-> System Slot Information
->         Designation: PCI Express Slot 2
->         Type: 64-bit PCI Express
->         Current Usage: Available
->         Length: Short
->         ID: 0
->         Characteristics:
->                 5.0 V is provided
->                 3.3 V is provided
->                 PME signal is supported
->                 Hot-plug devices are supported
-> 
-> Handle 0x0009, DMI type 10, 6 bytes
-> On Board Device Information
->         Type: Video
->         Status: Enabled
->         Description:
-> 
-> Handle 0x000A, DMI type 11, 5 bytes
-> OEM Strings
->         String 1: $HP$
->         String 2: LOC#
-> 
-> Handle 0x000B, DMI type 15, 29 bytes
-> System Event Log
->         Area Length: 16 bytes
->         Header Start Offset: 0x0000
->         Header Length: 16 bytes
->         Data Start Offset: 0x0010
->         Access Method: General-purpose non-volatile data functions
->         Access Address: 0x0000
->         Status: Valid, Not Full
->         Change Token: 0x000000F6
->         Header Format: Type 1
->         Supported Log Type Descriptors: 3
->         Descriptor 1: POST error
->         Data Format 1: POST results bitmap
->         Descriptor 2: Single-bit ECC memory error
->         Data Format 2: Multiple-event
->         Descriptor 3: Multi-bit ECC memory error
->         Data Format 3: Multiple-event
-> 
-> Handle 0x000C, DMI type 16, 15 bytes
-> Physical Memory Array
->         Location: System Board Or Motherboard
->         Use: System Memory
->         Error Correction Type: None
->         Maximum Capacity: 2 GB
->         Error Information Handle: Not Provided
->         Number Of Devices: 2
-> 
-> Handle 0x000D, DMI type 17, 27 bytes
-> Memory Device
->         Array Handle: 0x000C
->         Error Information Handle: No Error
->         Total Width: 64 bits
->         Data Width: 64 bits
->         Size: 1024 MB
->         Form Factor: DIMM
->         Set: 1
->         Locator: DIMM 1
->         Bank Locator: Bank 0,1
->         Type: DDR2
->         Type Detail: Synchronous
->         Speed: 667 MHz (1.5 ns)
->         Manufacturer: F7F7460000000000
->         Serial Number: FFFFFFFF
->         Asset Tag: Not Specified
->         Part Number: MDT DDR2
-> 
-> Handle 0x000E, DMI type 17, 27 bytes
-> Memory Device
->         Array Handle: 0x000C
->         Error Information Handle: No Error
->         Total Width: 64 bits
->         Data Width: 64 bits
->         Size: 1024 MB
->         Form Factor: DIMM
->         Set: 1
->         Locator: DIMM 2
->         Bank Locator: Bank 2,3
->         Type: DDR2
->         Type Detail: Unknown
->         Speed: 667 MHz (1.5 ns)
->         Manufacturer: F7F7460000000000
->         Serial Number: FFFFFFFF
->         Asset Tag: Not Specified
->         Part Number: MDT DDR2
-> 
-> Handle 0x000F, DMI type 19, 15 bytes
-> Memory Array Mapped Address
->         Starting Address: 0x00000000000
->         Ending Address: 0x0007FFFFFFF
->         Range Size: 2 GB
->         Physical Array Handle: 0x000C
->         Partition Width: 0
-> 
-> Handle 0x0010, DMI type 20, 19 bytes
-> Memory Device Mapped Address
->         Starting Address: 0x00000000000
->         Ending Address: 0x0003FFFFFFF
->         Range Size: 1 GB
->         Physical Device Handle: 0x000D
->         Memory Array Mapped Address Handle: 0x000F
->         Partition Row Position: 2
->         Interleave Position: 2
->         Interleaved Data Depth: 2
-> 
-> Handle 0x0011, DMI type 20, 19 bytes
-> Memory Device Mapped Address
->         Starting Address: 0x00040000000
->         Ending Address: 0x0007FFFFFFF
->         Range Size: 1 GB
->         Physical Device Handle: 0x000E
->         Memory Array Mapped Address Handle: 0x000F
->         Partition Row Position: 2
->         Interleave Position: 2
->         Interleaved Data Depth: 2
-> 
-> Handle 0x0012, DMI type 32, 20 bytes
-> System Boot Information
->         Status: <OUT OF SPEC>
-> 
-> Handle 0x0013, DMI type 127, 4 bytes
-> End Of Table
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +             if (result)
+> > +                     goto end;
+> > +     }
+> > +
+> > +      end:
+Hah, Lindent always does this for me,
+> Labels should begin in column 0 or 1.  Only.
+yes, and checkpatch.pl begins to complain about this
+after using Lindent...
+I think we should change one of them, :)
 
-Hello,
+> > +     return result;
+> > +}
+> > +
+> > +
+> > +const static struct acpi_device_id intel_menlow_memory_ids[] = {
+> > +     {"INT0002", 0},
+> > +     {"", 0},
+> 
+> or just {} for the terminating entry, right?
+Yes, I use this just to be consistent with other ACPI device drivers.
 
-I'm developing a Linux driver for supporting Vista Hotstart(TM).
-I think your laptop may support it. If you are interested in using that
-functionality in Linux or simply interested in helping, please take a look at:
+Thanks for your comments, please review the patch below,
 
-http://quickstart.sourceforge.net/
+From: Thomas Sujith <sujith.thomas@intel.com>
 
-Thanks,
--- 
-Angelo Arrifano AKA MiKNiX
-CSE Student at UBI, Portugal
-Gentoo Linux AMD64 Arch Tester
-Linwizard Developer
-miknix@gmail.com
-http://miknix.homelinux.com
-PGP Pubkey 0x3D92BB0B
+Intel menlow platform specific driver for thermal management extension.
+
+Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/misc/Kconfig        |    9 
+ drivers/misc/Makefile       |    1 
+ drivers/misc/intel_menlow.c |  520 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 530 insertions(+)
+
+Index: linux-2.6/drivers/misc/intel_menlow.c
+===================================================================
+--- /dev/null
++++ linux-2.6/drivers/misc/intel_menlow.c
+@@ -0,0 +1,520 @@
++/*
++*  intel_menlow.c - Intel menlow Driver for thermal management extension
++*
++*  Copyright (C) 2008 Intel Corp
++*  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
++*  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
++*  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++*
++*  This program is free software; you can redistribute it and/or modify
++*  it under the terms of the GNU General Public License as published by
++*  the Free Software Foundation; version 2 of the License.
++*
++*  This program is distributed in the hope that it will be useful, but
++*  WITHOUT ANY WARRANTY; without even the implied warranty of
++*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++*  General Public License for more details.
++*
++*  You should have received a copy of the GNU General Public License along
++*  with this program; if not, write to the Free Software Foundation, Inc.,
++*  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++*
++* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++*
++*  This driver creates the sys I/F for programming the sensors.
++*  It also implements the driver for intel menlow memory controller (hardware
++*  id is INT0002) which makes use of the platform specific ACPI methods
++*  to get/set bandwidth.
++*/
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/pci.h>
++#include <linux/pm.h>
++
++#include <linux/thermal.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++
++MODULE_AUTHOR("Thomas Sujith");
++MODULE_AUTHOR("Zhang Rui");
++MODULE_DESCRIPTION("Intel Menlow platform specific driver");
++MODULE_LICENSE("GPL");
++
++/*
++ * Memory controller device control
++ */
++
++#define MEMORY_GET_BANDWIDTH "GTHS"
++#define MEMORY_SET_BANDWIDTH "STHS"
++#define MEMORY_ARG_CUR_BANDWIDTH 1
++#define MEMORY_ARG_MAX_BANDWIDTH 0
++
++static int memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
++					unsigned long *max_state)
++{
++	struct acpi_device *device = cdev->devdata;
++	acpi_handle handle = device->handle;
++	unsigned long value;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status = AE_OK;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = MEMORY_ARG_MAX_BANDWIDTH;
++	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
++				       &arg_list, &value);
++	if (ACPI_FAILURE(status))
++		return -EFAULT;
++
++	*max_state = value - 1;
++	return 0;
++}
++
++static int memory_get_max_bandwidth(struct thermal_cooling_device *cdev,
++				    char *buf)
++{
++	unsigned long value;
++	if (memory_get_int_max_bandwidth(cdev, &value))
++		return -EINVAL;
++
++	return sprintf(buf, "%ld\n", value);
++}
++
++static int memory_get_cur_bandwidth(struct thermal_cooling_device *cdev,
++				    char *buf)
++{
++	struct acpi_device *device = cdev->devdata;
++	acpi_handle handle = device->handle;
++	unsigned long value;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status = AE_OK;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = MEMORY_ARG_CUR_BANDWIDTH;
++	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
++				       &arg_list, &value);
++	if (ACPI_FAILURE(status))
++		return -EFAULT;
++
++	return sprintf(buf, "%ld\n", value);
++}
++
++static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
++				    unsigned int state)
++{
++	struct acpi_device *device = cdev->devdata;
++	acpi_handle handle = device->handle;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status;
++	int temp;
++	unsigned long max_state;
++
++	if (memory_get_int_max_bandwidth(cdev, &max_state))
++		return -EFAULT;
++
++	if (max_state < 0 || state > max_state)
++		return -EINVAL;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = state;
++
++	status =
++	    acpi_evaluate_integer(handle, MEMORY_SET_BANDWIDTH, &arg_list,
++				  (unsigned long *)&temp);
++
++	printk(KERN_INFO
++	       "Bandwidth value was %d: status is %d\n", state, status);
++	if (ACPI_FAILURE(status))
++		return -EFAULT;
++
++	return 0;
++}
++
++static struct thermal_cooling_device_ops memory_cooling_ops = {
++	.get_max_state = memory_get_max_bandwidth,
++	.get_cur_state = memory_get_cur_bandwidth,
++	.set_cur_state = memory_set_cur_bandwidth,
++};
++
++/*
++ * Memory Device Management
++ */
++static int intel_menlow_memory_add(struct acpi_device *device)
++{
++	int result = -ENODEV;
++	acpi_status status = AE_OK;
++	acpi_handle dummy;
++	struct thermal_cooling_device *cdev;
++
++	if (!device)
++		return -EINVAL;
++
++	status = acpi_get_handle(device->handle, MEMORY_GET_BANDWIDTH, &dummy);
++	if (ACPI_FAILURE(status))
++		goto end;
++
++	status = acpi_get_handle(device->handle, MEMORY_SET_BANDWIDTH, &dummy);
++	if (ACPI_FAILURE(status))
++		goto end;
++
++	cdev = thermal_cooling_device_register("Memory controller", device,
++					       &memory_cooling_ops);
++	acpi_driver_data(device) = cdev;
++	if (!cdev)
++		result = -ENODEV;
++	else {
++		result =
++		    sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
++				      "thermal_cooling");
++		if (result)
++			goto end;
++		result =
++		    sysfs_create_link(&cdev->device.kobj, &device->dev.kobj,
++				      "device");
++		if (result)
++			goto end;
++	}
++
++ end:
++	return result;
++}
++
++static int intel_menlow_memory_remove(struct acpi_device *device, int type)
++{
++	struct thermal_cooling_device *cdev = acpi_driver_data(device);
++
++	if (!device || !cdev)
++		return -EINVAL;
++
++	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++	sysfs_remove_link(&cdev->device.kobj, "device");
++	thermal_cooling_device_unregister(cdev);
++
++	return 0;
++}
++
++const static struct acpi_device_id intel_menlow_memory_ids[] = {
++	{"INT0002", 0},
++	{"", 0},
++};
++
++static struct acpi_driver intel_menlow_memory_driver = {
++	.name = "intel_menlow_thermal_control",
++	.ids = intel_menlow_memory_ids,
++	.ops = {
++		.add = intel_menlow_memory_add,
++		.remove = intel_menlow_memory_remove,
++		},
++};
++
++/*
++ * Sensor control on menlow platform
++ */
++
++#define THERMAL_AUX0 0
++#define THERMAL_AUX1 1
++#define GET_AUX0 "GAX0"
++#define GET_AUX1 "GAX1"
++#define SET_AUX0 "SAX0"
++#define SET_AUX1 "SAX1"
++
++struct intel_menlow_attribute {
++	struct device_attribute attr;
++	struct device *device;
++	acpi_handle handle;
++	struct list_head node;
++};
++
++static LIST_HEAD(intel_menlow_attr_list);
++static DEFINE_MUTEX(intel_menlow_attr_lock);
++
++/*
++ * sensor_get_auxtrip - get the current auxtrip value from sensor
++ * @name: Thermalzone name
++ * @auxtype : AUX0/AUX1
++ * @buf: syfs buffer
++ */
++static int sensor_get_auxtrip(acpi_handle handle, int index, int *value)
++{
++	acpi_status status;
++
++	if ((index != 0 && index != 1) || !value)
++		return -EINVAL;
++
++	status = acpi_evaluate_integer(handle, index ? GET_AUX1 : GET_AUX0,
++				       NULL, (unsigned long *)value);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	return 0;
++}
++
++/*
++ * sensor_set_auxtrip - set the new auxtrip value to sensor
++ * @name: Thermalzone name
++ * @auxtype : AUX0/AUX1
++ * @buf: syfs buffer
++ */
++static int sensor_set_auxtrip(acpi_handle handle, int index, int value)
++{
++	acpi_status status;
++	union acpi_object arg = {
++		ACPI_TYPE_INTEGER
++	};
++	struct acpi_object_list args = {
++		1, &arg
++	};
++	int temp;
++
++	if (index != 0 && index != 1)
++		return -EINVAL;
++
++	status = acpi_evaluate_integer(handle, index ? GET_AUX0 : GET_AUX1,
++				       NULL, (unsigned long *)&temp);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++	if ((index && value < temp) || (!index && value > temp))
++		return -EINVAL;
++
++	arg.integer.value = value;
++	status = acpi_evaluate_integer(handle, index ? SET_AUX1 : SET_AUX0,
++				       &args, (unsigned long *)&temp);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	/* do we need to check the return value of SAX0/SAX1 ? */
++
++	return 0;
++}
++
++#define to_intel_menlow_attr(_attr)	\
++	container_of(_attr, struct intel_menlow_attribute, attr)
++
++static ssize_t aux0_show(struct device *dev,
++			 struct device_attribute *dev_attr, char *buf)
++{
++	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
++	int value;
++	int result;
++
++	result = sensor_get_auxtrip(attr->handle, 0, &value);
++
++	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
++}
++
++static ssize_t aux1_show(struct device *dev,
++			 struct device_attribute *dev_attr, char *buf)
++{
++	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
++	int value;
++	int result;
++
++	result = sensor_get_auxtrip(attr->handle, 1, &value);
++
++	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
++}
++
++static ssize_t aux0_store(struct device *dev,
++			  struct device_attribute *dev_attr,
++			  const char *buf, size_t count)
++{
++	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
++	int value;
++	int result;
++
++	/*Sanity check; should be a positive integer */
++	if (!sscanf(buf, "%d", &value))
++		return -EINVAL;
++
++	if (value < 0)
++		return -EINVAL;
++
++	result = sensor_set_auxtrip(attr->handle, 0, CELSIUS_TO_KELVIN(value));
++	return result ? result : count;
++}
++
++static ssize_t aux1_store(struct device *dev,
++			  struct device_attribute *dev_attr,
++			  const char *buf, size_t count)
++{
++	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
++	int value;
++	int result;
++
++	/*Sanity check; should be a positive integer */
++	if (!sscanf(buf, "%d", &value))
++		return -EINVAL;
++
++	if (value < 0)
++		return -EINVAL;
++
++	result = sensor_set_auxtrip(attr->handle, 1, CELSIUS_TO_KELVIN(value));
++	return result ? result : count;
++}
++
++/* BIOS can enable/disable the thermal user application in dabney platform */
++#define BIOS_ENABLED "\\_TZ.GSTS"
++static ssize_t bios_enabled_show(struct device *dev,
++				 struct device_attribute *attr, char *buf)
++{
++	acpi_status status;
++	unsigned long bios_enabled;
++
++	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &bios_enabled);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return sprintf(buf, "%s\n", bios_enabled ? "enabled" : "disabled");
++}
++
++static int intel_menlow_add_one_attribute(char *name, int mode, void *show,
++					  void *store, struct device *dev,
++					  acpi_handle handle)
++{
++	struct intel_menlow_attribute *attr;
++	int result;
++
++	attr = kzalloc(sizeof(struct intel_menlow_attribute), GFP_KERNEL);
++	if (!attr)
++		return -ENOMEM;
++
++	attr->attr.attr.name = name;
++	attr->attr.attr.mode = mode;
++	attr->attr.show = show;
++	attr->attr.store = store;
++	attr->device = dev;
++	attr->handle = handle;
++
++	result = device_create_file(dev, &attr->attr);
++	if (result)
++		return result;
++
++	mutex_lock(&intel_menlow_attr_lock);
++	list_add_tail(&attr->node, &intel_menlow_attr_list);
++	mutex_unlock(&intel_menlow_attr_lock);
++
++	return 0;
++}
++
++static acpi_status intel_menlow_register_sensor(acpi_handle handle, u32 lvl,
++						void *context, void **rv)
++{
++	acpi_status status;
++	acpi_handle dummy;
++	struct thermal_zone_device *thermal;
++	int result;
++
++	result = acpi_bus_get_private_data(handle, (void **)&thermal);
++	if (result)
++		return 0;
++
++	/* _TZ must have the AUX0/1 methods */
++	status = acpi_get_handle(handle, GET_AUX0, &dummy);
++	if (ACPI_FAILURE(status))
++		goto not_found;
++
++	status = acpi_get_handle(handle, SET_AUX0, &dummy);
++	if (ACPI_FAILURE(status))
++		goto not_found;
++
++	result = intel_menlow_add_one_attribute("aux0", 0644,
++						aux0_show, aux0_store,
++						&thermal->device, handle);
++	if (result)
++		return AE_ERROR;
++
++	status = acpi_get_handle(handle, GET_AUX1, &dummy);
++	if (ACPI_FAILURE(status))
++		goto not_found;
++
++	status = acpi_get_handle(handle, SET_AUX1, &dummy);
++	if (ACPI_FAILURE(status))
++		goto not_found;
++
++	result = intel_menlow_add_one_attribute("aux1", 0644,
++						aux1_show, aux1_store,
++						&thermal->device, handle);
++	if (result)
++		return AE_ERROR;
++
++	/*
++	 * create the "dabney_enabled" attribute which means the user app
++	 * should be loaded or not
++	 */
++
++	result = intel_menlow_add_one_attribute("bios_enabled", 0444,
++						bios_enabled_show, NULL,
++						&thermal->device, handle);
++	if (result)
++		return AE_ERROR;
++
++ not_found:
++	if (status == AE_NOT_FOUND)
++		return AE_OK;
++	else
++		return status;
++}
++
++static void intel_menlow_unregister_sensor(void)
++{
++	struct intel_menlow_attribute *pos, *next;
++
++	mutex_lock(&intel_menlow_attr_lock);
++	list_for_each_entry_safe(pos, next, &intel_menlow_attr_list, node) {
++		list_del(&pos->node);
++		device_remove_file(pos->device, &pos->attr);
++		kfree(pos);
++	}
++	mutex_unlock(&intel_menlow_attr_lock);
++
++	return;
++}
++
++static int __init intel_menlow_module_init(void)
++{
++	int result = -ENODEV;
++	acpi_status status;
++	unsigned long enable;
++
++	if (acpi_disabled)
++		return result;
++
++	/* Looking for the \_TZ.GSTS method */
++	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &enable);
++	if (ACPI_FAILURE(status) || !enable)
++		return -ENODEV;
++
++	/* Looking for ACPI device MEM0 with hardware id INT0002 */
++	result = acpi_bus_register_driver(&intel_menlow_memory_driver);
++	if (result)
++		return result;
++
++	/* Looking for sensors in each ACPI thermal zone */
++	status = acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
++				     ACPI_UINT32_MAX,
++				     intel_menlow_register_sensor, NULL, NULL);
++	if (ACPI_FAILURE(status))
++		result = -ENODEV;
++
++	return 0;
++}
++
++static void __exit intel_menlow_module_exit(void)
++{
++	acpi_bus_unregister_driver(&intel_menlow_memory_driver);
++	intel_menlow_unregister_sensor();
++}
++
++module_init(intel_menlow_module_init);
++module_exit(intel_menlow_module_exit);
+Index: linux-2.6/drivers/misc/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/misc/Kconfig
++++ linux-2.6/drivers/misc/Kconfig
+@@ -232,4 +232,13 @@ config ATMEL_SSC
+ 
+ 	  If unsure, say N.
+ 
++config INTEL_MENLOW
++	tristate "Thermal Management driver for Intel menlow platform"
++	depends on ACPI_THERMAL
++	---help---
++	  ACPI thermal management enhancement driver on
++	  Intel Menlow platform.
++
++	  If unsure, say N.
++
+ endif # MISC_DEVICES
+Index: linux-2.6/drivers/misc/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/misc/Makefile
++++ linux-2.6/drivers/misc/Makefile
+@@ -17,3 +17,4 @@ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop
+ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
+ obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
+ obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
++obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
+
+
