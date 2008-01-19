@@ -1,40 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode from HP Pavilion DV6150EU
-Date: Fri, 18 Jan 2008 23:41:26 -0500
-Message-ID: <200801182341.26276.lenb@kernel.org>
-References: <200710140101.28049.wpk@dst-labs.com>
+Subject: Re: dmidecode - HP Pavilion dv9410us - 30B9
+Date: Fri, 18 Jan 2008 23:43:49 -0500
+Message-ID: <200801182343.49613.lenb@kernel.org>
+References: <553eb53a0710142117u1e82c642pae8d82d7ae2e31b7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34763 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:34839 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762763AbYASEl7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:41:59 -0500
-In-Reply-To: <200710140101.28049.wpk@dst-labs.com>
+	id S1761410AbYASEoD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:44:03 -0500
+In-Reply-To: <553eb53a0710142117u1e82c642pae8d82d7ae2e31b7@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Krecicki <wpk@dst-labs.com>
+To: Fred Bauer <fred.w.bauer@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 13 October 2007 19:01, Witold Krecicki wrote:
+On Monday 15 October 2007 00:17, Fred Bauer wrote:
 > System Information
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: Hewlett-Packard
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: HP Pavilion dv6000 (RR705EA=
-#AKD)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: Rev 1
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Serial Number: CNF65119NF
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 UUID: 434E4636-3531-3139-4E46-001B247EF68=
-C
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 SKU Number: RR705EA#AKD
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Family: 103C_5335KV
+> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Hewlett-Packard
+> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: HP Pavilion dv9000 (GA355UA#ABA=
+)
+> =A0=A0=A0=A0=A0=A0=A0=A0Version: Rev 1
+> =A0=A0=A0=A0=A0=A0=A0=A0Serial Number: CNF7282S2L
+> =A0=A0=A0=A0=A0=A0=A0=A0UUID: 434E4637-3238-3253-324C-001B2469B587
+> =A0=A0=A0=A0=A0=A0=A0=A0Wake-up Type: Power Switch
+> =A0=A0=A0=A0=A0=A0=A0=A0SKU Number: GA355UA#ABA
+> =A0=A0=A0=A0=A0=A0=A0=A0Family: 103C_5335KV
 >=20
 > Handle 0x0002, DMI type 2, 8 bytes
 > Base Board Information
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: Quanta
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: 30B8
+> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Quanta
+> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: 30B9
 
 Thanks for the dmidecode output.
 
@@ -43,8 +42,6 @@ Do you notice any functional difference when booting with
 "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
 vs.
 "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
-
-in particular, please check sound.
 
 Also, please send me the output from acpidump.
 
