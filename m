@@ -1,40 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode for Compal HEL80 Notebook
-Date: Fri, 18 Jan 2008 23:20:14 -0500
-Message-ID: <200801182320.15049.lenb@kernel.org>
-References: <470746EB.2000707@gmail.com>
+Subject: Re: dmidecode - MacBook2,1
+Date: Fri, 18 Jan 2008 23:21:56 -0500
+Message-ID: <200801182321.56923.lenb@kernel.org>
+References: <413515090710060238x4af5f54fsd558841153480b42@mail.gmail.com> <413515090710060905u2efdafa9m55e3dbce4586e50a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40718 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:42741 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761656AbYASEU3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:20:29 -0500
-In-Reply-To: <470746EB.2000707@gmail.com>
+	id S1757890AbYASEWL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:22:11 -0500
+In-Reply-To: <413515090710060905u2efdafa9m55e3dbce4586e50a@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jochen Kemnade <kemnade@gmail.com>
+To: Samae <lord.myyl@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 06 October 2007 04:27, Jochen Kemnade wrote:
+On Saturday 06 October 2007 12:05, Samae wrote:
 > System Information
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: COMPAL
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: HEL80C
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: -
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Serial Number: 2056773503276
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 UUID: 980A3401-5238-11DB-9E1A-0016D45584F=
-7
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 SKU Number:
+> =A0 =A0 Manufacturer: Apple Inc.
+> =A0 =A0 Product Name: MacBook2,1
+> =A0 =A0 Version: =A01.0
+> =A0 =A0 Serial Number: W87311YWZ5X
+> =A0 =A0 UUID: 61F9E18A-38B2-B440-A87E-7457DF18863C
+> =A0 =A0 Wake-up Type: Power Switch
+> =A0 =A0 SKU Number: System SKUNumber
+> =A0 =A0 Family: MacBook
 >=20
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Family: Intel
->=20
-> Handle 0x0002, DMI type 2, 8 bytes
+> Handle 0x0002, DMI type 2, 16 bytes
 > Base Board Information
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: COMPAL
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: HEL8X
+> =A0 =A0 Manufacturer: Apple Inc.
+> =A0 =A0 Product Name: Mac-F4208CAA
+
 
 Thanks for the dmidecode output.
 
