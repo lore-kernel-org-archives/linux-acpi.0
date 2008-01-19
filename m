@@ -1,38 +1,40 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode from Slackware 12.0 on Notebook HP Pavilion dv6000 - 30B7
-Date: Fri, 18 Jan 2008 23:14:11 -0500
-Message-ID: <200801182314.11875.lenb@kernel.org>
-References: <46F65F48.3070600@andromedacomm.com> <46F7926C.8010901@andromedacomm.com>
+Subject: Re: dmidecode for Compal HEL80 Notebook
+Date: Fri, 18 Jan 2008 23:20:14 -0500
+Message-ID: <200801182320.15049.lenb@kernel.org>
+References: <470746EB.2000707@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:47516 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:40718 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760798AbYASEO3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:14:29 -0500
-In-Reply-To: <46F7926C.8010901@andromedacomm.com>
+	id S1761656AbYASEU3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:20:29 -0500
+In-Reply-To: <470746EB.2000707@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Schon <michael.schon@andromedacomm.com>
+To: Jochen Kemnade <kemnade@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Monday 24 September 2007 06:33, Michael Schon wrote:
-> > System Information
-> > =A0 =A0 =A0 =A0 Manufacturer: Hewlett-Packard
-> > =A0 =A0 =A0 =A0 Product Name: HP Pavilion dv6000 (RK415AV)
-> > =A0 =A0 =A0 =A0 Version: Rev 1
-> > =A0 =A0 =A0 =A0 Serial Number: BRB70907PY
-> > =A0 =A0 =A0 =A0 UUID: 42524237-3039-3037-5059-0019BBF8B1E9
-> > =A0 =A0 =A0 =A0 Wake-up Type: Power Switch
-> > =A0 =A0 =A0 =A0 SKU Number: RK415AV)
-> > =A0 =A0 =A0 =A0 Family: 103C_5335KV
-> >
-> > Handle 0x0002, DMI type 2, 8 bytes
-> > Base Board Information
-> > =A0 =A0 =A0 =A0 Manufacturer: Quanta
-> > =A0 =A0 =A0 =A0 Product Name: 30B7
+On Saturday 06 October 2007 04:27, Jochen Kemnade wrote:
+> System Information
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: COMPAL
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: HEL80C
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: -
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Serial Number: 2056773503276
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 UUID: 980A3401-5238-11DB-9E1A-0016D45584F=
+7
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 SKU Number:
+>=20
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Family: Intel
+>=20
+> Handle 0x0002, DMI type 2, 8 bytes
+> Base Board Information
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: COMPAL
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: HEL8X
 
 Thanks for the dmidecode output.
 
