@@ -1,38 +1,42 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode output for Sony Vaio VGN-FZ11M laptop
-Date: Fri, 18 Jan 2008 21:16:21 -0500
-Message-ID: <200801182116.21651.lenb@kernel.org>
-References: <200707291318.42184.ian.snow@btinternet.com>
+Subject: Re: Lenovo 3000 V100 dmidecode
+Date: Fri, 18 Jan 2008 21:19:35 -0500
+Message-ID: <200801182119.35645.lenb@kernel.org>
+References: <20070731093750.77657b2f@medusa.mythic.magic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57482 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:57558 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764812AbYASCQh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 21:16:37 -0500
-In-Reply-To: <200707291318.42184.ian.snow@btinternet.com>
+	id S1757005AbYASCTw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 21:19:52 -0500
+In-Reply-To: <20070731093750.77657b2f@medusa.mythic.magic>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ian Snow <ian.snow@btinternet.com>
+To: ktabic <ktabic@ktabic.co.uk>
 Cc: linux-acpi@vger.kernel.org
 
-On Sunday 29 July 2007 08:18, Ian Snow wrote:
-> System Information
-> =C2=A0 =C2=A0 Manufacturer: Sony Corporation
-> =C2=A0 =C2=A0 Product Name: VGN-FZ11M
-> =C2=A0 =C2=A0 Version: C3LP8MZ3
-> =C2=A0 =C2=A0 Serial Number: 28201150-5000954
-> =C2=A0 =C2=A0 UUID: 25BBA8A0-08D1-11DC-874E-0013A9C09B3B
-> =C2=A0 =C2=A0 Wake-up Type: Power Switch
-> =C2=A0 =C2=A0 SKU Number: N/A
-> =C2=A0 =C2=A0 Family: N/A
+On Tuesday 31 July 2007 04:37, ktabic wrote:
+> BIOS Information
+> =A0=A0=A0=A0=A0=A0=A0=A0Vendor: LENOVO
+> =A0=A0=A0=A0=A0=A0=A0=A0Version: 62ETC1WW (1.11 )
+> =A0=A0=A0=A0=A0=A0=A0=A0Release Date: 04/20/2007
+> =A0=A0=A0=A0=A0=A0=A0=A0Address: 0xE8600
+> =A0=A0=A0=A0=A0=A0=A0=A0Runtime Size: 96768 bytes
+> =A0=A0=A0=A0=A0=A0=A0=A0ROM Size: 1024 kB
+> =A0=A0=A0=A0=A0=A0=A0=A0Characteristics:
+=2E..
+> =A0=A0=A0=A0=A0=A0=A0=A0BIOS Revision: 1.11
 >=20
-> Handle 0x0002, DMI type 2, 10 bytes
-> Base Board Information
-> =C2=A0 =C2=A0 Manufacturer: Sony Corporation
-> =C2=A0 =C2=A0 Product Name: VAIO
+> Handle 0x0001, DMI type 1, 27 bytes
+> System Information
+> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: LENOVO
+> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: 07635CG
+> =A0=A0=A0=A0=A0=A0=A0=A0Version: LENOVO3000 V100
+
+Thanks for the dmidecode output.
 
 Do you notice any functional difference when booting with
 
