@@ -1,61 +1,422 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Sat, 19 Jan 2008 10:08:30 -0200
-Message-ID: <20080119120830.GA16308@khazad-dum.debian.net>
-References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801171504.26361.lenb@kernel.org> <20080117213135.GF5547@mit.edu> <200801190240.45718.lenb@kernel.org>
+From: Norbert Preining <preining@logic.at>
+Subject: dmidecode for Acer TM3012
+Date: Sat, 19 Jan 2008 14:23:21 +0100
+Message-ID: <20080119132321.GC3262@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:60753 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751551AbYASMIh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jan 2008 07:08:37 -0500
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:39619 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800AbYASOMw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jan 2008 09:12:52 -0500
+Received: from gamma.logic.tuwien.ac.at ([128.130.175.3] ident=Debian-exim)
+	by mx.logic.tuwien.ac.at with esmtps (TLS-1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <preining@logic.at>)
+	id 1JGDfN-0003e2-7k
+	for linux-acpi@vger.kernel.org; Sat, 19 Jan 2008 14:23:21 +0100
+Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 4.63)
+	(envelope-from <preining@logic.at>)
+	id 1JGDfN-0000zc-5E
+	for linux-acpi@vger.kernel.org; Sat, 19 Jan 2008 14:23:21 +0100
 Content-Disposition: inline
-In-Reply-To: <200801190240.45718.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Theodore Tso <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sat, 19 Jan 2008, Len Brown wrote:
-> and if they did, nobody updates their bios anyway.
+Hi all, 
 
-Actually, that only depends on us.  If you drop support for people using
-known-bad BIOS versions that give you greif, they have no choice but to go
-away, or to upgrade.  And so far, I have never had anyone complain that they
-had to update their thinkpad BIOS and just go away.
+the kernel asks me to send the dmidecode to the list. I always forgot
+that, but after seeing Len's activitly I decided it might actually be of
+interest.
 
-Of course, I am terribly nice about it when I ask someone to upgrade their
-BIOS, but still...
+Hardware: Acer TravelMate 3012
+Kernel: 2.6.24-rc8
+kernel cmd line: root=/dev/sda3 ro usbcore.autosuspend=1 resume=/dev/sda2
+OS: Debian/sid
 
-On the thinkpad-specific case, I don't actually mind tracking down the
-last-known-sane BIOS version for every thinkpad model and bitching like a
-madman on thinkpad-acpi telling people to update because it is known buggy
-and unsupported if their BIOS is too old.  We already sort of track every
-important BIOS version of every model anyway in ThinkWiki...
+I am quite content having s2r and s2d normally running (save some
+regression I haven't checked/found). Only one thing puzzled me namely
+that the computer was in s2r sleep and used all the battery within
+12hours.
 
-I can easily see the T61 and X61 as prime candidates for a "upgrade the BIOS
-before reporting any bugs" printk.
+Ok, here it is
 
-> > Perhaps if there was a well documented, "this is what we want" from
-> > the Linux community, which can then get communicated to Lenovo, HP,
-> > Dell, etc.?  This document could include a request that Laptop vendors
-> > document how various things work when they do vendor-specific things,
-> > and also documenting what Linux is doing today because we believe it's
-> > what is the Windows-compatible behaviour.
-> 
-> vendors who care about Linux run this:
-> 
-> http://linuxfirmwarekit.org/
-> 
-> So I think if shout there, then it we'll be heard.
+# dmidecode 2.9
+SMBIOS 2.4 present.
+34 structures occupying 1079 bytes.
+Table at 0x000DF810.
 
-Indeed.  But are we allowed to drop support on any BIOS that fails those
-checks as soon as there is a new version of that BIOS that doesn't?
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: Acer   
+	Version: v1.3125
+	Release Date: 08/14/06
+	Address: 0xE6720
+	Runtime Size: 104672 bytes
+	ROM Size: 512 kB
+	Characteristics:
+		ISA is supported
+		PCI is supported
+		PC Card (PCMCIA) is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		ESCD support is available
+		Boot from CD is supported
+		ACPI is supported
+		USB legacy is supported
+		BIOS boot specification is supported
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: Acer, inc.
+	Product Name: TravelMate 3010 
+	Version: Not Applicable
+	Serial Number: LXTAT0602260908070EM02
+	UUID: C07A79BF-CB90-D811-97A0-0016361E27AD
+	Wake-up Type: Power Switch
+	SKU Number: Not Specified
+	Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Acer, Inc.
+	Product Name: Ness            
+	Version: Not Applicable
+	Serial Number: LXTAT0602260908070EM02
+
+Handle 0x0003, DMI type 3, 17 bytes
+Chassis Information
+	Manufacturer:     , Inc.
+	Type: Other
+	Lock: Not Present
+	Version: N/A
+	Serial Number: None
+	Asset Tag: <BAD INDEX>
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes
+Processor Information
+	Socket Designation: U2E1
+	Type: Central Processor
+	Family: Other
+	Manufacturer: Intel
+	ID: E8 06 00 00 FF FB E9 BF
+	Version: Genuine Intel(R) CPU           T2
+	Voltage: 3.3 V
+	External Clock: 166 MHz
+	Max Speed: 1666 MHz
+	Current Speed: 1666 MHz
+	Status: Populated, Enabled
+	Upgrade: ZIF Socket
+	L1 Cache Handle: 0x0005
+	L2 Cache Handle: 0x0006
+	L3 Cache Handle: Not Provided
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Socketed, Level 1
+	Operational Mode: Write Back
+	Location: Internal
+	Installed Size: 16 KB
+	Maximum Size: 16 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Asynchronous
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0006, DMI type 7, 19 bytes
+Cache Information
+	Socket Designation: L2 Cache
+	Configuration: Enabled, Socketed, Level 2
+	Operational Mode: Write Back
+	Location: External
+	Installed Size: 2048 KB
+	Maximum Size: 512 KB
+	Supported SRAM Types:
+		Burst
+		Pipeline Burst
+		Asynchronous
+	Installed SRAM Type: Burst
+	Speed: Unknown
+	Error Correction Type: Unknown
+	System Type: Unknown
+	Associativity: Unknown
+
+Handle 0x0007, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J19
+	Internal Connector Type: 9 Pin Dual Inline (pin 10 cut)
+	External Reference Designator: COM 1
+	External Connector Type: DB-9 male
+	Port Type: Serial Port 16550A Compatible
+
+Handle 0x0008, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J23
+	Internal Connector Type: 25 Pin Dual Inline (pin 26 cut)
+	External Reference Designator: Parallel
+	External Connector Type: DB-25 female
+	Port Type: Parallel Port ECP/EPP
+
+Handle 0x0009, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J11
+	Internal Connector Type: None
+	External Reference Designator: Keyboard
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes
+Port Connector Information
+	Internal Reference Designator: J12
+	Internal Connector Type: None
+	External Reference Designator: PS/2 Mouse
+	External Connector Type: Circular DIN-8 male
+	Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 9, 13 bytes
+System Slot Information
+	Designation: PCI Slot J11
+	Type: 32-bit PCI
+	Current Usage: Unknown
+	Length: Long
+	ID: 0
+	Characteristics:
+		5.0 V is provided
+		3.3 V is provided
+
+Handle 0x000C, DMI type 10, 6 bytes
+On Board Device Information
+	Type: Sound
+	Status: Disabled
+	Description: HD-Audio
+
+Handle 0x000D, DMI type 11, 5 bytes
+OEM Strings
+	String 1: This is the Intel Calistoga
+	String 2: Chipset CRB Platform
+
+Handle 0x000E, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: Jumper settings can be described here.
+
+Handle 0x000F, DMI type 15, 29 bytes
+System Event Log
+	Area Length: 16 bytes
+	Header Start Offset: 0x0000
+	Header Length: 16 bytes
+	Data Start Offset: 0x0010
+	Access Method: General-purpose non-volatile data functions
+	Access Address: 0x0000
+	Status: Valid, Full
+	Change Token: 0x000000FF
+	Header Format: Type 1
+	Supported Log Type Descriptors: 3
+	Descriptor 1: POST error
+	Data Format 1: POST results bitmap
+	Descriptor 2: Single-bit ECC memory error
+	Data Format 2: Multiple-event
+	Descriptor 3: Multi-bit ECC memory error
+	Data Format 3: Multiple-event
+
+Handle 0x0010, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 4 GB
+	Error Information Handle: Not Provided
+	Number Of Devices: 2
+
+Handle 0x0011, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0010
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M1
+	Bank Locator: Bank 0
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0012, DMI type 17, 27 bytes
+Memory Device
+	Array Handle: 0x0010
+	Error Information Handle: No Error
+	Total Width: 32 bits
+	Data Width: 32 bits
+	Size: 512 MB
+	Form Factor: SODIMM
+	Set: 1
+	Locator: M2
+	Bank Locator: Bank 1
+	Type: DDR2
+	Type Detail: Synchronous
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: Not Specified
+	Part Number: Not Specified
+
+Handle 0x0013, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 1 GB
+	Physical Array Handle: 0x0010
+	Partition Width: 0
+
+Handle 0x0014, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0001FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x0011
+	Memory Array Mapped Address Handle: 0x0013
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0015, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00020000000
+	Ending Address: 0x0003FFFFFFF
+	Range Size: 512 MB
+	Physical Device Handle: 0x0012
+	Memory Array Mapped Address Handle: 0x0013
+	Partition Row Position: Unknown
+	Interleave Position: Unknown
+	Interleaved Data Depth: Unknown
+
+Handle 0x0016, DMI type 23, 13 bytes
+System Reset
+	Status: Enabled
+	Watchdog Timer: Present
+	Boot Option: Do Not Reboot
+	Boot Option On Limit: Do Not Reboot
+	Reset Count: Unknown
+	Reset Limit: Unknown
+	Timer Interval: Unknown
+	Timeout: Unknown
+
+Handle 0x0017, DMI type 24, 5 bytes
+Hardware Security
+	Power-On Password Status: Disabled
+	Keyboard Password Status: Unknown
+	Administrator Password Status: Disabled
+	Front Panel Reset Status: Unknown
+
+Handle 0x0018, DMI type 25, 9 bytes
+	System Power Controls
+	Next Scheduled Power-on: 12-31 23:59:59
+
+Handle 0x0019, DMI type 26, 20 bytes
+Voltage Probe
+	Description: Voltage Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x001A, DMI type 27, 12 bytes
+Cooling Device
+	Temperature Probe Handle: 0x001B
+	Type: Fan
+	Status: OK
+	OEM-specific Information: 0x00000000
+
+Handle 0x001B, DMI type 28, 20 bytes
+Temperature Probe
+	Description: Temperature Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x001C, DMI type 29, 20 bytes
+Electrical Current Probe
+	Description: Electrical Current Probe
+	Location: Processor
+	Status: OK
+	Maximum Value: Unknown
+	Minimum Value: Unknown
+	Resolution: Unknown
+	Tolerance: Unknown
+	Accuracy: Unknown
+	OEM-specific Information: 0x00000000
+
+Handle 0x001D, DMI type 30, 6 bytes
+Out-of-band Remote Access
+	Manufacturer Name: Intel
+	Inbound Connection: Enabled
+	Outbound Connection: Disabled
+
+Handle 0x001E, DMI type 32, 20 bytes
+System Boot Information
+	Status: <OUT OF SPEC>
+
+Handle 0x001F, DMI type 129, 16 bytes
+OEM-specific Type
+	Header and Data:
+		81 10 1F 00 01 01 02 01 00 00 00 01 00 00 08 01
+	Strings:
+		Intel_ASF_001
+		Intel_ASF_001
+
+Handle 0x0020, DMI type 136, 8 bytes
+OEM-specific Type
+	Header and Data:
+		88 08 20 00 FF FF 00 00
+	Strings:
+		..!
+
+Handle 0x0021, DMI type 127, 4 bytes
+End Of Table
+
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+WEEM (n.)
+The tools with which a dentist can inflict the greatest
+pain. Formerly, which tool this was dependent upon the imagination and
+skill of the individual dentist, though now, with technological
+advances, weems can be bought specially.
+			--- Douglas Adams, The Meaning of Liff
