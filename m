@@ -1,38 +1,38 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode output kernel 2.6.22.9 - FSC AMILO PI 1536
-Date: Fri, 18 Jan 2008 23:24:35 -0500
-Message-ID: <200801182324.36055.lenb@kernel.org>
-References: <20071008092839.11866.qmail@webmail.gestionar.info>
+Subject: Re: Kernel 2.6.22.9 wanted dmidecode of my Acer Aspire 5102WLMi laptop, so here it is...
+Date: Fri, 18 Jan 2008 23:26:31 -0500
+Message-ID: <200801182326.31913.lenb@kernel.org>
+References: <470E0BD3.3050803@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42848 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:37596 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764147AbYASEYv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:24:51 -0500
-In-Reply-To: <20071008092839.11866.qmail@webmail.gestionar.info>
+	id S1763088AbYASE0o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:26:44 -0500
+In-Reply-To: <470E0BD3.3050803@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: vicente@torrellano.com
+To: Juho <angelusx@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Monday 08 October 2007 05:28, vicente@torrellano.com wrote:
+On Thursday 11 October 2007 07:41, Juho wrote:
 > System Information
-> =A0 =A0 =A0 =A0 Manufacturer: FUJITSU SIEMENS
-> =A0 =A0 =A0 =A0 Product Name: AMILO PI 1536
-> =A0 =A0 =A0 =A0 Version: Not Applicable
-> =A0 =A0 =A0 =A0 Serial Number: 53101F66
-> =A0 =A0 =A0 =A0 UUID: 0027EEF7-E862-0010-978A-FA4E0FC5D524
-> =A0 =A0 =A0 =A0 Wake-up Type: Power Switch
-> =A0 =A0 =A0 =A0 SKU Number: Not Specified
-> =A0 =A0 =A0 =A0 Family: Not Specified
+> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Acer
+> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: Aspire 5100
+> =A0=A0=A0=A0=A0=A0=A0=A0Version: V3.05A
+> =A0=A0=A0=A0=A0=A0=A0=A0Serial Number: LXABH05039632066BD1601
+> =A0=A0=A0=A0=A0=A0=A0=A0UUID: 36323361-3930-3335-6237-0016D41742AF
+> =A0=A0=A0=A0=A0=A0=A0=A0Wake-up Type: Power Switch
+> =A0=A0=A0=A0=A0=A0=A0=A0SKU Number: Not Specified
+> =A0=A0=A0=A0=A0=A0=A0=A0Family: Not Specified
 >=20
 > Handle 0x0002, DMI type 2, 8 bytes
 > Base Board Information
-> =A0 =A0 =A0 =A0 Manufacturer: FUJITSU SIEMENS
-> =A0 =A0 =A0 =A0 Product Name: AMILO PI 1536
+> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Acer
+> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: Navarro
 
 Thanks for the dmidecode output.
 
