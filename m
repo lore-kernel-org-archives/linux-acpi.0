@@ -1,67 +1,432 @@
-From: Theodore Tso <tytso@MIT.EDU>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Sat, 19 Jan 2008 09:17:27 -0500
-Message-ID: <20080119141727.GJ28387@mit.edu>
-References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801171504.26361.lenb@kernel.org> <20080117213135.GF5547@mit.edu> <200801190240.45718.lenb@kernel.org> <20080119120830.GA16308@khazad-dum.debian.net>
+From: "Artem Goncharov" <artem.goncharov@gmail.com>
+Subject: dmidecode for acer aspire 5052 laptop
+Date: Sat, 19 Jan 2008 16:58:46 +0200
+Message-ID: <d8d1b9d10801190658g2ef41ab8k7a61e258c03dc28d@mail.gmail.com>
+References: <d8d1b9d10801190430r106a5fa6w94cb5191061201d4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:35348 "EHLO
-	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752278AbYASOSw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jan 2008 09:18:52 -0500
+Received: from rv-out-0910.google.com ([209.85.198.187]:10290 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755359AbYASO6t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jan 2008 09:58:49 -0500
+Received: by rv-out-0910.google.com with SMTP id k20so1204154rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Jan 2008 06:58:46 -0800 (PST)
+In-Reply-To: <d8d1b9d10801190430r106a5fa6w94cb5191061201d4@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20080119120830.GA16308@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sat, Jan 19, 2008 at 10:08:30AM -0200, Henrique de Moraes Holschuh wrote:
-> 
-> Actually, that only depends on us.  If you drop support for people using
-> known-bad BIOS versions that give you greif, they have no choice but to go
-> away, or to upgrade.  And so far, I have never had anyone complain that they
-> had to update their thinkpad BIOS and just go away.
-> 
-> Of course, I am terribly nice about it when I ask someone to upgrade their
-> BIOS, but still...
-> 
-> On the thinkpad-specific case, I don't actually mind tracking down the
-> last-known-sane BIOS version for every thinkpad model and bitching like a
-> madman on thinkpad-acpi telling people to update because it is known buggy
-> and unsupported if their BIOS is too old.  We already sort of track every
-> important BIOS version of every model anyway in ThinkWiki...
+Hi. For my laptop using acpi_osi=Linux seems to be working better, but
+I'm not completely sure in that.
 
-More importantly, what worries me is exactly the issue which Len
-raised; what if OSI(Linux) enables some things that we desperately
-want, and at the same time, enables some things that we don't want?
-Maybe it's OK for now to have lots of model specific workarounds
-regarding whether we throw the Big Binary Switch of OSIL(Linux), but
-what if in the future that's not enough. 
 
-It may be hard to make vendors change designs mid-course, yes, but it
-may be even harder in the future, and even more of a disaster.  Maybe
-the answer is we don't use OSI(Linux) in the future, but we use a
-series of OS compatibility OSI switches.  Even then, we'll need to
-know when we should use OSI(Linux), and when we don't, which means
-we'll have to track BIOS versions.  I almost wonder if we're better
-not putting any model-specific versions at all, and then work really
-hard to influence the vendors, as opposed to a "half-way pregnant"
-approach where we whitelist individual models, but not BIOS
-versions....
+What I don't like is the following cut from /var/log/messages
 
-Tradeoffs either way!
+>Jan 19 14:19:09 blending kernel: PCI: MSI quirk detected. MSI deactivated.
+>Jan 19 14:19:09 blending kernel: assign_interrupt_mode Found MSI capability
+>Jan 19 14:19:10 blending kernel:last message repeated 3 times
+>Jan 19 14:19:09 blending kernel: pci_hotplug: PCI Hot Plug PCI Core
+version: 0.5
+>Jan 19 14:19:09 blending kernel: ACPI Exception
+(processor_core-0819): AE_NOT_FOUND, Processor Device is not present
+[20070126]
 
-> > vendors who care about Linux run this:
-> > 
-> > http://linuxfirmwarekit.org/
-> > 
-> > So I think if shout there, then it we'll be heard.
 
-Sure --- do we have the right language in linuxfirmwarekit.org to talk
-about issues such as Windows- and Linux- specific behaviours and how to
-handle OSI(<foo>) issues?
 
-							- Ted
+That is true in both cases (with and without acpi_osi=Linux option.
+
+
+However I'm attaching dmidecode for my laptop.
+
+
+
+P.S.
+>Jan 19 14:19:09 blending kernel: ACPI: System BIOS is requesting _OSI(Linux)
+
+
+
+# dmidecode 2.7
+SMBIOS 2.4 present.
+35 structures occupying 1106 bytes.
+Table at 0x000F1790.
+
+Handle 0x0000, DMI type 0, 24 bytes.
+BIOS Information
+    Vendor: Acer
+    Version: v1.3303
+    Release Date: 01/23/07
+    Address: 0xE5230
+    Runtime Size: 110032 bytes
+    ROM Size: 1024 kB
+    Characteristics:
+        ISA is supported
+        PCI is supported
+        PC Card (PCMCIA) is supported
+        PNP is supported
+        BIOS is upgradeable
+        BIOS shadowing is allowed
+        ESCD support is available
+        Boot from CD is supported
+        ACPI is supported
+        USB legacy is supported
+        BIOS boot specification is supported
+        Targeted content distribution is supported
+
+Handle 0x0001, DMI type 1, 27 bytes.
+System Information
+    Manufacturer: Acer, inc.
+    Product Name: Aspire 5050
+    Version: Not Applicable
+    Serial Number: LXAV40Y0867120E60B2502
+    UUID: C09465D5-4F87-D811-BCCB-001B240E64F7
+    Wake-up Type: Power Switch
+    SKU Number: Not Specified
+    Family: Not Specified
+
+Handle 0x0002, DMI type 2, 8 bytes.
+Base Board Information
+    Manufacturer: Acer, Inc.
+    Product Name: Prespa M
+    Version: Not Applicable
+    Serial Number: LXAV40Y0867120E60B2502
+
+Handle 0x0003, DMI type 3, 17 bytes.
+Chassis Information
+    Manufacturer: Acer, Inc.
+    Type: Other
+    Lock: Not Present
+    Version: N/A
+    Serial Number: None
+    Asset Tag: GTema
+    Boot-up State: Safe
+    Power Supply State: Safe
+    Thermal State: Safe
+    Security Status: None
+    OEM Information: 0x00001234
+
+Handle 0x0004, DMI type 4, 35 bytes.
+Processor Information
+    Socket Designation: Socket M2/S1G1
+    Type: Central Processor
+    Family: Opteron
+    Manufacturer: AMD
+    ID: C2 0F 04 00 FF FB 8B 07
+    Signature: Extended Family 0, Model C, Stepping 2
+    Flags:
+        FPU (Floating-point unit on-chip)
+        VME (Virtual mode extension)
+        DE (Debugging extension)
+        PSE (Page size extension)
+        TSC (Time stamp counter)
+        MSR (Model specific registers)
+        PAE (Physical address extension)
+        MCE (Machine check exception)
+        CX8 (CMPXCHG8 instruction supported)
+        APIC (On-chip APIC hardware supported)
+        SEP (Fast system call)
+        MTRR (Memory type range registers)
+        PGE (Page global enable)
+        MCA (Machine check architecture)
+        CMOV (Conditional move instruction supported)
+        PAT (Page attribute table)
+        PSE-36 (36-bit page size extension)
+        CLFSH (CLFLUSH instruction supported)
+        MMX (MMX technology supported)
+        FXSR (Fast floating-point save and restore)
+        SSE (Streaming SIMD extensions)
+        SSE2 (Streaming SIMD extensions 2)
+    Version: Engineering Sample
+    Voltage: 1.4 V
+    External Clock: 133 MHz
+    Max Speed: 2200 MHz
+    Current Speed: 2200 MHz
+    Status: Populated, Enabled
+    Upgrade: Other
+    L1 Cache Handle: Not Provided
+    L2 Cache Handle: 0x0005
+    L3 Cache Handle: Not Provided
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
+
+Handle 0x0005, DMI type 7, 19 bytes.
+Cache Information
+    Socket Designation: L2 Cache
+    Configuration: Enabled, Socketed, Level 2
+    Operational Mode: Write Back
+    Location: Internal
+    Installed Size: 512 KB
+    Maximum Size: 1024 KB
+    Supported SRAM Types:
+        Burst
+        Pipeline Burst
+    Installed SRAM Type: Synchronous
+    Speed: Unknown
+    Error Correction Type: Unknown
+    System Type: Unknown
+    Associativity: Unknown
+
+Handle 0x0006, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J28
+    Internal Connector Type: None
+    External Reference Designator: COM A
+    External Connector Type: DB-9 male
+    Port Type: Serial Port 16550A Compatible
+
+Handle 0x0007, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J28
+    Internal Connector Type: None
+    External Reference Designator: Parallel
+    External Connector Type: DB-25 female
+    Port Type: Parallel Port ECP/EPP
+
+Handle 0x0008, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J28
+    Internal Connector Type: None
+    External Reference Designator: Video
+    External Connector Type: DB-15 female
+    Port Type: Video Port
+
+Handle 0x0009, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J33
+    Internal Connector Type: None
+    External Reference Designator: Keyboard
+    External Connector Type: Circular DIN-8 male
+    Port Type: Keyboard Port
+
+Handle 0x000A, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J33
+    Internal Connector Type: None
+    External Reference Designator: PS/2 Mouse
+    External Connector Type: Circular DIN-8 male
+    Port Type: Keyboard Port
+
+Handle 0x000B, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J31
+    Internal Connector Type: None
+    External Reference Designator: USB 1
+    External Connector Type: Access Bus (USB)
+    Port Type: USB
+
+Handle 0x000C, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J32
+    Internal Connector Type: None
+    External Reference Designator: USB 2
+    External Connector Type: Access Bus (USB)
+    Port Type: USB
+
+Handle 0x000D, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J32
+    Internal Connector Type: None
+    External Reference Designator: USB 3
+    External Connector Type: Access Bus (USB)
+    Port Type: USB
+
+Handle 0x000E, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J31
+    Internal Connector Type: None
+    External Reference Designator: USB 4
+    External Connector Type: Access Bus (USB)
+    Port Type: USB
+
+Handle 0x000F, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J30
+    Internal Connector Type: None
+    External Reference Designator: Microphone In
+    External Connector Type: Mini Jack (headphones)
+    Port Type: Audio Port
+
+Handle 0x0010, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J30
+    Internal Connector Type: None
+    External Reference Designator: Line In
+    External Connector Type: Mini Jack (headphones)
+    Port Type: Audio Port
+
+Handle 0x0011, DMI type 8, 9 bytes.
+Port Connector Information
+    Internal Reference Designator: J30
+    Internal Connector Type: None
+    External Reference Designator: Speaker Out
+    External Connector Type: Mini Jack (headphones)
+    Port Type: Audio Port
+
+Handle 0x0012, DMI type 9, 13 bytes.
+System Slot Information
+    Designation: PCI1
+    Type: 32-bit PCI
+    Current Usage: Unknown
+    Length: Long
+    ID: 0
+    Characteristics:
+        5.0 V is provided
+        3.3 V is provided
+        PME signal is supported
+
+Handle 0x0013, DMI type 9, 13 bytes.
+System Slot Information
+    Designation: PCI2
+    Type: 32-bit PCI
+    Current Usage: Unknown
+    Length: Long
+    ID: 0
+    Characteristics:
+        5.0 V is provided
+        3.3 V is provided
+        PME signal is supported
+
+Handle 0x0014, DMI type 9, 13 bytes.
+System Slot Information
+    Designation: PCI3
+    Type: 32-bit PCI
+    Current Usage: Unknown
+    Length: Long
+    ID: 0
+    Characteristics:
+        5.0 V is provided
+        3.3 V is provided
+        PME signal is supported
+
+Handle 0x0015, DMI type 10, 6 bytes.
+On Board Device Information
+    Type: Video
+    Status: Disabled
+    Description: ATI RS400M
+
+Handle 0x0016, DMI type 10, 6 bytes.
+On Board Device Information
+    Type: Sound
+    Status: Disabled
+    Description: ESS 1869
+
+Handle 0x0017, DMI type 11, 5 bytes.
+OEM Strings
+    String 1: AMD New Processor Technology
+    String 2: www.amd.com
+    String 3: Have a nice day :)
+
+Handle 0x0018, DMI type 12, 5 bytes.
+System Configuration Options
+    Option 1: J13 1-2 Normal Operation, 2-3 Clear CMOS
+
+Handle 0x0019, DMI type 13, 22 bytes.
+BIOS Language Information
+    Installable Languages: 1
+        enUS
+    Currently Installed Language: enUS
+
+Handle 0x001A, DMI type 15, 29 bytes.
+System Event Log
+    Area Length: 16 bytes
+    Header Start Offset: 0x0000
+    Header Length: 16 bytes
+    Data Start Offset: 0x0010
+    Access Method: General-purpose non-volatile data functions
+    Access Address: 0x0000
+    Status: Valid, Not Full
+    Change Token: 0x00000003
+    Header Format: Type 1
+    Supported Log Type Descriptors: 3
+    Descriptor 1: POST error
+    Data Format 1: POST results bitmap
+    Descriptor 2: Single-bit ECC memory error
+    Data Format 2: Multiple-event
+    Descriptor 3: Multi-bit ECC memory error
+    Data Format 3: Multiple-event
+
+Handle 0x001B, DMI type 16, 15 bytes.
+Physical Memory Array
+    Location: System Board Or Motherboard
+    Use: System Memory
+    Error Correction Type: None
+    Maximum Capacity: 4 GB
+    Error Information Handle: Not Provided
+    Number Of Devices: 2
+
+Handle 0x001C, DMI type 17, 27 bytes.
+Memory Device
+    Array Handle: 0x001B
+    Error Information Handle: No Error
+    Total Width: 128 bits
+    Data Width: 64 bits
+    Size: 512 MB
+    Form Factor: DIMM
+    Set: 1
+    Locator: S1
+    Bank Locator: DIMM1
+    Type: DDR2
+    Type Detail: Synchronous
+    Speed: Unknown
+    Manufacturer: Not Specified
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
+
+Handle 0x001D, DMI type 17, 27 bytes.
+Memory Device
+    Array Handle: 0x001B
+    Error Information Handle: No Error
+    Total Width: Unknown
+    Data Width: Unknown
+    Size: No Module Installed
+    Form Factor: DIMM
+    Set: 2
+    Locator: S2
+    Bank Locator: DIMM2
+    Type: DDR2
+    Type Detail: Unknown
+    Speed: Unknown
+    Manufacturer: Not Specified
+    Serial Number: Not Specified
+    Asset Tag: Not Specified
+    Part Number: Not Specified
+
+Handle 0x001E, DMI type 18, 23 bytes.
+32-bit Memory Error Information
+    Type: OK
+    Granularity: Unknown
+    Operation: Unknown
+    Vendor Syndrome: Unknown
+    Memory Array Address: Unknown
+    Device Address: Unknown
+    Resolution: Unknown
+
+Handle 0x001F, DMI type 19, 15 bytes.
+Memory Array Mapped Address
+    Starting Address: 0x00000000000
+    Ending Address: 0x0001FFFFFFF
+    Range Size: 512 MB
+    Physical Array Handle: 0x001B
+    Partition Width: 0
+
+Handle 0x0020, DMI type 20, 19 bytes.
+Memory Device Mapped Address
+    Starting Address: 0x00000000000
+    Ending Address: 0x0001FFFFFFF
+    Range Size: 512 MB
+    Physical Device Handle: 0x001C
+    Memory Array Mapped Address Handle: 0x001F
+    Partition Row Position: 2
+    Interleave Position: 1
+    Interleaved Data Depth: 6
+
+Handle 0x0021, DMI type 32, 20 bytes.
+System Boot Information
+    Status: <OUT OF SPEC>
+
+Handle 0x0022, DMI type 127, 4 bytes.
+End Of Table
