@@ -1,35 +1,200 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Sat, 19 Jan 2008 15:43:28 +0000
-Message-ID: <20080119154328.GA11024@srcf.ucam.org>
-References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801171504.26361.lenb@kernel.org> <20080117213135.GF5547@mit.edu> <200801190240.45718.lenb@kernel.org> <20080119120830.GA16308@khazad-dum.debian.net> <20080119141727.GJ28387@mit.edu> <20080119153304.GA27060@khazad-dum.debian.net>
+From: "Jaakan Shorter" <jaakanshorter@gmail.com>
+Subject: Re: dmidecode from Dell Vostro 1000
+Date: Sat, 19 Jan 2008 10:45:42 -0500
+Message-ID: <3a082f0c0801190745k34ad76ddi83417ad56b08f0ee@mail.gmail.com>
+References: <3a082f0c0711201915p3f10ec66mc6d8f024da8f363d@mail.gmail.com>
+	 <200801181706.18640.lenb@kernel.org>
+	 <3a082f0c0801181608h68fa3bdtca82d6ccc5391a53@mail.gmail.com>
+	 <200801190138.53347.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:47705 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762017AbYASPno (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jan 2008 10:43:44 -0500
+Received: from py-out-1112.google.com ([64.233.166.176]:63800 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756733AbYASPpo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jan 2008 10:45:44 -0500
+Received: by py-out-1112.google.com with SMTP id u52so2026854pyb.10
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Jan 2008 07:45:43 -0800 (PST)
+In-Reply-To: <200801190138.53347.lenb@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080119153304.GA27060@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Theodore Tso <tytso@MIT.EDU>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, Jan 19, 2008 at 01:33:04PM -0200, Henrique de Moraes Holschuh wrote:
+I added acpi_osi=Linux to 2.6.24 and didn't see a change should I also
+try acpi_osi=!Linux on 2.6.24
 
-> Yes.  This is no easy problem asking for a quick hack as a solution.  It is
-> not impossible to solve, but it will definately require more than hacks on
-> our side to get it done properly.
+jaakan@jms1000:~$ cat /var/log/dmesg | grep 0x37E80F06
+jaakan@jms1000:~$ cat /var/log/dmesg | grep BIOS
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000]  BIOS-e820: 0000000000000000 - 000000000009dc00 (usable)
+[    0.000000]  BIOS-e820: 000000000009dc00 - 00000000000a0000 (reserved)
+[    0.000000]  BIOS-e820: 00000000000ce000 - 0000000000100000 (reserved)
+[    0.000000]  BIOS-e820: 0000000000100000 - 0000000037e70000 (usable)
+[    0.000000]  BIOS-e820: 0000000037e70000 - 0000000037e80000 (ACPI data)
+[    0.000000]  BIOS-e820: 0000000037e80000 - 0000000037f00000 (ACPI NVS)
+[    0.000000]  BIOS-e820: 0000000037f00000 - 0000000040000000 (reserved)
+[    0.000000]  BIOS-e820: 00000000e0000000 - 00000000f0000000 (reserved)
+[    0.000000]  BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
+[    0.000000]  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+[    0.000000]  BIOS-e820: 00000000fff80000 - 0000000100000000 (reserved)
+[   15.634917] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+[   15.826827] ACPI: System BIOS is requesting _OSI(Linux)
+[   18.539020]     ide0: BM-DMA at 0x8420-0x8427, BIOS settings:
+hda:DMA, hdb:pio
+jaakan@jms1000:~$
 
-The only way to get it done properly is to ensure that we're compatible 
-with Windows, and to get vendors to tell us when we're not. Offering 
-them any mechanism that allows them to special-case Linux will just lead 
-to them doing so and ignoring the problem, which will probably then trip 
-up other systems that don't special-case Linux. Let's not go down this 
-path. The fact that we're even having to have this conversation should 
-indicate that it's not a good idea.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+On Jan 19, 2008 1:38 AM, Len Brown <lenb@kernel.org> wrote:
+> On Friday 18 January 2008 19:08, Jaakan Shorter wrote:
+> > I didn't see any kind of changes with acpi_osi=!Linux on 2.6.22
+> >
+> >
+> > here is the current output from uname -a, I'm  now using the current Ubuntu beta
+> > Linux jms1000 2.6.24-4-generic #1 SMP Mon Jan 14 18:19:11 UTC 2008
+> > x86_64 GNU/Linux
+> >
+> > I'll try adding acpi_osi=Linux in a few and look for any changes.
+>
+> Like others, Dell Vostro 1000 sets LINX, but never checks it.
+>
+> TPOS and OSTB are also affected, but in the ASL they're referened
+> only with comparisons > 4, (NT or greater) so OSI(Linux) shouldn't
+> have any effect there either.
+>
+> That leaves the return value of OSTP(), which I see invoked
+> in several places, but the return value is never used.
+>
+> So I'll add this box to the OSI(Linux) NOP list.
+>
+> BTW.
+>
+> Where does 0x37E80F06 show up in the e820 map in dmesg?
+> I'm wondering why they put OSTY (TPOS) in a special place.
+>
+> thanks,
+> -Len
+>
+>
+>     Scope (\_SB)
+>     {
+>         Name (LINX, 0x00)
+>         Name (OSTB, Ones)
+>         OperationRegion (OSTY, SystemMemory, 0x37E80F06, 0x00000001)
+>         Field (OSTY, AnyAcc, NoLock, Preserve)
+>         {
+>             TPOS,   8
+>         }
+>
+>         Method (OSTP, 0, NotSerialized)
+>         {
+>             If (LEqual (^OSTB, Ones))
+>             {
+>                 If (CondRefOf (\_OSI, Local0))
+>                 {
+>                     Store (0x00, ^OSTB)
+>                     Store (0x00, ^TPOS)
+>                     If (\_OSI ("Windows 2001"))
+>                     {
+>                         Store (0x08, ^OSTB)
+>                         Store (0x08, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Windows 2001.1"))
+>                     {
+>                         Store (0x20, ^OSTB)
+>                         Store (0x20, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Windows 2001 SP1"))
+>                     {
+>                         Store (0x10, ^OSTB)
+>                         Store (0x10, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Windows 2001 SP2"))
+>                     {
+>                         Store (0x11, ^OSTB)
+>                         Store (0x11, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Windows 2001 SP3"))
+>                     {
+>                         Store (0x12, ^OSTB)
+>                         Store (0x12, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Windows 2006"))
+>                     {
+>                         Store (0x40, ^OSTB)
+>                         Store (0x40, ^TPOS)
+>                     }
+>
+>                     If (\_OSI ("Linux"))
+>                     {
+>                         Store (0x01, LINX)
+>                         Store (0x80, ^OSTB)
+>                         Store (0x80, ^TPOS)
+>                     }
+>                 }
+>                 Else
+>                 {
+>                     If (CondRefOf (\_OS, Local0))
+>                     {
+>                         If (^SEQL (\_OS, "Microsoft Windows"))
+>                         {
+>                             Store (0x01, ^OSTB)
+>                             Store (0x01, ^TPOS)
+>                         }
+>                         Else
+>                         {
+>                             If (^SEQL (\_OS, "Microsoft WindowsME: Millennium Edition"))
+>                             {
+>                                 Store (0x02, ^OSTB)
+>                                 Store (0x02, ^TPOS)
+>                             }
+>                             Else
+>                             {
+>                                 If (^SEQL (\_OS, "Microsoft Windows NT"))
+>                                 {
+>                                     Store (0x04, ^OSTB)
+>                                     Store (0x04, ^TPOS)
+>                                 }
+>                                 Else
+>                                 {
+>                                     Store (0x00, ^OSTB)
+>                                     Store (0x00, ^TPOS)
+>                                 }
+>                             }
+>                         }
+>                     }
+>                     Else
+>                     {
+>                         Store (0x00, ^OSTB)
+>                         Store (0x00, ^TPOS)
+>                     }
+>             Return (^OSTB)
+>         }
+>
+> ...
+>         Device (PCI0)
+>         {
+>             Name (_ADR, 0x00)
+>             Name (_UID, 0x01)
+>             Name (_BBN, 0x00)
+>             Method (_INI, 0, NotSerialized)
+>             {
+>                 \_SB.OSTP ()
+>             }
+>
+> ...
+>         Method (OSHT, 0, NotSerialized)
+>         {
+>             \_SB.OSTP ()
+>             Store (0x48, \_SB.PCI0.LPC0.BCMD)
+>             Store (Zero, \_SB.PCI0.LPC0.SMIC)
+>         }
+> ...
+>
