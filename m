@@ -1,60 +1,66 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode - Presario F500
-Date: Fri, 18 Jan 2008 22:34:04 -0500
-Message-ID: <200801182234.04941.lenb@kernel.org>
-References: <213d94420708272103g50320df2l822486d904851d2a@mail.gmail.com>
+Subject: Re: dmidecode - Apple MacPro
+Date: Fri, 18 Jan 2008 22:36:40 -0500
+Message-ID: <200801182236.40494.lenb@kernel.org>
+References: <200708291349.46987.rene@exactcode.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37489 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:58566 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756263AbYASDeT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jan 2008 22:34:19 -0500
-In-Reply-To: <213d94420708272103g50320df2l822486d904851d2a@mail.gmail.com>
+	id S1762076AbYASDhE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 22:37:04 -0500
+In-Reply-To: <200708291349.46987.rene@exactcode.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Gomulka <r.gom1977@gmail.com>
+To: =?iso-8859-1?q?Ren=E9_Rebe?= <rene@exactcode.de>
 Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 28 August 2007 00:03, Robert Gomulka wrote:
-> Hello,
-> my name is Robert Gomulka. I have written to you before, but from
-> different address (carramba@epf.pl) for which servers have some
-> problems. This one should be better, I hope.
-> I was playing around with kernel switches to get my kernel doing its best.
-> Started from acpi=off, then noapic irqpoll. Now, during this writing,
-> I am trying "pci=assign-busses". So far it works, so I will keep
-> testing this configuration.
-> However, to my surprise, when I switched from "noapic irqpoll" to
-> "pci=assign-busses" Linux refused to start, demanding acpi_osi=!Linux
-> and asking for sending dmidecode to you. I added the switch and it
-> went fine. So hereby you can find dmidecode output in the attachment.
-> By the way, I have searched internet a lot for some hints what would
-> be the best way to cope with Linux on similar laptops. There were some
-> hints, but in my opinion they shouldn't work. People claim they
-> worked, but they are for different architecture or don't exist.
-> For example: noirqdebug (only ia-32), assign-busses and irq-route (the
-> latter I'm not sure, but both should take form of pci=... not the
-> options alone, however they say that options worked in exactly that
-> way).
+On Wednesday 29 August 2007 07:49, Ren=E9 Rebe wrote:
+> Hi all,
+>=20
+> I just post because my dmesg says so:
+>=20
+> ACPI: System BIOS is requesting _OSI(Linux)
+> ACPI: Please test with "acpi_osi=3D!Linux"
+> Please send dmidecode to linux-acpi@vger.kernel.org
+>=20
+> Handle 0x003A, DMI type 0, 24 bytes
+> BIOS Information
+>         Vendor: Apple Computer, Inc.
+>         Version:     MP21.88Z.007F.B02.0703191612
+>         Release Date: 03/19/07
+>=20
+> Handle 0x003B, DMI type 1, 27 bytes
+> System Information
+>         Manufacturer: Apple Computer, Inc.
+>         Product Name: MacPro2,1
+>         Version: 1.0
+>=20
+> ...
+>=20
+> If you need more let me know. I mostly looked thru the dmesg
+> because the box shuts down sometimes, randomly. Maybe too hot?
+> But I still investigate.
+>=20
+> However, the box (2 Quad-Core CPUs) even awakes from echo mem >
+> /sys/power/state (without graphic though, maybe s2ram posting would f=
+ix
+> that - but I do not really care about the graphic as it is indended t=
+o be used
+> as server anyway).
 
-Hello Robert
+Thanks for the dmidecode output.
 
-If Linux doesn't boot "out of the box" on your system
-w/o any boot parameter workarounds, it is a Linux bug.
-So if this is still true, please file it here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+Do you notice any functional difference when booting with
 
-It sounds like you are seeing a big difference between
-"acpi_osi=Linux"        (default for 2.6.22 and earlier)
+"acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
 vs.
-"acpi_osi=!Linux"       (default for 2.6.23 and later)
+"acpi_osi=3D!Linux"       (default for 2.6.23 and later)
 
-Is this still true?
-please send me the output from acpidump.
+Also, please send me the output from acpidump.
 
 thanks,
 -Len
@@ -62,18 +68,8 @@ thanks,
 ps
 If you don't have acpidump, you can get it from pmtools here:
 http://www.lesswatts.org/projects/acpi/utilities.php
-
-System Information
-        Manufacturer: Hewlett-Packard
-        Product Name: Presario F500 (GF596UA#ABA)       
-        Version: Rev 1
-        Serial Number: CNF72342QC
-        UUID: 434E4637-3233-3432-5143-001B244CFD1C
-        Wake-up Type: Power Switch
-        SKU Number: GF596UA#ABA
-        Family: 103C_5335KV
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-        Manufacturer: Quanta
-        Product Name: 30D3
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
