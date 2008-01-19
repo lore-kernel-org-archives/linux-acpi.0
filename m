@@ -1,40 +1,42 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Kernel 2.6.22.9 wanted dmidecode of my Acer Aspire 5102WLMi laptop, so here it is...
-Date: Fri, 18 Jan 2008 23:26:31 -0500
-Message-ID: <200801182326.31913.lenb@kernel.org>
-References: <470E0BD3.3050803@gmail.com>
+Subject: Re: Fwd: FSC Esprimo Mobile V5505 - dmidecode
+Date: Fri, 18 Jan 2008 23:29:49 -0500
+Message-ID: <200801182329.49567.lenb@kernel.org>
+References: <200710122357.46851.dl9pf@gmx.de> <200710131013.55290.dl9pf@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37596 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:37738 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763088AbYASE0o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:26:44 -0500
-In-Reply-To: <470E0BD3.3050803@gmail.com>
+	id S1758400AbYASEaE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 23:30:04 -0500
+In-Reply-To: <200710131013.55290.dl9pf@gmx.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Juho <angelusx@gmail.com>
+To: Jan-Simon =?utf-8?q?M=C3=B6ller?= <dl9pf@gmx.de>
 Cc: linux-acpi@vger.kernel.org
 
-On Thursday 11 October 2007 07:41, Juho wrote:
+On Saturday 13 October 2007 04:13, Jan-Simon M=C3=B6ller wrote:
 > System Information
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Acer
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: Aspire 5100
-> =A0=A0=A0=A0=A0=A0=A0=A0Version: V3.05A
-> =A0=A0=A0=A0=A0=A0=A0=A0Serial Number: LXABH05039632066BD1601
-> =A0=A0=A0=A0=A0=A0=A0=A0UUID: 36323361-3930-3335-6237-0016D41742AF
-> =A0=A0=A0=A0=A0=A0=A0=A0Wake-up Type: Power Switch
-> =A0=A0=A0=A0=A0=A0=A0=A0SKU Number: Not Specified
-> =A0=A0=A0=A0=A0=A0=A0=A0Family: Not Specified
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: FUJITSU SIEMENS
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: ESPRIMO Mobile V5505
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: 20
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 SKU Number: Not Specified
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Family: Not Specified
 >=20
 > Handle 0x0002, DMI type 2, 8 bytes
 > Base Board Information
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Acer
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: Navarro
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: FUJITSU SIEMENS
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: ESPRIMO Mobile V5505
 
+Jan-Simon,
 Thanks for the dmidecode output.
+
+Did the console dmesg ask you to send it because
+of OSI(Linux)?
 
 Do you notice any functional difference when booting with
 
