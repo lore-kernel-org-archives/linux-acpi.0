@@ -1,45 +1,32 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Please send dmidecode to linux-acpi@vger.kernel.org - Sony VGN-SZ38GP_C
-Date: Fri, 18 Jan 2008 22:59:03 -0500
-Message-ID: <200801182259.03692.lenb@kernel.org>
-References: <87ir6eyjt0.fsf@c0nc3pt.com>
+Subject: Re: dmidecode of HP Pavilion tx 1000
+Date: Fri, 18 Jan 2008 23:07:47 -0500
+Message-ID: <200801182307.47527.lenb@kernel.org>
+References: <1190315351.3790.8.camel@lebioda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54169 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:46463 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758284AbYASD7V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jan 2008 22:59:21 -0500
-In-Reply-To: <87ir6eyjt0.fsf@c0nc3pt.com>
+	id S1760572AbYASEID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jan 2008 23:08:03 -0500
+In-Reply-To: <1190315351.3790.8.camel@lebioda>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alessandro Di Marco <dmr@c0nc3pt.com>
+To: Jakub =?utf-8?q?Ambro=C5=BCewicz?= <jakub.ambrozewicz@googlemail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Thursday 13 September 2007 05:51, Alessandro Di Marco wrote:
-> System Information
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Sony Corporation
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: VGN-SZ38GP_C
-> =A0=A0=A0=A0=A0=A0=A0=A0Version: J0020Y9W
-> =A0=A0=A0=A0=A0=A0=A0=A0Serial Number: 28247270-7003707
-> =A0=A0=A0=A0=A0=A0=A0=A0UUID: CEBBB8E0-5B3C-11D9-8796-0013A98B94A4
-> =A0=A0=A0=A0=A0=A0=A0=A0Wake-up Type: Power Switch
->=20
-> Handle 0x0002, DMI type 2, 10 bytes
-> Base Board Information
-> =A0=A0=A0=A0=A0=A0=A0=A0Manufacturer: Sony Corporation
-> =A0=A0=A0=A0=A0=A0=A0=A0Product Name: VAIO =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0
 
 Thanks for the dmidecode output.
 
 Do you notice any functional difference when booting with
 
-"acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
+"acpi_osi=Linux"        (default for 2.6.22 and earlier)
 vs.
-"acpi_osi=3D!Linux"       (default for 2.6.23 and later)
+"acpi_osi=!Linux"       (default for 2.6.23 and later)
 
 Also, please send me the output from acpidump.
 
@@ -49,8 +36,18 @@ thanks,
 ps
 If you don't have acpidump, you can get it from pmtools here:
 http://www.lesswatts.org/projects/acpi/utilities.php
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+System Information
+	Manufacturer: Hewlett-Packard
+	Product Name: HP Pavilion tx 1000 (RY588EA#ABU) 
+	Version: Rev 1
+	Serial Number: CNF7080LY2
+	UUID: 434E4637-3038-304C-5932-001636E9EB04
+	Wake-up Type: Power Switch
+	SKU Number:               
+	Family: 103C_5335KV
+
+Handle 0x0002, DMI type 2, 8 bytes
+Base Board Information
+	Manufacturer: Quanta
+	Product Name: 30BF
