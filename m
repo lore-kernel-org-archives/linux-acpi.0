@@ -1,105 +1,61 @@
-From: =?ISO-8859-1?Q?Ren=E9_Rebe?= <rene@exactcode.de>
-Subject: Re: dmidecode - Apple MacPro
-Date: Sat, 19 Jan 2008 11:16:19 +0100
-Message-ID: <F6DBF27A-F208-42A1-BE69-F6CD86AE29EE@exactcode.de>
-References: <200708291349.46987.rene@exactcode.de> <200801182236.40494.lenb@kernel.org>
-Mime-Version: 1.0 (Apple Message framework v915)
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed	delsp=yes
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
+Date: Sat, 19 Jan 2008 10:08:30 -0200
+Message-ID: <20080119120830.GA16308@khazad-dum.debian.net>
+References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801171504.26361.lenb@kernel.org> <20080117213135.GF5547@mit.edu> <200801190240.45718.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx02.qsc.de ([213.148.130.14]:55864 "EHLO mx02.qsc.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201AbYASKrH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Jan 2008 05:47:07 -0500
-In-Reply-To: <200801182236.40494.lenb@kernel.org>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:60753 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751551AbYASMIh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Jan 2008 07:08:37 -0500
+Content-Disposition: inline
+In-Reply-To: <200801190240.45718.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: Theodore Tso <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-Hi Len,
+On Sat, 19 Jan 2008, Len Brown wrote:
+> and if they did, nobody updates their bios anyway.
 
-now that was some time between the mails :-)
+Actually, that only depends on us.  If you drop support for people using
+known-bad BIOS versions that give you greif, they have no choice but to go
+away, or to upgrade.  And so far, I have never had anyone complain that they
+had to update their thinkpad BIOS and just go away.
 
-Unfortunately the 8-core box is sort of running in production
-and I can not randomly boot kernels.
+Of course, I am terribly nice about it when I ask someone to upgrade their
+BIOS, but still...
 
-Passing acpi_os=3Dwhatever did not really changed anything
-back in the days when I tried that. Actually the box is running
-quite fine (normal server load, no suspend or so) though currently
-an older 2.6.18+openvz kernel as that was the only openvz patch-
-set that was stable, all the other openvz patchsets locked up sooner
-than later ...
+On the thinkpad-specific case, I don't actually mind tracking down the
+last-known-sane BIOS version for every thinkpad model and bitching like a
+madman on thinkpad-acpi telling people to update because it is known buggy
+and unsupported if their BIOS is too old.  We already sort of track every
+important BIOS version of every model anyway in ThinkWiki...
 
-If you are still interested in the acpidump I can hunting for it.
+I can easily see the T61 and X61 as prime candidates for a "upgrade the BIOS
+before reporting any bugs" printk.
 
-Yours,
+> > Perhaps if there was a well documented, "this is what we want" from
+> > the Linux community, which can then get communicated to Lenovo, HP,
+> > Dell, etc.?  This document could include a request that Laptop vendors
+> > document how various things work when they do vendor-specific things,
+> > and also documenting what Linux is doing today because we believe it's
+> > what is the Windows-compatible behaviour.
+> 
+> vendors who care about Linux run this:
+> 
+> http://linuxfirmwarekit.org/
+> 
+> So I think if shout there, then it we'll be heard.
 
-On 19.01.2008, at 04:36, Len Brown wrote:
+Indeed.  But are we allowed to drop support on any BIOS that fails those
+checks as soon as there is a new version of that BIOS that doesn't?
 
-> On Wednesday 29 August 2007 07:49, Ren=E9 Rebe wrote:
->> Hi all,
->>
->> I just post because my dmesg says so:
->>
->> ACPI: System BIOS is requesting _OSI(Linux)
->> ACPI: Please test with "acpi_osi=3D!Linux"
->> Please send dmidecode to linux-acpi@vger.kernel.org
->>
->> Handle 0x003A, DMI type 0, 24 bytes
->> BIOS Information
->>        Vendor: Apple Computer, Inc.
->>        Version:     MP21.88Z.007F.B02.0703191612
->>        Release Date: 03/19/07
->>
->> Handle 0x003B, DMI type 1, 27 bytes
->> System Information
->>        Manufacturer: Apple Computer, Inc.
->>        Product Name: MacPro2,1
->>        Version: 1.0
->>
->> ...
->>
->> If you need more let me know. I mostly looked thru the dmesg
->> because the box shuts down sometimes, randomly. Maybe too hot?
->> But I still investigate.
->>
->> However, the box (2 Quad-Core CPUs) even awakes from echo mem >
->> /sys/power/state (without graphic though, maybe s2ram posting would =
-=20
->> fix
->> that - but I do not really care about the graphic as it is indended =
-=20
->> to be used
->> as server anyway).
->
-> Thanks for the dmidecode output.
->
-> Do you notice any functional difference when booting with
->
-> "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
-> vs.
-> "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
->
-> Also, please send me the output from acpidump.
->
-> thanks,
-> -Len
->
-> ps
-> If you don't have acpidump, you can get it from pmtools here:
-> http://www.lesswatts.org/projects/acpi/utilities.php
-
---=20
-   Ren=E9 Rebe - ExactCODE GmbH - Europe, Germany, Berlin
-   Gesch=E4ftsf=FChrer: Susanne Klaus, Ren=E9 Rebe
-   Sitz: Berlin, Amtsgericht Charlottenburg HRB 105 123 B
-   USt-IdNr.: DE251602478
-   http://exactcode.de | http://t2-project.org | http://rene.rebe.name
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
