@@ -1,59 +1,47 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 6/5] ACPI: DMI blacklist for OSI(Linux)
-Date: Sat, 19 Jan 2008 23:18:56 -0500
-Message-ID: <200801192318.56319.lenb@kernel.org>
-References: <1200565490-29619-1-git-send-email-lenb@kernel.org> <200801190250.28250.lenb@kernel.org> <p73abn29qmj.fsf@bingen.suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Allocate pnp resources dynamically via krealloc
+Date: Sun, 20 Jan 2008 12:04:26 +0100
+Message-ID: <1200827066.3713.4.camel@queen>
+References: <1200772810.3708.42.camel@queen>
+	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49093 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752487AbYATETO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Jan 2008 23:19:14 -0500
-In-Reply-To: <p73abn29qmj.fsf@bingen.suse.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753449AbYATLEl@vger.kernel.org>
+In-Reply-To: <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Rene Herman <rene.herman@keyaccess.nl>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-acpi@vger.kernel.org
 
-On Saturday 19 January 2008 03:16, Andi Kleen wrote:
-> Len Brown <lenb@kernel.org> writes:
-> > --- a/drivers/acpi/blacklist.c
-> > +++ b/drivers/acpi/blacklist.c
-> > @@ -1,6 +1,8 @@
-> >  /*
-> >   *  blacklist.c
-> >   *
-> > + *  X86 specific ACPI blacklists.
-> > + *
-> >   *  Check to see if the given machine has a known bad ACPI BIOS
-> >   *  or if the BIOS is too old.
-> >   *
-> > @@ -165,3 +167,578 @@ int __init acpi_blacklisted(void)
-> >  
-> >  	return blacklisted;
-> >  }
-> > +#ifdef CONFIG_DMI
+
+On Sun, 2008-01-20 at 02:23 +0200, Pekka Enberg wrote:
+> Hi Thomas,
 > 
-> IA64 sets CONFIG_DMI too. So it won't be x86 specific as written.
-> Probably shoud check for CONFIG_X86 too.
-
-drivers/acpi/Makefile causes blacklist.c to be X86 specific.
-
-obj-$(CONFIG_X86)               += blacklist.o
-
-that is what I wanted (and IA64 can add their own blacklist if
-they need one).  but if IA64 defines CONFIG_DMI,
-then I just broke their build b/c acpi_osl_dmi_table will be undefined...
-
-> > +extern void dmi_osi_linux(int enable, const struct dmi_system_id *d);
+> On Jan 19, 2008 10:00 PM, Thomas Renninger <trenn@suse.de> wrote:
+> > +static int pnp_alloc_port(struct pnp_resource_table *res)
+> > +{
 > 
-> That should be in some include, shouldn't it?
+> [snip]
+> 
+> > +       res->port_resource = krealloc(res->port_resource,
+> > +             (sizeof(struct resource) * res->allocated_ports)
+> > +             + (sizeof(struct resource) * PNP_ALLOC_PORT), GFP_KERNEL);
+> > +
+> > +       if (!res->port_resource)
+> > +               return -ENOMEM;
+> 
+> When krealloc() returns NULL, there wasn't enough memory to fit the
+> new size but the original memory region remains unchanged. Therefore
+> you must not unconditionally overwrite the res->port_resource with the
+> return value of krealloc(); otherwise you might leak memory.
+> 
+Thanks.
+While looking at this I found something else..., I think I sent an old
+version.
 
-yes.
+Please hold off, I will double check and resend soon.
 
-thanks,
--Len
+   Thomas
+
