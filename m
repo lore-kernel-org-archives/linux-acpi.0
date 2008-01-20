@@ -1,93 +1,52 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode-HP-Pavilion-dv9560eg
-Date: Sun, 20 Jan 2008 14:22:40 -0500
-Message-ID: <200801201422.40485.lenb@kernel.org>
-References: <1191819601.6239.0.camel@Pavilion.famklein.net> <200801182323.27714.lenb@kernel.org> <1200734029.3907.6.camel@Pavilion.famklein.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: dmidecode from Dell Vostro 1000
+Date: Sun, 20 Jan 2008 17:25:10 -0200
+Message-ID: <20080120192510.GD19295@khazad-dum.debian.net>
+References: <3a082f0c0711201915p3f10ec66mc6d8f024da8f363d@mail.gmail.com> <200801190138.53347.lenb@kernel.org> <3a082f0c0801190745k34ad76ddi83417ad56b08f0ee@mail.gmail.com> <200801201352.43845.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45969 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754716AbYATTWz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Jan 2008 14:22:55 -0500
-In-Reply-To: <1200734029.3907.6.camel@Pavilion.famklein.net>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:43927 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754972AbYATTZO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2008 14:25:14 -0500
 Content-Disposition: inline
+In-Reply-To: <200801201352.43845.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans-Joachim Klein <klein.hans@gmx.net>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jaakan Shorter <jaakanshorter@gmail.com>, linux-acpi@vger.kernel.org
 
-On Saturday 19 January 2008 04:13, Hans-Joachim Klein wrote:
+On Sun, 20 Jan 2008, Len Brown wrote:
+> > [    0.000000] BIOS-provided physical RAM map:
+> > [    0.000000]  BIOS-e820: 0000000000000000 - 000000000009dc00 (usable)
+> > [    0.000000]  BIOS-e820: 000000000009dc00 - 00000000000a0000 (reserved)
+> > [    0.000000]  BIOS-e820: 00000000000ce000 - 0000000000100000 (reserved)
+> > [    0.000000]  BIOS-e820: 0000000000100000 - 0000000037e70000 (usable)
+> > [    0.000000]  BIOS-e820: 0000000037e70000 - 0000000037e80000 (ACPI data)
 > 
-> Am Freitag, den 18.01.2008, 23:23 -0500 schrieb Len Brown:
-> > On Monday 08 October 2007 01:00, Hans-Joachim Klein wrote:
-> > > System Information
-> > >         Manufacturer: Hewlett-Packard
-> > >         Product Name: HP Pavilion dv9500 Notebook PC    
-> > >         Version: Rev 1
-> > >         Serial Number: CNF7301PB5
-> > >         UUID: 434E4637-3330-3150-4235-001B246D0EFF
-> > >         Wake-up Type: Power Switch
-> > >         SKU Number: GP650EA#ABD 
-> > >         Family: 103C_5335KV
-> > > 
-> > > Handle 0x0002, DMI type 2, 8 bytes.
-> > > Base Board Information
-> > >         Manufacturer: Quanta
-> > >         Product Name: 30CB
-> > 
-> > Thanks for the dmidecode output.
-> > 
-> > Do you notice any functional difference when booting with
-> > 
-> > "acpi_osi=Linux"        (default for 2.6.22 and earlier)
-> > vs.
-> > "acpi_osi=!Linux"       (default for 2.6.23 and later)
-> > 
-> No, I didn't notice any changes in system behaviour, just the output of
-> dmesg told that the bios requests "acpi_osi=Linux".
+>          OperationRegion (OSTY, SystemMemory, 0x37E80F06, 0x00000001)
+>          Field (OSTY, AnyAcc, NoLock, Preserve)
+>          {
+>              TPOS,   8
+>          }
 > 
-> Fedora-kernel: Linux Pavilion.famklein.net 2.6.23.9-85.fc8 #1 SMP Fri
-> Dec 7 15:49:36 EST 2007 x86_64 x86_64 x86_64 GNU/Linux
-> 
-> kernel command line:
-> kernel /boot/vmlinuz-2.6.23.9-85.fc8 ro acpi_osi=Linux pci=routeirq
-> root=/dev/sdb8 rhgb  quiet
-> 
+> Curious, Op-region OSTY sits in the (reclaimable) ACPI tables region
+> in the e820 map.  I guess it is a good thing that Linux never calls
+> the BIOS's bluff and reclaims that region after the tables are read
+> (we leave the tables in place and use them there) -- because otherwise
+> the OS could scribble on a region that is used by AML at run time.
 
-thanks for the acpidump.
-The ASL sets LINX, but never references it,
-so OSI(Linux) is a NOP on this machine.
+Shouldn't such problems be added that as a test of firmware quality to the
+linux firmware kit (if it doesn't catch such issues already), even if it
+doesn't cause Linux breakage?
 
--Len
+Anyone screwing up something so basic probably botched up other stuff as
+well.
 
-
-    OperationRegion (GNVS, SystemMemory, 0x7FEDEDBC, 0x0100)
-    Field (GNVS, AnyAcc, Lock, Preserve)
-    {
-        OSYS,   16,
-        SMIF,   8,
-        PRM0,   8,
-        PRM1,   8,
-        SCIF,   8,
-        PRM2,   8,
-        PRM3,   8,
-        LCKF,   8,
-        PRM4,   8,
-        PRM5,   8,
-        P80D,   32,
-        LIDS,   8,
-        PWRS,   8,
-        DBGS,   8,
-        LINX,   8,
-                Offset (0x14),
-...
-            Store (0x07D0, OSYS)
-            If (CondRefOf (_OSI, Local0))
-            {
-                If (_OSI ("Linux"))
-                {
-                    Store (One, LINX)
-                }
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
