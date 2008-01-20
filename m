@@ -1,92 +1,86 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode for LG P1 PRO Express Dual 150B
-Date: Sun, 20 Jan 2008 14:13:19 -0500
-Message-ID: <200801201413.19814.lenb@kernel.org>
-References: <46B461D9.3000604@ellobo> <200801182120.24536.lenb@kernel.org> <4791AD8D.5000508@ellobo>
+Subject: Re: dmidecode output - FSC AMILO Pi 1536
+Date: Sun, 20 Jan 2008 14:19:20 -0500
+Message-ID: <200801201419.20652.lenb@kernel.org>
+References: <469D1DD1.6080704@dottout.com> <200801181904.51226.lenb@kernel.org> <4791AE8D.6090303@dottout.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42276 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36541 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751711AbYATTNe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Jan 2008 14:13:34 -0500
-In-Reply-To: <4791AD8D.5000508@ellobo>
+	id S1755060AbYATTTj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2008 14:19:39 -0500
+In-Reply-To: <4791AE8D.6090303@dottout.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miguel Gea Milvaques <xerakko@debian.org>
+To: Andrea Rizzolo <andrea@dottout.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 19 January 2008 02:58, Miguel Gea Milvaques wrote:
+On Saturday 19 January 2008 03:02, Andrea Rizzolo wrote:
 > Len Brown wrote:
-> > On Saturday 04 August 2007 07:24, Miguel Gea Milvaques wrote:
-> >   
-> >> System Information
-> >>         Manufacturer: LG Electronics
-> >>         Product Name: P1-J150B
-> >>         Version: Not Applicable
-> >>         Serial Number: 701KSWK002977
-> >>         UUID: 80B450F8-B164-0010-94B0-E3E13E4B84D0
-> >>         Wake-up Type: Power Switch
-> >>         SKU Number: Not Specified
-> >>         Family: Not Specified
+> > On Tuesday 17 July 2007 15:51, andrea wrote:
+> >    
+> >> ystem Information
+> >>          Manufacturer: FUJITSU SIEMENS
+> >>          Product Name: AMILO Pi 1536
+> >>          Version: Not Applicable
+> >>          Serial Number: 5311F9B6
+> >>          UUID: 00D5D495-CD63-0010-8C63-99E512DA426C
+> >>          Wake-up Type: Power Switch
+> >>          SKU Number: Not Specified
+> >>          Family: Not Specified
 > >>
 > >> Handle 0x0002, DMI type 2, 8 bytes
 > >> Base Board Information
-> >>         Manufacturer: LG Electronics
-> >>         Product Name: ROCKY
-> >>     
-> >
-> > Thanks for the dmidecode output.
+> >>          Manufacturer: FUJITSU SIEMENS
+> >>          Product Name: AMILO Pi 1536
+> >>      
 > >
 > > Do you notice any functional difference when booting with
 > >
 > > "acpi_osi=Linux"        (default for 2.6.22 and earlier)
 > > vs.
 > > "acpi_osi=!Linux"       (default for 2.6.23 and later)
-> >   
-> That message has dissapeared from my dmesg in 2.6.23 kernel.
-> 
-> Attached you yave the acpidump
+> >
+> > Also, please send me the output from acpidump.
+> >
+> > thanks,
+> > -Len
+> >
+> > ps
+> > If you don't have acpidump, you can get it from pmtools here:
+> > http://www.lesswatts.org/projects/acpi/utilities.php
+> >
+> >    
+> Since kernel 2.6.23 my acpi works way better: fan is less noisy (really 
+> a lot) Currently Im running zen-sources, a patchset which applies to git 
+> kernel. so, running latest acpi code, dmesg still complains about 
+> acpi_osi but it gives more output:
+> ACPI: _OSI(Linux) requested by unknown system BIOS
+> 1. FUJITSU SIEMENS
+> 3. 07/19/2007
+> 4. FUJITSU SIEMENS
+> 5. AMILO Pi 1536
+> 6. Not Applicable
+> 10. AMILO Pi 1536
+> ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-thanks for the acpidump.
+ah, good.  This message replaces the request for dmidecode output.
+It will go away when I update the entry, because ...
 
-The ASL sets "LINX" but never references it,
-so OSI(Linux) is a NOP on this machine.
+the ASL for this box shows that OSI(Linux) is a NOP.
 
-thanks,
 -Len
 
-
-   OperationRegion (GNVS, SystemMemory, 0x3FEEDDBC, 0x0100)
-    Field (GNVS, AnyAcc, Lock, Preserve)
-    {
-        OSYS,   16,
-        SMIF,   8,
-        PRM0,   8,
-        PRM1,   8,
-        SCIF,   8,
-        PRM2,   8,
-        PRM3,   8,
-        LCKF,   8,
-        PRM4,   8,
-        PRM5,   8,
-        P80D,   32,
-        LIDS,   8,
-        PWRS,   8,
-        DBGS,   8,
-        LINX,   8,
-                Offset (0x14),
-
-
-            Store (0x07D0, OSYS)
+           Store (0x07D0, OSYS)
             If (CondRefOf (_OSI, Local0))
             {
                 If (_OSI ("Linux"))
                 {
-                    Store (One, LINX)
+                    Store (0x03E8, OSYS)
                 }
 
                 If (_OSI ("Windows 2001"))
@@ -108,4 +102,10 @@ thanks,
                 {
                     Store (0x07D6, OSYS)
                 }
+
+                If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
+                {
+                    TRAP (0x3D)
+                }
             }
+
