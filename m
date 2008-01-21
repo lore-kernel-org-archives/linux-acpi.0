@@ -1,102 +1,126 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode - Acer Aspire 5580
-Date: Mon, 21 Jan 2008 00:52:45 -0500
-Message-ID: <200801210052.45426.lenb@kernel.org>
-References: <5c446fb70709021541m36a2bd6fxe41e5936771b60ef@mail.gmail.com> <200801182240.09787.lenb@kernel.org> <5c446fb70801192042g6ee810f2n12c018b5016de3cf@mail.gmail.com>
+Subject: Re: dmidecode - dv9500
+Date: Mon, 21 Jan 2008 00:57:56 -0500
+Message-ID: <200801210057.56752.lenb@kernel.org>
+References: <1192260691.7970.1.camel@localhost> <200801182330.33809.lenb@kernel.org> <1200820449.3977.8.camel@LCEMobile02.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55834 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:53595 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751669AbYAUFxA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2008 00:53:00 -0500
-In-Reply-To: <5c446fb70801192042g6ee810f2n12c018b5016de3cf@mail.gmail.com>
+	id S1753023AbYAUF6N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2008 00:58:13 -0500
+In-Reply-To: <1200820449.3977.8.camel@LCEMobile02.local>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Anne-Simone <baleineca@gmail.com>
+To: Siegfried =?utf-8?q?L=C3=B6sch?= <S.Loesch@inode.at>
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 19 January 2008 23:42, Anne-Simone wrote:
-> Attached is the acpidump file.
-> 
-> I haven't noticed any functional difference when setting "acpi_osi=!Linux".
->  My current kernel version is Gentoo 2.6.22-suspend2-r2 and in both cases
-> (acpi_osi=Linux and acpi_osi=!Linux), I can suspend, but after resuming, the
-> network connection fails after about 10 - 15 minutes.  I get "no route to
-> host" to my router...
-> 
-> Also attached is a diff of dmesg for the different acpi_osi settings.
-> 
-> acpidump output was the same for the different acpi_osi settings.
-> 
-> Cheers,
-> Anne-Simone
-> 
-> On Jan 18, 2008 7:40 PM, Len Brown <lenb@kernel.org> wrote:
-> > On Sunday 02 September 2007 18:41, Anne-Simone wrote:
+On Sunday 20 January 2008 04:14, Siegfried L=C3=B6sch wrote:
+> Hi Len!
+>=20
+> Please find attached the output of acpidump (file acpidump_out.txt).
+>=20
+> Up to now I observed the following differences between 2.6.22 and 2.6=
+=2E23
+> kernel:
+>=20
+> Power-Management:
+> 2.6.22: ok
+> 2.6.23:	after some time, during which starting different processes, t=
+he
+> CPU's are working with 2GHz all the time (ondemand is not present). I
+> work around by restarting gnome-power-management.
+>=20
+> Shutdown:
+> 2.6.22: ok
+> 2.6.23: gdm crashes
+>=20
+> Network:
+> 2.6.22: LAN and Wlan ok.
+> 2.6.23: LAN and Wlan shut down after some time (aprox. 2 to 4 hours -
+> but that differs much) and I have to reinitialize networking.
+>=20
+> I'll further check the different boot options this week and come back=
+ to
+> you till the end of next week.
+>=20
+> Thank's very much for your work and efforts!
+>=20
+> Siegfried
+>=20
+> Am Freitag, den 18.01.2008, 23:30 -0500 schrieb Len Brown:
+> > On Saturday 13 October 2007 03:31, Siegfried L=C3=B6sch wrote:
 > > > System Information
-> > > Manufacturer: Acer, inc.
-> > > Product Name: Aspire 5580
-> > > Version: Not Applicable
-> > > Serial Number: LXAXW0X01471503FA42505
-> > > UUID: 404E6C55-1803-D911-8BE3-001B242367DD
-> > > Wake-up Type: Power Switch
-> > > SKU Number: Not Specified
-> > > Family: Not Specified
-> > >
+> > >         Manufacturer: Hewlett-Packard
+> > >         Product Name: HP Pavilion dv9500 Notebook PC   =20
+> > >         Version: Rev 1
+> > >         Serial Number: CNF7364LT9
+> > >         UUID: 434E4637-3336-344C-5439-001B2496B6BB
+> > >         Wake-up Type: Power Switch
+> > >         SKU Number: GU135EA#ABD=20
+> > >         Family: 103C_5335KV
+> > >=20
 > > > Handle 0x0002, DMI type 2, 8 bytes
 > > > Base Board Information
-> > > Manufacturer: Acer, Inc.
-> > > Product Name: Prespa1
+> > >         Manufacturer: Quanta
+> > >         Product Name: 30CB
+> >=20
+> > Thanks for the dmidecode output.
+> >=20
+> > Do you notice any functional difference when booting with
+> >=20
+> > "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
+> > vs.
+> > "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
+> >=20
+> > Also, please send me the output from acpidump.
+> >=20
+> > thanks,
+> > -Len
+> >=20
+> > ps
+> > If you don't have acpidump, you can get it from pmtools here:
+> > http://www.lesswatts.org/projects/acpi/utilities.php
 
-thanks for the acpidump.
-It shows lots of dependencies on "OSYS", which is set differently for Linux.
-The dependencies show up in places like battery, AC, wakup support and docking.
-
-Basically, it sets the DSDT to run in "unknown OS" mode, since there
-is not a single test for OSYS = the value set for Linux.
-
-I will blacklist OSI(Linux) on this box (which for 2.6.23 and later
-is no change, since OSI(Linux) is off by default.  If we find incompatibilities
-with how Windows exercises the box, we'll fix those -- which is a better
-course than running the DSDT in "other" mode that the vendor surely
-has never tested.
+The 2.6.22 vs 2.6.23 differences must be caused by something else,
+for the AML on this box sets but never consults LINX, making
+acpi_osi=3DLinux a NOP for this system.
 
 thanks,
 -Len
 
-
-
-  Scope (\_SB)
+    OperationRegion (GNVS, SystemMemory, 0x7FEDEDBC, 0x0100)
+    Field (GNVS, AnyAcc, Lock, Preserve)
     {
-        Method (_INI, 0, NotSerialized)
-        {
-            Store (0x07D0, OSYS)
+        OSYS,   16,
+        SMIF,   8,
+        PRM0,   8,
+        PRM1,   8,
+        SCIF,   8,
+        PRM2,   8,
+        PRM3,   8,
+        LCKF,   8,
+        PRM4,   8,
+        PRM5,   8,
+        P80D,   32,
+        LIDS,   8,
+        PWRS,   8,
+        DBGS,   8,
+        LINX,   8,
+                Offset (0x14),
+=2E..
             If (CondRefOf (_OSI, Local0))
             {
                 If (_OSI ("Linux"))
                 {
-                    Store (0x03E8, OSYS)
+                    Store (One, LINX)
                 }
-                Else
-                {
-                    Store (0x07D1, OSYS)
-                    If (_OSI ("Windows 2001 SP2"))
-                    {
-                        Store (0x07D2, OSYS)
-                    }
 
-                    If (_OSI ("Windows 2006"))
-                    {
-                        Store (0x07D6, OSYS)
-                    }
-
-                    If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
-                    {
-                        TRAP (0x3D)
-                    }
-                }
-            }
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
