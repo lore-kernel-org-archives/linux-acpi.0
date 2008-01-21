@@ -1,77 +1,80 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: RE: [PATCH 9/10] introduce intel_menlow platform specific driver
-Date: Mon, 21 Jan 2008 19:49:55 +0530
-Message-ID: <05B550FD4BD2014E841D83547B6260080281AE80@bgsmsx411.gar.corp.intel.com>
-References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com> <20080121095331.GA5333@infradead.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: dmidecode for Acer TM3012
+Date: Mon, 21 Jan 2008 13:12:32 -0500
+Message-ID: <200801211312.32835.lenb@kernel.org>
+References: <20080119132321.GC3262@gamma.logic.tuwien.ac.at> <200801201827.12708.lenb@kernel.org> <20080121073910.GA20698@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17290 "EHLO mga02.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:41275 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753077AbYAUOUC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2008 09:20:02 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20080121095331.GA5333@infradead.org>
+	id S1751569AbYAUSMw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2008 13:12:52 -0500
+In-Reply-To: <20080121073910.GA20698@gamma.logic.tuwien.ac.at>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: linux-acpi@vger.kernel.org
+
+
+> > can you send me the acpidump so I can figure out how to set the DMI entry?
+
+thanks for the acpidump.
+Like other Acers, acpi_osi=Linux sets OSYS=0x03E8,
+a value which no AML code checks for.  But it prevents
+the settings for Windows, thus disabling all the (tested) paths
+that Windows takes through the BIOS.
+
+This includes a bunch of hooks in docking, device power management,
+and who-knows-what 2nd-order hooks througout their 8000 line BIOS.
+
+Unless comebody can show that acpi_osi=Linux specifically helps
+some Linux functionality, there is a strong case to keep
+it disabled by default on this Acer, and all Acers.
+
+thanks,
+-Len
 
 
 
-> -----Original Message-----
-> From: Christoph Hellwig [mailto:hch@infradead.org]
-> Sent: Monday, January 21, 2008 3:24 PM
-> To: Zhang, Rui
-> Cc: lenb@kernel.org; linux-acpi@vger.kernel.org; linux-pm@lists.linux-
-> foundation.org; linux-kernel@vger.kernel.org; Thomas, Sujith
-> Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific
-driver
-> 
-> On Thu, Jan 17, 2008 at 03:51:17PM +0800, Zhang Rui wrote:
-> > From: Thomas Sujith <sujith.thomas@intel.com>
-> >
-> > Intel menlow platform specific driver for thermal management.
-> >
-> > Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/misc/Kconfig        |   10
-> >  drivers/misc/Makefile       |    1
-> >  drivers/misc/intel_menlow.c |  527
-> ++++++++++++++++++++++++++++++++++++++++++++
-> 
-> Why is this in drivers/misc?  I don't have a thermal.h in mainline,
-but
-> if this is a new subsystem your adding care to create a directory
-under
-> drivers/ for it?
-This patch series adds a new "thermal" subsystem and is rightly placed
-under drivers/thermal/ . intel_menlow.c isn't fully a thermal driver. It
-does all the platform specific stuff (thermal is one of them). It's not
-fitting under any of the subsystems hence moved to drivers/misc
-> 
-> > +/*
-> > +*  intel_menlow.c - Intel menlow Driver for thermal management
-> extension
-> > +*
-> > +*  Copyright (C) 2008 Intel Corp
-> > +*  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
-> > +*  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
-> 
-> Please add a whitespace before the * so they line up.
-Will take care of this.
-> 
-> > +MODULE_AUTHOR("Thomas Sujith");
-> > +MODULE_AUTHOR("Zhang Rui");
-> 
-> I've never seen a driver with two MODULE_AUTHOR statements before.
-Does
-> this actually work?  What does modinfo -F author say for your module?
-There is nothing wrong in giving 2 MODULE_AUTHORS. Both will be
-displayed in the command modinfo -F author.
+            Store (0x07D0, OSYS)
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (_OSI ("Linux"))
+                {
+                    Store (0x03E8, OSYS)
+                }
+                Else
+                {
+                    Store (0x07D1, OSYS)
+                    If (_OSI ("Windows 2001 SP2"))
+                    {
+                        Store (0x07D2, OSYS)
+                    }
 
-:-Sujith
+                    If (_OSI ("Windows 2006"))
+                    {
+                        Store (0x07D6, OSYS)
+                    }
 
+                    If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
+                    {
+                        TRAP (0x3D)
+                    }
+                }
+            }
+            If (LGreaterEqual (OSYS, 0x07D0))
+            {
+                Store (0x01, PRM0)
+                If (LGreaterEqual (OSYS, 0x07D1))
+                {
+                    Store (0x03, PRM0)
+                }
+            }
+            Else
+            {
+                Store (0x00, PRM0)
+            }
