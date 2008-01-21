@@ -1,59 +1,56 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Mon, 21 Jan 2008 19:37:55 +0000
-Message-ID: <20080121193755.GA11492@srcf.ucam.org>
-References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801192313.10296.lenb@kernel.org> <47933886.7050401@dbservice.com> <200801201331.59478.lenb@kernel.org> <20080121015238.GA8105@mit.edu> <20080121095000.GA2785@srcf.ucam.org> <20080121190041.GD29792@mit.edu>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: dmidecode output from Benq notebook
+Date: Mon, 21 Jan 2008 18:22:42 -0500
+Message-ID: <200801211822.42787.lenb@kernel.org>
+References: <web-7724225@backend13.aha.ru> <200801201408.40945.lenb@kernel.org> <20080121075134.GC8105@mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:43022 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814AbYAUTiQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2008 14:38:16 -0500
+Received: from hera.kernel.org ([140.211.167.34]:34423 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762420AbYAUXX1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2008 18:23:27 -0500
+In-Reply-To: <20080121075134.GC8105@mit.edu>
 Content-Disposition: inline
-In-Reply-To: <20080121190041.GD29792@mit.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Theodore Tso <tytso@MIT.EDU>
-Cc: Len Brown <lenb@kernel.org>, Tomas Carnecky <tom@dbservice.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
+To: Theodore Tso <tytso@mit.edu>
+Cc: "Dmitry A. Marin" <corvax@corvax.ru>, linux-acpi@vger.kernel.org
 
-On Mon, Jan 21, 2008 at 02:00:41PM -0500, Theodore Tso wrote:
+On Monday 21 January 2008 02:51, Theodore Tso wrote:
+> On Sun, Jan 20, 2008 at 02:08:40PM -0500, Len Brown wrote:
+> > 
+> > OSI(Linux) has no effect on the AML of this machine,
+> > as OSYS is over-written.  So I'll just kill the warning
+> > on this box by adding it to the NOP DMI list.
+> 
+> The one thing I worry about is if you aren't including the BIOS
+> version in the DMI list, you could end up in a situation where one
+> version of the BIOS treats OSI(Linux) as a no-op, but a newer or an
+> older version of the BIOS actually does something with it....
+> 
+> BIOS writers can be sneaky that way.  :-)
 
-> Well, unless until Video card vendors give us their secret interfaves
-> to reinitialize their cards, we're never going to figure it out,
-> right?  
+I'm not worried.
 
-There's (not yet mainline) code to do this on Intel, and it looks like 
-AtomBios based ATIs (some r400s, all r500s and later) should be trivial. 
-The work the Nouveau people have been doing is also very promising, and 
-I suspect we can do cold boot there before too long. I was going to do 
-some work on this this week, but my ATI machine got stolen...
+Vendors that want to make a BIOS change to actually benefit Linux
+will actually boot Linux on their machine, and will notice
+that OSI(Linux) has no effect in 2.6.23 and later.
 
-> At least for vendors like Lenovo, where some laptops will be
-> shipping with Intel cards where we will eventually be able do our own
-> video reinit after suspend, and some with Nvidia chipsets where it
-> doesn't seem terribly likely until someone at Nvidia has a change of
-> heart, the BIOS won't be able to use the "please reinit video" as a
-> general "Linux" indicator, since they will need to support laptops
-> with Good as well as Evil graphics chipsets.  :-)
- 
-The problem is that we don't inherently know if we can support 
-reinitialising video natively until the video driver is loaded, and 
-there's a high probability that that's going to come from a module. 
-We're already executing ACPI by then, so the firmware's had the 
-opportunity to stash an incorrect value and can blow everything up later 
-on. If vendors want their laptops to work on Linux, then the best thing 
-they can do is help us get our drivers working properly.
+The object here is simply to identify systems which have already
+shipped (say they were tested against Linux-2.6.22 or earlier)
+that really do require OSI(Linux).
 
-Another disadvantage is that there's no real chance that Linux will be 
-tested in the "No, really, I can handle my graphics myself" case. 
-Relying on their firmware guys to get this right is inviting the fuckup 
-fairy to come and start nesting - Lenovo have already shown us what 
-happens when we let vendors try to be clever.
+The reason we put in a BenQ DMI entry was simply to prevent
+spamming dmesg with requests for DMI info and test results
+that we already have.  I have zero interest in spamming users
+of every version of the platform's BIOS to confirm that
+they are all the same.  Indeed, I'd be more inclined to
+wildcard the DMI entries more by deleting some of the
+platforms and ignoring entire Vendors w/ a single entry --
+as the vendors tend to do the same thing on every product.
 
-Now, stuff like a standardised entrypoint into ACPI that reinitialises 
-the video - that would be helpful, since we could choose whether to call 
-it or not which means whether or not something gets screwed up is 
-determined by us and not the vendor.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+thanks,
+-Len
