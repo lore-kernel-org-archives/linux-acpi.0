@@ -1,60 +1,102 @@
-From: Li Zefan <lizf@cn.fujitsu.com>
-Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
-Date: Mon, 21 Jan 2008 13:45:42 +0800
-Message-ID: <47943186.8030001@cn.fujitsu.com>
-References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>	 <20080117092030.a9dfe528.randy.dunlap@oracle.com> <1200627175.2935.174.camel@acpi-sony.sh.intel.com> <4790231C.1040805@cn.fujitsu.com> <05B550FD4BD2014E841D83547B6260080281A8A8@bgsmsx411.gar.corp.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: dmidecode - Acer Aspire 5580
+Date: Mon, 21 Jan 2008 00:52:45 -0500
+Message-ID: <200801210052.45426.lenb@kernel.org>
+References: <5c446fb70709021541m36a2bd6fxe41e5936771b60ef@mail.gmail.com> <200801182240.09787.lenb@kernel.org> <5c446fb70801192042g6ee810f2n12c018b5016de3cf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:61027 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751624AbYAUFqI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2008 00:46:08 -0500
-In-Reply-To: <05B550FD4BD2014E841D83547B6260080281A8A8@bgsmsx411.gar.corp.intel.com>
+Received: from hera.kernel.org ([140.211.167.34]:55834 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751669AbYAUFxA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2008 00:53:00 -0500
+In-Reply-To: <5c446fb70801192042g6ee810f2n12c018b5016de3cf@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Thomas, Sujith" <sujith.thomas@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>, sam@ravnborg.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+To: Anne-Simone <baleineca@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
->>> +static int __init intel_menlow_module_init(void)
->>> +{
->>> +	int result = -ENODEV;
->>> +	acpi_status status;
->>> +	unsigned long enable;
->>> +
->>> +	if (acpi_disabled)
->>> +		return result;
->>> +
->>> +	/* Looking for the \_TZ.GSTS method */
->>> +	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &enable);
->>> +	if (ACPI_FAILURE(status) || !enable)
->>> +		return -ENODEV;
->>> +
->>> +	/* Looking for ACPI device MEM0 with hardware id INT0002 */
->>> +	result = acpi_bus_register_driver(&intel_menlow_memory_driver);
->>> +	if (result)
->>> +		return result;
->>> +
->>> +	/* Looking for sensors in each ACPI thermal zone */
->>> +	status = acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
->>> +				     ACPI_UINT32_MAX,
->>> +				     intel_menlow_register_sensor, NULL, NULL);
->>> +	if (ACPI_FAILURE(status))
->>> +		result = -ENODEV;
->>> +
->> It seems to me this should be 'return -ENODEV;'
->>
->> You can just eliminate variable result, because result will be
->> -ENODEV only.
-> I disagree. "result" is required to store the return value from acpi_bus_register_driver which may be different from ENODEV. Otherwise it's all -ENODEV.
+On Saturday 19 January 2008 23:42, Anne-Simone wrote:
+> Attached is the acpidump file.
 > 
-> :-Sujith
+> I haven't noticed any functional difference when setting "acpi_osi=!Linux".
+>  My current kernel version is Gentoo 2.6.22-suspend2-r2 and in both cases
+> (acpi_osi=Linux and acpi_osi=!Linux), I can suspend, but after resuming, the
+> network connection fails after about 10 - 15 minutes.  I get "no route to
+> host" to my router...
+> 
+> Also attached is a diff of dmesg for the different acpi_osi settings.
+> 
+> acpidump output was the same for the different acpi_osi settings.
+> 
+> Cheers,
+> Anne-Simone
+> 
+> On Jan 18, 2008 7:40 PM, Len Brown <lenb@kernel.org> wrote:
+> > On Sunday 02 September 2007 18:41, Anne-Simone wrote:
+> > > System Information
+> > > Manufacturer: Acer, inc.
+> > > Product Name: Aspire 5580
+> > > Version: Not Applicable
+> > > Serial Number: LXAXW0X01471503FA42505
+> > > UUID: 404E6C55-1803-D911-8BE3-001B242367DD
+> > > Wake-up Type: Power Switch
+> > > SKU Number: Not Specified
+> > > Family: Not Specified
+> > >
+> > > Handle 0x0002, DMI type 2, 8 bytes
+> > > Base Board Information
+> > > Manufacturer: Acer, Inc.
+> > > Product Name: Prespa1
 
-Indead, I overlooked it.
+thanks for the acpidump.
+It shows lots of dependencies on "OSYS", which is set differently for Linux.
+The dependencies show up in places like battery, AC, wakup support and docking.
 
-But the above 'result = -ENODEV;' should be 'return -ENODEV;', right?
+Basically, it sets the DSDT to run in "unknown OS" mode, since there
+is not a single test for OSYS = the value set for Linux.
 
->>> +	return 0;
->>> +}
+I will blacklist OSI(Linux) on this box (which for 2.6.23 and later
+is no change, since OSI(Linux) is off by default.  If we find incompatibilities
+with how Windows exercises the box, we'll fix those -- which is a better
+course than running the DSDT in "other" mode that the vendor surely
+has never tested.
 
+thanks,
+-Len
+
+
+
+  Scope (\_SB)
+    {
+        Method (_INI, 0, NotSerialized)
+        {
+            Store (0x07D0, OSYS)
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (_OSI ("Linux"))
+                {
+                    Store (0x03E8, OSYS)
+                }
+                Else
+                {
+                    Store (0x07D1, OSYS)
+                    If (_OSI ("Windows 2001 SP2"))
+                    {
+                        Store (0x07D2, OSYS)
+                    }
+
+                    If (_OSI ("Windows 2006"))
+                    {
+                        Store (0x07D6, OSYS)
+                    }
+
+                    If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
+                    {
+                        TRAP (0x3D)
+                    }
+                }
+            }
