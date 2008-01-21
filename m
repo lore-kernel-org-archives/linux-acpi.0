@@ -1,110 +1,62 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode - MacBook2,1
-Date: Mon, 21 Jan 2008 01:02:46 -0500
-Message-ID: <200801210102.46993.lenb@kernel.org>
-References: <413515090710060238x4af5f54fsd558841153480b42@mail.gmail.com> <200801182321.56923.lenb@kernel.org> <479391F7.7080602@gmail.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: a problem about the EC driver
+Date: Mon, 21 Jan 2008 23:17:24 +0800
+Message-ID: <1200928644.17879.49.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43712 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:22395 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752642AbYAUGDG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2008 01:03:06 -0500
-In-Reply-To: <479391F7.7080602@gmail.com>
-Content-Disposition: inline
+	id S1756920AbYAUHKh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2008 02:10:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: admin.samae@gmail.com
+To: astarikovskiy@suse.de
 Cc: linux-acpi@vger.kernel.org
 
-On Sunday 20 January 2008 13:24, eeva wrote:
-> Len Brown a =C3=A9crit :
-> > On Saturday 06 October 2007 12:05, Samae wrote:
-> >> System Information
-> >>     Manufacturer: Apple Inc.
-> >>     Product Name: MacBook2,1
-> >>     Version:  1.0
-> >>     Serial Number: W87311YWZ5X
-> >>     UUID: 61F9E18A-38B2-B440-A87E-7457DF18863C
-> >>     Wake-up Type: Power Switch
-> >>     SKU Number: System SKUNumber
-> >>     Family: MacBook
-> >>
-> >> Handle 0x0002, DMI type 2, 16 bytes
-> >> Base Board Information
-> >>     Manufacturer: Apple Inc.
-> >>     Product Name: Mac-F4208CAA
-> >=20
-> >=20
-> > Thanks for the dmidecode output.
-> >=20
-> > Do you notice any functional difference when booting with
-> >=20
-> > "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
-> > vs.
-> > "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
-> >=20
-> > Also, please send me the output from acpidump.
-> >=20
-> > thanks,
-> > -Len
-> >=20
-> > ps
-> > If you don't have acpidump, you can get it from pmtools here:
-> > http://www.lesswatts.org/projects/acpi/utilities.php
-> >=20
->=20
-> I haven't notice any difference when booting with one or the other=20
-> kernel. I send you the output of acpidump.
-> pmtools wasn't reachable so I built it with an archlinux PKGBUILD. it=
-=20
-> worked nicely.
->=20
+Hi, Alexey
+    I know that you are very familiar with the EC driver and you submit
+a lot patches for EC. Now I have a problem about the EC and want to get
+help from you.
+   a. In the March of 2007 the patch of
+33c7a0738c5f753a7d94fd3b2ec7d84e79a141a8 was submitted by you. In this
+patch the Fake ECDT workaround is no longer used, which means that OSPM
+won't parse EC in DSDT when there is no ECDT table. 
+   b. In the August of 2007 the patch of
+cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b was submitted. In this patch
+OSPM will parse EC in DSDT when there is no ECDT table. It seems that
+many laptops without ECDT table will be affected. Is there a potential
+problem for the laptops without ECDT table? 
+   c. In the November of 2007 the patch of
+5870a8cd23181703cc76f88f630372f8602c7648 was submitted. In this patch
+_INI check is added for EC device in DSDT table, which means that in the
+function of acpi_ec_ecdt_probe OSPM won't install EC handler when no
+_INI  method is found under the scope of EC in DSDT. It seems that a
+regression is caused by this patch. Please refer to the bug 9730. In the
+bug of 9730 there is no _INI method for EC device in DSDT table and OSPM
+won't install EC handler. But the _CRS method of EC device will set the
+EC flag. So some devices can't access the Operation Region defined in EC
+device in the course of Linux ACPI device scan and the error messages
+are reported. 
+    According to the description of this patch it seems that the _EC
+device is related to the _INI method.  But according to ACPI spec
+whether the operation region can be accessed is related to the _REG
+method. 
+   d. In the Jan of 2008 the patch of
+c04209a7948b95e8c52084e8595e74e9428653d3 was submitted. In this patch
+the function of boot_ec_enable is added , which means that OSPM will
+install EC handler for boot_ec device before acpi_bus_scan. 
+   
+   I don't understand why the flowchart of boot EC is changed very
+frequently. Will you please give me detailed info about the four
+patches? Maybe it is helpful for us to understand the EC driver.
+   
 
-acpi_osi=3DLinux is a NOP on the MacBook2,1 because it only
-compares OSYS to Darwin.  Everything else is treated the same.
+Thanks.
 
+   
+     
 
-thanks,
--Len
+    
 
-            If (CondRefOf (_OSI, Local0))
-            {
-                If (_OSI ("Darwin"))
-                {
-                    Store (0x2710, OSYS)
-                }
-                Else
-                {
-                    If (_OSI ("Linux"))
-                    {
-                        Store (0x03E8, OSYS)
-                    }
-                    Else
-                    {
-                        Store (0x07D1, OSYS)
-                    }
-                }
-            }
-            Else
-            {
-                Store (0x07D0, OSYS)
-            }
-=2E....
-    Method (OSDW, 0, NotSerialized)
-    {
-        If (LEqual (OSYS, 0x2710))
-        {
-            Return (0x01)
-        }
-        Else
-        {
-            Return (0x00)
-        }
-    }
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
