@@ -1,35 +1,50 @@
-From: Theodore Tso <tytso@MIT.EDU>
-Subject: Re: dmidecode output from Benq notebook
-Date: Mon, 21 Jan 2008 02:51:34 -0500
-Message-ID: <20080121075134.GC8105@mit.edu>
-References: <web-7724225@backend13.aha.ru> <200801181856.30845.lenb@kernel.org> <web-56975710@backend13.aha.ru> <200801201408.40945.lenb@kernel.org>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
+Date: Mon, 21 Jan 2008 09:53:31 +0000
+Message-ID: <20080121095331.GA5333@infradead.org>
+References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:49926 "EHLO
-	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755621AbYAUHwA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2008 02:52:00 -0500
+Received: from pentafluge.infradead.org ([213.146.154.40]:56479 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758308AbYAUJxf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jan 2008 04:53:35 -0500
 Content-Disposition: inline
-In-Reply-To: <200801201408.40945.lenb@kernel.org>
+In-Reply-To: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Dmitry A. Marin" <corvax@corvax.ru>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
 
-On Sun, Jan 20, 2008 at 02:08:40PM -0500, Len Brown wrote:
+On Thu, Jan 17, 2008 at 03:51:17PM +0800, Zhang Rui wrote:
+> From: Thomas Sujith <sujith.thomas@intel.com>
 > 
-> OSI(Linux) has no effect on the AML of this machine,
-> as OSYS is over-written.  So I'll just kill the warning
-> on this box by adding it to the NOP DMI list.
+> Intel menlow platform specific driver for thermal management.
+> 
+> Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/misc/Kconfig        |   10 
+>  drivers/misc/Makefile       |    1 
+>  drivers/misc/intel_menlow.c |  527 ++++++++++++++++++++++++++++++++++++++++++++
 
-The one thing I worry about is if you aren't including the BIOS
-version in the DMI list, you could end up in a situation where one
-version of the BIOS treats OSI(Linux) as a no-op, but a newer or an
-older version of the BIOS actually does something with it....
+Why is this in drivers/misc?  I don't have a thermal.h in mainline, but
+if this is a new subsystem your adding care to create a directory under
+drivers/ for it?
 
-BIOS writers can be sneaky that way.  :-)
+> +/*
+> +*  intel_menlow.c - Intel menlow Driver for thermal management extension
+> +*
+> +*  Copyright (C) 2008 Intel Corp
+> +*  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
+> +*  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
 
+Please add a whitespace before the * so they line up.
 
-      	      	     	  	   		  - Ted
+> +MODULE_AUTHOR("Thomas Sujith");
+> +MODULE_AUTHOR("Zhang Rui");
+
+I've never seen a driver with two MODULE_AUTHOR statements before.  Does
+this actually work?  What does modinfo -F author say for your module?
+
