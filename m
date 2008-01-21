@@ -1,70 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode to linux-acpi@vger.kernel.org - SANTA ROSA CRB
-Date: Sun, 20 Jan 2008 19:37:25 -0500
-Message-ID: <200801201937.25476.lenb@kernel.org>
-References: <471DF1ED.7090107@gmx.de> <200801182352.18426.lenb@kernel.org> <47923589.9090506@gmx.de>
+From: Theodore Tso <tytso@MIT.EDU>
+Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
+Date: Sun, 20 Jan 2008 20:52:38 -0500
+Message-ID: <20080121015238.GA8105@mit.edu>
+References: <a4d865fcfc9913f3d2428bc2b7ab1683227a6096.1200565331.git.len.brown@intel.com> <200801192313.10296.lenb@kernel.org> <47933886.7050401@dbservice.com> <200801201331.59478.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54782 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755697AbYAUAhr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Jan 2008 19:37:47 -0500
-In-Reply-To: <47923589.9090506@gmx.de>
+Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:53621 "EHLO
+	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755202AbYAUBxH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jan 2008 20:53:07 -0500
 Content-Disposition: inline
+In-Reply-To: <200801201331.59478.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sur3 <sur3@gmx.de>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Tomas Carnecky <tom@dbservice.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
 
-On Saturday 19 January 2008 12:38, Sur3 wrote:
-> Len Brown schrieb:
-> > is this a production system?
-> > If yes, can you upgrade to a production BIOS?
-> > 
-> > then...
-> > 
-> > Do you notice any functional difference when booting with
-> > 
-> > "acpi_osi=Linux"        (default for 2.6.22 and earlier)
-> > vs.
-> > "acpi_osi=!Linux"       (default for 2.6.23 and later)
-> > 
-> > Also, please send me the output from acpidump.
-> > 
-> > thanks,
-> > -Len
-> > 
-> > ps
-> > If you don't have acpidump, you can get it from pmtools here:
-> > http://www.lesswatts.org/projects/acpi/utilities.php
-> 
-> 
-> hi Len,
-> the acpidump is in the attachment.
-> what do you mean by "production system"?
+On Sun, Jan 20, 2008 at 01:31:59PM -0500, Len Brown wrote:
+> We as the Linux community can define "Needs BIOS S3 video restore" as a string
+> and ship it in our kernel, telling BIOS writers about it.
 
-This system seems to be running the BIOS from an Intel example design,
-which is an example implementation for our customers, not intended
-really for retail systems.
+Maybe we should define the S3 video strong right away, along with
+whatever else Lenovo was trying to use OSI(Linux) for, and then get
+the distro's to ship Errata kernels that answer yes for those
+questions ASAP.  Then we can work with Laptop vendors to release new
+BIOS's that use the new OSI strings instead of Linux, since they can
+just tell people that they need to upgrade to the latest Ubuntu/SLES
+kernel.
 
-> it's kind of a normal laptop.
+Hopefully, this would allow us to recover from this mess as quickly as
+possible.
 
-I'm curious what brand and what model it is.
+						- Ted
 
-> i'll check for differences with the different boot-params the next days...
 
-You don't have to, OSI(Linux) is a NOP in this BIOS.
-Like many others, it sets LINX, but never uses it.
-
-It does remind me to ping the BIOS group and verify
-that they've delted this from their latest BIOS.
-
-maybe I should update the dmesg to say:
-
-BIOS BUG: Please tell your BIOS vendor not to query _OSI(Linux)
-
-thanks,
--Len
