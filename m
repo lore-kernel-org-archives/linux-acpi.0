@@ -1,68 +1,84 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: Fan resume not working on nx6325 without userland assistance
-Date: Tue, 22 Jan 2008 20:40:56 +0300
-Message-ID: <47962AA8.9010600@suse.de>
-References: <200801220241.43230.rjw@sisk.pl> <200801221814.05416.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: maximilian attems <max@stro.at>
+Subject: [PATCH] ACPI: battery: add sysfs serial number
+Date: Tue, 22 Jan 2008 18:46:50 +0100
+Message-ID: <1201024010-6103-1-git-send-email-max@stro.at>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:40977 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751045AbYAVRlo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 12:41:44 -0500
-In-Reply-To: <200801221814.05416.rjw@sisk.pl>
+Received: from baikonur.stro.at ([213.239.196.228]:50955 "EHLO
+	baikonur.stro.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079AbYAVRrV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 12:47:21 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, maximilian attems <max@stro.at>
 
-Does revert of 93ad7c07ad487b036add8760dabcc35666a550ef helps?
+egrep serial /proc/acpi/battery/BAT0/info
+serial number:           32090
 
+serial number can tell you from the imminent danger
+of beeing set on fire.
 
+Signed-off-by: maximilian attems <max@stro.at>
+---
+ drivers/acpi/battery.c             |    5 +++++
+ drivers/power/power_supply_sysfs.c |    1 +
+ include/linux/power_supply.h       |    1 +
+ 3 files changed, 7 insertions(+), 0 deletions(-)
 
-Rafael J. Wysocki wrote:
-> On Tuesday, 22 of January 2008, Rafael J. Wysocki wrote:
->> Hi,
->>
->> It turns out that the following script (from openSUSE 10.3):
->>
->> #############################################################
->> # triggers the ACPI fan(s) after resume. Since ACPI drivers
->> # have no suspend support, this is sometimes necessary.
->> # see http://article.gmane.org/gmane.linux.acpi.devel/16643
->> kick-fan()
->> {
->>         local FAN DUMMY STATE
->>         for FAN in /proc/acpi/fan/*/state; do
->>                 [ ! -e $FAN ] && continue
->>                 read DUMMY STATE < $FAN
->>                 if [ "$STATE" = "on" ]; then
->>                         echo "kicking $FAN"
->>                         echo -n 3 > $FAN
->>                         echo -n 0 > $FAN
->>                 fi
->>         done
->> }
->>
->> case $1 in
->>         thaw|resume)
->>                 kick-fan
->>                 ;;
->> esac
->>
->> is necessary to make the fan behave appropriately after a resume from RAM
->> (I haven't checked resume from hibernation, but I guess the same thing happens)
->> on HP nx6325 with 2.6.24-rc8 (and with previous kernels probably too).
->>
->> It wasn't needed at one point, so something has regressed.  Sigh.
-> 
-> Ah, I didn't say that thermal management is completely busted after a resume
-> if the fan is not kicked from the user land (using the above script).  Usually
-> the fan is 100% on (that corresponds to all ACPI "fans" being on), but once it
-> had gone off and I was unable to turn it on by any means (including rising the
-> temperature to a dangerous level).
-> 
-> Greetings,
-> Rafael
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c4a769d..f6215e8 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -194,6 +194,9 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 	case POWER_SUPPLY_PROP_MANUFACTURER:
+ 		val->strval = battery->oem_info;
+ 		break;
++	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
++		val->strval = battery->serial_number;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -212,6 +215,7 @@ static enum power_supply_property charge_battery_props[] = {
+ 	POWER_SUPPLY_PROP_CHARGE_NOW,
+ 	POWER_SUPPLY_PROP_MODEL_NAME,
+ 	POWER_SUPPLY_PROP_MANUFACTURER,
++	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+ };
+ 
+ static enum power_supply_property energy_battery_props[] = {
+@@ -226,6 +230,7 @@ static enum power_supply_property energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_ENERGY_NOW,
+ 	POWER_SUPPLY_PROP_MODEL_NAME,
+ 	POWER_SUPPLY_PROP_MANUFACTURER,
++	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+ };
+ #endif
+ 
+diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
+index 249f61b..8feaa48 100644
+--- a/drivers/power/power_supply_sysfs.c
++++ b/drivers/power/power_supply_sysfs.c
+@@ -117,6 +117,7 @@ static struct device_attribute power_supply_attrs[] = {
+ 	/* Properties of type `const char *' */
+ 	POWER_SUPPLY_ATTR(model_name),
+ 	POWER_SUPPLY_ATTR(manufacturer),
++	POWER_SUPPLY_ATTR(serial_number),
+ };
+ 
+ static ssize_t power_supply_show_static_attrs(struct device *dev,
+diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
+index 606c095..300159b 100644
+--- a/include/linux/power_supply.h
++++ b/include/linux/power_supply.h
+@@ -101,6 +101,7 @@ enum power_supply_property {
+ 	/* Properties of type `const char *' */
+ 	POWER_SUPPLY_PROP_MODEL_NAME,
+ 	POWER_SUPPLY_PROP_MANUFACTURER,
++	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+ };
+ 
+ enum power_supply_type {
+-- 
+1.5.4.rc2-dirty
 
