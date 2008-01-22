@@ -1,56 +1,125 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode output from Benq notebook
-Date: Mon, 21 Jan 2008 18:22:42 -0500
-Message-ID: <200801211822.42787.lenb@kernel.org>
-References: <web-7724225@backend13.aha.ru> <200801201408.40945.lenb@kernel.org> <20080121075134.GC8105@mit.edu>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: a problem about the EC driver
+Date: Tue, 22 Jan 2008 17:49:11 +0800
+Message-ID: <1200995351.22292.24.camel@yakui_zhao.sh.intel.com>
+References: <1200928644.17879.49.camel@yakui_zhao.sh.intel.com>
+	 <47946D5A.5020307@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34423 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:23259 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762420AbYAUXX1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jan 2008 18:23:27 -0500
-In-Reply-To: <20080121075134.GC8105@mit.edu>
-Content-Disposition: inline
+	id S1756537AbYAVBlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jan 2008 20:41:15 -0500
+In-Reply-To: <47946D5A.5020307@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Theodore Tso <tytso@mit.edu>
-Cc: "Dmitry A. Marin" <corvax@corvax.ru>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 21 January 2008 02:51, Theodore Tso wrote:
-> On Sun, Jan 20, 2008 at 02:08:40PM -0500, Len Brown wrote:
+On Mon, 2008-01-21 at 13:00 +0300, Alexey Starikovskiy wrote:
+Thanks for the response.
+> Hi Zhao,
+> 
+> All patches have relevant bugzilla entries, so you could read them for full
+> understanding.
+> Summary:
+> acpi_ec_probe/boot_ec_enable are workarounds for same situation then
+> EC driver should be inited early, but ECDT was not provided. Half of this
+> workaround was enabled earlier with fake ECDT.
+> 
+> Having a kernel parameter to enable a workaround is not good, as it requires too
+> much knowledge from the users, while the problem seem to be not one or two notebooks,
+> but whole MSI and ASUS lines.
+> 
+> Spec only covers case of ECDT for early init of EC, so whole series of patches do not 
+> have anything to do with spec, that should be clear.
+The spec only emphasizes that OSPM should make EC operation region
+accessed via EC described in ECDT table. It doesn't cover the EC defined
+in DSDT. Maybe it is better to use the similar flowchart.
+> 
+> EC could be used in either _INI methods for some devices at device init stage, 
+> or in _STA methods, then devices are scanned and attached to drivers.
+Whether EC operation region can be accessed is only related to the _REG
+method. After the _REG method for EC is called, it means that AML can
+access the data fields in EC region. According to spec the _REG method
+should be called before calling other methods including _INI. The spec
+doesn't cover whether the _STA method is also included.   
+
+> It was found, that in absence of ECDT, if some _INI requires presence of
+> EC op region, there will be empty _INI method in EC scope.
+> It was also found that many EC will fail to initialize before all _INI methods
+> are done. This is why the registration of EC op region is done only if _INI method
+> is present in EC scope.
+If EC fails to initialize before all _INI methods, EC still can't be
+initialized successfully even when there is _INI method under its scope.
+So I think that it is unnecessary to not initialize EC even when there
+is no _INI method under the scope of EC.
+> 
+> For _STA methods during device scan it is completely safe to enable EC op region
+> before, just because this is only a priority of driver assignment. We could be
+> very smart and add several priority passes to scan, but enabling EC before scan
+> does exactly what we need.
+OK. This can solve the problem. But maybe it is better to enable boot EC
+after the ACPI full initialization.  
+> 
+> >    I don't understand why the flowchart of boot EC is changed very
+> > frequently.
+> Why it is my problem, if don't understand something in the kernel?
+> > Will you please give me detailed info about the four
+> > patches? Maybe it is helpful for us to understand the EC driver.
+> Maybe it is not, who is "us" in this sentence?
+> 
+> Regards,
+> Alex.
+> 
+> 
+> Zhao Yakui wrote:
+> > Hi, Alexey
+> >     I know that you are very familiar with the EC driver and you submit
+> > a lot patches for EC. Now I have a problem about the EC and want to get
+> > help from you.
+> >    a. In the March of 2007 the patch of
+> > 33c7a0738c5f753a7d94fd3b2ec7d84e79a141a8 was submitted by you. In this
+> > patch the Fake ECDT workaround is no longer used, which means that OSPM
+> > won't parse EC in DSDT when there is no ECDT table. 
+> >    b. In the August of 2007 the patch of
+> > cd8c93a4e04dce8f00d1ef3a476aac8bd65ae40b was submitted. In this patch
+> > OSPM will parse EC in DSDT when there is no ECDT table. It seems that
+> > many laptops without ECDT table will be affected. Is there a potential
+> > problem for the laptops without ECDT table? 
+> >    c. In the November of 2007 the patch of
+> > 5870a8cd23181703cc76f88f630372f8602c7648 was submitted. In this patch
+> > _INI check is added for EC device in DSDT table, which means that in the
+> > function of acpi_ec_ecdt_probe OSPM won't install EC handler when no
+> > _INI  method is found under the scope of EC in DSDT. It seems that a
+> > regression is caused by this patch. Please refer to the bug 9730. In the
+> > bug of 9730 there is no _INI method for EC device in DSDT table and OSPM
+> > won't install EC handler. But the _CRS method of EC device will set the
+> > EC flag. So some devices can't access the Operation Region defined in EC
+> > device in the course of Linux ACPI device scan and the error messages
+> > are reported. 
+> >     According to the description of this patch it seems that the _EC
+> > device is related to the _INI method.  But according to ACPI spec
+> > whether the operation region can be accessed is related to the _REG
+> > method. 
+> >    d. In the Jan of 2008 the patch of
+> > c04209a7948b95e8c52084e8595e74e9428653d3 was submitted. In this patch
+> > the function of boot_ec_enable is added , which means that OSPM will
+> > install EC handler for boot_ec device before acpi_bus_scan. 
+> >    
+> >    I don't understand why the flowchart of boot EC is changed very
+> > frequently. Will you please give me detailed info about the four
+> > patches? Maybe it is helpful for us to understand the EC driver.
+> >    
 > > 
-> > OSI(Linux) has no effect on the AML of this machine,
-> > as OSYS is over-written.  So I'll just kill the warning
-> > on this box by adding it to the NOP DMI list.
+> > Thanks.
+> > 
+> >    
+> >      
+> > 
+> >     
+> > 
 > 
-> The one thing I worry about is if you aren't including the BIOS
-> version in the DMI list, you could end up in a situation where one
-> version of the BIOS treats OSI(Linux) as a no-op, but a newer or an
-> older version of the BIOS actually does something with it....
-> 
-> BIOS writers can be sneaky that way.  :-)
 
-I'm not worried.
-
-Vendors that want to make a BIOS change to actually benefit Linux
-will actually boot Linux on their machine, and will notice
-that OSI(Linux) has no effect in 2.6.23 and later.
-
-The object here is simply to identify systems which have already
-shipped (say they were tested against Linux-2.6.22 or earlier)
-that really do require OSI(Linux).
-
-The reason we put in a BenQ DMI entry was simply to prevent
-spamming dmesg with requests for DMI info and test results
-that we already have.  I have zero interest in spamming users
-of every version of the platform's BIOS to confirm that
-they are all the same.  Indeed, I'd be more inclined to
-wildcard the DMI entries more by deleting some of the
-platforms and ignoring entire Vendors w/ a single entry --
-as the vendors tend to do the same thing on every product.
-
-thanks,
--Len
