@@ -1,45 +1,47 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] Rationalise ACPI backlight implementation
-Date: Tue, 22 Jan 2008 10:39:23 -0200
-Message-ID: <20080122123923.GC15490@khazad-dum.debian.net>
-References: <20071226020325.GA21099@srcf.ucam.org> <1200990809.7424.31.camel@acpi-sony.sh.intel.com> <20080122114605.GA23983@srcf.ucam.org>
+From: Theodore Tso <tytso@MIT.EDU>
+Subject: Re: dmidecode output from Benq notebook
+Date: Tue, 22 Jan 2008 10:29:07 -0500
+Message-ID: <20080122152907.GE17804@mit.edu>
+References: <web-7724225@backend13.aha.ru> <200801201408.40945.lenb@kernel.org> <20080121075134.GC8105@mit.edu> <200801211822.42787.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:54001 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751929AbYAVMj2 (ORCPT
+Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:56953 "EHLO
+	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752350AbYAVP3b (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jan 2008 07:39:28 -0500
+	Tue, 22 Jan 2008 10:29:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20080122114605.GA23983@srcf.ucam.org>
+In-Reply-To: <200801211822.42787.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: "Dmitry A. Marin" <corvax@corvax.ru>, linux-acpi@vger.kernel.org
 
-On Tue, 22 Jan 2008, Matthew Garrett wrote:
-> On Tue, Jan 22, 2008 at 04:33:29PM +0800, Zhang Rui wrote:
-> > I have no obvious objection on either of these two proposals.
-> > But one thing to mention is that
-> > both of these two patches is written on the assumption that the
-> > brightness levels listed in _BCL method are in ascending order, while
-> > this is not stated in the ACPI spec.
-> > Is this a problem?
+On Mon, Jan 21, 2008 at 06:22:42PM -0500, Len Brown wrote:
+> > The one thing I worry about is if you aren't including the BIOS
+> > version in the DMI list, you could end up in a situation where one
+> > version of the BIOS treats OSI(Linux) as a no-op, but a newer or an
+> > older version of the BIOS actually does something with it....
+> > 
+> > BIOS writers can be sneaky that way.  :-)
 > 
-> The driver already makes that assumption, and it's implicit in the spec.
+> I'm not worried.
+> 
+> Vendors that want to make a BIOS change to actually benefit Linux
+> will actually boot Linux on their machine, and will notice
+> that OSI(Linux) has no effect in 2.6.23 and later.
 
-Actually, no, it is not implicit.  The spec clearly states that the
-brightness values will be cycled through the ones given by that list.  It is
-implicit that brightness up actions will cycle through the list in order,
-and brightness down will cycle through the list in reverse order.
+You're giving the vendors far too much credit.  It's very likely that
+vendors will only test their BIOS on one distro kernel, probably of
+their distro partner.  So they may not notice that OSI(Linux) has no
+effect in 2.6.23 and later until it's too late (i.e., after they've
+stopped doing active firmware development on that BIOS series).
+Hence, it's critical to get the distro kernel people involved, and
+have them issue errata kernels that matches the upstream behaviour,
+and/or get whoever has back-channel connections into HP, Dell, Lenovo,
+etc., involved in talking with the firmware development folks.
+Otherwise, we can *NOT* guarantee that the right thing will happen ---
+in fact it's fairly likely it won't!
 
-If a vendor where to decide to place the most used brightness values in the
-beginning of the list, and the rest of it later, he would be allowed to do
-so.  Nobody was weird enough to do it yet though, AFAIK.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+				- Ted
