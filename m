@@ -1,47 +1,36 @@
-From: Theodore Tso <tytso@MIT.EDU>
-Subject: Re: dmidecode output from Benq notebook
-Date: Tue, 22 Jan 2008 10:29:07 -0500
-Message-ID: <20080122152907.GE17804@mit.edu>
-References: <web-7724225@backend13.aha.ru> <200801201408.40945.lenb@kernel.org> <20080121075134.GC8105@mit.edu> <200801211822.42787.lenb@kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch] PNP: disable Supermicro H8DCE motherboard resources that overlap SATA BARs
+Date: Tue, 22 Jan 2008 09:37:53 -0700
+Message-ID: <200801220937.56488.bjorn.helgaas@hp.com>
+References: <200801171603.20987.bjorn.helgaas@hp.com> <20080122014216.f59b486c.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:56953 "EHLO
-	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752350AbYAVP3b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jan 2008 10:29:31 -0500
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:41882 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051AbYAVQhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 11:37:09 -0500
+In-Reply-To: <20080122014216.f59b486c.akpm@linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200801211822.42787.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Dmitry A. Marin" <corvax@corvax.ru>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org, jeff@garzik.org, mhall@mhcomputing.net, hancockr@shaw.ca, wriede@riede.org, karl.bellve@umassmed.edu, jonstanley@gmail.com
 
-On Mon, Jan 21, 2008 at 06:22:42PM -0500, Len Brown wrote:
-> > The one thing I worry about is if you aren't including the BIOS
-> > version in the DMI list, you could end up in a situation where one
-> > version of the BIOS treats OSI(Linux) as a no-op, but a newer or an
-> > older version of the BIOS actually does something with it....
-> > 
-> > BIOS writers can be sneaky that way.  :-)
+On Tuesday 22 January 2008 02:42:16 am Andrew Morton wrote:
+> > On Thu, 17 Jan 2008 16:03:18 -0700 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > +static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
 > 
-> I'm not worried.
-> 
-> Vendors that want to make a BIOS change to actually benefit Linux
-> will actually boot Linux on their machine, and will notice
-> that OSI(Linux) has no effect in 2.6.23 and later.
+> hm.  If you trace back through the callchain here is seems that large
+> amounts of the pnp code could be made __init/__initdata.  The two callers
+> of pnp_add_device() are __init and afaict they're the only callers of the
+> quirk code?
 
-You're giving the vendors far too much credit.  It's very likely that
-vendors will only test their BIOS on one distro kernel, probably of
-their distro partner.  So they may not notice that OSI(Linux) has no
-effect in 2.6.23 and later until it's too late (i.e., after they've
-stopped doing active firmware development on that BIOS series).
-Hence, it's critical to get the distro kernel people involved, and
-have them issue errata kernels that matches the upstream behaviour,
-and/or get whoever has back-channel connections into HP, Dell, Lenovo,
-etc., involved in talking with the firmware development folks.
-Otherwise, we can *NOT* guarantee that the right thing will happen ---
-in fact it's fairly likely it won't!
+Yes, much of the PNP code could currently be __init.  But someday, we
+should be able to handle hot-plug of ACPI devices, and some of those
+will appear as PNPACPI devices.  We could at least mark stuff __devinit,
+I guess.
 
-				- Ted
+Bjorn
