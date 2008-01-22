@@ -1,36 +1,64 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch] PNP: disable Supermicro H8DCE motherboard resources that overlap SATA BARs
-Date: Tue, 22 Jan 2008 09:37:53 -0700
-Message-ID: <200801220937.56488.bjorn.helgaas@hp.com>
-References: <200801171603.20987.bjorn.helgaas@hp.com> <20080122014216.f59b486c.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Fan resume not working on nx6325 without userland assistance
+Date: Tue, 22 Jan 2008 18:14:04 +0100
+Message-ID: <200801221814.05416.rjw@sisk.pl>
+References: <200801220241.43230.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:41882 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbYAVQhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 11:37:09 -0500
-In-Reply-To: <20080122014216.f59b486c.akpm@linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:59098 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751785AbYAVRQt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jan 2008 12:16:49 -0500
+In-Reply-To: <200801220241.43230.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org, jeff@garzik.org, mhall@mhcomputing.net, hancockr@shaw.ca, wriede@riede.org, karl.bellve@umassmed.edu, jonstanley@gmail.com
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Tuesday 22 January 2008 02:42:16 am Andrew Morton wrote:
-> > On Thu, 17 Jan 2008 16:03:18 -0700 Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > +static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
+On Tuesday, 22 of January 2008, Rafael J. Wysocki wrote:
+> Hi,
 > 
-> hm.  If you trace back through the callchain here is seems that large
-> amounts of the pnp code could be made __init/__initdata.  The two callers
-> of pnp_add_device() are __init and afaict they're the only callers of the
-> quirk code?
+> It turns out that the following script (from openSUSE 10.3):
+> 
+> #############################################################
+> # triggers the ACPI fan(s) after resume. Since ACPI drivers
+> # have no suspend support, this is sometimes necessary.
+> # see http://article.gmane.org/gmane.linux.acpi.devel/16643
+> kick-fan()
+> {
+>         local FAN DUMMY STATE
+>         for FAN in /proc/acpi/fan/*/state; do
+>                 [ ! -e $FAN ] && continue
+>                 read DUMMY STATE < $FAN
+>                 if [ "$STATE" = "on" ]; then
+>                         echo "kicking $FAN"
+>                         echo -n 3 > $FAN
+>                         echo -n 0 > $FAN
+>                 fi
+>         done
+> }
+> 
+> case $1 in
+>         thaw|resume)
+>                 kick-fan
+>                 ;;
+> esac
+> 
+> is necessary to make the fan behave appropriately after a resume from RAM
+> (I haven't checked resume from hibernation, but I guess the same thing happens)
+> on HP nx6325 with 2.6.24-rc8 (and with previous kernels probably too).
+> 
+> It wasn't needed at one point, so something has regressed.  Sigh.
 
-Yes, much of the PNP code could currently be __init.  But someday, we
-should be able to handle hot-plug of ACPI devices, and some of those
-will appear as PNPACPI devices.  We could at least mark stuff __devinit,
-I guess.
+Ah, I didn't say that thermal management is completely busted after a resume
+if the fan is not kicked from the user land (using the above script).  Usually
+the fan is 100% on (that corresponds to all ACPI "fans" being on), but once it
+had gone off and I was unable to turn it on by any means (including rising the
+temperature to a dangerous level).
 
-Bjorn
+Greetings,
+Rafael
