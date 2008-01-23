@@ -1,51 +1,39 @@
-From: Sjoerd Simons <sjoerd@luon.net>
-Subject: Re: [PATCH] ACPI: battery: add sysfs serial number
-Date: Wed, 23 Jan 2008 12:15:53 +0100
-Message-ID: <20080123111552.GA14757@spring.luon.net>
-References: <20080123101832.GB4718@stro.at> <47971E8E.9060006@suse.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/3] More updates for 2.6.25
+Date: Wed, 23 Jan 2008 09:30:10 +0100
+Message-ID: <20080123083010.GB11223@elf.ucw.cz>
+References: <200801110118.46106.rjw@sisk.pl> <200801152322.33984.lenb@kernel.org> <20080116114446.GB22460@elf.ucw.cz> <200801161337.19070.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cube.ipv4.spacelabs.nl ([192.87.65.66]:59309 "EHLO
-	cube.luon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518AbYAWLfv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jan 2008 06:35:51 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:55083 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750994AbYAWMRJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Jan 2008 07:17:09 -0500
 Content-Disposition: inline
-In-Reply-To: <47971E8E.9060006@suse.de>
+In-Reply-To: <200801161337.19070.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: maximilian attems <max@stro.at>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, Jan 23, 2008 at 02:01:34PM +0300, Alexey Starikovskiy wrote:
-> maximilian attems wrote:
->> got the following question:
->> ~/src/hal$ egrep 'voltage_(max|min)_design' -r .
->> ./hald/linux/device.c:  if (hal_util_get_int_from_file (path, "voltage_max_design", &voltage_design, 10)) {
->>
->> any particular reason the kernel is calling it
->> cat /sys/class/power_supply/BAT0/voltage_min_design 14400000
->>
->> shall i send in a patch along the line:
->> -       case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
->> +       case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
->>                 val->intval = battery->design_voltage * 1000;
->>
->> or is it hal beeing silly?
->>
-> On most new batteries design voltage is less than current voltage, thus I've chosen VOLTAGE_MIN_DESIGN.
-> On older batteries, current voltage may become lower than design, so I 
-> think hal should not be very strict about how they relate to each other. 
+On Wed 2008-01-16 13:37:18, Rafael J. Wysocki wrote:
+> On Wednesday, 16 of January 2008, Pavel Machek wrote:
+> > On Tue 2008-01-15 23:22:33, Len Brown wrote:
+> > > On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
+> > > > Len,
+> > > > 
+> > > > Please add the following three patches to the suspend branch.
+> > > 
+> > > Applied (and suspend branch has been re-based to latest linus tree)
+> > 
+> > Was that "lets reorder notifications, old order was more logical, but
+> > it fixes apm?" series?
+> 
+> Yes, plus the docs update from Dave Brownell.
 
-I'll patch up hal to use voltage_min_design if there is no voltage_max_design
-available. Which should be fine as we already picked up the same value from
-procfs for this property.
+Can we stop that reordering? I do not think it is such a good idea.
 
-What it does make me wonder about, is why there is a difference between MIN and
-MAX in the power_supply class. As this doesn't seem to have a strict meaning
-(or at least not for ACPI). So why not just voltage_design instead ?
-
-  Sjoerd
 -- 
-The solution to a problem changes the nature of the problem.
-		-- Peer
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
