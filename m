@@ -1,47 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/3] More updates for 2.6.25
-Date: Wed, 23 Jan 2008 16:10:03 +0100
-Message-ID: <200801231610.04820.rjw@sisk.pl>
-References: <200801110118.46106.rjw@sisk.pl> <20080123083010.GB11223@elf.ucw.cz> <200801231605.39598.rjw@sisk.pl>
+From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: RE: [PATCH 9/10] introduce intel_menlow platform specific driver
+Date: Wed, 23 Jan 2008 16:58:12 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0801231656350.12676@fbirervta.pbzchgretzou.qr>
+References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com>
+ <20080121095331.GA5333@infradead.org> <05B550FD4BD2014E841D83547B6260080281AE80@bgsmsx411.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36057 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751392AbYAWPMU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jan 2008 10:12:20 -0500
-In-Reply-To: <200801231605.39598.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38450 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114AbYAWP6N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jan 2008 10:58:13 -0500
+In-Reply-To: <05B550FD4BD2014E841D83547B6260080281AE80@bgsmsx411.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Thomas, Sujith" <sujith.thomas@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>, "Zhang, Rui" <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 
-On Wednesday, 23 of January 2008, Rafael J. Wysocki wrote:
-> On Wednesday, 23 of January 2008, Pavel Machek wrote:
-> > On Wed 2008-01-16 13:37:18, Rafael J. Wysocki wrote:
-> > > On Wednesday, 16 of January 2008, Pavel Machek wrote:
-> > > > On Tue 2008-01-15 23:22:33, Len Brown wrote:
-> > > > > On Thursday 10 January 2008 19:18, Rafael J. Wysocki wrote:
-> > > > > > Len,
-> > > > > > 
-> > > > > > Please add the following three patches to the suspend branch.
-> > > > > 
-> > > > > Applied (and suspend branch has been re-based to latest linus tree)
-> > > > 
-> > > > Was that "lets reorder notifications, old order was more logical, but
-> > > > it fixes apm?" series?
-> > > 
-> > > Yes, plus the docs update from Dave Brownell.
-> > 
-> > Can we stop that reordering? I do not think it is such a good idea.
-> 
-> In this particular case it's needed to unbreak the APM emulation and it
-> certainly is not a good idea to have two different orderings of the notifiers
-> vs the freezer
 
-Sorry, s/notifiers vs the freezer/console switch vs the notifiers/
+On Jan 21 2008 19:49, Thomas, Sujith wrote:
+>>> 
+>>> +MODULE_AUTHOR("Thomas Sujith");
+>>> +MODULE_AUTHOR("Zhang Rui");
+>> 
+>> I've never seen a driver with two MODULE_AUTHOR statements before.
+>> Does this actually work?  What does modinfo -F author say for your module?
+>
+>There is nothing wrong in giving 2 MODULE_AUTHORS. Both will be
+>displayed in the command modinfo -F author.
 
-> (hence the second patch in the series).
+Coding-wise, it is no problem. MODULE_* gets transformed into char
+__mod_*line, so as long as you have the two MODULE_AUTHOR() macros on
+different lines, it will work.
+
+It is cool to actually see this working out-of-the-box with modinfo
+too (even without the -F option). Could decouple a few AUTHOR lines.
