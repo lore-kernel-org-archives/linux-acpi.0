@@ -1,72 +1,49 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmidecode of HP Pavilion tx 1000
-Date: Wed, 23 Jan 2008 00:47:33 -0500
-Message-ID: <200801230047.34100.lenb@kernel.org>
-References: <1190315351.3790.8.camel@lebioda> <200801182307.47527.lenb@kernel.org> <a54231290801221324g5a83e199l28919e775726a074@mail.gmail.com>
+Subject: Re: Boot message: "kernel: Please send dmidecode to linux-acpi@vger.kernel.org" - FSC AMILO Xi 1546
+Date: Wed, 23 Jan 2008 00:51:39 -0500
+Message-ID: <200801230051.39298.lenb@kernel.org>
+References: <1198940496.17999.2.camel@pluton> <200801190112.23196.lenb@kernel.org> <1201038751.14807.5.camel@pluton>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:59896 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:42855 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076AbYAWFrr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jan 2008 00:47:47 -0500
-In-Reply-To: <a54231290801221324g5a83e199l28919e775726a074@mail.gmail.com>
+	id S1753335AbYAWFvv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Jan 2008 00:51:51 -0500
+In-Reply-To: <1201038751.14807.5.camel@pluton>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jakub Ambrozewicz <jakub.ambrozewicz@googlemail.com>
+To: =?utf-8?q?J=C3=A9r=C3=B4me_UZEL?= <jerome.uzel@wanadoo.fr>
 Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 22 January 2008 16:24, Jakub Ambrozewicz wrote:
-> 2008/1/19, Len Brown <lenb@kernel.org>:
-> >
-> > Thanks for the dmidecode output.
-> 
-> No problem. It's rather me who should thank for your work. So I do:
-> Big Thanks. :)
-> 
-> > Do you notice any functional difference when booting with
-> >
-> > "acpi_osi=Linux"        (default for 2.6.22 and earlier)
-> > vs.
-> > "acpi_osi=!Linux"       (default for 2.6.23 and later)
-> >
-> > Also, please send me the output from acpidump.
-> 
-> I am really sorry that it took so long, but here they are.
-> Hand made 2.6.23.14 (config attached). I have not noticed any
-> differences  between using Linux and !Linux
-> I still need to use nolapic because systems hangs on bootup while
-> setting the system clock. I suspect it has something to do with
-> interrupts, and tried irqpoll irqdebug acpi_irq_balance but it did not
-> help a lot. Since then I haven't done much testing.
-> One thing has changed since I last checked: the suspend to ram now
-> works, but works both on "Linux" and "!Linux".
-> 
-> I am also attaching dmidecode again, as I have upgraded the bios to
-> F.1C and I do not know if it changes anything.
-> 
 
-Thanks for the acpidump.
-It shows that OSI(Linux) will have absolutely no effect
-on the tx 1000 -- because the OSYS value that it effects
-gets immediately over-written by the values associated
-with Windows before it is accessed.
+> > > > System Information
+> > > > 	Manufacturer: FUJITSU SIEMENS
+> > > > 	Product Name: AMILO Xi 1546
+> > > > 	Version: Not Applicable
+> > > > 	Serial Number: 720056C3
+> > > > 	UUID: 8012A1C5-4264-0010-ABDB-D1748A8F1498
+> > > > 	Wake-up Type: Power Switch
+> > > > 	SKU Number: Not Specified
+> > > > 	Family: Not Specified
+> > > > 
 
-thanks,
+thanks for the acpidump, it confirms that OSI(Linux) is a NOP on this system.
+
 -Len
 
 
-                If (CondRefOf (\_OSI, Local0))
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (_OSI ("Linux"))
                 {
-                    If (\_OSI ("Linux"))
-                    {
-                        Store (0x03E8, OSYS)
-                    }
+                    Store (0x03E8, OSYS)
+                }
 
-                    If (\_OSI ("Windows 2001"))
-                    {
-                        Store (0x07D1, OSYS)
-                    }
+                If (_OSI ("Windows 2001"))
+                {
+                    Store (0x07D1, OSYS)
+                }
