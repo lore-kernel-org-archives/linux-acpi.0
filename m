@@ -1,16 +1,16 @@
 From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: [PATCH 4/4] PCI: Run ACPI _OSC method on root bridges only
-Date: Tue, 22 Jan 2008 17:18:27 -0700
-Message-ID: <20080123001827.28190.7908.stgit@bluto.andrew>
+Subject: [PATCH 3/4] ACPI: Check for any matching CID when walking namespace.
+Date: Tue, 22 Jan 2008 17:18:22 -0700
+Message-ID: <20080123001822.28190.3147.stgit@bluto.andrew>
 References: <20080123001807.28190.32648.stgit@bluto.andrew>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:6182 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbYAWAS3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 19:18:29 -0500
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:9104 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913AbYAWASY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jan 2008 19:18:24 -0500
 In-Reply-To: <20080123001807.28190.32648.stgit@bluto.andrew>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,50 +19,51 @@ Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, gregkh@suse.de, matthew@wil.c
 
 From: Andrew Patterson <andrew.patterson@hp.com>
 
-According to the PCI Firmware Specification Revision 3.0 section 4.5, _OSC
-should only be called on a root brdige.  Here is the relevant passage: "The
-_OSC interface defined in this section applies only to Host Bridge ACPI
-devices that originate PCI, PCI-X, or PCI Express hierarchies". Changed the
-code to find the parent root bridge of the device and call _OSC on that.
+The callback function acpi_ns_get_device_callback called from
+acpi_get_devices() will check CID's if the HID does not match.  This code
+has a bug where it requires that all CIDs match the HID. Changed the code
+so that any CID match will do.
 
 Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
 ---
 
- drivers/pci/pcie/aer/aerdrv_acpi.c |   22 ++++++----------------
- 1 files changed, 6 insertions(+), 16 deletions(-)
+ drivers/acpi/namespace/nsxfeval.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index f685bf5..8c199ae 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -31,23 +31,13 @@ int aer_osc_setup(struct pcie_device *pciedev)
- {
- 	acpi_status status = AE_NOT_FOUND;
- 	struct pci_dev *pdev = pciedev->port;
--	acpi_handle handle = DEVICE_ACPI_HANDLE(&pdev->dev);
--	struct pci_bus *parent;
-+	acpi_handle handle = 0;
+diff --git a/drivers/acpi/namespace/nsxfeval.c b/drivers/acpi/namespace/nsxfeval.c
+index f39fbc6..e562b24 100644
+--- a/drivers/acpi/namespace/nsxfeval.c
++++ b/drivers/acpi/namespace/nsxfeval.c
+@@ -443,6 +443,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
+ 	struct acpica_device_id hid;
+ 	struct acpi_compatible_id_list *cid;
+ 	acpi_native_uint i;
++	int found;
  
--	while (!handle) {
--		if (!pdev || !pdev->bus->parent)
--			break;
--		parent = pdev->bus->parent;
--		if (!parent->self)
--			/* Parent must be a host bridge */
--			handle = acpi_get_pci_rootbridge_handle(
--					pci_domain_nr(parent),
--					parent->number);
--		else
--			handle = DEVICE_ACPI_HANDLE(
--					&(parent->self->dev));
--		pdev = parent->self;
--	}
-+	/* Find root host bridge */
-+	while (pdev->bus && pdev->bus->self)
-+		pdev = pdev->bus->self;
-+	handle = acpi_get_pci_rootbridge_handle(
-+		pci_domain_nr(pdev->bus), pdev->bus->number);
+ 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+ 	if (ACPI_FAILURE(status)) {
+@@ -496,16 +497,20 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
  
- 	if (handle) {
- 		pcie_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
+ 			/* Walk the CID list */
+ 
++			found = 0;
+ 			for (i = 0; i < cid->count; i++) {
+ 				if (ACPI_STRNCMP(cid->id[i].value, info->hid,
+ 						 sizeof(struct
+-							acpi_compatible_id)) !=
++							acpi_compatible_id)) ==
+ 				    0) {
+-					ACPI_FREE(cid);
+-					return (AE_OK);
++					found = 1;
++					break;
+ 				}
+ 			}
+ 			ACPI_FREE(cid);
++			if (!found) {
++				return (AE_OK);
++			}
+ 		}
+ 	}
+ 
 
