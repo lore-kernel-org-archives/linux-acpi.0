@@ -1,39 +1,79 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 3/4] ACPI: Check for any matching CID when walking
-	namespace.
-Date: Wed, 23 Jan 2008 09:42:53 -0800
-Message-ID: <20080123174253.GA10387@kroah.com>
-References: <20080123001807.28190.32648.stgit@bluto.andrew> <20080123001822.28190.3147.stgit@bluto.andrew>
+From: Alex Chiang <achiang@hp.com>
+Subject: ACPI processor hotplug broken?
+Date: Wed, 23 Jan 2008 11:12:16 -0700
+Message-ID: <20080123181216.GE11311@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:56644 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757180AbYAWRvQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jan 2008 12:51:16 -0500
+Return-path: <linux-hotplug-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080123001822.28190.3147.stgit@bluto.andrew>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-hotplug-owner@vger.kernel.org
+To: lenb@kernel.org, tony.luck@intel.com, anil.s.keshavamurthy@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Patterson <andrew.patterson@hp.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, gregkh@suse.de, matthew@wil.cx, tom.l.nguyen@intel.com, linux-acpi@vger.kernel.org
 
-On Tue, Jan 22, 2008 at 05:18:22PM -0700, Andrew Patterson wrote:
-> From: Andrew Patterson <andrew.patterson@hp.com>
-> 
-> The callback function acpi_ns_get_device_callback called from
-> acpi_get_devices() will check CID's if the HID does not match.  This code
-> has a bug where it requires that all CIDs match the HID. Changed the code
-> so that any CID match will do.
-> 
-> Signed-off-by: Andrew Patterson <andrew.patterson@hp.com>
-> ---
-> 
->  drivers/acpi/namespace/nsxfeval.c |   11 ++++++++---
->  1 files changed, 8 insertions(+), 3 deletions(-)
+Is anyone out there successfully using the ACPI processor driver
+and CPU hotplug? I've been playing with it for the past few days,
+and it *almost* works on my platform (ia64), but not quite.
 
-This should probably go through the ACPI tree, not the PCI tree, right?
+I can offline/online a CPU successfully via the sysfs interface.
+It's when I try and add ACPI into the mix that stuff starts going
+wonky.
 
-thanks,
+My understanding of reading the code and the stuff in
+Documentation/cpu-hotplug.txt is that what should be happening is
+this:
 
-greg k-h
+	- firmware sends ACPI_NOTIFY_BUS_CHECK or
+	  ACPI_NOTIFY_EJECT_REQUEST events to
+	  acpi_processor_hotplug_notify.
+
+	- if we got an eject request, simply emit a cpu offline
+	  uevent and let a udev script do the right thing (in
+	  this case, echo 0 > /sys/devices/system/cpu/cpuX/online)
+
+	- if we got a bus/device check, it gets a little hairier,
+	  since the notify handler seems like it's going to
+	  toggle the state of the cpu.
+
+	  	- first, try to find the cpu on the bus. If it
+		  does not exist, then call acpi_processor_device_add
+		  and we're done (after emitting a cpu online
+		  uevent)
+
+		- else, we've found the cpu on the bus, so then
+		  check to see if its id is in the range of
+		  acceptable values. If so, we assume that it's
+		  online, and that we want to offline it, so emit
+		  a cpu offline uevent
+
+		- if cpu is on the bus, but id is outside range
+		  of acceptable values, then call acpi_processor_start
+		  and emit a cpu online uevent
+
+Where I'm running into difficulty is in the bus/device check
+logic if the CPU has already been offlined via sysfs.
+
+For some reason, the call to acpi_bus_get_device() succeeds, so
+the "toggle" logic inside acpi_processor_hotplug_notify() thinks
+that we want to offline the CPU, rather than onlining it.
+
+We keep emitting cpu offline uevents, but really, we should be
+emitting cpu online uevents.
+
+So something seems off, and at this point, the possibilities I
+can see are:
+
+	- at some point during the sysfs offline process
+	  (cpu_down and friends), platform code should have
+	  removed the ACPI CPU device from the bus
+
+	- the toggle logic inside acpi_processor_hotplug_notify
+	  is broken, and the call to acpi_bus_get_device is bogus
+
+Anyone have any hints? Anyone using this successfully? Poking
+around in the x86/ tree wasn't very informative for me.
+
+Thanks.
+
+/ac
+
