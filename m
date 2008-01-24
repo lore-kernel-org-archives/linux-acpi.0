@@ -1,98 +1,100 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Rationalise ACPI backlight implementation
-Date: Thu, 24 Jan 2008 16:44:48 -0500
-Message-ID: <200801241644.49114.lenb@kernel.org>
-References: <20071226020325.GA21099@srcf.ucam.org>
+Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
+Date: Thu, 24 Jan 2008 17:21:17 -0500
+Message-ID: <200801241721.17436.lenb@kernel.org>
+References: <1197032113.28990.155.camel@queen.suse.de> <20080117031154.GA26703@srcf.ucam.org> <20080117033936.GB26703@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36663 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:50937 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753059AbYAXVpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jan 2008 16:45:04 -0500
-In-Reply-To: <20071226020325.GA21099@srcf.ucam.org>
+	id S1752580AbYAXWWM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jan 2008 17:22:12 -0500
+In-Reply-To: <20080117033936.GB26703@srcf.ucam.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On Tuesday 25 December 2007 21:03, Matthew Garrett wrote:
-> The sysfs backlight class provides no mechanism for querying the 
-> acceptable brightness for a backlight. The ACPI spec states that values 
-> are only valid if they are reported as available by the firmware. Since 
-> we can't provide that information to userspace, instead collapse the 
-> range to the number of actual values that can be set.
+On Wednesday 16 January 2008 22:39, Matthew Garrett wrote:
+> Vendors often ship machines with a choice of integrated or discrete 
+> graphics, and use the same DSDT for both. As a result, the ACPI video 
+> module will locate devices that may not exist on this specific platform. 
+> Attempt to determine whether the device exists or not, and abort the 
+> device creation if it doesn't.
 > 
 > Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> 
+> ---
+> 
+> I'm still not convinced that this can be done reliably, especially if 
+> anyone ever produces ACPI devices that aren't PCI-based. On the other 
+> hand, I believe that this will work correctly (ie, discard devices for 
+> integrated hardware if discrete hardware is present, and vice-versa) in 
+> all existing cases. The most irritating feature is that there's no good 
+> way to determine if an _ADR method refers to a PCI device or not - 0x00 
+> could mean the PCI host bridge or the first video device hanging off an 
+> AGP bridge. So far all the implementations I've seen use low numbers for 
+> devices that aren't directly on the root PCI bus, so I've just assumed 
+> that they'll always be less than 0x10000. If someone puts a graphics 
+> core in their host bridge, this will break. But that would seem a mad 
+> thing to do, so I'm going to pretend it's impossible.
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 12b2adb..1906eff 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -1266,8 +1266,37 @@ acpi_video_bus_write_DOS(struct file *file,
+>  
+>  static int acpi_video_bus_add_fs(struct acpi_device *device)
+>  {
+> +	long device_id;
+> +	int status;
+>  	struct proc_dir_entry *entry = NULL;
+>  	struct acpi_video_bus *video;
+> +	struct device *dev;
+> +	
+> +	status =
+> +	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
+> +
+> +	if (!ACPI_SUCCESS(status))
+> +		return -ENODEV;
+> +
+> +	/* We need to attempt to determine whether the _ADR refers to a
+> +	   PCI device or not. There's no terribly good way to do this,
+> +	   so the best we can hope for is to assume that there'll never
+> +	   be a video device in the host bridge */
 
-I wish we did this in the first place.
-But doing it now is an API change -- since
-with the old way 100 always meant 100% brightness, yes?
-
-so my concern is that if we change what "10" means, somebody like akpm
-with an existing script gets grumpy.
+_ADR returns a bus-specific format.
+In the case of a video device, section B.6.1 says that
+_ADR returns a 32-bit device ID, and that
+it is the same number as returned in the _DOD list.
+That is the only constraint.
+So I don't think you can use the numerical value returned
+to have any particular meaning at all.
+In particular, comparing it to magic number 0x10000 makes no sense.
 
 -Len
 
-> ---
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 521645e..12b2adb 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -296,18 +296,26 @@ static int acpi_video_device_set_state(struct acpi_video_device *device, int sta
->  static int acpi_video_get_brightness(struct backlight_device *bd)
->  {
->  	unsigned long cur_level;
-> +	int i;
->  	struct acpi_video_device *vd =
->  		(struct acpi_video_device *)bl_get_data(bd);
->  	acpi_video_device_lcd_get_level_current(vd, &cur_level);
-> -	return (int) cur_level;
-> +	for (i=2; i<vd->brightness->count; i++) {
-> +		if (vd->brightness->levels[i] == cur_level)
-> +			/* The first two entries are special - see page 575
-> +			   of the ACPI spec 3.0 */
-> +			return i-2;
+> +	if (device_id >= 0x10000) {
+> +		/* It looks like a PCI device. Does it exist? */
+> +		dev = acpi_get_physical_device(device->handle);
+> +	} else {
+> +		/* It doesn't look like a PCI device. Does its parent
+> +		   exist? */
+> +		acpi_handle phandle;
+> +		if (acpi_get_parent(device->handle, &phandle))
+> +			return -ENODEV;
+> +		dev = acpi_get_physical_device(phandle);
 > +	}
-> +	return 0;
->  }
+> +	if (!dev)
+> +		return -ENODEV;
+> +	put_device(dev);
+> +
 >  
->  static int acpi_video_set_brightness(struct backlight_device *bd)
->  {
-> -	int request_level = bd->props.brightness;
-> +	int request_level = bd->props.brightness+2;
->  	struct acpi_video_device *vd =
->  		(struct acpi_video_device *)bl_get_data(bd);
-> -	acpi_video_device_lcd_set_level(vd, request_level);
-> +	acpi_video_device_lcd_set_level(vd, 
-> +					vd->brightness->levels[request_level]);
->  	return 0;
->  }
 >  
-> @@ -656,7 +664,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
->  	kfree(obj);
->  
->  	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
-> -		unsigned long tmp;
->  		static int count = 0;
->  		char *name;
->  		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-> @@ -664,11 +671,10 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
->  			return;
->  
->  		sprintf(name, "acpi_video%d", count++);
-> -		acpi_video_device_lcd_get_level_current(device, &tmp);
->  		device->backlight = backlight_device_register(name,
->  			NULL, device, &acpi_backlight_ops);
-> -		device->backlight->props.max_brightness = max_level;
-> -		device->backlight->props.brightness = (int)tmp;
-> +		device->backlight->props.max_brightness = device->brightness->count-3;
-> +		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
->  		backlight_update_status(device->backlight);
->  
->  		kfree(name);
+>  	video = acpi_driver_data(device);
 > 
