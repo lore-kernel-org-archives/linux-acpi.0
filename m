@@ -1,100 +1,204 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Thu, 24 Jan 2008 17:21:17 -0500
-Message-ID: <200801241721.17436.lenb@kernel.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <20080117031154.GA26703@srcf.ucam.org> <20080117033936.GB26703@srcf.ucam.org>
+From: Bernhard Gehl <bernhard.gehl@gmx.net>
+Subject: dmidecode info LG-S1pro MDGDG
+Date: Thu, 24 Jan 2008 23:41:10 +0100
+Message-ID: <1201214470.7140.2.camel@Magnesium>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-+Czrde0Qp2fq0/iWtXz/"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50937 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580AbYAXWWM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jan 2008 17:22:12 -0500
-In-Reply-To: <20080117033936.GB26703@srcf.ucam.org>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:43686 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754994AbYAXWmS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jan 2008 17:42:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday 16 January 2008 22:39, Matthew Garrett wrote:
-> Vendors often ship machines with a choice of integrated or discrete 
-> graphics, and use the same DSDT for both. As a result, the ACPI video 
-> module will locate devices that may not exist on this specific platform. 
-> Attempt to determine whether the device exists or not, and abort the 
-> device creation if it doesn't.
-> 
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-> 
-> ---
-> 
-> I'm still not convinced that this can be done reliably, especially if 
-> anyone ever produces ACPI devices that aren't PCI-based. On the other 
-> hand, I believe that this will work correctly (ie, discard devices for 
-> integrated hardware if discrete hardware is present, and vice-versa) in 
-> all existing cases. The most irritating feature is that there's no good 
-> way to determine if an _ADR method refers to a PCI device or not - 0x00 
-> could mean the PCI host bridge or the first video device hanging off an 
-> AGP bridge. So far all the implementations I've seen use low numbers for 
-> devices that aren't directly on the root PCI bus, so I've just assumed 
-> that they'll always be less than 0x10000. If someone puts a graphics 
-> core in their host bridge, this will break. But that would seem a mad 
-> thing to do, so I'm going to pretend it's impossible.
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 12b2adb..1906eff 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1266,8 +1266,37 @@ acpi_video_bus_write_DOS(struct file *file,
->  
->  static int acpi_video_bus_add_fs(struct acpi_device *device)
->  {
-> +	long device_id;
-> +	int status;
->  	struct proc_dir_entry *entry = NULL;
->  	struct acpi_video_bus *video;
-> +	struct device *dev;
-> +	
-> +	status =
-> +	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-> +
-> +	if (!ACPI_SUCCESS(status))
-> +		return -ENODEV;
-> +
-> +	/* We need to attempt to determine whether the _ADR refers to a
-> +	   PCI device or not. There's no terribly good way to do this,
-> +	   so the best we can hope for is to assume that there'll never
-> +	   be a video device in the host bridge */
 
-_ADR returns a bus-specific format.
-In the case of a video device, section B.6.1 says that
-_ADR returns a 32-bit device ID, and that
-it is the same number as returned in the _DOD list.
-That is the only constraint.
-So I don't think you can use the numerical value returned
-to have any particular meaning at all.
-In particular, comparing it to magic number 0x10000 makes no sense.
+--=-+Czrde0Qp2fq0/iWtXz/
+Content-Type: multipart/mixed; boundary="=-PmobV0EBQdCblJ8F2I5h"
 
--Len
 
-> +	if (device_id >= 0x10000) {
-> +		/* It looks like a PCI device. Does it exist? */
-> +		dev = acpi_get_physical_device(device->handle);
-> +	} else {
-> +		/* It doesn't look like a PCI device. Does its parent
-> +		   exist? */
-> +		acpi_handle phandle;
-> +		if (acpi_get_parent(device->handle, &phandle))
-> +			return -ENODEV;
-> +		dev = acpi_get_physical_device(phandle);
-> +	}
-> +	if (!dev)
-> +		return -ENODEV;
-> +	put_device(dev);
-> +
->  
->  
->  	video = acpi_driver_data(device);
-> 
+--=-PmobV0EBQdCblJ8F2I5h
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I 've been running Linux on my LG S1pro MDGDG Laptop for some time and
+only now I noticed that the kernel is begging me to send some dmi
+information to its makers - which I am doing now. :-)
+
+If there are any further ways I can be helpful in, feel free to contact
+me!
+
+Regards,
+Bernhard Gehl
+
+--=-PmobV0EBQdCblJ8F2I5h
+Content-Disposition: attachment; filename=dmidecode_LG-S1pro-Express-Dual.log
+Content-Type: text/x-log; name=dmidecode_LG-S1pro-Express-Dual.log; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+IyBkbWlkZWNvZGUgMi45DQpTTUJJT1MgMi40IHByZXNlbnQuDQozMCBzdHJ1Y3R1cmVzIG9jY3Vw
+eWluZyA5ODAgYnl0ZXMuDQpUYWJsZSBhdCAweDAwMERDMDEwLg0KDQpIYW5kbGUgMHgwMDAwLCBE
+TUkgdHlwZSAwLCAyNCBieXRlcw0KQklPUyBJbmZvcm1hdGlvbg0KCVZlbmRvcjogUGhvZW5peCBU
+ZWNobm9sb2dpZXMgTFREDQoJVmVyc2lvbjogUktZV1NGMzMNCglSZWxlYXNlIERhdGU6IDA5LzE5
+LzIwMDcNCglBZGRyZXNzOiAweEU1MkQwDQoJUnVudGltZSBTaXplOiAxMDk4NzIgYnl0ZXMNCglS
+T00gU2l6ZTogMTAyNCBrQg0KCUNoYXJhY3RlcmlzdGljczoNCgkJSVNBIGlzIHN1cHBvcnRlZA0K
+CQlQQ0kgaXMgc3VwcG9ydGVkDQoJCVBDIENhcmQgKFBDTUNJQSkgaXMgc3VwcG9ydGVkDQoJCVBO
+UCBpcyBzdXBwb3J0ZWQNCgkJQklPUyBpcyB1cGdyYWRlYWJsZQ0KCQlCSU9TIHNoYWRvd2luZyBp
+cyBhbGxvd2VkDQoJCUVTQ0Qgc3VwcG9ydCBpcyBhdmFpbGFibGUNCgkJQm9vdCBmcm9tIENEIGlz
+IHN1cHBvcnRlZA0KCQlTZWxlY3RhYmxlIGJvb3QgaXMgc3VwcG9ydGVkDQoJCUVERCBpcyBzdXBw
+b3J0ZWQNCgkJQUNQSSBpcyBzdXBwb3J0ZWQNCgkJVVNCIGxlZ2FjeSBpcyBzdXBwb3J0ZWQNCgkJ
+QklPUyBib290IHNwZWNpZmljYXRpb24gaXMgc3VwcG9ydGVkDQoJCVRhcmdldGVkIGNvbnRlbnQg
+ZGlzdHJpYnV0aW9uIGlzIHN1cHBvcnRlZA0KDQpIYW5kbGUgMHgwMDAxLCBETUkgdHlwZSAxLCAy
+NyBieXRlcw0KU3lzdGVtIEluZm9ybWF0aW9uDQoJTWFudWZhY3R1cmVyOiBMRyBFbGVjdHJvbmlj
+cw0KCVByb2R1Y3QgTmFtZTogUzEtTURHREcNCglWZXJzaW9uOiBOb3QgQXBwbGljYWJsZQ0KCVNl
+cmlhbCBOdW1iZXI6IDYxMUtJS1gwMDg5OTcNCglVVUlEOiA4MDBBRURCNC0xOTY0LTAwMTAtQTI4
+Mi1GODQ4OTMwOUVGQ0MNCglXYWtlLXVwIFR5cGU6IFBvd2VyIFN3aXRjaA0KCVNLVSBOdW1iZXI6
+IE5vdCBTcGVjaWZpZWQNCglGYW1pbHk6IE5vdCBTcGVjaWZpZWQNCg0KSGFuZGxlIDB4MDAwMiwg
+RE1JIHR5cGUgMiwgOCBieXRlcw0KQmFzZSBCb2FyZCBJbmZvcm1hdGlvbg0KCU1hbnVmYWN0dXJl
+cjogTEcgRWxlY3Ryb25pY3MNCglQcm9kdWN0IE5hbWU6IFJPQ0tZDQoJVmVyc2lvbjogTm90IEFw
+cGxpY2FibGUNCglTZXJpYWwgTnVtYmVyOiBOb3QgQXBwbGljYWJsZQ0KDQpIYW5kbGUgMHgwMDAz
+LCBETUkgdHlwZSAzLCAxNyBieXRlcw0KQ2hhc3NpcyBJbmZvcm1hdGlvbg0KCU1hbnVmYWN0dXJl
+cjogTEcgRWxlY3Ryb25pY3MNCglUeXBlOiBOb3RlYm9vaw0KCUxvY2s6IE5vdCBQcmVzZW50DQoJ
+VmVyc2lvbjogTi9BDQoJU2VyaWFsIE51bWJlcjogTm9uZQ0KCUFzc2V0IFRhZzogTm8gQXNzZXQg
+VGFnDQoJQm9vdC11cCBTdGF0ZTogU2FmZQ0KCVBvd2VyIFN1cHBseSBTdGF0ZTogU2FmZQ0KCVRo
+ZXJtYWwgU3RhdGU6IFNhZmUNCglTZWN1cml0eSBTdGF0dXM6IE5vbmUNCglPRU0gSW5mb3JtYXRp
+b246IDB4MDAwMDEyMzQNCg0KSGFuZGxlIDB4MDAwNCwgRE1JIHR5cGUgNCwgMzUgYnl0ZXMNClBy
+b2Nlc3NvciBJbmZvcm1hdGlvbg0KCVNvY2tldCBEZXNpZ25hdGlvbjogVTENCglUeXBlOiBDZW50
+cmFsIFByb2Nlc3Nvcg0KCUZhbWlseTogT3RoZXINCglNYW51ZmFjdHVyZXI6IEludGVsDQoJSUQ6
+IEY2IDA2IDAwIDAwIEZGIEZCIEVCIEJGDQoJVmVyc2lvbjogSW50ZWwoUikgQ29yZShUTSkyIENQ
+VSAgICAgICAgIFQ3DQoJVm9sdGFnZTogMS4yIFYNCglFeHRlcm5hbCBDbG9jazogVW5rbm93bg0K
+CU1heCBTcGVlZDogMjE2MCBNSHoNCglDdXJyZW50IFNwZWVkOiAyMDAwIE1Ieg0KCVN0YXR1czog
+UG9wdWxhdGVkLCBFbmFibGVkDQoJVXBncmFkZTogU2xvdCAxDQoJTDEgQ2FjaGUgSGFuZGxlOiAw
+eDAwMDUNCglMMiBDYWNoZSBIYW5kbGU6IDB4MDAwNg0KCUwzIENhY2hlIEhhbmRsZTogTm90IFBy
+b3ZpZGVkDQoJU2VyaWFsIE51bWJlcjogTm90IFNwZWNpZmllZA0KCUFzc2V0IFRhZzogTm90IFNw
+ZWNpZmllZA0KCVBhcnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkDQoNCkhhbmRsZSAweDAwMDUsIERN
+SSB0eXBlIDcsIDE5IGJ5dGVzDQpDYWNoZSBJbmZvcm1hdGlvbg0KCVNvY2tldCBEZXNpZ25hdGlv
+bjogTDEgQ2FjaGUNCglDb25maWd1cmF0aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMQ0K
+CU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRlIEJhY2sNCglMb2NhdGlvbjogSW50ZXJuYWwNCglJbnN0
+YWxsZWQgU2l6ZTogMzIgS0INCglNYXhpbXVtIFNpemU6IDMyIEtCDQoJU3VwcG9ydGVkIFNSQU0g
+VHlwZXM6DQoJCUJ1cnN0DQoJCVBpcGVsaW5lIEJ1cnN0DQoJCUFzeW5jaHJvbm91cw0KCUluc3Rh
+bGxlZCBTUkFNIFR5cGU6IEFzeW5jaHJvbm91cw0KCVNwZWVkOiBVbmtub3duDQoJRXJyb3IgQ29y
+cmVjdGlvbiBUeXBlOiBVbmtub3duDQoJU3lzdGVtIFR5cGU6IFVua25vd24NCglBc3NvY2lhdGl2
+aXR5OiBVbmtub3duDQoNCkhhbmRsZSAweDAwMDYsIERNSSB0eXBlIDcsIDE5IGJ5dGVzDQpDYWNo
+ZSBJbmZvcm1hdGlvbg0KCVNvY2tldCBEZXNpZ25hdGlvbjogTDIgQ2FjaGUNCglDb25maWd1cmF0
+aW9uOiBFbmFibGVkLCBTb2NrZXRlZCwgTGV2ZWwgMg0KCU9wZXJhdGlvbmFsIE1vZGU6IFdyaXRl
+IEJhY2sNCglMb2NhdGlvbjogRXh0ZXJuYWwNCglJbnN0YWxsZWQgU2l6ZTogNDA5NiBLQg0KCU1h
+eGltdW0gU2l6ZTogMjA0OCBLQg0KCVN1cHBvcnRlZCBTUkFNIFR5cGVzOg0KCQlCdXJzdA0KCQlQ
+aXBlbGluZSBCdXJzdA0KCQlBc3luY2hyb25vdXMNCglJbnN0YWxsZWQgU1JBTSBUeXBlOiBCdXJz
+dA0KCVNwZWVkOiBVbmtub3duDQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBVbmtub3duDQoJU3lz
+dGVtIFR5cGU6IFVua25vd24NCglBc3NvY2lhdGl2aXR5OiBVbmtub3duDQoNCkhhbmRsZSAweDAw
+MDcsIERNSSB0eXBlIDksIDEzIGJ5dGVzDQpTeXN0ZW0gU2xvdCBJbmZvcm1hdGlvbg0KCURlc2ln
+bmF0aW9uOiBQQ0kgRXhwcmVzcyBTbG90DQoJVHlwZTogMzItYml0IFBDSSBFeHByZXNzDQoJQ3Vy
+cmVudCBVc2FnZTogQXZhaWxhYmxlDQoJTGVuZ3RoOiBMb25nDQoJSUQ6IDgNCglDaGFyYWN0ZXJp
+c3RpY3M6DQoJCTUuMCBWIGlzIHByb3ZpZGVkDQoJCTMuMyBWIGlzIHByb3ZpZGVkDQoNCkhhbmRs
+ZSAweDAwMDgsIERNSSB0eXBlIDEwLCA2IGJ5dGVzDQpPbiBCb2FyZCBEZXZpY2UgSW5mb3JtYXRp
+b24NCglUeXBlOiBTb3VuZA0KCVN0YXR1czogRGlzYWJsZWQNCglEZXNjcmlwdGlvbjogSEQtQXVk
+aW8NCg0KSGFuZGxlIDB4MDAwOSwgRE1JIHR5cGUgMTEsIDUgYnl0ZXMNCk9FTSBTdHJpbmdzDQoJ
+U3RyaW5nIDE6IExHIEVsZWN0cm9uaWNzDQoJU3RyaW5nIDI6IEN1c3RvbWVyIFNhdGlzZmFjdGlv
+biBGaXJzdA0KDQpIYW5kbGUgMHgwMDBBLCBETUkgdHlwZSAxNSwgMjkgYnl0ZXMNClN5c3RlbSBF
+dmVudCBMb2cNCglBcmVhIExlbmd0aDogMTYgYnl0ZXMNCglIZWFkZXIgU3RhcnQgT2Zmc2V0OiAw
+eDAwMDANCglIZWFkZXIgTGVuZ3RoOiAxNiBieXRlcw0KCURhdGEgU3RhcnQgT2Zmc2V0OiAweDAw
+MTANCglBY2Nlc3MgTWV0aG9kOiBHZW5lcmFsLXB1cnBvc2Ugbm9uLXZvbGF0aWxlIGRhdGEgZnVu
+Y3Rpb25zDQoJQWNjZXNzIEFkZHJlc3M6IDB4MDAwMA0KCVN0YXR1czogVmFsaWQsIE5vdCBGdWxs
+DQoJQ2hhbmdlIFRva2VuOiAweDAwMDAwMEYwDQoJSGVhZGVyIEZvcm1hdDogVHlwZSAxDQoJU3Vw
+cG9ydGVkIExvZyBUeXBlIERlc2NyaXB0b3JzOiAzDQoJRGVzY3JpcHRvciAxOiBQT1NUIGVycm9y
+DQoJRGF0YSBGb3JtYXQgMTogUE9TVCByZXN1bHRzIGJpdG1hcA0KCURlc2NyaXB0b3IgMjogU2lu
+Z2xlLWJpdCBFQ0MgbWVtb3J5IGVycm9yDQoJRGF0YSBGb3JtYXQgMjogTXVsdGlwbGUtZXZlbnQN
+CglEZXNjcmlwdG9yIDM6IE11bHRpLWJpdCBFQ0MgbWVtb3J5IGVycm9yDQoJRGF0YSBGb3JtYXQg
+MzogTXVsdGlwbGUtZXZlbnQNCg0KSGFuZGxlIDB4MDAwQiwgRE1JIHR5cGUgMTYsIDE1IGJ5dGVz
+DQpQaHlzaWNhbCBNZW1vcnkgQXJyYXkNCglMb2NhdGlvbjogU3lzdGVtIEJvYXJkIE9yIE1vdGhl
+cmJvYXJkDQoJVXNlOiBTeXN0ZW0gTWVtb3J5DQoJRXJyb3IgQ29ycmVjdGlvbiBUeXBlOiBOb25l
+DQoJTWF4aW11bSBDYXBhY2l0eTogMyBHQg0KCUVycm9yIEluZm9ybWF0aW9uIEhhbmRsZTogTm90
+IFByb3ZpZGVkDQoJTnVtYmVyIE9mIERldmljZXM6IDINCg0KSGFuZGxlIDB4MDAwQywgRE1JIHR5
+cGUgMTcsIDI3IGJ5dGVzDQpNZW1vcnkgRGV2aWNlDQoJQXJyYXkgSGFuZGxlOiAweDAwMEINCglF
+cnJvciBJbmZvcm1hdGlvbiBIYW5kbGU6IE5vIEVycm9yDQoJVG90YWwgV2lkdGg6IDMyIGJpdHMN
+CglEYXRhIFdpZHRoOiAzMiBiaXRzDQoJU2l6ZTogMTAyNCBNQg0KCUZvcm0gRmFjdG9yOiBTT0RJ
+TU0NCglTZXQ6IDENCglMb2NhdG9yOiBNMQ0KCUJhbmsgTG9jYXRvcjogQmFuayAwDQoJVHlwZTog
+RERSMg0KCVR5cGUgRGV0YWlsOiBTeW5jaHJvbm91cw0KCVNwZWVkOiBVbmtub3duDQoJTWFudWZh
+Y3R1cmVyOiBOb3QgU3BlY2lmaWVkDQoJU2VyaWFsIE51bWJlcjogTm90IFNwZWNpZmllZA0KCUFz
+c2V0IFRhZzogTm90IFNwZWNpZmllZA0KCVBhcnQgTnVtYmVyOiBOb3QgU3BlY2lmaWVkDQoNCkhh
+bmRsZSAweDAwMEQsIERNSSB0eXBlIDE3LCAyNyBieXRlcw0KTWVtb3J5IERldmljZQ0KCUFycmF5
+IEhhbmRsZTogMHgwMDBCDQoJRXJyb3IgSW5mb3JtYXRpb24gSGFuZGxlOiBObyBFcnJvcg0KCVRv
+dGFsIFdpZHRoOiAzMiBiaXRzDQoJRGF0YSBXaWR0aDogMzIgYml0cw0KCVNpemU6IDEwMjQgTUIN
+CglGb3JtIEZhY3RvcjogU09ESU1NDQoJU2V0OiAxDQoJTG9jYXRvcjogTTINCglCYW5rIExvY2F0
+b3I6IEJhbmsgMQ0KCVR5cGU6IEREUjINCglUeXBlIERldGFpbDogU3luY2hyb25vdXMNCglTcGVl
+ZDogVW5rbm93bg0KCU1hbnVmYWN0dXJlcjogTm90IFNwZWNpZmllZA0KCVNlcmlhbCBOdW1iZXI6
+IE5vdCBTcGVjaWZpZWQNCglBc3NldCBUYWc6IE5vdCBTcGVjaWZpZWQNCglQYXJ0IE51bWJlcjog
+Tm90IFNwZWNpZmllZA0KDQpIYW5kbGUgMHgwMDBFLCBETUkgdHlwZSAxOSwgMTUgYnl0ZXMNCk1l
+bW9yeSBBcnJheSBNYXBwZWQgQWRkcmVzcw0KCVN0YXJ0aW5nIEFkZHJlc3M6IDB4MDAwMDAwMDAw
+MDANCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZGRkZGRg0KCVJhbmdlIFNpemU6IDIgR0INCglQ
+aHlzaWNhbCBBcnJheSBIYW5kbGU6IDB4MDAwQg0KCVBhcnRpdGlvbiBXaWR0aDogMA0KDQpIYW5k
+bGUgMHgwMDBGLCBETUkgdHlwZSAyMCwgMTkgYnl0ZXMNCk1lbW9yeSBEZXZpY2UgTWFwcGVkIEFk
+ZHJlc3MNCglTdGFydGluZyBBZGRyZXNzOiAweDAwMDAwMDAwMDAwDQoJRW5kaW5nIEFkZHJlc3M6
+IDB4MDAwM0ZGRkZGRkYNCglSYW5nZSBTaXplOiAxIEdCDQoJUGh5c2ljYWwgRGV2aWNlIEhhbmRs
+ZTogMHgwMDBDDQoJTWVtb3J5IEFycmF5IE1hcHBlZCBBZGRyZXNzIEhhbmRsZTogMHgwMDBFDQoJ
+UGFydGl0aW9uIFJvdyBQb3NpdGlvbjogVW5rbm93bg0KCUludGVybGVhdmUgUG9zaXRpb246IFVu
+a25vd24NCglJbnRlcmxlYXZlZCBEYXRhIERlcHRoOiBVbmtub3duDQoNCkhhbmRsZSAweDAwMTAs
+IERNSSB0eXBlIDIwLCAxOSBieXRlcw0KTWVtb3J5IERldmljZSBNYXBwZWQgQWRkcmVzcw0KCVN0
+YXJ0aW5nIEFkZHJlc3M6IDB4MDAwNDAwMDAwMDANCglFbmRpbmcgQWRkcmVzczogMHgwMDA3RkZG
+RkZGRg0KCVJhbmdlIFNpemU6IDEgR0INCglQaHlzaWNhbCBEZXZpY2UgSGFuZGxlOiAweDAwMEQN
+CglNZW1vcnkgQXJyYXkgTWFwcGVkIEFkZHJlc3MgSGFuZGxlOiAweDAwMEUNCglQYXJ0aXRpb24g
+Um93IFBvc2l0aW9uOiBVbmtub3duDQoJSW50ZXJsZWF2ZSBQb3NpdGlvbjogVW5rbm93bg0KCUlu
+dGVybGVhdmVkIERhdGEgRGVwdGg6IFVua25vd24NCg0KSGFuZGxlIDB4MDAxMSwgRE1JIHR5cGUg
+MjMsIDEzIGJ5dGVzDQpTeXN0ZW0gUmVzZXQNCglTdGF0dXM6IEVuYWJsZWQNCglXYXRjaGRvZyBU
+aW1lcjogUHJlc2VudA0KCUJvb3QgT3B0aW9uOiBEbyBOb3QgUmVib290DQoJQm9vdCBPcHRpb24g
+T24gTGltaXQ6IERvIE5vdCBSZWJvb3QNCglSZXNldCBDb3VudDogVW5rbm93bg0KCVJlc2V0IExp
+bWl0OiBVbmtub3duDQoJVGltZXIgSW50ZXJ2YWw6IFVua25vd24NCglUaW1lb3V0OiBVbmtub3du
+DQoNCkhhbmRsZSAweDAwMTIsIERNSSB0eXBlIDI0LCA1IGJ5dGVzDQpIYXJkd2FyZSBTZWN1cml0
+eQ0KCVBvd2VyLU9uIFBhc3N3b3JkIFN0YXR1czogRGlzYWJsZWQNCglLZXlib2FyZCBQYXNzd29y
+ZCBTdGF0dXM6IFVua25vd24NCglBZG1pbmlzdHJhdG9yIFBhc3N3b3JkIFN0YXR1czogRGlzYWJs
+ZWQNCglGcm9udCBQYW5lbCBSZXNldCBTdGF0dXM6IFVua25vd24NCg0KSGFuZGxlIDB4MDAxMywg
+RE1JIHR5cGUgMjUsIDkgYnl0ZXMNCglTeXN0ZW0gUG93ZXIgQ29udHJvbHMNCglOZXh0IFNjaGVk
+dWxlZCBQb3dlci1vbjogMTItMzEgMjM6NTk6NTkNCg0KSGFuZGxlIDB4MDAxNCwgRE1JIHR5cGUg
+MjYsIDIwIGJ5dGVzDQpWb2x0YWdlIFByb2JlDQoJRGVzY3JpcHRpb246IFZvbHRhZ2UgUHJvYmUN
+CglMb2NhdGlvbjogUHJvY2Vzc29yDQoJU3RhdHVzOiBPSw0KCU1heGltdW0gVmFsdWU6IFVua25v
+d24NCglNaW5pbXVtIFZhbHVlOiBVbmtub3duDQoJUmVzb2x1dGlvbjogVW5rbm93bg0KCVRvbGVy
+YW5jZTogVW5rbm93bg0KCUFjY3VyYWN5OiBVbmtub3duDQoJT0VNLXNwZWNpZmljIEluZm9ybWF0
+aW9uOiAweDAwMDAwMDAwDQoNCkhhbmRsZSAweDAwMTUsIERNSSB0eXBlIDI3LCAxMiBieXRlcw0K
+Q29vbGluZyBEZXZpY2UNCglUZW1wZXJhdHVyZSBQcm9iZSBIYW5kbGU6IDB4MDAxNg0KCVR5cGU6
+IEZhbg0KCVN0YXR1czogT0sNCglPRU0tc3BlY2lmaWMgSW5mb3JtYXRpb246IDB4MDAwMDAwMDAN
+Cg0KSGFuZGxlIDB4MDAxNiwgRE1JIHR5cGUgMjgsIDIwIGJ5dGVzDQpUZW1wZXJhdHVyZSBQcm9i
+ZQ0KCURlc2NyaXB0aW9uOiBUZW1wZXJhdHVyZSBQcm9iZQ0KCUxvY2F0aW9uOiBQcm9jZXNzb3IN
+CglTdGF0dXM6IE9LDQoJTWF4aW11bSBWYWx1ZTogVW5rbm93bg0KCU1pbmltdW0gVmFsdWUgVW5r
+bm93bg0KCVJlc29sdXRpb246IFVua25vd24NCglUb2xlcmFuY2U6IFVua25vd24NCglBY2N1cmFj
+eTogVW5rbm93bg0KCU9FTS1zcGVjaWZpYyBJbmZvcm1hdGlvbjogMHgwMDAwMDAwMA0KDQpIYW5k
+bGUgMHgwMDE3LCBETUkgdHlwZSAyOSwgMjAgYnl0ZXMNCkVsZWN0cmljYWwgQ3VycmVudCBQcm9i
+ZQ0KCURlc2NyaXB0aW9uOiBFbGVjdHJpY2FsIEN1cnJlbnQgUHJvYmUNCglMb2NhdGlvbjogUHJv
+Y2Vzc29yDQoJU3RhdHVzOiBPSw0KCU1heGltdW0gVmFsdWU6IFVua25vd24NCglNaW5pbXVtIFZh
+bHVlOiBVbmtub3duDQoJUmVzb2x1dGlvbjogVW5rbm93bg0KCVRvbGVyYW5jZTogVW5rbm93bg0K
+CUFjY3VyYWN5OiBVbmtub3duDQoJT0VNLXNwZWNpZmljIEluZm9ybWF0aW9uOiAweDAwMDAwMDAw
+DQoNCkhhbmRsZSAweDAwMTgsIERNSSB0eXBlIDMwLCA2IGJ5dGVzDQpPdXQtb2YtYmFuZCBSZW1v
+dGUgQWNjZXNzDQoJTWFudWZhY3R1cmVyIE5hbWU6IEludGVsDQoJSW5ib3VuZCBDb25uZWN0aW9u
+OiBFbmFibGVkDQoJT3V0Ym91bmQgQ29ubmVjdGlvbjogRGlzYWJsZWQNCg0KSGFuZGxlIDB4MDAx
+OSwgRE1JIHR5cGUgMzIsIDIwIGJ5dGVzDQpTeXN0ZW0gQm9vdCBJbmZvcm1hdGlvbg0KCVN0YXR1
+czogPE9VVCBPRiBTUEVDPg0KDQpIYW5kbGUgMHgwMDFBLCBETUkgdHlwZSAxMjksIDE2IGJ5dGVz
+DQpPRU0tc3BlY2lmaWMgVHlwZQ0KCUhlYWRlciBhbmQgRGF0YToNCgkJODEgMTAgMUEgMDAgMDEg
+MDEgMDIgMDEgMDAgMDAgMDAgMDEgMDAgMDAgMDggMDENCglTdHJpbmdzOg0KCQlJbnRlbF9BU0Zf
+MDAxDQoJCUludGVsX0FTRl8wMDENCg0KSGFuZGxlIDB4MDAxQiwgRE1JIHR5cGUgMTM2LCA2IGJ5
+dGVzDQpPRU0tc3BlY2lmaWMgVHlwZQ0KCUhlYWRlciBhbmQgRGF0YToNCgkJODggMDYgMUIgMDAg
+RkYgRkYNCg0KSGFuZGxlIDB4MDAxQywgRE1JIHR5cGUgMTUwLCAxNCBieXRlcw0KT0VNLXNwZWNp
+ZmljIFR5cGUNCglIZWFkZXIgYW5kIERhdGE6DQoJCTk2IDBFIDFDIDAwIDAxIDAxIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwDQoJU3RyaW5nczoNCgkJQUJTT0xVVEUoUEhPRU5JWCkgQ0xNDQoNCkhh
+bmRsZSAweDAwMUQsIERNSSB0eXBlIDEyNywgNCBieXRlcw0KRW5kIE9mIFRhYmxlDQoNCg==
+
+
+--=-PmobV0EBQdCblJ8F2I5h--
+
+--=-+Czrde0Qp2fq0/iWtXz/
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG/WinPT-Installer - http://www.equipmente.de
+
+iD8DBQBHmRQGIzWBdD1rq+8RAmWJAKC74reEXivZZ3YayEl4XfSZCDK1HQCg0SEG
+TE4FoZjSeVgGp9q6uOleyqs=
+=lxH+
+-----END PGP SIGNATURE-----
+
+--=-+Czrde0Qp2fq0/iWtXz/--
+
