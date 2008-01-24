@@ -1,66 +1,98 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 9/10] introduce intel_menlow platform specific driver
-Date: Thu, 24 Jan 2008 16:39:33 -0500
-Message-ID: <200801241639.33898.lenb@kernel.org>
-References: <1200556278.2935.118.camel@acpi-sony.sh.intel.com> <20080121095331.GA5333@infradead.org>
+Subject: Re: [PATCH] Rationalise ACPI backlight implementation
+Date: Thu, 24 Jan 2008 16:44:48 -0500
+Message-ID: <200801241644.49114.lenb@kernel.org>
+References: <20071226020325.GA21099@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51959 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36663 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753553AbYAXVjx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Jan 2008 16:39:53 -0500
-In-Reply-To: <20080121095331.GA5333@infradead.org>
+	id S1753059AbYAXVpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Jan 2008 16:45:04 -0500
+In-Reply-To: <20071226020325.GA21099@srcf.ucam.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday 21 January 2008 04:53, Christoph Hellwig wrote:
-> On Thu, Jan 17, 2008 at 03:51:17PM +0800, Zhang Rui wrote:
-> > From: Thomas Sujith <sujith.thomas@intel.com>
-> > 
-> > Intel menlow platform specific driver for thermal management.
-> > 
-> > Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/misc/Kconfig        |   10 
-> >  drivers/misc/Makefile       |    1 
-> >  drivers/misc/intel_menlow.c |  527 ++++++++++++++++++++++++++++++++++++++++++++
+On Tuesday 25 December 2007 21:03, Matthew Garrett wrote:
+> The sysfs backlight class provides no mechanism for querying the 
+> acceptable brightness for a backlight. The ACPI spec states that values 
+> are only valid if they are reported as available by the firmware. Since 
+> we can't provide that information to userspace, instead collapse the 
+> range to the number of actual values that can be set.
 > 
-> Why is this in drivers/misc?  I don't have a thermal.h in mainline, but
-> if this is a new subsystem your adding care to create a directory under
-> drivers/ for it?
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi Christoph,
+I wish we did this in the first place.
+But doing it now is an API change -- since
+with the old way 100 always meant 100% brightness, yes?
 
-I'm sure it was me who suggested putting intel_menlo.c under drivers/misc.
+so my concern is that if we change what "10" means, somebody like akpm
+with an existing script gets grumpy.
 
-A while back I refused to let any new platform specific drivers under
-drivers/acpi, and asked that the ones here already move out.
-This is because they happne to use ACPI, but are not actually
-part of the ACPI sub-system (any more than ATA is).
-Also, I wanted the maintainer roles to be clear -- these
-drivers have primary maintainers other than me, and those
-guys are in the heroic, but tragic, business of writing
-platform-specific drivers for systems with no documentation or vendor support.
-
-drivers/misc/asus-laptop.c
-drivers/misc/fujitsu-laptop.c
-drivers/misc/msi-laptop.c
-drivers/misc/sony-laptop.c
-drivers/misc/thinkpad_acpi.c
-drivers/misc/sony-laptop.c
-
-intel_menlo.c fits in with this group, the only difference is that
-its primary maintainers actually have documentation:-)
-
-is there a better place than drivers/misc for this group?
-
-thanks,
 -Len
 
+> ---
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 521645e..12b2adb 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -296,18 +296,26 @@ static int acpi_video_device_set_state(struct acpi_video_device *device, int sta
+>  static int acpi_video_get_brightness(struct backlight_device *bd)
+>  {
+>  	unsigned long cur_level;
+> +	int i;
+>  	struct acpi_video_device *vd =
+>  		(struct acpi_video_device *)bl_get_data(bd);
+>  	acpi_video_device_lcd_get_level_current(vd, &cur_level);
+> -	return (int) cur_level;
+> +	for (i=2; i<vd->brightness->count; i++) {
+> +		if (vd->brightness->levels[i] == cur_level)
+> +			/* The first two entries are special - see page 575
+> +			   of the ACPI spec 3.0 */
+> +			return i-2;
+> +	}
+> +	return 0;
+>  }
+>  
+>  static int acpi_video_set_brightness(struct backlight_device *bd)
+>  {
+> -	int request_level = bd->props.brightness;
+> +	int request_level = bd->props.brightness+2;
+>  	struct acpi_video_device *vd =
+>  		(struct acpi_video_device *)bl_get_data(bd);
+> -	acpi_video_device_lcd_set_level(vd, request_level);
+> +	acpi_video_device_lcd_set_level(vd, 
+> +					vd->brightness->levels[request_level]);
+>  	return 0;
+>  }
+>  
+> @@ -656,7 +664,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  	kfree(obj);
+>  
+>  	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
+> -		unsigned long tmp;
+>  		static int count = 0;
+>  		char *name;
+>  		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
+> @@ -664,11 +671,10 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  			return;
+>  
+>  		sprintf(name, "acpi_video%d", count++);
+> -		acpi_video_device_lcd_get_level_current(device, &tmp);
+>  		device->backlight = backlight_device_register(name,
+>  			NULL, device, &acpi_backlight_ops);
+> -		device->backlight->props.max_brightness = max_level;
+> -		device->backlight->props.brightness = (int)tmp;
+> +		device->backlight->props.max_brightness = device->brightness->count-3;
+> +		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
+>  		backlight_update_status(device->backlight);
+>  
+>  		kfree(name);
+> 
