@@ -1,50 +1,53 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 4/4] ACPI: video: call ACPI notifier chain for ACPI video
-	notifications
-Date: Fri, 25 Jan 2008 14:48:12 +0800
-Message-ID: <1201243692.4663.21.camel@acpi-sony.sh.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] [GIT PATCH] thinkpad-acpi patches for 2.6.25
+	(replaces batch 1)
+Date: Fri, 25 Jan 2008 17:20:46 -0200
+Message-ID: <20080125192046.GA3972@khazad-dum.debian.net>
+References: <1199804577-32017-1-git-send-email-hmh@hmh.eng.br> <200801240055.20906.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52022 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752571AbYAYGtd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2008 01:49:33 -0500
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:42340 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751624AbYAYTUw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Jan 2008 14:20:52 -0500
+Content-Disposition: inline
+In-Reply-To: <200801240055.20906.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-gfx@linux.intel.com
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+Len,
 
-Call notifier chain for display/brightness switch events.
-The kernel mode graphics driver is interested in this.
+Given that there are four cleanup patches in the batch, I didn't even
+attempt to bother with checkpatch on anything before the "some checkpatch
+fluff" patch.  There are, for example, no tab/space problems in the final
+thinkpad_acpi.c file.
 
-Sign-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c |    2 ++
- 1 file changed, 2 insertions(+)
+After the entire patchset is applied, there are still a few lines over 80
+chars, but that's because they are MUCH more readable the way they are in
+that particular hunk of code.
 
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -1765,6 +1765,7 @@ static void acpi_video_bus_notify(acpi_h
- 		break;
- 	}
- 
-+	acpi_notifier_call_chain(device, event, 0);
- 	input_report_key(input, keycode, 1);
- 	input_sync(input);
- 	input_report_key(input, keycode, 0);
-@@ -1826,6 +1827,7 @@ static void acpi_video_device_notify(acp
- 		break;
- 	}
- 
-+	acpi_notifier_call_chain(device, event, 0);
- 	input_report_key(input, keycode, 1);
- 	input_sync(input);
- 	input_report_key(input, keycode, 0);
+The braces checkpatch will complain about in the final thinkpad_acpi.c file
+are there for good reasons.  They are in points of the code where I expect a
+maintenance addition of one or two lines could happen, and that means any
+such patches would be a lot cleaner.   That warning is just weird, anyway.
 
+There will be also an error about a macro needing do - while. Well, that one
+*does not* need it, and it is never used as a function.
 
+So, please apply the entire set and check the final thinkpad_acpi.c file
+with checkpatch --file...  It is in *much* better state than what you got
+with that checkpatch run: 1 error and 12 warnings, which are all explained
+above.
+
+Patches after the cleanups are checkpatch-clean (except for the details
+explained above).
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
