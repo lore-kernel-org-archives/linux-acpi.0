@@ -1,119 +1,470 @@
-From: Len Brown <lenb@kernel.org>
-Subject: initrd DSDT override (Re: Feedback about your talk in Rennes France (20080124) : Evolution of the Linux kernel & virtualization technologies)
-Date: Fri, 25 Jan 2008 23:39:44 -0500
-Message-ID: <200801252339.44246.lenb@kernel.org>
-References: <4798E2A5.6020804@users.sf.net> <20080125063328.4e3b4752.akpm@linux-foundation.org>
+From: G L <glafranceweb@yahoo.com>
+Subject: Problem with suspend to ram (s3)
+Date: Fri, 25 Jan 2008 21:41:06 -0800 (PST)
+Message-ID: <107307.22958.qm@web55201.mail.re4.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:52791 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752402AbYAZEk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jan 2008 23:40:26 -0500
-In-Reply-To: <20080125063328.4e3b4752.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from web55201.mail.re4.yahoo.com ([206.190.58.165]:35977 "HELO
+	web55201.mail.re4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752947AbYAZFrt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Jan 2008 00:47:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+
+Hello,
 
 
-> > I am annoyed by this missing (or rejected) feature upstream : DSDT
-> >   http://gaugusch.at/kernel.shtml
-> > 
-> > So to use "custom DSDT loading" I have to patch my laptop buggy BIOS
-> > 
-> > As usual, I reported this issue to the vendor (which goes nowhere so far) :
-> >   http://support.fujitsu-siemens.de/forum/viewtopic.php?p=37001
-> > 
-> > Hopefully many distro already include this patch, but not all of them
-> > such as debian :
-> >   http://bugs.debian.org/251023
-> >   http://wiki.debian.org/DebianKernelPatchAcceptanceGuidelines
-> > 
-> > So as a debian contributor, I keep staying on debian and compile my own
-> > kernel
-> >   and provide it to a "amiloa laptop" community I am managing :
-> >   http://tech.groups.yahoo.com/group/amilo/
-> > 
-> > It's ok for me I can live with this,  but what average users have to do
-> > with their (buggy) hardware ?
-> 
-> Philosophically speaking: we sholdn't be making decisions for other people
-> like this.
-> 
-> Practically speaking: the fact that distros are shipping it is a huge
-> indication that the decision was wrong.
-> 
-> Len?  I think we goofed here.
+I 
+originally 
+posted 
+about 
+my 
+problem 
+on 
+the 
+Ubuntu 
+forums 
+( http://ubuntuforums.org/showthread.php?t=673729 
+). 
+Having 
+received not 
+a 
+single 
+reply, 
+I 
+decided 
+to 
+give 
+it 
+a 
+shot 
+here.  
+Also, 
+I've 
+been 
+googling 
+for a few 
+evenings 
+now 
+and 
+I 
+cannot 
+find 
+any 
+clear 
+solution 
+to 
+this. :(
 
-Here is the existing supported DSDT override method:
 
-http://www.lesswatts.org/projects/acpi/overridingDSDT.php
+First, 
+here's 
+what 
+I'm 
+using:
 
-and at the bottom of that page I point to the alternate initrd
-method and explain why I've not applied it upstream.
+Mythbuntu 
+7.10 
+Gutsy 
+Biostar 
+TF7050-M2 
+motherboard 
+(with 
+latest 
+BIOS) 
+AMD 
+Athlon 
+64 
+X2 
+4400+ 
+Brisbane 
+Seagate 
+Barracuda 
+500GB 
+SATA2
+2 
+GB 
+RAM 
 
-My goal for the Linux/ACPI project is to make Linux
-work out-of-the-box on any system where Windows works.
+When 
+I 
+suspend 
+(S3), 
+it 
+seems 
+to 
+work 
+okay. 
+Computer 
+goes 
+to 
+sleep 
+and I 
+don't 
+hear 
+any 
+fans 
+or 
+the 
+hard 
+drive, 
+and 
+the 
+screen 
+goes 
+blank.
 
-Giving "Joe User", who is incapable of compiling
-a kernel, an easy method to override his BIOS image
-makes him more likely to settle for a workaround.
-And that effort undermines, rather than supports, our goal.
+When 
+I 
+resume, 
+it 
+*seems* 
+wake 
+up 
+okay, 
+until, 
+I 
+think, 
+it 
+tries 
+to wake 
+up 
+the 
+hard 
+drive. 
+Then 
+all 
+I 
+get 
+on 
+the 
+screen 
+are 
+errors 
+like these:
 
-However, Philippe points out that the FSC Amilo box
-also fails the same way under Windows -- and the
-vendor is unwilling or unable to fix their BIOS.
-While Phillippe could build a kernel from source
-and link in a DSDT via the supported developer method above,
-or he could run SuSE or Ubuntu which include the initrd
-patch, he'd prefer to track Debian w/o re-compiling.
 
-I'm fine with making it more convenient for
-FSC Amilo ownersr to make their laptops work better
-under Linux than under Windows -- even if it is impossible
-for a Linux distro to support the resulting configuration.
-They're otherwise stuck with junk hardware or extra work.
+ata1 
+soft 
+reset 
+failed
+ata1 
+COMRESET 
+failed
+device 
+sda5 
+XFS 
+metadata 
+write 
+error 
+block 
+<bunch 
+of 
+numbers>
+Buffer 
+I/O 
+error 
+on 
+device 
+sda1, 
+logical 
+block 
+<some 
+number>
+Remounting 
+filesystem 
+read-only
 
-Also, Thomas continues to assert that this patch
-makes SuSE easier to debug in the field b/c he can convince
-users who are unable to re-compile their kernel
-go ahead and override their BIOS image for debugging
-(bless their trusting hearts;-)
 
-So at the risk that we're giving "Joe User" more
-than enough rope to hang themselves, lets do it --
-with some strings attached...
+All 
+I 
+see 
+are 
+error 
+messages 
+like 
+above scrolling... 
+it 
+doesn't 
+seem 
+to 
+stop 
+until 
+I 
+poweroff 
+the 
+computer, wait 
+a 
+few 
+seconds, 
+then 
+poweron 
+and 
+it 
+boots 
+normally.
 
-Thomas,
-Since you've been a big supporter of this patch, perhaps you
-can update it and submit it to the list for review?
+Seems 
+to 
+me 
+that 
+the 
+computer 
+is 
+unable 
+to 
+wake 
+up 
+the 
+hard 
+drive 
+from its 
+beauty 
+sleep. 
+:-/
 
-I think it needs the following changes:
+I 
+enabled/uncommented 
+the 
+following 
+two 
+lines 
+in "/etc/default/acpi-support":
 
-1. tainted bit needs to be set when a DSDT override is used.
-   (this is common both to the new patch and the current
-    override method)
+DISABLE_DMA=true
+RESET_DRIVE=true
 
-2. upon setting the tainted bit, print a BIG FAT WARNING
-   that this is not a supported configuration.
+...but 
+the 
+problem 
+persists. 
 
-3. cmdline option needs to be available to disable
-   an override.  Otherwise a bad image in the intrd
-   may be a serious pickle for some users.
+Do 
+I 
+need 
+to 
+modify 
+something 
+else 
+in 
+the 
+acpi-support 
+file?
 
-4. get rid of alarming failure message:
+Then 
+I 
+tried 
+to 
+follow 
+the 
+instructions 
+on 
+this 
+page 
+( http://zechs.dyndns.org/wordpress/?p=234 
+) 
+to 
+get 
+s2both 
+and 
+s2disk 
+to work.
 
-+	printk(KERN_INFO "Looking for DSDT in initrd ...");
-...
-+	printk(" not found!\n");
+When 
+I 
+tried 
+Suspend, 
+nothing 
+seemed 
+to 
+happen 
+at 
+first. 
+I 
+was 
+still seeing 
+the 
+desktop 
+environment 
+on 
+the 
+screen, 
+the 
+mouse 
+cursor 
+was 
+still moving. 
+I 
+could 
+still 
+click 
+on 
+buttons 
+and 
+icons, 
+however 
+it 
+would 
+have no 
+effect. 
+No 
+program 
+would 
+start.
 
-Probably it is best to forward the original patch
-w/ proper credits, and then send updates to address 1-4.
+So 
+I 
+rebooted.
 
-thanks,
--Len
+What 
+followed 
+is 
+one 
+of 
+the 
+worst 
+hard 
+drive 
+problem 
+I've 
+ever 
+saw!  
+It said 
+that 
+/dev/sda1 
+has 
+way 
+too 
+many 
+errors 
+and 
+that 
+it'll 
+only 
+mount read-only 
+so 
+that 
+I 
+can 
+run 
+fsck 
+manually. 
+Then 
+it 
+gave 
+me 
+a 
+root 
+shell prompt.
+
+I 
+ran 
+fsck, 
+there 
+were 
+many 
+many 
+inode 
+and 
+block 
+errors 
+about 
+this 
+and that. 
+I 
+was 
+feeling 
+pretty 
+bummed 
+out 
+so 
+I 
+just 
+answer 
+'y' 
+when 
+it would 
+ask 
+me 
+if 
+I 
+wanted 
+to 
+fix 
+the 
+problem.
+
+The 
+computer 
+then 
+rebooted 
+again, 
+and 
+everything 
+seemed 
+to 
+run normally. 
+I 
+tried 
+all 
+different 
+programs 
+and 
+things 
+(to 
+see 
+if 
+any 
+important files 
+had 
+been 
+damaged), 
+but 
+everything 
+looks 
+okay. 
+(Phew?)
+
+I 
+still 
+can't 
+seem 
+to 
+get 
+suspend 
+to 
+work 
+though... 
+which 
+is 
+a 
+pain 
+because 
+I 
+want 
+to 
+make 
+the 
+computer 
+suspend 
+to 
+ram 
+when 
+I 
+press 
+the 
+power 
+button 
+of 
+my 
+remote. 
+:-|
+
+
+Guillaume
+
+
 
