@@ -1,48 +1,36 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 0/5] WMI
-Date: Sun, 27 Jan 2008 20:49:21 +0000
-Message-ID: <200801272049.22318.carlos@strangeworlds.co.uk>
-References: <20080118235818.3123.95800.stgit@pacifica>
+From: "Pekka Enberg" <penberg@cs.helsinki.fi>
+Subject: Re: [PATCH] Allocate pnp resources dynamically via krealloc - working version
+Date: Sun, 27 Jan 2008 23:03:00 +0200
+Message-ID: <84144f020801271303w4d8c1fe9tbf7058ac518d4d29@mail.gmail.com>
+References: <1200772810.3708.42.camel@queen>
+	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>
+	 <1201109917.20940.214.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:45467 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452AbYA0Ut0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 15:49:26 -0500
-In-Reply-To: <20080118235818.3123.95800.stgit@pacifica>
+Received: from wa-out-1112.google.com ([209.85.146.181]:28704 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753445AbYA0VDB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 16:03:01 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so2559874wah.23
+        for <linux-acpi@vger.kernel.org>; Sun, 27 Jan 2008 13:03:00 -0800 (PST)
+In-Reply-To: <1201109917.20940.214.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Rene Herman <rene.herman@keyaccess.nl>, linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
 
-On Friday 18 January 2008 23:58:18 Carlos Corbacho wrote:
-> ANYWR - Another New Year WMI release
->
-> Len,
->
-> Can you please review at least the first two patches in this series, as I
-> would still really like to try and get them into 2.6.25.
+Hi Thomas,
 
-Len,
+On Sun, 2008-01-20 at 02:23 +0200, Pekka Enberg wrote:
+> > When krealloc() returns NULL, there wasn't enough memory to fit the
+> > new size but the original memory region remains unchanged.
 
-I have a small update for acer-wmi to add another DMI entry queued up - before 
-I submit that and re-submit the whole WMI series, is there anything else I 
-can do that would help expedite the review of WMI?
+On Jan 23, 2008 7:38 PM, Thomas Renninger <trenn@suse.de> wrote:
+> Thanks Pekka, this one should be better now:
 
-I accept that at this stage, acceptance into 2.6.25 is unlikely - but I don't 
-think aiming for 2.6.26 at least is entirely unrealistic (I've been posting 
-the WMI patches for 'upstream review' since the end of October now, and 
-earlier works-in-progress since the beginning of October). The sooner this 
-gets looked at, the sooner I can get any problems addressed and this can be 
-in a mergeable state for 2.6.26 (and can hopefully sit in -mm for a bit as 
-well that way).
+Yeah, the krealloc() bits look good me. Thanks!
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+                         Pekka
