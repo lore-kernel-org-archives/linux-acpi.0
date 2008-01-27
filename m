@@ -1,54 +1,45 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: ACPI module for Asus Eee PC
-Date: Sun, 27 Jan 2008 20:26:42 +0000
-Message-ID: <200801272026.43183.carlos@strangeworlds.co.uk>
-References: <20080126144824.GD16281@stratocaster.home>
+Subject: Re: [PATCH 0/5] WMI
+Date: Sun, 27 Jan 2008 20:49:21 +0000
+Message-ID: <200801272049.22318.carlos@strangeworlds.co.uk>
+References: <20080118235818.3123.95800.stgit@pacifica>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:60731 "EHLO
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:45467 "EHLO
 	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504AbYA0Uhj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 15:37:39 -0500
-In-Reply-To: <20080126144824.GD16281@stratocaster.home>
+	with ESMTP id S1754452AbYA0Ut0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 15:49:26 -0500
+In-Reply-To: <20080118235818.3123.95800.stgit@pacifica>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Cooper <ecc@cmu.edu>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-On Saturday 26 January 2008 14:48:24 Eric Cooper wrote:
-> I happened to look at the patched asus_acpi.c module that was posted
-> by Asus for the Eee PC and noticed that it's 75% dead code -- the Eee
-> PC support is just stuck on at the end.  And of course it conflicts
-> with the real asus_acpi.ko in any kernel package.
+On Friday 18 January 2008 23:58:18 Carlos Corbacho wrote:
+> ANYWR - Another New Year WMI release
 >
-> So I cleaned it up, renamed it eeepc_acpi, and packaged it as a
-> separate out-of-kernel Debian package that can be built with
-> module-assistant.
+> Len,
+>
+> Can you please review at least the first two patches in this series, as I
+> would still really like to try and get them into 2.6.25.
 
-To submit a driver, it needs to be as a patch against the ACPI Git tree 'test' 
-branch.
+Len,
 
-New laptop drivers should:
+I have a small update for acer-wmi to add another DMI entry queued up - before 
+I submit that and re-submit the whole WMI series, is there anything else I 
+can do that would help expedite the review of WMI?
 
-1) Be in drivers/misc (asus_acpi is the only leftover in drivers/acpi - 
-everything else has already been moved, and no new laptop drivers will be 
-accepted in drivers/acpi)
-
-2) proc is deprecated for new drivers - you should be using sysfs
-
-3) #if LINUX_KERNEL_VERSION is an absolute no-no in upstream kernel code. Any 
-such instances should be stripped out of the code.
-
-4) Patches should be run through scripts/checkpatch.pl, and new drivers 
-especially should be checkpatch clean - you will find it flags up quite a few 
-style problems with the code.
-
-If you can address these and then resubmit a proper patch, then you will stand 
-a chance of getting this reviewed and accepted into the mainline kernel.
+I accept that at this stage, acceptance into 2.6.25 is unlikely - but I don't 
+think aiming for 2.6.26 at least is entirely unrealistic (I've been posting 
+the WMI patches for 'upstream review' since the end of October now, and 
+earlier works-in-progress since the beginning of October). The sooner this 
+gets looked at, the sooner I can get any problems addressed and this can be 
+in a mergeable state for 2.6.26 (and can hopefully sit in -mm for a bit as 
+well that way).
 
 -Carlos
 -- 
