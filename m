@@ -1,75 +1,57 @@
-From: Rene Herman <rene.herman@keyaccess.nl>
-Subject: Re: [PATCH] Allocate pnp resources dynamically via krealloc -	working
- version
-Date: Sun, 27 Jan 2008 20:19:17 +0100
-Message-ID: <479CD935.3070906@keyaccess.nl>
-References: <1200772810.3708.42.camel@queen>	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com> <1201109917.20940.214.camel@queen.suse.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: ACPI module for Asus Eee PC
+Date: Sun, 27 Jan 2008 20:26:42 +0000
+Message-ID: <200801272026.43183.carlos@strangeworlds.co.uk>
+References: <20080126144824.GD16281@stratocaster.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpq1.tilbu1.nb.home.nl ([213.51.146.200]:51135 "EHLO
-	smtpq1.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758645AbYA0TTM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 14:19:12 -0500
-In-Reply-To: <1201109917.20940.214.camel@queen.suse.de>
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:60731 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504AbYA0Uhj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 15:37:39 -0500
+In-Reply-To: <20080126144824.GD16281@stratocaster.home>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
+To: Eric Cooper <ecc@cmu.edu>
+Cc: linux-acpi@vger.kernel.org
 
-On 23-01-08 18:38, Thomas Renninger wrote:
+On Saturday 26 January 2008 14:48:24 Eric Cooper wrote:
+> I happened to look at the patched asus_acpi.c module that was posted
+> by Asus for the Eee PC and noticed that it's 75% dead code -- the Eee
+> PC support is just stuck on at the end.  And of course it conflicts
+> with the real asus_acpi.ko in any kernel package.
+>
+> So I cleaned it up, renamed it eeepc_acpi, and packaged it as a
+> separate out-of-kernel Debian package that can be built with
+> module-assistant.
 
-> isapnp is totally untested. Also the sysfs is rather untested.
+To submit a driver, it needs to be as a patch against the ACPI Git tree 'test' 
+branch.
 
-If nobody beats me to it I'll debug this myself later on, but as a quick 
-heads up:
+New laptop drivers should:
 
-pnp: the driver 'cs4236_isapnp' has been registered
-cs4236_isapnp 01:01.00: driver attached
-cs4236_isapnp 01:01.02: driver attached
-cs4236_isapnp 01:01.03: driver attached
-pnp: Port resource 0 not allocated, cannot assign value
-pnp: Port resource 1 not allocated, cannot assign value
-pnp: Port resource 2 not allocated, cannot assign value
-pnp: Irq resource 0 not allocated, cannot assign value
-pnp: DMA resource 0 not allocated, cannot assign value
-pnp: DMA resource 1 not allocated, cannot assign value
-BUG: unable to handle kernel NULL pointer dereference at virtual address 
-0000000c
-printing eip: c10e76d9 *pde = 00000000
-Oops: 0000 [#1] PREEMPT
-Modules linked in: snd_cs4236 snd_opl3_lib snd_hwdep snd_cs4236_lib 
-snd_mpu401_uart snd_rawmidi snd_seq_device snd_cs4231_lib snd_pcm snd_timer 
-snd_page_alloc snd soundcore nfsd lockd nfs_acl sunrpc exportfs
+1) Be in drivers/misc (asus_acpi is the only leftover in drivers/acpi - 
+everything else has already been moved, and no new laptop drivers will be 
+accepted in drivers/acpi)
 
-Pid: 1353, comm: modprobe Not tainted (2.6.24-local #2)
-EIP: 0060:[<c10e76d9>] EFLAGS: 00010246 CPU: 0
-EIP is at isapnp_set_resources+0x4d/0x132
-EAX: 00000000 EBX: 00000000 ECX: e3c8f000 EDX: 00000000
-ESI: 00000000 EDI: ef8f5964 EBP: ef8f5800 ESP: e3c8fe5c
-  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Process modprobe (pid: 1353, ti=e3c8f000 task=ed2c2f90 task.ti=e3c8f000)
-Stack: ef8f5800 ef8f5888 f0a4e0a4 ed349000 c10e48c8 c10e373a f0a4e0c0 ef8f5800
-        ef8f5800 00000000 c10e5101 ef8f5800 f0a4b559 00000286 00000001 f0a4d780
-        c10e330d c12b7c6c ef8f5e00 ed37f140 ed3491bc ef8f5e00 ed37f140 f0a4e0a4
-Call Trace:
-  [<c10e48c8>] pnp_start_dev+0x55/0x9e
-  [<c10e373a>] pnp_request_card_device+0x9b/0xbe
-  [<c10e5101>] pnp_activate_dev+0x23/0x39
-  [<f0a4b559>] snd_cs423x_pnpc_detect+0xe4/0x35f [snd_cs4236]
-  [<c10e330d>] pnp_alloc+0xe/0x25
-  [<c10e3652>] card_probe+0xba/0x107
-  [<c10e3b75>] pnp_register_card_driver+0xa3/0xb3
-  [<f08de02f>] alsa_card_cs423x_init+0x2f/0x4f [snd_cs4236]
-  [<c103258a>] sys_init_module+0x1379/0x149b
-  [<c104773a>] unmap_region+0xe5/0x100
-  [<c1003d62>] syscall_call+0x7/0xb
-  =======================
-Code: ff ff ff c7 85 54 01 00 00 01 00 00 00 eb 18 0f b7 12 8d 44 1b 60 43 
-83 c6 1c 0f b6 c0 e8 ce fd ff ff 83 fb 08 74 13 89 f2 03 17 <8b> 42 0c 25 00 
-01 00 20 3d 00 01 00 00 74 d5 31 db 31 f6 eb 25
-EIP: [<c10e76d9>] isapnp_set_resources+0x4d/0x132 SS:ESP 0068:e3c8fe5c
----[ end trace f836fd70d1d20199 ]---
+2) proc is deprecated for new drivers - you should be using sysfs
 
-Rene.
+3) #if LINUX_KERNEL_VERSION is an absolute no-no in upstream kernel code. Any 
+such instances should be stripped out of the code.
+
+4) Patches should be run through scripts/checkpatch.pl, and new drivers 
+especially should be checkpatch clean - you will find it flags up quite a few 
+style problems with the code.
+
+If you can address these and then resubmit a proper patch, then you will stand 
+a chance of getting this reviewed and accepted into the mainline kernel.
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
