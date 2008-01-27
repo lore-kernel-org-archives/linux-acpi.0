@@ -1,41 +1,36 @@
-From: Mattia Dongili <malattia@linux.it>
+From: eaglex <eaglex@gmail.com>
 Subject: Re: sony-laptop on AR series
-Date: Sun, 27 Jan 2008 21:50:02 +0900
-Message-ID: <20080127125001.GA335@inferi.kami.home>
-References: <17b35fe50801230233jda8e183qf380ec153c26020c@mail.gmail.com> <20080126035059.GA24583@inferi.kami.home> <17b35fe50801260746g3d593651h50a273913dcd1642@mail.gmail.com>
+Date: Sun, 27 Jan 2008 15:16:27 +0200
+Message-ID: <17b35fe50801270516x41b287f2p150dcaf41130c8e@mail.gmail.com>
+References: <17b35fe50801230233jda8e183qf380ec153c26020c@mail.gmail.com>
+	 <20080126035059.GA24583@inferi.kami.home>
+	 <17b35fe50801260746g3d593651h50a273913dcd1642@mail.gmail.com>
+	 <20080127125001.GA335@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:38501 "EHLO
-	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852AbYA0MuQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 07:50:16 -0500
+Received: from fg-out-1718.google.com ([72.14.220.157]:43590 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752515AbYA0NQ3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Jan 2008 08:16:29 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so1324814fga.17
+        for <linux-acpi@vger.kernel.org>; Sun, 27 Jan 2008 05:16:28 -0800 (PST)
+In-Reply-To: <20080127125001.GA335@inferi.kami.home>
 Content-Disposition: inline
-In-Reply-To: <17b35fe50801260746g3d593651h50a273913dcd1642@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: eaglex <eaglex@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-On Sat, Jan 26, 2008 at 05:46:59PM +0200, eaglex wrote:
-> > Could you send the output of lspci and upload somewhere the DSDT (or
-> > send me provately as I'm not sure about the limits for postings to this
-> > list).
-> 
-> lspci: http://pastebin.ca/873456
-> dsdt: http://pastebin.ca/873459
+> eh... this is known not to be working with sony-laptop. Even though the
+> DSDT exposes the brightness methods the nvidia cards have their own way
+> to handle dimming the screen.
+> You can try with nvclock which works for *some* cards.
 
-01:00.0 VGA compatible controller: nVidia Corporation G86M [GeForce 8400M GT] (rev a1)
+Thanks, I'll try nvclock.
 
-eh... this is known not to be working with sony-laptop. Even though the
-DSDT exposes the brightness methods the nvidia cards have their own way
-to handle dimming the screen.
-You can try with nvclock which works for *some* cards.
+> For now all sony-laptop can do is enable the Fn keys, I'll add your
+> model to the DMI list asap.
 
-For now all sony-laptop can do is enable the Fn keys, I'll add your
-model to the DMI list asap.
-
-ciao
--- 
-mattia
-:wq!
+Any chances of getting the rest of the controls working? (like turning
+on bluetooth and so on)
