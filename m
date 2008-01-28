@@ -1,185 +1,234 @@
-From: Bruno =?iso-8859-1?q?Pr=E9mont?= <bonbons@linux-vserver.org>
-Subject: Re: Troubles waking up from suspend (S3) - how to debug?
-Date: Mon, 28 Jan 2008 22:04:48 +0100
-Message-ID: <200801282204.48490.bonbons@linux-vserver.org>
-References: <200801271842.38007.bonbons@linux-vserver.org> <200801280239.11581.Rafal.Wysocki@fuw.edu.pl>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [PATCH] Allocate pnp resources dynamically via	krealloc	-	working
+ version - Addon patch 3
+Date: Mon, 28 Jan 2008 22:12:17 +0100
+Message-ID: <479E4531.9050600@keyaccess.nl>
+References: <1200772810.3708.42.camel@queen>	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>	 <1201109917.20940.214.camel@queen.suse.de> <479CD935.3070906@keyaccess.nl>	 <1201530103.20940.413.camel@queen.suse.de> <479DEE10.6060203@keyaccess.nl>	 <1201536284.20940.424.camel@queen.suse.de>  <479E19C9.7020201@keyaccess.nl> <1201547548.20940.435.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762051AbYA1VFF@vger.kernel.org>
-In-Reply-To: <200801280239.11581.Rafal.Wysocki@fuw.edu.pl>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------050800080304050106080209"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201]:40209 "EHLO
+	smtpq2.tilbu1.nb.home.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752226AbYA1VMB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2008 16:12:01 -0500
+In-Reply-To: <1201547548.20940.435.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, Jaroslav Kysela <perex@perex.cz>
 
-On Monday 28 January 2008 02:39:11 you wrote:
-> On Sunday, 27 of January 2008, Bruno Pr=E9mont wrote:
-> > I'm currently trying out suspend (S3) on a few machines but none of=
- them
-> > wakes up completely/properly (I have a few more hosts I'm planning =
-to try
-> > suspend on once I can get useful information out of those not wakin=
-g up
-> > properly).
-> >
-> > Tested kernels: 2.6.24(-rc8), on one 2.6.23.8
-> >
-> > To suspend I enter the following from console:
-> >   echo -n mem > /sys/power/state
->
-> Please try s2ram (http://suspend.sf.net/s2ram-support.html).
-Thanks for the pointer, using version 0.8 as available in Gentoo portag=
-e for my tests.
+This is a multi-part message in MIME format.
+--------------050800080304050106080209
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> > Fujitsu-Siemens S7020 laptop (i915GM based):
-> >   Works fine except backlight that remains asleep and Xorg vesa dri=
-ver
-> >   crashing Xorg.
-> >   It looks like a suspend cycle discards the VideoBIOS shadow copy.
-> >   Adjusting brightness using hotkeys or acpi-fujitsusiemens does no=
-t help
-> >   waking up the backlight.
-> >   At best backlight comes back when suspending from Xorg with
-> >   xf86-video-intel-2.2.x but then mode is distorded. Any attempt to=
- fix
-> > this using xrandr or switch to/from console puts backlight asleep.
->
-> This one is on the s2ram whitelist, should work.
-Backlight comes back with vesafb using s2ram, not yet tested with intel=
-fb or Xorg.
+On 28-01-08 20:12, Thomas Renninger wrote:
 
-Ideally the kernel would be able to recover this without the hacks by s=
-2ram (vesafb
-post the videobios -- intelfb (or xf86-video-intel for X) would be able=
- to properly
-configure the graphics).
-=46or the intel drivers the problem is probably missing specs from Inte=
-l...
+> This was more a step backward, hopefully this one (on top), gets the
+> area bugfree?
 
-> > Acer Travelmate 660 laptop (i855GM based):
-> >   Laptop suspends as expected but hangs while waking up.
->
-> This might work with "s2ram -f --vbe_post --vbe_save", please try.
-New tests scheduled later for this host...
+I'm afraid not. Next oops in pnp_check_port(). The attached lets it get past 
+that point but _then_ things fall apart a little bit further on again which 
+seems to mean it's something a bit more fundamental. Should pnp_check_* even 
+be called without any initialised resources?
 
-> > Desktop with MSI nforce based mainboard with Athlon CPU, onboard gr=
-aphics
->
-> What kind?
-MSI K7N420 (with first-generation nforce chipset), AMD Athlon 1800+ on =
-it
+Without the attached:
 
-lspci:
-00:00.0 Host bridge: nVidia Corporation nForce CPU bridge (rev b2)
-00:00.1 RAM memory: nVidia Corporation nForce 220/420 Memory Controller=
- (rev b2)
-00:00.2 RAM memory: nVidia Corporation nForce 220/420 Memory Controller=
- (rev b2)
-00:00.3 RAM memory: nVidia Corporation nForce 420 Memory Controller (DD=
-R) (rev b2)
-00:01.0 ISA bridge: nVidia Corporation nForce ISA Bridge (rev c3)
-00:01.1 SMBus: nVidia Corporation nForce PCI System Management (rev c1)
-00:02.0 USB Controller: nVidia Corporation nForce USB Controller (rev c=
-3)
-00:03.0 USB Controller: nVidia Corporation nForce USB Controller (rev c=
-3)
-00:04.0 Ethernet controller: nVidia Corporation nForce Ethernet Control=
-ler (rev c2)
-00:05.0 Multimedia audio controller: nVidia Corporation nForce Audio (r=
-ev c2)
-00:06.0 Multimedia audio controller: nVidia Corporation nForce Audio (r=
-ev c2)
-00:08.0 PCI bridge: nVidia Corporation nForce PCI-to-PCI bridge (rev c2=
-)
-00:09.0 IDE interface: nVidia Corporation nForce IDE (rev c3)
-00:1e.0 PCI bridge: nVidia Corporation nForce AGP to PCI Bridge (rev b2=
-)
-01:04.0 RAID bus controller: Triones Technologies, Inc. HPT374 (rev 07)
-01:04.1 RAID bus controller: Triones Technologies, Inc. HPT374 (rev 07)
-02:00.0 VGA compatible controller: nVidia Corporation NVCrush11 [GeForc=
-e2 MX Integrated Graphics] (rev b1)
+===
+pnp: the driver 'cs4236_isapnp' has been registered
+cs4236_isapnp 01:01.00: driver attached
+cs4236_isapnp 01:01.02: driver attached
+cs4236_isapnp 01:01.03: driver attached
+BUG: unable to handle kernel NULL pointer dereference at virtual address 
+0000000c
+printing eip: c10e4365 *pde = 00000000
+Oops: 0000 [#1] PREEMPT
+Modules linked in: snd_cs4236 snd_opl3_lib snd_hwdep snd_cs4236_lib 
+snd_mpu401_uart snd_rawmidi snd_seq_device snd_cs4231_lib snd_pcm snd_timer 
+snd soundcore s
+nd_page_alloc nfsd lockd nfs_acl sunrpc exportfs
 
-00:00.0 0600: 10de:01a4 (rev b2)
-00:00.1 0500: 10de:01ac (rev b2)
-00:00.2 0500: 10de:01ad (rev b2)
-00:00.3 0500: 10de:01ab (rev b2)
-00:01.0 0601: 10de:01b2 (rev c3)
-00:01.1 0c05: 10de:01b4 (rev c1)
-00:02.0 0c03: 10de:01c2 (rev c3)
-00:03.0 0c03: 10de:01c2 (rev c3)
-00:04.0 0200: 10de:01c3 (rev c2)
-00:05.0 0401: 10de:01b0 (rev c2)
-00:06.0 0401: 10de:01b1 (rev c2)
-00:08.0 0604: 10de:01b8 (rev c2)
-00:09.0 0101: 10de:01bc (rev c3)
-00:1e.0 0604: 10de:01b7 (rev b2)
-01:04.0 0104: 1103:0008 (rev 07)
-01:04.1 0104: 1103:0008 (rev 07)
-02:00.0 0300: 10de:01a0 (rev b1)
+Pid: 1350, comm: modprobe Not tainted (2.6.24-local #6)
+EIP: 0060:[<c10e4365>] EFLAGS: 00010246 CPU: 0
+EIP is at pnp_check_port+0x15/0x125
+EAX: ef8f5800 EBX: 00000000 ECX: 00000000 EDX: 00000000
+ESI: ef8f5800 EDI: 00000000 EBP: ef8f5800 ESP: e447edec
+  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Process modprobe (pid: 1350, ti=e447e000 task=ed35f4c0 task.ti=e447e000)
+Stack: 00000000 e447d900 c108ab97 ef8fe100 ef8f5800 00000000 ef82ae40 c10e5295
+        00000534 00000537 00000000 40000101 efa4e360 c108b88b e4462180 ef8fe100
+        00000000 ef8f5800 c10e5426 00000001 ef8f5964 00000000 00000000 00000000
+Call Trace:
+  [<c108ab97>] sysfs_find_dirent+0x13/0x23
+  [<c10e5295>] pnp_assign_port+0xe5/0x104
+  [<c108b88b>] sysfs_create_link+0xd0/0x111
+  [<c10e5426>] pnp_assign_resources+0x172/0x23a
+  [<c10e5555>] pnp_auto_config_dev+0x67/0xa6
+  [<c10e373a>] pnp_request_card_device+0x9b/0xbe
+  [<c10e55a7>] pnp_activate_dev+0x13/0x3c
+  [<f0a4b559>] snd_cs423x_pnpc_detect+0xe4/0x35f [snd_cs4236]
+  [<c10e330d>] pnp_alloc+0xe/0x25
+  [<c10e3652>] card_probe+0xba/0x107
+  [<c10e3b75>] pnp_register_card_driver+0xa3/0xb3
+  [<f08de02f>] alsa_card_cs423x_init+0x2f/0x4f [snd_cs4236]
+  [<c103258a>] sys_init_module+0x1379/0x149b
+  [<c104773a>] unmap_region+0xe5/0x100
+  [<c1003d62>] syscall_call+0x7/0xb
+  =======================
+Code: ac 29 c1 75 a7 b8 01 00 00 00 eb 02 31 c0 83 c4 0c 5b 5e 5f 5d c3 55 
+89 c5 57 56 53 6b da 1c 83 ec 0c 89 14 24 03 98 64 01 00 00 <f7> 43 0c 00 00 
+00 30 0
+f 85 f2 00 00 00 83 b8 54 01 00 00 00 75
+EIP: [<c10e4365>] pnp_check_port+0x15/0x125 SS:ESP 0068:e447edec
+---[ end trace 149e6ce75dd3870f ]---
+===
 
-Seen by s2ram as:
-This machine can be identified by:
-    sys_vendor   =3D "NVIDIA Corporation."
-    sys_product  =3D "nFORCE-MCP"
-    sys_version  =3D " "
-    bios_version =3D "6.00 PG"
+With the attached:
 
-> > and hdd on HighPoint RR1640 PCI card (USB mouse & keyboard):
-> >   Suspends as expected but hangs while waking up.
-> >   During wakeup I can ping the computer but userspace does not resp=
-ond
-> > (e.g. no answer when trying to connect via ssh)
-> >   The display remains off if using vga text console, display comes =
-back
-> > with garbadge when using nvidiafb (no Xorg running), USB is powered=
- but
-> > triggers no reactions on keyboard/mouse input
-> >
-> >
-> > I tried using netconsole on the desktop computer to capture eventua=
-l
-> > printks during resume but I got not a line during wakup. (only susp=
-end
-> > progress messages before actual suspend)
-> >
-> > What can I do to get more information out of those two last machine=
-s and
-> > find out why they don't wake-up properly?
->
-> Please apply the patches 01-11 from:
-> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.24/patches/
-> on top of 2.6.24, compile the kernel and install it.  After booting, =
-please
-> do:
->
-> # echo core > /sys/power/pm_test
-> # echo mem > /sys/power/state
-This test passed (K7N420) with minimal amount of modules loaded (text-m=
-ode graphics).
-Real suspend worked as well (s2ram -f --vbe_post) but it's not the righ=
-t tuning to
-get usable console back. Currently results in scrambled output with hal=
-f of the
-character placeholders flickering at cursor speed. (will test other opt=
-ions of this
-version of s2ram, possibly upgrading to latest to get more options as d=
-escibed on
-suspend.sf.net).
-It takes about 1 minute between the moment when the first ping reply an=
-d=20
-userspace/display wakeup or netconsole messages.
-More details to come as I get time to do more complete tests with all d=
-rivers.
+===
+pnp: the driver 'cs4236_isapnp' has been registered
+cs4236_isapnp 01:01.00: driver attached
+cs4236_isapnp 01:01.02: driver attached
+cs4236_isapnp 01:01.03: driver attached
+pnp: Port allocate: ed366400 - ed369500; Allocated: 448 bytes, size 
+ofstruct: 28 - allocated ports: 8
+pnp: Dma allocate: ed276a80 - ed2776c0; Allocated: 112 bytes, size ofstruct: 
+28 - allocated dmas: 2
+cs4236_isapnp 01:01.00: activated
+BUG: unable to handle kernel NULL pointer dereference at virtual address 
+00000000
+printing eip: f0a4b5a8 *pde = 00000000
+Oops: 0000 [#1] PREEMPT
+Modules linked in: snd_cs4236 snd_opl3_lib snd_hwdep snd_cs4236_lib 
+snd_mpu401_uart snd_rawmidi snd_seq_device snd_cs4231_lib snd_pcm snd_timer 
+snd soundcore snd_page_alloc nfsd lockd nfs_acl sunrpc exportfs
 
-> and see if the boxes survive it (this causes the suspend/resume seque=
-nce to
-> be executed without acutally suspending, but busy-waiting for 5 sec.
-> instead).
->
-> Greetings,
-> Rafael
+Pid: 1348, comm: modprobe Not tainted (2.6.24-local #9)
+EIP: 0060:[<f0a4b5a8>] EFLAGS: 00010202 CPU: 0
+EIP is at snd_cs423x_pnpc_detect+0x133/0x35f [snd_cs4236]
+EAX: 00000000 EBX: ef8f5800 ECX: 00000220 EDX: 00000001
+ESI: 00000000 EDI: 00000534 EBP: ed338200 ESP: ed3cfe90
+  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Process modprobe (pid: 1348, ti=ed3cf000 task=ed2c79f0 task.ti=ed3cf000)
+Stack: 00000286 00000001 f0a4d780 c10e330d c12b7c6c ef8f5e00 ed26fe80 ed3383bc
+        ef8f5e00 ed26fe80 f0a4e0a4 00000003 c10e3652 f0a4d740 ef8f5600 f0a4d740
+        efa4f514 f0a8aa4c 00000000 c10e3b75 00000001 f0a4e440 f08de02f ed338fc4
+Call Trace:
+  [<c10e330d>] pnp_alloc+0xe/0x25
+  [<c10e3652>] card_probe+0xba/0x107
+  [<c10e3b75>] pnp_register_card_driver+0xa3/0xb3
+  [<f08de02f>] alsa_card_cs423x_init+0x2f/0x4f [snd_cs4236]
+  [<c103258a>] sys_init_module+0x1379/0x149b
+  [<c104773a>] unmap_region+0xe5/0x100
+  [<c1003d62>] syscall_call+0x7/0xb
+  =======================
+Code: d6 a4 f0 7e 10 8b 83 64 01 00 00 8b 40 1c 89 04 b5 60 d6 a4 f0 8b 83 
+64 01 00 00 8b 48 38 89 0c b5 40 d6 a4 f0 8b 83 7c 01 00 00 <8b> 00 89 04 b5 
+20 d6 a4 f0 8b 83 74 01 00 00 8b 00 89 04 b5 e0
+EIP: [<f0a4b5a8>] snd_cs423x_pnpc_detect+0x133/0x35f [snd_cs4236] SS:ESP 
+0068:ed3cfe90
+---[ end trace 9f2b1188efb740f7 ]---
+===
 
-Regards,
-Bruno
+For reference:
+
+# cat /sys/bus/pnp/devices/01\:01.00/options
+Dependent: 01 - Priority preferred
+    port 0x534-0x534, align 0x3, size 0x4, 16-bit address decoding
+    port 0x388-0x388, align 0x7, size 0x4, 16-bit address decoding
+    port 0x220-0x220, align 0x1f, size 0x10, 16-bit address decoding
+    irq 5 High-Edge
+    dma 1 8-bit master byte-count type-F
+    dma 0 8-bit master byte-count type-F
+
+Rene.
+
+
+--------------050800080304050106080209
+Content-Type: text/plain;
+ name="foo.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="foo.diff"
+
+diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+index f1fdd96..21719e5 100644
+--- a/drivers/pnp/resource.c
++++ b/drivers/pnp/resource.c
+@@ -219,13 +219,14 @@ int pnp_check_port(struct pnp_dev *dev, int idx)
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *port, *end, *tport, *tend;
+ 
+-	port = &dev->res.port_resource[idx].start;
+-	end = &dev->res.port_resource[idx].end;
+-
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.port_resource[idx].flags))
++	if (!pnp_port_ok(dev, idx) ||
++	    cannot_compare(dev->res.port_resource[idx].flags))
+ 		return 1;
+ 
++	port = &dev->res.port_resource[idx].start;
++	end = &dev->res.port_resource[idx].end;
++
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+ 	if (!dev->active) {
+@@ -277,13 +278,14 @@ int pnp_check_mem(struct pnp_dev *dev, int idx)
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *addr, *end, *taddr, *tend;
+ 
+-	addr = &dev->res.mem_resource[idx].start;
+-	end = &dev->res.mem_resource[idx].end;
+-
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.mem_resource[idx].flags))
++	if (!pnp_mem_ok(dev, idx) ||
++	    cannot_compare(dev->res.mem_resource[idx].flags))
+ 		return 1;
+ 
++	addr = &dev->res.mem_resource[idx].start;
++	end = &dev->res.mem_resource[idx].end;
++
+ 	/* check if the resource is already in use, skip if the
+ 	 * device is active because it itself may be in use */
+ 	if (!dev->active) {
+@@ -338,12 +340,15 @@ int pnp_check_irq(struct pnp_dev *dev, int idx)
+ {
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+-	resource_size_t *irq = &dev->res.irq_resource[idx].start;
++	resource_size_t *irq;
+ 
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.irq_resource[idx].flags))
++	if (!pnp_irq_ok(dev, idx) ||
++	    cannot_compare(dev->res.irq_resource[idx].flags))
+ 		return 1;
+ 
++	irq = &dev->res.irq_resource[idx].start;
++
+ 	/* check if the resource is valid */
+ 	if (*irq < 0 || *irq > 15)
+ 		return 0;
+@@ -407,12 +412,15 @@ int pnp_check_dma(struct pnp_dev *dev, int idx)
+ #ifndef CONFIG_IA64
+ 	int tmp;
+ 	struct pnp_dev *tdev;
+-	resource_size_t *dma = &dev->res.dma_resource[idx].start;
++	resource_size_t *dma;
+ 
+ 	/* if the resource doesn't exist, don't complain about it */
+-	if (cannot_compare(dev->res.dma_resource[idx].flags))
++	if (!pnp_dma_ok(dev, idx) ||
++	    cannot_compare(dev->res.dma_resource[idx].flags))
+ 		return 1;
+ 
++	dma = &dev->res.dma_resource[idx].start;
++
+ 	/* check if the resource is valid */
+ 	if (*dma < 0 || *dma == 4 || *dma > 7)
+ 		return 0;
+
+--------------050800080304050106080209--
