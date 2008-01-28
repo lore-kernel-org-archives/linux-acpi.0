@@ -1,151 +1,41 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Allocate pnp resources dynamically via krealloc	-
-	working version - Addon patch 2
-Date: Mon, 28 Jan 2008 17:04:49 +0100
-Message-ID: <1201536289.20940.425.camel@queen.suse.de>
-References: <1200772810.3708.42.camel@queen>
-	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>
-	 <1201109917.20940.214.camel@queen.suse.de> <479CD935.3070906@keyaccess.nl>
-	 <1201530103.20940.413.camel@queen.suse.de> <479DEE10.6060203@keyaccess.nl>
-Reply-To: trenn@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: New: After Hibernation the battery charging information is not working any more.
+Date: Mon, 28 Jan 2008 17:06:38 +0100
+Message-ID: <200801281706.38619.rjw@sisk.pl>
+References: <bug-9835-10286@http.bugzilla.kernel.org/> <200801281616.51861.rjw@sisk.pl> <20080128154515.GD8471@vzsze.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:35407 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:35502 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753605AbYA1QEv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Jan 2008 11:04:51 -0500
-In-Reply-To: <479DEE10.6060203@keyaccess.nl>
+	id S1752902AbYA1QJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 11:09:35 -0500
+In-Reply-To: <20080128154515.GD8471@vzsze.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, Jaroslav Kysela <perex@perex.cz>
+To: Rolf Kutz <rk@vzsze.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
 
-On Mon, 2008-01-28 at 16:00 +0100, Rene Herman wrote:
-> On 28-01-08 15:21, Thomas Renninger wrote:
+On Monday, 28 of January 2008, Rolf Kutz wrote:
+> On 28/01/08 16:16 +0100, Rafael J. Wysocki wrote:
+> >On Monday, 28 of January 2008, Rolf Kutz wrote:
+> >> 
+> >> I will provide additional information if needed.
+> >
+> >One of the following commits might be responsible:
+> >
+> >http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c04209a7948b95e8c52084e8595e74e9428653d3
+> >http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9f9adecd2d0e4f88fa0e8cb06c6ec207748df70a
+> >http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d1ec7298fcefd7e4d1ca612da402ce9e5d5e2c13
+> >http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=96c2a8766bf4fe91abac863749c11637fabcc64f
+> >
+> >Can you please check if reverting any of them helps?
 > 
-> > I think I know what is going on.
-> > While pnpbios and pnpacpi theoretically do not have limits, isapnp has
-> > spec restrictions (AFAIK, I have not read this up, but taken over from
-> > previous implementation...).
-> > Therefore in isapnp I wanted to stay with:
-> > #define PNP_MAX_PORT            8
-> > #define PNP_MAX_MEM             4
-> > #define PNP_MAX_IRQ             2
-> > #define PNP_MAX_DMA             2
-> > but I have forgotten to malloc one portion for each at init time, or
-> > even better one portion as soon as one is needed.
-> 
-> Yup.
-> 
-> > As said, isapnp is more or less untested, thanks a lot for trying out.
-> > I will send an updated version soon.
-> 
-> I"m not sure of the flow of things by the way but if it makes better/nicer 
-> code to just pretend that ISAPnP is also unlimited then I'd say to simply do 
-> so. ISAPnP is getting obsolete anyway, not anything to optimise for...
+> I will, but what version should I test them with?
+> I'm getting rejects with 2.6.24 and I'm not really
+> much into C.
 
-Also go the dynamic way in isapnp layer
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
----
- drivers/pnp/isapnp/core.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
-
-Index: linux-2.6.23/drivers/pnp/isapnp/core.c
-===================================================================
---- linux-2.6.23.orig/drivers/pnp/isapnp/core.c
-+++ linux-2.6.23/drivers/pnp/isapnp/core.c
-@@ -953,7 +953,7 @@ static int isapnp_read_resources(struct 
- 
- 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
- 	if (dev->active) {
--		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
-+		for (tmp = 0; pnp_port_ok(dev, tmp); tmp++) {
- 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
- 			if (!ret)
- 				continue;
-@@ -961,8 +961,10 @@ static int isapnp_read_resources(struct 
- 			new_res.flags = IORESOURCE_IO;
- 			if (pnp_assign_resource(res, &new_res))
- 				pnp_err("Bug in %s", __FUNCTION__);
-+			if (tmp > PNP_MAX_PORT)
-+				pnp_warn("ISA exceeds spec max port");
- 		}
--		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
-+		for (tmp = 0; pnp_mem_ok(dev, tmp); tmp++) {
- 			ret =
- 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
-@@ -971,8 +973,10 @@ static int isapnp_read_resources(struct 
- 			new_res.flags = IORESOURCE_MEM;
- 			if (pnp_assign_resource(res, &new_res))
- 				pnp_err("Bug in %s", __FUNCTION__);
-+			if (tmp > PNP_MAX_MEM)
-+				pnp_warn("ISA exceeds spec max mem");
- 		}
--		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
-+		for (tmp = 0; pnp_irq_ok(dev, tmp); tmp++) {
- 			ret =
- 			    (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >>
- 			     8);
-@@ -982,8 +986,11 @@ static int isapnp_read_resources(struct 
- 			new_res.flags = IORESOURCE_IRQ;
- 			if (pnp_assign_resource(res, &new_res))
- 				pnp_err("Bug in %s", __FUNCTION__);
-+			if (tmp > PNP_MAX_IRQ)
-+				pnp_warn("ISA exceeds spec max irq");
-+
- 		}
--		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
-+		for (tmp = 0; pnp_dma_ok(dev, tmp); tmp++) {
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
-@@ -992,6 +999,8 @@ static int isapnp_read_resources(struct 
- 			new_res.flags = IORESOURCE_DMA;
- 			if (pnp_assign_resource(res, &new_res))
- 				pnp_err("Bug in %s", __FUNCTION__);
-+			if (tmp > PNP_MAX_DMA)
-+				pnp_warn("ISA exceeds spec max dma");
- 		}
- 	}
- 	return 0;
-@@ -1017,14 +1026,14 @@ static int isapnp_set_resources(struct p
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0;
--	     tmp < PNP_MAX_PORT
-+	     pnp_port_ok(dev, tmp)
- 	     && (res->port_resource[tmp].
- 		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
- 	     tmp++)
- 		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
- 				  res->port_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_IRQ
-+	     pnp_irq_ok(dev, tmp)
- 	     && (res->irq_resource[tmp].
- 		 flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ;
- 	     tmp++) {
-@@ -1034,14 +1043,14 @@ static int isapnp_set_resources(struct p
- 		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
- 	}
- 	for (tmp = 0;
--	     tmp < PNP_MAX_DMA
-+	     pnp_dma_ok(dev, tmp)
- 	     && (res->dma_resource[tmp].
- 		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
- 	     tmp++)
- 		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
- 				  res->dma_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_MEM
-+	     pnp_mem_ok(dev, tmp)
- 	     && (res->mem_resource[tmp].
- 		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
- 	     tmp++)
-
-
+Would you be able to install git and use it for downloading kernel sources?
