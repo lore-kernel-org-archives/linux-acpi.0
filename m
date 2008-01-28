@@ -1,35 +1,55 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: acer aspire 5315, Ubuntu 2.6.22-14-generic, kernel says send dmidecode, acpi not working correctly
-Date: Mon, 28 Jan 2008 10:55:16 +0000
-Message-ID: <200801281055.17283.carlos@strangeworlds.co.uk>
-References: <de8605510801271842pc2a690dnd603c6b9faad88ec@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 9835] New: After Hibernation the battery
+ charging information is not working any more.
+Date: Mon, 28 Jan 2008 04:50:53 -0800
+Message-ID: <20080128045053.a07f6539.akpm@linux-foundation.org>
+References: <bug-9835-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:36859 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbYA1KzU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2008 05:55:20 -0500
-In-Reply-To: <de8605510801271842pc2a690dnd603c6b9faad88ec@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60074 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755301AbYA1Mug (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 07:50:36 -0500
+In-Reply-To: <bug-9835-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ibiltari <ibiltari@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: bugme-daemon@bugzilla.kernel.org, rk@vzsze.de
 
-On Monday 28 January 2008 02:42:07 Ibiltari wrote:
-> Hi, cpu throtling is not aparently recognised and lots of "APIC error
-> on CPU0: 40(40)" messages.
+On Mon, 28 Jan 2008 04:43:49 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
 
-Just to make it clear from my previous e-mail - the APIC error message is 
-annoying, but mostly harmless and unrelated to your CPU problem.
+> http://bugzilla.kernel.org/show_bug.cgi?id=9835
+> 
+>            Summary: After Hibernation the battery charging information is
+>                     not working any more.
+>            Product: Power Management
+>            Version: 2.5
+>      KernelVersion: 2.6.24
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Hibernation/Suspend
+>         AssignedTo: power-management_other@kernel-bugs.osdl.org
+>         ReportedBy: rk@vzsze.de
+> 
+> 
+> Latest working kernel version: 2.6.24-rc7
+> Earliest failing kernel version: 2.6.24-rc8
+> Distribution: Kubuntu 7.10
+> Hardware Environment: Lenovo Thinkpad T60
+> Software Environment: Kubuntu with KDE
+> Problem Description: After hibernating the system and resuming, the charging
+> information is not shown any more in guidance-power-manager.
+> 
+> Steps to reproduce: Hibernate laptop and resume.
+> 
 
-For the CPU problem with ACPI, we will need the output of acpidump.
+This regression apparently occurred very late in 2.6.24 development.  It
+should be easy to pinpoint?
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
