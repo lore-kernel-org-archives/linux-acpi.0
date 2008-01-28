@@ -1,126 +1,150 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH 4/5] ACPI: Add T-state event notifier function
-Date: Mon, 28 Jan 2008 13:54:46 +0800
-Message-ID: <1201499686.17068.25.camel@yakui_zhao.sh.intel.com>
+Subject: [PATCH 5/5] ACPI: Update the t-state for every affected cpu when
+	t-state is changed
+Date: Mon, 28 Jan 2008 13:55:56 +0800
+Message-ID: <1201499756.17068.27.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24711 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:26715 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273AbYA1GN3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Jan 2008 01:13:29 -0500
+	id S1751403AbYA1GNl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 01:13:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
-Subject: ACPI : Add T-state event notifier function
+Subject: ACPI : Update the t-state for every affected cpu when t-state is changed
 >From : Zhao Yakui <yakui.zhao@intel.com>
 
-The t-state coordination should be considered when T-state for one cpu 
-is changed.It means that OSPM should select one proper target T-state for
-the all affected cpus before updating T-state. 
+According to ACPI spec, the _TSD object provides T-state control cross
+logical processor dependency information to OSPM. So the t-state
+coordination should be considered when T-state for one cpu is changed.
 
-So the function of acpi_processor_throttling_notifier is added. 
-Before updating T-state it can be called for all  the affected cpus to get 
-the proper target T-state, which can meet the requirement of thermal, user and 
-_TPC. After updating T-state, it can be called to update T-state flag.
+According to ACPI spec, three types of coordination are defined.
+SW_ALL, SW_ANY and HW_ALL.
+SW_ALL: it means that OSPM needs to initiate T-state transition on 
+all processors in the domain. It is necessary to call throttling set function
+for all affected cpus.
+SW_ANY: it means that OSPM may initiate T-state transition on any processor in 
+the domain. 
+HW_ALL: Apec only says that hardware will perform the coordination and doesn't 
+recommend how OSPM coordinate T-state among the affected cpus. So it is treated
+as the type of SW_ALL. It means that OSPM needs to initiate t-state transition
+on all the processors in the domain.
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 ---
- drivers/acpi/processor_throttling.c |   72 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ drivers/acpi/processor_throttling.c |   79 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 74 insertions(+), 5 deletions(-)
 
 Index: linux-2.6/drivers/acpi/processor_throttling.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/processor_throttling.c
 +++ linux-2.6/drivers/acpi/processor_throttling.c
-@@ -45,6 +45,14 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_throttling");
+@@ -68,7 +68,7 @@ static int acpi_processor_update_tsd_coo
  
-+struct throttling_tstate {
-+	unsigned int cpu;		/* cpu nr */
-+	int target_state;		/* target T-state */
-+};
-+
-+#define THROTTLING_PRECHANGE       (1)
-+#define THROTTLING_POSTCHANGE      (2)
-+
- static int acpi_processor_get_throttling(struct acpi_processor *pr);
- int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
- 
-@@ -196,6 +204,70 @@ void acpi_processor_throttling_init(void
- 	return;
- }
- 
-+static int acpi_processor_throttling_notifier(unsigned long event, void *data)
-+{
-+	struct throttling_tstate *p_tstate = data;
-+	struct acpi_processor *pr;
-+	unsigned int cpu ;
-+	int target_state;
-+	struct acpi_processor_limit *p_limit;
+ 	/*
+ 	 * Now that we have _TSD data from all CPUs, lets setup T-state
+-	 * coordination among all CPUs.
++	 * coordination between all CPUs.
+ 	 */
+ 	for_each_possible_cpu(i) {
+ 		pr = processors[i];
+@@ -988,6 +988,11 @@ int acpi_processor_set_throttling(struct
+ {
+ 	cpumask_t saved_mask;
+ 	int ret;
++	unsigned int i;
++	struct acpi_processor *match_pr;
 +	struct acpi_processor_throttling *p_throttling;
-+
-+	cpu = p_tstate->cpu;
-+	pr = processors[cpu];
-+	if (!pr) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid pr pointer\n"));
-+		return 0;
-+	}
-+	if (!pr->flags.throttling) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Throttling control is "
-+				"unsupported on CPU %d\n", cpu));
-+		return 0;
-+	}
-+	target_state = p_tstate->target_state;
++	struct throttling_tstate t_state;
++	cpumask_t online_throttling_cpus;
+ 
+ 	if (!pr)
+ 		return -EINVAL;
+@@ -998,12 +1003,76 @@ int acpi_processor_set_throttling(struct
+ 	if ((state < 0) || (state > (pr->throttling.state_count - 1)))
+ 		return -EINVAL;
+ 
++	saved_mask = current->cpus_allowed;
++	t_state.target_state = state;
 +	p_throttling = &(pr->throttling);
-+	switch (event) {
-+	case THROTTLING_PRECHANGE:
-+		/*
-+		 * Prechange event is used to choose one proper t-state,
-+		 * which meets the limits of thermal, user and _TPC.
-+		 */
-+		p_limit = &pr->limit;
-+		if (p_limit->thermal.tx > target_state)
-+			target_state = p_limit->thermal.tx;
-+		if (p_limit->user.tx > target_state)
-+			target_state = p_limit->user.tx;
-+		if (pr->throttling_platform_limit > target_state)
-+			target_state = pr->throttling_platform_limit;
-+		if (target_state >= p_throttling->state_count) {
-+			printk(KERN_WARNING
-+				"Exceed the limit of T-state \n");
-+			target_state = p_throttling->state_count - 1;
-+		}
-+		p_tstate->target_state = target_state;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "PreChange Event:"
-+				"target T-state of CPU %d is T%d\n",
-+				cpu, target_state));
-+		break;
-+	case THROTTLING_POSTCHANGE:
-+		/*
-+		 * Postchange event is only used to update the
-+		 * T-state flag of acpi_processor_throttling.
-+		 */
-+		p_throttling->state = target_state;
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "PostChange Event:"
-+				"CPU %d is switched to T%d\n",
-+				cpu, target_state));
-+		break;
-+	default:
-+		printk(KERN_WARNING
-+			"Unsupported Throttling notifier event\n");
-+		break;
++	cpus_and(online_throttling_cpus, cpu_online_map,
++			p_throttling->shared_cpu_map);
+ 	/*
+-	 * Migrate task to the cpu pointed by pr.
++	 * The throttling notifier will be called for every
++	 * affected cpu in order to get one proper T-state.
++	 * The notifier event is THROTTLING_PRECHANGE.
+ 	 */
+-	saved_mask = current->cpus_allowed;
+-	set_cpus_allowed(current, cpumask_of_cpu(pr->id));
+-	ret = pr->throttling.acpi_processor_set_throttling(pr, state);
++	for_each_cpu_mask(i, online_throttling_cpus) {
++		t_state.cpu = i;
++		acpi_processor_throttling_notifier(THROTTLING_PRECHANGE,
++							&t_state);
 +	}
-+
-+	return 0;
-+}
-+
- /*
-  * _TPC - Throttling Present Capabilities
-  */
++	/*
++	 * The function of acpi_processor_set_throttling will be called
++	 * to switch T-state. If the coordination type is SW_ALL or HW_ALL,
++	 * it is necessary to call it for every affected cpu. Otherwise
++	 * it can be called only for the cpu pointed by pr.
++	 */
++	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
++		set_cpus_allowed(current, cpumask_of_cpu(pr->id));
++		ret = p_throttling->acpi_processor_set_throttling(pr,
++						t_state.target_state);
++	} else {
++		/*
++		 * When the T-state coordination is SW_ALL or HW_ALL,
++		 * it is necessary to set T-state for every affected
++		 * cpus.
++		 */
++		for_each_cpu_mask(i, online_throttling_cpus) {
++			match_pr = processors[i];
++			/*
++			 * If the pointer is invalid, we will report the
++			 * error message and continue.
++			 */
++			if (!match_pr) {
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"Invalid Pointer for CPU %d\n", i));
++				continue;
++			}
++			/*
++			 * If the throttling control is unsupported on CPU i,
++			 * we will report the error message and continue.
++			 */
++			if (!match_pr->flags.throttling) {
++				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"Throttling Controll is unsupported "
++					"on CPU %d\n", i));
++				continue;
++			}
++			t_state.cpu = i;
++			set_cpus_allowed(current, cpumask_of_cpu(i));
++			ret = match_pr->throttling.
++				acpi_processor_set_throttling(
++				match_pr, t_state.target_state);
++		}
++	}
++	/*
++	 * After the set_throttling is called, the
++	 * throttling notifier is called for every
++	 * affected cpu to update the T-states.
++	 * The notifier event is THROTTLING_POSTCHANGE
++	 */
++	for_each_cpu_mask(i, online_throttling_cpus) {
++		t_state.cpu = i;
++		acpi_processor_throttling_notifier(THROTTLING_POSTCHANGE,
++							&t_state);
++	}
+ 	/* restore the previous state */
+ 	set_cpus_allowed(current, saved_mask);
+ 	return ret;
 
 
