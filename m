@@ -1,84 +1,97 @@
-From: Rolf Kutz <rk@vzsze.de>
-Subject: Re: New: After Hibernation the battery charging information is not
-	working any more.
-Date: Mon, 28 Jan 2008 13:57:55 +0100
-Message-ID: <20080128125755.GB8471@vzsze.de>
-References: <bug-9835-10286@http.bugzilla.kernel.org/> <20080128045053.a07f6539.akpm@linux-foundation.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Allocate pnp resources dynamically via krealloc
+	-	working version
+Date: Mon, 28 Jan 2008 15:21:43 +0100
+Message-ID: <1201530103.20940.413.camel@queen.suse.de>
+References: <1200772810.3708.42.camel@queen>
+	 <84144f020801191623i2ad344a8t1c40969578793d13@mail.gmail.com>
+	 <1201109917.20940.214.camel@queen.suse.de>  <479CD935.3070906@keyaccess.nl>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jq0ap7NbKX2Kqbes"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.netcologne.de ([194.8.194.66]:43362 "EHLO
-	smtp3.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbYA1NTM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2008 08:19:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20080128045053.a07f6539.akpm@linux-foundation.org>
+Received: from mx1.suse.de ([195.135.220.2]:56414 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755222AbYA1OVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 09:21:44 -0500
+In-Reply-To: <479CD935.3070906@keyaccess.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
 
+On Sun, 2008-01-27 at 20:19 +0100, Rene Herman wrote:
+> On 23-01-08 18:38, Thomas Renninger wrote:
+> 
+> > isapnp is totally untested. Also the sysfs is rather untested.
+> 
+> If nobody beats me to it I'll debug this myself later on, but as a quick 
+> heads up:
+I think I know what is going on.
+While pnpbios and pnpacpi theoretically do not have limits, isapnp has
+spec restrictions (AFAIK, I have not read this up, but taken over from
+previous implementation...).
+Therefore in isapnp I wanted to stay with:
+#define PNP_MAX_PORT            8
+#define PNP_MAX_MEM             4
+#define PNP_MAX_IRQ             2
+#define PNP_MAX_DMA             2
+but I have forgotten to malloc one portion for each at init time, or
+even better one portion as soon as one is needed.
+As said, isapnp is more or less untested, thanks a lot for trying out.
+I will send an updated version soon.
 
---jq0ap7NbKX2Kqbes
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks,
 
-On 28/01/08 04:50 -0800, Andrew Morton wrote:
->On Mon, 28 Jan 2008 04:43:49 -0800 (PST) bugme-daemon@bugzilla.kernel.org =
-wrote:
->
->> http://bugzilla.kernel.org/show_bug.cgi?id=3D9835
->>=20
->>            Summary: After Hibernation the battery charging information is
->>                     not working any more.
->>            Product: Power Management
->>            Version: 2.5
->>      KernelVersion: 2.6.24
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: Hibernation/Suspend
->>         AssignedTo: power-management_other@kernel-bugs.osdl.org
->>         ReportedBy: rk@vzsze.de
->>=20
->>=20
->> Latest working kernel version: 2.6.24-rc7
->> Earliest failing kernel version: 2.6.24-rc8
->> Distribution: Kubuntu 7.10
->> Hardware Environment: Lenovo Thinkpad T60
->> Software Environment: Kubuntu with KDE
->> Problem Description: After hibernating the system and resuming, the char=
-ging
->> information is not shown any more in guidance-power-manager.
->>=20
->> Steps to reproduce: Hibernate laptop and resume.
->>=20
->
->This regression apparently occurred very late in 2.6.24 development.  It
->should be easy to pinpoint?
+    Thomas
 
-I noticed that ACPI_SYSFS_POWER was added in -rc8.
-But neither enabling it nor disabling it resolves
-the bug.
+> pnp: the driver 'cs4236_isapnp' has been registered
+> cs4236_isapnp 01:01.00: driver attached
+> cs4236_isapnp 01:01.02: driver attached
+> cs4236_isapnp 01:01.03: driver attached
+> pnp: Port resource 0 not allocated, cannot assign value
+> pnp: Port resource 1 not allocated, cannot assign value
+> pnp: Port resource 2 not allocated, cannot assign value
+> pnp: Irq resource 0 not allocated, cannot assign value
+> pnp: DMA resource 0 not allocated, cannot assign value
+> pnp: DMA resource 1 not allocated, cannot assign value
+> BUG: unable to handle kernel NULL pointer dereference at virtual address 
+> 0000000c
+> printing eip: c10e76d9 *pde = 00000000
+> Oops: 0000 [#1] PREEMPT
+> Modules linked in: snd_cs4236 snd_opl3_lib snd_hwdep snd_cs4236_lib 
+> snd_mpu401_uart snd_rawmidi snd_seq_device snd_cs4231_lib snd_pcm snd_timer 
+> snd_page_alloc snd soundcore nfsd lockd nfs_acl sunrpc exportfs
+> 
+> Pid: 1353, comm: modprobe Not tainted (2.6.24-local #2)
+> EIP: 0060:[<c10e76d9>] EFLAGS: 00010246 CPU: 0
+> EIP is at isapnp_set_resources+0x4d/0x132
+> EAX: 00000000 EBX: 00000000 ECX: e3c8f000 EDX: 00000000
+> ESI: 00000000 EDI: ef8f5964 EBP: ef8f5800 ESP: e3c8fe5c
+>   DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+> Process modprobe (pid: 1353, ti=e3c8f000 task=ed2c2f90 task.ti=e3c8f000)
+> Stack: ef8f5800 ef8f5888 f0a4e0a4 ed349000 c10e48c8 c10e373a f0a4e0c0 ef8f5800
+>         ef8f5800 00000000 c10e5101 ef8f5800 f0a4b559 00000286 00000001 f0a4d780
+>         c10e330d c12b7c6c ef8f5e00 ed37f140 ed3491bc ef8f5e00 ed37f140 f0a4e0a4
+> Call Trace:
+>   [<c10e48c8>] pnp_start_dev+0x55/0x9e
+>   [<c10e373a>] pnp_request_card_device+0x9b/0xbe
+>   [<c10e5101>] pnp_activate_dev+0x23/0x39
+>   [<f0a4b559>] snd_cs423x_pnpc_detect+0xe4/0x35f [snd_cs4236]
+>   [<c10e330d>] pnp_alloc+0xe/0x25
+>   [<c10e3652>] card_probe+0xba/0x107
+>   [<c10e3b75>] pnp_register_card_driver+0xa3/0xb3
+>   [<f08de02f>] alsa_card_cs423x_init+0x2f/0x4f [snd_cs4236]
+>   [<c103258a>] sys_init_module+0x1379/0x149b
+>   [<c104773a>] unmap_region+0xe5/0x100
+>   [<c1003d62>] syscall_call+0x7/0xb
+>   =======================
+> Code: ff ff ff c7 85 54 01 00 00 01 00 00 00 eb 18 0f b7 12 8d 44 1b 60 43 
+> 83 c6 1c 0f b6 c0 e8 ce fd ff ff 83 fb 08 74 13 89 f2 03 17 <8b> 42 0c 25 00 
+> 01 00 20 3d 00 01 00 00 74 d5 31 db 31 f6 eb 25
+> EIP: [<c10e76d9>] isapnp_set_resources+0x4d/0x132 SS:ESP 0068:e3c8fe5c
+> ---[ end trace f836fd70d1d20199 ]---
+> 
+> Rene.
 
-I will provide additional information if needed.
-
---jq0ap7NbKX2Kqbes
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHndFT+ZqCAlXyvMsRAtYpAJ9+tMWRv2S3jk5THicKXZF1uzCHlQCcC1va
-4HZ4JSA/rW4M7vdi2kGeTvk=
-=/yOr
------END PGP SIGNATURE-----
-
---jq0ap7NbKX2Kqbes--
