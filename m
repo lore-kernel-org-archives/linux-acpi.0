@@ -1,78 +1,280 @@
-From: Rolf Kutz <rk@vzsze.de>
-Subject: Re: New: After Hibernation the battery charging information is not
-	working any more.
-Date: Tue, 29 Jan 2008 00:29:05 +0100
-Message-ID: <20080128232904.GA7723@vzsze.de>
-References: <bug-9835-10286@http.bugzilla.kernel.org/> <200801281834.36823.rjw@sisk.pl> <20080128182935.GA7136@vzsze.de> <200801282319.13950.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Need to replace one patch in suspend branch
+Date: Tue, 29 Jan 2008 00:29:06 +0100
+Message-ID: <200801290029.07402.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.netcologne.de ([194.8.194.112]:61816 "EHLO
-	smtp2.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164AbYA1X3J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2008 18:29:09 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:37455 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757847AbYA1Xb2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 18:31:28 -0500
 Content-Disposition: inline
-In-Reply-To: <200801282319.13950.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
+Hi Len,
 
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Would it be possible to replace commit a04ca6718960e842624833a01dbd5f10f38f5af1
+"Suspend: Testing facility (rev. 2)" in the suspend branch with the appended patch?
 
-On 28/01/08 23:19 +0100, Rafael J. Wysocki wrote:
->>=20
->> Done, the regression is still there.
->
->Hm, there are no ACPI patches between -rc7 and this one ...
->
->(in the linux-2.6 directory) please do
->
->$ git checkout 3ce54450461bad18bbe1f9f5aa3ecd2f8e8d1235
->
->(this should be 2.6.24-rc7, actually) and try to build and test this kerne=
-l.
+Unfortunately, the original commit uses pointers to 'struct kset' which is no
+longer valid after the recently merged driver core changes.
 
-The regression is sitting between keyboard and
-chair. :/ The testkernel wasn't working, so I did
-a diff of the know to work kernelconfig and the
-testkernel:
+Thanks,
+Rafael
 
-3,4c3,4
-< # Linux kernel version: 2.6.24-rc7-midori20
-< # Mon Jan  7 02:56:41 2008
 ---
-> # Linux kernel version: 2.6.24-rc7-test2
-> # Mon Jan 28 23:26:04 2008
-273c273
-< CONFIG_ACPI_SBS=3Dm
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+Introduce sysfs attribute /sys/power/pm_test allowing one to test the suspend
+core code.  Namely, writing one of the strings:
+
+freezer
+devices
+platform
+processors
+core
+
+to this file causes the suspend code to work in one of the test modes defined as
+follows:
+
+freezer
+- test the freezing of processes
+
+devices
+- test the freezing of processes and suspending of devices
+
+platform
+- test the freezing of processes, suspending of devices and platform global
+  control methods(*)
+
+processors
+- test the freezing of processes, suspending of devices, platform global
+  control methods and the disabling of nonboot CPUs
+
+core
+- test the freezing of processes, suspending of devices, platform global
+  control methods, the disabling of nonboot CPUs and suspending of
+  platform/system devices
+
+(*) These are ACPI global control methods on ACPI systems
+
+Then, if a suspend is started by normal means, the suspend core will perform
+its normal operations up to the point indicated by given test level.  Next, it
+will wait for 5 seconds and carry out the resume operations needed to transition
+the system back to the fully functional state.
+
+Writing "none" to /sys/power/pm_test turns the testing off.
+
+When open for reading, /sys/power/pm_test contains a space-separated list of all
+available tests (including "none" that represents the normal functionality) in
+which the current test level is indicated by square brackets.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
-> # CONFIG_ACPI_SBS is not set
+ kernel/power/main.c  |  111 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ kernel/power/power.h |   18 ++++++++
+ 2 files changed, 120 insertions(+), 9 deletions(-)
 
-I then compiled 2.6.24 with sbs and it works.
-Don't know how it got missing, but I take the
-blame.=20
-
-Sorry for my ignorance and thanks for the help,
-
-Rolf
-
---oyUTqETQ0mS9luUI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHnmVA+ZqCAlXyvMsRAi/+AJ9PhkxrXjoINrGV6RKkgdn7DMkpuACffWa9
-Xl6Vs6j0Cp5bTmh5hEFs9iY=
-=/t5H
------END PGP SIGNATURE-----
-
---oyUTqETQ0mS9luUI--
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -31,6 +31,82 @@ DEFINE_MUTEX(pm_mutex);
+ unsigned int pm_flags;
+ EXPORT_SYMBOL(pm_flags);
+ 
++#ifdef CONFIG_PM_DEBUG
++int pm_test_level = TEST_NONE;
++
++static int suspend_test(int level)
++{
++	if (pm_test_level == level) {
++		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
++		mdelay(5000);
++		return 1;
++	}
++	return 0;
++}
++
++static const char * const pm_tests[__TEST_AFTER_LAST] = {
++	[TEST_NONE] = "none",
++	[TEST_CORE] = "core",
++	[TEST_CPUS] = "processors",
++	[TEST_PLATFORM] = "platform",
++	[TEST_DEVICES] = "devices",
++	[TEST_FREEZER] = "freezer",
++};
++
++static ssize_t pm_test_show(struct kobject *kobj, struct kobj_attribute *attr,
++				char *buf)
++{
++	char *s = buf;
++	int level;
++
++	for (level = TEST_FIRST; level <= TEST_MAX; level++)
++		if (pm_tests[level]) {
++			if (level == pm_test_level)
++				s += sprintf(s, "[%s] ", pm_tests[level]);
++			else
++				s += sprintf(s, "%s ", pm_tests[level]);
++		}
++
++	if (s != buf)
++		/* convert the last space to a newline */
++		*(s-1) = '\n';
++
++	return (s - buf);
++}
++
++static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
++				const char *buf, size_t n)
++{
++	const char * const *s;
++	int level;
++	char *p;
++	int len;
++	int error = -EINVAL;
++
++	p = memchr(buf, '\n', n);
++	len = p ? p - buf : n;
++
++	mutex_lock(&pm_mutex);
++
++	level = TEST_FIRST;
++	for (s = &pm_tests[level]; level <= TEST_MAX; s++, level++)
++		if (*s && len == strlen(*s) && !strncmp(buf, *s, len)) {
++			pm_test_level = level;
++			error = 0;
++			break;
++		}
++
++	mutex_unlock(&pm_mutex);
++
++	return error ? error : n;
++}
++
++power_attr(pm_test);
++#else /* !CONFIG_PM_DEBUG */
++static inline int suspend_test(int level) { return 0; }
++#endif /* !CONFIG_PM_DEBUG */
++
++
+ #ifdef CONFIG_SUSPEND
+ 
+ /* This is just an arbitrary number */
+@@ -136,7 +212,10 @@ static int suspend_enter(suspend_state_t
+ 		printk(KERN_ERR "Some devices failed to power down\n");
+ 		goto Done;
+ 	}
+-	error = suspend_ops->enter(state);
++
++	if (!suspend_test(TEST_CORE))
++		error = suspend_ops->enter(state);
++
+ 	device_power_up();
+  Done:
+ 	arch_suspend_enable_irqs();
+@@ -167,16 +246,25 @@ int suspend_devices_and_enter(suspend_st
+ 		printk(KERN_ERR "Some devices failed to suspend\n");
+ 		goto Resume_console;
+ 	}
++
++	if (suspend_test(TEST_DEVICES))
++		goto Resume_devices;
++
+ 	if (suspend_ops->prepare) {
+ 		error = suspend_ops->prepare();
+ 		if (error)
+ 			goto Resume_devices;
+ 	}
++
++	if (suspend_test(TEST_PLATFORM))
++		goto Finish;
++
+ 	error = disable_nonboot_cpus();
+-	if (!error)
++	if (!error && !suspend_test(TEST_CPUS))
+ 		suspend_enter(state);
+ 
+ 	enable_nonboot_cpus();
++ Finish:
+ 	if (suspend_ops->finish)
+ 		suspend_ops->finish();
+  Resume_devices:
+@@ -243,12 +331,17 @@ static int enter_state(suspend_state_t s
+ 	printk("done.\n");
+ 
+ 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
+-	if ((error = suspend_prepare()))
++	error = suspend_prepare();
++	if (error)
+ 		goto Unlock;
+ 
++	if (suspend_test(TEST_FREEZER))
++		goto Finish;
++
+ 	pr_debug("PM: Entering %s sleep\n", pm_states[state]);
+ 	error = suspend_devices_and_enter(state);
+ 
++ Finish:
+ 	pr_debug("PM: Finishing wakeup.\n");
+ 	suspend_finish();
+  Unlock:
+@@ -369,18 +462,18 @@ pm_trace_store(struct kobject *kobj, str
+ }
+ 
+ power_attr(pm_trace);
++#endif /* CONFIG_PM_TRACE */
+ 
+ static struct attribute * g[] = {
+ 	&state_attr.attr,
++#ifdef CONFIG_PM_TRACE
+ 	&pm_trace_attr.attr,
++#endif
++#ifdef CONFIG_PM_DEBUG
++	&pm_test_attr.attr,
++#endif
+ 	NULL,
+ };
+-#else
+-static struct attribute * g[] = {
+-	&state_attr.attr,
+-	NULL,
+-};
+-#endif /* CONFIG_PM_TRACE */
+ 
+ static struct attribute_group attr_group = {
+ 	.attrs = g,
+Index: linux-2.6/kernel/power/power.h
+===================================================================
+--- linux-2.6.orig/kernel/power/power.h
++++ linux-2.6/kernel/power/power.h
+@@ -188,3 +188,21 @@ int restore_highmem(void);
+ static inline unsigned int count_highmem_pages(void) { return 0; }
+ static inline int restore_highmem(void) { return 0; }
+ #endif
++
++/*
++ * Suspend test levels
++ */
++enum {
++	/* keep first */
++	TEST_NONE,
++	TEST_CORE,
++	TEST_CPUS,
++	TEST_PLATFORM,
++	TEST_DEVICES,
++	TEST_FREEZER,
++	/* keep last */
++	__TEST_AFTER_LAST
++};
++
++#define TEST_FIRST	TEST_NONE
++#define TEST_MAX	(__TEST_AFTER_LAST - 1)
