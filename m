@@ -1,65 +1,51 @@
-From: Rolf Kutz <rk@vzsze.de>
-Subject: Re: New: After Hibernation the battery charging information is not
-	working any more.
-Date: Mon, 28 Jan 2008 16:45:16 +0100
-Message-ID: <20080128154515.GD8471@vzsze.de>
-References: <bug-9835-10286@http.bugzilla.kernel.org/> <20080128045053.a07f6539.akpm@linux-foundation.org> <20080128125755.GB8471@vzsze.de> <200801281616.51861.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] Rationalise ACPI backlight implementation
+Date: Mon, 28 Jan 2008 13:51:47 -0200
+Message-ID: <20080128155147.GC30716@khazad-dum.debian.net>
+References: <20071226020325.GA21099@srcf.ucam.org> <200801241644.49114.lenb@kernel.org> <20080126220045.b93db7c9.akpm@linux-foundation.org> <20080128012549.GA24166@srcf.ucam.org> <20080127211013.1ddaa6a1.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6Nae48J/T25AfBN4"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.netcologne.de ([194.8.194.66]:44187 "EHLO
-	smtp3.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbYA1Ppb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jan 2008 10:45:31 -0500
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:36215 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750792AbYA1Pvx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Jan 2008 10:51:53 -0500
 Content-Disposition: inline
-In-Reply-To: <200801281616.51861.rjw@sisk.pl>
+In-Reply-To: <20080127211013.1ddaa6a1.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, bugme-daemon@bugzilla.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Sun, 27 Jan 2008, Andrew Morton wrote:
+> 0 sh -c "echo $1 > /sys/class/backlight/thinkpad_screen/brightness"
+> ) 2>/dev/null
+> 
+> And yes, I had an rc.local command which assumed that 7 (later 8) is max
+> brightness.
 
---6Nae48J/T25AfBN4
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+You have to use 15 (or 16? I forget) on T61, X61, R61, X60(I think)... for
+maximum brightness :-p   And the interface to get maximum brightness has
+always been to cat max_brightness > brightness, AFAIK.
 
-On 28/01/08 16:16 +0100, Rafael J. Wysocki wrote:
->On Monday, 28 of January 2008, Rolf Kutz wrote:
->>=20
->> I will provide additional information if needed.
->
->One of the following commits might be responsible:
->
->http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcom=
-mit;h=3Dc04209a7948b95e8c52084e8595e74e9428653d3
->http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcom=
-mit;h=3D9f9adecd2d0e4f88fa0e8cb06c6ec207748df70a
->http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcom=
-mit;h=3Dd1ec7298fcefd7e4d1ca612da402ce9e5d5e2c13
->http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcom=
-mit;h=3D96c2a8766bf4fe91abac863749c11637fabcc64f
->
->Can you please check if reverting any of them helps?
+> My /sys/class/backlight/ directory is presently empty.  Rather than trying
+> to find out why, I think I'll just collapse in laughter.
 
-I will, but what version should I test them with?
-I'm getting rejects with 2.6.24 and I'm not really
-much into C.
+Well, I can tell you why it is empty on the thinkpad-acpi side.  It defaults
+to brightness_enable=0 on Lenovo 16-brightness level boxes, where the right
+thing to do is to control brightness using the X.org drivers or through the
+ACPI brightness driver.
 
-regards, Rolf
+But I have no idea why it is empty re. the ACPI video driver.
 
---6Nae48J/T25AfBN4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+> Guys, sort it out, please.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+I am reading this ML with eyes fully open.  When a sensible (read: any)
+consensus is found, I will follow it.
 
-iD8DBQFHnfiL+ZqCAlXyvMsRAluLAJ4zwkmKeox0J/u2wzczh92gUz/l1QCfR9+Y
-//I6mkLQxElBx0sG3DPtZ5U=
-=g+ME
------END PGP SIGNATURE-----
-
---6Nae48J/T25AfBN4--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
