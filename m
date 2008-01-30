@@ -1,93 +1,119 @@
-From: xuqiang <likes@huawei.com>
-Subject: Re: Re: an error an bug
-Date: Wed, 30 Jan 2008 16:46:26 +0800
-Message-ID: <0JVG006G88DEB9@szxml04-in.huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Fwd: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
+Date: Wed, 30 Jan 2008 11:16:44 +0100
+Message-ID: <200801301116.44902.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_M6EoHbwur9yOyNu"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [61.144.161.55] ([61.144.161.55]:28131 "EHLO
-	szxga03-in.huawei.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1756147AbYA3Isc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jan 2008 03:48:32 -0500
-Received: from huawei.com (szxga03-in [172.24.2.9])
- by szxga03-in.huawei.com (iPlanet Messaging Server 5.2 HotFix 2.14 (built Aug
- 8 2006)) with ESMTP id <0JVG00C8F8DGHK@szxga03-in.huawei.com> for
- linux-acpi@vger.kernel.org; Wed, 30 Jan 2008 16:46:28 +0800 (CST)
-Received: from huawei.com ([172.24.1.24])
- by szxga03-in.huawei.com (iPlanet Messaging Server 5.2 HotFix 2.14 (built Aug
- 8 2006)) with ESMTP id <0JVG00GGP8DE27@szxga03-in.huawei.com> for
- linux-acpi@vger.kernel.org; Wed, 30 Jan 2008 16:46:27 +0800 (CST)
-Received: from x52952 ([10.161.58.135])
- by szxml04-in.huawei.com (iPlanet Messaging Server 5.2 HotFix 2.14 (built Aug
- 8 2006)) with ESMTPA id <0JVG006G48DEB9@szxml04-in.huawei.com> for
- linux-acpi@vger.kernel.org; Wed, 30 Jan 2008 16:46:26 +0800 (CST)
+Received: from ogre.sisk.pl ([217.79.144.158]:44769 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751160AbYA3KS7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jan 2008 05:18:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "acpi@linux.intel.com" <acpi@linux.intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Kevin Hilman <khilman@mvista.com>
 
-Alexey Starikovskiy,=C4=FA=BA=C3=A3=A1
+--Boundary-00=_M6EoHbwur9yOyNu
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-	ok, I will get all needed information. But can you tell me what [\_SB_=
-=2ERPME] [\_SB_.RDPE] and [\_GPE._L18] mean? =20
+Hi,
 
-=3D=3D=3D=3D=3D=3D=3D 2008-01-30 11:33:00 =C4=FA=D4=DA=C0=B4=D0=C5=D6=D0=
-=D0=B4=B5=C0=A3=BA=3D=3D=3D=3D=3D=3D=3D
+Please have a look at this.
 
->Hi Likes,
->
->What kernel are you using?
->Please open bug in bugzilla.kernel.org for ACPI and provide all needed=
-=20
->information, including dmesg (from the beginning) and acpidump.
->
->xuqiang wrote:
->> hi,all:
->>    an error happened. in an hour, more than 30 million lines were re=
-peated and writed to /var/log/messages and /var/log/warn.
->> Jan  1 05:08:06 bond0 kernel:     ACPI-0347: *** Error: Handler for =
-[SystemMemory] returned AE_NO_MEMORY
->> Jan  1 05:08:06 bond0 kernel:     ACPI-1133: *** Error: Method execu=
-tion failed [\_SB_.RDPE] (Node cdf7aec0), AE_NO_MEMORY
->> Jan  1 05:08:06 bond0 kernel:     ACPI-1133: *** Error: Method execu=
-tion failed [\_SB_.RPME] (Node cdf7ae20), AE_NO_MEMORY
->> Jan  1 05:08:06 bond0 kernel:     ACPI-1133: *** Error: Method execu=
-tion failed  (Node cdf7ad80), AE_NO_MEMORY
->> Jan  1 05:08:06 bond0 kernel:     ACPI-0295: *** Error: AE_NO_MEMORY=
- while evaluating method [_L18] for GPE[ 0]
->> ]
->>  where can I get enough information to understand the error or who c=
-an tell me  what the method means?	=09
->>
->> likes
->> likes@huawei.com
->> 2008-01-30
->>
->>
->> -
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>  =20
+Rafael
 
-=3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D =3D=
- =3D =3D
-		=09
+--Boundary-00=_M6EoHbwur9yOyNu
+Content-Type: message/rfc822;
+  name="forwarded message"
+Content-Transfer-Encoding: 7bit
+Content-Description: Kevin Hilman <khilman@mvista.com>: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
+Content-Disposition: inline
 
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=D6=C2
-=C0=F1=A3=A1
-=20
-				=20
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1xuqiang
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1likes@huawei.com
-=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12008-01-30
+Return-Path: <linux-pm-bounces@lists.linux-foundation.org>
+Received: from murder ([unix socket])
+	 by ogre.sisk.pl (Cyrus v2.2.12) with LMTPA;
+	 Wed, 30 Jan 2008 06:31:08 +0100
+X-Sieve: CMU Sieve 2.2
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ogre.sisk.pl (Postfix) with ESMTP id D77468A143
+	for <rafael@ogre.sisk.pl>; Wed, 30 Jan 2008 06:31:08 +0100 (CET)
+Received: from ogre.sisk.pl ([127.0.0.1])
+ by localhost (ogre.sisk.pl [127.0.0.1]) (amavisd-new, port 10024) with ESMTP
+ id 07841-10 for <rafael@ogre.sisk.pl>; Wed, 30 Jan 2008 06:30:50 +0100 (CET)
+Received: from smtp2.linux-foundation.org (smtp2.linux-foundation.org [207.189.120.14])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ogre.sisk.pl (Postfix) with ESMTP id 8B9F78A13A
+	for <rjw@sisk.pl>; Wed, 30 Jan 2008 06:30:50 +0100 (CET)
+Received: from murdock.linux-foundation.org (localhost [127.0.0.1])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m0U5qMar002162;
+	Tue, 29 Jan 2008 21:52:43 -0800
+Received: from gateway-1237.mvista.com (gateway-1237.mvista.com
+	[63.81.120.158]) by smtp2.linux-foundation.org
+	(8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id
+	m0U5qI8D002156 for <linux-pm@lists.linux-foundation.org>;
+	Tue, 29 Jan 2008 21:52:19 -0800
+Received: from paris.hilman.org (asshur.mvista.com [10.0.0.11])
+	by hermes.mvista.com (Postfix) with ESMTP id 6B302181F8
+	for <linux-pm@lists.linux-foundation.org>;
+	Tue, 29 Jan 2008 21:52:12 -0800 (PST)
+To: linux-pm@lists.linux-foundation.org
+From: Kevin Hilman <khilman@mvista.com>
+Organization: MontaVista Software, Inc.
+Date: Tue, 29 Jan 2008 21:52:12 -0800
+Message-ID: <871w7zn9mb.fsf@paris.hilman.org>
+User-Agent: Gnus/5.11 (Gnus v5.11) Emacs/22.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset=us-ascii
+Received-SPF: pass (localhost is always allowed.)
+X-MIMEDefang-Filter: lf$Revision: 1.188 $
+X-Scanned-By: MIMEDefang 2.53 on 207.189.120.22
+Subject: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
+X-BeenThere: linux-pm@lists.linux-foundation.org
+X-Mailman-Version: 2.1.5
+Precedence: list
+List-Id: Linux power management <linux-pm.lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+X-Virus-Scanned: amavisd-new at ogre.sisk.pl using MkS_Vir for Linux
+X-Length: 3630
+X-UID: 538968
+
+Wrap cpu_idle_wait() in an x86 #ifdef since it's x86 only.
+
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index d2fabe7..4d0f9b0 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -82,7 +82,9 @@ void cpuidle_uninstall_idle_handler(void)
+ {
+ 	if (enabled_devices && (pm_idle != pm_idle_old)) {
+ 		pm_idle = pm_idle_old;
++#ifdef CONFIG_X86
+ 		cpu_idle_wait();
++#endif
+ 	}
+ }
+
+_______________________________________________
+linux-pm mailing list
+linux-pm@lists.linux-foundation.org
+https://lists.linux-foundation.org/mailman/listinfo/linux-pm
 
 
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Boundary-00=_M6EoHbwur9yOyNu--
