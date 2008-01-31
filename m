@@ -1,29 +1,36 @@
-From: "der flooh" <derflooh@gmx.de>
-Subject: MAcBook Pro DMI info
-Date: Thu, 31 Jan 2008 09:18:21 +0100
-Message-ID: <20080131081821.89030@gmx.net>
+From: "Eduard Huguet" <eduardhc@gmail.com>
+Subject: S3 and Asus Pundit P1-AH2
+Date: Thu, 31 Jan 2008 10:21:37 +0100
+Message-ID: <617be8890801310121g4c5c6a25jeceeec138872d4cc@mail.gmail.com>
+References: <617be8890801310120l73920ba6vfd2e4615e1ec3e65@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42169 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754552AbYAaISX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jan 2008 03:18:23 -0500
+Received: from rv-out-0910.google.com ([209.85.198.191]:64948 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230AbYAaJVk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 04:21:40 -0500
+Received: by rv-out-0910.google.com with SMTP id k20so490708rvb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 31 Jan 2008 01:21:37 -0800 (PST)
+In-Reply-To: <617be8890801310120l73920ba6vfd2e4615e1ec3e65@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Jan 31 08:40:41 elm ACPI: DMI System Vendor: Apple Inc.
-Jan 31 08:40:41 elm ACPI: DMI Product Name: MacBookPro3,1
-Jan 31 08:40:41 elm ACPI: DMI Product Version: 1.0
-Jan 31 08:40:41 elm ACPI: DMI Board Name: Mac-F4238BC8
-Jan 31 08:40:41 elm ACPI: DMI BIOS Vendor: Apple Inc.
-Jan 31 08:40:41 elm ACPI: DMI BIOS Date: 09/26/07
+Hi,
+    I read some weeks ago the thread about S3 (suspend to ram) being
+broken for the Asus Pundit P1-AH2. I also read there was a possible
+solution incoming, something related to a different parsing order of
+the DSDT tables or similar (sorry, my knowledge about ACPI internals
+is pretty limited...).
 
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt?
-Der kann`s mit allen: http://www.gmx.net/de/go/multimessenger
+    I'd like to know what's the state on this. =BFAre these patches
+going to be merged into the mainstream kernel anytime soon?
+
+Best regards,
+  Eduard Huguet
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
