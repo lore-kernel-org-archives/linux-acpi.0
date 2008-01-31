@@ -1,49 +1,63 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: ACPI module for Asus Eee PC
-Date: Wed, 30 Jan 2008 22:27:40 +0100
-Message-ID: <200801302227.40477.corentincj@iksaif.net>
-References: <20080126144824.GD16281@stratocaster.home> <200801301910.46643.corentincj@iksaif.net> <20080130182146.GD25946@stratocaster.home>
-Reply-To: corentincj@iksaif.net
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
+Date: Thu, 31 Jan 2008 10:44:48 -0800
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE7202A0@orsmsx423.amr.corp.intel.com>
+References: <200801301116.44902.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:49876 "EHLO iksaif.net"
+Received: from mga11.intel.com ([192.55.52.93]:8166 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754196AbYAaLYs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jan 2008 06:24:48 -0500
-Received: from [192.168.0.16] (mon69-3-82-235-39-243.fbx.proxad.net [82.235.39.243])
-	by iksaif.net (Postfix) with ESMTP id A64F950B720
-	for <linux-acpi@vger.kernel.org>; Thu, 31 Jan 2008 12:24:47 +0100 (CET)
-In-Reply-To: <20080130182146.GD25946@stratocaster.home>
-Content-Disposition: inline
+	id S1753422AbYAaSoV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 13:44:21 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200801301116.44902.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kevin Hilman <khilman@mvista.com>
 
-On Wednesday 30 January 2008 19:21:46 Eric Cooper wrote:
-> On Wed, Jan 30, 2008 at 07:10:46PM +0100, Corentin CHARY wrote:
-> > I'm the maintener of asus_acpi and asus-laptop.
-> >
-> > On Saturday 26 January 2008 15:48:24 Eric Cooper wrote:
-> > > I happened to look at the patched asus_acpi.c module that was posted
-> > > by Asus for the Eee PC and noticed that it's 75% dead code
-> >
-> > Where and when asus has posted that patch ?
->
-> ftp://ftp.asus.com/pub/ASUS/EeePC/701/ASUS_ACPI_071126.rar
-> (Note that this "patch" makes it support only the Eee PC.)
->
-> > I will look your eeepc_acpi.c, but asus_acpi is clearly deprecated.
-> > I could try to port that to the new asus-laptop.c.
->
-> That would be great.  Also, Asus has apparently assigned some
-> engineers to liaison with the Linux community -- AndrewLee and cwhuang
-> on oftc/#debian-eeepc.
+ 
 
-What's oftc ? I guess it's an irc server... but can't find the host :p.
+>-----Original Message-----
+>From: Rafael J. Wysocki [mailto:rjw@sisk.pl] 
+>Sent: Wednesday, January 30, 2008 2:17 AM
+>To: Len Brown
+>Cc: ACPI Devel Maling List; Pallipadi, Venkatesh; Kevin Hilman
+>Subject: Fwd: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
+>
+>Hi,
+>
+>Please have a look at this.
+>
+>Rafael
+>
+> 
+> Wrap cpu_idle_wait() in an x86 #ifdef since it's x86 only.
+> Signed-off-by: Kevin Hilman <khilman@mvista.com>
+> 
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index d2fabe7..4d0f9b0 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -82,7 +82,9 @@ void cpuidle_uninstall_idle_handler(void)
+>  {
+>  	if (enabled_devices && (pm_idle != pm_idle_old)) {
+>  		pm_idle = pm_idle_old;
+> +#ifdef CONFIG_X86
+>  		cpu_idle_wait();
+> +#endif
+> 
 
--- 
-Corentin 'Iksaif' CHARY
-http://xf.iksaif.net
+The archs that do not have cpu_idle_wait() and has more than one CPU
+will need something equivalent to cpu_idle_wait() to kick all other CPUs
+out of idle loop.
+The reason being we do not want another CPU to be in idle loop that is
+being uninstalled here.
+
+Do you have more than one logical CPU on your platform?
+
+Thanks,
+Venki
