@@ -1,77 +1,55 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
-Date: Thu, 31 Jan 2008 11:15:29 -0800
-Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE7202F5@orsmsx423.amr.corp.intel.com>
-References: <200801301116.44902.rjw@sisk.pl><924EFEDD5F540B4284297C4DC59F3DEE7202A0@orsmsx423.amr.corp.intel.com> <87tzkt96cn.fsf@paris.hilman.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
+Date: Thu, 31 Jan 2008 14:17:57 -0500
+Message-ID: <200801311417.57469.lenb@kernel.org>
+References: <4798E2A5.6020804@users.sf.net> <1201714051.1222.131.camel@queen.suse.de> <47A0FBD4.6090603@tremplin-utc.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:49717 "EHLO mga02.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:54730 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761206AbYAaTSO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 14:18:14 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <87tzkt96cn.fsf@paris.hilman.org>
+	id S933906AbYAaTSe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jan 2008 14:18:34 -0500
+In-Reply-To: <47A0FBD4.6090603@tremplin-utc.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kevin Hilman <khilman@mvista.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-
- 
-
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@mvista.com] 
->Sent: Thursday, January 31, 2008 10:51 AM
->To: Pallipadi, Venkatesh
->Cc: Len Brown; ACPI Devel Maling List
->Subject: Re: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
->
->"Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com> writes:
->
->>> Wrap cpu_idle_wait() in an x86 #ifdef since it's x86 only.
->>> Signed-off-by: Kevin Hilman <khilman@mvista.com>
->>> 
->>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
->>> index d2fabe7..4d0f9b0 100644
->>> --- a/drivers/cpuidle/cpuidle.c
->>> +++ b/drivers/cpuidle/cpuidle.c
->>> @@ -82,7 +82,9 @@ void cpuidle_uninstall_idle_handler(void)
->>>  {
->>>  	if (enabled_devices && (pm_idle != pm_idle_old)) {
->>>  		pm_idle = pm_idle_old;
->>> +#ifdef CONFIG_X86
->>>  		cpu_idle_wait();
->>> +#endif
->>> 
->>
->> The archs that do not have cpu_idle_wait() and has more than one CPU
->> will need something equivalent to cpu_idle_wait() to kick 
->all other CPUs
->> out of idle loop.
->> The reason being we do not want another CPU to be in idle 
->loop that is
->> being uninstalled here.
->>
->> Do you have more than one logical CPU on your platform?
->
->No, I'm testing on a UP ARM-based platform (TI OMAP.)
->
->Maybe #ifdef CONFIG_SMP is the right thing instead of #ifdef
->CONFIG_X86? 
->
-
-Yes. Something like below seems better.
-
-#if !defined(CONFIG_SMP)
-#define cpuidle_kick_cpus()	do{}while (0)
-#elif defined(CONFIG_X86)
-#define cpuidle_kick_cpus()	cpu_idle_wait()
-#else
-# error "Arch needs cpu_idle_wait() equivalent here"
-#endif
+To: =?utf-8?q?=C3=89ric_Piel?= <Eric.Piel@tremplin-utc.net>
+Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
 
 
-Thanks,
-Venki
+> > In fact, I added the array some time ago.
+> > Not sure whether the latest Version of Eric/Markus can also load several
+> > DSDT/SSDTs? Maybe you found a more elegant way?
+
+> Nope. On the website (http://gaugusch.at/kernel.shtml) you can just find 
+> two versions of the patch: one simple and one with your addition for 
+> SSDTs support. At least with SSDTs support there is even an advantage 
+> over the DSDT-in-kernel version :-)
+
+
+At one point there was a proposal to allow in-kernel SSDT overrides,
+but we determined that it was problematic because there can be any
+number of SSDTs (so which one does an override apply to?),
+some of them auto loaded at RSDT time, and the others
+loaded at run-time via Load() in the DSDT (and possibly SSDT) AML.
+
+So we decided that to override an SSDT, you  need to override a DSDT,
+incorporate whatever SSDT code you want into your DSDT, and boot with the
+"acpi_no_auto_ssdt" cmdline parameter to inhibit autoloading
+of the RSDT enumerated SSDTs.  That gives you complete and total
+control over what AML gets run.  (you omit that cmdline param
+to overide the DSDT but keep the native SSDTs)  It also gives you
+just 1 DSDT to keep track of.
+
+I'm not clear on how to use the proposed initrd SSDT override capability,
+and why it needs to be different from the simple scheme above,
+but I wouldn't want a mess there to hold up the rest of the initrd
+DSDT override patch series -- since only very rarely is an SSDT
+override needed.
+
+-Len
+
+
