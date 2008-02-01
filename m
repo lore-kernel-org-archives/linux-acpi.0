@@ -1,105 +1,83 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/37] Hibernation: Mark SNAPSHOT_SET_SWAP_FILE ioctl as deprecated (rev. 2)
-Date: Thu, 31 Jan 2008 23:36:34 -0500
-Message-ID: <dbb027badbbd8ae51e914eca50774755d207826a.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 07/37] Hibernation: Move function prototypes to header
+Date: Thu, 31 Jan 2008 23:36:38 -0500
+Message-ID: <d7b47cc8a4c8dbb1a4a05f4ee48304fb4a4e0099.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:61252 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:61240 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754507AbYBAEly (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:54 -0500
+	with ESMTP id S1754474AbYBAEl4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:56 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adrian Bunk <bunk@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Adrian Bunk <bunk@kernel.org>
 
-Mark the SNAPSHOT_SET_SWAP_FILE ioctl belonging to the hibernation userland
-interface as deprecated.
+This patch moves the prototypes of count_highmem_pages() and
+restore_highmem() to kernel/power/power.h
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/power/userland-swsusp.txt |   14 ++------------
- kernel/power/power.h                    |    1 -
- kernel/power/user.c                     |    9 +++++----
- 3 files changed, 7 insertions(+), 17 deletions(-)
+ kernel/power/power.h    |    8 ++++++++
+ kernel/power/snapshot.c |    1 -
+ kernel/power/swsusp.c   |    8 --------
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/power/userland-swsusp.txt b/Documentation/power/userland-swsusp.txt
-index 381e9c0..0785500 100644
---- a/Documentation/power/userland-swsusp.txt
-+++ b/Documentation/power/userland-swsusp.txt
-@@ -67,23 +67,13 @@ SNAPSHOT_GET_SWAP_PAGE - allocate a swap page from the resume partition
- SNAPSHOT_FREE_SWAP_PAGES - free all swap pages allocated with
- 	SNAPSHOT_GET_SWAP_PAGE
- 
--SNAPSHOT_SET_SWAP_FILE - set the resume partition (the last ioctl() argument
--	should specify the device's major and minor numbers in the old
--	two-byte format, as returned by the stat() function in the .st_rdev
--	member of the stat structure)
--
- SNAPSHOT_SET_SWAP_AREA - set the resume partition and the offset (in <PAGE_SIZE>
- 	units) from the beginning of the partition at which the swap header is
- 	located (the last ioctl() argument should point to a struct
- 	resume_swap_area, as defined in kernel/power/power.h, containing the
--	resume device specification, as for the SNAPSHOT_SET_SWAP_FILE ioctl(),
--	and the offset); for swap partitions the offset is always 0, but it is
--	different to zero for swap files (please see
-+	resume device specification and the offset); for swap partitions the
-+	offset is always 0, but it is different from zero for swap files (see
- 	Documentation/swsusp-and-swap-files.txt for details).
--	The SNAPSHOT_SET_SWAP_AREA ioctl() is considered as a replacement for
--	SNAPSHOT_SET_SWAP_FILE which is regarded as obsolete.   It is
--	recommended to always use this call, because the code to set the resume
--	partition may be removed from future kernels
- 
- SNAPSHOT_PLATFORM_SUPPORT - enable/disable the hibernation platform support,
- 	depending on the argument value (enable, if the argument is nonzero)
 diff --git a/kernel/power/power.h b/kernel/power/power.h
-index 6ca85fd..8837ea3 100644
+index ef90605..c5321eb 100644
 --- a/kernel/power/power.h
 +++ b/kernel/power/power.h
-@@ -154,7 +154,6 @@ struct resume_swap_area {
- #define SNAPSHOT_AVAIL_SWAP		_IOR(SNAPSHOT_IOC_MAGIC, 7, void *)
- #define SNAPSHOT_GET_SWAP_PAGE		_IOR(SNAPSHOT_IOC_MAGIC, 8, void *)
- #define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
--#define SNAPSHOT_SET_SWAP_FILE		_IOW(SNAPSHOT_IOC_MAGIC, 10, unsigned int)
- #define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
- #define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
- 							struct resume_swap_area)
-diff --git a/kernel/power/user.c b/kernel/power/user.c
-index de3fb43..5e866e0 100644
---- a/kernel/power/user.c
-+++ b/kernel/power/user.c
-@@ -29,10 +29,11 @@
- #include "power.h"
+@@ -180,3 +180,11 @@ static inline int pm_notifier_call_chain(unsigned long val)
+ 	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
+ 			== NOTIFY_BAD) ? -EINVAL : 0;
+ }
++
++#ifdef CONFIG_HIGHMEM
++unsigned int count_highmem_pages(void);
++int restore_highmem(void);
++#else
++static inline unsigned int count_highmem_pages(void) { return 0; }
++static inline int restore_highmem(void) { return 0; }
++#endif
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index c5ce0f3..1ec3ecc 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -872,7 +872,6 @@ unsigned int count_highmem_pages(void)
+ }
+ #else
+ static inline void *saveable_highmem_page(unsigned long pfn) { return NULL; }
+-static inline unsigned int count_highmem_pages(void) { return 0; }
+ #endif /* CONFIG_HIGHMEM */
  
- /*
-- * NOTE: The SNAPSHOT_PMOPS ioctl is obsolete and will be removed in the
-- * future.  It is only preserved here for compatibility with existing userland
-- * utilities.
-+ * NOTE: The SNAPSHOT_SET_SWAP_FILE and SNAPSHOT_PMOPS ioctls are obsolete and
-+ * will be removed in the future.  They are only preserved here for
-+ * compatibility with existing userland utilities.
-  */
-+#define SNAPSHOT_SET_SWAP_FILE	_IOW(SNAPSHOT_IOC_MAGIC, 10, unsigned int)
- #define SNAPSHOT_PMOPS		_IOW(SNAPSHOT_IOC_MAGIC, 12, unsigned int)
+ /**
+diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
+index e1722d3..605c536 100644
+--- a/kernel/power/swsusp.c
++++ b/kernel/power/swsusp.c
+@@ -64,14 +64,6 @@ unsigned long image_size = 500 * 1024 * 1024;
  
- #define PMOPS_PREPARE	1
-@@ -260,7 +261,7 @@ static int snapshot_ioctl(struct inode *inode, struct file *filp,
- 		free_all_swap_pages(data->swap);
- 		break;
+ int in_suspend __nosavedata = 0;
  
--	case SNAPSHOT_SET_SWAP_FILE:
-+	case SNAPSHOT_SET_SWAP_FILE: /* This ioctl is deprecated */
- 		if (!swsusp_swap_in_use()) {
- 			/*
- 			 * User space encodes device types as two-byte values,
+-#ifdef CONFIG_HIGHMEM
+-unsigned int count_highmem_pages(void);
+-int restore_highmem(void);
+-#else
+-static inline int restore_highmem(void) { return 0; }
+-static inline unsigned int count_highmem_pages(void) { return 0; }
+-#endif
+-
+ /**
+  *	The following functions are used for tracing the allocated
+  *	swap pages, so that they can be freed in case of an error.
 -- 
 1.5.4.rc5.16.gc0279
 
