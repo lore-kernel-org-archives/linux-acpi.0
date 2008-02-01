@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/37] Hibernation: Introduce exportable suspend ioctls header (rev. 2)
-Date: Thu, 31 Jan 2008 23:36:36 -0500
-Message-ID: <f07d2c9078e140323301a72140c6caeb372448dc.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 27/37] ACPI: Separate invocations of _GTS and _BFS from _PTS and _WAK
+Date: Thu, 31 Jan 2008 23:36:58 -0500
+Message-ID: <4e1bc50b0e083b4d990f6eb54a6a098565bd5197.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:61240 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754854AbYBAEly (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:54 -0500
+Received: from mga10.intel.com ([192.55.52.92]:38807 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759015AbYBAEmB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:01 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -18,143 +18,212 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Move the definitions of hibernation ioctls to a separate header file in
-include/linux, which can be exported to the user space.
+The execution of ACPI global control methods _GTS and _BFS is
+currently tied to the preparation to enter a sleep state and to the
+leaving of the sleep state, respectively.  However, these functions
+are called before disabling the nonboot CPUs and after enabling
+them, respectively (in fact, on ACPI 1.0x systems the first of them
+ought to be called before suspending devices), while according to the
+ACPI specification, _GTS is to be executed right prior to entering
+the system sleep state and _BFS is to be executed right after the
+platfor firmware has returned control to the OS on wake up.
+
+Move the execution of _GTS and _BFS to the right places.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/power/userland-swsusp.txt |   10 ++++----
- include/linux/Kbuild                    |    1 +
- include/linux/suspend_ioctls.h          |   32 +++++++++++++++++++++++++++++++
- kernel/power/power.h                    |   29 +---------------------------
- 4 files changed, 39 insertions(+), 33 deletions(-)
- create mode 100644 include/linux/suspend_ioctls.h
+ drivers/acpi/hardware/hwsleep.c |   75 +++++++++++++++++++++++++++++---------
+ drivers/acpi/sleep/main.c       |    7 ++++
+ include/acpi/acpixf.h           |    2 +
+ 3 files changed, 66 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/power/userland-swsusp.txt b/Documentation/power/userland-swsusp.txt
-index af52d53..7b99636 100644
---- a/Documentation/power/userland-swsusp.txt
-+++ b/Documentation/power/userland-swsusp.txt
-@@ -14,7 +14,7 @@ are going to develop your own suspend/resume utilities.
+diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
+index 81b2484..13c93a1 100644
+--- a/drivers/acpi/hardware/hwsleep.c
++++ b/drivers/acpi/hardware/hwsleep.c
+@@ -192,18 +192,13 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
+ 	arg.type = ACPI_TYPE_INTEGER;
+ 	arg.integer.value = sleep_state;
  
- The interface consists of a character device providing the open(),
- release(), read(), and write() operations as well as several ioctl()
--commands defined in kernel/power/power.h.  The major and minor
-+commands defined in include/linux/suspend_ioctls.h .  The major and minor
- numbers of the device are, respectively, 10 and 231, and they can
- be read from /sys/class/misc/snapshot/dev.
+-	/* Run the _PTS and _GTS methods */
++	/* Run the _PTS method */
  
-@@ -70,10 +70,10 @@ SNAPSHOT_FREE_SWAP_PAGES - free all swap pages allocated by
- SNAPSHOT_SET_SWAP_AREA - set the resume partition and the offset (in <PAGE_SIZE>
- 	units) from the beginning of the partition at which the swap header is
- 	located (the last ioctl() argument should point to a struct
--	resume_swap_area, as defined in kernel/power/power.h, containing the
--	resume device specification and the offset); for swap partitions the
--	offset is always 0, but it is different from zero for swap files (see
--	Documentation/swsusp-and-swap-files.txt for details).
-+	resume_swap_area, as defined in kernel/power/suspend_ioctls.h,
-+	containing the resume device specification and the offset); for swap
-+	partitions the offset is always 0, but it is different from zero for
-+	swap files (see Documentation/swsusp-and-swap-files.txt for details).
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		return_ACPI_STATUS(status);
+ 	}
  
- SNAPSHOT_PLATFORM_SUPPORT - enable/disable the hibernation platform support,
- 	depending on the argument value (enable, if the argument is nonzero)
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 85b2482..c0f9bb7 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -143,6 +143,7 @@ header-y += snmp.h
- header-y += sockios.h
- header-y += som.h
- header-y += sound.h
-+header-y += suspend_ioctls.h
- header-y += taskstats.h
- header-y += telephony.h
- header-y += termios.h
-diff --git a/include/linux/suspend_ioctls.h b/include/linux/suspend_ioctls.h
-new file mode 100644
-index 0000000..2c6faec
---- /dev/null
-+++ b/include/linux/suspend_ioctls.h
-@@ -0,0 +1,32 @@
-+#ifndef _LINUX_SUSPEND_IOCTLS_H
-+#define _LINUX_SUSPEND_IOCTLS_H
-+
-+/*
-+ * This structure is used to pass the values needed for the identification
-+ * of the resume swap area from a user space to the kernel via the
-+ * SNAPSHOT_SET_SWAP_AREA ioctl
-+ */
-+struct resume_swap_area {
-+	loff_t offset;
-+	u_int32_t dev;
-+} __attribute__((packed));
-+
-+#define SNAPSHOT_IOC_MAGIC	'3'
-+#define SNAPSHOT_FREEZE			_IO(SNAPSHOT_IOC_MAGIC, 1)
-+#define SNAPSHOT_UNFREEZE		_IO(SNAPSHOT_IOC_MAGIC, 2)
-+#define SNAPSHOT_ATOMIC_RESTORE		_IO(SNAPSHOT_IOC_MAGIC, 4)
-+#define SNAPSHOT_FREE			_IO(SNAPSHOT_IOC_MAGIC, 5)
-+#define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
-+#define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
-+#define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
-+							struct resume_swap_area)
-+#define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, loff_t)
-+#define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
-+#define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)
-+#define SNAPSHOT_CREATE_IMAGE		_IOW(SNAPSHOT_IOC_MAGIC, 17, int)
-+#define SNAPSHOT_PREF_IMAGE_SIZE	_IO(SNAPSHOT_IOC_MAGIC, 18)
-+#define SNAPSHOT_AVAIL_SWAP_SIZE	_IOR(SNAPSHOT_IOC_MAGIC, 19, loff_t)
-+#define SNAPSHOT_ALLOC_SWAP_PAGE	_IOR(SNAPSHOT_IOC_MAGIC, 20, loff_t)
-+#define SNAPSHOT_IOC_MAXNR	20
-+
-+#endif /* _LINUX_SUSPEND_IOCTLS_H */
-diff --git a/kernel/power/power.h b/kernel/power/power.h
-index 0dd66fa..ef90605 100644
---- a/kernel/power/power.h
-+++ b/kernel/power/power.h
-@@ -1,4 +1,5 @@
- #include <linux/suspend.h>
-+#include <linux/suspend_ioctls.h>
- #include <linux/utsname.h>
- 
- struct swsusp_info {
-@@ -134,34 +135,6 @@ extern int snapshot_write_next(struct snapshot_handle *handle, size_t count);
- extern void snapshot_write_finalize(struct snapshot_handle *handle);
- extern int snapshot_image_loaded(struct snapshot_handle *handle);
- 
--/*
-- * This structure is used to pass the values needed for the identification
-- * of the resume swap area from a user space to the kernel via the
-- * SNAPSHOT_SET_SWAP_AREA ioctl
-- */
--struct resume_swap_area {
--	loff_t offset;
--	u_int32_t dev;
--} __attribute__((packed));
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		return_ACPI_STATUS(status);
+-	}
 -
--#define SNAPSHOT_IOC_MAGIC	'3'
--#define SNAPSHOT_FREEZE			_IO(SNAPSHOT_IOC_MAGIC, 1)
--#define SNAPSHOT_UNFREEZE		_IO(SNAPSHOT_IOC_MAGIC, 2)
--#define SNAPSHOT_ATOMIC_RESTORE		_IO(SNAPSHOT_IOC_MAGIC, 4)
--#define SNAPSHOT_FREE			_IO(SNAPSHOT_IOC_MAGIC, 5)
--#define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
--#define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
--#define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
--							struct resume_swap_area)
--#define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, loff_t)
--#define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
--#define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)
--#define SNAPSHOT_CREATE_IMAGE		_IOW(SNAPSHOT_IOC_MAGIC, 17, int)
--#define SNAPSHOT_PREF_IMAGE_SIZE	_IO(SNAPSHOT_IOC_MAGIC, 18)
--#define SNAPSHOT_AVAIL_SWAP_SIZE	_IOR(SNAPSHOT_IOC_MAGIC, 19, loff_t)
--#define SNAPSHOT_ALLOC_SWAP_PAGE	_IOR(SNAPSHOT_IOC_MAGIC, 20, loff_t)
--#define SNAPSHOT_IOC_MAXNR	20
--
- /* If unset, the snapshot device cannot be open. */
- extern atomic_t snapshot_device_available;
+ 	/* Setup the argument to _SST */
  
+ 	switch (sleep_state) {
+@@ -262,6 +257,8 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 	struct acpi_bit_register_info *sleep_type_reg_info;
+ 	struct acpi_bit_register_info *sleep_enable_reg_info;
+ 	u32 in_value;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_enter_sleep_state);
+@@ -307,6 +304,18 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
++	/* Execute the _GTS method */
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = sleep_state;
++
++	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		return_ACPI_STATUS(status);
++	}
++
+ 	/* Get current value of PM1A control */
+ 
+ 	status = acpi_hw_register_read(ACPI_REGISTER_PM1_CONTROL, &PM1Acontrol);
+@@ -473,17 +482,18 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_s4bios)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_leave_sleep_state
++ * FUNCTION:    acpi_leave_sleep_state_prep
+  *
+- * PARAMETERS:  sleep_state         - Which sleep state we just exited
++ * PARAMETERS:  sleep_state         - Which sleep state we are exiting
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
+- *              Called with interrupts ENABLED.
++ * DESCRIPTION: Perform the first state of OS-independent ACPI cleanup after a
++ *              sleep.
++ *              Called with interrupts DISABLED.
+  *
+  ******************************************************************************/
+-acpi_status acpi_leave_sleep_state(u8 sleep_state)
++acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+ {
+ 	struct acpi_object_list arg_list;
+ 	union acpi_object arg;
+@@ -493,7 +503,7 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+ 	u32 PM1Acontrol;
+ 	u32 PM1Bcontrol;
+ 
+-	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
++	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state_prep);
+ 
+ 	/*
+ 	 * Set SLP_TYPE and SLP_EN to state S0.
+@@ -540,6 +550,41 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+ 		}
+ 	}
+ 
++	/* Execute the _BFS method */
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = sleep_state;
++
++	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
++	}
++
++	return_ACPI_STATUS(status);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_leave_sleep_state
++ *
++ * PARAMETERS:  sleep_state         - Which sleep state we just exited
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Perform OS-independent ACPI cleanup after a sleep
++ *              Called with interrupts ENABLED.
++ *
++ ******************************************************************************/
++acpi_status acpi_leave_sleep_state(u8 sleep_state)
++{
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
++
+ 	/* Ensure enter_sleep_state_prep -> enter_sleep_state ordering */
+ 
+ 	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
+@@ -558,12 +603,6 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
+ 	}
+ 
+-	arg.integer.value = sleep_state;
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
+-	}
+-
+ 	/*
+ 	 * GPEs must be enabled before _WAK is called as GPEs
+ 	 * might get fired there
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index e2e4e61..fdd8139 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -139,6 +139,9 @@ static int acpi_pm_enter(suspend_state_t pm_state)
+ 		break;
+ 	}
+ 
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(acpi_state);
++
+ 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
+ 	 * of the OSPM to clear the status bit [ implying that the
+ 	 * POWER_BUTTON event should not reach userspace ]
+@@ -272,6 +275,8 @@ static int acpi_hibernation_enter(void)
+ 	acpi_enable_wakeup_device(ACPI_STATE_S4);
+ 	/* This shouldn't return.  If it returns, we have a problem */
+ 	status = acpi_enter_sleep_state(ACPI_STATE_S4);
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+ 	local_irq_restore(flags);
+ 
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+@@ -284,6 +289,8 @@ static void acpi_hibernation_leave(void)
+ 	 * enable it here.
+ 	 */
+ 	acpi_enable();
++	/* Reprogram control registers and execute _BFS */
++	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+ }
+ 
+ static void acpi_hibernation_finish(void)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 9512f04..b729e64 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -335,6 +335,8 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state);
+ 
+ acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void);
+ 
++acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
++
+ acpi_status acpi_leave_sleep_state(u8 sleep_state);
+ 
+ #endif				/* __ACXFACE_H__ */
 -- 
 1.5.4.rc5.16.gc0279
 
