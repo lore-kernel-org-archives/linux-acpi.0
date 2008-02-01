@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 30/37] Hibernation: Introduce begin() and end() callbacks
-Date: Thu, 31 Jan 2008 23:37:01 -0500
-Message-ID: <07f44315b9cfad180296df99bcd38879f063f092.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 36/37] Hibernation: Invoke suspend notifications after console switch
+Date: Thu, 31 Jan 2008 23:37:07 -0500
+Message-ID: <6c6e1163d2b4833bf448f02aaf26e12053957078.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:38807 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:64964 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754433AbYBAEmH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:07 -0500
+	with ESMTP id S1764342AbYBAEmO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:14 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -18,179 +18,85 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce global hibernation callback .end() and rename global
-hibernation callback .start() to .begin(), in analogy with the
-recent modifications of the global suspend callbacks.
+Following the recent change in the suspend code path, switch consoles before
+calling PM notifiers during hibernation.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |   14 ++++++++++++--
- include/linux/suspend.h   |   14 +++++++++-----
- kernel/power/disk.c       |   33 ++++++++++++++++++++++++---------
- 3 files changed, 45 insertions(+), 16 deletions(-)
+ kernel/power/disk.c |   17 +++++++----------
+ 1 files changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index c37c4ea..31e8e58 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -281,7 +281,7 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- #endif /* CONFIG_SUSPEND */
- 
- #ifdef CONFIG_HIBERNATION
--static int acpi_hibernation_start(void)
-+static int acpi_hibernation_begin(void)
- {
- 	acpi_target_sleep_state = ACPI_STATE_S4;
- 	return 0;
-@@ -341,6 +341,15 @@ static void acpi_hibernation_finish(void)
- 	acpi_target_sleep_state = ACPI_STATE_S0;
- }
- 
-+static void acpi_hibernation_end(void)
-+{
-+	/*
-+	 * This is necessary in case acpi_hibernation_finish() is not called
-+	 * during a failing transition to the sleep state.
-+	 */
-+	acpi_target_sleep_state = ACPI_STATE_S0;
-+}
-+
- static int acpi_hibernation_pre_restore(void)
- {
- 	acpi_status status;
-@@ -356,7 +365,8 @@ static void acpi_hibernation_restore_cleanup(void)
- }
- 
- static struct platform_hibernation_ops acpi_hibernation_ops = {
--	.start = acpi_hibernation_start,
-+	.begin = acpi_hibernation_begin,
-+	.end = acpi_hibernation_end,
- 	.pre_snapshot = acpi_hibernation_prepare,
- 	.finish = acpi_hibernation_finish,
- 	.prepare = acpi_hibernation_prepare,
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index a0b1dbb..646ce2d 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -136,14 +136,17 @@ extern void mark_free_pages(struct zone *zone);
- /**
-  * struct platform_hibernation_ops - hibernation platform support
-  *
-- * The methods in this structure allow a platform to override the default
-- * mechanism of shutting down the machine during a hibernation transition.
-+ * The methods in this structure allow a platform to carry out special
-+ * operations required by it during a hibernation transition.
-  *
-- * All three methods must be assigned.
-+ * All the methods below must be implemented.
-  *
-- * @start: Tell the platform driver that we're starting hibernation.
-+ * @begin: Tell the platform driver that we're starting hibernation.
-  *	Called right after shrinking memory and before freezing devices.
-  *
-+ * @end: Called by the PM core right after resuming devices, to indicate to
-+ *	the platform that the system has returned to the working state.
-+ *
-  * @pre_snapshot: Prepare the platform for creating the hibernation image.
-  *	Called right after devices have been frozen and before the nonboot
-  *	CPUs are disabled (runs with IRQs on).
-@@ -178,7 +181,8 @@ extern void mark_free_pages(struct zone *zone);
-  *	thawing devices (runs with IRQs on).
-  */
- struct platform_hibernation_ops {
--	int (*start)(void);
-+	int (*begin)(void);
-+	void (*end)(void);
- 	int (*pre_snapshot)(void);
- 	void (*finish)(void);
- 	int (*prepare)(void);
 diff --git a/kernel/power/disk.c b/kernel/power/disk.c
-index 64e42ab..53c22d9 100644
+index 53c22d9..d09da08 100644
 --- a/kernel/power/disk.c
 +++ b/kernel/power/disk.c
-@@ -54,8 +54,8 @@ static struct platform_hibernation_ops *hibernation_ops;
- 
- void hibernation_set_ops(struct platform_hibernation_ops *ops)
- {
--	if (ops && !(ops->start && ops->pre_snapshot && ops->finish
--	    && ops->prepare && ops->enter && ops->pre_restore
-+	if (ops && !(ops->begin && ops->end &&  ops->pre_snapshot
-+	    && ops->prepare && ops->finish && ops->enter && ops->pre_restore
- 	    && ops->restore_cleanup)) {
- 		WARN_ON(1);
- 		return;
-@@ -100,14 +100,25 @@ static int hibernation_test(int level) { return 0; }
- #endif /* !CONFIG_PM_DEBUG */
- 
- /**
-- *	platform_start - tell the platform driver that we're starting
-+ *	platform_begin - tell the platform driver that we're starting
-  *	hibernation
-  */
- 
--static int platform_start(int platform_mode)
-+static int platform_begin(int platform_mode)
- {
- 	return (platform_mode && hibernation_ops) ?
--		hibernation_ops->start() : 0;
-+		hibernation_ops->begin() : 0;
-+}
-+
-+/**
-+ *	platform_end - tell the platform driver that we've entered the
-+ *	working state
-+ */
-+
-+static void platform_end(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->end();
+@@ -458,20 +458,13 @@ static void power_down(void)
+ 	while(1);
  }
  
- /**
-@@ -237,9 +248,9 @@ int hibernation_snapshot(int platform_mode)
- 	if (error)
- 		return error;
+-static void unprepare_processes(void)
+-{
+-	thaw_processes();
+-	pm_restore_console();
+-}
+-
+ static int prepare_processes(void)
+ {
+ 	int error = 0;
  
--	error = platform_start(platform_mode);
-+	error = platform_begin(platform_mode);
- 	if (error)
--		return error;
-+		goto Close;
- 
- 	suspend_console();
- 	error = device_suspend(PMSG_FREEZE);
-@@ -272,6 +283,8 @@ int hibernation_snapshot(int platform_mode)
- 	device_resume();
-  Resume_console:
- 	resume_console();
-+ Close:
-+	platform_end(platform_mode);
+-	pm_prepare_console();
+ 	if (freeze_processes()) {
+ 		error = -EBUSY;
+-		unprepare_processes();
++		thaw_processes();
+ 	}
  	return error;
  }
+@@ -491,6 +484,7 @@ int hibernate(void)
+ 		goto Unlock;
+ 	}
  
-@@ -373,9 +386,9 @@ int hibernation_platform_enter(void)
- 	 * hibernation_ops->finish() before saving the image, so we should let
- 	 * the firmware know that we're going to enter the sleep state after all
- 	 */
--	error = hibernation_ops->start();
-+	error = hibernation_ops->begin();
++	pm_prepare_console();
+ 	error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
  	if (error)
--		return error;
-+		goto Close;
+ 		goto Exit;
+@@ -530,11 +524,12 @@ int hibernate(void)
+ 		swsusp_free();
+ 	}
+  Thaw:
+-	unprepare_processes();
++	thaw_processes();
+  Finish:
+ 	free_basic_memory_bitmaps();
+  Exit:
+ 	pm_notifier_call_chain(PM_POST_HIBERNATION);
++	pm_restore_console();
+ 	atomic_inc(&snapshot_device_available);
+  Unlock:
+ 	mutex_unlock(&pm_mutex);
+@@ -603,6 +598,7 @@ static int software_resume(void)
+ 		goto Unlock;
+ 	}
  
- 	suspend_console();
- 	error = device_suspend(PMSG_SUSPEND);
-@@ -409,6 +422,8 @@ int hibernation_platform_enter(void)
- 	device_resume();
-  Resume_console:
- 	resume_console();
-+ Close:
-+	hibernation_ops->end();
- 	return error;
- }
++	pm_prepare_console();
+ 	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
+ 	if (error)
+ 		goto Finish;
+@@ -626,11 +622,12 @@ static int software_resume(void)
  
+ 	printk(KERN_ERR "PM: Restore failed, recovering.\n");
+ 	swsusp_free();
+-	unprepare_processes();
++	thaw_processes();
+  Done:
+ 	free_basic_memory_bitmaps();
+  Finish:
+ 	pm_notifier_call_chain(PM_POST_RESTORE);
++	pm_restore_console();
+ 	atomic_inc(&snapshot_device_available);
+ 	/* For success case, the suspend path will release the lock */
+  Unlock:
 -- 
 1.5.4.rc5.16.gc0279
 
