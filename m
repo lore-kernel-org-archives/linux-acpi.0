@@ -1,57 +1,82 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
-Date: Fri, 01 Feb 2008 12:29:17 +0100
-Message-ID: <1201865357.14573.74.camel@queen.suse.de>
-References: <4798E2A5.6020804@users.sf.net>
-	 <1201714051.1222.131.camel@queen.suse.de>
-	 <47A0FBD4.6090603@tremplin-utc.net>  <200801311417.57469.lenb@kernel.org>
-	 <1201859637.14573.41.camel@queen.suse.de>  <47A2FD6C.4090403@gmail.com>
-Reply-To: trenn@suse.de
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.24-git9 ACPI oops - regression
+Date: Fri, 1 Feb 2008 15:29:19 +0100
+Message-ID: <200802011529.20167.rjw@sisk.pl>
+References: <20080201132551.GA4199@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42419 "EHLO mx2.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:59262 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143AbYBAL3S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Feb 2008 06:29:18 -0500
-In-Reply-To: <47A2FD6C.4090403@gmail.com>
+	id S1754185AbYBAObT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Feb 2008 09:31:19 -0500
+In-Reply-To: <20080201132551.GA4199@ics.muni.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, =?ISO-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, 2008-02-01 at 14:07 +0300, Alexey Starikovskiy wrote:
-> Thomas Renninger wrote:
-> > On Thu, 2008-01-31 at 14:17 -0500, Len Brown wrote:
-> >   
-> > [skipped]
-> > Those tables have the same OEM id then the original ones, right?
-> > Tables with the same OEM id (the original ones) should get ignored later
-> > automatically. IIRC I had some problems with dynamically loaded tables,
-> > don't know anymore, they are not that often used and theoretically it
-> > should just work for them also.
-> >   
-> Comparing SSDT by their OEM ID is proved to not work. Right now,
-> code checks the whole length of the table to be the same, and only then
-> does not load it. It is not the case with any of modified tables, so
-> original tables will be tried to load as well.
-Ahh, now when you say it, I remember about this darkly...
-What a pity..., maybe just comparing the whole header (without the
-checksum) could be an option? Or only do this if dsdt_got_overridden
-flag is set (ugly, but should be sufficient).
+[Relevant CCs added.]
 
-   Thomas
-
-> > I haven't tried too much here, but SSDTs are used more and more often (I
-> > saw a machine with 12 SSDTs, especially on IA64 there might be dozens in
-> > the future). We should think about the problem now, before we have bugs
-> > and need to write down half a book how the reporter finally could
-> > provide some useful information.
-> >
-> >   
-> > Have I overseen something?
-Damn, I have :(
-
-   Thomas
-
+On Friday, 1 of February 2008, Lukas Hejtmanek wrote:
+> Hello,
+> 
+> I encountered oops on my laptop Lenovo T61 and dock. If I press undock on the
+> dock, I got the following oops:
+> 
+> [79721.755165] BUG: unable to handle kernel paging request at 000000340000000e
+> [79721.755165] IP: [<ffffffff8034d147>] acpi_ns_map_handle_to_node+0x14/0x1d
+> [79721.755165] PGD 7203a067 PUD 0
+> [79721.755165] Oops: 0000 [1] SMP
+> [79721.755165] CPU 1
+> [79721.755165] Modules linked in: usb_storage i915 drm rfcomm l2cap bluetooth fuse arc4 ecb crypto_blkcipher ehci_hcd uhci_hcd e1000e snd_hda_intel intel_agp thinkpad_acpi [last unloaded: cfg80211]
+> [79721.755165] Pid: 69, comm: kacpi_notify Not tainted 2.6.24-git9 #4
+> [79721.755165] RIP: 0010:[<ffffffff8034d147>]  [<ffffffff8034d147>] acpi_ns_map_handle_to_node+0x14/0x1d
+> [79721.755165] RSP: 0018:ffff81007d197d28  EFLAGS: 00010246
+> [79721.755165] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+> [79721.755165] RDX: 0000000000017567 RSI: 000000100002c0d0 RDI: 0000003400000006
+> [79721.755165] RBP: 0000000000000000 R08: ffff810003c00000 R09: 0000000000000000
+> [79721.755165] R10: 0000000000000002 R11: 0000000000000001 R12: 0000003400000006
+> [79721.755165] R13: 0000000000000000 R14: ffff81007d197d68 R15: ffff81007d197d70
+> [79721.755165] FS:  0000000000000000(0000) GS:ffff81007d00e380(0000) knlGS:0000000000000000
+> [79721.755165] CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+> [79721.755165] CR2: 000000340000000e CR3: 000000007200a000 CR4: 00000000000006a0
+> [79721.755165] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [79721.755165] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [79721.755165] Process kacpi_notify (pid: 69, threadinfo ffff81007d196000, task ffff81007d18ef20)
+> [79721.755165] Stack:  ffffffff8034e19f ffff8100519e8800 ffff81007d197de0 0000000000000001
+> [79721.755165]  0000000000000000 0000000000000001 ffffffff80357d3d ffff81007d02cdc0
+> [79721.755165]  0000000000000000 0000003400000006 0000000000000000 ffffffff8058cbaa
+> [79721.755165] Call Trace:
+> [79721.755165]  [<ffffffff8034e19f>] acpi_get_next_object+0x3b/0x99
+> [79721.755165]  [<ffffffff80357d3d>] acpi_bus_trim+0x57/0x109
+> [79721.755165]  [<ffffffff8035b28b>] hotplug_dock_devices+0x97/0x117
+> [79721.755166]  [<ffffffff8035b3a9>] handle_eject_request+0x4e/0xd3
+> [79721.755166]  [<ffffffff8033e04a>] acpi_os_execute_notify+0x0/0x2c
+> [79721.755166]  [<ffffffff80356088>] acpi_bus_get_device+0x1d/0x2e
+> [79721.755166]  [<ffffffff803560b0>] acpi_bus_notify+0x17/0x4c
+> [79721.755166]  [<ffffffff8033e04a>] acpi_os_execute_notify+0x0/0x2c
+> [79721.755166]  [<ffffffff80343a1d>] acpi_ev_notify_dispatch+0x57/0x60
+> [79721.755166]  [<ffffffff8033e06d>] acpi_os_execute_notify+0x23/0x2c
+> [79721.755166]  [<ffffffff802460bf>] run_workqueue+0xbf/0x160
+> [79721.755166]  [<ffffffff80246b00>] worker_thread+0x0/0x100
+> [79721.755166]  [<ffffffff80246b00>] worker_thread+0x0/0x100
+> [79721.755166]  [<ffffffff80246b9f>] worker_thread+0x9f/0x100
+> [79721.755166]  [<ffffffff80249e50>] autoremove_wake_function+0x0/0x30
+> [79721.755166]  [<ffffffff80246b00>] worker_thread+0x0/0x100
+> [79721.755166]  [<ffffffff80246b00>] worker_thread+0x0/0x100
+> [79721.755166]  [<ffffffff80249a4b>] kthread+0x4b/0x80
+> [79721.755166]  [<ffffffff8020d128>] child_rip+0xa/0x12
+> [79721.755166]  [<ffffffff80249a00>] kthread+0x0/0x80
+> [79721.755166]  [<ffffffff8020d11e>] child_rip+0x0/0x12
+> [79721.755166]
+> [79721.755166]
+> [79721.755166] Code: 00 c3 49 ff c1 48 83 c6 04 41 ff c8 45 85 c0 75 a8 31 c0 c6 06 00 c3 48 8d 47 ff 48 83 f8 fd 76 08 48 8b 05 dc 49 39 00 c3 31 c0 <80> 7f 08 0f 48 0f 44 c7 c3 48 89 f8 c3 31 c0 48 85 ff 74 0d f6
+> [79721.755166] RIP  [<ffffffff8034d147>] acpi_ns_map_handle_to_node+0x14/0x1d
+> [79721.755166]  RSP <ffff81007d197d28>
+> [79721.755166] CR2: 000000340000000e
+> [79721.755166] ---[ end trace 05a1f30122eb8809 ]---
+> 
