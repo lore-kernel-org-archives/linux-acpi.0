@@ -1,109 +1,79 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 31/37] ACPI hibernation: Call _PTS before suspending devices
-Date: Thu, 31 Jan 2008 23:37:02 -0500
-Message-ID: <d629dee14e037644f4ddcd42f74674c782fb3ecf.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 35/37] Suspend: Invoke suspend notifications after console switch
+Date: Thu, 31 Jan 2008 23:37:06 -0500
+Message-ID: <a7c630e98acfad228bd2b3bba59e163ad86ed6ee.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:64964 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:38807 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1763142AbYBAEmL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:11 -0500
+	with ESMTP id S1754474AbYBAEmO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:14 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Johannes Berg <johannes@sipsolutions.net>
 
-The ACPI 1.0 specification wants us to put devices into low power
-states after executing the _PTS global control method, while ACPI
-2.0 and later want us to do that in the reverse order.  The current
-hibernation code follows ACPI 2.0 in that respect which may cause some
-ACPI 1.0x systems to hang during hibernation (ref.
-http://bugzilla.kernel.org/show_bug.cgi?id=9528).
+In order to fix APM emulation it is necessary to enable apm-emulation
+notifications for suspends triggered in various ways via the suspend
+notifiers.  However, this will cause the systems using APM emulation
+to lock up between X being needed to switch away from the VT and X
+already waiting for resume in the APM ioctl.
 
-Make the hibernation code execute _PTS before putting devices into
-low power states (ie. in accordance with ACPI 1.0x) with the
-possibility to override that using the 'acpi_new_pts_ordering' kernel
-command line option.
+This patch moves the console switch (if enabled) before the suspend
+notification (and after the resume notification) to avoid this issue.
 
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/main.c |   36 +++++++++++++++++++++++++-----------
- 1 files changed, 25 insertions(+), 11 deletions(-)
+ kernel/power/main.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 31e8e58..10db899 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -283,22 +283,34 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- #ifdef CONFIG_HIBERNATION
- static int acpi_hibernation_begin(void)
- {
-+	int error;
-+
- 	acpi_target_sleep_state = ACPI_STATE_S4;
--	return 0;
-+	if (new_pts_ordering)
-+		return 0;
-+
-+	error = acpi_sleep_prepare(ACPI_STATE_S4);
-+	if (error)
-+		acpi_target_sleep_state = ACPI_STATE_S0;
-+	else
-+		acpi_sleep_finish_wake_up = true;
-+
-+	return error;
- }
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+index e47214c..6a6d5eb 100644
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -175,12 +175,12 @@ static int suspend_prepare(void)
+ 	if (!suspend_ops || !suspend_ops->enter)
+ 		return -EPERM;
  
- static int acpi_hibernation_prepare(void)
- {
--	int error;
++	pm_prepare_console();
++
+ 	error = pm_notifier_call_chain(PM_SUSPEND_PREPARE);
+ 	if (error)
+ 		goto Finish;
+ 
+-	pm_prepare_console();
 -
--	error = acpi_sleep_prepare(ACPI_STATE_S4);
--	if (error)
--		return error;
-+	if (new_pts_ordering) {
-+		int error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 	if (suspend_freeze_processes()) {
+ 		error = -EAGAIN;
+ 		goto Thaw;
+@@ -200,9 +200,9 @@ static int suspend_prepare(void)
  
--	if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
--		error = -EFAULT;
-+		if (error) {
-+			acpi_target_sleep_state = ACPI_STATE_S0;
-+			return error;
-+		}
-+		acpi_sleep_finish_wake_up = true;
-+	}
- 
--	return error;
-+	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+  Thaw:
+ 	suspend_thaw_processes();
+-	pm_restore_console();
+  Finish:
+ 	pm_notifier_call_chain(PM_POST_SUSPEND);
++	pm_restore_console();
+ 	return error;
  }
  
- static int acpi_hibernation_enter(void)
-@@ -339,15 +351,17 @@ static void acpi_hibernation_finish(void)
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
- 	acpi_target_sleep_state = ACPI_STATE_S0;
-+	acpi_sleep_finish_wake_up = false;
- }
- 
- static void acpi_hibernation_end(void)
+@@ -309,8 +309,8 @@ int suspend_devices_and_enter(suspend_state_t state)
+ static void suspend_finish(void)
  {
- 	/*
- 	 * This is necessary in case acpi_hibernation_finish() is not called
--	 * during a failing transition to the sleep state.
-+	 * directly during a failing transition to the sleep state.
- 	 */
--	acpi_target_sleep_state = ACPI_STATE_S0;
-+	if (acpi_sleep_finish_wake_up)
-+		acpi_hibernation_finish();
+ 	suspend_thaw_processes();
+-	pm_restore_console();
+ 	pm_notifier_call_chain(PM_POST_SUSPEND);
++	pm_restore_console();
  }
  
- static int acpi_hibernation_pre_restore(void)
+ 
 -- 
 1.5.4.rc5.16.gc0279
 
