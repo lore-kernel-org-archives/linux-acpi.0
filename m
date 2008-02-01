@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/37] Hibernation: Move low level resume to disk.c
-Date: Thu, 31 Jan 2008 23:36:47 -0500
-Message-ID: <d2fdea0305f2b5c6887eff954d1cabb304a376ae.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 05/37] Hibernation: Introduce exportable suspend ioctls header (rev. 2)
+Date: Thu, 31 Jan 2008 23:36:36 -0500
+Message-ID: <f07d2c9078e140323301a72140c6caeb372448dc.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:46275 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755914AbYBAElz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:55 -0500
+Received: from mga05.intel.com ([192.55.52.89]:61240 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754854AbYBAEly (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:54 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -18,143 +18,143 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Move the low level restore code to kernel/power/disk.c , since the
-corresponding low level hibernation code is already there.
-
-Make restore fail if device_power_down(PMSG_PRETHAW) returns an
-error.
+Move the definitions of hibernation ioctls to a separate header file in
+include/linux, which can be exported to the user space.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- kernel/power/disk.c   |   49 ++++++++++++++++++++++++++++++++++++++++++++++++-
- kernel/power/power.h  |    1 -
- kernel/power/swsusp.c |   35 -----------------------------------
- 3 files changed, 48 insertions(+), 37 deletions(-)
+ Documentation/power/userland-swsusp.txt |   10 ++++----
+ include/linux/Kbuild                    |    1 +
+ include/linux/suspend_ioctls.h          |   32 +++++++++++++++++++++++++++++++
+ kernel/power/power.h                    |   29 +---------------------------
+ 4 files changed, 39 insertions(+), 33 deletions(-)
+ create mode 100644 include/linux/suspend_ioctls.h
 
-diff --git a/kernel/power/disk.c b/kernel/power/disk.c
-index 0866b16..2a4bada 100644
---- a/kernel/power/disk.c
-+++ b/kernel/power/disk.c
-@@ -275,6 +275,53 @@ int hibernation_snapshot(int platform_mode)
- }
+diff --git a/Documentation/power/userland-swsusp.txt b/Documentation/power/userland-swsusp.txt
+index af52d53..7b99636 100644
+--- a/Documentation/power/userland-swsusp.txt
++++ b/Documentation/power/userland-swsusp.txt
+@@ -14,7 +14,7 @@ are going to develop your own suspend/resume utilities.
  
- /**
-+ *	resume_target_kernel - prepare devices that need to be suspended with
-+ *	interrupts off, restore the contents of highmem that have not been
-+ *	restored yet from the image and run the low level code that will restore
-+ *	the remaining contents of memory and switch to the just restored target
-+ *	kernel.
+ The interface consists of a character device providing the open(),
+ release(), read(), and write() operations as well as several ioctl()
+-commands defined in kernel/power/power.h.  The major and minor
++commands defined in include/linux/suspend_ioctls.h .  The major and minor
+ numbers of the device are, respectively, 10 and 231, and they can
+ be read from /sys/class/misc/snapshot/dev.
+ 
+@@ -70,10 +70,10 @@ SNAPSHOT_FREE_SWAP_PAGES - free all swap pages allocated by
+ SNAPSHOT_SET_SWAP_AREA - set the resume partition and the offset (in <PAGE_SIZE>
+ 	units) from the beginning of the partition at which the swap header is
+ 	located (the last ioctl() argument should point to a struct
+-	resume_swap_area, as defined in kernel/power/power.h, containing the
+-	resume device specification and the offset); for swap partitions the
+-	offset is always 0, but it is different from zero for swap files (see
+-	Documentation/swsusp-and-swap-files.txt for details).
++	resume_swap_area, as defined in kernel/power/suspend_ioctls.h,
++	containing the resume device specification and the offset); for swap
++	partitions the offset is always 0, but it is different from zero for
++	swap files (see Documentation/swsusp-and-swap-files.txt for details).
+ 
+ SNAPSHOT_PLATFORM_SUPPORT - enable/disable the hibernation platform support,
+ 	depending on the argument value (enable, if the argument is nonzero)
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 85b2482..c0f9bb7 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -143,6 +143,7 @@ header-y += snmp.h
+ header-y += sockios.h
+ header-y += som.h
+ header-y += sound.h
++header-y += suspend_ioctls.h
+ header-y += taskstats.h
+ header-y += telephony.h
+ header-y += termios.h
+diff --git a/include/linux/suspend_ioctls.h b/include/linux/suspend_ioctls.h
+new file mode 100644
+index 0000000..2c6faec
+--- /dev/null
++++ b/include/linux/suspend_ioctls.h
+@@ -0,0 +1,32 @@
++#ifndef _LINUX_SUSPEND_IOCTLS_H
++#define _LINUX_SUSPEND_IOCTLS_H
++
++/*
++ * This structure is used to pass the values needed for the identification
++ * of the resume swap area from a user space to the kernel via the
++ * SNAPSHOT_SET_SWAP_AREA ioctl
 + */
++struct resume_swap_area {
++	loff_t offset;
++	u_int32_t dev;
++} __attribute__((packed));
 +
-+static int resume_target_kernel(void)
-+{
-+	int error;
++#define SNAPSHOT_IOC_MAGIC	'3'
++#define SNAPSHOT_FREEZE			_IO(SNAPSHOT_IOC_MAGIC, 1)
++#define SNAPSHOT_UNFREEZE		_IO(SNAPSHOT_IOC_MAGIC, 2)
++#define SNAPSHOT_ATOMIC_RESTORE		_IO(SNAPSHOT_IOC_MAGIC, 4)
++#define SNAPSHOT_FREE			_IO(SNAPSHOT_IOC_MAGIC, 5)
++#define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
++#define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
++#define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
++							struct resume_swap_area)
++#define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, loff_t)
++#define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
++#define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)
++#define SNAPSHOT_CREATE_IMAGE		_IOW(SNAPSHOT_IOC_MAGIC, 17, int)
++#define SNAPSHOT_PREF_IMAGE_SIZE	_IO(SNAPSHOT_IOC_MAGIC, 18)
++#define SNAPSHOT_AVAIL_SWAP_SIZE	_IOR(SNAPSHOT_IOC_MAGIC, 19, loff_t)
++#define SNAPSHOT_ALLOC_SWAP_PAGE	_IOR(SNAPSHOT_IOC_MAGIC, 20, loff_t)
++#define SNAPSHOT_IOC_MAXNR	20
 +
-+	local_irq_disable();
-+	error = device_power_down(PMSG_PRETHAW);
-+	if (error) {
-+		printk(KERN_ERR "Some devices failed to power down, "
-+			"aborting resume\n");
-+		goto Enable_irqs;
-+	}
-+	/* We'll ignore saved state, but this gets preempt count (etc) right */
-+	save_processor_state();
-+	error = restore_highmem();
-+	if (!error) {
-+		error = swsusp_arch_resume();
-+		/*
-+		 * The code below is only ever reached in case of a failure.
-+		 * Otherwise execution continues at place where
-+		 * swsusp_arch_suspend() was called
-+		 */
-+		BUG_ON(!error);
-+		/* This call to restore_highmem() undos the previous one */
-+		restore_highmem();
-+	}
-+	/*
-+	 * The only reason why swsusp_arch_resume() can fail is memory being
-+	 * very tight, so we have to free it as soon as we can to avoid
-+	 * subsequent failures
-+	 */
-+	swsusp_free();
-+	restore_processor_state();
-+	touch_softlockup_watchdog();
-+	device_power_up();
-+ Enable_irqs:
-+	local_irq_enable();
-+	return error;
-+}
-+
-+/**
-  *	hibernation_restore - quiesce devices and restore the hibernation
-  *	snapshot image.  If successful, control returns in hibernation_snaphot()
-  *	@platform_mode - if set, use the platform driver, if available, to
-@@ -297,7 +344,7 @@ int hibernation_restore(int platform_mode)
- 	if (!error) {
- 		error = disable_nonboot_cpus();
- 		if (!error)
--			error = swsusp_resume();
-+			error = resume_target_kernel();
- 		enable_nonboot_cpus();
- 	}
- 	platform_restore_cleanup(platform_mode);
++#endif /* _LINUX_SUSPEND_IOCTLS_H */
 diff --git a/kernel/power/power.h b/kernel/power/power.h
-index a9732fd..8ec5499 100644
+index 0dd66fa..ef90605 100644
 --- a/kernel/power/power.h
 +++ b/kernel/power/power.h
-@@ -152,7 +152,6 @@ extern int swsusp_swap_in_use(void);
- extern int swsusp_check(void);
- extern int swsusp_shrink_memory(void);
- extern void swsusp_free(void);
--extern int swsusp_resume(void);
- extern int swsusp_read(unsigned int *flags_p);
- extern int swsusp_write(unsigned int flags);
- extern void swsusp_close(void);
-diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
-index 605c536..dc29a20 100644
---- a/kernel/power/swsusp.c
-+++ b/kernel/power/swsusp.c
-@@ -261,38 +261,3 @@ int swsusp_shrink_memory(void)
+@@ -1,4 +1,5 @@
+ #include <linux/suspend.h>
++#include <linux/suspend_ioctls.h>
+ #include <linux/utsname.h>
  
- 	return 0;
- }
+ struct swsusp_info {
+@@ -134,34 +135,6 @@ extern int snapshot_write_next(struct snapshot_handle *handle, size_t count);
+ extern void snapshot_write_finalize(struct snapshot_handle *handle);
+ extern int snapshot_image_loaded(struct snapshot_handle *handle);
+ 
+-/*
+- * This structure is used to pass the values needed for the identification
+- * of the resume swap area from a user space to the kernel via the
+- * SNAPSHOT_SET_SWAP_AREA ioctl
+- */
+-struct resume_swap_area {
+-	loff_t offset;
+-	u_int32_t dev;
+-} __attribute__((packed));
 -
--int swsusp_resume(void)
--{
--	int error;
+-#define SNAPSHOT_IOC_MAGIC	'3'
+-#define SNAPSHOT_FREEZE			_IO(SNAPSHOT_IOC_MAGIC, 1)
+-#define SNAPSHOT_UNFREEZE		_IO(SNAPSHOT_IOC_MAGIC, 2)
+-#define SNAPSHOT_ATOMIC_RESTORE		_IO(SNAPSHOT_IOC_MAGIC, 4)
+-#define SNAPSHOT_FREE			_IO(SNAPSHOT_IOC_MAGIC, 5)
+-#define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
+-#define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
+-#define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
+-							struct resume_swap_area)
+-#define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, loff_t)
+-#define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
+-#define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)
+-#define SNAPSHOT_CREATE_IMAGE		_IOW(SNAPSHOT_IOC_MAGIC, 17, int)
+-#define SNAPSHOT_PREF_IMAGE_SIZE	_IO(SNAPSHOT_IOC_MAGIC, 18)
+-#define SNAPSHOT_AVAIL_SWAP_SIZE	_IOR(SNAPSHOT_IOC_MAGIC, 19, loff_t)
+-#define SNAPSHOT_ALLOC_SWAP_PAGE	_IOR(SNAPSHOT_IOC_MAGIC, 20, loff_t)
+-#define SNAPSHOT_IOC_MAXNR	20
 -
--	local_irq_disable();
--	/* NOTE:  device_power_down() is just a suspend() with irqs off;
--	 * it has no special "power things down" semantics
--	 */
--	if (device_power_down(PMSG_PRETHAW))
--		printk(KERN_ERR "Some devices failed to power down, very bad\n");
--	/* We'll ignore saved state, but this gets preempt count (etc) right */
--	save_processor_state();
--	error = restore_highmem();
--	if (!error) {
--		error = swsusp_arch_resume();
--		/* The code below is only ever reached in case of a failure.
--		 * Otherwise execution continues at place where
--		 * swsusp_arch_suspend() was called
--        	 */
--		BUG_ON(!error);
--		/* This call to restore_highmem() undos the previous one */
--		restore_highmem();
--	}
--	/* The only reason why swsusp_arch_resume() can fail is memory being
--	 * very tight, so we have to free it as soon as we can to avoid
--	 * subsequent failures
--	 */
--	swsusp_free();
--	restore_processor_state();
--	touch_softlockup_watchdog();
--	device_power_up();
--	local_irq_enable();
--	return error;
--}
+ /* If unset, the snapshot device cannot be open. */
+ extern atomic_t snapshot_device_available;
+ 
 -- 
 1.5.4.rc5.16.gc0279
 
