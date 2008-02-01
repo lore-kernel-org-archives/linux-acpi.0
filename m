@@ -1,12 +1,15 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/37] Hibernation: Rework platform support ioctls (rev. 2)
-Date: Thu, 31 Jan 2008 23:36:33 -0500
-Message-ID: <6ef4bd5a2709f3f8d28e0ce83c911ed2a8af5afe.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 11/37] Hibernation: New testing facility (rev. 2)
+Date: Thu, 31 Jan 2008 23:36:42 -0500
+Message-ID: <460db5c6402b5a4e362b564bdfa436dfa4e3b661.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:61240 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753903AbYBAElx (ORCPT
+Received: from mga10.intel.com ([192.55.52.92]:64964 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754158AbYBAElx (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:53 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -16,190 +19,196 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-Modify the hibernation userland interface by adding two new ioctls to it,
-SNAPSHOT_PLATFORM_SUPPORT and SNAPSHOT_POWER_OFF, that can be used,
-respectively, to switch the hibernation platform support on/off and to make the
-kernel transition the system to the hibernation state (eg. ACPI S4) using the
-platform (eg. ACPI) driver.
+Make it possible to test the hibernation core code with the help of the
+/sys/power/pm_test attribute introduced for suspend testing in the prev=
+ious
+patch.
 
-These ioctls are intended to replace the misdesigned SNAPSHOT_PMOPS ioctl,
-which from now is regarded as obsolete and will be removed in the future.
+Writing an appropriate string to this file causes the hibernation code =
+to work
+in one of the test modes defined as follows:
+
+freezer
+- test the freezing of processes
+
+devices
+- test the freezing of processes and suspending of devices
+
+platform
+- test the freezing of processes, suspending of devices and platform gl=
+obal
+=C2=A0 control methods(*)
+
+processors
+- test the freezing of processes, suspending of devices, platform globa=
+l
+=C2=A0 control methods(*) and the disabling of nonboot CPUs
+
+core
+- test the freezing of processes, suspending of devices, platform globa=
+l
+=C2=A0 control methods(*), the disabling of nonboot CPUs and suspending=
+ of
+=C2=A0 platform/system devices
+
+(*) - the platform global control methods are only available on ACPI sy=
+stems
+=C2=A0 =C2=A0 =C2=A0 and are only tested if the hibernation mode is set=
+ to "platform"
+
+Then, if a hibernation is started by normal means, the hibernation core=
+ will
+perform its normal operations up to the point indicated by given test l=
+evel.
+Next, it will wait for 5 seconds and carry out the resume operations ne=
+eded to
+transition the system back to the fully functional state.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/power/userland-swsusp.txt |   24 ++++--------------
- kernel/power/power.h                    |    9 ++----
- kernel/power/user.c                     |   39 +++++++++++++++++++++++--------
- 3 files changed, 38 insertions(+), 34 deletions(-)
+ kernel/power/disk.c  |   70 +++++++++++++++++++++++++++++++++++++++---=
+-------
+ kernel/power/power.h |    2 +
+ 2 files changed, 57 insertions(+), 15 deletions(-)
 
-diff --git a/Documentation/power/userland-swsusp.txt b/Documentation/power/userland-swsusp.txt
-index 32f1874..381e9c0 100644
---- a/Documentation/power/userland-swsusp.txt
-+++ b/Documentation/power/userland-swsusp.txt
-@@ -85,6 +85,12 @@ SNAPSHOT_SET_SWAP_AREA - set the resume partition and the offset (in <PAGE_SIZE>
- 	recommended to always use this call, because the code to set the resume
- 	partition may be removed from future kernels
- 
-+SNAPSHOT_PLATFORM_SUPPORT - enable/disable the hibernation platform support,
-+	depending on the argument value (enable, if the argument is nonzero)
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+index 6597365..0866b16 100644
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -70,6 +70,35 @@ void hibernation_set_ops(struct platform_hibernation=
+_ops *ops)
+ 	mutex_unlock(&pm_mutex);
+ }
+=20
++#ifdef CONFIG_PM_DEBUG
++static void hibernation_debug_sleep(void)
++{
++	printk(KERN_INFO "hibernation debug: Waiting for 5 seconds.\n");
++	mdelay(5000);
++}
 +
-+SNAPSHOT_POWER_OFF - make the kernel transition the system to the hibernation
-+	state (eg. ACPI S4) using the platform (eg. ACPI) driver
++static int hibernation_testmode(int mode)
++{
++	if (hibernation_mode =3D=3D mode) {
++		hibernation_debug_sleep();
++		return 1;
++	}
++	return 0;
++}
 +
- SNAPSHOT_S2RAM - suspend to RAM; using this call causes the kernel to
- 	immediately enter the suspend-to-RAM state, so this call must always
- 	be preceded by the SNAPSHOT_FREEZE call and it is also necessary
-@@ -95,24 +101,6 @@ SNAPSHOT_S2RAM - suspend to RAM; using this call causes the kernel to
- 	to resume the system from RAM if there's enough battery power or restore
- 	its state on the basis of the saved suspend image otherwise)
- 
--SNAPSHOT_PMOPS - enable the usage of the hibernation_ops->prepare,
--	hibernate_ops->enter and hibernation_ops->finish methods (the in-kernel
--	swsusp knows these as the "platform method") which are needed on many
--	machines to (among others) speed up the resume by letting the BIOS skip
--	some steps or to let the system recognise the correct state of the
--	hardware after the resume (in particular on many machines this ensures
--	that unplugged AC adapters get correctly detected and that kacpid does
--	not run wild after the resume).  The last ioctl() argument can take one
--	of the three values, defined in kernel/power/power.h:
--	PMOPS_PREPARE - make the kernel carry out the
--		hibernation_ops->prepare() operation
--	PMOPS_ENTER - make the kernel power off the system by calling
--		hibernation_ops->enter()
--	PMOPS_FINISH - make the kernel carry out the
--		hibernation_ops->finish() operation
--	Note that the actual constants are misnamed because they surface
--	internal kernel implementation details that have changed.
--
- The device's read() operation can be used to transfer the snapshot image from
- the kernel.  It has the following limitations:
- - you cannot read() more than one virtual memory page at a time
++static int hibernation_test(int level)
++{
++	if (pm_test_level =3D=3D level) {
++		hibernation_debug_sleep();
++		return 1;
++	}
++	return 0;
++}
++#else /* !CONFIG_PM_DEBUG */
++static int hibernation_testmode(int mode) { return 0; }
++static int hibernation_test(int level) { return 0; }
++#endif /* !CONFIG_PM_DEBUG */
++
+ /**
+  *	platform_start - tell the platform driver that we're starting
+  *	hibernation
+@@ -167,6 +196,10 @@ int create_image(int platform_mode)
+ 		goto Enable_irqs;
+ 	}
+=20
++	if (hibernation_test(TEST_CORE))
++		goto Power_up;
++
++	in_suspend =3D 1;
+ 	save_processor_state();
+ 	error =3D swsusp_arch_suspend();
+ 	if (error)
+@@ -175,6 +208,7 @@ int create_image(int platform_mode)
+ 	restore_processor_state();
+ 	if (!in_suspend)
+ 		platform_leave(platform_mode);
++ Power_up:
+ 	/* NOTE:  device_power_up() is just a resume() for devices
+ 	 * that suspended with irqs off ... no overall powerup.
+ 	 */
+@@ -211,24 +245,29 @@ int hibernation_snapshot(int platform_mode)
+ 	if (error)
+ 		goto Resume_console;
+=20
+-	error =3D platform_pre_snapshot(platform_mode);
+-	if (error)
++	if (hibernation_test(TEST_DEVICES))
+ 		goto Resume_devices;
+=20
++	error =3D platform_pre_snapshot(platform_mode);
++	if (error || hibernation_test(TEST_PLATFORM))
++		goto Finish;
++
+ 	error =3D disable_nonboot_cpus();
+ 	if (!error) {
+-		if (hibernation_mode !=3D HIBERNATION_TEST) {
+-			in_suspend =3D 1;
+-			error =3D create_image(platform_mode);
+-			/* Control returns here after successful restore */
+-		} else {
+-			printk("swsusp debug: Waiting for 5 seconds.\n");
+-			mdelay(5000);
+-		}
++		if (hibernation_test(TEST_CPUS))
++			goto Enable_cpus;
++
++		if (hibernation_testmode(HIBERNATION_TEST))
++			goto Enable_cpus;
++
++		error =3D create_image(platform_mode);
++		/* Control returns here after successful restore */
+ 	}
++ Enable_cpus:
+ 	enable_nonboot_cpus();
+- Resume_devices:
++ Finish:
+ 	platform_finish(platform_mode);
++ Resume_devices:
+ 	device_resume();
+  Resume_console:
+ 	resume_console();
+@@ -406,11 +445,12 @@ int hibernate(void)
+ 	if (error)
+ 		goto Finish;
+=20
+-	if (hibernation_mode =3D=3D HIBERNATION_TESTPROC) {
+-		printk("swsusp debug: Waiting for 5 seconds.\n");
+-		mdelay(5000);
++	if (hibernation_test(TEST_FREEZER))
+ 		goto Thaw;
+-	}
++
++	if (hibernation_testmode(HIBERNATION_TESTPROC))
++		goto Thaw;
++
+ 	error =3D hibernation_snapshot(hibernation_mode =3D=3D HIBERNATION_PL=
+ATFORM);
+ 	if (in_suspend && !error) {
+ 		unsigned int flags =3D 0;
 diff --git a/kernel/power/power.h b/kernel/power/power.h
-index 23c1703..6ca85fd 100644
+index 9f9e16e..f9f0d4d 100644
 --- a/kernel/power/power.h
 +++ b/kernel/power/power.h
-@@ -156,15 +156,12 @@ struct resume_swap_area {
- #define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
- #define SNAPSHOT_SET_SWAP_FILE		_IOW(SNAPSHOT_IOC_MAGIC, 10, unsigned int)
- #define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
--#define SNAPSHOT_PMOPS			_IOW(SNAPSHOT_IOC_MAGIC, 12, unsigned int)
- #define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
- 							struct resume_swap_area)
- #define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, loff_t)
--#define SNAPSHOT_IOC_MAXNR	14
--
--#define PMOPS_PREPARE	1
--#define PMOPS_ENTER	2
--#define PMOPS_FINISH	3
-+#define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
-+#define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)
-+#define SNAPSHOT_IOC_MAXNR	16
- 
- /* If unset, the snapshot device cannot be open. */
- extern atomic_t snapshot_device_available;
-diff --git a/kernel/power/user.c b/kernel/power/user.c
-index 88aac26..de3fb43 100644
---- a/kernel/power/user.c
-+++ b/kernel/power/user.c
-@@ -28,6 +28,18 @@
- 
- #include "power.h"
- 
-+/*
-+ * NOTE: The SNAPSHOT_PMOPS ioctl is obsolete and will be removed in the
-+ * future.  It is only preserved here for compatibility with existing userland
-+ * utilities.
-+ */
-+#define SNAPSHOT_PMOPS		_IOW(SNAPSHOT_IOC_MAGIC, 12, unsigned int)
+@@ -206,3 +206,5 @@ enum {
+=20
+ #define TEST_FIRST	TEST_NONE
+ #define TEST_MAX	(__TEST_AFTER_LAST - 1)
 +
-+#define PMOPS_PREPARE	1
-+#define PMOPS_ENTER	2
-+#define PMOPS_FINISH	3
-+
-+
- #define SNAPSHOT_MINOR	231
- 
- static struct snapshot_data {
-@@ -36,7 +48,7 @@ static struct snapshot_data {
- 	int mode;
- 	char frozen;
- 	char ready;
--	char platform_suspend;
-+	char platform_support;
- } snapshot_state;
- 
- atomic_t snapshot_device_available = ATOMIC_INIT(1);
-@@ -70,7 +82,7 @@ static int snapshot_open(struct inode *inode, struct file *filp)
- 	}
- 	data->frozen = 0;
- 	data->ready = 0;
--	data->platform_suspend = 0;
-+	data->platform_support = 0;
- 
- 	return 0;
- }
-@@ -183,7 +195,7 @@ static int snapshot_ioctl(struct inode *inode, struct file *filp,
- 			error = -EPERM;
- 			break;
- 		}
--		error = hibernation_snapshot(data->platform_suspend);
-+		error = hibernation_snapshot(data->platform_support);
- 		if (!error)
- 			error = put_user(in_suspend, (unsigned int __user *)arg);
- 		if (!error)
-@@ -197,7 +209,7 @@ static int snapshot_ioctl(struct inode *inode, struct file *filp,
- 			error = -EPERM;
- 			break;
- 		}
--		error = hibernation_restore(data->platform_suspend);
-+		error = hibernation_restore(data->platform_support);
- 		break;
- 
- 	case SNAPSHOT_FREE:
-@@ -285,26 +297,33 @@ static int snapshot_ioctl(struct inode *inode, struct file *filp,
- 		mutex_unlock(&pm_mutex);
- 		break;
- 
--	case SNAPSHOT_PMOPS:
-+	case SNAPSHOT_PLATFORM_SUPPORT:
-+		data->platform_support = !!arg;
-+		break;
-+
-+	case SNAPSHOT_POWER_OFF:
-+		if (data->platform_support)
-+			error = hibernation_platform_enter();
-+		break;
-+
-+	case SNAPSHOT_PMOPS: /* This ioctl is deprecated */
- 		error = -EINVAL;
- 
- 		switch (arg) {
- 
- 		case PMOPS_PREPARE:
--			data->platform_suspend = 1;
-+			data->platform_support = 1;
- 			error = 0;
- 			break;
- 
- 		case PMOPS_ENTER:
--			if (data->platform_suspend)
-+			if (data->platform_support)
- 				error = hibernation_platform_enter();
--
- 			break;
- 
- 		case PMOPS_FINISH:
--			if (data->platform_suspend)
-+			if (data->platform_support)
- 				error = 0;
--
- 			break;
- 
- 		default:
--- 
++extern int pm_test_level;
+--=20
 1.5.4.rc5.16.gc0279
 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
