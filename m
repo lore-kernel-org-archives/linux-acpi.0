@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 36/37] Hibernation: Invoke suspend notifications after console switch
-Date: Thu, 31 Jan 2008 23:37:07 -0500
-Message-ID: <6c6e1163d2b4833bf448f02aaf26e12053957078.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 31/37] ACPI hibernation: Call _PTS before suspending devices
+Date: Thu, 31 Jan 2008 23:37:02 -0500
+Message-ID: <d629dee14e037644f4ddcd42f74674c782fb3ecf.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga10.intel.com ([192.55.52.92]:64964 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1764342AbYBAEmO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:14 -0500
+	with ESMTP id S1763142AbYBAEmL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:11 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -18,85 +18,92 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Following the recent change in the suspend code path, switch consoles before
-calling PM notifiers during hibernation.
+The ACPI 1.0 specification wants us to put devices into low power
+states after executing the _PTS global control method, while ACPI
+2.0 and later want us to do that in the reverse order.  The current
+hibernation code follows ACPI 2.0 in that respect which may cause some
+ACPI 1.0x systems to hang during hibernation (ref.
+http://bugzilla.kernel.org/show_bug.cgi?id=9528).
+
+Make the hibernation code execute _PTS before putting devices into
+low power states (ie. in accordance with ACPI 1.0x) with the
+possibility to override that using the 'acpi_new_pts_ordering' kernel
+command line option.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- kernel/power/disk.c |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/acpi/sleep/main.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
-diff --git a/kernel/power/disk.c b/kernel/power/disk.c
-index 53c22d9..d09da08 100644
---- a/kernel/power/disk.c
-+++ b/kernel/power/disk.c
-@@ -458,20 +458,13 @@ static void power_down(void)
- 	while(1);
- }
- 
--static void unprepare_processes(void)
--{
--	thaw_processes();
--	pm_restore_console();
--}
--
- static int prepare_processes(void)
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index 31e8e58..10db899 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -283,22 +283,34 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ #ifdef CONFIG_HIBERNATION
+ static int acpi_hibernation_begin(void)
  {
- 	int error = 0;
- 
--	pm_prepare_console();
- 	if (freeze_processes()) {
- 		error = -EBUSY;
--		unprepare_processes();
-+		thaw_processes();
- 	}
- 	return error;
++	int error;
++
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+-	return 0;
++	if (new_pts_ordering)
++		return 0;
++
++	error = acpi_sleep_prepare(ACPI_STATE_S4);
++	if (error)
++		acpi_target_sleep_state = ACPI_STATE_S0;
++	else
++		acpi_sleep_finish_wake_up = true;
++
++	return error;
  }
-@@ -491,6 +484,7 @@ int hibernate(void)
- 		goto Unlock;
- 	}
  
-+	pm_prepare_console();
- 	error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
- 	if (error)
- 		goto Exit;
-@@ -530,11 +524,12 @@ int hibernate(void)
- 		swsusp_free();
- 	}
-  Thaw:
--	unprepare_processes();
-+	thaw_processes();
-  Finish:
- 	free_basic_memory_bitmaps();
-  Exit:
- 	pm_notifier_call_chain(PM_POST_HIBERNATION);
-+	pm_restore_console();
- 	atomic_inc(&snapshot_device_available);
-  Unlock:
- 	mutex_unlock(&pm_mutex);
-@@ -603,6 +598,7 @@ static int software_resume(void)
- 		goto Unlock;
- 	}
+ static int acpi_hibernation_prepare(void)
+ {
+-	int error;
+-
+-	error = acpi_sleep_prepare(ACPI_STATE_S4);
+-	if (error)
+-		return error;
++	if (new_pts_ordering) {
++		int error = acpi_sleep_prepare(ACPI_STATE_S4);
  
-+	pm_prepare_console();
- 	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
- 	if (error)
- 		goto Finish;
-@@ -626,11 +622,12 @@ static int software_resume(void)
+-	if (!ACPI_SUCCESS(acpi_hw_disable_all_gpes()))
+-		error = -EFAULT;
++		if (error) {
++			acpi_target_sleep_state = ACPI_STATE_S0;
++			return error;
++		}
++		acpi_sleep_finish_wake_up = true;
++	}
  
- 	printk(KERN_ERR "PM: Restore failed, recovering.\n");
- 	swsusp_free();
--	unprepare_processes();
-+	thaw_processes();
-  Done:
- 	free_basic_memory_bitmaps();
-  Finish:
- 	pm_notifier_call_chain(PM_POST_RESTORE);
-+	pm_restore_console();
- 	atomic_inc(&snapshot_device_available);
- 	/* For success case, the suspend path will release the lock */
-  Unlock:
+-	return error;
++	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+ }
+ 
+ static int acpi_hibernation_enter(void)
+@@ -339,15 +351,17 @@ static void acpi_hibernation_finish(void)
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
++	acpi_sleep_finish_wake_up = false;
+ }
+ 
+ static void acpi_hibernation_end(void)
+ {
+ 	/*
+ 	 * This is necessary in case acpi_hibernation_finish() is not called
+-	 * during a failing transition to the sleep state.
++	 * directly during a failing transition to the sleep state.
+ 	 */
+-	acpi_target_sleep_state = ACPI_STATE_S0;
++	if (acpi_sleep_finish_wake_up)
++		acpi_hibernation_finish();
+ }
+ 
+ static int acpi_hibernation_pre_restore(void)
 -- 
 1.5.4.rc5.16.gc0279
 
