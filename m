@@ -1,80 +1,86 @@
-From: Kevin Hilman <khilman@mvista.com>
-Subject: Re: [linux-pm] [PATCH] CPUidle: compile fix for non-x86
-Date: Thu, 31 Jan 2008 17:28:18 -0800
-Message-ID: <871w7x5utp.fsf@paris.hilman.org>
-References: <200801301116.44902.rjw@sisk.pl> <200801312126.06816.rjw@sisk.pl>
-	<87zlul7mgz.fsf@paris.hilman.org> <200801312203.16737.rjw@sisk.pl>
-	<87myql7k8p.fsf@paris.hilman.org>
-	<924EFEDD5F540B4284297C4DC59F3DEE720540@orsmsx423.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: venkatesh.pallipadi@intel.com
+Subject: [patch 1/4] ACPI: Fix acpi_safe_halt usages and interrupt enabling/disabling
+Date: Thu, 31 Jan 2008 17:35:03 -0800
+Message-ID: <20080201013629.115986000@intel.com>
+References: <20080201013502.750627000@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from secure.mvista.com ([63.81.120.158]:4608 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbYBAB2U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 20:28:20 -0500
-In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE720540@orsmsx423.amr.corp.intel.com> (Venkatesh Pallipadi's message of "Thu\, 31 Jan 2008 16\:25\:12 -0800")
+Received: from mga01.intel.com ([192.55.52.88]:43160 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752201AbYBABgc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jan 2008 20:36:32 -0500
+Content-Disposition: inline; filename=acpi_fix_safe_halt.patch
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-OK, one more (last?) time.  :)
+acpi_safe_halt() needs interrupts to be disabled for atomic
+need_resched check and safe halt. Otherwise we may miss an
+interrupt and go into halt.
 
-Convert cpu_idle_wait() to cpuidle_kick_cpus() macro which is
-SMP-only, and gives error on non supported CPU.
+acpi_safe_halt() also does not enable interrupts on all return paths.
 
-Signed-off-by: Kevin Hilman <khilman@mvista.com>
+So the callers should handle enable and disable interrupts around it.
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 80b7ba4..a3e8ef4 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -105,6 +105,9 @@ config ARCH_HAS_ILOG2_U32
- config ARCH_HAS_ILOG2_U64
- 	def_bool n
+There were multiple places where this was not happening. Below is the fix.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
++++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
+@@ -201,6 +201,10 @@ static inline u32 ticks_elapsed_in_us(u3
+ 		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
+ }
  
-+config ARCH_HAS_CPU_IDLE_WAIT
-+	def_bool y
-+
- config GENERIC_CALIBRATE_DELAY
- 	def_bool y
- 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index d2fabe7..794962d 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -82,7 +82,7 @@ void cpuidle_uninstall_idle_handler(void)
++/*
++ * Callers should disable interrupts before the call and enable
++ * interrupts after return.
++ */
+ static void acpi_safe_halt(void)
  {
- 	if (enabled_devices && (pm_idle != pm_idle_old)) {
- 		pm_idle = pm_idle_old;
--		cpu_idle_wait();
-+		cpuidle_kick_cpus();
- 	}
- }
- 
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index c4e0016..b1c7355 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -72,6 +72,19 @@ cpuidle_set_statedata(struct cpuidle_state *state, void *data)
- 	state->driver_data = data;
- }
- 
-+#ifdef CONFIG_SMP
-+#ifdef CONFIG_ARCH_HAS_CPU_IDLE_WAIT
-+static inline void cpuidle_kick_cpus(void)
-+{
-+	cpu_idle_wait()
-+}
-+#else /* !ARCH_HAS_CPU_IDLE_WAIT */
-+#error "Arch needs cpu_idle_wait() equivalent here"
-+#endif /* !ARCH_HAS_CPU_IDLE_WAIT */
-+#else /* !CONFIG_SMP */
-+static inline void cpuidle_kick_cpus(void) {}
-+#endif /* !CONFIG_SMP */
+ 	current_thread_info()->status &= ~TS_POLLING;
+@@ -393,6 +397,8 @@ static void acpi_processor_idle(void)
+ 			pm_idle_save();
+ 		else
+ 			acpi_safe_halt();
 +
- struct cpuidle_state_kobj {
- 	struct cpuidle_state *state;
- 	struct completion kobj_unregister;
++		local_irq_enable();
+ 		return;
+ 	}
+ 
+@@ -501,6 +507,7 @@ static void acpi_processor_idle(void)
+ 		 *       skew otherwise.
+ 		 */
+ 		sleep_ticks = 0xFFFFFFFF;
++		local_irq_enable();
+ 		break;
+ 
+ 	case ACPI_STATE_C2:
+@@ -1378,11 +1385,13 @@ static int acpi_idle_enter_c1(struct cpu
+ 	if (unlikely(!pr))
+ 		return 0;
+ 
++	local_irq_disable();
+ 	if (pr->flags.bm_check)
+ 		acpi_idle_update_bm_rld(pr, cx);
+ 
+ 	acpi_safe_halt();
+ 
++	local_irq_enable();
+ 	cx->usage++;
+ 
+ 	return 0;
+@@ -1490,7 +1499,9 @@ static int acpi_idle_enter_bm(struct cpu
+ 		if (dev->safe_state) {
+ 			return dev->safe_state->enter(dev, dev->safe_state);
+ 		} else {
++			local_irq_disable();
+ 			acpi_safe_halt();
++			local_irq_enable();
+ 			return 0;
+ 		}
+ 	}
 
+-- 
