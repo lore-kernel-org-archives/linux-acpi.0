@@ -1,59 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 34/37] Suspend: Clean up suspend_64.c
-Date: Thu, 31 Jan 2008 23:37:05 -0500
-Message-ID: <31210f178861d7584cab1bca12ccd5547194d9eb.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 18/37] Hibernation: Fix comment in disk.c
+Date: Thu, 31 Jan 2008 23:36:49 -0500
+Message-ID: <9248efd164497b06c942e1c38d51a90c268265ef.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:46275 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:38807 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1763369AbYBAEmM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:12 -0500
+	with ESMTP id S1752073AbYBAEly (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:54 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Borislav Petkov <bbpetkov@yahoo.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Borislav Petkov <bbpetkov@yahoo.de>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There's a freakishly long comment in suspend_64.c, shorten it.
+Fix a comment in kernel/power/disk.c so that it doesn't contain lines
+longer that 80 characters.
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/suspend_64.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/power/disk.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kernel/suspend_64.c b/arch/x86/kernel/suspend_64.c
-index 0919951..7ac7130 100644
---- a/arch/x86/kernel/suspend_64.c
-+++ b/arch/x86/kernel/suspend_64.c
-@@ -140,7 +140,12 @@ static void fix_processor_context(void)
- 	int cpu = smp_processor_id();
- 	struct tss_struct *t = &per_cpu(init_tss, cpu);
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+index 2a4bada..3e24a20 100644
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -568,8 +568,8 @@ static int software_resume(void)
  
--	set_tss_desc(cpu,t);	/* This just modifies memory; should not be necessary. But... This is necessary, because 386 hardware has concept of busy TSS or some similar stupidity. */
-+	/*
-+	 * This just modifies memory; should not be necessary. But... This
-+	 * is necessary, because 386 hardware has concept of busy TSS or some
-+	 * similar stupidity.
-+	 */
-+	set_tss_desc(cpu, t);
- 
- 	get_cpu_gdt_table(cpu)[GDT_ENTRY_TSS].type = 9;
- 
-@@ -160,7 +165,6 @@ static void fix_processor_context(void)
-                 loaddebug(&current->thread, 6);
-                 loaddebug(&current->thread, 7);
- 	}
--
- }
- 
- #ifdef CONFIG_HIBERNATION
+ 	if (noresume) {
+ 		/**
+-		 * FIXME: If noresume is specified, we need to find the partition
+-		 * and reset it back to normal swap space.
++		 * FIXME: If noresume is specified, we need to find the
++		 * partition and reset it back to normal swap space.
+ 		 */
+ 		mutex_unlock(&pm_mutex);
+ 		return 0;
 -- 
 1.5.4.rc5.16.gc0279
 
