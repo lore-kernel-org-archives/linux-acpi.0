@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/37] PM: Suspend/hibernation debug documentation update (rev. 2)
-Date: Thu, 31 Jan 2008 23:36:43 -0500
-Message-ID: <5c93d7a4578d187f9a529f986626cd37ab6e3e83.1201840183.git.len.brown@intel.com>
+Subject: [PATCH 21/37] Hibernation: Update messages
+Date: Thu, 31 Jan 2008 23:36:52 -0500
+Message-ID: <5c54eb7f956ad54ecb2ffb7933f26831a3b83bb4.1201840183.git.len.brown@intel.com>
 References: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:61240 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:61252 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758084AbYBAEl5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:41:57 -0500
+	with ESMTP id S1761608AbYBAEmI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jan 2008 23:42:08 -0500
 In-Reply-To: <1201840628-23136-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
 References: <edae89f5d1eb1fbe1cab74333db5a8e29776900e.1201840183.git.len.brown@intel.com>
@@ -18,337 +18,366 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Update the suspend/hibernation debugging and testing documentation to describe
-the newly introduced testing facilities.
+Make hibernation messages start with one common prefix "PM: " and use
+the word "hibernation" in the messages as a synonym of "suspend to
+disk".
+
+Turn some KERN_INFO messages into debug ones.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/power/basic-pm-debugging.txt |  216 ++++++++++++++++++++--------
- Documentation/power/drivers-testing.txt    |   30 +++--
- 2 files changed, 174 insertions(+), 72 deletions(-)
+ kernel/power/disk.c     |   28 +++++++++++++++-------------
+ kernel/power/snapshot.c |   23 ++++++++++++-----------
+ kernel/power/swap.c     |   31 +++++++++++++++++--------------
+ kernel/power/swsusp.c   |    5 +++--
+ 4 files changed, 47 insertions(+), 40 deletions(-)
 
-diff --git a/Documentation/power/basic-pm-debugging.txt b/Documentation/power/basic-pm-debugging.txt
-index 57aef2f..1555001 100644
---- a/Documentation/power/basic-pm-debugging.txt
-+++ b/Documentation/power/basic-pm-debugging.txt
-@@ -1,45 +1,111 @@
--Debugging suspend and resume
-+Debugging hibernation and suspend
- 	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+index 3e24a20..64e42ab 100644
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -191,8 +191,8 @@ int create_image(int platform_mode)
+ 	 */
+ 	error = device_power_down(PMSG_FREEZE);
+ 	if (error) {
+-		printk(KERN_ERR "Some devices failed to power down, "
+-			KERN_ERR "aborting suspend\n");
++		printk(KERN_ERR "PM: Some devices failed to power down, "
++			"aborting hibernation\n");
+ 		goto Enable_irqs;
+ 	}
  
--1. Testing suspend to disk (STD)
-+1. Testing hibernation (aka suspend to disk or STD)
+@@ -203,7 +203,8 @@ int create_image(int platform_mode)
+ 	save_processor_state();
+ 	error = swsusp_arch_suspend();
+ 	if (error)
+-		printk(KERN_ERR "Error %d while creating the image\n", error);
++		printk(KERN_ERR "PM: Error %d creating hibernation image\n",
++			error);
+ 	/* Restore control flow magically appears here */
+ 	restore_processor_state();
+ 	if (!in_suspend)
+@@ -289,7 +290,7 @@ static int resume_target_kernel(void)
+ 	local_irq_disable();
+ 	error = device_power_down(PMSG_PRETHAW);
+ 	if (error) {
+-		printk(KERN_ERR "Some devices failed to power down, "
++		printk(KERN_ERR "PM: Some devices failed to power down, "
+ 			"aborting resume\n");
+ 		goto Enable_irqs;
+ 	}
+@@ -438,7 +439,7 @@ static void power_down(void)
+ 	 * Valid image is on the disk, if we continue we risk serious data
+ 	 * corruption after resume.
+ 	 */
+-	printk(KERN_CRIT "Please power me down manually\n");
++	printk(KERN_CRIT "PM: Please power down manually\n");
+ 	while(1);
+ }
  
--To verify that the STD works, you can try to suspend in the "reboot" mode:
-+To check if hibernation works, you can try to hibernate in the "reboot" mode:
+@@ -484,7 +485,7 @@ int hibernate(void)
+ 	if (error)
+ 		goto Exit;
  
- # echo reboot > /sys/power/disk
- # echo disk > /sys/power/state
+-	printk("Syncing filesystems ... ");
++	printk(KERN_INFO "PM: Syncing filesystems ... ");
+ 	sys_sync();
+ 	printk("done.\n");
  
--and the system should suspend, reboot, resume and get back to the command prompt
--where you have started the transition.  If that happens, the STD is most likely
--to work correctly, but you need to repeat the test at least a couple of times in
--a row for confidence.  This is necessary, because some problems only show up on
--a second attempt at suspending and resuming the system.  You should also test
--the "platform" and "shutdown" modes of suspend:
-+and the system should create a hibernation image, reboot, resume and get back to
-+the command prompt where you have started the transition.  If that happens,
-+hibernation is most likely to work correctly.  Still, you need to repeat the
-+test at least a couple of times in a row for confidence.  [This is necessary,
-+because some problems only show up on a second attempt at suspending and
-+resuming the system.]  Moreover, hibernating in the "reboot" and "shutdown"
-+modes causes the PM core to skip some platform-related callbacks which on ACPI
-+systems might be necessary to make hibernation work.  Thus, if you machine fails
-+to hibernate or resume in the "reboot" mode, you should try the "platform" mode:
+@@ -560,10 +561,11 @@ static int software_resume(void)
+ 			return -ENOENT;
+ 		}
+ 		swsusp_resume_device = name_to_dev_t(resume_file);
+-		pr_debug("swsusp: Resume From Partition %s\n", resume_file);
++		pr_debug("PM: Resume from partition %s\n", resume_file);
+ 	} else {
+-		pr_debug("swsusp: Resume From Partition %d:%d\n",
+-			 MAJOR(swsusp_resume_device), MINOR(swsusp_resume_device));
++		pr_debug("PM: Resume from partition %d:%d\n",
++				MAJOR(swsusp_resume_device),
++				MINOR(swsusp_resume_device));
+ 	}
  
- # echo platform > /sys/power/disk
- # echo disk > /sys/power/state
+ 	if (noresume) {
+@@ -575,7 +577,7 @@ static int software_resume(void)
+ 		return 0;
+ 	}
  
--or
-+which is the default and recommended mode of hibernation.
-+
-+Unfortunately, the "platform" mode of hibernation does not work on some systems
-+with broken BIOSes.  In such cases the "shutdown" mode of hibernation might
-+work:
+-	pr_debug("PM: Checking swsusp image.\n");
++	pr_debug("PM: Checking hibernation image.\n");
+ 	error = swsusp_check();
+ 	if (error)
+ 		goto Unlock;
+@@ -601,7 +603,7 @@ static int software_resume(void)
+ 		goto Done;
+ 	}
  
- # echo shutdown > /sys/power/disk
- # echo disk > /sys/power/state
+-	pr_debug("PM: Reading swsusp image.\n");
++	pr_debug("PM: Reading hibernation image.\n");
  
--in which cases you will have to press the power button to make the system
--resume.  If that does not work, you will need to identify what goes wrong.
-+(it is similar to the "reboot" mode, but it requires you to press the power
-+button to make the system resume).
-+
-+If neither "platform" nor "shutdown" hibernation mode works, you will need to
-+identify what goes wrong.
-+
-+a) Test modes of hibernation
-+
-+To find out why hibernation fails on your system, you can use a special testing
-+facility available if the kernel is compiled with CONFIG_PM_DEBUG set.  Then,
-+there is the file /sys/power/pm_test that can be used to make the hibernation
-+core run in a test mode.  There are 5 test modes available:
-+
-+freezer
-+- test the freezing of processes
-+
-+devices
-+- test the freezing of processes and suspending of devices
+ 	error = swsusp_read(&flags);
+ 	if (!error)
+@@ -728,7 +730,7 @@ static ssize_t disk_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 		error = -EINVAL;
  
--a) Test mode of STD
-+platform
-+- test the freezing of processes, suspending of devices and platform
-+  global control methods(*)
+ 	if (!error)
+-		pr_debug("PM: suspend-to-disk mode set to '%s'\n",
++		pr_debug("PM: Hibernation mode set to '%s'\n",
+ 			 hibernation_modes[mode]);
+ 	mutex_unlock(&pm_mutex);
+ 	return error ? error : n;
+@@ -760,7 +762,7 @@ static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 	mutex_lock(&pm_mutex);
+ 	swsusp_resume_device = res;
+ 	mutex_unlock(&pm_mutex);
+-	printk("Attempting manual resume\n");
++	printk(KERN_INFO "PM: Starting manual resume from disk\n");
+ 	noresume = 0;
+ 	software_resume();
+ 	ret = n;
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 1ec3ecc..f6a5df9 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -635,7 +635,7 @@ __register_nosave_region(unsigned long start_pfn, unsigned long end_pfn,
+ 	region->end_pfn = end_pfn;
+ 	list_add_tail(&region->list, &nosave_regions);
+  Report:
+-	printk("swsusp: Registered nosave memory region: %016lx - %016lx\n",
++	printk(KERN_INFO "PM: Registered nosave memory: %016lx - %016lx\n",
+ 		start_pfn << PAGE_SHIFT, end_pfn << PAGE_SHIFT);
+ }
  
--To verify if there are any drivers that cause problems you can run the STD
--in the test mode:
-+processors
-+- test the freezing of processes, suspending of devices, platform
-+  global control methods(*) and the disabling of nonboot CPUs
+@@ -704,7 +704,7 @@ static void mark_nosave_pages(struct memory_bitmap *bm)
+ 	list_for_each_entry(region, &nosave_regions, list) {
+ 		unsigned long pfn;
  
--# echo test > /sys/power/disk
-+core
-+- test the freezing of processes, suspending of devices, platform global
-+  control methods(*), the disabling of nonboot CPUs and suspending of
-+  platform/system devices
-+
-+(*) the platform global control methods are only available on ACPI systems
-+    and are only tested if the hibernation mode is set to "platform"
-+
-+To use one of them it is necessary to write the corresponding string to
-+/sys/power/pm_test (eg. "devices" to test the freezing of processes and
-+suspending devices) and issue the standard hibernation commands.  For example,
-+to use the "devices" test mode along with the "platform" mode of hibernation,
-+you should do the following:
-+
-+# echo devices > /sys/power/pm_test
-+# echo platform > /sys/power/disk
- # echo disk > /sys/power/state
+-		printk("swsusp: Marking nosave pages: %016lx - %016lx\n",
++		pr_debug("PM: Marking nosave pages: %016lx - %016lx\n",
+ 				region->start_pfn << PAGE_SHIFT,
+ 				region->end_pfn << PAGE_SHIFT);
  
--in which case the system should freeze tasks, suspend devices, disable nonboot
--CPUs (if any), wait for 5 seconds, enable nonboot CPUs, resume devices, thaw
--tasks and return to your command prompt.  If that fails, most likely there is
--a driver that fails to either suspend or resume (in the latter case the system
--may hang or be unstable after the test, so please take that into consideration).
--To find this driver, you can carry out a binary search according to the rules:
-+Then, the kernel will try to freeze processes, suspend devices, wait 5 seconds,
-+resume devices and thaw processes.  If "platform" is written to
-+/sys/power/pm_test , then after suspending devices the kernel will additionally
-+invoke the global control methods (eg. ACPI global control methods) used to
-+prepare the platform firmware for hibernation.  Next, it will wait 5 seconds and
-+invoke the platform (eg. ACPI) global methods used to cancel hibernation etc.
-+
-+Writing "none" to /sys/power/pm_test causes the kernel to switch to the normal
-+hibernation/suspend operations.  Also, when open for reading, /sys/power/pm_test
-+contains a space-separated list of all available tests (including "none" that
-+represents the normal functionality) in which the current test level is
-+indicated by square brackets.
-+
-+Generally, as you can see, each test level is more "invasive" than the previous
-+one and the "core" level tests the hardware and drivers as deeply as possible
-+without creating a hibernation image.  Obviously, if the "devices" test fails,
-+the "platform" test will fail as well and so on.  Thus, as a rule of thumb, you
-+should try the test modes starting from "freezer", through "devices", "platform"
-+and "processors" up to "core" (repeat the test on each level a couple of times
-+to make sure that any random factors are avoided).
-+
-+If the "freezer" test fails, there is a task that cannot be frozen (in that case
-+it usually is possible to identify the offending task by analysing the output of
-+dmesg obtained after the failing test).  Failure at this level usually means
-+that there is a problem with the tasks freezer subsystem that should be
-+reported.
-+
-+If the "devices" test fails, most likely there is a driver that cannot suspend
-+or resume its device (in the latter case the system may hang or become unstable
-+after the test, so please take that into consideration).  To find this driver,
-+you can carry out a binary search according to the rules:
- - if the test fails, unload a half of the drivers currently loaded and repeat
- (that would probably involve rebooting the system, so always note what drivers
- have been loaded before the test),
-@@ -47,23 +113,46 @@ have been loaded before the test),
- recently and repeat.
+@@ -749,7 +749,7 @@ int create_basic_memory_bitmaps(void)
+ 	free_pages_map = bm2;
+ 	mark_nosave_pages(forbidden_pages_map);
  
- Once you have found the failing driver (there can be more than just one of
--them), you have to unload it every time before the STD transition.  In that case
--please make sure to report the problem with the driver.
--
--It is also possible that a cycle can still fail after you have unloaded
--all modules. In that case, you would want to look in your kernel configuration
--for the drivers that can be compiled as modules (testing again with them as
--modules), and possibly also try boot time options such as "noapic" or "noacpi".
-+them), you have to unload it every time before hibernation.  In that case please
-+make sure to report the problem with the driver.
-+
-+It is also possible that the "devices" test will still fail after you have
-+unloaded all modules. In that case, you may want to look in your kernel
-+configuration for the drivers that can be compiled as modules (and test again
-+with these drivers compiled as modules).  You may also try to use some special
-+kernel command line options such as "noapic", "noacpi" or even "acpi=off".
-+
-+If the "platform" test fails, there is a problem with the handling of the
-+platform (eg. ACPI) firmware on your system.  In that case the "platform" mode
-+of hibernation is not likely to work.  You can try the "shutdown" mode, but that
-+is rather a poor man's workaround.
-+
-+If the "processors" test fails, the disabling/enabling of nonboot CPUs does not
-+work (of course, this only may be an issue on SMP systems) and the problem
-+should be reported.  In that case you can also try to switch the nonboot CPUs
-+off and on using the /sys/devices/system/cpu/cpu*/online sysfs attributes and
-+see if that works.
-+
-+If the "core" test fails, which means that suspending of the system/platform
-+devices has failed (these devices are suspended on one CPU with interrupts off),
-+the problem is most probably hardware-related and serious, so it should be
-+reported.
-+
-+A failure of any of the "platform", "processors" or "core" tests may cause your
-+system to hang or become unstable, so please beware.  Such a failure usually
-+indicates a serious problem that very well may be related to the hardware, but
-+please report it anyway.
+-	printk("swsusp: Basic memory bitmaps created\n");
++	pr_debug("PM: Basic memory bitmaps created\n");
  
- b) Testing minimal configuration
+ 	return 0;
  
--If the test mode of STD works, you can boot the system with "init=/bin/bash"
--and attempt to suspend in the "reboot", "shutdown" and "platform" modes.  If
--that does not work, there probably is a problem with a driver statically
--compiled into the kernel and you can try to compile more drivers as modules,
--so that they can be tested individually.  Otherwise, there is a problem with a
--modular driver and you can find it by loading a half of the modules you normally
--use and binary searching in accordance with the algorithm:
-+If all of the hibernation test modes work, you can boot the system with the
-+"init=/bin/bash" command line parameter and attempt to hibernate in the
-+"reboot", "shutdown" and "platform" modes.  If that does not work, there
-+probably is a problem with a driver statically compiled into the kernel and you
-+can try to compile more drivers as modules, so that they can be tested
-+individually.  Otherwise, there is a problem with a modular driver and you can
-+find it by loading a half of the modules you normally use and binary searching
-+in accordance with the algorithm:
- - if there are n modules loaded and the attempt to suspend and resume fails,
- unload n/2 of the modules and try again (that would probably involve rebooting
- the system),
-@@ -71,19 +160,19 @@ the system),
- load n/2 modules more and try again.
+@@ -784,7 +784,7 @@ void free_basic_memory_bitmaps(void)
+ 	memory_bm_free(bm2, PG_UNSAFE_CLEAR);
+ 	kfree(bm2);
  
- Again, if you find the offending module(s), it(they) must be unloaded every time
--before the STD transition, and please report the problem with it(them).
-+before hibernation, and please report the problem with it(them).
+-	printk("swsusp: Basic memory bitmaps freed\n");
++	pr_debug("PM: Basic memory bitmaps freed\n");
+ }
  
- c) Advanced debugging
+ /**
+@@ -1088,7 +1088,7 @@ static int enough_free_mem(unsigned int nr_pages, unsigned int nr_highmem)
+ 	}
  
--In case the STD does not work on your system even in the minimal configuration
--and compiling more drivers as modules is not practical or some modules cannot
--be unloaded, you can use one of the more advanced debugging techniques to find
--the problem.  First, if there is a serial port in your box, you can boot the
--kernel with the 'no_console_suspend' parameter and try to log kernel
--messages using the serial console.  This may provide you with some information
--about the reasons of the suspend (resume) failure.  Alternatively, it may be
--possible to use a FireWire port for debugging with firescope
--(ftp://ftp.firstfloor.org/pub/ak/firescope/).  On i386 it is also possible to
-+In case that hibernation does not work on your system even in the minimal
-+configuration and compiling more drivers as modules is not practical or some
-+modules cannot be unloaded, you can use one of the more advanced debugging
-+techniques to find the problem.  First, if there is a serial port in your box,
-+you can boot the kernel with the 'no_console_suspend' parameter and try to log
-+kernel messages using the serial console.  This may provide you with some
-+information about the reasons of the suspend (resume) failure.  Alternatively,
-+it may be possible to use a FireWire port for debugging with firescope
-+(ftp://ftp.firstfloor.org/pub/ak/firescope/).  On x86 it is also possible to
- use the PM_TRACE mechanism documented in Documentation/s2ram.txt .
+ 	nr_pages += count_pages_for_highmem(nr_highmem);
+-	pr_debug("swsusp: Normal pages needed: %u + %u + %u, available pages: %u\n",
++	pr_debug("PM: Normal pages needed: %u + %u + %u, available pages: %u\n",
+ 		nr_pages, PAGES_FOR_IO, meta, free);
  
- 2. Testing suspend to RAM (STR)
-@@ -91,16 +180,25 @@ use the PM_TRACE mechanism documented in Documentation/s2ram.txt .
- To verify that the STR works, it is generally more convenient to use the s2ram
- tool available from http://suspend.sf.net and documented at
- http://en.opensuse.org/s2ram .  However, before doing that it is recommended to
--carry out the procedure described in section 1.
--
--Assume you have resolved the problems with the STD and you have found some
--failing drivers.  These drivers are also likely to fail during the STR or
--during the resume, so it is better to unload them every time before the STR
--transition.  Now, you can follow the instructions at
--http://en.opensuse.org/s2ram to test the system, but if it does not work
--"out of the box", you may need to boot it with "init=/bin/bash" and test
--s2ram in the minimal configuration.  In that case, you may be able to search
--for failing drivers by following the procedure analogous to the one described in
--1b).  If you find some failing drivers, you will have to unload them every time
--before the STR transition (ie. before you run s2ram), and please report the
--problems with them.
-+carry out STR testing using the facility described in section 1.
-+
-+Namely, after writing "freezer", "devices", "platform", "processors", or "core"
-+into /sys/power/pm_test (available if the kernel is compiled with
-+CONFIG_PM_DEBUG set) the suspend code will work in the test mode corresponding
-+to given string.  The STR test modes are defined in the same way as for
-+hibernation, so please refer to Section 1 for more information about them.  In
-+particular, the "core" test allows you to test everything except for the actual
-+invocation of the platform firmware in order to put the system into the sleep
-+state.
-+
-+Among other things, the testing with the help of /sys/power/pm_test may allow
-+you to identify drivers that fail to suspend or resume their devices.  They
-+should be unloaded every time before an STR transition.
-+
-+Next, you can follow the instructions at http://en.opensuse.org/s2ram to test
-+the system, but if it does not work "out of the box", you may need to boot it
-+with "init=/bin/bash" and test s2ram in the minimal configuration.  In that
-+case, you may be able to search for failing drivers by following the procedure
-+analogous to the one described in section 1.  If you find some failing drivers,
-+you will have to unload them every time before an STR transition (ie. before
-+you run s2ram), and please report the problems with them.
-diff --git a/Documentation/power/drivers-testing.txt b/Documentation/power/drivers-testing.txt
-index e4bdcae..7f7a737 100644
---- a/Documentation/power/drivers-testing.txt
-+++ b/Documentation/power/drivers-testing.txt
-@@ -6,9 +6,9 @@ Testing suspend and resume support in device drivers
- Unfortunately, to effectively test the support for the system-wide suspend and
- resume transitions in a driver, it is necessary to suspend and resume a fully
- functional system with this driver loaded.  Moreover, that should be done
--several times, preferably several times in a row, and separately for the suspend
--to disk (STD) and the suspend to RAM (STR) transitions, because each of these
--cases involves different ordering of operations and different interactions with
-+several times, preferably several times in a row, and separately for hibernation
-+(aka suspend to disk or STD) and suspend to RAM (STR), because each of these
-+cases involves slightly different operations and different interactions with
- the machine's BIOS.
+ 	return free > nr_pages + PAGES_FOR_IO + meta;
+@@ -1201,20 +1201,20 @@ asmlinkage int swsusp_save(void)
+ {
+ 	unsigned int nr_pages, nr_highmem;
  
- Of course, for this purpose the test system has to be known to suspend and
-@@ -22,20 +22,24 @@ for more information about the debugging of suspend/resume functionality.
- Once you have resolved the suspend/resume-related problems with your test system
- without the new driver, you are ready to test it:
+-	printk("swsusp: critical section: \n");
++	printk(KERN_INFO "PM: Creating hibernation image: \n");
  
--a) Build the driver as a module, load it and try the STD in the test mode (see:
--Documents/power/basic-pm-debugging.txt, 1a)).
-+a) Build the driver as a module, load it and try the test modes of hibernation
-+   (see: Documents/power/basic-pm-debugging.txt, 1).
+ 	drain_local_pages();
+ 	nr_pages = count_data_pages();
+ 	nr_highmem = count_highmem_pages();
+-	printk("swsusp: Need to copy %u pages\n", nr_pages + nr_highmem);
++	printk(KERN_INFO "PM: Need to copy %u pages\n", nr_pages + nr_highmem);
  
--b) Load the driver and attempt to suspend to disk in the "reboot", "shutdown"
--and "platform" modes (see: Documents/power/basic-pm-debugging.txt, 1).
-+b) Load the driver and attempt to hibernate in the "reboot", "shutdown" and
-+   "platform" modes (see: Documents/power/basic-pm-debugging.txt, 1).
+ 	if (!enough_free_mem(nr_pages, nr_highmem)) {
+-		printk(KERN_ERR "swsusp: Not enough free memory\n");
++		printk(KERN_ERR "PM: Not enough free memory\n");
+ 		return -ENOMEM;
+ 	}
  
--c) Compile the driver directly into the kernel and try the STD in the test mode.
-+c) Compile the driver directly into the kernel and try the test modes of
-+   hibernation.
+ 	if (swsusp_alloc(&orig_bm, &copy_bm, nr_pages, nr_highmem)) {
+-		printk(KERN_ERR "swsusp: Memory allocation failed\n");
++		printk(KERN_ERR "PM: Memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
  
--d) Attempt to suspend to disk with the driver compiled directly into the kernel
--in the "reboot", "shutdown" and "platform" modes.
-+d) Attempt to hibernate with the driver compiled directly into the kernel
-+   in the "reboot", "shutdown" and "platform" modes.
+@@ -1234,7 +1234,8 @@ asmlinkage int swsusp_save(void)
+ 	nr_copy_pages = nr_pages;
+ 	nr_meta_pages = DIV_ROUND_UP(nr_pages * sizeof(long), PAGE_SIZE);
  
--e) Attempt to suspend to RAM using the s2ram tool with the driver loaded (see:
--Documents/power/basic-pm-debugging.txt, 2).  As far as the STR tests are
--concerned, it should not matter whether or not the driver is built as a module.
-+e) Try the test modes of suspend (see: Documents/power/basic-pm-debugging.txt,
-+   2).  [As far as the STR tests are concerned, it should not matter whether or
-+   not the driver is built as a module.]
-+
-+f) Attempt to suspend to RAM using the s2ram tool with the driver loaded
-+   (see: Documents/power/basic-pm-debugging.txt, 2).
+-	printk("swsusp: critical section: done (%d pages copied)\n", nr_pages);
++	printk(KERN_INFO "PM: Hibernation image created (%d pages copied)\n",
++		nr_pages);
  
- Each of the above tests should be repeated several times and the STD tests
- should be mixed with the STR tests.  If any of them fails, the driver cannot be
+ 	return 0;
+ }
+@@ -1433,7 +1434,7 @@ static int check_header(struct swsusp_info *info)
+ 	if (!reason && info->num_physpages != num_physpages)
+ 		reason = "memory size";
+ 	if (reason) {
+-		printk(KERN_ERR "swsusp: Resume mismatch: %s\n", reason);
++		printk(KERN_ERR "PM: Image mismatch: %s\n", reason);
+ 		return -EPERM;
+ 	}
+ 	return 0;
+diff --git a/kernel/power/swap.c b/kernel/power/swap.c
+index ef41440..a0abf9a 100644
+--- a/kernel/power/swap.c
++++ b/kernel/power/swap.c
+@@ -71,7 +71,8 @@ static int submit(int rw, pgoff_t page_off, struct page *page,
+ 	bio->bi_end_io = end_swap_bio_read;
+ 
+ 	if (bio_add_page(bio, page, PAGE_SIZE, 0) < PAGE_SIZE) {
+-		printk("swsusp: ERROR: adding page to bio at %ld\n", page_off);
++		printk(KERN_ERR "PM: Adding page to bio failed at %ld\n",
++			page_off);
+ 		bio_put(bio);
+ 		return -EFAULT;
+ 	}
+@@ -151,7 +152,7 @@ static int mark_swapfiles(sector_t start, unsigned int flags)
+ 		error = bio_write_page(swsusp_resume_block,
+ 					swsusp_header, NULL);
+ 	} else {
+-		printk(KERN_ERR "swsusp: Swap header not found!\n");
++		printk(KERN_ERR "PM: Swap header not found!\n");
+ 		error = -ENODEV;
+ 	}
+ 	return error;
+@@ -323,7 +324,8 @@ static int save_image(struct swap_map_handle *handle,
+ 	struct timeval start;
+ 	struct timeval stop;
+ 
+-	printk("Saving image data pages (%u pages) ...     ", nr_to_write);
++	printk(KERN_INFO "PM: Saving image data pages (%u pages) ...     ",
++		nr_to_write);
+ 	m = nr_to_write / 100;
+ 	if (!m)
+ 		m = 1;
+@@ -363,7 +365,7 @@ static int enough_swap(unsigned int nr_pages)
+ {
+ 	unsigned int free_swap = count_swap_pages(root_swap, 1);
+ 
+-	pr_debug("swsusp: free swap pages: %u\n", free_swap);
++	pr_debug("PM: Free swap pages: %u\n", free_swap);
+ 	return free_swap > nr_pages + PAGES_FOR_IO;
+ }
+ 
+@@ -386,7 +388,7 @@ int swsusp_write(unsigned int flags)
+ 
+ 	error = swsusp_swap_check();
+ 	if (error) {
+-		printk(KERN_ERR "swsusp: Cannot find swap device, try "
++		printk(KERN_ERR "PM: Cannot find swap device, try "
+ 				"swapon -a.\n");
+ 		return error;
+ 	}
+@@ -400,7 +402,7 @@ int swsusp_write(unsigned int flags)
+ 	}
+ 	header = (struct swsusp_info *)data_of(snapshot);
+ 	if (!enough_swap(header->pages)) {
+-		printk(KERN_ERR "swsusp: Not enough free swap\n");
++		printk(KERN_ERR "PM: Not enough free swap\n");
+ 		error = -ENOSPC;
+ 		goto out;
+ 	}
+@@ -415,7 +417,7 @@ int swsusp_write(unsigned int flags)
+ 
+ 		if (!error) {
+ 			flush_swap_writer(&handle);
+-			printk("S");
++			printk(KERN_INFO "PM: S");
+ 			error = mark_swapfiles(start, flags);
+ 			printk("|\n");
+ 		}
+@@ -505,7 +507,8 @@ static int load_image(struct swap_map_handle *handle,
+ 	int err2;
+ 	unsigned nr_pages;
+ 
+-	printk("Loading image data pages (%u pages) ...     ", nr_to_read);
++	printk(KERN_INFO "PM: Loading image data pages (%u pages) ...     ",
++		nr_to_read);
+ 	m = nr_to_read / 100;
+ 	if (!m)
+ 		m = 1;
+@@ -556,7 +559,7 @@ int swsusp_read(unsigned int *flags_p)
+ 
+ 	*flags_p = swsusp_header->flags;
+ 	if (IS_ERR(resume_bdev)) {
+-		pr_debug("swsusp: block device not initialised\n");
++		pr_debug("PM: Image device not initialised\n");
+ 		return PTR_ERR(resume_bdev);
+ 	}
+ 
+@@ -575,9 +578,9 @@ int swsusp_read(unsigned int *flags_p)
+ 	blkdev_put(resume_bdev);
+ 
+ 	if (!error)
+-		pr_debug("swsusp: Reading resume file was successful\n");
++		pr_debug("PM: Image successfully loaded\n");
+ 	else
+-		pr_debug("swsusp: Error %d resuming\n", error);
++		pr_debug("PM: Error %d resuming\n", error);
+ 	return error;
+ }
+ 
+@@ -609,13 +612,13 @@ int swsusp_check(void)
+ 		if (error)
+ 			blkdev_put(resume_bdev);
+ 		else
+-			pr_debug("swsusp: Signature found, resuming\n");
++			pr_debug("PM: Signature found, resuming\n");
+ 	} else {
+ 		error = PTR_ERR(resume_bdev);
+ 	}
+ 
+ 	if (error)
+-		pr_debug("swsusp: Error %d check for resume file\n", error);
++		pr_debug("PM: Error %d checking image file\n", error);
+ 
+ 	return error;
+ }
+@@ -627,7 +630,7 @@ int swsusp_check(void)
+ void swsusp_close(void)
+ {
+ 	if (IS_ERR(resume_bdev)) {
+-		pr_debug("swsusp: block device not initialised\n");
++		pr_debug("PM: Image device not initialised\n");
+ 		return;
+ 	}
+ 
+diff --git a/kernel/power/swsusp.c b/kernel/power/swsusp.c
+index dc29a20..023ff2a 100644
+--- a/kernel/power/swsusp.c
++++ b/kernel/power/swsusp.c
+@@ -188,7 +188,8 @@ void swsusp_show_speed(struct timeval *start, struct timeval *stop,
+ 		centisecs = 1;	/* avoid div-by-zero */
+ 	k = nr_pages * (PAGE_SIZE / 1024);
+ 	kps = (k * 100) / centisecs;
+-	printk("%s %d kbytes in %d.%02d seconds (%d.%02d MB/s)\n", msg, k,
++	printk(KERN_INFO "PM: %s %d kbytes in %d.%02d seconds (%d.%02d MB/s)\n",
++			msg, k,
+ 			centisecs / 100, centisecs % 100,
+ 			kps / 1000, (kps % 1000) / 10);
+ }
+@@ -219,7 +220,7 @@ int swsusp_shrink_memory(void)
+ 	char *p = "-\\|/";
+ 	struct timeval start, stop;
+ 
+-	printk("Shrinking memory...  ");
++	printk(KERN_INFO "PM: Shrinking memory...  ");
+ 	do_gettimeofday(&start);
+ 	do {
+ 		long size, highmem_size;
 -- 
 1.5.4.rc5.16.gc0279
 
