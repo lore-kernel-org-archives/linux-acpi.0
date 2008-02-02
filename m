@@ -1,59 +1,81 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 4/4] ACPI: video: call ACPI notifier chain for ACPI video notifications
-Date: Fri, 1 Feb 2008 23:04:22 -0500
-Message-ID: <200802012304.22513.lenb@kernel.org>
-References: <1201243692.4663.21.camel@acpi-sony.sh.intel.com>
+Subject: Re: [PATCH 0/10] generic thermal management
+Date: Fri, 1 Feb 2008 23:23:16 -0500
+Message-ID: <200802012323.16244.lenb@kernel.org>
+References: <1200556238.2935.115.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37401 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:40059 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752702AbYBBEEg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Feb 2008 23:04:36 -0500
-In-Reply-To: <1201243692.4663.21.camel@acpi-sony.sh.intel.com>
+	id S1753415AbYBBEXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Feb 2008 23:23:35 -0500
+In-Reply-To: <1200556238.2935.115.camel@acpi-sony.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-gfx@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
 
-Applied.
+series applied to acpi-test.
 
 thanks,
 -Len
 
-On Friday 25 January 2008 01:48, Zhang Rui wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
+On Thursday 17 January 2008 02:50, Zhang Rui wrote:
+> Hi, all,
 > 
-> Call notifier chain for display/brightness switch events.
-> The kernel mode graphics driver is interested in this.
+> This patch series introduces a new generic thermal sysfs driver
+> which provides a set of interfaces for thermal zone devices (sensors)
+> and thermal cooling devices (fan, processor...) to register with the
+> thermal management solution and to be a part of it.
 > 
-> Sign-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |    2 ++
->  1 file changed, 2 insertions(+)
+> And it also includes the implementation for ACPI thermal zone.
+> Standard sysfs I/F should be available for all ACPI thermal zones
+> with this patch series applied.
 > 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -1765,6 +1765,7 @@ static void acpi_video_bus_notify(acpi_h
->  		break;
->  	}
->  
-> +	acpi_notifier_call_chain(device, event, 0);
->  	input_report_key(input, keycode, 1);
->  	input_sync(input);
->  	input_report_key(input, keycode, 0);
-> @@ -1826,6 +1827,7 @@ static void acpi_video_device_notify(acp
->  		break;
->  	}
->  
-> +	acpi_notifier_call_chain(device, event, 0);
->  	input_report_key(input, keycode, 1);
->  	input_sync(input);
->  	input_report_key(input, keycode, 0);
+> Patch 01 creates the new generic thermal sysfs driver.
+> 	 It defines two kinds of devices, thermal zone device and
+> 	 thermal cooling device.
+> 	 A thermal zone device usually contains a sensor to monitor the
+> 	 temperature, several trip points and a bunch of cooling devices
+> 	 associated with them.
+> 	 A thermal cooling device is a device that can be throttled
+> 	 to cool the system.
+> 	 The generic thermal sysfs driver creates the standard sysfs I/F
+> 	 for any registered thermal zone and thermal cooling device.
+> 	 And binds the cooling devices to thermal zones if possible.
 > 
+> Patch 02 registers ACPI thermal zone as thermal zone device.
+> 
+> Patch 03 is a fix of violations of ACPI spec in ACPI thermal driver.
+> 
+> Patch 04 registers ACPI Fan as thermal cooling device.
+> 
+> Patch 05 registers ACPI Processor as thermal cooling device.
+> 
+> Patch 06 registers ACPI Video LCD as thermal cooling device.
+> 	 Because throttling the backlight of LCD can cool the system as well.
+> 
+> Patch 09 creates a new platform specific driver, intel_menlow.
+> 	 which is the thermal enhancement driver for intel menlow platform.
+> 	 It programs the sensor of each thermal zone and registers the
+> 	 intel memory controller (hardware id INT0002) as thermal cooling device.
+> 
+> Patch 07 08 and 10 are minor fixes, please refer to the changelog of each patch.
+> 
+> I've tested them and they work well on several systems.
+> I'd like to get some feedbacks from the list. Any comments are appreciated. :)
+> 
+> Thanks,
+> Rui
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
