@@ -1,171 +1,35 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH] ACPI: Defer enabling of level GPE until all pending notifies
- done
-Date: Sat, 02 Feb 2008 14:03:47 +0300
-Message-ID: <47A44E13.9060704@suse.de>
-References: <1194828146.32662.3.camel@sli10-conroe.sh.intel.com> <20071113100545.13159.20465.stgit@localhost.localdomain> <200802020445.38220.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] Rationalise ACPI backlight implementation
+Date: Sat, 2 Feb 2008 09:30:08 -0200
+Message-ID: <20080202113008.GA4251@khazad-dum.debian.net>
+References: <20071226020325.GA21099@srcf.ucam.org> <20080128012549.GA24166@srcf.ucam.org> <20080127211013.1ddaa6a1.akpm@linux-foundation.org> <200802012246.13162.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:56728 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752993AbYBBLFB (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 2 Feb 2008 06:05:01 -0500
-In-Reply-To: <200802020445.38220.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759107AbYBBLaa@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200802012246.13162.lenb@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux-acpi@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-> Alexey, Rui,
-> this now conflicts with theacpi_os_execute() changes
-> proposed in the battery hotplug series.
-Great! We already sold this patch to FreeBSD, but don't use it ourselves?
-> 
-> recommendations?
-There are no fundamental conflicts, these patches just happen to change 
-same function. I could adjust any of two patches to not conflict with the other.
+On Fri, 01 Feb 2008, Len Brown wrote:
+> You might check if CONFIG_ACPI_VIDEO=m is set and you can load the "video" module.
+> While the sony may be non-standard and not load, your thinkpad may work.
 
-Regards,
-Alex.
-> 
-> thanks,
-> -Len
-> 
-> 
-> On Tuesday 13 November 2007 05:05, Alexey Starikovskiy wrote:
->> Level GPE should not be enabled until all work caused by it is done,
->> e.g. all Notify() methods are completed.
->> This could be accomplished by appending enable_gpe function to the end
->> of notify queue.
->>
->> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->> ---
->>
->>  drivers/acpi/events/evgpe.c |   17 +++++++++++++----
->>  drivers/acpi/osl.c          |   42 ++++++++----------------------------------
->>  2 files changed, 21 insertions(+), 38 deletions(-)
->>
->> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
->> index e22f4a9..b4509f9 100644
->> --- a/drivers/acpi/events/evgpe.c
->> +++ b/drivers/acpi/events/evgpe.c
->> @@ -501,6 +501,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
->>   *              an interrupt handler.
->>   *
->>   ******************************************************************************/
->> +static void acpi_ev_asynch_enable_gpe(void *context);
->>  
->>  static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->>  {
->> @@ -576,22 +577,30 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->>  					 method_node)));
->>  		}
->>  	}
->> +	/* Defer enabling of GPE until all notify handlers are done */
->> +	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
->> +				gpe_event_info);
->> +	return_VOID;
->> +}
->>  
->> -	if ((local_gpe_event_info.flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
->> +static void acpi_ev_asynch_enable_gpe(void *context)
->> +{
->> +	struct acpi_gpe_event_info *gpe_event_info = context;
->> +	acpi_status status;
->> +	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
->>  	    ACPI_GPE_LEVEL_TRIGGERED) {
->>  		/*
->>  		 * GPE is level-triggered, we clear the GPE status bit after
->>  		 * handling the event.
->>  		 */
->> -		status = acpi_hw_clear_gpe(&local_gpe_event_info);
->> +		status = acpi_hw_clear_gpe(gpe_event_info);
->>  		if (ACPI_FAILURE(status)) {
->>  			return_VOID;
->>  		}
->>  	}
->>  
->>  	/* Enable this GPE */
->> -
->> -	(void)acpi_hw_write_gpe_enable_reg(&local_gpe_event_info);
->> +	(void)acpi_hw_write_gpe_enable_reg(gpe_event_info);
->>  	return_VOID;
->>  }
->>  
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index aabc6ca..6816ac6 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -625,25 +625,6 @@ static void acpi_os_execute_deferred(struct work_struct *work)
->>  	dpc->function(dpc->context);
->>  	kfree(dpc);
->>  
->> -	/* Yield cpu to notify thread */
->> -	cond_resched();
->> -
->> -	return;
->> -}
->> -
->> -static void acpi_os_execute_notify(struct work_struct *work)
->> -{
->> -	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
->> -
->> -	if (!dpc) {
->> -		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
->> -		return;
->> -	}
->> -
->> -	dpc->function(dpc->context);
->> -
->> -	kfree(dpc);
->> -
->>  	return;
->>  }
->>  
->> @@ -667,7 +648,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->>  {
->>  	acpi_status status = AE_OK;
->>  	struct acpi_os_dpc *dpc;
->> -
->> +	struct workqueue_struct *queue;
->>  	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
->>  			  "Scheduling function [%p(%p)] for deferred execution.\n",
->>  			  function, context));
->> @@ -691,20 +672,13 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->>  	dpc->function = function;
->>  	dpc->context = context;
->>  
->> -	if (type == OSL_NOTIFY_HANDLER) {
->> -		INIT_WORK(&dpc->work, acpi_os_execute_notify);
->> -		if (!queue_work(kacpi_notify_wq, &dpc->work)) {
->> -			status = AE_ERROR;
->> -			kfree(dpc);
->> -		}
->> -	} else {
->> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> -		if (!queue_work(kacpid_wq, &dpc->work)) {
->> -			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
->> -				  "Call to queue_work() failed.\n"));
->> -			status = AE_ERROR;
->> -			kfree(dpc);
->> -		}
->> +	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> +	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
->> +	if (!queue_work(queue, &dpc->work)) {
->> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
->> +			  "Call to queue_work() failed.\n"));
->> +		status = AE_ERROR;
->> +		kfree(dpc);
->>  	}
->>  	return_ACPI_STATUS(status);
->>  }
->>
->> -
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+It will work except under new X.org, which disables BIOS backlight
+functionality in order to do it directly, at least on Intel GPUs (and
+probably also on ATI GPUs.  nVidia is no-man's-land).
 
+And I have been told that X.org can do 256 backlight levels on Intel
+hardware *including* switching the backlight off, instead of just the 16
+levels Lenovo chose to export through ACPI.   Looks like someone should
+add a kernel framebuffer device for those Intels :)
+
+We really need to solve the userspace mess, though.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
