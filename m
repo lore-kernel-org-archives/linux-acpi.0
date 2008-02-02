@@ -1,81 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/10] generic thermal management
-Date: Fri, 1 Feb 2008 23:23:16 -0500
-Message-ID: <200802012323.16244.lenb@kernel.org>
-References: <1200556238.2935.115.camel@acpi-sony.sh.intel.com>
+Subject: Re: [PATCH 0/4] ACPI: Battery hotplug support
+Date: Sat, 2 Feb 2008 00:19:03 -0500
+Message-ID: <200802020019.03274.lenb@kernel.org>
+References: <1200532763.2935.66.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40059 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:42987 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415AbYBBEXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Feb 2008 23:23:35 -0500
-In-Reply-To: <1200556238.2935.115.camel@acpi-sony.sh.intel.com>
+	id S1761324AbYBBFT2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Feb 2008 00:19:28 -0500
+In-Reply-To: <1200532763.2935.66.camel@acpi-sony.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, sujith.thomas@intel.com
+Cc: linux-acpi@vger.kernel.org, astarikovskiy@suse.de
 
-series applied to acpi-test.
+Series applied to acpi-test
 
 thanks,
 -Len
 
-On Thursday 17 January 2008 02:50, Zhang Rui wrote:
+On Wednesday 16 January 2008 20:19, Zhang Rui wrote:
 > Hi, all,
 > 
-> This patch series introduces a new generic thermal sysfs driver
-> which provides a set of interfaces for thermal zone devices (sensors)
-> and thermal cooling devices (fan, processor...) to register with the
-> thermal management solution and to be a part of it.
+> This patch series is for battery hotplug support.
+> Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=2884
 > 
-> And it also includes the implementation for ACPI thermal zone.
-> Standard sysfs I/F should be available for all ACPI thermal zones
-> with this patch series applied.
+> Patch 01 flushes kacpi_notify_wq before removing the notify handler
+> 	 as well as the kacpid_wq.
+> Patch 02 adds a new acpi execute type, OSL_DEVICE_HOTPLUG_HANDLER,
+> 	 This is used for the device hotplug notify handler which will be
+> 	 queued in keventd_wq so that it can flush the kacpi_notify_wq.
+> Patch 03 support battery hotplug in the global system-level notify handler
+> 	 acpi_bus_notify.
+> Patch 04 fix the deadlock when pokiing the "eject" sysfs attribute
+> 	 which is used to eject a device in user space.
 > 
-> Patch 01 creates the new generic thermal sysfs driver.
-> 	 It defines two kinds of devices, thermal zone device and
-> 	 thermal cooling device.
-> 	 A thermal zone device usually contains a sensor to monitor the
-> 	 temperature, several trip points and a bunch of cooling devices
-> 	 associated with them.
-> 	 A thermal cooling device is a device that can be throttled
-> 	 to cool the system.
-> 	 The generic thermal sysfs driver creates the standard sysfs I/F
-> 	 for any registered thermal zone and thermal cooling device.
-> 	 And binds the cooling devices to thermal zones if possible.
-> 
-> Patch 02 registers ACPI thermal zone as thermal zone device.
-> 
-> Patch 03 is a fix of violations of ACPI spec in ACPI thermal driver.
-> 
-> Patch 04 registers ACPI Fan as thermal cooling device.
-> 
-> Patch 05 registers ACPI Processor as thermal cooling device.
-> 
-> Patch 06 registers ACPI Video LCD as thermal cooling device.
-> 	 Because throttling the backlight of LCD can cool the system as well.
-> 
-> Patch 09 creates a new platform specific driver, intel_menlow.
-> 	 which is the thermal enhancement driver for intel menlow platform.
-> 	 It programs the sensor of each thermal zone and registers the
-> 	 intel memory controller (hardware id INT0002) as thermal cooling device.
-> 
-> Patch 07 08 and 10 are minor fixes, please refer to the changelog of each patch.
-> 
-> I've tested them and they work well on several systems.
-> I'd like to get some feedbacks from the list. Any comments are appreciated. :)
+> I've tested this patch set on my t43 laptop and it works well.
+> Any comment is appreciated. :)
 > 
 > Thanks,
 > Rui
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
 > 
