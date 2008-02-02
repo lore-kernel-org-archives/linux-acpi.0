@@ -1,53 +1,84 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Sat, 2 Feb 2008 02:12:17 -0500
-Message-ID: <200802020212.17812.lenb@kernel.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <200801241721.17436.lenb@kernel.org> <20080127020920.GB10173@srcf.ucam.org>
+Subject: Re: [PATCH 2/5] ACPI: Check parameter when calling acpi_processor_get/set_throttling
+Date: Sat, 2 Feb 2008 02:29:50 -0500
+Message-ID: <200802020229.50224.lenb@kernel.org>
+References: <1201499610.17068.21.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58731 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:45705 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758020AbYBBHMj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 2 Feb 2008 02:12:39 -0500
-In-Reply-To: <20080127020920.GB10173@srcf.ucam.org>
+	id S1753780AbYBBHaG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Feb 2008 02:30:06 -0500
+In-Reply-To: <1201499610.17068.21.camel@yakui_zhao.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Saturday 26 January 2008 21:09, Matthew Garrett wrote:
-> On Thu, Jan 24, 2008 at 05:21:17PM -0500, Len Brown wrote:
-> > _ADR returns a bus-specific format.
-> > In the case of a video device, section B.6.1 says that
-> > _ADR returns a 32-bit device ID, and that
-> 
-> No, that's only true for the output devices - not the parent device. The 
-> parent device is what's interesting here, and the format of its _ADR 
-> method is not defined.
+is the patch below still necessary after this (upstream) fix:
 
-oh, ic, you're right.
-
-> In practice, it's either going to be a PCI device ID or something 
-> custom. If it's custom, it's unlikely to be a PCI device ID. From that 
-> point of view, 0x10000 isn't magic - it's the lowest PCI device ID that 
-> stands a real chance of being the graphics hardware or bridge that the 
-> graphics hardware is attached to.
-
-I share your uneasyness about this heuristic,
-but I don't have a better idea
-and this seems to work, so I think we should proceed...
-
-But I have to agree with Thomas' feedback:
-"I also wonder why you added this to acpi_video_bus_add_fs and not
- acpi_video_bus_add, but it's functionally the same."
-
-or perhaps acpi_video_bus_check()?
-
-I'll lob this into the test tree in the mean-time...
+http://bugzilla.kernel.org/show_bug.cgi?id=9747#c2
 
 thanks,
 -Len
+
+On Monday 28 January 2008 00:53, Zhao Yakui wrote:
+> Subject: ACPI : Check parameter when calling acpi_processor_get/set_throttling
+> >From : Zhao Yakui <yakui.zhao@intel.com>
+> 
+> It is necessary to check the parameter when calling the function of 
+> acpi_processor_get/set_throttling function so as to avoid the NULL 
+> pointer reference in pr or throttling.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=9747
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> ---
+>  drivers/acpi/processor_throttling.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> Index: linux-2.6/drivers/acpi/processor_throttling.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_throttling.c
+> +++ linux-2.6/drivers/acpi/processor_throttling.c
+> @@ -589,6 +589,11 @@ static int acpi_processor_get_throttling
+>  	cpumask_t saved_mask;
+>  	int ret;
+>  
+> +	if (!pr)
+> +		return -EINVAL;
+> +
+> +	if (!pr->flags.throttling)
+> +		return -ENODEV;
+>  	/*
+>  	 * Migrate task to the cpu pointed by pr.
+>  	 */
+> @@ -743,6 +748,16 @@ int acpi_processor_set_throttling(struct
+>  {
+>  	cpumask_t saved_mask;
+>  	int ret;
+> +
+> +	if (!pr)
+> +		return -EINVAL;
+> +
+> +	if (!pr->flags.throttling)
+> +		return -ENODEV;
+> +
+> +	if ((state < 0) || (state > (pr->throttling.state_count - 1)))
+> +		return -EINVAL;
+> +
+>  	/*
+>  	 * Migrate task to the cpu pointed by pr.
+>  	 */
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
