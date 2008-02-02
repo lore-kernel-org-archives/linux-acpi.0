@@ -1,65 +1,94 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi patches for 2.6.25
-	(replaces batch 1)
-Date: Fri, 1 Feb 2008 22:28:08 -0500
-Message-ID: <200802012228.08452.lenb@kernel.org>
-References: <1199804577-32017-1-git-send-email-hmh@hmh.eng.br>
-	<200801240055.20906.lenb@kernel.org>
-	<20080125192046.GA3972@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] Rationalise ACPI backlight implementation
+Date: Fri, 1 Feb 2008 22:43:54 -0500
+Message-ID: <200802012243.55100.lenb@kernel.org>
+References: <20071226020325.GA21099@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20080125192046.GA3972-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:60089 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754460AbYBBDoK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Feb 2008 22:44:10 -0500
+In-Reply-To: <20071226020325.GA21099@srcf.ucam.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday 25 January 2008 14:20, Henrique de Moraes Holschuh wrote:
-> Len,
-> 
-> Given that there are four cleanup patches in the batch, I didn't even
-> attempt to bother with checkpatch on anything before the "some checkpatch
-> fluff" patch.  There are, for example, no tab/space problems in the final
-> thinkpad_acpi.c file.
-> 
-> After the entire patchset is applied, there are still a few lines over 80
-> chars, but that's because they are MUCH more readable the way they are in
-> that particular hunk of code.
-> 
-> The braces checkpatch will complain about in the final thinkpad_acpi.c file
-> are there for good reasons.  They are in points of the code where I expect a
-> maintenance addition of one or two lines could happen, and that means any
-> such patches would be a lot cleaner.   That warning is just weird, anyway.
-> 
-> There will be also an error about a macro needing do - while. Well, that one
-> *does not* need it, and it is never used as a function.
-> 
-> So, please apply the entire set and check the final thinkpad_acpi.c file
-> with checkpatch --file...  It is in *much* better state than what you got
-> with that checkpatch run: 1 error and 12 warnings, which are all explained
-> above.
-> 
-> Patches after the cleanups are checkpatch-clean (except for the details
-> explained above).
+Applied.
 
-applied.
-thanks Henrique.
-
+thanks,
 -Len
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+On Tuesday 25 December 2007 21:03, Matthew Garrett wrote:
+> The sysfs backlight class provides no mechanism for querying the 
+> acceptable brightness for a backlight. The ACPI spec states that values 
+> are only valid if they are reported as available by the firmware. Since 
+> we can't provide that information to userspace, instead collapse the 
+> range to the number of actual values that can be set.
+> 
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> 
+> ---
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 521645e..12b2adb 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -296,18 +296,26 @@ static int acpi_video_device_set_state(struct acpi_video_device *device, int sta
+>  static int acpi_video_get_brightness(struct backlight_device *bd)
+>  {
+>  	unsigned long cur_level;
+> +	int i;
+>  	struct acpi_video_device *vd =
+>  		(struct acpi_video_device *)bl_get_data(bd);
+>  	acpi_video_device_lcd_get_level_current(vd, &cur_level);
+> -	return (int) cur_level;
+> +	for (i=2; i<vd->brightness->count; i++) {
+> +		if (vd->brightness->levels[i] == cur_level)
+> +			/* The first two entries are special - see page 575
+> +			   of the ACPI spec 3.0 */
+> +			return i-2;
+> +	}
+> +	return 0;
+>  }
+>  
+>  static int acpi_video_set_brightness(struct backlight_device *bd)
+>  {
+> -	int request_level = bd->props.brightness;
+> +	int request_level = bd->props.brightness+2;
+>  	struct acpi_video_device *vd =
+>  		(struct acpi_video_device *)bl_get_data(bd);
+> -	acpi_video_device_lcd_set_level(vd, request_level);
+> +	acpi_video_device_lcd_set_level(vd, 
+> +					vd->brightness->levels[request_level]);
+>  	return 0;
+>  }
+>  
+> @@ -656,7 +664,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  	kfree(obj);
+>  
+>  	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
+> -		unsigned long tmp;
+>  		static int count = 0;
+>  		char *name;
+>  		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
+> @@ -664,11 +671,10 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+>  			return;
+>  
+>  		sprintf(name, "acpi_video%d", count++);
+> -		acpi_video_device_lcd_get_level_current(device, &tmp);
+>  		device->backlight = backlight_device_register(name,
+>  			NULL, device, &acpi_backlight_ops);
+> -		device->backlight->props.max_brightness = max_level;
+> -		device->backlight->props.brightness = (int)tmp;
+> +		device->backlight->props.max_brightness = device->brightness->count-3;
+> +		device->backlight->props.brightness = acpi_video_get_brightness(device->backlight);
+>  		backlight_update_status(device->backlight);
+>  
+>  		kfree(name);
+> 
