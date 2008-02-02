@@ -1,164 +1,70 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Defer enabling of level GPE until all pending notifies done
-Date: Sat, 2 Feb 2008 04:45:38 -0500
-Message-ID: <200802020445.38220.lenb@kernel.org>
-References: <1194828146.32662.3.camel@sli10-conroe.sh.intel.com> <20071113100545.13159.20465.stgit@localhost.localdomain>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [PATCH 5/5] ACPI: Update the t-state for every affected cpu
+	when t-state is changed
+Date: Sat, 02 Feb 2008 18:10:14 +0800
+Message-ID: <1201947014.22650.44.camel@yakui_zhao.sh.intel.com>
+References: <1201499756.17068.27.camel@yakui_zhao.sh.intel.com>
+	 <200802020239.42963.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37250 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:41031 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759591AbYBBJqA (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Sat, 2 Feb 2008 04:46:00 -0500
-In-Reply-To: <20071113100545.13159.20465.stgit@localhost.localdomain>
-Content-Disposition: inline
+	id S1760934AbYBBK11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 2 Feb 2008 05:27:27 -0500
+In-Reply-To: <200802020239.42963.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>, Zhang Rui <rui.zhang@intel.com>
-Cc: Linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Alexey, Rui,
-this now conflicts with theacpi_os_execute() changes
-proposed in the battery hotplug series.
+On Sat, 2008-02-02 at 02:39 -0500, Len Brown wrote:
+> On Monday 28 January 2008 00:55, Zhao Yakui wrote:
+> > Subject: ACPI : Update the t-state for every affected cpu when t-state is changed
+> > >From : Zhao Yakui <yakui.zhao@intel.com>
+> > 
+> > According to ACPI spec, the _TSD object provides T-state control cross
+> > logical processor dependency information to OSPM. So the t-state
+> > coordination should be considered when T-state for one cpu is changed.
+> > 
+> > According to ACPI spec, three types of coordination are defined.
+> > SW_ALL, SW_ANY and HW_ALL.
+> 
+> > SW_ALL: it means that OSPM needs to initiate T-state transition on 
+> > all processors in the domain. It is necessary to call throttling set function
+> > for all affected cpus.
+> 
+> > SW_ANY: it means that OSPM may initiate T-state transition on any processor in 
+> > the domain. 
+> 
+> > HW_ALL: Apec only says that hardware will perform the coordination and doesn't 
+> > recommend how OSPM coordinate T-state among the affected cpus. So it is treated
+> > as the type of SW_ALL. It means that OSPM needs to initiate t-state transition
+> > on all the processors in the domain.
+> 
+> Not really. HW_ALL means that the OS can assume that the CPUs are independent,
+> and hardware will take care of any coordination needed. 
+ Hardware will be responsible for coordinating the state transition
+between multiple processors. But hardware should provide OSPM with a
+means to determine the actual state residency so that the correct state
+is entered. 
+> 
+> ie. the OS should implement throttling changes on each CPU depending
+> only on that CPU's needs and not need to consider any effects on other CPUs.
+> 
+> This is not the same as SW_ALL, which tells us that all the CPUS in a domain
+> are _dependent_, and the OS must enforce that by writing the _same_ value
+> to each CPU. 
+> 
+> say you have a domain with 2 CPUS.
+> If it is HW_ALL and you throttle one cpu, then you are done. 
+   In this case , how to update the state of another cpu? Can it be
+treated as SW_ANY?  
+> if it is SW_ALL then if you want to throttle one cpu, then you must
+> also throttle the other. 
+   I agree. It is necessary to initiate the state transition for every
+affected cpu. 
+> 
+> -Len
 
-recommendations?
-
-thanks,
--Len
-
-
-On Tuesday 13 November 2007 05:05, Alexey Starikovskiy wrote:
-> Level GPE should not be enabled until all work caused by it is done,
-> e.g. all Notify() methods are completed.
-> This could be accomplished by appending enable_gpe function to the end
-> of notify queue.
-> 
-> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-> ---
-> 
->  drivers/acpi/events/evgpe.c |   17 +++++++++++++----
->  drivers/acpi/osl.c          |   42 ++++++++----------------------------------
->  2 files changed, 21 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-> index e22f4a9..b4509f9 100644
-> --- a/drivers/acpi/events/evgpe.c
-> +++ b/drivers/acpi/events/evgpe.c
-> @@ -501,6 +501,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
->   *              an interrupt handler.
->   *
->   ******************************************************************************/
-> +static void acpi_ev_asynch_enable_gpe(void *context);
->  
->  static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  {
-> @@ -576,22 +577,30 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
->  					 method_node)));
->  		}
->  	}
-> +	/* Defer enabling of GPE until all notify handlers are done */
-> +	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_asynch_enable_gpe,
-> +				gpe_event_info);
-> +	return_VOID;
-> +}
->  
-> -	if ((local_gpe_event_info.flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-> +static void acpi_ev_asynch_enable_gpe(void *context)
-> +{
-> +	struct acpi_gpe_event_info *gpe_event_info = context;
-> +	acpi_status status;
-> +	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
->  	    ACPI_GPE_LEVEL_TRIGGERED) {
->  		/*
->  		 * GPE is level-triggered, we clear the GPE status bit after
->  		 * handling the event.
->  		 */
-> -		status = acpi_hw_clear_gpe(&local_gpe_event_info);
-> +		status = acpi_hw_clear_gpe(gpe_event_info);
->  		if (ACPI_FAILURE(status)) {
->  			return_VOID;
->  		}
->  	}
->  
->  	/* Enable this GPE */
-> -
-> -	(void)acpi_hw_write_gpe_enable_reg(&local_gpe_event_info);
-> +	(void)acpi_hw_write_gpe_enable_reg(gpe_event_info);
->  	return_VOID;
->  }
->  
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index aabc6ca..6816ac6 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -625,25 +625,6 @@ static void acpi_os_execute_deferred(struct work_struct *work)
->  	dpc->function(dpc->context);
->  	kfree(dpc);
->  
-> -	/* Yield cpu to notify thread */
-> -	cond_resched();
-> -
-> -	return;
-> -}
-> -
-> -static void acpi_os_execute_notify(struct work_struct *work)
-> -{
-> -	struct acpi_os_dpc *dpc = container_of(work, struct acpi_os_dpc, work);
-> -
-> -	if (!dpc) {
-> -		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
-> -		return;
-> -	}
-> -
-> -	dpc->function(dpc->context);
-> -
-> -	kfree(dpc);
-> -
->  	return;
->  }
->  
-> @@ -667,7 +648,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->  {
->  	acpi_status status = AE_OK;
->  	struct acpi_os_dpc *dpc;
-> -
-> +	struct workqueue_struct *queue;
->  	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
->  			  "Scheduling function [%p(%p)] for deferred execution.\n",
->  			  function, context));
-> @@ -691,20 +672,13 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->  	dpc->function = function;
->  	dpc->context = context;
->  
-> -	if (type == OSL_NOTIFY_HANDLER) {
-> -		INIT_WORK(&dpc->work, acpi_os_execute_notify);
-> -		if (!queue_work(kacpi_notify_wq, &dpc->work)) {
-> -			status = AE_ERROR;
-> -			kfree(dpc);
-> -		}
-> -	} else {
-> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -		if (!queue_work(kacpid_wq, &dpc->work)) {
-> -			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> -				  "Call to queue_work() failed.\n"));
-> -			status = AE_ERROR;
-> -			kfree(dpc);
-> -		}
-> +	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> +	queue = (type == OSL_NOTIFY_HANDLER) ? kacpi_notify_wq : kacpid_wq;
-> +	if (!queue_work(queue, &dpc->work)) {
-> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> +			  "Call to queue_work() failed.\n"));
-> +		status = AE_ERROR;
-> +		kfree(dpc);
->  	}
->  	return_ACPI_STATUS(status);
->  }
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
