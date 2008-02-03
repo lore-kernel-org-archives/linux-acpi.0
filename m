@@ -1,51 +1,96 @@
-From: matthieu castet <castet.matthieu@free.fr>
-Subject: Re: suspend to ram problem
-Date: Sun, 03 Feb 2008 16:31:44 +0100
-Message-ID: <47A5DE60.1080402@free.fr>
-References: <47A5C399.7010405@free.fr>
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Subject: Re: The new thermal management sysfs class, and hwmon
+Date: Sun, 3 Feb 2008 11:44:10 -0500
+Message-ID: <20080203164410.GL20687@jupiter.solarsys.private>
+References: <20080203022622.GA995@khazad-dum.debian.net>
+	<1202031072.3042.54.camel@acpi-sony.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2-g19.free.fr ([212.27.42.28]:41979 "EHLO smtp2-g19.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453AbYBCPbp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Feb 2008 10:31:45 -0500
-Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 99D2F12B6E1
-	for <linux-acpi@vger.kernel.org>; Sun,  3 Feb 2008 16:31:44 +0100 (CET)
-Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 74D1412B6BD
-	for <linux-acpi@vger.kernel.org>; Sun,  3 Feb 2008 16:31:44 +0100 (CET)
-In-Reply-To: <47A5C399.7010405@free.fr>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+Content-Disposition: inline
+In-Reply-To: <1202031072.3042.54.camel@acpi-sony.sh.intel.com>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Thomas, Sujith" <sujith.thomas@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-matthieu castet wrote:
-> Hi,
-> 
-> I am trying to make work suspend to ram on a MSI MS-6380E with a 2.6.23 
-> kernel.
-> 
-> Standby mode works.
-> S2ram suspend seems to work : the computer turn off and I can wake up it 
-> with the keyboard.
-> 
-> But when the computer wakeup, I see the video card POST on the screen, 
-> but after that the computer hangs : black screen, no working numlock.
-> 
-> I tried to compile PM_TRACE, but it give no result. So this means the 
-> resume hang very early.
-> 
-> What can I do to debug this ?
->
-I play with the s2_beep feature and :
-- echo 4 > /proc/sys/kernel/acpi_video_flags make the computer beep
-- echo 4 > /proc/sys/kernel/acpi_video_flags make the computer not beep
-- adding a beep in bogus_real_magic, make the computer not beep
+Hi:
 
-So the hang seems located in wakeup_start.
+> On Sun, 2008-02-03 at 10:26 +0800, Henrique de Moraes Holschuh wrote:
+> > The new thermal managemeny sysfs class that was just merged into
+> > acpi-test, especially when dealing with temperature measurement and
+> > fan control, has a lot of common ground with the hwmon interface.
+
+* Zhang Rui <rui.zhang@intel.com> [2008-02-03 17:31:12 +0800]:
+> Yes, that's true.
+> The idea is from Len's ols paper in 2007, "Cool Hand Linux - Handheld
+> Thermal Extensions". The new thermal management sysfs class can be used
+> by handheld devices which use device throttling for thermal control and
+> may have no fan at all.
+> Please refer to
+> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/OLS2007-cool-web/
+
+Interesting.
+
+> > However, the ACPI model for thermal cooling devices (fans, etc) and
+> > thermal zones (temp sensors) as currently implemented in the sysfs
+> > class appears at first glance to be a lot more simplified than what
+> > is available through the hwmon sysfs ABI (for a lack of a better
+> > term to describe the sysfs attribute specifications).
+> > 
+> > And the two sysfs ABIs are incompatible.  The ACPI one uses
+> > low-precision units, (temperature in 10^0 degrees Celcius), while
+> > the hwmon ABI uses medium precision units (10^-3 degrees Celcius),
+> > for example.  There is also no tachometer feedback for fans, etc.
+
+> Yes, currently ACPI is the only user of the thermal sysfs I/F. We can
+> add new sys I/F if someone really need it.
+
+> > IMHO, we can probably do better than two incompatible sysfs ABIs for
+> > what ammounts to the same functionality for many userspace
+> > applications (i.e.  thermal monitor apps, and fan control and
+> > monitoring apps).  And it would be really neat if the new thermal
+> > management stuff could just plug into the already available
+> > temperature sensors and fan controllers that follow the hwmon sysfs
+> > ABI.
+
+> Yes, we do want to use the hwmon sysfs ABI at the beginning.
+> But there are several gaps that making us turn to a new thermal sysfs
+> class. And the biggest one is that hwmon does NOT support ACPI passive
+> cooling devices like processor, video, etc. intel menlow platform even
+> has a ACPI memory controller device which can be throttled by changing
+> the bandwidth. These are quite different from the hwmon's fan-based
+> thermal management, right?
+
+The hwmon class ABI is more about exposing the functionality that is
+available on various devices than it is about accomplishing some
+specific task like "thermal management".  That said...
+
+I don't see why the hwmon class ABI couldn't be extended to accomodate
+CPU throttling, etc.  But I also don't see that it hurts anything to put
+these controls somewhere else in sysfs.
+
+I *do* think that any driver which reports temperature, etc. should
+expose those measurements through the hwmon class - even if they're
+exposed somewhere else as well.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
 
-Matthieu
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
