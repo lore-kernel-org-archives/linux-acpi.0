@@ -1,81 +1,51 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Subject: [PATCH 3/3] Add acpi_no_initrd_override kernel parameter
-Date: Sun, 03 Feb 2008 18:29:35 +0100
-Message-ID: <47A5F9FF.9010401@tremplin-utc.net>
-References: <4798E2A5.6020804@users.sf.net> <200801311417.57469.lenb@kernel.org> <1201859637.14573.41.camel@queen.suse.de> <200802012336.10687.lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend to ram problem
+Date: Sun, 3 Feb 2008 18:39:01 +0100
+Message-ID: <200802031839.02397.rjw@sisk.pl>
+References: <47A5C399.7010405@free.fr> <47A5DE60.1080402@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:30127 "EHLO
-	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755994AbYBCR3j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Feb 2008 12:29:39 -0500
-In-Reply-To: <200802012336.10687.lenb@kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:40553 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755309AbYBCRlL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Feb 2008 12:41:11 -0500
+In-Reply-To: <47A5DE60.1080402@free.fr>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: matthieu castet <castet.matthieu@free.fr>
+Cc: linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-The acpi_no_initrd_override parameter permits to disable the load of an ACPI
-table from the initramfs.
+On Sunday, 3 of February 2008, matthieu castet wrote:
+> matthieu castet wrote:
+> > Hi,
+> > 
+> > I am trying to make work suspend to ram on a MSI MS-6380E with a 2.6.23 
+> > kernel.
+> > 
+> > Standby mode works.
+> > S2ram suspend seems to work : the computer turn off and I can wake up it 
+> > with the keyboard.
+> > 
+> > But when the computer wakeup, I see the video card POST on the screen, 
+> > but after that the computer hangs : black screen, no working numlock.
+> > 
+> > I tried to compile PM_TRACE, but it give no result. So this means the 
+> > resume hang very early.
+> > 
+> > What can I do to debug this ?
+> >
+> I play with the s2_beep feature and :
+> - echo 4 > /proc/sys/kernel/acpi_video_flags make the computer beep
+> - echo 4 > /proc/sys/kernel/acpi_video_flags make the computer not beep
+> - adding a beep in bogus_real_magic, make the computer not beep
+> 
+> So the hang seems located in wakeup_start.
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
----
-  Documentation/kernel-parameters.txt |    3 +++
-  drivers/acpi/osl.c                  |   14 +++++++++++++-
-  2 files changed, 16 insertions(+), 1 deletions(-)
+Hm.  Can you add unconditional BEEP after "jne bogus_real_magic" in
+arch/x86/kernel/acpi/wakeup.S and see if it beeps?
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 17fc60e..9bda965 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -170,6 +170,9 @@ and is between 256 and 4096 characters. It is defined in the file
-
-  	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
-
-+	acpi_no_initrd_override	[KNL,ACPI]
-+			Disable loading custom ACPI tables from the initramfs
-+
-  	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
-  			Format: To spoof as Windows 98: ="Microsoft Windows"
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 549daea..73d838f 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -77,6 +77,10 @@ static struct workqueue_struct *kacpi_notify_wq;
-  #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
-  static char osi_additional_string[OSI_STRING_LENGTH_MAX];
-
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
-+static int acpi_no_initrd_override;
-+#endif
-+
-  /*
-   * "Ode to _OSI(Linux)"
-   *
-@@ -386,7 +390,8 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
-  		*new_table = (struct acpi_table_header *)AmlCode;
-  #endif
-  #ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
--	if (strncmp(existing_table->signature, "DSDT", 4) == 0) {
-+	if ((strncmp(existing_table->signature, "DSDT", 4) == 0) &&
-+	    !acpi_no_initrd_override) {
-  		struct acpi_table_header *initrd_table = acpi_find_dsdt_initrd();
-  		if (initrd_table)
-  			*new_table = initrd_table;
-@@ -402,6 +407,13 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
-  	return AE_OK;
-  }
-
-+int __init acpi_no_initrd_override_setup(char *s)
-+{
-+	acpi_no_initrd_override = 1;
-+	return 1;
-+}
-+__setup("acpi_no_initrd_override", acpi_no_initrd_override_setup);
-+
-  static irqreturn_t acpi_irq(int irq, void *dev_id)
-  {
-  	return (*acpi_irq_handler) (acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
+Rafael
