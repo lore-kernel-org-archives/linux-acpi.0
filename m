@@ -1,28 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 0/3] Suspend-related cleanups
-Date: Sun, 3 Feb 2008 23:20:27 +0100
-Message-ID: <20080203222027.GB2799@elf.ucw.cz>
-References: <200802032252.04852.rjw@sisk.pl>
+From: Georges Toth <georges@norm.lu>
+Subject: ACPI DMI Dell R200
+Date: Sun, 03 Feb 2008 23:15:51 +0100
+Message-ID: <47A63D17.9070203@norm.lu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:38512 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752042AbYBCWUP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Feb 2008 17:20:15 -0500
-Content-Disposition: inline
-In-Reply-To: <200802032252.04852.rjw@sisk.pl>
+Received: from blacktree.e-hosting.lu ([80.92.79.60]:36153 "EHLO
+	blacktree.e-hosting.lu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239AbYBCWWa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Feb 2008 17:22:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
-> Three suspend-related fixes that IMO can go into 2.6.25 follow.
+As requested, here is the output :-)
 
-ACK on all three. Yes, these seem easy enough for 2.6.25.
-									Pavel
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: Dell Inc.
+ACPI: DMI Product Name: PowerEdge R200
+ACPI: DMI Product Version:
+ACPI: DMI Board Name: 0TY019
+ACPI: DMI BIOS Vendor: Dell Inc.
+ACPI: DMI BIOS Date: 10/24/2007
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+regards,
+
+Georges Toth
