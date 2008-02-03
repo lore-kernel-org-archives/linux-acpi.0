@@ -1,32 +1,52 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Sun, 3 Feb 2008 00:03:55 +0000
-Message-ID: <20080203000354.GA26623@srcf.ucam.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <200801241721.17436.lenb@kernel.org> <20080127020920.GB10173@srcf.ucam.org> <200802020212.17812.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: The new thermal management sysfs class, and hwmon
+Date: Sun, 3 Feb 2008 00:26:22 -0200
+Message-ID: <20080203022622.GA995@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:60092 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765998AbYBCAEM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Feb 2008 19:04:12 -0500
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:57824 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751398AbYBCC02 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Feb 2008 21:26:28 -0500
 Content-Disposition: inline
-In-Reply-To: <200802020212.17812.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: Zhang Rui <rui.zhang@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>
 
-On Sat, Feb 02, 2008 at 02:12:17AM -0500, Len Brown wrote:
+The new thermal managemeny sysfs class that was just merged into acpi-test,
+especially when dealing with temperature measurement and fan control, has a
+lot of common ground with the hwmon interface.
 
-> But I have to agree with Thomas' feedback:
-> "I also wonder why you added this to acpi_video_bus_add_fs and not
->  acpi_video_bus_add, but it's functionally the same."
-> 
-> or perhaps acpi_video_bus_check()?
+However, the ACPI model for thermal cooling devices (fans, etc) and thermal
+zones (temp sensors) as currently implemented in the sysfs class appears at
+first glance to be a lot more simplified than what is available through the
+hwmon sysfs ABI (for a lack of a better term to describe the sysfs attribute
+specifications).
 
-Yeah, that's fair enough. I'll respin it once I'm on the ground for more 
-than 3 hours.
+And the two sysfs ABIs are incompatible.  The ACPI one uses low-precision
+units, (temperature in 10^0 degrees Celcius), while the hwmon ABI uses
+medium precision units (10^-3 degrees Celcius), for example.  There is also
+no tachometer feedback for fans, etc.
+
+Missing functionality in the new thermal class are apparently mainly related
+to the idea of hardware-based temperature limits and alarms, plus any
+non-trivial fan control schemes (many chips, and in case of thinkpad-acpi,
+EC firmware, have auto-cruise modes, some have more than one automatic fan
+control scheme, etc).   If I am wrong about this, please correct me.
+
+IMHO, we can probably do better than two incompatible sysfs ABIs for what
+ammounts to the same functionality for many userspace applications (i.e.
+thermal monitor apps, and fan control and monitoring apps).  And it would be
+really neat if the new thermal management stuff could just plug into the
+already available temperature sensors and fan controllers that follow the
+hwmon sysfs ABI.
+
+Any thoughs on this?
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
