@@ -1,76 +1,110 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: The new thermal management sysfs class, and hwmon
-Date: Sun, 03 Feb 2008 17:31:12 +0800
-Message-ID: <1202031072.3042.54.camel@acpi-sony.sh.intel.com>
-References: <20080203022622.GA995@khazad-dum.debian.net>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH 0/5] WMI patches for acpi-test
+Date: Sun, 3 Feb 2008 09:45:05 +0000
+Message-ID: <200802030945.06398.carlos@strangeworlds.co.uk>
+References: <20080202121718.2286.89857.stgit@pacifica> <200802022244.22917.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43776 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758917AbYBCJcX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Feb 2008 04:32:23 -0500
-In-Reply-To: <20080203022622.GA995@khazad-dum.debian.net>
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:52595 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S936479AbYBCJpJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Feb 2008 04:45:09 -0500
+In-Reply-To: <200802022244.22917.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, "Mark M. Hoffman" <mhoffman@lightlink.com>, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>
 
-Hi, henrique,
+On Sunday 03 February 2008 03:44:22 Len Brown wrote:
+> I think the indication of success of this effort will be
+> other people writing drivers to do useful things with
+> the WMI hooks you are exposing.  So we certainly want to
+> get the base driver out there sooner to support that.
 
-On Sun, 2008-02-03 at 10:26 +0800, Henrique de Moraes Holschuh wrote:
-> The new thermal managemeny sysfs class that was just merged into
-> acpi-test,
-> especially when dealing with temperature measurement and fan control,
-> has a
-> lot of common ground with the hwmon interface.
-Yes, that's true.
-The idea is from Len's ols paper in 2007, "Cool Hand Linux - Handheld
-Thermal Extensions". The new thermal management sysfs class can be used
-by handheld devices which use device throttling for thermal control and
-may have no fan at all.
-Please refer to
-http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/OLS2007-cool-web/
+Matthew already has an input driver for HP laptops in progress, so I think 
+that's a good sign.
 
-> However, the ACPI model for thermal cooling devices (fans, etc) and
-> thermal
-> zones (temp sensors) as currently implemented in the sysfs class
-> appears at
-> first glance to be a lot more simplified than what is available
-> through the
-> hwmon sysfs ABI (for a lack of a better term to describe the sysfs
-> attribute
-> specifications).
-> 
-> And the two sysfs ABIs are incompatible.  The ACPI one uses
-> low-precision
-> units, (temperature in 10^0 degrees Celcius), while the hwmon ABI uses
-> medium precision units (10^-3 degrees Celcius), for example.  There is
-> also
-> no tachometer feedback for fans, etc.
-Yes, currently ACPI is the only user of the thermal sysfs I/F. We can
-add new sys I/F if someone really need it.
-> 
-> IMHO, we can probably do better than two incompatible sysfs ABIs for
-> what
-> ammounts to the same functionality for many userspace applications
-> (i.e.
-> thermal monitor apps, and fan control and monitoring apps).  And it
-> would be
-> really neat if the new thermal management stuff could just plug into
-> the
-> already available temperature sensors and fan controllers that follow
-> the
-> hwmon sysfs ABI.
-Yes, we do want to use the hwmon sysfs ABI at the beginning.
-But there are several gaps that making us turn to a new thermal sysfs
-class. And the biggest one is that hwmon does NOT support ACPI passive
-cooling devices like processor, video, etc. intel menlow platform even
-has a ACPI memory controller device which can be throttled by changing
-the bandwidth. These are quite different from the hwmon's fan-based
-thermal management, right?
+> I don't know if it would be better to ship a prototype
+> sysfs user interface in the hopes it encourages adopters
+> and get feedback to make it better, or to bake it more
+> out of tree in the hopes of shipping something more
+> final in the first shot.
 
-thanks,
-rui
+The main problem with the sysfs interface is that, unlike the kernel one, 
+there are no real users yet.
 
+I have a hacked together test application which does some basic read/ write to 
+sysfs, but that's about it.
+
+> I'm inclined to ship an EXPERIMENTAL API because
+> the more eyes on it sooner the better.  One option
+> would be to have the sysfs I/F be a sub-config option
+> that is default N -- indeed, you can call it a DEBUGGING
+> or DEVELOPMENT I/F to scare people away from the the wrong impression:-)
+
+Yes, that would be a better idea.
+
+> > +config ACPI_WMI
+> > +	tristate "WMI (EXPERIMENTAL)"
+> > +	depends on EXPERIMENTAL
+> > +	default m
+>
+> I deleted the "default m" line when i checked in this patch.
+> So if you revise/resend this patch in the future, please do the same.
+
+Will do.
+
+For future patches - do you want me to resend them, or send you incremental 
+patches against what is currently in your tree?
+
+> acer-wmi needs a MAINTAINER
+
+Oversight on my part - will do.
+
+> tc1100-wmi needs a MAINTAINER
+
+I'll add myself for now; but if anyone else wants the job, I don't mind.
+
+> I don't understand the WMI user/kernel sysfs API.
+
+I did have some documentation on this - I'll refresh it and send another 
+patch.
+
+> I guess i had originally expected it to live in /sys/firmware/wmi,
+> but I see that they put dmi a subset of DMI under /sys/class/dmi,
+> so i guess there is precident...  I got my main wish, which was
+> to have not _not_ be under some ACPI specific directory:-)
+
+I can probably put a symlink in for /sys/firmware/wmi, if you like?
+
+The /sys/class is done simply because using a class and virtual devices is far 
+simpler, and appears less prone to the sysfs-rework-of-the-week (and makes 
+autoload support based on a GUID trivial to implement).
+
+> #2 is the better route -- move forward using workaround,
+> and revert the workaround when it is no longer needed.
+> The risk is if somebody in user-space starts actually
+> programming to 19-character GUIDS.
+
+Ok.
+
+> I loaded this driver on an HP nx6325 as well as a Lenovo T61.
+
+Interesting - do Lenovo actually use WMI for anything? I thought they had 
+their own custom HID's supported by thinkpad-acpi?
+
+> just for kicks i tried to dump the data attributes,
+> but on both machines I found that some of them oops
+> in wmi_data_read like below.
+
+Hmm - I'll look into this and see if I can see what's going wrong.
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
