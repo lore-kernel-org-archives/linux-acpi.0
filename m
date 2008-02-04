@@ -1,43 +1,64 @@
-From: Roel kluin <rjckluin@hotmail.com>
-Subject: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test 'if (level &
- TP_EC_FAN_FULLSPEED)'
-Date: Mon, 04 Feb 2008 22:59:21 +0100
-Message-ID: <47A78AB9.5020901@hotmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.25-git: "x86: fix ioremap RAM check" causes - ACPI Error... Could not map memory
+Date: Mon, 4 Feb 2008 17:52:30 -0500
+Message-ID: <200802041752.31146.lenb@kernel.org>
+References: <200802040228.39880.lenb@kernel.org> <20080204122505.GA30564@elte.hu> <20080204122724.GA31186@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out3.tiscali.nl ([195.241.79.178]:58567 "EHLO
-	smtp-out3.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754875AbYBDW0I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 17:26:08 -0500
+Received: from hera.kernel.org ([140.211.167.34]:34556 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755726AbYBDWx2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Feb 2008 17:53:28 -0500
+In-Reply-To: <20080204122724.GA31186@elte.hu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ibm-acpi@hmh.eng.br, len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lkml <linux-kernel@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, tglx@linutronix.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-in drivers/misc/thinkpad_acpi.c, lines 4137-4142 it reads:
+On Monday 04 February 2008 07:27, Ingo Molnar wrote:
+> 
+> * Ingo Molnar <mingo@elte.hu> wrote:
+> 
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > 
+> > > On Monday, 4 of February 2008, Len Brown wrote:
+> > > > My HP nx6325 started printing the ACPI Error's below starting at 
+> > > > the commit below.
+> > > 
+> > > Mine too.
+> > 
+> > does latest x86.git#mm fix it?
+> 
+> access coordinates:
+> 
+>   http://people.redhat.com/mingo/x86.git/README
+> 
+>
 
-                /* safety net should the EC not support AUTO
-                 * or FULLSPEED mode bits and just ignore them */
-                if (level & TP_EC_FAN_FULLSPEED)
-                        level |= 7;     /* safety min speed 7 */
-                else if (level & TP_EC_FAN_FULLSPEED)
-                        level |= 4;     /* safety min speed 4 */
+I do not see these warnings
+in either the master or mm branches of x86.git.
 
-note the nonsense duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'.
-should this be changed to:
+Unless you tell me otherwise, I'm not going to worry about it.
 
-                if (level & TP_EC_FAN_FULLSPEED)
-                        level |= 7;     /* safety min speed 7 */
-                else
-                        level |= 4;     /* safety min speed 4 */
+thanks,
+-Len
 
-or maybe
+master:
 
-                if (level & TP_EC_FAN_FULLSPEED)
-                        level |= 7;     /* safety min speed 7 */
-                if (level & TP_EC_FAN_FULLSPEED)
-                        level |= 4;     /* safety min speed 4 */
+commit 795d45b22c079946332bf3825afefe5a981a97b6
+Author: Andrew Morton <akpm@linux-foundation.org>
+Date:   Mon Feb 4 16:48:10 2008 +0100
 
-?
+    x86: fix RTC lockdep warning: potential hardirq recursion
+
+mm:
+
+commit b7e245f3a4f80a76a79bcff64319479ff8cd4091
+Author: Ingo Molnar <mingo@elte.hu>
+Date:   Mon Feb 4 16:48:22 2008 +0100
+
+    pci: pci_enable_device_bars() fix
