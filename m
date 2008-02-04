@@ -1,30 +1,43 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: Re: [drivers/misc/thinkpad_acpi.c] duplicate test if (level & TP_EC_FAN_FULLSPEED)
-Date: Mon, 04 Feb 2008 14:13:09 -0800
-Message-ID: <ada8x20gykq.fsf@cisco.com>
-References: <47A78CBB.2090401@tiscali.nl>
+From: Roel kluin <rjckluin@hotmail.com>
+Subject: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test 'if (level &
+ TP_EC_FAN_FULLSPEED)'
+Date: Mon, 04 Feb 2008 22:59:21 +0100
+Message-ID: <47A78AB9.5020901@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sj-iport-6.cisco.com ([171.71.176.117]:54933 "EHLO
-	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753565AbYBDWNN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 17:13:13 -0500
-In-Reply-To: <47A78CBB.2090401@tiscali.nl> (Roel Kluin's message of "Mon, 04 Feb 2008 23:07:55 +0100")
+Received: from smtp-out3.tiscali.nl ([195.241.79.178]:58567 "EHLO
+	smtp-out3.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754875AbYBDW0I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 17:26:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roel Kluin <12o3l@tiscali.nl>
-Cc: len.brown@intel.com, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: ibm-acpi@hmh.eng.br, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lkml <linux-kernel@vger.kernel.org>
 
- >                 /* safety net should the EC not support AUTO
- >                  * or FULLSPEED mode bits and just ignore them */
- >                 if (level & TP_EC_FAN_FULLSPEED)
- >                         level |= 7;     /* safety min speed 7 */
- >                 else if (level & TP_EC_FAN_FULLSPEED)
- >                         level |= 4;     /* safety min speed 4 */
- > 
- > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
- > this be replaced by
+in drivers/misc/thinkpad_acpi.c, lines 4137-4142 it reads:
 
-Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
-(based on the comment).
+                /* safety net should the EC not support AUTO
+                 * or FULLSPEED mode bits and just ignore them */
+                if (level & TP_EC_FAN_FULLSPEED)
+                        level |= 7;     /* safety min speed 7 */
+                else if (level & TP_EC_FAN_FULLSPEED)
+                        level |= 4;     /* safety min speed 4 */
+
+note the nonsense duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'.
+should this be changed to:
+
+                if (level & TP_EC_FAN_FULLSPEED)
+                        level |= 7;     /* safety min speed 7 */
+                else
+                        level |= 4;     /* safety min speed 4 */
+
+or maybe
+
+                if (level & TP_EC_FAN_FULLSPEED)
+                        level |= 7;     /* safety min speed 7 */
+                if (level & TP_EC_FAN_FULLSPEED)
+                        level |= 4;     /* safety min speed 4 */
+
+?
