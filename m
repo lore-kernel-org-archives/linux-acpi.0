@@ -1,82 +1,82 @@
 From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Subject: Re: [PATCH 3/3] Add acpi_no_initrd_override kernel parameter (format
- corrected)
-Date: Tue, 05 Feb 2008 00:04:58 +0100
-Message-ID: <47A79A1A.3060409@tremplin-utc.net>
-References: <4798E2A5.6020804@users.sf.net> <200801311417.57469.lenb@kernel.org> <1201859637.14573.41.camel@queen.suse.de> <200802012336.10687.lenb@kernel.org> <47A5F9FF.9010401@tremplin-utc.net>
+Subject: Re: [PATCH 2/3] Taint kernel on ACPI table override (format corrected)
+Date: Tue, 05 Feb 2008 00:04:50 +0100
+Message-ID: <47A79A12.8070202@tremplin-utc.net>
+References: <4798E2A5.6020804@users.sf.net> <200801311417.57469.lenb@kernel.org> <1201859637.14573.41.camel@queen.suse.de> <200802012336.10687.lenb@kernel.org> <47A5F9F7.2080901@tremplin-utc.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:18754 "EHLO
+Received: from mailservice.tudelft.nl ([130.161.131.5]:11082 "EHLO
 	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755522AbYBDXFD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 18:05:03 -0500
-In-Reply-To: <47A5F9FF.9010401@tremplin-utc.net>
+	with ESMTP id S1755619AbYBDXEx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 18:04:53 -0500
+In-Reply-To: <47A5F9F7.2080901@tremplin-utc.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
 
-The acpi_no_initrd_override parameter permits to disable the load of an ACPI
-table from the initramfs.
+When an ACPI table is overridden (for now this can happen only for DSDT)
+display a big warning and taint the kernel with flag A.
 
 Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
 ---
- Documentation/kernel-parameters.txt |    3 +++
- drivers/acpi/osl.c                  |   14 +++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletions(-)
+ drivers/acpi/osl.c     |    7 +++++++
+ include/linux/kernel.h |    1 +
+ kernel/panic.c         |    5 +++--
+ 3 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 17fc60e..9bda965 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -170,6 +170,9 @@ and is between 256 and 4096 characters. It is defined in the file
- 
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
- 
-+	acpi_no_initrd_override	[KNL,ACPI]
-+			Disable loading custom ACPI tables from the initramfs
-+
- 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
- 			Format: To spoof as Windows 98: ="Microsoft Windows"
- 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 549daea..73d838f 100644
+index 4568a59..549daea 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -77,6 +77,10 @@ static struct workqueue_struct *kacpi_notify_wq;
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
- 
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
-+static int acpi_no_initrd_override;
-+#endif
-+
- /*
-  * "Ode to _OSI(Linux)"
-  *
-@@ -386,7 +390,8 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
- 		*new_table = (struct acpi_table_header *)AmlCode;
- #endif
- #ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
--	if (strncmp(existing_table->signature, "DSDT", 4) == 0) {
-+	if ((strncmp(existing_table->signature, "DSDT", 4) == 0) &&
-+	    !acpi_no_initrd_override) {
- 		struct acpi_table_header *initrd_table = acpi_find_dsdt_initrd();
- 		if (initrd_table)
+@@ -392,6 +392,13 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
  			*new_table = initrd_table;
-@@ -402,6 +407,13 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
+ 	}
+ #endif
++	if (*new_table != NULL) {
++		printk(KERN_WARNING PREFIX "Override [%4.4s-%8.8s], "
++			   "this is unsafe: tainting kernel\n",
++		       existing_table->signature,
++		       existing_table->oem_table_id);
++		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
++	}
  	return AE_OK;
  }
  
-+int __init acpi_no_initrd_override_setup(char *s)
-+{
-+	acpi_no_initrd_override = 1;
-+	return 1;
-+}
-+__setup("acpi_no_initrd_override", acpi_no_initrd_override_setup);
-+
- static irqreturn_t acpi_irq(int irq, void *dev_id)
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index a7283c9..f51f8bd 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -240,6 +240,7 @@ extern enum system_states {
+ #define TAINT_BAD_PAGE			(1<<5)
+ #define TAINT_USER			(1<<6)
+ #define TAINT_DIE			(1<<7)
++#define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
+ 
+ extern void dump_stack(void) __cold;
+ 
+diff --git a/kernel/panic.c b/kernel/panic.c
+index da4d6ba..1b7a002 100644
+--- a/kernel/panic.c
++++ b/kernel/panic.c
+@@ -160,7 +160,7 @@ const char *print_tainted(void)
  {
- 	return (*acpi_irq_handler) (acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
+ 	static char buf[20];
+ 	if (tainted) {
+-		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c",
++		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c",
+ 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
+ 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
+ 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
+@@ -168,7 +168,8 @@ const char *print_tainted(void)
+ 			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
+ 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
+ 			tainted & TAINT_USER ? 'U' : ' ',
+-			tainted & TAINT_DIE ? 'D' : ' ');
++			tainted & TAINT_DIE ? 'D' : ' ',
++			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ');
+ 	}
+ 	else
+ 		snprintf(buf, sizeof(buf), "Not tainted");
