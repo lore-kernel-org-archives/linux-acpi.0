@@ -1,82 +1,71 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Subject: Re: [PATCH 2/3] Taint kernel on ACPI table override (format corrected)
-Date: Tue, 05 Feb 2008 00:04:50 +0100
-Message-ID: <47A79A12.8070202@tremplin-utc.net>
-References: <4798E2A5.6020804@users.sf.net> <200801311417.57469.lenb@kernel.org> <1201859637.14573.41.camel@queen.suse.de> <200802012336.10687.lenb@kernel.org> <47A5F9F7.2080901@tremplin-utc.net>
+From: Roel Kluin <12o3l@tiscali.nl>
+Subject: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test if (level &
+ TP_EC_FAN_FULLSPEED)
+Date: Tue, 05 Feb 2008 00:24:56 +0100
+Message-ID: <47A79EC8.6060700@tiscali.nl>
+References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:11082 "EHLO
-	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755619AbYBDXEx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 18:04:53 -0500
-In-Reply-To: <47A5F9F7.2080901@tremplin-utc.net>
+Received: from smtp-out0.tiscali.nl ([195.241.79.175]:48327 "EHLO
+	smtp-out0.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756604AbYBDXZn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 18:25:43 -0500
+In-Reply-To: <ada8x20gykq.fsf@cisco.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: Roland Dreier <rdreier@cisco.com>
+Cc: len.brown@intel.com, ibm-acpi@hmh.eng.br, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-When an ACPI table is overridden (for now this can happen only for DSDT)
-display a big warning and taint the kernel with flag A.
+Roland Dreier wrote:
+>  >                 /* safety net should the EC not support AUTO
+>  >                  * or FULLSPEED mode bits and just ignore them */
+>  >                 if (level & TP_EC_FAN_FULLSPEED)
+>  >                         level |= 7;     /* safety min speed 7 */
+>  >                 else if (level & TP_EC_FAN_FULLSPEED)
+>  >                         level |= 4;     /* safety min speed 4 */
+>  > 
+>  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
+>  > this be replaced by
+> 
+> Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
+> (based on the comment).
+> 
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
+Thanks Roland, for your info
+
+based on the comments in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad,
+I think this should be modified like below:
+
+ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
+The Linux ThinkPad community is not positive that all ThinkPads that do
+HFSP EC fan control do implement full-speed and auto modes, some of the
+earlier ones supporting HFSP might not.
+
+If the EC ignores the AUTO or FULL-SPEED bits, it will pay attention to the
+lower three bits that set the fan level. And as thinkpad-acpi was leaving
+these set to zero, it would stop(!) the fan, which is Not A Good Thing.
+So, as a safety net, we now make sure to also set the fan level part of the
+HFSP register to speed 7 for full-speed, and a minimum of speed 4 for auto
+mode.
+--
+second TP_EC_FAN_FULLSPEED should be P_EC_FAN_AUTO
+
+
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
 ---
- drivers/acpi/osl.c     |    7 +++++++
- include/linux/kernel.h |    1 +
- kernel/panic.c         |    5 +++--
- 3 files changed, 11 insertions(+), 2 deletions(-)
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index cf56647..3c323fe 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -4138,7 +4138,7 @@ static int fan_set_level(int level)
+ 		 * or FULLSPEED mode bits and just ignore them */
+ 		if (level & TP_EC_FAN_FULLSPEED)
+ 			level |= 7;	/* safety min speed 7 */
+-		else if (level & TP_EC_FAN_FULLSPEED)
++		else if (level & TP_EC_FAN_AUTO)
+ 			level |= 4;	/* safety min speed 4 */
+ 
+ 		if (!acpi_ec_write(fan_status_offset, level))
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 4568a59..549daea 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -392,6 +392,13 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
- 			*new_table = initrd_table;
- 	}
- #endif
-+	if (*new_table != NULL) {
-+		printk(KERN_WARNING PREFIX "Override [%4.4s-%8.8s], "
-+			   "this is unsafe: tainting kernel\n",
-+		       existing_table->signature,
-+		       existing_table->oem_table_id);
-+		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
-+	}
- 	return AE_OK;
- }
- 
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index a7283c9..f51f8bd 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -240,6 +240,7 @@ extern enum system_states {
- #define TAINT_BAD_PAGE			(1<<5)
- #define TAINT_USER			(1<<6)
- #define TAINT_DIE			(1<<7)
-+#define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
- 
- extern void dump_stack(void) __cold;
- 
-diff --git a/kernel/panic.c b/kernel/panic.c
-index da4d6ba..1b7a002 100644
---- a/kernel/panic.c
-+++ b/kernel/panic.c
-@@ -160,7 +160,7 @@ const char *print_tainted(void)
- {
- 	static char buf[20];
- 	if (tainted) {
--		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c",
-+		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c",
- 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
- 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
- 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
-@@ -168,7 +168,8 @@ const char *print_tainted(void)
- 			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
- 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
- 			tainted & TAINT_USER ? 'U' : ' ',
--			tainted & TAINT_DIE ? 'D' : ' ');
-+			tainted & TAINT_DIE ? 'D' : ' ',
-+			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ');
- 	}
- 	else
- 		snprintf(buf, sizeof(buf), "Not tainted");
