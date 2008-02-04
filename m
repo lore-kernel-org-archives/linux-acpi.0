@@ -1,54 +1,83 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Subject: Re: [PATCH 0/3] Override DSDT via initramfs
-Date: Mon, 04 Feb 2008 23:57:34 +0100
-Message-ID: <47A7985E.6080401@tremplin-utc.net>
-References: <4798E2A5.6020804@users.sf.net>	 <200801311417.57469.lenb@kernel.org>	 <1201859637.14573.41.camel@queen.suse.de>	 <200802012336.10687.lenb@kernel.org>  <47A5F9AE.7020509@tremplin-utc.net> <1202147606.14573.187.camel@queen.suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 5/5] ACPI: Update the t-state for every affected cpu when t-state is changed
+Date: Mon, 4 Feb 2008 18:00:25 -0500
+Message-ID: <200802041800.25551.lenb@kernel.org>
+References: <1201499756.17068.27.camel@yakui_zhao.sh.intel.com> <200802020239.42963.lenb@kernel.org> <1201947014.22650.44.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:18518 "EHLO
-	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755330AbYBDW5l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 17:57:41 -0500
-In-Reply-To: <1202147606.14573.187.camel@queen.suse.de>
+Received: from hera.kernel.org ([140.211.167.34]:48226 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754570AbYBDXAj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Feb 2008 18:00:39 -0500
+In-Reply-To: <1201947014.22650.44.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-04/02/08 18:53, Thomas Renninger wrote/a =C3=A9crit:
-> On Sun, 2008-02-03 at 18:28 +0100, =C3=89ric Piel wrote:
->> Hello,
->>
->> Here are three patches to implement the override of DSDT via initram=
-fs.=20
->> I haven't included the feature for overriding the SSDTs as it's seem=
-s=20
->> it's still a bit controversial, and anyway for now there is very lit=
-tle=20
->> need for it. It should be fairly trivial to add it later if need ari=
-ses.
->>
->> The patches are against 2.6.24-git-du-jour, and they have been=20
->> boot-tested on my laptop.
->=20
-> I have some problems with the diff format.
-> Is this a git diff, incompatible with normal patch/diff tools?
-> Hmm, I tried git-apply --check -p1, but it also didn't work for me.
->=20
-No, git is not to blame. It's might fault, I forgot to deactivate=20
-"format=3Dflowed" in Thunderbird (well, I thought using an external edi=
-tor
-was automatically avoiding the problem). So basically, you have to remo=
-ve
-one space on each line starting with two spaces... or wait a little bit=
-,=20
-I'll resend the patches right now!
+On Saturday 02 February 2008 05:10, Zhao Yakui wrote:
+> On Sat, 2008-02-02 at 02:39 -0500, Len Brown wrote:
+> > On Monday 28 January 2008 00:55, Zhao Yakui wrote:
+> > > Subject: ACPI : Update the t-state for every affected cpu when t-state is changed
+> > > >From : Zhao Yakui <yakui.zhao@intel.com>
+> > > 
+> > > According to ACPI spec, the _TSD object provides T-state control cross
+> > > logical processor dependency information to OSPM. So the t-state
+> > > coordination should be considered when T-state for one cpu is changed.
+> > > 
+> > > According to ACPI spec, three types of coordination are defined.
+> > > SW_ALL, SW_ANY and HW_ALL.
+> > 
+> > > SW_ALL: it means that OSPM needs to initiate T-state transition on 
+> > > all processors in the domain. It is necessary to call throttling set function
+> > > for all affected cpus.
+> > 
+> > > SW_ANY: it means that OSPM may initiate T-state transition on any processor in 
+> > > the domain. 
+> > 
+> > > HW_ALL: Apec only says that hardware will perform the coordination and doesn't 
+> > > recommend how OSPM coordinate T-state among the affected cpus. So it is treated
+> > > as the type of SW_ALL. It means that OSPM needs to initiate t-state transition
+> > > on all the processors in the domain.
+> > 
+> > Not really. HW_ALL means that the OS can assume that the CPUs are independent,
+> > and hardware will take care of any coordination needed. 
+>  Hardware will be responsible for coordinating the state transition
+> between multiple processors. But hardware should provide OSPM with a
+> means to determine the actual state residency so that the correct state
+> is entered. 
 
-Eric
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The OS has ACNT/MCNT to find the actual frequency.
+We use it already in the P-state code to detect when the hardware does
+soemthing funky with P-state, such as HW coordination,
+TM1/TM2, or turbo mode.
+
+> > 
+> > ie. the OS should implement throttling changes on each CPU depending
+> > only on that CPU's needs and not need to consider any effects on other CPUs.
+> > 
+> > This is not the same as SW_ALL, which tells us that all the CPUS in a domain
+> > are _dependent_, and the OS must enforce that by writing the _same_ value
+> > to each CPU. 
+> > 
+> > say you have a domain with 2 CPUS.
+> > If it is HW_ALL and you throttle one cpu, then you are done. 
+>    In this case , how to update the state of another cpu? Can it be
+> treated as SW_ANY?  
+
+That is the whole point of HW_ALL -- you don't have to worry
+about the "other" CPU, you worry just about your local decisions
+and the HW takes care of any dependencies.
+
+> > if it is SW_ALL then if you want to throttle one cpu, then you must
+> > also throttle the other. 
+>    I agree. It is necessary to initiate the state transition for every
+> affected cpu. 
+
+thanks,
+-Len
+
