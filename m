@@ -1,123 +1,75 @@
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Subject: Re: The new thermal management sysfs class, and hwmon
-Date: Tue, 5 Feb 2008 08:57:25 -0500
-Message-ID: <20080205135725.GO20687@jupiter.solarsys.private>
-References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net> <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>
+From: Toralf =?iso-8859-1?q?F=F6rster?= <toralf.foerster@gmx.de>
+Subject: Re: Why do I have a /sys/devices/system/cpu/cpuidle under kernel 2.6.24 with a Pentium M processor ?
+Date: Tue, 5 Feb 2008 15:38:00 +0100
+Message-ID: <200802051538.05956.toralf.foerster@gmx.de>
+References: <200801311400.17811.toralf.foerster@gmx.de> <20080205021654.37286791.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart1993314.Jrt3lSuqpE";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emerald.lightlink.com ([205.232.34.14]:16512 "EHLO
-	emerald.lightlink.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbYBEOCJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 09:02:09 -0500
-Content-Disposition: inline
-In-Reply-To: <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>
+Received: from mail.gmx.net ([213.165.64.20]:43410 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750981AbYBEOiJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 09:38:09 -0500
+In-Reply-To: <20080205021654.37286791.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Thomas, Sujith" <sujith.thomas@intel.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>, Sebastien Godard <sysstat@orange.fr>
 
-Hi:
+--nextPart1993314.Jrt3lSuqpE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-(btw: Please use an email client that doesn't completely butcher the
-text to which you're replying.  Thanks.)
+At Tuesday 05 February 2008 Andrew Morton wrote :
+> On Thu, 31 Jan 2008 14:00:14 +0100 Toralf F=F6rster <toralf.foerster@gmx.=
+de> wrote:
+>=20
+> (suitable cc's added)
+>=20
+> > I'm asking b/c this confuses the current sysstat up to version 8.0.4. An
+>=20
+> That would be bad.  Please define "confuses"?
+>=20
+> > $ ls -lR /sys/devices/system/cpu/
+> >=20
+> > gives :
+> >=20
+> > /sys/devices/system/cpu/:
+> > total 0
+> > drwxr-xr-x 4 root root 0 Jan 30 09:36 cpu0
+> > drwxr-xr-x 2 root root 0 Jan 30 09:36 cpuidle
+> >=20
 
-> > > > On Sun, 2008-02-03 at 10:26 +0800, Henrique de Moraes Holschuh
-> > > > wrote:
-> > > > > And the two sysfs ABIs are incompatible.  The ACPI one uses
-> > > > > low-precision units, (temperature in 10^0 degrees Celcius), while
-> > > > > the hwmon ABI uses medium precision units (10^-3 degrees Celcius),
-> > > > > for example.  There is also no tachometer feedback for fans, etc.
+The sysstat reports 2 CPUs : cpu0 contains the expected data, cpu1 has zero=
+s.
 
-> > > * Zhang Rui <rui.zhang@intel.com> [2008-02-03 17:31:12 +0800]:
-> > > > Yes, currently ACPI is the only user of the thermal sysfs I/F. We
-> > > > can add new sys I/F if someone really need it.
+I tested succesfulyl version 8.0.4.1 sent by Sebastien Godard which solved =
+this
+issue, but that version seems not to be released until today.
 
-* Henrique de Moraes Holschuh <hmh@hmh.eng.br>:
-> > I would really appreciate if the thermal zone ABI used a subset of the
-> > hwmon ABI.  There is absolutely no reason to have one return data in
-> > 10^-3 C while the other returns data in 10^0 C, for example.  IMO, if
-> > both ABIs need thermal readings, both should use the same attribute,
-> > defined in the same way.  The same goes for other attributes in the two
-> > interfaces that share a common concept.
 
-* Thomas, Sujith <sujith.thomas@intel.com> [2008-02-05 15:44:19 +0530]:
-> 1)Hwmon interface have other sensors for voltage and current measurement
-> as well in addition to thermal sensors. Though this interface is generic
-> from a "monitoring" perspective, it lacks some hierarchy representation.
-> For eg. it lacks folder structure to store the list of devices
-> associated with a thermal sensor. This hierarchy information is very
-> much required by application to make an intelligent decision. 
+=2D-=20
+MfG/Sincerely
 
-It's not there now.  It could be added.
+Toralf F=F6rster
+pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
 
-> 2) It is missing interfaces for passive device control.(CPU- T
-> states,LCD,Memory controller, etc..)
+--nextPart1993314.Jrt3lSuqpE
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Ditto.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
 
-> 3) The solution should work on any ACPI based system or any other
-> thermal model for that matter which follows the basic concept. (The
-> model being : There are devices associated with sensors and if we
-> "control" the device, the temperature of the sensor will come down).
+iD8DBQBHqHTNhyrlCH22naMRAnahAKCJM2keTm5m9t274OQxP37TAa98kACgu8ME
+IgfVC4YdzxeOsGRtlS58nvY=
+=DLkR
+-----END PGP SIGNATURE-----
 
-The "association" bit is difficult for most hwmon drivers.  There are
-10k different mainboards, all wired differently, with no way to query
-them to determine e.g. which PWM output is associated with which temp
-sensor.  So, we are forced to punt the assocation to userspace.  You
-won't have that problem w/ ACPI - lucky you. ;)
-
-That still doesn't mean that this info can't or shouldn't be exposed in
-hwmon when it *is* available.
-
-> 4)What I have understood is that Hwmon supports only Smbus and I2C based
-> sensors. It doesn't have support for EC based sensors at this point of
-> time.
-
-Incorrect.  We support devices with a variety of hardware interfaces in
-addition to the I2C/SMBus.  Did you even look?
-
-> 5)If I am not wrong, Hwmon lacks support for programming AUX trip points
-> and trigger events based on that.
-
-You keep saying "hwmon lacks support for"... the hwmon sysfs interface
-supports exactly what the hardware can do.  If your hardware can do
-something new or unique, you extend the interface to support it.  There
-are numerous examples of this.
-
-> These were all the facts which lead us to take a different route than
-> hwmon.
-
-I don't actually mind having a thermal management interface that is
-outside of hwmon, if that's what you want to do.  But these "facts"
-(which are the premises of your rationale) are mostly bogus.
-
-<cut>
-
-* Thomas, Sujith <sujith.thomas@intel.com> [2008-02-05 15:44:19 +0530]:
-> IMO the scope of hwmon is to monitor/report out temperature, voltage ,
-> current etc of the devices/platform . But the scope of these patches is
-
-The scope of hwmon is to allow whatever the hardware allows.  Period.
-
-> purely thermal management for a generic thermal model. As a first step
-> we have made it work for ACPI thermal model. 
-> The only duplication which I can see of is in the "reporting of
-> temperature", which is quite reasonable for a thermal management module
-> to have.
-
-Well, HdMH and I apparently disagree about this.  All I really care
-about is that the temp info should be available through /sys/class/hwmon.
-Many people just want to check their temps, without diving into the fine
-details of a "thermal management solution".
-
-So... what class of hardware would I need to give these patches a try?
-Probably it would take me less time to write a patch to add hwmon class
-support to that than it did to write this message... ;)
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+--nextPart1993314.Jrt3lSuqpE--
