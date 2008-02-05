@@ -1,44 +1,53 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [X86 ACPI SMP] system slow after cold start if processor module
- loaded
-Date: Tue, 5 Feb 2008 15:14:51 -0800
-Message-ID: <20080205151451.a47535c2.akpm@linux-foundation.org>
-References: <Pine.LNX.4.64.0802021558340.5546@axis700.grange>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend to ram problem
+Date: Wed, 6 Feb 2008 00:20:11 +0100
+Message-ID: <200802060020.12289.rjw@sisk.pl>
+References: <47A5C399.7010405@free.fr> <47A6B758.7070405@free.fr> <47A8EB02.90502@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36855 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755615AbYBEXPW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 18:15:22 -0500
-In-Reply-To: <Pine.LNX.4.64.0802021558340.5546@axis700.grange>
+Received: from ogre.sisk.pl ([217.79.144.158]:54808 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760260AbYBEXWR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 18:22:17 -0500
+In-Reply-To: <47A8EB02.90502@free.fr>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: matthieu castet <castet.matthieu@free.fr>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sat, 2 Feb 2008 16:05:41 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-
-> Hi
+On Wednesday, 6 of February 2008, matthieu castet wrote:
+> Hi,
 > 
-> Don't know if this should be considered a bug-report, or just another ACPI 
-> bug on my system. In any case, if the CONFIG_ACPI_PROCESSOR is enabled, on 
-> first boot after a power off the system is slow. Not like if only 1 of 2 
-> CPUs actually was running, much slower yet. Respectively, if the module is 
-> built into the kernel, it is slow more or less from the beginning - I 
-> guess, from the moment, when the module is initialized, if built as a 
-> module, it is slow after the module gets loaded. Also funny, it is only 
-> slow on the first boot, after a reboot into the same kernel it runs 
-> normally. The system is a dual P-II@400MHz, Compaq AP400. It is known to 
-> have various ACPI bugs, so, this is just another one of them. No idea 
-> whether or not this shall and can be fixed. At least wanted to document it 
-> in case someone has a similar problem.
+> matthieu castet wrote:
+> > matthieu castet wrote:
+> >> Pavel Machek wrote:
+> > 
+> >>> Hmm, maybe I know where problem could be. Try
+> >>>
+> >>>         movl     $(wakeup_stack - wakeup_code), %esp              # 
+> >>> Private stack is needed for ASUS bo\
+> >>>
+> >>> instead of existing stack setup. That helped on one of my test-boxes
+> >> Thanks, I will try that.
+> >> Because clearing the flags imply pop/push in the stack it could be the 
+> >> problem
+> > That doesn't help : it still crash in pushl $0.
+> > 
+> All stack stuff in wakeup_code crash for me.
+> I tried to change the stack position, make sure upper bit of %esp are 
+> clear, ... nothing work.
+> What's are strange is that according to my x86 manual, in real mode the 
+> failure can only happen if the stack wrap which is not the case here.
+> Any x86 guru advice ?
 > 
+> If I remove stack access (remove clearing flag stuff, not call to video 
+> stuff) the resume works.
 
-(added linux-acpi)
+Hm, can you place a "pushl %eax; popl %eax;" in place of the removed code and
+see if that breaks?
 
-If nothing happens with this (likely) then please raise a report against
-acpi at bugzilla.kernel.org, thanks.
-
+Rafael
