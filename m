@@ -1,43 +1,49 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: [ANNOUNCE] ACPICA website - acpica.org
-Date: Tue, 5 Feb 2008 13:08:24 -0800
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4042A4E2D@orsmsx415.amr.corp.intel.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH 0/5] WMI patches for acpi-test (v2)
+Date: Tue, 5 Feb 2008 21:18:01 +0000
+Message-ID: <200802052118.02733.carlos@strangeworlds.co.uk>
+References: <20080205021658.4422.83165.stgit@pacifica> <200802051603.30466.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51185 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756502AbYBEVMf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 16:12:35 -0500
-Content-class: urn:content-classes:message
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:43006 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773AbYBEVSH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 16:18:07 -0500
+In-Reply-To: <200802051603.30466.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-ia64@vger.kernel.org
 
+On Tuesday 05 February 2008 21:03:30 Len Brown wrote:
+> On Monday 04 February 2008 21:16, Carlos Corbacho wrote:
+> > 2) Do you know of any IA64 systems using ACPI-WMI? At the moment, WMI
+> > will work on x86 and hopefully IA64, but if it turns out that no vendor
+> > has or ever will implement ACPI-WMI on IA64, then we could safely drop it
+> > there.
+>
+> I recommend skipping WMI on IA64 unless/until a real need to support it
+> emerges. There are no WMI extensions on the Intel Tiger or Hitachi Fusion
+> IA64 boxes I have access to.
 
-The ACPICA project now has its own website, at www.acpica.org. This will
-be the central point for all ACPICA-related activities.
+Ok. The only other vendors I really have in mind are HP and Fujitsu, since 
+both those vendors use WMI on their laptops, so they would be my most likely 
+candidates to have WMI on an IA64 box (if anyone actually does use WMI on 
+IA64).
 
-Features of the website include:
+Len:
 
-1) From now on, this will be the place to download the ACPICA source.
-Both the current release and several previous releases will always be
-available. Currently, the source tarballs and zipfiles are available as
-they were on intel.developer.com. In the near future, we will publish
-the source tree for browsing and checkout.
+You can either add a 'depends on X86' to WMI when you apply patch #1 from the 
+second WMI series; or I can send another patch out later on top of this 
+series to do this, once you replace the old patches in acpi-test - whichever 
+is easiest for you)
 
-2) There is a new mailing list for ACPICA-specific topics. You can join
-the mailing list from the website.
-
-3) There is a bugzilla for ACPICA-specific problem reports. This
-bugzilla is intended for problems that reside in the ACPICA core code,
-and are thus independent of any operating system.
-
-4) All ACPICA documentation is available for download.
-
-The acpica.org website obsoletes the downloads page found under
-http://developer.intel.com/technology/iapc/acpi/downloads.htm. This page
-will be removed in the very near future.
-
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
