@@ -1,62 +1,87 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [ANNOUNCE] ACPICA website - acpica.org
-Date: Tue, 5 Feb 2008 13:44:01 -0800
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4042A4EA8@orsmsx415.amr.corp.intel.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4042A4E2D@orsmsx415.amr.corp.intel.com> <200802052122.38608.carlos@strangeworlds.co.uk>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/
+	counters
+Date: Tue, 5 Feb 2008 14:18:05 -0800
+Message-ID: <20080205221805.GC6950@suse.de>
+References: <200802050230.10873.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:31668 "EHLO mga03.intel.com"
+Received: from cantor.suse.de ([195.135.220.2]:56152 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759644AbYBEVuV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 16:50:21 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <200802052122.38608.carlos@strangeworlds.co.uk>
+	id S1750864AbYBEWUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 17:20:18 -0500
+Content-Disposition: inline
+In-Reply-To: <200802050230.10873.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Yes, that's a good idea, I'll work on it.
-Bob
+On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
+> # cat /sys/firmware/acpi/interrupts/summary
+> pm_timer     0
+> glbl_lock    0
+> power_btn    0
+> sleep_btn    0
+> rtc          0
+> gpe00    0
+> gpe01    0
+> gpe02    0
+> gpe03    0
+> gpe04    0
+> gpe05    0
+> gpe06    0
+> gpe07    0
+> gpe08    0
+> gpe09    2
+> gpe0A    0
+> gpe0B    0
+> gpe0C    0
+> gpe0D    0
+> gpe0E    0
+> gpe0F    0
+> gpe10    0
+> gpe11   60
+> gpe12    0
+> gpe13    0
+> gpe14    0
+> gpe15    0
+> gpe16    0
+> gpe17    0
+> gpe18    0
+> gpe19    1
+> gpe1A    0
+> gpe1B    0
+> gpe1C    0
+> gpe1D    0
+> gpe1E    0
+> gpe1F    0
+> gpe_hi    0
+> gpe_total   63
+> acpi_irq    63
+
+Eeek!  Why?  What's wrong with individual files here?  What's to ensure
+that you aren't going to overflow your buffer?  There's a reason we
+don't have the seq file interface for sysfs, to prevent this very kind
+of thing...
 
 
->-----Original Message-----
->From: Carlos Corbacho [mailto:carlos@strangeworlds.co.uk]
->Sent: Tuesday, February 05, 2008 1:23 PM
->To: Moore, Robert
->Cc: linux-acpi@vger.kernel.org
->Subject: Re: [ANNOUNCE] ACPICA website - acpica.org
->
->On Tuesday 05 February 2008 21:08:24 Moore, Robert wrote:
->> 1) From now on, this will be the place to download the ACPICA source.
->> Both the current release and several previous releases will always be
->> available. Currently, the source tarballs and zipfiles are available
-as
->> they were on intel.developer.com. In the near future, we will publish
->> the source tree for browsing and checkout.
->
->Bob,
->
->Could you get the download page cleared up for Linux a bit? I posted
-this
->earlier in reply to another thread about the site:
->
->> (Although at the moment, it's a bit of a trek through the new site to
->figure
->> out that Linux needs the tools under 'UNIX source code' - a big fat
-link
->on
->> the Linux page to the UNIX tools would be better, and all the
-compiling
->> instructions from the Linux page can then just be moved to the 'UNIX
->source
->> code' page, since they're clearly not Linux specific).
->
->-Carlos
->--
->E-Mail: carlos@strangeworlds.co.uk
->Web: strangeworlds.co.uk
->GPG Key ID: 0x23EE722D
+> +	/*
+> +	 * General Purpose Events
+> +	 */
+> +	for (i = 0; i < number_of_gpes; i++) {
+> +		count += sprintf(buf + count, "gpe%02X %4d\n",
+> +			i, acpi_gpe_counters[i]);
+> +	}
+
+Nope, no error checking, fun chance of blowing the memory buffer :(
+
+Please change the interface to not do this.
+
+Oh, and for every new sysfs file, you need a Documentation/ABI/
+addition, please also add that.
+
+thanks,
+
+greg k-h
