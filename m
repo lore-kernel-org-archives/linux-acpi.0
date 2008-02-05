@@ -1,51 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/7] acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of list_for_each()
-Date: Mon, 04 Feb 2008 23:31:20 -0800
-Message-ID: <200802050731.m157V1CU009687@imap1.linux-foundation.org>
+Subject: [patch 3/7] acpi: remove duplicated warning message
+Date: Mon, 04 Feb 2008 23:31:19 -0800
+Message-ID: <200802050731.m157V0rH009618@imap1.linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34579 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753401AbYBEHbr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:31:47 -0500
+	by vger.kernel.org with ESMTP id S1753323AbYBEHbp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:31:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, matthias.kaehlcke@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mboton@gmail.com
 
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+=46rom: Miguel Bot=C3=B3n <mboton@gmail.com>
 
-acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of
-list_for_each()
+Remove duplicated warning message in acpi_power_transition()
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+This warning message is printed by acpi_bus_set_power() so we don't
+need to print it again.
+
+Signed-off-by: Miguel Bot=C3=B3n <mboton@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_irq.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/acpi/power.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each drivers/acpi/pci_irq.c
---- a/drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each
-+++ a/drivers/acpi/pci_irq.c
-@@ -51,10 +51,8 @@ static struct acpi_prt_entry *acpi_pci_i
- 							  int bus,
- 							  int device, int pin)
- {
--	struct list_head *node = NULL;
- 	struct acpi_prt_entry *entry = NULL;
- 
--
- 	if (!acpi_prt.count)
- 		return NULL;
- 
-@@ -64,8 +62,7 @@ static struct acpi_prt_entry *acpi_pci_i
- 	 *
- 	 */
- 	spin_lock(&acpi_prt_lock);
--	list_for_each(node, &acpi_prt.entries) {
--		entry = list_entry(node, struct acpi_prt_entry, node);
-+	list_for_each_entry(entry, &acpi_prt.entries, node) {
- 		if ((segment == entry->id.segment)
- 		    && (bus == entry->id.bus)
- 		    && (device == entry->id.device)
+diff -puN drivers/acpi/power.c~acpi-remove-duplicated-warning-message d=
+rivers/acpi/power.c
+--- a/drivers/acpi/power.c~acpi-remove-duplicated-warning-message
++++ a/drivers/acpi/power.c
+@@ -458,11 +458,9 @@ int acpi_power_transition(struct acpi_de
+ 	}
+=20
+      end:
+-	if (result) {
++	if (result)
+ 		device->power.state =3D ACPI_STATE_UNKNOWN;
+-		printk(KERN_WARNING PREFIX "Transitioning device [%s] to D%d\n",
+-			      device->pnp.bus_id, state);
+-	} else {
++	else {
+ 	/* We shouldn't change the state till all above operations succeed */
+ 		device->power.state =3D state;
+ 	}
 _
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
