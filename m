@@ -1,474 +1,148 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI DMI Dell R200
-Date: Tue, 5 Feb 2008 14:20:27 -0500
-Message-ID: <200802051420.27503.lenb@kernel.org>
-References: <47A63D17.9070203@norm.lu> <200802040045.42996.lenb@kernel.org> <47A714DD.5040703@norm.lu>
+Subject: Re: MAcBook Pro DMI info - MacBookPro3,1
+Date: Tue, 5 Feb 2008 14:40:23 -0500
+Message-ID: <200802051440.23568.lenb@kernel.org>
+References: <20080131081821.89030@gmx.net> <200802051322.31624.lenb@kernel.org> <20080205185811.62790@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56462 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56471 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753984AbYBETko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 14:40:44 -0500
-In-Reply-To: <47A714DD.5040703@norm.lu>
+	id S1753984AbYBETku (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 14:40:50 -0500
+In-Reply-To: <20080205185811.62790@gmx.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Georges Toth <georges@norm.lu>, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: der flooh <derflooh@gmx.de>, linux-acpi@vger.kernel.org
 
-On Monday 04 February 2008 08:36, Georges Toth wrote:
-> Len Brown wrote:
-> >> ACPI: BIOS _OSI(Linux) query ignored
-> >> ACPI: DMI System Vendor: Dell Inc.
-> >> ACPI: DMI Product Name: PowerEdge R200
-> >> ACPI: DMI Product Version:
-> >> ACPI: DMI Board Name: 0TY019
-> >> ACPI: DMI BIOS Vendor: Dell Inc.
-> >> ACPI: DMI BIOS Date: 10/24/2007
-> >> ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+
+> > On Thursday 31 January 2008 03:18, der flooh wrote:
+> > > Jan 31 08:40:41 elm ACPI: DMI System Vendor: Apple Inc.
+...
 > > 
-> > thanks, please send me the output from acpidump.
-> 
-> I've attached it
-> Let me know if you need anything else
-> 
+> > > Jan 31 08:40:41 elm ACPI: DMI Product Name: MacBookPro3,1
+> > > Jan 31 08:40:41 elm ACPI: DMI Product Version: 1.0
+> > > Jan 31 08:40:41 elm ACPI: DMI Board Name: Mac-F4238BC8
+> > > Jan 31 08:40:41 elm ACPI: DMI BIOS Vendor: Apple Inc.
+> > > Jan 31 08:40:41 elm ACPI: DMI BIOS Date: 09/26/07
 
-This DSDT shows that Dell BIOS writers know enough to be dangerous.
+Thanks for the acpidump.
+Apple has added new code BIOS to test OSYS.
 
-It appears that the BIOS writer put in special tests for (Vistal or Linux),
-not realizing that Linux always sets Vista.
+But it looks like a NOP for Linux.
 
-OSI(Linux) is a NOP on this box.
-it will exchange the PNPid of the PCIe/PCI HID/CID, but nothing else.
+I also looks like the Apple BIOS programmers don't
+realize that Windows 2006 returns true for OSI(Windows 2001).
+But since they test OSYS only against 0x7D1 and the Darwin
+value, that bug isn't noticed yet.
 
-It is interesting to see that PNP0C01 motherboard device is present only for OS's
-earlier than XP.
-
-It is also interseting that the SSDT has a special test for Vista,
-to enable fixed-feature P-state access, but that code would have
-run even without that test.
-
-thanks,
+cheers,
 -Len
 
-
-        Name (TOOS, 0x00)
-        Method (INIC, 0, NotSerialized)
+    Method (PINI, 0, NotSerialized)
+    {
+        If (CondRefOf (_OSI, Local0))
         {
-
-            If (CondRefOf (_OSI, Local0))
+            If (_OSI ("Darwin"))
             {
-                If (\_OSI ("Windows 2001"))
-                {
-                    Store (0x05, TOOS)
-                }
-
-                If (\_OSI ("Windows 2001.1"))
-                {
-                    Store (0x06, TOOS)
-                }
-
-                If (\_OSI ("Windows 2001.1 SP1"))
-                {
-                    Store (0x07, TOOS)
-                }
-
-                If (\_OSI ("Windows 2006"))
-                {
-                    Store (0x08, TOOS)
-                }
-
-                If (\_OSI ("Windows 2006.1"))
-                {
-                    Store (0x08, TOOS)
-                }
-
-# OSI(Linux) overwrites TOOS with 1
-
-                If (\_OSI ("Linux"))
-                {
-                    Store (0x01, TOOS)
-                }
+                Store (0x2710, OSYS)
             }
             Else
             {
-                Store (\_OS, Local0)
-                Store (SCMP (Local0, "Microsoft Windows NT"), Local1)
-                If (Not (Local1))
+                If (_OSI ("Linux"))
                 {
-                    Store (0x04, TOOS)
+                    Store (0x03E8, OSYS)
                 }
                 Else
                 {
-                    Store (SCMP (Local0, "Microsoft Windows"), Local2)
-                    If (Not (Local2))
+                    If (_OSI ("Windows 2001"))
                     {
-                        Store (0x02, TOOS)
+                        Store (0x07D1, OSYS)
                     }
                     Else
                     {
-                        Store (SCMP (Local0, "Microsoft WindowsME:Millennium Edition"), Local3)
-                        If (Not (Local3))
+                        If (_OSI ("Windows 2001 SP1"))
                         {
-                            Store (0x03, TOOS)
-                        }
-                    }
-                }
-            }
-        Method (_INI, 0, NotSerialized)
-        {
-            \_SB.INIC ()
-            \_SB.INIS ()
-        }
-...
-        Method (INIS, 0, NotSerialized)
-        {
-            Store ("Method _INI", Debug)
-            If (LNotEqual (RIST, 0x00))
-            {
-                Store (0xFFFFFFFF, \_SB.PCI0.SBE0.PXHA._ADR)
-                Store (0x00, \_SB.PCI0.SBE0.PXHA._STA)
-            }
-
-            If (LGreaterEqual (\_SB.TOOS, 0x08))
-            {
-# Vista gets _PCI0 _HID and _CID exchanged
-# to put PCIe as _HID and PCI as _CID
-
-                Store (0x080AD041, \_SB.PCI0._HID)
-                Store (0x030AD041, \_SB.PCI0._CID)
-            }
-            Else
-            {
-                Store (0x030AD041, \_SB.PCI0._HID)
-                Store (0x080AD041, \_SB.PCI0._CID)
-            }
-        }
-       Device (PCI0)
-        {
-            Name (_HID, EisaId ("PNP0A08"))
-            Name (_CID, 0x030AD041)
-...
-
-
-                Device (NIPM)
-                {
-                    Name (_HID, EisaId ("IPI0001"))
-                    Name (_CID, 0x010CD041)
-                    Name (_UID, 0x05)
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (LEqual (TOOS, 0x01))
-                        {
-                            Return (0x0F)
-# this is effectively a special test for Linux,
-# but it is a NOP because of the test below
-# I dont' knwo what IPI0001 is...
-
+                            Store (0x07D1, OSYS)
                         }
                         Else
                         {
-                            If (LOr (LEqual (TOOS, 0x07), LEqual (TOOS, 0x08)))
+                            If (_OSI ("Windows 2001 SP2"))
                             {
-                                Return (0x0F)
+                                Store (0x07D2, OSYS)
                             }
                             Else
                             {
-                                Return (0x00)
+                                If (_OSI ("Windows 2006"))
+                                {
+                                    Store (0x07D6, OSYS)
+                                }
                             }
                         }
-                    }
-
-
-...
-                Device (MBI1)
-                {
-                    Name (_HID, EisaId ("PNP0C01"))
-# motherboard device
-                    Name (_UID, 0x01)
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (LOr (LEqual (TOOS, 0x08), LEqual (TOOS, 0x01)))
-                        {
-# if Vista or Linux
-                            Return (0x00)
-                        }
-                        Else
-                        {
-                            If (LEqual (TOOS, 0x07))
-                            {
-# XP SP1
-                                Return (0x00)
-                            }
-                            Else
-                            {
-# everything else does see motherboard device
-                                Return (0x0F)
-                            }
-                        }
-                    }
-                   Method (_CRS, 0, NotSerialized)
-                    {
-                        Name (SBDB, ResourceTemplate ()
-                        {
-                            IO (Decode16,
-                                0x0800,             // Range Minimum
-                                0x0800,             // Range Maximum
-                                0x01,               // Alignment
-                                0x80,               // Length
-                                )
-                            IO (Decode16,
-                                0x0880,             // Range Minimum
-                                0x0880,             // Range Maximum
-                                0x01,               // Alignment
-                                0x40,               // Length
-                                )
-                            IO (Decode16,
-                                0x08C0,             // Range Minimum
-                                0x08C0,             // Range Maximum
-                                0x01,               // Alignment
-                                0x20,               // Length
-                                )
-                            IO (Decode16,
-                                0x08E0,             // Range Minimum
-                                0x08E0,             // Range Maximum
-                                0x01,               // Alignment
-                                0x04,               // Length
-                                )
-                            IO (Decode16,
-                                0x0900,             // Range Minimum
-                                0x0900,             // Range Maximum
-                                0x01,               // Alignment
-                                0x01,               // Length
-                                )
-                            IO (Decode16,
-                                0x0C00,             // Range Minimum
-                                0x0C00,             // Range Maximum
-                                0x01,               // Alignment
-                                0x10,               // Length
-                                )
-                            IO (Decode16,
-                                0x0C10,             // Range Minimum
-                                0x0C10,             // Range Maximum
-                                0x01,               // Alignment
-                                0x10,               // Length
-                                )
-                            IO (Decode16,
-                                0x0CA0,             // Range Minimum
-                                0x0CA0,             // Range Maximum
-                                0x01,               // Alignment
-                                0x08,               // Length
-                                )
-                            IO (Decode16,
-                                0x0CA9,             // Range Minimum
-                                0x0CA9,             // Range Maximum
-                                0x01,               // Alignment
-                                0x03,               // Length
-                                )
-                           IO (Decode16,
-                                0x0CAD,             // Range Minimum
-                                0x0CAD,             // Range Maximum
-                                0x01,               // Alignment
-                                0x03,               // Length
-                                )
-                            IO (Decode16,
-                                0x0C20,             // Range Minimum
-                                0x0C20,             // Range Maximum
-                                0x01,               // Alignment
-                                0x20,               // Length
-                                )
-                            IO (Decode16,
-                                0x0060,             // Range Minimum
-                                0x0060,             // Range Maximum
-                                0x01,               // Alignment
-                                0x01,               // Length
-                                _Y08)
-                            IO (Decode16,
-                                0x0064,             // Range Minimum
-                                0x0064,             // Range Maximum
-                                0x01,               // Alignment
-                                0x01,               // Length
-                                _Y09)
-                        })
-                        CreateByteField (SBDB, \_SB.PCI0.ISA.MBIO._CRS._Y08._LEN, KBL1)
-                        CreateByteField (SBDB, \_SB.PCI0.ISA.MBIO._CRS._Y09._LEN, KBL2)
-                        If (LOr (GCKB (), GCMS ()))
-                        {
-                            Store (Zero, KBL1)
-                            Store (Zero, KBL2)
-                        }
-
-                        Return (SBDB)
                     }
                 }
-
-in SSDT1:
-
-   Scope (_PR.CPU1)
-    {
-        Method (_PPC, 0, NotSerialized)
-        {
-            Return (Zero)
+            }
         }
-
-        Method (_PCT, 0, NotSerialized)
+        Else
         {
-
-# if PDC[9] && CFGD != x4000, use MSR for P-states
-# Linux comes here
-            If (LAnd (LNot (And (CFGD, 0x4000)), LEqual (And (PDC0,
-                0x09), 0x09)))
-            {
-                Return (Package (0x02)
-                {
-                    ResourceTemplate ()
-                    {
-                        Register (FFixedHW,
-                            0x40,               // Bit Width
-                            0x00,               // Bit Offset
-                            0x0000000000000199, // Address
-                            ,)
-                    },
-
-                    ResourceTemplate ()
-                    {
-                        Register (FFixedHW,
-                            0x10,               // Bit Width
-                            0x00,               // Bit Offset
-                            0x0000000000000198, // Address
-                            ,)
-                    }
-                })
-            }
-
-# if PDC[9] && Vista, use MSR for P-states
-
-            If (LAnd (LEqual (And (PDC0, 0x09), 0x09), LGreaterEqual (
-                \_SB.TOOS, 0x08)))
-            {
-                Return (Package (0x02)
-                {
-                    ResourceTemplate ()
-                    {
-                        Register (FFixedHW,
-                            0x40,               // Bit Width
-                            0x00,               // Bit Offset
-                            0x0000000000000199, // Address
-                            ,)
-                    },
-
-                    ResourceTemplate ()
-                    {
-                        Register (FFixedHW,
-                            0x10,               // Bit Width
-                            0x00,               // Bit Offset
-                            0x0000000000000198, // Address
-                            ,)
-                    }
-                })
-            }
-
-# else use IO for P-states
-
-           Return (Package (0x02)
-            {
-                ResourceTemplate ()
-                {
-                    Register (SystemIO,
-                        0x10,               // Bit Width
-                        0x00,               // Bit Offset
-                        0x00000000000008E0, // Address
-                        ,)
-                },
-
-                ResourceTemplate ()
-                {
-                    Register (SystemIO,
-                        0x10,               // Bit Width
-                        0x00,               // Bit Offset
-                        0x00000000000008E2, // Address
-                        ,)
-                }
-            })
+            Store (0x07D0, OSYS)
         }
-
-        Method (_PSS, 0, NotSerialized)
-        {
-            If (LAnd (LNot (And (CFGD, 0x4000)), LEqual (And (PDC0,
-                0x09), 0x09)))
-            {
-                Return (NPSS)
-            }
-
-            If (LAnd (LEqual (And (PDC0, 0x09), 0x09), LGreaterEqual (
-                \_SB.TOOS, 0x08)))
-            {
-                Return (NPSS)
-            }
-# same test as in _PCT, -- MSR accesses gets NPSS (latency 10usec)
-# while IO access gets SPSS (latecy 160usec)
-
-            Return (SPSS)
-        }
-        Name (SPSS, Package (0x02)
-        {
-            Package (0x06)
-            {
-                0x0000091D,
-                0x00019258,
-                0x000000A0,
-                0x0000000A,
-                0x00000726,
-                0x00000726
-            },
-
-            Package (0x06)
-            {
-                0x000007D0,
-                0x0000FDE8,
-                0x000000A0,
-                0x0000000A,
-                0x00000614,
-                0x00000614
-            }
-        })
-        Name (NPSS, Package (0x02)
-        {
-            Package (0x06)
-            {
-                0x0000091D,
-                0x00019258,
-                0x0000000A,
-                0x0000000A,
-                0x00000726,
-                0x00000726
-            },
-
-            Package (0x06)
-            {
-                0x000007D0,
-                0x0000FDE8,
-                0x0000000A,
-                0x0000000A,
-                0x00000614,
-                0x00000614
-            }
-        })
     }
 
-in SSDT3: 
-    Scope (\)
+Re: OSYS use
+
+                Device (HPET)
+                {
+                    Name (_HID, EisaId ("PNP0103"))
+                    Name (_CID, 0x010CD041)
+                    Name (BUF0, ResourceTemplate ()
+                    {
+                        IRQNoFlags ()
+                            {0}
+                        IRQNoFlags ()
+                            {8}
+                        Memory32Fixed (ReadOnly,
+                            0xFED00000,         // Address Base
+                            0x00000400,         // Address Length
+                            _Y1B)
+                    })
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LGreaterEqual (OSYS, 0x07D1))
+                        {
+                            If (HPAE)
+                            {
+                                Return (0x0F)
+                            }
+                        }
+                        Else
+                        {
+                            If (HPAE)
+                            {
+# Linux will come here,
+# but it doesn't matter, because we don't look at the GUI bits in _STA anyway...
+
+                                Return (0x0B)
+                            }
+                        }
+
+                        Return (0x00)
+                    }
+...
+# the test for Darwin:
+
+    Method (OSDW, 0, NotSerialized)
     {
-        Name (CFGD, 0x00000002)
-
-# CFGD is defined as 2, but never changed
-
-        Name (PDC0, 0x80000000)
-        Name (PDC1, 0x80000000)
-        Name (PDC2, 0x80000000)
-        Name (PDC3, 0x80000000)
+        If (LEqual (OSYS, 0x2710))
+        {
+            Return (0x01)
+        }
+        Else
+        {
+            Return (0x00)
+        }
     }
 
