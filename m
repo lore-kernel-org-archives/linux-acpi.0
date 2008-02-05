@@ -1,85 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/7] acpi: enable C3 Power State on Dell Inspiron 8200
-Date: Mon, 04 Feb 2008 23:31:17 -0800
-Message-ID: <200802050730.m157UwvP009612@imap1.linux-foundation.org>
+Subject: [patch 2/7] acpi4asus: add support for F3Sa
+Date: Mon, 04 Feb 2008 23:31:18 -0800
+Message-ID: <200802050730.m157UxMY009615@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56174 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751191AbYBEHb7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:31:59 -0500
+	by vger.kernel.org with ESMTP id S1753356AbYBEHcL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:32:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dag@bakke.com, arjan@infradead.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, kronos.it@gmail.com, corentincj@iksaif.net, sziwan@users.sourceforge.net
 
-From: Dag Bakke <dag@bakke.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
+Add support for ASUS F3Sa notebook. Features:
+- LCD on/off
+- Brightness
+- Wifi kill
+- Bluetooth kill
 
-[akpm@linux-foundation.org: fix warning]
-Tested-by: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/acpi/asus_acpi.c |   55 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 45 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
-+++ a/drivers/acpi/processor_idle.c
-@@ -100,6 +100,8 @@ static int acpi_processor_set_power_poli
- 
- #endif
- 
-+static int forced_c3;
+diff -puN drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa
++++ a/drivers/acpi/asus_acpi.c
+@@ -142,6 +142,7 @@ struct asus_hotk {
+ 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
+ 		A4S,            //Z81sp
+ 		//(Centrino)
++		F3Sa,
+ 		END_MODEL
+ 	} model;		//Models currently supported
+ 	u16 event_count[128];	//count for each event TODO make this better
+@@ -405,7 +406,20 @@ static struct model_data model_conf[END_
+ 		.brightness_get    = "GPLV",
+ 		.mt_bt_switch      = "BLED",
+ 		.mt_wled           = "WLED"
+-	}
++	},
 +
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -120,6 +122,19 @@ static int set_max_cstate(const struct d
- 	return 0;
- }
++	{
++		.name		= "F3Sa",
++		.mt_bt_switch	= "BLED",
++		.mt_wled	= "WLED",
++		.mt_mled	= "MLED",
++		.brightness_get	= "GPLV",
++		.brightness_set	= "SPLV",
++		.mt_lcd_switch	= "\\_SB.PCI0.SBRG.EC0._Q10",
++		.lcd_status	= "\\_SB.PCI0.SBRG.EC0.RPIN",
++		.display_get	= "\\ADVG",
++		.display_set	= "SDSP",
++	},
  
-+/*
-+ * Some (Dell) machines set the C3 latency to a value which effectively says:
-+ * "Don't use C3." Still, C3 works if we force it.
-+ * This enables C3 on Dell Inspiron 8200 machines.
-+ */
-+static int dmi_force_c3(const struct dmi_system_id *id)
-+{
-+	forced_c3 = 1;
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
-+	return 0;
-+}
-+
- /* Actually this shouldn't be __cpuinitdata, would be better to fix the
-    callers to only run once -AK */
- static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
-@@ -178,6 +193,9 @@ static struct dmi_system_id __cpuinitdat
- 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
- 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
- 	 (void *)2},
-+	{ dmi_force_c3, "Dell Inspiron 8200", {
-+	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
- 	{},
  };
  
-@@ -1026,11 +1044,12 @@ static void acpi_processor_power_verify_
- 	 * C3 latency must be less than or equal to 1000
- 	 * microseconds.
- 	 */
--	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
-+	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "latency too large [%d]\n", cx->latency));
- 		return;
--	}
-+	} else if (forced_c3)
-+		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+@@ -710,15 +724,8 @@ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
  
- 	/*
- 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
+-	if (hotk->model != L3H) {
+-		/* We don't have to check anything if we are here */
+-		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+-			printk(KERN_WARNING
+-			       "Asus ACPI: Error reading LCD status\n");
+-
+-		if (hotk->model == L2D)
+-			lcd = ~lcd;
+-	} else {		/* L3H and the like have to be handled differently */
++	if (hotk->model == L3H) {
++		/* L3H and the like have to be handled differently */
+ 		acpi_status status = 0;
+ 		struct acpi_object_list input;
+ 		union acpi_object mt_params[2];
+@@ -745,6 +752,32 @@ static int get_lcd_state(void)
+ 		if (out_obj.type == ACPI_TYPE_INTEGER)
+ 			/* That's what the AML code does */
+ 			lcd = out_obj.integer.value >> 8;
++	} else if (hotk->model == F3Sa) {
++		unsigned long tmp;
++		union acpi_object param;
++		struct acpi_object_list input;
++		acpi_status status;
++
++		/* Read pin 11 */
++		param.type = ACPI_TYPE_INTEGER;
++		param.integer.value = 0x11;
++		input.count = 1;
++		input.pointer = &param;
++
++		status = acpi_evaluate_integer(NULL, hotk->methods->lcd_status,
++						&input, &tmp);
++		if (status != AE_OK)
++			return -1;
++
++		lcd = tmp;
++	} else {
++		/* We don't have to check anything if we are here */
++		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
++			printk(KERN_WARNING
++			       "Asus ACPI: Error reading LCD status\n");
++
++		if (hotk->model == L2D)
++			lcd = ~lcd;
+ 	}
+ 
+ 	return (lcd & 1);
+@@ -1134,6 +1167,8 @@ static int asus_model_match(char *model)
+ 		return W5A;
+ 	else if (strncmp(model, "A4S", 3) == 0)
+ 		return A4S;
++	else if (strncmp(model, "F3Sa", 4) == 0)
++		return F3Sa;
+ 	else
+ 		return END_MODEL;
+ }
 _
