@@ -1,359 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/7] Small ACPICA extension to be able to store the name of operation regions in osl.c later
-Date: Mon, 04 Feb 2008 23:31:22 -0800
-Message-ID: <200802050731.m157V30D009696@imap1.linux-foundation.org>
+Subject: [patch 6/7] Export acpi_check_resource_conflict
+Date: Mon, 04 Feb 2008 23:31:23 -0800
+Message-ID: <200802050731.m157V5I3009699@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57950 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750864AbYBEHcf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:32:35 -0500
+	by vger.kernel.org with ESMTP id S1753442AbYBEHcx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 02:32:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de, bjorn.helgaas@hp.com, khali@linux-fr.org, mhoffman@lightlink.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de, bjorn.helgaas@hp.com, jdelvare@suse.de, khali@linux-fr.org, mhoffman@lightlink.com
 
 From: Thomas Renninger <trenn@suse.de>
 
-In ACPI, AML can define accesses to IO ports and System Memory by Operation
-Regions.  Those are not registered as done by PNPACPI using resource templates
-(and _CRS/_SRS methods).
+Export acpi_check_resource_conflict(), sometimes drivers already have
+a struct resource at hand so no need to use the wrappers to build a new
+one.
 
-The IO ports and System Memory regions may get accessed by arbitrary AML code.
- When native drivers are accessing the same resources bad things can happen
-(e.g.  a critical shutdown temperature of 3000 C every 2 months or so).
-
-It is not really possible to register the operation regions via
-request_resource, as they often overlap with pnp or other resources (e.g. 
-statically setup IO resources below 0x100).
-
-This approach stores all Operation Region declarations (IO and System Memory
-only) at ACPI table parse time.  It offers a similar functionality like
-request_region and let drivers which are known to possibly use the same IO
-ports and Memory which are also often used by ACPI (hwmon and i2c) check for
-ACPI interference.
-
-A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
-is default set to lax:
-  - strict: let conflicting drivers fail to load with an error message
-  - lax:    let conflicting driver work normal with a warning message
-  - no:     no functional change at all
-Depending on the feedback and the kind of interferences we see, this
-should be set to strict at later time.
-
-Goal of this patch set is:
-  - Identify ACPI interferences in bug reports (very hard to reproduce
-    and to identify)
-  - Find BIOSes for that an ACPI driver should exist for specific HW
-    instead of a native one.
-  - stability in general
-
-
-
-Provide acpi_check_{mem_}region.
-
-Drivers can additionally check against possible ACPI interference by also
-invoking this shortly before they call request_region.
-If -EBUSY is returned, the driver must not load.
-Use acpi_enforce_resources=strict/lax/no options to:
-  - strict: let conflicting drivers fail to load with an error message
-  - lax:    let conflicting driver work normal with a warning message
-  - no:     no functional change at all
-
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-DESC
-small-acpica-extension-to-be-able-to-store-the-name-of-fix
-EDESC
-From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/acpi/osl.c: In function 'acpi_os_validate_address':
-drivers/acpi/osl.c:1365: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'long unsigned int'
-drivers/acpi/osl.c:1365: warning: format '%s' expects type 'char *', but argument 5 has type 'long unsigned int'
-
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/dispatcher/dsopcode.c |    4 
- drivers/acpi/osl.c                 |  175 ++++++++++++++++++++++++++-
- include/acpi/acpiosxf.h            |    4 
- include/linux/acpi.h               |   17 ++
- 4 files changed, 195 insertions(+), 5 deletions(-)
+ drivers/acpi/osl.c   |    3 ++-
+ include/linux/acpi.h |    8 ++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of drivers/acpi/dispatcher/dsopcode.c
---- a/drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of
-+++ a/drivers/acpi/dispatcher/dsopcode.c
-@@ -359,7 +359,9 @@ acpi_status acpi_ds_get_region_arguments
- 
- 	status = acpi_os_validate_address(obj_desc->region.space_id,
- 					  obj_desc->region.address,
--					  (acpi_size) obj_desc->region.length);
-+					  (acpi_size) obj_desc->region.length,
-+					  acpi_ut_get_node_name(node));
-+
- 	if (ACPI_FAILURE(status)) {
- 		/*
- 		 * Invalid address/length. We will emit an error message and mark
-diff -puN drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of
+diff -puN drivers/acpi/osl.c~export-acpi_check_resource_conflict drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~export-acpi_check_resource_conflict
 +++ a/drivers/acpi/osl.c
-@@ -44,6 +44,8 @@
- #include <asm/uaccess.h>
+@@ -1161,7 +1161,7 @@ __setup("acpi_enforce_resources=", acpi_
  
- #include <linux/efi.h>
-+#include <linux/ioport.h>
-+#include <linux/list.h>
- 
- #define _COMPONENT		ACPI_OS_SERVICES
- ACPI_MODULE_NAME("osl");
-@@ -74,6 +76,18 @@ static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
- 
-+struct acpi_res_list {
-+	resource_size_t start;
-+	resource_size_t end;
-+	acpi_adr_space_type resource_type; /* IO port, System memory, ...*/
-+	char name[5];   /* only can have a length of 4 chars, make use of this
-+			   one instead of res->name, no need to kalloc then */
-+	struct list_head resource_list;
-+};
-+
-+static LIST_HEAD(resource_list_head);
-+static DEFINE_SPINLOCK(acpi_res_lock);
-+
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
- 
-@@ -1106,6 +1120,127 @@ static int __init acpi_wake_gpes_always_
- 
- __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
- 
-+/* Check of resource interference between native drivers and ACPI
-+ * OperationRegions (SystemIO and System Memory only).
-+ * IO ports and memory declared in ACPI might be used by the ACPI subsystem
-+ * in arbitrary AML code and can interfere with legacy drivers.
-+ * acpi_enforce_resources= can be set to:
-+ *
-+ *   - strict           (2)
-+ *     -> further driver trying to access the resources will not load
-+ *   - lax (default)    (1)
-+ *     -> further driver trying to access the resources will load, but you
-+ *     get a system message that something might go wrong...
-+ *
-+ *   - no               (0)
-+ *     -> ACPI Operation Region resources will not be registered
-+ *
-+ */
-+#define ENFORCE_RESOURCES_STRICT 2
-+#define ENFORCE_RESOURCES_LAX    1
-+#define ENFORCE_RESOURCES_NO     0
-+
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+
-+static int __init acpi_enforce_resources_setup(char *str)
-+{
-+	if (str == NULL || *str == '\0')
-+		return 0;
-+
-+	if (!strcmp("strict", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-+	else if (!strcmp("lax", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+	else if (!strcmp("no", str))
-+		acpi_enforce_resources = ENFORCE_RESOURCES_NO;
-+
-+	return 1;
-+}
-+
-+__setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
-+
-+/* Check for resource conflicts between ACPI OperationRegions and native
-+ * drivers */
-+static int acpi_check_resource_conflict(struct resource *res)
-+{
-+	struct acpi_res_list *res_list_elem;
-+	int ioport;
-+	int clash = 0;
-+
-+	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-+		return 0;
-+	if (!(res->flags & IORESOURCE_IO) && !(res->flags & IORESOURCE_MEM))
-+		return 0;
-+
-+	ioport = res->flags & IORESOURCE_IO;
-+
-+	spin_lock(&acpi_res_lock);
-+	list_for_each_entry(res_list_elem, &resource_list_head,
-+			    resource_list) {
-+		if (ioport && (res_list_elem->resource_type
-+			       != ACPI_ADR_SPACE_SYSTEM_IO))
-+			continue;
-+		if (!ioport && (res_list_elem->resource_type
-+				!= ACPI_ADR_SPACE_SYSTEM_MEMORY))
-+			continue;
-+
-+		if (res->end < res_list_elem->start
-+		    || res_list_elem->end < res->start)
-+			continue;
-+		clash = 1;
-+		break;
-+	}
-+	spin_unlock(&acpi_res_lock);
-+
-+	if (clash) {
-+		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
-+			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
-+			       " conflicts with ACPI region %s"
-+			       " [0x%llx-0x%llx]\n",
-+			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
-+			       ? KERN_WARNING : KERN_ERR,
-+			       ioport ? "I/O" : "Memory", res->name,
-+			       (long long) res->start, (long long) res->end,
-+			       res_list_elem->name,
-+			       (long long) res_list_elem->start,
-+			       (long long) res_list_elem->end);
-+			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
-+		}
-+		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
-+			return -EBUSY;
-+	}
-+	return 0;
-+}
-+
-+int acpi_check_region(resource_size_t start, resource_size_t n,
-+		      const char *name)
-+{
-+	struct resource res = {
-+		.start = start,
-+		.end   = start + n - 1,
-+		.name  = name,
-+		.flags = IORESOURCE_IO,
-+	};
-+
-+	return acpi_check_resource_conflict(&res);
-+}
-+EXPORT_SYMBOL(acpi_check_region);
-+
-+int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-+		      const char *name)
-+{
-+	struct resource res = {
-+		.start = start,
-+		.end   = start + n - 1,
-+		.name  = name,
-+		.flags = IORESOURCE_MEM,
-+	};
-+
-+	return acpi_check_resource_conflict(&res);
-+
-+}
-+EXPORT_SYMBOL(acpi_check_mem_region);
-+
- /*
-  * Acquire a spinlock.
-  *
-@@ -1307,10 +1442,46 @@ acpi_status
- acpi_os_validate_address (
-     u8                   space_id,
-     acpi_physical_address   address,
--    acpi_size               length)
-+    acpi_size               length,
-+    char *name)
+ /* Check for resource conflicts between ACPI OperationRegions and native
+  * drivers */
+-static int acpi_check_resource_conflict(struct resource *res)
++int acpi_check_resource_conflict(struct resource *res)
  {
-+	struct acpi_res_list *res;
-+	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-+		return AE_OK;
- 
--    return AE_OK;
-+	switch (space_id) {
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+		/* Only interference checks against SystemIO and SytemMemory
-+		   are needed */
-+		res = kzalloc(sizeof(struct acpi_res_list), GFP_KERNEL);
-+		if (!res)
-+			return AE_OK;
-+		/* ACPI names are fixed to 4 bytes, still better use strlcpy */
-+		strlcpy(res->name, name, 5);
-+		res->start = address;
-+		res->end = address + length - 1;
-+		res->resource_type = space_id;
-+		spin_lock(&acpi_res_lock);
-+		list_add(&res->resource_list, &resource_list_head);
-+		spin_unlock(&acpi_res_lock);
-+		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
-+			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+			 ? "SystemIO" : "System Memory",
-+			 (unsigned long long)res->start,
-+			 (unsigned long long)res->end,
-+			 res->name);
-+		break;
-+	case ACPI_ADR_SPACE_PCI_CONFIG:
-+	case ACPI_ADR_SPACE_EC:
-+	case ACPI_ADR_SPACE_SMBUS:
-+	case ACPI_ADR_SPACE_CMOS:
-+	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
-+	case ACPI_ADR_SPACE_DATA_TABLE:
-+	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-+		break;
-+	}
-+	return AE_OK;
+ 	struct acpi_res_list *res_list_elem;
+ 	int ioport;
+@@ -1211,6 +1211,7 @@ static int acpi_check_resource_conflict(
+ 	}
+ 	return 0;
  }
++EXPORT_SYMBOL(acpi_check_resource_conflict);
  
- #endif
-diff -puN include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of include/acpi/acpiosxf.h
---- a/include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of
-+++ a/include/acpi/acpiosxf.h
-@@ -240,8 +240,8 @@ acpi_status acpi_os_validate_interface(c
- acpi_status acpi_osi_invalidate(char* interface);
- 
- acpi_status
--acpi_os_validate_address(u8 space_id,
--			 acpi_physical_address address, acpi_size length);
-+acpi_os_validate_address(u8 space_id, acpi_physical_address address,
-+			 acpi_size length, char *name);
- 
- u64 acpi_os_get_timer(void);
- 
-diff -puN include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of include/linux/acpi.h
---- a/include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name)
+diff -puN include/linux/acpi.h~export-acpi_check_resource_conflict include/linux/acpi.h
+--- a/include/linux/acpi.h~export-acpi_check_resource_conflict
 +++ a/include/linux/acpi.h
-@@ -223,6 +223,11 @@ extern int pnpacpi_disabled;
+@@ -25,6 +25,7 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+ 
++#include <linux/ioport.h>	/* for struct resource */
+ 
+ #ifdef	CONFIG_ACPI
+ 
+@@ -223,6 +224,8 @@ extern int pnpacpi_disabled;
  #define PXM_INVAL	(-1)
  #define NID_INVAL	(-1)
  
-+int acpi_check_region(resource_size_t start, resource_size_t n,
-+		      const char *name);
-+int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-+		      const char *name);
++int acpi_check_resource_conflict(struct resource *res);
 +
- #else	/* CONFIG_ACPI */
- 
- static inline int acpi_boot_init(void)
-@@ -235,5 +240,17 @@ static inline int acpi_boot_table_init(v
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+@@ -240,6 +243,11 @@ static inline int acpi_boot_table_init(v
  	return 0;
  }
  
-+static inline int acpi_check_region(resource_size_t start, resource_size_t n,
-+				    const char *name)
++static inline int acpi_check_resource_conflict(struct resource *res)
 +{
 +	return 0;
 +}
 +
-+static inline int acpi_check_mem_region(resource_size_t start,
-+					resource_size_t n, const char *name)
-+{
-+	return 0;
-+}
-+
- #endif	/* !CONFIG_ACPI */
- #endif	/*_LINUX_ACPI_H*/
+ static inline int acpi_check_region(resource_size_t start, resource_size_t n,
+ 				    const char *name)
+ {
 _
