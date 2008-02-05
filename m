@@ -1,76 +1,154 @@
-From: Roel Kluin <12o3l@tiscali.nl>
-Subject: Re: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test if (level
- & TP_EC_FAN_FULLSPEED)
-Date: Tue, 05 Feb 2008 09:34:54 +0100
-Message-ID: <47A81FAE.2090709@tiscali.nl>
-References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net>
+From: "Thomas, Sujith" <sujith.thomas@intel.com>
+Subject: RE: The new thermal management sysfs class, and hwmon
+Date: Tue, 5 Feb 2008 15:44:19 +0530
+Message-ID: <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>
+References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out0.tiscali.nl ([195.241.79.175]:55910 "EHLO
-	smtp-out0.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754535AbYBEIfD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 03:35:03 -0500
-In-Reply-To: <20080205050504.GB30670@khazad-dum.debian.net>
+Received: from mga02.intel.com ([134.134.136.20]:9797 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754701AbYBEKO6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 05:14:58 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20080203175006.GB9159@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Roland Dreier <rdreier@cisco.com>, len.brown@intel.com, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, stable@kernel.org, Greg KH <greg@kroah.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>
 
-Henrique de Moraes Holschuh wrote:
-> On Tue, 05 Feb 2008, Roel Kluin wrote:
->> Roland Dreier wrote:
->>>  >                 /* safety net should the EC not support AUTO
->>>  >                  * or FULLSPEED mode bits and just ignore them */
->>>  >                 if (level & TP_EC_FAN_FULLSPEED)
->>>  >                         level |= 7;     /* safety min speed 7 */
->>>  >                 else if (level & TP_EC_FAN_FULLSPEED)
->>>  >                         level |= 4;     /* safety min speed 4 */
->>>  > 
->>>  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
->>>  > this be replaced by
->>>
->>> Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
->>> (based on the comment).
->> Thanks Roland, for your info
->>
->> based on the comments in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad,
->> I think this should be modified like below:
->>
->> ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
->> The Linux ThinkPad community is not positive that all ThinkPads that do
->> HFSP EC fan control do implement full-speed and auto modes, some of the
->> earlier ones supporting HFSP might not.
->>
->> If the EC ignores the AUTO or FULL-SPEED bits, it will pay attention to the
->> lower three bits that set the fan level. And as thinkpad-acpi was leaving
->> these set to zero, it would stop(!) the fan, which is Not A Good Thing.
->> So, as a safety net, we now make sure to also set the fan level part of the
->> HFSP register to speed 7 for full-speed, and a minimum of speed 4 for auto
->> mode.
->> --
->> second TP_EC_FAN_FULLSPEED should be P_EC_FAN_AUTO
->>
->>
->> Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
->> ---
->> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
->> index cf56647..3c323fe 100644
->> --- a/drivers/misc/thinkpad_acpi.c
->> +++ b/drivers/misc/thinkpad_acpi.c
->> @@ -4138,7 +4138,7 @@ static int fan_set_level(int level)
->>  		 * or FULLSPEED mode bits and just ignore them */
->>  		if (level & TP_EC_FAN_FULLSPEED)
->>  			level |= 7;	/* safety min speed 7 */
->> -		else if (level & TP_EC_FAN_FULLSPEED)
->> +		else if (level & TP_EC_FAN_AUTO)
->>  			level |= 4;	/* safety min speed 4 */
->>  
->>  		if (!acpi_ec_write(fan_status_offset, level))
-> 
-> ACK.  This needs to be sent to stable as well.  I think both 2.6.22 and
-> 2.6.23 need this patch.
-> 
 
-CC stable@kernel.org
+
+> -----Original Message-----
+> From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
+> Sent: Sunday, February 03, 2008 11:20 PM
+> To: Mark M. Hoffman
+> Cc: Zhang, Rui; linux-acpi@vger.kernel.org; lm-sensors@lm-sensors.org;
+> Jean Delvare; Len Brown; Thomas, Sujith
+> Subject: Re: The new thermal management sysfs class, and hwmon
+> 
+> On Sun, 03 Feb 2008, Mark M. Hoffman wrote:
+> > * Zhang Rui <rui.zhang@intel.com> [2008-02-03 17:31:12 +0800]:
+> > > On Sun, 2008-02-03 at 10:26 +0800, Henrique de Moraes Holschuh
+wrote:
+> > > > And the two sysfs ABIs are incompatible.  The ACPI one uses
+> > > > low-precision units, (temperature in 10^0 degrees Celcius),
+while
+> > > > the hwmon ABI uses medium precision units (10^-3 degrees
+Celcius),
+> > > > for example.  There is also no tachometer feedback for fans,
+etc.
+> >
+> > > Yes, currently ACPI is the only user of the thermal sysfs I/F. We
+can
+> > > add new sys I/F if someone really need it.
+> 
+> I would really appreciate if the thermal zone ABI used a subset of the
+> hwmon
+> ABI.  There is absolutely no reason to have one return data in 10^-3 C
+> while
+> the other returns data in 10^0 C, for example.  IMO, if both ABIs need
+> thermal readings, both should use the same attribute, defined in the
+same
+> way.  The same goes for other attributes in the two interfaces that
+share
+> a
+> common concept.
+1)Hwmon interface have other sensors for voltage and current measurement
+as well in addition to thermal sensors. Though this interface is generic
+from a "monitoring" perspective, it lacks some hierarchy representation.
+For eg. it lacks folder structure to store the list of devices
+associated with a thermal sensor. This hierarchy information is very
+much required by application to make an intelligent decision. 
+2) It is missing interfaces for passive device control.(CPU- T
+states,LCD,Memory controller, etc..)
+3) The solution should work on any ACPI based system or any other
+thermal model for that matter which follows the basic concept. (The
+model being : There are devices associated with sensors and if we
+"control" the device, the temperature of the sensor will come down).
+4)What I have understood is that Hwmon supports only Smbus and I2C based
+sensors. It doesn't have support for EC based sensors at this point of
+time.
+5)If I am not wrong, Hwmon lacks support for programming AUX trip points
+and trigger events based on that.
+
+These were all the facts which lead us to take a different route than
+hwmon.
+> 
+> > > > IMHO, we can probably do better than two incompatible sysfs ABIs
+for
+> > > > what ammounts to the same functionality for many userspace
+> > > > applications (i.e.  thermal monitor apps, and fan control and
+> > > > monitoring apps).  And it would be really neat if the new
+thermal
+> > > > management stuff could just plug into the already available
+> > > > temperature sensors and fan controllers that follow the hwmon
+sysfs
+> > > > ABI.
+> >
+> > > Yes, we do want to use the hwmon sysfs ABI at the beginning.
+> > > But there are several gaps that making us turn to a new thermal
+sysfs
+> > > class. And the biggest one is that hwmon does NOT support ACPI
+passive
+> > > cooling devices like processor, video, etc. intel menlow platform
+even
+> > > has a ACPI memory controller device which can be throttled by
+changing
+> > > the bandwidth. These are quite different from the hwmon's
+fan-based
+> > > thermal management, right?
+> >
+> > The hwmon class ABI is more about exposing the functionality that is
+> > available on various devices than it is about accomplishing some
+> > specific task like "thermal management".  That said...
+> 
+> But a lot of chips *can* do thermal management, and there is an ABI
+for it
+> on hwmon (but it is not easy to use, I started messing with lm85 to do
+so
+> and dropped the ball because the in-chip ABI was not so easy to map to
+the
+> hwmon ABI and I got sidetracked).
+> 
+> We could reshape that ABI into something that could be useful for all
+> monitoring chips AND for both ACPI active and passive cooling control.
+> 
+> > I don't see why the hwmon class ABI couldn't be extended to
+accomodate
+> > CPU throttling, etc.  But I also don't see that it hurts anything to
+put
+> > these controls somewhere else in sysfs.
+> 
+> Agreed.  However, *duplicating* what is already in hwmon elsewhere is
+not
+> fun.  Please reconsider.  I'd like to see passive cooling (heck, the
+> entire
+> ACPI v3.0 thermal model, if needed) added to hwmon, that will enhance
+> hwmon
+> to be even more generic, and we all benefit from that.
+> 
+> > I *do* think that any driver which reports temperature, etc. should
+> > expose those measurements through the hwmon class - even if they're
+> > exposed somewhere else as well.
+> 
+> While I *do* think if we have to expose them twice, we are doing
+something
+> wrong :-)
+IMO the scope of hwmon is to monitor/report out temperature, voltage ,
+current etc of the devices/platform . But the scope of these patches is
+purely thermal management for a generic thermal model. As a first step
+we have made it work for ACPI thermal model. 
+The only duplication which I can see of is in the "reporting of
+temperature", which is quite reasonable for a thermal management module
+to have.
+
+:-Sujith
+> 
+> --
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
