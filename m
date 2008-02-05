@@ -1,392 +1,192 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 3/5] [RFC] tc1100-wmi: Add driver for HP Compaq TC1100 Tablets
-Date: Tue, 05 Feb 2008 02:17:15 +0000
-Message-ID: <20080205021715.4422.40571.stgit@pacifica>
-References: <20080205021658.4422.83165.stgit@pacifica>
+Subject: [PATCH 5/5] ACPI: WMI: Add initial documentation
+Date: Tue, 5 Feb 2008 02:25:58 +0000
+Message-ID: <200802050225.58727.carlos@strangeworlds.co.uk>
+References: <20080205021658.4422.83165.stgit@pacifica> <20080205021727.4422.67605.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:60863 "EHLO
-	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756130AbYBECVB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Feb 2008 21:21:01 -0500
-In-Reply-To: <20080205021658.4422.83165.stgit@pacifica>
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:48319 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022AbYBEC0H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Feb 2008 21:26:07 -0500
+In-Reply-To: <20080205021727.4422.67605.stgit@pacifica>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Jamey Hicks <jamey.hicks@nokia.com>, Joshua Wise <joshua@joshuawise.com>
+Cc: Len Brown <lenb@kernel.org>
 
-This is based on the 2004 out-of-tree work of Jamey Hicks, to add
-support via WMI for controlling the jog dial and wireless on these
-tablets.
+ACPI: WMI: Add initial documentation
 
-v1:
+Add initial documentation for WMI-ACPI, giving basic information for WMI
+kernel and userspace driver writers.
 
-Original release
+===
+ChangeLog
 
-v2:
+v1 (2007-11-28)
 
-As per Joshua Wise's comments, change bluetooth to jogdial (an error from
-the original driver).
+Initial version
+
+v2 (2007-12-08)
+
+Update with latest changes to sysfs interface
+
+v3 (2008-02-05)
+
+Update
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 CC: Len Brown <lenb@kernel.org>
-CC: Matthew Garrett <mjg59@srcf.ucam.org>
-CC: Jamey Hicks <jamey.hicks@nokia.com>
-CC: Joshua Wise <joshua@joshuawise.com>
 ---
+Added SOB this time... (and a few trivial fixes)
 
- MAINTAINERS               |    5 +
- drivers/misc/Kconfig      |    9 +
- drivers/misc/Makefile     |    1 
- drivers/misc/tc1100-wmi.c |  290 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 305 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/tc1100-wmi.c
+This replaces: [PATCH 5/5] ACPI: WMI: Add documentation
+
+(AKA - I shouldn't send a patch series out at 2am...)
+
+ Documentation/acpi/wmi.txt |  131 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 131 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/acpi/wmi.txt
 
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 12bda1b..2685c06 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1803,6 +1803,11 @@ P:	Jaroslav Kysela
- M:	perex@perex.cz
- S:	Maintained
- 
-+HP COMPAQ TC1100 TABLET WMI EXTRAS DRIVER
-+P:	Carlos Corbacho
-+M:	carlos@strangeworlds.co.uk
-+S:	Odd Fixes
-+
- HPET:	High Precision Event Timers driver (hpet.c)
- P:	Clemens Ladisch
- M:	clemens@ladisch.de
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 9f20faa..78cd338 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -142,6 +142,15 @@ config FUJITSU_LAPTOP
- 
- 	  If you have a Fujitsu laptop, say Y or M here.
- 
-+config TC1100_WMI
-+	tristate "HP Compaq TC1100 Tablet WMI Extras"
-+	depends on X86 && !X86_64
-+	depends on ACPI
-+	depends on ACPI_WMI
-+	---help---
-+	  This is a driver for the WMI extensions (wireless and bluetooth power
-+	  control) of the HP Compaq TC1100 tablet.
-+
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 7adf02f..1f41654 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
- obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
- obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
- obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
-+obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_LKDTM)		+= lkdtm.o
- obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
- obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
-diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
+diff --git a/Documentation/acpi/wmi.txt b/Documentation/acpi/wmi.txt
 new file mode 100644
-index 0000000..f25e4c9
+index 0000000..4d243aa
 --- /dev/null
-+++ b/drivers/misc/tc1100-wmi.c
-@@ -0,0 +1,290 @@
-+/*
-+ *  HP Compaq TC1100 Tablet WMI Extras Driver
-+ *
-+ *  Copyright (C) 2007 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+ *  Copyright (C) 2004 Jamey Hicks <jamey.hicks@hp.com>
-+ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-+ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
++++ b/Documentation/acpi/wmi.txt
+@@ -0,0 +1,131 @@
++ACPI-WMI mapping driver
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <acpi/acpi.h>
-+#include <acpi/actypes.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/platform_device.h>
++Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
 +
-+#define GUID "C364AC71-36DB-495A-8494-B439D472A505"
++Updated: 5th February 2008
 +
-+#define TC1100_INSTANCE_WIRELESS		1
-+#define TC1100_INSTANCE_JOGDIAL		2
++1) About this guide
 +
-+#define TC1100_LOGPREFIX "tc1100-wmi: "
-+#define TC1100_INFO KERN_INFO TC1100_LOGPREFIX
++This guide is a basic introduction on how to interact with the ACPI-WMI mapper
++driver in the kernel - it presumes you already have a basic knowledge of
++ACPI-WMI, ACPI and the hardware you are writing the driver for.
 +
-+MODULE_AUTHOR("Jamey Hicks, Carlos Corbacho");
-+MODULE_DESCRIPTION("HP Compaq TC1100 Tablet WMI Extras");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
++2) What is ACPI-WMI
 +
-+static int tc1100_probe(struct platform_device *device);
-+static int tc1100_remove(struct platform_device *device);
-+static int tc1100_suspend(struct platform_device *device, pm_message_t state);
-+static int tc1100_resume(struct platform_device *device);
++At its simplest, ACPI-WMI is a proprietary extension to the ACPI specification
++from Microsoft to allow WMI (their implementation of WBEM) to access
++instrumentation data and methods in ACPI from userspace, via the ACPI _HID
++device PNP0C14.
 +
-+static struct platform_driver tc1100_driver = {
-+	.driver = {
-+		.name = "tc1100-wmi",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = tc1100_probe,
-+	.remove = tc1100_remove,
-+	.suspend = tc1100_suspend,
-+	.resume = tc1100_resume,
-+};
++3) What is the ACPI-WMI mapper
 +
-+static struct platform_device *tc1100_device;
++The Linux ACPI-WMI driver is the implementation of this mapper for Linux.
 +
-+struct tc1100_data {
-+	u32 wireless;
-+	u32 jogdial;
-+};
++NOTE: The mapper does not do anything itself with the ACPI-WMI devices - it
++simply makes their functionality available to other drivers and userspace.
 +
-+static struct tc1100_data suspend_data;
++4) Implementation
 +
-+/* --------------------------------------------------------------------------
-+				Device Management
-+   -------------------------------------------------------------------------- */
++A general note:
 +
-+static int get_state(u32 *out, u8 instance)
-+{
-+	u32 tmp;
-+	acpi_status status;
-+	struct acpi_buffer result = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
++ACPI-WMI has no knowledge of the size of the data blocks passed to/ from
++ACPI-WMI - this is not encoded in the DSDT, and is usually only available in
++the form of a MOF file. If this is not available, you will need to analyze
++the DSDT to get this information.
 +
-+	if (!out)
-+		return -EINVAL;
++You will therefore need to know in advance the size of any data structures
++to handle them.
 +
-+	if (instance > 2)
-+		return -ENODEV;
++Userspace:
 +
-+	status = wmi_query_block(GUID, instance, &result);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
++ACPI-WMI is exposed to userspace via sysfs and netlink. Data and methods are
++exposed through sysfs, events are sent via netlink.
 +
-+	obj = (union acpi_object *) result.pointer;
-+	if (obj && obj->type == ACPI_TYPE_BUFFER &&
-+		obj->buffer.length == sizeof(u32)) {
-+		tmp = *((u32 *) obj->buffer.pointer);
-+	} else {
-+		tmp = 0;
-+	}
++Accessing ACPI-WMI directly through sysfs is generally not recommended -
++ideally, this should be done by a userspace library, which could also deal
++with the netlink events.
 +
-+	if (result.length > 0 && result.pointer)
-+		kfree(result.pointer);
++The sysfs interface is in /sys/devices/virtual/wmi for WMI methods and data, as
++follows:
 +
-+	switch (instance) {
-+	case TC1100_INSTANCE_WIRELESS:
-+		*out = (tmp == 3) ? 1 : 0;
-+		return 0;
-+	case TC1100_INSTANCE_JOGDIAL:
-+		*out = (tmp == 1) ? 1 : 0;
-+		return 0;
-+	default:
-+		return -ENODEV;
-+	}
-+}
++/sys/devices/virtual/wmi/
++|
++|-> <GUID>/
++ |-> type (method, data, event)
 +
-+static int set_state(u32 *in, u8 instance)
-+{
-+	u32 value;
-+	acpi_status status;
-+	struct acpi_buffer input;
++Method & data blocks
++ |-> instance (instance to execute)
++ |-> instance_count (read only - maximum number of instances available)
++ |-> data (binary data file - write input data to file, read file
++           to execute method and/ or retrieve data).
 +
-+	if (!in)
-+		return -EINVAL;
++To read/ write a data block, instance must be set first.
 +
-+	if (instance > 2)
-+		return -ENODEV;
++Method only
++ |-> method_id (write value of method id to execute)
 +
-+	switch (instance) {
-+	case TC1100_INSTANCE_WIRELESS:
-+		value = (*in) ? 1 : 2;
-+		break;
-+	case TC1100_INSTANCE_JOGDIAL:
-+		value = (*in) ? 0 : 1;
-+		break;
-+	default:
-+		return -ENODEV;
-+	}
++To execute a method, instance and method_id must be set first.
 +
-+	input.length = sizeof(u32);
-+	input.pointer = &value;
++Events - passed to userspace via netlink. However, the extra WMI data
++associated with an event is exposed through sysfs.
 +
-+	status = wmi_set_block(GUID, instance, &input);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
++ |-> notification (ACPI event value)
++ |-> data (binary data file - WMI data associated with the event)
 +
-+	return 0;
-+}
++Kernel interface:
 +
-+/* --------------------------------------------------------------------------
-+				FS Interface (/sys)
-+   -------------------------------------------------------------------------- */
++For drivers that want to bypass userspace (either because WBEM is overkill,
++or a userspace application is not really appropriate for want you want to do),
++and talk directly to ACPI-WMI, then the mapper also exports functions
++to do this - these are essentially thin wrappers around ACPI, so if you are
++familiar with writing an ACPI driver, then writing a WMI driver is not much more
++of a stretch.
 +
-+/*
-+ * Read/ write bool sysfs macro
-+ */
-+#define show_set_bool(value, instance) \
-+static ssize_t \
-+show_bool_##value(struct device *dev, struct device_attribute *attr, \
-+	char *buf) \
-+{ \
-+	u32 result; \
-+	acpi_status status = get_state(&result, instance); \
-+	if (ACPI_SUCCESS(status)) \
-+		return sprintf(buf, "%d\n", result); \
-+	return sprintf(buf, "Read error\n"); \
-+} \
-+\
-+static ssize_t \
-+set_bool_##value(struct device *dev, struct device_attribute *attr, \
-+	const char *buf, size_t count) \
-+{ \
-+	u32 tmp = simple_strtoul(buf, NULL, 10); \
-+	acpi_status status = set_state(&tmp, instance); \
-+		if (ACPI_FAILURE(status)) \
-+			return -EINVAL; \
-+	return count; \
-+} \
-+static DEVICE_ATTR(value, S_IWUGO | S_IRUGO | S_IWUSR, \
-+	show_bool_##value, set_bool_##value);
++The exported ACPI-WMI functions can be found in <linux/acpi.h>
 +
-+show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
-+show_set_bool(jogdial, TC1100_INSTANCE_JOGDIAL);
++The most important differences between ACPI and WMI drivers are:
 +
-+static void remove_fs(void)
-+{
-+	device_remove_file(&tc1100_device->dev, &dev_attr_wireless);
-+	device_remove_file(&tc1100_device->dev, &dev_attr_jogdial);
-+}
++A) WMI based drivers should be platform drivers, not ACPI drivers.
 +
-+static int add_fs(void)
-+{
-+	int ret;
++B) ACPI details such as handles and/ or path names are hidden; you use GUIDs as
++   the unique identifier to call methods instead (you don't need to care either
++   about multiple PNP0C14 devices existing - the GUIDs are always unique, and
++   these are what you will work with).
 +
-+	ret = device_create_file(&tc1100_device->dev, &dev_attr_wireless);
-+	if (ret)
-+		goto add_sysfs_error;
++C) In your probe() function, you should use wmi_has_guid() to look for the
++   GUID(s) you need for your driver.
 +
-+	ret = device_create_file(&tc1100_device->dev, &dev_attr_jogdial);
-+	if (ret)
-+		goto add_sysfs_error;
++For the in kernel interface, the following functions are available:
 +
-+	return ret;
++wmi_evaluate_method():
 +
-+add_sysfs_error:
-+	remove_fs();
-+	return ret;
-+}
++Evaluate a WMI method.
 +
-+/* --------------------------------------------------------------------------
-+				Driver Model
-+   -------------------------------------------------------------------------- */
++wmi_query_block():
 +
-+static int tc1100_probe(struct platform_device *device)
-+{
-+	int result = 0;
++Return the contents of a WMI data block.
 +
-+	result = add_fs();
-+	return result;
-+}
++wmi_set_block()
++
++Set the contents of a WMI data block.
++
++wmi_install_notify_handler():
++wmi_remove_notify_handler():
++
++Install and/ or remove a handler for a WMI event - one handler per GUID.
++
++wmi_get_event_data():
++
++Return the data associated with a given WMI event.
++
++wmi_has_guid():
++
++Returns true if a given GUID is available on the system.
++
++wmi_get_device():
++
++Return a pointer to the virtual device associated with a GUID. If you need to
++set a parent device (e.g. for an input device), use this.
 +
 +
-+static int tc1100_remove(struct platform_device *device)
-+{
-+	remove_fs();
-+	return 0;
-+}
-+
-+static int tc1100_suspend(struct platform_device *dev, pm_message_t state)
-+{
-+	int ret;
-+
-+	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
-+	if (ret)
-+		return ret;
-+
-+	ret = get_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
-+	if (ret)
-+		return ret;
-+
-+	return ret;
-+}
-+
-+static int tc1100_resume(struct platform_device *dev)
-+{
-+	int ret;
-+
-+	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
-+	if (ret)
-+		return ret;
-+
-+	ret = set_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
-+	if (ret)
-+		return ret;
-+
-+	return ret;
-+}
-+
-+static int __init tc1100_init(void)
-+{
-+	int result = 0;
-+
-+	if (!wmi_has_guid(GUID))
-+		return -ENODEV;
-+
-+	result = platform_driver_register(&tc1100_driver);
-+	if (result)
-+		return result;
-+
-+	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
-+	platform_device_add(tc1100_device);
-+
-+	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras loaded\n");
-+
-+	return result;
-+}
-+
-+static void __exit tc1100_exit(void)
-+{
-+	platform_device_del(tc1100_device);
-+	platform_driver_unregister(&tc1100_driver);
-+
-+	printk(TC1100_INFO "HP Compaq TC1100 Tablet WMI Extras unloaded\n");
-+}
-+
-+module_init(tc1100_init);
-+module_exit(tc1100_exit);
-
++[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
