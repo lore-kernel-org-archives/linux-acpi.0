@@ -1,43 +1,42 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: acer aspire 5315, Ubuntu 2.6.22-14-generic, ACPI Exception (processor_core-0783): AE_NOT_FOUND
-Date: Tue, 5 Feb 2008 12:34:17 -0500
-Message-ID: <200802051234.17442.lenb@kernel.org>
-References: <de8605510801271842pc2a690dnd603c6b9faad88ec@mail.gmail.com> <200802040054.49916.lenb@kernel.org> <de8605510802040955v2b11ee4ai950f7cc3839f9148@mail.gmail.com>
+Subject: Re: MAcBook Pro DMI info
+Date: Tue, 5 Feb 2008 13:22:31 -0500
+Message-ID: <200802051322.31624.lenb@kernel.org>
+References: <20080131081821.89030@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:48637 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:48642 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756742AbYBESWp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 13:22:45 -0500
-In-Reply-To: <de8605510802040955v2b11ee4ai950f7cc3839f9148@mail.gmail.com>
+	id S1759419AbYBESWx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 13:22:53 -0500
+In-Reply-To: <20080131081821.89030@gmx.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ibiltari <ibiltari@gmail.com>
+To: der flooh <derflooh@gmx.de>
 Cc: linux-acpi@vger.kernel.org
 
-On Monday 04 February 2008 12:55, Ibiltari wrote:
-> Hi, i have made some experiments, and yes i can confirm that
-> (apparently) there is no difference with or without acpi_OSI=!linux,
-> everything works the same and dmesg looks almost the same.
-> 
-> Thanks for your support
-> 
-> PD: I'm curious about something and i think you can answer, sorry if
-> this is not the right place.
-> 
-> I normally get this error :
-> [   19.553643] ACPI Exception (processor_core-0783): AE_NOT_FOUND,
-> Processor Device is not present [20070126]
-> 
-> but everything works anyway 
+On Thursday 31 January 2008 03:18, der flooh wrote:
+> Jan 31 08:40:41 elm ACPI: DMI System Vendor: Apple Inc.
 
-Please look here:
+Thanks for the dmidecode.
+Looks like we should just match on the string "Apple",
+since they seem to have cut over from "Apple Computer, Inc."
+to "Apple Inc."
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8570
+btw. if you can send me the output from acpidump, I'd
+like to look it over, since I've not see the MacBookPro3,1
+version yet.
 
 thanks,
 -Len
+
+> Jan 31 08:40:41 elm ACPI: DMI Product Name: MacBookPro3,1
+> Jan 31 08:40:41 elm ACPI: DMI Product Version: 1.0
+> Jan 31 08:40:41 elm ACPI: DMI Board Name: Mac-F4238BC8
+> Jan 31 08:40:41 elm ACPI: DMI BIOS Vendor: Apple Inc.
+> Jan 31 08:40:41 elm ACPI: DMI BIOS Date: 09/26/07
+> 
