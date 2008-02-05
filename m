@@ -1,89 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/ counters
-Date: Tue, 5 Feb 2008 18:12:09 -0500
-Message-ID: <200802051812.09228.lenb@kernel.org>
-References: <200802050230.10873.lenb@kernel.org> <20080205221805.GC6950@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [X86 ACPI SMP] system slow after cold start if processor module
+ loaded
+Date: Tue, 5 Feb 2008 15:14:51 -0800
+Message-ID: <20080205151451.a47535c2.akpm@linux-foundation.org>
+References: <Pine.LNX.4.64.0802021558340.5546@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:33765 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756298AbYBEXMc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 18:12:32 -0500
-In-Reply-To: <20080205221805.GC6950@suse.de>
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36855 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755615AbYBEXPW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 18:15:22 -0500
+In-Reply-To: <Pine.LNX.4.64.0802021558340.5546@axis700.grange>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 05 February 2008 17:18, Greg KH wrote:
-> On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
-> > # cat /sys/firmware/acpi/interrupts/summary
-> > pm_timer     0
-> > glbl_lock    0
-> > power_btn    0
-> > sleep_btn    0
-> > rtc          0
-> > gpe00    0
-...
-> > gpe1F    0
-> > gpe_hi    0
-> > gpe_total   63
-> > acpi_irq    63
+On Sat, 2 Feb 2008 16:05:41 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+> Hi
 > 
-> Eeek!  Why?  What's wrong with individual files here?
-
-My expectation is that this is a shell interface for debugging,
-not an API for programs.  ala /proc/interrupts.
-
-if we have 40 individual files, each with a number in it,
-it is less convenient to cat the file and paste the results
-into an email or bug report and have the receiver easily
-see what what count goes with what file -- or is there
-a version of cat that prints the file name before
-the contents of each file?
-
-I've seen 
-more * | cat
-but one has to wonder why an interface would be built
-to make something so simple not be simple.
-
-> What's to ensure 
-> that you aren't going to overflow your buffer?
-
-Good question.  What's to ensure we don't overflow it
-when I print any other random string?
-Who allocates it and how big is it?
-
-> There's a reason we 
-> don't have the seq file interface for sysfs, to prevent this very kind
-> of thing...
-
-If sysfs can't handle it, I suppose I could instead
-print the needed information to the console....
-
-> > +	/*
-> > +	 * General Purpose Events
-> > +	 */
-> > +	for (i = 0; i < number_of_gpes; i++) {
-> > +		count += sprintf(buf + count, "gpe%02X %4d\n",
-> > +			i, acpi_gpe_counters[i]);
-> > +	}
+> Don't know if this should be considered a bug-report, or just another ACPI 
+> bug on my system. In any case, if the CONFIG_ACPI_PROCESSOR is enabled, on 
+> first boot after a power off the system is slow. Not like if only 1 of 2 
+> CPUs actually was running, much slower yet. Respectively, if the module is 
+> built into the kernel, it is slow more or less from the beginning - I 
+> guess, from the moment, when the module is initialized, if built as a 
+> module, it is slow after the module gets loaded. Also funny, it is only 
+> slow on the first boot, after a reboot into the same kernel it runs 
+> normally. The system is a dual P-II@400MHz, Compaq AP400. It is known to 
+> have various ACPI bugs, so, this is just another one of them. No idea 
+> whether or not this shall and can be fixed. At least wanted to document it 
+> in case someone has a similar problem.
 > 
-> Nope, no error checking, fun chance of blowing the memory buffer :(
 
-you're right, there is rumour of a future machine
-with more than 32 GPEs...
+(added linux-acpi)
 
-> Please change the interface to not do this.
-> 
-> Oh, and for every new sysfs file, you need a Documentation/ABI/
-> addition, please also add that.
+If nothing happens with this (likely) then please raise a report against
+acpi at bugzilla.kernel.org, thanks.
 
-ok.
-
-thanks,
--Len
