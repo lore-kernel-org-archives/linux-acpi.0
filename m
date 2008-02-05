@@ -1,518 +1,474 @@
-From: Eric Cooper <ecc@cmu.edu>
-Subject: [PATCH] Hotkey driver for the Asus Eee PC
-Date: Tue, 5 Feb 2008 13:30:54 -0500
-Message-ID: <20080205183054.GB19938@stratocaster.home>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI DMI Dell R200
+Date: Tue, 5 Feb 2008 14:20:27 -0500
+Message-ID: <200802051420.27503.lenb@kernel.org>
+References: <47A63D17.9070203@norm.lu> <200802040045.42996.lenb@kernel.org> <47A714DD.5040703@norm.lu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from CHOKECHERRY.SRV.CS.CMU.EDU ([128.2.185.41]:65194 "EHLO
-	chokecherry.srv.cs.cmu.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750812AbYBESa4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 13:30:56 -0500
-Received: from stratocaster.home (c-24-3-147-134.hsd1.mn.comcast.net [24.3.147.134])
-	(authenticated bits=0)
-	by chokecherry.srv.cs.cmu.edu (8.13.6/8.13.6) with ESMTP id m15IUse8021339
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Tue, 5 Feb 2008 13:30:54 -0500 (EST)
-Received: from ecc by stratocaster.home with local (Exim 4.68)
-	(envelope-from <ecc@cmu.edu>)
-	id 1JMSZK-0005d7-7L
-	for linux-acpi@vger.kernel.org; Tue, 05 Feb 2008 13:30:54 -0500
+Received: from hera.kernel.org ([140.211.167.34]:56462 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753984AbYBETko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 14:40:44 -0500
+In-Reply-To: <47A714DD.5040703@norm.lu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Georges Toth <georges@norm.lu>, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-Signed-off-by: Eric Cooper <ecc@cmu.edu>
+On Monday 04 February 2008 08:36, Georges Toth wrote:
+> Len Brown wrote:
+> >> ACPI: BIOS _OSI(Linux) query ignored
+> >> ACPI: DMI System Vendor: Dell Inc.
+> >> ACPI: DMI Product Name: PowerEdge R200
+> >> ACPI: DMI Product Version:
+> >> ACPI: DMI Board Name: 0TY019
+> >> ACPI: DMI BIOS Vendor: Dell Inc.
+> >> ACPI: DMI BIOS Date: 10/24/2007
+> >> ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+> > 
+> > thanks, please send me the output from acpidump.
+> 
+> I've attached it
+> Let me know if you need anything else
+> 
 
----
- drivers/misc/Kconfig  |   10 +
- drivers/misc/Makefile |    1 +
- drivers/misc/eeepc.c  |  447 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 458 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/eeepc.c
+This DSDT shows that Dell BIOS writers know enough to be dangerous.
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index b1f9a40..8fd1ccb 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -251,4 +251,14 @@ config ATMEL_SSC
- 
- 	  If unsure, say N.
- 
-+config EEEPC
-+        tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
-+        depends on X86
-+        depends on ACPI
-+	depends on EXPERIMENTAL && !ACPI_ASUS
-+        ---help---
-+	  This driver supports the Fn-Fx keys on Eee PC laptops.
-+
-+	  If you have an Eee PC laptop, say Y or M here.
-+
- endif # MISC_DEVICES
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 87f2685..699b35c 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -17,3 +17,4 @@ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
- obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
- obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
- obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
-+obj-$(CONFIG_EEEPC)		+= eeepc.o
-diff --git a/drivers/misc/eeepc.c b/drivers/misc/eeepc.c
-new file mode 100644
-index 0000000..2e33117
---- /dev/null
-+++ b/drivers/misc/eeepc.c
-@@ -0,0 +1,447 @@
-+/*
-+ *  eepc_acpi.c - Asus Eee PC hotkey driver
-+ *
-+ *  Copyright (C) 2008 Eric Cooper <ecc@cmu.edu>
-+ *
-+ *  Based on asus_acpi.c as patched for the Eee PC by Asus:
-+ *  ftp://ftp.asus.com/pub/ASUS/EeePC/701/ASUS_ACPI_071126.rar
-+ *
-+ *  Copyright (C) 2002-2005 Julien Lerouge, 2003-2006 Karol Kozimor
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <acpi/acpi_drivers.h>
-+#include <acpi/acpi_bus.h>
-+#include <asm/uaccess.h>
-+
-+#define EEEPC_HOTK_NAME          "Eee PC Hotkey Driver"
-+#define EEEPC_HOTK_FILE          "eeepc"
-+#define EEEPC_HOTK_CLASS         "hotkey"
-+#define EEEPC_HOTK_DEVICE_NAME   "Hotkey"
-+#define EEEPC_HOTK_HID           "ASUS010"
-+
-+#define EEEPC_LOG	EEEPC_HOTK_FILE ": "
-+#define EEEPC_ERR	KERN_ERR EEEPC_LOG
-+#define EEEPC_WARNING	KERN_WARNING EEEPC_LOG
-+#define EEEPC_NOTICE	KERN_NOTICE EEEPC_LOG
-+#define EEEPC_INFO	KERN_INFO EEEPC_LOG
-+
-+/*
-+ * Definitions for Asus EeePC
-+ */
-+
-+#define	NOTIFY_WLAN_ON	0x10
-+
-+enum {
-+	DISABLE_ASL_WLAN = 0x0001,
-+	DISABLE_ASL_BLUETOOTH = 0x0002,
-+	DISABLE_ASL_IRDA = 0x0004,
-+	DISABLE_ASL_CAMERA = 0x0008,
-+	DISABLE_ASL_TV = 0x0010,
-+	DISABLE_ASL_GPS = 0x0020,
-+	DISABLE_ASL_DISPLAYSWITCH = 0x0040,
-+	DISABLE_ASL_MODEM = 0x0080,
-+	DISABLE_ASL_CARDREADER = 0x0100
-+};
-+
-+enum {
-+	CM_ASL_WLAN = 0,
-+	CM_ASL_BLUETOOTH,
-+	CM_ASL_IRDA,
-+	CM_ASL_1394,
-+	CM_ASL_CAMERA,
-+	CM_ASL_TV,
-+	CM_ASL_GPS,
-+	CM_ASL_DVDROM,
-+	CM_ASL_DISPLAYSWITCH,
-+	CM_ASL_PANELBRIGHT,
-+	CM_ASL_BIOSFLASH,
-+	CM_ASL_ACPIFLASH,
-+	CM_ASL_CPUFV,
-+	CM_ASL_CPUTEMPERATURE,
-+	CM_ASL_FANCPU,
-+	CM_ASL_FANCHASSIS,
-+	CM_ASL_USBPORT1,
-+	CM_ASL_USBPORT2,
-+	CM_ASL_USBPORT3,
-+	CM_ASL_MODEM,
-+	CM_ASL_CARDREADER,
-+	CM_ASL_LID
-+};
-+
-+const char *cm_getv[] = {
-+	"WLDG", NULL, NULL, NULL,
-+	"CAMG", NULL, NULL, NULL,
-+	NULL, "PBLG", NULL, NULL,
-+	"CFVG", NULL, NULL, NULL,
-+	"USBG", NULL, NULL, "MODG",
-+	"CRDG", "LIDG"
-+};
-+
-+const char *cm_setv[] = {
-+	"WLDS", NULL, NULL, NULL,
-+	"CAMS", NULL, NULL, NULL,
-+	"SDSP", "PBLS", "HDPS", NULL,
-+	"CFVS", NULL, NULL, NULL,
-+	"USBG", NULL, NULL, "MODS",
-+	"CRDS", NULL
-+};
-+
-+static unsigned int init_flag;
-+
-+/*
-+ * This is the main structure, we can use it to store useful information
-+ * about the hotk device
-+ */
-+struct eeepc_hotk {
-+	struct acpi_device *device;	/* the device we are in */
-+	acpi_handle handle;		/* the handle of the hotk device */
-+	u32 cm_supported;		/* the control methods supported
-+					   by this BIOS */
-+	u16 event_count[128];		/* count for each event */
-+};
-+
-+/* The actual device the driver binds to */
-+static struct eeepc_hotk *ehotk;
-+
-+/*
-+ * The hotkey driver declaration
-+ */
-+static int eeepc_hotk_add(struct acpi_device *device);
-+static int eeepc_hotk_remove(struct acpi_device *device, int type);
-+
-+static const struct acpi_device_id eee_device_ids[] = {
-+	{EEEPC_HOTK_HID, 0},
-+	{"", 0},
-+};
-+
-+static struct acpi_driver eeepc_hotk_driver = {
-+	.name = EEEPC_HOTK_NAME,
-+	.class = EEEPC_HOTK_CLASS,
-+	.ids = eee_device_ids,
-+	.ops = {
-+		.add = eeepc_hotk_add,
-+		.remove = eeepc_hotk_remove,
-+	},
-+};
-+
-+MODULE_AUTHOR("Julien Lerouge, Karol Kozimor, Eric Cooper");
-+MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
-+MODULE_LICENSE("GPL");
-+
-+/*
-+ * returns 1 if write is successful, otherwise 0.
-+ */
-+static int write_acpi_int(acpi_handle handle, const char *method, int val,
-+			  struct acpi_buffer *output)
-+{
-+	struct acpi_object_list params;
-+	union acpi_object in_obj;
-+	acpi_status status;
-+
-+	params.count = 1;
-+	params.pointer = &in_obj;
-+	in_obj.type = ACPI_TYPE_INTEGER;
-+	in_obj.integer.value = val;
-+
-+	status = acpi_evaluate_object(handle, (char *)method, &params, output);
-+	return (status == AE_OK);
-+}
-+
-+static int read_acpi_int(acpi_handle handle, const char *method, int *val)
-+{
-+	struct acpi_buffer output;
-+	union acpi_object out_obj;
-+	acpi_status status;
-+
-+	output.length = sizeof(out_obj);
-+	output.pointer = &out_obj;
-+	status = acpi_evaluate_object(handle, (char *) method, NULL, &output);
-+	*val = out_obj.integer.value;
-+	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
-+}
-+
-+static int parse_arg(const char *buf, unsigned long count, int *val)
-+{
-+	if (!count)
-+		return 0;
-+	if (count > 31)
-+		return -EINVAL;
-+	if (sscanf(buf, "%i", val) != 1)
-+		return -EINVAL;
-+	return count;
-+}
-+
-+static ssize_t store_proc(int cm, const char *buf, size_t count)
-+{
-+	int rv, value;
-+
-+	rv = parse_arg(buf, count, &value);
-+	if (rv > 0 && (ehotk->cm_supported & (0x1 << cm))) {
-+		const char *method = cm_setv[cm];
-+		if (method == NULL)
-+			return 0;
-+		if (!write_acpi_int(ehotk->handle, method, value, NULL))
-+			printk(EEEPC_WARNING "Error writing %s\n", method);
-+	}
-+	return rv;
-+}
-+
-+static ssize_t show_proc(int cm, char *buf)
-+{
-+	int value = -1;
-+
-+	if ((ehotk->cm_supported & (0x1 << cm))) {
-+		const char *method = cm_getv[cm];
-+		if (method == NULL)
-+			return 0;
-+		if (!read_acpi_int(ehotk->handle, method, &value))
-+			printk(EEEPC_WARNING "Error reading %s\n", method);
-+	}
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t real_store_init(struct device *dev,
-+			       struct device_attribute *attr,
-+			       const char *buf, size_t count)
-+{
-+	int rv, value;
-+
-+	rv = parse_arg(buf, count, &value);
-+	if (!write_acpi_int(ehotk->handle, "INIT", value, NULL))
-+		printk(EEEPC_ERR "Hotkey initialization failed\n");
-+	else
-+		printk(EEEPC_INFO "Reset init flag 0x%x\n", value);
-+	return rv;
-+}
-+
-+#define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
-+	static ssize_t show_##_name(struct device *dev,			\
-+				    struct device_attribute *attr,	\
-+				    char *buf)				\
-+	{								\
-+		return show_proc(_cm, buf);				\
-+	}								\
-+	static ssize_t store_##_name(struct device *dev,		\
-+				     struct device_attribute *attr,	\
-+				     const char *buf, size_t count)	\
-+	{								\
-+		return store_proc(_cm, buf, count);			\
-+	}								\
-+	static struct device_attribute dev_attr_##_name = {		\
-+		.attr = {						\
-+			.name = __stringify(_name),			\
-+			.mode = 0644 },					\
-+		.show   = show_##_name,					\
-+		.store  = store_##_name,				\
-+	}
-+
-+EEEPC_CREATE_DEVICE_ATTR(brn, CM_ASL_PANELBRIGHT);
-+EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
-+EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
-+EEEPC_CREATE_DEVICE_ATTR(cpufv, CM_ASL_CPUFV);
-+EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
-+EEEPC_CREATE_DEVICE_ATTR(hdps, CM_ASL_BIOSFLASH);
-+EEEPC_CREATE_DEVICE_ATTR(init, -1);	/* fixed up in eeepc_hotk_add() */
-+EEEPC_CREATE_DEVICE_ATTR(lid, CM_ASL_LID);
-+EEEPC_CREATE_DEVICE_ATTR(wlan, CM_ASL_WLAN);
-+
-+static struct attribute *platform_attributes[] = {
-+	&dev_attr_brn.attr,
-+	&dev_attr_camera.attr,
-+	&dev_attr_cardr.attr,
-+	&dev_attr_cpufv.attr,
-+	&dev_attr_disp.attr,
-+	&dev_attr_hdps.attr,
-+	&dev_attr_init.attr,
-+	&dev_attr_lid.attr,
-+	&dev_attr_wlan.attr,
-+	NULL
-+};
-+
-+static struct attribute_group platform_attribute_group = {
-+	.attrs = platform_attributes
-+};
-+
-+static int eeepc_hotk_check(void)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	int result;
-+
-+	result = acpi_bus_get_status(ehotk->device);
-+	if (result)
-+		return result;
-+	if (ehotk->device->status.present) {
-+		if (!write_acpi_int(ehotk->handle, "INIT", init_flag,
-+				    &buffer)) {
-+			printk(EEEPC_ERR "Hotkey initialization failed\n");
-+			return -ENODEV;
-+		} else {
-+			printk(EEEPC_NOTICE "Hotkey init flags 0x%x\n",
-+			       init_flag);
-+		}
-+		/* get control methods supported */
-+		if (!read_acpi_int(ehotk->handle, "CMSG"
-+				   , &ehotk->cm_supported)) {
-+			printk(EEEPC_ERR
-+			       "Get control methods supported failed\n");
-+			return -ENODEV;
-+		} else {
-+			printk(EEEPC_INFO
-+			       "Get control methods supported: 0x%x\n",
-+			       ehotk->cm_supported);
-+		}
-+		ehotk->cm_supported |= (0x1 << CM_ASL_LID);
-+	} else {
-+		printk(EEEPC_ERR "Hotkey device not present, aborting\n");
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	if (!ehotk)
-+		return;
-+	/* if DISABLE_ASL_WLAN is set, the notify code for fn+f2
-+	   will always be 0x10 */
-+	if (event == NOTIFY_WLAN_ON && (DISABLE_ASL_WLAN & init_flag)) {
-+		int value;
-+		if (ehotk->cm_supported & (0x1 << CM_ASL_WLAN)) {
-+			const char *method = cm_getv[CM_ASL_WLAN];
-+			if (!read_acpi_int(ehotk->handle, method, &value))
-+				printk(EEEPC_WARNING "Error reading %s\n",
-+				       method);
-+			else if (value == 1)
-+				event = 0x11;
-+		}
-+	}
-+	acpi_bus_generate_proc_event(ehotk->device, event,
-+				     ehotk->event_count[event % 128]++);
-+}
-+
-+static int ehotk_found;
-+
-+static int eeepc_hotk_add(struct acpi_device *device)
-+{
-+	acpi_status status = AE_OK;
-+	int result;
-+
-+	if (!device)
-+		 return -EINVAL;
-+	printk(EEEPC_NOTICE EEEPC_HOTK_NAME "\n");
-+	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
-+	if (!ehotk)
-+		return -ENOMEM;
-+	ehotk->handle = device->handle;
-+	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
-+	acpi_driver_data(device) = ehotk;
-+	ehotk->device = device;
-+	result = eeepc_hotk_check();
-+	if (result)
-+		goto end;
-+	dev_attr_init.show = NULL;
-+	dev_attr_init.store = real_store_init;
-+	status = acpi_install_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
-+					     eeepc_hotk_notify, ehotk);
-+	if (ACPI_FAILURE(status))
-+		printk(EEEPC_ERR "Error installing notify handler\n");
-+	ehotk_found = 1;
-+ end:
-+	if (result)
-+		kfree(ehotk);
-+	return result;
-+}
-+
-+static int eeepc_hotk_remove(struct acpi_device *device, int type)
-+{
-+	acpi_status status = 0;
-+
-+	if (!device || !acpi_driver_data(device))
-+		 return -EINVAL;
-+	status = acpi_remove_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
-+					    eeepc_hotk_notify);
-+	if (ACPI_FAILURE(status))
-+		printk(EEEPC_ERR "Error removing notify handler\n");
-+	kfree(ehotk);
-+	return 0;
-+}
-+
-+static struct platform_driver platform_driver = {
-+	.driver = {
-+		.name = EEEPC_HOTK_FILE,
-+		.owner = THIS_MODULE,
-+	}
-+};
-+
-+static struct platform_device *platform_device;
-+
-+static void __exit eeepc_hotk_exit(void)
-+{
-+	acpi_bus_unregister_driver(&eeepc_hotk_driver);
-+	sysfs_remove_group(&platform_device->dev.kobj,
-+			   &platform_attribute_group);
-+	platform_device_unregister(platform_device);
-+	platform_driver_unregister(&platform_driver);
-+}
-+
-+static int __init eeepc_hotk_init(void)
-+{
-+	struct device *dev;
-+	int result;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+	init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
-+	result = acpi_bus_register_driver(&eeepc_hotk_driver);
-+	if (result < 0)
-+		return result;
-+	if (!ehotk_found) {
-+		acpi_bus_unregister_driver(&eeepc_hotk_driver);
-+		return -ENODEV;
-+	}
-+	dev = acpi_get_physical_device(ehotk->device->handle);
-+	/* Register platform stuff */
-+	result = platform_driver_register(&platform_driver);
-+	if (result)
-+		goto fail_platform_driver;
-+	platform_device = platform_device_alloc(EEEPC_HOTK_FILE, -1);
-+	if (!platform_device) {
-+		result = -ENOMEM;
-+		goto fail_platform_device1;
-+	}
-+	result = platform_device_add(platform_device);
-+	if (result)
-+		goto fail_platform_device2;
-+	result = sysfs_create_group(&platform_device->dev.kobj,
-+				    &platform_attribute_group);
-+	if (result)
-+		goto fail_sysfs;
-+	return 0;
-+ fail_sysfs:
-+	platform_device_del(platform_device);
-+ fail_platform_device2:
-+	platform_device_put(platform_device);
-+ fail_platform_device1:
-+	platform_driver_unregister(&platform_driver);
-+ fail_platform_driver:
-+	return result;
-+}
-+
-+module_init(eeepc_hotk_init);
-+module_exit(eeepc_hotk_exit);
--- 
-1.5.3.8
+It appears that the BIOS writer put in special tests for (Vistal or Linux),
+not realizing that Linux always sets Vista.
+
+OSI(Linux) is a NOP on this box.
+it will exchange the PNPid of the PCIe/PCI HID/CID, but nothing else.
+
+It is interesting to see that PNP0C01 motherboard device is present only for OS's
+earlier than XP.
+
+It is also interseting that the SSDT has a special test for Vista,
+to enable fixed-feature P-state access, but that code would have
+run even without that test.
+
+thanks,
+-Len
+
+
+        Name (TOOS, 0x00)
+        Method (INIC, 0, NotSerialized)
+        {
+
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (\_OSI ("Windows 2001"))
+                {
+                    Store (0x05, TOOS)
+                }
+
+                If (\_OSI ("Windows 2001.1"))
+                {
+                    Store (0x06, TOOS)
+                }
+
+                If (\_OSI ("Windows 2001.1 SP1"))
+                {
+                    Store (0x07, TOOS)
+                }
+
+                If (\_OSI ("Windows 2006"))
+                {
+                    Store (0x08, TOOS)
+                }
+
+                If (\_OSI ("Windows 2006.1"))
+                {
+                    Store (0x08, TOOS)
+                }
+
+# OSI(Linux) overwrites TOOS with 1
+
+                If (\_OSI ("Linux"))
+                {
+                    Store (0x01, TOOS)
+                }
+            }
+            Else
+            {
+                Store (\_OS, Local0)
+                Store (SCMP (Local0, "Microsoft Windows NT"), Local1)
+                If (Not (Local1))
+                {
+                    Store (0x04, TOOS)
+                }
+                Else
+                {
+                    Store (SCMP (Local0, "Microsoft Windows"), Local2)
+                    If (Not (Local2))
+                    {
+                        Store (0x02, TOOS)
+                    }
+                    Else
+                    {
+                        Store (SCMP (Local0, "Microsoft WindowsME:Millennium Edition"), Local3)
+                        If (Not (Local3))
+                        {
+                            Store (0x03, TOOS)
+                        }
+                    }
+                }
+            }
+        Method (_INI, 0, NotSerialized)
+        {
+            \_SB.INIC ()
+            \_SB.INIS ()
+        }
+...
+        Method (INIS, 0, NotSerialized)
+        {
+            Store ("Method _INI", Debug)
+            If (LNotEqual (RIST, 0x00))
+            {
+                Store (0xFFFFFFFF, \_SB.PCI0.SBE0.PXHA._ADR)
+                Store (0x00, \_SB.PCI0.SBE0.PXHA._STA)
+            }
+
+            If (LGreaterEqual (\_SB.TOOS, 0x08))
+            {
+# Vista gets _PCI0 _HID and _CID exchanged
+# to put PCIe as _HID and PCI as _CID
+
+                Store (0x080AD041, \_SB.PCI0._HID)
+                Store (0x030AD041, \_SB.PCI0._CID)
+            }
+            Else
+            {
+                Store (0x030AD041, \_SB.PCI0._HID)
+                Store (0x080AD041, \_SB.PCI0._CID)
+            }
+        }
+       Device (PCI0)
+        {
+            Name (_HID, EisaId ("PNP0A08"))
+            Name (_CID, 0x030AD041)
+...
+
+
+                Device (NIPM)
+                {
+                    Name (_HID, EisaId ("IPI0001"))
+                    Name (_CID, 0x010CD041)
+                    Name (_UID, 0x05)
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LEqual (TOOS, 0x01))
+                        {
+                            Return (0x0F)
+# this is effectively a special test for Linux,
+# but it is a NOP because of the test below
+# I dont' knwo what IPI0001 is...
+
+                        }
+                        Else
+                        {
+                            If (LOr (LEqual (TOOS, 0x07), LEqual (TOOS, 0x08)))
+                            {
+                                Return (0x0F)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+                    }
+
+
+...
+                Device (MBI1)
+                {
+                    Name (_HID, EisaId ("PNP0C01"))
+# motherboard device
+                    Name (_UID, 0x01)
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LOr (LEqual (TOOS, 0x08), LEqual (TOOS, 0x01)))
+                        {
+# if Vista or Linux
+                            Return (0x00)
+                        }
+                        Else
+                        {
+                            If (LEqual (TOOS, 0x07))
+                            {
+# XP SP1
+                                Return (0x00)
+                            }
+                            Else
+                            {
+# everything else does see motherboard device
+                                Return (0x0F)
+                            }
+                        }
+                    }
+                   Method (_CRS, 0, NotSerialized)
+                    {
+                        Name (SBDB, ResourceTemplate ()
+                        {
+                            IO (Decode16,
+                                0x0800,             // Range Minimum
+                                0x0800,             // Range Maximum
+                                0x01,               // Alignment
+                                0x80,               // Length
+                                )
+                            IO (Decode16,
+                                0x0880,             // Range Minimum
+                                0x0880,             // Range Maximum
+                                0x01,               // Alignment
+                                0x40,               // Length
+                                )
+                            IO (Decode16,
+                                0x08C0,             // Range Minimum
+                                0x08C0,             // Range Maximum
+                                0x01,               // Alignment
+                                0x20,               // Length
+                                )
+                            IO (Decode16,
+                                0x08E0,             // Range Minimum
+                                0x08E0,             // Range Maximum
+                                0x01,               // Alignment
+                                0x04,               // Length
+                                )
+                            IO (Decode16,
+                                0x0900,             // Range Minimum
+                                0x0900,             // Range Maximum
+                                0x01,               // Alignment
+                                0x01,               // Length
+                                )
+                            IO (Decode16,
+                                0x0C00,             // Range Minimum
+                                0x0C00,             // Range Maximum
+                                0x01,               // Alignment
+                                0x10,               // Length
+                                )
+                            IO (Decode16,
+                                0x0C10,             // Range Minimum
+                                0x0C10,             // Range Maximum
+                                0x01,               // Alignment
+                                0x10,               // Length
+                                )
+                            IO (Decode16,
+                                0x0CA0,             // Range Minimum
+                                0x0CA0,             // Range Maximum
+                                0x01,               // Alignment
+                                0x08,               // Length
+                                )
+                            IO (Decode16,
+                                0x0CA9,             // Range Minimum
+                                0x0CA9,             // Range Maximum
+                                0x01,               // Alignment
+                                0x03,               // Length
+                                )
+                           IO (Decode16,
+                                0x0CAD,             // Range Minimum
+                                0x0CAD,             // Range Maximum
+                                0x01,               // Alignment
+                                0x03,               // Length
+                                )
+                            IO (Decode16,
+                                0x0C20,             // Range Minimum
+                                0x0C20,             // Range Maximum
+                                0x01,               // Alignment
+                                0x20,               // Length
+                                )
+                            IO (Decode16,
+                                0x0060,             // Range Minimum
+                                0x0060,             // Range Maximum
+                                0x01,               // Alignment
+                                0x01,               // Length
+                                _Y08)
+                            IO (Decode16,
+                                0x0064,             // Range Minimum
+                                0x0064,             // Range Maximum
+                                0x01,               // Alignment
+                                0x01,               // Length
+                                _Y09)
+                        })
+                        CreateByteField (SBDB, \_SB.PCI0.ISA.MBIO._CRS._Y08._LEN, KBL1)
+                        CreateByteField (SBDB, \_SB.PCI0.ISA.MBIO._CRS._Y09._LEN, KBL2)
+                        If (LOr (GCKB (), GCMS ()))
+                        {
+                            Store (Zero, KBL1)
+                            Store (Zero, KBL2)
+                        }
+
+                        Return (SBDB)
+                    }
+                }
+
+in SSDT1:
+
+   Scope (_PR.CPU1)
+    {
+        Method (_PPC, 0, NotSerialized)
+        {
+            Return (Zero)
+        }
+
+        Method (_PCT, 0, NotSerialized)
+        {
+
+# if PDC[9] && CFGD != x4000, use MSR for P-states
+# Linux comes here
+            If (LAnd (LNot (And (CFGD, 0x4000)), LEqual (And (PDC0,
+                0x09), 0x09)))
+            {
+                Return (Package (0x02)
+                {
+                    ResourceTemplate ()
+                    {
+                        Register (FFixedHW,
+                            0x40,               // Bit Width
+                            0x00,               // Bit Offset
+                            0x0000000000000199, // Address
+                            ,)
+                    },
+
+                    ResourceTemplate ()
+                    {
+                        Register (FFixedHW,
+                            0x10,               // Bit Width
+                            0x00,               // Bit Offset
+                            0x0000000000000198, // Address
+                            ,)
+                    }
+                })
+            }
+
+# if PDC[9] && Vista, use MSR for P-states
+
+            If (LAnd (LEqual (And (PDC0, 0x09), 0x09), LGreaterEqual (
+                \_SB.TOOS, 0x08)))
+            {
+                Return (Package (0x02)
+                {
+                    ResourceTemplate ()
+                    {
+                        Register (FFixedHW,
+                            0x40,               // Bit Width
+                            0x00,               // Bit Offset
+                            0x0000000000000199, // Address
+                            ,)
+                    },
+
+                    ResourceTemplate ()
+                    {
+                        Register (FFixedHW,
+                            0x10,               // Bit Width
+                            0x00,               // Bit Offset
+                            0x0000000000000198, // Address
+                            ,)
+                    }
+                })
+            }
+
+# else use IO for P-states
+
+           Return (Package (0x02)
+            {
+                ResourceTemplate ()
+                {
+                    Register (SystemIO,
+                        0x10,               // Bit Width
+                        0x00,               // Bit Offset
+                        0x00000000000008E0, // Address
+                        ,)
+                },
+
+                ResourceTemplate ()
+                {
+                    Register (SystemIO,
+                        0x10,               // Bit Width
+                        0x00,               // Bit Offset
+                        0x00000000000008E2, // Address
+                        ,)
+                }
+            })
+        }
+
+        Method (_PSS, 0, NotSerialized)
+        {
+            If (LAnd (LNot (And (CFGD, 0x4000)), LEqual (And (PDC0,
+                0x09), 0x09)))
+            {
+                Return (NPSS)
+            }
+
+            If (LAnd (LEqual (And (PDC0, 0x09), 0x09), LGreaterEqual (
+                \_SB.TOOS, 0x08)))
+            {
+                Return (NPSS)
+            }
+# same test as in _PCT, -- MSR accesses gets NPSS (latency 10usec)
+# while IO access gets SPSS (latecy 160usec)
+
+            Return (SPSS)
+        }
+        Name (SPSS, Package (0x02)
+        {
+            Package (0x06)
+            {
+                0x0000091D,
+                0x00019258,
+                0x000000A0,
+                0x0000000A,
+                0x00000726,
+                0x00000726
+            },
+
+            Package (0x06)
+            {
+                0x000007D0,
+                0x0000FDE8,
+                0x000000A0,
+                0x0000000A,
+                0x00000614,
+                0x00000614
+            }
+        })
+        Name (NPSS, Package (0x02)
+        {
+            Package (0x06)
+            {
+                0x0000091D,
+                0x00019258,
+                0x0000000A,
+                0x0000000A,
+                0x00000726,
+                0x00000726
+            },
+
+            Package (0x06)
+            {
+                0x000007D0,
+                0x0000FDE8,
+                0x0000000A,
+                0x0000000A,
+                0x00000614,
+                0x00000614
+            }
+        })
+    }
+
+in SSDT3: 
+    Scope (\)
+    {
+        Name (CFGD, 0x00000002)
+
+# CFGD is defined as 2, but never changed
+
+        Name (PDC0, 0x80000000)
+        Name (PDC1, 0x80000000)
+        Name (PDC2, 0x80000000)
+        Name (PDC3, 0x80000000)
+    }
 
