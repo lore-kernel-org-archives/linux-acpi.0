@@ -1,43 +1,59 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/ counters
-Date: Tue, 5 Feb 2008 20:53:06 -0500
-Message-ID: <200802052053.06427.lenb@kernel.org>
-References: <200802050230.10873.lenb@kernel.org> <200802051812.09228.lenb@kernel.org> <200802051744.36371.bjorn.helgaas@hp.com>
+Date: Tue, 5 Feb 2008 20:58:50 -0500
+Message-ID: <200802052058.50663.lenb@kernel.org>
+References: <200802050230.10873.lenb@kernel.org> <200802051812.09228.lenb@kernel.org> <20080205231842.GB8740@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56994 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:45006 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759699AbYBFBxe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 20:53:34 -0500
-In-Reply-To: <200802051744.36371.bjorn.helgaas@hp.com>
+	id S1758793AbYBFB7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 20:59:08 -0500
+In-Reply-To: <20080205231842.GB8740@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <gregkh@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 05 February 2008 19:44, Bjorn Helgaas wrote:
-> On Tuesday 05 February 2008 04:12:09 pm Len Brown wrote:
-> > is there
-> > a version of cat that prints the file name before
-> > the contents of each file?
+On Tuesday 05 February 2008 18:18, Greg KH wrote:
+> On Tue, Feb 05, 2008 at 06:12:09PM -0500, Len Brown wrote:
+> > On Tuesday 05 February 2008 17:18, Greg KH wrote:
+> > > On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
+> > > > # cat /sys/firmware/acpi/interrupts/summary
+> > > > pm_timer     0
+> > > > glbl_lock    0
+> > > > power_btn    0
+> > > > sleep_btn    0
+> > > > rtc          0
+> > > > gpe00    0
+> > ...
+> > > > gpe1F    0
+> > > > gpe_hi    0
+> > > > gpe_total   63
+> > > > acpi_irq    63
+> > > 
+> > > Eeek!  Why?  What's wrong with individual files here?
+> > 
+> > My expectation is that this is a shell interface for debugging,
+> > not an API for programs.  ala /proc/interrupts.
 > 
-> I use "grep . *" for this sort of thing.
+> Great, then use debugfs for it.  Please, don't put debug stuff like this
+> in sysfs, that's not what it is there for.  You can do whatever you want
+> in debugfs :)
 
-good tip, bjorn, thanks!
+Can you point to a model of good behaviour that I can copy?
 
-/sys/devices/system/cpu/cpu0/cpufreq # grep . *
-affected_cpus:0
-cpuinfo_cur_freq:1596000
-cpuinfo_max_freq:2660000
-cpuinfo_min_freq:1596000
-scaling_available_frequencies:2660000 2128000 1596000
-scaling_available_governors:conservative ondemand userspace powersave performance
-scaling_cur_freq:1596000
-scaling_driver:centrino
-scaling_governor:ondemand
-scaling_max_freq:2660000
-scaling_min_freq:1596000
+note that I want this information to be available on every system,
+just like /proc/interrupts is.
+
+/proc/ has seqfile support, is there a reason I shouldn't use it?
+I'd banned additional files from /proc/acpi for a long time
+since the directory layout was ill-conceived.  But maybe I
+should re-consider the headlong rush to use sysfs?
+
+thanks,
+-Len
