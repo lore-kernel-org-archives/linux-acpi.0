@@ -1,36 +1,37 @@
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: [BUG] 2.6.24 refuses to boot - NMI watchdog problem?
-Date: Wed, 6 Feb 2008 00:26:05 +0000 (GMT)
-Message-ID: <658272.2386.qm@web52902.mail.re2.yahoo.com>
-References: <20080205153243.dadaace8.akpm@linux-foundation.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/5] WMI patches for acpi-test (v2)
+Date: Tue, 5 Feb 2008 17:35:54 -0700
+Message-ID: <200802051735.55106.bjorn.helgaas@hp.com>
+References: <20080205021658.4422.83165.stgit@pacifica> <200802051603.30466.lenb@kernel.org> <200802052118.02733.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762654AbYBFA0X@vger.kernel.org>
-In-Reply-To: <20080205153243.dadaace8.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <200802052118.02733.carlos@strangeworlds.co.uk>
+Content-Disposition: inline
+Sender: linux-ia64-owner@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
---- Andrew Morton <akpm@linux-foundation.org> wrote:
-> On Sat, 2 Feb 2008 23:36:42 +0000 (GMT)
-> Chris Rankin <rankincj@yahoo.com> wrote:
-
-> > I have a 1 GHz Coppermine PC with 512 MB RAM, and it is failing to boot with the
-> nmi_watchdog=1
-> > option. This kernel was rebuilt after doing a "make mrproper". The dmesg log follows:
+On Tuesday 05 February 2008 02:18:01 pm Carlos Corbacho wrote:
+> On Tuesday 05 February 2008 21:03:30 Len Brown wrote:
+> > On Monday 04 February 2008 21:16, Carlos Corbacho wrote:
+> > > 2) Do you know of any IA64 systems using ACPI-WMI? At the moment, WMI
+> > > will work on x86 and hopefully IA64, but if it turns out that no vendor
+> > > has or ever will implement ACPI-WMI on IA64, then we could safely drop it
+> > > there.
+> >
+> > I recommend skipping WMI on IA64 unless/until a real need to support it
+> > emerges. There are no WMI extensions on the Intel Tiger or Hitachi Fusion
+> > IA64 boxes I have access to.
 > 
-> Can you tell us if earlier kernels worked OK, and if so which version(s)?
-> From your other mail it appears that 2.6.23 was OK?
+> Ok. The only other vendors I really have in mind are HP and Fujitsu, since 
+> both those vendors use WMI on their laptops, so they would be my most likely 
+> candidates to have WMI on an IA64 box (if anyone actually does use WMI on 
+> IA64).
 
-Oh yes, 2.6.23.14 is fine with nmi_watchdog=1. (This is on a UP machine with a SMP/PREEMPT kernel,
-BTW. "Just for fun.")
+How could I tell whether our HP systems use WMI?
 
-Cheers,
-Chris
-
-
-
-      __________________________________________________________
-Sent from Yahoo! Mail - a smarter inbox http://uk.mail.yahoo.com
+Bjorn
