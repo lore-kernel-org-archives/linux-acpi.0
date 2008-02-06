@@ -1,74 +1,235 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/
-	counters
-Date: Tue, 5 Feb 2008 18:43:49 -0800
-Message-ID: <20080206024349.GA10883@suse.de>
-References: <200802050230.10873.lenb@kernel.org> <200802051812.09228.lenb@kernel.org> <20080205231842.GB8740@suse.de> <200802052058.50663.lenb@kernel.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH 5/5] ACPI: WMI: Add initial documentation
+Date: Tue, 5 Feb 2008 19:12:26 -0800
+Message-ID: <20080205191226.9248e1e8.randy.dunlap@oracle.com>
+References: <20080205021658.4422.83165.stgit@pacifica>
+	<20080205021727.4422.67605.stgit@pacifica>
+	<200802050225.58727.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761737AbYBFCpx@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200802052058.50663.lenb@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rgminet01.oracle.com ([148.87.113.118]:50855 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754697AbYBFDQK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 22:16:10 -0500
+In-Reply-To: <200802050225.58727.carlos@strangeworlds.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tue, Feb 05, 2008 at 08:58:50PM -0500, Len Brown wrote:
-> On Tuesday 05 February 2008 18:18, Greg KH wrote:
-> > On Tue, Feb 05, 2008 at 06:12:09PM -0500, Len Brown wrote:
-> > > On Tuesday 05 February 2008 17:18, Greg KH wrote:
-> > > > On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
-> > > > > # cat /sys/firmware/acpi/interrupts/summary
-> > > > > pm_timer     0
-> > > > > glbl_lock    0
-> > > > > power_btn    0
-> > > > > sleep_btn    0
-> > > > > rtc          0
-> > > > > gpe00    0
-> > > ...
-> > > > > gpe1F    0
-> > > > > gpe_hi    0
-> > > > > gpe_total   63
-> > > > > acpi_irq    63
-> > > > 
-> > > > Eeek!  Why?  What's wrong with individual files here?
-> > > 
-> > > My expectation is that this is a shell interface for debugging,
-> > > not an API for programs.  ala /proc/interrupts.
-> > 
-> > Great, then use debugfs for it.  Please, don't put debug stuff like this
-> > in sysfs, that's not what it is there for.  You can do whatever you want
-> > in debugfs :)
+On Tue, 5 Feb 2008 02:25:58 +0000 Carlos Corbacho wrote:
+
+> ACPI: WMI: Add initial documentation
 > 
-> Can you point to a model of good behaviour that I can copy?
+> Add initial documentation for WMI-ACPI, giving basic information for WMI
+> kernel and userspace driver writers.
+> 
+> ===
+> ChangeLog
+> 
+> v1 (2007-11-28)
+> 
+> Initial version
+> 
+> v2 (2007-12-08)
+> 
+> Update with latest changes to sysfs interface
+> 
+> v3 (2008-02-05)
+> 
+> Update
+> 
+> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> CC: Len Brown <lenb@kernel.org>
+> ---
+> Added SOB this time... (and a few trivial fixes)
+> 
+> This replaces: [PATCH 5/5] ACPI: WMI: Add documentation
+> 
+> (AKA - I shouldn't send a patch series out at 2am...)
+> 
+>  Documentation/acpi/wmi.txt |  131 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 131 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/acpi/wmi.txt
+> 
+> 
+> diff --git a/Documentation/acpi/wmi.txt b/Documentation/acpi/wmi.txt
+> new file mode 100644
+> index 0000000..4d243aa
+> --- /dev/null
+> +++ b/Documentation/acpi/wmi.txt
+> @@ -0,0 +1,131 @@
+> +ACPI-WMI mapping driver
+> +
+> +Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
+> +
+> +Updated: 5th February 2008
+> +
+> +1) About this guide
+> +
+> +This guide is a basic introduction on how to interact with the ACPI-WMI mapper
+> +driver in the kernel - it presumes you already have a basic knowledge of
+> +ACPI-WMI, ACPI and the hardware you are writing the driver for.
+> +
+> +2) What is ACPI-WMI
+> +
 
-Any user of the debugfs api you could copy for this.
+Please tell what WMI stands for.
 
-> note that I want this information to be available on every system,
-> just like /proc/interrupts is.
+> +At its simplest, ACPI-WMI is a proprietary extension to the ACPI specification
+> +from Microsoft to allow WMI (their implementation of WBEM) to access
+> +instrumentation data and methods in ACPI from userspace, via the ACPI _HID
+> +device PNP0C14.
+> +
+> +3) What is the ACPI-WMI mapper
+> +
+> +The Linux ACPI-WMI driver is the implementation of this mapper for Linux.
+> +
+> +NOTE: The mapper does not do anything itself with the ACPI-WMI devices - it
+> +simply makes their functionality available to other drivers and userspace.
+> +
+> +4) Implementation
+> +
+> +A general note:
+> +
+> +ACPI-WMI has no knowledge of the size of the data blocks passed to/ from
 
-Ah, then /proc perhaps?
+                                                                   to/from
 
-> /proc/ has seqfile support, is there a reason I shouldn't use it?
-> I'd banned additional files from /proc/acpi for a long time
-> since the directory layout was ill-conceived.  But maybe I
-> should re-consider the headlong rush to use sysfs?
+> +ACPI-WMI - this is not encoded in the DSDT, and is usually only available in
+> +the form of a MOF file. If this is not available, you will need to analyze
+> +the DSDT to get this information.
+> +
+> +You will therefore need to know in advance the size of any data structures
+> +to handle them.
+> +
+> +Userspace:
+> +
+> +ACPI-WMI is exposed to userspace via sysfs and netlink. Data and methods are
+> +exposed through sysfs, events are sent via netlink.
+> +
+> +Accessing ACPI-WMI directly through sysfs is generally not recommended -
+> +ideally, this should be done by a userspace library, which could also deal
+> +with the netlink events.
+> +
+> +The sysfs interface is in /sys/devices/virtual/wmi for WMI methods and data, as
+> +follows:
+> +
+> +/sys/devices/virtual/wmi/
+> +|
+> +|-> <GUID>/
+> + |-> type (method, data, event)
+> +
+> +Method & data blocks
+> + |-> instance (instance to execute)
+> + |-> instance_count (read only - maximum number of instances available)
+> + |-> data (binary data file - write input data to file, read file
+> +           to execute method and/ or retrieve data).
+> +
+> +To read/ write a data block, instance must be set first.
 
-One of the main problems of /proc was that the files were not
-documented, or that the format would change between versions, or that
-they were different on different arches.
+      read/write
 
-For something like this, yes, maybe you do need to use proc.  It can
-handle almost infinite length files, and just make sure you document it
-well.
+> +
+> +Method only
+> + |-> method_id (write value of method id to execute)
+> +
+> +To execute a method, instance and method_id must be set first.
+> +
+> +Events - passed to userspace via netlink. However, the extra WMI data
+> +associated with an event is exposed through sysfs.
+> +
+> + |-> notification (ACPI event value)
+> + |-> data (binary data file - WMI data associated with the event)
+> +
+> +Kernel interface:
+> +
+> +For drivers that want to bypass userspace (either because WBEM is overkill,
+> +or a userspace application is not really appropriate for want you want to do),
 
-But I would just stick with debugfs, all distros enable it when
-shipping, you just have to ask them to mount it by hand usually:
-	mount -t debugfs none /sys/kernel/debug/
+                                                        for what
 
-Either way, I wouldn't recommend sysfs for this.
+> +and talk directly to ACPI-WMI, then the mapper also exports functions
+> +to do this - these are essentially thin wrappers around ACPI, so if you are
+> +familiar with writing an ACPI driver, then writing a WMI driver is not much more
+> +of a stretch.
+> +
+> +The exported ACPI-WMI functions can be found in <linux/acpi.h>
 
-thanks,
+                                                in <linux/acpi.h>.
 
-greg k-h
+> +
+> +The most important differences between ACPI and WMI drivers are:
+> +
+> +A) WMI based drivers should be platform drivers, not ACPI drivers.
+
+      WMI-based
+
+> +
+> +B) ACPI details such as handles and/ or path names are hidden; you use GUIDs as
+
+                                   and/or
+
+> +   the unique identifier to call methods instead (you don't need to care either
+> +   about multiple PNP0C14 devices existing - the GUIDs are always unique, and
+> +   these are what you will work with).
+> +
+> +C) In your probe() function, you should use wmi_has_guid() to look for the
+> +   GUID(s) you need for your driver.
+> +
+> +For the in kernel interface, the following functions are available:
+
+           in-kernel
+
+> +
+> +wmi_evaluate_method():
+> +
+> +Evaluate a WMI method.
+> +
+> +wmi_query_block():
+> +
+> +Return the contents of a WMI data block.
+> +
+> +wmi_set_block()
+
+   wmi_set_block():
+
+> +
+> +Set the contents of a WMI data block.
+> +
+> +wmi_install_notify_handler():
+> +wmi_remove_notify_handler():
+> +
+> +Install and/ or remove a handler for a WMI event - one handler per GUID.
+
+           and/or
+
+> +
+> +wmi_get_event_data():
+> +
+> +Return the data associated with a given WMI event.
+> +
+> +wmi_has_guid():
+> +
+> +Returns true if a given GUID is available on the system.
+> +
+> +wmi_get_device():
+> +
+> +Return a pointer to the virtual device associated with a GUID. If you need to
+
+   Returns
+
+> +set a parent device (e.g. for an input device), use this.
+> +
+> +
+> +[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
+> -
+
+Are there netlink-aware apps that already know how to use this
+interface?  If so, where?
+
+Thanks.
+---
+~Randy
