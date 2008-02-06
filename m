@@ -1,37 +1,102 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 0/5] WMI patches for acpi-test (v2)
-Date: Wed, 6 Feb 2008 02:03:23 +0000
-Message-ID: <200802060203.24856.carlos@strangeworlds.co.uk>
-References: <20080205021658.4422.83165.stgit@pacifica> <200802052118.02733.carlos@strangeworlds.co.uk> <200802051735.55106.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: battery: add sysfs serial number
+Date: Tue, 5 Feb 2008 21:09:58 -0500
+Message-ID: <200802052109.58454.lenb@kernel.org>
+References: <1201024010-6103-1-git-send-email-max@stro.at> <47962F29.7000102@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:38249 "EHLO
-	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1757888AbYBFCDa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 21:03:30 -0500
-In-Reply-To: <200802051735.55106.bjorn.helgaas@hp.com>
+Received: from hera.kernel.org ([140.211.167.34]:46935 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758819AbYBFCK2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Feb 2008 21:10:28 -0500
+In-Reply-To: <47962F29.7000102@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-ia64@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: maximilian attems <max@stro.at>, linux-acpi@vger.kernel.org
 
-On Wednesday 06 February 2008 00:35:54 Bjorn Helgaas wrote:
-> > Ok. The only other vendors I really have in mind are HP and Fujitsu,
-> > since both those vendors use WMI on their laptops, so they would be my
-> > most likely candidates to have WMI on an IA64 box (if anyone actually
-> > does use WMI on IA64).
->
-> How could I tell whether our HP systems use WMI?
+Applied.
 
-Do you have any PNP0C14 or *pnp0c14 _HID objects defined in the DSDTs for your 
-systems? If not, then your systems don't use WMI.
+thanks,
+-Len
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+On Tuesday 22 January 2008 13:00, Alexey Starikovskiy wrote:
+> ACK
+> maximilian attems wrote:
+> > egrep serial /proc/acpi/battery/BAT0/info
+> > serial number:           32090
+> > 
+> > serial number can tell you from the imminent danger
+> > of beeing set on fire.
+> > 
+> > Signed-off-by: maximilian attems <max@stro.at>
+> > ---
+> >  drivers/acpi/battery.c             |    5 +++++
+> >  drivers/power/power_supply_sysfs.c |    1 +
+> >  include/linux/power_supply.h       |    1 +
+> >  3 files changed, 7 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index c4a769d..f6215e8 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -194,6 +194,9 @@ static int acpi_battery_get_property(struct power_supply *psy,
+> >  	case POWER_SUPPLY_PROP_MANUFACTURER:
+> >  		val->strval = battery->oem_info;
+> >  		break;
+> > +	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
+> > +		val->strval = battery->serial_number;
+> > +		break;
+> >  	default:
+> >  		return -EINVAL;
+> >  	}
+> > @@ -212,6 +215,7 @@ static enum power_supply_property charge_battery_props[] = {
+> >  	POWER_SUPPLY_PROP_CHARGE_NOW,
+> >  	POWER_SUPPLY_PROP_MODEL_NAME,
+> >  	POWER_SUPPLY_PROP_MANUFACTURER,
+> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+> >  };
+> >  
+> >  static enum power_supply_property energy_battery_props[] = {
+> > @@ -226,6 +230,7 @@ static enum power_supply_property energy_battery_props[] = {
+> >  	POWER_SUPPLY_PROP_ENERGY_NOW,
+> >  	POWER_SUPPLY_PROP_MODEL_NAME,
+> >  	POWER_SUPPLY_PROP_MANUFACTURER,
+> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+> >  };
+> >  #endif
+> >  
+> > diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
+> > index 249f61b..8feaa48 100644
+> > --- a/drivers/power/power_supply_sysfs.c
+> > +++ b/drivers/power/power_supply_sysfs.c
+> > @@ -117,6 +117,7 @@ static struct device_attribute power_supply_attrs[] = {
+> >  	/* Properties of type `const char *' */
+> >  	POWER_SUPPLY_ATTR(model_name),
+> >  	POWER_SUPPLY_ATTR(manufacturer),
+> > +	POWER_SUPPLY_ATTR(serial_number),
+> >  };
+> >  
+> >  static ssize_t power_supply_show_static_attrs(struct device *dev,
+> > diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
+> > index 606c095..300159b 100644
+> > --- a/include/linux/power_supply.h
+> > +++ b/include/linux/power_supply.h
+> > @@ -101,6 +101,7 @@ enum power_supply_property {
+> >  	/* Properties of type `const char *' */
+> >  	POWER_SUPPLY_PROP_MODEL_NAME,
+> >  	POWER_SUPPLY_PROP_MANUFACTURER,
+> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+> >  };
+> >  
+> >  enum power_supply_type {
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
