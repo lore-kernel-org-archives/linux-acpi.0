@@ -1,69 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] check that acpi_wakeup_address is below 1MB
-Date: Thu, 7 Feb 2008 00:10:48 +0100
-Message-ID: <200802070010.48992.rjw@sisk.pl>
-References: <47AA38EF.6030307@free.fr>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test if (level
+	& TP_EC_FAN_FULLSPEED)
+Date: Wed, 6 Feb 2008 15:07:02 -0800
+Message-ID: <20080206230702.GA12395@kroah.com>
+References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60803 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763287AbYBFXM1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Feb 2008 18:12:27 -0500
-In-Reply-To: <47AA38EF.6030307@free.fr>
+Received: from pentafluge.infradead.org ([213.146.154.40]:36268 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763459AbYBFXQd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 18:16:33 -0500
 Content-Disposition: inline
+In-Reply-To: <47A81FAE.2090709@tiscali.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>
+To: Roel Kluin <12o3l@tiscali.nl>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Roland Dreier <rdreier@cisco.com>, len.brown@intel.com, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, stable@kernel.org
 
-On Wednesday, 6 of February 2008, matthieu castet wrote:
-> Hi,
-
-Hi,
-
-> this patch had a check that the memory allocated is in the first 1MB.
-> The check is similar to the one in smp_alloc_memory.
+On Tue, Feb 05, 2008 at 09:34:54AM +0100, Roel Kluin wrote:
+> Henrique de Moraes Holschuh wrote:
+> > On Tue, 05 Feb 2008, Roel Kluin wrote:
+> >> Roland Dreier wrote:
+> >>>  >                 /* safety net should the EC not support AUTO
+> >>>  >                  * or FULLSPEED mode bits and just ignore them */
+> >>>  >                 if (level & TP_EC_FAN_FULLSPEED)
+> >>>  >                         level |= 7;     /* safety min speed 7 */
+> >>>  >                 else if (level & TP_EC_FAN_FULLSPEED)
+> >>>  >                         level |= 4;     /* safety min speed 4 */
+> >>>  > 
+> >>>  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
+> >>>  > this be replaced by
+> >>>
+> >>> Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
+> >>> (based on the comment).
+> >> Thanks Roland, for your info
+> >>
+> >> based on the comments in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad,
+> >> I think this should be modified like below:
+> >>
+> >> ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
+> >> The Linux ThinkPad community is not positive that all ThinkPads that do
+> >> HFSP EC fan control do implement full-speed and auto modes, some of the
+> >> earlier ones supporting HFSP might not.
+> >>
+> >> If the EC ignores the AUTO or FULL-SPEED bits, it will pay attention to the
+> >> lower three bits that set the fan level. And as thinkpad-acpi was leaving
+> >> these set to zero, it would stop(!) the fan, which is Not A Good Thing.
+> >> So, as a safety net, we now make sure to also set the fan level part of the
+> >> HFSP register to speed 7 for full-speed, and a minimum of speed 4 for auto
+> >> mode.
+> >> --
+> >> second TP_EC_FAN_FULLSPEED should be P_EC_FAN_AUTO
+> >>
+> >>
+> >> Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+> >> ---
+> >> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> >> index cf56647..3c323fe 100644
+> >> --- a/drivers/misc/thinkpad_acpi.c
+> >> +++ b/drivers/misc/thinkpad_acpi.c
+> >> @@ -4138,7 +4138,7 @@ static int fan_set_level(int level)
+> >>  		 * or FULLSPEED mode bits and just ignore them */
+> >>  		if (level & TP_EC_FAN_FULLSPEED)
+> >>  			level |= 7;	/* safety min speed 7 */
+> >> -		else if (level & TP_EC_FAN_FULLSPEED)
+> >> +		else if (level & TP_EC_FAN_AUTO)
+> >>  			level |= 4;	/* safety min speed 4 */
+> >>  
+> >>  		if (!acpi_ec_write(fan_status_offset, level))
+> > 
+> > ACK.  This needs to be sent to stable as well.  I think both 2.6.22 and
+> > 2.6.23 need this patch.
+> > 
 > 
-> 
-> Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
+> CC stable@kernel.org
 
-Please don't attach patches if possible.  It's easier to comment them if they
-are in the message body.
+Please send us a real copy of the patch, when it goes into Linus's tree,
+so we know what to apply, and that it is safe to do so.
 
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 6bc815c..65ab23c 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -65,6 +65,10 @@ void __init acpi_reserve_bootmem(void)
->  	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE*2);
->  	if (!acpi_wakeup_address)
->  		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
-> +
-> +	/* check if we are in first 1MB of memory */
-> +	if (__pa(acpi_wakeup_address) >= 1024*1024-PAGE_SIZE*2)
-> +		BUG();
+thanks,
 
-I don't like this.
-
-First, you should use BUG_ON(something) rather that "if (something) BUG();".
-
-Second, and more importantly, it's enough to put "acpi_wakeup_address = 0"
-to disable the feature without crashing the kernel.
-Of course, I'd add an error message describing what's wrong to that.
-
->  }
-
-Thanks,
-Rafael
-
- 
-
-
-
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+greg k-h
