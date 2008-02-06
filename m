@@ -1,52 +1,53 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] check that acpi_wakeup_address is below 1MB
-Date: Wed, 6 Feb 2008 23:56:36 +0100
-Message-ID: <20080206225636.GC4316@elte.hu>
-References: <47AA38EF.6030307@free.fr>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend to ram problem
+Date: Thu, 7 Feb 2008 00:03:04 +0100
+Message-ID: <200802070003.05543.rjw@sisk.pl>
+References: <47A5C399.7010405@free.fr> <47AA3763.7000106@free.fr> <20080206224308.GA1630@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:36128 "EHLO mx2.mail.elte.hu"
+Received: from ogre.sisk.pl ([217.79.144.158]:60764 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761319AbYBFW4s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Feb 2008 17:56:48 -0500
+	id S1762358AbYBFXEy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2008 18:04:54 -0500
+In-Reply-To: <20080206224308.GA1630@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <47AA38EF.6030307@free.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: matthieu castet <castet.matthieu@free.fr>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
+On Wednesday, 6 of February 2008, Pavel Machek wrote:
+> Hi!
+> 
+> >>>>>> instead of existing stack setup. That helped on one of my test-boxes
+> >>>>> Thanks, I will try that.
+> >>>>> Because clearing the flags imply pop/push in the stack it could be the 
+> >>>>> problem
+> >>>> That doesn't help : it still crash in pushl $0.
+> >>>>
+> >>> All stack stuff in wakeup_code crash for me.
+> >>> I tried to change the stack position, make sure upper bit of %esp are 
+> >>> clear, ... nothing work.
+> >>> What's are strange is that according to my x86 manual, in real mode the 
+> >>> failure can only happen if the stack wrap which is not the case here.
+> >>> Any x86 guru advice ?
+> >>>
+> >>> If I remove stack access (remove clearing flag stuff, not call to video 
+> >>> stuff) the resume works.
+> >>
+> >> Hm, can you place a "pushl %eax; popl %eax;" in place of the removed code and
+> >> see if that breaks?
+> > Yes that also break.
 
-* matthieu castet <castet.matthieu@free.fr> wrote:
+Interesting.
 
-> Hi,
->
-> this patch had a check that the memory allocated is in the first 1MB.
-> The check is similar to the one in smp_alloc_memory.
->
->
-> Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
+> Not sure what is going on...
 
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 6bc815c..65ab23c 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -65,6 +65,10 @@ void __init acpi_reserve_bootmem(void)
->  	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE*2);
->  	if (!acpi_wakeup_address)
->  		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
-> +
-> +	/* check if we are in first 1MB of memory */
-> +	if (__pa(acpi_wakeup_address) >= 1024*1024-PAGE_SIZE*2)
-> +		BUG();
+Looks like ss goes bonkers or the 32-bit opcodes are invalid in real mode.
 
-please never BUG() out unless totally unavoidable - especially in such 
-early bootup code - that might prevent people from being able to report 
-anything beyond 'my bootup hung'.
+Matthieu, can you try "pushw %ax; popw %ax;", please?
 
-print a WARN_ON() (that way kerneloops.org can pick it up), and perhaps 
-disable ACPI sleep functionality. BUG()-ing out is way too drastic and 
-way too user-unfriendly.
-
-	Ingo
+Rafael
