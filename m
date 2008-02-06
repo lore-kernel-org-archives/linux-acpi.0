@@ -1,59 +1,37 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/ counters
-Date: Tue, 5 Feb 2008 20:58:50 -0500
-Message-ID: <200802052058.50663.lenb@kernel.org>
-References: <200802050230.10873.lenb@kernel.org> <200802051812.09228.lenb@kernel.org> <20080205231842.GB8740@suse.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH 0/5] WMI patches for acpi-test (v2)
+Date: Wed, 6 Feb 2008 02:03:23 +0000
+Message-ID: <200802060203.24856.carlos@strangeworlds.co.uk>
+References: <20080205021658.4422.83165.stgit@pacifica> <200802052118.02733.carlos@strangeworlds.co.uk> <200802051735.55106.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45006 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758793AbYBFB7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 20:59:08 -0500
-In-Reply-To: <20080205231842.GB8740@suse.de>
+Received: from host-240-152.cust.aaawireless.net ([216.23.240.152]:38249 "EHLO
+	mail.slackadelic.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1757888AbYBFCDa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 21:03:30 -0500
+In-Reply-To: <200802051735.55106.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-ia64@vger.kernel.org
 
-On Tuesday 05 February 2008 18:18, Greg KH wrote:
-> On Tue, Feb 05, 2008 at 06:12:09PM -0500, Len Brown wrote:
-> > On Tuesday 05 February 2008 17:18, Greg KH wrote:
-> > > On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
-> > > > # cat /sys/firmware/acpi/interrupts/summary
-> > > > pm_timer     0
-> > > > glbl_lock    0
-> > > > power_btn    0
-> > > > sleep_btn    0
-> > > > rtc          0
-> > > > gpe00    0
-> > ...
-> > > > gpe1F    0
-> > > > gpe_hi    0
-> > > > gpe_total   63
-> > > > acpi_irq    63
-> > > 
-> > > Eeek!  Why?  What's wrong with individual files here?
-> > 
-> > My expectation is that this is a shell interface for debugging,
-> > not an API for programs.  ala /proc/interrupts.
-> 
-> Great, then use debugfs for it.  Please, don't put debug stuff like this
-> in sysfs, that's not what it is there for.  You can do whatever you want
-> in debugfs :)
+On Wednesday 06 February 2008 00:35:54 Bjorn Helgaas wrote:
+> > Ok. The only other vendors I really have in mind are HP and Fujitsu,
+> > since both those vendors use WMI on their laptops, so they would be my
+> > most likely candidates to have WMI on an IA64 box (if anyone actually
+> > does use WMI on IA64).
+>
+> How could I tell whether our HP systems use WMI?
 
-Can you point to a model of good behaviour that I can copy?
+Do you have any PNP0C14 or *pnp0c14 _HID objects defined in the DSDTs for your 
+systems? If not, then your systems don't use WMI.
 
-note that I want this information to be available on every system,
-just like /proc/interrupts is.
-
-/proc/ has seqfile support, is there a reason I shouldn't use it?
-I'd banned additional files from /proc/acpi for a long time
-since the directory layout was ill-conceived.  But maybe I
-should re-consider the headlong rush to use sysfs?
-
-thanks,
--Len
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
