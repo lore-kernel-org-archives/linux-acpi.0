@@ -1,235 +1,169 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 5/5] ACPI: WMI: Add initial documentation
-Date: Tue, 5 Feb 2008 19:12:26 -0800
-Message-ID: <20080205191226.9248e1e8.randy.dunlap@oracle.com>
-References: <20080205021658.4422.83165.stgit@pacifica>
-	<20080205021727.4422.67605.stgit@pacifica>
-	<200802050225.58727.carlos@strangeworlds.co.uk>
+From: "Thomas, Sujith" <sujith.thomas@intel.com>
+Subject: RE: The new thermal management sysfs class, and hwmon
+Date: Wed, 6 Feb 2008 10:53:18 +0530
+Message-ID: <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>
+References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net> <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com> <20080205135725.GO20687@jupiter.solarsys.private>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:50855 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697AbYBFDQK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Feb 2008 22:16:10 -0500
-In-Reply-To: <200802050225.58727.carlos@strangeworlds.co.uk>
+Received: from mga02.intel.com ([134.134.136.20]:14466 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751232AbYBFFYs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 00:24:48 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20080205135725.GO20687@jupiter.solarsys.private>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>
 
-On Tue, 5 Feb 2008 02:25:58 +0000 Carlos Corbacho wrote:
 
-> ACPI: WMI: Add initial documentation
+
+> -----Original Message-----
+> From: Mark M. Hoffman [mailto:mhoffman@lightlink.com]
+> Sent: Tuesday, February 05, 2008 7:27 PM
+> To: Thomas, Sujith
+> Cc: Henrique de Moraes Holschuh; Zhang, Rui;
+linux-acpi@vger.kernel.org; lm-
+> sensors@lm-sensors.org; Jean Delvare; Len Brown
+> Subject: Re: The new thermal management sysfs class, and hwmon
 > 
-> Add initial documentation for WMI-ACPI, giving basic information for WMI
-> kernel and userspace driver writers.
+> Hi:
 > 
-> ===
-> ChangeLog
+> (btw: Please use an email client that doesn't completely butcher the
+> text to which you're replying.  Thanks.)
 > 
-> v1 (2007-11-28)
+> > > > > On Sun, 2008-02-03 at 10:26 +0800, Henrique de Moraes Holschuh
+> > > > > wrote:
+> > > > > > And the two sysfs ABIs are incompatible.  The ACPI one uses
+> > > > > > low-precision units, (temperature in 10^0 degrees Celcius),
+while
+> > > > > > the hwmon ABI uses medium precision units (10^-3 degrees
+Celcius),
+> > > > > > for example.  There is also no tachometer feedback for fans,
+etc.
 > 
-> Initial version
+> > > > * Zhang Rui <rui.zhang@intel.com> [2008-02-03 17:31:12 +0800]:
+> > > > > Yes, currently ACPI is the only user of the thermal sysfs I/F.
+We
+> > > > > can add new sys I/F if someone really need it.
 > 
-> v2 (2007-12-08)
+> * Henrique de Moraes Holschuh <hmh@hmh.eng.br>:
+> > > I would really appreciate if the thermal zone ABI used a subset of
+the
+> > > hwmon ABI.  There is absolutely no reason to have one return data
+in
+> > > 10^-3 C while the other returns data in 10^0 C, for example.  IMO,
+if
+> > > both ABIs need thermal readings, both should use the same
+attribute,
+> > > defined in the same way.  The same goes for other attributes in
+the two
+> > > interfaces that share a common concept.
 > 
-> Update with latest changes to sysfs interface
+> * Thomas, Sujith <sujith.thomas@intel.com> [2008-02-05 15:44:19
++0530]:
+> > 1)Hwmon interface have other sensors for voltage and current
+measurement
+> > as well in addition to thermal sensors. Though this interface is
+generic
+> > from a "monitoring" perspective, it lacks some hierarchy
+representation.
+> > For eg. it lacks folder structure to store the list of devices
+> > associated with a thermal sensor. This hierarchy information is very
+> > much required by application to make an intelligent decision.
 > 
-> v3 (2008-02-05)
+> It's not there now.  It could be added.
 > 
-> Update
+> > 2) It is missing interfaces for passive device control.(CPU- T
+> > states,LCD,Memory controller, etc..)
 > 
-> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> CC: Len Brown <lenb@kernel.org>
-> ---
-> Added SOB this time... (and a few trivial fixes)
+> Ditto.
 > 
-> This replaces: [PATCH 5/5] ACPI: WMI: Add documentation
+> > 3) The solution should work on any ACPI based system or any other
+> > thermal model for that matter which follows the basic concept. (The
+> > model being : There are devices associated with sensors and if we
+> > "control" the device, the temperature of the sensor will come down).
 > 
-> (AKA - I shouldn't send a patch series out at 2am...)
+> The "association" bit is difficult for most hwmon drivers.  There are
+> 10k different mainboards, all wired differently, with no way to query
+> them to determine e.g. which PWM output is associated with which temp
+> sensor.  So, we are forced to punt the assocation to userspace.  You
+> won't have that problem w/ ACPI - lucky you. ;)
 > 
->  Documentation/acpi/wmi.txt |  131 ++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 131 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/acpi/wmi.txt
+> That still doesn't mean that this info can't or shouldn't be exposed
+in
+> hwmon when it *is* available.
 > 
+> > 4)What I have understood is that Hwmon supports only Smbus and I2C
+based
+> > sensors. It doesn't have support for EC based sensors at this point
+of
+> > time.
 > 
-> diff --git a/Documentation/acpi/wmi.txt b/Documentation/acpi/wmi.txt
-> new file mode 100644
-> index 0000000..4d243aa
-> --- /dev/null
-> +++ b/Documentation/acpi/wmi.txt
-> @@ -0,0 +1,131 @@
-> +ACPI-WMI mapping driver
-> +
-> +Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
-> +
-> +Updated: 5th February 2008
-> +
-> +1) About this guide
-> +
-> +This guide is a basic introduction on how to interact with the ACPI-WMI mapper
-> +driver in the kernel - it presumes you already have a basic knowledge of
-> +ACPI-WMI, ACPI and the hardware you are writing the driver for.
-> +
-> +2) What is ACPI-WMI
-> +
+> Incorrect.  We support devices with a variety of hardware interfaces
+in
+> addition to the I2C/SMBus.  Did you even look?
+> 
+> > 5)If I am not wrong, Hwmon lacks support for programming AUX trip
+points
+> > and trigger events based on that.
+> 
+> You keep saying "hwmon lacks support for"... the hwmon sysfs interface
+> supports exactly what the hardware can do.  If your hardware can do
+> something new or unique, you extend the interface to support it.
+There
+> are numerous examples of this.
+> 
+> > These were all the facts which lead us to take a different route
+than
+> > hwmon.
+> 
+> I don't actually mind having a thermal management interface that is
+> outside of hwmon, if that's what you want to do.  But these "facts"
+> (which are the premises of your rationale) are mostly bogus.
+> 
+> <cut>
+> 
+> * Thomas, Sujith <sujith.thomas@intel.com> [2008-02-05 15:44:19
++0530]:
+> > IMO the scope of hwmon is to monitor/report out temperature, voltage
+,
+> > current etc of the devices/platform . But the scope of these patches
+is
+> 
+> The scope of hwmon is to allow whatever the hardware allows.  Period.
+> 
+> > purely thermal management for a generic thermal model. As a first
+step
+> > we have made it work for ACPI thermal model.
+> > The only duplication which I can see of is in the "reporting of
+> > temperature", which is quite reasonable for a thermal management
+module
+> > to have.
+> 
+> Well, HdMH and I apparently disagree about this.  All I really care
+> about is that the temp info should be available through
+/sys/class/hwmon.
+> Many people just want to check their temps, without diving into the
+fine
+> details of a "thermal management solution".
+I absolutely don't have any issue with this. I feel that's the way to
+go. Hwmon can roll out a patch which can report out temperature of
+thermal sensors which are connected to EC and which follows ACPI spec.
 
-Please tell what WMI stands for.
+:-Sujith
+> 
+> So... what class of hardware would I need to give these patches a try?
+> Probably it would take me less time to write a patch to add hwmon
+class
+> support to that than it did to write this message... ;)
+> 
+> Regards,
+> 
+> --
+> Mark M. Hoffman
+> mhoffman@lightlink.com
 
-> +At its simplest, ACPI-WMI is a proprietary extension to the ACPI specification
-> +from Microsoft to allow WMI (their implementation of WBEM) to access
-> +instrumentation data and methods in ACPI from userspace, via the ACPI _HID
-> +device PNP0C14.
-> +
-> +3) What is the ACPI-WMI mapper
-> +
-> +The Linux ACPI-WMI driver is the implementation of this mapper for Linux.
-> +
-> +NOTE: The mapper does not do anything itself with the ACPI-WMI devices - it
-> +simply makes their functionality available to other drivers and userspace.
-> +
-> +4) Implementation
-> +
-> +A general note:
-> +
-> +ACPI-WMI has no knowledge of the size of the data blocks passed to/ from
-
-                                                                   to/from
-
-> +ACPI-WMI - this is not encoded in the DSDT, and is usually only available in
-> +the form of a MOF file. If this is not available, you will need to analyze
-> +the DSDT to get this information.
-> +
-> +You will therefore need to know in advance the size of any data structures
-> +to handle them.
-> +
-> +Userspace:
-> +
-> +ACPI-WMI is exposed to userspace via sysfs and netlink. Data and methods are
-> +exposed through sysfs, events are sent via netlink.
-> +
-> +Accessing ACPI-WMI directly through sysfs is generally not recommended -
-> +ideally, this should be done by a userspace library, which could also deal
-> +with the netlink events.
-> +
-> +The sysfs interface is in /sys/devices/virtual/wmi for WMI methods and data, as
-> +follows:
-> +
-> +/sys/devices/virtual/wmi/
-> +|
-> +|-> <GUID>/
-> + |-> type (method, data, event)
-> +
-> +Method & data blocks
-> + |-> instance (instance to execute)
-> + |-> instance_count (read only - maximum number of instances available)
-> + |-> data (binary data file - write input data to file, read file
-> +           to execute method and/ or retrieve data).
-> +
-> +To read/ write a data block, instance must be set first.
-
-      read/write
-
-> +
-> +Method only
-> + |-> method_id (write value of method id to execute)
-> +
-> +To execute a method, instance and method_id must be set first.
-> +
-> +Events - passed to userspace via netlink. However, the extra WMI data
-> +associated with an event is exposed through sysfs.
-> +
-> + |-> notification (ACPI event value)
-> + |-> data (binary data file - WMI data associated with the event)
-> +
-> +Kernel interface:
-> +
-> +For drivers that want to bypass userspace (either because WBEM is overkill,
-> +or a userspace application is not really appropriate for want you want to do),
-
-                                                        for what
-
-> +and talk directly to ACPI-WMI, then the mapper also exports functions
-> +to do this - these are essentially thin wrappers around ACPI, so if you are
-> +familiar with writing an ACPI driver, then writing a WMI driver is not much more
-> +of a stretch.
-> +
-> +The exported ACPI-WMI functions can be found in <linux/acpi.h>
-
-                                                in <linux/acpi.h>.
-
-> +
-> +The most important differences between ACPI and WMI drivers are:
-> +
-> +A) WMI based drivers should be platform drivers, not ACPI drivers.
-
-      WMI-based
-
-> +
-> +B) ACPI details such as handles and/ or path names are hidden; you use GUIDs as
-
-                                   and/or
-
-> +   the unique identifier to call methods instead (you don't need to care either
-> +   about multiple PNP0C14 devices existing - the GUIDs are always unique, and
-> +   these are what you will work with).
-> +
-> +C) In your probe() function, you should use wmi_has_guid() to look for the
-> +   GUID(s) you need for your driver.
-> +
-> +For the in kernel interface, the following functions are available:
-
-           in-kernel
-
-> +
-> +wmi_evaluate_method():
-> +
-> +Evaluate a WMI method.
-> +
-> +wmi_query_block():
-> +
-> +Return the contents of a WMI data block.
-> +
-> +wmi_set_block()
-
-   wmi_set_block():
-
-> +
-> +Set the contents of a WMI data block.
-> +
-> +wmi_install_notify_handler():
-> +wmi_remove_notify_handler():
-> +
-> +Install and/ or remove a handler for a WMI event - one handler per GUID.
-
-           and/or
-
-> +
-> +wmi_get_event_data():
-> +
-> +Return the data associated with a given WMI event.
-> +
-> +wmi_has_guid():
-> +
-> +Returns true if a given GUID is available on the system.
-> +
-> +wmi_get_device():
-> +
-> +Return a pointer to the virtual device associated with a GUID. If you need to
-
-   Returns
-
-> +set a parent device (e.g. for an input device), use this.
-> +
-> +
-> +[1] http://www.microsoft.com/whdc/system/pnppwr/wmi/wmi-acpi.mspx
-> -
-
-Are there netlink-aware apps that already know how to use this
-interface?  If so, where?
-
-Thanks.
----
-~Randy
