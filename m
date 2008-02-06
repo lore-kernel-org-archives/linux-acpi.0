@@ -1,57 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: suspend to ram problem
-Date: Wed, 6 Feb 2008 23:43:28 +0100
-Message-ID: <20080206224328.GB1630@elf.ucw.cz>
-References: <47A5C399.7010405@free.fr> <47A6B758.7070405@free.fr> <47A8EB02.90502@free.fr> <200802060020.12289.rjw@sisk.pl> <47AA3763.7000106@free.fr>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: [PATCH] check that acpi_wakeup_address is below 1MB
+Date: Wed, 06 Feb 2008 23:47:11 +0100
+Message-ID: <47AA38EF.6030307@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------060503010109060903030800"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:56697 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757617AbYBFWnK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Feb 2008 17:43:10 -0500
-Content-Disposition: inline
-In-Reply-To: <47AA3763.7000106@free.fr>
+Received: from smtp2-g19.free.fr ([212.27.42.28]:54260 "EHLO smtp2-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760972AbYBFWrM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2008 17:47:12 -0500
+Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id A1C0812BF69
+	for <linux-acpi@vger.kernel.org>; Wed,  6 Feb 2008 23:47:11 +0100 (CET)
+Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id 7C02C12BB99
+	for <linux-acpi@vger.kernel.org>; Wed,  6 Feb 2008 23:47:11 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed 2008-02-06 23:40:35, matthieu castet wrote:
-> Rafael J. Wysocki wrote:
->> On Wednesday, 6 of February 2008, matthieu castet wrote:
->>> Hi,
->>>
->>> matthieu castet wrote:
->>>> matthieu castet wrote:
->>>>> Pavel Machek wrote:
->>>>>> Hmm, maybe I know where problem could be. Try
->>>>>>
->>>>>>         movl     $(wakeup_stack - wakeup_code), %esp              # 
->>>>>> Private stack is needed for ASUS bo\
->>>>>>
->>>>>> instead of existing stack setup. That helped on one of my test-boxes
->>>>> Thanks, I will try that.
->>>>> Because clearing the flags imply pop/push in the stack it could be the 
->>>>> problem
->>>> That doesn't help : it still crash in pushl $0.
->>>>
->>> All stack stuff in wakeup_code crash for me.
->>> I tried to change the stack position, make sure upper bit of %esp are 
->>> clear, ... nothing work.
->>> What's are strange is that according to my x86 manual, in real mode the 
->>> failure can only happen if the stack wrap which is not the case here.
->>> Any x86 guru advice ?
->>>
->>> If I remove stack access (remove clearing flag stuff, not call to video 
->>> stuff) the resume works.
->>
->> Hm, can you place a "pushl %eax; popl %eax;" in place of the removed code and
->> see if that breaks?
-> Yes that also break.
+This is a multi-part message in MIME format.
+--------------060503010109060903030800
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hmm, and what kind of machine is that?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Hi,
+
+this patch had a check that the memory allocated is in the first 1MB.
+The check is similar to the one in smp_alloc_memory.
+
+
+Signed-off-by: "Matthieu CASTET <castet.matthieu@free.fr>"
+
+--------------060503010109060903030800
+Content-Type: text/x-patch;
+ name="acpi.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi.diff"
+
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 6bc815c..65ab23c 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -65,6 +65,10 @@ void __init acpi_reserve_bootmem(void)
+ 	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE*2);
+ 	if (!acpi_wakeup_address)
+ 		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
++
++	/* check if we are in first 1MB of memory */
++	if (__pa(acpi_wakeup_address) >= 1024*1024-PAGE_SIZE*2)
++		BUG();
+ }
+ 
+ 
+
+--------------060503010109060903030800--
