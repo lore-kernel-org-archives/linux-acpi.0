@@ -1,102 +1,74 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: battery: add sysfs serial number
-Date: Tue, 5 Feb 2008 21:09:58 -0500
-Message-ID: <200802052109.58454.lenb@kernel.org>
-References: <1201024010-6103-1-git-send-email-max@stro.at> <47962F29.7000102@suse.de>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH for review] ACPI: Create /sys/firmware/acpi/interrupts/
+	counters
+Date: Tue, 5 Feb 2008 18:43:49 -0800
+Message-ID: <20080206024349.GA10883@suse.de>
+References: <200802050230.10873.lenb@kernel.org> <200802051812.09228.lenb@kernel.org> <20080205231842.GB8740@suse.de> <200802052058.50663.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46935 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758819AbYBFCK2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Feb 2008 21:10:28 -0500
-In-Reply-To: <47962F29.7000102@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761737AbYBFCpx@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200802052058.50663.lenb@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: maximilian attems <max@stro.at>, linux-acpi@vger.kernel.org
 
-Applied.
+On Tue, Feb 05, 2008 at 08:58:50PM -0500, Len Brown wrote:
+> On Tuesday 05 February 2008 18:18, Greg KH wrote:
+> > On Tue, Feb 05, 2008 at 06:12:09PM -0500, Len Brown wrote:
+> > > On Tuesday 05 February 2008 17:18, Greg KH wrote:
+> > > > On Tue, Feb 05, 2008 at 02:30:10AM -0500, Len Brown wrote:
+> > > > > # cat /sys/firmware/acpi/interrupts/summary
+> > > > > pm_timer     0
+> > > > > glbl_lock    0
+> > > > > power_btn    0
+> > > > > sleep_btn    0
+> > > > > rtc          0
+> > > > > gpe00    0
+> > > ...
+> > > > > gpe1F    0
+> > > > > gpe_hi    0
+> > > > > gpe_total   63
+> > > > > acpi_irq    63
+> > > > 
+> > > > Eeek!  Why?  What's wrong with individual files here?
+> > > 
+> > > My expectation is that this is a shell interface for debugging,
+> > > not an API for programs.  ala /proc/interrupts.
+> > 
+> > Great, then use debugfs for it.  Please, don't put debug stuff like this
+> > in sysfs, that's not what it is there for.  You can do whatever you want
+> > in debugfs :)
+> 
+> Can you point to a model of good behaviour that I can copy?
+
+Any user of the debugfs api you could copy for this.
+
+> note that I want this information to be available on every system,
+> just like /proc/interrupts is.
+
+Ah, then /proc perhaps?
+
+> /proc/ has seqfile support, is there a reason I shouldn't use it?
+> I'd banned additional files from /proc/acpi for a long time
+> since the directory layout was ill-conceived.  But maybe I
+> should re-consider the headlong rush to use sysfs?
+
+One of the main problems of /proc was that the files were not
+documented, or that the format would change between versions, or that
+they were different on different arches.
+
+For something like this, yes, maybe you do need to use proc.  It can
+handle almost infinite length files, and just make sure you document it
+well.
+
+But I would just stick with debugfs, all distros enable it when
+shipping, you just have to ask them to mount it by hand usually:
+	mount -t debugfs none /sys/kernel/debug/
+
+Either way, I wouldn't recommend sysfs for this.
 
 thanks,
--Len
 
-On Tuesday 22 January 2008 13:00, Alexey Starikovskiy wrote:
-> ACK
-> maximilian attems wrote:
-> > egrep serial /proc/acpi/battery/BAT0/info
-> > serial number:           32090
-> > 
-> > serial number can tell you from the imminent danger
-> > of beeing set on fire.
-> > 
-> > Signed-off-by: maximilian attems <max@stro.at>
-> > ---
-> >  drivers/acpi/battery.c             |    5 +++++
-> >  drivers/power/power_supply_sysfs.c |    1 +
-> >  include/linux/power_supply.h       |    1 +
-> >  3 files changed, 7 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> > index c4a769d..f6215e8 100644
-> > --- a/drivers/acpi/battery.c
-> > +++ b/drivers/acpi/battery.c
-> > @@ -194,6 +194,9 @@ static int acpi_battery_get_property(struct power_supply *psy,
-> >  	case POWER_SUPPLY_PROP_MANUFACTURER:
-> >  		val->strval = battery->oem_info;
-> >  		break;
-> > +	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
-> > +		val->strval = battery->serial_number;
-> > +		break;
-> >  	default:
-> >  		return -EINVAL;
-> >  	}
-> > @@ -212,6 +215,7 @@ static enum power_supply_property charge_battery_props[] = {
-> >  	POWER_SUPPLY_PROP_CHARGE_NOW,
-> >  	POWER_SUPPLY_PROP_MODEL_NAME,
-> >  	POWER_SUPPLY_PROP_MANUFACTURER,
-> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
-> >  };
-> >  
-> >  static enum power_supply_property energy_battery_props[] = {
-> > @@ -226,6 +230,7 @@ static enum power_supply_property energy_battery_props[] = {
-> >  	POWER_SUPPLY_PROP_ENERGY_NOW,
-> >  	POWER_SUPPLY_PROP_MODEL_NAME,
-> >  	POWER_SUPPLY_PROP_MANUFACTURER,
-> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
-> >  };
-> >  #endif
-> >  
-> > diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
-> > index 249f61b..8feaa48 100644
-> > --- a/drivers/power/power_supply_sysfs.c
-> > +++ b/drivers/power/power_supply_sysfs.c
-> > @@ -117,6 +117,7 @@ static struct device_attribute power_supply_attrs[] = {
-> >  	/* Properties of type `const char *' */
-> >  	POWER_SUPPLY_ATTR(model_name),
-> >  	POWER_SUPPLY_ATTR(manufacturer),
-> > +	POWER_SUPPLY_ATTR(serial_number),
-> >  };
-> >  
-> >  static ssize_t power_supply_show_static_attrs(struct device *dev,
-> > diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-> > index 606c095..300159b 100644
-> > --- a/include/linux/power_supply.h
-> > +++ b/include/linux/power_supply.h
-> > @@ -101,6 +101,7 @@ enum power_supply_property {
-> >  	/* Properties of type `const char *' */
-> >  	POWER_SUPPLY_PROP_MODEL_NAME,
-> >  	POWER_SUPPLY_PROP_MANUFACTURER,
-> > +	POWER_SUPPLY_PROP_SERIAL_NUMBER,
-> >  };
-> >  
-> >  enum power_supply_type {
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+greg k-h
