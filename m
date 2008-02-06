@@ -1,84 +1,48 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test if (level
-	& TP_EC_FAN_FULLSPEED)
-Date: Wed, 6 Feb 2008 15:07:02 -0800
-Message-ID: <20080206230702.GA12395@kroah.com>
-References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: Re: suspend to ram problem
+Date: Thu, 07 Feb 2008 00:17:20 +0100
+Message-ID: <47AA4000.6010701@free.fr>
+References: <47A5C399.7010405@free.fr> <47A6B758.7070405@free.fr> <47A8EB02.90502@free.fr> <200802060020.12289.rjw@sisk.pl> <47AA3763.7000106@free.fr> <20080206224328.GB1630@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:36268 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763459AbYBFXQd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 18:16:33 -0500
-Content-Disposition: inline
-In-Reply-To: <47A81FAE.2090709@tiscali.nl>
+Received: from smtp2-g19.free.fr ([212.27.42.28]:47870 "EHLO smtp2-g19.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932471AbYBFXRX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2008 18:17:23 -0500
+In-Reply-To: <20080206224328.GB1630@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roel Kluin <12o3l@tiscali.nl>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Roland Dreier <rdreier@cisco.com>, len.brown@intel.com, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, stable@kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, Feb 05, 2008 at 09:34:54AM +0100, Roel Kluin wrote:
-> Henrique de Moraes Holschuh wrote:
-> > On Tue, 05 Feb 2008, Roel Kluin wrote:
-> >> Roland Dreier wrote:
-> >>>  >                 /* safety net should the EC not support AUTO
-> >>>  >                  * or FULLSPEED mode bits and just ignore them */
-> >>>  >                 if (level & TP_EC_FAN_FULLSPEED)
-> >>>  >                         level |= 7;     /* safety min speed 7 */
-> >>>  >                 else if (level & TP_EC_FAN_FULLSPEED)
-> >>>  >                         level |= 4;     /* safety min speed 4 */
-> >>>  > 
-> >>>  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
-> >>>  > this be replaced by
-> >>>
-> >>> Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
-> >>> (based on the comment).
-> >> Thanks Roland, for your info
-> >>
-> >> based on the comments in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad,
-> >> I think this should be modified like below:
-> >>
-> >> ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
-> >> The Linux ThinkPad community is not positive that all ThinkPads that do
-> >> HFSP EC fan control do implement full-speed and auto modes, some of the
-> >> earlier ones supporting HFSP might not.
-> >>
-> >> If the EC ignores the AUTO or FULL-SPEED bits, it will pay attention to the
-> >> lower three bits that set the fan level. And as thinkpad-acpi was leaving
-> >> these set to zero, it would stop(!) the fan, which is Not A Good Thing.
-> >> So, as a safety net, we now make sure to also set the fan level part of the
-> >> HFSP register to speed 7 for full-speed, and a minimum of speed 4 for auto
-> >> mode.
-> >> --
-> >> second TP_EC_FAN_FULLSPEED should be P_EC_FAN_AUTO
-> >>
-> >>
-> >> Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-> >> ---
-> >> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-> >> index cf56647..3c323fe 100644
-> >> --- a/drivers/misc/thinkpad_acpi.c
-> >> +++ b/drivers/misc/thinkpad_acpi.c
-> >> @@ -4138,7 +4138,7 @@ static int fan_set_level(int level)
-> >>  		 * or FULLSPEED mode bits and just ignore them */
-> >>  		if (level & TP_EC_FAN_FULLSPEED)
-> >>  			level |= 7;	/* safety min speed 7 */
-> >> -		else if (level & TP_EC_FAN_FULLSPEED)
-> >> +		else if (level & TP_EC_FAN_AUTO)
-> >>  			level |= 4;	/* safety min speed 4 */
-> >>  
-> >>  		if (!acpi_ec_write(fan_status_offset, level))
-> > 
-> > ACK.  This needs to be sent to stable as well.  I think both 2.6.22 and
-> > 2.6.23 need this patch.
-> > 
+Pavel Machek wrote:
+> On Wed 2008-02-06 23:40:35, matthieu castet wrote:
+>>>> If I remove stack access (remove clearing flag stuff, not call to video 
+>>>> stuff) the resume works.
+>>> Hm, can you place a "pushl %eax; popl %eax;" in place of the removed code and
+>>> see if that breaks?
+>> Yes that also break.
 > 
-> CC stable@kernel.org
-
-Please send us a real copy of the patch, when it goes into Linus's tree,
-so we know what to apply, and that it is safe to do so.
-
-thanks,
-
-greg k-h
+> Hmm, and what kind of machine is that?
+processor       : 0
+vendor_id       : AuthenticAMD
+cpu family      : 6
+model           : 6
+model name      : AMD Athlon(tm) XP 1800+
+stepping        : 2
+cpu MHz         : 1533.490
+cache size      : 256 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+mca cmov pat pse36 mmx fxsr sse syscall mmxext 3dnowext 3dnow ts
+bogomips        : 3070.84
+clflush size    : 32
