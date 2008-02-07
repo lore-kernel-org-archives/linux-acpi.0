@@ -1,66 +1,76 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 053/112] the generic thermal sysfs driver
-Date: Thu, 07 Feb 2008 14:10:01 -0800
-Message-ID: <47AB81B9.1000702@oracle.com>
-References: <1202376914-21030-1-git-send-email-lenb@kernel.org> <203d3d4aa482339b4816f131f713e1b8ee37f6dd.1202376824.git.len.brown@intel.com> <20080207084645.c6e67aad.randy.dunlap@oracle.com> <200802071705.02695.lenb@kernel.org>
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: [BUG] 2.6.24 refuses to boot - NMI watchdog problem?
+Date: Thu, 7 Feb 2008 22:22:02 +0000 (GMT)
+Message-ID: <977240.37174.qm@web52901.mail.re2.yahoo.com>
+References: <20080207122652.02a7d5d5.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:47430 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933843AbYBGWMH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 17:12:07 -0500
-In-Reply-To: <200802071705.02695.lenb@kernel.org>
+Received: from web52901.mail.re2.yahoo.com ([206.190.49.11]:38498 "HELO
+	web52901.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754825AbYBGWWI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 17:22:08 -0500
+In-Reply-To: <20080207122652.02a7d5d5.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: lenb@kernel.org, rankincj@yahoo.com, linux-kernel@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de, linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-> Thanks for the review, Randy.
-> 
-> I've corrected the issues you pointed out, as well as
-> run the doc through ispell and run thermal.c through Lindent.
-> 
-> I've left the goto labels where Lindent put them.
-> If there is a Linux style consensus on that issue,
-> perhaps the Linux community can enhance Lindent?
+--- Andrew Morton <akpm@linux-foundation.org> wrote:
+> So it's a CONFIG_SMP=y kernel on a single-cpu machine?
+Correct.
 
-I'd say that there is concensus but no one to touch Lindent.
-[Similarly for kconfig select dependency problems. :( ]
+> It is unclear to me what clocksource (if any) your machine is using.
+The 2.6.23.x kernel uses the TSC:
 
-> (I'm not going to move a bunch of labels around,
->  just to have the next Lindent sweep move them back)
+...
+ACPI: Core revision 20070126
+CPU0: Intel Pentium III (Coppermine) stepping 06
+Total of 1 processors activated (2011.69 BogoMIPS).
+ENABLING IO-APIC IRQs
+..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
+APIC timer registered as dummy, due to nmi_watchdog=1!
+Brought up 1 CPUs
+NET: Registered protocol family 16
+ACPI: bus type pci registered
+PCI: PCI BIOS revision 2.10 entry at 0xf0e30, last bus=3
+PCI: Using configuration type 1
+Setting up standard PCI resources
+ACPI: EC: Look up EC in DSDT
+ACPI: Interpreter enabled
+ACPI: (supports S0 S1 S5)
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI quirk: region e400-e47f claimed by ICH4 ACPI/GPIO/TCO
+PCI quirk: region ec00-ec3f claimed by ICH4 GPIO
+PCI: Transparent bridge - 0000:00:1e.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI2._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI init
+ACPI: bus type pnp registered
+pnp: PnP ACPI: found 15 devices
+ACPI: ACPI bus type pnp unregistered
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+Time: tsc clocksource has been installed.
+...
 
-Lindent has several other known issues as far as Linux kernel
-is concerned.  I.e., it's not a fine tool to use and not review
-what it did.
+Cheers,
+Chris
 
-> Also, regarding the kernel-doc syntax, that too
-> would be a good thing for Lindent, or some other tool
-> to do for us -- or at least to complain about for us:-)
 
-So noted, added to the todo list.
 
-Thanks.
 
-> thanks,
-> -Len
-> 
-> From 54c82f9ae5b2106cc79633a611367883c374ad3f Mon Sep 17 00:00:00 2001
-> From: Len Brown <len.brown@intel.com>
-> Date: Thu, 7 Feb 2008 16:55:08 -0500
-> Subject: [PATCH] ACPI: thermal: syntax, spelling, kernel-doc
-> Organization: Intel Open Source Technology Center
-> 
-> Reviewed-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  Documentation/thermal/sysfs-api.txt |   23 ++++++++--------
->  drivers/thermal/Kconfig             |    4 +-
->  drivers/thermal/thermal.c           |   49 ++++++++++++++++++++---------------
->  3 files changed, 41 insertions(+), 35 deletions(-)
-
--- 
-~Randy
+      ___________________________________________________________
+Support the World Aids Awareness campaign this month with Yahoo! For Good http://uk.promotions.yahoo.com/forgood/
