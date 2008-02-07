@@ -1,94 +1,45 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH][drivers/misc/thinkpad_acpi.c]
-	duplicate test if (level & TP_EC_FAN_FULLSPEED)
-Date: Thu, 7 Feb 2008 01:17:44 -0500
-Message-ID: <200802070117.45119.lenb@kernel.org>
-References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com>
-	<47A79EC8.6060700@tiscali.nl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: The new thermal management sysfs class, and hwmon
+Date: Thu, 7 Feb 2008 01:41:33 -0500
+Message-ID: <200802070141.33362.lenb@kernel.org>
+References: <20080203022622.GA995@khazad-dum.debian.net> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <47A79EC8.6060700-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:46251 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752575AbYBGGmj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 01:42:39 -0500
+In-Reply-To: <20080203175006.GB9159@khazad-dum.debian.net>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Roel Kluin <12o3l-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, "Thomas, Sujith" <sujith.thomas@intel.com>
 
-Applied.
 
-thanks,
+> Agreed.  However, *duplicating* what is already in hwmon elsewhere is not
+> fun.  Please reconsider.
+
+I started off with the same position as you, Henrique,
+but Rui and Sujith don't see it that way.
+Of course this is software, we can always change it --
+particularly since there will be a very small list
+of users for the new I/F, and we happen to know them:-)
+
+> I'd like to see passive cooling (heck, the entire 
+> ACPI v3.0 thermal model, if needed) added to hwmon, that will enhance hwmon
+> to be even more generic, and we all benefit from that.
+
+The ACPI 3.0 thermal model requires quite a bit of sophistication from
+the system designer and BIOS writer.
+Based on the quality of system designs and BIOS code we see
+in the industry, I think it is way over the head of 99% of the industry.
+
+That said, if a system does come out that supports the ACPI 3.0 Thermal Model
+and they want to ship Linux on it, we can look into it then.
+
+cheers,
 -Len
-
-On Monday 04 February 2008 18:24, Roel Kluin wrote:
-> Roland Dreier wrote:
-> >  >                 /* safety net should the EC not support AUTO
-> >  >                  * or FULLSPEED mode bits and just ignore them */
-> >  >                 if (level & TP_EC_FAN_FULLSPEED)
-> >  >                         level |= 7;     /* safety min speed 7 */
-> >  >                 else if (level & TP_EC_FAN_FULLSPEED)
-> >  >                         level |= 4;     /* safety min speed 4 */
-> >  > 
-> >  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
-> >  > this be replaced by
-> > 
-> > Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
-> > (based on the comment).
-> > 
-> 
-> Thanks Roland, for your info
-> 
-> based on the comments in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad,
-> I think this should be modified like below:
-> 
-> ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
-> The Linux ThinkPad community is not positive that all ThinkPads that do
-> HFSP EC fan control do implement full-speed and auto modes, some of the
-> earlier ones supporting HFSP might not.
-> 
-> If the EC ignores the AUTO or FULL-SPEED bits, it will pay attention to the
-> lower three bits that set the fan level. And as thinkpad-acpi was leaving
-> these set to zero, it would stop(!) the fan, which is Not A Good Thing.
-> So, as a safety net, we now make sure to also set the fan level part of the
-> HFSP register to speed 7 for full-speed, and a minimum of speed 4 for auto
-> mode.
-> --
-> second TP_EC_FAN_FULLSPEED should be P_EC_FAN_AUTO
-> 
-> 
-> Signed-off-by: Roel Kluin <12o3l-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-> ---
-> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-> index cf56647..3c323fe 100644
-> --- a/drivers/misc/thinkpad_acpi.c
-> +++ b/drivers/misc/thinkpad_acpi.c
-> @@ -4138,7 +4138,7 @@ static int fan_set_level(int level)
->  		 * or FULLSPEED mode bits and just ignore them */
->  		if (level & TP_EC_FAN_FULLSPEED)
->  			level |= 7;	/* safety min speed 7 */
-> -		else if (level & TP_EC_FAN_FULLSPEED)
-> +		else if (level & TP_EC_FAN_AUTO)
->  			level |= 4;	/* safety min speed 4 */
->  
->  		if (!acpi_ec_write(fan_status_offset, level))
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
