@@ -1,71 +1,70 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 018/112] ACPI: ACPI Exception (): AE_NOT_FOUND, Processor Device is not present
-Date: Thu,  7 Feb 2008 04:33:40 -0500
-Message-ID: <cfaf3747ff3d431fba33f75083b7f50f58ae22ff.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 016/112] ACPI: detect invalid argument written to /proc/acpi/alarm
+Date: Thu,  7 Feb 2008 04:33:38 -0500
+Message-ID: <975c30257e75c3d067d4858f60963b80fc6bd0e4.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:42392 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756096AbYBGJfl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:41 -0500
+	with ESMTP id S1757147AbYBGJfi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:38 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Signed-off by Yi Yang <yi.y.yang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Signed-off by Yi Yang <yi.y.yang@intel.com>
 
-ACPI Exception (acpi_processor-0677): AE_NOT_FOUND, Processor Device is not
-present [20060707]
+/proc/acpi/alarm can't be set correctly, here is a sample:
 
-According to the ACPI spec 6.3.7,
-"If a device object (including the processor object) does not have an
-_STA object, then OSPM assumes that all of the above bits are set,
-(in other words, the device is present, enabled, shown in the UI
-and funtioning)".
+[root@localhost /]# echo "2006 09" > /proc/acpi/alarm
+[root@localhost /]# cat /proc/acpi/alarm
+2007-12-09 09:09:09
+[root@localhost /]# echo "2006 04" > /proc/acpi/alarm
+[root@localhost /]# cat /proc/acpi/alarm
+2007-12-04 04:04:04
+[root@localhost /]#
 
-is_processor_present shoud return 1 if the processor device object exists
-while it doesn't have an _STA object.
+Obviously, it is wrong, it should consider it as an invalid input.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8570
+after this patch:
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+[root@localhost /]# echo "2008 09" > /proc/acpi/alarm
+-bash: echo: write error: Invalid argument
+[root@localhost /]#
+
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_core.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/acpi/sleep/proc.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index e48ee4f..c53113e 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -812,11 +812,18 @@ static int is_processor_present(acpi_handle handle)
- 
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
--		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
--		return 0;
--	}
--	return 1;
-+	/*
-+	 * if a processor object does not have an _STA object,
-+	 * OSPM assumes that the processor is present.
-+	 */
-+	if (status == AE_NOT_FOUND)
-+		return 1;
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+index 1538355..fce78fb 100644
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -178,6 +178,9 @@ static int get_date_field(char **p, u32 * value)
+ 	 * Try to find delimeter, only to insert null.  The end of the
+ 	 * string won't have one, but is still valid.
+ 	 */
++	if (*p == NULL)
++		return result;
 +
-+	if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_PRESENT))
-+		return 1;
-+
-+	ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
-+	return 0;
+ 	next = strpbrk(*p, "- :");
+ 	if (next)
+ 		*next++ = '\0';
+@@ -190,6 +193,8 @@ static int get_date_field(char **p, u32 * value)
+ 
+ 	if (next)
+ 		*p = next;
++	else
++		*p = NULL;
+ 
+ 	return result;
  }
- 
- static
 -- 
 1.5.4.23.gef5b9
 
