@@ -1,92 +1,64 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 080/112] ACPI: battery: add sysfs serial number
-Date: Thu,  7 Feb 2008 04:34:42 -0500
-Message-ID: <7c2670bbb53820d0a4fab8d74593eeccd1eef225.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 087/112] ACPI: remove duplicated warning message
+Date: Thu,  7 Feb 2008 04:34:49 -0500
+Message-ID: <e76d5f7e831a3f33dd6fa8eb94533b0b4cb22b6f.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:9414 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:18844 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753894AbYBGJgh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:37 -0500
+	with ESMTP id S1754552AbYBGJgu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:50 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: maximilian attems <max@stro.at>, Len Brown <len.brown@intel.com>
+Cc: =?utf-8?q?Miguel=20Bot=C3=B3n?= <mboton@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: maximilian attems <max@stro.at>
+=46rom: Miguel Bot=C3=B3n <mboton@gmail.com>
 
-egrep serial /proc/acpi/battery/BAT0/info
-serial number:           32090
+Remove duplicated warning message in acpi_power_transition()
 
-serial number can tell you from the imminent danger
-of beeing set on fire.
+ACPI: Transitioning device [%s] to D%d\n
 
-Signed-off-by: maximilian attems <max@stro.at>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+This warning message is printed by acpi_bus_set_power() so we don't
+need to print it again.
+
+Signed-off-by: Miguel Bot=C3=B3n <mboton@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c             |    5 +++++
- drivers/power/power_supply_sysfs.c |    1 +
- include/linux/power_supply.h       |    1 +
- 3 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/acpi/power.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index c4a769d..f6215e8 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -194,6 +194,9 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 	case POWER_SUPPLY_PROP_MANUFACTURER:
- 		val->strval = battery->oem_info;
- 		break;
-+	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
-+		val->strval = battery->serial_number;
-+		break;
- 	default:
- 		return -EINVAL;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index af1769a..76bf6d9 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -458,11 +458,9 @@ int acpi_power_transition(struct acpi_device *devi=
+ce, int state)
  	}
-@@ -212,6 +215,7 @@ static enum power_supply_property charge_battery_props[] = {
- 	POWER_SUPPLY_PROP_CHARGE_NOW,
- 	POWER_SUPPLY_PROP_MODEL_NAME,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
-+	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
- static enum power_supply_property energy_battery_props[] = {
-@@ -226,6 +230,7 @@ static enum power_supply_property energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_ENERGY_NOW,
- 	POWER_SUPPLY_PROP_MODEL_NAME,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
-+	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- #endif
- 
-diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
-index d482484..ad2bed0 100644
---- a/drivers/power/power_supply_sysfs.c
-+++ b/drivers/power/power_supply_sysfs.c
-@@ -116,6 +116,7 @@ static struct device_attribute power_supply_attrs[] = {
- 	/* Properties of type `const char *' */
- 	POWER_SUPPLY_ATTR(model_name),
- 	POWER_SUPPLY_ATTR(manufacturer),
-+	POWER_SUPPLY_ATTR(serial_number),
- };
- 
- static ssize_t power_supply_show_static_attrs(struct device *dev,
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 5cbf3e3..68ed19c 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -94,6 +94,7 @@ enum power_supply_property {
- 	/* Properties of type `const char *' */
- 	POWER_SUPPLY_PROP_MODEL_NAME,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
-+	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
- enum power_supply_type {
--- 
+=20
+      end:
+-	if (result) {
++	if (result)
+ 		device->power.state =3D ACPI_STATE_UNKNOWN;
+-		printk(KERN_WARNING PREFIX "Transitioning device [%s] to D%d\n",
+-			      device->pnp.bus_id, state);
+-	} else {
++	else {
+ 	/* We shouldn't change the state till all above operations succeed */
+ 		device->power.state =3D state;
+ 	}
+--=20
 1.5.4.23.gef5b9
 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
