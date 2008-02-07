@@ -1,55 +1,118 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
-Date: Thu, 07 Feb 2008 08:57:09 +0100
-Message-ID: <47AAB9D5.3010506@tremplin-utc.net>
-References: <4798E2A5.6020804@users.sf.net> <47A0FBD4.6090603@tremplin-utc.net> <1201861297.14573.66.camel@queen.suse.de> <200802062151.48404.lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 001/112] ACPI: add control method tracing support
+Date: Thu,  7 Feb 2008 04:33:23 -0500
+Message-ID: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
+References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:5721 "EHLO
-	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934AbYBGH5R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 02:57:17 -0500
-In-Reply-To: <200802062151.48404.lenb@kernel.org>
+Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753611AbYBGJfT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:19 -0500
+In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-07/02/08 03:51, Len Brown wrote/a =C3=A9crit:
->>>> Jeff (Mahony) has adjusted the last bits of it when he updated it =
-to the
->>>> latest rcX-gitY version:
->>>> Changes:
->>>>  We no longer call populate_rootfs() twice. If we want the custom =
-DSDT,
->>>>  we load the rootfs before ACPI. Otherwise, it is loaded at the
->>>> appropriate
->>>>  initcall time. -jeffm
->=20
->>> I had left it this way because I though Linus had a good reason for=
-=20
->>> delaying populate_rootfs(). But if it works, fine! Maybe some addit=
-ional=20
->>> comments should be added in before the #ifdef's to clearly show tha=
-t=20
->>> populate_rootfs() is _always_ called, and they modify only the mome=
-nt it=20
->>> is called.
->=20
->> I don't know about this, I took that change from your patches...
->=20
-> So is the populate_rootfs() change in the pach I have correct, or not=
-?
-Yes, it's correct. This is the SuSE version, which is slightly differen=
-t
-from the one I had written for the official patch, but which avoids
-calling twice populate_rootfs(). Both versions work fine anyway :-)
+From: Zhang Rui <rui.zhang@intel.com>
 
-Eric
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Add debug tracing support during certain AML method execution.
+
+Four more module parameters are created under /sys/module/acpi/parameters/:
+trace_method_name:	the AML method name that user wants to trace
+
+trace_debug_layer:	the temporary debug_layer used when tracing the method.
+			Using 0xffffffff by default if it is 0.
+
+trace_debug_level:	the temporary debug_level used when tracing the method.
+			Using 0x00ffffff by default if it is 0.
+
+trace_state:		The status of the tracing feature.
+			"enabled" means this feature is enabled
+			and the AML method is traced every time it's executed.
+			"1" means this feature is enabled and the AML method
+			will only be traced during the next execution.
+			"disabled" means this feature is disabled.
+			Users can enable/disable this debug tracing feature by
+			"echo string > /sys/module/acpi/parameters/trace_state".
+			"string" should be one of "enable", "disable" and "1".
+
+http://bugzilla.kernel.org/show_bug.cgi?id=6629
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/debug.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 57 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+index bf513e0..6df564f 100644
+--- a/drivers/acpi/debug.c
++++ b/drivers/acpi/debug.c
+@@ -130,6 +130,63 @@ static int param_get_debug_level(char *buffer, struct kernel_param *kp) {
+ module_param_call(debug_layer, param_set_uint, param_get_debug_layer, &acpi_dbg_layer, 0644);
+ module_param_call(debug_level, param_set_uint, param_get_debug_level, &acpi_dbg_level, 0644);
+ 
++static char trace_method_name[6];
++module_param_string(trace_method_name, trace_method_name, 6, 0644);
++static unsigned int trace_debug_layer;
++module_param(trace_debug_layer, uint, 0644);
++static unsigned int trace_debug_level;
++module_param(trace_debug_level, uint, 0644);
++
++static int param_set_trace_state(const char *val, struct kernel_param *kp)
++{
++	int result = 0;
++
++	if (!strncmp(val, "enable", strlen("enable") - 1)) {
++		result = acpi_debug_trace(trace_method_name, trace_debug_level,
++					  trace_debug_layer, 0);
++		if (result)
++			result = -EBUSY;
++		goto exit;
++	}
++
++	if (!strncmp(val, "disable", strlen("disable") - 1)) {
++		int name = 0;
++		result = acpi_debug_trace((char *)&name, trace_debug_level,
++					  trace_debug_layer, 0);
++		if (result)
++			result = -EBUSY;
++		goto exit;
++	}
++
++	if (!strncmp(val, "1", 1)) {
++		result = acpi_debug_trace(trace_method_name, trace_debug_level,
++					  trace_debug_layer, 1);
++		if (result)
++			result = -EBUSY;
++		goto exit;
++	}
++
++	result = -EINVAL;
++exit:
++	return result;
++}
++
++static int param_get_trace_state(char *buffer, struct kernel_param *kp)
++{
++	if (!acpi_gbl_trace_method_name)
++		return sprintf(buffer, "disable");
++	else {
++		if (acpi_gbl_trace_flags & 1)
++			return sprintf(buffer, "1");
++		else
++			return sprintf(buffer, "enable");
++	}
++	return 0;
++}
++
++module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
++		  NULL, 0644);
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+-- 
+1.5.4.23.gef5b9
+
