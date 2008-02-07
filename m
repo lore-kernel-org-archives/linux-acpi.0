@@ -1,35 +1,163 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test
-	if (level & TP_EC_FAN_FULLSPEED)
-Date: Wed, 6 Feb 2008 23:28:38 -0800
-Message-ID: <20080207072838.GA24592@kroah.com>
-References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl> <20080206230702.GA12395@kroah.com> <47AA4748.3040702@tiscali.nl> <20080207011850.GC10122@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 4/4] CPUIDLE: Add a poll_idle method into CPU_IDLE
+Date: Thu, 7 Feb 2008 02:38:14 -0500
+Message-ID: <200802070238.14291.lenb@kernel.org>
+References: <20080201013502.750627000@intel.com> <20080201013629.746981000@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:42858 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760119AbYBGHZR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 02:25:17 -0500
+Received: from hera.kernel.org ([140.211.167.34]:34822 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754121AbYBGHi1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 02:38:27 -0500
+In-Reply-To: <20080201013629.746981000@intel.com>
 Content-Disposition: inline
-In-Reply-To: <20080207011850.GC10122@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Roel Kluin <12o3l@tiscali.nl>, len.brown@intel.com, linux-acpi@vger.kernel.org, Roland Dreier <rdreier@cisco.com>, lkml <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, stable@kernel.org
+To: venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Feb 06, 2008 at 11:18:50PM -0200, Henrique de Moraes Holschuh wrote:
-> On Thu, 07 Feb 2008, Roel Kluin wrote:
-> > It's a oneliner and the patch is from linus' tree.
-> 
-> Roel, better to just let me and Len Brown handle it.  I will add your patch
-> to my thinkpad-acpi queue and send it to Len soon, along with other simple
-> patches that are pending.  Either I or Len will notify stable@k.o when it
-> hits mainline.
-
-Sounds good, I've dropped it from my queue, so please resend it when it
-hits Linus's tree to stable@kernel.org if you want it there.
-
+applied,
 thanks,
+-len
 
-greg k-h
+On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
+> Add a default poll idle state with 0 latency. Provides an option to users
+> to use poll_idle by using 0 as the latency requirement.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
+> @@ -1600,7 +1600,7 @@ struct cpuidle_driver acpi_idle_driver =
+>   */
+>  static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+>  {
+> -	int i, count = 0;
+> +	int i, count = CPUIDLE_DRIVER_STATE_START;
+>  	struct acpi_processor_cx *cx;
+>  	struct cpuidle_state *state;
+>  	struct cpuidle_device *dev = &pr->power.dev;
+> @@ -1659,6 +1659,8 @@ static int acpi_processor_setup_cpuidle(
+>  		}
+>  
+>  		count++;
+> +		if (count == CPUIDLE_STATE_MAX)
+> +			break;
+>  	}
+>  
+>  	dev->state_count = count;
+> Index: linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
+> ===================================================================
+> --- linux-2.6.25-rc.orig/drivers/cpuidle/cpuidle.c
+> +++ linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/latency.h>
+>  #include <linux/cpu.h>
+>  #include <linux/cpuidle.h>
+> +#include <linux/ktime.h>
+>  
+>  #include "cpuidle.h"
+>  
+> @@ -180,6 +181,44 @@ void cpuidle_disable_device(struct cpuid
+>  
+>  EXPORT_SYMBOL_GPL(cpuidle_disable_device);
+>  
+> +#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+> +static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
+> +{
+> +	ktime_t	t1, t2;
+> +	s64 diff;
+> +	int ret;
+> +
+> +	t1 = ktime_get();
+> +	local_irq_enable();
+> +	while (!need_resched()) {
+> +		cpu_relax();
+> +	}
+> +	t2 = ktime_get();
+> +	diff = ktime_to_us(ktime_sub(t2, t1));
+> +	if (diff > INT_MAX)
+> +		diff = INT_MAX;
+> +
+> +	ret = (int) diff;
+> +	return ret;
+> +}
+> +
+> +static void poll_idle_init(struct cpuidle_device *dev)
+> +{
+> +	struct cpuidle_state *state = &dev->states[0];
+> +
+> +	cpuidle_set_statedata(state, NULL);
+> +
+> +	snprintf(state->name, CPUIDLE_NAME_LEN, "C0 (poll idle)");
+> +	state->exit_latency = 0;
+> +	state->target_residency = 0;
+> +	state->power_usage = -1;
+> +	state->flags = CPUIDLE_FLAG_POLL | CPUIDLE_FLAG_TIME_VALID;
+> +	state->enter = poll_idle;
+> +}
+> +#else
+> +static void poll_idle_init(struct cpuidle_device *dev) {}
+> +#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
+> +
+>  /**
+>   * cpuidle_register_device - registers a CPU's idle PM feature
+>   * @dev: the cpu
+> @@ -198,6 +237,8 @@ int cpuidle_register_device(struct cpuid
+>  
+>  	mutex_lock(&cpuidle_lock);
+>  
+> +	poll_idle_init(dev);
+> +
+>  	per_cpu(cpuidle_devices, dev->cpu) = dev;
+>  	list_add(&dev->device_list, &cpuidle_detected_devices);
+>  	if ((ret = cpuidle_add_sysfs(sys_dev))) {
+> Index: linux-2.6.25-rc/include/linux/cpuidle.h
+> ===================================================================
+> --- linux-2.6.25-rc.orig/include/linux/cpuidle.h
+> +++ linux-2.6.25-rc/include/linux/cpuidle.h
+> @@ -46,9 +46,10 @@ struct cpuidle_state {
+>  /* Idle State Flags */
+>  #define CPUIDLE_FLAG_TIME_VALID	(0x01) /* is residency time measurable? */
+>  #define CPUIDLE_FLAG_CHECK_BM	(0x02) /* BM activity will exit state */
+> -#define CPUIDLE_FLAG_SHALLOW	(0x10) /* low latency, minimal savings */
+> -#define CPUIDLE_FLAG_BALANCED	(0x20) /* medium latency, moderate savings */
+> -#define CPUIDLE_FLAG_DEEP	(0x40) /* high latency, large savings */
+> +#define CPUIDLE_FLAG_POLL	(0x10) /* no latency, no savings */
+> +#define CPUIDLE_FLAG_SHALLOW	(0x20) /* low latency, minimal savings */
+> +#define CPUIDLE_FLAG_BALANCED	(0x40) /* medium latency, moderate savings */
+> +#define CPUIDLE_FLAG_DEEP	(0x80) /* high latency, large savings */
+>  
+>  #define CPUIDLE_DRIVER_FLAGS_MASK (0xFFFF0000)
+>  
+> @@ -178,4 +179,10 @@ static inline void cpuidle_unregister_go
+>  
+>  #endif
+>  
+> +#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+> +#define CPUIDLE_DRIVER_STATE_START	1
+> +#else
+> +#define CPUIDLE_DRIVER_STATE_START	0
+> +#endif
+> +
+>  #endif /* _LINUX_CPUIDLE_H */
+> Index: linux-2.6.25-rc/arch/x86/Kconfig
+> ===================================================================
+> --- linux-2.6.25-rc.orig/arch/x86/Kconfig
+> +++ linux-2.6.25-rc/arch/x86/Kconfig
+> @@ -112,6 +112,9 @@ config GENERIC_TIME_VSYSCALL
+>  	bool
+>  	default X86_64
+>  
+> +config ARCH_HAS_CPU_RELAX
+> +	def_bool y
+> +
+>  config ARCH_SUPPORTS_OPROFILE
+>  	bool
+>  	default y
+> 
