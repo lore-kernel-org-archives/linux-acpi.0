@@ -1,31 +1,34 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 4/4] CPUIDLE: Add a poll_idle method into CPU_IDLE
-Date: Thu, 7 Feb 2008 02:38:14 -0500
-Message-ID: <200802070238.14291.lenb@kernel.org>
-References: <20080201013502.750627000@intel.com> <20080201013629.746981000@intel.com>
+Subject: Re: [patch 2/4] ACPI: Use mwait for C1 idle
+Date: Thu, 7 Feb 2008 02:38:17 -0500
+Message-ID: <200802070238.18004.lenb@kernel.org>
+References: <20080201013502.750627000@intel.com> <20080201013629.328571000@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34822 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:34830 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754121AbYBGHi1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 02:38:27 -0500
-In-Reply-To: <20080201013629.746981000@intel.com>
+	id S1754507AbYBGHid (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 02:38:33 -0500
+In-Reply-To: <20080201013629.328571000@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: venkatesh.pallipadi@intel.com
 Cc: linux-acpi@vger.kernel.org
 
-applied,
+applied.
+
 thanks,
 -len
 
 On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
-> Add a default poll idle state with 0 latency. Provides an option to users
-> to use poll_idle by using 0 as the latency requirement.
+> Add mwait idle for C1 state instead of halt, on platforms that support
+> C1 state with mwait.
+> 
+> Renames cx->space_id to something more appropriate.
 > 
 > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 > 
@@ -33,131 +36,87 @@ On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
 > ===================================================================
 > --- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
 > +++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
-> @@ -1600,7 +1600,7 @@ struct cpuidle_driver acpi_idle_driver =
->   */
->  static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+> @@ -265,7 +265,7 @@ static atomic_t c3_cpu_count;
+>  /* Common C-state entry for C2, C3, .. */
+>  static void acpi_cstate_enter(struct acpi_processor_cx *cstate)
 >  {
-> -	int i, count = 0;
-> +	int i, count = CPUIDLE_DRIVER_STATE_START;
->  	struct acpi_processor_cx *cx;
->  	struct cpuidle_state *state;
->  	struct cpuidle_device *dev = &pr->power.dev;
-> @@ -1659,6 +1659,8 @@ static int acpi_processor_setup_cpuidle(
+> -	if (cstate->space_id == ACPI_CSTATE_FFH) {
+> +	if (cstate->entry_method == ACPI_CSTATE_FFH) {
+>  		/* Call into architectural FFH based C-state */
+>  		acpi_processor_ffh_cstate_enter(cstate);
+>  	} else {
+> @@ -904,20 +904,20 @@ static int acpi_processor_get_power_info
+>  		cx.address = reg->address;
+>  		cx.index = current_count + 1;
+>  
+> -		cx.space_id = ACPI_CSTATE_SYSTEMIO;
+> +		cx.entry_method = ACPI_CSTATE_SYSTEMIO;
+>  		if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
+>  			if (acpi_processor_ffh_cstate_probe
+>  					(pr->id, &cx, reg) == 0) {
+> -				cx.space_id = ACPI_CSTATE_FFH;
+> -			} else if (cx.type != ACPI_STATE_C1) {
+> +				cx.entry_method = ACPI_CSTATE_FFH;
+> +			} else if (cx.type == ACPI_STATE_C1) {
+>  				/*
+>  				 * C1 is a special case where FIXED_HARDWARE
+>  				 * can be handled in non-MWAIT way as well.
+>  				 * In that case, save this _CST entry info.
+> -				 * That is, we retain space_id of SYSTEM_IO for
+> -				 * halt based C1.
+>  				 * Otherwise, ignore this info and continue.
+>  				 */
+> +				cx.entry_method = ACPI_CSTATE_HALT;
+> +			} else {
+>  				continue;
+>  			}
 >  		}
->  
->  		count++;
-> +		if (count == CPUIDLE_STATE_MAX)
-> +			break;
->  	}
->  
->  	dev->state_count = count;
-> Index: linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
-> ===================================================================
-> --- linux-2.6.25-rc.orig/drivers/cpuidle/cpuidle.c
-> +++ linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
-> @@ -15,6 +15,7 @@
->  #include <linux/latency.h>
->  #include <linux/cpu.h>
->  #include <linux/cpuidle.h>
-> +#include <linux/ktime.h>
->  
->  #include "cpuidle.h"
->  
-> @@ -180,6 +181,44 @@ void cpuidle_disable_device(struct cpuid
->  
->  EXPORT_SYMBOL_GPL(cpuidle_disable_device);
->  
-> +#ifdef CONFIG_ARCH_HAS_CPU_RELAX
-> +static int poll_idle(struct cpuidle_device *dev, struct cpuidle_state *st)
-> +{
-> +	ktime_t	t1, t2;
-> +	s64 diff;
-> +	int ret;
-> +
-> +	t1 = ktime_get();
-> +	local_irq_enable();
-> +	while (!need_resched()) {
-> +		cpu_relax();
-> +	}
-> +	t2 = ktime_get();
-> +	diff = ktime_to_us(ktime_sub(t2, t1));
-> +	if (diff > INT_MAX)
-> +		diff = INT_MAX;
-> +
-> +	ret = (int) diff;
-> +	return ret;
-> +}
-> +
-> +static void poll_idle_init(struct cpuidle_device *dev)
-> +{
-> +	struct cpuidle_state *state = &dev->states[0];
-> +
-> +	cpuidle_set_statedata(state, NULL);
-> +
-> +	snprintf(state->name, CPUIDLE_NAME_LEN, "C0 (poll idle)");
-> +	state->exit_latency = 0;
-> +	state->target_residency = 0;
-> +	state->power_usage = -1;
-> +	state->flags = CPUIDLE_FLAG_POLL | CPUIDLE_FLAG_TIME_VALID;
-> +	state->enter = poll_idle;
-> +}
-> +#else
-> +static void poll_idle_init(struct cpuidle_device *dev) {}
-> +#endif /* CONFIG_ARCH_HAS_CPU_RELAX */
-> +
+> @@ -1351,12 +1351,16 @@ static inline void acpi_idle_update_bm_r
 >  /**
->   * cpuidle_register_device - registers a CPU's idle PM feature
->   * @dev: the cpu
-> @@ -198,6 +237,8 @@ int cpuidle_register_device(struct cpuid
+>   * acpi_idle_do_entry - a helper function that does C2 and C3 type entry
+>   * @cx: cstate data
+> + *
+> + * Caller disables interrupt before call and enables interrupt after return.
+>   */
+>  static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
+>  {
+> -	if (cx->space_id == ACPI_CSTATE_FFH) {
+> +	if (cx->entry_method == ACPI_CSTATE_FFH) {
+>  		/* Call into architectural FFH based C-state */
+>  		acpi_processor_ffh_cstate_enter(cx);
+> +	} else if (cx->entry_method == ACPI_CSTATE_HALT) {
+> +		acpi_safe_halt();
+>  	} else {
+>  		int unused;
+>  		/* IO port based C-state */
+> @@ -1389,7 +1393,7 @@ static int acpi_idle_enter_c1(struct cpu
+>  	if (pr->flags.bm_check)
+>  		acpi_idle_update_bm_rld(pr, cx);
 >  
->  	mutex_lock(&cpuidle_lock);
+> -	acpi_safe_halt();
+> +	acpi_idle_do_entry(cx);
 >  
-> +	poll_idle_init(dev);
-> +
->  	per_cpu(cpuidle_devices, dev->cpu) = dev;
->  	list_add(&dev->device_list, &cpuidle_detected_devices);
->  	if ((ret = cpuidle_add_sysfs(sys_dev))) {
-> Index: linux-2.6.25-rc/include/linux/cpuidle.h
+>  	local_irq_enable();
+>  	cx->usage++;
+> Index: linux-2.6.25-rc/include/acpi/processor.h
 > ===================================================================
-> --- linux-2.6.25-rc.orig/include/linux/cpuidle.h
-> +++ linux-2.6.25-rc/include/linux/cpuidle.h
-> @@ -46,9 +46,10 @@ struct cpuidle_state {
->  /* Idle State Flags */
->  #define CPUIDLE_FLAG_TIME_VALID	(0x01) /* is residency time measurable? */
->  #define CPUIDLE_FLAG_CHECK_BM	(0x02) /* BM activity will exit state */
-> -#define CPUIDLE_FLAG_SHALLOW	(0x10) /* low latency, minimal savings */
-> -#define CPUIDLE_FLAG_BALANCED	(0x20) /* medium latency, moderate savings */
-> -#define CPUIDLE_FLAG_DEEP	(0x40) /* high latency, large savings */
-> +#define CPUIDLE_FLAG_POLL	(0x10) /* no latency, no savings */
-> +#define CPUIDLE_FLAG_SHALLOW	(0x20) /* low latency, minimal savings */
-> +#define CPUIDLE_FLAG_BALANCED	(0x40) /* medium latency, moderate savings */
-> +#define CPUIDLE_FLAG_DEEP	(0x80) /* high latency, large savings */
+> --- linux-2.6.25-rc.orig/include/acpi/processor.h
+> +++ linux-2.6.25-rc/include/acpi/processor.h
+> @@ -34,6 +34,7 @@
 >  
->  #define CPUIDLE_DRIVER_FLAGS_MASK (0xFFFF0000)
+>  #define ACPI_CSTATE_SYSTEMIO	(0)
+>  #define ACPI_CSTATE_FFH		(1)
+> +#define ACPI_CSTATE_HALT	(2)
 >  
-> @@ -178,4 +179,10 @@ static inline void cpuidle_unregister_go
+>  /* Power Management */
 >  
->  #endif
->  
-> +#ifdef CONFIG_ARCH_HAS_CPU_RELAX
-> +#define CPUIDLE_DRIVER_STATE_START	1
-> +#else
-> +#define CPUIDLE_DRIVER_STATE_START	0
-> +#endif
-> +
->  #endif /* _LINUX_CPUIDLE_H */
-> Index: linux-2.6.25-rc/arch/x86/Kconfig
-> ===================================================================
-> --- linux-2.6.25-rc.orig/arch/x86/Kconfig
-> +++ linux-2.6.25-rc/arch/x86/Kconfig
-> @@ -112,6 +112,9 @@ config GENERIC_TIME_VSYSCALL
->  	bool
->  	default X86_64
->  
-> +config ARCH_HAS_CPU_RELAX
-> +	def_bool y
-> +
->  config ARCH_SUPPORTS_OPROFILE
->  	bool
->  	default y
+> @@ -64,7 +65,7 @@ struct acpi_processor_cx {
+>  	u8 valid;
+>  	u8 type;
+>  	u32 address;
+> -	u8 space_id;
+> +	u8 entry_method;
+>  	u8 index;
+>  	u32 latency;
+>  	u32 latency_ticks;
 > 
