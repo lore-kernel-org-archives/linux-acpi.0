@@ -1,55 +1,83 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [lm-sensors] The new thermal management sysfs class, and hwmon
-Date: Thu, 7 Feb 2008 02:01:35 -0500
-Message-ID: <200802070201.36016.lenb@kernel.org>
-References: <20080203022622.GA995@khazad-dum.debian.net> <20080205135725.GO20687@jupiter.solarsys.private> <20080205145550.GA24128@khazad-dum.debian.net>
+Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
+Date: Thu, 7 Feb 2008 02:03:46 -0500
+Message-ID: <200802070203.46783.lenb@kernel.org>
+References: <1197032113.28990.155.camel@queen.suse.de> <20080203000354.GA26623@srcf.ucam.org> <20080207014406.GA19333@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58199 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36000 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752929AbYBGHDZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 02:03:25 -0500
-In-Reply-To: <20080205145550.GA24128@khazad-dum.debian.net>
+	id S1753457AbYBGHFN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 02:05:13 -0500
+In-Reply-To: <20080207014406.GA19333@srcf.ucam.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, "Thomas, Sujith" <sujith.thomas@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
 
-On Tuesday 05 February 2008 09:55, Henrique de Moraes Holschuh wrote:
+thanks for the update, matthew.
 
-> > > The only duplication which I can see of is in the "reporting of
-> > > temperature", which is quite reasonable for a thermal management module
-> > > to have.
-> > 
-> > Well, HdMH and I apparently disagree about this.  All I really care
-> > about is that the temp info should be available through /sys/class/hwmon.
-> > Many people just want to check their temps, without diving into the fine
-> > details of a "thermal management solution".
+applied,
+-len
+
+On Wednesday 06 February 2008 20:44, Matthew Garrett wrote:
+> Vendors often ship machines with a choice of integrated or discrete
+> graphics, and use the same DSDT for both. As a result, the ACPI video
+> module will locate devices that may not exist on this specific platform.
+> Attempt to determine whether the device exists or not, and abort the\
+> device creation if it doesn't
 > 
-> Well, I strongly care for not having to duplicate the entire sysfs code of
-> the thinkpad-acpi thermal management subdrivers (fan control, thermal
-> readings) to a new interface AND maybe even finding myself in need to add a
-> *third* platform device and driver to thinkpad-acpi just because the new
-> interface didn't even try to be as compatible with hwmon as possible :-(
-
-I expect that Thinpads will continue to be optimized primarily for
-Windows via ACPI.  I don't expect thinkpads to suddenly switch over
-to OSPM user-space thermal control -- because Windows doesn't do that.
-So I don't think any bad things will happen if thinkpad-acpi
-doesn't respond to this.
-
-I do agree that we should make the I/F the same, where possible,
-(that was my original proposal)
-I'm delighted to hear that the hwmon community is open minded
-about expanding the capabilities of hwmon.  We should definately
-look into that.  While Menlo will likely start shipping with
-the current solution, there is no reason we can't evolve it over time --
-for we know the guys writing the software that will use this I/F...
-
-thanks,
--Len
-
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> ---
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 09a85eb..11c8335 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -735,11 +735,40 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
+>  static int acpi_video_bus_check(struct acpi_video_bus *video)
+>  {
+>  	acpi_status status = -ENOENT;
+> -
+> +	long device_id;
+> +	struct device *dev;
+> +	struct acpi_device *device;
+>  
+>  	if (!video)
+>  		return -EINVAL;
+>  
+> +	device = video->device;
+> +
+> +	status =
+> +	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
+> +
+> +	if (!ACPI_SUCCESS(status))
+> +		return -ENODEV;
+> +
+> +	/* We need to attempt to determine whether the _ADR refers to a
+> +	   PCI device or not. There's no terribly good way to do this,
+> +	   so the best we can hope for is to assume that there'll never
+> +	   be a video device in the host bridge */
+> +	if (device_id >= 0x10000) {
+> +		/* It looks like a PCI device. Does it exist? */
+> +		dev = acpi_get_physical_device(device->handle);
+> +	} else {
+> +		/* It doesn't look like a PCI device. Does its parent
+> +		   exist? */
+> +		acpi_handle phandle;
+> +		if (acpi_get_parent(device->handle, &phandle))
+> +			return -ENODEV;
+> +		dev = acpi_get_physical_device(phandle);
+> +	}
+> +	if (!dev)
+> +		return -ENODEV;
+> +	put_device(dev);
+> +
+>  	/* Since there is no HID, CID and so on for VGA driver, we have
+>  	 * to check well known required nodes.
+>  	 */
+> 
