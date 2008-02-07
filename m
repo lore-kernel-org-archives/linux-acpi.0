@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 058/112] ACPI: register ACPI Video LCD as generic thermal cooling device
-Date: Thu,  7 Feb 2008 04:34:20 -0500
-Message-ID: <702ed512de9c8a67a69a981c73b7337c2131f198.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 059/112] ACPI: attach thermal zone info
+Date: Thu,  7 Feb 2008 04:34:21 -0500
+Message-ID: <207339398ecb0835331c748612898dad2a09fdec.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:18844 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:9414 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754814AbYBGJgM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:12 -0500
+	with ESMTP id S1756096AbYBGJgN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:13 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
@@ -18,141 +18,104 @@ Cc: Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>, Le
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Register ACPI video device as thermal cooling devices as they may be listed
-in _TZD method and the backlight control can be used for throttling.
+Intel menlow driver needs to get the pointer of themal_zone_device
+structure of an ACPI thermal zone.
+Attach this to each ACPI thermal zone device object.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/video.c |   78 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 77 insertions(+), 1 deletions(-)
+ drivers/acpi/bus.c      |   25 +++++++++++++++++++++++++
+ drivers/acpi/thermal.c  |   11 +++++++++++
+ include/acpi/acpi_bus.h |    2 ++
+ 3 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index bd77e81..eab9c42 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -34,6 +34,7 @@
- #include <linux/seq_file.h>
- #include <linux/input.h>
- #include <linux/backlight.h>
-+#include <linux/thermal.h>
- #include <linux/video_output.h>
- #include <asm/uaccess.h>
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 1b4cf98..8df325d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -122,6 +122,31 @@ int acpi_bus_get_status(struct acpi_device *device)
  
-@@ -179,6 +180,7 @@ struct acpi_video_device {
- 	struct acpi_device *dev;
- 	struct acpi_video_device_brightness *brightness;
- 	struct backlight_device *backlight;
-+	struct thermal_cooling_device *cdev;
- 	struct output_device *output_dev;
- };
+ EXPORT_SYMBOL(acpi_bus_get_status);
  
-@@ -334,6 +336,54 @@ static struct output_properties acpi_output_properties = {
- 	.set_state = acpi_video_output_set,
- 	.get_status = acpi_video_output_get,
- };
-+
-+
-+/* thermal cooling device callbacks */
-+static int video_get_max_state(struct thermal_cooling_device *cdev, char *buf)
++void acpi_bus_private_data_handler(acpi_handle handle,
++				   u32 function, void *context)
 +{
-+	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+
-+	return sprintf(buf, "%d\n", video->brightness->count - 3);
++	return;
 +}
++EXPORT_SYMBOL(acpi_bus_private_data_handler);
 +
-+static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
++int acpi_bus_get_private_data(acpi_handle handle, void **data)
 +{
-+	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+	unsigned long level;
-+	int state;
++	acpi_status status = AE_OK;
 +
-+	acpi_video_device_lcd_get_level_current(video, &level);
-+	for (state = 2; state < video->brightness->count; state++)
-+		if (level == video->brightness->levels[state])
-+			return sprintf(buf, "%d\n",
-+				       video->brightness->count - state - 1);
-+
-+	return -EINVAL;
-+}
-+
-+static int
-+video_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
-+{
-+	struct acpi_device *device = cdev->devdata;
-+	struct acpi_video_device *video = acpi_driver_data(device);
-+	int level;
-+
-+	if ( state >= video->brightness->count - 2)
++	if (!*data)
 +		return -EINVAL;
 +
-+	state = video->brightness->count - state;
-+	level = video->brightness->levels[state -1];
-+	return acpi_video_device_lcd_set_level(video, level);
-+}
++	status = acpi_get_data(handle, acpi_bus_private_data_handler, data);
++	if (ACPI_FAILURE(status) || !*data) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
++				handle));
++		return -ENODEV;
++	}
 +
-+static struct thermal_cooling_device_ops video_cooling_ops = {
-+	.get_max_state = video_get_max_state,
-+	.get_cur_state = video_get_cur_state,
-+	.set_cur_state = video_set_cur_state,
-+};
++	return 0;
++}
++EXPORT_SYMBOL(acpi_bus_get_private_data);
 +
  /* --------------------------------------------------------------------------
-                                Video Management
+                                  Power Management
     -------------------------------------------------------------------------- */
-@@ -653,6 +703,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index d317da5..7400363 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -1101,6 +1101,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ {
+ 	int trips = 0;
+ 	int result;
++	acpi_status status;
+ 	int i;
  
- 	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		unsigned long tmp;
-+		int result;
- 		static int count = 0;
- 		char *name;
- 		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-@@ -666,8 +717,25 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 		device->backlight->props.max_brightness = max_level;
- 		device->backlight->props.brightness = (int)tmp;
- 		backlight_update_status(device->backlight);
--
- 		kfree(name);
-+
-+		device->cdev = thermal_cooling_device_register("LCD",
-+					device->dev, &video_cooling_ops);
-+		if (device->cdev) {
-+			printk(KERN_INFO PREFIX
-+				"%s is registered as cooling_device%d\n",
-+				device->dev->dev.bus_id, device->cdev->id);
-+			result = sysfs_create_link(&device->dev->dev.kobj,
-+					  &device->cdev->device.kobj,
-+					  "thermal_cooling");
-+			if (result)
-+				printk(KERN_ERR PREFIX "Create sysfs link\n");
-+			result = sysfs_create_link(&device->cdev->device.kobj,
-+					  &device->dev->dev.kobj,
-+					  "device");
-+                        if (result)
-+				printk(KERN_ERR PREFIX "Create sysfs link\n");
-+		}
- 	}
- 	if (device->cap._DCS && device->cap._DSS){
- 		static int count = 0;
-@@ -1729,6 +1797,14 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
- 	backlight_device_unregister(device->backlight);
-+	if (device->cdev) {
-+		sysfs_remove_link(&device->dev->dev.kobj,
-+				  "thermal_cooling");
-+		sysfs_remove_link(&device->cdev->device.kobj,
-+				  "device");
-+		thermal_cooling_device_unregister(device->cdev);
-+		device->cdev = NULL;
+ 	if (tz->trips.critical.flags.valid)
+@@ -1129,6 +1130,15 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 	if (result)
+ 		return result;
+ 
++	status = acpi_attach_data(tz->device->handle,
++				  acpi_bus_private_data_handler,
++				  tz->thermal_zone);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Error attaching device data\n"));
++		return -ENODEV;
 +	}
- 	video_output_unregister(device->output_dev);
++
+ 	tz->tz_enabled = 1;
  
- 	return 0;
+ 	printk(KERN_INFO PREFIX "%s is registered as thermal_zone%d\n",
+@@ -1142,6 +1152,7 @@ static void acpi_thermal_unregister_thermal_zone(struct acpi_thermal *tz)
+ 	sysfs_remove_link(&tz->thermal_zone->device.kobj, "device");
+ 	thermal_zone_device_unregister(tz->thermal_zone);
+ 	tz->thermal_zone = NULL;
++	acpi_detach_data(tz->device->handle, acpi_bus_private_data_handler);
+ }
+ 
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index fb7171b..504af20 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -321,6 +321,8 @@ struct acpi_bus_event {
+ 
+ extern struct kobject *acpi_kobj;
+ extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
++void acpi_bus_private_data_handler(acpi_handle, u32, void *);
++int acpi_bus_get_private_data(acpi_handle, void **);
+ /*
+  * External Functions
+  */
 -- 
 1.5.4.23.gef5b9
 
