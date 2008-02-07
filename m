@@ -1,73 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend to ram problem
-Date: Thu, 7 Feb 2008 19:39:18 +0100
-Message-ID: <200802071939.19240.rjw@sisk.pl>
-References: <47A5C399.7010405@free.fr> <47A8EB02.90502@free.fr> <20080207092321.GC1816@elf.ucw.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 110/112] ACPI: update intrd DSDT override console messages
+Date: Thu, 7 Feb 2008 13:44:04 -0500
+Message-ID: <200802071344.04447.lenb@kernel.org>
+References: <47AAE619.4070108@tremplin-utc.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39204 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:58419 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbYBGSlQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 13:41:16 -0500
-In-Reply-To: <20080207092321.GC1816@elf.ucw.cz>
+	id S1750904AbYBGSoT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 13:44:19 -0500
+In-Reply-To: <47AAE619.4070108@tremplin-utc.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: matthieu castet <castet.matthieu@free.fr>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Thursday, 7 of February 2008, Pavel Machek wrote:
-> Hi!
+On Thursday 07 February 2008 06:06, Eric Piel wrote:
+> (sorry for not keeping the message id, I'm not subscribed to linux-acpi)
+> > From: Len Brown <len.brown@intel.com>
+> > 
+> > also, address some checkpatch.pl violations
+> > 
+> > Signed-off-by: Len Brown <len.brown@intel.com>
+> > ---
+> >  drivers/acpi/osl.c |   33 ++++++++++++++++++---------------
+> >  1 files changed, 18 insertions(+), 15 deletions(-)
+> :
+> >  
+> > -	printk(KERN_INFO PREFIX "Looking for DSDT in initramfs... ");
+> > +	printk(KERN_INFO PREFIX "Checking initramfs for custom DSDT");
+> You need to also add a \n here. Otherwise in case of error it will look 
+> ugly ;-)
 
-Hi,
+got it.
 
-> >>>> Hmm, maybe I know where problem could be. Try
-> >>>>
-> >>>>         movl     $(wakeup_stack - wakeup_code), %esp              # 
-> >>>> Private stack is needed for ASUS bo\
-> >>>>
-> >>>> instead of existing stack setup. That helped on one of my test-boxes
-> >>> Thanks, I will try that.
-> >>> Because clearing the flags imply pop/push in the stack it could be the 
-> >>> problem
-> >> That doesn't help : it still crash in pushl $0.
-> >>
-> > All stack stuff in wakeup_code crash for me.
-> > I tried to change the stack position, make sure upper bit of %esp are 
-> > clear, ... nothing work.
-> > What's are strange is that according to my x86 manual, in real mode the 
-> > failure can only happen if the stack wrap which is not the case here.
-> > Any x86 guru advice ?
-> 
-> Could you try the .c wakeup? I changed it a bit, perhaps that's enough.
-> 
-> > If I remove stack access (remove clearing flag stuff, not call to video 
-> > stuff) the resume works.
-> 
-> Actually, I see a possible problem:
-> 
-> _start:
->         cli
->         cld
-> 
->         /* Set up segments */
->         movw    %cs,%ax
->         movw    %ax,%ds
->         movw    %ax,%es
->         movw    %ax,%ss
-> 
->         movl    $wakeup_stack_end, %esp
-> 
->         /* Clear the EFLAGS */
->         pushl   $0
->         popfl
-> 
-> ...if someone calls start as 0x1234:0, we are okay. But if some broken
-> bios calls us as 0x1:0x234, we've got a problem.
-
-Well, in that case the signature/end_signature tests below would trigger, no?
-
-Rafael
+thanks,
+-len
