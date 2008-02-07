@@ -1,42 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 110/112] ACPI: update intrd DSDT override console messages
-Date: Thu, 7 Feb 2008 13:44:04 -0500
-Message-ID: <200802071344.04447.lenb@kernel.org>
-References: <47AAE619.4070108@tremplin-utc.net>
+Subject: Re: [PATCH 111/112] Revert "cpuidle: build fix for non-x86"
+Date: Thu, 7 Feb 2008 13:47:46 -0500
+Message-ID: <200802071347.47101.lenb@kernel.org>
+References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com> <9b7131542178f5f948e4bb6bea6e1c545e697b06.1202376825.git.len.brown@intel.com> <20080207102728.GC16735@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58419 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:58640 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbYBGSoT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 13:44:19 -0500
-In-Reply-To: <47AAE619.4070108@tremplin-utc.net>
+	id S1751154AbYBGSsK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 13:48:10 -0500
+In-Reply-To: <20080207102728.GC16735@elte.hu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Piel <eric.piel@tremplin-utc.net>
+To: Ingo Molnar <mingo@elte.hu>
 Cc: linux-acpi@vger.kernel.org
 
-On Thursday 07 February 2008 06:06, Eric Piel wrote:
-> (sorry for not keeping the message id, I'm not subscribed to linux-acpi)
+On Thursday 07 February 2008 05:27, Ingo Molnar wrote:
+> 
+> * Len Brown <lenb@kernel.org> wrote:
+> 
 > > From: Len Brown <len.brown@intel.com>
 > > 
-> > also, address some checkpatch.pl violations
-> > 
-> > Signed-off-by: Len Brown <len.brown@intel.com>
-> > ---
-> >  drivers/acpi/osl.c |   33 ++++++++++++++++++---------------
-> >  1 files changed, 18 insertions(+), 15 deletions(-)
-> :
-> >  
-> > -	printk(KERN_INFO PREFIX "Looking for DSDT in initramfs... ");
-> > +	printk(KERN_INFO PREFIX "Checking initramfs for custom DSDT");
-> You need to also add a \n here. Otherwise in case of error it will look 
-> ugly ;-)
+> > This reverts commit f757397097d0713c949af76dccabb65a2785782e.
+> > which ironically broke the ia64 build
+> 
+> hm, this seems to be an internal ACPI commit - why not eliminate both 
+> commits (the broken one and the revert one) and thus fix that window of 
+> non-bisectability, before pushing this upstream?
 
-got it.
+i agree, and this bothered me too.
+Dunno if I have time to undo and re-merge my tree
+before Linus pulls and/or declares rc1...
 
-thanks,
--len
+-Len
