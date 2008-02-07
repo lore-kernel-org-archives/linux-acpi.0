@@ -1,46 +1,77 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 022/112] ACPI: remove P2B-S from blacklist.
-Date: Thu,  7 Feb 2008 04:33:44 -0500
-Message-ID: <37748ebf8888aef6a252016d7c3cdc84514df051.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 017/112] ACPI: add "processor.ignore_ppc" hook to workaround BIOS _PPC weirdness
+Date: Thu,  7 Feb 2008 04:33:39 -0500
+Message-ID: <623b78c39c4525731f852072edd742cc4fba6786.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:42392 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:20777 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757616AbYBGJfs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:48 -0500
+	with ESMTP id S1757496AbYBGJfk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:40 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Dave Jones <davej@redhat.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Dave Jones <davej@redhat.com>
+From: Thomas Renninger <trenn@suse.de>
 
-According to http://bugzilla.kernel.org/show_bug.cgi?id=6933
-The latest BIOS for the P2B-S works fine.
-Remove it from the blacklist.
+There have been fixes using _PPC, which seem to unhide a problem
+on HP nx6125 (double cpufreq switch freezes the machine for
+several seconds).
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+This one should provide a workaround for the nx6125 and for
+possible other machines that show any weird _PPC behaviour.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/blacklist.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_perflib.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 3ec110c..7c24a8d 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -67,8 +67,6 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
- 	/* IBM 600E - _ADR should return 7, but it returns 1 */
- 	{"IBM   ", "TP600E  ", 0x00000105, ACPI_SIG_DSDT, less_than_or_equal,
- 	 "Incorrect _ADR", 1},
--	{"ASUS\0\0", "P2B-S   ", 0, ACPI_SIG_DSDT, all_versions,
--	 "Bogus PCI routing", 1},
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 463b024..f32010b 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -60,6 +60,11 @@ static DEFINE_MUTEX(performance_mutex);
+  * policy is adjusted accordingly.
+  */
  
- 	{""}
- };
++static unsigned int ignore_ppc = 0;
++module_param(ignore_ppc, uint, 0644);
++MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
++		 "limited by BIOS, this should help");
++
+ #define PPC_REGISTERED   1
+ #define PPC_IN_USE       2
+ 
+@@ -72,6 +77,9 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
++	if (ignore_ppc)
++		return 0;
++
+ 	mutex_lock(&performance_mutex);
+ 
+ 	if (event != CPUFREQ_INCOMPATIBLE)
+@@ -130,7 +138,13 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
+ 
+ int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ {
+-	int ret = acpi_processor_get_platform_limit(pr);
++	int ret;
++
++	if (ignore_ppc)
++		return 0;
++
++	ret = acpi_processor_get_platform_limit(pr);
++
+ 	if (ret < 0)
+ 		return (ret);
+ 	else
 -- 
 1.5.4.23.gef5b9
 
