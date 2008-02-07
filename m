@@ -1,96 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/4] ACPI: Fix acpi_safe_halt usages and interrupt enabling/disabling
-Date: Thu, 7 Feb 2008 02:21:06 -0500
-Message-ID: <200802070221.07000.lenb@kernel.org>
-References: <20080201013502.750627000@intel.com> <20080201013629.115986000@intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test
+	if (level & TP_EC_FAN_FULLSPEED)
+Date: Wed, 6 Feb 2008 23:28:38 -0800
+Message-ID: <20080207072838.GA24592@kroah.com>
+References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl> <20080206230702.GA12395@kroah.com> <47AA4748.3040702@tiscali.nl> <20080207011850.GC10122@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43626 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754446AbYBGHVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 02:21:36 -0500
-In-Reply-To: <20080201013629.115986000@intel.com>
+Received: from pentafluge.infradead.org ([213.146.154.40]:42858 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760119AbYBGHZR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 02:25:17 -0500
 Content-Disposition: inline
+In-Reply-To: <20080207011850.GC10122@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: venkatesh.pallipadi@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Roel Kluin <12o3l@tiscali.nl>, len.brown@intel.com, linux-acpi@vger.kernel.org, Roland Dreier <rdreier@cisco.com>, lkml <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, stable@kernel.org
 
-applied.
+On Wed, Feb 06, 2008 at 11:18:50PM -0200, Henrique de Moraes Holschuh wrote:
+> On Thu, 07 Feb 2008, Roel Kluin wrote:
+> > It's a oneliner and the patch is from linus' tree.
+> 
+> Roel, better to just let me and Len Brown handle it.  I will add your patch
+> to my thinkpad-acpi queue and send it to Len soon, along with other simple
+> patches that are pending.  Either I or Len will notify stable@k.o when it
+> hits mainline.
+
+Sounds good, I've dropped it from my queue, so please resend it when it
+hits Linus's tree to stable@kernel.org if you want it there.
 
 thanks,
--len
 
-On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
-> acpi_safe_halt() needs interrupts to be disabled for atomic
-> need_resched check and safe halt. Otherwise we may miss an
-> interrupt and go into halt.
-> 
-> acpi_safe_halt() also does not enable interrupts on all return paths.
-> 
-> So the callers should handle enable and disable interrupts around it.
-> 
-> There were multiple places where this was not happening. Below is the fix.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> 
-> Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
-> +++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
-> @@ -201,6 +201,10 @@ static inline u32 ticks_elapsed_in_us(u3
->  		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
->  }
->  
-> +/*
-> + * Callers should disable interrupts before the call and enable
-> + * interrupts after return.
-> + */
->  static void acpi_safe_halt(void)
->  {
->  	current_thread_info()->status &= ~TS_POLLING;
-> @@ -393,6 +397,8 @@ static void acpi_processor_idle(void)
->  			pm_idle_save();
->  		else
->  			acpi_safe_halt();
-> +
-> +		local_irq_enable();
->  		return;
->  	}
->  
-> @@ -501,6 +507,7 @@ static void acpi_processor_idle(void)
->  		 *       skew otherwise.
->  		 */
->  		sleep_ticks = 0xFFFFFFFF;
-> +		local_irq_enable();
->  		break;
->  
->  	case ACPI_STATE_C2:
-> @@ -1378,11 +1385,13 @@ static int acpi_idle_enter_c1(struct cpu
->  	if (unlikely(!pr))
->  		return 0;
->  
-> +	local_irq_disable();
->  	if (pr->flags.bm_check)
->  		acpi_idle_update_bm_rld(pr, cx);
->  
->  	acpi_safe_halt();
->  
-> +	local_irq_enable();
->  	cx->usage++;
->  
->  	return 0;
-> @@ -1490,7 +1499,9 @@ static int acpi_idle_enter_bm(struct cpu
->  		if (dev->safe_state) {
->  			return dev->safe_state->enter(dev, dev->safe_state);
->  		} else {
-> +			local_irq_disable();
->  			acpi_safe_halt();
-> +			local_irq_enable();
->  			return 0;
->  		}
->  	}
-> 
+greg k-h
