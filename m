@@ -1,83 +1,68 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 002/112] ACPI: document method tracing hooks
-Date: Thu,  7 Feb 2008 04:33:24 -0500
-Message-ID: <b4d2730a0dda91a43c81a02f5225f5d536cabb09.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 005/112] Revert "speedstep-lib.c: fix frequency multiplier for Pentium4 models 0&1"
+Date: Thu,  7 Feb 2008 04:33:27 -0500
+Message-ID: <ed9cbcd40004904dbe61ccc16d6106a7de38c998.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga05.intel.com ([192.55.52.89]:20777 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753894AbYBGJfU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:20 -0500
+	with ESMTP id S1754314AbYBGJfW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:22 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
+For P4 model < 2, The MSR_FBC_REGISTER_ID ratio is undefined.
+Revert the commit that was added to handle that case,
+as it results in random MHz displayed.  Something else will
+have to be done to properly handle model < 2.
+
+//commit 3e4159ab35c88aef5e063ba78796b277b762a30a
+//Author: matthias.christian <matthias.christian>
+//Date:   Sat Feb 5 23:09:38 2005 +0000
+//
+//    [PATCH] speedstep-lib.c: fix frequency multiplier for Pentium4 models 0&1
+//
+//    The Pentium4 models 0&1 have a longer MSR_EBC_FREQUENCY_ID register as the
+//    models 2&3, so the bit shift must be bigger.
+//
+//    Signed-off-by: Matthias-Christian Ott <matthias.christian@tiscali.de>
+//    Signed-off-by: Dominik Brodowski <linux@brodo.de>
+//    Signed-off-by: Andrew Morton <akpm@osdl.org>
+//    Signed-off-by: Linus Torvalds <torvalds@osdl.org>
+//
+//    BKrev: 42055232eWM-NgjhZVir44mp5GXktQ
+
+http://bugzilla.kernel.org/show_bug.cgi?id=7186
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/00-INDEX                |    3 +++
- Documentation/acpi/method-tracing.txt |   26 ++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/acpi/method-tracing.txt
+ arch/x86/kernel/cpu/cpufreq/speedstep-lib.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/00-INDEX b/Documentation/00-INDEX
-index 299615d..161edbc 100644
---- a/Documentation/00-INDEX
-+++ b/Documentation/00-INDEX
-@@ -14,6 +14,7 @@ Following translations are available on the WWW:
- 	- this file.
- ABI/
- 	- info on kernel <-> userspace ABI and relative interface stability.
-+
- BUG-HUNTING
- 	- brute force method of doing binary search of patches to find bug.
- Changes
-@@ -66,6 +67,8 @@ VGA-softcursor.txt
- 	- how to change your VGA cursor from a blinking underscore.
- accounting/
- 	- documentation on accounting and taskstats.
-+acpi/
-+	- info on ACPI-specific hooks in the kernel.
- aoe/
- 	- description of AoE (ATA over Ethernet) along with config examples.
- applying-patches.txt
-diff --git a/Documentation/acpi/method-tracing.txt b/Documentation/acpi/method-tracing.txt
-new file mode 100644
-index 0000000..f6efb1e
---- /dev/null
-+++ b/Documentation/acpi/method-tracing.txt
-@@ -0,0 +1,26 @@
-+/sys/module/acpi/parameters/:
-+
-+trace_method_name
-+	The AML method name that the user wants to trace
-+
-+trace_debug_layer
-+	The temporary debug_layer used when tracing the method.
-+	Using 0xffffffff by default if it is 0.
-+
-+trace_debug_level
-+	The temporary debug_level used when tracing the method.
-+	Using 0x00ffffff by default if it is 0.
-+
-+trace_state
-+	The status of the tracing feature.
-+
-+	"enabled" means this feature is enabled
-+	and the AML method is traced every time it's executed.
-+
-+	"1" means this feature is enabled and the AML method
-+	will only be traced during the next execution.
-+
-+	"disabled" means this feature is disabled.
-+	Users can enable/disable this debug tracing feature by
-+	"echo string > /sys/module/acpi/parameters/trace_state".
-+	"string" should be one of "enable", "disable" and "1".
+diff --git a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c b/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
+index 76c3ab0..98d4fdb 100644
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
++++ b/arch/x86/kernel/cpu/cpufreq/speedstep-lib.c
+@@ -189,10 +189,7 @@ static unsigned int pentium4_get_frequency(void)
+ 		printk(KERN_DEBUG "speedstep-lib: couldn't detect FSB speed. Please send an e-mail to <linux@brodo.de>\n");
+ 
+ 	/* Multiplier. */
+-	if (c->x86_model < 2)
+-		mult = msr_lo >> 27;
+-	else
+-		mult = msr_lo >> 24;
++	mult = msr_lo >> 24;
+ 
+ 	dprintk("P4 - FSB %u kHz; Multiplier %u; Speed %u kHz\n", fsb, mult, (fsb * mult));
+ 
 -- 
 1.5.4.23.gef5b9
 
