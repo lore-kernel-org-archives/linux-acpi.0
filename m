@@ -1,43 +1,33 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
-Subject: Re: ACPI_WMI: worst config description of all times
-Date: Thu, 7 Feb 2008 15:33:54 -0800
-Message-ID: <2c0942db0802071533l5c3b98fel90946b73f8a9586b@mail.gmail.com>
-References: <20080207214715.GA15211@elf.ucw.cz>
-	 <200802071727.38743.lenb@kernel.org>
-	 <20080207223455.GB6096@elf.ucw.cz>
-	 <200802072318.28313.carlos@strangeworlds.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [RFC] LED brightness_get and thinkpad-acpi led-class support
+Date: Thu,  7 Feb 2008 21:49:05 -0200
+Message-ID: <1202428145-6106-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hs-out-0708.google.com ([64.233.178.244]:57879 "EHLO
-	hs-out-2122.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757456AbYBGXd6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 18:33:58 -0500
-Received: by hs-out-2122.google.com with SMTP id 54so2882346hsz.5
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Feb 2008 15:33:56 -0800 (PST)
-In-Reply-To: <200802072318.28313.carlos@strangeworlds.co.uk>
-Content-Disposition: inline
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:41895 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755375AbYBGXtr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 18:49:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-kernel@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Feb 7, 2008 3:18 PM, Carlos Corbacho <carlos@strangeworlds.co.uk> wrote:
-> As for the Kconfig - I'm open to suggestions.
 
-While the kconfig text is supposed to say 'what' something is, the
-more valuable piece of information it provides is *why* one would want
-to enable it.
+Richard,
 
-Do you have list of hardware/platforms that require this feature to
-get the hardware to work? (acer abc123, tcm1100 xyz) If so, providing
-that information to the user/distributions is the right first step.
-Tell them why they want this feature.
+Would you accept the addition of brightness_get to the led class?  Please
+look at the first patch in this small patch set series.  I need it for
+thinkpad-acpi...
 
-Better, if there are kernel drivers that require this (and currently
-only those drivers), then have those kernel drivers enable ACPI WMI,
-and otherwise leave it off. If/when the userspace accessible bits go
-in, it can be exposed to the configurator then.
+The other two patches to thinkpad-acpi are included for reference on how I
+intend to useg the new brightness_get stuff, and also the hardware
+acceleration for led flashing.  While the thinkpad-acpi patches do work, it
+is unlikely to apply cleanly since it is from the tip of my thinkpad-acpi
+development tree :) They are NOT to be merged right now, I will submit them
+to Len Brown later, for 2.6.26.
 
-Ray
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
