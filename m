@@ -1,69 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI fails on Panasonic Toughbook CF-52 - ACPI Error (exregion-0164): Could not map memory
-Date: Thu, 7 Feb 2008 18:15:11 -0500
-Message-ID: <200802071815.11757.lenb@kernel.org>
-References: <200802072341.16523.sesmo@gmx.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [GIT PATCH] suspend patches for 2.6.25-rc0
+Date: Fri, 8 Feb 2008 00:14:40 +0100
+Message-ID: <200802080014.41638.rjw@sisk.pl>
+References: <200802011820.56693.lenb@kernel.org> <20080207222713.GA20549@cs.cmu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35630 "EHLO hera.kernel.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:40504 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757131AbYBGXP3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 18:15:29 -0500
-In-Reply-To: <200802072341.16523.sesmo@gmx.net>
+	id S1755092AbYBGXQU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 18:16:20 -0500
+In-Reply-To: <20080207222713.GA20549@cs.cmu.edu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Smolorz <sesmo@gmx.net>
-Cc: linux-acpi@vger.kernel.org
+To: Jan Harkes <jaharkes@cs.cmu.edu>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, stern@rowland.harvard.edu, pavel@ucw.cz
 
-On Thursday 07 February 2008 17:41, Sebastian Smolorz wrote:
-> Hi,
+On Thursday, 7 of February 2008, Jan Harkes wrote:
+> On Fri, Feb 01, 2008 at 06:20:56PM -0500, Len Brown wrote:
+> > please pull from: 
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git suspend
+> > 
+> > This will update the files shown below.
 > 
-> I am not able to start the kernel on a Panasonic Toughbook CF-52 successfully 
-> with ACPI enabled. Only acpi=off or acpi=ht works. ACPI also fails with the 
-> latest linux-acpi-2.6 git checkout from today. The attached file 
-> failed_boot.txt shows the kernel log. After the last line the boot process 
-> does not proceed.
+> The following patch,
 > 
-> Interestingly, I managed to boot the system twice a few days ago. The 
-> successful dmesg output shows the attached file dmesg_acpi_osi_test. It shows 
-> a lot of ACPI errors, though.
+>     commit c3e94d899c864e558f938f9845ddb8c2e5d5ccd0
+>     Author: Alan Stern <stern@rowland.harvard.edu>
+>     Date:   Mon Nov 19 23:38:25 2007 +0100
 > 
-> Please let me know if you need more information or how I can help to debug 
-> this problem further.
+>     Hibernation: Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers (rev. 2)
+> 
+> Seems to have reverted some code related to the PM_HIBERNATION_PREPARE
+> notifiers in kernel/power/user.c that were added in 2.6.23 by the
+> following patch,
+> 
+>     commit b10d911749d37dccfa5873d2088aea3f074b9e45
+>     Author: Rafael J. Wysocki <rjw@sisk.pl>
+>     Date:   Thu Jul 19 01:47:36 2007 -0700
+> 
+>     PM: introduce hibernation and suspend notifiers
+> 
+> I'm pretty sure this was not the intent of the new patch because it only
+> tries to extend upon the former functionality and not replace it.
 
-ACPI Error (exregion-0164): Could not map memory at F7C1E118000001AC, size 1000 [20070126]
-ACPI Exception (evregion-0420): AE_NO_MEMORY, Returned by Handler for [SystemMemory] [20070126]
+I haven't revert the changes.  It's only moved the notifier chain calls from
+the ioctls to open/release in user.c .
 
-I saw these appear on my HP nx6325 due to some changes in the x86 tree last week.
-
-I bisected it down to 
-
-commit 266b9f8727976769e2ed2dad77ac9295f37e321e
-Author: Thomas Gleixner <tglx@linutronix.de>
-Date:   Wed Jan 30 13:34:06 2008 +0100
-
-    x86: fix ioremap RAM check
-
-and reported it to Ingo.
-He told me to test the latest x86 tree, which didn't have those messages.
-Subsequently, these messages went away in Linus' tree for the nx6325.
-
-but at least my box booted, your panasonic failure is much more severe.
-
-Please file a bug report here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-and attach the info you sent, plus the output from acpidump.
-
-Also, if you can bisect and check out the commit above to see
-if it was where things started to go bad, that would help.
-
-thanks,
--Len
-
-
-
+Thanks,
+Rafael
