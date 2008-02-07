@@ -1,144 +1,144 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] asus-laptop new write_acpi_int
-Date: Thu, 7 Feb 2008 00:43:05 -0500
-Message-ID: <200802070043.05184.lenb@kernel.org>
-References: <200801161656.42640.corentincj@iksaif.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 2/7] acpi4asus: add support for F3Sa
+Date: Thu, 7 Feb 2008 00:44:31 -0500
+Message-ID: <200802070044.32248.lenb@kernel.org>
+References: <200802050730.m157UxMY009615@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200801161656.42640.corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:40178 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752054AbYBGFo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 00:44:58 -0500
+In-Reply-To: <200802050730.m157UxMY009615@imap1.linux-foundation.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: corentincj@iksaif.net
+Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, kronos.it@gmail.com, sziwan@users.sourceforge.net
 
 applied.
 
 thanks,
 -len
 
-On Wednesday 16 January 2008 10:56, Corentin CHARY wrote:
-> From: Corentin CHARY <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+On Tuesday 05 February 2008 02:31, akpm@linux-foundation.org wrote:
+> From: Luca Tettamanti <kronos.it@gmail.com>
 > 
-> Just a little modification of write_acpi_int
+> Add support for ASUS F3Sa notebook. Features:
+> - LCD on/off
+> - Brightness
+> - Wifi kill
+> - Bluetooth kill
 > 
-> Signed-off-by: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+> Cc: Corentin Chary <corentincj@iksaif.net>
+> Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
->  asus-laptop.c |   24 +++++++++++++++---------
->  1 file changed, 15 insertions(+), 9 deletions(-)
 > 
-> --- a/drivers/misc/asus-laptop.c	2008-01-15 23:08:01.000000000 +0100
-> +++ b/drivers/misc/asus-laptop.c	2008-01-15 23:04:56.000000000 +0100
-> @@ -255,7 +255,7 @@
->   * method is searched within the scope of the handle, can be NULL. The output
->   * of the method is written is output, which can also be NULL
->   *
-> - * returns 1 if write is successful, 0 else.
-> + * returns 0 if write is successful, -1 else.
->   */
->  static int write_acpi_int(acpi_handle handle, const char *method, int val,
->  			  struct acpi_buffer *output)
-> @@ -264,13 +264,19 @@
->  	union acpi_object in_obj;	//the only param we use
->  	acpi_status status;
->  
-> +	if (!handle)
-> +		return 0;
+>  drivers/acpi/asus_acpi.c |   55 ++++++++++++++++++++++++++++++-------
+>  1 file changed, 45 insertions(+), 10 deletions(-)
+> 
+> diff -puN drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa drivers/acpi/asus_acpi.c
+> --- a/drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa
+> +++ a/drivers/acpi/asus_acpi.c
+> @@ -142,6 +142,7 @@ struct asus_hotk {
+>  		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
+>  		A4S,            //Z81sp
+>  		//(Centrino)
+> +		F3Sa,
+>  		END_MODEL
+>  	} model;		//Models currently supported
+>  	u16 event_count[128];	//count for each event TODO make this better
+> @@ -405,7 +406,20 @@ static struct model_data model_conf[END_
+>  		.brightness_get    = "GPLV",
+>  		.mt_bt_switch      = "BLED",
+>  		.mt_wled           = "WLED"
+> -	}
+> +	},
 > +
->  	params.count = 1;
->  	params.pointer = &in_obj;
->  	in_obj.type = ACPI_TYPE_INTEGER;
->  	in_obj.integer.value = val;
+> +	{
+> +		.name		= "F3Sa",
+> +		.mt_bt_switch	= "BLED",
+> +		.mt_wled	= "WLED",
+> +		.mt_mled	= "MLED",
+> +		.brightness_get	= "GPLV",
+> +		.brightness_set	= "SPLV",
+> +		.mt_lcd_switch	= "\\_SB.PCI0.SBRG.EC0._Q10",
+> +		.lcd_status	= "\\_SB.PCI0.SBRG.EC0.RPIN",
+> +		.display_get	= "\\ADVG",
+> +		.display_set	= "SDSP",
+> +	},
 >  
->  	status = acpi_evaluate_object(handle, (char *)method, &params, output);
-> -	return (status == AE_OK);
-> +	if (status == AE_OK)
-> +		return 0;
-> +	else
-> +		return -1;
->  }
+>  };
 >  
->  static int read_wireless_status(int mask)
-> @@ -336,7 +342,7 @@
->  		break;
+> @@ -710,15 +724,8 @@ static int get_lcd_state(void)
+>  {
+>  	int lcd = 0;
+>  
+> -	if (hotk->model != L3H) {
+> -		/* We don't have to check anything if we are here */
+> -		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+> -			printk(KERN_WARNING
+> -			       "Asus ACPI: Error reading LCD status\n");
+> -
+> -		if (hotk->model == L2D)
+> -			lcd = ~lcd;
+> -	} else {		/* L3H and the like have to be handled differently */
+> +	if (hotk->model == L3H) {
+> +		/* L3H and the like have to be handled differently */
+>  		acpi_status status = 0;
+>  		struct acpi_object_list input;
+>  		union acpi_object mt_params[2];
+> @@ -745,6 +752,32 @@ static int get_lcd_state(void)
+>  		if (out_obj.type == ACPI_TYPE_INTEGER)
+>  			/* That's what the AML code does */
+>  			lcd = out_obj.integer.value >> 8;
+> +	} else if (hotk->model == F3Sa) {
+> +		unsigned long tmp;
+> +		union acpi_object param;
+> +		struct acpi_object_list input;
+> +		acpi_status status;
+> +
+> +		/* Read pin 11 */
+> +		param.type = ACPI_TYPE_INTEGER;
+> +		param.integer.value = 0x11;
+> +		input.count = 1;
+> +		input.pointer = &param;
+> +
+> +		status = acpi_evaluate_integer(NULL, hotk->methods->lcd_status,
+> +						&input, &tmp);
+> +		if (status != AE_OK)
+> +			return -1;
+> +
+> +		lcd = tmp;
+> +	} else {
+> +		/* We don't have to check anything if we are here */
+> +		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+> +			printk(KERN_WARNING
+> +			       "Asus ACPI: Error reading LCD status\n");
+> +
+> +		if (hotk->model == L2D)
+> +			lcd = ~lcd;
 >  	}
 >  
-> -	if (handle && !write_acpi_int(handle, NULL, out, NULL))
-> +	if (write_acpi_int(handle, NULL, out, NULL))
->  		printk(ASUS_WARNING " write failed %x\n", mask);
+>  	return (lcd & 1);
+> @@ -1134,6 +1167,8 @@ static int asus_model_match(char *model)
+>  		return W5A;
+>  	else if (strncmp(model, "A4S", 3) == 0)
+>  		return A4S;
+> +	else if (strncmp(model, "F3Sa", 4) == 0)
+> +		return F3Sa;
+>  	else
+>  		return END_MODEL;
 >  }
->  
-> @@ -416,7 +422,7 @@
->  	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
->  	/* 0 <= value <= 15 */
->  
-> -	if (!write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
-> +	if (write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
->  		printk(ASUS_WARNING "Error changing brightness\n");
->  		ret = -EIO;
->  	}
-> @@ -546,7 +552,7 @@
->  
->  	rv = parse_arg(buf, count, &value);
->  	if (rv > 0) {
-> -		if (!write_acpi_int(ledd_set_handle, NULL, value, NULL))
-> +		if (write_acpi_int(ledd_set_handle, NULL, value, NULL))
->  			printk(ASUS_WARNING "LED display write failed\n");
->  		else
->  			hotk->ledd_status = (u32) value;
-> @@ -591,7 +597,7 @@
->  static void set_display(int value)
->  {
->  	/* no sanity check needed for now */
-> -	if (!write_acpi_int(display_set_handle, NULL, value, NULL))
-> +	if (write_acpi_int(display_set_handle, NULL, value, NULL))
->  		printk(ASUS_WARNING "Error setting display\n");
->  	return;
->  }
-> @@ -648,7 +654,7 @@
->   */
->  static void set_light_sens_switch(int value)
->  {
-> -	if (!write_acpi_int(ls_switch_handle, NULL, value, NULL))
-> +	if (write_acpi_int(ls_switch_handle, NULL, value, NULL))
->  		printk(ASUS_WARNING "Error setting light sensor switch\n");
->  	hotk->light_switch = value;
->  }
-> @@ -673,7 +679,7 @@
->  
->  static void set_light_sens_level(int value)
->  {
-> -	if (!write_acpi_int(ls_level_handle, NULL, value, NULL))
-> +	if (write_acpi_int(ls_level_handle, NULL, value, NULL))
->  		printk(ASUS_WARNING "Error setting light sensor level\n");
->  	hotk->light_level = value;
->  }
-> @@ -861,7 +867,7 @@
->  		printk(ASUS_WARNING "Couldn't get the DSDT table header\n");
->  
->  	/* We have to write 0 on init this far for all ASUS models */
-> -	if (!write_acpi_int(hotk->handle, "INIT", 0, &buffer)) {
-> +	if (write_acpi_int(hotk->handle, "INIT", 0, &buffer)) {
->  		printk(ASUS_ERR "Hotkey initialization failed\n");
->  		return -ENODEV;
->  	}
+> _
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
