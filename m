@@ -1,91 +1,73 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 090/112] ACPI: Export acpi_check_resource_conflict
-Date: Thu,  7 Feb 2008 04:34:52 -0500
-Message-ID: <443dea72d5f428170de6d6e3c4c1a1e2b7632b65.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 095/112] ACPI: cpuidle: Support C1 idle time accounting
+Date: Thu,  7 Feb 2008 04:34:57 -0500
+Message-ID: <9b12e18cdc1553de62d931e73443c806347cd974.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga10.intel.com ([192.55.52.92]:18844 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758383AbYBGJgv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:51 -0500
+	with ESMTP id S1754051AbYBGJgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:54 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, Jean Delvare <jdelvare@suse.de>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: "venkatesh.pallipadi@intel.com" <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Thomas Renninger <trenn@suse.de>
+From: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
 
-Export acpi_check_resource_conflict(), sometimes drivers already have
-a struct resource at hand so no need to use the wrappers to build a new
-one.
+Show C1 idle time in /sysfs cpuidle interface. C1 idle time may not
+be entirely accurate in all cases. It includes the time spent
+in the interrupt handler after wakeup with "hlt" based C1. But, it will
+be accurate with "mwait" based C1.
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/osl.c   |    3 ++-
- include/linux/acpi.h |    8 ++++++++
- 2 files changed, 10 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_idle.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 222f7b1..bc1604b 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1157,7 +1157,7 @@ __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
- 
- /* Check for resource conflicts between ACPI OperationRegions and native
-  * drivers */
--static int acpi_check_resource_conflict(struct resource *res)
-+int acpi_check_resource_conflict(struct resource *res)
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 4ba3a9a..fea7159 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1407,8 +1407,10 @@ static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
+ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 			      struct cpuidle_state *state)
  {
- 	struct acpi_res_list *res_list_elem;
- 	int ioport;
-@@ -1207,6 +1207,7 @@ static int acpi_check_resource_conflict(struct resource *res)
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_check_resource_conflict);
- 
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 893f90a..a031df8 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -25,6 +25,7 @@
- #ifndef _LINUX_ACPI_H
- #define _LINUX_ACPI_H
- 
-+#include <linux/ioport.h>	/* for struct resource */
- 
- #ifdef	CONFIG_ACPI
- 
-@@ -217,6 +218,8 @@ extern int pnpacpi_disabled;
- #define PXM_INVAL	(-1)
- #define NID_INVAL	(-1)
- 
-+int acpi_check_resource_conflict(struct resource *res);
++	u32 t1, t2;
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
 +
- int acpi_check_region(resource_size_t start, resource_size_t n,
- 		      const char *name);
- int acpi_check_mem_region(resource_size_t start, resource_size_t n,
-@@ -234,6 +237,11 @@ static inline int acpi_boot_table_init(void)
- 	return 0;
+ 	pr = processors[smp_processor_id()];
+ 
+ 	if (unlikely(!pr))
+@@ -1418,12 +1420,14 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 	if (pr->flags.bm_check)
+ 		acpi_idle_update_bm_rld(pr, cx);
+ 
++	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 	acpi_idle_do_entry(cx);
++	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
+ 
+-	return 0;
++	return ticks_elapsed_in_us(t1, t2);
  }
  
-+static inline int acpi_check_resource_conflict(struct resource *res)
-+{
-+	return 0;
-+}
-+
- static inline int acpi_check_region(resource_size_t start, resource_size_t n,
- 				    const char *name)
- {
+ /**
+@@ -1660,6 +1664,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
+ 		switch (cx->type) {
+ 			case ACPI_STATE_C1:
+ 			state->flags |= CPUIDLE_FLAG_SHALLOW;
++			state->flags |= CPUIDLE_FLAG_TIME_VALID;
+ 			state->enter = acpi_idle_enter_c1;
+ 			dev->safe_state = state;
+ 			break;
 -- 
 1.5.4.23.gef5b9
 
