@@ -1,39 +1,70 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 053/112] the generic thermal sysfs driver
-Date: Thu, 7 Feb 2008 17:32:52 -0500
-Message-ID: <200802071732.52412.lenb@kernel.org>
-References: <1202376914-21030-1-git-send-email-lenb@kernel.org> <200802071705.02695.lenb@kernel.org> <47AB81B9.1000702@oracle.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: ACPI_WMI: worst config description of all times
+Date: Thu, 7 Feb 2008 23:34:55 +0100
+Message-ID: <20080207223455.GB6096@elf.ucw.cz>
+References: <20080207214715.GA15211@elf.ucw.cz> <200802071727.38743.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:41097 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759816AbYBGWdR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 17:33:17 -0500
-In-Reply-To: <47AB81B9.1000702@oracle.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:33234 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S934978AbYBGWem (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 17:34:42 -0500
 Content-Disposition: inline
+In-Reply-To: <200802071727.38743.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
 
+On Thu 2008-02-07 17:27:38, Len Brown wrote:
+> On Thursday 07 February 2008 16:47, Pavel Machek wrote:
+> > 
+> > See? It even has completely useless help text.
+> > 
+> > Does WMI stand for Windows Management Instrumentation? It is some
+> > server management feature? What is it good for?
+> 
+> Thank you for the feedback, Pavel.
+> 
+> There is an additional patch which creates
+> Documentation/acpi/wmi.txt, but I witheld it from
+> this batch because it needs to be revised.
+> If you are not subscribed to the linux-acpi list
+> you can find it here:
+> 
+> http://marc.info/?l=linux-acpi&m=120217838010224&w=2
+> 
+> Clearly we neeed to update the Kconfig doc as well when
+> we revise and push that patch.
 
-> Lindent has several other known issues as far as Linux kernel
-> is concerned.  I.e., it's not a fine tool to use and not review
-> what it did.
+ +ACPI-WMI mapping driver
+ +
+ +Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
+ +
+ +Updated: 5th February 2008
+ +
+ +1) About this guide
+ +
+ +This guide is a basic introduction on how to interact with the ACPI-WMI mapper
+ +driver in the kernel - it presumes you already have a basic knowledge of
+ +ACPI-WMI, ACPI and the hardware you are writing the driver for.
+ +
+ +2) What is ACPI-WMI
+ +
+ +At its simplest, ACPI-WMI is a proprietary extension to the ACPI specification
+ +from Microsoft to allow WMI (their implementation of WBEM) to access
+ +instrumentation data and methods in ACPI from userspace, via the ACPI _HID
+ +device PNP0C14.
+ +
+ +3) What is the ACPI-WMI mapper
+ +
+ +The Linux ACPI-WMI driver is the implementation of this mapper for Linux.
 
-agreed.
-this is a common one -- Lindent wants a ';' between every statement:
+Yes, please. This needs translation into plain english.
 
-
-@@ -32,7 +32,7 @@
- #include <linux/spinlock.h>
-
- MODULE_AUTHOR("Zhang Rui")
--MODULE_DESCRIPTION("Generic thermal management sysfs support");
-+    MODULE_DESCRIPTION("Generic thermal management sysfs support");
- MODULE_LICENSE("GPL");
-
- #define PREFIX "Thermal: "
+What is WBEM, in plain terms? What is it good for?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
