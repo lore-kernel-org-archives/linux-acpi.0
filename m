@@ -1,65 +1,73 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: DMI update - Lenovo X61x - Region EmbeddedControl(3) has no handler
-Date: Thu, 7 Feb 2008 13:39:25 -0500
-Message-ID: <200802071339.26113.lenb@kernel.org>
-References: <Pine.LNX.4.64.0802071146100.30873@twin.jikos.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend to ram problem
+Date: Thu, 7 Feb 2008 19:39:18 +0100
+Message-ID: <200802071939.19240.rjw@sisk.pl>
+References: <47A5C399.7010405@free.fr> <47A8EB02.90502@free.fr> <20080207092321.GC1816@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36201 "EHLO hera.kernel.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:39204 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750751AbYBGSju (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 13:39:50 -0500
-In-Reply-To: <Pine.LNX.4.64.0802071146100.30873@twin.jikos.cz>
+	id S1750775AbYBGSlQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 13:41:16 -0500
+In-Reply-To: <20080207092321.GC1816@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jikos@jikos.cz>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: matthieu castet <castet.matthieu@free.fr>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday 07 February 2008 05:47, Jiri Kosina wrote:
-> Hi,
+On Thursday, 7 of February 2008, Pavel Machek wrote:
+> Hi!
+
+Hi,
+
+> >>>> Hmm, maybe I know where problem could be. Try
+> >>>>
+> >>>>         movl     $(wakeup_stack - wakeup_code), %esp              # 
+> >>>> Private stack is needed for ASUS bo\
+> >>>>
+> >>>> instead of existing stack setup. That helped on one of my test-boxes
+> >>> Thanks, I will try that.
+> >>> Because clearing the flags imply pop/push in the stack it could be the 
+> >>> problem
+> >> That doesn't help : it still crash in pushl $0.
+> >>
+> > All stack stuff in wakeup_code crash for me.
+> > I tried to change the stack position, make sure upper bit of %esp are 
+> > clear, ... nothing work.
+> > What's are strange is that according to my x86 manual, in real mode the 
+> > failure can only happen if the stack wrap which is not the case here.
+> > Any x86 guru advice ?
 > 
-> sending DMI info as suggested by dmesg output.
+> Could you try the .c wakeup? I changed it a bit, perhaps that's enough.
 > 
-> BTW does anyone have any idea about the parse errors?
+> > If I remove stack access (remove clearing flag stuff, not call to video 
+> > stuff) the resume works.
 > 
-> ACPI: EC: EC description table is found, configuring boot EC
-> ACPI Error (evregion-0316): No handler for Region [ECOR] 
-> (ffff81007d36f620) [EmbeddedControl] [20070126]
-> ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler 
-> [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed 
-> [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node ffff81007d374630), AE_NOT_EXIST
-> ACPI Error (psparse-0537): Method parse/execution failed 
-> [\_SB_.PCI0.LPC_.EC__.HKEY.CKC4] (Node ffff81007d374270), AE_NOT_EXIST
-> ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._L02] 
-> (Node ffff81007d3807d0), AE_NOT_EXIST
-> ACPI Exception (evgpe-0576): AE_NOT_EXIST, while evaluating GPE method 
-> [_L02] [20070126]
-> Completing Region/Field/Buffer/Package 
-> initialization:.............................................................................................................................
-> .........................................................................................................................................
-> Initialized 31/34 Regions 122/122 Fields 52/52 Buffers 57/73 Packages 
-> (1845 nodes)
-> Initializing Device/Processor/Thermal objects by executing _INI 
-> methods:.<5>ACPI: BIOS _OSI(Linux) query honored via cmdline
-> ACPI: DMI System Vendor: LENOVO
-> ACPI: DMI Product Name: 76693KG
-> ACPI: DMI Product Version: ThinkPad X61s
-> ACPI: DMI Board Name: 76693KG
-> ACPI: DMI BIOS Vendor: LENOVO
-> ACPI: DMI BIOS Date: 12/28/2007
-> ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-> ACPI: EC: non-query interrupt received, switching to interrupt mode
+> Actually, I see a possible problem:
+> 
+> _start:
+>         cli
+>         cld
+> 
+>         /* Set up segments */
+>         movw    %cs,%ax
+>         movw    %ax,%ds
+>         movw    %ax,%es
+>         movw    %ax,%ss
+> 
+>         movl    $wakeup_stack_end, %esp
+> 
+>         /* Clear the EFLAGS */
+>         pushl   $0
+>         popfl
+> 
+> ...if someone calls start as 0x1234:0, we are okay. But if some broken
+> bios calls us as 0x1:0x234, we've got a problem.
 
-thanks for the messages.
-Please open a sighting here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+Well, in that case the signature/end_signature tests below would trigger, no?
 
-please attach the complete output from dmesg -s64000
-and the output from acpidump.
-
--Len
+Rafael
