@@ -1,59 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend to ram problem
-Date: Thu, 7 Feb 2008 21:00:31 +0100
-Message-ID: <200802072100.32205.rjw@sisk.pl>
-References: <47A5C399.7010405@free.fr> <20080207092035.GB1816@elf.ucw.cz> <47AB60C4.50602@free.fr>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 053/112] the generic thermal sysfs driver
+Date: Thu, 7 Feb 2008 20:09:01 +0000
+Message-ID: <20080207200900.GA2082@srcf.ucam.org>
+References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com> <203d3d4aa482339b4816f131f713e1b8ee37f6dd.1202376824.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39549 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755898AbYBGUCN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 15:02:13 -0500
-In-Reply-To: <47AB60C4.50602@free.fr>
+Received: from cavan.codon.org.uk ([78.32.9.130]:46374 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933734AbYBGUJR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 15:09:17 -0500
 Content-Disposition: inline
+In-Reply-To: <203d3d4aa482339b4816f131f713e1b8ee37f6dd.1202376824.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>, Len Brown <len.brown@intel.com>
 
-On Thursday, 7 of February 2008, matthieu castet wrote:
-> Hi,
+On Thu, Feb 07, 2008 at 04:34:15AM -0500, Len Brown wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> 
-> Pavel Machek wrote:
-> > Hi!
-> > So I assume it is some kind of desktop?
-> Yes.
-> 
-> >>
-> >> ...if someone calls start as 0x1234:0, we are okay. But if some broken
-> >> bios calls us as 0x1:0x234, we've got a problem.
-> >
-> > Well, in that case the signature/end_signature tests below would 
->  >trigger, no?
-> 
-> Yes, and for example the beep flag won't work.
-> 
-> >
-> > Not sure what is going on... but if you remove all the stack
-> > references, does it go up to 32-bit mode?
-> Yes, but I end up with a kernel panic after console resume and some 
-> resume stuff.
-> 
->  > Looks like ss goes bonkers or the 32-bit opcodes are invalid in real 
-> mode.
->  > Matthieu, can you try "pushw %ax; popw %ax;", please?
-> I still crash.
-> I also try to set ss to 0, and hardcode the stack (knowing we are loaded 
-> at 0x1000). And it crash.
-> 
-> 
-> I wonder if there a way to check that we are realy in real mode ?
+> The Generic Thermal sysfs driver for thermal management.
 
-Yes.  In real mode bit 0 of the cr0 register should be 0.
+There's still ongoing discussion about what the interface should look 
+like (and I certainly agree that the difference in units between this 
+class and hwmon should be a showstopper) - can we skip pushing this 
+until those are resolved?
 
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
