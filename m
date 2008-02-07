@@ -1,246 +1,45 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 046/112] ACPI: thinkpad-acpi: wakeup on hotunplug reporting
-Date: Thu,  7 Feb 2008 04:34:08 -0500
-Message-ID: <a713b4d7bca51e56cdb5357507f46674111d032c.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 030/112] sony-laptop: fix scancode decode
+Date: Thu,  7 Feb 2008 04:33:52 -0500
+Message-ID: <fccd5d00ba68455425a35f905fd92538429c310d.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:42392 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754552AbYBGJgT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:19 -0500
+	with ESMTP id S1753384AbYBGJf5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:57 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Mattia Dongili <malattia@linux.it>
 
-Handle some HKEY events that the firmware uses to report the reason for a
-wake up, and to also notify that the system could go back to sleep (if it
-woke up just to eject something from the bay, or to undock).
+compare against the sony_laptop specific event list index
+to decode the input scancode to send.
 
-The driver will report the reason of the last wake up in the sysfs
-attribute "wakeup_reason": 0 for "none, unknown, or standard ACPI wake up
-event", 1 for "bay ejection request" and 2 for "undock request".
-
-The firmware will also report if the operation that triggered the wake up
-has been completed, by issuing an HKEY 0x3003 or 0x4003 event.  If the
-operation fails, no event is sent.  When such a hotunplug sucessfull
-notification is issued, the driver sets the attribute
-"wakeup_hotunplug_complete" to 1.
-
-While the firmware does tell us whether we are waking from a suspend or
-hibernation scenario, the Linux way of hibernating makes this information
-not reliable, and therefore it is not reported.
-
-The idea is that if any of these attributes are non-zero, userspace might
-want to do something at the end of the "wake up from sleep" procedures,
-such as offering to send the machine back into sleep as soon as it is safe
-to do so.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   24 ++++++++++
- drivers/misc/thinkpad_acpi.c    |   91 ++++++++++++++++++++++++++++++++++++---
- 2 files changed, 108 insertions(+), 7 deletions(-)
+ drivers/misc/sony-laptop.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 3fb8647..9d08e47 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -325,6 +325,21 @@ sysfs notes:
- 		May return -EPERM (write access locked out by module
- 		parameter) or -EACCES (read-only).
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 70d5cc5..899e3f7 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -315,7 +315,7 @@ static void sony_laptop_report_input_event(u8 event)
+ 		break;
  
-+	wakeup_reason:
-+		Set to 1 if the system is waking up because the user
-+		requested a bay ejection.  Set to 2 if the system is
-+		waking up because the user requested the system to
-+		undock.  Set to zero for normal wake-ups or wake-ups
-+		due to unknown reasons.
-+
-+	wakeup_hotunplug_complete:
-+		Set to 1 if the system was waken up because of an
-+		undock or bay ejection request, and that request
-+		was sucessfully completed.  At this point, it might
-+		be useful to send the system back to sleep, at the
-+		user's choice.  Refer to HKEY events 0x4003 and
-+		0x3003, below.
-+
- input layer notes:
- 
- A Hot key is mapped to a single input layer EV_KEY event, possibly
-@@ -475,6 +490,15 @@ Non hot-key ACPI HKEY event map:
- The above events are not propagated by the driver, except for legacy
- compatibility purposes when hotkey_report_mode is set to 1.
- 
-+0x2304		System is waking up from suspend to undock
-+0x2305		System is waking up from suspend to eject bay
-+0x2404		System is waking up from hibernation to undock
-+0x2405		System is waking up from hibernation to eject bay
-+
-+The above events are never propagated by the driver.
-+
-+0x3003		Bay ejection (see 0x2x05) complete, can sleep again
-+0x4003		Undocked (see 0x2x04), can sleep again
- 0x5010		Brightness level changed (newer Lenovo BIOSes)
- 
- The above events are propagated by the driver.
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index f5f306a..9b0235d 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1018,6 +1018,14 @@ static unsigned int hotkey_config_change;
- 
- static struct mutex hotkey_mutex;
- 
-+static enum {	/* Reasons for waking up */
-+	TP_ACPI_WAKEUP_NONE = 0,	/* None or unknown */
-+	TP_ACPI_WAKEUP_BAYEJ,		/* Bay ejection request */
-+	TP_ACPI_WAKEUP_UNDOCK,		/* Undock request */
-+} hotkey_wakeup_reason;
-+
-+static int hotkey_autosleep_ack;
-+
- static int hotkey_orig_status;
- static u32 hotkey_orig_mask;
- static u32 hotkey_all_mask;
-@@ -1661,6 +1669,29 @@ static ssize_t hotkey_report_mode_show(struct device *dev,
- static struct device_attribute dev_attr_hotkey_report_mode =
- 	__ATTR(hotkey_report_mode, S_IRUGO, hotkey_report_mode_show, NULL);
- 
-+/* sysfs wakeup reason ------------------------------------------------- */
-+static ssize_t hotkey_wakeup_reason_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", hotkey_wakeup_reason);
-+}
-+
-+static struct device_attribute dev_attr_hotkey_wakeup_reason =
-+	__ATTR(wakeup_reason, S_IRUGO, hotkey_wakeup_reason_show, NULL);
-+
-+/* sysfs wakeup hotunplug_complete ------------------------------------- */
-+static ssize_t hotkey_wakeup_hotunplug_complete_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", hotkey_autosleep_ack);
-+}
-+
-+static struct device_attribute dev_attr_hotkey_wakeup_hotunplug_complete =
-+	__ATTR(wakeup_hotunplug_complete, S_IRUGO,
-+	       hotkey_wakeup_hotunplug_complete_show, NULL);
-+
- /* --------------------------------------------------------------------- */
- 
- static struct attribute *hotkey_attributes[] __initdata = {
-@@ -1683,6 +1714,8 @@ static struct attribute *hotkey_mask_attributes[] __initdata = {
- 	&dev_attr_hotkey_all_mask.attr,
- 	&dev_attr_hotkey_recommended_mask.attr,
- #endif
-+	&dev_attr_hotkey_wakeup_reason.attr,
-+	&dev_attr_hotkey_wakeup_hotunplug_complete.attr,
- };
- 
- static int __init hotkey_init(struct ibm_init_struct *iibm)
-@@ -1822,7 +1855,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.hotkey));
- 
- 	if (tp_features.hotkey) {
--		hotkey_dev_attributes = create_attr_set(10, NULL);
-+		hotkey_dev_attributes = create_attr_set(12, NULL);
- 		if (!hotkey_dev_attributes)
- 			return -ENOMEM;
- 		res = add_many_to_attr_set(hotkey_dev_attributes,
-@@ -2051,6 +2084,48 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 				unk_ev = 1;
- 			}
+ 	default:
+-		if (event > ARRAY_SIZE (sony_laptop_input_keycode_map)) {
++		if (event > ARRAY_SIZE(sony_laptop_input_index)) {
+ 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
  			break;
-+		case 2:
-+			/* Wakeup reason */
-+			switch (hkey) {
-+			case 0x2304: /* suspend, undock */
-+			case 0x2404: /* hibernation, undock */
-+				hotkey_wakeup_reason = TP_ACPI_WAKEUP_UNDOCK;
-+				ignore_acpi_ev = 1;
-+				break;
-+			case 0x2305: /* suspend, bay eject */
-+			case 0x2405: /* hibernation, bay eject */
-+				hotkey_wakeup_reason = TP_ACPI_WAKEUP_BAYEJ;
-+				ignore_acpi_ev = 1;
-+				break;
-+			default:
-+				unk_ev = 1;
-+			}
-+			if (hotkey_wakeup_reason != TP_ACPI_WAKEUP_NONE) {
-+				printk(TPACPI_INFO
-+				       "woke up due to a hot-unplug "
-+				       "request...\n");
-+			}
-+			break;
-+		case 3:
-+			/* bay-related wakeups */
-+			if (hkey == 0x3003) {
-+				hotkey_autosleep_ack = 1;
-+				printk(TPACPI_INFO
-+				       "bay ejected\n");
-+			} else {
-+				unk_ev = 1;
-+			}
-+			break;
-+		case 4:
-+			/* dock-related wakeups */
-+			if (hkey == 0x4003) {
-+				hotkey_autosleep_ack = 1;
-+				printk(TPACPI_INFO
-+				       "undocked\n");
-+			} else {
-+				unk_ev = 1;
-+			}
-+			break;
- 		case 5:
- 			/* 0x5000-0x5FFF: On screen display helpers */
- 			switch (hkey) {
-@@ -2075,12 +2150,6 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			}
- 			/* fallthrough to default */
- 		default:
--			/* case 2: dock-related */
--			/*	0x2305 - T43 waking up due to bay lever
--			 *	         eject while aslept */
--			/* case 3: ultra-bay related. maybe bay in dock? */
--			/*	0x3003 - T43 after wake up by bay lever
--			 *	         eject (0x2305) */
- 			unk_ev = 1;
  		}
- 		if (unk_ev) {
-@@ -2105,6 +2174,13 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	}
- }
- 
-+static void hotkey_suspend(pm_message_t state)
-+{
-+	/* Do these on suspend, we get the events on early resume! */
-+	hotkey_wakeup_reason = TP_ACPI_WAKEUP_NONE;
-+	hotkey_autosleep_ack = 0;
-+}
-+
- static void hotkey_resume(void)
- {
- 	if (hotkey_mask_get())
-@@ -2212,6 +2288,7 @@ static struct ibm_struct hotkey_driver_data = {
- 	.write = hotkey_write,
- 	.exit = hotkey_exit,
- 	.resume = hotkey_resume,
-+	.suspend = hotkey_suspend,
- 	.acpi = &ibm_hotkey_acpidriver,
- };
- 
 -- 
 1.5.4.23.gef5b9
 
