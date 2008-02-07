@@ -1,83 +1,96 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Thu, 7 Feb 2008 02:03:46 -0500
-Message-ID: <200802070203.46783.lenb@kernel.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <20080203000354.GA26623@srcf.ucam.org> <20080207014406.GA19333@srcf.ucam.org>
+Subject: Re: [patch 1/4] ACPI: Fix acpi_safe_halt usages and interrupt enabling/disabling
+Date: Thu, 7 Feb 2008 02:21:06 -0500
+Message-ID: <200802070221.07000.lenb@kernel.org>
+References: <20080201013502.750627000@intel.com> <20080201013629.115986000@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36000 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:43626 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753457AbYBGHFN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 02:05:13 -0500
-In-Reply-To: <20080207014406.GA19333@srcf.ucam.org>
+	id S1754446AbYBGHVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 02:21:36 -0500
+In-Reply-To: <20080201013629.115986000@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-thanks for the update, matthew.
+applied.
 
-applied,
+thanks,
 -len
 
-On Wednesday 06 February 2008 20:44, Matthew Garrett wrote:
-> Vendors often ship machines with a choice of integrated or discrete
-> graphics, and use the same DSDT for both. As a result, the ACPI video
-> module will locate devices that may not exist on this specific platform.
-> Attempt to determine whether the device exists or not, and abort the\
-> device creation if it doesn't
+On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
+> acpi_safe_halt() needs interrupts to be disabled for atomic
+> need_resched check and safe halt. Otherwise we may miss an
+> interrupt and go into halt.
 > 
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-> ---
+> acpi_safe_halt() also does not enable interrupts on all return paths.
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 09a85eb..11c8335 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -735,11 +735,40 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
->  static int acpi_video_bus_check(struct acpi_video_bus *video)
+> So the callers should handle enable and disable interrupts around it.
+> 
+> There were multiple places where this was not happening. Below is the fix.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
+> @@ -201,6 +201,10 @@ static inline u32 ticks_elapsed_in_us(u3
+>  		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
+>  }
+>  
+> +/*
+> + * Callers should disable interrupts before the call and enable
+> + * interrupts after return.
+> + */
+>  static void acpi_safe_halt(void)
 >  {
->  	acpi_status status = -ENOENT;
-> -
-> +	long device_id;
-> +	struct device *dev;
-> +	struct acpi_device *device;
+>  	current_thread_info()->status &= ~TS_POLLING;
+> @@ -393,6 +397,8 @@ static void acpi_processor_idle(void)
+>  			pm_idle_save();
+>  		else
+>  			acpi_safe_halt();
+> +
+> +		local_irq_enable();
+>  		return;
+>  	}
 >  
->  	if (!video)
->  		return -EINVAL;
+> @@ -501,6 +507,7 @@ static void acpi_processor_idle(void)
+>  		 *       skew otherwise.
+>  		 */
+>  		sleep_ticks = 0xFFFFFFFF;
+> +		local_irq_enable();
+>  		break;
 >  
-> +	device = video->device;
-> +
-> +	status =
-> +	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-> +
-> +	if (!ACPI_SUCCESS(status))
-> +		return -ENODEV;
-> +
-> +	/* We need to attempt to determine whether the _ADR refers to a
-> +	   PCI device or not. There's no terribly good way to do this,
-> +	   so the best we can hope for is to assume that there'll never
-> +	   be a video device in the host bridge */
-> +	if (device_id >= 0x10000) {
-> +		/* It looks like a PCI device. Does it exist? */
-> +		dev = acpi_get_physical_device(device->handle);
-> +	} else {
-> +		/* It doesn't look like a PCI device. Does its parent
-> +		   exist? */
-> +		acpi_handle phandle;
-> +		if (acpi_get_parent(device->handle, &phandle))
-> +			return -ENODEV;
-> +		dev = acpi_get_physical_device(phandle);
-> +	}
-> +	if (!dev)
-> +		return -ENODEV;
-> +	put_device(dev);
-> +
->  	/* Since there is no HID, CID and so on for VGA driver, we have
->  	 * to check well known required nodes.
->  	 */
+>  	case ACPI_STATE_C2:
+> @@ -1378,11 +1385,13 @@ static int acpi_idle_enter_c1(struct cpu
+>  	if (unlikely(!pr))
+>  		return 0;
+>  
+> +	local_irq_disable();
+>  	if (pr->flags.bm_check)
+>  		acpi_idle_update_bm_rld(pr, cx);
+>  
+>  	acpi_safe_halt();
+>  
+> +	local_irq_enable();
+>  	cx->usage++;
+>  
+>  	return 0;
+> @@ -1490,7 +1499,9 @@ static int acpi_idle_enter_bm(struct cpu
+>  		if (dev->safe_state) {
+>  			return dev->safe_state->enter(dev, dev->safe_state);
+>  		} else {
+> +			local_irq_disable();
+>  			acpi_safe_halt();
+> +			local_irq_enable();
+>  			return 0;
+>  		}
+>  	}
 > 
