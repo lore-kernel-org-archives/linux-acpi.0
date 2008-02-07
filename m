@@ -1,40 +1,75 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH, RFC] HP WMI hotkey driver, RFKill query?
-Date: Wed, 6 Feb 2008 22:54:24 -0500
-Message-ID: <200802062254.24599.lenb@kernel.org>
-References: <20071218235137.12838.75397.stgit@localhost> <20080115155215.ZZRA012@mailhub.coreip.homeip.net> <200801160138.36347.carlos@strangeworlds.co.uk>
+Subject: Re: Exposing WMI on Linux
+Date: Wed, 6 Feb 2008 23:36:17 -0500
+Message-ID: <200802062336.17586.lenb@kernel.org>
+References: <7905FFCA2E893B41B7697977B01334D4029723ED@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <200801160138.36347.carlos@strangeworlds.co.uk>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:37971 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755525AbYBGEhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2008 23:37:21 -0500
+In-Reply-To: <7905FFCA2E893B41B7697977B01334D4029723ED@hdsmsx411.amr.corp.intel.com>
 Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Nashif, Anas" <anas.nashif@intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-On Tuesday 15 January 2008 20:38, Carlos Corbacho wrote:
-> On Tuesday 15 January 2008 20:54:29 Dmitry Torokhov wrote:
-> > If there is a [planned] WMI sysfs device then I think input device should
-> > use it to form proper sysfs hierarchy. What are the roadblocks for getting
-> > WMI sysfs in?
+On Wednesday 30 May 2007 16:12, you wrote:
 > 
-> The question is, would exporting the GUID virtual device and using that as the 
-> parent make more sense? So, in the case of hp-wmi, it only uses the GUID 
-> 95F24279-4D7B-4334-9387-ACCDC67EF61C, so should we use the virtual device 
-> associated with that GUID as the parent, or just have WMI itself as the 
-> parent device? I'm really not sure which would be the better way to go.
-
-Why not used generic names like dev0, dev1 etc.
-and have the guid be an attribute?
-
-> Unfortunately, as you can see, a GUID is a 36 character string, which is 
-> longer than the current 20 byte length of bus_id in a 'struct device'; so 
-> either we have to have a temporary hack to shorten the GUID length when 
-> creating the device, or wait for bus_id to switch to a variable length 
-> (although it's not certain if this change will hit 2.6.25, or will be put off 
-> until 2.6.26).
+> Here are some pointers as promised:
 > 
-> -Carlos
+> http://developer.novell.com/wiki/index.php/OMC
+> 
+> This is a Novell project with many providers dealing will many aspects
+> of the OS. They also provide RPMs for OpenSUSE and is the main source
+> for the OpenWBEM CIMOM binaries for SUSE.
+> 
+> http://sblim.wiki.sourceforge.net/
+> 
+> Is the IBM project dealing with instrumentation and home of the SFCB
+> CIMOM targeting embedded environments and only supports CMPI providers.
+> 
+> http://sblim.wiki.sourceforge.net/ProviderCmpiSysfs is a sysfs provider.
+> Seems to be old but is a good example.
+> 
+> http://openpegasus.org/
+> 
+> This is the home of the OpenPeagsus CIMOM, supported by multiple
+> vendors.
+> 
+> http://www.dmtf.org/standards/wbem/ is about the WBEM protocol. Also the
+> tutorial is good: http://www.wbemsolutions.com/tutorials/CIM/wbem.html
+> 
+> http://cimple.org/ tries to make writing providers easy.
+> 
+
+Anas,
+We could use some help on how to expose WMI to user-space in Linux.
+(Then we could use some help on user-space using that interface:-)
+
+Carlos has cooked up an ACPI-WMI mapping driver for Linux,
+and has two in-kernel platform specific drivers that want
+to talk to it (acer-laptop and HP Compaq TC1100 Tablets),
+and Matthew has been poking at an HP driver to use WMI
+to access some laptop functionas as well.
+
+But nobody is thinking about how to hook this up
+to the user-space management infrastructure in Linux,
+and what the kernel/user interface to to best do
+that would be.
+
+Carlos prototyped a sysfs I/F, but that doesn't seem to fit
+the WMI transaction model, so he's wondering if an ioctl
+I/F would be more appropriate where transaction consistency
+can be enforced by the driver, perhaps with a library
+on top of it.
+
+Please advise.
+
+thanks,
+-Len
