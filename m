@@ -1,31 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 053/112] the generic thermal sysfs driver
-Date: Thu, 7 Feb 2008 20:09:01 +0000
-Message-ID: <20080207200900.GA2082@srcf.ucam.org>
-References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com> <203d3d4aa482339b4816f131f713e1b8ee37f6dd.1202376824.git.len.brown@intel.com>
+From: Cacy Rodney <cacy-rodney-cacy@tlen.pl>
+Subject: Re: suspend to ram problem
+Date: Thu, 07 Feb 2008 21:12:06 +0100
+Message-ID: <47AB6616.4040401@tlen.pl>
+References: <47A5C399.7010405@free.fr> <47AA3763.7000106@free.fr> <20080206224308.GA1630@elf.ucw.cz> <200802070003.05543.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:46374 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933734AbYBGUJR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 15:09:17 -0500
-Content-Disposition: inline
-In-Reply-To: <203d3d4aa482339b4816f131f713e1b8ee37f6dd.1202376824.git.len.brown@intel.com>
+Received: from tur.go2.pl ([193.17.41.50]:58011 "EHLO tur.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934480AbYBGUOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 15:14:38 -0500
+Received: from poczta.o2.pl (mx12.go2.pl [193.17.41.142])
+	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id DA6BA230F5C
+	for <linux-acpi@vger.kernel.org>; Thu,  7 Feb 2008 21:14:34 +0100 (CET)
+Received: from poczta.o2.pl (mx12 [127.0.0.1])
+	by poczta.o2.pl (Postfix) with ESMTP id 8A9103E8139
+	for <linux-acpi@vger.kernel.org>; Thu,  7 Feb 2008 21:12:23 +0100 (CET)
+Received: from [10.1.1.146] (i01m-62-35-173-211.d4.club-internet.fr [62.35.173.211])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by poczta.o2.pl (Postfix) with ESMTP
+	for <linux-acpi@vger.kernel.org>; Thu,  7 Feb 2008 21:12:22 +0100 (CET)
+In-Reply-To: <200802070003.05543.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>, Len Brown <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Thu, Feb 07, 2008 at 04:34:15AM -0500, Len Brown wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> The Generic Thermal sysfs driver for thermal management.
-
-There's still ongoing discussion about what the interface should look 
-like (and I certainly agree that the difference in units between this 
-class and hwmon should be a showstopper) - can we skip pushing this 
-until those are resolved?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I have read somewhere that the problem appeared at the beginning of 
+2.6.24 development. I'm using pure 2.6.23 (sony vaio laptop) and I have 
+experienced the problem of returning from suspend to ram as well. It 
+always occurs when the battery is present in the slot and never without 
+it. I did not have such problem with 2.6.19-rc3. I tried the 2.6.23-12 
+and 2.6.24 but without any better.
+If you need any details about my configuration write me please.
+regards
+cacy
