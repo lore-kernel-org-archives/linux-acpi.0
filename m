@@ -1,594 +1,368 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 061/112] intel_menlo: introduce new platform specific driver
-Date: Thu,  7 Feb 2008 04:34:23 -0500
-Message-ID: <cc0573b3250214034062ddf8c64359596d8af521.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 033/112] ACPI: thinkpad-acpi: refactor hotkey_get and hotkey_set (v2)
+Date: Thu,  7 Feb 2008 04:33:55 -0500
+Message-ID: <b2c985e7eba858a1765db6d56bdd4df775f53633.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:18844 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753611AbYBGJgT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:36:19 -0500
+Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757989AbYBGJf7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:59 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Sujith <sujith.thomas@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Thomas Sujith <sujith.thomas@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Intel menlow platform specific driver for thermal management extension.
+Refactor and organize the code a bit for the NVRAM polling support:
 
-Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+1. Split hotkey_get/set into hotkey_status_get/set and hotkey_mask_get/set;
+2. Cache the status of hot key mask for later driver use;
+3. Make sure the cache of hot key mask is refreshed when needed;
+4. log a printk notice when the firmware doesn't set the hot key
+   mask to exactly what we asked it to;
+5. Add proper locking to the data structures.
+
+Only (4) should be user-noticeable, but there is a chance (5) fixes
+some unknown/unreported race conditions.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig        |    9 +
- drivers/misc/Makefile       |    1 +
- drivers/misc/intel_menlow.c |  526 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 536 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/intel_menlow.c
+ drivers/misc/thinkpad_acpi.c |  184 +++++++++++++++++++++++++-----------------
+ drivers/misc/thinkpad_acpi.h |    2 -
+ 2 files changed, 109 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index b5e67c0..d1380a5 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -232,4 +232,13 @@ config ATMEL_SSC
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 7b1080f..49d4f4a 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -777,6 +777,7 @@ static int hotkey_orig_status;
+ static u32 hotkey_orig_mask;
+ static u32 hotkey_all_mask;
+ static u32 hotkey_reserved_mask;
++static u32 hotkey_mask;
  
- 	  If unsure, say N.
+ static u16 *hotkey_keycode_map;
  
-+config INTEL_MENLOW
-+	tristate "Thermal Management driver for Intel menlow platform"
-+	depends on ACPI_THERMAL
-+	---help---
-+	  ACPI thermal management enhancement driver on
-+	  Intel Menlow platform.
-+
-+	  If unsure, say N.
-+
- endif # MISC_DEVICES
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 87f2685..a9e8faf 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -17,3 +17,4 @@ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
- obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
- obj-$(CONFIG_FUJITSU_LAPTOP)	+= fujitsu-laptop.o
- obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
-+obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
-diff --git a/drivers/misc/intel_menlow.c b/drivers/misc/intel_menlow.c
-new file mode 100644
-index 0000000..f70984a
---- /dev/null
-+++ b/drivers/misc/intel_menlow.c
-@@ -0,0 +1,526 @@
+@@ -789,15 +790,76 @@ static int hotkey_get_wlsw(int *status)
+ 	return 0;
+ }
+ 
 +/*
-+ *  intel_menlow.c - Intel menlow Driver for thermal management extension
-+ *
-+ *  Copyright (C) 2008 Intel Corp
-+ *  Copyright (C) 2008 Sujith Thomas <sujith.thomas@intel.com>
-+ *  Copyright (C) 2008 Zhang Rui <rui.zhang@intel.com>
-+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This driver creates the sys I/F for programming the sensors.
-+ *  It also implements the driver for intel menlow memory controller (hardware
-+ *  id is INT0002) which makes use of the platform specific ACPI methods
-+ *  to get/set bandwidth.
++ * Call with hotkey_mutex held
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/pci.h>
-+#include <linux/pm.h>
-+
-+#include <linux/thermal.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+
-+MODULE_AUTHOR("Thomas Sujith");
-+MODULE_AUTHOR("Zhang Rui");
-+MODULE_DESCRIPTION("Intel Menlow platform specific driver");
-+MODULE_LICENSE("GPL");
-+
-+/*
-+ * Memory controller device control
-+ */
-+
-+#define MEMORY_GET_BANDWIDTH "GTHS"
-+#define MEMORY_SET_BANDWIDTH "STHS"
-+#define MEMORY_ARG_CUR_BANDWIDTH 1
-+#define MEMORY_ARG_MAX_BANDWIDTH 0
-+
-+static int memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
-+					unsigned long *max_state)
++static int hotkey_mask_get(void)
 +{
-+	struct acpi_device *device = cdev->devdata;
-+	acpi_handle handle = device->handle;
-+	unsigned long value;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status = AE_OK;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = MEMORY_ARG_MAX_BANDWIDTH;
-+	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
-+				       &arg_list, &value);
-+	if (ACPI_FAILURE(status))
-+		return -EFAULT;
-+
-+	*max_state = value - 1;
-+	return 0;
-+}
-+
-+static int memory_get_max_bandwidth(struct thermal_cooling_device *cdev,
-+				    char *buf)
-+{
-+	unsigned long value;
-+	if (memory_get_int_max_bandwidth(cdev, &value))
-+		return -EINVAL;
-+
-+	return sprintf(buf, "%ld\n", value);
-+}
-+
-+static int memory_get_cur_bandwidth(struct thermal_cooling_device *cdev,
-+				    char *buf)
-+{
-+	struct acpi_device *device = cdev->devdata;
-+	acpi_handle handle = device->handle;
-+	unsigned long value;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status = AE_OK;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = MEMORY_ARG_CUR_BANDWIDTH;
-+	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
-+				       &arg_list, &value);
-+	if (ACPI_FAILURE(status))
-+		return -EFAULT;
-+
-+	return sprintf(buf, "%ld\n", value);
-+}
-+
-+static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
-+				    unsigned int state)
-+{
-+	struct acpi_device *device = cdev->devdata;
-+	acpi_handle handle = device->handle;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
-+	int temp;
-+	unsigned long max_state;
-+
-+	if (memory_get_int_max_bandwidth(cdev, &max_state))
-+		return -EFAULT;
-+
-+	if (max_state < 0 || state > max_state)
-+		return -EINVAL;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = state;
-+
-+	status =
-+	    acpi_evaluate_integer(handle, MEMORY_SET_BANDWIDTH, &arg_list,
-+				  (unsigned long *)&temp);
-+
-+	printk(KERN_INFO
-+	       "Bandwidth value was %d: status is %d\n", state, status);
-+	if (ACPI_FAILURE(status))
-+		return -EFAULT;
++	if (tp_features.hotkey_mask) {
++		if (!acpi_evalf(hkey_handle, &hotkey_mask, "DHKN", "d"))
++			return -EIO;
++	}
 +
 +	return 0;
 +}
 +
-+static struct thermal_cooling_device_ops memory_cooling_ops = {
-+	.get_max_state = memory_get_max_bandwidth,
-+	.get_cur_state = memory_get_cur_bandwidth,
-+	.set_cur_state = memory_set_cur_bandwidth,
-+};
-+
 +/*
-+ * Memory Device Management
++ * Call with hotkey_mutex held
 + */
-+static int intel_menlow_memory_add(struct acpi_device *device)
++static int hotkey_mask_set(u32 mask)
 +{
-+	int result = -ENODEV;
-+	acpi_status status = AE_OK;
-+	acpi_handle dummy;
-+	struct thermal_cooling_device *cdev;
++	int i;
++	int rc = 0;
 +
-+	if (!device)
-+		return -EINVAL;
++	if (tp_features.hotkey_mask) {
++		for (i = 0; i < 32; i++) {
++			u32 m = 1 << i;
++			if (!acpi_evalf(hkey_handle,
++					NULL, "MHKM", "vdd", i + 1,
++					!!(mask & m))) {
++				rc = -EIO;
++				break;
++			} else {
++				hotkey_mask = (hotkey_mask & ~m) | (mask & m);
++			}
++		}
 +
-+	status = acpi_get_handle(device->handle, MEMORY_GET_BANDWIDTH, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto end;
-+
-+	status = acpi_get_handle(device->handle, MEMORY_SET_BANDWIDTH, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto end;
-+
-+	cdev = thermal_cooling_device_register("Memory controller", device,
-+					       &memory_cooling_ops);
-+	acpi_driver_data(device) = cdev;
-+	if (!cdev)
-+		result = -ENODEV;
-+	else {
-+		result = sysfs_create_link(&device->dev.kobj,
-+					&cdev->device.kobj, "thermal_cooling");
-+		if (result)
-+			goto unregister;
-+
-+		result = sysfs_create_link(&cdev->device.kobj,
-+					&device->dev.kobj, "device");
-+		if (result) {
-+			sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-+			goto unregister;
++		/* hotkey_mask_get must be called unconditionally below */
++		if (!hotkey_mask_get() && !rc && hotkey_mask != mask) {
++			printk(IBM_NOTICE
++			       "requested hot key mask 0x%08x, but "
++			       "firmware forced it to 0x%08x\n",
++			       mask, hotkey_mask);
 +		}
 +	}
 +
-+ end:
-+	return result;
-+
-+ unregister:
-+	thermal_cooling_device_unregister(cdev);
-+	return result;
-+
++	return rc;
 +}
 +
-+static int intel_menlow_memory_remove(struct acpi_device *device, int type)
++static int hotkey_status_get(int *status)
 +{
-+	struct thermal_cooling_device *cdev = acpi_driver_data(device);
-+
-+	if (!device || !cdev)
-+		return -EINVAL;
-+
-+	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-+	sysfs_remove_link(&cdev->device.kobj, "device");
-+	thermal_cooling_device_unregister(cdev);
-+
-+	return 0;
-+}
-+
-+const static struct acpi_device_id intel_menlow_memory_ids[] = {
-+	{"INT0002", 0},
-+	{"", 0},
-+};
-+
-+static struct acpi_driver intel_menlow_memory_driver = {
-+	.name = "intel_menlow_thermal_control",
-+	.ids = intel_menlow_memory_ids,
-+	.ops = {
-+		.add = intel_menlow_memory_add,
-+		.remove = intel_menlow_memory_remove,
-+		},
-+};
-+
-+/*
-+ * Sensor control on menlow platform
-+ */
-+
-+#define THERMAL_AUX0 0
-+#define THERMAL_AUX1 1
-+#define GET_AUX0 "GAX0"
-+#define GET_AUX1 "GAX1"
-+#define SET_AUX0 "SAX0"
-+#define SET_AUX1 "SAX1"
-+
-+struct intel_menlow_attribute {
-+	struct device_attribute attr;
-+	struct device *device;
-+	acpi_handle handle;
-+	struct list_head node;
-+};
-+
-+static LIST_HEAD(intel_menlow_attr_list);
-+static DEFINE_MUTEX(intel_menlow_attr_lock);
-+
-+/*
-+ * sensor_get_auxtrip - get the current auxtrip value from sensor
-+ * @name: Thermalzone name
-+ * @auxtype : AUX0/AUX1
-+ * @buf: syfs buffer
-+ */
-+static int sensor_get_auxtrip(acpi_handle handle, int index, int *value)
-+{
-+	acpi_status status;
-+
-+	if ((index != 0 && index != 1) || !value)
-+		return -EINVAL;
-+
-+	status = acpi_evaluate_integer(handle, index ? GET_AUX1 : GET_AUX0,
-+				       NULL, (unsigned long *)value);
-+	if (ACPI_FAILURE(status))
++	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
 +		return -EIO;
 +
 +	return 0;
 +}
 +
-+/*
-+ * sensor_set_auxtrip - set the new auxtrip value to sensor
-+ * @name: Thermalzone name
-+ * @auxtype : AUX0/AUX1
-+ * @buf: syfs buffer
-+ */
-+static int sensor_set_auxtrip(acpi_handle handle, int index, int value)
++static int hotkey_status_set(int status)
 +{
-+	acpi_status status;
-+	union acpi_object arg = {
-+		ACPI_TYPE_INTEGER
-+	};
-+	struct acpi_object_list args = {
-+		1, &arg
-+	};
-+	int temp;
-+
-+	if (index != 0 && index != 1)
-+		return -EINVAL;
-+
-+	status = acpi_evaluate_integer(handle, index ? GET_AUX0 : GET_AUX1,
-+				       NULL, (unsigned long *)&temp);
-+	if (ACPI_FAILURE(status))
-+		return -EIO;
-+	if ((index && value < temp) || (!index && value > temp))
-+		return -EINVAL;
-+
-+	arg.integer.value = value;
-+	status = acpi_evaluate_integer(handle, index ? SET_AUX1 : SET_AUX0,
-+				       &args, (unsigned long *)&temp);
-+	if (ACPI_FAILURE(status))
++	if (!acpi_evalf(hkey_handle, NULL, "MHKC", "vd", status))
 +		return -EIO;
 +
-+	/* do we need to check the return value of SAX0/SAX1 ? */
-+
 +	return 0;
 +}
 +
-+#define to_intel_menlow_attr(_attr)	\
-+	container_of(_attr, struct intel_menlow_attribute, attr)
+ /* sysfs hotkey enable ------------------------------------------------- */
+ static ssize_t hotkey_enable_show(struct device *dev,
+ 			   struct device_attribute *attr,
+ 			   char *buf)
+ {
+ 	int res, status;
+-	u32 mask;
+ 
+-	res = hotkey_get(&status, &mask);
++	res = hotkey_status_get(&status);
+ 	if (res)
+ 		return res;
+ 
+@@ -809,15 +871,12 @@ static ssize_t hotkey_enable_store(struct device *dev,
+ 			    const char *buf, size_t count)
+ {
+ 	unsigned long t;
+-	int res, status;
+-	u32 mask;
++	int res;
+ 
+ 	if (parse_strtoul(buf, 1, &t))
+ 		return -EINVAL;
+ 
+-	res = hotkey_get(&status, &mask);
+-	if (!res)
+-		res = hotkey_set(t, mask);
++	res = hotkey_status_set(t);
+ 
+ 	return (res) ? res : count;
+ }
+@@ -831,14 +890,15 @@ static ssize_t hotkey_mask_show(struct device *dev,
+ 			   struct device_attribute *attr,
+ 			   char *buf)
+ {
+-	int res, status;
+-	u32 mask;
++	int res;
+ 
+-	res = hotkey_get(&status, &mask);
+-	if (res)
+-		return res;
++	if (mutex_lock_interruptible(&hotkey_mutex))
++		return -ERESTARTSYS;
++	res = hotkey_mask_get();
++	mutex_unlock(&hotkey_mutex);
+ 
+-	return snprintf(buf, PAGE_SIZE, "0x%08x\n", mask);
++	return (res)?
++		res : snprintf(buf, PAGE_SIZE, "0x%08x\n", hotkey_mask);
+ }
+ 
+ static ssize_t hotkey_mask_store(struct device *dev,
+@@ -846,15 +906,16 @@ static ssize_t hotkey_mask_store(struct device *dev,
+ 			    const char *buf, size_t count)
+ {
+ 	unsigned long t;
+-	int res, status;
+-	u32 mask;
++	int res;
+ 
+ 	if (parse_strtoul(buf, 0xffffffffUL, &t))
+ 		return -EINVAL;
+ 
+-	res = hotkey_get(&status, &mask);
+-	if (!res)
+-		hotkey_set(status, t);
++	if (mutex_lock_interruptible(&hotkey_mutex))
++		return -ERESTARTSYS;
 +
-+static ssize_t aux0_show(struct device *dev,
-+			 struct device_attribute *dev_attr, char *buf)
-+{
-+	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
-+	int value;
-+	int result;
-+
-+	result = sensor_get_auxtrip(attr->handle, 0, &value);
-+
-+	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
-+}
-+
-+static ssize_t aux1_show(struct device *dev,
-+			 struct device_attribute *dev_attr, char *buf)
-+{
-+	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
-+	int value;
-+	int result;
-+
-+	result = sensor_get_auxtrip(attr->handle, 1, &value);
-+
-+	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
-+}
-+
-+static ssize_t aux0_store(struct device *dev,
-+			  struct device_attribute *dev_attr,
-+			  const char *buf, size_t count)
-+{
-+	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
-+	int value;
-+	int result;
-+
-+	/*Sanity check; should be a positive integer */
-+	if (!sscanf(buf, "%d", &value))
-+		return -EINVAL;
-+
-+	if (value < 0)
-+		return -EINVAL;
-+
-+	result = sensor_set_auxtrip(attr->handle, 0, CELSIUS_TO_KELVIN(value));
-+	return result ? result : count;
-+}
-+
-+static ssize_t aux1_store(struct device *dev,
-+			  struct device_attribute *dev_attr,
-+			  const char *buf, size_t count)
-+{
-+	struct intel_menlow_attribute *attr = to_intel_menlow_attr(dev_attr);
-+	int value;
-+	int result;
-+
-+	/*Sanity check; should be a positive integer */
-+	if (!sscanf(buf, "%d", &value))
-+		return -EINVAL;
-+
-+	if (value < 0)
-+		return -EINVAL;
-+
-+	result = sensor_set_auxtrip(attr->handle, 1, CELSIUS_TO_KELVIN(value));
-+	return result ? result : count;
-+}
-+
-+/* BIOS can enable/disable the thermal user application in dabney platform */
-+#define BIOS_ENABLED "\\_TZ.GSTS"
-+static ssize_t bios_enabled_show(struct device *dev,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	acpi_status status;
-+	unsigned long bios_enabled;
-+
-+	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &bios_enabled);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return sprintf(buf, "%s\n", bios_enabled ? "enabled" : "disabled");
-+}
-+
-+static int intel_menlow_add_one_attribute(char *name, int mode, void *show,
-+					  void *store, struct device *dev,
-+					  acpi_handle handle)
-+{
-+	struct intel_menlow_attribute *attr;
-+	int result;
-+
-+	attr = kzalloc(sizeof(struct intel_menlow_attribute), GFP_KERNEL);
-+	if (!attr)
-+		return -ENOMEM;
-+
-+	attr->attr.attr.name = name;
-+	attr->attr.attr.mode = mode;
-+	attr->attr.show = show;
-+	attr->attr.store = store;
-+	attr->device = dev;
-+	attr->handle = handle;
-+
-+	result = device_create_file(dev, &attr->attr);
-+	if (result)
-+		return result;
-+
-+	mutex_lock(&intel_menlow_attr_lock);
-+	list_add_tail(&attr->node, &intel_menlow_attr_list);
-+	mutex_unlock(&intel_menlow_attr_lock);
-+
-+	return 0;
-+}
-+
-+static acpi_status intel_menlow_register_sensor(acpi_handle handle, u32 lvl,
-+						void *context, void **rv)
-+{
-+	acpi_status status;
-+	acpi_handle dummy;
-+	struct thermal_zone_device *thermal;
-+	int result;
-+
-+	result = acpi_bus_get_private_data(handle, (void **)&thermal);
-+	if (result)
-+		return 0;
-+
-+	/* _TZ must have the AUX0/1 methods */
-+	status = acpi_get_handle(handle, GET_AUX0, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto not_found;
-+
-+	status = acpi_get_handle(handle, SET_AUX0, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto not_found;
-+
-+	result = intel_menlow_add_one_attribute("aux0", 0644,
-+						aux0_show, aux0_store,
-+						&thermal->device, handle);
-+	if (result)
-+		return AE_ERROR;
-+
-+	status = acpi_get_handle(handle, GET_AUX1, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto not_found;
-+
-+	status = acpi_get_handle(handle, SET_AUX1, &dummy);
-+	if (ACPI_FAILURE(status))
-+		goto not_found;
-+
-+	result = intel_menlow_add_one_attribute("aux1", 0644,
-+						aux1_show, aux1_store,
-+						&thermal->device, handle);
-+	if (result)
-+		return AE_ERROR;
-+
-+	/*
-+	 * create the "dabney_enabled" attribute which means the user app
-+	 * should be loaded or not
-+	 */
-+
-+	result = intel_menlow_add_one_attribute("bios_enabled", 0444,
-+						bios_enabled_show, NULL,
-+						&thermal->device, handle);
-+	if (result)
-+		return AE_ERROR;
-+
-+ not_found:
-+	if (status == AE_NOT_FOUND)
-+		return AE_OK;
-+	else
-+		return status;
-+}
-+
-+static void intel_menlow_unregister_sensor(void)
-+{
-+	struct intel_menlow_attribute *pos, *next;
-+
-+	mutex_lock(&intel_menlow_attr_lock);
-+	list_for_each_entry_safe(pos, next, &intel_menlow_attr_list, node) {
-+		list_del(&pos->node);
-+		device_remove_file(pos->device, &pos->attr);
-+		kfree(pos);
-+	}
-+	mutex_unlock(&intel_menlow_attr_lock);
-+
-+	return;
-+}
-+
-+static int __init intel_menlow_module_init(void)
-+{
-+	int result = -ENODEV;
-+	acpi_status status;
-+	unsigned long enable;
-+
-+	if (acpi_disabled)
-+		return result;
-+
-+	/* Looking for the \_TZ.GSTS method */
-+	status = acpi_evaluate_integer(NULL, BIOS_ENABLED, NULL, &enable);
-+	if (ACPI_FAILURE(status) || !enable)
-+		return -ENODEV;
-+
-+	/* Looking for ACPI device MEM0 with hardware id INT0002 */
-+	result = acpi_bus_register_driver(&intel_menlow_memory_driver);
-+	if (result)
-+		return result;
-+
-+	/* Looking for sensors in each ACPI thermal zone */
-+	status = acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
-+				     ACPI_UINT32_MAX,
-+				     intel_menlow_register_sensor, NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void __exit intel_menlow_module_exit(void)
-+{
-+	acpi_bus_unregister_driver(&intel_menlow_memory_driver);
-+	intel_menlow_unregister_sensor();
-+}
-+
-+module_init(intel_menlow_module_init);
-+module_exit(intel_menlow_module_exit);
++	res = hotkey_mask_set(t);
++	mutex_unlock(&hotkey_mutex);
+ 
+ 	return (res) ? res : count;
+ }
+@@ -1123,11 +1184,16 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			}
+ 		}
+ 
+-		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
++		res = hotkey_status_get(&hotkey_orig_status);
+ 		if (!res && tp_features.hotkey_mask) {
+-			res = add_many_to_attr_set(hotkey_dev_attributes,
+-				hotkey_mask_attributes,
+-				ARRAY_SIZE(hotkey_mask_attributes));
++			res = hotkey_mask_get();
++			hotkey_orig_mask = hotkey_mask;
++			if (!res) {
++				res = add_many_to_attr_set(
++					hotkey_dev_attributes,
++					hotkey_mask_attributes,
++					ARRAY_SIZE(hotkey_mask_attributes));
++			}
+ 		}
+ 
+ 		/* Not all thinkpads have a hardware radio switch */
+@@ -1191,7 +1257,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 
+ 		dbg_printk(TPACPI_DBG_INIT,
+ 				"enabling hot key handling\n");
+-		res = hotkey_set(1, (hotkey_all_mask & ~hotkey_reserved_mask)
++		res = hotkey_status_set(1);
++		if (res)
++			return res;
++		res = hotkey_mask_set((hotkey_all_mask & ~hotkey_reserved_mask)
+ 					| hotkey_orig_mask);
+ 		if (res)
+ 			return res;
+@@ -1207,13 +1276,12 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 
+ static void hotkey_exit(void)
+ {
+-	int res;
+-
+ 	if (tp_features.hotkey) {
+-		dbg_printk(TPACPI_DBG_EXIT, "restoring original hotkey mask\n");
+-		res = hotkey_set(hotkey_orig_status, hotkey_orig_mask);
+-		if (res)
+-			printk(IBM_ERR "failed to restore hotkey to BIOS defaults\n");
++		dbg_printk(TPACPI_DBG_EXIT, "restoring original hot key mask\n");
++		/* no short-circuit boolean operator below! */
++		if ((hotkey_mask_set(hotkey_orig_mask) |
++		     hotkey_status_set(hotkey_orig_status)) != 0)
++			printk(IBM_ERR "failed to restore hot key mask to BIOS defaults\n");
+ 	}
+ 
+ 	if (hotkey_dev_attributes) {
+@@ -1349,50 +1417,15 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 
+ static void hotkey_resume(void)
+ {
++	if (hotkey_mask_get())
++		printk(IBM_ERR "error while trying to read hot key mask from firmware\n");
+ 	tpacpi_input_send_radiosw();
+ }
+ 
+-/*
+- * Call with hotkey_mutex held
+- */
+-static int hotkey_get(int *status, u32 *mask)
+-{
+-	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
+-		return -EIO;
+-
+-	if (tp_features.hotkey_mask)
+-		if (!acpi_evalf(hkey_handle, mask, "DHKN", "d"))
+-			return -EIO;
+-
+-	return 0;
+-}
+-
+-/*
+- * Call with hotkey_mutex held
+- */
+-static int hotkey_set(int status, u32 mask)
+-{
+-	int i;
+-
+-	if (!acpi_evalf(hkey_handle, NULL, "MHKC", "vd", status))
+-		return -EIO;
+-
+-	if (tp_features.hotkey_mask)
+-		for (i = 0; i < 32; i++) {
+-			int bit = ((1 << i) & mask) != 0;
+-			if (!acpi_evalf(hkey_handle,
+-					NULL, "MHKM", "vdd", i + 1, bit))
+-				return -EIO;
+-		}
+-
+-	return 0;
+-}
+-
+ /* procfs -------------------------------------------------------------- */
+ static int hotkey_read(char *p)
+ {
+ 	int res, status;
+-	u32 mask;
+ 	int len = 0;
+ 
+ 	if (!tp_features.hotkey) {
+@@ -1402,14 +1435,16 @@ static int hotkey_read(char *p)
+ 
+ 	if (mutex_lock_interruptible(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+-	res = hotkey_get(&status, &mask);
++	res = hotkey_status_get(&status);
++	if (!res)
++		res = hotkey_mask_get();
+ 	mutex_unlock(&hotkey_mutex);
+ 	if (res)
+ 		return res;
+ 
+ 	len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 0));
+ 	if (tp_features.hotkey_mask) {
+-		len += sprintf(p + len, "mask:\t\t0x%08x\n", mask);
++		len += sprintf(p + len, "mask:\t\t0x%08x\n", hotkey_mask);
+ 		len += sprintf(p + len,
+ 			       "commands:\tenable, disable, reset, <mask>\n");
+ 	} else {
+@@ -1425,7 +1460,6 @@ static int hotkey_write(char *buf)
+ 	int res, status;
+ 	u32 mask;
+ 	char *cmd;
+-	int do_cmd = 0;
+ 
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
+@@ -1433,9 +1467,8 @@ static int hotkey_write(char *buf)
+ 	if (mutex_lock_interruptible(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+-	res = hotkey_get(&status, &mask);
+-	if (res)
+-		goto errexit;
++	status = -1;
++	mask = hotkey_mask;
+ 
+ 	res = 0;
+ 	while ((cmd = next_cmd(&buf))) {
+@@ -1454,11 +1487,12 @@ static int hotkey_write(char *buf)
+ 			res = -EINVAL;
+ 			goto errexit;
+ 		}
+-		do_cmd = 1;
+ 	}
++	if (status != -1)
++		res = hotkey_status_set(status);
+ 
+-	if (do_cmd)
+-		res = hotkey_set(status, mask);
++	if (!res && mask != hotkey_mask)
++		res = hotkey_mask_set(mask);
+ 
+ errexit:
+ 	mutex_unlock(&hotkey_mutex);
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 8fba2bb..3b03134 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -461,8 +461,6 @@ static struct mutex hotkey_mutex;
+ 
+ static int hotkey_init(struct ibm_init_struct *iibm);
+ static void hotkey_exit(void);
+-static int hotkey_get(int *status, u32 *mask);
+-static int hotkey_set(int status, u32 mask);
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event);
+ static int hotkey_read(char *p);
+ static int hotkey_write(char *buf);
 -- 
 1.5.4.23.gef5b9
 
