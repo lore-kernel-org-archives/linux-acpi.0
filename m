@@ -1,144 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 2/7] acpi4asus: add support for F3Sa
-Date: Thu, 7 Feb 2008 00:44:31 -0500
-Message-ID: <200802070044.32248.lenb@kernel.org>
-References: <200802050730.m157UxMY009615@imap1.linux-foundation.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test
+	if (level & TP_EC_FAN_FULLSPEED)
+Date: Wed, 6 Feb 2008 21:55:07 -0800
+Message-ID: <20080207055507.GA7212@kroah.com>
+References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl> <20080206230702.GA12395@kroah.com> <47AA4748.3040702@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40178 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054AbYBGFo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 00:44:58 -0500
-In-Reply-To: <200802050730.m157UxMY009615@imap1.linux-foundation.org>
+Received: from pentafluge.infradead.org ([213.146.154.40]:45656 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858AbYBGGDs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 01:03:48 -0500
 Content-Disposition: inline
+In-Reply-To: <47AA4748.3040702@tiscali.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, kronos.it@gmail.com, sziwan@users.sourceforge.net
+To: Roel Kluin <12o3l@tiscali.nl>
+Cc: len.brown@intel.com, ibm-acpi-devel@lists.sourceforge.net, Roland Dreier <rdreier@cisco.com>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
 
-applied.
+On Thu, Feb 07, 2008 at 12:48:24AM +0100, Roel Kluin wrote:
+> Greg KH wrote:
+> > On Tue, Feb 05, 2008 at 09:34:54AM +0100, Roel Kluin wrote:
+> >> Henrique de Moraes Holschuh wrote:
+> >>> On Tue, 05 Feb 2008, Roel Kluin wrote:
+> >>>> Roland Dreier wrote:
+> 
+> >>>>>  > Note the duplicate test 'if (level & TP_EC_FAN_FULLSPEED)'. should
+> >>>>>  > this be replaced by
+> >>>>>
+> >>>>> Actually I suspect one of the two tests should be against TP_EC_FAN_AUTO
+> >>>>> (based on the comment).
+> >>>> Thanks Roland, for your info
+> 
+> >>> ACK.  This needs to be sent to stable as well.  I think both 2.6.22 and
+> >>> 2.6.23 need this patch.
+> >>>
+> >> CC stable@kernel.org
+> > 
+> > Please send us a real copy of the patch, when it goes into Linus's tree,
+> > so we know what to apply, and that it is safe to do so.
+> 
+> It's a oneliner and the patch is from linus' tree.
+> ---
+> in commit eaa7571b2d1a08873e4bdd8e6db3431df61cd9ad, a safety net for TPEC
+> fan control mode was added. Quoting that patch:
+
+I don't see this patch in Linus's tree, I see the patch you are
+patching, but not this one :)
+
+Can you tell me the git id of the patch you wish to go into the stable
+tree, and send the whole thing to us?
 
 thanks,
--len
 
-On Tuesday 05 February 2008 02:31, akpm@linux-foundation.org wrote:
-> From: Luca Tettamanti <kronos.it@gmail.com>
-> 
-> Add support for ASUS F3Sa notebook. Features:
-> - LCD on/off
-> - Brightness
-> - Wifi kill
-> - Bluetooth kill
-> 
-> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> Cc: Corentin Chary <corentincj@iksaif.net>
-> Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/acpi/asus_acpi.c |   55 ++++++++++++++++++++++++++++++-------
->  1 file changed, 45 insertions(+), 10 deletions(-)
-> 
-> diff -puN drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa drivers/acpi/asus_acpi.c
-> --- a/drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa
-> +++ a/drivers/acpi/asus_acpi.c
-> @@ -142,6 +142,7 @@ struct asus_hotk {
->  		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
->  		A4S,            //Z81sp
->  		//(Centrino)
-> +		F3Sa,
->  		END_MODEL
->  	} model;		//Models currently supported
->  	u16 event_count[128];	//count for each event TODO make this better
-> @@ -405,7 +406,20 @@ static struct model_data model_conf[END_
->  		.brightness_get    = "GPLV",
->  		.mt_bt_switch      = "BLED",
->  		.mt_wled           = "WLED"
-> -	}
-> +	},
-> +
-> +	{
-> +		.name		= "F3Sa",
-> +		.mt_bt_switch	= "BLED",
-> +		.mt_wled	= "WLED",
-> +		.mt_mled	= "MLED",
-> +		.brightness_get	= "GPLV",
-> +		.brightness_set	= "SPLV",
-> +		.mt_lcd_switch	= "\\_SB.PCI0.SBRG.EC0._Q10",
-> +		.lcd_status	= "\\_SB.PCI0.SBRG.EC0.RPIN",
-> +		.display_get	= "\\ADVG",
-> +		.display_set	= "SDSP",
-> +	},
->  
->  };
->  
-> @@ -710,15 +724,8 @@ static int get_lcd_state(void)
->  {
->  	int lcd = 0;
->  
-> -	if (hotk->model != L3H) {
-> -		/* We don't have to check anything if we are here */
-> -		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
-> -			printk(KERN_WARNING
-> -			       "Asus ACPI: Error reading LCD status\n");
-> -
-> -		if (hotk->model == L2D)
-> -			lcd = ~lcd;
-> -	} else {		/* L3H and the like have to be handled differently */
-> +	if (hotk->model == L3H) {
-> +		/* L3H and the like have to be handled differently */
->  		acpi_status status = 0;
->  		struct acpi_object_list input;
->  		union acpi_object mt_params[2];
-> @@ -745,6 +752,32 @@ static int get_lcd_state(void)
->  		if (out_obj.type == ACPI_TYPE_INTEGER)
->  			/* That's what the AML code does */
->  			lcd = out_obj.integer.value >> 8;
-> +	} else if (hotk->model == F3Sa) {
-> +		unsigned long tmp;
-> +		union acpi_object param;
-> +		struct acpi_object_list input;
-> +		acpi_status status;
-> +
-> +		/* Read pin 11 */
-> +		param.type = ACPI_TYPE_INTEGER;
-> +		param.integer.value = 0x11;
-> +		input.count = 1;
-> +		input.pointer = &param;
-> +
-> +		status = acpi_evaluate_integer(NULL, hotk->methods->lcd_status,
-> +						&input, &tmp);
-> +		if (status != AE_OK)
-> +			return -1;
-> +
-> +		lcd = tmp;
-> +	} else {
-> +		/* We don't have to check anything if we are here */
-> +		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
-> +			printk(KERN_WARNING
-> +			       "Asus ACPI: Error reading LCD status\n");
-> +
-> +		if (hotk->model == L2D)
-> +			lcd = ~lcd;
->  	}
->  
->  	return (lcd & 1);
-> @@ -1134,6 +1167,8 @@ static int asus_model_match(char *model)
->  		return W5A;
->  	else if (strncmp(model, "A4S", 3) == 0)
->  		return A4S;
-> +	else if (strncmp(model, "F3Sa", 4) == 0)
-> +		return F3Sa;
->  	else
->  		return END_MODEL;
->  }
-> _
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+greg k-h
