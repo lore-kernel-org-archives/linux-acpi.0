@@ -1,94 +1,71 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [lm-sensors] The new thermal management sysfs class, and hwmon
-Date: Thu, 7 Feb 2008 10:30:04 -0200
-Message-ID: <20080207123004.GA16524@khazad-dum.debian.net>
-References: <20080203022622.GA995@khazad-dum.debian.net> <20080205135725.GO20687@jupiter.solarsys.private> <20080205145550.GA24128@khazad-dum.debian.net> <200802070201.36016.lenb@kernel.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: suspend to ram problem
+Date: Thu, 7 Feb 2008 10:23:21 +0100
+Message-ID: <20080207092321.GC1816@elf.ucw.cz>
+References: <47A5C399.7010405@free.fr> <47A5DE60.1080402@free.fr> <200802031839.02397.rjw@sisk.pl> <20080203181855.GB1629@elf.ucw.cz> <47A60AA8.8050407@free.fr> <47A6B758.7070405@free.fr> <47A8EB02.90502@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:40398 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755261AbYBGMaL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 07:30:11 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:38376 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756371AbYBGPTS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 10:19:18 -0500
 Content-Disposition: inline
-In-Reply-To: <200802070201.36016.lenb@kernel.org>
+In-Reply-To: <47A8EB02.90502@free.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, "Thomas, Sujith" <sujith.thomas@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: matthieu castet <castet.matthieu@free.fr>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 07 Feb 2008, Len Brown wrote:
-> On Tuesday 05 February 2008 09:55, Henrique de Moraes Holschuh wrote:
-> > > > The only duplication which I can see of is in the "reporting of
-> > > > temperature", which is quite reasonable for a thermal management module
-> > > > to have.
-> > > 
-> > > Well, HdMH and I apparently disagree about this.  All I really care
-> > > about is that the temp info should be available through /sys/class/hwmon.
-> > > Many people just want to check their temps, without diving into the fine
-> > > details of a "thermal management solution".
-> > 
-> > Well, I strongly care for not having to duplicate the entire sysfs code of
-> > the thinkpad-acpi thermal management subdrivers (fan control, thermal
-> > readings) to a new interface AND maybe even finding myself in need to add a
-> > *third* platform device and driver to thinkpad-acpi just because the new
-> > interface didn't even try to be as compatible with hwmon as possible :-(
-> 
-> I expect that Thinpads will continue to be optimized primarily for
-> Windows via ACPI.  I don't expect thinkpads to suddenly switch over
-> to OSPM user-space thermal control -- because Windows doesn't do that.
-> So I don't think any bad things will happen if thinkpad-acpi
-> doesn't respond to this.
+Hi!
 
-Nor do I.  But thinkpad users (Windows AND linux users alike) don't exactly
-like the fan behaviour of the thinkpad EC, and they do override it with
-userspace solutions (yes, even in Windows).  Either to speed the fan up
-earlier, or to speed it up much later :p
+>>>> Hmm, maybe I know where problem could be. Try
+>>>>
+>>>>         movl     $(wakeup_stack - wakeup_code), %esp              # 
+>>>> Private stack is needed for ASUS bo\
+>>>>
+>>>> instead of existing stack setup. That helped on one of my test-boxes
+>>> Thanks, I will try that.
+>>> Because clearing the flags imply pop/push in the stack it could be the 
+>>> problem
+>> That doesn't help : it still crash in pushl $0.
+>>
+> All stack stuff in wakeup_code crash for me.
+> I tried to change the stack position, make sure upper bit of %esp are 
+> clear, ... nothing work.
+> What's are strange is that according to my x86 manual, in real mode the 
+> failure can only happen if the stack wrap which is not the case here.
+> Any x86 guru advice ?
 
-Heck, I find myself kicking the T43 fan to level 7 (fastest normal fan mode)
-every time I am doing a long kernel compile, just to make sure the
-temperatures don't rise too much.  The T43 passive cooling ain't the best
-(people even hardware-mod it to enhance it), and the chinese plants
-manufacturing the planar cards for thinkpad have a long story of using
-crappy time-bomb solder that breaks under thermal stress after a few years,
-and I want my T43 to last without the need to reflow the entire planar card
-(motherboard) every five years.  We *think* they started using better solder
-since the 2686 and 2687 T43 models, but the machines are not yet old enough
-to know this for sure, so better save than sorry.
+Could you try the .c wakeup? I changed it a bit, perhaps that's enough.
 
-So, you'd have a few users right there, including one that is a kernel
-developer and can give you high-quality feedback with an outsider PoV :)
-Heck, I keep getting requests to add a fan control loop in thinkpad-acpi...
-I'd very much prefer to have the ACPI subsystem handle it.
+> If I remove stack access (remove clearing flag stuff, not call to video 
+> stuff) the resume works.
 
-> I do agree that we should make the I/F the same, where possible,
-> (that was my original proposal)
+Actually, I see a possible problem:
 
-Please do, then.  At least for the termal readings, which are a clear pain
-right now for a driver writer to add to both hwmon and the new interfce.
-Name the attributes for thermal reading as hwmon does, use 10^-3 C as the
-unit, and if you want to give the thermal zone names from the ACPI tables,
-use the hwmon "label" attribute.  That's not a big change, should take 1h
-tops to write and debug.
+_start:
+        cli
+        cld
 
-I have nothing against the generalized "cooling control levels" the new
-interface adds, and I wouldn't mind proposing the required hwmon changes,
-and adding it to thinkpad-acpi...  it is just yet another attribute and
-another way to control the fan, hwmon already has enough of them that one
-extra won't matter at all.
+        /* Set up segments */
+        movw    %cs,%ax
+        movw    %ax,%ds
+        movw    %ax,%es
+        movw    %ax,%ss
 
-> I'm delighted to hear that the hwmon community is open minded
-> about expanding the capabilities of hwmon.  We should definately
-> look into that.  While Menlo will likely start shipping with
-> the current solution, there is no reason we can't evolve it over time --
-> for we know the guys writing the software that will use this I/F...
+        movl    $wakeup_stack_end, %esp
 
-It would be best to avoid changing the ABI too much, that's why I'd quite
-like to see at least the thermal zones become hwmon-ABI-compatible as soon
-as possible :(
+        /* Clear the EFLAGS */
+        pushl   $0
+        popfl
 
+...if someone calls start as 0x1234:0, we are okay. But if some broken
+bios calls us as 0x1:0x234, we've got a problem.
+
+One possible hack would be to movl 0, %esp. That should put the stack
+at _start, corrupting memory but hopefully helping you diagnose it.
+								Pavel
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
