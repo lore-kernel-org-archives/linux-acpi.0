@@ -1,54 +1,32 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 112/112] ACPI: fix build warning
-Date: Thu,  7 Feb 2008 04:35:14 -0500
-Message-ID: <b7143156c9ceee1a072c57aac8729d2dec5b3bf1.1202376825.git.len.brown@intel.com>
-References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 111/112] Revert "cpuidle: build fix for non-x86"
+Date: Thu, 7 Feb 2008 11:27:28 +0100
+Message-ID: <20080207102728.GC16735@elte.hu>
+References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com> <9b7131542178f5f948e4bb6bea6e1c545e697b06.1202376825.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:56770 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758623AbYBGJhE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:37:04 -0500
-In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
-References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:47568 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754482AbYBGK1m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 05:27:42 -0500
+Content-Disposition: inline
+In-Reply-To: <9b7131542178f5f948e4bb6bea6e1c545e697b06.1202376825.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-=46rom: Len Brown <len.brown@intel.com>
 
-drivers/acpi/system.c:360: warning: ignoring return value of =E2=80=98s=
-ysfs_create_group=E2=80=99, declared with attribute warn_unused_result
+* Len Brown <lenb@kernel.org> wrote:
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/system.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> From: Len Brown <len.brown@intel.com>
+> 
+> This reverts commit f757397097d0713c949af76dccabb65a2785782e.
+> which ironically broke the ia64 build
 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index ce88171..55cf4c0 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -357,8 +357,8 @@ void acpi_irq_stats_init(void)
- 	}
-=20
- 	interrupt_stats_attr_group.attrs =3D all_attrs;
--	sysfs_create_group(acpi_kobj, &interrupt_stats_attr_group);
--	return;
-+	if (!sysfs_create_group(acpi_kobj, &interrupt_stats_attr_group))
-+		return;
-=20
- fail:
- 	delete_gpe_attr_array();
---=20
-1.5.4.23.gef5b9
+hm, this seems to be an internal ACPI commit - why not eliminate both 
+commits (the broken one and the revert one) and thus fix that window of 
+non-bisectability, before pushing this upstream?
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Ingo
