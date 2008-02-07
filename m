@@ -1,77 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Ignore ACPI video devices that aren't present in hardware
-Date: Thu, 7 Feb 2008 01:44:06 +0000
-Message-ID: <20080207014406.GA19333@srcf.ucam.org>
-References: <1197032113.28990.155.camel@queen.suse.de> <200801241721.17436.lenb@kernel.org> <20080127020920.GB10173@srcf.ucam.org> <200802020212.17812.lenb@kernel.org> <20080203000354.GA26623@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [RFC] Linux/ACPI DSDT override page update
+Date: Wed, 6 Feb 2008 21:38:39 -0500
+Message-ID: <200802062138.40055.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:38484 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754922AbYBGBo1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 20:44:27 -0500
+Received: from hera.kernel.org ([140.211.167.34]:59478 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758630AbYBGCjN (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Wed, 6 Feb 2008 21:39:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20080203000354.GA26623@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Li, Shaohua" <shaohua.li@intel.com>
+To: Linux-acpi@vger.kernel.org, =?iso-8859-1?q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>, "Thomas Renninger (Novell/SUSE)" <trenn@suse.de>, dsdt <dsdt@gaugusch.at>, Philippe Coval <rzr@us>
 
-Vendors often ship machines with a choice of integrated or discrete
-graphics, and use the same DSDT for both. As a result, the ACPI video
-module will locate devices that may not exist on this specific platform.
-Attempt to determine whether the device exists or not, and abort the\
-device creation if it doesn't
+Here are my proposed updates for
+http://www.lesswatts.org/projects/acpi/overridingDSDT.php
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+thanks,
+-Len
 ---
+> iASL is part of the ACPICA release,
+> http://www.intel.com/technology/iapc/acpi/downloads.htm. 
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 09a85eb..11c8335 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -735,11 +735,40 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
- static int acpi_video_bus_check(struct acpi_video_bus *video)
- {
- 	acpi_status status = -ENOENT;
--
-+	long device_id;
-+	struct device *dev;
-+	struct acpi_device *device;
- 
- 	if (!video)
- 		return -EINVAL;
- 
-+	device = video->device;
-+
-+	status =
-+	    acpi_evaluate_integer(device->handle, "_ADR", NULL, &device_id);
-+
-+	if (!ACPI_SUCCESS(status))
-+		return -ENODEV;
-+
-+	/* We need to attempt to determine whether the _ADR refers to a
-+	   PCI device or not. There's no terribly good way to do this,
-+	   so the best we can hope for is to assume that there'll never
-+	   be a video device in the host bridge */
-+	if (device_id >= 0x10000) {
-+		/* It looks like a PCI device. Does it exist? */
-+		dev = acpi_get_physical_device(device->handle);
-+	} else {
-+		/* It doesn't look like a PCI device. Does its parent
-+		   exist? */
-+		acpi_handle phandle;
-+		if (acpi_get_parent(device->handle, &phandle))
-+			return -ENODEV;
-+		dev = acpi_get_physical_device(phandle);
-+	}
-+	if (!dev)
-+		return -ENODEV;
-+	put_device(dev);
-+
- 	/* Since there is no HID, CID and so on for VGA driver, we have
- 	 * to check well known required nodes.
- 	 */
+Please reference "http://acpica.org" instead.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Also, in the section titled "How to build a customer DSDT into an initrd",
+please replace all of the text with the following:
+
+If you are unable to re-build the kernel,
+or you'd like to run the same kernel binary
+on multiple machines that require different DSDT overrides,
+then the initrd method should suite your needs.
+
+For kernels before Linux-2.6.25, this method requires the out-of-tree patch
+found here: http://gaugusch.at/kernel.shtml (thanks to Markus Gaugusch and Eric Piel)
+Some distributors, such as SuSE and Ubuntu, included that patch,
+and you can tell if it is present by finding the following line in the console log:
+
+"Looking for DSDT in initramfs..."
+
+In Linux-2.6.25 and later, this method is enabled via
+CONFIG_ACPI_CUSTOM_DSDT_INITRD, and you can tell if a kernel
+binary includes it by finding the following line in the console log:
+
+"ACPI: Checking initramfs for custom DSDT"
+
+The process for creating the DSDT image is the same as above.
+But note that
+the format of the table included in the initramfs is binary (iasl -ta),
+while if you build a DSDT into the kernel, C-source code is used (iasl -tc).
+
+In case your mkinitrd tool does not support this feature, a script is
+provided in the kernel source tree,
+Documentation/acpi/initramfs-add-dsdt.sh
