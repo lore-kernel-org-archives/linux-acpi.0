@@ -1,97 +1,49 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 108/112] ACPI: Add "acpi_no_initrd_override" kernel parameter
-Date: Thu,  7 Feb 2008 04:35:10 -0500
-Message-ID: <9cbc7960288d28aec95257af59854e1d14ba23b8.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 112/112] ACPI: fix build warning
+Date: Thu,  7 Feb 2008 04:35:14 -0500
+Message-ID: <b7143156c9ceee1a072c57aac8729d2dec5b3bf1.1202376825.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:48010 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:56770 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753862AbYBGJhA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:37:00 -0500
+	with ESMTP id S1758623AbYBGJhE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:37:04 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: =?utf-8?q?=C3=89ric=20Piel?= <Eric.Piel@tremplin-utc.net>, Eric Piel <eric.piel@tremplin-utc.net>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-=46rom: =C3=89ric Piel <Eric.Piel@tremplin-utc.net>
+=46rom: Len Brown <len.brown@intel.com>
 
-The acpi_no_initrd_override parameter permits to disable the load of an=
- ACPI
-table from the initramfs.
+drivers/acpi/system.c:360: warning: ignoring return value of =E2=80=98s=
+ysfs_create_group=E2=80=99, declared with attribute warn_unused_result
 
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    3 +++
- drivers/acpi/osl.c                  |   16 +++++++++++++++-
- 2 files changed, 18 insertions(+), 1 deletions(-)
+ drivers/acpi/system.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel=
--parameters.txt
-index 8fd5aa4..ef2316a 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -175,6 +175,9 @@ and is between 256 and 4096 characters. It is defin=
-ed in the file
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+index ce88171..55cf4c0 100644
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -357,8 +357,8 @@ void acpi_irq_stats_init(void)
+ 	}
 =20
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
+ 	interrupt_stats_attr_group.attrs =3D all_attrs;
+-	sysfs_create_group(acpi_kobj, &interrupt_stats_attr_group);
+-	return;
++	if (!sysfs_create_group(acpi_kobj, &interrupt_stats_attr_group))
++		return;
 =20
-+	acpi_no_initrd_override	[KNL,ACPI]
-+			Disable loading custom ACPI tables from the initramfs
-+
- 	acpi_os_name=3D	[HW,ACPI] Tell ACPI BIOS the name of the OS
- 			Format: To spoof as Windows 98: =3D"Microsoft Windows"
-=20
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index bbd8360..2b41bdd 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -77,6 +77,10 @@ static struct workqueue_struct *kacpi_notify_wq;
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
-=20
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
-+static int acpi_no_initrd_override;
-+#endif
-+
- /*
-  * "Ode to _OSI(Linux)"
-  *
-@@ -386,7 +390,8 @@ acpi_os_table_override(struct acpi_table_header * e=
-xisting_table,
- 		*new_table =3D (struct acpi_table_header *)AmlCode;
- #endif
- #ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
--	if (strncmp(existing_table->signature, "DSDT", 4) =3D=3D 0) {
-+	if ((strncmp(existing_table->signature, "DSDT", 4) =3D=3D 0) &&
-+	    !acpi_no_initrd_override) {
- 		struct acpi_table_header *initrd_table =3D acpi_find_dsdt_initrd();
- 		if (initrd_table)
- 			*new_table =3D initrd_table;
-@@ -402,6 +407,15 @@ acpi_os_table_override(struct acpi_table_header * =
-existing_table,
- 	return AE_OK;
- }
-=20
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT_INITRD
-+int __init acpi_no_initrd_override_setup(char *s)
-+{
-+	acpi_no_initrd_override =3D 1;
-+	return 1;
-+}
-+__setup("acpi_no_initrd_override", acpi_no_initrd_override_setup);
-+#endif
-+
- static irqreturn_t acpi_irq(int irq, void *dev_id)
- {
- 	return (*acpi_irq_handler) (acpi_irq_context) ? IRQ_HANDLED : IRQ_NON=
-E;
+ fail:
+ 	delete_gpe_attr_array();
 --=20
 1.5.4.23.gef5b9
 
