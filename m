@@ -1,39 +1,57 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 111/112] Revert "cpuidle: build fix for non-x86"
-Date: Thu, 7 Feb 2008 13:47:46 -0500
-Message-ID: <200802071347.47101.lenb@kernel.org>
-References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com> <9b7131542178f5f948e4bb6bea6e1c545e697b06.1202376825.git.len.brown@intel.com> <20080207102728.GC16735@elte.hu>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: Re: suspend to ram problem
+Date: Thu, 07 Feb 2008 20:49:24 +0100
+Message-ID: <47AB60C4.50602@free.fr>
+References: <47A5C399.7010405@free.fr> <47A6B758.7070405@free.fr> <47A8EB02.90502@free.fr> <200802060020.12289.rjw@sisk.pl> <47AA3763.7000106@free.fr> <20080206224328.GB1630@elf.ucw.cz> <47AA4000.6010701@free.fr> <20080207092035.GB1816@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58640 "EHLO hera.kernel.org"
+Received: from smtp2-g19.free.fr ([212.27.42.28]:60869 "EHLO smtp2-g19.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751154AbYBGSsK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 13:48:10 -0500
-In-Reply-To: <20080207102728.GC16735@elte.hu>
-Content-Disposition: inline
+	id S1759776AbYBGTt0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 14:49:26 -0500
+In-Reply-To: <20080207092035.GB1816@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday 07 February 2008 05:27, Ingo Molnar wrote:
-> 
-> * Len Brown <lenb@kernel.org> wrote:
-> 
-> > From: Len Brown <len.brown@intel.com>
-> > 
-> > This reverts commit f757397097d0713c949af76dccabb65a2785782e.
-> > which ironically broke the ia64 build
-> 
-> hm, this seems to be an internal ACPI commit - why not eliminate both 
-> commits (the broken one and the revert one) and thus fix that window of 
-> non-bisectability, before pushing this upstream?
+Hi,
 
-i agree, and this bothered me too.
-Dunno if I have time to undo and re-merge my tree
-before Linus pulls and/or declares rc1...
 
--Len
+Pavel Machek wrote:
+> Hi!
+> So I assume it is some kind of desktop?
+Yes.
+
+>>
+>> ...if someone calls start as 0x1234:0, we are okay. But if some broken
+>> bios calls us as 0x1:0x234, we've got a problem.
+>
+> Well, in that case the signature/end_signature tests below would 
+ >trigger, no?
+
+Yes, and for example the beep flag won't work.
+
+>
+> Not sure what is going on... but if you remove all the stack
+> references, does it go up to 32-bit mode?
+Yes, but I end up with a kernel panic after console resume and some 
+resume stuff.
+
+ > Looks like ss goes bonkers or the 32-bit opcodes are invalid in real 
+mode.
+ > Matthieu, can you try "pushw %ax; popw %ax;", please?
+I still crash.
+I also try to set ss to 0, and hardcode the stack (knowing we are loaded 
+at 0x1000). And it crash.
+
+
+I wonder if there a way to check that we are realy in real mode ?
+
+
+Matthieu
+
+
+
