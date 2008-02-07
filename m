@@ -1,73 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 3/4] ACPI, CPU_IDLE: Support C1 idle time accounting
-Date: Thu, 7 Feb 2008 02:38:20 -0500
-Message-ID: <200802070238.21068.lenb@kernel.org>
-References: <20080201013502.750627000@intel.com> <20080201013629.535233000@intel.com>
+From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
+Subject: Re: [PATCH] Override DSDT and SSDTs via initramfs
+Date: Thu, 07 Feb 2008 08:57:09 +0100
+Message-ID: <47AAB9D5.3010506@tremplin-utc.net>
+References: <4798E2A5.6020804@users.sf.net> <47A0FBD4.6090603@tremplin-utc.net> <1201861297.14573.66.camel@queen.suse.de> <200802062151.48404.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45199 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755872AbYBGHik (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 02:38:40 -0500
-In-Reply-To: <20080201013629.535233000@intel.com>
-Content-Disposition: inline
+Received: from mailservice.tudelft.nl ([130.161.131.5]:5721 "EHLO
+	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753934AbYBGH5R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 02:57:17 -0500
+In-Reply-To: <200802062151.48404.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: venkatesh.pallipadi@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
 
-applied.
+07/02/08 03:51, Len Brown wrote/a =C3=A9crit:
+>>>> Jeff (Mahony) has adjusted the last bits of it when he updated it =
+to the
+>>>> latest rcX-gitY version:
+>>>> Changes:
+>>>>  We no longer call populate_rootfs() twice. If we want the custom =
+DSDT,
+>>>>  we load the rootfs before ACPI. Otherwise, it is loaded at the
+>>>> appropriate
+>>>>  initcall time. -jeffm
+>=20
+>>> I had left it this way because I though Linus had a good reason for=
+=20
+>>> delaying populate_rootfs(). But if it works, fine! Maybe some addit=
+ional=20
+>>> comments should be added in before the #ifdef's to clearly show tha=
+t=20
+>>> populate_rootfs() is _always_ called, and they modify only the mome=
+nt it=20
+>>> is called.
+>=20
+>> I don't know about this, I took that change from your patches...
+>=20
+> So is the populate_rootfs() change in the pach I have correct, or not=
+?
+Yes, it's correct. This is the SuSE version, which is slightly differen=
+t
+from the one I had written for the official patch, but which avoids
+calling twice populate_rootfs(). Both versions work fine anyway :-)
 
-thanks,
--len
-On Thursday 31 January 2008 20:35, venkatesh.pallipadi@intel.com wrote:
-> Show C1 idle time in /sysfs cpuidle interface. C1 idle time may not
-> be entirely accurate in all cases. It includes the time spent
-> in the interrupt handler after wakeup with "hlt" based C1. But, it will
-> be accurate with "mwait" based C1.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> 
-> Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
-> +++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
-> @@ -1382,8 +1382,10 @@ static inline void acpi_idle_do_entry(st
->  static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->  			      struct cpuidle_state *state)
->  {
-> +	u32 t1, t2;
->  	struct acpi_processor *pr;
->  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> +
->  	pr = processors[smp_processor_id()];
->  
->  	if (unlikely(!pr))
-> @@ -1393,12 +1395,14 @@ static int acpi_idle_enter_c1(struct cpu
->  	if (pr->flags.bm_check)
->  		acpi_idle_update_bm_rld(pr, cx);
->  
-> +	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
->  	acpi_idle_do_entry(cx);
-> +	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
->  
->  	local_irq_enable();
->  	cx->usage++;
->  
-> -	return 0;
-> +	return ticks_elapsed_in_us(t1, t2);
->  }
->  
->  /**
-> @@ -1632,6 +1636,7 @@ static int acpi_processor_setup_cpuidle(
->  		switch (cx->type) {
->  			case ACPI_STATE_C1:
->  			state->flags |= CPUIDLE_FLAG_SHALLOW;
-> +			state->flags |= CPUIDLE_FLAG_TIME_VALID;
->  			state->enter = acpi_idle_enter_c1;
->  			dev->safe_state = state;
->  			break;
-> 
+Eric
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
