@@ -1,54 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI_WMI: worst config description of all times
-Date: Thu, 7 Feb 2008 17:27:38 -0500
-Message-ID: <200802071727.38743.lenb@kernel.org>
-References: <20080207214715.GA15211@elf.ucw.cz>
+Subject: Re: [PATCH 053/112] the generic thermal sysfs driver
+Date: Thu, 7 Feb 2008 17:32:52 -0500
+Message-ID: <200802071732.52412.lenb@kernel.org>
+References: <1202376914-21030-1-git-send-email-lenb@kernel.org> <200802071705.02695.lenb@kernel.org> <47AB81B9.1000702@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40066 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:41097 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758033AbYBGW2A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 17:28:00 -0500
-In-Reply-To: <20080207214715.GA15211@elf.ucw.cz>
+	id S1759816AbYBGWdR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 17:33:17 -0500
+In-Reply-To: <47AB81B9.1000702@oracle.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>
 
-On Thursday 07 February 2008 16:47, Pavel Machek wrote:
-> 
-> See? It even has completely useless help text.
-> 
-> Does WMI stand for Windows Management Instrumentation? It is some
-> server management feature? What is it good for?
 
-Thank you for the feedback, Pavel.
+> Lindent has several other known issues as far as Linux kernel
+> is concerned.  I.e., it's not a fine tool to use and not review
+> what it did.
 
-There is an additional patch which creates
-Documentation/acpi/wmi.txt, but I witheld it from
-this batch because it needs to be revised.
-If you are not subscribed to the linux-acpi list
-you can find it here:
+agreed.
+this is a common one -- Lindent wants a ';' between every statement:
 
-http://marc.info/?l=linux-acpi&m=120217838010224&w=2
 
-Clearly we neeed to update the Kconfig doc as well when
-we revise and push that patch.
+@@ -32,7 +32,7 @@
+ #include <linux/spinlock.h>
 
--Len
+ MODULE_AUTHOR("Zhang Rui")
+-MODULE_DESCRIPTION("Generic thermal management sysfs support");
++    MODULE_DESCRIPTION("Generic thermal management sysfs support");
+ MODULE_LICENSE("GPL");
 
-ps. the answers to your questions are "yes" and "see NOTE" below.
-
->   WMI (EXPERIMENTAL) (ACPI_WMI) [N/m/y/?] (NEW) ?
-> 
-> This driver adds support for the ACPI-WMI mapper device (PNP0C14)
-> found on some systems.
-> 
-> NOTE: You will need another driver or userspace application on top of
-> this to actually use anything defined in the ACPI-WMI mapper.
-> 
-> 
+ #define PREFIX "Thermal: "
