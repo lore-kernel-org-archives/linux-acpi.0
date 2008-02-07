@@ -1,93 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/3] Override DSDT via initramfs
-Date: Wed, 6 Feb 2008 20:07:38 -0500
-Message-ID: <200802062007.38885.lenb@kernel.org>
-References: <4798E2A5.6020804@users.sf.net> <200802061915.25049.lenb@kernel.org> <47AA4F9D.7010601@tremplin-utc.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH][drivers/misc/thinkpad_acpi.c] duplicate test if (level
+	& TP_EC_FAN_FULLSPEED)
+Date: Wed, 6 Feb 2008 23:18:50 -0200
+Message-ID: <20080207011850.GC10122@khazad-dum.debian.net>
+References: <47A78CBB.2090401@tiscali.nl> <ada8x20gykq.fsf@cisco.com> <47A79EC8.6060700@tiscali.nl> <20080205050504.GB30670@khazad-dum.debian.net> <47A81FAE.2090709@tiscali.nl> <20080206230702.GA12395@kroah.com> <47AA4748.3040702@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58931 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757701AbYBGBIg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 20:08:36 -0500
-In-Reply-To: <47AA4F9D.7010601@tremplin-utc.net>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:33366 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750977AbYBGBSz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Feb 2008 20:18:55 -0500
 Content-Disposition: inline
+In-Reply-To: <47AA4748.3040702@tiscali.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?q?=C3=89ric_Piel?= <Eric.Piel@tremplin-utc.net>
-Cc: trenn@suse.de, Andrew Morton <akpm@linux-foundation.org>, Philippe Coval <rzr@users.sourceforge.net>, linux-acpi@vger.kernel.org, dsdt <dsdt@gaugusch.at>
+To: Roel Kluin <12o3l@tiscali.nl>
+Cc: Greg KH <greg@kroah.com>, Roland Dreier <rdreier@cisco.com>, len.brown@intel.com, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, stable@kernel.org
 
-On Wednesday 06 February 2008 19:23, =C3=89ric Piel wrote:
-> 07/02/08 01:15, Len Brown wrote/a =C3=A9crit:
-> > On Sunday 03 February 2008 12:28, =C3=89ric Piel wrote:
-> >> Hello,
-> >>
-> >> Here are three patches to implement the override of DSDT via initr=
-amfs.=20
-> >> I haven't included the feature for overriding the SSDTs as it's se=
-ems=20
-> >> it's still a bit controversial, and anyway for now there is very l=
-ittle=20
-> >> need for it. It should be fairly trivial to add it later if need a=
-rises.
-> >>
-> >> The patches are against 2.6.24-git-du-jour, and they have been=20
-> >> boot-tested on my laptop.
-> >=20
-> > Thanks Eric,
-> > I'll take Thomas, Carlos and my comments and my comments
-> > and try to address them w/ a follow-up patch tonight.
-> >=20
-> > -Len
-> Ah, Great! Just for info, I had started answering the comments from T=
-homas and Carlos. Here is my proposed version as description for Kconfi=
-g:
->=20
-> 	  With this feature you will be able to provide a customized DSDT by
-> 	  adding it to your initramfs. Overriding of the DSDT is mainly thou=
-ght
-> 	  for developing/testing purposes! If you have problems with ACPI on
-> 	  your machine and you have fixed it up by modifying the DSDT, do no=
-t
-> 	  override the DSDT as a long term solution.  E.g. if you add new
-> 	  memory to your machine, the modified DSDT will not work (BIOS woul=
-d
-> 	  generate a slightly adjusted one).  Always report bugs in a DSDT t=
-o
-> 	  your computer vendor and to bugzilla.kernel.org (assigned to the A=
-CPI
-> 	  component).
->=20
-> 	  In case your mkinitrd tool does not support this feature, a script=
- is
-> 	  provided in the documentation. For more details on this option see
-> 	  <file:Documentation/dsdt-initrd.txt>.
-> 	 =20
-> 	  If you feel like tinkering with the DSDT or might have to test a
-> 	  corrected DSDT one day select this option. It is safe to say Y her=
-e.
->=20
-> You can use it as inspiration ;-) More over, I was thinking of adding=
- a note in dsdt-initrd.txt like this:
->=20
-> Do note that
-> the format of the table included in the initramfs is binary (iasl -ta=
-), while
-> if you include the DSDT straight inside the kernel, the format is hex=
-adecimal
-> (iasl -tc).
+On Thu, 07 Feb 2008, Roel Kluin wrote:
+> It's a oneliner and the patch is from linus' tree.
 
-i think we can add that to the detailed how-to, which I'd=20
-rather have on a web page with a pointer to the latest tools etc.
-(yes, i hold the pen on the web page too:-)
+Roel, better to just let me and Len Brown handle it.  I will add your patch
+to my thinkpad-acpi queue and send it to Len soon, along with other simple
+patches that are pending.  Either I or Len will notify stable@k.o when it
+hits mainline.
 
-let me send those patches now before dinner break...
-
-thanks,
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
