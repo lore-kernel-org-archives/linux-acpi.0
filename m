@@ -1,76 +1,54 @@
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: [BUG] 2.6.24 refuses to boot - NMI watchdog problem?
-Date: Thu, 7 Feb 2008 22:22:02 +0000 (GMT)
-Message-ID: <977240.37174.qm@web52901.mail.re2.yahoo.com>
-References: <20080207122652.02a7d5d5.akpm@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI_WMI: worst config description of all times
+Date: Thu, 7 Feb 2008 17:27:38 -0500
+Message-ID: <200802071727.38743.lenb@kernel.org>
+References: <20080207214715.GA15211@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web52901.mail.re2.yahoo.com ([206.190.49.11]:38498 "HELO
-	web52901.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754825AbYBGWWI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 17:22:08 -0500
-In-Reply-To: <20080207122652.02a7d5d5.akpm@linux-foundation.org>
+Received: from hera.kernel.org ([140.211.167.34]:40066 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758033AbYBGW2A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Feb 2008 17:28:00 -0500
+In-Reply-To: <20080207214715.GA15211@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, rankincj@yahoo.com, linux-kernel@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
 
---- Andrew Morton <akpm@linux-foundation.org> wrote:
-> So it's a CONFIG_SMP=y kernel on a single-cpu machine?
-Correct.
+On Thursday 07 February 2008 16:47, Pavel Machek wrote:
+> 
+> See? It even has completely useless help text.
+> 
+> Does WMI stand for Windows Management Instrumentation? It is some
+> server management feature? What is it good for?
 
-> It is unclear to me what clocksource (if any) your machine is using.
-The 2.6.23.x kernel uses the TSC:
+Thank you for the feedback, Pavel.
 
-...
-ACPI: Core revision 20070126
-CPU0: Intel Pentium III (Coppermine) stepping 06
-Total of 1 processors activated (2011.69 BogoMIPS).
-ENABLING IO-APIC IRQs
-..TIMER: vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
-APIC timer registered as dummy, due to nmi_watchdog=1!
-Brought up 1 CPUs
-NET: Registered protocol family 16
-ACPI: bus type pci registered
-PCI: PCI BIOS revision 2.10 entry at 0xf0e30, last bus=3
-PCI: Using configuration type 1
-Setting up standard PCI resources
-ACPI: EC: Look up EC in DSDT
-ACPI: Interpreter enabled
-ACPI: (supports S0 S1 S5)
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (0000:00)
-PCI quirk: region e400-e47f claimed by ICH4 ACPI/GPIO/TCO
-PCI quirk: region ec00-ec3f claimed by ICH4 GPIO
-PCI: Transparent bridge - 0000:00:1e.0
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI2._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-Linux Plug and Play Support v0.97 (c) Adam Belay
-pnp: PnP ACPI init
-ACPI: bus type pnp registered
-pnp: PnP ACPI: found 15 devices
-ACPI: ACPI bus type pnp unregistered
-PCI: Using ACPI for IRQ routing
-PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
-Time: tsc clocksource has been installed.
-...
+There is an additional patch which creates
+Documentation/acpi/wmi.txt, but I witheld it from
+this batch because it needs to be revised.
+If you are not subscribed to the linux-acpi list
+you can find it here:
 
-Cheers,
-Chris
+http://marc.info/?l=linux-acpi&m=120217838010224&w=2
 
+Clearly we neeed to update the Kconfig doc as well when
+we revise and push that patch.
 
+-Len
 
+ps. the answers to your questions are "yes" and "see NOTE" below.
 
-      ___________________________________________________________
-Support the World Aids Awareness campaign this month with Yahoo! For Good http://uk.promotions.yahoo.com/forgood/
+>   WMI (EXPERIMENTAL) (ACPI_WMI) [N/m/y/?] (NEW) ?
+> 
+> This driver adds support for the ACPI-WMI mapper device (PNP0C14)
+> found on some systems.
+> 
+> NOTE: You will need another driver or userspace application on top of
+> this to actually use anything defined in the ACPI-WMI mapper.
+> 
+> 
