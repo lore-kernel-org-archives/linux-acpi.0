@@ -1,157 +1,309 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 032/112] ACPI: thinkpad-acpi: document keymap gotcha's (v2)
-Date: Thu,  7 Feb 2008 04:33:54 -0500
-Message-ID: <0f089147e620e083f58a0e641f701bd4244b455b.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 027/112] sony-laptop: refactor model types
+Date: Thu,  7 Feb 2008 04:33:49 -0500
+Message-ID: <de9204300112dea10ca3d3cc76858cee61043e47.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:20777 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753445AbYBGJf7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:59 -0500
+	with ESMTP id S1757850AbYBGJfw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:52 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Mattia Dongili <malattia@linux.it>
 
-Publish the requirements for keymap changes.  This is a documentation
-change, only.
+Create mini drivers and allow callbacks for each model
+to be specified.
+Following patches will make use of this feature to handle
+specific cases instead of just executing code and hope
+not to break other models.
 
-Currently, people look at the thinkpad-acpi default keymaps, and think:
-"modifying this is a trivial thing, it can't break systems, and there are
-keys defined for foo and bar, but the driver has them as KEY_RESERVED.
-Must have been an oversight, let me change it."
-
-And since they never get to see the bug reports, because they are not
-really a part of the Linux ThinkPad users community (linux-thinkpad
-mailinglist, thinkwiki wiki, thinkpad forums) and laptop users are slow
-to complain to distros about any breakages...
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   68 ++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 63 insertions(+), 5 deletions(-)
+ drivers/misc/sony-laptop.c |  186 ++++++++++++++++++++++++-------------------
+ 1 files changed, 104 insertions(+), 82 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index cf56647..7b1080f 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -954,26 +954,67 @@ static struct attribute *hotkey_mask_attributes[] __initdata = {
+diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+index 7a32b35..a650f25 100644
+--- a/drivers/misc/sony-laptop.c
++++ b/drivers/misc/sony-laptop.c
+@@ -1194,18 +1194,33 @@ struct sony_pic_irq {
+ 	struct list_head		list;
+ };
  
- static int __init hotkey_init(struct ibm_init_struct *iibm)
- {
++struct sonypi_eventtypes {
++	u8			data;
++	unsigned long		mask;
++	struct sonypi_event	*events;
++};
++
++struct device_ctrl {
++	int				model;
++	int				(*handle_irq)(void);
++	u16				evport_offset;
++	u8				has_camera;
++	u8				has_bluetooth;
++	u8				has_wwan;
++	struct sonypi_eventtypes	*event_types;
++};
++
+ struct sony_pic_dev {
+-	int			model;
+-	u16			evport_offset;
+-	u8			camera_power;
+-	u8			bluetooth_power;
+-	u8			wwan_power;
++	struct device_ctrl	*control;
+ 	struct acpi_device	*acpi_dev;
+ 	struct sony_pic_irq	*cur_irq;
+ 	struct sony_pic_ioport	*cur_ioport;
+ 	struct list_head	interrupts;
+ 	struct list_head	ioports;
+ 	struct mutex		lock;
++	u8			camera_power;
++	u8			bluetooth_power;
++	u8			wwan_power;
+ };
+ 
+ static struct sony_pic_dev spic_dev = {
+@@ -1370,74 +1385,92 @@ static struct sonypi_event sonypi_batteryev[] = {
+ 	{ 0, 0 }
+ };
+ 
+-static struct sonypi_eventtypes {
+-	int			model;
+-	u8			data;
+-	unsigned long		mask;
+-	struct sonypi_event *	events;
+-} sony_pic_eventtypes[] = {
+-	{ SONYPI_DEVICE_TYPE1, 0, 0xffffffff, sonypi_releaseev },
+-	{ SONYPI_DEVICE_TYPE1, 0x70, SONYPI_MEYE_MASK, sonypi_meyeev },
+-	{ SONYPI_DEVICE_TYPE1, 0x30, SONYPI_LID_MASK, sonypi_lidev },
+-	{ SONYPI_DEVICE_TYPE1, 0x60, SONYPI_CAPTURE_MASK, sonypi_captureev },
+-	{ SONYPI_DEVICE_TYPE1, 0x10, SONYPI_JOGGER_MASK, sonypi_joggerev },
+-	{ SONYPI_DEVICE_TYPE1, 0x20, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
+-	{ SONYPI_DEVICE_TYPE1, 0x30, SONYPI_BLUETOOTH_MASK, sonypi_blueev },
+-	{ SONYPI_DEVICE_TYPE1, 0x40, SONYPI_PKEY_MASK, sonypi_pkeyev },
+-	{ SONYPI_DEVICE_TYPE1, 0x30, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
+-	{ SONYPI_DEVICE_TYPE1, 0x40, SONYPI_BATTERY_MASK, sonypi_batteryev },
 -
-+	/* Requirements for changing the default keymaps:
-+	 *
-+	 * 1. Many of the keys are mapped to KEY_RESERVED for very
-+	 *    good reasons.  Do not change them unless you have deep
-+	 *    knowledge on the IBM and Lenovo ThinkPad firmware for
-+	 *    the various ThinkPad models.  The driver behaves
-+	 *    differently for KEY_RESERVED: such keys have their
-+	 *    hot key mask *unset* in mask_recommended, and also
-+	 *    in the initial hot key mask programmed into the
-+	 *    firmware at driver load time, which means the firm-
-+	 *    ware may react very differently if you change them to
-+	 *    something else;
-+	 *
-+	 * 2. You must be subscribed to the linux-thinkpad and
-+	 *    ibm-acpi-devel mailing lists, and you should read the
-+	 *    list archives since 2007 if you want to change the
-+	 *    keymaps.  This requirement exists so that you will
-+	 *    know the past history of problems with the thinkpad-
-+	 *    acpi driver keymaps, and also that you will be
-+	 *    listening to any bug reports;
-+	 *
-+	 * 3. Do not send thinkpad-acpi specific patches directly to
-+	 *    for merging, *ever*.  Send them to the linux-acpi
-+	 *    mailinglist for comments.  Merging is to be done only
-+	 *    through acpi-test and the ACPI maintainer.
-+	 *
-+	 * If the above is too much to ask, don't change the keymap.
-+	 * Ask the thinkpad-acpi maintainer to do it, instead.
-+	 */
- 	static u16 ibm_keycode_map[] __initdata = {
- 		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
- 		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SLEEP,
- 		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
- 		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
--		/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
+-	{ SONYPI_DEVICE_TYPE2, 0, 0xffffffff, sonypi_releaseev },
+-	{ SONYPI_DEVICE_TYPE2, 0x38, SONYPI_LID_MASK, sonypi_lidev },
+-	{ SONYPI_DEVICE_TYPE2, 0x11, SONYPI_JOGGER_MASK, sonypi_joggerev },
+-	{ SONYPI_DEVICE_TYPE2, 0x61, SONYPI_CAPTURE_MASK, sonypi_captureev },
+-	{ SONYPI_DEVICE_TYPE2, 0x21, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
+-	{ SONYPI_DEVICE_TYPE2, 0x31, SONYPI_BLUETOOTH_MASK, sonypi_blueev },
+-	{ SONYPI_DEVICE_TYPE2, 0x08, SONYPI_PKEY_MASK, sonypi_pkeyev },
+-	{ SONYPI_DEVICE_TYPE2, 0x11, SONYPI_BACK_MASK, sonypi_backev },
+-	{ SONYPI_DEVICE_TYPE2, 0x21, SONYPI_HELP_MASK, sonypi_helpev },
+-	{ SONYPI_DEVICE_TYPE2, 0x21, SONYPI_ZOOM_MASK, sonypi_zoomev },
+-	{ SONYPI_DEVICE_TYPE2, 0x20, SONYPI_THUMBPHRASE_MASK, sonypi_thumbphraseev },
+-	{ SONYPI_DEVICE_TYPE2, 0x31, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
+-	{ SONYPI_DEVICE_TYPE2, 0x41, SONYPI_BATTERY_MASK, sonypi_batteryev },
+-	{ SONYPI_DEVICE_TYPE2, 0x31, SONYPI_PKEY_MASK, sonypi_pkeyev },
+-
+-	{ SONYPI_DEVICE_TYPE3, 0, 0xffffffff, sonypi_releaseev },
+-	{ SONYPI_DEVICE_TYPE3, 0x21, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
+-	{ SONYPI_DEVICE_TYPE3, 0x31, SONYPI_WIRELESS_MASK, sonypi_wlessev },
+-	{ SONYPI_DEVICE_TYPE3, 0x31, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
+-	{ SONYPI_DEVICE_TYPE3, 0x41, SONYPI_BATTERY_MASK, sonypi_batteryev },
+-	{ SONYPI_DEVICE_TYPE3, 0x31, SONYPI_PKEY_MASK, sonypi_pkeyev },
+-	{ 0 }
++static struct sonypi_eventtypes type1_events[] = {
++	{ 0, 0xffffffff, sonypi_releaseev },
++	{ 0x70, SONYPI_MEYE_MASK, sonypi_meyeev },
++	{ 0x30, SONYPI_LID_MASK, sonypi_lidev },
++	{ 0x60, SONYPI_CAPTURE_MASK, sonypi_captureev },
++	{ 0x10, SONYPI_JOGGER_MASK, sonypi_joggerev },
++	{ 0x20, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
++	{ 0x30, SONYPI_BLUETOOTH_MASK, sonypi_blueev },
++	{ 0x40, SONYPI_PKEY_MASK, sonypi_pkeyev },
++	{ 0x30, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
++	{ 0x40, SONYPI_BATTERY_MASK, sonypi_batteryev },
++	{ 0 },
++};
++static struct sonypi_eventtypes type2_events[] = {
++	{ 0, 0xffffffff, sonypi_releaseev },
++	{ 0x38, SONYPI_LID_MASK, sonypi_lidev },
++	{ 0x11, SONYPI_JOGGER_MASK, sonypi_joggerev },
++	{ 0x61, SONYPI_CAPTURE_MASK, sonypi_captureev },
++	{ 0x21, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
++	{ 0x31, SONYPI_BLUETOOTH_MASK, sonypi_blueev },
++	{ 0x08, SONYPI_PKEY_MASK, sonypi_pkeyev },
++	{ 0x11, SONYPI_BACK_MASK, sonypi_backev },
++	{ 0x21, SONYPI_HELP_MASK, sonypi_helpev },
++	{ 0x21, SONYPI_ZOOM_MASK, sonypi_zoomev },
++	{ 0x20, SONYPI_THUMBPHRASE_MASK, sonypi_thumbphraseev },
++	{ 0x31, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
++	{ 0x41, SONYPI_BATTERY_MASK, sonypi_batteryev },
++	{ 0x31, SONYPI_PKEY_MASK, sonypi_pkeyev },
++	{ 0 },
++};
++static struct sonypi_eventtypes type3_events[] = {
++	{ 0, 0xffffffff, sonypi_releaseev },
++	{ 0x21, SONYPI_FNKEY_MASK, sonypi_fnkeyev },
++	{ 0x31, SONYPI_WIRELESS_MASK, sonypi_wlessev },
++	{ 0x31, SONYPI_MEMORYSTICK_MASK, sonypi_memorystickev },
++	{ 0x41, SONYPI_BATTERY_MASK, sonypi_batteryev },
++	{ 0x31, SONYPI_PKEY_MASK, sonypi_pkeyev },
++	{ 0 },
+ };
+ 
+-static int sony_pic_detect_device_type(void)
++static struct device_ctrl spic_types[] = {
++	{
++		.model = SONYPI_DEVICE_TYPE1,
++		.handle_irq = NULL,
++		.evport_offset = SONYPI_TYPE1_OFFSET,
++		.event_types = type1_events,
++	},
++	{
++		.model = SONYPI_DEVICE_TYPE2,
++		.handle_irq = NULL,
++		.evport_offset = SONYPI_TYPE2_OFFSET,
++		.event_types = type2_events,
++	},
++	{
++		.model = SONYPI_DEVICE_TYPE3,
++		.handle_irq = NULL,
++		.evport_offset = SONYPI_TYPE3_OFFSET,
++		.event_types = type3_events,
++	},
++};
 +
-+		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
- 		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
- 		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
- 		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
-+
-+		/* brightness: firmware always reacts to them, unless
-+		 * X.org did some tricks in the radeon BIOS scratch
-+		 * registers of *some* models */
- 		KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
--		/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
- 		KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
-+
-+		/* Thinklight: firmware always react to it */
- 		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
-+
- 		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
- 		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
-+
-+		/* Volume: firmware always react to it and reprograms
-+		 * the built-in *extra* mixer.  Never map it to control
-+		 * another mixer by default. */
- 		KEY_RESERVED,	/* 0x14: VOLUME UP */
- 		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
- 		KEY_RESERVED,	/* 0x16: MUTE */
-+
- 		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
-+
- 		/* (assignments unknown, please report if found) */
- 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
- 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
-@@ -983,20 +1024,37 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SLEEP,
- 		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
- 		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
--		/* Scan codes 0x0C to 0x0F: Other ACPI HKEY hot keys */
-+
-+		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
- 		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
- 		KEY_UNKNOWN,	/* 0x0D: FN+INSERT */
- 		KEY_UNKNOWN,	/* 0x0E: FN+DELETE */
-+
- 		KEY_RESERVED,	/* 0x0F: FN+HOME (brightness up) */
--		/* Scan codes 0x10 to 0x1F: Extended ACPI HKEY hot keys */
- 		KEY_RESERVED,	/* 0x10: FN+END (brightness down) */
-+
- 		KEY_RESERVED,	/* 0x11: FN+PGUP (thinklight toggle) */
-+
- 		KEY_UNKNOWN,	/* 0x12: FN+PGDOWN */
- 		KEY_ZOOM,	/* 0x13: FN+SPACE (zoom) */
-+
-+		/* Volume: z60/z61, T60 (BIOS version?): firmware always
-+		 * react to it and reprograms the built-in *extra* mixer.
-+		 * Never map it to control another mixer by default.
-+		 *
-+		 * T60?, T61, R60?, R61: firmware and EC tries to send
-+		 * these over the regular keyboard, so these are no-ops,
-+		 * but there are still weird bugs re. MUTE, so do not
-+		 * change unless you get test reports from all Lenovo
-+		 * models.  May cause the BIOS to interfere with the
-+		 * HDA mixer.
-+		 */
- 		KEY_RESERVED,	/* 0x14: VOLUME UP */
- 		KEY_RESERVED,	/* 0x15: VOLUME DOWN */
- 		KEY_RESERVED,	/* 0x16: MUTE */
-+
- 		KEY_VENDOR,	/* 0x17: Thinkpad/AccessIBM/Lenovo */
-+
- 		/* (assignments unknown, please report if found) */
- 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
- 		KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN, KEY_UNKNOWN,
++static void sony_pic_detect_device_type(struct sony_pic_dev *dev)
+ {
+ 	struct pci_dev *pcidev;
+-	int model = 0;
+ 
+ 	if ((pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 				     PCI_DEVICE_ID_INTEL_82371AB_3, NULL)))
+-		model = SONYPI_DEVICE_TYPE1;
++		dev->control = &spic_types[0];
+ 
+ 	else if ((pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					  PCI_DEVICE_ID_INTEL_ICH6_1, NULL)))
+-		model = SONYPI_DEVICE_TYPE3;
++		dev->control = &spic_types[2];
+ 
+ 	else if ((pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					  PCI_DEVICE_ID_INTEL_ICH7_1, NULL)))
+-		model = SONYPI_DEVICE_TYPE3;
++		dev->control = &spic_types[2];
+ 
+ 	else
+-		model = SONYPI_DEVICE_TYPE2;
++		dev->control = &spic_types[1];
+ 
+ 	if (pcidev)
+ 		pci_dev_put(pcidev);
+ 
+ 	printk(KERN_INFO DRV_PFX "detected Type%d model\n",
+-			model == SONYPI_DEVICE_TYPE1 ? 1 :
+-			model == SONYPI_DEVICE_TYPE2 ? 2 : 3);
+-	return model;
++			dev->control->model == SONYPI_DEVICE_TYPE1 ? 1 :
++			dev->control->model == SONYPI_DEVICE_TYPE2 ? 2 : 3);
+ }
+ 
+ #define ITERATIONS_LONG		10000
+@@ -2263,7 +2296,7 @@ static int sony_pic_enable(struct acpi_device *device,
+ 	buffer.pointer = resource;
+ 
+ 	/* setup Type 1 resources */
+-	if (spic_dev.model == SONYPI_DEVICE_TYPE1) {
++	if (spic_dev.control->model == SONYPI_DEVICE_TYPE1) {
+ 
+ 		/* setup io resources */
+ 		resource->res1.type = ACPI_RESOURCE_TYPE_IO;
+@@ -2345,39 +2378,42 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
+ 	if (dev->cur_ioport->io2.minimum)
+ 		data_mask = inb_p(dev->cur_ioport->io2.minimum);
+ 	else
+-		data_mask = inb_p(dev->cur_ioport->io1.minimum + dev->evport_offset);
++		data_mask = inb_p(dev->cur_ioport->io1.minimum +
++				dev->control->evport_offset);
+ 
+ 	dprintk("event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
+-			ev, data_mask, dev->cur_ioport->io1.minimum, dev->evport_offset);
++			ev, data_mask, dev->cur_ioport->io1.minimum,
++			dev->control->evport_offset);
+ 
+ 	if (ev == 0x00 || ev == 0xff)
+ 		return IRQ_HANDLED;
+ 
+-	for (i = 0; sony_pic_eventtypes[i].model; i++) {
++	for (i = 0; dev->control->event_types[i].mask; i++) {
+ 
+-		if (spic_dev.model != sony_pic_eventtypes[i].model)
++		if ((data_mask & dev->control->event_types[i].data) !=
++		    dev->control->event_types[i].data)
+ 			continue;
+ 
+-		if ((data_mask & sony_pic_eventtypes[i].data) !=
+-		    sony_pic_eventtypes[i].data)
++		if (!(mask & dev->control->event_types[i].mask))
+ 			continue;
+ 
+-		if (!(mask & sony_pic_eventtypes[i].mask))
+-			continue;
+-
+-		for (j = 0; sony_pic_eventtypes[i].events[j].event; j++) {
+-			if (ev == sony_pic_eventtypes[i].events[j].data) {
++		for (j = 0; dev->control->event_types[i].events[j].event; j++) {
++			if (ev == dev->control->event_types[i].events[j].data) {
+ 				device_event =
+-					sony_pic_eventtypes[i].events[j].event;
++					dev->control->
++						event_types[i].events[j].event;
+ 				goto found;
+ 			}
+ 		}
+ 	}
++	dprintk("unknown event ([%.2x] [%.2x]) at port 0x%.4x(+0x%.2x)\n",
++			ev, data_mask, dev->cur_ioport->io1.minimum,
++			dev->control->evport_offset);
+ 	return IRQ_HANDLED;
+ 
+ found:
+ 	sony_laptop_report_input_event(device_event);
+-	acpi_bus_generate_proc_event(spic_dev.acpi_dev, 1, device_event);
++	acpi_bus_generate_proc_event(dev->acpi_dev, 1, device_event);
+ 	sonypi_compat_report_event(device_event);
+ 
+ 	return IRQ_HANDLED;
+@@ -2439,23 +2475,9 @@ static int sony_pic_add(struct acpi_device *device)
+ 
+ 	spic_dev.acpi_dev = device;
+ 	strcpy(acpi_device_class(device), "sony/hotkey");
+-	spic_dev.model = sony_pic_detect_device_type();
++	sony_pic_detect_device_type(&spic_dev);
+ 	mutex_init(&spic_dev.lock);
+ 
+-	/* model specific characteristics */
+-	switch(spic_dev.model) {
+-		case SONYPI_DEVICE_TYPE1:
+-			spic_dev.evport_offset = SONYPI_TYPE1_OFFSET;
+-			break;
+-		case SONYPI_DEVICE_TYPE3:
+-			spic_dev.evport_offset = SONYPI_TYPE3_OFFSET;
+-			break;
+-		case SONYPI_DEVICE_TYPE2:
+-		default:
+-			spic_dev.evport_offset = SONYPI_TYPE2_OFFSET;
+-			break;
+-	}
+-
+ 	/* read _PRS resources */
+ 	result = sony_pic_possible_resources(device);
+ 	if (result) {
 -- 
 1.5.4.23.gef5b9
 
