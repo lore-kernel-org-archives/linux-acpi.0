@@ -1,70 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: ACPI_WMI: worst config description of all times
-Date: Thu, 7 Feb 2008 23:34:55 +0100
-Message-ID: <20080207223455.GB6096@elf.ucw.cz>
-References: <20080207214715.GA15211@elf.ucw.cz> <200802071727.38743.lenb@kernel.org>
+From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: Re: [GIT PATCH] suspend patches for 2.6.25-rc0
+Date: Thu, 7 Feb 2008 17:27:13 -0500
+Message-ID: <20080207222713.GA20549@cs.cmu.edu>
+References: <200802011820.56693.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:33234 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S934978AbYBGWem (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Feb 2008 17:34:42 -0500
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200802071727.38743.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <200802011820.56693.lenb@kernel.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Len Brown <lenb@kernel.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu 2008-02-07 17:27:38, Len Brown wrote:
-> On Thursday 07 February 2008 16:47, Pavel Machek wrote:
-> > 
-> > See? It even has completely useless help text.
-> > 
-> > Does WMI stand for Windows Management Instrumentation? It is some
-> > server management feature? What is it good for?
+On Fri, Feb 01, 2008 at 06:20:56PM -0500, Len Brown wrote:
+> please pull from: 
 > 
-> Thank you for the feedback, Pavel.
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git suspend
 > 
-> There is an additional patch which creates
-> Documentation/acpi/wmi.txt, but I witheld it from
-> this batch because it needs to be revised.
-> If you are not subscribed to the linux-acpi list
-> you can find it here:
-> 
-> http://marc.info/?l=linux-acpi&m=120217838010224&w=2
-> 
-> Clearly we neeed to update the Kconfig doc as well when
-> we revise and push that patch.
+> This will update the files shown below.
 
- +ACPI-WMI mapping driver
- +
- +Copyright (C) 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
- +
- +Updated: 5th February 2008
- +
- +1) About this guide
- +
- +This guide is a basic introduction on how to interact with the ACPI-WMI mapper
- +driver in the kernel - it presumes you already have a basic knowledge of
- +ACPI-WMI, ACPI and the hardware you are writing the driver for.
- +
- +2) What is ACPI-WMI
- +
- +At its simplest, ACPI-WMI is a proprietary extension to the ACPI specification
- +from Microsoft to allow WMI (their implementation of WBEM) to access
- +instrumentation data and methods in ACPI from userspace, via the ACPI _HID
- +device PNP0C14.
- +
- +3) What is the ACPI-WMI mapper
- +
- +The Linux ACPI-WMI driver is the implementation of this mapper for Linux.
+The following patch,
 
-Yes, please. This needs translation into plain english.
+    commit c3e94d899c864e558f938f9845ddb8c2e5d5ccd0
+    Author: Alan Stern <stern@rowland.harvard.edu>
+    Date:   Mon Nov 19 23:38:25 2007 +0100
 
-What is WBEM, in plain terms? What is it good for?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+    Hibernation: Add PM_RESTORE_PREPARE and PM_POST_RESTORE notifiers (rev. 2)
+
+Seems to have reverted some code related to the PM_HIBERNATION_PREPARE
+notifiers in kernel/power/user.c that were added in 2.6.23 by the
+following patch,
+
+    commit b10d911749d37dccfa5873d2088aea3f074b9e45
+    Author: Rafael J. Wysocki <rjw@sisk.pl>
+    Date:   Thu Jul 19 01:47:36 2007 -0700
+
+    PM: introduce hibernation and suspend notifiers
+
+I'm pretty sure this was not the intent of the new patch because it only
+tries to extend upon the former functionality and not replace it.
+
+Jan
