@@ -1,75 +1,63 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 019/112] ACPI: EC: Do the byte access with a fast path
-Date: Thu,  7 Feb 2008 04:33:41 -0500
-Message-ID: <3e71a87d03055de0b8c8e42aba758ee6494af083.1202376824.git.len.brown@intel.com>
+Subject: [PATCH 009/112] ACPI: Add autoload info to dock driver
+Date: Thu,  7 Feb 2008 04:33:31 -0500
+Message-ID: <a340af14b4c08a53c5f7d821d8bd910e17403384.1202376824.git.len.brown@intel.com>
 References: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:42392 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:32156 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757120AbYBGJfm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:42 -0500
+	with ESMTP id S1755078AbYBGJf1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 04:35:27 -0500
 In-Reply-To: <1202376914-21030-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 References: <4169c45f179e285feac6bcf25f4bd0db6b109bab.1202376823.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Frank Seidel <fseidel@suse.de>, Thomas Renninger <trenn@novell.com>, Kay Sievers <kasievers@novell.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Frank Seidel <fseidel@suse.de>
 
-Specification allows only byte access for EC region, so
-make it separate from bug-compatible multi-byte access.
-Also do not allow return of garbage in supplied *value.
+References: https://bugzilla.novell.com/show_bug.cgi?id=302482
 
-Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9341
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Thomas Renninger <trenn@novell.com>
+Signed-off-by: Kay Sievers <kasievers@novell.com>
+Signed-off-by: Frank Seidel <fseidel@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/acpi/dock.c         |    6 ++++++
+ include/acpi/acpi_drivers.h |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index d411017..63862df 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -563,7 +563,7 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 		      void *handler_context, void *region_context)
- {
- 	struct acpi_ec *ec = handler_context;
--	int result = 0, i = 0;
-+	int result = 0, i;
- 	u8 temp = 0;
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 1dabdf4..b3dec21 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -51,6 +51,12 @@ static struct atomic_notifier_head dock_notifier_list;
+ static struct platform_device *dock_device;
+ static char dock_device_name[] = "dock";
  
- 	if ((address > 0xFF) || !value || !handler_context)
-@@ -575,7 +575,16 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 	if (bits != 8 && acpi_strict)
- 		return AE_BAD_PARAMETER;
- 
--	while (bits - i > 0) {
-+	if (function == ACPI_READ) {
-+		result = acpi_ec_read(ec, address, &temp);
-+		*value = temp;
-+	} else {
-+		temp = 0xff & (*value);
-+		result = acpi_ec_write(ec, address, temp);
-+	}
++static const struct acpi_device_id dock_device_ids[] = {
++	{"LNXDOCK", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, dock_device_ids);
 +
-+	for (i = 8; unlikely(bits - i > 0); i += 8) {
-+		++address;
- 		if (function == ACPI_READ) {
- 			result = acpi_ec_read(ec, address, &temp);
- 			(*value) |= ((acpi_integer)temp) << i;
-@@ -583,8 +592,6 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- 			temp = 0xff & ((*value) >> i);
- 			result = acpi_ec_write(ec, address, temp);
- 		}
--		i += 8;
--		++address;
- 	}
+ struct dock_station {
+ 	acpi_handle handle;
+ 	unsigned long last_dock_time;
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index f85f77a..581daa4 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -48,6 +48,7 @@
+ #define ACPI_BUTTON_HID_SLEEPF		"LNXSLPBN"
+ #define ACPI_VIDEO_HID			"LNXVIDEO"
+ #define ACPI_BAY_HID			"LNXIOBAY"
++#define ACPI_DOCK_HID			"LNXDOCK"
  
- 	switch (result) {
+ /* --------------------------------------------------------------------------
+                                        PCI
 -- 
 1.5.4.23.gef5b9
 
