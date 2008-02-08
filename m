@@ -1,37 +1,28 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 7/8] ACPI: WMI: Improve Kconfig description
-Date: Fri, 8 Feb 2008 23:09:06 +0100
-Message-ID: <20080208220906.GA1648@elf.ucw.cz>
-References: <b0b23e0ade6aa265d7278e06d50bc10ec81dd174.1202452053.git.len.brown@intel.com> <20b4514799ebcfb04b45537e90e421cb73fd0cc9.1202452053.git.len.brown@intel.com>
+Subject: Re: suspend to ram problem
+Date: Fri, 8 Feb 2008 23:10:15 +0100
+Message-ID: <20080208221015.GB1648@elf.ucw.cz>
+References: <47A5C399.7010405@free.fr> <20080207092035.GB1816@elf.ucw.cz> <47AB60C4.50602@free.fr> <200802072100.32205.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:33503 "EHLO amd.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:58576 "EHLO amd.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1761044AbYBHWIq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2008 17:08:46 -0500
+	id S1762043AbYBHWJ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2008 17:09:56 -0500
 Content-Disposition: inline
-In-Reply-To: <20b4514799ebcfb04b45537e90e421cb73fd0cc9.1202452053.git.len.brown@intel.com>
+In-Reply-To: <200802072100.32205.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Ray Lee <ray-lk@madrabbit.org>, Len Brown <len.brown@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: matthieu castet <castet.matthieu@free.fr>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.linux-foundation.org>
 
-On Fri 2008-02-08 01:29:23, Len Brown wrote:
-> From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> > I wonder if there a way to check that we are realy in real mode ?
 > 
-> As Pavel Machek has pointed out, the Kconfig entry for WMI is pretty
-> non-descriptive.
-> 
-> Rewrite it so that it explains what ACPI-WMI is, and why anyone
-> would want to enable it.
-> 
-> Many thanks to Ray Lee for ideas on this.
-> 
-> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-> CC: Pavel Machek <pavel@ucw.cz>
+> Yes.  In real mode bit 0 of the cr0 register should be 0.
 
-ACK... and thanks.	
+It is not as simple. There's stuff like "unreal" mode... real mode
+with 4GB descriptor limits... and similar crazyness.
 									Pavel
 
 -- 
