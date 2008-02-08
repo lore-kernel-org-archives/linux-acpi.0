@@ -1,42 +1,41 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Laptop driver documentation
-Date: Fri, 8 Feb 2008 13:11:14 -0200
-Message-ID: <20080208151114.GE9485@khazad-dum.debian.net>
-References: <200802081324.52405.carlos@strangeworlds.co.uk>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH, RFC] HP WMI hotkey driver, RFKill query?
+Date: Fri, 8 Feb 2008 15:26:32 +0000
+Message-ID: <200802081526.33336.carlos@strangeworlds.co.uk>
+References: <20071218235137.12838.75397.stgit@localhost> <200801160138.36347.carlos@strangeworlds.co.uk> <200802062254.24599.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:43380 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759752AbYBHPLU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 10:11:20 -0500
+Received: from phoenix.slamd64.com ([217.10.145.2]:46901 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299AbYBHP0t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 10:26:49 -0500
+In-Reply-To: <200802062254.24599.lenb@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200802081324.52405.carlos@strangeworlds.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <aystarik@gmail.com>, linux-input@vger.kernel.org
 
-On Fri, 08 Feb 2008, Carlos Corbacho wrote:
-> I'm currently working on producing some documentation for acer-wmi, but before 
-> submitting it, I'm wondering where the best place in Documentation/ is for it 
-> to live?
-> 
-> The only other laptop driver I've seen so far in Documentation/ is 
-> thinkpad-acpi, which has thinkpad-acpi.txt in the top level directory, but 
+On Thursday 07 February 2008 03:54:24 Len Brown wrote:
+> > The question is, would exporting the GUID virtual device and using that
+> > as the parent make more sense? So, in the case of hp-wmi, it only uses
+> > the GUID 95F24279-4D7B-4334-9387-ACCDC67EF61C, so should we use the
+> > virtual device associated with that GUID as the parent, or just have WMI
+> > itself as the parent device? I'm really not sure which would be the
+> > better way to go.
+>
+> Why not used generic names like dev0, dev1 etc.
+> and have the guid be an attribute?
 
-It was already there when I got it from the previous maintainer, so I left
-it there...
+Well, we'll have the virtual devices for the GUIDs anyway once I re-spin the 
+relevant patch, so would it not be better to just reuse those, rather than 
+start adding new virtual devices?
 
-> I'm not sure this is the best place for these to live. Would it be better to 
-> perhaps group all laptop driver documentation in something like 
-> Documentation/laptops/ (or something else along those lines), or should they 
-> just be left in the top-level Documentation?
-
-I wound't object to moving them to Documentation/laptops at all.
-
+-Carlos
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
