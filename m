@@ -1,12 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2/8] ACPI: cpufreq: Print _PPC changes via cpufreq debug layer
-Date: Fri,  8 Feb 2008 01:29:18 -0500
-Message-ID: <919158d17b42683a5c7368e1e77661c65a20a48a.1202452053.git.len.brown@intel.com>
+Subject: [PATCH 7/8] ACPI: WMI: Improve Kconfig description
+Date: Fri,  8 Feb 2008 01:29:23 -0500
+Message-ID: <20b4514799ebcfb04b45537e90e421cb73fd0cc9.1202452053.git.len.brown@intel.com>
 References: <1202452164-32320-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:1240 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:37463 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933444AbYBHG3h (ORCPT
+	with ESMTP id S933510AbYBHG3h (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 01:29:37 -0500
 In-Reply-To: <1202452164-32320-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <b0b23e0ade6aa265d7278e06d50bc10ec81dd174.1202452053.git.len.brown@intel.com>
@@ -14,43 +14,57 @@ References: <b0b23e0ade6aa265d7278e06d50bc10ec81dd174.1202452053.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Pavel Machek <pavel@ucw.cz>, Ray Lee <ray-lk@madrabbit.org>, Len Brown <len.brown@intel.com>
 
-From: Thomas Renninger <trenn@suse.de>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-enabled with CPU_FREQ_DEBUG
+As Pavel Machek has pointed out, the Kconfig entry for WMI is pretty
+non-descriptive.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Rewrite it so that it explains what ACPI-WMI is, and why anyone
+would want to enable it.
+
+Many thanks to Ray Lee for ideas on this.
+
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: Pavel Machek <pavel@ucw.cz>
+CC: Ray Lee <ray-lk@madrabbit.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_perflib.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/acpi/Kconfig |   19 +++++++++++++++----
+ 1 files changed, 15 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index f32010b..b477a4b 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -50,6 +50,10 @@ ACPI_MODULE_NAME("processor_perflib");
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 65da19b..f688c21 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -207,11 +207,22 @@ config ACPI_WMI
+ 	depends on X86
+ 	depends on EXPERIMENTAL
+ 	help
+-	  This driver adds support for the ACPI-WMI mapper device (PNP0C14)
+-	  found on some systems.
++	  This driver adds support for the ACPI-WMI (Windows Management
++	  Instrumentation) mapper device (PNP0C14) found on some systems.
  
- static DEFINE_MUTEX(performance_mutex);
- 
-+/* Use cpufreq debug layer for _PPC changes. */
-+#define cpufreq_printk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
-+						"cpufreq-core", msg)
+-	  NOTE: You will need another driver or userspace application on top of
+-	  this to actually use anything defined in the ACPI-WMI mapper.
++	  ACPI-WMI is a proprietary extension to ACPI to expose parts of the
++	  ACPI firmware to userspace - this is done through various vendor
++	  defined methods and data blocks in a PNP0C14 device, which are then
++	  made available for userspace to call.
 +
- /*
-  * _PPC support is implemented as a CPUfreq policy notifier:
-  * This means each time a CPUfreq driver registered also with
-@@ -131,6 +135,9 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
- 		return -ENODEV;
- 	}
- 
-+	cpufreq_printk("CPU %d: _PPC is %d - frequency %s limited\n", pr->id,
-+		       (int)ppc, ppc ? "" : "not");
++	  The implementation of this in Linux currently only exposes this to
++	  other kernel space drivers.
 +
- 	pr->performance_platform_limit = (int)ppc;
++	  This driver is a required dependency to build the firmware specific
++	  drivers needed on many machines, including Acer and HP laptops.
++
++	  It is safe to enable this driver even if your DSDT doesn't define
++	  any ACPI-WMI devices.
  
- 	return 0;
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
 -- 
 1.5.4.34.g053d9
 
