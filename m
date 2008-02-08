@@ -1,60 +1,26 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
-Subject: Re: ACPI_WMI: worst config description of all times
-Date: Thu, 7 Feb 2008 16:12:24 -0800
-Message-ID: <2c0942db0802071612r1b32f996jc26ac3792b8c31fc@mail.gmail.com>
-References: <20080207214715.GA15211@elf.ucw.cz>
-	 <200802072318.28313.carlos@strangeworlds.co.uk>
-	 <2c0942db0802071533l5c3b98fel90946b73f8a9586b@mail.gmail.com>
-	 <200802072351.32521.carlos@strangeworlds.co.uk>
+From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: Re: [GIT PATCH] suspend patches for 2.6.25-rc0
+Date: Thu, 7 Feb 2008 19:44:25 -0500
+Message-ID: <20080208004425.GB29980@cs.cmu.edu>
+References: <200802011820.56693.lenb@kernel.org> <20080207222713.GA20549@cs.cmu.edu> <200802080014.41638.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.189]:5312 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbYBHAM0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 19:12:26 -0500
-Received: by nf-out-0910.google.com with SMTP id g13so1040048nfb.21
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Feb 2008 16:12:25 -0800 (PST)
-In-Reply-To: <200802072351.32521.carlos@strangeworlds.co.uk>
+Received: from DELFT.AURA.CS.CMU.EDU ([128.2.206.88]:34090 "EHLO
+	delft.aura.cs.cmu.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755226AbYBHAob (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Feb 2008 19:44:31 -0500
 Content-Disposition: inline
+In-Reply-To: <200802080014.41638.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, stern@rowland.harvard.edu, pavel@ucw.cz
 
-On Feb 7, 2008 3:51 PM, Carlos Corbacho <carlos@strangeworlds.co.uk> wrote:
-> On Thursday 07 February 2008 23:33:54 Ray Lee wrote:
-> > Do you have list of hardware/platforms that require this feature to
-> > get the hardware to work? (acer abc123, tcm1100 xyz)
->
-> I have a very long list of Acer laptops that are supported - which is far too
-> long, and changes on far too much of a regular basis to put in there.
->
-> Perhaps adding something like "This driver is also a required dependency to
-> build the firmware specific drivers needed for many laptops, including Acer
-> and HP machines"?
+On Fri, Feb 08, 2008 at 12:14:40AM +0100, Rafael J. Wysocki wrote:
+> I haven't revert the changes.  It's only moved the notifier chain calls from
+> the ioctls to open/release in user.c .
 
-<nod>
+Ah my bad, sorry about the false alarm.
 
-> (There's currently another ACPI-WMI based driver in development related to
-> more HP laptops, and acer-wmi also supports a handful of non-Acer laptops).
->
-> I don't think explaining what WMI is, and how ACPI-WMI is related to it is
-> that useful in Kconfig here; so I agree that further elaborating on the 'why'
-> this should be enabled is definitely worth doing.
->
-> > Better, if there are kernel drivers that require this (and currently
-> > only those drivers), then have those kernel drivers enable ACPI WMI,
->
-> Wouldn't that require 'select' though, and I'm led to believe that's seriously
-> frowned upon these days?
-
-Depends who you talk to. It's certainly the fodder for a yearly flamewar.
-
-While I'm not trying to set you up for a firing squad, if you can show
-that the only use this driver has is as underlying support for Acer/HP
-xyz drivers, and that those drivers require this one, then that
-situation really is what select is in there for. Anyone who argues
-against using select in that case is really just arguing against the
-mere existence of the kconfig select keyword itself.
+Jan
