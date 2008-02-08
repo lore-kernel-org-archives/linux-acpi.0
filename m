@@ -1,43 +1,39 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: Laptop driver documentation
-Date: Fri, 8 Feb 2008 17:49:47 +0000
-Message-ID: <200802081749.48470.carlos@strangeworlds.co.uk>
-References: <200802081324.52405.carlos@strangeworlds.co.uk> <20080208151114.GE9485@khazad-dum.debian.net> <20080208092800.832b05d1.randy.dunlap@oracle.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 7/8] ACPI: WMI: Improve Kconfig description
+Date: Fri, 8 Feb 2008 23:09:06 +0100
+Message-ID: <20080208220906.GA1648@elf.ucw.cz>
+References: <b0b23e0ade6aa265d7278e06d50bc10ec81dd174.1202452053.git.len.brown@intel.com> <20b4514799ebcfb04b45537e90e421cb73fd0cc9.1202452053.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:47539 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760497AbYBHRuP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 12:50:15 -0500
-In-Reply-To: <20080208092800.832b05d1.randy.dunlap@oracle.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:33503 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1761044AbYBHWIq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2008 17:08:46 -0500
 Content-Disposition: inline
+In-Reply-To: <20b4514799ebcfb04b45537e90e421cb73fd0cc9.1202452053.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Ray Lee <ray-lk@madrabbit.org>, Len Brown <len.brown@intel.com>
 
-On Friday 08 February 2008 17:28:00 Randy Dunlap wrote:
-> sony-laptop.txt
-> sonypi.txt
+On Fri 2008-02-08 01:29:23, Len Brown wrote:
+> From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> 
+> As Pavel Machek has pointed out, the Kconfig entry for WMI is pretty
+> non-descriptive.
+> 
+> Rewrite it so that it explains what ACPI-WMI is, and why anyone
+> would want to enable it.
+> 
+> Many thanks to Ray Lee for ideas on this.
+> 
+> Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> CC: Pavel Machek <pavel@ucw.cz>
 
-Thanks - I was certain I'd missed a few.
+ACK... and thanks.	
+									Pavel
 
-> > > I'm not sure this is the best place for these to live. Would it be
-> > > better to perhaps group all laptop driver documentation in something
-> > > like Documentation/laptops/ (or something else along those lines), or
-> > > should they just be left in the top-level Documentation?
-> >
-> > I wound't object to moving them to Documentation/laptops at all.
->
-> Yes, agreed.
-
-Ok, I'll whip up a patch set to do this.
-
--Carlos
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
