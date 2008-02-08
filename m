@@ -1,37 +1,30 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: ACPI_WMI: worst config description of all times
-Date: Fri, 8 Feb 2008 09:37:33 +0000
-Message-ID: <200802080937.35225.carlos@strangeworlds.co.uk>
-References: <20080207214715.GA15211@elf.ucw.cz> <200802080027.54576.carlos@strangeworlds.co.uk> <20080208065312.GA4341@ucw.cz>
+Subject: Re: [PATCH 3/8] ACPI: build WMI on X86 only
+Date: Fri, 8 Feb 2008 09:41:08 +0000
+Message-ID: <200802080941.08991.carlos@strangeworlds.co.uk>
+References: <1202452164-32320-1-git-send-email-lenb@kernel.org> <9c2f7de8c0f979fc6354bf0d22c0cdcc29722bf6.1202452053.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:50478 "EHLO
+Received: from phoenix.slamd64.com ([217.10.145.2]:48223 "EHLO
 	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759397AbYBHJi2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 04:38:28 -0500
-In-Reply-To: <20080208065312.GA4341@ucw.cz>
+	with ESMTP id S1760773AbYBHJlV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 04:41:21 -0500
+In-Reply-To: <9c2f7de8c0f979fc6354bf0d22c0cdcc29722bf6.1202452053.git.len.brown@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ray Lee <ray-lk@madrabbit.org>, Len Brown <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Friday 08 February 2008 06:53:13 Pavel Machek wrote:
-> I believe selct is the way to go here. What do acer-wmi handle?
-> Additional buttons? Leds? Temperatures? Fan states?
+On Friday 08 February 2008 06:29:19 Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-Enabling wireless, bluetooth and 3G; and exposing the mail LED and backlight.
-
-tc1100-wmi handles wireless and the jog dial, IIRC.
-
-> The laptops will boot fine without it, right?
-
-Yes.
-
--Carlos
+Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 -- 
 E-Mail: carlos@strangeworlds.co.uk
 Web: strangeworlds.co.uk
