@@ -1,269 +1,62 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 5/5] acer-wmi - Add documentation
-Date: Sat, 09 Feb 2008 01:32:25 +0000
-Message-ID: <20080209013225.4895.99305.stgit@pacifica>
-References: <20080209013157.4895.70128.stgit@pacifica>
+Subject: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
+Date: Sat, 09 Feb 2008 01:31:57 +0000
+Message-ID: <20080209013157.4895.70128.stgit@pacifica>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57983 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57984 "EHLO
 	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754325AbYBIBdA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2008 20:33:00 -0500
-In-Reply-To: <20080209013157.4895.70128.stgit@pacifica>
+	id S1757203AbYBIBdU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2008 20:33:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
-Add some initial documentation detailing what acer-wmi is, and how to use
-it. Update the Kconfig entry with a reference to the documentation.
+The following series implements the proposed creation of Documentation/laptops,
+and the movement of all the laptop driver documentation to this directory. I've
+also taken the opportunity to tack on the acer-wmi documentation in the final
+patch of this series.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: Len Brown <lenb@kernel.org>
-CC: Randy Dunlap <randy.dunlap@oracle.com>
+Because all the drivers in question go through the ACPI tree anyway, it's
+probably easiest if this change goes through the ACPI tree as well.
+
+This should all be 2.6.25 material, since there is no code change here, just
+rearranging the Documentation files, and updating Kconfig entries where
+required. I've also tested this series against Linus' latest git tree, with no
+problems applying it there.
+
+-Carlos
 ---
 
- Documentation/laptops/00-INDEX     |    2 
- Documentation/laptops/acer-wmi.txt |  202 ++++++++++++++++++++++++++++++++++++
- drivers/misc/Kconfig               |    3 +
- 3 files changed, 207 insertions(+), 0 deletions(-)
+Carlos Corbacho (5):
+      acer-wmi - Add documentation
+      sonypi - Move sonypi.txt to Documentation/laptops
+      sony-laptop - Move sony-laptop.txt to Documentation/laptops
+      thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
+      Documentation - Create laptops sub-directory
+
+
+ Documentation/00-INDEX                  |    8 
+ Documentation/laptops/00-INDEX          |   10 
+ Documentation/laptops/acer-wmi.txt      |  202 +++++
+ Documentation/laptops/sony-laptop.txt   |  117 +++
+ Documentation/laptops/sonypi.txt        |  152 +++
+ Documentation/laptops/thinkpad-acpi.txt | 1365 +++++++++++++++++++++++++++++++
+ Documentation/sony-laptop.txt           |  117 ---
+ Documentation/sonypi.txt                |  152 ---
+ Documentation/thinkpad-acpi.txt         | 1365 -------------------------------
+ drivers/char/Kconfig                    |    2 
+ drivers/misc/Kconfig                    |   10 
+ 11 files changed, 1856 insertions(+), 1644 deletions(-)
+ create mode 100644 Documentation/laptops/00-INDEX
  create mode 100644 Documentation/laptops/acer-wmi.txt
-
-
-diff --git a/Documentation/laptops/00-INDEX b/Documentation/laptops/00-INDEX
-index dbe1759..729c2c0 100644
---- a/Documentation/laptops/00-INDEX
-+++ b/Documentation/laptops/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- This file
-+acer-wmi.txt
-+	- information on the Acer Laptop WMI Extras driver.
- sony-laptop.txt
- 	- Sony Notebook Control Driver (SNC) Readme.
- sonypi.txt
-diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
-new file mode 100644
-index 0000000..b066963
---- /dev/null
-+++ b/Documentation/laptops/acer-wmi.txt
-@@ -0,0 +1,202 @@
-+Acer Laptop WMI Extras Driver
-+http://code.google.com/p/aceracpi
-+Version 0.1
-+9th February 2008
-+
-+Copyright 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+
-+acer-wmi is a driver to allow you to control various parts of your Acer laptop
-+hardware under Linux which are exposed via ACPI-WMI.
-+
-+This driver completely replaces the old out-of-tree acer_acpi, which I am
-+currently maintaining for bug fixes only on pre-2.6.25 kernels. All development
-+work is now focused solely on acer-wmi.
-+
-+Disclaimer
-+**********
-+
-+Acer and Wistron have provided nothing towards the development acer_acpi or
-+acer-wmi. All information we have has been through the efforts of the developers
-+and the users to discover as much as possible about the hardware.
-+
-+As such, I do warn that this could break your hardware - this is extremely
-+unlikely of course, but please bear this in mind.
-+
-+Background
-+**********
-+
-+acer-wmi is derived from acer_acpi, originally developed by Mark
-+Smith in 2005, then taken over by Carlos Corbacho in 2007, in order to activate
-+the wireless LAN card under a 64-bit version of Linux, as acerhk[1] (the
-+previous solution to the problem) relied on making 32 bit BIOS calls which are
-+not possible in kernel space from a 64 bit OS.
-+
-+[1] acerhk: http://www.cakey.de/acerhk/
-+
-+Supported Hardware
-+******************
-+
-+Please see the website for the current list of known working hardare:
-+
-+http://code.google.com/p/aceracpi/wiki/SupportedHardware
-+
-+If your laptop is not listed, or listed as unknown, and works with acer-wmi,
-+please contact me with a copy of the DSDT.
-+
-+If your Acer laptop doesn't work with acer-wmi, I would also like to see the
-+DSDT.
-+
-+To send me the DSDT, as root/sudo:
-+
-+cat /sys/firmware/acpi/DSDT > dsdt
-+
-+And send me the resulting 'dsdt' file.
-+
-+Usage
-+*****
-+
-+On Acer laptops, acer-wmi should already be autoloaded based on DMI matching.
-+For non-Acer laptops, until WMI based autoloading support is added, you will
-+need to manually load acer-wmi.
-+
-+acer-wmi creates /sys/devices/platform/acer-wmi, and fills it with various
-+files whose usage is detailed below, which enables you to control some of the
-+following (varies between models):
-+
-+* the wireless LAN card radio
-+* inbuilt Bluetooth adapter
-+* inbuilt 3G card
-+* mail LED of your laptop
-+* brightness of the LCD panel
-+
-+Wireless
-+********
-+
-+With regards to wireless, all acer-wmi does is enable the radio on the card. It
-+is not responsible for the wireless LED - once the radio is enabled, this is
-+down to the wireless driver for your card. So the behaviour of the wireless LED,
-+once you enable the radio, will depend on your hardware and driver combination.
-+
-+e.g. With the BCM4318 on the Acer Aspire 5020 series:
-+
-+ndiswrapper: Light blinks on when transmitting
-+bcm43xx/b43: Solid light, blinks off when transmitting
-+
-+Wireless radio control is unconditionally enabled - all Acer laptops that support
-+acer-wmi come with built-in wireless. However, should you feel so inclined to
-+ever wish to remove the card, or swap it out at some point, please get in touch
-+with me, as we may well be able to gain some data on wireless card detection.
-+
-+To read the status of the wireless radio (0=off, 1=on):
-+cat /sys/devices/platform/acer-wmi/wireless
-+
-+To enable the wireless radio:
-+echo 1 > /sys/devices/platform/acer-wmi/wireless
-+
-+To disable the wireless radio:
-+echo 0 > /sys/devices/platform/acer-wmi/wireless
-+
-+To set the state of the wireless radio when loading acer-wmi, pass:
-+wireless=X (where X is 0 or 1)
-+
-+Bluetooth
-+*********
-+
-+For bluetooth, this is an internal USB dongle, so once enabled, you will get
-+a USB device connection event, and a new USB device appears. When you disable
-+bluetooth, you get the reverse - a USB device disconnect event, followed by the
-+device disappearing again.
-+
-+Bluetooth is autodetected by acer-wmi, so if you do not have a bluetooth module
-+installed in your laptop, this file won't exist (please be aware that it is
-+quite common for Acer not to fit bluetooth to their laptops - so just because
-+you have a bluetooth button on the laptop, doesn't mean that bluetooth is
-+installed).
-+
-+For the adventurously minded - if you want to buy an internal bluetooth
-+module off the internet that is compatible with your laptop and fit it, then
-+it will work just fine with acer-wmi.
-+
-+To read the status of the bluetooth module (0=off, 1=on):
-+cat /sys/devices/platform/acer-wmi/wireless
-+
-+To enable the bluetooth module:
-+echo 1 > /sys/devices/platform/acer-wmi/bluetooth
-+
-+To disable the bluetooth module:
-+echo 0 > /sys/devices/platform/acer-wmi/bluetooth
-+
-+To set the state of the bluetooth module when loading acer-wmi, pass:
-+bluetooth=X (where X is 0 or 1)
-+
-+3G
-+**
-+
-+3G is currently not autodetected, so the 'threeg' file is always created under
-+sysfs. So far, no-one in possession of an Acer laptop with 3G built-in appears to
-+have tried Linux, or reported back, so we don't have any information on this.
-+
-+If you have an Acer laptop that does have a 3G card in, please contact me so we
-+can properly detect these, and find out a bit more about them.
-+
-+To read the status of the 3G card (0=off, 1=on):
-+cat /sys/devices/platform/acer-wmi/threeg
-+
-+To enable the 3G card:
-+echo 1 > /sys/devices/platform/acer-wmi/threeg
-+
-+To disable the 3G card:
-+echo 0 > /sys/devices/platform/acer-wmi/threeg
-+
-+To set the state of the 3G card when loading acer-wmi, pass:
-+threeg=X (where X is 0 or 1)
-+
-+Mail LED
-+********
-+
-+This can be found in most older Acer laptops supported by acer-wmi, and many
-+newer ones - it is built into the 'mail' button, and blinks when active.
-+
-+On newer (WMID) laptops though, we have no way of detecting the mail LED. If
-+your laptop identifies itself in dmesg as a WMID model, then please try loading
-+acer_acpi with:
-+
-+force_series=2490
-+
-+This will use a known alternative method of reading/ writing the mail LED. If
-+it works, please report back to me with the DMI data from your laptop so this
-+can be added to acer-wmi.
-+
-+The LED is exposed through the LED subsystem, and can be found in:
-+
-+/sys/devices/platform/acer-wmi/leds/acer-mail:green/
-+
-+The mail LED is autodetected, so if you don't have one, the LED device won't
-+be registered.
-+
-+If you have a mail LED that is not green, please report this to me.
-+
-+Backlight
-+*********
-+
-+The backlight brightness control is available on all acer-wmi supported
-+hardware. The maximum brightness level is usually 15, but on some newer laptops
-+it's 10 (this is again autodetected).
-+
-+The backlight is exposed through the backlight subsystem, and can be found in:
-+
-+/sys/devices/platform/acer-wmi/backlight/acer-wmi/
-+
-+Credits
-+*******
-+
-+Olaf Tauber, who did the real hard work when he developed acerhk
-+http://www.informatik.hu-berlin.de/~tauber/acerhk
-+All the authors of laptop ACPI modules in the kernel, whose work
-+was an inspiration in the early days of acer_acpi
-+Mathieu Segaud, who solved the problem with having to modprobe the driver
-+twice in acer_acpi 0.2.
-+Jim Ramsay, who added support for the WMID interface
-+Mark Smith, who started the original acer_acpi
-+
-+And the many people who have used both acer_acpi and acer-wmi.
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index e3c70cd..e47d424 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -105,6 +105,9 @@ config ACER_WMI
- 	  wireless radio and bluetooth control, and on some laptops,
- 	  exposes the mail LED and LCD backlight.
- 
-+	  For more information about this driver see
-+	  <file:Documentation/laptops/acer-wmi.txt>
-+
- 	  If you have an ACPI-WMI compatible Acer/ Wistron laptop, say Y or M
- 	  here.
- 
+ create mode 100644 Documentation/laptops/sony-laptop.txt
+ create mode 100644 Documentation/laptops/sonypi.txt
+ create mode 100644 Documentation/laptops/thinkpad-acpi.txt
+ delete mode 100644 Documentation/sony-laptop.txt
+ delete mode 100644 Documentation/sonypi.txt
+ delete mode 100644 Documentation/thinkpad-acpi.txt
 
