@@ -1,76 +1,92 @@
-From: Jochen Kemnade <kemnade@gmail.com>
-Subject: Re: dmidecode for Compal HEL80 Notebook
-Date: Sat, 09 Feb 2008 12:12:01 +0100
-Message-ID: <47AD8A81.3020302@gmail.com>
-References: <470746EB.2000707@gmail.com> <200801182320.15049.lenb@kernel.org> <47921522.9070008@gmail.com> <200801201856.15742.lenb@kernel.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc0 (#2)
+Date: Sat, 9 Feb 2008 11:42:17 +0000
+Message-ID: <200802091142.18596.carlos@strangeworlds.co.uk>
+References: <200802080145.16774.lenb@kernel.org> <20080209061718.GA14200@elte.hu> <20080209061936.GA16849@elte.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-ripemd160;
- protocol="application/pgp-signature";
- boundary="------------enig132699E18140ED2B0A1A35C1"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:59247 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbYBILMR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Feb 2008 06:12:17 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so3158938fga.17
-        for <linux-acpi@vger.kernel.org>; Sat, 09 Feb 2008 03:12:13 -0800 (PST)
-In-Reply-To: <200801201856.15742.lenb@kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:47303 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203AbYBILo6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Feb 2008 06:44:58 -0500
+In-Reply-To: <20080209061936.GA16849@elte.hu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig132699E18140ED2B0A1A35C1
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Saturday 09 February 2008 06:19:36 Ingo Molnar wrote:
+> (Carlos Cc:-ed too)
+>
+> * Ingo Molnar <mingo@elte.hu> wrote:
+> > * Len Brown <lenb@kernel.org> wrote:
+> > > Len Brown (6):
+> > >       ACPI: add newline to printk
+> > >       ACPI: build WMI on X86 only
+> > >       acer-wmi, tc1100-wmi: select ACPI_WMI
+> >
+> > hm, this new WMI code caused a bootup crash in the overnight x86.git
+> > tests:
 
-Hello Len,
+I suspect this is a problem on systems without ACPI-WMI in the DSDT - though I 
+can't reproduce this here on my other box that lacks ACPI-WMI.
 
-Len Brown schrieb:
-> On Saturday 19 January 2008 10:20, Jochen Kemnade wrote:
->> Hello,
->>
->> Len Brown schrieb:
->>> Do you notice any functional difference when booting with
->>>
->>> "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
->>> vs.
->>> "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
->> No, i didn't. I was running 2.6.22 for some time and at the moment, I'=
-m
->> running 2.6.24-rc8, but I couldn't make out any functional change. Do
->> you have anything specific in mind that I could test and report about?=
+Ingo, can you try the patch below and see if this cures it?
+---
+ACPI: WMI: Fix crash on WMI free systems
 
->>
->>> Also, please send me the output from acpidump.
->=20
-> Thanks for the acpidump.
-> Please verify that the battery and AC/CD switch evenst are working
-> properly in both cases above.
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-as far as I can tell, the events work just fine with both settings.
+We have two pointers in the find_guid() code that aren't checked before
+we use them. On ACPI-WMI free systems, this can sometimes cause a crash if
+another driver tries to use any of the methods provided by WMI.
 
-Regards,
-Jochen
---=20
-Jochen Kemnade
-kemnade@gmail.com
-PGP: 0xb5cb0a3f
+Also throw in an extra early check to see if the GUID list is empty, so we
+can try to bail out before reaching this code as well.
+
+Spotted by Ingo Molnar.
+
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: Ingo Molnar <mingo@elte.hu>
+CC: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: Len Brown <lenb@kernel.org>
+---
+
+ drivers/acpi/wmi.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 
---------------enig132699E18140ED2B0A1A35C1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFHrYqE8gsDeLXLCj8RA+gHAJ0T4x2ecviWHwF+Oh6hKblmynedNwCeNFYf
-1k9+f8zCdEPWyDw+15Dz6N4=
-=N+Co
------END PGP SIGNATURE-----
-
---------------enig132699E18140ED2B0A1A35C1--
+diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
+index 36b84ab..b54e734 100644
+--- a/drivers/acpi/wmi.c
++++ b/drivers/acpi/wmi.c
+@@ -201,12 +201,20 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
+ 	struct guid_block *block;
+ 	struct list_head *p;
+ 
++	if (list_empty(&wmi_blocks.list))
++		return 0;
++
+ 	wmi_parse_guid(guid_string, tmp);
+ 	wmi_swap_bytes(tmp, guid_input);
+ 
+ 	list_for_each(p, &wmi_blocks.list) {
+ 		wblock = list_entry(p, struct wmi_block, list);
++		if (!wblock)
++			return 0;
++
+ 		block = &wblock->gblock;
++		if (!block)
++			return 0;
+ 
+ 		if (memcmp(block->guid, guid_input, 16) == 0) {
+ 			if (out)
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
