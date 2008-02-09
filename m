@@ -1,92 +1,43 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc0 (#2)
-Date: Sat, 9 Feb 2008 11:42:17 +0000
-Message-ID: <200802091142.18596.carlos@strangeworlds.co.uk>
-References: <200802080145.16774.lenb@kernel.org> <20080209061718.GA14200@elte.hu> <20080209061936.GA16849@elte.hu>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
+Date: Sat, 9 Feb 2008 16:22:17 -0200
+Message-ID: <20080209182217.GA23736@khazad-dum.debian.net>
+References: <20080209013157.4895.70128.stgit@pacifica> <200802090149.30282.carlos@strangeworlds.co.uk> <200802090412.57945.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:47303 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203AbYBILo6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Feb 2008 06:44:58 -0500
-In-Reply-To: <20080209061936.GA16849@elte.hu>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:32946 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752607AbYBISWX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Feb 2008 13:22:23 -0500
 Content-Disposition: inline
+In-Reply-To: <200802090412.57945.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Len Brown <lenb@kernel.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Randy Dunlap <randy.dunlap@oracle.com>, Mattia Dongili <malattia@linux.it>
 
-On Saturday 09 February 2008 06:19:36 Ingo Molnar wrote:
-> (Carlos Cc:-ed too)
->
-> * Ingo Molnar <mingo@elte.hu> wrote:
-> > * Len Brown <lenb@kernel.org> wrote:
-> > > Len Brown (6):
-> > >       ACPI: add newline to printk
-> > >       ACPI: build WMI on X86 only
-> > >       acer-wmi, tc1100-wmi: select ACPI_WMI
-> >
-> > hm, this new WMI code caused a bootup crash in the overnight x86.git
-> > tests:
+On Sat, 09 Feb 2008, Len Brown wrote:
+> On Friday 08 February 2008 20:49, Carlos Corbacho wrote:
+> > On Saturday 09 February 2008 01:31:57 Carlos Corbacho wrote:
+> > >       thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
+> > 
+> > This patch [2/5] doesn't seem to have made it to the list. If it doesn't 
+> > appear by the end of Saturday, I'll try resending it.
+> 
+> it was 110K, which exceeded the 100K message size of the list.
+> 
+> i'm fine with these changes if everybody else is.
 
-I suspect this is a problem on systems without ACPI-WMI in the DSDT - though I 
-can't reproduce this here on my other box that lacks ACPI-WMI.
+As I said before, I am OK with them.
 
-Ingo, can you try the patch below and see if this cures it?
----
-ACPI: WMI: Fix crash on WMI free systems
+BTW Carlos, sending a git diff would have resulted in much smaller diffs
+(since git diff can do renames instead of add/delete) :)  I believe all of
+us can deal just fine with git diffs, so it makes sense to use them in these
+cases.
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-
-We have two pointers in the find_guid() code that aren't checked before
-we use them. On ACPI-WMI free systems, this can sometimes cause a crash if
-another driver tries to use any of the methods provided by WMI.
-
-Also throw in an extra early check to see if the GUID list is empty, so we
-can try to bail out before reaching this code as well.
-
-Spotted by Ingo Molnar.
-
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: Ingo Molnar <mingo@elte.hu>
-CC: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: Len Brown <lenb@kernel.org>
----
-
- drivers/acpi/wmi.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-
-diff --git a/drivers/acpi/wmi.c b/drivers/acpi/wmi.c
-index 36b84ab..b54e734 100644
---- a/drivers/acpi/wmi.c
-+++ b/drivers/acpi/wmi.c
-@@ -201,12 +201,20 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
- 	struct guid_block *block;
- 	struct list_head *p;
- 
-+	if (list_empty(&wmi_blocks.list))
-+		return 0;
-+
- 	wmi_parse_guid(guid_string, tmp);
- 	wmi_swap_bytes(tmp, guid_input);
- 
- 	list_for_each(p, &wmi_blocks.list) {
- 		wblock = list_entry(p, struct wmi_block, list);
-+		if (!wblock)
-+			return 0;
-+
- 		block = &wblock->gblock;
-+		if (!block)
-+			return 0;
- 
- 		if (memcmp(block->guid, guid_input, 16) == 0) {
- 			if (out)
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
