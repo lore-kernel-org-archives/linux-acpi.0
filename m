@@ -1,81 +1,65 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
-Date: Fri, 8 Feb 2008 20:09:16 -0800
-Message-ID: <20080208200916.52d73c7f.randy.dunlap@oracle.com>
-References: <20080209013157.4895.70128.stgit@pacifica>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc0 (#2)
+Date: Sat, 9 Feb 2008 07:19:36 +0100
+Message-ID: <20080209061936.GA16849@elte.hu>
+References: <200802080145.16774.lenb@kernel.org> <20080209061718.GA14200@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:34440 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930AbYBIELS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 23:11:18 -0500
-In-Reply-To: <20080209013157.4895.70128.stgit@pacifica>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:39337 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752026AbYBIGUK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 9 Feb 2008 01:20:10 -0500
+Content-Disposition: inline
+In-Reply-To: <20080209061718.GA14200@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-On Sat, 09 Feb 2008 01:31:57 +0000 Carlos Corbacho wrote:
 
-> The following series implements the proposed creation of Documentation/laptops,
-> and the movement of all the laptop driver documentation to this directory. I've
-> also taken the opportunity to tack on the acer-wmi documentation in the final
-> patch of this series.
+(Carlos Cc:-ed too)
+
+* Ingo Molnar <mingo@elte.hu> wrote:
+
+> * Len Brown <lenb@kernel.org> wrote:
 > 
-> Because all the drivers in question go through the ACPI tree anyway, it's
-> probably easiest if this change goes through the ACPI tree as well.
+> > Len Brown (6):
+> >       ACPI: add newline to printk
+> >       ACPI: build WMI on X86 only
+> >       acer-wmi, tc1100-wmi: select ACPI_WMI
 > 
-> This should all be 2.6.25 material, since there is no code change here, just
-> rearranging the Documentation files, and updating Kconfig entries where
-> required. I've also tested this series against Linus' latest git tree, with no
-> problems applying it there.
+> hm, this new WMI code caused a bootup crash in the overnight x86.git 
+> tests:
 > 
-> -Carlos
-> ---
+> initcall 0x40cffbd0 ran for 0 msecs: msi_init+0x0/0x150()
+> Calling initcall 0x40cffd20: tc1100_init+0x0/0x70()
+> BUG: unable to handle kernel NULL pointer dereference at 00000000
+> IP: [<404b96a2>] find_guid+0x132/0x150
+> *pde = 00000000 
+> Oops: 0000 [#1] SMP 
 > 
-> Carlos Corbacho (5):
->       acer-wmi - Add documentation
->       sonypi - Move sonypi.txt to Documentation/laptops
->       sony-laptop - Move sony-laptop.txt to Documentation/laptops
->       thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
->       Documentation - Create laptops sub-directory
-
-for_each:
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com.
-
-Oh.  If any of these are purely moved files (from one location to
-another), then that should show up in the git-diff diffstat.
-(I'm sure that Len knows about this.)
-Ah, I finally found Linus's email on this.  He says:
-
-Please use "git diff -M --stat --summary" to generate the diffstat: the -M 
-enables rename detection, and the summary enables a summary of new/deleted 
-or renamed files.
-
-Thanks.
-
->  Documentation/00-INDEX                  |    8 
->  Documentation/laptops/00-INDEX          |   10 
->  Documentation/laptops/acer-wmi.txt      |  202 +++++
->  Documentation/laptops/sony-laptop.txt   |  117 +++
->  Documentation/laptops/sonypi.txt        |  152 +++
->  Documentation/laptops/thinkpad-acpi.txt | 1365 +++++++++++++++++++++++++++++++
->  Documentation/sony-laptop.txt           |  117 ---
->  Documentation/sonypi.txt                |  152 ---
->  Documentation/thinkpad-acpi.txt         | 1365 -------------------------------
->  drivers/char/Kconfig                    |    2 
->  drivers/misc/Kconfig                    |   10 
->  11 files changed, 1856 insertions(+), 1644 deletions(-)
->  create mode 100644 Documentation/laptops/00-INDEX
->  create mode 100644 Documentation/laptops/acer-wmi.txt
->  create mode 100644 Documentation/laptops/sony-laptop.txt
->  create mode 100644 Documentation/laptops/sonypi.txt
->  create mode 100644 Documentation/laptops/thinkpad-acpi.txt
->  delete mode 100644 Documentation/sony-laptop.txt
->  delete mode 100644 Documentation/sonypi.txt
->  delete mode 100644 Documentation/thinkpad-acpi.txt
-
----
-~Randy
+> Pid: 1, comm: swapper Not tainted (2.6.24 #34)
+> EIP: 0060:[<404b96a2>] EFLAGS: 00010247 CPU: 1
+> EIP is at find_guid+0x132/0x150
+> EAX: 05a572d4 EBX: 5f81af54 ECX: 00000000 EDX: ffffffff
+> ESI: 00000000 EDI: 5f81af54 EBP: 5f81af80 ESP: 5f81af48
+>  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> Process swapper (pid: 1, ti=5f81a000 task=5f815410 task.ti=5f81a000)
+> Stack: 00000000 5f81af74 00000005 c364ac71 495a36db 39b49484 05a572d4 71ac64c3 
+>        5a49db36 39b49484 05a572d4 00000000 00000000 ffffffed 5f81af88 404b96cf 
+>        5f81af94 40cffd33 00000000 5f81afe0 40cdb5d3 2c7b1366 00000001 00000000 
+> Call Trace:
+>  [<404b96cf>] ? wmi_has_guid+0xf/0x20
+>  [<40cffd33>] ? tc1100_init+0x13/0x70
+>  [<40cdb5d3>] ? kernel_init+0x123/0x2f0
+>  [<40cdb4b0>] ? kernel_init+0x0/0x2f0
+>  [<401053d7>] ? kernel_thread_helper+0x7/0x10
+>  =======================
+> Code: 0c 41 8d 7d d4 eb 24 8d 46 08 b9 10 00 00 00 89 fa e8 e3 88 f6 ff 85 c0 75 0f b0 01 83 7d c8 00 74 19 8b 55 c8 89 32 eb 12 89 de <8b> 1e 0f 18 03 90 81 fe 90 c1 0c 41 75 ce 31 c0 83 c4 2c 5b 5e 
+> EIP: [<404b96a2>] find_guid+0x132/0x150 SS:ESP 0068:5f81af48
+> ---[ end trace 5d95b7a12e9c31b7 ]---
+> Kernel panic - not syncing: Attempted to kill init!
+> Press any key to enter the menu
+> 
+> config and crashlog attached.
