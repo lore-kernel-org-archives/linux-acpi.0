@@ -1,435 +1,269 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 4/5] sonypi - Move sonypi.txt to Documentation/laptops
-Date: Sat, 09 Feb 2008 01:32:19 +0000
-Message-ID: <20080209013219.4895.51729.stgit@pacifica>
+Subject: [PATCH 5/5] acer-wmi - Add documentation
+Date: Sat, 09 Feb 2008 01:32:25 +0000
+Message-ID: <20080209013225.4895.99305.stgit@pacifica>
 References: <20080209013157.4895.70128.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57981 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57983 "EHLO
 	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755446AbYBIBct (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2008 20:32:49 -0500
+	id S1754325AbYBIBdA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Feb 2008 20:33:00 -0500
 In-Reply-To: <20080209013157.4895.70128.stgit@pacifica>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Randy Dunlap <randy.dunlap@oracle.com>, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>
 
-Also update references to sonypi.txt in Kconfig.
+Add some initial documentation detailing what acer-wmi is, and how to use
+it. Update the Kconfig entry with a reference to the documentation.
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Mattia Dongili <malattia@linux.it>
 CC: Len Brown <lenb@kernel.org>
+CC: Randy Dunlap <randy.dunlap@oracle.com>
 ---
 
- Documentation/00-INDEX           |    2 -
- Documentation/laptops/00-INDEX   |    2 +
- Documentation/laptops/sonypi.txt |  152 ++++++++++++++++++++++++++++++=
-++++++++
- Documentation/sonypi.txt         |  152 ------------------------------=
---------
- drivers/char/Kconfig             |    2 -
- 5 files changed, 155 insertions(+), 155 deletions(-)
- create mode 100644 Documentation/laptops/sonypi.txt
- delete mode 100644 Documentation/sonypi.txt
+ Documentation/laptops/00-INDEX     |    2 
+ Documentation/laptops/acer-wmi.txt |  202 ++++++++++++++++++++++++++++++++++++
+ drivers/misc/Kconfig               |    3 +
+ 3 files changed, 207 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/laptops/acer-wmi.txt
 
 
-diff --git a/Documentation/00-INDEX b/Documentation/00-INDEX
-index 012ef98..8d55670 100644
---- a/Documentation/00-INDEX
-+++ b/Documentation/00-INDEX
-@@ -353,8 +353,6 @@ sh/
- 	- directory with info on porting Linux to a new architecture.
- smart-config.txt
- 	- description of the Smart Config makefile feature.
--sonypi.txt
--	- info on Linux Sony Programmable I/O Device support.
- sound/
- 	- directory with info on sound card support.
- sparc/
-diff --git a/Documentation/laptops/00-INDEX b/Documentation/laptops/00-=
-INDEX
-index c5bac77..dbe1759 100644
+diff --git a/Documentation/laptops/00-INDEX b/Documentation/laptops/00-INDEX
+index dbe1759..729c2c0 100644
 --- a/Documentation/laptops/00-INDEX
 +++ b/Documentation/laptops/00-INDEX
-@@ -2,5 +2,7 @@
+@@ -1,5 +1,7 @@
+ 00-INDEX
  	- This file
++acer-wmi.txt
++	- information on the Acer Laptop WMI Extras driver.
  sony-laptop.txt
  	- Sony Notebook Control Driver (SNC) Readme.
-+sonypi.txt
-+	- info on Linux Sony Programmable I/O Device support.
- thinkpad-acpi.txt
- 	- information on the (IBM and Lenovo) ThinkPad ACPI Extras driver.
-diff --git a/Documentation/laptops/sonypi.txt b/Documentation/laptops/s=
-onypi.txt
+ sonypi.txt
+diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
 new file mode 100644
-index 0000000..4857acf
+index 0000000..b066963
 --- /dev/null
-+++ b/Documentation/laptops/sonypi.txt
-@@ -0,0 +1,152 @@
-+Sony Programmable I/O Control Device Driver Readme
-+--------------------------------------------------
-+	Copyright (C) 2001-2004 Stelian Pop <stelian@popies.net>
-+	Copyright (C) 2001-2002 Alc=C3=B4ve <www.alcove.com>
-+	Copyright (C) 2001 Michael Ashley <m.ashley@unsw.edu.au>
-+	Copyright (C) 2001 Junichi Morita <jun1m@mars.dti.ne.jp>
-+	Copyright (C) 2000 Takaya Kinjo <t-kinjo@tc4.so-net.ne.jp>
-+	Copyright (C) 2000 Andrew Tridgell <tridge@samba.org>
++++ b/Documentation/laptops/acer-wmi.txt
+@@ -0,0 +1,202 @@
++Acer Laptop WMI Extras Driver
++http://code.google.com/p/aceracpi
++Version 0.1
++9th February 2008
 +
-+This driver enables access to the Sony Programmable I/O Control Device=
- which
-+can be found in many Sony Vaio laptops. Some newer Sony laptops (seems=
- to be
-+limited to new FX series laptops, at least the FX501 and the FX702) la=
-ck a
-+sonypi device and are not supported at all by this driver.
++Copyright 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
 +
-+It will give access (through a user space utility) to some events thos=
-e laptops
-+generate, like:
-+	- jogdial events (the small wheel on the side of Vaios)
-+	- capture button events (only on Vaio Picturebook series)
-+	- Fn keys
-+	- bluetooth button (only on C1VR model)
-+	- programmable keys, back, help, zoom, thumbphrase buttons, etc.
-+	  (when available)
++acer-wmi is a driver to allow you to control various parts of your Acer laptop
++hardware under Linux which are exposed via ACPI-WMI.
 +
-+Those events (see linux/sonypi.h) can be polled using the character de=
-vice node
-+/dev/sonypi (major 10, minor auto allocated or specified as a option).
-+A simple daemon which translates the jogdial movements into mouse whee=
-l events
-+can be downloaded at: <http://popies.net/sonypi/>
++This driver completely replaces the old out-of-tree acer_acpi, which I am
++currently maintaining for bug fixes only on pre-2.6.25 kernels. All development
++work is now focused solely on acer-wmi.
 +
-+Another option to intercept the events is to get them directly through=
- the
-+input layer.
++Disclaimer
++**********
 +
-+This driver supports also some ioctl commands for setting the LCD scre=
-en
-+brightness and querying the batteries charge information (some more
-+commands may be added in the future).
++Acer and Wistron have provided nothing towards the development acer_acpi or
++acer-wmi. All information we have has been through the efforts of the developers
++and the users to discover as much as possible about the hardware.
 +
-+This driver can also be used to set the camera controls on Picturebook=
- series
-+(brightness, contrast etc), and is used by the video4linux driver for =
-the
-+Motion Eye camera.
++As such, I do warn that this could break your hardware - this is extremely
++unlikely of course, but please bear this in mind.
 +
-+Please note that this driver was created by reverse engineering the Wi=
-ndows
-+driver and the ACPI BIOS, because Sony doesn't agree to release any pr=
-ogramming
-+specs for its laptops. If someone convinces them to do so, drop me a n=
-ote.
++Background
++**********
 +
-+Driver options:
-+---------------
++acer-wmi is derived from acer_acpi, originally developed by Mark
++Smith in 2005, then taken over by Carlos Corbacho in 2007, in order to activate
++the wireless LAN card under a 64-bit version of Linux, as acerhk[1] (the
++previous solution to the problem) relied on making 32 bit BIOS calls which are
++not possible in kernel space from a 64 bit OS.
 +
-+Several options can be passed to the sonypi driver using the standard
-+module argument syntax (<param>=3D<value> when passing the option to t=
-he
-+module or sonypi.<param>=3D<value> on the kernel boot line when sonypi=
- is
-+statically linked into the kernel). Those options are:
++[1] acerhk: http://www.cakey.de/acerhk/
 +
-+	minor: 		minor number of the misc device /dev/sonypi,
-+			default is -1 (automatic allocation, see /proc/misc
-+			or kernel logs)
++Supported Hardware
++******************
 +
-+	camera:		if you have a PictureBook series Vaio (with the
-+			integrated MotionEye camera), set this parameter to 1
-+			in order to let the driver access to the camera
++Please see the website for the current list of known working hardare:
 +
-+	fnkeyinit:	on some Vaios (C1VE, C1VR etc), the Fn key events don't
-+			get enabled unless you set this parameter to 1.
-+			Do not use this option unless it's actually necessary,
-+			some Vaio models don't deal well with this option.
-+			This option is available only if the kernel is
-+			compiled without ACPI support (since it conflicts
-+			with it and it shouldn't be required anyway if
-+			ACPI is already enabled).
++http://code.google.com/p/aceracpi/wiki/SupportedHardware
 +
-+	verbose:	set to 1 to print unknown events received from the
-+			sonypi device.
-+			set to 2 to print all events received from the
-+			sonypi device.
++If your laptop is not listed, or listed as unknown, and works with acer-wmi,
++please contact me with a copy of the DSDT.
 +
-+	compat:		uses some compatibility code for enabling the sonypi
-+			events. If the driver worked for you in the past
-+			(prior to version 1.5) and does not work anymore,
-+			add this option and report to the author.
++If your Acer laptop doesn't work with acer-wmi, I would also like to see the
++DSDT.
 +
-+	mask:		event mask telling the driver what events will be
-+			reported to the user. This parameter is required for
-+			some Vaio models where the hardware reuses values
-+			used in other Vaio models (like the FX series who does
-+			not have a jogdial but reuses the jogdial events for
-+			programmable keys events). The default event mask is
-+			set to 0xffffffff, meaning that all possible events
-+			will be tried. You can use the following bits to
-+			construct your own event mask (from
-+			drivers/char/sonypi.h):
-+				SONYPI_JOGGER_MASK 		0x0001
-+				SONYPI_CAPTURE_MASK 		0x0002
-+				SONYPI_FNKEY_MASK 		0x0004
-+				SONYPI_BLUETOOTH_MASK 		0x0008
-+				SONYPI_PKEY_MASK 		0x0010
-+				SONYPI_BACK_MASK 		0x0020
-+				SONYPI_HELP_MASK 		0x0040
-+				SONYPI_LID_MASK 		0x0080
-+				SONYPI_ZOOM_MASK 		0x0100
-+				SONYPI_THUMBPHRASE_MASK 	0x0200
-+				SONYPI_MEYE_MASK		0x0400
-+				SONYPI_MEMORYSTICK_MASK		0x0800
-+				SONYPI_BATTERY_MASK		0x1000
-+				SONYPI_WIRELESS_MASK		0x2000
++To send me the DSDT, as root/sudo:
 +
-+	useinput:	if set (which is the default) two input devices are
-+			created, one which interprets the jogdial events as
-+			mouse events, the other one which acts like a
-+			keyboard reporting the pressing of the special keys.
++cat /sys/firmware/acpi/DSDT > dsdt
 +
-+Module use:
-+-----------
++And send me the resulting 'dsdt' file.
 +
-+In order to automatically load the sonypi module on use, you can put t=
-hose
-+lines in your /etc/modprobe.conf file:
++Usage
++*****
 +
-+	alias char-major-10-250 sonypi
-+	options sonypi minor=3D250
++On Acer laptops, acer-wmi should already be autoloaded based on DMI matching.
++For non-Acer laptops, until WMI based autoloading support is added, you will
++need to manually load acer-wmi.
 +
-+This supposes the use of minor 250 for the sonypi device:
++acer-wmi creates /sys/devices/platform/acer-wmi, and fills it with various
++files whose usage is detailed below, which enables you to control some of the
++following (varies between models):
 +
-+	# mknod /dev/sonypi c 10 250
++* the wireless LAN card radio
++* inbuilt Bluetooth adapter
++* inbuilt 3G card
++* mail LED of your laptop
++* brightness of the LCD panel
 +
-+Bugs:
-+-----
++Wireless
++********
 +
-+	- several users reported that this driver disables the BIOS-managed
-+	  Fn-keys which put the laptop in sleeping state, or switch the
-+	  external monitor on/off. There is no workaround yet, since this
-+	  driver disables all APM management for those keys, by enabling the
-+	  ACPI management (and the ACPI core stuff is not complete yet). If
-+	  you have one of those laptops with working Fn keys and want to
-+	  continue to use them, don't use this driver.
++With regards to wireless, all acer-wmi does is enable the radio on the card. It
++is not responsible for the wireless LED - once the radio is enabled, this is
++down to the wireless driver for your card. So the behaviour of the wireless LED,
++once you enable the radio, will depend on your hardware and driver combination.
 +
-+	- some users reported that the laptop speed is lower (dhrystone
-+	  tested) when using the driver with the fnkeyinit parameter. I canno=
-t
-+	  reproduce it on my laptop and not all users have this problem.
-+	  This happens because the fnkeyinit parameter enables the ACPI
-+	  mode (but without additional ACPI control, like processor
-+	  speed handling etc). Use ACPI instead of APM if it works on your
-+	  laptop.
++e.g. With the BCM4318 on the Acer Aspire 5020 series:
 +
-+	- sonypi lacks the ability to distinguish between certain key
-+	  events on some models.
++ndiswrapper: Light blinks on when transmitting
++bcm43xx/b43: Solid light, blinks off when transmitting
 +
-+	- some models with the nvidia card (geforce go 6200 tc) uses a
-+	  different way to adjust the backlighting of the screen. There
-+	  is a userspace utility to adjust the brightness on those models,
-+	  which can be downloaded from
-+	  http://www.acc.umu.se/~erikw/program/smartdimmer-0.1.tar.bz2
++Wireless radio control is unconditionally enabled - all Acer laptops that support
++acer-wmi come with built-in wireless. However, should you feel so inclined to
++ever wish to remove the card, or swap it out at some point, please get in touch
++with me, as we may well be able to gain some data on wireless card detection.
 +
-+	- since all development was done by reverse engineering, there is
-+	  _absolutely no guarantee_ that this driver will not crash your
-+	  laptop. Permanently.
-diff --git a/Documentation/sonypi.txt b/Documentation/sonypi.txt
-deleted file mode 100644
-index 4857acf..0000000
---- a/Documentation/sonypi.txt
-+++ /dev/null
-@@ -1,152 +0,0 @@
--Sony Programmable I/O Control Device Driver Readme
----------------------------------------------------
--	Copyright (C) 2001-2004 Stelian Pop <stelian@popies.net>
--	Copyright (C) 2001-2002 Alc=C3=B4ve <www.alcove.com>
--	Copyright (C) 2001 Michael Ashley <m.ashley@unsw.edu.au>
--	Copyright (C) 2001 Junichi Morita <jun1m@mars.dti.ne.jp>
--	Copyright (C) 2000 Takaya Kinjo <t-kinjo@tc4.so-net.ne.jp>
--	Copyright (C) 2000 Andrew Tridgell <tridge@samba.org>
--
--This driver enables access to the Sony Programmable I/O Control Device=
- which
--can be found in many Sony Vaio laptops. Some newer Sony laptops (seems=
- to be
--limited to new FX series laptops, at least the FX501 and the FX702) la=
-ck a
--sonypi device and are not supported at all by this driver.
--
--It will give access (through a user space utility) to some events thos=
-e laptops
--generate, like:
--	- jogdial events (the small wheel on the side of Vaios)
--	- capture button events (only on Vaio Picturebook series)
--	- Fn keys
--	- bluetooth button (only on C1VR model)
--	- programmable keys, back, help, zoom, thumbphrase buttons, etc.
--	  (when available)
--
--Those events (see linux/sonypi.h) can be polled using the character de=
-vice node
--/dev/sonypi (major 10, minor auto allocated or specified as a option).
--A simple daemon which translates the jogdial movements into mouse whee=
-l events
--can be downloaded at: <http://popies.net/sonypi/>
--
--Another option to intercept the events is to get them directly through=
- the
--input layer.
--
--This driver supports also some ioctl commands for setting the LCD scre=
-en
--brightness and querying the batteries charge information (some more
--commands may be added in the future).
--
--This driver can also be used to set the camera controls on Picturebook=
- series
--(brightness, contrast etc), and is used by the video4linux driver for =
-the
--Motion Eye camera.
--
--Please note that this driver was created by reverse engineering the Wi=
-ndows
--driver and the ACPI BIOS, because Sony doesn't agree to release any pr=
-ogramming
--specs for its laptops. If someone convinces them to do so, drop me a n=
-ote.
--
--Driver options:
-----------------
--
--Several options can be passed to the sonypi driver using the standard
--module argument syntax (<param>=3D<value> when passing the option to t=
-he
--module or sonypi.<param>=3D<value> on the kernel boot line when sonypi=
- is
--statically linked into the kernel). Those options are:
--
--	minor: 		minor number of the misc device /dev/sonypi,
--			default is -1 (automatic allocation, see /proc/misc
--			or kernel logs)
--
--	camera:		if you have a PictureBook series Vaio (with the
--			integrated MotionEye camera), set this parameter to 1
--			in order to let the driver access to the camera
--
--	fnkeyinit:	on some Vaios (C1VE, C1VR etc), the Fn key events don't
--			get enabled unless you set this parameter to 1.
--			Do not use this option unless it's actually necessary,
--			some Vaio models don't deal well with this option.
--			This option is available only if the kernel is
--			compiled without ACPI support (since it conflicts
--			with it and it shouldn't be required anyway if
--			ACPI is already enabled).
--
--	verbose:	set to 1 to print unknown events received from the
--			sonypi device.
--			set to 2 to print all events received from the
--			sonypi device.
--
--	compat:		uses some compatibility code for enabling the sonypi
--			events. If the driver worked for you in the past
--			(prior to version 1.5) and does not work anymore,
--			add this option and report to the author.
--
--	mask:		event mask telling the driver what events will be
--			reported to the user. This parameter is required for
--			some Vaio models where the hardware reuses values
--			used in other Vaio models (like the FX series who does
--			not have a jogdial but reuses the jogdial events for
--			programmable keys events). The default event mask is
--			set to 0xffffffff, meaning that all possible events
--			will be tried. You can use the following bits to
--			construct your own event mask (from
--			drivers/char/sonypi.h):
--				SONYPI_JOGGER_MASK 		0x0001
--				SONYPI_CAPTURE_MASK 		0x0002
--				SONYPI_FNKEY_MASK 		0x0004
--				SONYPI_BLUETOOTH_MASK 		0x0008
--				SONYPI_PKEY_MASK 		0x0010
--				SONYPI_BACK_MASK 		0x0020
--				SONYPI_HELP_MASK 		0x0040
--				SONYPI_LID_MASK 		0x0080
--				SONYPI_ZOOM_MASK 		0x0100
--				SONYPI_THUMBPHRASE_MASK 	0x0200
--				SONYPI_MEYE_MASK		0x0400
--				SONYPI_MEMORYSTICK_MASK		0x0800
--				SONYPI_BATTERY_MASK		0x1000
--				SONYPI_WIRELESS_MASK		0x2000
--
--	useinput:	if set (which is the default) two input devices are
--			created, one which interprets the jogdial events as
--			mouse events, the other one which acts like a
--			keyboard reporting the pressing of the special keys.
--
--Module use:
-------------
--
--In order to automatically load the sonypi module on use, you can put t=
-hose
--lines in your /etc/modprobe.conf file:
--
--	alias char-major-10-250 sonypi
--	options sonypi minor=3D250
--
--This supposes the use of minor 250 for the sonypi device:
--
--	# mknod /dev/sonypi c 10 250
--
--Bugs:
-------
--
--	- several users reported that this driver disables the BIOS-managed
--	  Fn-keys which put the laptop in sleeping state, or switch the
--	  external monitor on/off. There is no workaround yet, since this
--	  driver disables all APM management for those keys, by enabling the
--	  ACPI management (and the ACPI core stuff is not complete yet). If
--	  you have one of those laptops with working Fn keys and want to
--	  continue to use them, don't use this driver.
--
--	- some users reported that the laptop speed is lower (dhrystone
--	  tested) when using the driver with the fnkeyinit parameter. I canno=
-t
--	  reproduce it on my laptop and not all users have this problem.
--	  This happens because the fnkeyinit parameter enables the ACPI
--	  mode (but without additional ACPI control, like processor
--	  speed handling etc). Use ACPI instead of APM if it works on your
--	  laptop.
--
--	- sonypi lacks the ability to distinguish between certain key
--	  events on some models.
--
--	- some models with the nvidia card (geforce go 6200 tc) uses a
--	  different way to adjust the backlighting of the screen. There
--	  is a userspace utility to adjust the brightness on those models,
--	  which can be downloaded from
--	  http://www.acc.umu.se/~erikw/program/smartdimmer-0.1.tar.bz2
--
--	- since all development was done by reverse engineering, there is
--	  _absolutely no guarantee_ that this driver will not crash your
--	  laptop. Permanently.
-diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index f01ac9a..47c6be8 100644
---- a/drivers/char/Kconfig
-+++ b/drivers/char/Kconfig
-@@ -875,7 +875,7 @@ config SONYPI
- 	  Device which can be found in many (all ?) Sony Vaio laptops.
-=20
- 	  If you have one of those laptops, read
--	  <file:Documentation/sonypi.txt>, and say Y or M here.
-+	  <file:Documentation/laptops/sonypi.txt>, and say Y or M here.
-=20
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sonypi.
++To read the status of the wireless radio (0=off, 1=on):
++cat /sys/devices/platform/acer-wmi/wireless
++
++To enable the wireless radio:
++echo 1 > /sys/devices/platform/acer-wmi/wireless
++
++To disable the wireless radio:
++echo 0 > /sys/devices/platform/acer-wmi/wireless
++
++To set the state of the wireless radio when loading acer-wmi, pass:
++wireless=X (where X is 0 or 1)
++
++Bluetooth
++*********
++
++For bluetooth, this is an internal USB dongle, so once enabled, you will get
++a USB device connection event, and a new USB device appears. When you disable
++bluetooth, you get the reverse - a USB device disconnect event, followed by the
++device disappearing again.
++
++Bluetooth is autodetected by acer-wmi, so if you do not have a bluetooth module
++installed in your laptop, this file won't exist (please be aware that it is
++quite common for Acer not to fit bluetooth to their laptops - so just because
++you have a bluetooth button on the laptop, doesn't mean that bluetooth is
++installed).
++
++For the adventurously minded - if you want to buy an internal bluetooth
++module off the internet that is compatible with your laptop and fit it, then
++it will work just fine with acer-wmi.
++
++To read the status of the bluetooth module (0=off, 1=on):
++cat /sys/devices/platform/acer-wmi/wireless
++
++To enable the bluetooth module:
++echo 1 > /sys/devices/platform/acer-wmi/bluetooth
++
++To disable the bluetooth module:
++echo 0 > /sys/devices/platform/acer-wmi/bluetooth
++
++To set the state of the bluetooth module when loading acer-wmi, pass:
++bluetooth=X (where X is 0 or 1)
++
++3G
++**
++
++3G is currently not autodetected, so the 'threeg' file is always created under
++sysfs. So far, no-one in possession of an Acer laptop with 3G built-in appears to
++have tried Linux, or reported back, so we don't have any information on this.
++
++If you have an Acer laptop that does have a 3G card in, please contact me so we
++can properly detect these, and find out a bit more about them.
++
++To read the status of the 3G card (0=off, 1=on):
++cat /sys/devices/platform/acer-wmi/threeg
++
++To enable the 3G card:
++echo 1 > /sys/devices/platform/acer-wmi/threeg
++
++To disable the 3G card:
++echo 0 > /sys/devices/platform/acer-wmi/threeg
++
++To set the state of the 3G card when loading acer-wmi, pass:
++threeg=X (where X is 0 or 1)
++
++Mail LED
++********
++
++This can be found in most older Acer laptops supported by acer-wmi, and many
++newer ones - it is built into the 'mail' button, and blinks when active.
++
++On newer (WMID) laptops though, we have no way of detecting the mail LED. If
++your laptop identifies itself in dmesg as a WMID model, then please try loading
++acer_acpi with:
++
++force_series=2490
++
++This will use a known alternative method of reading/ writing the mail LED. If
++it works, please report back to me with the DMI data from your laptop so this
++can be added to acer-wmi.
++
++The LED is exposed through the LED subsystem, and can be found in:
++
++/sys/devices/platform/acer-wmi/leds/acer-mail:green/
++
++The mail LED is autodetected, so if you don't have one, the LED device won't
++be registered.
++
++If you have a mail LED that is not green, please report this to me.
++
++Backlight
++*********
++
++The backlight brightness control is available on all acer-wmi supported
++hardware. The maximum brightness level is usually 15, but on some newer laptops
++it's 10 (this is again autodetected).
++
++The backlight is exposed through the backlight subsystem, and can be found in:
++
++/sys/devices/platform/acer-wmi/backlight/acer-wmi/
++
++Credits
++*******
++
++Olaf Tauber, who did the real hard work when he developed acerhk
++http://www.informatik.hu-berlin.de/~tauber/acerhk
++All the authors of laptop ACPI modules in the kernel, whose work
++was an inspiration in the early days of acer_acpi
++Mathieu Segaud, who solved the problem with having to modprobe the driver
++twice in acer_acpi 0.2.
++Jim Ramsay, who added support for the WMID interface
++Mark Smith, who started the original acer_acpi
++
++And the many people who have used both acer_acpi and acer-wmi.
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index e3c70cd..e47d424 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -105,6 +105,9 @@ config ACER_WMI
+ 	  wireless radio and bluetooth control, and on some laptops,
+ 	  exposes the mail LED and LCD backlight.
+ 
++	  For more information about this driver see
++	  <file:Documentation/laptops/acer-wmi.txt>
++
+ 	  If you have an ACPI-WMI compatible Acer/ Wistron laptop, say Y or M
+ 	  here.
+ 
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
