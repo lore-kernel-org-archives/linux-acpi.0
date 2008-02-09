@@ -1,62 +1,32 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
-Date: Sat, 09 Feb 2008 01:31:57 +0000
-Message-ID: <20080209013157.4895.70128.stgit@pacifica>
+Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
+Date: Sat, 9 Feb 2008 01:49:29 +0000
+Message-ID: <200802090149.30282.carlos@strangeworlds.co.uk>
+References: <20080209013157.4895.70128.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:57984 "EHLO
-	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757203AbYBIBdU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Feb 2008 20:33:20 -0500
+Received: from phoenix.slamd64.com ([217.10.145.2]:41366 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754878AbYBIBtz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Feb 2008 20:49:55 -0500
+In-Reply-To: <20080209013157.4895.70128.stgit@pacifica>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Len Brown <lenb@kernel.org>, Randy Dunlap <randy.dunlap@oracle.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
-The following series implements the proposed creation of Documentation/laptops,
-and the movement of all the laptop driver documentation to this directory. I've
-also taken the opportunity to tack on the acer-wmi documentation in the final
-patch of this series.
+On Saturday 09 February 2008 01:31:57 Carlos Corbacho wrote:
+>       thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
 
-Because all the drivers in question go through the ACPI tree anyway, it's
-probably easiest if this change goes through the ACPI tree as well.
-
-This should all be 2.6.25 material, since there is no code change here, just
-rearranging the Documentation files, and updating Kconfig entries where
-required. I've also tested this series against Linus' latest git tree, with no
-problems applying it there.
+This patch [2/5] doesn't seem to have made it to the list. If it doesn't 
+appear by the end of Saturday, I'll try resending it.
 
 -Carlos
----
-
-Carlos Corbacho (5):
-      acer-wmi - Add documentation
-      sonypi - Move sonypi.txt to Documentation/laptops
-      sony-laptop - Move sony-laptop.txt to Documentation/laptops
-      thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
-      Documentation - Create laptops sub-directory
-
-
- Documentation/00-INDEX                  |    8 
- Documentation/laptops/00-INDEX          |   10 
- Documentation/laptops/acer-wmi.txt      |  202 +++++
- Documentation/laptops/sony-laptop.txt   |  117 +++
- Documentation/laptops/sonypi.txt        |  152 +++
- Documentation/laptops/thinkpad-acpi.txt | 1365 +++++++++++++++++++++++++++++++
- Documentation/sony-laptop.txt           |  117 ---
- Documentation/sonypi.txt                |  152 ---
- Documentation/thinkpad-acpi.txt         | 1365 -------------------------------
- drivers/char/Kconfig                    |    2 
- drivers/misc/Kconfig                    |   10 
- 11 files changed, 1856 insertions(+), 1644 deletions(-)
- create mode 100644 Documentation/laptops/00-INDEX
- create mode 100644 Documentation/laptops/acer-wmi.txt
- create mode 100644 Documentation/laptops/sony-laptop.txt
- create mode 100644 Documentation/laptops/sonypi.txt
- create mode 100644 Documentation/laptops/thinkpad-acpi.txt
- delete mode 100644 Documentation/sony-laptop.txt
- delete mode 100644 Documentation/sonypi.txt
- delete mode 100644 Documentation/thinkpad-acpi.txt
-
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
