@@ -1,37 +1,87 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
-Date: Sun, 10 Feb 2008 17:09:48 +0900
-Message-ID: <20080210080947.GA27613@inferi.kami.home>
-References: <20080209013157.4895.70128.stgit@pacifica> <200802090149.30282.carlos@strangeworlds.co.uk> <200802090412.57945.lenb@kernel.org>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 2/5] Provide acpi_check_{mem_}region.
+Date: Sun, 10 Feb 2008 13:25:36 +0100
+Message-ID: <20080210132536.7c4d1cb1@hyperion.delvare>
+References: <1193236379.4590.229.camel@queen.suse.de>
+	<20080207234002.e31563be.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi14.ns.itscom.net ([219.110.2.184]:57827 "EHLO
-	mtoichi14.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754698AbYBJIKE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Feb 2008 03:10:04 -0500
-Content-Disposition: inline
-In-Reply-To: <200802090412.57945.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757424AbYBJMZu@vger.kernel.org>
+In-Reply-To: <20080207234002.e31563be.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Randy Dunlap <randy.dunlap@oracle.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Sat, Feb 09, 2008 at 04:12:57AM -0500, Len Brown wrote:
-> On Friday 08 February 2008 20:49, Carlos Corbacho wrote:
-> > On Saturday 09 February 2008 01:31:57 Carlos Corbacho wrote:
-> > >       thinkpad-acpi - Move thinkpad-acpi.txt to Documentation/laptops
+Hi Andrew,
+
+On Thu, 7 Feb 2008 23:40:02 -0800, Andrew Morton wrote:
+> On Wed, 24 Oct 2007 16:32:59 +0200 Thomas Renninger <trenn@suse.de> wrote:
+> 
+> > Provide acpi_check_{mem_}region.
 > > 
-> > This patch [2/5] doesn't seem to have made it to the list. If it doesn't 
-> > appear by the end of Saturday, I'll try resending it.
+> > Drivers can additionally check against possible ACPI interference by also
+> > invoking this shortly before they call request_region.
+> > If -EBUSY is returned, the driver must not load.
+> > Use acpi_enforce_resources=strict/lax/no options to:
+> >   - strict: let conflicting drivers fail to load with an error message
+> >   - lax:    let conflicting driver work normal with a warning message
+> >   - no:     no functional change at all
+> > 
+> > 
 > 
-> it was 110K, which exceeded the 100K message size of the list.
+> OK, so Len has merged these into the acpi test tree.  My understanding is
+> that once this work hits mainline, we can then merge
+> check-for-acpi-resource-conflicts-in-hwmon-drivers.patch.
+
+Correct. Same applies to a second patch:
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+Both patches should be merged upstream at the same time.
+
+> My normal approach would be to send
+> check-for-acpi-resource-conflicts-in-hwmon-drivers.patch to Mark for
+> inclusion in git-hwmon one Len has merged the prerequisites into mainline. 
 > 
-> i'm fine with these changes if everybody else is.
+> Problem is, if Len merges late in the 2.6.26 merge window, Mark might not
+> have time to gets these changes into mainline before 2.6.27.  Which is all
+> getting a bit dumb considering I first merged everything in October. 
+> Fortunately things aren't mormally _this_ inefficient when one follows the
+> rules - this was an unusual patchset.
+> 
+> But still, I think we could afford to speed things up a bit more than that.
+>  We could ask Len to consider merging this work into 2.6.25 and then if
+> Mark can ack check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+> (below) for an akpm-merge, we're good to go.  But I do recall that people
+> were a bit uncertain about it all back in October.
+> 
+> Please share your thoughts with us.
 
-Ok for me for sonypi.txt and sony-laptop.txt
+Len already merged all the acpi bits for 2.6.25 as far as I can see, so
+all that is missing now is these two patches:
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+Both have been in -mm for quite some time.
 
-Cheers
+In the default mode (acpi_enforce_resources=lax) these patches simply
+print warnings but still let the drivers load, so they are safe to
+merge, and the sooner, the better. The idea is to get feedback on how
+many systems out there have ACPI resource conflicts. Then we'll see how
+we can address them (if at all.)
+
+I don't remember anyone objecting to these patches, and anyway the
+problem has been there for years and nobody took care, so if anyone
+really isn't happy with the solution designed by Thomas, that person
+will have to do the work and submit something better later. That
+shouldn't delay the merge of what we have now.
+
+Andrew, both patches are
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+and I am totally fine with you pushing them to Linus now. But of course
+having Mark's ack would be good too.
+
+Thanks,
 -- 
-mattia
-:wq!
+Jean Delvare
