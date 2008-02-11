@@ -1,32 +1,43 @@
-From: Baeckham <baeckham@gmx.net>
-Subject: power comsumption low and raise then
-Date: Mon, 11 Feb 2008 15:50:12 +0100
-Message-ID: <200802111550.12501.baeckham@gmx.net>
+From: Roel Kluin <12o3l@tiscali.nl>
+Subject: [PATCH][drivers/pnp/pnpacpi/core.c] __initdata is not an identifier
+Date: Mon, 11 Feb 2008 16:05:35 +0100
+Message-ID: <47B0643F.3090100@tiscali.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56450 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752603AbYBKOuR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Feb 2008 09:50:17 -0500
-Content-Disposition: inline
+Received: from smtp-out0.tiscali.nl ([195.241.79.175]:38504 "EHLO
+	smtp-out0.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754525AbYBKPFk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Feb 2008 10:05:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: ambx1@neo.rr.com, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-I am running kernel 2.6.24.1 on my Core2Duo Laptop. I trying to measure and 
-lower the power consumption.
+sparse complains at drivers/pnp/pnpacpi/core.c:39 with the error:
+Trying to use reserved word '__attribute__' as identifier
+Expected ) in function declarator, got ".init.data"
 
-I noticed that after I logged in and started KDE (3.5.8) the system needs only 
-little power (about 9 W, measured with an external power meter, no battery 
-plugged in). But then usually after 10-15 minutes the power consumption 
-raises to 22-25 W. I did not start any extra programs, I do not touch the 
-system at all just watching the powermeter ... The system is idle all the 
-time and I do not see any significant output in syslog.
+and at drivers/pnp/pnpacpi/core.c:49:38 with the error: 
+undefined identifier 'excluded_id_list'
 
-I trying to find out what might cause this behavior. But I am at a loss.
-Can anyone help me to find out what is causing this behavior? 
+With the patch below these sparse complaints do not occur
+---
+__initdata is not an identifier
 
-Steffen
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+---
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 662b4c2..c283a9a 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -36,7 +36,7 @@ static int num = 0;
+  * have irqs (PIC, Timer) because we call acpi_register_gsi.
+  * Finally, only devices that have a CRS method need to be in this list.
+  */
+-static struct __initdata acpi_device_id excluded_id_list[] = {
++static struct acpi_device_id excluded_id_list[] __initdata = {
+ 	{"PNP0C09", 0},		/* EC */
+ 	{"PNP0C0F", 0},		/* Link device */
+ 	{"PNP0000", 0},		/* PIC */
