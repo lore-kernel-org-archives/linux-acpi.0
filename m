@@ -1,48 +1,55 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
-Date: Mon, 11 Feb 2008 19:29:29 +0000
-Message-ID: <200802111929.30877.carlos@strangeworlds.co.uk>
-References: <20080209013157.4895.70128.stgit@pacifica> <20080211112339.31ae3a68.randy.dunlap@oracle.com>
+Subject: [PATCH 2/2]  tc1100-wmi - Fail gracefully if ACPI is disabled
+Date: Mon, 11 Feb 2008 19:55:45 +0000
+Message-ID: <200802111955.46199.carlos@strangeworlds.co.uk>
+References: <200802080145.16774.lenb@kernel.org> <20080211091743.GA16459@elte.hu> <200802111923.31736.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:57876 "EHLO
+Received: from phoenix.slamd64.com ([217.10.145.2]:33606 "EHLO
 	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760746AbYBKTaa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Feb 2008 14:30:30 -0500
-In-Reply-To: <20080211112339.31ae3a68.randy.dunlap@oracle.com>
+	with ESMTP id S1761390AbYBKT7i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Feb 2008 14:59:38 -0500
+In-Reply-To: <200802111923.31736.carlos@strangeworlds.co.uk>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>, bart@samwel.tk
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Monday 11 February 2008 19:23:39 Randy Dunlap wrote:
-> On Sat, 09 Feb 2008 01:31:57 +0000 Carlos Corbacho wrote:
-> > The following series implements the proposed creation of
-> > Documentation/laptops, and the movement of all the laptop driver
-> > documentation to this directory. I've also taken the opportunity to tack
-> > on the acer-wmi documentation in the final patch of this series.
-> >
-> > Because all the drivers in question go through the ACPI tree anyway, it's
-> > probably easiest if this change goes through the ACPI tree as well.
-> >
-> > This should all be 2.6.25 material, since there is no code change here,
-> > just rearranging the Documentation files, and updating Kconfig entries
-> > where required. I've also tested this series against Linus' latest git
-> > tree, with no problems applying it there.
->
-> Hi,
-> so should we also move Documentation/laptop-mode.txt to laptops/ dir?
+tc1100-wmi - Fail gracefully if ACPI is disabled
 
-[CC'ing Bart Samwel on this, as he wrote Documentation/laptop-mode.txt]
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Yes, we probably should.
+WMI drivers, like their ACPI counterparts, should also check if ACPI is
+disabled or not, and bail out if so, otherwise we cause a crash.
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Spotted by Ingo Molnar.
+
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: Ingo Molnar <mingo@elte.hu>
+CC: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: Len Brown <lenb@kernel.org>
+---
+
+ drivers/misc/tc1100-wmi.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+
+diff --git a/drivers/misc/tc1100-wmi.c b/drivers/misc/tc1100-wmi.c
+index f25e4c9..cb8f79f 100644
+--- a/drivers/misc/tc1100-wmi.c
++++ b/drivers/misc/tc1100-wmi.c
+@@ -263,6 +263,9 @@ static int __init tc1100_init(void)
+ {
+ 	int result = 0;
+ 
++	if (acpi_disabled)
++		return -ENODEV;
++
+ 	if (!wmi_has_guid(GUID))
+ 		return -ENODEV;
+ 
