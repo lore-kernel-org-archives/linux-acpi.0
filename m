@@ -1,38 +1,43 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 1/2] acer-wmi - Fail gracefully if ACPI is disabled
-Date: Tue, 12 Feb 2008 19:28:05 +0000
-Message-ID: <200802121928.06420.carlos@strangeworlds.co.uk>
-References: <200802080145.16774.lenb@kernel.org> <200802111955.04562.carlos@strangeworlds.co.uk> <alpine.LFD.1.00.0802112038360.2920@woody.linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Dell OptiPlex 755 ACPI: DMI
+Date: Tue, 12 Feb 2008 14:46:15 -0500
+Message-ID: <200802121446.15971.lenb@kernel.org>
+References: <TBoneMsgId%zertificon.com%47B17562.7010107%zertificon.com%m.naumann@zertificon.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:60949 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023AbYBLTbw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2008 14:31:52 -0500
-In-Reply-To: <alpine.LFD.1.00.0802112038360.2920@woody.linux-foundation.org>
+Received: from hera.kernel.org ([140.211.167.34]:34872 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752083AbYBLTqb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Feb 2008 14:46:31 -0500
+In-Reply-To: <TBoneMsgId%zertificon.com%47B17562.7010107%zertificon.com%m.naumann@zertificon.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Moritz Naumann <securemail@zertificon.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 12 February 2008 04:41:42 Linus Torvalds wrote:
+On Tuesday 12 February 2008 05:30, Moritz Naumann wrote:
+> ACPI: DMI System Vendor: Dell Inc.
+> ACPI: DMI Product Name: OptiPlex 755
+> ACPI: DMI Product Version:
+> ACPI: DMI Board Name: 0GM819
+> ACPI: DMI BIOS Vendor: Dell Inc.
+> ACPI: DMI BIOS Date: 01/30/2008
 > 
-> On Mon, 11 Feb 2008, Carlos Corbacho wrote:
-> > 
-> > WMI drivers, like their ACPI counterparts, should also check if ACPI is
-> > disabled or not, and bail out if so, otherwise we cause a crash.
+> That's the latest BIOS version (Release A07) currently available for 
+> this system ( at http://ln-s.net/1X+3 or 
+> ftp://ftp.us.dell.com/bios/O755-A07.exe ).
 > 
-> Shouldn't "wmi_has_guid()" just return false if ACPI isn't enabled, and 
-> the drivers should just then always give up?
+> $ cat /proc/version
+> Linux version 2.6.24-1-amd64 (Debian 2.6.24-4~snapshot.10470) 
+> (waldi@debian.org) (gcc version 4.1.3 20070718 (prerelease) (Debian 
+> 4.1.2-14+1)) #1 SMP Mon Feb 11 02:24:55 UTC 2008
 
-Yes - that's a better fix.
+Please send me the output from acpidump.
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+thanks,
+-Len
+
