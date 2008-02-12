@@ -1,48 +1,35 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: 2.6.25-rc1 regression - suspend to ram
-Date: Mon, 11 Feb 2008 15:32:47 -0800
-Message-ID: <200802111532.47711.jbarnes@virtuousgeek.org>
-References: <20080211225811.GB4343@ics.muni.cz> <200802120010.55021.Rafal.Wysocki@fuw.edu.pl> <20080211232213.GB8206@linux-os.sc.intel.com>
+From: "Linda Walsh" <acpi@tlinx.org>
+Subject: dmi info requested...
+Date: Mon, 11 Feb 2008 17:45:10 -0800
+Message-ID: <47B0FA26.4010302@tlinx.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-40.bluehost.com ([69.89.20.194]:41230 "HELO
-	outbound-mail-40.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756688AbYBKXmh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Feb 2008 18:42:37 -0500
-In-Reply-To: <20080211232213.GB8206@linux-os.sc.intel.com>
-Content-Disposition: inline
+Received: from ishtar.tlinx.org ([64.81.245.74]:32770 "EHLO ishtar.tlinx.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752481AbYBLBpL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Feb 2008 20:45:11 -0500
+Received: from [192.168.3.11] (Athena [192.168.3.11])
+	by ishtar.tlinx.org (8.13.3/8.12.10/SuSE Linux 0.7) with ESMTP id m1C1jARO016457
+	for <linux-acpi@vger.kernel.org>; Mon, 11 Feb 2008 17:45:10 -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: "R. J. Wysocki" <Rafal.Wysocki@fuw.edu.pl>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Monday, February 11, 2008 3:22 pm Venki Pallipadi wrote:
-> On Tue, Feb 12, 2008 at 12:10:54AM +0100, R. J. Wysocki wrote:
-> > On Monday, 11 of February 2008, Lukas Hejtmanek wrote:
-> > > Hello,
-> >
-> > Hi,
-> >
-> > > 2.6.25-rc1 takes really long time till it suspends (about 30-40secs,
-> > > used to be about 5 secs at all) and it is resuming about few minutes. 
-> > > While resuming, capslock toggles the capslock led but with few secs
-> > > delay.
-> > >
-> > > 2.6.24-git15 was OK. 2.6.24 is OK.
-> > >
-> > > I have Lenovo ThinkPad T61.
-> >
-> > If you have CONFIG_CPU_IDLE set, please try to boot with idle=poll and
-> > see if that helps.
->
-> Just sent this patch to fix a regression in acpi processor_idle.c on
-> another thread. Can you try the patch below and check whether that helps.
+ACPI: DMI System Vendor: Dell Inc.               
+ACPI: DMI Product Name: Precision WorkStation 690
+ACPI: DMI Product Version:
+ACPI: DMI Board Name: 0MY171
+ACPI: DMI BIOS Vendor: Dell Inc.                
+ACPI: DMI BIOS Date: 08/20/2007
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+----
+Note my 410 Workstation ID's DMI as 2.2, but doesn't
+seem to provide any output.  Should it at least provide
+the "send DMI info" line if it is enabled correctly?
 
-Excellent, that patch makes things work for me (including console restore).  
-Thanks a lot Venki.
+What's this for, anyway?
 
-Jesse
+
+
