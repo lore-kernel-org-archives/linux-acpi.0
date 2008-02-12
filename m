@@ -1,240 +1,114 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: RE: [Bug-fix]:2.6.25-rc0 Generic thermal management [Patch 1/2]: validating input parameters
-Date: Tue, 12 Feb 2008 21:27:44 +0530
-Message-ID: <05B550FD4BD2014E841D83547B62600802A6B2A7@bgsmsx411.gar.corp.intel.com>
-References: <05B550FD4BD2014E841D83547B62600802A3A1B0@bgsmsx411.gar.corp.intel.com> <20080211133827.16140ba0.akpm@linux-foundation.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH] CPU_IDLE: Documentation for CPU_IDLE
+Date: Tue, 12 Feb 2008 08:46:05 -0800
+Message-ID: <20080212084605.28f0d3f3.randy.dunlap@oracle.com>
+References: <20080212015545.GA1691@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:1712 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751271AbYBLP5y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2008 10:57:54 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20080211133827.16140ba0.akpm@linux-foundation.org>
+Received: from rgminet01.oracle.com ([148.87.113.118]:64760 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763650AbYBLQrA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2008 11:47:00 -0500
+In-Reply-To: <20080212015545.GA1691@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, mingo@elte.hu, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-> On Mon, 11 Feb 2008 15:57:06 +0530
-> "Thomas, Sujith" <sujith.thomas@intel.com> wrote:
+On Mon, 11 Feb 2008 17:55:45 -0800 Venki Pallipadi wrote:
 
-> > From: Thomas Sujith <sujith.thomas@intel.com>
-> > 
-> > Added sanity checks for interface functions in thermal with
-> > other modules such as fan, processor, video etc..
-> > 
-> > Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
-> > ---
-> > drivers/thermal/thermal.c |   69
-> > +++++++++++++++++++++++++++++-----------------
 > 
-> The patch is fairly seriously wordwrapped.
-Should be fixed now.
+> Documentation for cpuidle infrastructure. This patch was submitted once
+> a while back. But, somehow got dropped or never made it upstream.
 > 
-> >  1 files changed, 44 insertions(+), 25 deletions(-)
-> > 
-> > Index: linux-2.6.24-rc3/drivers/thermal/thermal.c
-> > ===================================================================
-> > --- linux-2.6.24-rc3.orig/drivers/thermal/thermal.c
-> > +++ linux-2.6.24-rc3/drivers/thermal/thermal.c
-> > @@ -301,13 +301,27 @@ int thermal_zone_bind_cooling_device(str
-> >  {
-> >  	struct thermal_cooling_device_instance *dev;
-> >  	struct thermal_cooling_device_instance *pos;
-> > +	struct thermal_zone_device *pos1;
-> > +	struct thermal_cooling_device *pos2;
-> >  	int result;
-> >  
-> > +	if (!tz || !cdev)
-> > +		return -EINVAL;
+> Resending with updates.
 > 
-> Is this change actually needed?  It's sloppy for a caller to be
-passing
-> invalid arguments into a callee, and it's not good for the callee to
-just
-> hide that sloppiness.
-I agree; removed
-> 
-> > -		return NULL;
-> > +		return  ERR_PTR(-EINVAL);
-> 
-> the patch adds several spaces like this in places where we don't
-normally
-> put them.
-I agree; removed
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+> Index: linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
+> @@ -0,0 +1,81 @@
+> +
+> +
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle sysfs
+> +
+> +System global cpuidle related information and tunables are under
+> +/sys/devices/system/cpu/cpuidle
+> +
+> +The current interfaces in this directory has self-explanatory names:
+> +* current_driver
+> +* current_governor_ro
+> +
+> +With cpuidle_sysfs_switch boot option (meant for developer testing)
+
+Is 'cpuidle_sysfs_switch' usage documented anywhere?
 
 
-From: Thomas Sujith <sujith.thomas@intel.com>
+> +following objects are visible instead.
+> +* current_driver
+> +* available_governors
+> +* current_governor
+> +In this case user can switch the governor at run time by writing
 
-Added sanity checks for interface functions in thermal with
-other modules such as fan, processor, video etc. Using ERR_PTR
-to return errors.
- 
-Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+                users [or "a user"]
+
+> +onto current_governor.
+
+s/onto/to/ [?]
+
+> +
+> +
+> +Per logical CPU specific cpuidle information are under
+> +/sys/devices/system/cpu/cpuX/cpuidle
+> +for each online cpu X
+> +
+...
+> +
+> +
+> Index: linux-2.6.25-rc/Documentation/cpuidle/governor.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6.25-rc/Documentation/cpuidle/governor.txt
+> @@ -0,0 +1,30 @@
+> +
+> +
+> +
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle governors
+> +
+> +
+> +
+> +
+> +cpuidle governor is policy routine that decides what idle state to enter at
+> +any given time. cpuidle core uses different callbacks to the governor.
+> +
+> +* enable() to enable governor for a particular device
+> +* disable() to disable governor for a particular device
+> +* select() to select an idle state to enter
+> +* reflect() called after returning from the idle state, which can be used
+> +  by the governor for some record keeping.
+> +
+> +More than one governor can be registered at the same time and
+> +user can switch between drivers using /sysfs interface (when enabled).
+
+   users [or "a user"]
+
+> +More than one governor part is supported for developers to easily experiment
+> +with different governors. By default, most optimal governor based on your
+> +kernel configuration and platform will be selected by cpuidle.
+> +
+> +Interfaces:
+> +extern int cpuidle_register_governor(struct cpuidle_governor *gov);
+> +extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
+> +struct cpuidle_governor
+
+Thanks.
 ---
- drivers/thermal/thermal.c |   63
-+++++++++++++++++++++++++++-------------------
- 1 files changed, 38 insertions(+), 25 deletions(-)
-
-Index: linux-2.6.24-rc3/drivers/thermal/thermal.c
-===================================================================
---- linux-2.6.24-rc3.orig/drivers/thermal/thermal.c
-+++ linux-2.6.24-rc3/drivers/thermal/thermal.c
-@@ -301,13 +301,24 @@ int thermal_zone_bind_cooling_device(str
- {
- 	struct thermal_cooling_device_instance *dev;
- 	struct thermal_cooling_device_instance *pos;
-+	struct thermal_zone_device *pos1;
-+	struct thermal_cooling_device *pos2;
- 	int result;
- 
- 	if (trip >= tz->trips ||
- 	    (trip < 0 && trip != THERMAL_TRIPS_NONE))
- 		return -EINVAL;
- 
--	if (!tz || !cdev)
-+	list_for_each_entry(pos1, &thermal_tz_list, node) {
-+		if (pos1 == tz)
-+			break;
-+	}
-+	list_for_each_entry(pos2, &thermal_cdev_list, node) {
-+		if (pos2 == cdev)
-+			break;
-+	}
-+
-+	if (tz != pos1 || cdev != pos2)
- 		return -EINVAL;
- 
- 	dev =
-@@ -427,21 +438,24 @@ struct thermal_cooling_device *thermal_c
- 	struct thermal_zone_device *pos;
- 	int result;
- 
-+	if (!type)
-+		return ERR_PTR(-EINVAL);
-+
- 	if (strlen(type) >= THERMAL_NAME_LENGTH)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	if (!ops || !ops->get_max_state || !ops->get_cur_state ||
- 		!ops->set_cur_state)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	cdev = kzalloc(sizeof(struct thermal_cooling_device),
-GFP_KERNEL);
- 	if (!cdev)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	result = get_idr(&thermal_cdev_idr, &thermal_idr_lock,
-&cdev->id);
- 	if (result) {
- 		kfree(cdev);
--		return NULL;
-+		return ERR_PTR(result);
- 	}
- 
- 	strcpy(cdev->type, type);
-@@ -453,16 +467,14 @@ struct thermal_cooling_device *thermal_c
- 	if (result) {
- 		release_idr(&thermal_cdev_idr, &thermal_idr_lock,
-cdev->id);
- 		kfree(cdev);
--		return NULL;
-+		return ERR_PTR(result);
- 	}
- 
- 	/* sys I/F */
--	if (type) {
--		result = device_create_file(&cdev->device,
--					    &dev_attr_cdev_type);
--		if (result)
--			goto unregister;
--	}
-+	result = device_create_file(&cdev->device,
-+				    &dev_attr_cdev_type);
-+	if (result)
-+		goto unregister;
- 
- 	result = device_create_file(&cdev->device, &dev_attr_max_state);
- 	if (result)
-@@ -490,7 +502,7 @@ struct thermal_cooling_device *thermal_c
-       unregister:
- 	release_idr(&thermal_cdev_idr, &thermal_idr_lock, cdev->id);
- 	device_unregister(&cdev->device);
--	return NULL;
-+	return ERR_PTR(result);
- }
- EXPORT_SYMBOL(thermal_cooling_device_register);
- 
-@@ -559,18 +571,21 @@ struct thermal_zone_device *thermal_zone
- 	int result;
- 	int count;
- 
-+	if (!type)
-+		return ERR_PTR(-EINVAL);
-+
- 	if (strlen(type) >= THERMAL_NAME_LENGTH)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	if (trips > THERMAL_MAX_TRIPS || trips < 0)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	if (!ops || !ops->get_temp)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	tz = kzalloc(sizeof(struct thermal_zone_device), GFP_KERNEL);
- 	if (!tz)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	INIT_LIST_HEAD(&tz->cooling_devices);
- 	idr_init(&tz->idr);
-@@ -578,7 +593,7 @@ struct thermal_zone_device *thermal_zone
- 	result = get_idr(&thermal_tz_idr, &thermal_idr_lock, &tz->id);
- 	if (result) {
- 		kfree(tz);
--		return NULL;
-+		return ERR_PTR(result);
- 	}
- 
- 	strcpy(tz->type, type);
-@@ -591,15 +606,13 @@ struct thermal_zone_device *thermal_zone
- 	if (result) {
- 		release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
- 		kfree(tz);
--		return NULL;
-+		return ERR_PTR(result);
- 	}
- 
- 	/* sys I/F */
--	if (type) {
--		result = device_create_file(&tz->device,
-&dev_attr_type);
--		if (result)
--			goto unregister;
--	}
-+	result = device_create_file(&tz->device, &dev_attr_type);
-+	if (result)
-+		goto unregister;
- 
- 	result = device_create_file(&tz->device, &dev_attr_temp);
- 	if (result)
-@@ -633,7 +646,7 @@ struct thermal_zone_device *thermal_zone
-       unregister:
- 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
- 	device_unregister(&tz->device);
--	return NULL;
-+	return ERR_PTR(result);
- }
- EXPORT_SYMBOL(thermal_zone_device_register);
- 
+~Randy
