@@ -1,49 +1,75 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: dmi info requested... - Dell - Precision WorkStation 690
-Date: Tue, 12 Feb 2008 15:13:26 -0500
-Message-ID: <200802121513.26658.lenb@kernel.org>
-References: <47B0FA26.4010302@tlinx.org>
+Subject: Re: dmidecode - Sony VAIO - VGN-NR11S_S
+Date: Tue, 12 Feb 2008 15:24:49 -0500
+Message-ID: <200802121524.49489.lenb@kernel.org>
+References: <66b1c5c60802100631s279bf82aje3906d44309d5083@mail.gmail.com> <200802102157.15703.lenb@kernel.org> <66b1c5c60802110605g32732292kc4c7a668ba59c6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34735 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:44599 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754526AbYBLUOJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Feb 2008 15:14:09 -0500
-In-Reply-To: <47B0FA26.4010302@tlinx.org>
+	id S1753269AbYBLUZD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Feb 2008 15:25:03 -0500
+In-Reply-To: <66b1c5c60802110605g32732292kc4c7a668ba59c6@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Walsh <acpi@tlinx.org>
+To: Mateu Soler <mito150@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Monday 11 February 2008 20:45, Linda Walsh wrote:
-> ACPI: DMI System Vendor: Dell Inc.               
-> ACPI: DMI Product Name: Precision WorkStation 690
-> ACPI: DMI Product Version:
-> ACPI: DMI Board Name: 0MY171
-> ACPI: DMI BIOS Vendor: Dell Inc.                
-> ACPI: DMI BIOS Date: 08/20/2007
-> ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-> ----
-> Note my 410 Workstation ID's DMI as 2.2, but doesn't
-> seem to provide any output.  Should it at least provide
-> the "send DMI info" line if it is enabled correctly?
+On Monday 11 February 2008 09:05, Mateu Soler wrote:
+> 2008/2/11, Len Brown <lenb@kernel.org>:
+> > On Sunday 10 February 2008 09:31, you wrote:
+> > > Handle 0x0001, DMI type 1, 27 bytes
+> > > System Information
+> > >         Manufacturer: Sony Corporation
+> > >         Product Name: VGN-NR11S_S
+> > >         Version: C3LPZGMR
+> > ...
+> > >
+> > > Handle 0x0002, DMI type 2, 10 bytes
+> > > Base Board Information
+> > >         Manufacturer: Sony Corporation
+> > >         Product Name: VAIO
+> >
+thanks for the acpidump.
 
-not necessarily.
+OSI(Linux) is a NOP on this box.
 
-> What's this for, anyway?
-
-It is part of a search for BIOS bugs triggered by BIOS use of _OSI(Linux).
-This was indicated by the line following what you pasted above, which
-probably read something like:
-
-ACPI: If "acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
-
-Please send me the output from acpidump for the machine
-which printed out the DMI console messages above.
-
-thanks,
 -Len
+
+
+    Scope (_SB)
+    {
+        Method (_INI, 0, NotSerialized)
+        {
+            Store (0x07D0, OSYS)
+            If (CondRefOf (_OSI, Local0))
+            {
+                If (_OSI ("Linux"))
+                {
+                    Store (One, LINX)
+                }
+
+                If (_OSI ("Windows 2001"))
+                {
+                    Store (0x07D1, OSYS)
+                }
+
+                If (_OSI ("Windows 2001 SP1"))
+                {
+                    Store (0x07D1, OSYS)
+                }
+
+                If (_OSI ("Windows 2001 SP2"))
+                {
+                    Store (0x07D2, OSYS)
+                }
+
+                If (_OSI ("Windows 2006"))
+                {
+                    Store (0x07D6, OSYS)
+                }
+            }
