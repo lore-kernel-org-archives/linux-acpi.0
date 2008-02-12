@@ -1,66 +1,39 @@
-From: Jan-Simon =?utf-8?q?M=C3=B6ller?= <dl9pf@gmx.de>
-Subject: Re: Fwd: FSC Esprimo Mobile V5505 - dmidecode
-Date: Tue, 12 Feb 2008 11:57:33 +0100
-Message-ID: <200802121157.33691.dl9pf@gmx.de>
-References: <200710122357.46851.dl9pf@gmx.de> <200710131013.55290.dl9pf@gmx.de> <200801182329.49567.lenb@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 1/2] acer-wmi - Fail gracefully if ACPI is disabled
+Date: Tue, 12 Feb 2008 16:12:25 +0100
+Message-ID: <20080212151225.GA5415@elte.hu>
+References: <200802080145.16774.lenb@kernel.org> <20080211091743.GA16459@elte.hu> <200802111923.31736.carlos@strangeworlds.co.uk> <200802111955.04562.carlos@strangeworlds.co.uk> <alpine.LFD.1.00.0802112038360.2920@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56413 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1760776AbYBLK5l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Feb 2008 05:57:41 -0500
-In-Reply-To: <200801182329.49567.lenb@kernel.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:38133 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753926AbYBLPNY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Feb 2008 10:13:24 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.00.0802112038360.2920@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Sorry for the late reply !
 
-Am Samstag 19 Januar 2008 05:29:49 schrieb Len Brown:
-> On Saturday 13 October 2007 04:13, Jan-Simon M=C3=B6ller wrote:
-> > System Information
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: FUJITSU SIEMENS
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: ESPRIMO Mobile V5505
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Version: 20
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Wake-up Type: Power Switch
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 SKU Number: Not Specified
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Family: Not Specified
-> >
-> > Handle 0x0002, DMI type 2, 8 bytes
-> > Base Board Information
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Manufacturer: FUJITSU SIEMENS
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 Product Name: ESPRIMO Mobile V5505
->
-> Jan-Simon,
-> Thanks for the dmidecode output.
->
-> Did the console dmesg ask you to send it because
-> of OSI(Linux)?
->
-> Do you notice any functional difference when booting with
->
-> "acpi_osi=3DLinux"        (default for 2.6.22 and earlier)
-> vs.
-> "acpi_osi=3D!Linux"       (default for 2.6.23 and later)
->
-> Also, please send me the output from acpidump.
-Didn't notice any difference.
-acpidump here:
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D9939
+> @@ -673,11 +673,11 @@ static int __init acpi_wmi_init(void)
+>  {
+>  	acpi_status result;
+>  
+> +	INIT_LIST_HEAD(&wmi_blocks.list);
+> +
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> -	INIT_LIST_HEAD(&wmi_blocks.list);
+> -
 
-> thanks,
-> -Len
->
+test results: i've turned the WMI options back on earlier today on 
+latest -git which has your patch above, and those crashes i reported 
+disappeared. So the problem is fixed.
 
-Thanks!
-Jan-Simon
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Ingo
