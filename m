@@ -1,183 +1,218 @@
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: [PATCH] ACPI, CPU_IDLE: Add more information about C-states
-Date: Mon, 11 Feb 2008 17:50:36 -0800
-Message-ID: <20080212015036.GC32468@linux-os.sc.intel.com>
+Subject: [PATCH] CPU_IDLE: Documentation for CPU_IDLE
+Date: Mon, 11 Feb 2008 17:55:45 -0800
+Message-ID: <20080212015545.GA1691@linux-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41778 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:16057 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754117AbYBLBvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Feb 2008 20:51:08 -0500
+	id S1752078AbYBLBzq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Feb 2008 20:55:46 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Add a new sysfs entry under cpuidle states. desc - can be used by driver to
-communicate to userspace any specific information about the state.
-This helps in identifying the exact hardware C-states behind the ACPI C-state
-definition.
+Documentation for cpuidle infrastructure. This patch was submitted once
+a while back. But, somehow got dropped or never made it upstream.
 
-Idea is to export this through powertop, which will help to map the C-state
-reported by powertop to actual hardware C-state.
+Resending with updates.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Index: linux-2.6.25-rc/arch/x86/kernel/acpi/cstate.c
+Index: linux-2.6.25-rc/Documentation/cpuidle/core.txt
 ===================================================================
---- linux-2.6.25-rc.orig/arch/x86/kernel/acpi/cstate.c
-+++ linux-2.6.25-rc/arch/x86/kernel/acpi/cstate.c
-@@ -126,6 +126,8 @@ int acpi_processor_ffh_cstate_probe(unsi
- 		printk(KERN_DEBUG "Monitor-Mwait will be used to enter C-%d "
- 		       "state\n", cx->type);
- 	}
-+	snprintf(cx->desc, ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
-+		 cx->address);
- 
- out:
- 	set_cpus_allowed(current, saved_mask);
-Index: linux-2.6.25-rc/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.25-rc.orig/drivers/acpi/processor_idle.c
-+++ linux-2.6.25-rc/drivers/acpi/processor_idle.c
-@@ -917,11 +917,16 @@ static int acpi_processor_get_power_info
- 				 * Otherwise, ignore this info and continue.
- 				 */
- 				cx.entry_method = ACPI_CSTATE_HALT;
-+				snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI HLT");
- 			} else {
- 				continue;
- 			}
-+		} else {
-+			snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI IOPORT 0x%x",
-+				 cx.address);
- 		}
- 
+--- /dev/null
++++ linux-2.6.25-rc/Documentation/cpuidle/core.txt
+@@ -0,0 +1,17 @@
 +
- 		obj = &(element->package.elements[2]);
- 		if (obj->type != ACPI_TYPE_INTEGER)
- 			continue;
-@@ -1620,6 +1625,11 @@ static int acpi_processor_setup_cpuidle(
- 		return -EINVAL;
- 	}
- 
-+	for (i = 0; i < CPUIDLE_STATE_MAX; i++) {
-+		dev->states[i].name[0] = '\0';
-+		dev->states[i].desc[0] = '\0';
-+	}
++		Supporting multiple CPU idle levels in kernel
 +
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
- 		cx = &pr->power.states[i];
- 		state = &dev->states[count];
-@@ -1636,6 +1646,7 @@ static int acpi_processor_setup_cpuidle(
- 		cpuidle_set_statedata(state, cx);
- 
- 		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
-+		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
- 		state->exit_latency = cx->latency;
- 		state->target_residency = cx->latency * 6;
- 		state->power_usage = cx->power;
-Index: linux-2.6.25-rc/drivers/cpuidle/sysfs.c
-===================================================================
---- linux-2.6.25-rc.orig/drivers/cpuidle/sysfs.c
-+++ linux-2.6.25-rc/drivers/cpuidle/sysfs.c
-@@ -218,16 +218,23 @@ static ssize_t show_state_##_name(struct
- 	return sprintf(buf, "%u\n", state->_name);\
- }
- 
--static ssize_t show_state_name(struct cpuidle_state *state, char *buf)
--{
--	return sprintf(buf, "%s\n", state->name);
-+#define define_show_state_str_function(_name) \
-+static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
-+{ \
-+	if (state->_name[0] == '\0')\
-+		return sprintf(buf, "<null>\n");\
-+	return sprintf(buf, "%s\n", state->_name);\
- }
- 
- define_show_state_function(exit_latency)
- define_show_state_function(power_usage)
- define_show_state_function(usage)
- define_show_state_function(time)
-+define_show_state_str_function(name)
-+define_show_state_str_function(desc)
++				cpuidle
 +
- define_one_state_ro(name, show_state_name);
-+define_one_state_ro(desc, show_state_desc);
- define_one_state_ro(latency, show_state_exit_latency);
- define_one_state_ro(power, show_state_power_usage);
- define_one_state_ro(usage, show_state_usage);
-@@ -235,6 +242,7 @@ define_one_state_ro(time, show_state_tim
- 
- static struct attribute *cpuidle_state_default_attrs[] = {
- 	&attr_name.attr,
-+	&attr_desc.attr,
- 	&attr_latency.attr,
- 	&attr_power.attr,
- 	&attr_usage.attr,
-Index: linux-2.6.25-rc/include/acpi/processor.h
-===================================================================
---- linux-2.6.25-rc.orig/include/acpi/processor.h
-+++ linux-2.6.25-rc/include/acpi/processor.h
-@@ -32,9 +32,11 @@
- #define DOMAIN_COORD_TYPE_SW_ANY	0xfd
- #define DOMAIN_COORD_TYPE_HW_ALL	0xfe
- 
--#define ACPI_CSTATE_SYSTEMIO	(0)
--#define ACPI_CSTATE_FFH		(1)
--#define ACPI_CSTATE_HALT	(2)
-+#define ACPI_CSTATE_SYSTEMIO	0
-+#define ACPI_CSTATE_FFH		1
-+#define ACPI_CSTATE_HALT	2
++General Information:
 +
-+#define ACPI_CX_DESC_LEN	32
- 
- /* Power Management */
- 
-@@ -74,6 +76,7 @@ struct acpi_processor_cx {
- 	u64 time;
- 	struct acpi_processor_cx_policy promotion;
- 	struct acpi_processor_cx_policy demotion;
-+	char desc[ACPI_CX_DESC_LEN];
- };
- 
- struct acpi_processor_power {
-Index: linux-2.6.25-rc/include/linux/cpuidle.h
++Various CPUs today support multiple idle levels that are differentiated
++by varying exit latencies and power consumption during idle.
++cpuidle is a generic in-kernel infrastructure that separates
++idle policy (governor) from idle mechanism (driver) and provides a
++standardized infrastructure to support independent development of
++governors and drivers.
++
++cpuidle resides under drivers/cpuidle.
++
++
+Index: linux-2.6.25-rc/Documentation/cpuidle/driver.txt
 ===================================================================
---- linux-2.6.25-rc.orig/include/linux/cpuidle.h
-+++ linux-2.6.25-rc/include/linux/cpuidle.h
-@@ -19,6 +19,7 @@
- 
- #define CPUIDLE_STATE_MAX	8
- #define CPUIDLE_NAME_LEN	16
-+#define CPUIDLE_DESC_LEN	32
- 
- struct cpuidle_device;
- 
-@@ -29,6 +30,7 @@ struct cpuidle_device;
- 
- struct cpuidle_state {
- 	char		name[CPUIDLE_NAME_LEN];
-+	char		desc[CPUIDLE_DESC_LEN];
- 	void		*driver_data;
- 
- 	unsigned int	flags;
-Index: linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
+--- /dev/null
++++ linux-2.6.25-rc/Documentation/cpuidle/driver.txt
+@@ -0,0 +1,32 @@
++
++
++		Supporting multiple CPU idle levels in kernel
++
++				cpuidle drivers
++
++
++
++
++cpuidle driver hooks into the cpuidle infrastructure and handles the
++architecture/platform dependent part of CPU idle states. Driver
++provides the platform idle state detection capability and also
++has mechanisms in place to support actual entry-exit into CPU idle states.
++
++cpuidle driver initializes the cpuidle_device structure for each CPU device
++and registers with cpuidle using cpuidle_register_device.
++
++It can also support the dynamic changes (like battery <-> AC), by using
++cpuidle_pause_and_lock, cpuidle_disable_device and cpuidle_enable_device,
++cpuidle_resume_and_unlock.
++
++Interfaces:
++extern int cpuidle_register_driver(struct cpuidle_driver *drv);
++extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
++extern int cpuidle_register_device(struct cpuidle_device *dev);
++extern void cpuidle_unregister_device(struct cpuidle_device *dev);
++
++extern void cpuidle_pause_and_lock(void);
++extern void cpuidle_resume_and_unlock(void);
++extern int cpuidle_enable_device(struct cpuidle_device *dev);
++extern void cpuidle_disable_device(struct cpuidle_device *dev);
++
+Index: linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
 ===================================================================
---- linux-2.6.25-rc.orig/drivers/cpuidle/cpuidle.c
-+++ linux-2.6.25-rc/drivers/cpuidle/cpuidle.c
-@@ -219,7 +219,8 @@ static void poll_idle_init(struct cpuidl
- 
- 	cpuidle_set_statedata(state, NULL);
- 
--	snprintf(state->name, CPUIDLE_NAME_LEN, "C0 (poll idle)");
-+	snprintf(state->name, CPUIDLE_NAME_LEN, "C0");
-+	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
- 	state->exit_latency = 0;
- 	state->target_residency = 0;
- 	state->power_usage = -1;
+--- /dev/null
++++ linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
+@@ -0,0 +1,81 @@
++
++
++		Supporting multiple CPU idle levels in kernel
++
++				cpuidle sysfs
++
++System global cpuidle related information and tunables are under
++/sys/devices/system/cpu/cpuidle
++
++The current interfaces in this directory has self-explanatory names:
++* current_driver
++* current_governor_ro
++
++With cpuidle_sysfs_switch boot option (meant for developer testing)
++following objects are visible instead.
++* current_driver
++* available_governors
++* current_governor
++In this case user can switch the governor at run time by writing
++onto current_governor.
++
++
++Per logical CPU specific cpuidle information are under
++/sys/devices/system/cpu/cpuX/cpuidle
++for each online cpu X
++
++--------------------------------------------------------------------------------
++# ls -lR /sys/devices/system/cpu/cpu0/cpuidle/
++/sys/devices/system/cpu/cpu0/cpuidle/:
++total 0
++drwxr-xr-x 2 root root 0 Feb  8 10:42 state0
++drwxr-xr-x 2 root root 0 Feb  8 10:42 state1
++drwxr-xr-x 2 root root 0 Feb  8 10:42 state2
++drwxr-xr-x 2 root root 0 Feb  8 10:42 state3
++
++/sys/devices/system/cpu/cpu0/cpuidle/state0:
++total 0
++-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
++-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
++-r--r--r-- 1 root root 4096 Feb  8 10:42 name
++-r--r--r-- 1 root root 4096 Feb  8 10:42 power
++-r--r--r-- 1 root root 4096 Feb  8 10:42 time
++-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
++
++/sys/devices/system/cpu/cpu0/cpuidle/state1:
++total 0
++-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
++-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
++-r--r--r-- 1 root root 4096 Feb  8 10:42 name
++-r--r--r-- 1 root root 4096 Feb  8 10:42 power
++-r--r--r-- 1 root root 4096 Feb  8 10:42 time
++-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
++
++/sys/devices/system/cpu/cpu0/cpuidle/state2:
++total 0
++-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
++-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
++-r--r--r-- 1 root root 4096 Feb  8 10:42 name
++-r--r--r-- 1 root root 4096 Feb  8 10:42 power
++-r--r--r-- 1 root root 4096 Feb  8 10:42 time
++-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
++
++/sys/devices/system/cpu/cpu0/cpuidle/state3:
++total 0
++-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
++-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
++-r--r--r-- 1 root root 4096 Feb  8 10:42 name
++-r--r--r-- 1 root root 4096 Feb  8 10:42 power
++-r--r--r-- 1 root root 4096 Feb  8 10:42 time
++-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
++--------------------------------------------------------------------------------
++
++
++* desc : Small description about the idle state (string)
++* latency : Latency to exit out of this idle state (in microseconds)
++* name : Name of the idle state (string)
++* power : Power consumed while in this idle state (in milliwatts)
++* time : Total time spent in this idle state (in microseconds)
++* usage : Number of times this state was entered (count)
++
++
+Index: linux-2.6.25-rc/Documentation/cpuidle/governor.txt
+===================================================================
+--- /dev/null
++++ linux-2.6.25-rc/Documentation/cpuidle/governor.txt
+@@ -0,0 +1,30 @@
++
++
++
++		Supporting multiple CPU idle levels in kernel
++
++				cpuidle governors
++
++
++
++
++cpuidle governor is policy routine that decides what idle state to enter at
++any given time. cpuidle core uses different callbacks to the governor.
++
++* enable() to enable governor for a particular device
++* disable() to disable governor for a particular device
++* select() to select an idle state to enter
++* reflect() called after returning from the idle state, which can be used
++  by the governor for some record keeping.
++
++More than one governor can be registered at the same time and
++user can switch between drivers using /sysfs interface (when enabled).
++More than one governor part is supported for developers to easily experiment
++with different governors. By default, most optimal governor based on your
++kernel configuration and platform will be selected by cpuidle.
++
++Interfaces:
++extern int cpuidle_register_governor(struct cpuidle_governor *gov);
++extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
++struct cpuidle_governor
++
+Index: linux-2.6.25-rc/Documentation/00-INDEX
+===================================================================
+--- linux-2.6.25-rc.orig/Documentation/00-INDEX
++++ linux-2.6.25-rc/Documentation/00-INDEX
+@@ -106,6 +106,8 @@ cpu-hotplug.txt
+ 	- document describing CPU hotplug support in the Linux kernel.
+ cpu-load.txt
+ 	- document describing how CPU load statistics are collected.
++cpuidle/
++	- info on CPU_IDLE, CPU idle state management subsystem.
+ cpusets.txt
+ 	- documents the cpusets feature; assign CPUs and Mem to a set of tasks.
+ cputopology.txt
