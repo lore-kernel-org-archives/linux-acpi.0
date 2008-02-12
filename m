@@ -1,74 +1,70 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Tue, 12 Feb 2008 22:45:09 +0100
-Message-ID: <200802122245.09444.elendil@planet.nl>
-References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 9944] New: suspend to ram doesn't work anymore
+ on Thinkpad T61 with Intel X3100
+Date: Tue, 12 Feb 2008 14:13:18 -0800
+Message-ID: <20080212141318.7b83ee24.akpm@linux-foundation.org>
+References: <bug-9944-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hpsmtp-eml12.KPNXCHANGE.COM ([213.75.38.112]:40780 "EHLO
-	hpsmtp-eml12.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750979AbYBLVpO (ORCPT
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35302 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751363AbYBLWOZ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Feb 2008 16:45:14 -0500
-In-Reply-To: <20080212205622.GA21986@suse.de>
-Content-Disposition: inline
+	Tue, 12 Feb 2008 17:14:25 -0500
+In-Reply-To: <bug-9944-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-On Tuesday 12 February 2008, Greg KH wrote:
-> On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
-> > On Monday 11 February 2008, Frans Pop wrote:
-> > > In general 2.6.25 if looking quite good on my desktop, but there's
-> > > one important issue: the system no longer powers off after shutdown.
-> > > This works fine with 2.6.24.
-> >
-> > Don't ask me why, but bisection shows this commit to be the cause of
-> > the failure to power off:
-> > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
-> > Author: Greg Kroah-Hartman <gregkh@suse.de>
-> > Date:   Thu Dec 20 08:13:05 2007 -0800
-> >
-> >     Kobject: convert drivers/* from kobject_unregister() to
-> > kobject_put()
-> >
-> > Because it seemed somewhat unlikely, I have double checked this by
-> > doing an extra compilation for this commit and its predecessor.
->
-> What is the symptom of not powering off?
-
-Symptom is that the system shuts down normally and completely, it just does 
-not power off. Here are the last messages on the console:
-Will now halt.
-sd 1:0:0:0: [sdb] Synchronizing SCSI cache
-sd 1:0:0:0: [sdb] Stopping disk
-sd 0:0:0:0: [sda] Synchronizing SCSI cache
-sd 0:0:0:0: [sda] Stopping disk
-ACPI: PCI interrupt for device 0000:01:00.0 disabled
-Disabling non-boot CPUs ...
-
-> Can you press SysRq-T and see a task list running and waiting when
-> things should be shut down?
-
-The system does not respond to that anymore.
-
-> Do you happen to have a USB storage stick plugged into the system?
-
-Nothing. Only USB kbd/mouse.
+To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Cc: bugme-daemon@bugzilla.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, corsac@debian.org
 
 
-Note that I've had this issue before with this box:
-http://bugzilla.kernel.org/show_bug.cgi?id=6879
+(Please respond via emailed reply-to-all, not via the bugzilla web interface)
 
-Somehow it disappeared when I pulled the extra video card that came with the 
-system (no decent driver for it, so no loss). Since then the system has 
-always powered off completely reliably.
-This time it is a clear and reproducible regression. If we can solve this 
-one we might get a better handle on #6879 too.
+On Tue, 12 Feb 2008 14:02:31 -0800 (PST)
+bugme-daemon@bugzilla.kernel.org wrote:
 
-Cheers,
-FJP
+> http://bugzilla.kernel.org/show_bug.cgi?id=9944
+> 
+>            Summary: suspend to ram doesn't work anymore on Thinkpad T61 with
+>                     Intel X3100
+>            Product: Power Management
+>            Version: 2.5
+>      KernelVersion: 2.6.25-rc1
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Hibernation/Suspend
+>         AssignedTo: power-management_other@kernel-bugs.osdl.org
+>         ReportedBy: corsac@debian.org
+> 
+> 
+> Latest working kernel version: 2.6.24.2
+> Earliest failing kernel version: 2.6.25-rc1
+
+Rafael, is your list opened yet?
+
+> Distribution: Debian Sid
+> Hardware Environment: Thinkpad T61
+> Software Environment: 
+> Problem Description:
+> 
+> Suspend to ram doesn't work anymore on my thinkpad t61 with 2.6.25-rc1. On
+> 2.6.24 I had to pass acpi_sleep=s3bios at boot time and suspend with s2ram -f
+> -a 3.
+> 
+> On 2.6.25-rc1 doing (on console, with X not running) that leads to a blank
+> screen and the ___sleep___ led (the moon) on the thinkpad blinks (like when it
+> is currently suspending), but nothing happens then.
+> 
+> If I can make some more tests, or if you need more info, please ask. I hope
+> this is no duplicate.
+> 
+
+I have a t61p and suspend/hibernate is bad and deteriorating.  So
+many things go wrong that I'm afraid to test it any more.
+
