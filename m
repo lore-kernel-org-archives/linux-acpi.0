@@ -1,189 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: DMI update - Lenovo X61x
-Date: Tue, 12 Feb 2008 15:58:20 -0500
-Message-ID: <200802121558.20578.lenb@kernel.org>
-References: <Pine.LNX.4.64.0802071146100.30873@twin.jikos.cz> <200802071339.26113.lenb@kernel.org> <Pine.LNX.4.64.0802081538260.30873@twin.jikos.cz>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Tue, 12 Feb 2008 12:56:22 -0800
+Message-ID: <20080212205622.GA21986@suse.de>
+References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56444 "EHLO hera.kernel.org"
+Received: from ns2.suse.de ([195.135.220.15]:47727 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753174AbYBLU6k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Feb 2008 15:58:40 -0500
-In-Reply-To: <Pine.LNX.4.64.0802081538260.30873@twin.jikos.cz>
+	id S1756298AbYBLVDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Feb 2008 16:03:36 -0500
 Content-Disposition: inline
+In-Reply-To: <200802122139.14840.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jikos@jikos.cz>
-Cc: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Thanks for the acpidump (and bug report 9916)
+On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
+> (Resending full details as I can't find my previous mail in the archives.)
+> 
+> On Monday 11 February 2008, Frans Pop wrote:
+> > In general 2.6.25 if looking quite good on my desktop, but there's one
+> > important issue: the system no longer powers off after shutdown.
+> > This works fine with 2.6.24.
+> 
+> Don't ask me why, but bisection shows this commit to be the cause of the
+> failure to power off:
+> commit c10997f6575f476ff38442fa18fd4a0d80345f9d
+> Author: Greg Kroah-Hartman <gregkh@suse.de>
+> Date:   Thu Dec 20 08:13:05 2007 -0800
+> 
+>     Kobject: convert drivers/* from kobject_unregister() to kobject_put()
+> 
+> Because it seemed somewhat unlikely, I have double checked this by doing an
+> extra compilation for this commit and its predecessor.
 
-I suspect that acpi_osi=Linux will work better than acpi_osi=!Linux on this box,
-which is the case for the R61 and T61.  Perhaps you can verify that, say
-by testing if sound and mute work in both cases?
+What is the symptom of not powering off?
 
-It is hard to predict what acpi_osi=Linux will actuall do with this DSDT,
-but it will have an effect on both the EC and SMM -- an effect
-that appears to be intentional.
+Can you press SysRq-T and see a task list running and waiting when
+things should be shut down?
 
-This is the most correct use of _OS and _OSI that I've seen --
-as they set a different "interface" variable for each interface tested,
-rather than trying to simply glean the latest Windows version known.
-
-Indeed, the only thing I'd change is to move the test for "Microsoft Windows"
-back with the !_OSI section with the test for NT.
-
-Also, this may be the very first time I've seen a DSDT query for _OSI("FreeBSD").
-Curiously, it sets \LNUX for it, just like for _OSI(Linux).  Which makes
-me think that Lenovo is actualy booting something other than Windows
-on this box -- b/c I've not seen that in any example BIOS...
+Do you happen to have a USB storage stick plugged into the system?
 
 thanks,
--Len
 
-
-       Method (_INI, 0, NotSerialized)
-        {
-            If (LEqual (\SCMP (\_OS, "Microsoft Windows"), Zero))
-            {
-                Store (0x01, \W98F)
-            }
-            Else
-            {
-                If (CondRefOf (\_OSI, Local0))
-                {
-                    If (\_OSI ("Windows 2001"))
-                    {
-                        Store (0x01, \WNTF)
-                        Store (0x01, \WXPF)
-                        Store (0x00, \WSPV)
-                    }
-
-                    If (\_OSI ("Windows 2001 SP1"))
-                    {
-                        Store (0x01, \WSPV)
-                    }
-
-                    If (\_OSI ("Windows 2001 SP2"))
-                    {
-                        Store (0x02, \WSPV)
-                    }
-
-                    If (\_OSI ("Windows 2006"))
-                    {
-                        Store (0x01, \WVIS)
-                    }
-
-                    If (\_OSI ("Linux"))
-                    {
-                        Store (0x01, \LNUX)
-                    }
-
-                    If (\_OSI ("FreeBSD"))
-                    {
-                        Store (0x01, \LNUX)
-                    }
-                }
-                Else
-                {
-                    If (LEqual (\SCMP (\_OS, "Microsoft Windows NT"), Zero))
-                    {
-                        Store (0x01, \WNTF)
-                    }
-                    Else
-                    {
-                        If (LEqual (\SCMP (\_OS, "Microsoft WindowsME: Millennium Edition"), Zero))
-                        {
-                            Store (0x01, \WMEF)
-                            Store (0x01, \W98F)
-                        }
-                    }
-                }
-            }
-...
-            If (\LNUX)
-            {
-                \_SB.PCI0.LPC.EC.SAUM (0x02)
-                \UCMS (0x1C)
-# UCMS is an SMI wrapper. the parameter is unique to LNUX.
-            }
-...
-       Scope (\_SB.PCI0.LPC.EC)
-        {
-            Method (_Q43, 0, NotSerialized)
-            {
-                \UCMS (0x18)
-            }
-
-            Method (SAUM, 1, NotSerialized)
-            {
-                If (LGreater (Arg0, 0x03))
-                {
-                    Noop
-                }
-                Else
-                {
-                    If (\H8DR)
-                    {
-                        Store (Arg0, HAUM)
-# Linux comes here
-# I don't know what HAUM is, but this is the only place it is set
-# and it is in EC space
-
-                    }
-                    Else
-                    {
-                        \MBEC (0x03, 0x9F, ShiftLeft (Arg0, 0x05))
-# MBEC is an SMI entry point too
-                    }
-                }
-            }
-        }
-
-...
-            If (LGreaterEqual (\_REV, 0x02))
-            {
-                Store (0x01, \H8DR)
-# Linux has #define ACPI_CA_SUPPORT_LEVEL 3 for _REV, so we set H8DR=1 here
-            }
-
-...
-                    OperationRegion (ECOR, EmbeddedControl, 0x00, 0x0100)
-                    Field (ECOR, ByteAcc, NoLock, Preserve)
-                    {
-                        HDBM,   1,
-                            ,   1,
-                            ,   1,
-                        HFNE,   1,
-                            ,   1,
-                            ,   1,
-                        HLDM,   1,
-                                Offset (0x01),
-                            ,   1,
-                        BTCM,   1,
-                            ,   1,
-                            ,   1,
-                            ,   1,
-                        HBPR,   1,
-                        BTPC,   1,
-                                Offset (0x02),
-                        SLIS,   1,
-                                Offset (0x03),
-                            ,   1,
-                        HETE,   1,
-                            ,   3,
-                        HAUM,   2,
-                                Offset (0x05),
-...
-    Method (UCMS, 1, NotSerialized)
-    {
-        Return (SMI (0x02, Arg0, 0x00, 0x00, 0x00))
-    }
-...
-    Method (MBEC, 3, NotSerialized)
-    {
-        SMI (0x00, 0x05, Arg0, Arg1, Arg2)
-    }
+greg k-h
