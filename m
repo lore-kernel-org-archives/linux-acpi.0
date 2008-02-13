@@ -1,43 +1,36 @@
-From: Jan-Simon =?utf-8?q?M=C3=B6ller?= <dl9pf@gmx.de>
-Subject: Re: Fwd: FSC Esprimo Mobile V5505 - dmidecode
-Date: Wed, 13 Feb 2008 09:51:48 +0100
-Message-ID: <200802130951.49058.dl9pf@gmx.de>
-References: <200710122357.46851.dl9pf@gmx.de> <200802122132.48419.dl9pf@gmx.de> <200802122316.19918.lenb@kernel.org>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Wed, 13 Feb 2008 10:24:26 +0100
+Message-ID: <200802131024.27443.elendil@planet.nl>
+References: <200802111623.38478.elendil@planet.nl> <200802122245.09444.elendil@planet.nl> <20080212235442.005aea9e.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39583 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753732AbYBMIvw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 03:51:52 -0500
-In-Reply-To: <200802122316.19918.lenb@kernel.org>
+Received: from hpsmtp-eml11.KPNXCHANGE.COM ([213.75.38.111]:14930 "EHLO
+	hpsmtp-eml11.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760058AbYBMJYa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 04:24:30 -0500
+In-Reply-To: <20080212235442.005aea9e.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Am Mittwoch, 13. Februar 2008 05:16:19 schrieb Len Brown:
-[...]
-> > For the WMI: Could acer_wmi be extended for this as Alex suggested ?
-> > Another FSC model is listed in their hw-db.
+On Wednesday 13 February 2008, you wrote:
+> On Tue, 12 Feb 2008 22:45:09 +0100 Frans Pop <elendil@planet.nl> wrote:
+> > Symptom is that the system shuts down normally and completely, it just
+> > does not power off.
 >
-> yes, but rather than extending acer_wmi, it would probably be more
-> appropriate to fork it into fsc_wmi...
-Sure ...
-
-> > Atm this is fine for me - being able to adjust the brightness in "some"
-> > way. But this is not good for user/newbie xyz. How should he know the
-> > kernel-cmdline.
+> I've been struggling with an identically-manifesting regression on one of
+> my test machines for a week.  It's due to softlockup changes, and setting
+> CONFIG_DETECT_SOFTLOCKUP=n "fixes" it.
 >
-> I saw your comments in bugzilla 9939.
-> One possibility is that we could add a DMI entry
-> that automatically does acpi_osi="!Windows 2006" for you.
-For me its ok to use the option. BUT if there's no better way atm then for 
-user "Jony smith" its better to do that automagically.
+> It sounds unlikely, but I'd suggest that you see if it's the same on your
+> machine so we're not both chasing the same bug.
 
-
-Best regards
-Jan-SImon
+Unsetting CONFIG_DETECT_SOFTLOCKUP does not help in my case, but thanks for 
+the suggestion.
