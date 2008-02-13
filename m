@@ -1,68 +1,37 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Wed, 13 Feb 2008 08:58:37 -0800
-Message-ID: <20080213165837.GA10129@suse.de>
-References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de> <200802131239.14305.elendil@planet.nl>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 2/4] acpi: change cpufreq tables to per_cpu variables
+Date: Wed, 13 Feb 2008 10:10:00 -0800
+Message-ID: <47B33278.3060408@sgi.com>
+References: <20080208233738.108449000@polaris-admin.engr.sgi.com>	<20080208233738.427702000@polaris-admin.engr.sgi.com> <20080212153356.d2be3248.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933206AbYBMRDJ@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200802131239.14305.elendil@planet.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay1.sgi.com ([192.48.171.29]:45395 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750861AbYBMSKF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 13:10:05 -0500
+In-Reply-To: <20080212153356.d2be3248.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mingo@elte.hu, tglx@linutronix.de, ak@suse.de, clameter@sgi.com, steiner@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Wed, Feb 13, 2008 at 12:39:13PM +0100, Frans Pop wrote:
-> On Tuesday 12 February 2008, Greg KH wrote:
-> > On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
-> > > On Monday 11 February 2008, Frans Pop wrote:
-> > > > In general 2.6.25 if looking quite good on my desktop, but there's
-> > > > one important issue: the system no longer powers off after shutdown.
-> > > > This works fine with 2.6.24.
-> > >
-> > > Don't ask me why, but bisection shows this commit to be the cause of
-> > > the failure to power off:
-> > > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
-> > > Author: Greg Kroah-Hartman <gregkh@suse.de>
-> > > Date:   Thu Dec 20 08:13:05 2007 -0800
-> > >
-> > >     Kobject: convert drivers/* from kobject_unregister() to
-> > > kobject_put()
-> > >
-> > > Because it seemed somewhat unlikely, I have double checked this by
-> > > doing an extra compilation for this commit and its predecessor.
-> >
-> > What is the symptom of not powering off?
+Andrew Morton wrote:
+> On Fri, 08 Feb 2008 15:37:40 -0800
+> Mike Travis <travis@sgi.com> wrote:
 > 
-> I already noticed yesterday that there's one hunk in that commit that's not
-> a straight replacement:
-> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> index 9e102af..5efd555 100644
-> --- a/drivers/cpufreq/cpufreq.c
-> +++ b/drivers/cpufreq/cpufreq.c
-> @@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+>> Change cpufreq tables from arrays to per_cpu variables in
+>> drivers/acpi/processor_thermal.c
+>>
+>> Based on linux-2.6.git + x86.git
 > 
->         unlock_policy_rwsem_write(cpu);
-> 
-> -       kobject_unregister(&data->kobj);
-> -
->         kobject_put(&data->kobj);
-> 
->         /* we need to make sure that the underlying kobj is actually
-> 
-> 
-> So, just on the off chance, I applied the patch below and bingo, the system
-> powers off again. I doubt this will be the correct solution, but just in
-> case it is, here's my signed off. A comment why the double put is needed
-> would probably be good though.
+> I fixed a bunch of rejects in "[PATCH 1/4] cpufreq: change cpu freq tables
+> to per_cpu variables" and it compiles OK.  But this one was beyond my
+> should-i-repair-it threshold, sorry.
 
-There is a bug in the cpufreq kref logic that makes this "double put"
-necessary.  A real fix has already been posted to solve this issue, and
-I think it should be on it's way to Linus for -rc2 already.
+Should I rebase all the pending patches on 2.6.25-rc1 or 2.6.24-mm1
+(or some other combination)?
 
-Please let me know if -rc2 comes out without this needed fix.
-
-thanks,
-
-greg k-h
+Thanks,
+Mike
