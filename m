@@ -1,141 +1,79 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: RE: [Bug-fix]:2.6.25-rc0 Generic thermal management [Patch 1/2]: validating input parameters
-Date: Wed, 13 Feb 2008 16:33:10 +0530
-Message-ID: <05B550FD4BD2014E841D83547B62600802A6BA72@bgsmsx411.gar.corp.intel.com>
-References: <05B550FD4BD2014E841D83547B62600802A3A1B0@bgsmsx411.gar.corp.intel.com><20080211133827.16140ba0.akpm@linux-foundation.org><05B550FD4BD2014E841D83547B62600802A6B2A7@bgsmsx411.gar.corp.intel.com> <20080212133446.a521a8bb.akpm@linux-foundation.org>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Wed, 13 Feb 2008 12:39:13 +0100
+Message-ID: <200802131239.14305.elendil@planet.nl>
+References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C86E30.055E968E"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28708 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751912AbYBMLEO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 06:04:14 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20080212133446.a521a8bb.akpm@linux-foundation.org>
+Received: from hpsmtp-eml14.KPNXCHANGE.COM ([213.75.38.114]:32678 "EHLO
+	hpsmtp-eml14.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754816AbYBMLjQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 06:39:16 -0500
+In-Reply-To: <20080212205622.GA21986@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, mingo@elte.hu, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Zhang, Rui" <rui.zhang@intel.com>
+To: Greg KH <gregkh@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Tuesday 12 February 2008, Greg KH wrote:
+> On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
+> > On Monday 11 February 2008, Frans Pop wrote:
+> > > In general 2.6.25 if looking quite good on my desktop, but there's
+> > > one important issue: the system no longer powers off after shutdown.
+> > > This works fine with 2.6.24.
+> >
+> > Don't ask me why, but bisection shows this commit to be the cause of
+> > the failure to power off:
+> > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
+> > Author: Greg Kroah-Hartman <gregkh@suse.de>
+> > Date:   Thu Dec 20 08:13:05 2007 -0800
+> >
+> >     Kobject: convert drivers/* from kobject_unregister() to
+> > kobject_put()
+> >
+> > Because it seemed somewhat unlikely, I have double checked this by
+> > doing an extra compilation for this commit and its predecessor.
+>
+> What is the symptom of not powering off?
 
-------_=_NextPart_001_01C86E30.055E968E
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+I already noticed yesterday that there's one hunk in that commit that's not
+a straight replacement:
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 9e102af..5efd555 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
 
-=20
-Hi Andrew,
-	For time being I am attaching the patch and in the meanwhile
-I'll figure out
-a way to fix the wordwrap issues. This was what Len Brown also had
-recommended.
+        unlock_policy_rwsem_write(cpu);
 
-Regards,
-Sujith
-> -----Original Message-----
-> From: Andrew Morton [mailto:akpm@linux-foundation.org]=20
-> Sent: Wednesday, February 13, 2008 3:05 AM
-> To: Thomas, Sujith
-> Cc: lenb@kernel.org; mingo@elte.hu;=20
-> torvalds@linux-foundation.org; linux-acpi@vger.kernel.org;=20
-> linux-kernel@vger.kernel.org;=20
-> linux-pm@lists.linux-foundation.org; Zhang, Rui
-> Subject: Re: [Bug-fix]:2.6.25-rc0 Generic thermal management=20
-> [Patch 1/2]: validating input parameters
->=20
-> On Tue, 12 Feb 2008 21:27:44 +0530
-> "Thomas, Sujith" <sujith.thomas@intel.com> wrote:
->=20
-> > > The patch is fairly seriously wordwrapped.
-> > Should be fixed now.
->=20
-> No, even after I fixed all the wordwrapping I saw a large amount
-> of fuzz and several rejects when trying to apply the patch.
->=20
-> There's a reason why Len uses his kernel.org account to get=20
-> real work done ;)
->=20
+-       kobject_unregister(&data->kobj);
+-
+        kobject_put(&data->kobj);
 
-------_=_NextPart_001_01C86E30.055E968E
-Content-Type: application/octet-stream;
-	name="[Bug-fix]2.6.25-rc0 Generic thermal management [Patch 1 of 2]"
-Content-Transfer-Encoding: base64
-Content-Description: [Bug-fix]2.6.25-rc0 Generic thermal management [Patch 1 of 2]
-Content-Disposition: attachment;
-	filename="[Bug-fix]2.6.25-rc0 Generic thermal management [Patch 1 of 2]"
+        /* we need to make sure that the underlying kobj is actually
 
-IGRyaXZlcnMvdGhlcm1hbC90aGVybWFsLmMgfCAgIDYzICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKy0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgMzggaW5zZXJ0aW9ucygr
-KSwgMjUgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42LjI0LXJjMy9kcml2ZXJzL3RoZXJt
-YWwvdGhlcm1hbC5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi4yNC1yYzMub3JpZy9kcml2ZXJz
-L3RoZXJtYWwvdGhlcm1hbC5jCisrKyBsaW51eC0yLjYuMjQtcmMzL2RyaXZlcnMvdGhlcm1hbC90
-aGVybWFsLmMKQEAgLTMwMSwxMyArMzAxLDI0IEBAIGludCB0aGVybWFsX3pvbmVfYmluZF9jb29s
-aW5nX2RldmljZShzdHIKIHsKIAlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZV9pbnN0YW5j
-ZSAqZGV2OwogCXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX2luc3RhbmNlICpwb3M7CisJ
-c3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnBvczE7CisJc3RydWN0IHRoZXJtYWxfY29vbGlu
-Z19kZXZpY2UgKnBvczI7CiAJaW50IHJlc3VsdDsKIAogCWlmICh0cmlwID49IHR6LT50cmlwcyB8
-fAogCSAgICAodHJpcCA8IDAgJiYgdHJpcCAhPSBUSEVSTUFMX1RSSVBTX05PTkUpKQogCQlyZXR1
-cm4gLUVJTlZBTDsKIAotCWlmICghdHogfHwgIWNkZXYpCisJbGlzdF9mb3JfZWFjaF9lbnRyeShw
-b3MxLCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7CisJCWlmIChwb3MxID09IHR6KQorCQkJYnJl
-YWs7CisJfQorCWxpc3RfZm9yX2VhY2hfZW50cnkocG9zMiwgJnRoZXJtYWxfY2Rldl9saXN0LCBu
-b2RlKSB7CisJCWlmIChwb3MyID09IGNkZXYpCisJCQlicmVhazsKKwl9CisKKwlpZiAodHogIT0g
-cG9zMSB8fCBjZGV2ICE9IHBvczIpCiAJCXJldHVybiAtRUlOVkFMOwogCiAJZGV2ID0KQEAgLTQy
-NywyMSArNDM4LDI0IEBAIHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICp0aGVybWFsX2MK
-IAlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqcG9zOwogCWludCByZXN1bHQ7CiAKKwlpZiAo
-IXR5cGUpCisJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOworCiAJaWYgKHN0cmxlbih0eXBlKSA+
-PSBUSEVSTUFMX05BTUVfTEVOR1RIKQotCQlyZXR1cm4gTlVMTDsKKwkJcmV0dXJuIEVSUl9QVFIo
-LUVJTlZBTCk7CiAKIAlpZiAoIW9wcyB8fCAhb3BzLT5nZXRfbWF4X3N0YXRlIHx8ICFvcHMtPmdl
-dF9jdXJfc3RhdGUgfHwKIAkJIW9wcy0+c2V0X2N1cl9zdGF0ZSkKLQkJcmV0dXJuIE5VTEw7CisJ
-CXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCiAJY2RldiA9IGt6YWxsb2Moc2l6ZW9mKHN0cnVj
-dCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlKSwgR0ZQX0tFUk5FTCk7CiAJaWYgKCFjZGV2KQotCQly
-ZXR1cm4gTlVMTDsKKwkJcmV0dXJuIEVSUl9QVFIoLUVOT01FTSk7CiAKIAlyZXN1bHQgPSBnZXRf
-aWRyKCZ0aGVybWFsX2NkZXZfaWRyLCAmdGhlcm1hbF9pZHJfbG9jaywgJmNkZXYtPmlkKTsKIAlp
-ZiAocmVzdWx0KSB7CiAJCWtmcmVlKGNkZXYpOwotCQlyZXR1cm4gTlVMTDsKKwkJcmV0dXJuIEVS
-Ul9QVFIocmVzdWx0KTsKIAl9CiAKIAlzdHJjcHkoY2Rldi0+dHlwZSwgdHlwZSk7CkBAIC00NTMs
-MTYgKzQ2NywxNCBAQCBzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqdGhlcm1hbF9jCiAJ
-aWYgKHJlc3VsdCkgewogCQlyZWxlYXNlX2lkcigmdGhlcm1hbF9jZGV2X2lkciwgJnRoZXJtYWxf
-aWRyX2xvY2ssIGNkZXYtPmlkKTsKIAkJa2ZyZWUoY2Rldik7Ci0JCXJldHVybiBOVUxMOworCQly
-ZXR1cm4gRVJSX1BUUihyZXN1bHQpOwogCX0KIAogCS8qIHN5cyBJL0YgKi8KLQlpZiAodHlwZSkg
-ewotCQlyZXN1bHQgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJmNkZXYtPmRldmljZSwKLQkJCQkJICAg
-ICZkZXZfYXR0cl9jZGV2X3R5cGUpOwotCQlpZiAocmVzdWx0KQotCQkJZ290byB1bnJlZ2lzdGVy
-OwotCX0KKwlyZXN1bHQgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJmNkZXYtPmRldmljZSwKKwkJCQkg
-ICAgJmRldl9hdHRyX2NkZXZfdHlwZSk7CisJaWYgKHJlc3VsdCkKKwkJZ290byB1bnJlZ2lzdGVy
-OwogCiAJcmVzdWx0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKCZjZGV2LT5kZXZpY2UsICZkZXZfYXR0
-cl9tYXhfc3RhdGUpOwogCWlmIChyZXN1bHQpCkBAIC00OTAsNyArNTAyLDcgQEAgc3RydWN0IHRo
-ZXJtYWxfY29vbGluZ19kZXZpY2UgKnRoZXJtYWxfYwogICAgICAgdW5yZWdpc3RlcjoKIAlyZWxl
-YXNlX2lkcigmdGhlcm1hbF9jZGV2X2lkciwgJnRoZXJtYWxfaWRyX2xvY2ssIGNkZXYtPmlkKTsK
-IAlkZXZpY2VfdW5yZWdpc3RlcigmY2Rldi0+ZGV2aWNlKTsKLQlyZXR1cm4gTlVMTDsKKwlyZXR1
-cm4gRVJSX1BUUihyZXN1bHQpOwogfQogRVhQT1JUX1NZTUJPTCh0aGVybWFsX2Nvb2xpbmdfZGV2
-aWNlX3JlZ2lzdGVyKTsKIApAQCAtNTU5LDE4ICs1NzEsMjEgQEAgc3RydWN0IHRoZXJtYWxfem9u
-ZV9kZXZpY2UgKnRoZXJtYWxfem9uZQogCWludCByZXN1bHQ7CiAJaW50IGNvdW50OwogCisJaWYg
-KCF0eXBlKQorCQlyZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsKKwogCWlmIChzdHJsZW4odHlwZSkg
-Pj0gVEhFUk1BTF9OQU1FX0xFTkdUSCkKLQkJcmV0dXJuIE5VTEw7CisJCXJldHVybiBFUlJfUFRS
-KC1FSU5WQUwpOwogCiAJaWYgKHRyaXBzID4gVEhFUk1BTF9NQVhfVFJJUFMgfHwgdHJpcHMgPCAw
-KQotCQlyZXR1cm4gTlVMTDsKKwkJcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7CiAKIAlpZiAoIW9w
-cyB8fCAhb3BzLT5nZXRfdGVtcCkKLQkJcmV0dXJuIE5VTEw7CisJCXJldHVybiBFUlJfUFRSKC1F
-SU5WQUwpOwogCiAJdHogPSBremFsbG9jKHNpemVvZihzdHJ1Y3QgdGhlcm1hbF96b25lX2Rldmlj
-ZSksIEdGUF9LRVJORUwpOwogCWlmICghdHopCi0JCXJldHVybiBOVUxMOworCQlyZXR1cm4gRVJS
-X1BUUigtRU5PTUVNKTsKIAogCUlOSVRfTElTVF9IRUFEKCZ0ei0+Y29vbGluZ19kZXZpY2VzKTsK
-IAlpZHJfaW5pdCgmdHotPmlkcik7CkBAIC01NzgsNyArNTkzLDcgQEAgc3RydWN0IHRoZXJtYWxf
-em9uZV9kZXZpY2UgKnRoZXJtYWxfem9uZQogCXJlc3VsdCA9IGdldF9pZHIoJnRoZXJtYWxfdHpf
-aWRyLCAmdGhlcm1hbF9pZHJfbG9jaywgJnR6LT5pZCk7CiAJaWYgKHJlc3VsdCkgewogCQlrZnJl
-ZSh0eik7Ci0JCXJldHVybiBOVUxMOworCQlyZXR1cm4gRVJSX1BUUihyZXN1bHQpOwogCX0KIAog
-CXN0cmNweSh0ei0+dHlwZSwgdHlwZSk7CkBAIC01OTEsMTUgKzYwNiwxMyBAQCBzdHJ1Y3QgdGhl
-cm1hbF96b25lX2RldmljZSAqdGhlcm1hbF96b25lCiAJaWYgKHJlc3VsdCkgewogCQlyZWxlYXNl
-X2lkcigmdGhlcm1hbF90el9pZHIsICZ0aGVybWFsX2lkcl9sb2NrLCB0ei0+aWQpOwogCQlrZnJl
-ZSh0eik7Ci0JCXJldHVybiBOVUxMOworCQlyZXR1cm4gRVJSX1BUUihyZXN1bHQpOwogCX0KIAog
-CS8qIHN5cyBJL0YgKi8KLQlpZiAodHlwZSkgewotCQlyZXN1bHQgPSBkZXZpY2VfY3JlYXRlX2Zp
-bGUoJnR6LT5kZXZpY2UsICZkZXZfYXR0cl90eXBlKTsKLQkJaWYgKHJlc3VsdCkKLQkJCWdvdG8g
-dW5yZWdpc3RlcjsKLQl9CisJcmVzdWx0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKCZ0ei0+ZGV2aWNl
-LCAmZGV2X2F0dHJfdHlwZSk7CisJaWYgKHJlc3VsdCkKKwkJZ290byB1bnJlZ2lzdGVyOwogCiAJ
-cmVzdWx0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKCZ0ei0+ZGV2aWNlLCAmZGV2X2F0dHJfdGVtcCk7
-CiAJaWYgKHJlc3VsdCkKQEAgLTYzMyw3ICs2NDYsNyBAQCBzdHJ1Y3QgdGhlcm1hbF96b25lX2Rl
-dmljZSAqdGhlcm1hbF96b25lCiAgICAgICB1bnJlZ2lzdGVyOgogCXJlbGVhc2VfaWRyKCZ0aGVy
-bWFsX3R6X2lkciwgJnRoZXJtYWxfaWRyX2xvY2ssIHR6LT5pZCk7CiAJZGV2aWNlX3VucmVnaXN0
-ZXIoJnR6LT5kZXZpY2UpOwotCXJldHVybiBOVUxMOworCXJldHVybiBFUlJfUFRSKHJlc3VsdCk7
-CiB9CiBFWFBPUlRfU1lNQk9MKHRoZXJtYWxfem9uZV9kZXZpY2VfcmVnaXN0ZXIpOwogCg==
 
-------_=_NextPart_001_01C86E30.055E968E--
+So, just on the off chance, I applied the patch below and bingo, the system
+powers off again. I doubt this will be the correct solution, but just in
+case it is, here's my signed off. A comment why the double put is needed
+would probably be good though.
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 64926aa..9dbaac6 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -1058,6 +1058,7 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+ 	unlock_policy_rwsem_write(cpu);
+ 
+ 	kobject_put(&data->kobj);
++	kobject_put(&data->kobj);
+ 
+ 	/* we need to make sure that the underlying kobj is actually
+ 	 * not referenced anymore by anybody before we proceed with
