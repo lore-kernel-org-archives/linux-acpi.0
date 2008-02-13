@@ -1,54 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: 2.6.24.1 acpi oops in acpi_os_release_object
-Date: Wed, 13 Feb 2008 00:36:00 -0500
-Message-ID: <200802130036.00931.lenb@kernel.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Tue, 12 Feb 2008 23:54:42 -0800
+Message-ID: <20080212235442.005aea9e.akpm@linux-foundation.org>
+References: <200802111623.38478.elendil@planet.nl>
+	<200802122139.14840.elendil@planet.nl>
+	<20080212205622.GA21986@suse.de>
+	<200802122245.09444.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:52300 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750921AbYBMFgO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 00:36:14 -0500
-Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m1D5a63j005465
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 13 Feb 2008 05:36:07 GMT
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59315 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751432AbYBMH4L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 02:56:11 -0500
+In-Reply-To: <200802122245.09444.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Looks like 2.6.24.1.fc9 is taking an ACPI related oops:
+On Tue, 12 Feb 2008 22:45:09 +0100 Frans Pop <elendil@planet.nl> wrote:
 
-http://www.kerneloops.org/search.php?search=acpi_os_release_object
+> Symptom is that the system shuts down normally and completely, it just does 
+> not power off.
 
-*acpi_os_release_object
-acpi_ut_update_ref_count
-acpi_ut_update_object_reference
-kmem_cache_free
-acpi_ds_method_data_delete_all
-acpi_ds_terminate_control_method
-acpi_ps_parse_aml
-acpi_ps_execute_method
-acpi_ns_evaluate
-acpi_evaluate_object
-acpi_evaluate_integer
-acpi_thermal_check
-acpi_os_wait_semaphore
-acpi_thermal_check
-acpi_os_execute_deferred
-acpi_os_execute_deferred
-run_workqueue
-worker_thread
-autoremove_wake_function
-worker_thread
-kthread
-trace_hardirqs_on_thunk
-child_rip
-restore_args
-kthreadd
-kthread
-child_rip
+I've been struggling with an identically-manifesting regression on one of
+my test machines for a week.  It's due to softlockup changes, and setting
+CONFIG_DETECT_SOFTLOCKUP=n "fixes" it.
+
+It sounds unlikely, but I'd suggest that you see if it's the same on your
+machine so we're not both chasing the same bug.
+
