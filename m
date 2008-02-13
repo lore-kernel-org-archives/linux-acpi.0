@@ -1,37 +1,68 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Re: [PATCH 2/4] acpi: change cpufreq tables to per_cpu variables
-Date: Wed, 13 Feb 2008 10:10:00 -0800
-Message-ID: <47B33278.3060408@sgi.com>
-References: <20080208233738.108449000@polaris-admin.engr.sgi.com>	<20080208233738.427702000@polaris-admin.engr.sgi.com> <20080212153356.d2be3248.akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bug-fix]:2.6.25-rc0 Generic thermal management [Patch 1/2]:
+ validating input parameters
+Date: Wed, 13 Feb 2008 10:33:09 -0800
+Message-ID: <20080213103309.81ce6d36.akpm@linux-foundation.org>
+References: <05B550FD4BD2014E841D83547B62600802A3A1B0@bgsmsx411.gar.corp.intel.com>
+	<20080211133827.16140ba0.akpm@linux-foundation.org>
+	<05B550FD4BD2014E841D83547B62600802A6B2A7@bgsmsx411.gar.corp.intel.com>
+	<20080212133446.a521a8bb.akpm@linux-foundation.org>
+	<05B550FD4BD2014E841D83547B62600802A6BA72@bgsmsx411.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.171.29]:45395 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750861AbYBMSKF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 13:10:05 -0500
-In-Reply-To: <20080212153356.d2be3248.akpm@linux-foundation.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54124 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751069AbYBMSdr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 13:33:47 -0500
+In-Reply-To: <05B550FD4BD2014E841D83547B62600802A6BA72@bgsmsx411.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mingo@elte.hu, tglx@linutronix.de, ak@suse.de, clameter@sgi.com, steiner@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: "Thomas, Sujith" <sujith.thomas@intel.com>
+Cc: lenb@kernel.org, mingo@elte.hu, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, rui.zhang@intel.com
 
-Andrew Morton wrote:
-> On Fri, 08 Feb 2008 15:37:40 -0800
-> Mike Travis <travis@sgi.com> wrote:
-> 
->> Change cpufreq tables from arrays to per_cpu variables in
->> drivers/acpi/processor_thermal.c
->>
->> Based on linux-2.6.git + x86.git
-> 
-> I fixed a bunch of rejects in "[PATCH 1/4] cpufreq: change cpu freq tables
-> to per_cpu variables" and it compiles OK.  But this one was beyond my
-> should-i-repair-it threshold, sorry.
+On Wed, 13 Feb 2008 16:33:10 +0530
+"Thomas, Sujith" <sujith.thomas@intel.com> wrote:
 
-Should I rebase all the pending patches on 2.6.25-rc1 or 2.6.24-mm1
-(or some other combination)?
+> 	For time being I am attaching the patch and in the meanwhile
+> I'll figure out
+> a way to fix the wordwrap issues. This was what Len Brown also had
+> recommended.
 
-Thanks,
-Mike
+This patch has no changelog.  Please include the full and up-to-date
+changelog with each iteration of a patch.
+
+This patch doesn't apply.  My version of Linux has
+
+	if (trip >= tz->trips || (trip < 0 && trip != THERMAL_TRIPS_NONE))
+		return -EINVAL;
+
+whereas yours apparently has
+
+  	if (trip >= tz->trips ||
+  	    (trip < 0 && trip != THERMAL_TRIPS_NONE))
+  		return -EINVAL;
+
+(plus other changes).
+
+Maybe you have some other patch which predeced this one.
+
+You apparently didn't resend "[Bug-fix]:2.6.25-rc0 Generic thermal
+management:ACPI [Patch 2/2]: buildfix for CONFIG_THERMAL=n" which was also
+mangled.
+
+
+So please just start again.  Resend all patches, against latest mainline,
+with full changelogs and appropriate cc's, in an unmangled form.
+
+Also it would be good if you could be a bit more conventional with the
+patch titling.  For this one, 
+
+Subject: [patch 1/2] Generic thermal management: validate input parameters
+
+would suit.  Section 14 of Documentation/SubmittingPatches has some
+explanation.
+
+Thanks.
