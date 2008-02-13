@@ -1,68 +1,76 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bug-fix]:2.6.25-rc0 Generic thermal management [Patch 1/2]:
- validating input parameters
-Date: Wed, 13 Feb 2008 10:33:09 -0800
-Message-ID: <20080213103309.81ce6d36.akpm@linux-foundation.org>
-References: <05B550FD4BD2014E841D83547B62600802A3A1B0@bgsmsx411.gar.corp.intel.com>
-	<20080211133827.16140ba0.akpm@linux-foundation.org>
-	<05B550FD4BD2014E841D83547B62600802A6B2A7@bgsmsx411.gar.corp.intel.com>
-	<20080212133446.a521a8bb.akpm@linux-foundation.org>
-	<05B550FD4BD2014E841D83547B62600802A6BA72@bgsmsx411.gar.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Wed, 13 Feb 2008 19:55:53 +0100
+Message-ID: <200802131955.53821.rjw@sisk.pl>
+References: <200802111623.38478.elendil@planet.nl> <200802131239.14305.elendil@planet.nl> <20080213165837.GA10129@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54124 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069AbYBMSdr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 13:33:47 -0500
-In-Reply-To: <05B550FD4BD2014E841D83547B62600802A6BA72@bgsmsx411.gar.corp.intel.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:43144 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762602AbYBMS5b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 13:57:31 -0500
+In-Reply-To: <20080213165837.GA10129@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Thomas, Sujith" <sujith.thomas@intel.com>
-Cc: lenb@kernel.org, mingo@elte.hu, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, rui.zhang@intel.com
+To: Greg KH <gregkh@suse.de>
+Cc: Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 13 Feb 2008 16:33:10 +0530
-"Thomas, Sujith" <sujith.thomas@intel.com> wrote:
+On Wednesday, 13 of February 2008, Greg KH wrote:
+> On Wed, Feb 13, 2008 at 12:39:13PM +0100, Frans Pop wrote:
+> > On Tuesday 12 February 2008, Greg KH wrote:
+> > > On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
+> > > > On Monday 11 February 2008, Frans Pop wrote:
+> > > > > In general 2.6.25 if looking quite good on my desktop, but there's
+> > > > > one important issue: the system no longer powers off after shutdown.
+> > > > > This works fine with 2.6.24.
+> > > >
+> > > > Don't ask me why, but bisection shows this commit to be the cause of
+> > > > the failure to power off:
+> > > > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
+> > > > Author: Greg Kroah-Hartman <gregkh@suse.de>
+> > > > Date:   Thu Dec 20 08:13:05 2007 -0800
+> > > >
+> > > >     Kobject: convert drivers/* from kobject_unregister() to
+> > > > kobject_put()
+> > > >
+> > > > Because it seemed somewhat unlikely, I have double checked this by
+> > > > doing an extra compilation for this commit and its predecessor.
+> > >
+> > > What is the symptom of not powering off?
+> > 
+> > I already noticed yesterday that there's one hunk in that commit that's not
+> > a straight replacement:
+> > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> > index 9e102af..5efd555 100644
+> > --- a/drivers/cpufreq/cpufreq.c
+> > +++ b/drivers/cpufreq/cpufreq.c
+> > @@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+> > 
+> >         unlock_policy_rwsem_write(cpu);
+> > 
+> > -       kobject_unregister(&data->kobj);
+> > -
+> >         kobject_put(&data->kobj);
+> > 
+> >         /* we need to make sure that the underlying kobj is actually
+> > 
+> > 
+> > So, just on the off chance, I applied the patch below and bingo, the system
+> > powers off again. I doubt this will be the correct solution, but just in
+> > case it is, here's my signed off. A comment why the double put is needed
+> > would probably be good though.
+> 
+> There is a bug in the cpufreq kref logic that makes this "double put"
+> necessary.  A real fix has already been posted to solve this issue, and
+> I think it should be on it's way to Linus for -rc2 already.
+> 
+> Please let me know if -rc2 comes out without this needed fix.
 
-> 	For time being I am attaching the patch and in the meanwhile
-> I'll figure out
-> a way to fix the wordwrap issues. This was what Len Brown also had
-> recommended.
+Can you point me to the fix, please?
 
-This patch has no changelog.  Please include the full and up-to-date
-changelog with each iteration of a patch.
-
-This patch doesn't apply.  My version of Linux has
-
-	if (trip >= tz->trips || (trip < 0 && trip != THERMAL_TRIPS_NONE))
-		return -EINVAL;
-
-whereas yours apparently has
-
-  	if (trip >= tz->trips ||
-  	    (trip < 0 && trip != THERMAL_TRIPS_NONE))
-  		return -EINVAL;
-
-(plus other changes).
-
-Maybe you have some other patch which predeced this one.
-
-You apparently didn't resend "[Bug-fix]:2.6.25-rc0 Generic thermal
-management:ACPI [Patch 2/2]: buildfix for CONFIG_THERMAL=n" which was also
-mangled.
-
-
-So please just start again.  Resend all patches, against latest mainline,
-with full changelogs and appropriate cc's, in an unmangled form.
-
-Also it would be good if you could be a bit more conventional with the
-patch titling.  For this one, 
-
-Subject: [patch 1/2] Generic thermal management: validate input parameters
-
-would suit.  Section 14 of Documentation/SubmittingPatches has some
-explanation.
-
-Thanks.
+Thanks,
+Rafael
