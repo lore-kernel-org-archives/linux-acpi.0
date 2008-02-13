@@ -1,233 +1,43 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: Re: [PATCH] CPU_IDLE: Documentation for CPU_IDLE
-Date: Tue, 12 Feb 2008 17:15:52 -0800
-Message-ID: <20080213011552.GA7319@linux-os.sc.intel.com>
-References: <20080212015545.GA1691@linux-os.sc.intel.com> <20080212084605.28f0d3f3.randy.dunlap@oracle.com>
+From: Gerard Hynes <ghynes@nfld.com>
+Subject: DMI Information
+Date: Tue, 12 Feb 2008 23:55:48 -0330 (NST)
+Message-ID: <20080212235359.N50592@public.nfld.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62799 "EHLO mga11.intel.com"
+Received: from public.nfld.com ([198.165.106.2]:1532 "EHLO public.nfld.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758671AbYBMBXz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Feb 2008 20:23:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20080212084605.28f0d3f3.randy.dunlap@oracle.com>
+	id S1763519AbYBMD53 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Feb 2008 22:57:29 -0500
+Received: from public.nfld.com (localhost.nfld.com [127.0.0.1])
+	by public.nfld.com (8.12.8/8.12.9) with ESMTP id m1D3PmTP051197
+	for <linux-acpi@vger.kernel.org>; Tue, 12 Feb 2008 23:55:48 -0330 (NST)
+	(envelope-from ghynes@nfld.com)
+Received: from localhost (ghynes@localhost)
+	by public.nfld.com (8.12.8/8.12.10/Submit) with ESMTP id m1D3Pm1O051194
+	for <linux-acpi@vger.kernel.org>; Tue, 12 Feb 2008 23:55:48 -0330 (NST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
 
-Updated reflecting Randy's comments.
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query honored via cmdline
+ACPI: DMI System Vendor: Dell Inc.
+ACPI: DMI Product Name: Precision M4300
+ACPI: DMI Product Version:
+ACPI: DMI Board Name: 0UY141
+ACPI: DMI BIOS Vendor: Dell Inc.
+ACPI: DMI BIOS Date: 01/14/2008
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-Thanks,
-Venki
+If you'd like a sanatized complete dump of /usr/sbin/dmidecode - let me know.
 
+"There are two major products that come out of Berkeley: LSD and UNIX. We don't
+believe this to be a coincidence."                         - Jeremy S. Anderson
 
-Documentation for cpuidle infrastructure. This patch was submitted once
-a while back. But, somehow got dropped or never made it upstream.
-
-Resending with updates.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-Index: linux-2.6.25-rc/Documentation/cpuidle/core.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.25-rc/Documentation/cpuidle/core.txt
-@@ -0,0 +1,24 @@
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle
-+
-+General Information:
-+
-+Various CPUs today support multiple idle levels that are differentiated
-+by varying exit latencies and power consumption during idle.
-+cpuidle is a generic in-kernel infrastructure that separates
-+idle policy (governor) from idle mechanism (driver) and provides a
-+standardized infrastructure to support independent development of
-+governors and drivers.
-+
-+cpuidle resides under drivers/cpuidle.
-+
-+Boot options:
-+"cpuidle_sysfs_switch"
-+enables current_governor interface in /sys/devices/system/cpu/cpuidle/.
-+which can be used to switch governors at run time. This boot option
-+is meant for developer testing only. In normal usage, kernel picks the
-+best governor based on governor ratings.
-+SEE ALSO: sysfs.txt in this directory.
-+
-Index: linux-2.6.25-rc/Documentation/cpuidle/driver.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.25-rc/Documentation/cpuidle/driver.txt
-@@ -0,0 +1,32 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle drivers
-+
-+
-+
-+
-+cpuidle driver hooks into the cpuidle infrastructure and handles the
-+architecture/platform dependent part of CPU idle states. Driver
-+provides the platform idle state detection capability and also
-+has mechanisms in place to support actual entry-exit into CPU idle states.
-+
-+cpuidle driver initializes the cpuidle_device structure for each CPU device
-+and registers with cpuidle using cpuidle_register_device.
-+
-+It can also support the dynamic changes (like battery <-> AC), by using
-+cpuidle_pause_and_lock, cpuidle_disable_device and cpuidle_enable_device,
-+cpuidle_resume_and_unlock.
-+
-+Interfaces:
-+extern int cpuidle_register_driver(struct cpuidle_driver *drv);
-+extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
-+extern int cpuidle_register_device(struct cpuidle_device *dev);
-+extern void cpuidle_unregister_device(struct cpuidle_device *dev);
-+
-+extern void cpuidle_pause_and_lock(void);
-+extern void cpuidle_resume_and_unlock(void);
-+extern int cpuidle_enable_device(struct cpuidle_device *dev);
-+extern void cpuidle_disable_device(struct cpuidle_device *dev);
-+
-Index: linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.25-rc/Documentation/cpuidle/sysfs.txt
-@@ -0,0 +1,81 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle sysfs
-+
-+System global cpuidle related information and tunables are under
-+/sys/devices/system/cpu/cpuidle
-+
-+The current interfaces in this directory has self-explanatory names:
-+* current_driver
-+* current_governor_ro
-+
-+With cpuidle_sysfs_switch boot option (meant for developer testing)
-+following objects are visible instead.
-+* current_driver
-+* available_governors
-+* current_governor
-+In this case users can switch the governor at run time by writing
-+to current_governor.
-+
-+
-+Per logical CPU specific cpuidle information are under
-+/sys/devices/system/cpu/cpuX/cpuidle
-+for each online cpu X
-+
-+--------------------------------------------------------------------------------
-+# ls -lR /sys/devices/system/cpu/cpu0/cpuidle/
-+/sys/devices/system/cpu/cpu0/cpuidle/:
-+total 0
-+drwxr-xr-x 2 root root 0 Feb  8 10:42 state0
-+drwxr-xr-x 2 root root 0 Feb  8 10:42 state1
-+drwxr-xr-x 2 root root 0 Feb  8 10:42 state2
-+drwxr-xr-x 2 root root 0 Feb  8 10:42 state3
-+
-+/sys/devices/system/cpu/cpu0/cpuidle/state0:
-+total 0
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 name
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 power
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 time
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
-+
-+/sys/devices/system/cpu/cpu0/cpuidle/state1:
-+total 0
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 name
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 power
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 time
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
-+
-+/sys/devices/system/cpu/cpu0/cpuidle/state2:
-+total 0
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 name
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 power
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 time
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
-+
-+/sys/devices/system/cpu/cpu0/cpuidle/state3:
-+total 0
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 desc
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 latency
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 name
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 power
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 time
-+-r--r--r-- 1 root root 4096 Feb  8 10:42 usage
-+--------------------------------------------------------------------------------
-+
-+
-+* desc : Small description about the idle state (string)
-+* latency : Latency to exit out of this idle state (in microseconds)
-+* name : Name of the idle state (string)
-+* power : Power consumed while in this idle state (in milliwatts)
-+* time : Total time spent in this idle state (in microseconds)
-+* usage : Number of times this state was entered (count)
-+
-+
-Index: linux-2.6.25-rc/Documentation/cpuidle/governor.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.25-rc/Documentation/cpuidle/governor.txt
-@@ -0,0 +1,30 @@
-+
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle governors
-+
-+
-+
-+
-+cpuidle governor is policy routine that decides what idle state to enter at
-+any given time. cpuidle core uses different callbacks to the governor.
-+
-+* enable() to enable governor for a particular device
-+* disable() to disable governor for a particular device
-+* select() to select an idle state to enter
-+* reflect() called after returning from the idle state, which can be used
-+  by the governor for some record keeping.
-+
-+More than one governor can be registered at the same time and
-+users can switch between drivers using /sysfs interface (when enabled).
-+More than one governor part is supported for developers to easily experiment
-+with different governors. By default, most optimal governor based on your
-+kernel configuration and platform will be selected by cpuidle.
-+
-+Interfaces:
-+extern int cpuidle_register_governor(struct cpuidle_governor *gov);
-+extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
-+struct cpuidle_governor
-+
-Index: linux-2.6.25-rc/Documentation/00-INDEX
-===================================================================
---- linux-2.6.25-rc.orig/Documentation/00-INDEX
-+++ linux-2.6.25-rc/Documentation/00-INDEX
-@@ -106,6 +106,8 @@ cpu-hotplug.txt
- 	- document describing CPU hotplug support in the Linux kernel.
- cpu-load.txt
- 	- document describing how CPU load statistics are collected.
-+cpuidle/
-+	- info on CPU_IDLE, CPU idle state management subsystem.
- cpusets.txt
- 	- documents the cpusets feature; assign CPUs and Mem to a set of tasks.
- cputopology.txt
++-------------------------------------+
+| =[gh]=                              |                   \|/  ______  \|/
+| Gerard Hynes                        |                   "@' / ,  . \ `@"
+| ghynes AT nfld.com / member.fsf.org |                   /__| \____/ |__\
++-------------------------------------+                       \___U__/
