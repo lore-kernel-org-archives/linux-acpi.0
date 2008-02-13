@@ -1,47 +1,51 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/4] acpi: change cpufreq tables to per_cpu variables
-Date: Wed, 13 Feb 2008 11:43:17 -0800
-Message-ID: <20080213114317.0698a2b2.akpm@linux-foundation.org>
-References: <20080208233738.108449000@polaris-admin.engr.sgi.com>
-	<20080208233738.427702000@polaris-admin.engr.sgi.com>
-	<20080212153356.d2be3248.akpm@linux-foundation.org>
-	<47B33278.3060408@sgi.com>
+Subject: Re: [Bugme-new] [Bug 9957] New: Battery gives me now two batterys,
+ but only one is present
+Date: Wed, 13 Feb 2008 12:31:12 -0800
+Message-ID: <20080213123112.5df7fea3.akpm@linux-foundation.org>
+References: <bug-9957-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759303AbYBMToR (ORCPT
+	by vger.kernel.org with ESMTP id S1756714AbYBMUb0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 14:44:17 -0500
-In-Reply-To: <47B33278.3060408@sgi.com>
+	Wed, 13 Feb 2008 15:31:26 -0500
+In-Reply-To: <bug-9957-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: mingo@elte.hu, tglx@linutronix.de, ak@suse.de, clameter@sgi.com, steiner@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: patrick.matthaei@web.de
+Cc: bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Wed, 13 Feb 2008 10:10:00 -0800
-Mike Travis <travis@sgi.com> wrote:
+On Wed, 13 Feb 2008 12:00:11 -0800 (PST)
+bugme-daemon@bugzilla.kernel.org wrote:
 
-> Andrew Morton wrote:
-> > On Fri, 08 Feb 2008 15:37:40 -0800
-> > Mike Travis <travis@sgi.com> wrote:
-> > 
-> >> Change cpufreq tables from arrays to per_cpu variables in
-> >> drivers/acpi/processor_thermal.c
-> >>
-> >> Based on linux-2.6.git + x86.git
-> > 
-> > I fixed a bunch of rejects in "[PATCH 1/4] cpufreq: change cpu freq tables
-> > to per_cpu variables" and it compiles OK.  But this one was beyond my
-> > should-i-repair-it threshold, sorry.
+> http://bugzilla.kernel.org/show_bug.cgi?id=9957
+>
+>            Summary: Battery gives me now two batterys, but only one is
+>                     present
+
+yeah, I'm seeing this on the t61p as well, but have thus far ignored it
+amongst the storm of other problems.
+
+
+>            Product: ACPI
+>            Version: 2.5
+>      KernelVersion: 2.6.24.2
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Power-Battery
+>         AssignedTo: acpi_power-battery@kernel-bugs.osdl.org
+>         ReportedBy: patrick.matthaei@web.de
 > 
-> Should I rebase all the pending patches on 2.6.25-rc1 or 2.6.24-mm1
-> (or some other combination)?
 > 
+> Latest working kernel version: 2.6.23.14
+> Earliest failing kernel version: 2.6.24
 
-That depends on whether you have other things queued in one of the git
-trees.  If not, against current mainline (which is later than 2.6.25-rc1!)
-would suit.
-
+And it's a regression.
