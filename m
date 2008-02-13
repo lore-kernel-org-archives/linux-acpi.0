@@ -1,36 +1,47 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Wed, 13 Feb 2008 20:28:20 +0100
-Message-ID: <200802132028.20620.elendil@planet.nl>
-References: <200802111623.38478.elendil@planet.nl> <200802131239.14305.elendil@planet.nl> <20080213165837.GA10129@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/4] acpi: change cpufreq tables to per_cpu variables
+Date: Wed, 13 Feb 2008 11:43:17 -0800
+Message-ID: <20080213114317.0698a2b2.akpm@linux-foundation.org>
+References: <20080208233738.108449000@polaris-admin.engr.sgi.com>
+	<20080208233738.427702000@polaris-admin.engr.sgi.com>
+	<20080212153356.d2be3248.akpm@linux-foundation.org>
+	<47B33278.3060408@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1765611AbYBMT2j@vger.kernel.org>
-In-Reply-To: <20080213165837.GA10129@suse.de>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38515 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759303AbYBMToR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Feb 2008 14:44:17 -0500
+In-Reply-To: <47B33278.3060408@sgi.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mike Travis <travis@sgi.com>
+Cc: mingo@elte.hu, tglx@linutronix.de, ak@suse.de, clameter@sgi.com, steiner@sgi.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Wednesday 13 February 2008, Greg KH wrote:
-> > So, just on the off chance, I applied the patch below and bingo, the
-> > system powers off again. I doubt this will be the correct solution, but
-> > just in case it is, here's my signed off. A comment why the double put
-> > is needed would probably be good though.
->
-> There is a bug in the cpufreq kref logic that makes this "double put"
-> necessary.  A real fix has already been posted to solve this issue, and
-> I think it should be on it's way to Linus for -rc2 already.
+On Wed, 13 Feb 2008 10:10:00 -0800
+Mike Travis <travis@sgi.com> wrote:
 
-OK, great.
+> Andrew Morton wrote:
+> > On Fri, 08 Feb 2008 15:37:40 -0800
+> > Mike Travis <travis@sgi.com> wrote:
+> > 
+> >> Change cpufreq tables from arrays to per_cpu variables in
+> >> drivers/acpi/processor_thermal.c
+> >>
+> >> Based on linux-2.6.git + x86.git
+> > 
+> > I fixed a bunch of rejects in "[PATCH 1/4] cpufreq: change cpu freq tables
+> > to per_cpu variables" and it compiles OK.  But this one was beyond my
+> > should-i-repair-it threshold, sorry.
+> 
+> Should I rebase all the pending patches on 2.6.25-rc1 or 2.6.24-mm1
+> (or some other combination)?
+> 
 
-Do you think that #6879 could be caused by a similar issue elsewhere in the 
-tree? Can you give me some pointers on how I could find out (debugging to 
-enable, instrumentation to add)?
+That depends on whether you have other things queued in one of the git
+trees.  If not, against current mainline (which is later than 2.6.25-rc1!)
+would suit.
 
-> Please let me know if -rc2 comes out without this needed fix.
-
-Will do.
