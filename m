@@ -1,45 +1,68 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: RE: The new thermal management sysfs class, and hwmon
-Date: Wed, 13 Feb 2008 16:10:50 +0100
-Message-ID: <1202915450.7977.607.camel@queen.suse.de>
-References: <20080203022622.GA995@khazad-dum.debian.net>
-	 <1202031072.3042.54.camel@acpi-sony.sh.intel.com>
-	 <20080203164410.GL20687@jupiter.solarsys.private>
-	 <20080203175006.GB9159@khazad-dum.debian.net>
-	 <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>
-	 <20080205135725.GO20687@jupiter.solarsys.private>
-	 <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>
-Reply-To: trenn@suse.de
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Wed, 13 Feb 2008 08:58:37 -0800
+Message-ID: <20080213165837.GA10129@suse.de>
+References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de> <200802131239.14305.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:53998 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754790AbYBMPKw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Feb 2008 10:10:52 -0500
-In-Reply-To: <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933206AbYBMRDJ@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200802131239.14305.elendil@planet.nl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Thomas, Sujith" <sujith.thomas@intel.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-On Wed, 2008-02-06 at 10:53 +0530, Thomas, Sujith wrote:
-...
+On Wed, Feb 13, 2008 at 12:39:13PM +0100, Frans Pop wrote:
+> On Tuesday 12 February 2008, Greg KH wrote:
+> > On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
+> > > On Monday 11 February 2008, Frans Pop wrote:
+> > > > In general 2.6.25 if looking quite good on my desktop, but there's
+> > > > one important issue: the system no longer powers off after shutdown.
+> > > > This works fine with 2.6.24.
+> > >
+> > > Don't ask me why, but bisection shows this commit to be the cause of
+> > > the failure to power off:
+> > > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
+> > > Author: Greg Kroah-Hartman <gregkh@suse.de>
+> > > Date:   Thu Dec 20 08:13:05 2007 -0800
+> > >
+> > >     Kobject: convert drivers/* from kobject_unregister() to
+> > > kobject_put()
+> > >
+> > > Because it seemed somewhat unlikely, I have double checked this by
+> > > doing an extra compilation for this commit and its predecessor.
+> >
+> > What is the symptom of not powering off?
+> 
+> I already noticed yesterday that there's one hunk in that commit that's not
+> a straight replacement:
+> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> index 9e102af..5efd555 100644
+> --- a/drivers/cpufreq/cpufreq.c
+> +++ b/drivers/cpufreq/cpufreq.c
+> @@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+> 
+>         unlock_policy_rwsem_write(cpu);
+> 
+> -       kobject_unregister(&data->kobj);
+> -
+>         kobject_put(&data->kobj);
+> 
+>         /* we need to make sure that the underlying kobj is actually
+> 
+> 
+> So, just on the off chance, I applied the patch below and bingo, the system
+> powers off again. I doubt this will be the correct solution, but just in
+> case it is, here's my signed off. A comment why the double put is needed
+> would probably be good though.
 
-> I absolutely don't have any issue with this. I feel that's the way to
-> go. Hwmon can roll out a patch which can report out temperature of
-> thermal sensors which are connected to EC and which follows ACPI spec.
+There is a bug in the cpufreq kref logic that makes this "double put"
+necessary.  A real fix has already been posted to solve this issue, and
+I think it should be on it's way to Linus for -rc2 already.
 
-Why do you want to still export the temperature via ACPI sysfs paths
-then?
-Once it is there and userspace progs make use of it, you will have to
-maintain it forever and HAL is getting crazy and must take care about:
-  - How to find the ACPI thermal node
-  - Find the hwmon node
-  - Both interfaces provide temeratures
-  - Parse different output of temperature values (totally crazy)
+Please let me know if -rc2 comes out without this needed fix.
 
+thanks,
 
-   Thomas
-
+greg k-h
