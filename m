@@ -1,40 +1,66 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: The new thermal management sysfs class, and hwmon
-Date: Thu, 14 Feb 2008 14:08:55 +0000
-Message-ID: <20080214140855.GB12412@srcf.ucam.org>
-References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net> <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com> <20080205135725.GO20687@jupiter.solarsys.private> <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com> <1202915450.7977.607.camel@queen.suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: linux-next: first tree
+Date: Thu, 14 Feb 2008 15:45:55 +0100
+Message-ID: <200802141545.56488.rjw@sisk.pl>
+References: <20080215003537.8911ce35.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:49711 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbYBNOJM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 09:09:12 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:52542 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755928AbYBNOro (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2008 09:47:44 -0500
+In-Reply-To: <20080215003537.8911ce35.sfr@canb.auug.org.au>
 Content-Disposition: inline
-In-Reply-To: <1202915450.7977.607.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, Feb 13, 2008 at 04:10:50PM +0100, Thomas Renninger wrote:
-
-> Why do you want to still export the temperature via ACPI sysfs paths
-> then?
-> Once it is there and userspace progs make use of it, you will have to
-> maintain it forever and HAL is getting crazy and must take care about:
->   - How to find the ACPI thermal node
->   - Find the hwmon node
->   - Both interfaces provide temeratures
->   - Parse different output of temperature values (totally crazy)
+On Thursday, 14 of February 2008, Stephen Rothwell wrote:
+> Hi all,
 > 
+> I have created the first cut of the linux-next tree at
+> git://git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git.
+> 
+> Things to know about this tree:
+> 
+> It has two branches - master and stable.  Stable is currently just Linus'
+> tree and will never rebase.  Master will rebase on an almost daily basis
+> (maybe slower at the start).
+> 
+> The tree consists of subsystem git and quilt trees.  Currently, the quilt
+> trees are integrated by importing them into appropriately based git
+> branches and then merging those branches.  This has the advantage that
+> any conflict resolution will onlt have to happen once at the merge point
+> rather than, possibly, sevveral times during the series.  However, I am
+> considering just applying the quilt trees on top of the current tree
+> to get a result more like Linus' tree - we will see. The git trees are
+> obviously just merged.
+> 
+> Between each merge, the tree was built with both an allmodconfig for both
+> powerpc and x86_64.
+> 
+> The tree currently contains:
+> 	Greg's driver-core, pci and usb quilt series (in that order)
+> 	Alasdair Kergon's device-mapper quilt tree
+> 	Jiri Kosina's hid git tree
+> 	Jean Delvare's i2c quilt tree
+> 	Randy Dunlap's kernel-doc quilt tree
+> 	Haavard Skinnemoen's avr32 git tree
+> 
+> There was only one unresolved conflict which could have been caused
+> because I was not sure where to base the kernel-doc tree.
+> 
+> So, comments, please.
+> 
+> Also, more trees please ... :-)
 
-Quite. There's still been no indication that anyone cares about fixing 
-this interface, and I'm upset that it was merged despite there being 
-clear and valid concerns about it. Do we have a commitment that it's 
-going to be cleaned up before final? If not, it should be pulled before 
-userspace starts depending on it. The only hardware where this currently 
-matters isn't going to be running 2.6.25 anyway.
+Perhaps you can add:
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6 test
+
+Thanks,
+Rafael
