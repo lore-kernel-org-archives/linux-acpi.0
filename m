@@ -1,66 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next: first tree
-Date: Thu, 14 Feb 2008 15:45:55 +0100
-Message-ID: <200802141545.56488.rjw@sisk.pl>
-References: <20080215003537.8911ce35.sfr@canb.auug.org.au>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI: Do not pass NULL to acpi_get_handle() when
+	looking for _EJD
+Date: Thu, 14 Feb 2008 15:49:40 +0100
+Message-ID: <1203000580.7977.703.camel@queen.suse.de>
+References: <20080214124034.GA9708@homac.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52542 "EHLO ogre.sisk.pl"
+Received: from mail.suse.de ([195.135.220.2]:35161 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755928AbYBNOro (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2008 09:47:44 -0500
-In-Reply-To: <20080215003537.8911ce35.sfr@canb.auug.org.au>
-Content-Disposition: inline
+	id S1750741AbYBNOtm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2008 09:49:42 -0500
+In-Reply-To: <20080214124034.GA9708@homac.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Holger Macht <hmacht@suse.de>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-On Thursday, 14 of February 2008, Stephen Rothwell wrote:
-> Hi all,
+On Thu, 2008-02-14 at 13:40 +0100, Holger Macht wrote:
+> When trying to get the acpi_handle from an acpi_buffer, pass
+> ACPI_ROOT_OBJECT instead of NULL to acpi_get_handle(). This fixes the
+> detection of dock dependent bays.
 > 
-> I have created the first cut of the linux-next tree at
-> git://git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git.
 > 
-> Things to know about this tree:
+> Signed-off-by: Holger Macht <hmacht@suse.de>
+> ---
 > 
-> It has two branches - master and stable.  Stable is currently just Linus'
-> tree and will never rebase.  Master will rebase on an almost daily basis
-> (maybe slower at the start).
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 3fac011..d9b9143 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -609,7 +609,8 @@ acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd)
+>  	status = acpi_evaluate_object(handle, "_EJD", NULL, &buffer);
+>  	if (ACPI_SUCCESS(status)) {
+>  		obj = buffer.pointer;
+> -		status = acpi_get_handle(NULL, obj->string.pointer, ejd);
+> +		status = acpi_get_handle(ACPI_ROOT_OBJECT, obj->string.pointer,
+> +					 ejd);
+>  		kfree(buffer.pointer);
+>  	}
+>  	return status;
 > 
-> The tree consists of subsystem git and quilt trees.  Currently, the quilt
-> trees are integrated by importing them into appropriately based git
-> branches and then merging those branches.  This has the advantage that
-> any conflict resolution will onlt have to happen once at the merge point
-> rather than, possibly, sevveral times during the series.  However, I am
-> considering just applying the quilt trees on top of the current tree
-> to get a result more like Linus' tree - we will see. The git trees are
-> obviously just merged.
-> 
-> Between each merge, the tree was built with both an allmodconfig for both
-> powerpc and x86_64.
-> 
-> The tree currently contains:
-> 	Greg's driver-core, pci and usb quilt series (in that order)
-> 	Alasdair Kergon's device-mapper quilt tree
-> 	Jiri Kosina's hid git tree
-> 	Jean Delvare's i2c quilt tree
-> 	Randy Dunlap's kernel-doc quilt tree
-> 	Haavard Skinnemoen's avr32 git tree
-> 
-> There was only one unresolved conflict which could have been caused
-> because I was not sure where to base the kernel-doc tree.
-> 
-> So, comments, please.
-> 
-> Also, more trees please ... :-)
 
-Perhaps you can add:
+I can verify that acpi_bus_get_ejd is totally useless without that
+patch.
+If "status = acpi_evaluate_object(handle, "_EJD", NULL, &buffer);"
+succeeds (and AE_NOT_FOUND is not returned), the function will return
+AE_BAD_PARAMETER, because NULL never makes sense as first argument of
+acpi_get_handle:
+status = acpi_get_handle(NULL, obj->string.pointer, ejd);
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6 test
+I can also verify that the correct handle is evaluated with this patch
+on a recent ThinkPad, otherwise not.
 
-Thanks,
-Rafael
+Please add it, looks like a typo.
+
+   Thomas
+
