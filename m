@@ -1,41 +1,30 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: [PATCH] ACPI: Do not pass NULL to acpi_get_handle() when looking
-	for _EJD
-Date: Thu, 14 Feb 2008 13:40:34 +0100
-Message-ID: <20080214124034.GA9708@homac.suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Bugme-new] [Bug 9957] New: Battery gives me now two batterys, but only one is present
+Date: Thu, 14 Feb 2008 14:05:15 +0000
+Message-ID: <20080214140513.GA12412@srcf.ucam.org>
+References: <bug-9957-10286@http.bugzilla.kernel.org/> <20080213123112.5df7fea3.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:45175 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759178AbYBNMjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2008 07:39:42 -0500
+Received: from cavan.codon.org.uk ([78.32.9.130]:49661 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753662AbYBNOFk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 09:05:40 -0500
 Content-Disposition: inline
+In-Reply-To: <20080213123112.5df7fea3.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, trenn@suse.de
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: patrick.matthaei@web.de, bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-When trying to get the acpi_handle from an acpi_buffer, pass
-ACPI_ROOT_OBJECT instead of NULL to acpi_get_handle(). This fixes the
-detection of dock dependent bays.
+On Wed, Feb 13, 2008 at 12:31:12PM -0800, Andrew Morton wrote:
 
+> And it's a regression.
 
-Signed-off-by: Holger Macht <hmacht@suse.de>
----
+No, it's a feature. You've configured in both the legacy and the sysfs 
+interfaces for the battery, and hal is picking up both of them. There's 
+a patch upstream to make hal realise that they're the same device, but 
+the alternative is just to disable one of the options.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3fac011..d9b9143 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -609,7 +609,8 @@ acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd)
- 	status = acpi_evaluate_object(handle, "_EJD", NULL, &buffer);
- 	if (ACPI_SUCCESS(status)) {
- 		obj = buffer.pointer;
--		status = acpi_get_handle(NULL, obj->string.pointer, ejd);
-+		status = acpi_get_handle(ACPI_ROOT_OBJECT, obj->string.pointer,
-+					 ejd);
- 		kfree(buffer.pointer);
- 	}
- 	return status;
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
