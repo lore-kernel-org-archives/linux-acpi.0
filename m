@@ -1,30 +1,40 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Bugme-new] [Bug 9957] New: Battery gives me now two batterys, but only one is present
-Date: Thu, 14 Feb 2008 14:05:15 +0000
-Message-ID: <20080214140513.GA12412@srcf.ucam.org>
-References: <bug-9957-10286@http.bugzilla.kernel.org/> <20080213123112.5df7fea3.akpm@linux-foundation.org>
+Subject: Re: The new thermal management sysfs class, and hwmon
+Date: Thu, 14 Feb 2008 14:08:55 +0000
+Message-ID: <20080214140855.GB12412@srcf.ucam.org>
+References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net> <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com> <20080205135725.GO20687@jupiter.solarsys.private> <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com> <1202915450.7977.607.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:49661 "EHLO
+Received: from cavan.codon.org.uk ([78.32.9.130]:49711 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662AbYBNOFk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 09:05:40 -0500
+	with ESMTP id S1753846AbYBNOJM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 09:09:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20080213123112.5df7fea3.akpm@linux-foundation.org>
+In-Reply-To: <1202915450.7977.607.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: patrick.matthaei@web.de, bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Thomas Renninger <trenn@suse.de>
+Cc: "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-On Wed, Feb 13, 2008 at 12:31:12PM -0800, Andrew Morton wrote:
+On Wed, Feb 13, 2008 at 04:10:50PM +0100, Thomas Renninger wrote:
 
-> And it's a regression.
+> Why do you want to still export the temperature via ACPI sysfs paths
+> then?
+> Once it is there and userspace progs make use of it, you will have to
+> maintain it forever and HAL is getting crazy and must take care about:
+>   - How to find the ACPI thermal node
+>   - Find the hwmon node
+>   - Both interfaces provide temeratures
+>   - Parse different output of temperature values (totally crazy)
+> 
 
-No, it's a feature. You've configured in both the legacy and the sysfs 
-interfaces for the battery, and hal is picking up both of them. There's 
-a patch upstream to make hal realise that they're the same device, but 
-the alternative is just to disable one of the options.
+Quite. There's still been no indication that anyone cares about fixing 
+this interface, and I'm upset that it was merged despite there being 
+clear and valid concerns about it. Do we have a commitment that it's 
+going to be cleaned up before final? If not, it should be pulled before 
+userspace starts depending on it. The only hardware where this currently 
+matters isn't going to be running 2.6.25 anyway.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
