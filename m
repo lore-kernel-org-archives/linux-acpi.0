@@ -1,99 +1,124 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 11/11] ACPI: DMI: quirk for FSC ESPRIMO Mobile V5505
-Date: Thu, 14 Feb 2008 02:49:12 -0500
-Message-ID: <200802140249.12240.lenb@kernel.org>
-References: <1202972552-17953-1-git-send-email-lenb@kernel.org> <158c26a0f84e9c66995b44eb4d9acecd3933fc02.1202972422.git.len.brown@intel.com>
+Subject: Re: [PATCH] ACPI, CPU_IDLE: Add more information about C-states
+Date: Thu, 14 Feb 2008 03:09:01 -0500
+Message-ID: <200802140309.01871.lenb@kernel.org>
+References: <20080212015036.GC32468@linux-os.sc.intel.com> <200802140010.22097.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58874 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:41193 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758179AbYBNHt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Feb 2008 02:49:28 -0500
-Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m1E7nIl0006348
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Feb 2008 07:49:21 GMT
-In-Reply-To: <158c26a0f84e9c66995b44eb4d9acecd3933fc02.1202972422.git.len.brown@intel.com>
+	id S1752294AbYBNIJh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2008 03:09:37 -0500
+In-Reply-To: <200802140010.22097.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
+I'm confused by state0 -- why are usage and time non-zero --
+is this due to some residency there during initialization?
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9939
+I don't know if I like the looks of 2^32 - 1 as the power number...
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
+-Len
 
-(previous message had some syntax errors, courtesy of git cherry-pick)
+[root@t61 cpuidle]# cat /proc/acpi/processor/CPU0/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000000000 usec
+states:
+    C1:                  type[C1] promotion[--] demotion[--] latency[001] usage[00000000] duration[00000000000000000000]
+    C2:                  type[C2] promotion[--] demotion[--] latency[001] usage[00000161] duration[00000000000000018522]
+    C3:                  type[C3] promotion[--] demotion[--] latency[017] usage[00088238] duration[00000000002957934702]
+[root@t61 cpuidle]# grep . */*
+state0/desc:CPUIDLE CORE POLL IDLE
+state0/latency:0
+state0/name:C0
+state0/power:4294967295
+state0/time:11623
+state0/usage:6
+state1/desc:ACPI FFH INTEL MWAIT 0x0
+state1/latency:1
+state1/name:C1
+state1/power:1000
+state1/time:0
+state1/usage:0
+state2/desc:ACPI FFH INTEL MWAIT 0x10
+state2/latency:1
+state2/name:C2
+state2/power:500
+state2/time:5104
+state2/usage:163
+state3/desc:ACPI FFH INTEL MWAIT 0x20
+state3/latency:17
+state3/name:C3
+state3/power:250
+state3/time:830738297
+state3/usage:89280
 
- drivers/acpi/blacklist.c |   14 ++++++++++++++
- drivers/acpi/osl.c       |    2 +-
- include/linux/acpi.h     |    1 +
- 3 files changed, 16 insertions(+), 1 deletions(-)
+of course this isnt' new with this patch -- 2.6.25-rc1 looks as below:
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index dfa4ac8..ea92bac 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -186,6 +186,12 @@ static int __init dmi_unknown_osi_linux(const struct dmi_system_id *d)
- 	acpi_dmi_osi_linux(-1, d);	/* unknown */
- 	return 0;
- }
-+static int __init dmi_disable_osi_vista(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
-+	acpi_osi_setup("!Windows 2006");
-+	return 0;
-+}
- 
- /*
-  * Most BIOS that invoke OSI(Linux) do nothing with it.
-@@ -434,6 +440,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_vista,
-+	.ident = "Fujitsu Siemens",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-+	 	     DMI_MATCH(DMI_PRODUCT_NAME, "ESPRIMO Mobile V5505"),
-+		},
-+	},
- 	/*
- 	 * Disable OSI(Linux) warnings on all "Hewlett-Packard"
- 	 *
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 15e6023..0467171 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1109,7 +1109,7 @@ void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d)
-  * string starting with '!' disables that string
-  * otherwise string is added to list, augmenting built-in strings
-  */
--static int __init acpi_osi_setup(char *str)
-+int __init acpi_osi_setup(char *str)
- {
- 	if (str == NULL || *str == '\0') {
- 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ddbe7ef..2c7e003 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -203,6 +203,7 @@ extern bool wmi_has_guid(const char *guid);
- extern int acpi_blacklisted(void);
- #ifdef CONFIG_DMI
- extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
-+extern int acpi_osi_setup(char *str);
- #endif
- 
- #ifdef CONFIG_ACPI_NUMA
--- 
-1.5.4.1.122.gaa8d
+[root@t61 cpuidle]# cat /proc/acpi/processor/CPU0/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000000000 usec
+states:
+    C1:                  type[C1] promotion[--] demotion[--] latency[001] usage[00000000] duration[00000000000000000000]
+    C2:                  type[C2] promotion[--] demotion[--] latency[001] usage[00000202] duration[00000000000000028172]
+    C3:                  type[C3] promotion[--] demotion[--] latency[017] usage[00026011] duration[00000000000264174466]
+[root@t61 cpuidle]# grep . */*
+state0/latency:0
+state0/name:C0 (poll idle)
+state0/power:4294967295
+state0/time:35713
+state0/usage:6
+state1/latency:1
+state1/name:C1
+state1/power:1000
+state1/time:0
+state1/usage:0
+state2/latency:1
+state2/name:C2
+state2/power:500
+state2/time:7771
+state2/usage:203
+state3/latency:17
+state3/name:C3
+state3/power:250
+state3/time:74950731
+state3/usage:26286
 
+and 2.6.24 showed no C0, as expected.
+
+[root@t61 cpuidle]# cat /proc/acpi/processor/CPU0/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
+    C1:                  type[C1] promotion[--] demotion[--] latency[001] usage[00000030] duration[00000000000000000000]
+    C2:                  type[C2] promotion[--] demotion[--] latency[001] usage[00000714] duration[00000000000000531448]
+    C3:                  type[C3] promotion[--] demotion[--] latency[017] usage[00020563] duration[00000000000168147357]
+[root@t61 cpuidle]# grep . */*
+state0/latency:1
+state0/name:C1
+state0/power:1000
+state0/time:0
+state0/usage:30
+state1/latency:1
+state1/name:C2
+state1/power:500
+state1/time:148317
+state1/usage:719
+state2/latency:17
+state2/name:C3
+state2/power:250
+state2/time:48238649
+state2/usage:21034
+[root@t61 cpuidle]#                        
