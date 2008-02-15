@@ -1,63 +1,57 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH] ACPI, CPU_IDLE: Add more information about C-states
-Date: Thu, 14 Feb 2008 16:42:42 -0800
-Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE90BF92@orsmsx423.amr.corp.intel.com>
-References: <20080212015036.GC32468@linux-os.sc.intel.com> <200802140309.01871.lenb@kernel.org> <924EFEDD5F540B4284297C4DC59F3DEE8C3E68@orsmsx423.amr.corp.intel.com> <200802141541.20143.lenb@kernel.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]  ACPI:  Check whether cooling device exists before
+	unregistering it
+Date: Fri, 15 Feb 2008 08:34:37 +0800
+Message-ID: <1203035677.12873.1.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:11095 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:51956 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935256AbYBOAnx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 19:43:53 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <200802141541.20143.lenb@kernel.org>
+	id S1751124AbYBOA4r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2008 19:56:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
+Subject: ACPI:  Check whether cooling device exists before unregistering it
+>From : Zhao Yakui <yakui.zhao@intel.com>
+
+OS should check whether the cooling device exists before it is unregistered.
+If it doesn't exists, it is unnecessary to remove the sysfs link
+and call the function of thermal_cooling_device_unregister.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=9982
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Tested-by    : Dhaval Giani <dhaval@linux.vnet.ibm.com>
+    
+---
+ drivers/acpi/processor_core.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+Index: linux-2.6/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_core.c
++++ linux-2.6/drivers/acpi/processor_core.c
+@@ -809,10 +809,12 @@ static int acpi_processor_remove(struct 
+ 
+ 	acpi_processor_remove_fs(device);
+ 
+-	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-	sysfs_remove_link(&pr->cdev->device.kobj, "device");
+-	thermal_cooling_device_unregister(pr->cdev);
+-	pr->cdev = NULL;
++	if (pr->cdev) {
++		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++		sysfs_remove_link(&pr->cdev->device.kobj, "device");
++		thermal_cooling_device_unregister(pr->cdev);
++		pr->cdev = NULL;
++	}
+ 
+ 	processors[pr->id] = NULL;
  
 
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org] 
->Sent: Thursday, February 14, 2008 12:41 PM
->To: Pallipadi, Venkatesh
->Cc: linux-acpi@vger.kernel.org
->Subject: Re: [PATCH] ACPI, CPU_IDLE: Add more information 
->about C-states
->
->On Thursday 14 February 2008 11:52, Pallipadi, Venkatesh wrote:
->> 
->> 'usage' is a counter that counts every time we get into poll_idle
->> routine. I also try to keep track of time spent in poll_idle, until
->> need_resched sends us out. That time is accumulated in 'time'.
->> Just have those to be consistent with other state and to be sure that
->> powertop kind of tools wont get confused.
->
->yes, the consistency is good.
->But my question is when and why we enter poll_idle at all.
 
-Ohh. Ok. May be the ladder governor used it for a while, before we
-switch to menu governor. It should not increase later once system is
-fully up? Do you see it increasing later?
-
->
->> I agree with the 'power' number. I did not like that 
->4294967295 there.
->> But, I had to put some number higher than other C-states, maximum
->> possible seemed logical. May be I can change the sysfs interface to
->> print <NULL> or something like that for power?
->
->I dunno.  Somehow I like 0 to signify an unknown quantity
->rather than a huge number.  If somebody actually looks at it
->with a program,  they're going to have to special case either of them,
->and 0 seems simpler.
->
-
-Yes. But, if we have a 0W Cn state in future? :-).
-
-Thanks,
-Venki
