@@ -1,313 +1,41 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Fri, 15 Feb 2008 12:31:15 -0800
-Message-ID: <86802c440802151231t449af94fm97d003af10c758f2@mail.gmail.com>
-References: <200802111623.38478.elendil@planet.nl>
-	 <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
-	 <20080215065746.GA8916@suse.de> <200802151119.23325.elendil@planet.nl>
-	 <86802c440802151138i303c58a2m2eca9e97566c3@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/3] Suspend-related cleanups
+Date: Fri, 15 Feb 2008 21:54:40 +0100
+Message-ID: <200802152154.40866.rjw@sisk.pl>
+References: <200802032252.04852.rjw@sisk.pl> <20080203222027.GB2799@elf.ucw.cz> <200802151522.46847.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.232]:8748 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753023AbYBOUbR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Feb 2008 15:31:17 -0500
-Received: by wx-out-0506.google.com with SMTP id h31so775985wxd.4
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Feb 2008 12:31:16 -0800 (PST)
-In-Reply-To: <86802c440802151138i303c58a2m2eca9e97566c3@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:59203 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1764028AbYBOU4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 15:56:17 -0500
+In-Reply-To: <200802151522.46847.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@linux-foundation.org>, Frans Pop <elendil@planet.nl>
-Cc: Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Fri, Feb 15, 2008 at 11:38 AM, Yinghai Lu <yhlu.kernel@gmail.com> wrote:
->
-> On Fri, Feb 15, 2008 at 2:19 AM, Frans Pop <elendil@planet.nl> wrote:
->  > On Friday 15 February 2008, Greg KH wrote:
->  >  > I swear someone sent this patch in before.  Can you try this one below,
->  >  > there seems to be an imbalance with kobject_get and _put.
->  >
->  >  I did remember seeing this patch before [1] and can confirm that it does
->  >  indeed fix the issue: with this patch applied to 2.6.25 git head my system
->  >  powers off correctly.
->  >
->  >  [1] See http://lkml.org/lkml/2008/2/8/342; also added to #9960.
->  >
->  >
->  >
->  >  > ---
->  >  >  drivers/cpufreq/cpufreq.c |    8 --------
->  >  >  1 file changed, 8 deletions(-)
->  >  >
->  >  > --- a/drivers/cpufreq/cpufreq.c
->  >  > +++ b/drivers/cpufreq/cpufreq.c
->  >  > @@ -1006,14 +1006,6 @@ static int __cpufreq_remove_dev (struct
->  >  >       }
->  >  >  #endif
->  >  >
->  >  > -
->  >  > -     if (!kobject_get(&data->kobj)) {
->  >  > -             spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
->  >  > -             cpufreq_debug_enable_ratelimit();
->  >  > -             unlock_policy_rwsem_write(cpu);
->  >  > -             return -EFAULT;
->  >  > -     }
->  >  > -
->  >  >  #ifdef CONFIG_SMP
->  >  >
->  >  >  #ifdef CONFIG_HOTPLUG_CPU
->  >
->  >
->
->  confirmed, with this patch, i still need disable CONFIG_DETECT_SOFTLOCKUP
->
->  assume watchdog thread for the dead cpu can not be stopped. hang somewhere.
+On Friday, 15 of February 2008, Len Brown wrote:
+> On Sunday 03 February 2008 17:20, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > Three suspend-related fixes that IMO can go into 2.6.25 follow.
+> > 
+> > ACK on all three. Yes, these seem easy enough for 2.6.25.
+> > 									Pavel
+> 
+> 1 & 2 applied.
 
-Ingo,
+Thanks.
 
-with patch (http://lkml.org/lkml/2008/2/8/342) and following patch, it
-could power off with CONFIG_DETECT_SOFTLOCKUP config
+> lets re-send #3 after the big feature-removal patch goes in,
+> since it conflicts with top of tree and will conflict with that too.
 
-diff --git a/kernel/softlockup.c b/kernel/softlockup.c
-index 7c2da88..c16a658 100644
---- a/kernel/softlockup.c
-+++ b/kernel/softlockup.c
-@@ -282,12 +282,12 @@ cpu_callback(struct notifier_block *nfb,
-unsigned long action, void *hcpu)
-        case CPU_UP_CANCELED_FROZEN:
-                if (!per_cpu(watchdog_task, hotcpu))
-                        break;
--               /* Unbind so it can run.  Fall thru. */
--               kthread_bind(per_cpu(watchdog_task, hotcpu),
--                            any_online_cpu(cpu_online_map));
-+               /* Fall thru. */
-        case CPU_DEAD:
-        case CPU_DEAD_FROZEN:
-                p = per_cpu(watchdog_task, hotcpu);
-+               /* Unbind so it can run. */
-+               kthread_bind(p, any_online_cpu(cpu_online_map));
-                per_cpu(watchdog_task, hotcpu) = NULL;
-                kthread_stop(p);
-                break;
+Sure, I'll resend it.
 
-but got WARN on every CPU.
-
-ACPI: Preparing to enter system sleep state S5
-Disabling non-boot CPUs ...
-kvm: disabling virtualization on CPU1
-CPU 1 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU1 is down
-kvm: disabling virtualization on CPU2
-CPU 2 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU2 is down
-kvm: disabling virtualization on CPU3
-CPU 3 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU3 is down
-kvm: disabling virtualization on CPU4
-CPU 4 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU4 is down
-kvm: disabling virtualization on CPU5
-CPU 5 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU5 is down
-kvm: disabling virtualization on CPU6
-CPU 6 is now offline
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU6 is down
-kvm: disabling virtualization on CPU7
-CPU 7 is now offline
-SMP alternatives: switching to UP code
-------------[ cut here ]------------
-WARNING: at kernel/kthread.c:176 cpu_callback+0x14f/0x177()
-Modules linked in:
-Pid: 7224, comm: halt Not tainted 2.6.25-rc1-smp-00266-g4ee29f6-dirty #110
-
-Call Trace:
- [<ffffffff80243c61>] warn_on_slowpath+0x51/0x63
- [<ffffffff80257e00>] ktime_get_ts+0x3d/0x48
- [<ffffffff8023b160>] hrtick_start_fair+0xe1/0x129
- [<ffffffff8023a049>] enqueue_task+0x4d/0x58
- [<ffffffff8023ceda>] try_to_wake_up+0x1ae/0x1bf
- [<ffffffff80848796>] cpu_callback+0x14f/0x177
- [<ffffffff802747e4>] writeback_set_ratelimit+0x17/0x5d
- [<ffffffff8084dd78>] notifier_call_chain+0x29/0x4c
- [<ffffffff8026083c>] _cpu_down+0x18e/0x251
- [<ffffffff80260a3d>] disable_nonboot_cpus+0x50/0xd7
- [<ffffffff8024feb4>] kernel_power_off+0x21/0x3a
- [<ffffffff802500de>] sys_reboot+0xee/0x187
- [<ffffffff8024de0a>] group_send_sig_info+0x62/0x6f
- [<ffffffff8024de64>] kill_pid_info+0x4d/0x6b
- [<ffffffff8024e5e6>] sys_kill+0x70/0x13e
- [<ffffffff8084d990>] do_page_fault+0x3a9/0x768
- [<ffffffff80464205>] __up_read+0x13/0x8a
- [<ffffffff8084bc39>] error_exit+0x0/0x51
- [<ffffffff8021ee4b>] system_call_after_swapgs+0x7b/0x80
-
----[ end trace 7098a44b4633d8ed ]---
-CPU7 is down
-Power down.
-acpi_power_off called
- hwsleep-0322 [00] enter_sleep_state     : Entering sleep state [S5]
+Thanks,
+Rafael
