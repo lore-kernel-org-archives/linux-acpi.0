@@ -1,55 +1,50 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: RE: The new thermal management sysfs class, and hwmon
-Date: Fri, 15 Feb 2008 16:34:34 +0530
-Message-ID: <05B550FD4BD2014E841D83547B62600802AA6977@bgsmsx411.gar.corp.intel.com>
-References: <20080203022622.GA995@khazad-dum.debian.net> <1202031072.3042.54.camel@acpi-sony.sh.intel.com> <20080203164410.GL20687@jupiter.solarsys.private> <20080203175006.GB9159@khazad-dum.debian.net> <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com> <20080205135725.GO20687@jupiter.solarsys.private> <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com> <1202915450.7977.607.camel@queen.suse.de> <20080214140855.GB12412@srcf.ucam.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.25-rc1 regression - IBM ACPI backlight
+Date: Fri, 15 Feb 2008 09:50:30 -0200
+Message-ID: <20080215115030.GA27836@khazad-dum.debian.net>
+References: <20080214103801.GB4366@ics.muni.cz> <20080214122452.GB12775@khazad-dum.debian.net> <20080215110213.GA5648@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:31661 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157AbYBOLFF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Feb 2008 06:05:05 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20080214140855.GB12412@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757554AbYBOLut@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20080215110213.GA5648@ics.muni.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-> On Wed, Feb 13, 2008 at 04:10:50PM +0100, Thomas Renninger wrote:
-> 
-> > Why do you want to still export the temperature via ACPI sysfs paths
-> > then?
-> > Once it is there and userspace progs make use of it, you will have
-to
-> > maintain it forever and HAL is getting crazy and must take care
-about:
-> >   - How to find the ACPI thermal node
-> >   - Find the hwmon node
-> >   - Both interfaces provide temeratures
-> >   - Parse different output of temperature values (totally crazy)
+On Fri, 15 Feb 2008, Lukas Hejtmanek wrote:
+> On Thu, Feb 14, 2008 at 10:24:52AM -0200, Henrique de Moraes Holschuh wrote:
+> > > as of 2.6.25-rc1, there is no more /sys/class/backlight/acpi_video1 which
+> > > controlled LVDS backlight on Lenovo ThinkPad T61. There is still
+> > > acpi_video0 which seems to have sane values but echo N > brightness has no
+> > > effect at all.
+> > > 
+> > > thinkpad_acpi module reports that ACPI controlled backlight is present.
 > > 
+> > Please report this to linux-acpi @ vger . kernel . org...
+> > 
+> > It is likely caused by the stuff to locate and disable the unused video
+> > device in the DSDT (apparently it got the wrong device?!).
+> > 
+> > However, BEFORE reporting to linux-acpi, please test it in single user mode
+> > without X *ever* being loaded on that boot.  New X disables the BIOS
+> > brightness changes that ACPI uses.
 > 
-> Quite. There's still been no indication that anyone cares about fixing
+> 2.6.24 kernel has two acpi_video[01]. 2.6.25-rc1 does not, it contains only
+> acpi_video0 (even in text mode in single user without X being loaded) which
+> does not work at all.
 
-> this interface, and I'm upset that it was merged despite there being 
-> clear and valid concerns about it. Do we have a commitment that it's 
-> going to be cleaned up before final? If not, it should be pulled
-before 
-> userspace starts depending on it. The only hardware where this
-currently 
-> matters isn't going to be running 2.6.25 anyway.
-Len had mentioned in one of his responses that there is scope for
-evolving
-and we can do that. As you pointed out if there are 
-differences in the way temperatures are reported out, we can go ahead
-and
-fix it.
+The thinkpad DSDT exports two acpi video nodes, but only one is active.
+Apparently, ACPI video chose the wrong one.  You did the test by booting
+directly to single user mode (without X loading at all since the last
+reboot), correct?  That means there is a bug to report, indeed.
 
-Sujith
-> 
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
+Please report it through http://buzilla.kernel.org, as that's the preferred
+method of bug reporting by the ACPI people.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
