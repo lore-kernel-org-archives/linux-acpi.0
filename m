@@ -1,93 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: + acpi-use-acpi_debug_print-instead-of-printk.patch added to -mm tree
-Date: Fri, 15 Feb 2008 17:12:36 -0500
-Message-ID: <200802151712.36300.lenb@kernel.org>
-References: <200802152128.m1FLSMGi024897@imap1.linux-foundation.org>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: [Bugme-new] [Bug 9995] New: 2.6.25-rc1 regression - IBM ACPI
+	backlight controlls do not work
+Date: Fri, 15 Feb 2008 23:51:09 +0100
+Message-ID: <20080215225109.GE4269@ics.muni.cz>
+References: <bug-9995-10286@http.bugzilla.kernel.org/> <20080215122137.629c612d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57853 "EHLO hera.kernel.org"
+Received: from minas.ics.muni.cz ([147.251.4.40]:50379 "EHLO minas.ics.muni.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757758AbYBOWNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:13:31 -0500
-In-Reply-To: <200802152128.m1FLSMGi024897@imap1.linux-foundation.org>
+	id S1763871AbYBOWvb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 17:51:31 -0500
 Content-Disposition: inline
+In-Reply-To: <20080215122137.629c612d.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, "Thomas Renninger (Novell/SUSE)" <trenn@suse.de>
-Cc: mm-commits@vger.kernel.org, gcosta@redhat.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: bugme-daemon@bugzilla.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
 
-Since SuSE ships with CONFIG_ACPI_DEBUG=y,
-the line between printk and ACPI_DEBUG_PRINT is less clear.
+On Fri, Feb 15, 2008 at 12:21:37PM -0800, Andrew Morton wrote:
+> I've lost the plot on what's happening with backlight.  I think you'r=
+e
+> about to find that this is not-a-bug, even though it stopped working.
 
-I.e. this printk will be present in a production shipping distro kernel
-even if you move to to ACPI_DEBUG_PRINT from printk.
+Why do you think that it is not-a-bug even if it stopped working? I don=
+'t
+think it is a feature as acpi video driver should control backlight lev=
+els on
+laptop that provides generic ACPI based backlight support which is the =
+case of
+ThinkPad T61. Or at least it used to be with up to 2.6.24 kernels.
 
-The only variable  is the default verbosity level.
+I can read sane values from /sys/class/backlight/acpi_video0/* but chan=
+ging them
+has no effect on the backlight.
 
-Thomas, what verbosity level do you use?
-
-thanks,
--Len
-
-On Friday 15 February 2008 16:28, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      acpi: use ACPI_DEBUG_PRINT instead of printk
-> has been added to the -mm tree.  Its filename is
->      acpi-use-acpi_debug_print-instead-of-printk.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/SubmitChecklist when testing your code ***
-> 
-> See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-> out what to do about this
-> 
-> The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-> 
-> ------------------------------------------------------
-> Subject: acpi: use ACPI_DEBUG_PRINT instead of printk
-> From: Glauber Costa <gcosta@redhat.com>
-> 
-> For consistency, use ACPI_DEBUG_PRINT instead of printk in
-> acpi_processor_hotplug_notify() for BUS_CHECK and DEVICE_CHECK events
-> 
-> Signed-off-by: Glauber Costa <gcosta@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/acpi/processor_core.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff -puN drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk drivers/acpi/processor_core.c
-> --- a/drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk
-> +++ a/drivers/acpi/processor_core.c
-> @@ -890,9 +890,10 @@ acpi_processor_hotplug_notify(acpi_handl
->  	switch (event) {
->  	case ACPI_NOTIFY_BUS_CHECK:
->  	case ACPI_NOTIFY_DEVICE_CHECK:
-> -		printk("Processor driver received %s event\n",
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +		"Processor driver received %s event\n",
->  		       (event == ACPI_NOTIFY_BUS_CHECK) ?
-> -		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
-> +		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK"));
->  
->  		if (!is_processor_present(handle))
->  			break;
-> _
-> 
-> Patches currently in -mm which might be from gcosta@redhat.com are
-> 
-> remove-is_processor_present-prototype.patch
-> acpi-use-acpi_debug_print-instead-of-printk.patch
-> git-kvm.patch
-> 
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
