@@ -1,55 +1,66 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [linux-pm] [PATCH 2.6.25-rc1] cpufreq: fix cpufreq policy
-	refcount imbalance
-Date: Fri, 15 Feb 2008 10:24:21 -0800
-Message-ID: <20080215182421.GA5593@suse.de>
-References: <1203032921.3897.10.camel@yangyi-dev.bj.intel.com> <Pine.LNX.4.44L0.0802151043230.3423-100000@iolanthe.rowland.org>
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Fri, 15 Feb 2008 11:38:59 -0800
+Message-ID: <86802c440802151138i303c58a2m2eca9e97566c3@mail.gmail.com>
+References: <200802111623.38478.elendil@planet.nl>
+	 <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
+	 <20080215065746.GA8916@suse.de> <200802151119.23325.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760693AbYBOS0n@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.224]:34541 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757977AbYBOTjB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Feb 2008 14:39:01 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so761111wxd.4
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Feb 2008 11:39:00 -0800 (PST)
+In-Reply-To: <200802151119.23325.elendil@planet.nl>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0802151043230.3423-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Yi Yang <yi.y.yang@intel.com>, akpm@linux-foundation.org, davej@codemonkey.org.uk, cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@elte.hu, torvalds@linux-foundation.org, linux-pm@lists.linux-foundation.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: Greg KH <gregkh@suse.de>, Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Feb 15, 2008 at 10:52:51AM -0500, Alan Stern wrote:
-> On Fri, 15 Feb 2008, Yi Yang wrote:
-> 
-> > This patch adds kobject_put to balance refcount. I noticed Greg suggests
-> > it will fix a power-off issue to remove kobject_get statement block, but i
-> > think that isn't the best way because those code block has existed very long
-> > and it is helpful because the successive statements are invoking relevant
-> > data.
-> 
-> Are you referring to this section of code (before the region affected 
-> by your patch)?
-> 
-> 	if (!kobject_get(&data->kobj)) {
-> 		spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
-> 		cpufreq_debug_enable_ratelimit();
-> 		unlock_policy_rwsem_write(cpu);
-> 		return -EFAULT;
-> 	}
-> 
-> Greg is correct that the kobject_get() here is useless and should be
-> removed.  kobject_get() never returns NULL unless its argument is NULL.  
-> Since &data->kobj can never be NULL, the "if" test will never fail.  
-> Hence there's no point in making the test at all.
-> 
-> The fact that a section of code has existed for a long time doesn't 
-> mean that it is right.  :-)
-> 
-> Furthermore, there's no reason to do the kobject_get().  Holding 2 
-> references to a kobject is no better than holding just 1 reference.  
-> Assuming you know that the kobject is still registered, then you also 
-> know that there is already a reference to it.  So you have no reason to 
-> take an additional reference.
+On Fri, Feb 15, 2008 at 2:19 AM, Frans Pop <elendil@planet.nl> wrote:
+> On Friday 15 February 2008, Greg KH wrote:
+>  > I swear someone sent this patch in before.  Can you try this one below,
+>  > there seems to be an imbalance with kobject_get and _put.
+>
+>  I did remember seeing this patch before [1] and can confirm that it does
+>  indeed fix the issue: with this patch applied to 2.6.25 git head my system
+>  powers off correctly.
+>
+>  [1] See http://lkml.org/lkml/2008/2/8/342; also added to #9960.
+>
+>
+>
+>  > ---
+>  >  drivers/cpufreq/cpufreq.c |    8 --------
+>  >  1 file changed, 8 deletions(-)
+>  >
+>  > --- a/drivers/cpufreq/cpufreq.c
+>  > +++ b/drivers/cpufreq/cpufreq.c
+>  > @@ -1006,14 +1006,6 @@ static int __cpufreq_remove_dev (struct
+>  >       }
+>  >  #endif
+>  >
+>  > -
+>  > -     if (!kobject_get(&data->kobj)) {
+>  > -             spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
+>  > -             cpufreq_debug_enable_ratelimit();
+>  > -             unlock_policy_rwsem_write(cpu);
+>  > -             return -EFAULT;
+>  > -     }
+>  > -
+>  >  #ifdef CONFIG_SMP
+>  >
+>  >  #ifdef CONFIG_HOTPLUG_CPU
+>
+>
 
-There's the additional problem that this second reference count is never
-dropped, causing a bug :)
+confirmed, with this patch, i still need disable CONFIG_DETECT_SOFTLOCKUP
 
-thanks,
+assume watchdog thread for the dead cpu can not be stopped. hang somewhere.
 
-greg k-h
+YH
