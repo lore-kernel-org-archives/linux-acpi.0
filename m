@@ -1,60 +1,95 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: first tree
-Date: Fri, 15 Feb 2008 17:19:06 +1100
-Message-ID: <20080215171906.c3d2ae67.sfr@canb.auug.org.au>
-References: <20080215003537.8911ce35.sfr@canb.auug.org.au>
-	<200802141545.56488.rjw@sisk.pl>
-	<20080215020019.f7cb5895.sfr@canb.auug.org.au>
-	<200802142358.39171.lenb@kernel.org>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
+Date: Thu, 14 Feb 2008 22:52:30 -0800
+Message-ID: <20080215065230.GA8625@suse.de>
+References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de> <200802131239.14305.elendil@planet.nl> <20080213165837.GA10129@suse.de> <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__15_Feb_2008_17_19_06_+1100_dRkP3ltX_GpmnF.i"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:34173 "EHLO smtps.tip.net.au"
+Received: from mx1.suse.de ([195.135.220.2]:45917 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751474AbYBOGTL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:19:11 -0500
-In-Reply-To: <200802142358.39171.lenb@kernel.org>
+	id S1762237AbYBOGxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 01:53:04 -0500
+Content-Disposition: inline
+In-Reply-To: <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
---Signature=_Fri__15_Feb_2008_17_19_06_+1100_dRkP3ltX_GpmnF.i
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Feb 14, 2008 at 03:38:13PM -0800, Yinghai Lu wrote:
+> On Wed, Feb 13, 2008 at 8:58 AM, Greg KH <gregkh@suse.de> wrote:
+> >
+> > On Wed, Feb 13, 2008 at 12:39:13PM +0100, Frans Pop wrote:
+> >  > On Tuesday 12 February 2008, Greg KH wrote:
+> >  > > On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
+> >  > > > On Monday 11 February 2008, Frans Pop wrote:
+> >  > > > > In general 2.6.25 if looking quite good on my desktop, but there's
+> >  > > > > one important issue: the system no longer powers off after shutdown.
+> >  > > > > This works fine with 2.6.24.
+> >  > > >
+> >  > > > Don't ask me why, but bisection shows this commit to be the cause of
+> >  > > > the failure to power off:
+> >  > > > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
+> >  > > > Author: Greg Kroah-Hartman <gregkh@suse.de>
+> >  > > > Date:   Thu Dec 20 08:13:05 2007 -0800
+> >  > > >
+> >  > > >     Kobject: convert drivers/* from kobject_unregister() to
+> >  > > > kobject_put()
+> >  > > >
+> >  > > > Because it seemed somewhat unlikely, I have double checked this by
+> >  > > > doing an extra compilation for this commit and its predecessor.
+> >  > >
+> >  > > What is the symptom of not powering off?
+> >  >
+> >  > I already noticed yesterday that there's one hunk in that commit that's not
+> >  > a straight replacement:
+> >  > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+> >  > index 9e102af..5efd555 100644
+> >  > --- a/drivers/cpufreq/cpufreq.c
+> >  > +++ b/drivers/cpufreq/cpufreq.c
+> >  > @@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
+> >  >
+> >  >         unlock_policy_rwsem_write(cpu);
+> >  >
+> >  > -       kobject_unregister(&data->kobj);
+> >  > -
+> >  >         kobject_put(&data->kobj);
+> >  >
+> >  >         /* we need to make sure that the underlying kobj is actually
+> >  >
+> >  >
+> >  > So, just on the off chance, I applied the patch below and bingo, the system
+> >  > powers off again. I doubt this will be the correct solution, but just in
+> >  > case it is, here's my signed off. A comment why the double put is needed
+> >  > would probably be good though.
+> >
+> >  There is a bug in the cpufreq kref logic that makes this "double put"
+> >  necessary.  A real fix has already been posted to solve this issue, and
+> >  I think it should be on it's way to Linus for -rc2 already.
+> >
+> >  Please let me know if -rc2 comes out without this needed fix.
+> 
+> after disable cpufreq, i got
+> 
+> ACPI: Preparing to enter system sleep state S5
+> Disabling non-boot CPUs ...
+> kvm: disabling virtualization on CPU1
+> CPU 1 is now offline
+> CPU1 is down
+> kvm: disabling virtualization on CPU2
+> CPU 2 is now offline
+> ================> hang here.
+> 
+> but x86.git/mm could go through down all the cpus....
 
-Hi Len,
+Ugh, sorry, I was mistaken, it's not a cpufreq issue, it's a
+CONFIG_DETECT_SOFTLOCKUP issue.  Or that is what I was told before.
 
-On Thu, 14 Feb 2008 23:58:38 -0500 Len Brown <lenb@kernel.org> wrote:
->
-> Rafael has it right, please add the branch above.
-> It will include both the upcoming ACPI and suspend patches.
+But the fact that you fixed the problem with an extra kobject_put()
+makes me worry.  There might be a reference issue still there.  I'll
+look into it.
 
-Added, thanks, with you as contact.
+thanks,
 
-> Note that I reserve the right to re-base it from time to time -
-> so when you pull it, you want to pull it onto a new branch vs. Linux
-> rather than onto a previous copy of itself.
-
-That is fine, I expect rebases.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Fri__15_Feb_2008_17_19_06_+1100_dRkP3ltX_GpmnF.i
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHtS7eTgG2atn1QN8RAmiJAJ9lQN7xdr0r0uOzFKkNhX/2Qnx7sACffjQD
-/X9jsKVE27CZ9s1VWErJpTI=
-=yibr
------END PGP SIGNATURE-----
-
---Signature=_Fri__15_Feb_2008_17_19_06_+1100_dRkP3ltX_GpmnF.i--
+greg k-h
