@@ -1,124 +1,70 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Thu, 14 Feb 2008 19:45:58 -0800
-Message-ID: <86802c440802141945v85a2754i31bf7908957fe5a@mail.gmail.com>
-References: <200802111623.38478.elendil@planet.nl>
-	 <200802122139.14840.elendil@planet.nl>
-	 <20080212205622.GA21986@suse.de>
-	 <200802131239.14305.elendil@planet.nl>
-	 <20080213165837.GA10129@suse.de>
-	 <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
-	 <20080214234832.GA14363@elte.hu>
-	 <86802c440802141814t39b8082bx7ceb7eaf37c1142c@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI, CPU_IDLE: Add more information about C-states
+Date: Thu, 14 Feb 2008 23:52:59 -0500
+Message-ID: <200802142352.59859.lenb@kernel.org>
+References: <20080212015036.GC32468@linux-os.sc.intel.com> <200802141541.20143.lenb@kernel.org> <924EFEDD5F540B4284297C4DC59F3DEE90BF92@orsmsx423.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:58150 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762849AbYBODqB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 22:46:01 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so939856wah.23
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Feb 2008 19:45:59 -0800 (PST)
-In-Reply-To: <86802c440802141814t39b8082bx7ceb7eaf37c1142c@mail.gmail.com>
+Received: from hera.kernel.org ([140.211.167.34]:38377 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752830AbYBOExN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Feb 2008 23:53:13 -0500
+In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEE90BF92@orsmsx423.amr.corp.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Greg KH <gregkh@suse.de>, Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Feb 14, 2008 at 6:14 PM, Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-> On Thu, Feb 14, 2008 at 3:48 PM, Ingo Molnar <mingo@elte.hu> wrote:
->  >
->  >  * Yinghai Lu <yhlu.kernel@gmail.com> wrote:
->  >
->  >  > after disable cpufreq, i got
->  >  >
->  >  > ACPI: Preparing to enter system sleep state S5
->  >  > Disabling non-boot CPUs ...
->  >  > kvm: disabling virtualization on CPU1
->  >  > CPU 1 is now offline
->  >  > CPU1 is down
->  >  > kvm: disabling virtualization on CPU2
->  >  > CPU 2 is now offline
->  >  > ================> hang here.
->  >  >
->  >  > but x86.git/mm could go through down all the cpus....
->  >  >
->  >  > interesting...
->  >
->  >  i suspect some kobject related race, and i have the feeling this all is
->  >  timing dependent.
->  >
->  >  Andrew started seeing reboot hangs roughly around the time when the
->  >  kobject changes went upstream. Given that x86.git had flux in that
->  >  timeframe too i couldnt be sure what caused them.
->
->  it seems only happen
->  1. first hang with cpufreq enabled.
->  2. reboot to kernel with cpufreq disable will have problem.
->
->  wonder if different cpu freq out sync and next kernel with reboot
->  doesn't have cpufreq so it ....
->  -- with warm reset doesn't do the right job to sync freq again.
+On Thursday 14 February 2008 19:42, Pallipadi, Venkatesh wrote:
+> 
+> >-----Original Message-----
+> >From: Len Brown [mailto:lenb@kernel.org] 
+> >Sent: Thursday, February 14, 2008 12:41 PM
+> >To: Pallipadi, Venkatesh
+> >Cc: linux-acpi@vger.kernel.org
+> >Subject: Re: [PATCH] ACPI, CPU_IDLE: Add more information 
+> >about C-states
+> >
+> >On Thursday 14 February 2008 11:52, Pallipadi, Venkatesh wrote:
+> >> 
+> >> 'usage' is a counter that counts every time we get into poll_idle
+> >> routine. I also try to keep track of time spent in poll_idle, until
+> >> need_resched sends us out. That time is accumulated in 'time'.
+> >> Just have those to be consistent with other state and to be sure that
+> >> powertop kind of tools wont get confused.
+> >
+> >yes, the consistency is good.
+> >But my question is when and why we enter poll_idle at all.
+> 
+> Ohh. Ok. May be the ladder governor used it for a while, before we
+> switch to menu governor. It should not increase later once system is
+> fully up? Do you see it increasing later?
 
-ACPI: Preparing to enter system sleep state S5
-Disabling non-boot CPUs ...
-kvm: disabling virtualization on CPU1
-CPU 1 is now offline
-1
-2
-3
-4
-5
-CPU1 is down
-kvm: disabling virtualization on CPU2
-CPU 2 is now offline
-1
-2
-3
-4
-5
-CPU2 is down
-kvm: disabling virtualization on CPU3
-CPU 3 is now offline
-========> some time later
-Clocksource tsc unstable (delta = 515397918052 ns)
-Time: hpet clocksource has been installed.
+i haven't noticed it increase, but will look.
 
+> >
+> >> I agree with the 'power' number. I did not like that 
+> >4294967295 there.
+> >> But, I had to put some number higher than other C-states, maximum
+> >> possible seemed logical. May be I can change the sysfs interface to
+> >> print <NULL> or something like that for power?
+> >
+> >I dunno.  Somehow I like 0 to signify an unknown quantity
+> >rather than a huge number.  If somebody actually looks at it
+> >with a program,  they're going to have to special case either of them,
+> >and 0 seems simpler.
+> >
+> 
+> Yes. But, if we have a 0W Cn state in future? :-).
 
-it hangs in
+actually, the entire field is really worthless.
+we all know that BIOS writers just take the example code
+and use it multiple systems w/o changing these values.
+Perhaps we should re-cosider exposing this field,
+as it is mis-leading, at best...
 
-raw_notifier_call_chain(&cpu_chain, CPU_DEAD | mode, hcpu)== NOTIFY_BAD);
-
-there are several nb, not sure which one cause hang.
-
-8 hrtimer.c        hrtimers_init            1505
-register_cpu_notifier(&hrtimers_nb);
-9 rcuclassic.c     __rcu_init                570 register_cpu_notifier(&rcu_nb);
-a rcupreempt.c     __rcu_init                892
-register_cpu_notifier(&rcu_nb); ===> not used
-b sched.c          migration_init           5951
-register_cpu_notifier(&migration_notifier);
-c softirq.c        spawn_ksoftirqd           645
-register_cpu_notifier(&cpu_nfb);
-d softlockup.c     spawn_softlockup_task     310
-register_cpu_notifier(&cpu_nfb);
-e timer.c          init_timers              1367
-register_cpu_notifier(&timers_nb);
-f page-writeback.c page_writeback_init       775
-register_cpu_notifier(&ratelimit_nb);
-g page_alloc.c     setup_per_cpu_pageset    2744
-register_cpu_notifier(&pageset_notifier);
-h slab.c           kmem_cache_init          1638
-register_cpu_notifier(&cpucache_notifier);  ==> not used
-i slub.c           kmem_cache_init          3036
-register_cpu_notifier(&slab_notifier);
-j vmstat.c         setup_vmstat              855
-register_cpu_notifier(&vmstat_notifier);
-k kvm_main.c       kvm_init                 1328 r =
-register_cpu_notifier(&kvm_cpu_notifier);
-
-maybe the one in softlockup.c?
-
-YH
+-len
