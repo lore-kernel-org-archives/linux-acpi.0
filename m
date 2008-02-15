@@ -1,103 +1,81 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Thu, 14 Feb 2008 22:59:52 -0800
-Message-ID: <20080215065952.GB8916@suse.de>
-References: <200802111623.38478.elendil@planet.nl> <200802131239.14305.elendil@planet.nl> <20080213165837.GA10129@suse.de> <200802131955.53821.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [patch 4/6] ACPI processor: extract return values using PTR_ERR
+Date: Fri, 15 Feb 2008 14:51:18 +0800
+Message-ID: <1203058278.4013.4.camel@yakui_zhao.sh.intel.com>
+References: <05B550FD4BD2014E841D83547B62600802AA6506@bgsmsx411.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:57798 "EHLO mx2.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:35307 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754117AbYBOGzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:55:15 -0500
-Content-Disposition: inline
-In-Reply-To: <200802131955.53821.rjw@sisk.pl>
+	id S1756790AbYBOHKf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 02:10:35 -0500
+In-Reply-To: <05B550FD4BD2014E841D83547B62600802AA6506@bgsmsx411.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Thomas, Sujith" <sujith.thomas@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Wed, Feb 13, 2008 at 07:55:53PM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, 13 of February 2008, Greg KH wrote:
-> > On Wed, Feb 13, 2008 at 12:39:13PM +0100, Frans Pop wrote:
-> > > On Tuesday 12 February 2008, Greg KH wrote:
-> > > > On Tue, Feb 12, 2008 at 09:39:14PM +0100, Frans Pop wrote:
-> > > > > On Monday 11 February 2008, Frans Pop wrote:
-> > > > > > In general 2.6.25 if looking quite good on my desktop, but there's
-> > > > > > one important issue: the system no longer powers off after shutdown.
-> > > > > > This works fine with 2.6.24.
-> > > > >
-> > > > > Don't ask me why, but bisection shows this commit to be the cause of
-> > > > > the failure to power off:
-> > > > > commit c10997f6575f476ff38442fa18fd4a0d80345f9d
-> > > > > Author: Greg Kroah-Hartman <gregkh@suse.de>
-> > > > > Date:   Thu Dec 20 08:13:05 2007 -0800
-> > > > >
-> > > > >     Kobject: convert drivers/* from kobject_unregister() to
-> > > > > kobject_put()
-> > > > >
-> > > > > Because it seemed somewhat unlikely, I have double checked this by
-> > > > > doing an extra compilation for this commit and its predecessor.
-> > > >
-> > > > What is the symptom of not powering off?
-> > > 
-> > > I already noticed yesterday that there's one hunk in that commit that's not
-> > > a straight replacement:
-> > > diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> > > index 9e102af..5efd555 100644
-> > > --- a/drivers/cpufreq/cpufreq.c
-> > > +++ b/drivers/cpufreq/cpufreq.c
-> > > @@ -1030,8 +1030,6 @@ static int __cpufreq_remove_dev (struct sys_device * sys_dev)
-> > > 
-> > >         unlock_policy_rwsem_write(cpu);
-> > > 
-> > > -       kobject_unregister(&data->kobj);
-> > > -
-> > >         kobject_put(&data->kobj);
-> > > 
-> > >         /* we need to make sure that the underlying kobj is actually
-> > > 
-> > > 
-> > > So, just on the off chance, I applied the patch below and bingo, the system
-> > > powers off again. I doubt this will be the correct solution, but just in
-> > > case it is, here's my signed off. A comment why the double put is needed
-> > > would probably be good though.
-> > 
-> > There is a bug in the cpufreq kref logic that makes this "double put"
-> > necessary.  A real fix has already been posted to solve this issue, and
-> > I think it should be on it's way to Linus for -rc2 already.
-> > 
-> > Please let me know if -rc2 comes out without this needed fix.
+On Fri, 2008-02-15 at 10:54 +0530, Thomas, Sujith wrote:
+> From: Thomas Sujith <sujith.thomas@intel.com>
 > 
-> Can you point me to the fix, please?
+> Need to extract errors using PTR_ERR macro and
+> process accordingly.thermal_cooling_device_register
+> returning NULL means that CONFIG_THERMAL=n and in that
+> case no need to create symbolic links.
+> 
+> Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+> ---
+> 
+>  drivers/acpi/processor_core.c |   27 ++++++++++++++++-----------
+>  1 files changed, 16 insertions(+), 11 deletions(-)
+> 
+> Index: linux-2.6.24/drivers/acpi/processor_core.c
+> ===================================================================
+> --- linux-2.6.24.orig/drivers/acpi/processor_core.c
+> +++ linux-2.6.24/drivers/acpi/processor_core.c
+> @@ -670,21 +670,26 @@ static int __cpuinit acpi_processor_star
+>  
+>  	pr->cdev = thermal_cooling_device_register("Processor", device,
+>  						&processor_cooling_ops);
+> -	if (pr->cdev)
+> +	if (IS_ERR(pr->cdev)) {
+> +		result = PTR_ERR(pr->cdev);
+> +		goto end;
+> +	}
+> +	if (pr->cdev) {
+>  		printk(KERN_INFO PREFIX
+>  			"%s is registered as cooling_device%d\n",
+>  			device->dev.bus_id, pr->cdev->id);
+> -	else
+> -		goto end;
+>  
+> -	result = sysfs_create_link(&device->dev.kobj,
+> &pr->cdev->device.kobj,
+> -					"thermal_cooling");
+> -	if (result)
+> -		return result;
+> -	result = sysfs_create_link(&pr->cdev->device.kobj,
+> &device->dev.kobj,
+> -					"device");
+> -	if (result)
+> -		return result;
+> +		result = sysfs_create_link(&device->dev.kobj,
+> +					   &pr->cdev->device.kobj,
+> +					   "thermal_cooling");
+> +		if (result)
+> +			return result;
+> +		result = sysfs_create_link(&pr->cdev->device.kobj,
+> +					   &device->dev.kobj,
+> +					   "device");
+> +		if (result)
+> +			return result;
+> +	}
+Very good. But is it necessary to check whether the cooling device
+exists before it is unregistered? 
 
-I swear someone else sent this in, but my archives don't show it at all.
+>  
+>  	if (pr->flags.throttling) {
+>  		printk(KERN_INFO PREFIX "%s [%s] (supports",
 
-I think the patch below should solve this, but I need someone to test
-it.
-
-thanks,
-
-greg k-h
-
----
- drivers/cpufreq/cpufreq.c |    8 --------
- 1 file changed, 8 deletions(-)
-
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -1006,14 +1006,6 @@ static int __cpufreq_remove_dev (struct 
- 	}
- #endif
- 
--
--	if (!kobject_get(&data->kobj)) {
--		spin_unlock_irqrestore(&cpufreq_driver_lock, flags);
--		cpufreq_debug_enable_ratelimit();
--		unlock_policy_rwsem_write(cpu);
--		return -EFAULT;
--	}
--
- #ifdef CONFIG_SMP
- 
- #ifdef CONFIG_HOTPLUG_CPU
