@@ -1,117 +1,63 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Thu, 14 Feb 2008 16:06:19 -0800
-Message-ID: <86802c440802141606m3f44c786tb9ec4e684c71550a@mail.gmail.com>
-References: <200802111623.38478.elendil@planet.nl>
-	 <200802122139.14840.elendil@planet.nl>
-	 <20080212205622.GA21986@suse.de>
-	 <200802131239.14305.elendil@planet.nl>
-	 <20080213165837.GA10129@suse.de>
-	 <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com>
-	 <20080214234832.GA14363@elte.hu>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [PATCH] ACPI, CPU_IDLE: Add more information about C-states
+Date: Thu, 14 Feb 2008 16:42:42 -0800
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE90BF92@orsmsx423.amr.corp.intel.com>
+References: <20080212015036.GC32468@linux-os.sc.intel.com> <200802140309.01871.lenb@kernel.org> <924EFEDD5F540B4284297C4DC59F3DEE8C3E68@orsmsx423.amr.corp.intel.com> <200802141541.20143.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.184]:34728 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757476AbYBOAGU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 19:06:20 -0500
-Received: by rv-out-0910.google.com with SMTP id k20so345867rvb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Feb 2008 16:06:19 -0800 (PST)
-In-Reply-To: <20080214234832.GA14363@elte.hu>
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:11095 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935256AbYBOAnx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Feb 2008 19:43:53 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200802141541.20143.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Greg KH <gregkh@suse.de>, Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Feb 14, 2008 at 3:48 PM, Ingo Molnar <mingo@elte.hu> wrote:
->
->  * Yinghai Lu <yhlu.kernel@gmail.com> wrote:
->
->  > after disable cpufreq, i got
->  >
->  > ACPI: Preparing to enter system sleep state S5
->  > Disabling non-boot CPUs ...
->  > kvm: disabling virtualization on CPU1
->  > CPU 1 is now offline
->  > CPU1 is down
->  > kvm: disabling virtualization on CPU2
->  > CPU 2 is now offline
->  > ================> hang here.
->  >
->  > but x86.git/mm could go through down all the cpus....
->  >
->  > interesting...
->
->  i suspect some kobject related race, and i have the feeling this all is
->  timing dependent.
->
->  Andrew started seeing reboot hangs roughly around the time when the
->  kobject changes went upstream. Given that x86.git had flux in that
->  timeframe too i couldnt be sure what caused them.
->
->  i have the fixlet below in x86.git but it didnt solve Andrew's problem
->  so it's parking now at the end of the queue, with no clear purpose in
->  life :-) If it would solve someone's problem it might be revitalized.
->
->  Note: this does not fix any particular bug i know about, it's just a
->  hack.
->
->         Ingo
->
->  ------------------------------>
->  Subject: x86: highprio shutdown hack
->  From: Ingo Molnar <mingo@elte.hu>
->
->  Signed-off-by: Ingo Molnar <mingo@elte.hu>
->  Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
->  ---
->   arch/x86/kernel/reboot.c |   16 ++++++++++++++--
->   1 file changed, 14 insertions(+), 2 deletions(-)
->
->  Index: linux-x86.q/arch/x86/kernel/reboot.c
->  ===================================================================
->  --- linux-x86.q.orig/arch/x86/kernel/reboot.c
->  +++ linux-x86.q/arch/x86/kernel/reboot.c
->  @@ -396,8 +396,20 @@ static void native_machine_shutdown(void
->         if (!cpu_isset(reboot_cpu_id, cpu_online_map))
->                 reboot_cpu_id = smp_processor_id();
->
->  -       /* Make certain I only run on the appropriate processor */
->  -       set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
->  +       /*
->  +        * Make certain we only run on the appropriate processor,
->  +        * and with sufficient priority:
->  +        */
->  +       {
->  +               struct sched_param schedparm;
->  +               int ret;
->  +
->  +               schedparm.sched_priority = 99;
->  +               ret = sched_setscheduler(current, SCHED_RR, &schedparm);
->  +               WARN_ON_ONCE(1);
+ 
 
-so I got
+>-----Original Message-----
+>From: Len Brown [mailto:lenb@kernel.org] 
+>Sent: Thursday, February 14, 2008 12:41 PM
+>To: Pallipadi, Venkatesh
+>Cc: linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH] ACPI, CPU_IDLE: Add more information 
+>about C-states
+>
+>On Thursday 14 February 2008 11:52, Pallipadi, Venkatesh wrote:
+>> 
+>> 'usage' is a counter that counts every time we get into poll_idle
+>> routine. I also try to keep track of time spent in poll_idle, until
+>> need_resched sends us out. That time is accumulated in 'time'.
+>> Just have those to be consistent with other state and to be sure that
+>> powertop kind of tools wont get confused.
+>
+>yes, the consistency is good.
+>But my question is when and why we enter poll_idle at all.
 
-------------[ cut here ]------------
-WARNING: at arch/x86/kernel/reboot.c:409 native_machine_shutdown+0x5f/0xb4()
-Modules linked in:
-Pid: 7173, comm: reboot Not tainted 2.6.25-rc1-smp-00168-g458504f-dirty #33
+Ohh. Ok. May be the ladder governor used it for a while, before we
+switch to menu governor. It should not increase later once system is
+fully up? Do you see it increasing later?
 
-Call Trace:
- [<ffffffff802521d8>] warn_on_slowpath+0x64/0x8e
- [<ffffffff802464c8>] enqueue_task+0x5c/0x7e
- [<ffffffff8027765c>] rt_mutex_adjust_pi+0x28/0x94
- [<ffffffff8024c075>] sched_setscheduler+0x304/0x33c
- [<ffffffff80237feb>] native_machine_shutdown+0x5f/0xb4
- [<ffffffff80237f6e>] native_machine_restart+0x2e/0x4c
- [<ffffffff8026234b>] sys_reboot+0x140/0x1b2
- [<ffffffff8029bbd2>] handle_mm_fault+0x380/0x705
- [<ffffffff802cc311>] d_kill+0x50/0x7c
- [<ffffffff8097d000>] do_page_fault+0x3bd/0x7c9
- [<ffffffff804d58ae>] __up_read+0x27/0xb5
- [<ffffffff8022432b>] system_call_after_swapgs+0x7b/0x80
+>
+>> I agree with the 'power' number. I did not like that 
+>4294967295 there.
+>> But, I had to put some number higher than other C-states, maximum
+>> possible seemed logical. May be I can change the sysfs interface to
+>> print <NULL> or something like that for power?
+>
+>I dunno.  Somehow I like 0 to signify an unknown quantity
+>rather than a huge number.  If somebody actually looks at it
+>with a program,  they're going to have to special case either of them,
+>and 0 seems simpler.
+>
 
----[ end trace eb0e49090acb42b5 ]---
+Yes. But, if we have a 0W Cn state in future? :-).
+
+Thanks,
+Venki
