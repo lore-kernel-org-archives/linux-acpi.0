@@ -1,94 +1,124 @@
-From: Glauber Costa <gcosta@redhat.com>
-Subject: Re: + acpi-use-acpi_debug_print-instead-of-printk.patch added to
- -mm tree
-Date: Fri, 15 Feb 2008 21:21:52 -0200
-Message-ID: <47B61E90.6070005@redhat.com>
-References: <200802152128.m1FLSMGi024897@imap1.linux-foundation.org> <200802151712.36300.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 4/6] ACPI processor: extract return values using PTR_ERR
+Date: Fri, 15 Feb 2008 18:30:58 -0500
+Message-ID: <200802151830.58871.lenb@kernel.org>
+References: <05B550FD4BD2014E841D83547B62600802AA6506@bgsmsx411.gar.corp.intel.com> <1203058278.4013.4.camel@yakui_zhao.sh.intel.com> <05B550FD4BD2014E841D83547B62600802AA6942@bgsmsx411.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:40845 "EHLO mx1.redhat.com"
+Received: from hera.kernel.org ([140.211.167.34]:50413 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760627AbYBOX2Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 18:28:24 -0500
-In-Reply-To: <200802151712.36300.lenb@kernel.org>
+	id S1755078AbYBOXet (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 18:34:49 -0500
+In-Reply-To: <05B550FD4BD2014E841D83547B62600802AA6942@bgsmsx411.gar.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, "Thomas Renninger (Novell/SUSE)" <trenn@suse.de>, mm-commits@vger.kernel.org
+To: "Thomas, Sujith" <sujith.thomas@intel.com>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, "Zhang, Rui" <rui.zhang@intel.com>
 
-Len Brown wrote:
-> I.e. this printk will be present in a production shipping distro kernel
-> even if you move to to ACPI_DEBUG_PRINT from printk.
-Yes, but you can still disable it. And if you do, all the messages will 
-vanish, but this will stay.
+refreshed in acpi-test branch.
 
-> The only variable  is the default verbosity level.
+thanks,
+-len
+
+On Friday 15 February 2008 05:46, Thomas, Sujith wrote:
 > 
-> Thomas, what verbosity level do you use?
-in this patch, I used the same verbosity level as the EJECT request. So
-if it is not okay for SuSe, I suggest changing all the others too.
-
-> thanks,
-> -Len
+> > -----Original Message-----
+> > From: Zhao, Yakui 
+> > Sent: Friday, February 15, 2008 12:21 PM
+> > To: Thomas, Sujith
+> > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org; Zhang, Rui
+> > Subject: Re: [patch 4/6] ACPI processor: extract return 
+> > values using PTR_ERR
+> > 
+> > On Fri, 2008-02-15 at 10:54 +0530, Thomas, Sujith wrote:
+> > > From: Thomas Sujith <sujith.thomas@intel.com>
+> > > 
+> > > Need to extract errors using PTR_ERR macro and
+> > > process accordingly.thermal_cooling_device_register
+> > > returning NULL means that CONFIG_THERMAL=n and in that
+> > > case no need to create symbolic links.
 > 
-> On Friday 15 February 2008 16:28, akpm@linux-foundation.org wrote:
->> The patch titled
->>      acpi: use ACPI_DEBUG_PRINT instead of printk
->> has been added to the -mm tree.  Its filename is
->>      acpi-use-acpi_debug_print-instead-of-printk.patch
->>
->> Before you just go and hit "reply", please:
->>    a) Consider who else should be cc'ed
->>    b) Prefer to cc a suitable mailing list as well
->>    c) Ideally: find the original patch on the mailing list and do a
->>       reply-to-all to that, adding suitable additional cc's
->>
->> *** Remember to use Documentation/SubmitChecklist when testing your code ***
->>
->> See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
->> out what to do about this
->>
->> The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
->>
->> ------------------------------------------------------
->> Subject: acpi: use ACPI_DEBUG_PRINT instead of printk
->> From: Glauber Costa <gcosta@redhat.com>
->>
->> For consistency, use ACPI_DEBUG_PRINT instead of printk in
->> acpi_processor_hotplug_notify() for BUS_CHECK and DEVICE_CHECK events
->>
->> Signed-off-by: Glauber Costa <gcosta@redhat.com>
->> Cc: Len Brown <lenb@kernel.org>
->> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->> ---
->>
->>  drivers/acpi/processor_core.c |    5 +++--
->>  1 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff -puN drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk drivers/acpi/processor_core.c
->> --- a/drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk
->> +++ a/drivers/acpi/processor_core.c
->> @@ -890,9 +890,10 @@ acpi_processor_hotplug_notify(acpi_handl
->>  	switch (event) {
->>  	case ACPI_NOTIFY_BUS_CHECK:
->>  	case ACPI_NOTIFY_DEVICE_CHECK:
->> -		printk("Processor driver received %s event\n",
->> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->> +		"Processor driver received %s event\n",
->>  		       (event == ACPI_NOTIFY_BUS_CHECK) ?
->> -		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
->> +		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK"));
->>  
->>  		if (!is_processor_present(handle))
->>  			break;
->> _
->>
->> Patches currently in -mm which might be from gcosta@redhat.com are
->>
->> remove-is_processor_present-prototype.patch
->> acpi-use-acpi_debug_print-instead-of-printk.patch
->> git-kvm.patch
->>
-
+> > Very good. But is it necessary to check whether the cooling device
+> > exists before it is unregistered? 
+> 
+> I agree; resending the patch
+> 
+> Subject: ACPI processor : extract return values using PTR_ERR
+> From: Thomas Sujith <sujith.thomas@intel.com>
+> 
+> Need to extract errors using PTR_ERR macro and
+> process accordingly.thermal_cooling_device_register
+> returning NULL means that CONFIG_THERMAL=n and in that
+> case no need to create symbolic links.
+> 
+> Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+>  drivers/acpi/processor_core.c |   37
+> ++++++++++++++++++++++---------------
+>  1 files changed, 22 insertions(+), 15 deletions(-)
+> 
+> Index: linux-2.6.24/drivers/acpi/processor_core.c
+> ===================================================================
+> --- linux-2.6.24.orig/drivers/acpi/processor_core.c
+> +++ linux-2.6.24/drivers/acpi/processor_core.c
+> @@ -670,21 +670,26 @@ static int __cpuinit acpi_processor_star
+>  
+>  	pr->cdev = thermal_cooling_device_register("Processor", device,
+>  						&processor_cooling_ops);
+> -	if (pr->cdev)
+> +	if (IS_ERR(pr->cdev)) {
+> +		result = PTR_ERR(pr->cdev);
+> +		goto end;
+> +	}
+> +	if (pr->cdev) {
+>  		printk(KERN_INFO PREFIX
+>  			"%s is registered as cooling_device%d\n",
+>  			device->dev.bus_id, pr->cdev->id);
+> -	else
+> -		goto end;
+>  
+> -	result = sysfs_create_link(&device->dev.kobj,
+> &pr->cdev->device.kobj,
+> -					"thermal_cooling");
+> -	if (result)
+> -		return result;
+> -	result = sysfs_create_link(&pr->cdev->device.kobj,
+> &device->dev.kobj,
+> -					"device");
+> -	if (result)
+> -		return result;
+> +		result = sysfs_create_link(&device->dev.kobj,
+> +					   &pr->cdev->device.kobj,
+> +					   "thermal_cooling");
+> +		if (result)
+> +			return result;
+> +		result = sysfs_create_link(&pr->cdev->device.kobj,
+> +					   &device->dev.kobj,
+> +					   "device");
+> +		if (result)
+> +			return result;
+> +	}
+>  
+>  	if (pr->flags.throttling) {
+>  		printk(KERN_INFO PREFIX "%s [%s] (supports",
+> @@ -809,10 +814,12 @@ static int acpi_processor_remove(struct 
+>  
+>  	acpi_processor_remove_fs(device);
+>  
+> -	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+> -	sysfs_remove_link(&pr->cdev->device.kobj, "device");
+> -	thermal_cooling_device_unregister(pr->cdev);
+> -	pr->cdev = NULL;
+> +	if (pr->cdev) {
+> +		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+> +		sysfs_remove_link(&pr->cdev->device.kobj, "device");
+> +		thermal_cooling_device_unregister(pr->cdev);
+> +		pr->cdev = NULL;
+> +	}
+>  
+>  	processors[pr->id] = NULL;
+>  
+> 
