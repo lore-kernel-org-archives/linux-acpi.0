@@ -1,30 +1,54 @@
 From: Greg KH <gregkh@suse.de>
-Subject: Re: [2.6.25-rc1] System no longer powers off after shutdown
-Date: Fri, 15 Feb 2008 12:58:44 -0800
-Message-ID: <20080215205844.GC7583@suse.de>
-References: <200802111623.38478.elendil@planet.nl> <200802122139.14840.elendil@planet.nl> <20080212205622.GA21986@suse.de> <200802131239.14305.elendil@planet.nl> <20080213165837.GA10129@suse.de> <86802c440802141538m44d64b6as827426174874979d@mail.gmail.com> <20080215065230.GA8625@suse.de> <86802c440802150041x3a9f3e61na12cd1661696ec5e@mail.gmail.com>
+Subject: Re: [PATCH 2.6.25-rc1] cpufreq: fix cpufreq policy refcount
+	imbalance
+Date: Fri, 15 Feb 2008 13:01:37 -0800
+Message-ID: <20080215210137.GE7583@suse.de>
+References: <1199441414.19185.9.camel@yangyi-dev.bj.intel.com> <1201043126.3861.5.camel@yangyi-dev.bj.intel.com> <1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:55780 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:55819 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757808AbYBOVFI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:05:08 -0500
+	id S1761020AbYBOVFQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 16:05:16 -0500
 Content-Disposition: inline
-In-Reply-To: <86802c440802150041x3a9f3e61na12cd1661696ec5e@mail.gmail.com>
+In-Reply-To: <1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Frans Pop <elendil@planet.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Yi Yang <yi.y.yang@intel.com>
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, davej@codemonkey.org.uk, mingo@elte.hu, cpufreq@lists.linux.org.uk, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Feb 15, 2008 at 12:41:43AM -0800, Yinghai Lu wrote:
-> On Thu, Feb 14, 2008 at 10:52 PM, Greg KH <gregkh@suse.de> wrote:
-> >
-> >  Ugh, sorry, I was mistaken, it's not a cpufreq issue, it's a
-> >  CONFIG_DETECT_SOFTLOCKUP issue.  Or that is what I was told before.
-> >
+On Fri, Feb 15, 2008 at 07:48:41AM +0800, Yi Yang wrote:
+> When one cpu is set to offline, the caller process will hang, according to
+> the trace data, the problem lies in the refcount error in cpufreq driver,
+> cpufreq_cpu_callback will wait for completion policy->kobj_unregister
+> which is nerver completed because a refcount error in function
+> __cpufreq_remove_dev in file driver/cpufreq/cpufreq.c results in not
+> calling kobject release method.
 > 
-> could  be two issues:
-> one in cpufreq, and one in detect softlockup...
+> In driver/cpufreq/cpufreq.c, the refcount of data->kobj isn't 1 when it
+> will be unregistered, this problem didn't exist in 2.6.24 and earlier.
+> 
+> The root cause is kobject API switch, kobject_init_and_add and kobject_put
+> replace older kobject_register and kobject_unregister in 2.6.25-rc1,
+> compared to 2.6.24, kobject_unregister is deleted in function
+> __cpufreq_remove_dev but it isn't replaced with kobject_put.
+> 
+> This patch adds kobject_put to balance refcount. I noticed Greg suggests
+> it will fix a power-off issue to remove kobject_get statement block, but i
+> think that isn't the best way because those code block has existed very long
+> and it is helpful because the successive statements are invoking relevant
+> data.
+> 
+> 
+> Signed-off-by: Yi Yang <yi.y.yang@intel.com>
 
-Looks like it's that way :)
+No, the additional kobject_get() needs to be removed.  I posted a patch
+for this last night, and so did someone else earlier at:
+		http://lkml.org/lkml/2008/2/8/342
+
+this patch should not be added, I'll get the other one in instead.
+
+thanks,
+
+greg k-h
