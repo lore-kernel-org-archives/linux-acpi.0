@@ -1,91 +1,63 @@
-From: "Thomas, Sujith" <sujith.thomas@intel.com>
-Subject: [patch 6/6] Intel Menlow : extract return values using PTR_ERR
-Date: Fri, 15 Feb 2008 10:55:47 +0530
-Message-ID: <05B550FD4BD2014E841D83547B62600802AA650F@bgsmsx411.gar.corp.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: DMI Information - Dell Precision M4300
+Date: Fri, 15 Feb 2008 00:40:56 -0500
+Message-ID: <200802150040.57006.lenb@kernel.org>
+References: <20080212235359.N50592@public.nfld.com> <200802132235.59396.lenb@kernel.org> <20080214015401.W86410@public.nfld.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C86F93.389D2A60"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751988AbYBOF34@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, mingo@elte.hu, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Zhang, Rui" <rui.zhang@intel.com>
-List-Id: linux-acpi@vger.kernel.org
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01C86F93.389D2A60
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:60922 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751671AbYBOFmb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 00:42:31 -0500
+In-Reply-To: <20080214015401.W86410@public.nfld.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Gerard Hynes <ghynes@nfld.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: Thomas Sujith <sujith.thomas@intel.com>
+On Thursday 14 February 2008 00:34, Gerard Hynes wrote:
+> on Wed, 13 Feb 2008, Len Brown wrote:
+> 
+> Thank you for the detailed analysis.  Interestingly enough - this M4300 is
+> sitting in a Dell docking station right now.  :-)
+> 
+> Perhaps on the weekend - I can put it thru some docking/un-docking cycles
+> and note the behaviour if anything wierd happens - I'll definately forward any
+> obvious/repeatable interactions to you.
+> 
+> In the meantime ... this machine is one smoking Linux box, (wicked fast) and
+> everything is working extremely well (knock on wood).
 
-Need to extract errors using PTR_ERR macro and
-process accordingly.thermal_cooling_device_register
-returning NULL means that CONFIG_THERMAL=3Dn and in that
-case no need to create symbolic links.
+Dell will be glad to hear that!
 
-Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
----
+I'm pleased to notice that the "Tech Specs" for the Dell Precision M4300 & M6300
+mention Linux.  (though it isn't immediately obvious how to order one w/o Windows)
 
- drivers/misc/intel_menlow.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+Dell tells me off-list that they put the _OSI(Linux) hook into the M4300 BIOS
+starting at version A05 specifically to handle Linux console-mode video restore
+by invoking the video BIOS.
 
-Index: linux-2.6.24/drivers/misc/intel_menlow.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.24.orig/drivers/misc/intel_menlow.c
-+++ linux-2.6.24/drivers/misc/intel_menlow.c
-@@ -170,10 +170,13 @@ static int intel_menlow_memory_add(struc
-=20
- 	cdev =3D thermal_cooling_device_register("Memory controller",
-device,
- 					       &memory_cooling_ops);
--	acpi_driver_data(device) =3D cdev;
--	if (!cdev)
--		result =3D -ENODEV;
--	else {
-+	if (IS_ERR(cdev)) {
-+		result =3D PTR_ERR(cdev);
-+		goto end;
-+	}
-+
-+	if (cdev) {
-+		acpi_driver_data(device) =3D cdev;
- 		result =3D sysfs_create_link(&device->dev.kobj,
- 					&cdev->device.kobj,
-"thermal_cooling");
- 		if (result)
+(what BIOS version do you have? -- unfortunately I neglected do dump that
+ in the DMI printout...)
 
-------_=_NextPart_001_01C86F93.389D2A60
-Content-Type: application/octet-stream;
-	name="[patch 6 of 6] Intel Menlow - extract return value using PTR_ERR"
-Content-Transfer-Encoding: base64
-Content-Description: [patch 6 of 6] Intel Menlow - extract return value using PTR_ERR
-Content-Disposition: attachment;
-	filename="[patch 6 of 6] Intel Menlow - extract return value using PTR_ERR"
+So, assuming that BIOS is shipping and you have that one or later,
+then if you boot to console mode (eg init 3) w/o acpi_osi=Linux and suspend/resume
+you may get no backlight restore and your screen will be black.
+Boot with acpi_osi=Linux and the screen should restore properly.
 
-RnJvbTogVGhvbWFzIFN1aml0aCA8c3VqaXRoLnRob21hc0BpbnRlbC5jb20+CgpOZWVkIHRvIGV4
-dHJhY3QgZXJyb3JzIHVzaW5nIFBUUl9FUlIgbWFjcm8gYW5kCnByb2Nlc3MgYWNjb3JkaW5nbHku
-dGhlcm1hbF9jb29saW5nX2RldmljZV9yZWdpc3RlcgpyZXR1cm5pbmcgTlVMTCBtZWFucyB0aGF0
-IENPTkZJR19USEVSTUFMPW4gYW5kIGluIHRoYXQKY2FzZSBubyBuZWVkIHRvIGNyZWF0ZSBzeW1i
-b2xpYyBsaW5rcy4KClNpZ25lZC1vZmYtYnk6IFRob21hcyBTdWppdGggPHN1aml0aC50aG9tYXNA
-aW50ZWwuY29tPgotLS0KCiBkcml2ZXJzL21pc2MvaW50ZWxfbWVubG93LmMgfCAgIDExICsrKysr
-KystLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkK
-CkluZGV4OiBsaW51eC0yLjYuMjQvZHJpdmVycy9taXNjL2ludGVsX21lbmxvdy5jCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0KLS0tIGxpbnV4LTIuNi4yNC5vcmlnL2RyaXZlcnMvbWlzYy9pbnRlbF9tZW5sb3cuYworKysg
-bGludXgtMi42LjI0L2RyaXZlcnMvbWlzYy9pbnRlbF9tZW5sb3cuYwpAQCAtMTcwLDEwICsxNzAs
-MTMgQEAgc3RhdGljIGludCBpbnRlbF9tZW5sb3dfbWVtb3J5X2FkZChzdHJ1YwogCiAJY2RldiA9
-IHRoZXJtYWxfY29vbGluZ19kZXZpY2VfcmVnaXN0ZXIoIk1lbW9yeSBjb250cm9sbGVyIiwgZGV2
-aWNlLAogCQkJCQkgICAgICAgJm1lbW9yeV9jb29saW5nX29wcyk7Ci0JYWNwaV9kcml2ZXJfZGF0
-YShkZXZpY2UpID0gY2RldjsKLQlpZiAoIWNkZXYpCi0JCXJlc3VsdCA9IC1FTk9ERVY7Ci0JZWxz
-ZSB7CisJaWYgKElTX0VSUihjZGV2KSkgeworCQlyZXN1bHQgPSBQVFJfRVJSKGNkZXYpOworCQln
-b3RvIGVuZDsKKwl9CisKKwlpZiAoY2RldikgeworCQlhY3BpX2RyaXZlcl9kYXRhKGRldmljZSkg
-PSBjZGV2OwogCQlyZXN1bHQgPSBzeXNmc19jcmVhdGVfbGluaygmZGV2aWNlLT5kZXYua29iaiwK
-IAkJCQkJJmNkZXYtPmRldmljZS5rb2JqLCAidGhlcm1hbF9jb29saW5nIik7CiAJCWlmIChyZXN1
-bHQpCg==
+Of course, you might not really care about restoring the LCD
+if you never suspend in text mode...
 
-------_=_NextPart_001_01C86F93.389D2A60--
+It looks like the M4300/M6300 use nvidia graphics.
+If that is the case, you'll need the nvidia kernel or X driver to restore video
+after resume if the video BIOS hook above is not invoked.
+
+If the SKU has Intel graphics, then 2.6.25's i915 driver can restore video,
+even in console mode without running the BIOS.
+
+thanks,
+-Len
