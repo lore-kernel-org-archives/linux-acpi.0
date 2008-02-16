@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 3/9] ACPI: thinkpad-acpi: always track
-	input device open/close
-Date: Sat, 16 Feb 2008 02:17:52 -0200
-Message-ID: <1203135478-4813-4-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/9] ACPI: thinkpad-acpi: trivial fix to
+	module_desc typo
+Date: Sat, 16 Feb 2008 02:17:50 -0200
+Message-ID: <1203135478-4813-2-git-send-email-hmh@hmh.eng.br>
 References: <1203135478-4813-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,65 +22,26 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The open() and close() hooks for the input device are useful even when
-hotkey NVRAM polling support is not in use, so it is better to always have
-them around.
+Thanks to Damjan <gdamjan-L9MyPDI+PXW5x1IKQUDGbQ@public.gmane.org> for noticing this one.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 723d37b..6da3f40 100644
+index e2c7edd..723d37b 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1417,6 +1417,14 @@ static void hotkey_poll_setup_safe(int may_warn)
- 	mutex_unlock(&hotkey_mutex);
- }
+@@ -5918,7 +5918,7 @@ MODULE_PARM_DESC(hotkey_report_mode,
  
-+#else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
-+
-+static void hotkey_poll_setup_safe(int __unused)
-+{
-+}
-+
-+#endif /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
-+
- static int hotkey_inputdev_open(struct input_dev *dev)
- {
- 	switch (tpacpi_lifecycle) {
-@@ -1444,7 +1452,6 @@ static void hotkey_inputdev_close(struct input_dev *dev)
- 	if (tpacpi_lifecycle == TPACPI_LIFE_RUNNING)
- 		hotkey_poll_setup_safe(0);
- }
--#endif /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
+ #define TPACPI_PARAM(feature) \
+ 	module_param_call(feature, set_ibm_param, NULL, NULL, 0); \
+-	MODULE_PARM_DESC(feature, "Simulates thinkpad-aci procfs command " \
++	MODULE_PARM_DESC(feature, "Simulates thinkpad-acpi procfs command " \
+ 			 "at module load, see documentation")
  
- /* sysfs hotkey enable ------------------------------------------------- */
- static ssize_t hotkey_enable_show(struct device *dev,
-@@ -2023,12 +2030,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 				(hotkey_report_mode < 2) ?
- 					"enabled" : "disabled");
- 
--#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
- 		tpacpi_inputdev->open = &hotkey_inputdev_open;
- 		tpacpi_inputdev->close = &hotkey_inputdev_close;
- 
- 		hotkey_poll_setup_safe(1);
--#endif
- 	}
- 
- 	return (tp_features.hotkey)? 0 : 1;
-@@ -2221,9 +2226,7 @@ static void hotkey_resume(void)
- 	hotkey_radio_sw_notify_change();
- 	hotkey_wakeup_reason_notify_change();
- 	hotkey_wakeup_hotunplug_complete_notify_change();
--#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
- 	hotkey_poll_setup_safe(0);
--#endif
- }
- 
- /* procfs -------------------------------------------------------------- */
+ TPACPI_PARAM(hotkey);
 -- 
 1.5.3.8
 
