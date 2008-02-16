@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 8/9] ACPI: thinkpad-acpi: minor
-	hotkey_radio_sw fixes
-Date: Sat, 16 Feb 2008 02:17:57 -0200
-Message-ID: <1203135478-4813-9-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 9/9] ACPI: thinkpad-acpi: add tablet-mode
+	reporting
+Date: Sat, 16 Feb 2008 02:17:58 -0200
+Message-ID: <1203135478-4813-10-git-send-email-hmh@hmh.eng.br>
 References: <1203135478-4813-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,51 +22,203 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Fixes some minor points in the radio switch code and docs.
+A quick study of the 0x5009/0x500A HKEY event on the X61t DSDT revealed the
+existence of the EC HTAB register (EC 0x0f, bit 7), and a compare with the
+X41t DSDT shows that HKEY.MHKG can be used to verify if the ThinkPad is
+tablet-capable (MHKG present), and in tablet mode (bit 3 of MHKG return is
+set).
+
+Add an attribute to report this information, "hotkey_tablet_mode".  This
+attribute has poll()/select() support, and can be used along with EV_SW
+SW_TABLET_MODE to hook userspace to tablet events.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    2 +-
- drivers/misc/thinkpad_acpi.c            |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    7 +++
+ drivers/misc/thinkpad_acpi.c            |   79 ++++++++++++++++++++++++++----
+ 2 files changed, 75 insertions(+), 11 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 91f688c..606af16 100644
+index 606af16..76cb428 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -306,7 +306,7 @@ sysfs notes:
- 		The recommended polling frequency is 10Hz.
+@@ -313,6 +313,13 @@ sysfs notes:
  
- 	hotkey_radio_sw:
--		if the ThinkPad has a hardware radio switch, this
-+		If the ThinkPad has a hardware radio switch, this
- 		attribute will read 0 if the switch is in the "radios
- 		disabled" position, and 1 if the switch is in the
- 		"radios enabled" position.
+ 		This attribute has poll()/select() support.
+ 
++	hotkey_tablet_mode:
++		If the ThinkPad has tablet capabilities, this attribute
++		will read 0 if the ThinkPad is in normal mode, and
++		1 if the ThinkPad is in tablet mode.
++
++		This attribute has poll()/select() support.
++
+ 	hotkey_report_mode:
+ 		Returns the state of the procfs ACPI event report mode
+ 		filter for hot keys.  If it is set to 1 (the default),
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 3548350..c119cf2 100644
+index c119cf2..bb269d0 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1161,15 +1161,15 @@ static void tpacpi_input_send_radiosw(void)
- {
- 	int wlsw;
+@@ -221,6 +221,7 @@ static struct {
+ 	u32 hotkey:1;
+ 	u32 hotkey_mask:1;
+ 	u32 hotkey_wlsw:1;
++	u32 hotkey_tablet:1;
+ 	u32 light:1;
+ 	u32 light_status:1;
+ 	u32 bright_16levels:1;
+@@ -1060,6 +1061,9 @@ static struct attribute_set *hotkey_dev_attributes;
+ #define HOTKEY_CONFIG_CRITICAL_END
+ #endif /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
  
--	mutex_lock(&tpacpi_inputdev_send_mutex);
--
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
-+		mutex_lock(&tpacpi_inputdev_send_mutex);
++/* HKEY.MHKG() return bits */
++#define TP_HOTKEY_TABLET_MASK (1 << 3)
 +
- 		input_report_switch(tpacpi_inputdev,
- 				    SW_RADIO, !!wlsw);
- 		input_sync(tpacpi_inputdev);
--	}
+ static int hotkey_get_wlsw(int *status)
+ {
+ 	if (!acpi_evalf(hkey_handle, status, "WLSW", "d"))
+@@ -1067,6 +1071,16 @@ static int hotkey_get_wlsw(int *status)
+ 	return 0;
+ }
+ 
++static int hotkey_get_tablet_mode(int *status)
++{
++	int s;
++
++	if (!acpi_evalf(hkey_handle, &s, "MHKG", "d"))
++		return -EIO;
++
++	return ((s & TP_HOTKEY_TABLET_MASK) != 0);
++}
++
+ /*
+  * Call with hotkey_mutex held
+  */
+@@ -1172,15 +1186,20 @@ static void tpacpi_input_send_radiosw(void)
+ 	}
+ }
+ 
+-static void tpacpi_input_send_tabletsw(unsigned int state)
++static void tpacpi_input_send_tabletsw(void)
+ {
+-	mutex_lock(&tpacpi_inputdev_send_mutex);
++	int state;
+ 
+-	input_report_switch(tpacpi_inputdev,
+-			    SW_TABLET_MODE, !!state);
+-	input_sync(tpacpi_inputdev);
++	if (tp_features.hotkey_tablet &&
++	    !hotkey_get_tablet_mode(&state)) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
  
 -	mutex_unlock(&tpacpi_inputdev_send_mutex);
++		input_report_switch(tpacpi_inputdev,
++				    SW_TABLET_MODE, !!state);
++		input_sync(tpacpi_inputdev);
++
 +		mutex_unlock(&tpacpi_inputdev_send_mutex);
 +	}
  }
  
- static void tpacpi_input_send_tabletsw(unsigned int state)
+ static void tpacpi_input_send_key(unsigned int scancode)
+@@ -1691,6 +1710,29 @@ static void hotkey_radio_sw_notify_change(void)
+ 			     "hotkey_radio_sw");
+ }
+ 
++/* sysfs hotkey tablet mode (pollable) --------------------------------- */
++static ssize_t hotkey_tablet_mode_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	int res, s;
++	res = hotkey_get_tablet_mode(&s);
++	if (res < 0)
++		return res;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", !!s);
++}
++
++static struct device_attribute dev_attr_hotkey_tablet_mode =
++	__ATTR(hotkey_tablet_mode, S_IRUGO, hotkey_tablet_mode_show, NULL);
++
++static void hotkey_tablet_mode_notify_change(void)
++{
++	if (tp_features.hotkey_tablet)
++		sysfs_notify(&tpacpi_pdev->dev.kobj, NULL,
++			     "hotkey_tablet_mode");
++}
++
+ /* sysfs hotkey report_mode -------------------------------------------- */
+ static ssize_t hotkey_report_mode_show(struct device *dev,
+ 			   struct device_attribute *attr,
+@@ -1903,7 +1945,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		str_supported(tp_features.hotkey));
+ 
+ 	if (tp_features.hotkey) {
+-		hotkey_dev_attributes = create_attr_set(12, NULL);
++		hotkey_dev_attributes = create_attr_set(13, NULL);
+ 		if (!hotkey_dev_attributes)
+ 			return -ENOMEM;
+ 		res = add_many_to_attr_set(hotkey_dev_attributes,
+@@ -1982,6 +2024,18 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 					&dev_attr_hotkey_radio_sw.attr);
+ 		}
+ 
++		/* For X41t, X60t, X61t Tablets... */
++		if (!res && acpi_evalf(hkey_handle, &status, "MHKG", "qd")) {
++			tp_features.hotkey_tablet = 1;
++			printk(TPACPI_INFO
++				"possible tablet mode switch found; "
++				"ThinkPad in %s mode\n",
++				(status & TP_HOTKEY_TABLET_MASK)?
++					"tablet" : "laptop");
++			res = add_to_attr_set(hotkey_dev_attributes,
++					&dev_attr_hotkey_tablet_mode.attr);
++		}
++
+ 		if (!res)
+ 			res = register_attr_set_with_sysfs(
+ 					hotkey_dev_attributes,
+@@ -2031,7 +2085,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			set_bit(EV_SW, tpacpi_inputdev->evbit);
+ 			set_bit(SW_RADIO, tpacpi_inputdev->swbit);
+ 		}
+-		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
++		if (tp_features.hotkey_tablet) {
+ 			set_bit(EV_SW, tpacpi_inputdev->evbit);
+ 			set_bit(SW_TABLET_MODE, tpacpi_inputdev->swbit);
+ 		}
+@@ -2057,6 +2111,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 
+ 		hotkey_poll_setup_safe(1);
+ 		tpacpi_input_send_radiosw();
++		tpacpi_input_send_tabletsw();
+ 	}
+ 
+ 	return (tp_features.hotkey)? 0 : 1;
+@@ -2187,9 +2242,10 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 			case 0x500b: /* X61t: tablet pen inserted into bay */
+ 			case 0x500c: /* X61t: tablet pen removed from bay */
+ 				break;
+-			case 0x5009: /* X61t: swivel up (tablet mode) */
+-			case 0x500a: /* X61t: swivel down (normal mode) */
+-				tpacpi_input_send_tabletsw((hkey == 0x5009));
++			case 0x5009: /* X41t-X61t: swivel up (tablet mode) */
++			case 0x500a: /* X41t-X61t: swivel down (normal mode) */
++				tpacpi_input_send_tabletsw();
++				hotkey_tablet_mode_notify_change();
+ 				send_acpi_ev = 0;
+ 				break;
+ 			case 0x5001:
+@@ -2250,6 +2306,7 @@ static void hotkey_resume(void)
+ 		       "from firmware\n");
+ 	tpacpi_input_send_radiosw();
+ 	hotkey_radio_sw_notify_change();
++	hotkey_tablet_mode_notify_change();
+ 	hotkey_wakeup_reason_notify_change();
+ 	hotkey_wakeup_hotunplug_complete_notify_change();
+ 	hotkey_poll_setup_safe(0);
 -- 
 1.5.3.8
 
