@@ -1,66 +1,50 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH]  ACPI:  Check whether cooling device exists before unregistering it
-Date: Fri, 15 Feb 2008 18:31:18 -0500
-Message-ID: <200802151831.18533.lenb@kernel.org>
-References: <1203035677.12873.1.camel@yakui_zhao.sh.intel.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH] acer-wmi - Add DMI match for mail LED on Acer TravelMate 4200
+	series
+Date: Sat, 16 Feb 2008 00:02:56 +0000
+Message-ID: <20080216000256.1725.83948.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50439 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753194AbYBOXgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Feb 2008 18:36:52 -0500
-In-Reply-To: <1203035677.12873.1.camel@yakui_zhao.sh.intel.com>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:47406 "EHLO
+	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756369AbYBPADO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Feb 2008 19:03:14 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <lenb@kernel.org>
 
-applied.
+The TM4200 series use the same method as the TM2490 series to control the
+mail LED, so add a DMI based quirk for these laptops.
 
-thanks,
--len
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: Len Brown <lenb@kernel.org>
+---
 
-On Thursday 14 February 2008 19:34, Zhao Yakui wrote:
-> Subject: ACPI:  Check whether cooling device exists before unregistering it
-> >From : Zhao Yakui <yakui.zhao@intel.com>
-> 
-> OS should check whether the cooling device exists before it is unregistered.
-> If it doesn't exists, it is unnecessary to remove the sysfs link
-> and call the function of thermal_cooling_device_unregister.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9982
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> Tested-by    : Dhaval Giani <dhaval@linux.vnet.ibm.com>
->     
-> ---
->  drivers/acpi/processor_core.c |   10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/processor_core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_core.c
-> +++ linux-2.6/drivers/acpi/processor_core.c
-> @@ -809,10 +809,12 @@ static int acpi_processor_remove(struct 
->  
->  	acpi_processor_remove_fs(device);
->  
-> -	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-> -	sysfs_remove_link(&pr->cdev->device.kobj, "device");
-> -	thermal_cooling_device_unregister(pr->cdev);
-> -	pr->cdev = NULL;
-> +	if (pr->cdev) {
-> +		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-> +		sysfs_remove_link(&pr->cdev->device.kobj, "device");
-> +		thermal_cooling_device_unregister(pr->cdev);
-> +		pr->cdev = NULL;
-> +	}
->  
->  	processors[pr->id] = NULL;
->  
-> 
-> 
+ drivers/misc/acer-wmi.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index d7aea93..74d12b4 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -273,6 +273,15 @@ static struct dmi_system_id acer_quirks[] = {
+ 	},
+ 	{
+ 		.callback = dmi_matched,
++		.ident = "Acer TravelMate 4200",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 4200"),
++		},
++		.driver_data = &quirk_acer_travelmate_2490,
++	},
++	{
++		.callback = dmi_matched,
+ 		.ident = "Medion MD 98300",
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+
