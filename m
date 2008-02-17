@@ -1,26 +1,35 @@
-From: "N J" <njspam@gmail.com>
-Subject: Proc Lid
-Date: Sun, 17 Feb 2008 15:04:01 +1000
-Message-ID: <fa6232b60802162104s7025d47ajbb857cfd75d0bd9d@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: 2.6.25-rc2-mm1 (x64 thermal build failure)
+Date: Sat, 16 Feb 2008 21:16:03 -0800
+Message-ID: <20080216211603.bb4f3582.randy.dunlap@oracle.com>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:3795 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758AbYBQFEC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Feb 2008 00:04:02 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so1020966fga.17
-        for <linux-acpi@vger.kernel.org>; Sat, 16 Feb 2008 21:04:01 -0800 (PST)
-Content-Disposition: inline
+Received: from rgminet01.oracle.com ([148.87.113.118]:46633 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391AbYBQFQd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Feb 2008 00:16:33 -0500
+In-Reply-To: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Quick question. My laptop lid is always detected as closed. How do I force
-the state in /proc/acpi/buttons/lid/LID/state (might not be exact path
-because i had to disable acpi on kernel boot to get xorg working) to open?
+On Sat, 16 Feb 2008 00:25:22 -0800 Andrew Morton wrote:
 
-Thanks in advance,
+> 
+> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.25-rc2/2.6.25-rc2-mm1/
 
-NJ
+ACPI is enabled, but DMI=n.
+
+linux-2.6.25-rc2-mm1/drivers/acpi/thermal.c: In function 'acpi_thermal_init':
+linux-2.6.25-rc2-mm1/drivers/acpi/thermal.c:1792: error: 'thermal_dmi_table' undeclared (first use in this function)
+linux-2.6.25-rc2-mm1/drivers/acpi/thermal.c:1792: error: (Each undeclared identifier is reported only once
+linux-2.6.25-rc2-mm1/drivers/acpi/thermal.c:1792: error: for each function it appears in.)
+make[3]: *** [drivers/acpi/thermal.o] Error 1
+
+
+---
+~Randy
