@@ -1,103 +1,57 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.25-rc2-mm1 (x64 thermal build failure)
-Date: Mon, 18 Feb 2008 04:13:40 -0800
-Message-ID: <20080218041340.f1e46ec9.akpm@linux-foundation.org>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
-	<20080216211603.bb4f3582.randy.dunlap@oracle.com>
-	<20080216214410.b9699910.akpm@linux-foundation.org>
-	<20080218111536.511c4fbc@crazy>
+Subject: Re: Linux 2.6.24.1  - kernel does not boot; IRQ trouble?
+Date: Mon, 18 Feb 2008 05:00:49 -0800
+Message-ID: <20080218050049.12bcc596.akpm@linux-foundation.org>
+References: <23590.97305.qm@web52910.mail.re2.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45561 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758272AbYBRMQM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Feb 2008 07:16:12 -0500
-In-Reply-To: <20080218111536.511c4fbc@crazy>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <23590.97305.qm@web52910.mail.re2.yahoo.com>
+Sender: netdev-owner@vger.kernel.org
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Stephen Hemminger <shemminger@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, michael@free-electrons.com
 
-On Mon, 18 Feb 2008 11:15:36 +0100 Thomas Petazzoni <thomas.petazzoni@free-electrons.com> wrote:
+On Sun, 17 Feb 2008 00:54:08 +0000 (GMT) Chris Rankin <rankincj@yahoo.com> wrote:
 
+> [Try this again, except this time I'll force the attachment as inline text!]
+> 
 > Hi,
 > 
-> Le Sat, 16 Feb 2008 21:44:10 -0800,
-> Andrew Morton <akpm@linux-foundation.org> a __crit :
+> I have managed to boot 2.6.24.1 on this machine, with the NMI watchdog enabled, by using the
+> "acpi=noirq" option. (There does seem to be some unhappiness with bridge symlinks in sysfs,
+> though.)
 > 
-> > Bustage in x86-configurable-dmi-scanning-code.patch.  Previously,
-> > DMI=y was just hardwired.  Now, it becomes selectable and stuff
-> > breaks.
-> > 
-> > I guess the DMI=n version of dmi_check_system() could become a macro
-> > so we don't emit a reference to its argument, but that might generate
-> > unused-variable warnings elsewhere.
-> 
-> Thanks for your report. The issue is that some DMI fixup tables and
-> callbacks are defined inside #ifdef CONFIG_DMI, some others are not. We
-> need to normalize that to fix the build issue in all situations.
-> 
-> I've thought about it, and I see two options, but I can't decide which
-> one is the best, so I request your opinion on that.
-> 
->  1) Remove the #ifdef CONFIG_DMI around DMI fixup tables and callbacks
->     definition, so that everything exists and gcc is happy. gcc is able
->     to optimize out the DMI fixup table (it is not present in the binary
->     when compiling with DMI=n), but gcc doesn't seem to be able to
->     optimize out the DMI fixup callbacks (they are still present in the
->     binary). So this would leave some unused code in the binary, which
->     is not completely satisfying.
-> 
->  2) Define macros such as DECLARE_DMI_FIXUP_TABLE and
->     DECLARE_DMI_FIXUP_CALLBACK, which could then be used like this:
-> 
-> DECLARE_DMI_FIXUP_CALLBACK(set_bios_reboot, __init, d, {
-> 	if (reboot_type != BOOT_BIOS) {
-> 		reboot_type = BOOT_BIOS;
-> 		printk(KERN_INFO "%s series board detected. Selecting BIOS-method for reboots.\n", d->ident);
-> 	}
-> 	return 0;
-> });
-> 
-> DECLARE_DMI_FIXUP_TABLE(reboot_dmi_table, __initdata, {
-> 	{	/* Handle problems with rebooting on Dell E520's */
-> 		.callback = set_bios_reboot,
-> 		.ident = "Dell E520",
-> 		.matches = {
-> 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> 			DMI_MATCH(DMI_PRODUCT_NAME, "Dell DM061"),
-> 		},
-> 	}
-> });
-> 
->      And use them everywhere, so that DMI fixup tables and callbacks
->      are properly compiled out when DMI=n. Here are the macro definition:
-> 
-> #ifdef CONFIG_DMI
-> 
-> #define DECLARE_DMI_FIXUP_TABLE(name, opts, contents...) \
-> 	static struct dmi_system_id opts name [] = contents
-> 
-> #define DECLARE_DMI_FIXUP_CALLBACK(name, opts, id, contents...) \
-> 	static int opts name(const struct dmi_system_id *id) contents
-> 
-> #else
-> 
-> #define DECLARE_DMI_FIXUP_TABLE(name, opts, contents...)
-> 
-> #define DECLARE_DMI_FIXUP_CALLBACK(name, opts, contents...)
-> 
-> #endif
-> 
->      The issue I have with this option is that there are sometimes
->      "driver_data" associated to DMI callbacks (see
->      drivers/input/misc/wistron_btns.c for example) and I don't exactly
->       see how to create a similar DECLARE_DMI_FIXUP_CALLBACK_DATA macro.
-> 
+> ...
+>
+> sysfs: duplicate filename 'bridge' can not be created
+> WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
+> Pid: 1, comm: swapper Not tainted 2.6.24.1 #1
+>  [<c0105020>] show_trace_log_lvl+0x1a/0x2f
+>  [<c0105990>] show_trace+0x12/0x14
+>  [<c010613d>] dump_stack+0x6c/0x72
+>  [<c01991bf>] sysfs_add_one+0x57/0xbc
+>  [<c0199e41>] sysfs_create_link+0xc2/0x10d
+>  [<c01bae9a>] pci_bus_add_devices+0xbd/0x103
+>  [<c034016c>] pci_legacy_init+0x56/0xe3
+>  [<c03274e1>] kernel_init+0x157/0x2c3
+>  [<c0104c83>] kernel_thread_helper+0x7/0x10
+>  =======================
+> pci 0000:00:01.0: Error creating sysfs bridge symlink, continuing...
+> sysfs: duplicate filename 'bridge' can not be created
+> WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
+> Pid: 1, comm: swapper Not tainted 2.6.24.1 #1
+>  [<c0105020>] show_trace_log_lvl+0x1a/0x2f
+>  [<c0105990>] show_trace+0x12/0x14
+>  [<c010613d>] dump_stack+0x6c/0x72
+>  [<c01991bf>] sysfs_add_one+0x57/0xbc
+>  [<c0199e41>] sysfs_create_link+0xc2/0x10d
+>  [<c01bae9a>] pci_bus_add_devices+0xbd/0x103
+>  [<c01bae82>] pci_bus_add_devices+0xa5/0x103
+>  [<c034016c>] pci_legacy_init+0x56/0xe3
+>  [<c03274e1>] kernel_init+0x157/0x2c3
+>  [<c0104c83>] kernel_thread_helper+0x7/0x10
+>  =======================
 
-Option 3 wold be to add more #ifdef CONFIG_DMI lines around the place.  How
-ugly would that get?
-
+I have a vague feeling that this was fixed, perhaps in 2.6.24.x?
