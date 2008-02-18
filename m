@@ -1,52 +1,39 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Chris Rankin <rankincj@yahoo.com>
 Subject: Re: Linux 2.6.24.1  - kernel does not boot; IRQ trouble?
-Date: Mon, 18 Feb 2008 05:00:56 -0800
-Message-ID: <20080218050056.fb0fc0bf.akpm@linux-foundation.org>
-References: <23590.97305.qm@web52910.mail.re2.yahoo.com>
+Date: Mon, 18 Feb 2008 13:13:04 +0000 (GMT)
+Message-ID: <432054.54127.qm@web52910.mail.re2.yahoo.com>
+References: <20080218050056.fb0fc0bf.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40759 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760809AbYBRNB7 (ORCPT
+Received: from web52910.mail.re2.yahoo.com ([206.190.49.20]:27028 "HELO
+	web52910.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1760523AbYBRNNG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Feb 2008 08:01:59 -0500
-In-Reply-To: <23590.97305.qm@web52910.mail.re2.yahoo.com>
+	Mon, 18 Feb 2008 08:13:06 -0500
+In-Reply-To: <20080218050056.fb0fc0bf.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Rankin <rankincj@yahoo.com>
+To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, 17 Feb 2008 00:54:08 +0000 (GMT) Chris Rankin <rankincj@yahoo.com> wrote:
+--- Andrew Morton <akpm@linux-foundation.org> wrote:
+> and here it hangs, I assume?
 
-> [Try this again, except this time I'll force the attachment as inline text!]
-> 
-> Hi,
-> 
-> I have managed to boot 2.6.24.1 on this machine, with the NMI watchdog enabled, by using the
-> "acpi=noirq" option. (There does seem to be some unhappiness with bridge symlinks in sysfs,
-> though.)
-> 
+Oops, I think you have misunderstood. The hang happens if I *don't* specify acpi=noirq, whereas in
+this case I did. I have already reported the original hang under threads:
 
-Is this a regression?  If so, which was the latest kernel version which
-worked OK?
+http://www.ussg.iu.edu/hypermail/linux/kernel/0802.0/0895.html
+http://www.ussg.iu.edu/hypermail/linux/kernel/0802.0/0898.html
 
-> NFSD: Using /var/lib/nfs/v4recovery as the NFSv4 state recovery directory
-> NFSD: starting 90-second grace period
-> [drm] Initialized drm 1.1.0 20060810
-> [drm] Initialized mga 3.2.1 20051102 on minor 0
-> agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
-> agpgart: Putting AGP V2 device at 0000:00:00.0 into 4x mode
-> agpgart: Putting AGP V2 device at 0000:01:00.0 into 4x mode
-> [drm] Initialized card for AGP DMA.
-> 
+So I was actually reporting that I've *worked around* the hang here. The net result is that all my
+PCI devices are now placed on IRQ 9, instead of IRQs 16, 17 18 and 19.
 
-and here it hangs, I assume?
+Cheers,
+Chris
 
-Please add initcall_debug to the kernel boot command line so we can see if
-we can get a more precise idea of where it went wrong.
 
-Do you believe that this hang is somehow caused by x86 NMI?  If so, why?
 
-Thanks.
+      ___________________________________________________________
+Support the World Aids Awareness campaign this month with Yahoo! For Good http://uk.promotions.yahoo.com/forgood/
