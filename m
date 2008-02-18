@@ -1,40 +1,70 @@
 From: Glauber Costa <gcosta@redhat.com>
-Subject: [PATCH 0/4] Avoid panic in case of buggy bios
-Date: Mon, 18 Feb 2008 17:56:08 -0300
-Message-ID: <1203368168-30257-1-git-send-email-gcosta@redhat.com>
+Subject: [PATCH 1/4] make cdev attribuition the last step
+Date: Mon, 18 Feb 2008 17:56:50 -0300
+Message-ID: <1203368213-30528-1-git-send-email-gcosta@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:43095 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([66.187.233.31]:43138 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752341AbYBRVDH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Feb 2008 16:03:07 -0500
+	id S1757371AbYBRVDn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Feb 2008 16:03:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.grover@intel.com, paul.s.diefenbaugh@intel.com, linux@brodo.de, anil.s.keshavamurthy@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrew.grover@intel.com, paul.s.diefenbaugh@intel.com, linux@brodo.de, anil.s.keshavamurthy@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, Glauber Costa <gcosta@redhat.com>
 
-Hi,
+This patch uses a temporary variable "cdev" instead of using
+directly pr->cdev. Through it, we can tell later whether or not
+this code was completed properly: by checking for pr->cdev != NULL
+Signed-off-by: Glauber Costa <gcosta@redhat.com>
+---
+ drivers/acpi/processor_core.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-I've came across a panic today after failing acpi_processor_start()
-in this condition:
-
-        if (processor_device_array[pr->id] != NULL &&
-            processor_device_array[pr->id] != device) {
-                printk(KERN_WARNING "BIOS reported wrong ACPI id "
-                        "for the processor\n");
-                return -ENODEV;
-        }
-
-The problem is that there are some data structures that are not initialized
-if we exit that early, but the removal functions assume to be present. One
-solution would be to move the checks to the bottom of this function, after
-all the initializations are complete, but I personally think this is
-not a good idea, from the waste point of view.
-
-So I'm attaching a series of 4 patches that provides a criteria to decide
-whether or not we got past the point of initializing that data structures,
-and using it to conditionally unregister them latter.
-
-Hope it's okay with you
-
-
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 75ccf5d..9480203 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -622,7 +622,7 @@ static int __cpuinit acpi_processor_star
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_processor *pr;
+-
++	struct thermal_cooling_device *cdev;
+ 
+ 	pr = acpi_driver_data(device);
+ 
+@@ -668,24 +668,26 @@ #endif
+ 
+ 	acpi_processor_power_init(pr, device);
+ 
+-	pr->cdev = thermal_cooling_device_register("Processor", device,
++	cdev = thermal_cooling_device_register("Processor", device,
+ 						&processor_cooling_ops);
+-	if (pr->cdev)
++	if (cdev)
+ 		printk(KERN_INFO PREFIX
+ 			"%s is registered as cooling_device%d\n",
+-			device->dev.bus_id, pr->cdev->id);
++			device->dev.bus_id, cdev->id);
+ 	else
+ 		goto end;
+ 
+-	result = sysfs_create_link(&device->dev.kobj, &pr->cdev->device.kobj,
++	result = sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
+ 					"thermal_cooling");
+ 	if (result)
+ 		return result;
+-	result = sysfs_create_link(&pr->cdev->device.kobj, &device->dev.kobj,
++	result = sysfs_create_link(&cdev->device.kobj, &device->dev.kobj,
+ 					"device");
+ 	if (result)
+ 		return result;
+ 
++	pr->cdev = cdev;
++
+ 	if (pr->flags.throttling) {
+ 		printk(KERN_INFO PREFIX "%s [%s] (supports",
+ 		       acpi_device_name(device), acpi_device_bid(device));
+-- 
+1.4.2
 
