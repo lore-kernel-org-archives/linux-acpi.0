@@ -1,50 +1,52 @@
 From: Glauber Costa <gcosta@redhat.com>
-Subject: [PATCH 4/4] remove goto statement
-Date: Mon, 18 Feb 2008 17:56:53 -0300
-Message-ID: <1203368213-30528-4-git-send-email-gcosta@redhat.com>
+Subject: [PATCH 2/4] use pr->cdev as a condition for cleanup
+Date: Mon, 18 Feb 2008 17:56:51 -0300
+Message-ID: <1203368213-30528-2-git-send-email-gcosta@redhat.com>
 References: <1203368213-30528-1-git-send-email-gcosta@redhat.com>
- <1203368213-30528-2-git-send-email-gcosta@redhat.com>
- <1203368213-30528-3-git-send-email-gcosta@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:43145 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([66.187.233.31]:43142 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761977AbYBRVDq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Feb 2008 16:03:46 -0500
-In-Reply-To: <1203368213-30528-3-git-send-email-gcosta@redhat.com>
+	id S1760550AbYBRVDp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Feb 2008 16:03:45 -0500
+In-Reply-To: <1203368213-30528-1-git-send-email-gcosta@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.grover@intel.com, paul.s.diefenbaugh@intel.com, linux@brodo.de, anil.s.keshavamurthy@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrew.grover@intel.com, paul.s.diefenbaugh@intel.com, linux@brodo.de, anil.s.keshavamurthy@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, Glauber Costa <gcosta@redhat.com>
 
-This patch removes goto statements in favour of plain returns
-in places that had nothing left behind that would justify
-such construction
+The acpi_processor_start() function can fail before creating the
+sysfs nodes for thermal cooling. In this case, pr->cdev will be NULL,
+and the removal code will break.
+
+This patch uses pr->cdev as a criteria for termination of the
+mentioned code, and avoids it, if it was never initialized.
+
+Signed-off-by: Glauber Costa <gcosta@redhat.com>
 ---
- drivers/acpi/processor_core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_core.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 06a230a..70f62b6 100644
+index 9480203..5023410 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -651,7 +651,7 @@ static int __cpuinit acpi_processor_star
+@@ -811,10 +811,12 @@ static int acpi_processor_remove(struct 
  
- 	result = acpi_processor_add_fs(device);
- 	if (result)
--		goto end;
-+		return result;
+ 	acpi_processor_remove_fs(device);
  
- 	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
- 					     acpi_processor_notify, pr);
-@@ -675,7 +675,7 @@ #endif
- 			"%s is registered as cooling_device%d\n",
- 			device->dev.bus_id, cdev->id);
- 	else
--		goto end;
-+		return result;
+-	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-	sysfs_remove_link(&pr->cdev->device.kobj, "device");
+-	thermal_cooling_device_unregister(pr->cdev);
+-	pr->cdev = NULL;
++	if (pr->cdev) {
++		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++		sysfs_remove_link(&pr->cdev->device.kobj, "device");
++		thermal_cooling_device_unregister(pr->cdev);
++		pr->cdev = NULL;
++	}
  
- 	result = sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
- 					"thermal_cooling");
+ 	processors[pr->id] = NULL;
+ 
 -- 
 1.4.2
 
