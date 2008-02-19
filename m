@@ -1,48 +1,69 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: 2.6.25-rc2-mm1 (x64 thermal build failure)
-Date: Tue, 19 Feb 2008 09:41:47 -0800
-Message-ID: <20080219094147.b9e0e99b.randy.dunlap@oracle.com>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
-	<20080216211603.bb4f3582.randy.dunlap@oracle.com>
-	<20080216214410.b9699910.akpm@linux-foundation.org>
-	<20080218111536.511c4fbc@crazy>
-	<20080218041340.f1e46ec9.akpm@linux-foundation.org>
-	<20080219165502.2c202759@crazy>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: <gregkh@suse.de>
+Subject: patch driver-core-pm-make-suspend_device-static.patch added to gregkh-2.6 tree
+Date: Tue, 19 Feb 2008 11:43:11 -0800
+Message-ID: <12034501912611@kroah.org>
+References: <200802032255.19835.rjw@sisk.pl>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:44845 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154AbYBSRmR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Feb 2008 12:42:17 -0500
-In-Reply-To: <20080219165502.2c202759@crazy>
+Received: from ns2.suse.de ([195.135.220.15]:52164 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751311AbYBSTpv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2008 14:45:51 -0500
+In-Reply-To: <200802032255.19835.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, michael@free-electrons.com
-
-On Tue, 19 Feb 2008 16:55:02 +0100 Thomas Petazzoni wrote:
-
-> Le Mon, 18 Feb 2008 04:13:40 -0800,
-> Andrew Morton <akpm@linux-foundation.org> a =E9crit :
->=20
-> > Option 3 wold be to add more #ifdef CONFIG_DMI lines around the
-> > place.  How ugly would that get?
->=20
-> Like the attached patch. #ifdef CONFIG_DMI everywhere :-(
+To: bunk@kernel.org, greg@kroah.com, gregkh@suse.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
 
 
-Does this patch apply to -mm?  Seem like No.
+This is a note to let you know that I've just added the patch titled
 
-After converting it from mime(?) to ASCII and fixing one #if
-(change "and" to "&&") & fixing patch rejects, it does build cleanly.
+     Subject: Driver core: PM: Make suspend_device() static
 
+to my gregkh-2.6 tree.  Its filename is
+
+     driver-core-pm-make-suspend_device-static.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+>From rjw@sisk.pl Sun Feb  3 14:03:13 2008
+From: Adrian Bunk <bunk@kernel.org>
+Date: Sun, 3 Feb 2008 22:55:18 +0100
+Subject: Driver core: PM: Make suspend_device() static
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>, Adrian Bunk <bunk@kernel.org>
+Message-ID: <200802032255.19835.rjw@sisk.pl>
+Content-Disposition: inline
+
+
+From: Adrian Bunk <bunk@kernel.org>
+
+suspend_device() can become static.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-~Randy
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/base/power/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -415,7 +415,7 @@ EXPORT_SYMBOL_GPL(device_power_down);
+  *	@dev:	Device.
+  *	@state:	Power state device is entering.
+  */
+-int suspend_device(struct device *dev, pm_message_t state)
++static int suspend_device(struct device *dev, pm_message_t state)
+ {
+ 	int error = 0;
+ 
+
+
+Patches currently in gregkh-2.6 which might be from bunk@kernel.org are
+
+driver/driver-core-pm-make-suspend_device-static.patch
+pci/pci-if-0-pci_assign_resource_fixed.patch
+usb/usb-make-usb_storage_onetouch-available-with-pm.patch
+usb/usb-g_printer-fix-empty-if-statement.patch
