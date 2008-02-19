@@ -1,69 +1,59 @@
-From: <gregkh@suse.de>
-Subject: patch driver-core-pm-make-suspend_device-static.patch added to gregkh-2.6 tree
-Date: Tue, 19 Feb 2008 11:43:11 -0800
-Message-ID: <12034501912611@kroah.org>
-References: <200802032255.19835.rjw@sisk.pl>
+From: Lee Hornby <lee.hornby@btinternet.com>
+Subject: kernel output
+Date: Tue, 19 Feb 2008 20:17:49 +0000
+Message-ID: <1203452269.3355.3.camel@dell-8400.home>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:52164 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbYBSTpv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2008 14:45:51 -0500
-In-Reply-To: <200802032255.19835.rjw@sisk.pl>
+Received: from smtp805.mail.ird.yahoo.com ([217.146.188.65]:35336 "HELO
+	smtp805.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758020AbYBSUZk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2008 15:25:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bunk@kernel.org, greg@kroah.com, gregkh@suse.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
 
 
-This is a note to let you know that I've just added the patch titled
+Kernel message
 
-     Subject: Driver core: PM: Make suspend_device() static
+Feb 19 18:30:19 dell-8400 kernel: ACPI: BIOS _OSI(Linux) query ignored
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI System Vendor: Dell
+Inc.                
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI Product Name: Dimension
+8400               
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI Product Version: 
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI Board Name: 0J3492
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI BIOS Vendor: Dell
+Inc.                
+Feb 19 18:30:19 dell-8400 kernel: ACPI: DMI BIOS Date: 07/07/2006
+Feb 19 18:30:19 dell-8400 kernel: ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
+Feb 19 18:30:19 dell-8400 kernel: ACPI: If "acpi_osi=Linux" works
+better, please notify linux-
 
-to my gregkh-2.6 tree.  Its filename is
+after adding acpi_osi=Linux
 
-     driver-core-pm-make-suspend_device-static.patch
+Feb 19 19:45:10 dell-8400 kernel: ACPI: BIOS _OSI(Linux) query honored
+via cmdline
+Feb 19 19:45:10 dell-8400 kernel: ACPI: DMI System Vendor: Dell
+Inc.                
+Feb 19 19:45:11 dell-8400 kernel: ACPI: DMI Product Name: Dimension
+8400               
+Feb 19 19:45:11 dell-8400 kernel: ACPI: DMI Product Version: 
+Feb 19 19:45:11 dell-8400 kernel: ACPI: DMI Board Name: 0J3492
+Feb 19 19:45:11 dell-8400 kernel: ACPI: DMI BIOS Vendor: Dell
+Inc.                
+Feb 19 19:45:11 dell-8400 kernel: ACPI: DMI BIOS Date: 07/07/2006
+Feb 19 19:45:11 dell-8400 kernel: ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-
->From rjw@sisk.pl Sun Feb  3 14:03:13 2008
-From: Adrian Bunk <bunk@kernel.org>
-Date: Sun, 3 Feb 2008 22:55:18 +0100
-Subject: Driver core: PM: Make suspend_device() static
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Greg KH <greg@kroah.com>, Adrian Bunk <bunk@kernel.org>
-Message-ID: <200802032255.19835.rjw@sisk.pl>
-Content-Disposition: inline
-
-
-From: Adrian Bunk <bunk@kernel.org>
-
-suspend_device() can become static.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/base/power/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/drivers/base/power/main.c
-+++ b/drivers/base/power/main.c
-@@ -415,7 +415,7 @@ EXPORT_SYMBOL_GPL(device_power_down);
-  *	@dev:	Device.
-  *	@state:	Power state device is entering.
-  */
--int suspend_device(struct device *dev, pm_message_t state)
-+static int suspend_device(struct device *dev, pm_message_t state)
- {
- 	int error = 0;
- 
+Hope this helps
+Lee
 
 
-Patches currently in gregkh-2.6 which might be from bunk@kernel.org are
 
-driver/driver-core-pm-make-suspend_device-static.patch
-pci/pci-if-0-pci_assign_resource_fixed.patch
-usb/usb-make-usb_storage_onetouch-available-with-pm.patch
-usb/usb-g_printer-fix-empty-if-statement.patch
+
+
+
