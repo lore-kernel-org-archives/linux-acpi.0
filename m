@@ -1,36 +1,42 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] sony-laptop.c: fix off-by-one
-Date: Wed, 20 Feb 2008 00:59:03 +0200
-Message-ID: <20080219225903.GS31955@cs181133002.pp.htv.fi>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.25-rc2-mm1 (x64 thermal build failure)
+Date: Tue, 19 Feb 2008 15:21:29 -0800
+Message-ID: <20080219152129.6e8b7956.akpm@linux-foundation.org>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
+	<20080216211603.bb4f3582.randy.dunlap@oracle.com>
+	<20080216214410.b9699910.akpm@linux-foundation.org>
+	<20080218111536.511c4fbc@crazy>
+	<20080218041340.f1e46ec9.akpm@linux-foundation.org>
+	<20080219165502.2c202759@crazy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.pp.htv.fi ([213.243.153.39]:38533 "EHLO smtp5.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759821AbYBSW7k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2008 17:59:40 -0500
-Content-Disposition: inline
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55048 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751336AbYBSXXN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2008 18:23:13 -0500
+In-Reply-To: <20080219165502.2c202759@crazy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, michael@free-electrons.com
 
-This patch fixes an off-by-one spotted by the Coverity checker.
+On Tue, 19 Feb 2008 16:55:02 +0100 Thomas Petazzoni <thomas.petazzoni@free-electrons.com> wrote:
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> Le Mon, 18 Feb 2008 04:13:40 -0800,
+> Andrew Morton <akpm@linux-foundation.org> a __crit :
+> 
+> > Option 3 wold be to add more #ifdef CONFIG_DMI lines around the
+> > place.  How ugly would that get?
+> 
+> Like the attached patch. #ifdef CONFIG_DMI everywhere :-(
+> 
 
----
---- linux-2.6/drivers/misc/sony-laptop.c.old	2008-02-20 00:26:21.000000000 +0200
-+++ linux-2.6/drivers/misc/sony-laptop.c	2008-02-20 00:26:38.000000000 +0200
-@@ -314,9 +314,9 @@ static void sony_laptop_report_input_eve
- 		kp.dev = jog_dev;
- 		break;
- 
- 	default:
--		if (event > ARRAY_SIZE(sony_laptop_input_index)) {
-+		if (event >= ARRAY_SIZE(sony_laptop_input_index)) {
- 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
- 			break;
- 		}
- 		if (sony_laptop_input_index[event] != -1) {
+ug, sorry, if I'd realised it was like this I'd have said "don't bother". 
+Apart from the obvious problem, this means that people will keep breaking
+CONFIG_DMI=n all the time, because they will forget the ifdefs, and the
+number of people who test with CONFIG_DMI=n will be small.
+
 
