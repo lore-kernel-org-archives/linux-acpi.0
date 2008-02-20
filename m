@@ -1,16 +1,16 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
 	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 14:32:13 -0800
-Message-ID: <200802201432.13393.jesse.barnes@intel.com>
+Date: Wed, 20 Feb 2008 23:36:44 +0100
+Message-ID: <200802202336.45492.rjw@sisk.pl>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802201053.16218.jesse.barnes@intel.com>
-	<b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
+	<alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
+	<200802201344.11643.jesse.barnes@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
+In-Reply-To: <200802201344.11643.jesse.barnes@intel.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
@@ -21,37 +21,124 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
-> On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > > So, next I'll try "shutdown" to see if it work. I was using "platform".
+On Wednesday, 20 of February 2008, Jesse Barnes wrote:
+> On Wednesday, February 20, 2008 1:13 pm Linus Torvalds wrote:
+> > On Wed, 20 Feb 2008, Jesse Barnes wrote:
+> > > The current callback system looks like this (according to Rafael and the
+> > > last time I looked):
+> > >   ->suspend(PMSG_FREEZE)
+> > >   ->resume()
+> > >   ->suspend(PMSG_SUSPEND)
+> > >   *enter S3 or power off*
+> > >   ->resume()
 > >
-> > Ok, that would be good to try.
->
-> "shutdown" does power down properly. But still green on resume.
->
-> > Looks like the AR registers are hosed, which is what I thought I fixed...
-> >  Can you attach your i915_drv.c file just so I can sanity check it?
->
-> Attached.
+> > Yes, it's very messy.
+> >
+> > It's messy for a few different reasons:
+> >
+> >  - the one you hit: a driver actually has a really hard time telling what
+> >    PMSG_SUSPEND really means.
 
-Jeff, for the hang on suspend problem, I know suspect something else in 
-2.6.25-rc2 caused that.
+In fact the driver can find out in which state to put the device into,
+depending on the target ACPI state which is known.
 
-Can you try the 2.6.25-rc1 version of i915_drv.c (in fact all of 
-drivers/char/drm from 2.6.25-rc1) but in a 2.6.25-rc2 kernel?  I ask because 
-2.6.25-rc1 suspends to disk just fine for me and resumes w/o a green screen, 
-while 2.6.25-rc2 fails to suspend (hangs like you say) and gives me a green 
-screen.
+> >  - more importantly, we generally don't want to "suspend/resume" the
+> >    hardware at all around a power-off, because we're going to resume with
+> >    the state at the time of the PMSG_FREEZE, which means that the hardware
+> >    has actually *changed* and been used in between!
+> 
+> Exactly.
+> 
+> > So the "->resume" really isn't a resume at all. It's much closer to a
+> > "->reset".
+> 
+> Yeah, in the hibernate case this is definitely true.
 
-Were there other changes in ACPI or the PM core that might have caused this I 
-wonder?
+Agreed.
+
+> > Of course, the "solution" to this all right now is that we have to reset
+> > everything even if it *is* a suspend event, so it basically means that STR
+> > ends up using the much weaker model that snapshot-to-disk uses.
+> >
+> > The fundamental problem being that the two really have nothing
+> > what-so-ever to do with each other. They aren't even similar. Never were.
+> >
+> > > And in the long term we could have:
+> > >   ->suspend()
+> > >   *enter S3*
+> > >   ->resume()
+> >
+> > Yes, apart from all the complexities (suspend_late/resume_early). So in
+> > reality it's more than that, but the suspend/resume things are clearly
+> > nesting, and they have the potential to actually keep state around
+> > (because we *know* this machine is not going to mess with the devices in
+> > between).
+> 
+> Really, in the simple s3 case we still need early/late stuff?
+
+Yes, we do.  There are devices that need to be suspended with interrupts off.
+
+> > IOW, here we actually can have as an option "assume the device is there
+> > when you return".
+
+That is, unless the user pulls out that pendrive while suspended, no?
+
+> > > or:
+> > >   ->hibernate()
+> > >   *kexec to another kernel to save image*
+> > >   *power off*
+> > >   ->return_from_hibernate() (or somesuch)
+> >
+> > Enough people don't trust kexec that I suspect the right thing simply is
+> >
+> > 	->freeze()		// stop dma, synchronize device state
+> > 	*snapshot*
+> > 	->unfreeze();		// resume dma
+> > 	*save image*
+> > 	[ optionally ->poweroff() ]	// do we really care? I'd say no
+
+We do, if there are devices that wake us up from S4 and don't wake us up from
+S5, for example.  Plus this f*cking fan in my box that doesn't work after the
+resume if we don't do ->poweroff() ...
+
+> > 	*power off*
+> > 	->restore()		// reset device to the frozen one
+> >
+> > which may have four entry-points that can be illogically mapped to the
+> > suspend/resume ones like we do now, but they really have nothing to do
+> > with suspending/resuming.
+
+Apart from putting devices into the right low power states, that is.
+
+> Well, it seems like we'll have to fix drivers in either case, and isn't a 
+> kexec approach fundamentally more sound and simple, design-wise?  Rafael 
+> pointed out some problems with properly setting wakeup states, but I think 
+> that could be overcome...
+
+Your honor, I would like to register a differing opinion ...
+ 
+> > And notice how while "freeze/restore" kind of pairs like a
+> > "suspend/resume", it really shouldn't be expected to realistically restore
+> > the same state at all. The "restore" part is generally much better seen as
+> > a "reset hardware" than a "resume" thing.
+
+That's absolutely correct.
+
+> > Because we literally cannot trust *anything* about the state since we froze
+> > it - we might have booted a different OS in between etc. Very different from
+> > suspend/resume. 
+> 
+> Yeah, definitely.  It has to be much more robust and deal with configuration 
+> changes, etc. (within reason).
+
+Agreed.
 
 Thanks,
-Jesse
+Rafael
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
