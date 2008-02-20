@@ -1,8 +1,8 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
 	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 12:41:30 -0800
-Message-ID: <200802201241.30952.jesse.barnes@intel.com>
+Date: Wed, 20 Feb 2008 21:45:00 +0100
+Message-ID: <200802202145.01882.rjw@sisk.pl>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
 	<200802202114.43007.rjw@sisk.pl>
 	<alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
@@ -22,47 +22,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 20, 2008 12:29 pm Linus Torvalds wrote:
+On Wednesday, 20 of February 2008, Linus Torvalds wrote:
+> 
 > On Wed, 20 Feb 2008, Rafael J. Wysocki wrote:
+> > 
 > > I think we should export the target sleep state somehow.
->
+> 
 > Yeah. By *not* using "->suspend()" for freezing or hibernate.
->
-> Please, Rafael - just make the f*cking suspend-to-disk use other routines
-> already. 99% of all hardware needs to do exactly *nothing* on
-> suspend-to-disk, and the ones that really do need things tend to need to
-> not do a whole lot.
+> 
+> Please, Rafael - just make the f*cking suspend-to-disk use other routines 
+> already.
 
-In talking with Rafael on IRC about this, I think we're agreed that we need 
-separate entry points.  Even with a kexec based hibernate, we'll probably 
-want ->hibernate callbacks so we don't end up shutting down the device.
+Okay, I think I'll just start sending patches for that, but rather not earlier
+than in the 2.6.27 time frame.  No one else works on that and I've been busy
+with other things recently.  Besides, I'm not even a full time kernel
+developer ...
 
-The current callback system looks like this (according to Rafael and the last 
-time I looked):
-  ->suspend(PMSG_FREEZE)
-  ->resume()
-  ->suspend(PMSG_SUSPEND)
-  *enter S3 or power off*
-  ->resume()
-The fact that we get suspend/resume called once before suspend again in the 
-hibernate case is somewhat obnoxious, but it's even worse that we don't know 
-what we're about to enter after ->suspend(PMSG_SUSPEND).  So in the short 
-term it would be nice to at least get the target state exported.
+> 99% of all hardware needs to do exactly *nothing* on suspend-to-disk, and the
+> ones that really do need things tend to need to not do a whole lot.
+> 
+> For example, the "freeze" action for USB (which is one of the hardest 
+> things to suspend) should literally be something like just setting the 
+> controller STOP bit, and waiting for it to have stopped. The "unfreeze" 
+> should be to just clear the stop bit, while the "restart" should be just a 
+> controller reset to use the current memory image.
+> 
+> NONE OF THIS HAS ABSOLUTELY ANYTHING TO DO WITH SUSPEND.
+> 
+> It never did. I've told people so for years. Maybe actually seeing the 
+> problems will make people realize.
 
-And in the long term we could have:
-  ->suspend()
-  *enter S3*
-  ->resume()
-or:
-  ->hibernate()
-  *kexec to another kernel to save image*
-  *power off*
-  ->return_from_hibernate() (or somesuch)
+I think so.
 
-Jesse
+> So please, we shouldn't call "->suspend[_late]" or "->resume[_early]" at 
+> all. Not with PMSG_FREEZE, not with PMSG_*anything*.
+> 
+> Can we please get this fixed some day? 
+
+Yes, we can (hopefully).
+
+Thanks,
+Rafael
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
