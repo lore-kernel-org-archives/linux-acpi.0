@@ -1,126 +1,176 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 5/5] ACPI: add DMI to enable OSI(Linux) on ThinkPad T61
-Date: Wed, 20 Feb 2008 02:43:00 +0100
-Message-ID: <1203471780.3358.174.camel@linux-2bdv.site>
-References: <200801190240.45718.lenb@kernel.org>
-	 <20080119120830.GA16308@khazad-dum.debian.net>
-	 <20080119141727.GJ28387@mit.edu>
-	 <20080119153304.GA27060@khazad-dum.debian.net>
-	 <20080119154328.GA11024@srcf.ucam.org> <20080119231916.GK28387@mit.edu>
-	 <20080120194919.GE19295@khazad-dum.debian.net>
-	 <1203353902.6019.119.camel@queen.suse.de>
-	 <20080218191729.GB9724@khazad-dum.debian.net>
-	 <1203416783.2764.14.camel@linux-2bdv.site>
-	 <20080219142431.GC15883@khazad-dum.debian.net>
+Subject: Kernel Version specific vendor override possibilities needed -
+	Revert and provide osi=linux or provide a replacement
+Date: Wed, 20 Feb 2008 02:44:20 +0100
+Message-ID: <1203471860.3358.177.camel@linux-2bdv.site>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:57448 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:57687 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860AbYBTBnE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2008 20:43:04 -0500
-In-Reply-To: <20080219142431.GC15883@khazad-dum.debian.net>
+	id S1755881AbYBTBoX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2008 20:44:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Theodore Tso <tytso@MIT.EDU>, Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@MIT.EDU>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
-On Tue, 2008-02-19 at 11:24 -0300, Henrique de Moraes Holschuh wrote:
-> On Tue, 19 Feb 2008, Thomas Renninger wrote:
-> > > Looks quite a bad idea IMO.  2.6.24 means what?  SuSE's?  Mainlin=
-e's?
-> > > Debian's?  At what patch level?  With which user patches tacked o=
-n top?  And
-> > > at what level of userspace support (X.org can make a LOT of diffe=
-rence
-> > > here)?
-> >=20
-> > So you think on next Lenovo pre-load we should compile a "SLED10 SP=
-2"
->=20
-> Huh?!  No, I don't.  I would walk away in disgust if we did it.  OSI(=
-SLED10
-> SP2) would be even worse than OSI(Linux) plus a OS<whatever>(2.6.24),=
- I
-> think I can safely assume that we *all* agree on THAT one.
->=20
-> > into our kernel and let Lenovo BIOS fixups use it? E.g. we could us=
-e the
-> > default BCM/BQC/BCL brightness interface easily then, just a small
->=20
-> AFAIK, there is no problem with the *ACPI* brightness firmware on Thi=
-nkPads.
-> At all.  Its only quirk is that you want to call _BCL at least once a=
-t
-> driver load.
-No it's not that it's:
- - you call BCLL, a totally undefined AML function, found out by DSDT
-   examination..., Lenovo is allowed to and will change the name this
-   function at some time, they even could for a BIOS update
- - It is that we have to use the ibm_acpi driver quirks for an interfac=
-e
-   that is specified and which nearly every Vista compatible machine is
-   providing.
-   You need special handling for Lenovos. You need to blacklist them to
-   not use the well defined interface, but use the ibm_acpi quirks.
+Hi,
 
-I really like to ask Lenovo to add a =EF=BB=BF(on Intel graphics cards)=
-:
-if (linux)
-   call _BCM/BQC/BCL this way
-else
-=EF=BB=BF   call _BCM/BQC/BCL the other way
-All this should be only some simple AML lines...
-and simply use the video driver for Lenovo backlight switching...
+please correct me if I am wrong or missed something:
 
-> Anyway, the whole backlight brightness stink is our (as in Linux kern=
-el
-> people, userspace people, distro people) doing.  The laptop vendors, =
-for
-> once, had nothing to do with it. Also, for once, the ACPI 3.0 specifi=
-cation
-> (when correctly implemented in the AML *and* ACPI OSI) does give us a=
-ll we
-> need to have it work properly in any way we see fit.
->=20
-> Since the brightness issues have *nothing* to do with OSI(anything), =
-let's
-> leave it for another thread.
->=20
-> > Please let us not end up with hacks like ???"SLED10 SP2", "FEISTY" =
-or
-> > whatever weirdness and this will come if we ignore osi=3Dlinux or d=
-o not
-> > provide something else.
-> > We should make up something more robust and more Linux kernel
-> > appropriate and propagate it to the vendors.
->=20
-> We all agree on that, Thomas.
-Puhhh... good. So I have missed the one or other suggestion or there ar=
-e
-no suggestions yet?
+osi=3Dlinux was an ability for vendors to provide Linux specific BIOS
+updates/quirks.
 
-> I am actually arguing for something *even* more fine-grained than a k=
-ernel
-> version, but at the same time completely independent of kernel versio=
-ns, so
-> that if we backport something, or our userspace improves, we can stop=
- (or
-> start) advertising it through OSI() without messing with anything els=
-e.
+_OSI("Linux") returned true until kernel version 2.6.23 (included?).
+This has been replaced by rather huge black+white lists (at least they
+most probably will grow huge) to get rid of it again.
+Goal is to not return _OSI("Linux") as Intel identified it (after
+inventing it? Doesn't really matter...) as "not the right thing to do"
+as it does not consider fixes that might show up in specific kernel
+versions in the future. This is the only reason I found, did I miss one
+or the other?
 
-IMO kernel version is enough and the right thing, everything else is
-over-designed (please provide an example, I cannot imagine anything
-useful/generic but only osi=3Dlinux or better osi=3Dlinux + kernel vers=
-ion).
+Some questions and suggestions:
 
-I start a new thread/discussion now. I was quite late with reading up
-the list and this is important and should get some more attention also
-by others who might not have read into this thread.
+Is there already a replacement or will there pop up something soon,
+which I may have missed?
 
-   Thomas
+This is an interface to the outside world (out of the kernel... in this
+case not to userspace via /proc /sys ioctl, but to the BIOS).
+Such interfaces should have a very long lifetime, once they are
+implemented. In this case it should have an even much longer life time
+than any /sys or whatever userspace interface. Telling vendors that thi=
+s
+will vanish and giving them time to remove it from their BIOSes or
+better replace it with something else is the way to go here IMO.
+
+
+The current policy is to just return zero on _OSI("Linux").
+I don't get it why you do this.
+You break machines on purpose.
+Machines were vendors possibly have invested time to improve them for
+Linux.
+Why don't you just announce it, write it down in Documentation, also
+write it to dmesg, instead of "pls send acpidump to acpi list",
+something like: "osi=3Dlinux is deprecated and will get removed" (ok th=
+ere
+popped up a way too much of these, but maybe dmiblacklist the message,
+don't do any functional change for now...).
+
+Why shouldn't I remove the whole dmi black/white listing from our
+OpenSUSE kernel and return true for _OSI("Linux"), this probably fixes =
+a
+lot machines and avoids bug reports (and annoyed users). I plan to do
+this rather soon if I don't get some good arguments.
+
+IMO this should also be done mainline. It is a pity that 2.6.24 now has
+this. IMO this should even go back to a 2.6.24.X stable kernel.
+Just let it in and announce to not use it and provide something else
+(this has time then...).
+
+
+=EF=BB=BF-------------------
+Here a suggestion for an enhanced Linux Operation System Identification
+interface for ACPI:
+
+=46or general BIOS hot-fixes a check for osi=3Dlinux is sufficient for
+vendors and allows them to provide a fix without risking breakage of
+their Windows OS. This one should stay.
+
+
+=EF=BB=BFThe problem is you do not know in what kernel version this mig=
+ht get
+fixed at the time the BIOS is published with the "short term
+workaround". While this knob is essential for vendors for pre-loads, it
+might break the machine if the user is trying to install a newer Linux
+distribution with a newer Kernel where the problem got fixed. Then the
+workaround might even slow down or break the system...
+An example:
+Lenovo wants to get rid of brightness switching via their old method
+(int10?). But this needs in-kernel graphics driver support for Intel
+graphics cards. Therefore ibm_acpi currently simulates this, the
+specified ACPI brightness interface cannot be used. In which kernel
+version in-kernel graphics drivers will be supported and Lenovo can
+safely throw out int10 brightness switching from their BIOSes is not
+known yet.
+
+I think an appropriate interface could look like this:
+Give vendors the possibility of an "infinite" tag, like osi=3Dlinux
+Combine this somehow with a kernel version interface.
+Vendors later should be able to simply switch from infinite to
+kernel_version < xy by just modifying a simple line.
+
+
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+AML example (when it's not yet known in which kernel version the fix
+will be):
+
+/* This will get filled with kernel the version */
+Name (KERN, Package (0x3)
+{
+  0, 0, 0
+})
+
+If (CondRefOf (_OSI, Local0))
+{
+    /* Are we running on linux? */
+    If (_OSI ("Linux"))
+    {
+=EF=BB=BF=EF=BB=BF        Store (1, QURK)
+    }
+}
+
+
+=EF=BB=BF=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+AML example (when it *is* known in which kernel version the fix will be=
+,
+say 2.6.27):
+
+=EF=BB=BF/* This will get filled with kernel the version */
+Name (KERN, Package (0x3)
+{
+  0, 0, 0
+})
+
+If (CondRefOf (_OSI, Local0))
+{
+    /* Are we running on linux? */
+    If (_OSI ("Linux"))
+    {
+        /* Does linux already support kernel version query? */
+=EF=BB=BF        If (CondRefOf (_LKV, Local0))
+        {
+             /* LKV (Linux Kernel Version) returns a package with 3 int
+                values */
+             Store(_LKV, KERN)
+             /* Only activate quirk if this is a 2.6=20
+                kernel with version less than 27 */
+             If And(And(And((LEqual(Index(1, KERN), 2)),
+                    =EF=BB=BF(LEqual(Index(2, KERN), 6)),
+=EF=BB=BF                    =EF=BB=BF(LLess(Index(3, KERN), 27))))
+             {
+=EF=BB=BF=EF=BB=BF=EF=BB=BF                  Store (1, QURK)
+        }
+    }
+}
+
+So the new thing here is:
+Method(_LKV, 0, ..)
+that needs to be implemented by the kernel and returns the kernel
+version in a Package with three elements.
+
+Does this make sense?
+Is it too complicated?
+Better ideas?
+
+
+    Thomas
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
