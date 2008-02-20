@@ -1,16 +1,16 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
- suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 09:52:08 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802200945591.7833@woody.linux-foundation.org>
+	suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 01:54:45 +0800
+Message-ID: <b6a2187b0802200954p1cccb01aqbc48c865797f0af1@mail.gmail.com>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
 	<alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
-	<b6a2187b0802200937q3ff8f470k235b5d1e00eab59e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <b6a2187b0802200937q3ff8f470k235b5d1e00eab59e@mail.gmail.com>
+In-Reply-To: <alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
@@ -20,31 +20,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Feb 21, 2008 1:28 AM, Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
+> That said, before you do anything else, try if suspend-to-RAM works.
 
-On Thu, 21 Feb 2008, Jeff Chua wrote:
-> 
-> Works without those two functions.
+Linus, guess I missed this part ... so before touch anything, I did
+tried suspend-to-ram, and it works on console and in X.
 
-Ahh. You're using the BIOS to re-initialize your video, aren't you? 
+And suspend-to-disk hangs, but I can still press and hold the power
+button to power it off. Then upon powering on and resume, I get the
+ugly green "console" screen. I can still type and move around.
+Starting X runs fine. Ctrl-Alt-Del or switching back to console will
+get back to the green screen.
 
-If STR works without X, then you have something else resuming graphics, 
-and that may be what then interacts badly with the fact that the kernel 
-also does so. 
-
-> Ok, what's next?
-
-Let's try to narrow it down to what the interaction is. Are you using 
-something like acpi_sleep=s3_bios or similar? That's what the kernel 
-support is supposed to make unnecessary in the long run, along with all 
-the video mode flickering (ie we should be able to resume to the video 
-mode we want, not flicker through unnecessary modes).
-
-			Linus
+Thanks,
+Jeff.
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
