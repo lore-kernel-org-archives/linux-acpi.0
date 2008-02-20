@@ -1,66 +1,72 @@
-From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Subject: Machine shutdown after resume from S3
-Date: Wed, 20 Feb 2008 18:37:22 -0300
-Message-ID: <200802201837.22443.herton@mandriva.com.br>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 13:37:51 -0800
+Message-ID: <200802201337.52247.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201053.16218.jesse.barnes@intel.com> <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perninha.conectiva.com.br ([200.140.247.100]:43413 "EHLO
-	perninha.conectiva.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841AbYBTVhZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 16:37:25 -0500
-Received: from localhost (perninha.conectiva.com.br [127.0.0.1])
-	by perninha.conectiva.com.br (Postfix) with ESMTP id E1DB33A984
-	for <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 18:37:23 -0300 (BRT)
-Received: from perninha.conectiva.com.br ([127.0.0.1])
-	by localhost (perninha.conectiva.com.br [127.0.0.1]) (amavisd-new, port 10025)
-	with LMTP id AmIzX-ytkdNd for <linux-acpi@vger.kernel.org>;
-	Wed, 20 Feb 2008 18:37:23 -0300 (BRT)
-Received: from fox.conectiva (fox.conectiva [10.0.2.195])
-	by perninha.conectiva.com.br (Postfix) with ESMTP id 838D53A981
-	for <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 18:37:23 -0300 (BRT)
-Received: from gotham.conectiva (gotham.conectiva [10.0.2.23])
-	by fox.conectiva (Postfix) with ESMTP id 809082F01E
-	for <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 18:37:23 -0300 (BRT)
+Received: from mga01.intel.com ([192.55.52.88]:12454 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752815AbYBTViW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 16:38:22 -0500
+In-Reply-To: <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-I have here an Intel Classmate hardware sample, and I have a weird problem 
-with suspend to ram, the machine does a power off when resuming.
+On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
+> On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+> > > So, next I'll try "shutdown" to see if it work. I was using "platform".
+> >
+> > Ok, that would be good to try.
+>
+> "shutdown" does power down properly. But still green on resume.
+>
+> > Looks like the AR registers are hosed, which is what I thought I fixed...
+> >  Can you attach your i915_drv.c file just so I can sanity check it?
+>
+> Attached.
 
-I isolated the problem to the button acpi module, without loading it (or just 
-removing it before doing a s2ram) I don't get the problem. In the specific 
-machine I have here I can only resume it pressing the power button, so I 
-think this is related.
+Ok, can you give this patch a try with the 'platform' method?  It should at 
+least tell us what ACPI would like the device to do at suspend time, but it 
+probably won't fix the hang.
 
-I started looking into the kernel code and did some tests. The first thing I 
-tried just as a test was to disable the code in acpi_button_notify function. 
-As expected it stopped to send the power button key events 
-to /proc/acpi/event, but I still got the same s2ram issues. But if I disable 
-acpi_install_fixed_event_handler calls in acpi_button_install_notify_handlers 
-the power off issue in s2ram was gone, of course also with power button not
-notifying anything anymore :), but this was just a test.
+Thanks,
+Jesse
 
-After this tests then I went further to try to track down the problem and I 
-saw acpi_ev_fixed_event_dispatch, that is the function that will call 
-acpi_button_notify_fixed. First thing I noted: the comment about 
-acpi_ev_fixed_event_dispatch says it will return INTERRUPT_HANDLED or 
-INTERRUPT_NOT_HANDLED, but acpi_button_notify_fixed return AE_OK, is this 
-right (comment is outdated) or am I missing something? Anyway I changed AE_OK 
-to ACPI_INTERRUPT_HANDLED but this didn't change nothing. In the end I 
-stopped there, doesn't seem to be anything wrong with the code at all, I also 
-took a look at acpi_ev_fixed_event_detect and other code related to the table 
-of fixed events (acpi_gbl_fixed_event_handlers), but didn't got more clues. 
-Could be this a bios issue, or there is some hints to what I can try to look 
-and prove that it's bios or code related?
-
-PS.: with netconsole I don't get any message before power off after resume, I 
-tried it to get more hints.
-
---
-[]'s
-Herton
+diff --git a/drivers/char/drm/i915_drv.c b/drivers/char/drm/i915_drv.c
+index 4048f39..d8aa2c9 100644
+--- a/drivers/char/drm/i915_drv.c
++++ b/drivers/char/drm/i915_drv.c
+@@ -366,11 +366,11 @@ static int i915_suspend(struct drm_device *dev, 
+pm_message_t state)
+ 
+ 	i915_save_vga(dev);
+ 
+-	if (state.event == PM_EVENT_SUSPEND) {
+-		/* Shut down the device */
+-		pci_disable_device(dev->pdev);
+-		pci_set_power_state(dev->pdev, PCI_D3hot);
+-	}
++	/* Ask ACPI which state the device should be put in */
++	pci_disable_device(dev->pdev);
++	printk("calling pci_set_power_state with %d\n",
++	       acpi_pci_choose_state(dev, state));
++	pci_set_power_state(dev->pdev, acpi_pci_choose_state(dev, state));
+ 
+ 	return 0;
+ }
+@@ -380,7 +380,7 @@ static int i915_resume(struct drm_device *dev)
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	int i;
+ 
+-	pci_set_power_state(dev->pdev, PCI_D0);
++	pci_set_power_state(dev->pdev, acpi_pci_choose_state(dev, state));
+ 	pci_restore_state(dev->pdev);
+ 	if (pci_enable_device(dev->pdev))
+ 		return -1;
