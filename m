@@ -1,45 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/2] Two important suspend/hibernation patches updated
-Date: Wed, 20 Feb 2008 01:33:43 +0100
-Message-ID: <200802200133.44098.rjw@sisk.pl>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: 2.6.25-rc2 System no longer powers off after
+	suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 08:53:06 +0800
+Message-ID: <b6a2187b0802191653q4dfaa32cl96b9278e97606ef0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52328 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764482AbYBTAwk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2008 19:52:40 -0500
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: lkml <linux-kernel@vger.kernel.org>, Jesse Barnes <jesse.barnes@intel.com>, Dave Airlie <airlied@linux.ie>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Linus Torvalds <torvalds@linux-foundation.org>, Greg KH <gregkh@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Linux-pm mailing list <linux-pm@lists.osdl.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Len,
+On Feb 16, 2008 5:00 AM, Greg KH <gregkh@suse.de> wrote:
 
-New version of:
-* hibernate: handle DEBUG_PAGEALLOC
-  (commit af7e61cc86a6d052a7eddcd777a8a87906ab5a35 in the suspend branch)
-* suspend: wakeup code in C
-  (commit 280529bd8a01a6d7045658b322ba9a1cda793de2 in the test branch)
-follow.
+> > Also, I've tried CONFIG_DETECT_SOFTLOCKUP=n, but this doesn't fix it either.
+>
+> Ok, this looks to be something else.
+>
+> > Here's the last dmesg after suspend-to-disk and hang there...
+> >
+> > CPU 1 is now offline
+> > SMP alternatives: switching to UP code
+> > PM: Syncing filesystems ... done.
+> > Freezing user space processes ... (elapsed 0.00 seconds) done.
+> > Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> > PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
+> > PM: Freed 0 kbytes in 0.10 seconds (0.00 MB/s)
+> > ACPI: Preparing to enter system sleep state S4
+> > Suspending console(s)
+> >
+> > [ ... it just hangs here ... press power-switch does the job, and
+> > system is able to resume upon powering on ]
+>
+> Wait, this is a suspend-to-disk issue.  Totally different than the "will
+> not power off" issue.
+>
+> Can you start a new thread on this, and add the suspend people to it?
 
-The first one doesn't contain the powerpc change included in the original
-"hibernate: handle DEBUG_PAGEALLOC" patch, that turned out to be harmful.
-I'd like it to go into 2.6.25, if possible.
 
-The second one addresses the following problem reports related to the original
-"suspend: wakeup code in C" patch:
-* http://lkml.org/lkml/2008/2/16/178
-* http://lkml.org/lkml/2008/2/16/74
-* http://marc.info/?l=linux-acpi&m=120313725501682&w=4
-* http://lkml.org/lkml/2008/2/19/263
-It is considered as 2.6.26 material.
+I bisected down this one commit that causes the problem with
+suspend-to-disk on Lenovo X60s (i945 chipset).
 
-Please replace the previous versions of these patches with the new ones.
+commit ba8bbcf6ff4650712f64c0ef61139c73898e2165
+Author: Jesse Barnes <jesse.barnes@intel.com>
+Date:   Thu Nov 22 14:14:14 2007 +1000
+
+    i915: add suspend/resume support
+
+    Add suspend/resume support to the i915 driver.  Moves some of the
+    initialization into the driver load routine, and fixes up places where we
+    assumed no dev_private existed in some of the cleanup paths.  This allows
+    us to suspend/resume properly even if X isn't running.
+
+    Signed-off-by: Dave Airlie <airlied@linux.ie>
+
+
+There where problem reverting the some i915 files with the latest
+linux git pull, so I copied those i915*.{h,c} prior to this commit,
+and problem went away.
+
+
+Suspend-to-ram, suspend-to-disk all working now.
+
 
 Thanks,
-Rafael
+Jeff.
 
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
