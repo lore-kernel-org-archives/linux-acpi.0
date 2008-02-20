@@ -1,72 +1,120 @@
 From: Jesse Barnes <jesse.barnes@intel.com>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 13:37:51 -0800
-Message-ID: <200802201337.52247.jesse.barnes@intel.com>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201053.16218.jesse.barnes@intel.com> <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
+Subject: Re: 2.6.25-rc2 System no longer powers off after
+	suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 13:44:11 -0800
+Message-ID: <200802201344.11643.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802201241.30952.jesse.barnes@intel.com>
+	<alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12454 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815AbYBTViW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 16:38:22 -0500
-In-Reply-To: <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
-> On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > > So, next I'll try "shutdown" to see if it work. I was using "platform".
-> >
-> > Ok, that would be good to try.
+On Wednesday, February 20, 2008 1:13 pm Linus Torvalds wrote:
+> On Wed, 20 Feb 2008, Jesse Barnes wrote:
+> > The current callback system looks like this (according to Rafael and the
+> > last time I looked):
+> >   ->suspend(PMSG_FREEZE)
+> >   ->resume()
+> >   ->suspend(PMSG_SUSPEND)
+> >   *enter S3 or power off*
+> >   ->resume()
 >
-> "shutdown" does power down properly. But still green on resume.
+> Yes, it's very messy.
 >
-> > Looks like the AR registers are hosed, which is what I thought I fixed...
-> >  Can you attach your i915_drv.c file just so I can sanity check it?
+> It's messy for a few different reasons:
 >
-> Attached.
+>  - the one you hit: a driver actually has a really hard time telling what
+>    PMSG_SUSPEND really means.
+>
+>  - more importantly, we generally don't want to "suspend/resume" the
+>    hardware at all around a power-off, because we're going to resume with
+>    the state at the time of the PMSG_FREEZE, which means that the hardware
+>    has actually *changed* and been used in between!
 
-Ok, can you give this patch a try with the 'platform' method?  It should at 
-least tell us what ACPI would like the device to do at suspend time, but it 
-probably won't fix the hang.
+Exactly.
 
-Thanks,
+> So the "->resume" really isn't a resume at all. It's much closer to a
+> "->reset".
+
+Yeah, in the hibernate case this is definitely true.
+
+> Of course, the "solution" to this all right now is that we have to reset
+> everything even if it *is* a suspend event, so it basically means that STR
+> ends up using the much weaker model that snapshot-to-disk uses.
+>
+> The fundamental problem being that the two really have nothing
+> what-so-ever to do with each other. They aren't even similar. Never were.
+>
+> > And in the long term we could have:
+> >   ->suspend()
+> >   *enter S3*
+> >   ->resume()
+>
+> Yes, apart from all the complexities (suspend_late/resume_early). So in
+> reality it's more than that, but the suspend/resume things are clearly
+> nesting, and they have the potential to actually keep state around
+> (because we *know* this machine is not going to mess with the devices in
+> between).
+
+Really, in the simple s3 case we still need early/late stuff?
+
+> IOW, here we actually can have as an option "assume the device is there
+> when you return".
+>
+> > or:
+> >   ->hibernate()
+> >   *kexec to another kernel to save image*
+> >   *power off*
+> >   ->return_from_hibernate() (or somesuch)
+>
+> Enough people don't trust kexec that I suspect the right thing simply is
+>
+> 	->freeze()		// stop dma, synchronize device state
+> 	*snapshot*
+> 	->unfreeze();		// resume dma
+> 	*save image*
+> 	[ optionally ->poweroff() ]	// do we really care? I'd say no
+> 	*power off*
+> 	->restore()		// reset device to the frozen one
+>
+> which may have four entry-points that can be illogically mapped to the
+> suspend/resume ones like we do now, but they really have nothing to do
+> with suspending/resuming.
+
+Well, it seems like we'll have to fix drivers in either case, and isn't a 
+kexec approach fundamentally more sound and simple, design-wise?  Rafael 
+pointed out some problems with properly setting wakeup states, but I think 
+that could be overcome...
+
+> And notice how while "freeze/restore" kind of pairs like a
+> "suspend/resume", it really shouldn't be expected to realistically restore
+> the same state at all. The "restore" part is generally much better seen as
+> a "reset hardware" than a "resume" thing. Because we literally cannot
+> trust *anything* about the state since we froze it - we might have booted
+> a different OS in between etc. Very different from suspend/resume.
+
+Yeah, definitely.  It has to be much more robust and deal with configuration 
+changes, etc. (within reason).
+
 Jesse
 
-diff --git a/drivers/char/drm/i915_drv.c b/drivers/char/drm/i915_drv.c
-index 4048f39..d8aa2c9 100644
---- a/drivers/char/drm/i915_drv.c
-+++ b/drivers/char/drm/i915_drv.c
-@@ -366,11 +366,11 @@ static int i915_suspend(struct drm_device *dev, 
-pm_message_t state)
- 
- 	i915_save_vga(dev);
- 
--	if (state.event == PM_EVENT_SUSPEND) {
--		/* Shut down the device */
--		pci_disable_device(dev->pdev);
--		pci_set_power_state(dev->pdev, PCI_D3hot);
--	}
-+	/* Ask ACPI which state the device should be put in */
-+	pci_disable_device(dev->pdev);
-+	printk("calling pci_set_power_state with %d\n",
-+	       acpi_pci_choose_state(dev, state));
-+	pci_set_power_state(dev->pdev, acpi_pci_choose_state(dev, state));
- 
- 	return 0;
- }
-@@ -380,7 +380,7 @@ static int i915_resume(struct drm_device *dev)
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	int i;
- 
--	pci_set_power_state(dev->pdev, PCI_D0);
-+	pci_set_power_state(dev->pdev, acpi_pci_choose_state(dev, state));
- 	pci_restore_state(dev->pdev);
- 	if (pci_enable_device(dev->pdev))
- 		return -1;
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
