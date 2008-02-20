@@ -1,38 +1,42 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
- Screen becomes green.
-Date: Wed, 20 Feb 2008 13:47:18 -0500
-Message-ID: <47BC75B6.7000509@rtr.ca>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
+Date: Wed, 20 Feb 2008 18:49:54 +0000
+Message-ID: <20080220184954.GB23679@srcf.ucam.org>
+References: <1203471860.3358.177.camel@linux-2bdv.site> <20080220173248.GA22709@srcf.ucam.org> <20080220182339.GC17648@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:2647 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759460AbYBTSrU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 13:47:20 -0500
-In-Reply-To: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+Received: from cavan.codon.org.uk ([78.32.9.130]:43557 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758637AbYBTSuI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 13:50:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20080220182339.GC17648@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@MIT.EDU>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
-Jeff Chua wrote:
+On Wed, Feb 20, 2008 at 03:23:40PM -0300, Henrique de Moraes Holschuh wrote:
+> On Wed, 20 Feb 2008, Matthew Garrett wrote:
+> > Let's look at this differently. Most hardware is produced by vendors who 
+> > don't care about Linux. We need to make that hardware work anyway. The 
+> > only way we can achieve that is to be bug-compatible with Windows. 
+> > Therefore, any way in which Linux behaviour varies from Windows 
+> > behaviour is a bug. The only reason to export any indication that the 
+> > kernel is Linux is because our behaviour is not identical to Windows. 
+> > But, given that that's a bug, the solution should be to fix Linux and 
+> > not to encourage vendors to put workarounds in their firmware.
 > 
-> 
-> On Feb 20, 2008 2:19 PM, Jeff Chua
->> I'll try the "idle=poll" to see if that works and will try some printk
-> 
-> I don't know what exactly the i915_suspend() and i915_resume() are 
-> supposed to do because it works better without them.
-> 
-> After inserting "return 0;" right at the top of those two functions, 
-> suspend (and power-off properly), and resume (without green screen) 
-> works just fine.
-..
+> That punishes vendors which actually care about Linux.  These are quite
+> rare in the laptop and desktop market, but they do exist.
 
-Does this machine have more than one CPU core?  If so..
-Does your kernel have CONFIG_HOTPLUG_CPU=y (if not, enable it).
+It doesn't punish them. They're the ones who are going to work with us 
+to ensure that Linux works on their hardware, and their needs are going 
+to be prioritised over those of vendors who don't care about Linux. The 
+other choice (encourage vendors to put workarounds in their firmware 
+instead) *does* punish users who've ended up with laptops that aren't 
+actively supported - like, say, pretty much anything on the market.
 
-??
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
