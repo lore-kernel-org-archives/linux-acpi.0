@@ -1,57 +1,119 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 15:03:44 -0800
-Message-ID: <200802201503.44656.jbarnes@virtuousgeek.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
-	<200802201432.13393.jesse.barnes@intel.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
+ Screen becomes green.
+Date: Wed, 20 Feb 2008 15:13:07 -0800 (PST)
+Message-ID: <alpine.LFD.1.00.0802201455430.7833@woody.linux-foundation.org>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <200802202336.45492.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802201432.13393.jesse.barnes@intel.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43983 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756416AbYBTXN1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 18:13:27 -0500
+In-Reply-To: <200802202336.45492.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Wednesday, February 20, 2008 2:32 pm Jesse Barnes wrote:
-> On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
-> > On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > > > So, next I'll try "shutdown" to see if it work. I was using
-> > > > "platform".
+
+
+On Wed, 20 Feb 2008, Rafael J. Wysocki wrote:
 > > >
-> > > Ok, that would be good to try.
-> >
-> > "shutdown" does power down properly. But still green on resume.
-> >
-> > > Looks like the AR registers are hosed, which is what I thought I
-> > > fixed... Can you attach your i915_drv.c file just so I can sanity check
-> > > it?
-> >
-> > Attached.
->
-> Jeff, for the hang on suspend problem, I know suspect something else in
-> 2.6.25-rc2 caused that.
+> > > which may have four entry-points that can be illogically mapped to the
+> > > suspend/resume ones like we do now, but they really have nothing to do
+> > > with suspending/resuming.
+> 
+> Apart from putting devices into the right low power states, that is.
 
-Looks like 2.6.25-rc1 also had broken suspend (my test was broken).  IIRC, 
-Dave and I had it working at LCA using the out of tree DRM modules on 
-2.6.23.14 or 15...  Maybe you could give that a try?
+And by "right low power states" you mean "wrong low-power states", right?
 
-Thanks,
-Jesse
+The thing is, they really *are* the wrong states for 99% of all hardware.
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+If you really have a piece of hardware that you want to have the 
+"->poweroff()" thing do the same as "->suspend()", then hey, just use the 
+same function (or better yet, use two different functions with a call to a
+shared part).
+
+Because IT IS NOT TRUE that ->suspend() puts the devices in the "right 
+power state". The power states are likely to be totally different for S3 
+and for poweroff, and they are going to differ in different ways depending 
+on the device type.
+
+One example would be the one that started this version of the whole 
+discussion (shock horror! We're on subject!) ie when you do a system 
+shutdown, you generally do not even *want* to put individual devices into 
+low-power states at all, because the actual "power off the system" thing 
+will take care of it for you much better.
+
+So to take just something as simple as VGA as an example: you really do 
+not want to suspend that device, because you want to see the poweroff 
+messages until the very end. 
+
+So that final device ->poweroff function really has absolutely *nothing* 
+in common with the device ->suspend[_late] functions, simply because 
+almost any sane driver would decide to do different things.
+
+Of course, we can continue to do the insane thing and just continue to use 
+inappropriate and misleadign function callback names, and then encodign 
+what the *real* action should be in the argument and/or in magic 
+system-wide state parameters.
+
+So in that sense, it's certainly totally the same thing whether we call it 
+->shutdown or ->poweroff or ->eat_a_banana, since you could always just 
+look at the argument and other clues, and decide that *this* time, for 
+*this* kind of device, the "eat a banana" callback actually means that we 
+should power it off, but wouldn't it be a lot more logical to just make it 
+clear in the first place that they aren't called for the same reason at 
+all?
+
+I'd claim that it's much easier for everybody (and _especially_ for device 
+driver writers) to have
+
+	static int my_shutdown(struct pci_device *dev, int state)
+	{
+		.. do something ..
+	}
+
+	static int my_suspend(struct pci_device *dev, int state)
+	{
+		.. do something ..
+	}
+
+	...
+	.shutdown = my_shutdown,
+	.suspend = my_suspend,
+	...	
+
+than to have
+
+	static int my_suspend(struct pci_device *dev, state)
+	{
+		.. common code ..
+		if (state == XYZZY)
+			..special code..
+		else
+			..other case code..
+	}
+
+	...
+	.suspend = my_suspend
+	...
+
+even if the latter might be fewer lines. It doesn't really matter if it's 
+fewer, does it, if the alternate version is more obvious about what it 
+does?
+
+The other issue is that I've long wanted to make sure that when people fix 
+suspend-to-ram, they don't screw up suspend-to-disk by mistake and vice 
+versa. When a driver writer makes changes, he shouldn't have the kind of 
+illogical "oops, unintended consequences" issues in general. It should be 
+pretty damn obvious when he changes suspend code vs when he changes 
+snapshot/restore code.
+
+We've somewhat untangled that on the "core kernel" layer, but we've left 
+the driver confusion alone.
+
+		Linus
