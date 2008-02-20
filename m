@@ -1,120 +1,66 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 13:44:11 -0800
-Message-ID: <200802201344.11643.jesse.barnes@intel.com>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802201241.30952.jesse.barnes@intel.com>
-	<alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+From: <gregkh@suse.de>
+Subject: patch pm-remove-unbalanced-mutex_unlock-from-dpm_resume.patch added to gregkh-2.6 tree
+Date: Wed, 20 Feb 2008 13:57:18 -0800
+Message-ID: <12035446381218@kroah.org>
+References: <200802200201.42543.rjw@sisk.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.suse.de ([195.135.220.2]:47369 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751706AbYBTV7u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 16:59:50 -0500
+In-Reply-To: <200802200201.42543.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl, greg@kroah.com, gregkh@suse.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.osdl.org, pavel@ucw.cz, stern@rowland.harvard.edu
 
-On Wednesday, February 20, 2008 1:13 pm Linus Torvalds wrote:
-> On Wed, 20 Feb 2008, Jesse Barnes wrote:
-> > The current callback system looks like this (according to Rafael and the
-> > last time I looked):
-> >   ->suspend(PMSG_FREEZE)
-> >   ->resume()
-> >   ->suspend(PMSG_SUSPEND)
-> >   *enter S3 or power off*
-> >   ->resume()
->
-> Yes, it's very messy.
->
-> It's messy for a few different reasons:
->
->  - the one you hit: a driver actually has a really hard time telling what
->    PMSG_SUSPEND really means.
->
->  - more importantly, we generally don't want to "suspend/resume" the
->    hardware at all around a power-off, because we're going to resume with
->    the state at the time of the PMSG_FREEZE, which means that the hardware
->    has actually *changed* and been used in between!
 
-Exactly.
+This is a note to let you know that I've just added the patch titled
 
-> So the "->resume" really isn't a resume at all. It's much closer to a
-> "->reset".
+     Subject: PM: Remove unbalanced mutex_unlock() from dpm_resume()
 
-Yeah, in the hibernate case this is definitely true.
+to my gregkh-2.6 tree.  Its filename is
 
-> Of course, the "solution" to this all right now is that we have to reset
-> everything even if it *is* a suspend event, so it basically means that STR
-> ends up using the much weaker model that snapshot-to-disk uses.
->
-> The fundamental problem being that the two really have nothing
-> what-so-ever to do with each other. They aren't even similar. Never were.
->
-> > And in the long term we could have:
-> >   ->suspend()
-> >   *enter S3*
-> >   ->resume()
->
-> Yes, apart from all the complexities (suspend_late/resume_early). So in
-> reality it's more than that, but the suspend/resume things are clearly
-> nesting, and they have the potential to actually keep state around
-> (because we *know* this machine is not going to mess with the devices in
-> between).
+     pm-remove-unbalanced-mutex_unlock-from-dpm_resume.patch
 
-Really, in the simple s3 case we still need early/late stuff?
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
-> IOW, here we actually can have as an option "assume the device is there
-> when you return".
->
-> > or:
-> >   ->hibernate()
-> >   *kexec to another kernel to save image*
-> >   *power off*
-> >   ->return_from_hibernate() (or somesuch)
->
-> Enough people don't trust kexec that I suspect the right thing simply is
->
-> 	->freeze()		// stop dma, synchronize device state
-> 	*snapshot*
-> 	->unfreeze();		// resume dma
-> 	*save image*
-> 	[ optionally ->poweroff() ]	// do we really care? I'd say no
-> 	*power off*
-> 	->restore()		// reset device to the frozen one
->
-> which may have four entry-points that can be illogically mapped to the
-> suspend/resume ones like we do now, but they really have nothing to do
-> with suspending/resuming.
 
-Well, it seems like we'll have to fix drivers in either case, and isn't a 
-kexec approach fundamentally more sound and simple, design-wise?  Rafael 
-pointed out some problems with properly setting wakeup states, but I think 
-that could be overcome...
+>From rjw@sisk.pl  Wed Feb 20 12:56:19 2008
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Wed, 20 Feb 2008 02:01:41 +0100
+Subject: PM: Remove unbalanced mutex_unlock() from dpm_resume()
+To: Greg KH <greg@kroah.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, "Linux-pm mailing list" <linux-pm@lists.osdl.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+Message-ID: <200802200201.42543.rjw@sisk.pl>
+Content-Disposition: inline
 
-> And notice how while "freeze/restore" kind of pairs like a
-> "suspend/resume", it really shouldn't be expected to realistically restore
-> the same state at all. The "restore" part is generally much better seen as
-> a "reset hardware" than a "resume" thing. Because we literally cannot
-> trust *anything* about the state since we froze it - we might have booted
-> a different OS in between etc. Very different from suspend/resume.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Yeah, definitely.  It has to be much more robust and deal with configuration 
-changes, etc. (within reason).
+Remove an unnecessary unlocking of dpm_list_mtx in the error path
+in drivers/base/power/main.c:dpm_suspend() .
 
-Jesse
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+---
+ drivers/base/power/main.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -479,7 +479,6 @@ static int dpm_suspend(pm_message_t stat
+ 			mutex_lock(&dpm_list_mtx);
+ 			if (list_empty(&dev->power.entry))
+ 				list_add(&dev->power.entry, &dpm_locked);
+-			mutex_unlock(&dpm_list_mtx);
+ 			break;
+ 		}
+ 		mutex_lock(&dpm_list_mtx);
+
+
+Patches currently in gregkh-2.6 which might be from rjw@sisk.pl are
+
+driver/driver-core-pm-make-suspend_device-static.patch
+driver/pm-remove-unbalanced-mutex_unlock-from-dpm_resume.patch
