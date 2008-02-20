@@ -1,73 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 21:45:00 +0100
-Message-ID: <200802202145.01882.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802202114.43007.rjw@sisk.pl>
-	<alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
+ Screen becomes green.
+Date: Wed, 20 Feb 2008 13:13:37 -0800 (PST)
+Message-ID: <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802202114.43007.rjw@sisk.pl> <alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org> <200802201241.30952.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39036 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750964AbYBTVOJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 16:14:09 -0500
+In-Reply-To: <200802201241.30952.jesse.barnes@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Wednesday, 20 of February 2008, Linus Torvalds wrote:
+
+
+On Wed, 20 Feb 2008, Jesse Barnes wrote:
 > 
-> On Wed, 20 Feb 2008, Rafael J. Wysocki wrote:
-> > 
-> > I think we should export the target sleep state somehow.
-> 
-> Yeah. By *not* using "->suspend()" for freezing or hibernate.
-> 
-> Please, Rafael - just make the f*cking suspend-to-disk use other routines 
-> already.
+> The current callback system looks like this (according to Rafael and the last 
+> time I looked):
+>   ->suspend(PMSG_FREEZE)
+>   ->resume()
+>   ->suspend(PMSG_SUSPEND)
+>   *enter S3 or power off*
+>   ->resume()
 
-Okay, I think I'll just start sending patches for that, but rather not earlier
-than in the 2.6.27 time frame.  No one else works on that and I've been busy
-with other things recently.  Besides, I'm not even a full time kernel
-developer ...
+Yes, it's very messy.
 
-> 99% of all hardware needs to do exactly *nothing* on suspend-to-disk, and the
-> ones that really do need things tend to need to not do a whole lot.
-> 
-> For example, the "freeze" action for USB (which is one of the hardest 
-> things to suspend) should literally be something like just setting the 
-> controller STOP bit, and waiting for it to have stopped. The "unfreeze" 
-> should be to just clear the stop bit, while the "restart" should be just a 
-> controller reset to use the current memory image.
-> 
-> NONE OF THIS HAS ABSOLUTELY ANYTHING TO DO WITH SUSPEND.
-> 
-> It never did. I've told people so for years. Maybe actually seeing the 
-> problems will make people realize.
+It's messy for a few different reasons:
 
-I think so.
+ - the one you hit: a driver actually has a really hard time telling what 
+   PMSG_SUSPEND really means.
 
-> So please, we shouldn't call "->suspend[_late]" or "->resume[_early]" at 
-> all. Not with PMSG_FREEZE, not with PMSG_*anything*.
-> 
-> Can we please get this fixed some day? 
+ - more importantly, we generally don't want to "suspend/resume" the 
+   hardware at all around a power-off, because we're going to resume with 
+   the state at the time of the PMSG_FREEZE, which means that the hardware 
+   has actually *changed* and been used in between!
 
-Yes, we can (hopefully).
+that second case is very fundamental for things like USB devices, which in 
+theory you can hold alive over a real suspend event (ie a STR event), but 
+which absolutely MUST NOT be resumed over a suspend-to-disk event, because 
+all the low-level request state is bogus!
 
-Thanks,
-Rafael
+So the "->resume" really isn't a resume at all. It's much closer to a 
+"->reset".
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+Of course, the "solution" to this all right now is that we have to reset 
+everything even if it *is* a suspend event, so it basically means that STR 
+ends up using the much weaker model that snapshot-to-disk uses.
+
+The fundamental problem being that the two really have nothing 
+what-so-ever to do with each other. They aren't even similar. Never were.
+
+> And in the long term we could have:
+>   ->suspend()
+>   *enter S3*
+>   ->resume()
+
+Yes, apart from all the complexities (suspend_late/resume_early). So in 
+reality it's more than that, but the suspend/resume things are clearly 
+nesting, and they have the potential to actually keep state around 
+(because we *know* this machine is not going to mess with the devices in 
+between).
+
+IOW, here we actually can have as an option "assume the device is there 
+when you return".
+
+> or:
+>   ->hibernate()
+>   *kexec to another kernel to save image*
+>   *power off*
+>   ->return_from_hibernate() (or somesuch)
+
+Enough people don't trust kexec that I suspect the right thing simply is
+
+	->freeze()		// stop dma, synchronize device state
+	*snapshot*
+	->unfreeze();		// resume dma
+	*save image*
+	[ optionally ->poweroff() ]	// do we really care? I'd say no
+	*power off*
+	->restore()		// reset device to the frozen one
+
+which may have four entry-points that can be illogically mapped to the 
+suspend/resume ones like we do now, but they really have nothing to do 
+with suspending/resuming.
+
+And notice how while "freeze/restore" kind of pairs like a 
+"suspend/resume", it really shouldn't be expected to realistically restore 
+the same state at all. The "restore" part is generally much better seen as 
+a "reset hardware" than a "resume" thing. Because we literally cannot 
+trust *anything* about the state since we froze it - we might have booted 
+a different OS in between etc. Very different from suspend/resume.
+
+			Linus
