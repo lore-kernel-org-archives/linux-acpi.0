@@ -1,49 +1,31 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PM: Remove unbalanced mutex_unlock() from dpm_resume()
-Date: Wed, 20 Feb 2008 02:01:41 +0100
-Message-ID: <200802200201.42543.rjw@sisk.pl>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 02:06:55 +0100
+Message-ID: <200802200206.57002.rjw@sisk.pl>
+References: <b6a2187b0802191653q4dfaa32cl96b9278e97606ef0@mail.gmail.com> <200802191700.12050.jesse.barnes@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52408 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52429 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755755AbYBTBDL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Feb 2008 20:03:11 -0500
+	id S1752288AbYBTBIQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Feb 2008 20:08:16 -0500
+In-Reply-To: <200802191700.12050.jesse.barnes@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Len Brown <lenb@kernel.org>, Linux-pm mailing list <linux-pm@lists.osdl.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Hi Greg,
+On Wednesday, 20 of February 2008, Jesse Barnes wrote:
+> I found the same poweroff issue on my T61.  It turned out to be related to the 
+> C state code disabling interrupts when it shouldn't iirc.  Booting 
+> with 'idle=poll' seems to work around the problem.
 
-Please consider taking the following fix for 2.6.25.
+However, this issue is supposed to be fixed in 2.6.25-rc2, so most probably
+there is another problem in there.
 
 Thanks,
 Rafael
-
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-
-Remove an unnecessary unlocking of dpm_list_mtx in the error path
-in drivers/base/power/main.c:dpm_suspend() .
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/base/power/main.c |    1 -
- 1 file changed, 1 deletion(-)
-
-Index: linux-2.6/drivers/base/power/main.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/main.c
-+++ linux-2.6/drivers/base/power/main.c
-@@ -479,7 +479,6 @@ static int dpm_suspend(pm_message_t stat
- 			mutex_lock(&dpm_list_mtx);
- 			if (list_empty(&dev->power.entry))
- 				list_add(&dev->power.entry, &dpm_locked);
--			mutex_unlock(&dpm_list_mtx);
- 			break;
- 		}
- 		mutex_lock(&dpm_list_mtx);
