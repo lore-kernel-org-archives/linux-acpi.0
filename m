@@ -1,16 +1,16 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
 	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 15:34:35 -0800
-Message-ID: <200802201534.36174.jbarnes@virtuousgeek.org>
+Date: Thu, 21 Feb 2008 00:35:12 +0100
+Message-ID: <200802210035.14058.rjw@sisk.pl>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802201432.13393.jesse.barnes@intel.com>
-	<200802201503.44656.jbarnes@virtuousgeek.org>
+	<200802202336.45492.rjw@sisk.pl>
+	<alpine.LFD.1.00.0802201455430.7833@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802201503.44656.jbarnes@virtuousgeek.org>
+In-Reply-To: <alpine.LFD.1.00.0802201455430.7833@woody.linux-foundation.org>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
@@ -21,46 +21,131 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Alexey Starikovskiy <aystarik@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 20, 2008 3:03 pm Jesse Barnes wrote:
-> On Wednesday, February 20, 2008 2:32 pm Jesse Barnes wrote:
-> > On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
-> > > On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > > > > So, next I'll try "shutdown" to see if it work. I was using
-> > > > > "platform".
+On Thursday, 21 of February 2008, Linus Torvalds wrote:
+> 
+> On Wed, 20 Feb 2008, Rafael J. Wysocki wrote:
 > > > >
-> > > > Ok, that would be good to try.
-> > >
-> > > "shutdown" does power down properly. But still green on resume.
-> > >
-> > > > Looks like the AR registers are hosed, which is what I thought I
-> > > > fixed... Can you attach your i915_drv.c file just so I can sanity
-> > > > check it?
-> > >
-> > > Attached.
-> >
-> > Jeff, for the hang on suspend problem, I know suspect something else in
-> > 2.6.25-rc2 caused that.
->
-> Looks like 2.6.25-rc1 also had broken suspend (my test was broken).  IIRC,
-> Dave and I had it working at LCA using the out of tree DRM modules on
-> 2.6.23.14 or 15...  Maybe you could give that a try?
+> > > > which may have four entry-points that can be illogically mapped to the
+> > > > suspend/resume ones like we do now, but they really have nothing to do
+> > > > with suspending/resuming.
+> > 
+> > Apart from putting devices into the right low power states, that is.
+> 
+> And by "right low power states" you mean "wrong low-power states", right?
 
-And just to confirm that, I just tested the current DRM modules against a 
-2.6.23.15 kernel.  It suspends to disk correctly (w/o a hang) and doesn't 
-give me a green screen, so something in 2.6.25 must be causing that (even 
-2.6.25-rc1 seems to have the problem).
+No, I don't.
 
-Also, this patch against 2.6.25-rc1 seemed to prevent the 'green screen' 
-problem.  2.6.25-rc2 already has part of it...
+> The thing is, they really *are* the wrong states for 99% of all hardware.
+> 
+> If you really have a piece of hardware that you want to have the 
+> "->poweroff()" thing do the same as "->suspend()", then hey, just use the 
+> same function (or better yet, use two different functions with a call to a
+> shared part).
+> 
+> Because IT IS NOT TRUE that ->suspend() puts the devices in the "right 
+> power state". The power states are likely to be totally different for S3 
+> and for poweroff, and they are going to differ in different ways depending 
+> on the device type.
 
-Anyway, let me know how your testing goes.
+In fact we have acpi_pci_choose_state() that tells the driver which power
+state to put the device into in ->suspend().  If that is used, the device ends
+up in the state expected by to BIOS for S4.
+
+> One example would be the one that started this version of the whole 
+> discussion (shock horror! We're on subject!) ie when you do a system 
+> shutdown, you generally do not even *want* to put individual devices into 
+> low-power states at all, because the actual "power off the system" thing 
+> will take care of it for you much better.
+
+No.  Again, if there are devices that wake us up from S4, but not from S5,
+they need to be handled differently in the *enter S4* case (hibernation) and
+in the *enter S5* case (powering off the system).
+ 
+> So to take just something as simple as VGA as an example: you really do 
+> not want to suspend that device, because you want to see the poweroff 
+> messages until the very end. 
+> 
+> So that final device ->poweroff function really has absolutely *nothing* 
+> in common with the device ->suspend[_late] functions, simply because 
+> almost any sane driver would decide to do different things.
+
+Yes, it would.  Still, the common thing is, it (ie. ->poweroff) _may_ want to
+put the device into a low power state different from D3.
+
+> Of course, we can continue to do the insane thing and just continue to use 
+> inappropriate and misleadign function callback names, and then encodign 
+> what the *real* action should be in the argument and/or in magic 
+> system-wide state parameters.
+
+To clarify, I agree that we should use different callbacks for hibernation.
+I'm only saying that _in_ _general_ we may need the ->poweroff callback.
+
+> So in that sense, it's certainly totally the same thing whether we call it 
+> ->shutdown or ->poweroff or ->eat_a_banana, since you could always just 
+> look at the argument and other clues, and decide that *this* time, for 
+> *this* kind of device, the "eat a banana" callback actually means that we 
+> should power it off, but wouldn't it be a lot more logical to just make it 
+> clear in the first place that they aren't called for the same reason at 
+> all?
+> 
+> I'd claim that it's much easier for everybody (and _especially_ for device 
+> driver writers) to have
+> 
+> 	static int my_shutdown(struct pci_device *dev, int state)
+> 	{
+> 		.. do something ..
+> 	}
+> 
+> 	static int my_suspend(struct pci_device *dev, int state)
+> 	{
+> 		.. do something ..
+> 	}
+> 
+> 	...
+> 	.shutdown = my_shutdown,
+> 	.suspend = my_suspend,
+> 	...	
+> 
+> than to have
+> 
+> 	static int my_suspend(struct pci_device *dev, state)
+> 	{
+> 		.. common code ..
+> 		if (state == XYZZY)
+> 			..special code..
+> 		else
+> 			..other case code..
+> 	}
+> 
+> 	...
+> 	.suspend = my_suspend
+> 	...
+> 
+> even if the latter might be fewer lines. It doesn't really matter if it's 
+> fewer, does it, if the alternate version is more obvious about what it 
+> does?
+> 
+> The other issue is that I've long wanted to make sure that when people fix 
+> suspend-to-ram, they don't screw up suspend-to-disk by mistake and vice 
+> versa. When a driver writer makes changes, he shouldn't have the kind of 
+> illogical "oops, unintended consequences" issues in general. It should be 
+> pretty damn obvious when he changes suspend code vs when he changes 
+> snapshot/restore code.
+> 
+> We've somewhat untangled that on the "core kernel" layer, but we've left 
+> the driver confusion alone.
+
+Well, I agree with that.
+
+As I said before, that's mainly because I've been busy with other stuff
+recently.  Now, with the Alex's help, I'm hoping to take care of it soon.
 
 Thanks,
-Jesse
+Rafael
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
