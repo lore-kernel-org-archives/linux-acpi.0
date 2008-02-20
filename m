@@ -1,110 +1,97 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
- suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 10:37:04 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802201007300.7833@woody.linux-foundation.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
-	<b6a2187b0802200954p1cccb01aqbc48c865797f0af1@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
+Date: Wed, 20 Feb 2008 18:46:52 +0000
+Message-ID: <20080220184651.GA23679@srcf.ucam.org>
+References: <1203471860.3358.177.camel@linux-2bdv.site> <20080220173248.GA22709@srcf.ucam.org> <1203531717.6019.324.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <b6a2187b0802200954p1cccb01aqbc48c865797f0af1@mail.gmail.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([78.32.9.130]:43500 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952AbYBTSrF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 13:47:05 -0500
+Content-Disposition: inline
+In-Reply-To: <1203531717.6019.324.camel@queen.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@MIT.EDU>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
+On Wed, Feb 20, 2008 at 07:21:57PM +0100, Thomas Renninger wrote:
+> On Wed, 2008-02-20 at 17:32 +0000, Matthew Garrett wrote:
+> > Let's look at this differently. Most hardware is produced by vendors who 
+> > don't care about Linux. We need to make that hardware work anyway.
+> Not really. If you buy machine noname XY, you have to face the fact that
+> HW may not work on Linux correctly. 
 
+No. You have failed. Do not pass go.
 
-On Thu, 21 Feb 2008, Jeff Chua wrote:
-> 
-> > That said, before you do anything else, try if suspend-to-RAM works.
-> 
-> Linus, guess I missed this part ... so before touch anything, I did
-> tried suspend-to-ram, and it works on console and in X.
+> You can try fix to it, but you
+> cannot write a driver for WLAN card from vendor noname and card reader
+> from "never heard of that company". If you buy the wrong graphics card
+> you may end up without 3D and whatever else cool features the card
+> supports.
 
-Ok, so this is with clean current -git, and nothing disabled?
+That's fine. Some hardware support is difficult. Some hardware support 
+is not difficult. The only possible situation in which exporting some 
+sort of OSI value for Linux is helpful is when the firmware authors know 
+what the difference between the Linux and Windows behaviours are. If we 
+know that, we can fix it. Fixing it not only fixes the machine in 
+question, it probably fixes a large number of other machines. This is a 
+preferable solution.
 
-> And suspend-to-disk hangs, but I can still press and hold the power
-> button to power it off.
+> So at least since HP, Dell, Lenovo (also Acer?) are selling pre-loaded
+> Linux laptops, you should be smart enough to take such a thing where the
+> BIOS is adjusted to run on Linux or you pretty much have to reckon with
+> trouble.
 
-The "press and hold for five seconds" is actually a hardware feature of 
-the southbridge (well, I guess there is "software" in there too, but it's 
-the embedded kind). So the fact that it powers off at that point means 
-nothing, it just means that ok, your kernel is hung, but the hardware
-still works ;)
+Argh. No. If the BIOS is adjusted to run on Linux, it indicates that 
+we've failed. Completely. Utterly.
 
-This *sounds* like some part of the suspend-to-disk sequence is doing 
-something stupid like trying to access the screen after it has been turned 
-off, which doesn't surprise me at all. My oft-stated opinion has been that 
-suspend-to-disk isn't a suspend at all, and should never have been 
-confused with "suspending" anything.
+> So being Windows compatible is nice, but sticking to specifications is
+> more important (we are far away from and never will be Windows
+> compatibility in WMI implementation right?).
 
-It's "snapshot-and-restore", and my opinion is that:
+No! What's the point in sticking to specifications when there's only one 
+implementation? Windows is the de-facto specification for ACPI, and we 
+should follow it.
 
- - it should *never* call "suspend()"/"resume()" at all (that should be
-   reserved purely for suspend-to-RAM and has real power management 
-   issues!)
+> Next point is that if vendors pre-load their model with a specific
+> distribution, they need such a knob.
 
- - it should have a totally separate "halt/unhalt/restore" thing 
-   that has nothing what-so-ever to do with power management, and is 
-   purely about stopping the hardware for things like USB and network 
-   cards (which otherwise do things like scan their command lists 
-   asynchronously) and making sure that the driver state is consistent 
-   with that stopped hw state.
+Fixing Linux is easier than fixing firmware in almost every single case. 
+If vendors are installing Linux without working with the distribution 
+vendor, then that's unfortunate and they're likely to have problems. I'm 
+not going to prioritise them above the huge number of users buying 
+hardware from vendors who aren't as foolish.
 
- - the people who confuse snapshot/restore with suspend/resume are 
-   horrible people that cause problems exactly because driver people then 
-   get those things mixed up, and something like the video suspend/resume 
-   should probably never have impacted suspend-to-disk in the first place!
+> Please do not think about what happens when I upgrade to the latest
+> kernel (which should still be no problem when they know how to use
+> this). Think about how these vendors should fix a complex Linux bug via
+> a BIOS hot-fix update ...
 
-HOWEVER, that's a separate fight I've had, and in the meantime:
+They shouldn't. They should push out a software update.
 
-> Then upon powering on and resume, I get the ugly green "console" screen. 
-> I can still type and move around. Starting X runs fine. Ctrl-Alt-Del or 
-> switching back to console will get back to the green screen.
+> >  The 
+> > only way we can achieve that is to be bug-compatible with Windows. 
+> > Therefore, any way in which Linux behaviour varies from Windows 
+> > behaviour is a bug. The only reason to export any indication that the 
+> > kernel is Linux is because our behaviour is not identical to Windows. 
+> Linux behaviour is not identical to Windows, never will be and after
+> vendors start pre-loading also do not need to be...
 
-.. so this implies that while the laptop apparently hung at the end of the 
-snapshotting, the snapshotting did actually work, and it must have hung at 
-the very end, presumably when it tried to actually turn the power off.
+Wrong.
 
-So there seems to be two (probably largely independent) problems:
+> > But, given that that's a bug, the solution should be to fix Linux and 
+> > not to encourage vendors to put workarounds in their firmware.
+> I see it the other way round. Encourage vendors to fix their BIOSes,
+> instead of putting "Windows compatibility" workarounds into the kernel.
 
- - the hang at shutdown that requires you to press-and-hold the power 
-   button to actually cut power.
+By which you mean "Cater for a small market, rather than the large one"? 
+No. That would be ridiculous. Our compatibility is sufficiently good 
+that I'm not going to recommend users buy one of the tiny number of 
+laptops available with a "supported" Linux install over buying a laptop 
+that actually fits their needs.
 
-   At a guess: putting the VGA device into D3hot makes the ACPI code that 
-   actually does the shutoff unhappy. Probably because it wants to access 
-   the device, and ends up not ever getting the replies it wants, since 
-   the hardware has been turned off.
-
- - the fact that we restore something wrong for you and the screen is 
-   green.
-
-   At a guess: the restore_vga ends up restoring some state that wasn't 
-   correctly and fully saved.
-
-IOW, I think your patch that disables the two lines actually ends up 
-pretty much matching the two *different* problems. Can you confirm that 
-doing those two parts of that patch individually actually does 
-individually fix the two issues? (Ie disabling D3hot makes it shut down 
-nicely but resume with green text, while disabling just restore_vga() ends 
-up with shutdown problems, but once you press-and-hold the power button, 
-the thing will then restore nicely)+
-
-		Linus
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
