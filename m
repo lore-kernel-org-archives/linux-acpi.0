@@ -1,46 +1,43 @@
 From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 01:54:45 +0800
-Message-ID: <b6a2187b0802200954p1cccb01aqbc48c865797f0af1@mail.gmail.com>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 02:02:25 +0800
+Message-ID: <b6a2187b0802201002t315548b5uac623759723842d0@mail.gmail.com>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
+	 <alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
+	 <b6a2187b0802200937q3ff8f470k235b5d1e00eab59e@mail.gmail.com>
+	 <alpine.LFD.1.00.0802200945591.7833@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from el-out-1112.google.com ([209.85.162.177]:55723 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872AbYBTSC1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 13:02:27 -0500
+Received: by el-out-1112.google.com with SMTP id v27so1303407ele.23
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 10:02:26 -0800 (PST)
+In-Reply-To: <alpine.LFD.1.00.0802200945591.7833@woody.linux-foundation.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Feb 21, 2008 1:28 AM, Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Feb 21, 2008 1:52 AM, Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> That said, before you do anything else, try if suspend-to-RAM works.
+> Ahh. You're using the BIOS to re-initialize your video, aren't you?
 
-Linus, guess I missed this part ... so before touch anything, I did
-tried suspend-to-ram, and it works on console and in X.
+I don't know. Just pure simple "s2ram" without any options.
 
-And suspend-to-disk hangs, but I can still press and hold the power
-button to power it off. Then upon powering on and resume, I get the
-ugly green "console" screen. I can still type and move around.
-Starting X runs fine. Ctrl-Alt-Del or switching back to console will
-get back to the green screen.
 
-Thanks,
+> Let's try to narrow it down to what the interaction is. Are you using
+> something like acpi_sleep=s3_bios or similar?
+
+No. Not additional command line option except for resume=/dev/sda3 reboot=bios
+
+
+> That's what the kernel support is supposed to make unnecessary in the long run,
+
+Ok, understand now.
+
 Jeff.
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
