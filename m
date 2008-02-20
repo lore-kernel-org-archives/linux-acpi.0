@@ -1,17 +1,18 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Pablo Sanchez <pablo@blueoakdb.com>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
- suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 12:29:44 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
+	suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 15:33:06 -0500
+Message-ID: <200802201533.06647.pablo@blueoakdb.com>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802201118.08468.jesse.barnes@intel.com>
-	<200802201209.03807.jesse.barnes@intel.com>
 	<200802202114.43007.rjw@sisk.pl>
+	<alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
+Reply-To: Pablo Sanchez <pablo@blueoakdb.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802202114.43007.rjw@sisk.pl>
+In-Reply-To: <alpine.LFD.1.00.0802201224380.7833@woody.linux-foundation.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
@@ -21,40 +22,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+To: suspend-devel@lists.sourceforge.net
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wednesday 20 February 2008 at 3:29 pm, Linus Torvalds penned
+about "Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green."
 
+> Can we please get this fixed some day? 
 
-On Wed, 20 Feb 2008, Rafael J. Wysocki wrote:
-> 
-> I think we should export the target sleep state somehow.
+I can't say I even come close to understand what's going on but
+getting s2ram to work on my Dell M4300 has been a nightmare.  Even
+after writing up how to get it to work (posted on the suspend-devel
+list - but no one answered .. yet again), I'm having some quirks.
 
-Yeah. By *not* using "->suspend()" for freezing or hibernate.
+If I had a bizillion $'s, I'd buy an M4300 for Linus and give him a
+million to get it to s2ram!  :p
 
-Please, Rafael - just make the f*cking suspend-to-disk use other routines 
-already. 99% of all hardware needs to do exactly *nothing* on 
-suspend-to-disk, and the ones that really do need things tend to need to 
-not do a whole lot.
+Cheers,
+-- 
+Pablo Sanchez - Blueoak Database Engineering, Inc
+Ph:    819.459.1926          Toll free:  888.459.1926
+Fax:   603.720.7723 (US)     Text Page:  pablo_p@blueoakdb.com
 
-For example, the "freeze" action for USB (which is one of the hardest 
-things to suspend) should literally be something like just setting the 
-controller STOP bit, and waiting for it to have stopped. The "unfreeze" 
-should be to just clear the stop bit, while the "restart" should be just a 
-controller reset to use the current memory image.
-
-NONE OF THIS HAS ABSOLUTELY ANYTHING TO DO WITH SUSPEND.
-
-It never did. I've told people so for years. Maybe actually seeing the 
-problems will make people realize.
-
-So please, we shouldn't call "->suspend[_late]" or "->resume[_early]" at 
-all. Not with PMSG_FREEZE, not with PMSG_*anything*.
-
-Can we please get this fixed some day? 
-
-		Linus
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
