@@ -1,57 +1,89 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 14:19:10 +0800
-Message-ID: <b6a2187b0802192219k76153d8dsd3fa9c80d9e8e1f7@mail.gmail.com>
-References: <b6a2187b0802191653q4dfaa32cl96b9278e97606ef0@mail.gmail.com>
-	<200802191700.12050.jesse.barnes@intel.com>
-	<alpine.LFD.1.00.0802191827190.7833@woody.linux-foundation.org>
-	<200802192032.44715.jesse.barnes@intel.com>
+From: Ron Rechenmacher <ron@fnal.gov>
+Subject: 2.6.24 Temperature/speed _not_ normal - no thermal throttling?
+Date: Wed, 20 Feb 2008 00:18:15 -0600
+Message-ID: <47BBC627.8020907@fnal.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802192032.44715.jesse.barnes@intel.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailgw2.fnal.gov ([131.225.111.12]:58299 "EHLO mailgw2.fnal.gov"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753330AbYBTGbx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 01:31:53 -0500
+Received: from mailav1.fnal.gov (mailav1.fnal.gov [131.225.111.18])
+ by mailgw2.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ with SMTP id <0JWI00LI0X88FN@mailgw2.fnal.gov> for linux-acpi@vger.kernel.org;
+ Wed, 20 Feb 2008 00:18:16 -0600 (CST)
+Received: from mailgw2.fnal.gov ([131.225.111.12])
+ by mailav1.fnal.gov (SAVSMTP 3.1.7.47) with SMTP id M2008022000181630603 for
+ <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 00:18:16 -0600
+Received: from conversion-daemon.mailgw2.fnal.gov by mailgw2.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ id <0JWI00M01XCF9J@mailgw2.fnal.gov> (original mail from ron@fnal.gov)
+ for linux-acpi@vger.kernel.org; Wed, 20 Feb 2008 00:18:16 -0600 (CST)
+Received: from [131.225.247.171] (d-vpn-171.fnal.gov [131.225.247.171])
+ by mailgw2.fnal.gov
+ (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
+ with ESMTPSA id <0JWI00LVNXIENH@mailgw2.fnal.gov> for
+ linux-acpi@vger.kernel.org; Wed, 20 Feb 2008 00:18:14 -0600 (CST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ron@fnal.gov
 
-On Feb 20, 2008 12:32 PM, Jesse Barnes <jesse.barnes@intel.com> wrote:
->
-> On Tuesday, February 19, 2008 6:28 pm Linus Torvalds wrote:
-> > On Tue, 19 Feb 2008, Jesse Barnes wrote:
-> > > I found the same poweroff issue on my T61.  It turned out to be related
-> > > to the C state code disabling interrupts when it shouldn't iirc.  Booting
-> > > with 'idle=poll' seems to work around the problem.
-> > >
-> > > The "green screen" problem should be fixed (see the DRM git tree for
-> > > details).
-> Jeff, can you retest with Linus' tree?  If you're still seeing problems, it
-> might help to add some printks to the i915 driver's suspend routine.  Just
-> reading the regs really shouldn't cause a hang, but maybe the VGA bits are
-> subtly wrong again...
+Hi,
+I believe I am having a critical thermal problem. I do not know if it
+is limited to the 2.6.24.2 kernel which I am running. I do see there has 
+been some discussion  about thermal zones and throttling on the list, 
+but I can not tell if it means that thermal throttling is not working in 
+2.6.24.2
 
-The funny thing is the screen is now normal during suspend, but the
-green came back after suspend!
+When I try to build several kernel source rpms, my dell d830 laptop 
+seems to over heat and hang. It's happened 3 times now and I would like 
+to learn what's going on and not let it happen again.
 
-And the suspend still does NOT power off with lastest Linus's tree.
+I'm a newbie (and have had problems trying to post :), so I do apologize 
+if I've missing something relatively simple or if this is post is not 
+appropriate in any way.
 
-I'll try the "idle=poll" to see if that works and will try some printk as well.
+I'm running a Scientific Linux 5 (based on RHEL5) distribution and am 
+just running a cpuspeed user space utility --- and therefor do not 
+believe I have any user space process watching temperature. However, in 
+the earlier kernels, I use to be able to (manually) write to 
+/proc/acpi/processor/CPU0/throttling and see a change when read back, 
+but now the write does not seem to do anything. This might be OK as I 'm 
+thinking the kernel and/or the hardware itself might now suppose to be 
+doing the throttling?
+
+Anyway, in 3 windows, I run:
+  win1: stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M --timeout 180s
+  win2: while sleep 1;do cat /proc/acpi/thermal_zone/THM/temperature;done
+  win3: tail -f /var/log/messages
+  win4; while sleep 1;do cat /proc/acpi/processor/CPU0/throttling;done
+
+In win2, I see the temperature go from 50 C  to over 86 C.
+In win3, before, the temp in win2 reaches 70 C, I see "kernel: CPU0: 
+Temperature/speed normal" (and also CPU1) and "kernel: Machine check 
+events logged"
+The temperature would probably just continue to climb if I ran the test 
+for longer that 180 seconds (the kernel rpms take much longer and do not 
+complete before the system hangs :(
+
+In /var/log/mcelog, (running mcelog-0.8pre), I only see "Processor core 
+below trip temperature. Throttling disabled" messages. This is strange 
+because it seems to be being disabling after never being enabled.  (Is 
+there a newer mcelog I should be running?)
+
+The fan speed does increase, but the throttling state indication never 
+changes (it's always "T0: 100%"). It seems that when I build the kernel 
+rpms, the increased fan speed is not enough to keep the temperature form 
+running away. It seems that thermal throttling would be required and is 
+not happening.
+Should I be doing something from user space? Can I do something from 
+user space?
 
 Thanks,
-Jeff.
+Ron
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+
