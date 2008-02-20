@@ -1,55 +1,30 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off after
- suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 09:28:54 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
+Date: Wed, 20 Feb 2008 17:32:49 +0000
+Message-ID: <20080220173248.GA22709@srcf.ucam.org>
+References: <1203471860.3358.177.camel@linux-2bdv.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([78.32.9.130]:38970 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753092AbYBTRdN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 12:33:13 -0500
+Content-Disposition: inline
+In-Reply-To: <1203471860.3358.177.camel@linux-2bdv.site>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@MIT.EDU>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
+Let's look at this differently. Most hardware is produced by vendors who 
+don't care about Linux. We need to make that hardware work anyway. The 
+only way we can achieve that is to be bug-compatible with Windows. 
+Therefore, any way in which Linux behaviour varies from Windows 
+behaviour is a bug. The only reason to export any indication that the 
+kernel is Linux is because our behaviour is not identical to Windows. 
+But, given that that's a bug, the solution should be to fix Linux and 
+not to encourage vendors to put workarounds in their firmware.
 
-
-On Thu, 21 Feb 2008, Jeff Chua wrote:
-> 
-> After inserting "return 0;" right at the top of those two functions, suspend
-> (and power-off properly), and resume (without green screen) works just fine.
-> 
-> I would like to know what they're for.
-
-Try suspend-and-resume without X.
-
-Also, try it on one of the more modern laptops - even *with* X.
-
-Basically, the kernel wants to be able to do what X does, because it means 
-that when it works, it works _so_ much better than doing it in X. So 
-getting it working is definitely worth it.
-
-That said, before you do anything else, try if suspend-to-RAM works. 
-
-That's the primary goal for this code anyway, and if it works that gives a 
-good hint. Suspend-to-disk is fundamentally different, and it's entirely 
-possible that for the suspend-to-disk case we should just say "screw 
-trying to suspend/resume graphics", since you'll have the BIOS resuming 
-text-mode anyway, and there are no performance or debugging advantages.
-
-		Linus
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
