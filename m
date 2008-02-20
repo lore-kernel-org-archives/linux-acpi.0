@@ -1,17 +1,18 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 23:36:44 +0100
-Message-ID: <200802202336.45492.rjw@sisk.pl>
+ suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 09:45:02 +1100
+Message-ID: <47BCAD6E.9080704@nigel.suspend2.net>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802201241.30952.jesse.barnes@intel.com>
 	<alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
 	<200802201344.11643.jesse.barnes@intel.com>
+Reply-To: nigel@nigel.suspend2.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
 In-Reply-To: <200802201344.11643.jesse.barnes@intel.com>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
@@ -22,123 +23,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
 To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, 20 of February 2008, Jesse Barnes wrote:
-> On Wednesday, February 20, 2008 1:13 pm Linus Torvalds wrote:
-> > On Wed, 20 Feb 2008, Jesse Barnes wrote:
-> > > The current callback system looks like this (according to Rafael and the
-> > > last time I looked):
-> > >   ->suspend(PMSG_FREEZE)
-> > >   ->resume()
-> > >   ->suspend(PMSG_SUSPEND)
-> > >   *enter S3 or power off*
-> > >   ->resume()
-> >
-> > Yes, it's very messy.
-> >
-> > It's messy for a few different reasons:
-> >
-> >  - the one you hit: a driver actually has a really hard time telling what
-> >    PMSG_SUSPEND really means.
+Hi.
 
-In fact the driver can find out in which state to put the device into,
-depending on the target ACPI state which is known.
-
-> >  - more importantly, we generally don't want to "suspend/resume" the
-> >    hardware at all around a power-off, because we're going to resume with
-> >    the state at the time of the PMSG_FREEZE, which means that the hardware
-> >    has actually *changed* and been used in between!
-> 
-> Exactly.
-> 
-> > So the "->resume" really isn't a resume at all. It's much closer to a
-> > "->reset".
-> 
-> Yeah, in the hibernate case this is definitely true.
-
-Agreed.
-
-> > Of course, the "solution" to this all right now is that we have to reset
-> > everything even if it *is* a suspend event, so it basically means that STR
-> > ends up using the much weaker model that snapshot-to-disk uses.
-> >
-> > The fundamental problem being that the two really have nothing
-> > what-so-ever to do with each other. They aren't even similar. Never were.
-> >
-> > > And in the long term we could have:
-> > >   ->suspend()
-> > >   *enter S3*
-> > >   ->resume()
-> >
-> > Yes, apart from all the complexities (suspend_late/resume_early). So in
-> > reality it's more than that, but the suspend/resume things are clearly
-> > nesting, and they have the potential to actually keep state around
-> > (because we *know* this machine is not going to mess with the devices in
-> > between).
-> 
-> Really, in the simple s3 case we still need early/late stuff?
-
-Yes, we do.  There are devices that need to be suspended with interrupts off.
-
-> > IOW, here we actually can have as an option "assume the device is there
-> > when you return".
-
-That is, unless the user pulls out that pendrive while suspended, no?
-
-> > > or:
-> > >   ->hibernate()
-> > >   *kexec to another kernel to save image*
-> > >   *power off*
-> > >   ->return_from_hibernate() (or somesuch)
-> >
-> > Enough people don't trust kexec that I suspect the right thing simply is
-> >
-> > 	->freeze()		// stop dma, synchronize device state
-> > 	*snapshot*
-> > 	->unfreeze();		// resume dma
-> > 	*save image*
-> > 	[ optionally ->poweroff() ]	// do we really care? I'd say no
-
-We do, if there are devices that wake us up from S4 and don't wake us up from
-S5, for example.  Plus this f*cking fan in my box that doesn't work after the
-resume if we don't do ->poweroff() ...
-
-> > 	*power off*
-> > 	->restore()		// reset device to the frozen one
-> >
-> > which may have four entry-points that can be illogically mapped to the
-> > suspend/resume ones like we do now, but they really have nothing to do
-> > with suspending/resuming.
-
-Apart from putting devices into the right low power states, that is.
-
+Jesse Barnes wrote:
 > Well, it seems like we'll have to fix drivers in either case, and isn't a 
 > kexec approach fundamentally more sound and simple, design-wise?  Rafael 
 > pointed out some problems with properly setting wakeup states, but I think 
 > that could be overcome...
 
-Your honor, I would like to register a differing opinion ...
- 
-> > And notice how while "freeze/restore" kind of pairs like a
-> > "suspend/resume", it really shouldn't be expected to realistically restore
-> > the same state at all. The "restore" part is generally much better seen as
-> > a "reset hardware" than a "resume" thing.
+No. AFAICS, kexec is going to be more complex and ugly in many ways.
 
-That's absolutely correct.
+To summarise, a kexec based hibernation is going to need the following 
+additional requirements to just replace what we already have:
 
-> > Because we literally cannot trust *anything* about the state since we froze
-> > it - we might have booted a different OS in between etc. Very different from
-> > suspend/resume. 
-> 
-> Yeah, definitely.  It has to be much more robust and deal with configuration 
-> changes, etc. (within reason).
+- get the original kernel to allocate storage while racing against the 
+rest of the system (currently allocation is done post-atomic copy & 
+post-freezing - no racing). This makes it potentially slower, too;
+- get the original kernel to transfer the information about what swap 
+was allocated to the kexec'd kernel, probably together with a lot of 
+other information (which pages are nosave etc).
+- get the original kernel to keep memory free for the kexec'd kernel 
+which would otherwise be usable. Not a biggy on desktops or laptops, but 
+think about embedded.
+- people keep talking about hibernating to an ext3 fs mounted on fuse as 
+a limitation of the freezer. To do that with kexec, you're still going 
+to have to bmap the ext3 fs and pass the block list (in which case we 
+can also do it without kexec) or umount all the ext3/fuse part and 
+remount in the kexec'd kernel. Sort of defeats the purpose, doesn't it?
 
-Agreed.
+I also wonder about how much of a pain it's going to be setting up 
+userspace for this kexec'd kernel. Will you need a separate partition 
+just for it? If not, will the userspace be loaded into memory all the 
+time (more memory wasted for normal use), or loaded from ordinary 
+partitions at kexec time (how to do safely? - more info to transfer 
+between kernels?).
 
-Thanks,
-Rafael
+I'd love it if kexec really was the panacea to the freezer issues, but 
+problems like these make me think it isn't a viable solution.
+
+Nigel
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
