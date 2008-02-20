@@ -1,19 +1,17 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Jesse Barnes <jesse.barnes@intel.com>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
 	suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 19:25:16 +0000
-Message-ID: <20080220192516.GA24771@srcf.ucam.org>
+Date: Wed, 20 Feb 2008 11:18:08 -0800
+Message-ID: <200802201118.08468.jesse.barnes@intel.com>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
-	<b6a2187b0802200954p1cccb01aqbc48c865797f0af1@mail.gmail.com>
-	<alpine.LFD.1.00.0802201007300.7833@woody.linux-foundation.org>
-	<b6a2187b0802201049r25959293r1e6b83ca67f65f04@mail.gmail.com>
+	<200802201053.16218.jesse.barnes@intel.com>
+	<b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <b6a2187b0802201110k6e6c458dg6f48c586fff6187a@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <b6a2187b0802201049r25959293r1e6b83ca67f65f04@mail.gmail.com>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
@@ -24,25 +22,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
 To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 21, 2008 at 02:49:39AM +0800, Jeff Chua wrote:
+On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
+> On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+> > > So, next I'll try "shutdown" to see if it work. I was using "platform".
+> >
+> > Ok, that would be good to try.
+>
+> "shutdown" does power down properly. But still green on resume.
 
-> Here's an interesting discovery. After I found that "echo reboot >
-> /sys/power/disk" does reboot, I tried "echo shutdown >
-> /sys/power/disk", it does shutdown properly.
-> 
-> With "platform" it refuses to shutdown. Both reboot and shutdown still
-> end up with Mr. Green at resume.
+Ok, so Linus' theory about something later in the resume path trying to touch 
+video is looking good.
 
-That kind of suggests that the ACPI platform code is hitting the 
-hardware directly - we've seen similar issues with PATA controllers. The 
-right thing to do here is almost certainly just to avoid explicitly 
-powering down hardware on hibernation.
+Rafael, is there anyway to prevent the device shutdown in the hibernate path?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> > Looks like the AR registers are hosed, which is what I thought I fixed...
+> >  Can you attach your i915_drv.c file just so I can sanity check it?
+>
+> Attached.
+
+Hm, looks right.  Let me see if I can reproduce this on my T61.
+
+Thanks,
+Jesse
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
