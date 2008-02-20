@@ -1,89 +1,64 @@
-From: Ron Rechenmacher <ron@fnal.gov>
-Subject: 2.6.24 Temperature/speed _not_ normal - no thermal throttling?
-Date: Wed, 20 Feb 2008 00:18:15 -0600
-Message-ID: <47BBC627.8020907@fnal.gov>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: 2.6.25-rc2-mm1 (x64 thermal build failure)
+Date: Wed, 20 Feb 2008 08:21:33 +0100
+Message-ID: <20080220082133.56f93d27@crazy>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
+	<20080216211603.bb4f3582.randy.dunlap@oracle.com>
+	<20080216214410.b9699910.akpm@linux-foundation.org>
+	<20080218111536.511c4fbc@crazy>
+	<20080218041340.f1e46ec9.akpm@linux-foundation.org>
+	<20080219165502.2c202759@crazy>
+	<20080219152129.6e8b7956.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailgw2.fnal.gov ([131.225.111.12]:58299 "EHLO mailgw2.fnal.gov"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753330AbYBTGbx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 01:31:53 -0500
-Received: from mailav1.fnal.gov (mailav1.fnal.gov [131.225.111.18])
- by mailgw2.fnal.gov
- (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
- with SMTP id <0JWI00LI0X88FN@mailgw2.fnal.gov> for linux-acpi@vger.kernel.org;
- Wed, 20 Feb 2008 00:18:16 -0600 (CST)
-Received: from mailgw2.fnal.gov ([131.225.111.12])
- by mailav1.fnal.gov (SAVSMTP 3.1.7.47) with SMTP id M2008022000181630603 for
- <linux-acpi@vger.kernel.org>; Wed, 20 Feb 2008 00:18:16 -0600
-Received: from conversion-daemon.mailgw2.fnal.gov by mailgw2.fnal.gov
- (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
- id <0JWI00M01XCF9J@mailgw2.fnal.gov> (original mail from ron@fnal.gov)
- for linux-acpi@vger.kernel.org; Wed, 20 Feb 2008 00:18:16 -0600 (CST)
-Received: from [131.225.247.171] (d-vpn-171.fnal.gov [131.225.247.171])
- by mailgw2.fnal.gov
- (iPlanet Messaging Server 5.2 HotFix 2.06 (built Mar 28 2005))
- with ESMTPSA id <0JWI00LVNXIENH@mailgw2.fnal.gov> for
- linux-acpi@vger.kernel.org; Wed, 20 Feb 2008 00:18:14 -0600 (CST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="Sig_/v9SkIC1I3rgH11jU9F1sxey";
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754303AbYBTHV5@vger.kernel.org>
+In-Reply-To: <20080219152129.6e8b7956.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, michael@free-electrons.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ron@fnal.gov
 
-Hi,
-I believe I am having a critical thermal problem. I do not know if it
-is limited to the 2.6.24.2 kernel which I am running. I do see there has 
-been some discussion  about thermal zones and throttling on the list, 
-but I can not tell if it means that thermal throttling is not working in 
-2.6.24.2
+--Sig_/v9SkIC1I3rgH11jU9F1sxey
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-When I try to build several kernel source rpms, my dell d830 laptop 
-seems to over heat and hang. It's happened 3 times now and I would like 
-to learn what's going on and not let it happen again.
+Le Tue, 19 Feb 2008 15:21:29 -0800,
+Andrew Morton <akpm@linux-foundation.org> a =C3=A9crit :
 
-I'm a newbie (and have had problems trying to post :), so I do apologize 
-if I've missing something relatively simple or if this is post is not 
-appropriate in any way.
+> ug, sorry, if I'd realised it was like this I'd have said "don't
+> bother". Apart from the obvious problem, this means that people will
+> keep breaking CONFIG_DMI=3Dn all the time, because they will forget the
+> ifdefs, and the number of people who test with CONFIG_DMI=3Dn will be
+> small.
 
-I'm running a Scientific Linux 5 (based on RHEL5) distribution and am 
-just running a cpuspeed user space utility --- and therefor do not 
-believe I have any user space process watching temperature. However, in 
-the earlier kernels, I use to be able to (manually) write to 
-/proc/acpi/processor/CPU0/throttling and see a change when read back, 
-but now the write does not seem to do anything. This might be OK as I 'm 
-thinking the kernel and/or the hardware itself might now suppose to be 
-doing the throttling?
+Yes, #ifdef CONFIG_DMI is not very comfortable. That why I proposed
+things such as DECLARE_DMI_FIXUP_TABLE(), because it would force people
+to use these macros, which would then be working correctly depending on
+DMI=3Dy/n. However, there's still the issue of driver_data that I
+mentionned in my earlier post.
 
-Anyway, in 3 windows, I run:
-  win1: stress --cpu 8 --io 4 --vm 2 --vm-bytes 128M --timeout 180s
-  win2: while sleep 1;do cat /proc/acpi/thermal_zone/THM/temperature;done
-  win3: tail -f /var/log/messages
-  win4; while sleep 1;do cat /proc/acpi/processor/CPU0/throttling;done
+What should I do ? Option 1 ? Option 2 ? Give up with the patch ?
 
-In win2, I see the temperature go from 50 C  to over 86 C.
-In win3, before, the temp in win2 reaches 70 C, I see "kernel: CPU0: 
-Temperature/speed normal" (and also CPU1) and "kernel: Machine check 
-events logged"
-The temperature would probably just continue to climb if I ran the test 
-for longer that 180 seconds (the kernel rpms take much longer and do not 
-complete before the system hangs :(
+Thanks for your comments,
 
-In /var/log/mcelog, (running mcelog-0.8pre), I only see "Processor core 
-below trip temperature. Throttling disabled" messages. This is strange 
-because it seems to be being disabling after never being enabled.  (Is 
-there a newer mcelog I should be running?)
+Thomas
+--=20
+Thomas Petazzoni, Free Electrons
+Free Embedded Linux Training Materials
+on http://free-electrons.com/training
+(More than 1500 pages!)
 
-The fan speed does increase, but the throttling state indication never 
-changes (it's always "T0: 100%"). It seems that when I build the kernel 
-rpms, the increased fan speed is not enough to keep the temperature form 
-running away. It seems that thermal throttling would be required and is 
-not happening.
-Should I be doing something from user space? Can I do something from 
-user space?
+--Sig_/v9SkIC1I3rgH11jU9F1sxey
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-Thanks,
-Ron
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
+iD4DBQFHu9UB9lPLMJjT96cRAmjHAJd6dSQi8ZRI2tqu2nNT9dmSBFMfAJ0YXzwX
+IoCwUCmPv6ZeYPhAg/0PTQ==
+=M1LJ
+-----END PGP SIGNATURE-----
 
+--Sig_/v9SkIC1I3rgH11jU9F1sxey--
