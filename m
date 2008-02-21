@@ -1,87 +1,62 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
-	Screen becomes green.
-Date: Wed, 20 Feb 2008 22:37:18 -0800
-Message-ID: <20080221063718.GA25036@suse.de>
-References: <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net> <20080221001357.GA29796@srcf.ucam.org> <47BCC866.9000102@nigel.suspend2.net> <20080221004632.GA25869@suse.de> <47BCD112.3010708@nigel.suspend2.net> <20080221044331.GB21499@suse.de> <47BD14AC.5070002@nigel.suspend2.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
+Date: Thu, 21 Feb 2008 02:08:47 -0500
+Message-ID: <200802210208.47487.lenb@kernel.org>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47B73DD8.4030405@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:36804 "EHLO mx2.suse.de"
+Received: from hera.kernel.org ([140.211.167.34]:42323 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752448AbYBUGh3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 01:37:29 -0500
+	id S1753843AbYBUHJK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 02:09:10 -0500
+In-Reply-To: <47B73DD8.4030405@linux.vnet.ibm.com>
 Content-Disposition: inline
-In-Reply-To: <47BD14AC.5070002@nigel.suspend2.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>
+To: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
 
-On Thu, Feb 21, 2008 at 05:05:32PM +1100, Nigel Cunningham wrote:
-> Hi Greg.
->
-> Greg KH wrote:
->> On Thu, Feb 21, 2008 at 12:17:06PM +1100, Nigel Cunningham wrote:
->>> Hi.
->>>
->>> Greg KH wrote:
->>>> On Thu, Feb 21, 2008 at 11:40:06AM +1100, Nigel Cunningham wrote:
->>>>> Hi.
->>>>>
->>>>> Matthew Garrett wrote:
->>>>>> On Thu, Feb 21, 2008 at 09:45:02AM +1100, Nigel Cunningham wrote:
->>>>>>> - people keep talking about hibernating to an ext3 fs mounted on fuse 
->>>>>>> as a limitation of the freezer. To do that with kexec, you're still 
->>>>>>> going to have to bmap the ext3 fs and pass the block list (in which 
->>>>>>> case we can also do it without kexec) or umount all the ext3/fuse 
->>>>>>> part and remount in the kexec'd kernel. Sort of defeats the purpose, 
->>>>>>> doesn't it?
->>>>>> No, with a freezer-based model you can basically *never* suspend to 
->>>>>> anything related to FUSE or a userspace USB device or anything 
->>>>>> involving userspace iSCSI initiators or whatever. Sure, there are 
->>>>>> cases where moving away from the current model doesn't buy you 
->>>>>> anything, but that doesn't mean that the current model is a good 
->>>>>> thing. It's not. The freezer is a fundamentally broken concept.
->>>>> Putting drivers and filesystems in userspace is the fundamentally 
->>>>> broken concept. Not just when it comes to the freezer. The whole idea 
->>>>> is inherently racy.
->>>> Racy with regards to other things becides trying to suspend a machine?
->>>> If so, what?
->>> That depends on what sort of tangled web you want to weave.
->> Lots of them :)
->> We have tanks running Linux using userspace USB drivers for vision
->> control systems (scary, I know...)  They seem to be successfully running
->> for many years now, and I'm interested in making sure those kinds of
->> things keep working.
->> We also have laser welding robots with userspace PCI drivers in car
->> manufacturing plants.  And other laser cutting robots slicing wood in
->> patterns moving at a rate of over 3 meters a second.  Again, with
->> userspace drivers and Linux.
->> Those users would also love to know of any potential problems you know
->> of for this situation.
->>> Low memory situations is one other situation that occurs to me
->>> quickly, especially (though not only) if your ability to swap were to
->>> depend upon a userspace driver and/or filesystem.
->> Sure, swap over a userspace filesystem or driver isn't a sane idea.  And
->> neither is swaping over NFS over a PPP connection attached to a USB to
->> serial device.  Yes, it's possible, and all in the kernel, but not a
->> wise decision.
->> Other than foolish configurations, if you come up with other issues
->> surrounding userspace drivers that could cause problems, please let me
->> know.
->
-> A simple OOM condition isn't an issue? Surely a driver stalling because 
-> some of its memory gets swapped out just before it goes to use it would be 
-> a problem if it resulted in getting the length of a cut wrong or caused 
-> some distorted vision or a late turn :>
->
-> Am I missing something? Maybe these drivers mlock memory to avoid those 
-> issues or something like that?
+On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
+> Hi Andrew,
+>=20
+> The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
+> to build on x86_64 machine
+>=20
+>   CC      drivers/acpi/osl.o
+> drivers/acpi/osl.c:60:38: error: empty filename in #include
+> drivers/acpi/osl.c: In function =E2=80=98acpi_os_table_override=E2=80=
+=99:
+> drivers/acpi/osl.c:399: error: =E2=80=98AmlCode=E2=80=99 undeclared (=
+first use in this function)
+> drivers/acpi/osl.c:399: error: (Each undeclared identifier is reporte=
+d only once
+> drivers/acpi/osl.c:399: error: for each function it appears in.)
+> make[2]: *** [drivers/acpi/osl.o] Error 1
+> make[1]: *** [drivers/acpi] Error 2
+> make: *** [drivers] Error 2
+>=20
+> #
+> # Automatically generated make config: don't edit
+> # Linux kernel version: 2.6.25-rc2-mm1
+> # Sun Feb 17 08:07:17 2008
+> #
 
-I think the mlock their memory to prevent this from happening, it's not
-hard when you control all the applications on the box :)
+> CONFIG_ACPI_CUSTOM_DSDT=3Dy
+> CONFIG_ACPI_CUSTOM_DSDT_FILE=3D""
 
-thanks,
+garbage in, garbage out.
 
-greg k-h
+If you don't give this build option a file name where AmlCode lives,
+then the build will be unable to find AmlCode[].
+
+http://www.lesswatts.org/projects/acpi/overridingDSDT.php
+
+cheers,
+-Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
