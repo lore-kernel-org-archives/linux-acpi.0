@@ -1,46 +1,54 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 00:13:58 +0000
-Message-ID: <20080221001357.GA29796@srcf.ucam.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: 2.6.25-rc2 System no longer powers off after
+	suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 16:17:51 -0800
+Message-ID: <200802201617.51387.jbarnes@virtuousgeek.org>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802201534.36174.jbarnes@virtuousgeek.org>
+	<200802210049.42820.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:51536 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772AbYBUAO3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 19:14:29 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <200802210049.42820.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <47BCAD6E.9080704@nigel.suspend2.net>
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Thu, Feb 21, 2008 at 09:45:02AM +1100, Nigel Cunningham wrote:
+On Wednesday, February 20, 2008 3:49 pm Rafael J. Wysocki wrote:
+> > And just to confirm that, I just tested the current DRM modules against a
+> > 2.6.23.15 kernel.
+>
+> In 2.6.23.x there's no second ->suspend() during hibernation, so no wonder.
 
-> - people keep talking about hibernating to an ext3 fs mounted on fuse as 
-> a limitation of the freezer. To do that with kexec, you're still going 
-> to have to bmap the ext3 fs and pass the block list (in which case we 
-> can also do it without kexec) or umount all the ext3/fuse part and 
-> remount in the kexec'd kernel. Sort of defeats the purpose, doesn't it?
+In 2.6.23 it's just:
+  ->suspend()
+  ->resume()
+  *S4*
+?
 
-No, with a freezer-based model you can basically *never* suspend to 
-anything related to FUSE or a userspace USB device or anything involving 
-userspace iSCSI initiators or whatever. Sure, there are cases where 
-moving away from the current model doesn't buy you anything, but that 
-doesn't mean that the current model is a good thing. It's not. The 
-freezer is a fundamentally broken concept.
+I ask because we still do the D3hot call in the DRM tree, so the hang should 
+still occur unless the PM or ACPI core has changed.
 
-> I also wonder about how much of a pain it's going to be setting up 
-> userspace for this kexec'd kernel. Will you need a separate partition 
-> just for it? If not, will the userspace be loaded into memory all the 
-> time (more memory wasted for normal use), or loaded from ordinary 
-> partitions at kexec time (how to do safely? - more info to transfer 
-> between kernels?).
+> I'll figure out how to work around this issue in the current mainline, but
+> a real fix will only be possible when we have separate callbacks for
+> hibernation.
 
-You're looking at a tiny amount of memory when compared to current 
-systems. It's really not a problem.
+Ok, thanks.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jesse
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
