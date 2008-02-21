@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/26] ACPI: thinkpad-acpi: trivial fix to module_desc typo
-Date: Thu, 21 Feb 2008 04:37:55 -0500
-Message-ID: <cbb14842137ff78df10038da8ca8a97917a5a926.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 11/26] ACPI: thinkpad-acpi: trivial fix to documentation
+Date: Thu, 21 Feb 2008 04:37:56 -0500
+Message-ID: <5f24927f48c63e79ff8e286fc8530f4525b4182a.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:30080 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:15600 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758132AbYBUJjA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:00 -0500
+	with ESMTP id S1758194AbYBUJjB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:01 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
@@ -18,27 +18,28 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
+Fix a stray ibm-acpi that should have been replaced with thinkpad-acpi.
 Thanks to Damjan <gdamjan@mail.net.mk> for noticing this one.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |    2 +-
+ Documentation/laptops/thinkpad-acpi.txt |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index e2c7edd..723d37b 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -5918,7 +5918,7 @@ MODULE_PARM_DESC(hotkey_report_mode,
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 6c24777..33d6e5a 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -1309,7 +1309,7 @@ Enabling debugging output
+ The module takes a debug parameter which can be used to selectively
+ enable various classes of debugging output, for example:
  
- #define TPACPI_PARAM(feature) \
- 	module_param_call(feature, set_ibm_param, NULL, NULL, 0); \
--	MODULE_PARM_DESC(feature, "Simulates thinkpad-aci procfs command " \
-+	MODULE_PARM_DESC(feature, "Simulates thinkpad-acpi procfs command " \
- 			 "at module load, see documentation")
+-	 modprobe ibm_acpi debug=0xffff
++	 modprobe thinkpad_acpi debug=0xffff
  
- TPACPI_PARAM(hotkey);
+ will enable all debugging output classes.  It takes a bitmask, so
+ to enable more than one output class, just add their values.
 -- 
 1.5.4
 
