@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 17/26] ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
-Date: Thu, 21 Feb 2008 04:25:29 -0500
-Message-ID: <d147da73c9a3f617e4685c6a7762961fe19833e7.1203585792.git.len.brown@intel.com>
+Subject: [PATCH 12/26] ACPI: thinkpad-acpi: always track input device open/close
+Date: Thu, 21 Feb 2008 04:25:24 -0500
+Message-ID: <1bc6b9cdd5e608f0b7e6160a823c9dcd51820410.1203585792.git.len.brown@intel.com>
 References: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55536 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756274AbYBUJ3G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 04:29:06 -0500
+Received: from mga10.intel.com ([192.55.52.92]:36627 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756748AbYBUJ3P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:15 -0500
 In-Reply-To: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
@@ -18,52 +18,66 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Fixes some minor points in the radio switch code and docs.
+The open() and close() hooks for the input device are useful even when
+hotkey NVRAM polling support is not in use, so it is better to always have
+them around.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    2 +-
- drivers/misc/thinkpad_acpi.c            |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 91f688c..606af16 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -306,7 +306,7 @@ sysfs notes:
- 		The recommended polling frequency is 10Hz.
- 
- 	hotkey_radio_sw:
--		if the ThinkPad has a hardware radio switch, this
-+		If the ThinkPad has a hardware radio switch, this
- 		attribute will read 0 if the switch is in the "radios
- 		disabled" position, and 1 if the switch is in the
- 		"radios enabled" position.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 3548350..c119cf2 100644
+index 723d37b..6da3f40 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1161,15 +1161,15 @@ static void tpacpi_input_send_radiosw(void)
- {
- 	int wlsw;
- 
--	mutex_lock(&tpacpi_inputdev_send_mutex);
--
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
-+		mutex_lock(&tpacpi_inputdev_send_mutex);
-+
- 		input_report_switch(tpacpi_inputdev,
- 				    SW_RADIO, !!wlsw);
- 		input_sync(tpacpi_inputdev);
--	}
- 
--	mutex_unlock(&tpacpi_inputdev_send_mutex);
-+		mutex_unlock(&tpacpi_inputdev_send_mutex);
-+	}
+@@ -1417,6 +1417,14 @@ static void hotkey_poll_setup_safe(int may_warn)
+ 	mutex_unlock(&hotkey_mutex);
  }
  
- static void tpacpi_input_send_tabletsw(unsigned int state)
++#else /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
++
++static void hotkey_poll_setup_safe(int __unused)
++{
++}
++
++#endif /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
++
+ static int hotkey_inputdev_open(struct input_dev *dev)
+ {
+ 	switch (tpacpi_lifecycle) {
+@@ -1444,7 +1452,6 @@ static void hotkey_inputdev_close(struct input_dev *dev)
+ 	if (tpacpi_lifecycle == TPACPI_LIFE_RUNNING)
+ 		hotkey_poll_setup_safe(0);
+ }
+-#endif /* CONFIG_THINKPAD_ACPI_HOTKEY_POLL */
+ 
+ /* sysfs hotkey enable ------------------------------------------------- */
+ static ssize_t hotkey_enable_show(struct device *dev,
+@@ -2023,12 +2030,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 				(hotkey_report_mode < 2) ?
+ 					"enabled" : "disabled");
+ 
+-#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+ 		tpacpi_inputdev->open = &hotkey_inputdev_open;
+ 		tpacpi_inputdev->close = &hotkey_inputdev_close;
+ 
+ 		hotkey_poll_setup_safe(1);
+-#endif
+ 	}
+ 
+ 	return (tp_features.hotkey)? 0 : 1;
+@@ -2221,9 +2226,7 @@ static void hotkey_resume(void)
+ 	hotkey_radio_sw_notify_change();
+ 	hotkey_wakeup_reason_notify_change();
+ 	hotkey_wakeup_hotunplug_complete_notify_change();
+-#ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+ 	hotkey_poll_setup_safe(0);
+-#endif
+ }
+ 
+ /* procfs -------------------------------------------------------------- */
 -- 
 1.5.4.2
 
