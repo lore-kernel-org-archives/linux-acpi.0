@@ -1,69 +1,71 @@
-From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Subject: Re: Machine shutdown after resume from S3
-Date: Thu, 21 Feb 2008 19:21:01 -0300
-Message-ID: <200802211921.01913.herton@mandriva.com.br>
-References: <200802201837.22443.herton@mandriva.com.br> <20080221174643.32B0A3608D@smtp02.mtu.ru>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
+Date: Thu, 21 Feb 2008 23:22:45 +0100
+Message-ID: <20080221222245.GB30976@uranus.ravnborg.org>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47B73DD8.4030405@linux.vnet.ibm.com> <200802210208.47487.lenb@kernel.org> <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perninha.conectiva.com.br ([200.140.247.100]:33985 "EHLO
-	perninha.conectiva.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760867AbYBUWVG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 17:21:06 -0500
-In-Reply-To: <20080221174643.32B0A3608D@smtp02.mtu.ru>
+Received: from pasmtpa.tele.dk ([80.160.77.114]:41955 "EHLO pasmtpA.tele.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754614AbYBUWWg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 17:22:36 -0500
 Content-Disposition: inline
+In-Reply-To: <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
+To: Nish Aravamudan <nish.aravamudan@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
 
-Em Thursday 21 February 2008 14:46:45 Andrey Borzenkov escreveu:
-> Herton Ronaldo Krzesinski wrote:
+On Thu, Feb 21, 2008 at 10:54:40AM -0800, Nish Aravamudan wrote:
+> On 2/20/08, Len Brown <lenb@kernel.org> wrote:
+> > On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
+> >  > Hi Andrew,
+> >  >
+> >  > The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
+> >  > to build on x86_64 machine
+> >  >
+> >  >   CC      drivers/acpi/osl.o
+> >  > drivers/acpi/osl.c:60:38: error: empty filename in #include
+> >  > drivers/acpi/osl.c: In function 'acpi_os_table_override':
+> >  > drivers/acpi/osl.c:399: error: 'AmlCode' undeclared (first use in this function)
+> >  > drivers/acpi/osl.c:399: error: (Each undeclared identifier is reported only once
+> >  > drivers/acpi/osl.c:399: error: for each function it appears in.)
+> >  > make[2]: *** [drivers/acpi/osl.o] Error 1
+> >  > make[1]: *** [drivers/acpi] Error 2
+> >  > make: *** [drivers] Error 2
+> >  >
+> >  > #
+> >  > # Automatically generated make config: don't edit
+> >  > # Linux kernel version: 2.6.25-rc2-mm1
+> >  > # Sun Feb 17 08:07:17 2008
+> >  > #
+> >
+> >
+> > > CONFIG_ACPI_CUSTOM_DSDT=y
+> >  > CONFIG_ACPI_CUSTOM_DSDT_FILE=""
+> >
+> >
+> > garbage in, garbage out.
 > 
-> > I have here an Intel Classmate hardware sample, and I have a weird problem
-> > with suspend to ram, the machine does a power off when resuming.
-> > 
+> garbage explicitly *allowed* by Kconfig in this case, though.
 > 
-> Do you have acpid running? You may also be interested in this:
-> http://qa.mandriva.com/show_bug.cgi?id=18998
-> http://qa.mandriva.com/show_bug.cgi?id=23296
-> http://article.gmane.org/gmane.linux.acpi.devel/17581/match=sup
+> >  If you don't give this build option a file name where AmlCode lives,
+> >  then the build will be unable to find AmlCode[].
+> >
+> >  http://www.lesswatts.org/projects/acpi/overridingDSDT.php
 > 
-> 
-> > I isolated the problem to the button acpi module, without loading it (or
-> > just removing it before doing a s2ram) I don't get the problem. In the
-> > specific machine I have here I can only resume it pressing the power
-> > button, so I think this is related.
-> > 
-> 
-> IIRC the issue was that button press that triggered resume was reported to
-> user space. This apparently was fixed in the quoted patch; but may be this
-> specific model goes via different code path?
+> So we have a .config option whose sole purpose is to use another
+> .config option? That seems ... less than ideal. Is there not some
+> Kconfig voodoo we can do to only require the one option? Maybe
+> something like how CONFIG_INITRAMFS_SOURCE is done? Adding Sam to the
+> Cc, in case he has any ideas.
 
-In my case here is not an userspace issue. But the patch in the last link you
-posted gave me an idea, to check code executed in resume, I managed to make
-a quick hack that solved the issue:
+Make sure STANDALONE is y for your randconfig builds.
+See README for examples.
 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 293a1cb..2255434 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -156,6 +156,8 @@ static int acpi_pm_enter(suspend_state_t pm_state)
- 
- 	local_irq_save(flags);
- 	acpi_enable_wakeup_device(acpi_state);
-+	(void) acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].enable_register_id, 0);
-+	(void) acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].status_register_id, 0);
- 	switch (acpi_state) {
- 	case ACPI_STATE_S1:
- 		barrier();
+STANALONE is there exactly to prevent the above but we cannot
+control randconfig.
 
-For some reason with this I don't have the power off problem in resume.
-I'll try to check more the code and acpi spec, but does this could indicate a
-bug in bios?
+	Sam
 
---
-[]'s
-Herton
