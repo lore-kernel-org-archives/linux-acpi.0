@@ -1,55 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 01:10:32 +0000
-Message-ID: <20080221011032.GA30606@srcf.ucam.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net> <20080221001357.GA29796@srcf.ucam.org> <47BCC866.9000102@nigel.suspend2.net>
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
+ Screen becomes green.
+Date: Thu, 21 Feb 2008 12:17:06 +1100
+Message-ID: <47BCD112.3010708@nigel.suspend2.net>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net> <20080221001357.GA29796@srcf.ucam.org> <47BCC866.9000102@nigel.suspend2.net> <20080221004632.GA25869@suse.de>
+Reply-To: nigel@nigel.suspend2.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:43458 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755159AbYBUBKt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Feb 2008 20:10:49 -0500
-Content-Disposition: inline
-In-Reply-To: <47BCC866.9000102@nigel.suspend2.net>
+Received: from crca.org.au ([67.207.131.56]:46648 "EHLO crca.org.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762147AbYBUBRM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 20:17:12 -0500
+In-Reply-To: <20080221004632.GA25869@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
+To: Greg KH <gregkh@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>
 
-On Thu, Feb 21, 2008 at 11:40:06AM +1100, Nigel Cunningham wrote:
-> Matthew Garrett wrote:
-> >No, with a freezer-based model you can basically *never* suspend to 
-> >anything related to FUSE or a userspace USB device or anything involving 
-> >userspace iSCSI initiators or whatever. Sure, there are cases where 
-> >moving away from the current model doesn't buy you anything, but that 
-> >doesn't mean that the current model is a good thing. It's not. The 
-> >freezer is a fundamentally broken concept.
+Hi.
+
+Greg KH wrote:
+> On Thu, Feb 21, 2008 at 11:40:06AM +1100, Nigel Cunningham wrote:
+>> Hi.
+>>
+>> Matthew Garrett wrote:
+>>> On Thu, Feb 21, 2008 at 09:45:02AM +1100, Nigel Cunningham wrote:
+>>>> - people keep talking about hibernating to an ext3 fs mounted on fuse as 
+>>>> a limitation of the freezer. To do that with kexec, you're still going to 
+>>>> have to bmap the ext3 fs and pass the block list (in which case we can 
+>>>> also do it without kexec) or umount all the ext3/fuse part and remount in 
+>>>> the kexec'd kernel. Sort of defeats the purpose, doesn't it?
+>>> No, with a freezer-based model you can basically *never* suspend to 
+>>> anything related to FUSE or a userspace USB device or anything involving 
+>>> userspace iSCSI initiators or whatever. Sure, there are cases where moving 
+>>> away from the current model doesn't buy you anything, but that doesn't 
+>>> mean that the current model is a good thing. It's not. The freezer is a 
+>>> fundamentally broken concept.
+>> Putting drivers and filesystems in userspace is the fundamentally broken 
+>> concept. Not just when it comes to the freezer. The whole idea is 
+>> inherently racy.
 > 
-> Putting drivers and filesystems in userspace is the fundamentally broken 
-> concept. Not just when it comes to the freezer. The whole idea is 
-> inherently racy. You can draw silly diagrams about how the freezer 
-> supposedly works in LCA slides and spread FUD as much as you like. In 
-> the end, though, it's not nearly as hit-and-miss as you say, and 
-> replacing the freezer with a kexec based freezer is only going to create 
-> as many problems as it removes.
+> Racy with regards to other things becides trying to suspend a machine?
+> If so, what?
 
-I'm really not interested in debating the matter. There are all sorts of 
-potential uses for the freezer, but hibernation isn't one of them. We 
-*need* to get rid of the freezer for suspend to RAM (because a band-aid 
-to ensure atomicity is kind of pointless when the operation you're 
-entering is inherently atomic), and once all the drivers are able to 
-deal with that then it's trivial to get rid of it for hibernation as 
-well. Arguing that the reality of userspace drivers is broken doesn't 
-help here. It's what we have to work with.
+That depends on what sort of tangled web you want to weave. Low memory 
+situations is one other situation that occurs to me quickly, especially 
+(though not only) if your ability to swap were to depend upon a 
+userspace driver and/or filesystem.
 
-> >You're looking at a tiny amount of memory when compared to current 
-> >systems. It's really not a problem.
-> 
-> Please, quantify 'tiny'. In embedded, 5MB can be too much. I've worked 
-> on embedded solutions. I'm not pulling problems out of thin air.
+Regards,
 
-Then the in-kernel solution has already lost anyway, and I'm desperately 
-unconcerned about out of tree stuff.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Nigel
