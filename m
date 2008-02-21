@@ -1,73 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 23/26] ACPI: fix build warning
-Date: Thu, 21 Feb 2008 04:38:08 -0500
-Message-ID: <1186974f3ffe3c1796e5efce7afffefcfda9a6f0.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 22/26] ACPI: TSC breaks atkbd suspend
+Date: Thu, 21 Feb 2008 04:38:07 -0500
+Message-ID: <6133116849219f4e657ead39c7ac3922583f5a6e.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:38020 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:30080 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1761722AbYBUJjR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:17 -0500
+	with ESMTP id S1760469AbYBUJjQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:16 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Ming Lin <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Pavel Machek <pavel@suse.cz>, Len Brown <len.brown@intel.com>
 
-=46rom: Ming Lin <ming.m.lin@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
 
-CC      drivers/acpi/executer/exregion.o
-drivers/acpi/executer/exregion.c: In function
-=E2=80=98acpi_ex_pci_config_space_handler=E2=80=99:
-drivers/acpi/executer/exregion.c:369: attention : passing argument 3 of
-=E2=80=98acpi_os_read_pci_configuration=E2=80=99 from incompatible poin=
-ter type
+TSC is used even on machines when CONFIG_X86_TSC is not set (X86_TSC
+means _require_ TSC), but it is not properly disabled when it is
+unusable, because ACPI code understood the config switch as "may use
+TSC".
 
-exposed by 10270d4838bdc493781f5a1cf2e90e9c34c9142f
+This actually fixes suspend problems on my x60.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D9989
-
-Signed-off-by: Ming Lin <ming.m.lin@intel.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exregion.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/executer/exregion.c b/drivers/acpi/executer/e=
-xregion.c
-index 2e9ce94..3f51b7e 100644
---- a/drivers/acpi/executer/exregion.c
-+++ b/drivers/acpi/executer/exregion.c
-@@ -338,6 +338,7 @@ acpi_ex_pci_config_space_handler(u32 function,
- 	acpi_status status =3D AE_OK;
- 	struct acpi_pci_id *pci_id;
- 	u16 pci_register;
-+	u32 value32;
-=20
- 	ACPI_FUNCTION_TRACE(ex_pci_config_space_handler);
-=20
-@@ -364,9 +365,9 @@ acpi_ex_pci_config_space_handler(u32 function,
- 	switch (function) {
- 	case ACPI_READ:
-=20
--		*value =3D 0;
- 		status =3D acpi_os_read_pci_configuration(pci_id, pci_register,
--							value, bit_width);
-+							&value32, bit_width);
-+		*value =3D value32;
- 		break;
-=20
- 	case ACPI_WRITE:
---=20
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 980e1c3..6f3b217 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -364,7 +364,7 @@ int acpi_processor_resume(struct acpi_device * device)
+ 	return 0;
+ }
+ 
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ static int tsc_halts_in_c(int state)
+ {
+ 	switch (boot_cpu_data.x86_vendor) {
+@@ -544,7 +544,7 @@ static void acpi_processor_idle(void)
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 		/* TSC halts in C2, so notify users */
+ 		if (tsc_halts_in_c(ACPI_STATE_C2))
+ 			mark_tsc_unstable("possible TSC halt in C2");
+@@ -609,7 +609,7 @@ static void acpi_processor_idle(void)
+ 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
+ 		}
+ 
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 		/* TSC halts in C3, so notify users */
+ 		if (tsc_halts_in_c(ACPI_STATE_C3))
+ 			mark_tsc_unstable("TSC halts in C3");
+@@ -1500,7 +1500,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	acpi_idle_do_entry(cx);
+ 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(cx->type))
+ 		mark_tsc_unstable("TSC halts in idle");;
+@@ -1614,7 +1614,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		spin_unlock(&c3_lock);
+ 	}
+ 
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(ACPI_STATE_C3))
+ 		mark_tsc_unstable("TSC halts in idle");
+-- 
 1.5.4
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
