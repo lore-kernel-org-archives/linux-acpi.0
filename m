@@ -1,57 +1,141 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
-Subject: Re: 2.6.25-rc2 System no longer powers off
-	aftersuspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 13:02:26 -0800
-Message-ID: <200802211302.27002.jesse.barnes@intel.com>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<b6a2187b0802201002t315548b5uac623759723842d0@mail.gmail.com>
-	<1203623002.3420.6.camel@localhost>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 23:11:43 +0100
+Message-ID: <200802212311.44319.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211727.21593.rjw@sisk.pl> <200802211034.22056.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1203623002.3420.6.camel@localhost>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:38760 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1765887AbYBUWNP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 17:13:15 -0500
+In-Reply-To: <200802211034.22056.jesse.barnes@intel.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Romano Giannetti <romano@dea.icai.upcomillas.es>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday, February 21, 2008 11:43 am Romano Giannetti wrote:
-> > > Let's try to narrow it down to what the interaction is. Are you using
-> > > something like acpi_sleep=s3_bios or similar?
+On Thursday, 21 of February 2008, Jesse Barnes wrote:
+> On Thursday, February 21, 2008 8:27 am Rafael J. Wysocki wrote:
+> > On Thursday, 21 of February 2008, Jeff Chua wrote:
+> > > On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> 
+> wrote:
+> > > > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
+> > > >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes
+> > > >  > <jesse.barnes@intel.com>
+> > > >
+> > > >  wrote:
+> > > >  > >  Ok, can you give this patch a try with the 'platform' method?  It
+> > > >  > > should at least tell us what ACPI would like the device to do at
+> > > >  > > suspend time, but it probably won't fix the hang.
+> > >
+> > > It says "calling pci_set_power_state with 3". Then after all then it
+> > > still hangs, and then resume with Mr Green.
+> > >
+> > > PM: Syncing filesystems ... done.
+> > > Freezing user space processes ... (elapsed 0.00 seconds) done.
+> > > Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> > > PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
+> > > PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
+> > > ACPI: Preparing to enter system sleep state S4
+> > > Suspending console(s)
+> > > sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> > > drm_sysfs_suspend
+> > > ACPI: PCI interrupt for device 0000:00:02.0 disabled
+> > > calling pci_set_power_state with 3
 > >
-> > No. Not additional command line option except for resume=/dev/sda3
-> > reboot=bios
->
-> My laptop (a Toshiba satellite U305, intel 945GM chipset, used to need
-> s2ram -f -p -m to STR correctly. In 2.6.25-rc2 I can simply STR with
-> echo mem > /sys/power/state.
+> > So it returns the right value.
+> >
+> > Jeff, Jesse, please check one thing for me.
 
-Cool, glad to hear at least one success report. :)
+Below is a patch that should work around the issue.  Please try it and let me
+know if it helps.
 
-> This communication contains confidential information. It is for the
-> exclusive use of the intended addressee. If you are not the intended
-> addressee, please note that any form of distribution, copying or use of
-> this communication or the information in it is strictly prohibited by law.
-> If you have received this communication in error, please immediately notify
-> the sender by reply e-mail and destroy this message. Thank you for your
-> cooperation.
+Thanks,
+Rafael
 
-Really?  This contains confidential information?  I'd better notify you and 
-destroy this message now... :)
+---
+ drivers/char/drm/i915_drv.c |    3 +++
+ include/linux/suspend.h     |    2 ++
+ kernel/power/disk.c         |    9 ++++++++-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
-Jesse
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+Index: linux-2.6/include/linux/suspend.h
+===================================================================
+--- linux-2.6.orig/include/linux/suspend.h
++++ linux-2.6/include/linux/suspend.h
+@@ -209,6 +209,7 @@ extern unsigned long get_safe_page(gfp_t
+ 
+ extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
+ extern int hibernate(void);
++extern bool in_hibernation_power_off(void);
+ #else /* CONFIG_HIBERNATION */
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+@@ -216,6 +217,7 @@ static inline void swsusp_unset_page_fre
+ 
+ static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
+ static inline int hibernate(void) { return -ENOSYS; }
++static inline bool in_hibernation_power_off(void) { return false; }
+ #endif /* CONFIG_HIBERNATION */
+ 
+ #ifdef CONFIG_PM_SLEEP
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -24,7 +24,7 @@
+ 
+ #include "power.h"
+ 
+-
++static bool entering_sleep_state;
+ static int noresume = 0;
+ static char resume_file[256] = CONFIG_PM_STD_PARTITION;
+ dev_t swsusp_resume_device;
+@@ -381,6 +381,7 @@ int hibernation_platform_enter(void)
+ 	if (!hibernation_ops)
+ 		return -ENOSYS;
+ 
++	entering_sleep_state = true;
+ 	/*
+ 	 * We have cancelled the power transition by running
+ 	 * hibernation_ops->finish() before saving the image, so we should let
+@@ -412,6 +413,7 @@ int hibernation_platform_enter(void)
+ 	}
+ 	local_irq_enable();
+ 
++	entering_sleep_state = false;
+ 	/*
+ 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
+ 	 * the system is going to be halted anyway.
+@@ -427,6 +429,11 @@ int hibernation_platform_enter(void)
+ 	return error;
+ }
+ 
++bool in_hibernation_power_off(void)
++{
++	return entering_sleep_state;
++}
++
+ /**
+  *	power_down - Shut the machine down for hibernation.
+  *
+Index: linux-2.6/drivers/char/drm/i915_drv.c
+===================================================================
+--- linux-2.6.orig/drivers/char/drm/i915_drv.c
++++ linux-2.6/drivers/char/drm/i915_drv.c
+@@ -247,6 +247,9 @@ static int i915_suspend(struct drm_devic
+ 		return -ENODEV;
+ 	}
+ 
++	if (in_hibernation_power_off())
++		return 0;
++
+ 	pci_save_state(dev->pdev);
+ 	pci_read_config_byte(dev->pdev, LBB, &dev_priv->saveLBB);
+ 
