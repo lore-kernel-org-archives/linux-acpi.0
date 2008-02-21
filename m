@@ -1,44 +1,77 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/26] ACPI: thinkpad-acpi: synchronize input device switches
-Date: Thu, 21 Feb 2008 04:25:25 -0500
-Message-ID: <7526696a013f33d4926fdc080c26fe6af07ba30f.1203585792.git.len.brown@intel.com>
+Subject: [PATCH 19/26] ACPI: sparse fix, replace macro with static function
+Date: Thu, 21 Feb 2008 04:25:31 -0500
+Message-ID: <4fd7f5188c377c1e9aa8f224f6edf96d170a7d32.1203585792.git.len.brown@intel.com>
 References: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga10.intel.com ([192.55.52.92]:36609 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756249AbYBUJ3Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:16 -0500
+	with ESMTP id S1756871AbYBUJ3R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:17 -0500
 In-Reply-To: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Issue EV_SW events at module init time to synchronize the input device with
-the current state of the switch, otherwise we might lose the first event.
+replace acpi_util_eval_error macro with static function.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Avoid these sparse warnings due to using buffer within the macro.
+drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:259:21: originally declared here
+drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:259:21: originally declared here
+drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/acpi/utils.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 6da3f40..02f9465 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -2034,6 +2034,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		tpacpi_inputdev->close = &hotkey_inputdev_close;
- 
- 		hotkey_poll_setup_safe(1);
-+		tpacpi_input_send_radiosw();
- 	}
- 
- 	return (tp_features.hotkey)? 0 : 1;
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 34f1575..eba55b7 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -36,16 +36,20 @@ ACPI_MODULE_NAME("utils");
+ /* --------------------------------------------------------------------------
+                             Object Evaluation Helpers
+    -------------------------------------------------------------------------- */
++static void
++acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
++{
+ #ifdef ACPI_DEBUG_OUTPUT
+-#define acpi_util_eval_error(h,p,s) {\
+-	char prefix[80] = {'\0'};\
+-	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
+-	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",\
+-		(char *) prefix, p, acpi_format_exception(s))); }
++	char prefix[80] = {'\0'};
++	struct acpi_buffer buffer = {sizeof(prefix), prefix};
++	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
++		(char *) prefix, p, acpi_format_exception(s)));
+ #else
+-#define acpi_util_eval_error(h,p,s)
++	return;
+ #endif
++}
++
+ acpi_status
+ acpi_extract_package(union acpi_object *package,
+ 		     struct acpi_buffer *format, struct acpi_buffer *buffer)
 -- 
 1.5.4.2
 
