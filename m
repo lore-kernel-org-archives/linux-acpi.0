@@ -1,38 +1,28 @@
-From: Jan Willies <jan@willies.info>
-Subject: 100% C0 with 2.6.25-rc
-Date: Thu, 21 Feb 2008 12:27:11 +0100
-Message-ID: <47BD600F.9090502@willies.info>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [2.6 patch] sony-laptop.c: fix off-by-one
+Date: Thu, 21 Feb 2008 04:58:39 -0500
+Message-ID: <200802210458.39943.lenb@kernel.org>
+References: <20080219225903.GS31955@cs181133002.pp.htv.fi> <20080219232756.GA19495@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from will39.synserver.de ([212.40.172.10]:37503 "EHLO
-	will39.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbYBUMCS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 07:02:18 -0500
-Received: from [92.227.69.220] (helo=[192.168.2.101])
-	by will39.synserver.de with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <jan@willies.info>)
-	id 1JS9aR-0001P8-NI
-	for linux-acpi@vger.kernel.org; Thu, 21 Feb 2008 12:27:35 +0100
+Received: from hera.kernel.org ([140.211.167.34]:38444 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752458AbYBUMR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 07:17:57 -0500
+In-Reply-To: <20080219232756.GA19495@inferi.kami.home>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Adrian Bunk <bunk@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+On Tuesday 19 February 2008 18:27, Mattia Dongili wrote:
+> Acked-by: Mattia Dongili <malattia@linux.it>
 
-Since 2.6.25-rc1 I have a lot of wakeups/s (=E2=89=88134191,4) and spen=
-d 100% in C0. It worked fine with 2.6.24 and commandline nolapic. Witho=
-ut nolapic I had 80k wakeups/s after some time, but not right from the =
-start like now.
+applied.
 
-What useful information can I provide?
-
-
-- Jan
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-len
