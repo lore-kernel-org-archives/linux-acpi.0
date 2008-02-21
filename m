@@ -1,62 +1,51 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
-Date: Thu, 21 Feb 2008 02:08:47 -0500
-Message-ID: <200802210208.47487.lenb@kernel.org>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47B73DD8.4030405@linux.vnet.ibm.com>
+From: david@lang.hm
+Subject: Re: 2.6.25-rc2 System no longer powers off after
+ suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 08:30:06 +0000 (GMT)
+Message-ID: <alpine.LFD.1.00.0802210819560.1777@xo-0C-FC-0F.localdomain>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802201241.30952.jesse.barnes@intel.com>
+	<alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org>
+	<200802201344.11643.jesse.barnes@intel.com>
+	<alpine.LFD.1.00.0802201355590.7833@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42323 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753843AbYBUHJK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 02:09:10 -0500
-In-Reply-To: <47B73DD8.4030405@linux.vnet.ibm.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <alpine.LFD.1.00.0802201355590.7833@woody.linux-foundation.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
 
-On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
-> Hi Andrew,
->=20
-> The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
-> to build on x86_64 machine
->=20
->   CC      drivers/acpi/osl.o
-> drivers/acpi/osl.c:60:38: error: empty filename in #include
-> drivers/acpi/osl.c: In function =E2=80=98acpi_os_table_override=E2=80=
-=99:
-> drivers/acpi/osl.c:399: error: =E2=80=98AmlCode=E2=80=99 undeclared (=
-first use in this function)
-> drivers/acpi/osl.c:399: error: (Each undeclared identifier is reporte=
-d only once
-> drivers/acpi/osl.c:399: error: for each function it appears in.)
-> make[2]: *** [drivers/acpi/osl.o] Error 1
-> make[1]: *** [drivers/acpi] Error 2
-> make: *** [drivers] Error 2
->=20
-> #
-> # Automatically generated make config: don't edit
-> # Linux kernel version: 2.6.25-rc2-mm1
-> # Sun Feb 17 08:07:17 2008
-> #
+On Wed, 20 Feb 2008, Linus Torvalds wrote:
 
-> CONFIG_ACPI_CUSTOM_DSDT=3Dy
-> CONFIG_ACPI_CUSTOM_DSDT_FILE=3D""
+>> Well, it seems like we'll have to fix drivers in either case, and isn't a
+>> kexec approach fundamentally more sound and simple, design-wise?  Rafael
+>> pointed out some problems with properly setting wakeup states, but I think
+>> that could be overcome...
+>
+> I don't personally mind kexec at all, but on the other hand, I don't care
+> about suspend-to-disk in the first place. I do know that some people
+> really don't want it, and I suspect that they have valid reasons. Ranging
+> from memory use to simply just performance.
 
-garbage in, garbage out.
+I've been watching for kexec hibernate for a little while now, and the 
+last I saw was that acpi was incompatible with the kexec hibernate (but 
+the suspend folks were still claiming that devices needed to be put in the 
+'right mode' not just powered off. I've been waiting to see this resolved.
 
-If you don't give this build option a file name where AmlCode lives,
-then the build will be unable to find AmlCode[].
+David Lang
 
-http://www.lesswatts.org/projects/acpi/overridingDSDT.php
-
-cheers,
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
