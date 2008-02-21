@@ -1,53 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
-Date: Thu, 21 Feb 2008 15:58:13 +0000
-Message-ID: <20080221155813.GA9601@srcf.ucam.org>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <200802210341.13809.lenb@kernel.org> <200802211641.22920.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 17:27:20 +0100
+Message-ID: <200802211727.21593.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201639.02502.jesse.barnes@intel.com> <b6a2187b0802201800n12f90b22x8cb0c2ad6e0c402@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:54617 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933571AbYBUP6e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 10:58:34 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:37281 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933511AbYBUQ2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 11:28:47 -0500
+In-Reply-To: <b6a2187b0802201800n12f90b22x8cb0c2ad6e0c402@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200802211641.22920.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@mit.edu>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, Feb 21, 2008 at 04:41:21PM +0100, Thomas Renninger wrote:
+On Thursday, 21 of February 2008, Jeff Chua wrote:
+> On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+> > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
+> >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes <jesse.barnes@intel.com>
+> >  wrote:
+> >  > >  Ok, can you give this patch a try with the 'platform' method?  It should
+> >  > > at least tell us what ACPI would like the device to do at suspend time,
+> >  > > but it probably won't fix the hang.
+> 
+> It says "calling pci_set_power_state with 3". Then after all then it
+> still hangs, and then resume with Mr Green.
+> 
+> PM: Syncing filesystems ... done.
+> Freezing user space processes ... (elapsed 0.00 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
+> PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
+> ACPI: Preparing to enter system sleep state S4
+> Suspending console(s)
+> sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> drm_sysfs_suspend
+> ACPI: PCI interrupt for device 0000:00:02.0 disabled
+> calling pci_set_power_state with 3
 
-> The bug is rather complicated to fix/workaround through the OS (E.g. suspend 
-> reordering, AML bug, you simply misread the ACPI spec and it did work for 
-> Windows (the ACPI kernel maintainer likes to add the "compatibility" hack, 
-> but it's just too intrusive to backport into your stable kernel release you 
-> support), ...). But a modification in the DSDT is a one-liner and an obvious 
-> fix.
-> You desperately search for a flag to be able to make sure you do not risk to 
-> break Windows...
-> Now they have to ignore the bug. Bad for the vendor, bad for the customer, bad 
-> for us (yet another complex "Windows compatibility" hack).
+So it returns the right value.
 
-And then later we fix the bug and the Linux workaround starts breaking 
-things. The vendor is unhappy. You can't even just key it off kernel 
-versions, since distributions will backport arbitrarily large chunks of 
-code (and if you doubt this, take a look at the sata tree in the RHEL 
-kernel some time). 
+Jeff, Jesse, please check one thing for me.
 
-> A general Linux flag is the way to start, everything more specific will/can 
-> get embedded into this flag later if it makes sense (without any risk for the 
-> vendors to break Windows). There are (I expect most) cases where embedding 
-> stuff into if(linux) makes a lot sense. But Henrique and others are probably 
-> right that we need something more fine grained later (in rare cases, e.g. the 
-> in-kernel graphics driver issues).
+Please boot 2.6.25-rc2 (or better, the current head of the Linus' tree) with
+no_console_suspend and try to do the following:
 
-There's no flag we can provide to indicate a desire for graphics 
-POSTing. If vendors want to offer that, then they should provide an 
-entry point that triggers it and a kernel driver that calls it. The 
-policy for deciding whether or not to do this is far more complex than 
-can be provided in-kernel.
+# echo 8 > /proc/sys/kernel/printk
+# echo core > /sys/power/pm_test
+# echo disk > /sys/power/state
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(that will run a test of the freeze/unfreeze code without creating the image)
+and then
+
+# echo mem > /sys/power/state
+
+(that will run a test of the suspend/resume code without actually suspending).
+
+I'd like to know if that works.
+
+Thanks,
+Rafael
