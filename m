@@ -1,17 +1,17 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: 2.6.25-rc2 System no longer powers off after
-	suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 00:49:41 +0100
-Message-ID: <200802210049.42820.rjw@sisk.pl>
+ suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 16:00:34 -0800 (PST)
+Message-ID: <alpine.LFD.1.00.0802201548000.7833@woody.linux-foundation.org>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802201503.44656.jbarnes@virtuousgeek.org>
-	<200802201534.36174.jbarnes@virtuousgeek.org>
+	<200802202336.45492.rjw@sisk.pl>
+	<alpine.LFD.1.00.0802201455430.7833@woody.linux-foundation.org>
+	<200802210035.14058.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802201534.36174.jbarnes@virtuousgeek.org>
-Content-Disposition: inline
+In-Reply-To: <200802210035.14058.rjw@sisk.pl>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
@@ -21,46 +21,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Alexey Starikovskiy <aystarik@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, 21 of February 2008, Jesse Barnes wrote:
-> On Wednesday, February 20, 2008 3:03 pm Jesse Barnes wrote:
-> > On Wednesday, February 20, 2008 2:32 pm Jesse Barnes wrote:
-> > > On Wednesday, February 20, 2008 11:10 am Jeff Chua wrote:
-> > > > On Feb 21, 2008 2:53 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > > > > > So, next I'll try "shutdown" to see if it work. I was using
-> > > > > > "platform".
-> > > > >
-> > > > > Ok, that would be good to try.
-> > > >
-> > > > "shutdown" does power down properly. But still green on resume.
-> > > >
-> > > > > Looks like the AR registers are hosed, which is what I thought I
-> > > > > fixed... Can you attach your i915_drv.c file just so I can sanity
-> > > > > check it?
-> > > >
-> > > > Attached.
-> > >
-> > > Jeff, for the hang on suspend problem, I know suspect something else in
-> > > 2.6.25-rc2 caused that.
-> >
-> > Looks like 2.6.25-rc1 also had broken suspend (my test was broken).  IIRC,
-> > Dave and I had it working at LCA using the out of tree DRM modules on
-> > 2.6.23.14 or 15...  Maybe you could give that a try?
+
+
+On Thu, 21 Feb 2008, Rafael J. Wysocki wrote:
 > 
-> And just to confirm that, I just tested the current DRM modules against a 
-> 2.6.23.15 kernel.
+> In fact we have acpi_pci_choose_state() that tells the driver which power
+> state to put the device into in ->suspend().  If that is used, the device ends
+> up in the state expected by to BIOS for S4.
 
-In 2.6.23.x there's no second ->suspend() during hibernation, so no wonder.
+First off, nobody should *ever* use that directly anyway.
 
-I'll figure out how to work around this issue in the current mainline, but a
-real fix will only be possible when we have separate callbacks for
-hibernation.
+Secondly, the one that people should use ("pci_choose_state()") doesn't 
+actually do what you claim it does. It does all kinds of wrong things, and 
+doesn't even take the target state into account at all. So look again.
 
-Thanks,
-Rafael
+> No.  Again, if there are devices that wake us up from S4, but not from S5,
+> they need to be handled differently in the *enter S4* case (hibernation) and
+> in the *enter S5* case (powering off the system).
+
+And again, what does this have to do with (the example I used) the 
+graphics hardware? Answer: nothing. The example I gave you we simply DO 
+THE WRONG THING FOR.
+
+Same thing for things like USB devices - where pci_choose_state() doesn't 
+work to begin with. Why do we call "suspend()" on such a thing when we 
+don't want to suspend it? We shouldn't. We should call "freeze/unfreeze" 
+(which are no-ops) and then finally perhaps "poweroff", and that final 
+stage might want to spin things down or similar.
+
+But *none* of it has anything to do with suspend, and none of it has 
+anything to do with pci_choose_state() (much less acpi_pci_choose_state)
+
+The fact is, we should let the driver decide, and we should make it clear 
+to the driver writer what he is deciding about - rather than basically lie 
+and say "suspend the device and put it into D3" even when that's the last 
+thing it should ever do.
+
+			Linus
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by: Microsoft
