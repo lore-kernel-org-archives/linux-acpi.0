@@ -1,69 +1,186 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 17/26] ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
-Date: Thu, 21 Feb 2008 04:38:02 -0500
-Message-ID: <d147da73c9a3f617e4685c6a7762961fe19833e7.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 24/26] Hibernation: Handle DEBUG_PAGEALLOC on x86
+Date: Thu, 21 Feb 2008 04:38:09 -0500
+Message-ID: <8a235efad548abd2ab5ebea45a9ffa750c814375.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:15600 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:30080 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756833AbYBUJjP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:15 -0500
+	with ESMTP id S1760668AbYBUJjS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:18 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fixes some minor points in the radio switch code and docs.
+Make hibernation work with CONFIG_DEBUG_PAGEALLOC set on x86, by
+checking if the pages to be copied are marked as present in the
+kernel mapping and temporarily marking them as present if that's not
+the case.  No functional modifications are introduced if
+CONFIG_DEBUG_PAGEALLOC is unset.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    2 +-
- drivers/misc/thinkpad_acpi.c            |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/mm/pageattr.c  |   19 ++++++++++++++++++-
+ include/linux/mm.h      |    6 ++++++
+ kernel/power/snapshot.c |   42 +++++++++++++++++++++++++++++-------------
+ 3 files changed, 53 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 91f688c..606af16 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -306,7 +306,7 @@ sysfs notes:
- 		The recommended polling frequency is 10Hz.
- 
- 	hotkey_radio_sw:
--		if the ThinkPad has a hardware radio switch, this
-+		If the ThinkPad has a hardware radio switch, this
- 		attribute will read 0 if the switch is in the "radios
- 		disabled" position, and 1 if the switch is in the
- 		"radios enabled" position.
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 3548350..c119cf2 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1161,15 +1161,15 @@ static void tpacpi_input_send_radiosw(void)
- {
- 	int wlsw;
- 
--	mutex_lock(&tpacpi_inputdev_send_mutex);
--
- 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
-+		mutex_lock(&tpacpi_inputdev_send_mutex);
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index e2a74ea..464d8fc 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -899,7 +899,24 @@ void kernel_map_pages(struct page *page, int numpages, int enable)
+ 	 */
+ 	cpa_fill_pool();
+ }
+-#endif
 +
- 		input_report_switch(tpacpi_inputdev,
- 				    SW_RADIO, !!wlsw);
- 		input_sync(tpacpi_inputdev);
--	}
++#ifdef CONFIG_HIBERNATION
++
++bool kernel_page_present(struct page *page)
++{
++	unsigned int level;
++	pte_t *pte;
++
++	if (PageHighMem(page))
++		return false;
++
++	pte = lookup_address((unsigned long)page_address(page), &level);
++	return (pte_val(*pte) & _PAGE_PRESENT);
++}
++
++#endif /* CONFIG_HIBERNATION */
++
++#endif /* CONFIG_DEBUG_PAGEALLOC */
  
--	mutex_unlock(&tpacpi_inputdev_send_mutex);
-+		mutex_unlock(&tpacpi_inputdev_send_mutex);
-+	}
+ /*
+  * The testcases use internal knowledge of the implementation that shouldn't
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 26c7124..3b3e134 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1171,12 +1171,18 @@ static inline void enable_debug_pagealloc(void)
+ {
+ 	debug_pagealloc_enabled = 1;
+ }
++#ifdef CONFIG_HIBERNATION
++extern bool kernel_page_present(struct page *page);
++#endif /* CONFIG_HIBERNATION */
+ #else
+ static inline void
+ kernel_map_pages(struct page *page, int numpages, int enable) {}
+ static inline void enable_debug_pagealloc(void)
+ {
+ }
++#ifdef CONFIG_HIBERNATION
++static inline bool kernel_page_present(struct page *page) { return true; }
++#endif /* CONFIG_HIBERNATION */
+ #endif
+ 
+ extern struct vm_area_struct *get_gate_vma(struct task_struct *tsk);
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 95250d7..72a020c 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -875,8 +875,8 @@ static inline void *saveable_highmem_page(unsigned long pfn) { return NULL; }
+ #endif /* CONFIG_HIGHMEM */
+ 
+ /**
+- *	saveable - Determine whether a non-highmem page should be included in
+- *	the suspend image.
++ *	saveable_page - Determine whether a non-highmem page should be included
++ *	in the suspend image.
+  *
+  *	We should save the page if it isn't Nosave, and is not in the range
+  *	of pages statically defined as 'unsaveable', and it isn't a part of
+@@ -897,7 +897,8 @@ static struct page *saveable_page(unsigned long pfn)
+ 	if (swsusp_page_is_forbidden(page) || swsusp_page_is_free(page))
+ 		return NULL;
+ 
+-	if (PageReserved(page) && pfn_is_nosave(pfn))
++	if (PageReserved(page)
++	    && (!kernel_page_present(page) || pfn_is_nosave(pfn)))
+ 		return NULL;
+ 
+ 	return page;
+@@ -938,6 +939,25 @@ static inline void do_copy_page(long *dst, long *src)
+ 		*dst++ = *src++;
  }
  
- static void tpacpi_input_send_tabletsw(unsigned int state)
++
++/**
++ *	safe_copy_page - check if the page we are going to copy is marked as
++ *		present in the kernel page tables (this always is the case if
++ *		CONFIG_DEBUG_PAGEALLOC is not set and in that case
++ *		kernel_page_present() always returns 'true').
++ */
++static void safe_copy_page(void *dst, struct page *s_page)
++{
++	if (kernel_page_present(s_page)) {
++		do_copy_page(dst, page_address(s_page));
++	} else {
++		kernel_map_pages(s_page, 1, 1);
++		do_copy_page(dst, page_address(s_page));
++		kernel_map_pages(s_page, 1, 0);
++	}
++}
++
++
+ #ifdef CONFIG_HIGHMEM
+ static inline struct page *
+ page_is_saveable(struct zone *zone, unsigned long pfn)
+@@ -946,8 +966,7 @@ page_is_saveable(struct zone *zone, unsigned long pfn)
+ 			saveable_highmem_page(pfn) : saveable_page(pfn);
+ }
+ 
+-static inline void
+-copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
++static void copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
+ {
+ 	struct page *s_page, *d_page;
+ 	void *src, *dst;
+@@ -961,29 +980,26 @@ copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
+ 		kunmap_atomic(src, KM_USER0);
+ 		kunmap_atomic(dst, KM_USER1);
+ 	} else {
+-		src = page_address(s_page);
+ 		if (PageHighMem(d_page)) {
+ 			/* Page pointed to by src may contain some kernel
+ 			 * data modified by kmap_atomic()
+ 			 */
+-			do_copy_page(buffer, src);
++			safe_copy_page(buffer, s_page);
+ 			dst = kmap_atomic(pfn_to_page(dst_pfn), KM_USER0);
+ 			memcpy(dst, buffer, PAGE_SIZE);
+ 			kunmap_atomic(dst, KM_USER0);
+ 		} else {
+-			dst = page_address(d_page);
+-			do_copy_page(dst, src);
++			safe_copy_page(page_address(d_page), s_page);
+ 		}
+ 	}
+ }
+ #else
+ #define page_is_saveable(zone, pfn)	saveable_page(pfn)
+ 
+-static inline void
+-copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
++static inline void copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
+ {
+-	do_copy_page(page_address(pfn_to_page(dst_pfn)),
+-			page_address(pfn_to_page(src_pfn)));
++	safe_copy_page(page_address(pfn_to_page(dst_pfn)),
++				pfn_to_page(src_pfn));
+ }
+ #endif /* CONFIG_HIGHMEM */
+ 
 -- 
 1.5.4
 
