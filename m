@@ -1,49 +1,534 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/2] Two important suspend/hibernation patches updated
-Date: Thu, 21 Feb 2008 03:44:45 -0500
-Message-ID: <200802210344.45680.lenb@kernel.org>
-References: <200802200133.44098.rjw@sisk.pl>
+Subject: [GIT PATCH] ACPI patches for 2.6.25-rc2
+Date: Thu, 21 Feb 2008 03:57:07 -0500
+Message-ID: <200802210357.08197.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37561 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:48524 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566AbYBUIpt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 03:45:49 -0500
-In-Reply-To: <200802200133.44098.rjw@sisk.pl>
+	id S1752094AbYBUI50 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 03:57:26 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>, Linux-pm mailing list <linux-pm@lists.osdl.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Tuesday 19 February 2008 19:33, Rafael J. Wysocki wrote:
-> Hi Len,
-> 
-> New version of:
-> * hibernate: handle DEBUG_PAGEALLOC
->   (commit af7e61cc86a6d052a7eddcd777a8a87906ab5a35 in the suspend branch)
-> * suspend: wakeup code in C
->   (commit 280529bd8a01a6d7045658b322ba9a1cda793de2 in the test branch)
-> follow.
-> 
-> The first one doesn't contain the powerpc change included in the original
-> "hibernate: handle DEBUG_PAGEALLOC" patch, that turned out to be harmful.
-> I'd like it to go into 2.6.25, if possible.
-> 
-> The second one addresses the following problem reports related to the original
-> "suspend: wakeup code in C" patch:
-> * http://lkml.org/lkml/2008/2/16/178
-> * http://lkml.org/lkml/2008/2/16/74
-> * http://marc.info/?l=linux-acpi&m=120313725501682&w=4
-> * http://lkml.org/lkml/2008/2/19/263
-> It is considered as 2.6.26 material.
-> 
-> Please replace the previous versions of these patches with the new ones.
+Hi Linus,
 
-done. (and suspend branch is now re-based to latest linus tree)
+please pull from:=20
 
-thanks,
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git r=
+elease
+
+=46ixes a pair of a boot regressions, and some churn mostly related
+to some of the new thermal and thinkpad code that went into -rc1.
+
+This will update the files shown below.
+
+thanks!
+
 -Len
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/=
+2.6.25/acpi-release-20070126-2.6.25-rc2.diff.gz
+
+ Documentation/laptops/thinkpad-acpi.txt |   63 ++++++++++------
+ arch/x86/mm/pageattr.c                  |   19 +++++-
+ drivers/acpi/ec.c                       |    6 +-
+ drivers/acpi/executer/exregion.c        |    5 +-
+ drivers/acpi/fan.c                      |   30 +++++---
+ drivers/acpi/processor_core.c           |   39 ++++++----
+ drivers/acpi/processor_idle.c           |   10 +-
+ drivers/acpi/utils.c                    |   18 +++--
+ drivers/acpi/video.c                    |    3 +
+ drivers/base/power/main.c               |    2 +-
+ drivers/misc/Kconfig                    |   17 ++++
+ drivers/misc/acer-wmi.c                 |    9 ++
+ drivers/misc/intel_menlow.c             |   11 ++-
+ drivers/misc/thinkpad_acpi.c            |  123 +++++++++++++++++++++++=
++++-----
+ drivers/pci/pci-acpi.c                  |    3 +-
+ drivers/thermal/thermal.c               |   39 ++++++----
+ include/linux/mm.h                      |    6 ++
+ kernel/power/snapshot.c                 |   42 +++++++---
+ 18 files changed, 322 insertions(+), 123 deletions(-)
+
+through these commits:
+
+Adrian Bunk (1):
+      PM: Make suspend_device() static
+
+Alexey Starikovskiy (1):
+      ACPI: EC: Use proper handle for boot EC
+
+Carlos Corbacho (1):
+      acer-wmi: Add DMI match for mail LED on Acer TravelMate 4200 seri=
+es
+
+Glauber Costa (1):
+      ACPI: remove is_processor_present prototype
+
+Harvey Harrison (1):
+      ACPI: sparse fix, replace macro with static function
+
+Henrique de Moraes Holschuh (9):
+      ACPI: thinkpad-acpi: trivial fix to module_desc typo
+      ACPI: thinkpad-acpi: trivial fix to documentation
+      ACPI: thinkpad-acpi: always track input device open/close
+      ACPI: thinkpad-acpi: synchronize input device switches
+      ACPI: thinkpad-acpi: make the video output feature optional
+      ACPI: thinkpad-acpi: issue input events for tablet swivel events
+      ACPI: thinkpad-acpi: improve thinkpad-acpi input device documenta=
+tion
+      ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
+      ACPI: thinkpad-acpi: add tablet-mode reporting
+
+Ming Lin (1):
+      ACPI: fix build warning
+
+Pavel Machek (1):
+      ACPI: TSC breaks atkbd suspend
+
+Rafael J. Wysocki (2):
+      Hibernation: Handle DEBUG_PAGEALLOC on x86
+      PCI ACPI: Fix comment describing acpi_pci_choose_state
+
+Randy Dunlap (1):
+      kernel-doc: fix pci-acpi warning
+
+Thomas Sujith (6):
+      thermal: validate input parameters
+      thermal: use ERR_PTR for returning error
+      ACPI fan: extract return values using PTR_ERR
+      ACPI thermal: extract return values using PTR_ERR
+      ACPI video: check for error from thermal_cooling_device_register
+      intel_menlo: extract return values using PTR_ERR
+
+Zhao Yakui (1):
+      ACPI: thermal: Check whether cooling device exists before unregis=
+tering
+
+with this log:
+
+commit 1f1519ef597ae4628dbd47244f0f68d700231523
+Merge: 208c70a... f28bb45... 1186974... e85ff4b... 19e20c9... 69f6b8d..=
+=2E 6c231bd... 6133116...
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Feb 21 02:41:58 2008 -0500
+
+    Merge branches 'release', 'bugzilla-9916', 'bugzilla-9982', 'bugzil=
+la-9989', 'misc', 'suspend', 'thermal', 'thinkpad' and 'tsc' into relea=
+se
+
+commit 19e20c913bae2dd458b9fc42afab0c53f16562d1
+Author: Adrian Bunk <bunk@kernel.org>
+Date:   Sun Feb 3 22:55:18 2008 +0100
+
+    PM: Make suspend_device() static
+   =20
+    suspend_device() can become static.
+   =20
+    Signed-off-by: Adrian Bunk <bunk@kernel.org>
+    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+    Acked-by: Pavel Machek <pavel@ucw.cz>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c6868ea00bdebe5762fa59e54b74b4cd4e3b4e6e
+Author: Rafael J. Wysocki <rjw@sisk.pl>
+Date:   Sun Feb 3 22:53:31 2008 +0100
+
+    PCI ACPI: Fix comment describing acpi_pci_choose_state
+   =20
+    The last line of the comment preceding the definition of
+    acpi_pci_choose_state() is incorrect.  Remove it.
+   =20
+    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+    Acked-by: Pavel Machek <pavel@ucw.cz>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8a235efad548abd2ab5ebea45a9ffa750c814375
+Author: Rafael J. Wysocki <rjw@sisk.pl>
+Date:   Wed Feb 20 01:47:44 2008 +0100
+
+    Hibernation: Handle DEBUG_PAGEALLOC on x86
+   =20
+    Make hibernation work with CONFIG_DEBUG_PAGEALLOC set on x86, by
+    checking if the pages to be copied are marked as present in the
+    kernel mapping and temporarily marking them as present if that's no=
+t
+    the case.  No functional modifications are introduced if
+    CONFIG_DEBUG_PAGEALLOC is unset.
+   =20
+    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1186974f3ffe3c1796e5efce7afffefcfda9a6f0
+Author: Ming Lin <ming.m.lin@intel.com>
+Date:   Thu Feb 21 02:01:30 2008 -0500
+
+    ACPI: fix build warning
+   =20
+    CC      drivers/acpi/executer/exregion.o
+    drivers/acpi/executer/exregion.c: In function
+    =E2=80=98acpi_ex_pci_config_space_handler=E2=80=99:
+    drivers/acpi/executer/exregion.c:369: attention : passing argument =
+3 of
+    =E2=80=98acpi_os_read_pci_configuration=E2=80=99 from incompatible =
+pointer type
+   =20
+    exposed by 10270d4838bdc493781f5a1cf2e90e9c34c9142f
+   =20
+    http://bugzilla.kernel.org/show_bug.cgi?id=3D9989
+   =20
+    Signed-off-by: Ming Lin <ming.m.lin@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 6133116849219f4e657ead39c7ac3922583f5a6e
+Author: Pavel Machek <pavel@ucw.cz>
+Date:   Tue Feb 19 11:00:29 2008 +0100
+
+    ACPI: TSC breaks atkbd suspend
+   =20
+    TSC is used even on machines when CONFIG_X86_TSC is not set (X86_TS=
+C
+    means _require_ TSC), but it is not properly disabled when it is
+    unusable, because ACPI code understood the config switch as "may us=
+e
+    TSC".
+   =20
+    This actually fixes suspend problems on my x60.
+   =20
+    Signed-off-by: Pavel Machek <pavel@suse.cz>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e85ff4b53eb4252d967922bd75cb6d10863955f3
+Author: Glauber Costa <gcosta@redhat.com>
+Date:   Sat Feb 16 01:01:13 2008 -0500
+
+    ACPI: remove is_processor_present prototype
+   =20
+    The function itself is defined just below, so this prototype is not=
+ really
+    useful.
+   =20
+    Signed-off-by: Glauber Costa <gcosta@redhat.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 262ee35be6a3aae9b4a7aafafc2dba901fc36620
+Author: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Date:   Sat Feb 16 00:02:56 2008 +0000
+
+    acer-wmi: Add DMI match for mail LED on Acer TravelMate 4200 series
+   =20
+    The TM4200 series use the same method as the TM2490 series to contr=
+ol the
+    mail LED, so add a DMI based quirk for these laptops.
+   =20
+    Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 4fd7f5188c377c1e9aa8f224f6edf96d170a7d32
+Author: Harvey Harrison <harvey.harrison@gmail.com>
+Date:   Fri Feb 15 17:07:19 2008 -0800
+
+    ACPI: sparse fix, replace macro with static function
+   =20
+    replace acpi_util_eval_error macro with static function.
+   =20
+    Avoid these sparse warnings due to using buffer within the macro.
+    drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:259:21: originally declared here
+    drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:259:21: originally declared here
+    drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:348:21: originally declared here
+    drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:348:21: originally declared here
+    drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:348:21: originally declared here
+    drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an ear=
+lier one
+    drivers/acpi/utils.c:348:21: originally declared here
+   =20
+    Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 6c231bd5eb07ce546517019f334652b9ecfc329a
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:58 2008 -0200
+
+    ACPI: thinkpad-acpi: add tablet-mode reporting
+   =20
+    A quick study of the 0x5009/0x500A HKEY event on the X61t DSDT reve=
+aled the
+    existence of the EC HTAB register (EC 0x0f, bit 7), and a compare w=
+ith the
+    X41t DSDT shows that HKEY.MHKG can be used to verify if the ThinkPa=
+d is
+    tablet-capable (MHKG present), and in tablet mode (bit 3 of MHKG re=
+turn is
+    set).
+   =20
+    Add an attribute to report this information, "hotkey_tablet_mode". =
+ This
+    attribute has poll()/select() support, and can be used along with E=
+V_SW
+    SW_TABLET_MODE to hook userspace to tablet events.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d147da73c9a3f617e4685c6a7762961fe19833e7
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:57 2008 -0200
+
+    ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
+   =20
+    Fixes some minor points in the radio switch code and docs.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d0788cfbae0eddf13d5f2591acb1b407ba041d71
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:56 2008 -0200
+
+    ACPI: thinkpad-acpi: improve thinkpad-acpi input device documentati=
+on
+   =20
+    Fix a few spelling errors, and also document the EV_SW events think=
+pad-acpi
+    can issue.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b3ec6f911a681f38e4630ef8bf20b3d3cb0f63c2
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:55 2008 -0200
+
+    ACPI: thinkpad-acpi: issue input events for tablet swivel events
+   =20
+    Issue EV_SW SW_TABLET_MODE events for HKEY events 0x5009 and 0x500A=
+ on the
+    X41t/X60t/X61t.  As usual, we suppress the HKEY events on the netli=
+nk
+    interface to avoid sending duplicate events to userspace.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d7c1d17dfed996e84212fc1ce617b2586dd70ec2
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:54 2008 -0200
+
+    ACPI: thinkpad-acpi: make the video output feature optional
+   =20
+    The video output port control feature is not very useful on many Th=
+inkPads
+    (especially when a X server is running), and lately userspace is ge=
+tting
+    better and better at it, so it makes sense to allow users to stripe=
+ out the
+    thinkpad-acpi video feature from their kernels and save at least 2K=
+B.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 7526696a013f33d4926fdc080c26fe6af07ba30f
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:53 2008 -0200
+
+    ACPI: thinkpad-acpi: synchronize input device switches
+   =20
+    Issue EV_SW events at module init time to synchronize the input dev=
+ice with
+    the current state of the switch, otherwise we might lose the first =
+event.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1bc6b9cdd5e608f0b7e6160a823c9dcd51820410
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:52 2008 -0200
+
+    ACPI: thinkpad-acpi: always track input device open/close
+   =20
+    The open() and close() hooks for the input device are useful even w=
+hen
+    hotkey NVRAM polling support is not in use, so it is better to alwa=
+ys have
+    them around.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5f24927f48c63e79ff8e286fc8530f4525b4182a
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:51 2008 -0200
+
+    ACPI: thinkpad-acpi: trivial fix to documentation
+   =20
+    Fix a stray ibm-acpi that should have been replaced with thinkpad-a=
+cpi.
+    Thanks to Damjan <gdamjan@mail.net.mk> for noticing this one.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit cbb14842137ff78df10038da8ca8a97917a5a926
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sat Feb 16 02:17:50 2008 -0200
+
+    ACPI: thinkpad-acpi: trivial fix to module_desc typo
+   =20
+    Thanks to Damjan <gdamjan@mail.net.mk> for noticing this one.
+   =20
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 69f6b8dd6b94ac594b6920b4530a3390fb1d3fd6
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 01:05:23 2008 -0500
+
+    intel_menlo: extract return values using PTR_ERR
+   =20
+    Need to extract errors using PTR_ERR macro and
+    process accordingly.thermal_cooling_device_register
+    returning NULL means that CONFIG_THERMAL=3Dn and in that
+    case no need to create symbolic links.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 43ff39f2f6450fa2e9a566f8bf007a26d76f2c9d
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 18:29:18 2008 -0500
+
+    ACPI video: check for error from thermal_cooling_device_register
+   =20
+    Need to check whether thermal_cooling_device_register
+    returned ERROR or not.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d76628c67cdeebf84766a19c67c821c2e518baa4
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 18:26:54 2008 -0500
+
+    ACPI thermal: extract return values using PTR_ERR
+   =20
+    Need to extract errors using PTR_ERR macro and
+    process accordingly.thermal_cooling_device_register
+    returning NULL means that CONFIG_THERMAL=3Dn and in that
+    case no need to create symbolic links.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit f28bb45e2863173a7464d98907677e903f42c68b
+Author: Zhao Yakui <yakui.zhao@intel.com>
+Date:   Fri Feb 15 08:34:37 2008 +0800
+
+    ACPI: thermal: Check whether cooling device exists before unregiste=
+ring
+   =20
+    OS should check whether the cooling device exists before it is unre=
+gistered.
+    If it doesn't exists, it is unnecessary to remove the sysfs link
+    and call the function of thermal_cooling_device_unregister.
+   =20
+    http://bugzilla.kernel.org/show_bug.cgi?id=3D9982
+   =20
+    Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+    Tested-by    : Dhaval Giani <dhaval@linux.vnet.ibm.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 19b36780ee7ddeb5080e3f1f858a83c4824f1fdc
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 01:01:52 2008 -0500
+
+    ACPI fan: extract return values using PTR_ERR
+   =20
+    Need to extract errors using PTR_ERR macro and
+    process accordingly.  thermal_cooling_device_register
+    returning NULL means that CONFIG_THERMAL=3Dn and in that
+    case no need to create symbolic links.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 3e6fda5c1159823fc02463eceb564c8bfc0e7a0e
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 00:59:50 2008 -0500
+
+    thermal: use ERR_PTR for returning error
+   =20
+    Need to return using ERR_PTR instead of NULL
+    in case of errors.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c751670902c3dd9abbed279170a832e6a1e6cf94
+Author: Thomas Sujith <sujith.thomas@intel.com>
+Date:   Fri Feb 15 00:58:50 2008 -0500
+
+    thermal: validate input parameters
+   =20
+    Added sanity check to make sure that thermal zone
+    and cooling device exists.
+   =20
+    Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5958f1a4da39581074bab50cabd0a582e651b90f
+Author: Randy Dunlap <randy.dunlap@oracle.com>
+Date:   Sun Feb 3 15:06:25 2008 -0800
+
+    kernel-doc: fix pci-acpi warning
+   =20
+    Fix PCI kernel-doc warning:
+    Warning(linux-2.6.24-git12//drivers/pci/pci-acpi.c:166): No descrip=
+tion found for parameter 'hid'
+   =20
+    Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 208c70a45624400fafd7511b96bc426bf01f8f5e
+Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+Date:   Thu Feb 14 15:58:47 2008 -0500
+
+    ACPI: EC: Use proper handle for boot EC
+   =20
+    Fall back to ACPI_ROOT_HANDLE only in case of error.
+   =20
+    ACPI: EC: EC description table is found, configuring boot EC
+    ACPI Error (evregion-0316): No handler for Region [ECOR] (ffff81007=
+a651620) [EmbeddedControl] [20070126]
+    ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler=
+ [20070126]
+   =20
+    http://bugzilla.kernel.org/show_bug.cgi?id=3D9916
+   =20
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
