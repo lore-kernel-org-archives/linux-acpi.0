@@ -1,57 +1,56 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/26] ACPI: thermal: Check whether cooling device exists before unregistering
-Date: Thu, 21 Feb 2008 04:37:51 -0500
-Message-ID: <f28bb45e2863173a7464d98907677e903f42c68b.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 09/26] intel_menlo: extract return values using PTR_ERR
+Date: Thu, 21 Feb 2008 04:37:54 -0500
+Message-ID: <69f6b8dd6b94ac594b6920b4530a3390fb1d3fd6.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:30080 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:38020 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752172AbYBUJiw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:38:52 -0500
+	with ESMTP id S1758154AbYBUJi7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:38:59 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Sujith <sujith.thomas@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+From: Thomas Sujith <sujith.thomas@intel.com>
 
-OS should check whether the cooling device exists before it is unregistered.
-If it doesn't exists, it is unnecessary to remove the sysfs link
-and call the function of thermal_cooling_device_unregister.
+Need to extract errors using PTR_ERR macro and
+process accordingly.thermal_cooling_device_register
+returning NULL means that CONFIG_THERMAL=n and in that
+case no need to create symbolic links.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9982
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Tested-by    : Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_core.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/misc/intel_menlow.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 75ccf5d..697335c 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -809,10 +809,12 @@ static int acpi_processor_remove(struct acpi_device *device, int type)
+diff --git a/drivers/misc/intel_menlow.c b/drivers/misc/intel_menlow.c
+index f70984a..de16e88 100644
+--- a/drivers/misc/intel_menlow.c
++++ b/drivers/misc/intel_menlow.c
+@@ -170,10 +170,13 @@ static int intel_menlow_memory_add(struct acpi_device *device)
  
- 	acpi_processor_remove_fs(device);
- 
--	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
--	sysfs_remove_link(&pr->cdev->device.kobj, "device");
--	thermal_cooling_device_unregister(pr->cdev);
--	pr->cdev = NULL;
-+	if (pr->cdev) {
-+		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-+		sysfs_remove_link(&pr->cdev->device.kobj, "device");
-+		thermal_cooling_device_unregister(pr->cdev);
-+		pr->cdev = NULL;
+ 	cdev = thermal_cooling_device_register("Memory controller", device,
+ 					       &memory_cooling_ops);
+-	acpi_driver_data(device) = cdev;
+-	if (!cdev)
+-		result = -ENODEV;
+-	else {
++	if (IS_ERR(cdev)) {
++		result = PTR_ERR(cdev);
++		goto end;
 +	}
- 
- 	processors[pr->id] = NULL;
- 
++
++	if (cdev) {
++		acpi_driver_data(device) = cdev;
+ 		result = sysfs_create_link(&device->dev.kobj,
+ 					&cdev->device.kobj, "thermal_cooling");
+ 		if (result)
 -- 
 1.5.4
 
