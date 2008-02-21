@@ -1,159 +1,40 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
-Date: Thu, 21 Feb 2008 16:41:21 +0100
-Message-ID: <200802211641.22920.trenn@suse.de>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <200802210341.13809.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Kernel Version specific vendor override possibilities needed -
+	Revert and provide osi=linux or provide a replacement
+Date: Thu, 21 Feb 2008 12:50:35 -0300
+Message-ID: <20080221155035.GA5859@khazad-dum.debian.net>
+References: <1203471860.3358.177.camel@linux-2bdv.site> <20080220173248.GA22709@srcf.ucam.org> <20080220182339.GC17648@khazad-dum.debian.net> <20080220184954.GB23679@srcf.ucam.org> <20080221031324.GB6344@khazad-dum.debian.net> <20080221091532.GA3091@srcf.ucam.org> <20080221135132.GE14614@mit.edu> <20080221143052.GA8389@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:54793 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755130AbYBUPlS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 10:41:18 -0500
-In-Reply-To: <200802210341.13809.lenb@kernel.org>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:43550 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756782AbYBUPuk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 10:50:40 -0500
 Content-Disposition: inline
+In-Reply-To: <20080221143052.GA8389@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Theodore Tso <tytso@MIT.EDU>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
-On Thursday 21 February 2008 09:41:13 you wrote:
-> Thomas,
-> Thanks for the note.
-> Please read the messages on linux-acpi with "dmi" in the subject
-> for some background.
-Can you be a bit more specific. Grepping for "dmi" is a bit verbose on the 
-linux-acpi list.
+On Thu, 21 Feb 2008, Matthew Garrett wrote:
+> My concern with this is that until we know where we deviate from the 
+> Windows behaviour, we don't know what strings we'd need to provide. And 
+> once we *do* know where we deviate, we should fix that deviation rather 
+> than provide an identifying string.
 
-> yes, OSI(Linux) was enabled by default through 2.6.22
-> and was disabled by default starting in 2.6.23.
->
-> The reason it has come up recently is because
-> it got into a reference BIOS -- and I'm sorry
-> to admit that I was a party to that -- I
-> wasn't thinking.
->
-> Tomas Carnecky's reply is 100% correct.
-> We can't support OSI(Linux) any more than we
-> could support _OS="Linux", or Microsoft
-> could support OSI(Windows) -- particularly
-> on an OS that changes as fast as Linux does.
-> To do so would in some cases put Linux at
-> a permanent disadvantage to competing operating systems.
-No, not providing an interface at all is a disadvantage, a permanent one.
+IMO we should "fix" deviations *only* when it makes sense to do so (I bet at
+least one of the deviations we are going to find will be so hideously wrong
+and ugly when compared to the Right Thing, that we will be at a very
+unconfortable position if we need to implement it).
 
-You all look at this too much from the kernel point of view:
-You are a vendor and you want to provide a BIOS update, because on the model 
-you sold with Linux on it, there is a bug. For some reason Linux is not 100% 
-compatible to Windows and the bug does only exist on Linux.
-But you still have to support Windows on that machine and unfortunately this 
-machine got sold with Windows 10x more often than with Linux.
-The bug is rather complicated to fix/workaround through the OS (E.g. suspend 
-reordering, AML bug, you simply misread the ACPI spec and it did work for 
-Windows (the ACPI kernel maintainer likes to add the "compatibility" hack, 
-but it's just too intrusive to backport into your stable kernel release you 
-support), ...). But a modification in the DSDT is a one-liner and an obvious 
-fix.
-You desperately search for a flag to be able to make sure you do not risk to 
-break Windows...
-Now they have to ignore the bug. Bad for the vendor, bad for the customer, bad 
-for us (yet another complex "Windows compatibility" hack).
+We better reserve judgment of what deviations we should be fixing or not for
+when we find them in the first place.
 
-> Yes, we are attempting to close Pandora's box.
-Too late and IMO there is nothing bad about it.
-> I think we'll be successful, though we have to handle the
-> Dell and Lenovo systems which actually use OSI(Linux)
-> on purpose.
-> Everybody else appears to be using it 
-> by mistake, sometimes with no effect,
-> sometimes with negative effect.
-Are you sure, they use it by mistake?
-Again, think from a vendor's point of view...
-What I expect happened here:
-Vendors thought about better Linux support. Some already chose a distribution 
-which (most common should be Ubuntu here, It's Dell, already Acer? and 
-others?) They pre-load it with a specific, probably a rather stable release 
-and sell their laptops with it. And they have to provide support for it, at 
-least for the release they sold it with.
-
-I expect the first thing they did when thinking about Linux support is that 
-they added something similar like:
-Name (Linx, 0)
-...
-if (_OSI("Linux"))
-   Store(1, Linx)
-
-to their BIOSes, the same they do for Windows'es they have to support.
-They even may have verified it working... the "NOP".
-Now if there pop up problems, they can and will use this to provide Linux 
-specific BIOS fixes with code that is only processed on Linux, because they 
-cannot risk to break Windows.
-
-If you rip this out now you will see:
-  - white/black listed NOPs that break after a BIOS update with later
-    kernels
-  - No BIOS updates for Linux at all in this area (and this is what I mean
-    with permanent disadvantage)
-
-
-> No, the DMI list is not large,
-It is very confusing.
-> it is mostly comments and it is __init.
-That is not really important.
->
-> I _strongly_ urge you to not fork from
-> the .stable and mainline kernel in this area.
-Matthew's arguments are quite interesting.
-I still disagree with:
-  - simply ripping it out (at least do it soft)
-  - Remove all possibilities for vendors who want support Linux
-    to provide safe, only Linux affecting BIOS updates, just for
-    the sake of "being Windows compatible"
-
-The strongest argument: I agree that they of course should contribute their 
-code and start working on the kernel, provide software updates etc.
-But those guys do not have to share much, anyway:
-(Some guessing now): Asus, Acer, Lenovo, Dell,...: have to make sure that they 
-buy and put hardware into their machines from companies that work on Linux 
-now. This is where we will see most advantages. They do not manufacture most 
-HW components themselves (network/wlan/sound/... cards). They manufacture or 
-at least have direct control over their BIOS, though. So this kind of hot-fix 
-is most convenient for them (or may be the only possibility for them).
-
-> OEMs that really want to modify the BIOS to recognize
-> OS interfaces that are in Linux should propose
-> new OSI strings that specify interfaces, not broad
-> categories of operating sytems; and in Linux we
-> shoudl use, or not use, those strings, as appropriate.
-> I've recently been in discussion with OEMs on exactly
-> this topic -- I'm sorry it didn't happen a year ago.
-So you mean "SLED 10 SP2", "UBUNTU supported version XY" strings?
-While this would be helpful for vendors on shortterm, they would realize soon, 
-that their customers get angry after updating to an unsupported, brand-new 
-kernel/distribution. This is exactly what we do not want to have (and what 
-could happen soon).
-
-IMO osi=linux should stay (must stay now!).
-Your concerns that the vendors are messing up their BIOSes, so that this has 
-to be workarounded in later kernels etc. is utopistic.
-Vendors who are using such flags in their BIOSes want their machines to run 
-fine on Linux forever. They do not add ugly stuff in there on purpose. 
-Explain them how to use it. They should stick to the specifications, ask on 
-acpi list if in doubt. We should make up a documentation: "Guide for Linux 
-ACPI BIOS updates", ...
-
-The whole problem here is that those guys who are affected have never been 
-asked...
-Shouldn't there be some Dell activity on some Linux/Ubuntu lists now? I bet 
-every vendor will tell you that he wants to have such a thing. Find out some 
-people who are in charge for Linux and invite them for a discussion.
-A general Linux flag is the way to start, everything more specific will/can 
-get embedded into this flag later if it makes sense (without any risk for the 
-vendors to break Windows). There are (I expect most) cases where embedding 
-stuff into if(linux) makes a lot sense. But Henrique and others are probably 
-right that we need something more fine grained later (in rare cases, e.g. the 
-in-kernel graphics driver issues).
-
-   Thomas
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
