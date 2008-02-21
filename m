@@ -1,67 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 17:27:20 +0100
-Message-ID: <200802211727.21593.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201639.02502.jesse.barnes@intel.com> <b6a2187b0802201800n12f90b22x8cb0c2ad6e0c402@mail.gmail.com>
+Subject: Re: 100% C0 with 2.6.25-rc
+Date: Thu, 21 Feb 2008 17:33:53 +0100
+Message-ID: <200802211733.54759.rjw@sisk.pl>
+References: <47BD600F.9090502@willies.info>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37281 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:37323 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933511AbYBUQ2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 11:28:47 -0500
-In-Reply-To: <b6a2187b0802201800n12f90b22x8cb0c2ad6e0c402@mail.gmail.com>
+	id S1759695AbYBUQfR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 11:35:17 -0500
+In-Reply-To: <47BD600F.9090502@willies.info>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Jesse Barnes <jesse.barnes@intel.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Jan Willies <jan@willies.info>
+Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Thursday, 21 of February 2008, Jeff Chua wrote:
-> On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
-> > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
-> >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes <jesse.barnes@intel.com>
-> >  wrote:
-> >  > >  Ok, can you give this patch a try with the 'platform' method?  It should
-> >  > > at least tell us what ACPI would like the device to do at suspend time,
-> >  > > but it probably won't fix the hang.
-> 
-> It says "calling pci_set_power_state with 3". Then after all then it
-> still hangs, and then resume with Mr Green.
-> 
-> PM: Syncing filesystems ... done.
-> Freezing user space processes ... (elapsed 0.00 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-> PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
-> PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
-> ACPI: Preparing to enter system sleep state S4
-> Suspending console(s)
-> sd 0:0:0:0: [sda] Synchronizing SCSI cache
-> drm_sysfs_suspend
-> ACPI: PCI interrupt for device 0000:00:02.0 disabled
-> calling pci_set_power_state with 3
+On Thursday, 21 of February 2008, Jan Willies wrote:
+> Hi,
+>=20
+> Since 2.6.25-rc1 I have a lot of wakeups/s (=E2=89=88134191,4) and sp=
+end 100% in C0.
+> It worked fine with 2.6.24 and commandline nolapic. Without nolapic I=
+ had 80k
+> wakeups/s after some time, but not right from the start like now. =20
 
-So it returns the right value.
+We have a regression from 2.6.24, apparently interrupts-related.
 
-Jeff, Jesse, please check one thing for me.
+> What useful information can I provide?
 
-Please boot 2.6.25-rc2 (or better, the current head of the Linus' tree) with
-no_console_suspend and try to do the following:
-
-# echo 8 > /proc/sys/kernel/printk
-# echo core > /sys/power/pm_test
-# echo disk > /sys/power/state
-
-(that will run a test of the freeze/unfreeze code without creating the image)
-and then
-
-# echo mem > /sys/power/state
-
-(that will run a test of the suspend/resume code without actually suspending).
-
-I'd like to know if that works.
+Let's see what the experts say.
 
 Thanks,
 Rafael
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
