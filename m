@@ -1,46 +1,43 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc2
-Date: Thu, 21 Feb 2008 13:19:51 +0100
-Message-ID: <20080221121951.GB27508@uranus.ravnborg.org>
-References: <200802210357.08197.lenb@kernel.org> <20080221095431.GB26714@uranus.ravnborg.org> <200802210717.17047.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI patches for Linux-2.6.25-rc2
+Date: Thu, 21 Feb 2008 07:26:54 -0500
+Message-ID: <200802210726.54416.lenb@kernel.org>
+References: <1203586691-1234-1-git-send-email-lenb@kernel.org> <20080221111812.GA5032@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pasmtpa.tele.dk ([80.160.77.114]:37653 "EHLO pasmtpA.tele.dk"
+Received: from hera.kernel.org ([140.211.167.34]:39488 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753856AbYBUMTk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 07:19:40 -0500
+	id S1751005AbYBUM1N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 07:27:13 -0500
+Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m1LCQxnH013713
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Thu, 21 Feb 2008 12:27:01 GMT
+In-Reply-To: <20080221111812.GA5032@homac.suse.de>
 Content-Disposition: inline
-In-Reply-To: <200802210717.17047.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Feb 21, 2008 at 07:17:16AM -0500, Len Brown wrote:
-> On Thursday 21 February 2008 04:54, Sam Ravnborg wrote:
-> > On Thu, Feb 21, 2008 at 03:57:07AM -0500, Len Brown wrote:
-> > > Hi Linus,
-> > > 
-> > > please pull from: 
-> > > 
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> > > 
-> > > Fixes a pair of a boot regressions, and some churn mostly related
-> > > to some of the new thermal and thinkpad code that went into -rc1.
-> > > 
-> > > This will update the files shown below.
-> > 
-> > Hi Len.
-> > 
-> > Any specific reason the two section mismatch patches that
-> > I posted a few days ago are not included?
-> > If they are buggy or questionable please let me know.
-> > 
-> > I can resend if you like.
+On Thursday 21 February 2008 06:18, Holger Macht wrote:
+> On Thu 21. Feb - 04:37:45, Len Brown wrote:
+> > sorry if this is a repeat.
+> > backing down to git 1.5.4 to see if it can send
+> > messages that vger.kernel.org likes...
 > 
-> they're still in the test branch.
+> Any specific reason why the patch I sent one week ago should not not go
+> into 2.6.25-rc2?
+> 
+>   ACPI: Do not pass NULL to acpi_get_handle() when looking for _EJD
+> 
 
-OK - thanks,
+I didn't notice that one.
 
-	Sam
+it is on the test branch now.
+
+thanks,
+-Len
