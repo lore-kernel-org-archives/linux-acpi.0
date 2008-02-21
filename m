@@ -1,52 +1,46 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 20/26] acer-wmi: Add DMI match for mail LED on Acer TravelMate 4200 series
-Date: Thu, 21 Feb 2008 04:38:05 -0500
-Message-ID: <262ee35be6a3aae9b4a7aafafc2dba901fc36620.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 25/26] PCI ACPI: Fix comment describing acpi_pci_choose_state
+Date: Thu, 21 Feb 2008 04:38:10 -0500
+Message-ID: <c6868ea00bdebe5762fa59e54b74b4cd4e3b4e6e.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:30080 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:15600 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760124AbYBUJjM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:12 -0500
+	with ESMTP id S1762473AbYBUJjT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:19 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
 
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The TM4200 series use the same method as the TM2490 series to control the
-mail LED, so add a DMI based quirk for these laptops.
+The last line of the comment preceding the definition of
+acpi_pci_choose_state() is incorrect.  Remove it.
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/acer-wmi.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/pci/pci-acpi.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index d7aea93..74d12b4 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -273,6 +273,15 @@ static struct dmi_system_id acer_quirks[] = {
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Acer TravelMate 4200",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 4200"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "Medion MD 98300",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index e569645..e818e52 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -241,8 +241,6 @@ EXPORT_SYMBOL(pci_osc_control_set);
+  *	choose from highest power _SxD to lowest power _SxW
+  * else // no _PRW at S-state x
+  * 	choose highest power _SxD or any lower power
+- *
+- * currently we simply return _SxD, if present.
+  */
+ 
+ static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev,
 -- 
 1.5.4
 
