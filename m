@@ -1,55 +1,49 @@
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
- Screen becomes green.
-Date: Thu, 21 Feb 2008 12:17:06 +1100
-Message-ID: <47BCD112.3010708@nigel.suspend2.net>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net> <20080221001357.GA29796@srcf.ucam.org> <47BCC866.9000102@nigel.suspend2.net> <20080221004632.GA25869@suse.de>
-Reply-To: nigel@nigel.suspend2.net
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: 2.6.25-rc2 System no longer powers off after
+	suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 09:19:13 +0800
+Message-ID: <b6a2187b0802201719x39a1298j970c563a17fe6a22@mail.gmail.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802201337.52247.jesse.barnes@intel.com>
+	<b6a2187b0802201635t2acb31f2n366f8ef81f119034@mail.gmail.com>
+	<200802201639.02502.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from crca.org.au ([67.207.131.56]:46648 "EHLO crca.org.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762147AbYBUBRM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 20:17:12 -0500
-In-Reply-To: <20080221004632.GA25869@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <200802201639.02502.jesse.barnes@intel.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>
 
-Hi.
+On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+>  Oops, maybe this should just be pci_choose_state instead.
+>  And this change should just be reverted (leave it as PCI_D0).
 
-Greg KH wrote:
-> On Thu, Feb 21, 2008 at 11:40:06AM +1100, Nigel Cunningham wrote:
->> Hi.
->>
->> Matthew Garrett wrote:
->>> On Thu, Feb 21, 2008 at 09:45:02AM +1100, Nigel Cunningham wrote:
->>>> - people keep talking about hibernating to an ext3 fs mounted on fuse as 
->>>> a limitation of the freezer. To do that with kexec, you're still going to 
->>>> have to bmap the ext3 fs and pass the block list (in which case we can 
->>>> also do it without kexec) or umount all the ext3/fuse part and remount in 
->>>> the kexec'd kernel. Sort of defeats the purpose, doesn't it?
->>> No, with a freezer-based model you can basically *never* suspend to 
->>> anything related to FUSE or a userspace USB device or anything involving 
->>> userspace iSCSI initiators or whatever. Sure, there are cases where moving 
->>> away from the current model doesn't buy you anything, but that doesn't 
->>> mean that the current model is a good thing. It's not. The freezer is a 
->>> fundamentally broken concept.
->> Putting drivers and filesystems in userspace is the fundamentally broken 
->> concept. Not just when it comes to the freezer. The whole idea is 
->> inherently racy.
-> 
-> Racy with regards to other things becides trying to suspend a machine?
-> If so, what?
+drivers/char/drm/i915_drv.c: In function 'i915_suspend':
+drivers/char/drm/i915_drv.c:372: warning: passing argument 1 of
+'pci_choose_state' from incompatible pointer type
+drivers/char/drm/i915_drv.c:373: warning: passing argument 1 of
+'pci_choose_state' from incompatible pointer type
 
-That depends on what sort of tangled web you want to weave. Low memory 
-situations is one other situation that occurs to me quickly, especially 
-(though not only) if your ability to swap were to depend upon a 
-userspace driver and/or filesystem.
+I hope those are just warning that can just be ignored.
 
-Regards,
+Ok, rebooting and will get back shortly.
 
-Nigel
+Thanks,
+Jeff.
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
