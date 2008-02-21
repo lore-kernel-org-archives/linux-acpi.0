@@ -1,80 +1,122 @@
-From: Romano Giannetti <romano@dea.icai.upcomillas.es>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off
-	aftersuspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 20:43:22 +0100
-Message-ID: <1203623002.3420.6.camel@localhost>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<alpine.LFD.1.00.0802200922590.7833@woody.linux-foundation.org>
-	<b6a2187b0802200937q3ff8f470k235b5d1e00eab59e@mail.gmail.com>
-	<alpine.LFD.1.00.0802200945591.7833@woody.linux-foundation.org>
-	<b6a2187b0802201002t315548b5uac623759723842d0@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 21:30:46 +0100
+Message-ID: <200802212130.47630.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211727.21593.rjw@sisk.pl> <200802211034.22056.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ic0245.upco.es ([130.206.70.245]:56926 "EHLO
-	antispam.upcomillas.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758116AbYBUUKX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 15:10:23 -0500
-In-Reply-To: <b6a2187b0802201002t315548b5uac623759723842d0@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:38217 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760078AbYBUUcM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 15:32:12 -0500
+In-Reply-To: <200802211034.22056.jesse.barnes@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
+On Thursday, 21 of February 2008, Jesse Barnes wrote:
+> On Thursday, February 21, 2008 8:27 am Rafael J. Wysocki wrote:
+> > On Thursday, 21 of February 2008, Jeff Chua wrote:
+> > > On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> 
+> wrote:
+> > > > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
+> > > >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes
+> > > >  > <jesse.barnes@intel.com>
+> > > >
+> > > >  wrote:
+> > > >  > >  Ok, can you give this patch a try with the 'platform' method?  It
+> > > >  > > should at least tell us what ACPI would like the device to do at
+> > > >  > > suspend time, but it probably won't fix the hang.
+> > >
+> > > It says "calling pci_set_power_state with 3". Then after all then it
+> > > still hangs, and then resume with Mr Green.
+> > >
+> > > PM: Syncing filesystems ... done.
+> > > Freezing user space processes ... (elapsed 0.00 seconds) done.
+> > > Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> > > PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
+> > > PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
+> > > ACPI: Preparing to enter system sleep state S4
+> > > Suspending console(s)
+> > > sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> > > drm_sysfs_suspend
+> > > ACPI: PCI interrupt for device 0000:00:02.0 disabled
+> > > calling pci_set_power_state with 3
+> >
+> > So it returns the right value.
+> >
+> > Jeff, Jesse, please check one thing for me.
+> >
+> > Please boot 2.6.25-rc2 (or better, the current head of the Linus' tree)
+> > with no_console_suspend and try to do the following:
+> >
+> > # echo 8 > /proc/sys/kernel/printk
+> > # echo core > /sys/power/pm_test
+> > # echo disk > /sys/power/state
+> >
+> > (that will run a test of the freeze/unfreeze code without creating the
+> > image) and then
+> 
+> That comes back for me, without creating the green screen.  There's a long 
+> delay between it saying "entering S4" and actually resuming back to my 
+> console though.
 
-On Thu, 2008-02-21 at 02:02 +0800, Jeff Chua wrote:
-> On Feb 21, 2008 1:52 AM, Linus Torvalds <torvalds@linux-foundation.or=
-g> wrote:
->=0D
-> > Ahh. You're using the BIOS to re-initialize your video, aren't you?
->=0D
-> I don't know. Just pure simple "s2ram" without any options.
+There's an intentional 5 sec. wait.  If the delay is longer that 5 sec., that's a
+bit strange.
+ 
+> > # echo mem > /sys/power/state
+> >
+> > (that will run a test of the suspend/resume code without actually
+> > suspending).
+> >
+> > I'd like to know if that works.
+> 
+> This also works (after doing the echo disk > ...) above.
 
-Well, as far as I know, s2ram could be doing vbe save/restore for you.
-Even without parameter, if your laptop is in the whitelist.
+That's what I wanted to know, thanks.
 
-> > Let's try to narrow it down to what the interaction is. Are you usi=
-ng
-> > something like acpi_sleep=3Ds3_bios or similar?
->=0D
-> No. Not additional command line option except for resume=3D/dev/sda3 =
-reboot=3Dbios
+> There's still a delay between "entering S3" and the resume to my console
+> though. 
 
-My laptop (a Toshiba satellite U305, intel 945GM chipset, used to need
-s2ram -f -p -m to STR correctly. In 2.6.25-rc2 I can simply STR with
-echo mem > /sys/power/state.
+If that's 5 sec., it's fine.
 
-Romano=0D
+Please apply the appended patch and try to hibernate.  I wonder if you get the
+reboot or it hangs earlier.
 
-I imagine this will be received as blasphemy, but if only ndiswrapper
-were not horribly broken, this will be my day-by-day kernel. I just hop=
-e
-ath5k will arrive to my chipset soon...
+Thanks,
+Rafael
 
+---
+ kernel/power/disk.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-
---
-La presente comunicaci=C3=B3n tiene car=C3=A1cter confidencial y es par=
-a el exclusivo uso del destinatario indicado en la misma. Si Ud. no es =
-el destinatario indicado, le informamos que cualquier forma de distribu=
-ci=C3=B3n, reproducci=C3=B3n o uso de esta comunicaci=C3=B3n y/o de la =
-informaci=C3=B3n contenida en la misma est=C3=A1n estrictamente prohibi=
-dos por la ley. Si Ud. ha recibido esta comunicaci=C3=B3n por error, po=
-r favor, notif=C3=ADquelo inmediatamente al remitente contestando a est=
-e mensaje y proceda a continuaci=C3=B3n a destruirlo. Gracias por su co=
-laboraci=C3=B3n.
-
-This communication contains confidential information. It is for the exc=
-lusive use of the intended addressee. If you are not the intended addre=
-ssee, please note that any form of distribution, copying or use of this=
- communication or the information in it is strictly prohibited by law. =
-If you have received this communication in error, please immediately no=
-tify the sender by reply e-mail and destroy this message. Thank you for=
- your cooperation.=0D
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -405,11 +405,7 @@ int hibernation_platform_enter(void)
+ 
+ 	local_irq_disable();
+ 	error = device_power_down(PMSG_SUSPEND);
+-	if (!error) {
+-		hibernation_ops->enter();
+-		/* We should never get here */
+-		while (1);
+-	}
++	mdelay(1000);
+ 	local_irq_enable();
+ 
+ 	/*
+@@ -424,6 +420,7 @@ int hibernation_platform_enter(void)
+ 	resume_console();
+  Close:
+ 	hibernation_ops->end();
++	kernel_restart(NULL);
+ 	return error;
+ }
+ 
