@@ -1,77 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/26] ACPI: sparse fix, replace macro with static function
-Date: Thu, 21 Feb 2008 04:38:04 -0500
-Message-ID: <4fd7f5188c377c1e9aa8f224f6edf96d170a7d32.1203586624.git.len.brown@intel.com>
+Subject: [PATCH 17/26] ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
+Date: Thu, 21 Feb 2008 04:38:02 -0500
+Message-ID: <d147da73c9a3f617e4685c6a7762961fe19833e7.1203586624.git.len.brown@intel.com>
 References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:38020 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:15600 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759577AbYBUJjL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:11 -0500
+	with ESMTP id S1756833AbYBUJjP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:39:15 -0500
 In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203586624.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Harvey Harrison <harvey.harrison@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Harvey Harrison <harvey.harrison@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-replace acpi_util_eval_error macro with static function.
+Fixes some minor points in the radio switch code and docs.
 
-Avoid these sparse warnings due to using buffer within the macro.
-drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utils.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    2 +-
+ drivers/misc/thinkpad_acpi.c            |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 34f1575..eba55b7 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -36,16 +36,20 @@ ACPI_MODULE_NAME("utils");
- /* --------------------------------------------------------------------------
-                             Object Evaluation Helpers
-    -------------------------------------------------------------------------- */
-+static void
-+acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
-+{
- #ifdef ACPI_DEBUG_OUTPUT
--#define acpi_util_eval_error(h,p,s) {\
--	char prefix[80] = {'\0'};\
--	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
--	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",\
--		(char *) prefix, p, acpi_format_exception(s))); }
-+	char prefix[80] = {'\0'};
-+	struct acpi_buffer buffer = {sizeof(prefix), prefix};
-+	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
-+		(char *) prefix, p, acpi_format_exception(s)));
- #else
--#define acpi_util_eval_error(h,p,s)
-+	return;
- #endif
-+}
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 91f688c..606af16 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -306,7 +306,7 @@ sysfs notes:
+ 		The recommended polling frequency is 10Hz.
+ 
+ 	hotkey_radio_sw:
+-		if the ThinkPad has a hardware radio switch, this
++		If the ThinkPad has a hardware radio switch, this
+ 		attribute will read 0 if the switch is in the "radios
+ 		disabled" position, and 1 if the switch is in the
+ 		"radios enabled" position.
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 3548350..c119cf2 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1161,15 +1161,15 @@ static void tpacpi_input_send_radiosw(void)
+ {
+ 	int wlsw;
+ 
+-	mutex_lock(&tpacpi_inputdev_send_mutex);
+-
+ 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
 +
- acpi_status
- acpi_extract_package(union acpi_object *package,
- 		     struct acpi_buffer *format, struct acpi_buffer *buffer)
+ 		input_report_switch(tpacpi_inputdev,
+ 				    SW_RADIO, !!wlsw);
+ 		input_sync(tpacpi_inputdev);
+-	}
+ 
+-	mutex_unlock(&tpacpi_inputdev_send_mutex);
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
++	}
+ }
+ 
+ static void tpacpi_input_send_tabletsw(unsigned int state)
 -- 
 1.5.4
 
