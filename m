@@ -1,47 +1,82 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Wed, 20 Feb 2008 16:39:02 -0800
-Message-ID: <200802201639.02502.jesse.barnes@intel.com>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201337.52247.jesse.barnes@intel.com> <b6a2187b0802201635t2acb31f2n366f8ef81f119034@mail.gmail.com>
+Date: Thu, 21 Feb 2008 01:59:10 +0100
+Message-ID: <200802210159.11388.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802210113.05733.rjw@sisk.pl> <alpine.LFD.1.00.0802201617050.7833@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17746 "EHLO mga02.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:33430 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758344AbYBUAzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 19:55:15 -0500
-In-Reply-To: <b6a2187b0802201635t2acb31f2n366f8ef81f119034@mail.gmail.com>
+	id S933228AbYBUBBB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 20:01:01 -0500
+In-Reply-To: <alpine.LFD.1.00.0802201617050.7833@woody.linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>, Alexey Starikovskiy <aystarik@gmail.com>, Len Brown <lenb@kernel.org>
 
-On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
-> On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes <jesse.barnes@intel.com> 
-wrote:
-> >  Ok, can you give this patch a try with the 'platform' method?  It should
-> > at least tell us what ACPI would like the device to do at suspend time,
-> > but it probably won't fix the hang.
->
-> I can't get it to compile.
->
-> drivers/char/drm/i915_drv.c: In function 'i915_suspend':
-> drivers/char/drm/i915_drv.c:372: error: implicit declaration of
-> function 'acpi_pci_choose_state'
+On Thursday, 21 of February 2008, Linus Torvalds wrote:
+> 
+> On Thu, 21 Feb 2008, Rafael J. Wysocki wrote:
+> > 
+> > > Secondly, the one that people should use ("pci_choose_state()") doesn't 
+> > > actually do what you claim it does. It does all kinds of wrong things, and 
+> > > doesn't even take the target state into account at all. So look again.
+> > 
+> > Well, if platform_pci_choose_state() is defined, pci_choose_state() returns
+> > its result and on ACPI systems that points to acpi_pci_choose_state(), so in
+> > fact it does what I said (apart from the error path). 
+> 
+> Did you check closer?
 
-Oops, maybe this should just be pci_choose_state instead.
+Yes, I did.
 
-> drivers/char/drm/i915_drv.c: In function 'i915_resume':
-> drivers/char/drm/i915_drv.c:383: error: 'state' undeclared (first use
-> in this function)
-> drivers/char/drm/i915_drv.c:383: error: (Each undeclared identifier is
-> reported only once
-> drivers/char/drm/i915_drv.c:383: error: for each function it appears in.)
+> I repeat: acpi_pci_choose_state() (when called from pci_choose_state()) 
+> doesn't even look at the target 'state'. It just blindly assumes that you 
+> want the deepest sleep-state you can have.
 
-And this change should just be reverted (leave it as PCI_D0).
+acpi_pm_device_sleep_state() (that is called by acpi_pci_choose_state())
+takes the target state directly from the ACPI layer.
+
+We just want to get rid of the argument passed to ->suspend() eventually, but
+there may be many _suspend_ states available (eg. "mem" and "standby") and
+for each of them there may be different constraints on the device's state.  We
+have to tell the driver which device states are possible in the target system
+sleep state.  Right now we arbitrarily choose the one with the lowest power
+usage - for given target system sleep state.
+
+> Which happens to be correct for normal suspend, but means that if you want 
+> to test other states (through '/sys/devices/.../power'), that sounds 
+> broken.
+
+This interface is not available any more (ie. there's only "wakeup" in
+/sys/devices/.../power).
+
+> I didn't check any closer, but go check it yourself. The short and sweet: 
+> acpi_pci_choose_state() totally ignores its 'state' argument. Do you 
+> really think that's correct?
+
+Yes, I do.
+
+> But yes, "pci_choose_state()' effectively does that too, apart from
+> PM_EVENT_ON, which is never used. 
+> 
+> (But the whole and only point of pci_choose_state() was to do the 
+> PM_EVENT_FREEZE thing differently, which it doesn't do, so I think the 
+> real issue here is that the interface is really rather mis-designed)
+
+You're wrong, sorry.  With PM_EVENT_FREEZE it wouldn't even be necessary.
+It's there, because potentially there are many possibilities with
+PM_EVENT_SUSPEND and in fact it shouldn't even be used with
+PM_EVENT_FREEZE.
+
+All of this is more or less orthogonal to the issue at hand, which boils down
+to the fact that we use the _suspend_ callbacks for hibernation and we
+shouldn't be doing that.
 
 Thanks,
-Jesse
+Rafael
