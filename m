@@ -1,51 +1,73 @@
-From: Theodore Tso <tytso@MIT.EDU>
-Subject: Re: Kernel Version specific vendor override possibilities needed -
-	Revert and provide osi=linux or provide a replacement
-Date: Thu, 21 Feb 2008 12:15:01 -0500
-Message-ID: <20080221171501.GA17592@mit.edu>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <200802210341.13809.lenb@kernel.org> <200802211641.22920.trenn@suse.de>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: Machine shutdown after resume from S3
+Date: Thu, 21 Feb 2008 20:46:45 +0300
+Message-ID: <20080221174643.32B0A3608D@smtp02.mtu.ru>
+References: <200802201837.22443.herton@mandriva.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:37539 "EHLO
-	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754412AbYBURPf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 12:15:35 -0500
-Content-Disposition: inline
-In-Reply-To: <200802211641.22920.trenn@suse.de>
+Received: from smtp02.mtu.ru ([62.5.255.49]:50093 "EHLO smtp02.mtu.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752807AbYBUR5d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 12:57:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>, linux-acpi@vger.kernel.org
 
-On Thu, Feb 21, 2008 at 04:41:21PM +0100, Thomas Renninger wrote:
-> > OEMs that really want to modify the BIOS to recognize
-> > OS interfaces that are in Linux should propose
-> > new OSI strings that specify interfaces, not broad
-> > categories of operating sytems; and in Linux we
-> > shoudl use, or not use, those strings, as appropriate.
-> > I've recently been in discussion with OEMs on exactly
-> > this topic -- I'm sorry it didn't happen a year ago.
-> So you mean "SLED 10 SP2", "UBUNTU supported version XY" strings?
+Herton Ronaldo Krzesinski wrote:
 
-No, no, no, no, no!
+> I have here an Intel Classmate hardware sample, and I have a weird problem
+> with suspend to ram, the machine does a power off when resuming.
+> 
 
-What part of "specify interfaces, not broad category of operating
-sytems" didn't you understand?
+Do you have acpid running? You may also be interested in this:
+http://qa.mandriva.com/show_bug.cgi?id=18998
+http://qa.mandriva.com/show_bug.cgi?id=23296
+http://article.gmane.org/gmane.linux.acpi.devel/17581/match=sup
 
-So for example, if we if some vendor decides for some silly reason
-that they must the Nvidia graphics chipsets, and Nvidia is the one
-holdout which is lame about providing information so we can program
-the video hardware correctly after a suspend/resume, maybe there is a
-feature flag, OSI(LameNvidiaSuspendResume).  The suppose 6 months
-later, someone manages to disassemble the Nvidia driver in some legal
-jurisdiction where there is no DMCA nonsense, and so Linux is now
-capable of dealing with the video card itself.  Now future kernels can
-simply omit that very specific OSI string.
 
-Just because we are saying that OSI(Linux) is bad, does not mean that
-people are saying that OSI("SLED 10 SP2") is the right answer.  Hell,
-no!  The right thing is something like OSI(LameNvidiaSusependResume).
+> I isolated the problem to the button acpi module, without loading it (or
+> just removing it before doing a s2ram) I don't get the problem. In the
+> specific machine I have here I can only resume it pressing the power
+> button, so I think this is related.
+> 
 
-					- Ted
+IIRC the issue was that button press that triggered resume was reported to
+user space. This apparently was fixed in the quoted patch; but may be this
+specific model goes via different code path?
+
+> I started looking into the kernel code and did some tests. The first thing
+> I tried just as a test was to disable the code in acpi_button_notify
+> function. As expected it stopped to send the power button key events
+> to /proc/acpi/event, but I still got the same s2ram issues. But if I
+> disable acpi_install_fixed_event_handler calls in
+> acpi_button_install_notify_handlers the power off issue in s2ram was gone,
+> of course also with power button not notifying anything anymore :), but
+> this was just a test.
+> 
+> After this tests then I went further to try to track down the problem and
+> I saw acpi_ev_fixed_event_dispatch, that is the function that will call
+> acpi_button_notify_fixed. First thing I noted: the comment about
+> acpi_ev_fixed_event_dispatch says it will return INTERRUPT_HANDLED or
+> INTERRUPT_NOT_HANDLED, but acpi_button_notify_fixed return AE_OK, is this
+> right (comment is outdated) or am I missing something? Anyway I changed
+> AE_OK to ACPI_INTERRUPT_HANDLED but this didn't change nothing. In the end
+> I stopped there, doesn't seem to be anything wrong with the code at all, I
+> also took a look at acpi_ev_fixed_event_detect and other code related to
+> the table of fixed events (acpi_gbl_fixed_event_handlers), but didn't got
+> more clues. Could be this a bios issue, or there is some hints to what I
+> can try to look and prove that it's bios or code related?
+> 
+> PS.: with netconsole I don't get any message before power off after
+> resume, I tried it to get more hints.
+> 
+> --
+> []'s
+> Herton
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
