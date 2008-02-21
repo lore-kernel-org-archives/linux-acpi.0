@@ -1,79 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/26] ACPI fan: extract return values using PTR_ERR
-Date: Thu, 21 Feb 2008 04:25:17 -0500
-Message-ID: <19b36780ee7ddeb5080e3f1f858a83c4824f1fdc.1203585792.git.len.brown@intel.com>
+Subject: [PATCH 17/26] ACPI: thinkpad-acpi: minor hotkey_radio_sw fixes
+Date: Thu, 21 Feb 2008 04:25:29 -0500
+Message-ID: <d147da73c9a3f617e4685c6a7762961fe19833e7.1203585792.git.len.brown@intel.com>
 References: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:36609 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756510AbYBUJ3H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:07 -0500
+Received: from mga09.intel.com ([134.134.136.24]:55536 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756274AbYBUJ3G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 04:29:06 -0500
 In-Reply-To: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thomas Sujith <sujith.thomas@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Thomas Sujith <sujith.thomas@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Need to extract errors using PTR_ERR macro and
-process accordingly.  thermal_cooling_device_register
-returning NULL means that CONFIG_THERMAL=n and in that
-case no need to create symbolic links.
+Fixes some minor points in the radio switch code and docs.
 
-Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/fan.c |   30 ++++++++++++++++++------------
- 1 files changed, 18 insertions(+), 12 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    2 +-
+ drivers/misc/thinkpad_acpi.c            |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 48cb705..c8e3cba 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -256,22 +256,28 @@ static int acpi_fan_add(struct acpi_device *device)
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 91f688c..606af16 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -306,7 +306,7 @@ sysfs notes:
+ 		The recommended polling frequency is 10Hz.
  
- 	cdev = thermal_cooling_device_register("Fan", device,
- 						&fan_cooling_ops);
--	if (cdev)
-+	if (IS_ERR(cdev)) {
-+		result = PTR_ERR(cdev);
-+		goto end;
-+	}
-+	if (cdev) {
- 		printk(KERN_INFO PREFIX
- 			"%s is registered as cooling_device%d\n",
- 			device->dev.bus_id, cdev->id);
--	else
--		goto end;
--	acpi_driver_data(device) = cdev;
--	result = sysfs_create_link(&device->dev.kobj, &cdev->device.kobj,
--					"thermal_cooling");
--	if (result)
--		return result;
+ 	hotkey_radio_sw:
+-		if the ThinkPad has a hardware radio switch, this
++		If the ThinkPad has a hardware radio switch, this
+ 		attribute will read 0 if the switch is in the "radios
+ 		disabled" position, and 1 if the switch is in the
+ 		"radios enabled" position.
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 3548350..c119cf2 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1161,15 +1161,15 @@ static void tpacpi_input_send_radiosw(void)
+ {
+ 	int wlsw;
  
--	result = sysfs_create_link(&cdev->device.kobj, &device->dev.kobj,
--                                       "device");
--        if (result)
--                return result;
-+		acpi_driver_data(device) = cdev;
-+		result = sysfs_create_link(&device->dev.kobj,
-+					   &cdev->device.kobj,
-+					   "thermal_cooling");
-+		if (result)
-+			return result;
+-	mutex_lock(&tpacpi_inputdev_send_mutex);
+-
+ 	if (tp_features.hotkey_wlsw && !hotkey_get_wlsw(&wlsw)) {
++		mutex_lock(&tpacpi_inputdev_send_mutex);
 +
-+		result = sysfs_create_link(&cdev->device.kobj,
-+					   &device->dev.kobj,
-+					   "device");
-+		if (result)
-+			return result;
-+	}
+ 		input_report_switch(tpacpi_inputdev,
+ 				    SW_RADIO, !!wlsw);
+ 		input_sync(tpacpi_inputdev);
+-	}
  
- 	result = acpi_fan_add_fs(device);
- 	if (result)
+-	mutex_unlock(&tpacpi_inputdev_send_mutex);
++		mutex_unlock(&tpacpi_inputdev_send_mutex);
++	}
+ }
+ 
+ static void tpacpi_input_send_tabletsw(unsigned int state)
 -- 
 1.5.4.2
 
