@@ -1,47 +1,47 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
-	Screen becomes green.
-Date: Wed, 20 Feb 2008 16:46:32 -0800
-Message-ID: <20080221004632.GA25869@suse.de>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201241.30952.jesse.barnes@intel.com> <alpine.LFD.1.00.0802201256040.7833@woody.linux-foundation.org> <200802201344.11643.jesse.barnes@intel.com> <47BCAD6E.9080704@nigel.suspend2.net> <20080221001357.GA29796@srcf.ucam.org> <47BCC866.9000102@nigel.suspend2.net>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Wed, 20 Feb 2008 16:39:02 -0800
+Message-ID: <200802201639.02502.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802201337.52247.jesse.barnes@intel.com> <b6a2187b0802201635t2acb31f2n366f8ef81f119034@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:40820 "EHLO mx2.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:17746 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753731AbYBUAsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Feb 2008 19:48:47 -0500
+	id S1758344AbYBUAzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Feb 2008 19:55:15 -0500
+In-Reply-To: <b6a2187b0802201635t2acb31f2n366f8ef81f119034@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <47BCC866.9000102@nigel.suspend2.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>, Greg KH <gregkh@suse.de>
 
-On Thu, Feb 21, 2008 at 11:40:06AM +1100, Nigel Cunningham wrote:
-> Hi.
+On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
+> On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes <jesse.barnes@intel.com> 
+wrote:
+> >  Ok, can you give this patch a try with the 'platform' method?  It should
+> > at least tell us what ACPI would like the device to do at suspend time,
+> > but it probably won't fix the hang.
 >
-> Matthew Garrett wrote:
->> On Thu, Feb 21, 2008 at 09:45:02AM +1100, Nigel Cunningham wrote:
->>> - people keep talking about hibernating to an ext3 fs mounted on fuse as 
->>> a limitation of the freezer. To do that with kexec, you're still going to 
->>> have to bmap the ext3 fs and pass the block list (in which case we can 
->>> also do it without kexec) or umount all the ext3/fuse part and remount in 
->>> the kexec'd kernel. Sort of defeats the purpose, doesn't it?
->> No, with a freezer-based model you can basically *never* suspend to 
->> anything related to FUSE or a userspace USB device or anything involving 
->> userspace iSCSI initiators or whatever. Sure, there are cases where moving 
->> away from the current model doesn't buy you anything, but that doesn't 
->> mean that the current model is a good thing. It's not. The freezer is a 
->> fundamentally broken concept.
+> I can't get it to compile.
 >
-> Putting drivers and filesystems in userspace is the fundamentally broken 
-> concept. Not just when it comes to the freezer. The whole idea is 
-> inherently racy.
+> drivers/char/drm/i915_drv.c: In function 'i915_suspend':
+> drivers/char/drm/i915_drv.c:372: error: implicit declaration of
+> function 'acpi_pci_choose_state'
 
-Racy with regards to other things becides trying to suspend a machine?
-If so, what?
+Oops, maybe this should just be pci_choose_state instead.
 
-thanks,
+> drivers/char/drm/i915_drv.c: In function 'i915_resume':
+> drivers/char/drm/i915_drv.c:383: error: 'state' undeclared (first use
+> in this function)
+> drivers/char/drm/i915_drv.c:383: error: (Each undeclared identifier is
+> reported only once
+> drivers/char/drm/i915_drv.c:383: error: for each function it appears in.)
 
-greg k-h
+And this change should just be reverted (leave it as PCI_D0).
+
+Thanks,
+Jesse
