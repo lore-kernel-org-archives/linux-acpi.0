@@ -1,141 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 23:11:43 +0100
-Message-ID: <200802212311.44319.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211727.21593.rjw@sisk.pl> <200802211034.22056.jesse.barnes@intel.com>
+From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Subject: Re: Machine shutdown after resume from S3
+Date: Thu, 21 Feb 2008 19:21:01 -0300
+Message-ID: <200802211921.01913.herton@mandriva.com.br>
+References: <200802201837.22443.herton@mandriva.com.br> <20080221174643.32B0A3608D@smtp02.mtu.ru>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38760 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765887AbYBUWNP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 17:13:15 -0500
-In-Reply-To: <200802211034.22056.jesse.barnes@intel.com>
+Received: from perninha.conectiva.com.br ([200.140.247.100]:33985 "EHLO
+	perninha.conectiva.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760867AbYBUWVG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 17:21:06 -0500
+In-Reply-To: <20080221174643.32B0A3608D@smtp02.mtu.ru>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>
 
-On Thursday, 21 of February 2008, Jesse Barnes wrote:
-> On Thursday, February 21, 2008 8:27 am Rafael J. Wysocki wrote:
-> > On Thursday, 21 of February 2008, Jeff Chua wrote:
-> > > On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> 
-> wrote:
-> > > > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
-> > > >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes
-> > > >  > <jesse.barnes@intel.com>
-> > > >
-> > > >  wrote:
-> > > >  > >  Ok, can you give this patch a try with the 'platform' method?  It
-> > > >  > > should at least tell us what ACPI would like the device to do at
-> > > >  > > suspend time, but it probably won't fix the hang.
-> > >
-> > > It says "calling pci_set_power_state with 3". Then after all then it
-> > > still hangs, and then resume with Mr Green.
-> > >
-> > > PM: Syncing filesystems ... done.
-> > > Freezing user space processes ... (elapsed 0.00 seconds) done.
-> > > Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-> > > PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
-> > > PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
-> > > ACPI: Preparing to enter system sleep state S4
-> > > Suspending console(s)
-> > > sd 0:0:0:0: [sda] Synchronizing SCSI cache
-> > > drm_sysfs_suspend
-> > > ACPI: PCI interrupt for device 0000:00:02.0 disabled
-> > > calling pci_set_power_state with 3
-> >
-> > So it returns the right value.
-> >
-> > Jeff, Jesse, please check one thing for me.
+Em Thursday 21 February 2008 14:46:45 Andrey Borzenkov escreveu:
+> Herton Ronaldo Krzesinski wrote:
+> 
+> > I have here an Intel Classmate hardware sample, and I have a weird problem
+> > with suspend to ram, the machine does a power off when resuming.
+> > 
+> 
+> Do you have acpid running? You may also be interested in this:
+> http://qa.mandriva.com/show_bug.cgi?id=18998
+> http://qa.mandriva.com/show_bug.cgi?id=23296
+> http://article.gmane.org/gmane.linux.acpi.devel/17581/match=sup
+> 
+> 
+> > I isolated the problem to the button acpi module, without loading it (or
+> > just removing it before doing a s2ram) I don't get the problem. In the
+> > specific machine I have here I can only resume it pressing the power
+> > button, so I think this is related.
+> > 
+> 
+> IIRC the issue was that button press that triggered resume was reported to
+> user space. This apparently was fixed in the quoted patch; but may be this
+> specific model goes via different code path?
 
-Below is a patch that should work around the issue.  Please try it and let me
-know if it helps.
+In my case here is not an userspace issue. But the patch in the last link you
+posted gave me an idea, to check code executed in resume, I managed to make
+a quick hack that solved the issue:
 
-Thanks,
-Rafael
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index 293a1cb..2255434 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -156,6 +156,8 @@ static int acpi_pm_enter(suspend_state_t pm_state)
+ 
+ 	local_irq_save(flags);
+ 	acpi_enable_wakeup_device(acpi_state);
++	(void) acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].enable_register_id, 0);
++	(void) acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].status_register_id, 0);
+ 	switch (acpi_state) {
+ 	case ACPI_STATE_S1:
+ 		barrier();
 
----
- drivers/char/drm/i915_drv.c |    3 +++
- include/linux/suspend.h     |    2 ++
- kernel/power/disk.c         |    9 ++++++++-
- 3 files changed, 13 insertions(+), 1 deletion(-)
+For some reason with this I don't have the power off problem in resume.
+I'll try to check more the code and acpi spec, but does this could indicate a
+bug in bios?
 
-Index: linux-2.6/include/linux/suspend.h
-===================================================================
---- linux-2.6.orig/include/linux/suspend.h
-+++ linux-2.6/include/linux/suspend.h
-@@ -209,6 +209,7 @@ extern unsigned long get_safe_page(gfp_t
- 
- extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
- extern int hibernate(void);
-+extern bool in_hibernation_power_off(void);
- #else /* CONFIG_HIBERNATION */
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-@@ -216,6 +217,7 @@ static inline void swsusp_unset_page_fre
- 
- static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) {}
- static inline int hibernate(void) { return -ENOSYS; }
-+static inline bool in_hibernation_power_off(void) { return false; }
- #endif /* CONFIG_HIBERNATION */
- 
- #ifdef CONFIG_PM_SLEEP
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -24,7 +24,7 @@
- 
- #include "power.h"
- 
--
-+static bool entering_sleep_state;
- static int noresume = 0;
- static char resume_file[256] = CONFIG_PM_STD_PARTITION;
- dev_t swsusp_resume_device;
-@@ -381,6 +381,7 @@ int hibernation_platform_enter(void)
- 	if (!hibernation_ops)
- 		return -ENOSYS;
- 
-+	entering_sleep_state = true;
- 	/*
- 	 * We have cancelled the power transition by running
- 	 * hibernation_ops->finish() before saving the image, so we should let
-@@ -412,6 +413,7 @@ int hibernation_platform_enter(void)
- 	}
- 	local_irq_enable();
- 
-+	entering_sleep_state = false;
- 	/*
- 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
- 	 * the system is going to be halted anyway.
-@@ -427,6 +429,11 @@ int hibernation_platform_enter(void)
- 	return error;
- }
- 
-+bool in_hibernation_power_off(void)
-+{
-+	return entering_sleep_state;
-+}
-+
- /**
-  *	power_down - Shut the machine down for hibernation.
-  *
-Index: linux-2.6/drivers/char/drm/i915_drv.c
-===================================================================
---- linux-2.6.orig/drivers/char/drm/i915_drv.c
-+++ linux-2.6/drivers/char/drm/i915_drv.c
-@@ -247,6 +247,9 @@ static int i915_suspend(struct drm_devic
- 		return -ENODEV;
- 	}
- 
-+	if (in_hibernation_power_off())
-+		return 0;
-+
- 	pci_save_state(dev->pdev);
- 	pci_read_config_byte(dev->pdev, LBB, &dev_priv->saveLBB);
- 
+--
+[]'s
+Herton
