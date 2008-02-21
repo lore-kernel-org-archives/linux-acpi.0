@@ -1,69 +1,28 @@
-From: "Nish Aravamudan" <nish.aravamudan@gmail.com>
-Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
-Date: Thu, 21 Feb 2008 10:54:40 -0800
-Message-ID: <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
-	 <47B73DD8.4030405@linux.vnet.ibm.com>
-	 <200802210208.47487.lenb@kernel.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Machine shutdown after resume from S3
+Date: Thu, 21 Feb 2008 19:02:50 +0000
+Message-ID: <20080221190249.GA13202@srcf.ucam.org>
+References: <200802201837.22443.herton@mandriva.com.br> <20080221174643.32B0A3608D@smtp02.mtu.ru> <20080221184326.0386A3271D@smtp02.mtu.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:44603 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbYBUSyq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 13:54:46 -0500
-Received: by fk-out-0910.google.com with SMTP id z23so202814fkz.5
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Feb 2008 10:54:40 -0800 (PST)
-In-Reply-To: <200802210208.47487.lenb@kernel.org>
+Received: from cavan.codon.org.uk ([78.32.9.130]:57593 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998AbYBUTDH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 14:03:07 -0500
 Content-Disposition: inline
+In-Reply-To: <20080221184326.0386A3271D@smtp02.mtu.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>, sam@ravnborg.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Herton Ronaldo Krzesinski <herton@mandriva.com.br>, linux-acpi@vger.kernel.org
 
-On 2/20/08, Len Brown <lenb@kernel.org> wrote:
-> On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
->  > Hi Andrew,
->  >
->  > The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
->  > to build on x86_64 machine
->  >
->  >   CC      drivers/acpi/osl.o
->  > drivers/acpi/osl.c:60:38: error: empty filename in #include
->  > drivers/acpi/osl.c: In function 'acpi_os_table_override':
->  > drivers/acpi/osl.c:399: error: 'AmlCode' undeclared (first use in this function)
->  > drivers/acpi/osl.c:399: error: (Each undeclared identifier is reported only once
->  > drivers/acpi/osl.c:399: error: for each function it appears in.)
->  > make[2]: *** [drivers/acpi/osl.o] Error 1
->  > make[1]: *** [drivers/acpi] Error 2
->  > make: *** [drivers] Error 2
->  >
->  > #
->  > # Automatically generated make config: don't edit
->  > # Linux kernel version: 2.6.25-rc2-mm1
->  > # Sun Feb 17 08:07:17 2008
->  > #
->
->
-> > CONFIG_ACPI_CUSTOM_DSDT=y
->  > CONFIG_ACPI_CUSTOM_DSDT_FILE=""
->
->
-> garbage in, garbage out.
+On Thu, Feb 21, 2008 at 09:43:30PM +0300, Andrey Borzenkov wrote:
 
-garbage explicitly *allowed* by Kconfig in this case, though.
+> wait a bit; suspend to RAM is S1 not S3.
 
->  If you don't give this build option a file name where AmlCode lives,
->  then the build will be unable to find AmlCode[].
->
->  http://www.lesswatts.org/projects/acpi/overridingDSDT.php
+Not on any even vaguely modern hardware, no. In any case, the Classmate 
+reboots before entering userspace.
 
-So we have a .config option whose sole purpose is to use another
-.config option? That seems ... less than ideal. Is there not some
-Kconfig voodoo we can do to only require the one option? Maybe
-something like how CONFIG_INITRAMFS_SOURCE is done? Adding Sam to the
-Cc, in case he has any ideas.
-
-Thanks,
-Nish
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
