@@ -1,90 +1,78 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: Machine shutdown after resume from S3
-Date: Thu, 21 Feb 2008 21:43:30 +0300
-Message-ID: <20080221184326.0386A3271D@smtp02.mtu.ru>
-References: <200802201837.22443.herton@mandriva.com.br> <20080221174643.32B0A3608D@smtp02.mtu.ru>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 10:34:21 -0800
+Message-ID: <200802211034.22056.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <b6a2187b0802201800n12f90b22x8cb0c2ad6e0c402@mail.gmail.com> <200802211727.21593.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.mtu.ru ([62.5.255.49]:49257 "EHLO smtp02.mtu.ru"
+Received: from mga03.intel.com ([143.182.124.21]:54110 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750806AbYBUSnh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 13:43:37 -0500
+	id S1753589AbYBUSse (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 13:48:34 -0500
+In-Reply-To: <200802211727.21593.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Andrey Borzenkov wrote:
+On Thursday, February 21, 2008 8:27 am Rafael J. Wysocki wrote:
+> On Thursday, 21 of February 2008, Jeff Chua wrote:
+> > On Thu, Feb 21, 2008 at 8:39 AM, Jesse Barnes <jesse.barnes@intel.com> 
+wrote:
+> > > On Wednesday, February 20, 2008 4:35 pm Jeff Chua wrote:
+> > >  > On Thu, Feb 21, 2008 at 5:37 AM, Jesse Barnes
+> > >  > <jesse.barnes@intel.com>
+> > >
+> > >  wrote:
+> > >  > >  Ok, can you give this patch a try with the 'platform' method?  It
+> > >  > > should at least tell us what ACPI would like the device to do at
+> > >  > > suspend time, but it probably won't fix the hang.
+> >
+> > It says "calling pci_set_power_state with 3". Then after all then it
+> > still hangs, and then resume with Mr Green.
+> >
+> > PM: Syncing filesystems ... done.
+> > Freezing user space processes ... (elapsed 0.00 seconds) done.
+> > Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> > PM: Shrinking memory...  ^H-^Hdone (0 pages freed)
+> > PM: Freed 0 kbytes in 0.20 seconds (0.00 MB/s)
+> > ACPI: Preparing to enter system sleep state S4
+> > Suspending console(s)
+> > sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> > drm_sysfs_suspend
+> > ACPI: PCI interrupt for device 0000:00:02.0 disabled
+> > calling pci_set_power_state with 3
+>
+> So it returns the right value.
+>
+> Jeff, Jesse, please check one thing for me.
+>
+> Please boot 2.6.25-rc2 (or better, the current head of the Linus' tree)
+> with no_console_suspend and try to do the following:
+>
+> # echo 8 > /proc/sys/kernel/printk
+> # echo core > /sys/power/pm_test
+> # echo disk > /sys/power/state
+>
+> (that will run a test of the freeze/unfreeze code without creating the
+> image) and then
 
-> Herton Ronaldo Krzesinski wrote:
-> 
->> I have here an Intel Classmate hardware sample, and I have a weird
->> problem with suspend to ram, 
+That comes back for me, without creating the green screen.  There's a long 
+delay between it saying "entering S4" and actually resuming back to my 
+console though.
 
-wait a bit; suspend to RAM is S1 not S3. The mentined patch explicitly
-checks for S3 state and prevents power button event from reaching user
-space; but you are resuming from *S1*.
+> # echo mem > /sys/power/state
+>
+> (that will run a test of the suspend/resume code without actually
+> suspending).
+>
+> I'd like to know if that works.
 
-Looks like this requires some sort of quirks to recognize this specific
-platform and apply the same workaround to S1.
+This also works (after doing the echo disk > ...) above.  There's still a 
+delay between "entering S3" and the resume to my console though.
 
->> the machine does a power off when resuming. 
->> 
-> 
-> Do you have acpid running? You may also be interested in this:
-> http://qa.mandriva.com/show_bug.cgi?id=18998
-> http://qa.mandriva.com/show_bug.cgi?id=23296
-> http://article.gmane.org/gmane.linux.acpi.devel/17581/match=sup
-> 
-> 
->> I isolated the problem to the button acpi module, without loading it (or
->> just removing it before doing a s2ram) I don't get the problem. In the
->> specific machine I have here I can only resume it pressing the power
->> button, so I think this is related.
->> 
-> 
-> IIRC the issue was that button press that triggered resume was reported to
-> user space. This apparently was fixed in the quoted patch; but may be this
-> specific model goes via different code path?
-> 
->> I started looking into the kernel code and did some tests. The first
->> thing I tried just as a test was to disable the code in
->> acpi_button_notify function. As expected it stopped to send the power
->> button key events to /proc/acpi/event, but I still got the same s2ram
->> issues. But if I disable acpi_install_fixed_event_handler calls in
->> acpi_button_install_notify_handlers the power off issue in s2ram was
->> gone, of course also with power button not notifying anything anymore :),
->> but this was just a test.
->> 
->> After this tests then I went further to try to track down the problem and
->> I saw acpi_ev_fixed_event_dispatch, that is the function that will call
->> acpi_button_notify_fixed. First thing I noted: the comment about
->> acpi_ev_fixed_event_dispatch says it will return INTERRUPT_HANDLED or
->> INTERRUPT_NOT_HANDLED, but acpi_button_notify_fixed return AE_OK, is this
->> right (comment is outdated) or am I missing something? Anyway I changed
->> AE_OK to ACPI_INTERRUPT_HANDLED but this didn't change nothing. In the
->> end I stopped there, doesn't seem to be anything wrong with the code at
->> all, I also took a look at acpi_ev_fixed_event_detect and other code
->> related to the table of fixed events (acpi_gbl_fixed_event_handlers), but
->> didn't got more clues. Could be this a bios issue, or there is some hints
->> to what I can try to look and prove that it's bios or code related?
->> 
->> PS.: with netconsole I don't get any message before power off after
->> resume, I tried it to get more hints.
->> 
->> --
->> []'s
->> Herton
->> -
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+Jesse
