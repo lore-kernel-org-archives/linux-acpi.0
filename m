@@ -1,52 +1,46 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/26] ACPI: EC: Use proper handle for boot EC
-Date: Thu, 21 Feb 2008 04:25:13 -0500
-Message-ID: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
+Subject: [PATCH 08/26] ACPI video: check for error from thermal_cooling_device_register
+Date: Thu, 21 Feb 2008 04:25:20 -0500
+Message-ID: <43ff39f2f6450fa2e9a566f8bf007a26d76f2c9d.1203585792.git.len.brown@intel.com>
 References: <1203585938-31506-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:36609 "EHLO
+Received: from mga10.intel.com ([192.55.52.92]:36615 "EHLO
 	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754344AbYBUJ3B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:01 -0500
+	with ESMTP id S1756120AbYBUJ3H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 04:29:07 -0500
 In-Reply-To: <1203585938-31506-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
+References: <208c70a45624400fafd7511b96bc426bf01f8f5e.1203585792.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Thomas Sujith <sujith.thomas@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Thomas Sujith <sujith.thomas@intel.com>
 
-Fall back to ACPI_ROOT_HANDLE only in case of error.
+Need to check whether thermal_cooling_device_register
+returned ERROR or not.
 
-ACPI: EC: EC description table is found, configuring boot EC
-ACPI Error (evregion-0316): No handler for Region [ECOR] (ffff81007a651620) [EmbeddedControl] [20070126]
-ACPI Error (exfldio-0289): Region EmbeddedControl(3) has no handler [20070126]
-
-http://bugzilla.kernel.org/show_bug.cgi?id=9916
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Thomas Sujith <sujith.thomas@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/acpi/video.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7222a18..caf873c 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -943,7 +943,11 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
--		boot_ec->handle = ACPI_ROOT_OBJECT;
-+		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
-+				&boot_ec->handle))) {
-+			pr_info("Failed to locate handle for boot EC\n");
-+			boot_ec->handle = ACPI_ROOT_OBJECT;
-+		}
- 	} else {
- 		/* This workaround is needed only on some broken machines,
- 		 * which require early EC, but fail to provide ECDT */
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 7f714fa..12cce69 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -731,6 +731,9 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 
+ 		device->cdev = thermal_cooling_device_register("LCD",
+ 					device->dev, &video_cooling_ops);
++		if (IS_ERR(device->cdev))
++			return;
++
+ 		if (device->cdev) {
+ 			printk(KERN_INFO PREFIX
+ 				"%s is registered as cooling_device%d\n",
 -- 
 1.5.4.2
 
