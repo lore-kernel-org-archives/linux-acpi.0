@@ -1,42 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 100% C0 with 2.6.25-rc
-Date: Thu, 21 Feb 2008 17:33:53 +0100
-Message-ID: <200802211733.54759.rjw@sisk.pl>
-References: <47BD600F.9090502@willies.info>
+From: Theodore Tso <tytso@MIT.EDU>
+Subject: Re: Kernel Version specific vendor override possibilities needed -
+	Revert and provide osi=linux or provide a replacement
+Date: Thu, 21 Feb 2008 12:15:01 -0500
+Message-ID: <20080221171501.GA17592@mit.edu>
+References: <1203471860.3358.177.camel@linux-2bdv.site> <200802210341.13809.lenb@kernel.org> <200802211641.22920.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37323 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759695AbYBUQfR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 11:35:17 -0500
-In-Reply-To: <47BD600F.9090502@willies.info>
+Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:37539 "EHLO
+	biscayne-one-station.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754412AbYBURPf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 12:15:35 -0500
 Content-Disposition: inline
+In-Reply-To: <200802211641.22920.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Willies <jan@willies.info>
-Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Venki Pallipadi <venkatesh.pallipadi@intel.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
-On Thursday, 21 of February 2008, Jan Willies wrote:
-> Hi,
->=20
-> Since 2.6.25-rc1 I have a lot of wakeups/s (=E2=89=88134191,4) and sp=
-end 100% in C0.
-> It worked fine with 2.6.24 and commandline nolapic. Without nolapic I=
- had 80k
-> wakeups/s after some time, but not right from the start like now. =20
+On Thu, Feb 21, 2008 at 04:41:21PM +0100, Thomas Renninger wrote:
+> > OEMs that really want to modify the BIOS to recognize
+> > OS interfaces that are in Linux should propose
+> > new OSI strings that specify interfaces, not broad
+> > categories of operating sytems; and in Linux we
+> > shoudl use, or not use, those strings, as appropriate.
+> > I've recently been in discussion with OEMs on exactly
+> > this topic -- I'm sorry it didn't happen a year ago.
+> So you mean "SLED 10 SP2", "UBUNTU supported version XY" strings?
 
-We have a regression from 2.6.24, apparently interrupts-related.
+No, no, no, no, no!
 
-> What useful information can I provide?
+What part of "specify interfaces, not broad category of operating
+sytems" didn't you understand?
 
-Let's see what the experts say.
+So for example, if we if some vendor decides for some silly reason
+that they must the Nvidia graphics chipsets, and Nvidia is the one
+holdout which is lame about providing information so we can program
+the video hardware correctly after a suspend/resume, maybe there is a
+feature flag, OSI(LameNvidiaSuspendResume).  The suppose 6 months
+later, someone manages to disassemble the Nvidia driver in some legal
+jurisdiction where there is no DMCA nonsense, and so Linux is now
+capable of dealing with the video card itself.  Now future kernels can
+simply omit that very specific OSI string.
 
-Thanks,
-Rafael
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just because we are saying that OSI(Linux) is bad, does not mean that
+people are saying that OSI("SLED 10 SP2") is the right answer.  Hell,
+no!  The right thing is something like OSI(LameNvidiaSusependResume).
+
+					- Ted
