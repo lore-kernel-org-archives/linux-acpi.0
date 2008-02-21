@@ -1,40 +1,31 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc2
-Date: Thu, 21 Feb 2008 10:54:31 +0100
-Message-ID: <20080221095431.GB26714@uranus.ravnborg.org>
-References: <200802210357.08197.lenb@kernel.org>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: ACPI patches for Linux-2.6.25-rc2
+Date: Thu, 21 Feb 2008 12:18:12 +0100
+Message-ID: <20080221111812.GA5032@homac.suse.de>
+References: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pasmtpa.tele.dk ([80.160.77.114]:34296 "EHLO pasmtpA.tele.dk"
+Received: from ns1.suse.de ([195.135.220.2]:44392 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbYBUJyi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 04:54:38 -0500
+	id S1754056AbYBULRL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 06:17:11 -0500
 Content-Disposition: inline
-In-Reply-To: <200802210357.08197.lenb@kernel.org>
+In-Reply-To: <1203586691-1234-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Feb 21, 2008 at 03:57:07AM -0500, Len Brown wrote:
-> Hi Linus,
-> 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> 
-> Fixes a pair of a boot regressions, and some churn mostly related
-> to some of the new thermal and thinkpad code that went into -rc1.
-> 
-> This will update the files shown below.
+On Thu 21. Feb - 04:37:45, Len Brown wrote:
+> sorry if this is a repeat.
+> backing down to git 1.5.4 to see if it can send
+> messages that vger.kernel.org likes...
 
-Hi Len.
+Any specific reason why the patch I sent one week ago should not not go
+into 2.6.25-rc2?
 
-Any specific reason the two section mismatch patches that
-I posted a few days ago are not included?
-If they are buggy or questionable please let me know.
+  ACPI: Do not pass NULL to acpi_get_handle() when looking for _EJD
 
-I can resend if you like.
-
-	Sam
+Thanks,
+	Holger
