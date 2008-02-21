@@ -1,71 +1,137 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
-Date: Thu, 21 Feb 2008 23:22:45 +0100
-Message-ID: <20080221222245.GB30976@uranus.ravnborg.org>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org> <47B73DD8.4030405@linux.vnet.ibm.com> <200802210208.47487.lenb@kernel.org> <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 15:45:05 -0800
+Message-ID: <200802211545.05794.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211034.22056.jesse.barnes@intel.com> <200802212311.44319.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pasmtpa.tele.dk ([80.160.77.114]:41955 "EHLO pasmtpA.tele.dk"
+Received: from mga03.intel.com ([143.182.124.21]:37534 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754614AbYBUWWg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 17:22:36 -0500
+	id S1757396AbYBUX4w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 18:56:52 -0500
+In-Reply-To: <200802212311.44319.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nish Aravamudan <nish.aravamudan@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, Feb 21, 2008 at 10:54:40AM -0800, Nish Aravamudan wrote:
-> On 2/20/08, Len Brown <lenb@kernel.org> wrote:
-> > On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
-> >  > Hi Andrew,
-> >  >
-> >  > The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
-> >  > to build on x86_64 machine
-> >  >
-> >  >   CC      drivers/acpi/osl.o
-> >  > drivers/acpi/osl.c:60:38: error: empty filename in #include
-> >  > drivers/acpi/osl.c: In function 'acpi_os_table_override':
-> >  > drivers/acpi/osl.c:399: error: 'AmlCode' undeclared (first use in this function)
-> >  > drivers/acpi/osl.c:399: error: (Each undeclared identifier is reported only once
-> >  > drivers/acpi/osl.c:399: error: for each function it appears in.)
-> >  > make[2]: *** [drivers/acpi/osl.o] Error 1
-> >  > make[1]: *** [drivers/acpi] Error 2
-> >  > make: *** [drivers] Error 2
-> >  >
-> >  > #
-> >  > # Automatically generated make config: don't edit
-> >  > # Linux kernel version: 2.6.25-rc2-mm1
-> >  > # Sun Feb 17 08:07:17 2008
-> >  > #
-> >
-> >
-> > > CONFIG_ACPI_CUSTOM_DSDT=y
-> >  > CONFIG_ACPI_CUSTOM_DSDT_FILE=""
-> >
-> >
-> > garbage in, garbage out.
-> 
-> garbage explicitly *allowed* by Kconfig in this case, though.
-> 
-> >  If you don't give this build option a file name where AmlCode lives,
-> >  then the build will be unable to find AmlCode[].
-> >
-> >  http://www.lesswatts.org/projects/acpi/overridingDSDT.php
-> 
-> So we have a .config option whose sole purpose is to use another
-> .config option? That seems ... less than ideal. Is there not some
-> Kconfig voodoo we can do to only require the one option? Maybe
-> something like how CONFIG_INITRAMFS_SOURCE is done? Adding Sam to the
-> Cc, in case he has any ideas.
+On Thursday, February 21, 2008 2:11 pm Rafael J. Wysocki wrote:
+> Below is a patch that should work around the issue.  Please try it and let
+> me know if it helps.
 
-Make sure STANDALONE is y for your randconfig builds.
-See README for examples.
+I ended up applying the below patch instead, so it would build, and 
+unfortunately it still hung at suspend time.
 
-STANALONE is there exactly to prevent the above but we cannot
-control randconfig.
+So at this point, the known workarounds to the hang at suspend time are to 
+remove the device power down call or to boot with 'no_console_suspend'.  
+The 'screen turns green' problem is fixed by the extra 'inb' added in the 
+patch below (at least for me).
 
-	Sam
+Jesse
 
+diff --git a/drivers/char/drm/i915_drv.c b/drivers/char/drm/i915_drv.c
+index 35758a6..35b5a60 100644
+--- a/drivers/char/drm/i915_drv.c
++++ b/drivers/char/drm/i915_drv.c
+@@ -27,6 +27,7 @@
+  *
+  */
+ 
++#include <linux/suspend.h>
+ #include "drmP.h"
+ #include "drm.h"
+ #include "i915_drm.h"
+@@ -222,6 +223,7 @@ static void i915_restore_vga(struct drm_device *dev)
+ 			   dev_priv->saveGR[0x18]);
+ 
+ 	/* Attribute controller registers */
++	inb(st01); /* switch back to index mode */
+ 	for (i = 0; i < 20; i++)
+ 		i915_write_ar(st01, i, dev_priv->saveAR[i], 0);
+ 	inb(st01); /* switch back to index mode */
+@@ -249,6 +251,9 @@ static int i915_suspend(struct drm_device *dev)
+ 		return -ENODEV;
+ 	}
+ 
++	if (in_hibernation_power_off())
++		return 0;
++
+ 	pci_save_state(dev->pdev);
+ 	pci_read_config_byte(dev->pdev, LBB, &dev_priv->saveLBB);
+ 
+@@ -364,7 +369,6 @@ static int i915_suspend(struct drm_device *dev)
+ 	i915_save_vga(dev);
+ 
+ 	/* Shut down the device */
+-	pci_disable_device(dev->pdev);
+ 	pci_set_power_state(dev->pdev, PCI_D3hot);
+ 
+ 	return 0;
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 1d7d4c5..58d9f67 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -209,6 +209,7 @@ extern unsigned long get_safe_page(gfp_t gfp_mask);
+ 
+ extern void hibernation_set_ops(struct platform_hibernation_ops *ops);
+ extern int hibernate(void);
++extern bool in_hibernation_power_off(void);
+ #else /* CONFIG_HIBERNATION */
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+@@ -216,6 +217,7 @@ static inline void swsusp_unset_page_free(struct page *p) 
+{}
+ 
+ static inline void hibernation_set_ops(struct platform_hibernation_ops *ops) 
+{}
+ static inline int hibernate(void) { return -ENOSYS; }
++static inline bool in_hibernation_power_off(void) { return false; }
+ #endif /* CONFIG_HIBERNATION */
+ 
+ #ifdef CONFIG_PM_SLEEP
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+index 859a8e5..d842bf0 100644
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -24,7 +24,7 @@
+ 
+ #include "power.h"
+ 
+-
++static bool entering_sleep_state;
+ static int noresume = 0;
+ static char resume_file[256] = CONFIG_PM_STD_PARTITION;
+ dev_t swsusp_resume_device;
+@@ -381,6 +381,7 @@ int hibernation_platform_enter(void)
+ 	if (!hibernation_ops)
+ 		return -ENOSYS;
+ 
++	entering_sleep_state = true;
+ 	/*
+ 	 * We have cancelled the power transition by running
+ 	 * hibernation_ops->finish() before saving the image, so we should let
+@@ -412,6 +413,7 @@ int hibernation_platform_enter(void)
+ 	}
+ 	local_irq_enable();
+ 
++	entering_sleep_state = false;
+ 	/*
+ 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
+ 	 * the system is going to be halted anyway.
+@@ -427,6 +429,12 @@ int hibernation_platform_enter(void)
+ 	return error;
+ }
+ 
++bool in_hibernation_power_off(void)
++{
++	return entering_sleep_state;
++}
++EXPORT_SYMBOL(in_hibernation_power_off);
++
+ /**
+  *	power_down - Shut the machine down for hibernation.
+  *
