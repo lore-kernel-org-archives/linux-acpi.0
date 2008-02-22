@@ -1,93 +1,41 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 2/2] asus-laptop add kill switch support
-Date: Fri, 22 Feb 2008 11:03:10 +0100
-Message-ID: <1203674590.4995.39.camel@queen.suse.de>
-References: <200801161657.50967.corentincj@iksaif.net>
-	<200802070040.20871.lenb@kernel.org>  <47AB4895.9090205@crespel.net>
-	<1203349001.6019.85.camel@queen.suse.de> <47BB6863.7050208@crespel.net>
-Reply-To: trenn-l3A5Bk7waGM@public.gmane.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
+Date: Fri, 22 Feb 2008 10:37:29 +0000
+Message-ID: <20080222103727.GA25781@srcf.ucam.org>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <47BB6863.7050208-czgx1wgAc3rR7s880joybQ@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Fabien Crespel <fabien-czgx1wgAc3rR7s880joybQ@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([78.32.9.130]:50442 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284AbYBVKn3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2008 05:43:29 -0500
+Content-Disposition: inline
+In-Reply-To: <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Wed, 2008-02-20 at 00:38 +0100, Fabien Crespel wrote:
-> Thomas Renninger wrote :
-> > Hi,
-> >
-> > On Thu, 2008-02-07 at 19:06 +0100, Fabien Crespel wrote:
-> >> Basically:
-> >> - there is now a killswitch file in /sys/devices/platform/asus-laptop/ to report 
-> >> the KS status (read from HWRS)
-> >>     
-> > Not sure, but:
-> > Shouldn't this one register against a general kill-switch interface?
-> > E.g. include/linux/rfkill.h
-> > instead of starting an own interface...
-> >
-> >    Thomas
-> >   
-> Hello,
-Hi,
-
-first, I don't know much about this interface and wlan/bluetooth
-toggling..., I hope someone who is deeper involved kicks into this
-discussion.
-
-> after looking at the rfkill interface, it doesn't seem to have the same 
-> purpose here : rfkill seems to be here to allow toggling radio frequency 
-> of devices in response to a key or another *software* generated event, 
-> while the "killswitch" sysfs file in my patch simply provides a way to 
-> read whether the *hardware* kill switch is ON (and not write or toggle 
-> anything, since it's completely out of software control).
-The problem I see is that you may introduce a very
-specific /sys/.../asus_killswitch userspace interface for which a
-generic one already or should exist.
-You created this for a very specific Lapsus userspace app..., imagine
-there are other userspace progs: HAL, WLAN/Bluetooth performance test
-programs, whatever wants to know whether Wlan/Bluetooth is on or off.
-They now have to collect all this data from different, possibly existing
-sysfs files.
-Instead (this is what has been done for backlight control), every
-specific implementation should register at the backlight driver, you
-even find this in the asus driver.
-Like that, userspace can operate machine, even architecture independent.
-
-> My intention when adding this interface was to allow userspace tools 
-> like Lapsus to know when WLAN/Bluetooth are completely *disabled* (and 
-> not simply "off"). I don't think the rfkill interface provides a way to 
-> know that, or I missed it..? if it doesn't, wouldn't it be interesting 
-> to add it?
+On Fri, Feb 22, 2008 at 08:42:15AM +0800, Jeff Chua wrote:
+> On Fri, Feb 22, 2008 at 8:23 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
 > 
-> The rfkill interface seems interesting to support the Fn+F2 key though 
-> (WLAN/Bluetooth toggle), since currently it doesn't work on all models.
+> >  Your system (either your distro suspend/resume scripts or your platform) must
+> >  be running the video BIOS at resume time, otherwise it would probably come
+> >  back blank.
+> 
+> But I don't think so, unless acpid is doing just that. In my
+> suspend/resume event script, it's just doing a simple s2ram (without
+> options), and exit after resume.
 
-I don't know the policy to provide read or read+write access to the same
-thing for different HW.
-It can be done:
-  1) through file access rights
-  2) Simply return -ENODEV (or another error) when userspace tries
-     to write to the file in your case, it must handle this gracefully
-  3) Provide a set_wlan_state and a get_wlan_state sysfs file
-  4) ?
+The s2ram command has a built-in whitelist used to set up video 
+rePOSTing. If you want to test, reboot and do
 
-   Thomas
+echo mem >/sys/power/state
 
+without i915 being loaded. If you get a console back on resume then the 
+platform is reinitialising video for you, but otherwise it's your 
+userspace.
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
