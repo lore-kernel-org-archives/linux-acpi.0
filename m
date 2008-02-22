@@ -1,57 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Fri, 22 Feb 2008 18:44:30 +0100
-Message-ID: <200802221844.31579.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802221802.18640.rjw@sisk.pl> <47BF071C.6040308@rtr.ca>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: 100% C0 with 2.6.25-rc
+Date: Fri, 22 Feb 2008 09:33:43 -0800
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEE9A964C@orsmsx423.amr.corp.intel.com>
+References: <47BD600F.9090502@willies.info> <200802211733.54759.rjw@sisk.pl> <47BEF0A6.9000405@willies.info>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43511 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:5798 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758499AbYBVRpy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 12:45:54 -0500
-In-Reply-To: <47BF071C.6040308@rtr.ca>
-Content-Disposition: inline
+	id S1763481AbYBVRqz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2008 12:46:55 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <47BEF0A6.9000405@willies.info>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, Greg KH <gregkh@suse.de>
+To: Jan Willies <jan@willies.info>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
-On Friday, 22 of February 2008, Mark Lord wrote:
-> Rafael J. Wysocki wrote:
-> > On Friday, 22 of February 2008, Mark Lord wrote:
-> >> david@lang.hm wrote:
-> >> ..
-> >>> I've been watching for kexec hibernate for a little while now, and the 
-> >>> last I saw was that acpi was incompatible with the kexec hibernate (but 
-> >>> the suspend folks were still claiming that devices needed to be put in 
-> >>> the 'right mode' not just powered off. I've been waiting to see this 
-> >>> resolved.
-> >> ..
-> >>
-> >> Yeah, exactly.  What's so special about poweroff on hibernation?
-> >> Why even bother with the special "S4" state there?
-> > 
-> > (1) To be able to wake up with the help of devices that can't wake
-> >     the system up from S5 (power off)
-> > (2) To handle some platform devices appropriately over the cycle
-> ..
-> 
-> That's the theory.  I've read about it, but have yet to imagine
-> any real-life situation where it applies.
-> 
-> But this isn't my speciality, so.. do you have experience with any real examples?
+=20
 
-Yup.  The fan in my notebook behaves incorrectly after a resume from
-hibernation if S5 is entered instead of S4 during it.
+>-----Original Message-----
+>From: Jan Willies [mailto:jan@willies.info]=20
+>Sent: Friday, February 22, 2008 7:56 AM
+>To: Rafael J. Wysocki
+>Cc: linux-acpi@vger.kernel.org; Ingo Molnar; LKML; Thomas=20
+>Gleixner; Pallipadi, Venkatesh
+>Subject: Re: 100% C0 with 2.6.25-rc
+>
+>Rafael J. Wysocki wrote:
+>> On Thursday, 21 of February 2008, Jan Willies wrote:
+>>> Since 2.6.25-rc1 I have a lot of wakeups/s (=97134191,4) and=20
+>spend 100% in C0.
+>>> It worked fine with 2.6.24 and commandline nolapic. Without=20
+>nolapic I had 80k
+>>> wakeups/s after some time, but not right from the start like now. =20
+>>=20
+>> We have a regression from 2.6.24, apparently interrupts-related.
+>
+>After a lot of bisecting I've found the bad commit:=20
+>
+>9b12e18cdc1553de62d931e73443c806347cd974 is first bad commit
+>commit 9b12e18cdc1553de62d931e73443c806347cd974
+>Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
+>Date:   Thu Jan 31 17:35:05 2008 -0800
+>
+>    ACPI: cpuidle: Support C1 idle time accounting
+>   =20
+>    Show C1 idle time in /sysfs cpuidle interface. C1 idle time may no=
+t
+>    be entirely accurate in all cases. It includes the time spent
+>    in the interrupt handler after wakeup with "hlt" based C1.=20
+>But, it will
+>    be accurate with "mwait" based C1.
+>
+>
+>Reverting the commit brings my laptop back to C2.
+>
 
-I don't know why exactly it happens, but that's how it goes.
-
-Also, some machines are reported to behave incorrectly after a "shutdown"
-mode hibernation, while the same machines work just fine after a "platform"
-mode hibernation.  So at least for these machines it seems to matter.
+One question. Do you have CONFIG_CPU_IDLE enabled in your confg?
 
 Thanks,
-Rafael
+Venki
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
