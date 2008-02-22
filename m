@@ -1,58 +1,75 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off
-	aftersuspend-to-disk. Screen becomes green.
-Date: Fri, 22 Feb 2008 14:06:15 +0100
-Message-ID: <20080222130615.GA29123@elte.hu>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com> <20080222103727.GA25781@srcf.ucam.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Kernel Version specific vendor override possibilities needed -
+	Revert and provide osi=linux or provide a replacement
+Date: Fri, 22 Feb 2008 15:07:42 +0100
+Message-ID: <1203689263.4995.81.camel@queen.suse.de>
+References: <1203471860.3358.177.camel@linux-2bdv.site>
+	 <20080220173248.GA22709@srcf.ucam.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:44146 "EHLO mx2.mail.elte.hu"
+Received: from ns.suse.de ([195.135.220.2]:53702 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671AbYBVNGv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 08:06:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20080222103727.GA25781@srcf.ucam.org>
+	id S1750904AbYBVOHr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 09:07:47 -0500
+In-Reply-To: <20080220173248.GA22709@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@MIT.EDU>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
 
+On Wed, 2008-02-20 at 17:32 +0000, Matthew Garrett wrote:
+> Let's look at this differently. Most hardware is produced by vendors who 
+> don't care about Linux. We need to make that hardware work anyway. The 
+> only way we can achieve that is to be bug-compatible with Windows. 
+> Therefore, any way in which Linux behaviour varies from Windows 
+> behaviour is a bug. The only reason to export any indication that the 
+> kernel is Linux is because our behaviour is not identical to Windows. 
+> But, given that that's a bug, the solution should be to fix Linux and 
+> not to encourage vendors to put workarounds in their firmware.
 
-* Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+So to what Windows version are we compatible?
 
-> The s2ram command has a built-in whitelist used to set up video 
-> rePOSTing. If you want to test, reboot and do
-> 
-> echo mem >/sys/power/state
-> 
-> without i915 being loaded. If you get a console back on resume then 
-> the platform is reinitialising video for you, but otherwise it's your 
-> userspace.
+We currently return true for "Windows 2006".
+According to drivers/acpi/utilities/uteval.c we return true for all of
+these:
 
-btw., why isnt there an in-kernel whitelist, with perhaps a dynamic, 
-convenient /debug/s2r/whitelist append-API for distros (and testers) to 
-add more entries to the whitelist/blacklist? (for cases where the kernel 
-whitelist has not caught up yet) Which would eventually converge to 
-Utopia: s2ram that just works out of box.
- 
-This would be a lot more flexible (people could even temporarily extend 
-the whitelist via rc.local if need to be, etc.), a lot more robust and a 
-lot more user friendly than the "dont use /sys/power/state, rely on some 
-user-space tool to work around bugs" approach.
+        "Windows 2000",         /* Windows 2000 */
+        "Windows 2001",         /* Windows XP */
+        "Windows 2001 SP1",     /* Windows XP SP1 */
+        "Windows 2001 SP2",     /* Windows XP SP2 */
+        "Windows 2001.1",       /* Windows Server 2003 */
+        "Windows 2001.1 SP1",   /* Windows Server 2003 SP1 - Added
+                                   03/2006 */
+        "Windows 2006",         /* Windows Vista - Added 03/2006 */
 
-Really, i couldnt make the s2ram API/quirks situation much worse even if 
-i deliberately tried to design the whole code to be as hard to use and 
-as confusing as possible :-/ These types of half-kernel half-userspace 
-solutions usually result in constant finger-pointing and constant lag, 
-and they result in about the crappiest user experience that is possible 
-to achieve physically.
+Stuff added for "Windows 2001 SP2" might break Windows 2006.
+How do you want to handle this?
+Do you want to remove lower versions at some time?
+What about Longhorn or whatever coming up?
+Then these strings might branch into a server and a workstation Windows,
+to which one do you want to stay compatible, both again?
+All this does not make sense and it does not work.
 
-( Sorry about the strong words, while there's lots of good and positive
-  development lately i havent seen much change in this particular area
-  of s2ram in the past 1-2 years, and the whole chain is only as strong
-  as the weakest link - so someone finally has to deliver this message
-  to the cozy fire of s2r hackers while our testers and users are 
-  standing out in the cold rain ... )
+All this is an advantage for vendors who do not care about Linux, but it
+makes life really hard for vendors who want to support it.
 
-	Ingo
+The _OSI interface is not thought for Linux kernel developers to stay
+compatible with Windows.
+It got invented for vendors being able to provide hot-fixes for their
+BIOS for Operating Systems they are willing to support.
+
+So what should a vendor do if he has a BIOS hotfix for Windows 2003
+only. The fix workarounds an old W2003 AML bug. But this fix will break
+Linux and Vista on his machine. For Vista he can take care, Linux will
+break. And you are going to try to implement a workaround for an old
+W2003 OS bug (after people got angry because their machine they bought
+with Linux pre-loaded does not boot anymore after a BIOS update)...
+
+Your scenario only makes sense for Windows 2006 vendor fixes but also
+these are outdated soon, all this simply does not work...
+
+   Thomas
+
