@@ -1,37 +1,54 @@
-From: Jesse Barnes <jesse.barnes@intel.com>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 16:46:31 -0800
-Message-ID: <200802211646.31603.jesse.barnes@intel.com>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.25-rc2 System no longer powers off
+ aftersuspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 16:46:33 -0800 (PST)
+Message-ID: <alpine.LFD.1.00.0802211643140.19896@woody.linux-foundation.org>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
+	<200802211302.27002.jesse.barnes@intel.com>
+	<b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com>
+	<200802220131.09525.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:55736 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756683AbYBVArK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 19:47:10 -0500
-In-Reply-To: <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <200802220131.09525.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, Romano Giannetti <romano@dea.icai.upcomillas.es>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Thursday, February 21, 2008 4:42 pm Jeff Chua wrote:
-> On Fri, Feb 22, 2008 at 8:23 AM, Jesse Barnes <jesse.barnes@intel.com> 
-wrote:
-> >  Your system (either your distro suspend/resume scripts or your platform)
-> > must be running the video BIOS at resume time, otherwise it would
-> > probably come back blank.
->
-> But I don't think so, unless acpid is doing just that. In my
-> suspend/resume event script, it's just doing a simple s2ram (without
-> options), and exit after resume.
 
-Your s2ram script is doing your STD also?  Seems counterintuitive.  Anyway, 
-some machines also re-POST the GPU on resume from S3; maybe yours is doing 
-that.
 
-Jesse
+On Fri, 22 Feb 2008, Rafael J. Wysocki wrote:
+>  
+> -	if (state.event == PM_EVENT_SUSPEND) {
+> +	if (state.event == PM_EVENT_SUSPEND && !in_hibernation_power_off()) {
+
+I don't understand why hibernation just doesn't use a PM_EVENT_HIBERNATE, 
+and be done with it?
+
+Why should it be called PM_EVENT_SUSPEND when it isn't?
+
+Adding some external global variables is absolutely the wrong way to fix 
+this.
+
+It's not even like there are very many drivers who actually care about 
+"state.event" anyway: a 'git grep' returns just 35 users in the whole 
+tree, so if this was done this ugly way just to avoid double-chcking the 
+other cases that compare against PM_EVENT_SUSPEND, then it really wasn't 
+worth it.
+
+		Linus
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
