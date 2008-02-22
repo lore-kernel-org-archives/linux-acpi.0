@@ -1,59 +1,91 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off
- aftersuspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 17:28:53 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802211723510.19896@woody.linux-foundation.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802211646.31603.jesse.barnes@intel.com>
-	<b6a2187b0802211652x304daa2ci36a76a76a2fcb82@mail.gmail.com>
-	<200802211702.02306.jesse.barnes@intel.com>
+From: "Nish Aravamudan" <nish.aravamudan@gmail.com>
+Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
+Date: Thu, 21 Feb 2008 17:38:52 -0800
+Message-ID: <29495f1d0802211738leb47f9ayf9b3ab6aa51b66cb@mail.gmail.com>
+References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
+	 <47B73DD8.4030405@linux.vnet.ibm.com>
+	 <200802210208.47487.lenb@kernel.org>
+	 <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
+	 <20080221222245.GB30976@uranus.ravnborg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802211702.02306.jesse.barnes@intel.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, lkml <linux-kernel@vger.kernel.org>, Romano Giannetti <romano@dea.icai.upcomillas.es>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.155]:36089 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000AbYBVBiy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 20:38:54 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so183256fga.17
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Feb 2008 17:38:53 -0800 (PST)
+In-Reply-To: <20080221222245.GB30976@uranus.ravnborg.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Len Brown <lenb@kernel.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
 
+On 2/21/08, Sam Ravnborg <sam@ravnborg.org> wrote:
+> On Thu, Feb 21, 2008 at 10:54:40AM -0800, Nish Aravamudan wrote:
+>  > On 2/20/08, Len Brown <lenb@kernel.org> wrote:
+>  > > On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
+>  > >  > Hi Andrew,
+>  > >  >
+>  > >  > The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
+>  > >  > to build on x86_64 machine
+>  > >  >
+>  > >  >   CC      drivers/acpi/osl.o
+>  > >  > drivers/acpi/osl.c:60:38: error: empty filename in #include
+>  > >  > drivers/acpi/osl.c: In function 'acpi_os_table_override':
+>  > >  > drivers/acpi/osl.c:399: error: 'AmlCode' undeclared (first use in this function)
+>  > >  > drivers/acpi/osl.c:399: error: (Each undeclared identifier is reported only once
+>  > >  > drivers/acpi/osl.c:399: error: for each function it appears in.)
+>  > >  > make[2]: *** [drivers/acpi/osl.o] Error 1
+>  > >  > make[1]: *** [drivers/acpi] Error 2
+>  > >  > make: *** [drivers] Error 2
+>  > >  >
+>  > >  > #
+>  > >  > # Automatically generated make config: don't edit
+>  > >  > # Linux kernel version: 2.6.25-rc2-mm1
+>  > >  > # Sun Feb 17 08:07:17 2008
+>  > >  > #
+>  > >
+>  > >
+>  > > > CONFIG_ACPI_CUSTOM_DSDT=y
+>  > >  > CONFIG_ACPI_CUSTOM_DSDT_FILE=""
+>  > >
+>  > >
+>  > > garbage in, garbage out.
+>  >
+>  > garbage explicitly *allowed* by Kconfig in this case, though.
+>  >
+>  > >  If you don't give this build option a file name where AmlCode lives,
+>  > >  then the build will be unable to find AmlCode[].
+>  > >
+>  > >  http://www.lesswatts.org/projects/acpi/overridingDSDT.php
+>  >
+>  > So we have a .config option whose sole purpose is to use another
+>  > .config option? That seems ... less than ideal. Is there not some
+>  > Kconfig voodoo we can do to only require the one option? Maybe
+>  > something like how CONFIG_INITRAMFS_SOURCE is done? Adding Sam to the
+>  > Cc, in case he has any ideas.
+>
+>
+> Make sure STANDALONE is y for your randconfig builds.
+>  See README for examples.
 
+Hrm, if this is needed for randconfig to work, perhaps randconfig
+itself should somehow be specifying it?
 
-On Thu, 21 Feb 2008, Jesse Barnes wrote:
-> 
-> So the advantage of the kernel suspend/resume hooks for the DRM layer is that 
-> the kernel video drivers can do full state save/restore (which X usually 
-> doesn't do, and isn't really designed to do), so that if your platform 
-> *doesn't* do it all, you'll still end up with a usable machine in the end.
+>  STANALONE is there exactly to prevent the above but we cannot
+>  control randconfig.
 
-Well, I'm also hoping that eventually we could even just not do the VT 
-switch at all, and the kernel can treat X as "just another user process" 
-that it freezes.
+While setting STANDALONE does fix the above, it doesn't answer the
+more basic question I had -- do we really need both .config options in
+this case? If it's simply a case of "That's how it is, won't be fixed,
+there are higher priorities", that's good enough by me. Just seems a
+shame that we have an option to enable another option, which is
+required for the first option to be sensible -- seems like we should
+only need the second option...
 
-At least from a mode setting standpoint.
-
-We'd still want to make sure that X repaints the screen if the contents 
-were lost, of course. And this is going to depend very intimately on the 
-type of graphics card and whether the video RAM is saved by STR or not - 
-for the Intel integrated graphics kind of situation, the video RAM will be 
-refreshed along with all the other memory, but for other cards we may end 
-up having to do the VT switch not so much for modesetting reasons as just 
-a way to get X to save and restore all the *other* state.
-
-How close is the i915 driver from not having to even signal X? Or is that 
-just a pipedream of mine?
-
-			Linus
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+Thanks,
+Nish
