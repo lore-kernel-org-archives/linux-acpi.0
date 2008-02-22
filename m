@@ -1,54 +1,40 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.25-rc2 System no longer powers off
- aftersuspend-to-disk. Screen becomes green.
-Date: Thu, 21 Feb 2008 16:46:33 -0800 (PST)
-Message-ID: <alpine.LFD.1.00.0802211643140.19896@woody.linux-foundation.org>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
+Date: Fri, 22 Feb 2008 08:48:26 +0800
+Message-ID: <b6a2187b0802211648u2d420861v2cc4d06ba659daf2@mail.gmail.com>
 References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com>
-	<200802211302.27002.jesse.barnes@intel.com>
-	<b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com>
-	<200802220131.09525.rjw@sisk.pl>
+	 <200802211034.22056.jesse.barnes@intel.com>
+	 <200802212311.44319.rjw@sisk.pl>
+	 <200802211545.05794.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200802220131.09525.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, Romano Giannetti <romano@dea.icai.upcomillas.es>, linux-acpi@vger.kernel.org, Jesse Barnes <jesse.barnes@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wa-out-1112.google.com ([209.85.146.183]:28771 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756523AbYBVAs0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 19:48:26 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so250291wah.23
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Feb 2008 16:48:26 -0800 (PST)
+In-Reply-To: <200802211545.05794.jesse.barnes@intel.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
 
+On Fri, Feb 22, 2008 at 7:45 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+> On Thursday, February 21, 2008 2:11 pm Rafael J. Wysocki wrote:
+>  > Below is a patch that should work around the issue.  Please try it and let
+>  > me know if it helps.
+>
+>  I ended up applying the below patch instead, so it would build, and
+>  unfortunately it still hung at suspend time.
 
+I encountered the same patching problem, but realized that it was due
+to earlier patch that you had wanted me to test, so if you revert your
+patch back to the current git, Rafael's patch will apply and compile
+cleanly.
 
-On Fri, 22 Feb 2008, Rafael J. Wysocki wrote:
->  
-> -	if (state.event == PM_EVENT_SUSPEND) {
-> +	if (state.event == PM_EVENT_SUSPEND && !in_hibernation_power_off()) {
-
-I don't understand why hibernation just doesn't use a PM_EVENT_HIBERNATE, 
-and be done with it?
-
-Why should it be called PM_EVENT_SUSPEND when it isn't?
-
-Adding some external global variables is absolutely the wrong way to fix 
-this.
-
-It's not even like there are very many drivers who actually care about 
-"state.event" anyway: a 'git grep' returns just 35 users in the whole 
-tree, so if this was done this ugly way just to avoid double-chcking the 
-other cases that compare against PM_EVENT_SUSPEND, then it really wasn't 
-worth it.
-
-		Linus
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
+Thanks,
+Jeff.
