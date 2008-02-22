@@ -1,52 +1,74 @@
-From: Daniel Barkalow <barkalow@iabervon.org>
-Subject: Battery info bogus on Lenovo 3000 N100
-Date: Fri, 22 Feb 2008 12:55:17 -0500 (EST)
-Message-ID: <alpine.LNX.1.00.0802221232450.19024@iabervon.org>
+From: david@lang.hm
+Subject: Re: 2.6.25-rc2 System no longer powers off after suspend-to-disk.
+ Screen becomes green.
+Date: Fri, 22 Feb 2008 11:23:48 -0800 (PST)
+Message-ID: <alpine.DEB.1.00.0802221114350.17357@asgard.lang.hm>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802221802.18640.rjw@sisk.pl> <47BF071C.6040308@rtr.ca> <200802221844.31579.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iabervon.org ([66.92.72.58]:34509 "EHLO iabervon.org"
+Received: from mail.lang.hm ([64.81.33.126]:33357 "EHLO bifrost.lang.hm"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753524AbYBVSCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 13:02:00 -0500
+	id S1752105AbYBVSHv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 13:07:51 -0500
+In-Reply-To: <200802221844.31579.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mark Lord <lkml@rtr.ca>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Jeff Chua <jeff.chua.linux@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Dave Airlie <airlied@linux.ie>, linux-acpi@vger.kernel.org, Greg KH <gregkh@suse.de>
 
-I'm having problems with the battery reporting on my laptop. In 
-particular, the LEDs suggest that the battery isn't working at all, but 
-/proc/acpi/battery/BAT1/state says it's fine. Furthermore, one time when I 
-actually removed the battery entirely, /proc/acpi/.../info said (from 
-memory, may be slightly off):
+On Fri, 22 Feb 2008, Rafael J. Wysocki wrote:
 
-present:                 yes
-design capacity:         4000 mAh
-last full capacity:      4000 mAh
-battery technology:      rechargeable
-design voltage:          11100 mV
-design capacity warning: 420 mAh
-design capacity low:     156 mAh
-capacity granularity 1:  264 mAh
-capacity granularity 2:  3780 mAh
-model number:            PABAS024
-serial number:           3658Q
-battery type:            LION
-OEM info:                COMPAL
+> On Friday, 22 of February 2008, Mark Lord wrote:
+>> Rafael J. Wysocki wrote:
+>>> On Friday, 22 of February 2008, Mark Lord wrote:
+>>>> david@lang.hm wrote:
+>>>> ..
+>>>>> I've been watching for kexec hibernate for a little while now, and the
+>>>>> last I saw was that acpi was incompatible with the kexec hibernate (but
+>>>>> the suspend folks were still claiming that devices needed to be put in
+>>>>> the 'right mode' not just powered off. I've been waiting to see this
+>>>>> resolved.
+>>>> ..
+>>>>
+>>>> Yeah, exactly.  What's so special about poweroff on hibernation?
+>>>> Why even bother with the special "S4" state there?
+>>>
+>>> (1) To be able to wake up with the help of devices that can't wake
+>>>     the system up from S5 (power off)
+>>> (2) To handle some platform devices appropriately over the cycle
+>> ..
+>>
+>> That's the theory.  I've read about it, but have yet to imagine
+>> any real-life situation where it applies.
+>>
+>> But this isn't my speciality, so.. do you have experience with any real examples?
+>
+> Yup.  The fan in my notebook behaves incorrectly after a resume from
+> hibernation if S5 is entered instead of S4 during it.
 
-I've also been noticing for a while that the "remaining capacity" updates 
-irregularly and isn't generally current, and it reports the design 
-capacity when the state is "charged", even if discharging it at all 
-indicates that it's actually a lot lower. I've noticed this from 2.6.17 
-(the first kernel I had on this computer) to 2.6.22, the latest I've tried 
-here.
+so if you power off your laptop the fan doesn't work when you turn it back 
+on?????
 
-CONFIG_ACPI_DEBUG doesn't seem to be showing me anything particularly 
-informative (When I remove or insert the battery, I get:
-[ACPI Debug]  String: [0x12] "=====QUERY_25=====")
+> I don't know why exactly it happens, but that's how it goes.
+>
+> Also, some machines are reported to behave incorrectly after a "shutdown"
+> mode hibernation, while the same machines work just fine after a "platform"
+> mode hibernation.  So at least for these machines it seems to matter.
 
-There seem to be BIOS updates available, but nothing looks related.
+given that we don't have a pure "shutdown" option available to try I don't 
+see how this can be said to have been tested.
 
-What information can I collect on this problem?
+currently any attempts to do a shutdown type hibernate are tangled in the 
+other code that is there for the suspend modes. this makes it _very_ hard 
+to say that the hardware requires something as opposed to the strong 
+possibility that the software is doing something wrong.
 
-	-Daniel
-*This .sig left intentionally blank*
+there are also a _lot_ of people who are not able to reliably use the 
+existing "platform" mode hibernation, so it's not a fair statement to say 
+that it's the 'right' thing to do. If you want to make it an option, fine. 
+But please give those of us who don't care about these other wakeup 
+options, and who want to be able to use other OS's while linux is stopped 
+an option as well.
+
+David Lang
