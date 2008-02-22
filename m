@@ -1,77 +1,121 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
-Date: Fri, 22 Feb 2008 18:36:20 -0500
-Message-ID: <200802221836.20421.lenb@kernel.org>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <200802211641.22920.trenn@suse.de> <20080221171501.GA17592@mit.edu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PM: Handle unregistering devices during suspend/hibernation
+Date: Sat, 23 Feb 2008 00:53:11 +0100
+Message-ID: <200802230053.12180.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43622 "EHLO hera.kernel.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:45240 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751842AbYBVXhG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 18:37:06 -0500
-In-Reply-To: <20080221171501.GA17592@mit.edu>
+	id S1752623AbYBVXyc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 18:54:32 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Theodore Tso <tytso@mit.edu>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: Greg KH <gregkh@suse.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday 21 February 2008 12:15, Theodore Tso wrote:
-> On Thu, Feb 21, 2008 at 04:41:21PM +0100, Thomas Renninger wrote:
-> > > OEMs that really want to modify the BIOS to recognize
-> > > OS interfaces that are in Linux should propose
-> > > new OSI strings that specify interfaces, not broad
-> > > categories of operating sytems; and in Linux we
-> > > shoudl use, or not use, those strings, as appropriate.
-> > > I've recently been in discussion with OEMs on exactly
-> > > this topic -- I'm sorry it didn't happen a year ago.
-> > So you mean "SLED 10 SP2", "UBUNTU supported version XY" strings?
-> 
-> No, no, no, no, no!
-> 
-> What part of "specify interfaces, not broad category of operating
-> sytems" didn't you understand?
-> 
-> So for example, if we if some vendor decides for some silly reason
-> that they must the Nvidia graphics chipsets, and Nvidia is the one
-> holdout which is lame about providing information so we can program
-> the video hardware correctly after a suspend/resume, maybe there is a
-> feature flag, OSI(LameNvidiaSuspendResume).  The suppose 6 months
-> later, someone manages to disassemble the Nvidia driver in some legal
-> jurisdiction where there is no DMCA nonsense, and so Linux is now
-> capable of dealing with the video card itself.  Now future kernels can
-> simply omit that very specific OSI string.
-> 
-> Just because we are saying that OSI(Linux) is bad, does not mean that
-> people are saying that OSI("SLED 10 SP2") is the right answer.  Hell,
-> no!  The right thing is something like OSI(LameNvidiaSusependResume).
+Hi Greg,
 
+The appended patch fixes the issue with the new code for suspending/resuming
+devices, related to the fact that some device drivers and CPU hotplug notifiers
+unregister device objects while suspend is in progress, which leads to
+deadlocks.
 
-Ted speaks the truth.
+Please consider taking it for 2.6.25.
 
-Indeed, this is exactly the issue with the Dell M4300.
+Thanks,
+Rafael
 
-Dell executes BIOS re-post on OSI(Linux) for the benefit of
-text-mode video restore, and for the case where nv is used
-instead of the binary nvidia driver that knows how to do this.
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Why is that bad?
-Well, consider why Dell doesn't execute that BIOS code unconditionally...
-It is because it would make Windows resume speed uncompetitive.
+Introduce a mechanism preventing drivers and CPU hotplug notifiers
+from deadlocking suspend/hibernation by unregistering device objects
+while it is in progress.  Specifically, make device_del() detect if
+it has been called by the suspending task and automatically defer the
+removal of the device object if that's the case.
 
-So when Linux nv gets fixed (like i915 was) so that it can restore
-video w/o the BIOS, how to you un-do the damage?
-With OSI(Linux) you can't -- Linux will be at a permanent
-disadvantage to Windows on that platform _forever_.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+---
+ drivers/base/core.c        |    5 +++++
+ drivers/base/power/main.c  |    9 +++++++++
+ drivers/base/power/power.h |    5 +++++
+ 3 files changed, 19 insertions(+)
 
-However, if nv were changed to call an I/F in Linux/ACPI
-that says "please add OSI(LameNvidiaSusependResume)"
-and Dell's BIOS executed the video BIOS restore only when
-that was set, then a future smarter nv could stop using that crutch
-and Linux would no longer be at a disadvantage.
-
--Len
-
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -59,6 +59,13 @@ static DECLARE_RWSEM(pm_sleep_rwsem);
+ 
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 
++static struct task_struct *suspending_task;
++
++bool in_suspend_context(void)
++{
++	return (suspending_task == current);
++}
++
+ /**
+  *	device_pm_add - add a device to the list of active devices
+  *	@dev:	Device to be added to the list
+@@ -272,6 +279,7 @@ static void dpm_resume(void)
+ 		mutex_lock(&dpm_list_mtx);
+ 	}
+ 	mutex_unlock(&dpm_list_mtx);
++	suspending_task = NULL;
+ }
+ 
+ /**
+@@ -460,6 +468,7 @@ static int dpm_suspend(pm_message_t stat
+ {
+ 	int error = 0;
+ 
++	suspending_task = current;
+ 	mutex_lock(&dpm_list_mtx);
+ 	while (!list_empty(&dpm_locked)) {
+ 		struct list_head *entry = dpm_locked.prev;
+Index: linux-2.6/drivers/base/core.c
+===================================================================
+--- linux-2.6.orig/drivers/base/core.c
++++ linux-2.6/drivers/base/core.c
+@@ -929,6 +929,11 @@ void device_del(struct device *dev)
+ 	struct device *parent = dev->parent;
+ 	struct class_interface *class_intf;
+ 
++	if (in_suspend_context()) {
++		get_device(dev);
++		device_pm_schedule_removal(dev);
++		return;
++	}
+ 	device_pm_remove(dev);
+ 	if (parent)
+ 		klist_del(&dev->knode_parent);
+Index: linux-2.6/drivers/base/power/power.h
+===================================================================
+--- linux-2.6.orig/drivers/base/power/power.h
++++ linux-2.6/drivers/base/power/power.h
+@@ -11,6 +11,7 @@ static inline struct device *to_device(s
+ 	return container_of(entry, struct device, power.entry);
+ }
+ 
++extern bool in_suspend_context(void);
+ extern void device_pm_add(struct device *);
+ extern void device_pm_remove(struct device *);
+ extern int pm_sleep_lock(void);
+@@ -18,6 +19,10 @@ extern void pm_sleep_unlock(void);
+ 
+ #else /* CONFIG_PM_SLEEP */
+ 
++static inline bool in_suspend_context(void)
++{
++	return false;
++}
+ 
+ static inline void device_pm_add(struct device *dev)
+ {
