@@ -1,41 +1,78 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
-Date: Fri, 22 Feb 2008 10:37:29 +0000
-Message-ID: <20080222103727.GA25781@srcf.ucam.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Subject: Re: [lm-sensors] The new thermal management sysfs class, and hwmon
+Date: Fri, 22 Feb 2008 11:54:06 +0100
+Message-ID: <47BEA9CE.7030802@hhs.nl>
+References: <20080203022622.GA995@khazad-dum.debian.net>	 <1202031072.3042.54.camel@acpi-sony.sh.intel.com>	 <20080203164410.GL20687@jupiter.solarsys.private>	 <20080203175006.GB9159@khazad-dum.debian.net>	 <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>	 <20080205135725.GO20687@jupiter.solarsys.private>	 <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>	 <1202915450.7977.607.camel@queen.suse.de>	 <20080214140855.GB12412@srcf.ucam.org>	 <1203659229.3210.45.camel@localhost.localdomain>  <47BE8105.30301@hhs.nl> <1203669206.3210.68.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:50442 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbYBVKn3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2008 05:43:29 -0500
-Content-Disposition: inline
-In-Reply-To: <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com>
+Received: from frosty.hhs.nl ([145.52.2.15]:41375 "EHLO frosty.hhs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755536AbYBVLA6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 06:00:58 -0500
+Received: from exim (helo=frosty)
+	by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>)
+	id 1JSVe8-0001vU-Td
+	for linux-acpi@vger.kernel.org; Fri, 22 Feb 2008 12:00:53 +0100
+In-Reply-To: <1203669206.3210.68.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-On Fri, Feb 22, 2008 at 08:42:15AM +0800, Jeff Chua wrote:
-> On Fri, Feb 22, 2008 at 8:23 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+Zhang, Rui wrote:
+> Hi, Hans,
 > 
-> >  Your system (either your distro suspend/resume scripts or your platform) must
-> >  be running the video BIOS at resume time, otherwise it would probably come
-> >  back blank.
+> On Fri, 2008-02-22 at 16:00 +0800, Hans de Goede wrote:
 > 
-> But I don't think so, unless acpid is doing just that. In my
-> suspend/resume event script, it's just doing a simple s2ram (without
-> options), and exit after resume.
+>> I think all that is really needed and asked for is for the new thermal
+>> ACPI
+>> code to:
+>> 1) provide temp readings in the same format as hwmon (so milli degrees
+>> celcius,
+>> not degrees celcius
+> Agree.
+>> 2) provide a hwmon interface so that tools like (but not limited too):
+>> * net-snmp
+>> * mrtg
+>> * sensors
+>> * sensors-applet (gnome)
+>> * xfce-sensors-applet
+>> * ksysguard
+>> * ksensors
+>> * gkrellm
+>>
+>> Can provide temp and fan readings without having to be modified.
+> hmm, for fan device, maybe something like this?
+> pwm[1-*]_enable = 1 : manual fan control (using pwm[1-*])
+> 		  2+: automatic fan control (by acpi thermal driver)
+> pwm[1-*] = 0  : fan is off.
+> pwm[1-*] = 255: fan is on.
+> pwm[1-*] has only two valid values as ACPI fan only support 
+> two states, ON/OFF. and it doesn't need fan[1-*]_input because the fan
+> speed is not available.
+> Yes, it can work for ACPI fan although I don't think the existing pwm
+> hwmon I/F maps well to what we need and it seems like a "forced fit" to
+> use it. Any better ideas? :)
+> 
 
-The s2ram command has a built-in whitelist used to set up video 
-rePOSTing. If you want to test, reboot and do
+I wouldn't expose a pwm interface, doing so isn't that important as none of the 
+above listed apps actually use it, the pwm interface really only is for people 
+who want to manually tweak their fan speed and / or use some scripts to control 
+the fan speed based on temp when the hardware doesn't support it, as such it 
+doesn't get widely used, also since there isn't a really good mapping between 
+acpi thermalzone stuff and the hwmon pwm interface I wouldn't add a pwm 
+interface to a hwmon interface the the thermal zone code.
 
-echo mem >/sys/power/state
+And if fan speeds aren't available (aren't they?) then I would only add a hwmon 
+  class reference to a sysfs dir containing tempX_input's and a name atrribute 
+and leave it at that.
 
-without i915 being loaded. If you get a console back on resume then the 
-platform is reinitialising video for you, but otherwise it's your 
-userspace.
+But thats just my 2 euro-cents
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Regards,
+
+Hans
+
