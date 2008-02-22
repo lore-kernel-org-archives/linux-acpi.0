@@ -1,93 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off after suspend-to-disk. Screen becomes green.
-Date: Fri, 22 Feb 2008 01:28:34 +0100
-Message-ID: <200802220128.35457.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802212311.44319.rjw@sisk.pl> <200802211545.05794.jesse.barnes@intel.com>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
+Date: Fri, 22 Feb 2008 01:31:08 +0100
+Message-ID: <200802220131.09525.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39349 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:39380 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936079AbYBVAaM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Feb 2008 19:30:12 -0500
-In-Reply-To: <200802211545.05794.jesse.barnes@intel.com>
+	id S1761860AbYBVAce (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 19:32:34 -0500
+In-Reply-To: <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday, 22 of February 2008, Jesse Barnes wrote:
-> On Thursday, February 21, 2008 2:11 pm Rafael J. Wysocki wrote:
-> > Below is a patch that should work around the issue.  Please try it and let
-> > me know if it helps.
+On Friday, 22 of February 2008, Jeff Chua wrote:
+> On Fri, Feb 22, 2008 at 5:02 AM, Jesse Barnes <jesse.barnes@intel.com> wrote:
+> > On Thursday, February 21, 2008 11:43 am Romano Giannetti wrote:
+> >  > > > Let's try to narrow it down to what the interaction is. Are you using
+> >  > > > something like acpi_sleep=s3_bios or similar?
+> >  > >
+> >  > > No. Not additional command line option except for resume=/dev/sda3
+> >  > > reboot=bios
+> >  >
+> >  > My laptop (a Toshiba satellite U305, intel 945GM chipset, used to need
+> >  > s2ram -f -p -m to STR correctly. In 2.6.25-rc2 I can simply STR with
+> >  > echo mem > /sys/power/state.
+> >
+> >  Cool, glad to hear at least one success report. :)
 > 
-> I ended up applying the below patch instead, so it would build, and 
-> unfortunately it still hung at suspend time.
-
-Hmm.
-
-> So at this point, the known workarounds to the hang at suspend time are to 
-> remove the device power down call or to boot with 'no_console_suspend'.  
-> The 'screen turns green' problem is fixed by the extra 'inb' added in the 
-> patch below (at least for me).
-
-That is suspicious (see below).
-
+> STR is always working on my X60s. No green screen, no hang. Both s2ram
+> and "echo mem > /sys/power/state". It's STD that's having problem.
 > 
-> diff --git a/drivers/char/drm/i915_drv.c b/drivers/char/drm/i915_drv.c
-> index 35758a6..35b5a60 100644
-> --- a/drivers/char/drm/i915_drv.c
-> +++ b/drivers/char/drm/i915_drv.c
-> @@ -27,6 +27,7 @@
->   *
->   */
->  
-> +#include <linux/suspend.h>
->  #include "drmP.h"
->  #include "drm.h"
->  #include "i915_drm.h"
-> @@ -222,6 +223,7 @@ static void i915_restore_vga(struct drm_device *dev)
->  			   dev_priv->saveGR[0x18]);
->  
->  	/* Attribute controller registers */
-> +	inb(st01); /* switch back to index mode */
->  	for (i = 0; i < 20; i++)
->  		i915_write_ar(st01, i, dev_priv->saveAR[i], 0);
->  	inb(st01); /* switch back to index mode */
-> @@ -249,6 +251,9 @@ static int i915_suspend(struct drm_device *dev)
->  		return -ENODEV;
->  	}
->  
-> +	if (in_hibernation_power_off())
-> +		return 0;
-> +
+> But strange thing is I could even restore console after STD even
+> without agp and i915 module loaded, so I don't know how the console
+> vga got saved and restored.
 
-This thing should make i915_suspend() a noop in the last phase of hibernation,
-so if it still only works when you remove the
-pci_set_power_state(dev->pdev, PCI_D3hot), then I don't get it.
-
-Can you please try the pach below instead?
+Jeff, can you please test hibernation with the patch I've just sent to Jesse
+(reproduced below for convenience)?
 
 Thanks,
 Rafael
-
-
-On Thursday, February 21, 2008 2:11 pm Rafael J. Wysocki wrote:
-> Below is a patch that should work around the issue.  Please try it and let
-> me know if it helps.
-
-I ended up applying the below patch instead, so it would build, and 
-unfortunately it still hung at suspend time.
-
-So at this point, the known workarounds to the hang at suspend time are to 
-remove the device power down call or to boot with 'no_console_suspend'.  
-The 'screen turns green' problem is fixed by the extra 'inb' added in the 
-patch below (at least for me).
-
-Jesse
 
 ---
  drivers/char/drm/i915_drv.c |    5 +++--
