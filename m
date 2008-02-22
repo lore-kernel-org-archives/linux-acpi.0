@@ -1,50 +1,52 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
-Date: Fri, 22 Feb 2008 18:01:33 +0000
-Message-ID: <20080222180132.GA32623@srcf.ucam.org>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com> <20080222103727.GA25781@srcf.ucam.org> <20080222130615.GA29123@elte.hu>
+From: Daniel Barkalow <barkalow@iabervon.org>
+Subject: Battery info bogus on Lenovo 3000 N100
+Date: Fri, 22 Feb 2008 12:55:17 -0500 (EST)
+Message-ID: <alpine.LNX.1.00.0802221232450.19024@iabervon.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:35343 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755774AbYBVSCE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Feb 2008 13:02:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20080222130615.GA29123@elte.hu>
+Received: from iabervon.org ([66.92.72.58]:34509 "EHLO iabervon.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753524AbYBVSCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 13:02:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Feb 22, 2008 at 02:06:15PM +0100, Ingo Molnar wrote:
+I'm having problems with the battery reporting on my laptop. In 
+particular, the LEDs suggest that the battery isn't working at all, but 
+/proc/acpi/battery/BAT1/state says it's fine. Furthermore, one time when I 
+actually removed the battery entirely, /proc/acpi/.../info said (from 
+memory, may be slightly off):
 
-> btw., why isnt there an in-kernel whitelist, with perhaps a dynamic, 
-> convenient /debug/s2r/whitelist append-API for distros (and testers) to 
-> add more entries to the whitelist/blacklist? (for cases where the kernel 
-> whitelist has not caught up yet) Which would eventually converge to 
-> Utopia: s2ram that just works out of box.
+present:                 yes
+design capacity:         4000 mAh
+last full capacity:      4000 mAh
+battery technology:      rechargeable
+design voltage:          11100 mV
+design capacity warning: 420 mAh
+design capacity low:     156 mAh
+capacity granularity 1:  264 mAh
+capacity granularity 2:  3780 mAh
+model number:            PABAS024
+serial number:           3658Q
+battery type:            LION
+OEM info:                COMPAL
 
-Because all of these video quirks are just workarounds for the fact that 
-the kernel doesn't work properly. In general, you really don't want to 
-call a real-mode video bios from the kernel, so punting it to userspace 
-(and leaving the whitelisting there) is somewhat more straightforward. 
-In addition, we can then extend the whitelist without requiring kernel 
-upgrades.
+I've also been noticing for a while that the "remaining capacity" updates 
+irregularly and isn't generally current, and it reports the design 
+capacity when the state is "charged", even if discharging it at all 
+indicates that it's actually a lot lower. I've noticed this from 2.6.17 
+(the first kernel I had on this computer) to 2.6.22, the latest I've tried 
+here.
 
-> ( Sorry about the strong words, while there's lots of good and positive
->   development lately i havent seen much change in this particular area
->   of s2ram in the past 1-2 years, and the whole chain is only as strong
->   as the weakest link - so someone finally has to deliver this message
->   to the cozy fire of s2r hackers while our testers and users are 
->   standing out in the cold rain ... )
+CONFIG_ACPI_DEBUG doesn't seem to be showing me anything particularly 
+informative (When I remove or insert the battery, I get:
+[ACPI Debug]  String: [0x12] "=====QUERY_25=====")
 
-We've got i915 suspend/resume now, which already fixes this for a large 
-number of users. Recent ATI is easy, now that we actually have specs for 
-ATOM. The nouveau guys are almost at the point where we can do it for 
-nvidia. That basically just leaves VIA.
+There seem to be BIOS updates available, but nothing looks related.
 
-The other s2r issues are pretty much just driver bugs at this point.
+What information can I collect on this problem?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+	-Daniel
+*This .sig left intentionally blank*
