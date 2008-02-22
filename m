@@ -1,91 +1,103 @@
-From: "Nish Aravamudan" <nish.aravamudan@gmail.com>
-Subject: Re: [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
-Date: Thu, 21 Feb 2008 17:38:52 -0800
-Message-ID: <29495f1d0802211738leb47f9ayf9b3ab6aa51b66cb@mail.gmail.com>
-References: <20080216002522.9c4bd0fb.akpm@linux-foundation.org>
-	 <47B73DD8.4030405@linux.vnet.ibm.com>
-	 <200802210208.47487.lenb@kernel.org>
-	 <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com>
-	 <20080221222245.GB30976@uranus.ravnborg.org>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off aftersuspend-to-disk. Screen becomes green.
+Date: Thu, 21 Feb 2008 17:44:35 -0800
+Message-ID: <200802211744.35563.jesse.barnes@intel.com>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802220154.57051.rjw@sisk.pl> <200802211713.20713.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:36089 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbYBVBiy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Feb 2008 20:38:54 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so183256fga.17
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Feb 2008 17:38:53 -0800 (PST)
-In-Reply-To: <20080221222245.GB30976@uranus.ravnborg.org>
+Received: from mga02.intel.com ([134.134.136.20]:17198 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254AbYBVBoy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Feb 2008 20:44:54 -0500
+In-Reply-To: <200802211713.20713.jesse.barnes@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Len Brown <lenb@kernel.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jeff Chua <jeff.chua.linux@gmail.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On 2/21/08, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Thu, Feb 21, 2008 at 10:54:40AM -0800, Nish Aravamudan wrote:
->  > On 2/20/08, Len Brown <lenb@kernel.org> wrote:
->  > > On Saturday 16 February 2008 14:47, Kamalesh Babulal wrote:
->  > >  > Hi Andrew,
->  > >  >
->  > >  > The 2.6.25-rc2-mm1 kernel with randconfig build option, fails
->  > >  > to build on x86_64 machine
->  > >  >
->  > >  >   CC      drivers/acpi/osl.o
->  > >  > drivers/acpi/osl.c:60:38: error: empty filename in #include
->  > >  > drivers/acpi/osl.c: In function 'acpi_os_table_override':
->  > >  > drivers/acpi/osl.c:399: error: 'AmlCode' undeclared (first use in this function)
->  > >  > drivers/acpi/osl.c:399: error: (Each undeclared identifier is reported only once
->  > >  > drivers/acpi/osl.c:399: error: for each function it appears in.)
->  > >  > make[2]: *** [drivers/acpi/osl.o] Error 1
->  > >  > make[1]: *** [drivers/acpi] Error 2
->  > >  > make: *** [drivers] Error 2
->  > >  >
->  > >  > #
->  > >  > # Automatically generated make config: don't edit
->  > >  > # Linux kernel version: 2.6.25-rc2-mm1
->  > >  > # Sun Feb 17 08:07:17 2008
->  > >  > #
->  > >
->  > >
->  > > > CONFIG_ACPI_CUSTOM_DSDT=y
->  > >  > CONFIG_ACPI_CUSTOM_DSDT_FILE=""
->  > >
->  > >
->  > > garbage in, garbage out.
->  >
->  > garbage explicitly *allowed* by Kconfig in this case, though.
->  >
->  > >  If you don't give this build option a file name where AmlCode lives,
->  > >  then the build will be unable to find AmlCode[].
->  > >
->  > >  http://www.lesswatts.org/projects/acpi/overridingDSDT.php
->  >
->  > So we have a .config option whose sole purpose is to use another
->  > .config option? That seems ... less than ideal. Is there not some
->  > Kconfig voodoo we can do to only require the one option? Maybe
->  > something like how CONFIG_INITRAMFS_SOURCE is done? Adding Sam to the
->  > Cc, in case he has any ideas.
+On Thursday, February 21, 2008 5:13 pm Jesse Barnes wrote:
+> On Thursday, February 21, 2008 4:54 pm Rafael J. Wysocki wrote:
+> > On Friday, 22 of February 2008, Linus Torvalds wrote:
+> > > On Fri, 22 Feb 2008, Rafael J. Wysocki wrote:
+> > > > -	if (state.event == PM_EVENT_SUSPEND) {
+> > > > +	if (state.event == PM_EVENT_SUSPEND && !in_hibernation_power_off())
+> > > > {
+> > >
+> > > I don't understand why hibernation just doesn't use a
+> > > PM_EVENT_HIBERNATE, and be done with it?
+> > >
+> > > Why should it be called PM_EVENT_SUSPEND when it isn't?
+> > >
+> > > Adding some external global variables is absolutely the wrong way to
+> > > fix this.
+> > >
+> > > It's not even like there are very many drivers who actually care about
+> > > "state.event" anyway: a 'git grep' returns just 35 users in the whole
+> > > tree, so if this was done this ugly way just to avoid double-chcking
+> > > the other cases that compare against PM_EVENT_SUSPEND, then it really
+> > > wasn't worth it.
+> >
+> > Please relax, we're debugging the thing right now and the patch doesn't
+> > even seem to help on the other affected box.
 >
+> Actually, looks like I forgot to reboot between tests (just rmmod'd &
+> modprobed i915), your patch actually does work.
 >
-> Make sure STANDALONE is y for your randconfig builds.
->  See README for examples.
+> However, making new PM event messages might be a good thing anyway,
+> assuming Linus takes it for 2.6.25, since it should make the migration to
+> ->hibernate callbacks easier.
 
-Hrm, if this is needed for randconfig to work, perhaps randconfig
-itself should somehow be specifying it?
+Rafael, I'd actually prefer these changes to the i915 driver.  One is to avoid 
+the "green screen" problem and the other is to actually save state at 
+hibernate time in case we don't do a POST coming out of S4 (probably not 
+common but hey).
 
->  STANALONE is there exactly to prevent the above but we cannot
->  control randconfig.
+Jesse
 
-While setting STANDALONE does fix the above, it doesn't answer the
-more basic question I had -- do we really need both .config options in
-this case? If it's simply a case of "That's how it is, won't be fixed,
-there are higher priorities", that's good enough by me. Just seems a
-shame that we have an option to enable another option, which is
-required for the first option to be sensible -- seems like we should
-only need the second option...
+Make sure hibernation works by not shutting down the video device during 
+hibernation power off.  This is important because later stages of the 
+hibernation cycle end up touching the video device, which may cause a hang if 
+it was disabled early on.  Also make sure the restoration correctly restores 
+the AR registers by flipping the ARX register into index mode before doing 
+anything.
 
-Thanks,
-Nish
+Depends on Rafael's patch which exports hibernation state to drivers.
+
+Signed-off-by:  Jesse Barnes <jesse.barnes@intel.com>
+
+diff --git a/drivers/char/drm/i915_drv.c b/drivers/char/drm/i915_drv.c
+index 35758a6..5e73869 100644
+--- a/drivers/char/drm/i915_drv.c
++++ b/drivers/char/drm/i915_drv.c
+@@ -27,6 +27,7 @@
+  *
+  */
+ 
++#include <linux/suspend.h>
+ #include "drmP.h"
+ #include "drm.h"
+ #include "i915_drm.h"
+@@ -222,6 +223,7 @@ static void i915_restore_vga(struct drm_device *dev)
+ 			   dev_priv->saveGR[0x18]);
+ 
+ 	/* Attribute controller registers */
++	inb(st01);
+ 	for (i = 0; i < 20; i++)
+ 		i915_write_ar(st01, i, dev_priv->saveAR[i], 0);
+ 	inb(st01); /* switch back to index mode */
+@@ -364,8 +366,8 @@ static int i915_suspend(struct drm_device *dev)
+ 	i915_save_vga(dev);
+ 
+ 	/* Shut down the device */
+-	pci_disable_device(dev->pdev);
+-	pci_set_power_state(dev->pdev, PCI_D3hot);
++	if (!in_hibernation_power_off())
++		pci_set_power_state(dev->pdev, PCI_D3hot);
+ 
+ 	return 0;
+ }
+
