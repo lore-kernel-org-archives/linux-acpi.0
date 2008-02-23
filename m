@@ -1,192 +1,105 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
-Date: Fri, 22 Feb 2008 19:06:28 -0500
-Message-ID: <200802221906.28353.lenb@kernel.org>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <200802210341.13809.lenb@kernel.org> <200802211641.22920.trenn@suse.de>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH] PM: Handle unregistering devices during
+	suspend/hibernation
+Date: Fri, 22 Feb 2008 16:02:22 -0800
+Message-ID: <20080223000222.GA26104@suse.de>
+References: <200802230053.12180.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38958 "EHLO hera.kernel.org"
+Received: from ns2.suse.de ([195.135.220.15]:53706 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751652AbYBWAG5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 19:06:57 -0500
-In-Reply-To: <200802211641.22920.trenn@suse.de>
+	id S1750782AbYBWASL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 19:18:11 -0500
 Content-Disposition: inline
+In-Reply-To: <200802230053.12180.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Theodore Tso <tytso@mit.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thursday 21 February 2008 10:41, Thomas Renninger wrote:
-> On Thursday 21 February 2008 09:41:13 you wrote:
-> > Thomas,
-> > Thanks for the note.
-> > Please read the messages on linux-acpi with "dmi" in the subject
-> > for some background.
-
-> Can you be a bit more specific. Grepping for "dmi" is a bit verbose on the 
-> linux-acpi list.
-
-Sure, search messages from me in the last two months with "dmi" in the subject.
-
-BTW. here is an example of OSI(Linux) breaking Linux:
-http://bugzilla.kernel.org/show_bug.cgi?id=7787
-
-> > yes, OSI(Linux) was enabled by default through 2.6.22
-> > and was disabled by default starting in 2.6.23.
-> >
-> > The reason it has come up recently is because
-> > it got into a reference BIOS -- and I'm sorry
-> > to admit that I was a party to that -- I
-> > wasn't thinking.
-> >
-> > Tomas Carnecky's reply is 100% correct.
-> > We can't support OSI(Linux) any more than we
-> > could support _OS="Linux", or Microsoft
-> > could support OSI(Windows) -- particularly
-> > on an OS that changes as fast as Linux does.
-> > To do so would in some cases put Linux at
-> > a permanent disadvantage to competing operating systems.
-
-> No, not providing an interface at all is a disadvantage, a permanent one.
+On Sat, Feb 23, 2008 at 12:53:11AM +0100, Rafael J. Wysocki wrote:
+> Hi Greg,
 > 
-> You all look at this too much from the kernel point of view:
-> You are a vendor and you want to provide a BIOS update, because on the model 
-> you sold with Linux on it, there is a bug. For some reason Linux is not 100% 
-> compatible to Windows and the bug does only exist on Linux.
-> But you still have to support Windows on that machine and unfortunately this 
-> machine got sold with Windows 10x more often than with Linux.
-> The bug is rather complicated to fix/workaround through the OS (E.g. suspend 
-> reordering, AML bug, you simply misread the ACPI spec and it did work for 
-> Windows (the ACPI kernel maintainer likes to add the "compatibility" hack, 
-> but it's just too intrusive to backport into your stable kernel release you 
-> support), ...). But a modification in the DSDT is a one-liner and an obvious 
-> fix.
-> You desperately search for a flag to be able to make sure you do not risk to 
-> break Windows...
-> Now they have to ignore the bug. Bad for the vendor, bad for the customer, bad 
-> for us (yet another complex "Windows compatibility" hack).
->
-> > Yes, we are attempting to close Pandora's box.
-> Too late and IMO there is nothing bad about it.
-
-Not only is there something bad about it,
-the size and duration of the badnessa are both unbounded.
-
-We went through this before when we changed
-ACPI_OS_NAME to "Microsoft Windows NT" from "Linux".
-
-We need to learn from history.
-
-> > I think we'll be successful, though we have to handle the
-> > Dell and Lenovo systems which actually use OSI(Linux)
-> > on purpose.
-> > Everybody else appears to be using it 
-> > by mistake, sometimes with no effect,
-> > sometimes with negative effect.
-> Are you sure, they use it by mistake?
-> Again, think from a vendor's point of view...
-> What I expect happened here:
-> Vendors thought about better Linux support. Some already chose a distribution 
-> which (most common should be Ubuntu here, It's Dell, already Acer? and 
-> others?) They pre-load it with a specific, probably a rather stable release 
-> and sell their laptops with it. And they have to provide support for it, at 
-> least for the release they sold it with.
+> The appended patch fixes the issue with the new code for suspending/resuming
+> devices, related to the fact that some device drivers and CPU hotplug notifiers
+> unregister device objects while suspend is in progress, which leads to
+> deadlocks.
 > 
-> I expect the first thing they did when thinking about Linux support is that 
-> they added something similar like:
-> Name (Linx, 0)
-> ...
-> if (_OSI("Linux"))
->    Store(1, Linx)
+> Please consider taking it for 2.6.25.
 > 
-> to their BIOSes, the same they do for Windows'es they have to support.
-> They even may have verified it working... the "NOP".
-> Now if there pop up problems, they can and will use this to provide Linux 
-> specific BIOS fixes with code that is only processed on Linux, because they 
-> cannot risk to break Windows.
+> Thanks,
+> Rafael
 > 
-> If you rip this out now you will see:
->   - white/black listed NOPs that break after a BIOS update with later
->     kernels
->   - No BIOS updates for Linux at all in this area (and this is what I mean
->     with permanent disadvantage)
-
-Outside of the development community, "BIOS update" is virtually an oxymoron.
-
-> > No, the DMI list is not large,
-> It is very confusing.
->
-> > it is mostly comments and it is __init.
-> That is not really important.
-
-If there is a problem with the blacklist,
-please bring it to my attention.
-
-> > I _strongly_ urge you to not fork from
-> > the .stable and mainline kernel in this area.
-
-> Matthew's arguments are quite interesting.
-> I still disagree with:
->   - simply ripping it out (at least do it soft)
->   - Remove all possibilities for vendors who want support Linux
->     to provide safe, only Linux affecting BIOS updates, just for
->     the sake of "being Windows compatible"
+> ---
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> The strongest argument: I agree that they of course should contribute their 
-> code and start working on the kernel, provide software updates etc.
-> But those guys do not have to share much, anyway:
-> (Some guessing now): Asus, Acer, Lenovo, Dell,...: have to make sure that they 
-> buy and put hardware into their machines from companies that work on Linux 
-> now. This is where we will see most advantages. They do not manufacture most 
-> HW components themselves (network/wlan/sound/... cards). They manufacture or 
-> at least have direct control over their BIOS, though. So this kind of hot-fix 
-> is most convenient for them (or may be the only possibility for them).
->
-> > OEMs that really want to modify the BIOS to recognize
-> > OS interfaces that are in Linux should propose
-> > new OSI strings that specify interfaces, not broad
-> > categories of operating sytems; and in Linux we
-> > shoudl use, or not use, those strings, as appropriate.
-> > I've recently been in discussion with OEMs on exactly
-> > this topic -- I'm sorry it didn't happen a year ago.
-
-> So you mean "SLED 10 SP2", "UBUNTU supported version XY" strings?
-
-No, I mean "Extended Address Space Descriptor"
-
-> While this would be helpful for vendors on shortterm, they would realize soon, 
-> that their customers get angry after updating to an unsupported, brand-new 
-> kernel/distribution. This is exactly what we do not want to have (and what 
-> could happen soon).
+> Introduce a mechanism preventing drivers and CPU hotplug notifiers
+> from deadlocking suspend/hibernation by unregistering device objects
+> while it is in progress.  Specifically, make device_del() detect if
+> it has been called by the suspending task and automatically defer the
+> removal of the device object if that's the case.
 > 
-> IMO osi=linux should stay (must stay now!).
-> Your concerns that the vendors are messing up their BIOSes, so that this has 
-> to be workarounded in later kernels etc. is utopistic.
-> Vendors who are using such flags in their BIOSes want their machines to run 
-> fine on Linux forever. They do not add ugly stuff in there on purpose. 
-> Explain them how to use it. They should stick to the specifications, ask on 
-> acpi list if in doubt. We should make up a documentation: "Guide for Linux 
-> ACPI BIOS updates", ...
->
-> The whole problem here is that those guys who are affected have never been 
-> asked...
-> Shouldn't there be some Dell activity on some Linux/Ubuntu lists now? I bet 
-> every vendor will tell you that he wants to have such a thing. Find out some 
-> people who are in charge for Linux and invite them for a discussion.
-> A general Linux flag is the way to start, everything more specific will/can 
-> get embedded into this flag later if it makes sense (without any risk for the 
-> vendors to break Windows). There are (I expect most) cases where embedding 
-> stuff into if(linux) makes a lot sense. But Henrique and others are probably 
-> right that we need something more fine grained later (in rare cases, e.g. the 
-> in-kernel graphics driver issues).
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Acked-by: Alan Stern <stern@rowland.harvard.edu>
+> ---
+>  drivers/base/core.c        |    5 +++++
+>  drivers/base/power/main.c  |    9 +++++++++
+>  drivers/base/power/power.h |    5 +++++
+>  3 files changed, 19 insertions(+)
+> 
+> Index: linux-2.6/drivers/base/power/main.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/base/power/main.c
+> +++ linux-2.6/drivers/base/power/main.c
+> @@ -59,6 +59,13 @@ static DECLARE_RWSEM(pm_sleep_rwsem);
+>  
+>  int (*platform_enable_wakeup)(struct device *dev, int is_on);
+>  
+> +static struct task_struct *suspending_task;
+> +
+> +bool in_suspend_context(void)
+> +{
+> +	return (suspending_task == current);
+> +}
+> +
+>  /**
+>   *	device_pm_add - add a device to the list of active devices
+>   *	@dev:	Device to be added to the list
+> @@ -272,6 +279,7 @@ static void dpm_resume(void)
+>  		mutex_lock(&dpm_list_mtx);
+>  	}
+>  	mutex_unlock(&dpm_list_mtx);
+> +	suspending_task = NULL;
+>  }
+>  
+>  /**
+> @@ -460,6 +468,7 @@ static int dpm_suspend(pm_message_t stat
+>  {
+>  	int error = 0;
+>  
+> +	suspending_task = current;
+>  	mutex_lock(&dpm_list_mtx);
+>  	while (!list_empty(&dpm_locked)) {
+>  		struct list_head *entry = dpm_locked.prev;
+> Index: linux-2.6/drivers/base/core.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/base/core.c
+> +++ linux-2.6/drivers/base/core.c
+> @@ -929,6 +929,11 @@ void device_del(struct device *dev)
+>  	struct device *parent = dev->parent;
+>  	struct class_interface *class_intf;
+>  
+> +	if (in_suspend_context()) {
+> +		get_device(dev);
+> +		device_pm_schedule_removal(dev);
+> +		return;
+> +	}
 
-If you are having discussions with vendor BIOS writers,
-please be encouraged to put them in direct contact with me.
-I'm in touch with several, and they generally prefer
-private communication versus open discussion on the list.
+Why are you grabbing an additional reference to the device here?  That
+would seem to get out of balance when the device is later scheduled for
+removal, right?
 
 thanks,
--Len
+
+greg k-h
