@@ -1,91 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [Patch] ACPI: ignore processors that doesn't support hot plug
-Date: Sat, 23 Feb 2008 01:53:56 -0500
-Message-ID: <200802230153.56710.lenb@kernel.org>
-References: <1203664638.3210.54.camel@localhost.localdomain>
+Subject: Re: [2.6 patch] drivers/thermal/thermal.c: fix a check-after-use
+Date: Sat, 23 Feb 2008 02:19:49 -0500
+Message-ID: <200802230219.50120.lenb@kernel.org>
+References: <20080220001404.GW31955@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46153 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:60242 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242AbYBWGyK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Feb 2008 01:54:10 -0500
-In-Reply-To: <1203664638.3210.54.camel@localhost.localdomain>
+	id S1751389AbYBWHUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Feb 2008 02:20:04 -0500
+In-Reply-To: <20080220001404.GW31955@cs181133002.pp.htv.fi>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: zhangrui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Adrian Bunk <bunk@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Thomas Sujith <sujith.thomas@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday 22 February 2008 02:17, zhangrui wrote:
-> is_processor_present is only called in the processor hotplug case,
-> and _STA method is mandatory at this time.
+On Tuesday 19 February 2008 19:14, Adrian Bunk wrote:
+> This patch fixes a check-after-use spotted by the Coverity checker.
 > 
-> We should ignore those processors that are disabled in the MADT
-> and don't have _STA methods.
-> Because they will never exist in this system.
-> For the processors that don't physically exist but can be
-> hot plugged later, we still need this debug info.
+> Signed-off-by: Adrian Bunk <bunk@kernel.org>
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=8570
+> ---
+> 570462ca4441d8d63dfd46efe6e5b2b1c251a611 diff --git a/drivers/thermal/thermal.c b/drivers/thermal/thermal.c
+> index e782b3e..958654b 100644
+> --- a/drivers/thermal/thermal.c
+> +++ b/drivers/thermal/thermal.c
+> @@ -308,10 +308,10 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  	struct thermal_cooling_device_instance *pos;
+>  	int result;
+>  
+> -	if (trip >= tz->trips || (trip < 0 && trip != THERMAL_TRIPS_NONE))
+> +	if (!tz || !cdev)
+>  		return -EINVAL;
+>  
+> -	if (!tz || !cdev)
+> +	if (trip >= tz->trips || (trip < 0 && trip != THERMAL_TRIPS_NONE))
+>  		return -EINVAL;
+>  
+>  	dev =
 > 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> --
 
-Okay.  As the original patch shipped in rc1,
-below is the incremental.
+this patch no longer applies because the bogus check for a programming error
+was already replaced by a better check of run-time params.
 
 thanks,
--Len
-
-Subject: ACPI Exception (): AE_NOT_FOUND, Processor Device is not present (update)
-From: Zhang Rui <rui.zhang@intel.com>
-
-update cfaf3747ff3d431fba33f75083b7f50f58ae22ff
-ACPI: ACPI Exception (): AE_NOT_FOUND, Processor Device is not present
-
-is_processor_present is only called in the processor hotplug case,
-and _STA method is mandatory at this time.
-
-We should ignore those processors that are disabled in the MADT
-and don't have _STA methods.
-Because they will never exist in this system.
-For the processors that don't physically exist but can be
-hot plugged later, we still need this debug info.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8570
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index a3cc8a9..d9316ab 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -840,17 +840,19 @@ static int is_processor_present(acpi_handle handle)
- 
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	/*
--	 * if a processor object does not have an _STA object,
--	 * OSPM assumes that the processor is present.
--	 */
--	if (status == AE_NOT_FOUND)
--		return 1;
- 
- 	if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_PRESENT))
- 		return 1;
- 
--	ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
-+	/*
-+	 * _STA is mandatory for a processor that supports hot plug
-+	 */
-+	if (status == AE_NOT_FOUND)
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				"Processor does not support hot plug\n"));
-+	else
-+		ACPI_EXCEPTION((AE_INFO, status,
-+				"Processor Device is not present"));
- 	return 0;
- }
- 
+-len
