@@ -1,49 +1,38 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH] PM: Handle unregistering devices during
-	suspend/hibernation
-Date: Fri, 22 Feb 2008 19:47:37 -0800
-Message-ID: <20080223034737.GA25876@suse.de>
-References: <200802230053.12180.rjw@sisk.pl> <20080223000222.GA26104@suse.de> <200802230121.50232.rjw@sisk.pl> <200802230219.28191.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.24 Temperature/speed _not_ normal - no thermal throttling?
+Date: Fri, 22 Feb 2008 23:33:23 -0500
+Message-ID: <200802222333.23160.lenb@kernel.org>
+References: <47BBC627.8020907@fnal.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:39322 "EHLO mx1.suse.de"
+Received: from hera.kernel.org ([140.211.167.34]:37447 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753715AbYBWDpt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Feb 2008 22:45:49 -0500
+	id S1751806AbYBWEdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Feb 2008 23:33:38 -0500
+In-Reply-To: <47BBC627.8020907@fnal.gov>
 Content-Disposition: inline
-In-Reply-To: <200802230219.28191.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>
+To: Ron Rechenmacher <ron@fnal.gov>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, Feb 23, 2008 at 02:19:27AM +0100, Rafael J. Wysocki wrote:
-> On Saturday, 23 of February 2008, Rafael J. Wysocki wrote:
-> > On Saturday, 23 of February 2008, Greg KH wrote:
-> > > On Sat, Feb 23, 2008 at 12:53:11AM +0100, Rafael J. Wysocki wrote:
-> > > > Hi Greg,
-> > > > 
-> > > > The appended patch fixes the issue with the new code for suspending/resuming
-> > > > devices, related to the fact that some device drivers and CPU hotplug notifiers
-> > > > unregister device objects while suspend is in progress, which leads to
-> > > > deadlocks.
-> > > > 
-> > > > Please consider taking it for 2.6.25.
-> 
-> Ouch, please disregard this patch.
-> 
-> Alan rightfully noticed that it may confuse subsystems assuming that after
-> device_unregister() has returned, the driver's ->release() method has run.
-> 
-> Unfortunately, he did that in a Bugzilla comment that has never reached
-> my mailbox (strangely enough, I haven't been receiving any messages from
-> the Bugzilla for the last two days or so).
-> 
-> Sorry for the trouble.
+On Wednesday 20 February 2008 01:18, Ron Rechenmacher wrote:
+> my dell d830 laptop seems to over heat and hang.
 
-No problem at all.
+Ron,
+see "Thermal Issues" here:
 
-thanks,
+http://www.lesswatts.org/projects/acpi/debug.php
 
-greg k-h
+My guess is that ACPI (and thus Linux) have no control over
+the fans on this system (as I've never seen a Dell with
+OS controlled fans)  If the fans are spinning fast when you
+heat up the machine, then they are probably clogged with dust
+or there a mechanical issue with the thermal solution.
+
+cheers,
+-Len
+
