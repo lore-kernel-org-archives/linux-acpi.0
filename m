@@ -1,33 +1,74 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [Suspend-devel] 2.6.25-rc2 System no longer powers off
-	aftersuspend-to-disk. Screen becomes green.
-Date: Sat, 23 Feb 2008 12:17:49 +0100
-Message-ID: <20080223111749.GB31098@elte.hu>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802211302.27002.jesse.barnes@intel.com> <b6a2187b0802211620q47f6601fuf7e88395d89b90c8@mail.gmail.com> <200802211623.55450.jesse.barnes@intel.com> <b6a2187b0802211642i17730ccav6744b614c086df72@mail.gmail.com> <20080222103727.GA25781@srcf.ucam.org> <20080222130615.GA29123@elte.hu> <20080222180132.GA32623@srcf.ucam.org>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [PATCH] ACPI: add ACPI aliases to toshiba_acpi module
+Date: Sat, 23 Feb 2008 17:36:46 +0300
+Message-ID: <200802231736.50346.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:32824 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbYBWLSR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Feb 2008 06:18:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20080222180132.GA32623@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart3619050.yedp1jv414";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759732AbYBWOhu@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: toshiba_acpi@memebeam.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olivier Blin <blino@mandriva.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Linus Torvalds <torvalds@linux-foundation.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+
+--nextPart3619050.yedp1jv414
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Subject: [PATCH] ACPI: add ACPI aliases to toshiba_acpi module
+=46rom: Andrey Borzenkov < arvidjaar@mail.ru>
+
+This adds aliases to enable autoloading of toishiba_acpi. Two aliases
+are defined - TOS6200 (for \\_SB_.VALD.GHCI) and TSO1900 (for
+\\_SB_.VALZ.GHCI). This allows toishiba_acpi to be autoloaded on
+systems that provide those devices.
+
+Signed-off-by: Andrey Borzenkov < arvidjaar@mail.ru>
+
+=2D--
+
+TOS6200 case is tested by me. I do not have device with TOS1900 and gathere=
+d HID
+from searching available information on Iternet.
+
+ drivers/acpi/toshiba_acpi.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
 
-* Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+diff --git a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
+index 9e8c20c..0a43c8e 100644
+=2D-- a/drivers/acpi/toshiba_acpi.c
++++ b/drivers/acpi/toshiba_acpi.c
+@@ -99,6 +99,13 @@ MODULE_LICENSE("GPL");
+ #define HCI_VIDEO_OUT_CRT		0x2
+ #define HCI_VIDEO_OUT_TV		0x4
+=20
++static const struct acpi_device_id toshiba_device_ids[] =3D {
++	{"TOS6200", 0},
++	{"TOS1900", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, toshiba_device_ids);
++
+ /* utility
+  */
+=20
 
-> We've got i915 suspend/resume now, which already fixes this for a 
-> large number of users. Recent ATI is easy, now that we actually have 
-> specs for ATOM. The nouveau guys are almost at the point where we can 
-> do it for nvidia. That basically just leaves VIA.
-> 
-> The other s2r issues are pretty much just driver bugs at this point.
+--nextPart3619050.yedp1jv414
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-ok - sounds good :-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (GNU/Linux)
 
-	Ingo
+iEYEABECAAYFAkfAL38ACgkQR6LMutpd94wQkACeP2h5Rj/3nYDBF4ldiMl5KqC6
+pm4AnReJJVo61385tV+vXfKqJKKiFlTd
+=dq5S
+-----END PGP SIGNATURE-----
+
+--nextPart3619050.yedp1jv414--
