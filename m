@@ -1,25 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [lm-sensors] The new thermal management sysfs class, and hwmon
-Date: Sat, 23 Feb 2008 02:43:14 -0500
-Message-ID: <200802230243.15156.lenb@kernel.org>
-References: <20080203022622.GA995@khazad-dum.debian.net> <1203669206.3210.68.camel@localhost.localdomain> <47BEA9CE.7030802@hhs.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: The new thermal management sysfs class, and hwmon
+Date: Sat, 23 Feb 2008 09:29:58 +0100
+Message-ID: <20080223092958.5d1c4471@hyperion.delvare>
+References: <20080203022622.GA995@khazad-dum.debian.net>
+	<1202031072.3042.54.camel@acpi-sony.sh.intel.com>
+	<20080203164410.GL20687@jupiter.solarsys.private>
+	<20080203175006.GB9159@khazad-dum.debian.net>
+	<05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>
+	<20080205135725.GO20687@jupiter.solarsys.private>
+	<05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>
+	<1202915450.7977.607.camel@queen.suse.de>
+	<20080214140855.GB12412@srcf.ucam.org>
+	<1203659229.3210.45.camel@localhost.localdomain>
+	<47BE8105.30301@hhs.nl>
+	<1203669206.3210.68.camel@localhost.localdomain>
+	<47BEA9CE.7030802@hhs.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39018 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754684AbYBWHpZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:45:25 -0500
+Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:2771 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S936680AbYBWIaE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Feb 2008 03:30:04 -0500
 In-Reply-To: <47BEA9CE.7030802@hhs.nl>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Richard Hughes <hughsient@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-On Friday 22 February 2008 05:54, Hans de Goede wrote:
+On Fri, 22 Feb 2008 11:54:06 +0100, Hans de Goede wrote:
 > Zhang, Rui wrote:
 > > Hi, Hans,
 > > 
@@ -31,15 +41,7 @@ On Friday 22 February 2008 05:54, Hans de Goede wrote:
 > >> 1) provide temp readings in the same format as hwmon (so milli degrees
 > >> celcius,
 > >> not degrees celcius
-
 > > Agree.
-
-/me looks for the "temp = temp * 1000" patch from Rui, as nobody disagrees
-that we should implement the original plan of being as hwmon compatible as possbile.
-
-(actually, ACPI always works with 1/10th degree Kelvin internall, so someplace
- it should actually be temp = temp * 100)
-
 > >> 2) provide a hwmon interface so that tools like (but not limited too):
 > >> * net-snmp
 > >> * mrtg
@@ -51,7 +53,6 @@ that we should implement the original plan of being as hwmon compatible as possb
 > >> * gkrellm
 > >>
 > >> Can provide temp and fan readings without having to be modified.
-
 > > hmm, for fan device, maybe something like this?
 > > pwm[1-*]_enable = 1 : manual fan control (using pwm[1-*])
 > > 		  2+: automatic fan control (by acpi thermal driver)
@@ -67,6 +68,9 @@ that we should implement the original plan of being as hwmon compatible as possb
 > 
 > I wouldn't expose a pwm interface, doing so isn't that important as none of the 
 > above listed apps actually use it, the pwm interface really only is for people 
+
+Note: libsensors itself doesn't care about the pwm files.
+
 > who want to manually tweak their fan speed and / or use some scripts to control 
 > the fan speed based on temp when the hardware doesn't support it, as such it 
 > doesn't get widely used, also since there isn't a really good mapping between 
@@ -76,26 +80,18 @@ that we should implement the original plan of being as hwmon compatible as possb
 > And if fan speeds aren't available (aren't they?) then I would only add a hwmon 
 >   class reference to a sysfs dir containing tempX_input's and a name atrribute 
 > and leave it at that.
+> 
+> But thats just my 2 euro-cents
 
-Right, ACPI doesn't supply fan speeds -- ACPI abstracts fans so that that
-they are just on/off.  Systems that support multi-speed ACPI fans
-do it with with multiple logical fans to indicate the different speeds
-of the same physical fan.
+FWIW, I agree with pretty much everything Hans said.
 
-Yeah, i know, this abstraction is distasteful to hwmon folks
-who are used to talking to the real hw and knowing what it is doing.
-Needless to say, that simply isn't the model these system designers had in mind.
-The good news only laptops from hp, acer, fsc tend to implement
-acpi fan control.  Laptops from other vendors do not, and I've
-never seen a desktop or server with ACPI fan control.
+Additionally, we could map the critical trip point to tempX_crit (read-only).
 
-per the paper at the beginning of this thread, the actual
-focus of the new generic thermal I/F isn't ACPI fans at all.
-it is really being driven by upcoming systems that
-have no fans.  Indeed, it not an "ACPI thermal I/F",
-for we fully intend that it to be a generic I/F that
-non-ACPI devices can use too.
+Note that since lm-sensors 3.0.1, libsensors accepts hardware
+monitoring attributes in the hwmon "class" device directory, and I
+recommend doing this so as to have a separate namespace. This will
+ensure that we don't get name collisions, and it makes things cleaner
+anyway.
 
-thanks,
--Len
-
+-- 
+Jean Delvare
