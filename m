@@ -1,123 +1,386 @@
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Subject: Re: [PATCH] [BUILD_FAILURE] 2.6.25-rc2-mm1 - Build Failure at acpi_os
-Date: Sat, 23 Feb 2008 21:03:56 +0530
-Message-ID: <20080223153356.GA7401@linux.vnet.ibm.com>
-References: <200802210208.47487.lenb@kernel.org> <29495f1d0802211054s26665d3cy1609d3347867cb16@mail.gmail.com> <20080221222245.GB30976@uranus.ravnborg.org> <29495f1d0802211738leb47f9ayf9b3ab6aa51b66cb@mail.gmail.com> <20080222180815.GB6434@uranus.ravnborg.org> <20080222101344.821ea02a.randy.dunlap@oracle.com> <20080222182737.GC6434@uranus.ravnborg.org> <47BF1492.20901@oracle.com> <20080222185648.GA6843@uranus.ravnborg.org> <20080222112504.04e6b6a9.randy.dunlap@oracle.com>
-Reply-To: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PM: Introduce PM_EVENT_HIBERNATE (was: Re: i915 hibernation patch (was: Re: 2.6.25-rc2 System no longer ...))
+Date: Sat, 23 Feb 2008 19:13:25 +0100
+Message-ID: <200802231913.27592.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <alpine.LFD.1.00.0802221805540.21332@woody.linux-foundation.org> <b6a2187b0802222036i33d5bcc2n4e3bafd6d846cc09@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp02.in.ibm.com ([59.145.155.2]:57557 "EHLO
-	e28esmtp02.in.ibm.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751865AbYBWPeE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Feb 2008 10:34:04 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:49267 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760511AbYBWSPE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Feb 2008 13:15:04 -0500
+In-Reply-To: <b6a2187b0802222036i33d5bcc2n4e3bafd6d846cc09@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20080222112504.04e6b6a9.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Nish Aravamudan <nish.aravamudan@gmail.com>, Len Brown <lenb@kernel.org>, Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Whitcroft <apw@shadowen.org>
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Alexey Starikovskiy <astarikovskiy@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Fri, Feb 22, 2008 at 11:25:04AM -0800, Randy Dunlap wrote:
-> Let's see what the ACPI people think about this change.
->=20
-> Thanks, Sam.
-> ---
-> From: Randy Dunlap <randy.dunlap@oracle.com>
->=20
-> Make ACPI_CUSTOM_DSDT boolean config symbol a hidden and derived
-> value, based on the value of ACPI_CUSTOM_DSDT_FILE (string).
-> Only the latter is presented to the user as a config option.
->=20
-> This fixes problems with "make randconfig" setting ACPI_CUSTOM_DSDT
-> but leaving ACPI_CUSTOM_DSDT_FILE empty/blank.
->=20
-Thanks, the patch solves the build failure.
+On Saturday, 23 of February 2008, Jeff Chua wrote:
+> On Sat, Feb 23, 2008 at 10:07 AM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> 
+> >  On Sat, 23 Feb 2008, Rafael J. Wysocki wrote:
+> >  > OK, please have a look at the modified patch below.
+> >
+> >  All right, I'm fine with it. Now we just need to confirm that it works for
+> >  people..
+> 
+> Looks good. Applied Rafael patch on top of your latest git tree that
+> has Jesse's i915 fix.
+> 
+> No green screen. Tested with STD (platform), STR, and plain echo mem >
+> /sys/power/state.
 
-Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Thanks for testing.  Below is the final version of the patch with a changelog
+etc.
+
+Thanks,
+Rafael
+
 ---
- drivers/acpi/Kconfig |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
---- linux-2.6.25-rc2-git5.orig/drivers/acpi/Kconfig
-+++ linux-2.6.25-rc2-git5/drivers/acpi/Kconfig
-@@ -283,24 +283,23 @@ config ACPI_TOSHIBA
-        If you have a legacy free Toshiba laptop (such as the Libretto
-L1
-        series), say Y.
+During the last step of hibernation in the "platform" mode (with the
+help of ACPI) we use the suspend code, including the devices'
+->suspend() methods, to prepare the system for entering the ACPI S4
+system sleep state.  At least for some devices the operations
+performed by the ->suspend() callback in that case must be different
+from its operations during regular suspend.  For this reason,
+introduce the new PM event type PM_EVENT_HIBERNATE and pass it to
+the device drivers' ->suspend() methods during the last phase of
+hibernation, so that they can distinguish this case and handle it as
+appropriate.  Modify the drivers that handle PM_EVENT_SUSPEND in a
+special way and need to handle PM_EVENT_HIBERNATE in the same way.
 
--config ACPI_CUSTOM_DSDT
--     bool "Include Custom DSDT"
-+config ACPI_CUSTOM_DSDT_FILE
-+     string "Custom DSDT Table file to include"
-+     default ""
-      depends on !STANDALONE
--     default n=20
-      help
-        This option supports a custom DSDT by linking it into the
-kernel.
-        See Documentation/acpi/dsdt-override.txt
+These changes are necessary to fix a hibernation regression related
+to the i915 driver (ref. http://lkml.org/lkml/2008/2/22/488).
 
--       If unsure, say N.
--
--config ACPI_CUSTOM_DSDT_FILE
--     string "Custom DSDT Table file to include"
--     depends on ACPI_CUSTOM_DSDT
--     default ""
--     help
-        Enter the full path name to the file which includes the AmlCode
-        declaration.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Tested-by: Jeff Chua <jeff.chua.linux@gmail.com>
+---
+ Documentation/power/devices.txt        |   13 ++++++++-----
+ drivers/ata/ahci.c                     |    2 +-
+ drivers/ata/ata_piix.c                 |    2 +-
+ drivers/ata/libata-core.c              |    2 +-
+ drivers/ide/ppc/pmac.c                 |    4 ++--
+ drivers/macintosh/mediabay.c           |    3 ++-
+ drivers/pci/pci.c                      |    1 +
+ drivers/scsi/aic7xxx/aic79xx_osm_pci.c |    2 +-
+ drivers/scsi/aic7xxx/aic7xxx_osm_pci.c |    2 +-
+ drivers/scsi/mesh.c                    |    1 +
+ drivers/scsi/sd.c                      |    3 +--
+ drivers/usb/host/sl811-hcd.c           |    1 +
+ drivers/usb/host/u132-hcd.c            |   11 ++++++++---
+ drivers/video/chipsfb.c                |    2 +-
+ drivers/video/nvidia/nvidia.c          |    2 +-
+ include/linux/pm.h                     |    9 ++++++++-
+ kernel/power/disk.c                    |    4 ++--
+ net/rfkill/rfkill.c                    |    2 +-
+ 18 files changed, 42 insertions(+), 24 deletions(-)
 
-+       If unsure, don't enter a file name.
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -391,7 +391,7 @@ int hibernation_platform_enter(void)
+ 		goto Close;
+ 
+ 	suspend_console();
+-	error = device_suspend(PMSG_SUSPEND);
++	error = device_suspend(PMSG_HIBERNATE);
+ 	if (error)
+ 		goto Resume_console;
+ 
+@@ -404,7 +404,7 @@ int hibernation_platform_enter(void)
+ 		goto Finish;
+ 
+ 	local_irq_disable();
+-	error = device_power_down(PMSG_SUSPEND);
++	error = device_power_down(PMSG_HIBERNATE);
+ 	if (!error) {
+ 		hibernation_ops->enter();
+ 		/* We should never get here */
+Index: linux-2.6/include/linux/pm.h
+===================================================================
+--- linux-2.6.orig/include/linux/pm.h
++++ linux-2.6/include/linux/pm.h
+@@ -143,6 +143,9 @@ typedef struct pm_message {
+  * 		the upcoming system state (such as PCI_D3hot), and enable
+  * 		wakeup events as appropriate.
+  *
++ * HIBERNATE	Enter a low power device state appropriate for the hibernation
++ * 		state (eg. ACPI S4) and enable wakeup events as appropriate.
++ *
+  * FREEZE	Quiesce operations so that a consistent image can be saved;
+  * 		but do NOT otherwise enter a low power device state, and do
+  * 		NOT emit system wakeup events.
+@@ -166,11 +169,15 @@ typedef struct pm_message {
+ #define PM_EVENT_ON 0
+ #define PM_EVENT_FREEZE 1
+ #define PM_EVENT_SUSPEND 2
+-#define PM_EVENT_PRETHAW 3
++#define PM_EVENT_HIBERNATE 4
++#define PM_EVENT_PRETHAW 8
 +
-+config ACPI_CUSTOM_DSDT
-+     bool
-+     default ACPI_CUSTOM_DSDT_FILE !=3D ""
++#define PM_EVENT_SLEEP	(PM_EVENT_SUSPEND | PM_EVENT_HIBERNATE)
+ 
+ #define PMSG_FREEZE	((struct pm_message){ .event = PM_EVENT_FREEZE, })
+ #define PMSG_PRETHAW	((struct pm_message){ .event = PM_EVENT_PRETHAW, })
+ #define PMSG_SUSPEND	((struct pm_message){ .event = PM_EVENT_SUSPEND, })
++#define PMSG_HIBERNATE	((struct pm_message){ .event = PM_EVENT_HIBERNATE, })
+ #define PMSG_ON		((struct pm_message){ .event = PM_EVENT_ON, })
+ 
+ struct dev_pm_info {
+Index: linux-2.6/drivers/ata/ahci.c
+===================================================================
+--- linux-2.6.orig/drivers/ata/ahci.c
++++ linux-2.6/drivers/ata/ahci.c
+@@ -1932,7 +1932,7 @@ static int ahci_pci_device_suspend(struc
+ 	void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
+ 	u32 ctl;
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND) {
++	if (mesg.event & PM_EVENT_SLEEP) {
+ 		/* AHCI spec rev1.1 section 8.3.3:
+ 		 * Software must disable interrupts prior to requesting a
+ 		 * transition of the HBA to D3 state.
+Index: linux-2.6/drivers/ata/ata_piix.c
+===================================================================
+--- linux-2.6.orig/drivers/ata/ata_piix.c
++++ linux-2.6/drivers/ata/ata_piix.c
+@@ -1339,7 +1339,7 @@ static int piix_pci_device_suspend(struc
+ 	 * cycles and power trying to do something to the sleeping
+ 	 * beauty.
+ 	 */
+-	if (piix_broken_suspend() && mesg.event == PM_EVENT_SUSPEND) {
++	if (piix_broken_suspend() && (mesg.event & PM_EVENT_SLEEP)) {
+ 		pci_save_state(pdev);
+ 
+ 		/* mark its power state as "unknown", since we don't
+Index: linux-2.6/drivers/ata/libata-core.c
+===================================================================
+--- linux-2.6.orig/drivers/ata/libata-core.c
++++ linux-2.6/drivers/ata/libata-core.c
+@@ -7368,7 +7368,7 @@ void ata_pci_device_do_suspend(struct pc
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND)
++	if (mesg.event & PM_EVENT_SLEEP)
+ 		pci_set_power_state(pdev, PCI_D3hot);
+ }
+ 
+Index: linux-2.6/drivers/ide/ppc/pmac.c
+===================================================================
+--- linux-2.6.orig/drivers/ide/ppc/pmac.c
++++ linux-2.6/drivers/ide/ppc/pmac.c
+@@ -1254,7 +1254,7 @@ pmac_ide_macio_suspend(struct macio_dev 
+ 	int		rc = 0;
+ 
+ 	if (mesg.event != mdev->ofdev.dev.power.power_state.event
+-			&& mesg.event == PM_EVENT_SUSPEND) {
++			&& (mesg.event & PM_EVENT_SLEEP)) {
+ 		rc = pmac_ide_do_suspend(hwif);
+ 		if (rc == 0)
+ 			mdev->ofdev.dev.power.power_state = mesg;
+@@ -1364,7 +1364,7 @@ pmac_ide_pci_suspend(struct pci_dev *pde
+ 	int		rc = 0;
+ 	
+ 	if (mesg.event != pdev->dev.power.power_state.event
+-			&& mesg.event == PM_EVENT_SUSPEND) {
++			&& (mesg.event & PM_EVENT_SLEEP)) {
+ 		rc = pmac_ide_do_suspend(hwif);
+ 		if (rc == 0)
+ 			pdev->dev.power.power_state = mesg;
+Index: linux-2.6/drivers/macintosh/mediabay.c
+===================================================================
+--- linux-2.6.orig/drivers/macintosh/mediabay.c
++++ linux-2.6/drivers/macintosh/mediabay.c
+@@ -698,7 +698,8 @@ static int media_bay_suspend(struct maci
+ {
+ 	struct media_bay_info	*bay = macio_get_drvdata(mdev);
+ 
+-	if (state.event != mdev->ofdev.dev.power.power_state.event && state.event == PM_EVENT_SUSPEND) {
++	if (state.event != mdev->ofdev.dev.power.power_state.event
++	    && (state.event & PM_EVENT_SLEEP)) {
+ 		down(&bay->lock);
+ 		bay->sleeping = 1;
+ 		set_mb_power(bay, 0);
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -554,6 +554,7 @@ pci_power_t pci_choose_state(struct pci_
+ 	case PM_EVENT_PRETHAW:
+ 		/* REVISIT both freeze and pre-thaw "should" use D0 */
+ 	case PM_EVENT_SUSPEND:
++	case PM_EVENT_HIBERNATE:
+ 		return PCI_D3hot;
+ 	default:
+ 		printk("Unrecognized suspend event %d\n", state.event);
+Index: linux-2.6/drivers/scsi/aic7xxx/aic79xx_osm_pci.c
+===================================================================
+--- linux-2.6.orig/drivers/scsi/aic7xxx/aic79xx_osm_pci.c
++++ linux-2.6/drivers/scsi/aic7xxx/aic79xx_osm_pci.c
+@@ -89,7 +89,7 @@ ahd_linux_pci_dev_suspend(struct pci_dev
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND)
++	if (mesg.event & PM_EVENT_SLEEP)
+ 		pci_set_power_state(pdev, PCI_D3hot);
+ 
+ 	return rc;
+Index: linux-2.6/drivers/scsi/aic7xxx/aic7xxx_osm_pci.c
+===================================================================
+--- linux-2.6.orig/drivers/scsi/aic7xxx/aic7xxx_osm_pci.c
++++ linux-2.6/drivers/scsi/aic7xxx/aic7xxx_osm_pci.c
+@@ -134,7 +134,7 @@ ahc_linux_pci_dev_suspend(struct pci_dev
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND)
++	if (mesg.event & PM_EVENT_SLEEP)
+ 		pci_set_power_state(pdev, PCI_D3hot);
+ 
+ 	return rc;
+Index: linux-2.6/drivers/scsi/mesh.c
+===================================================================
+--- linux-2.6.orig/drivers/scsi/mesh.c
++++ linux-2.6/drivers/scsi/mesh.c
+@@ -1759,6 +1759,7 @@ static int mesh_suspend(struct macio_dev
+ 
+ 	switch (mesg.event) {
+ 	case PM_EVENT_SUSPEND:
++	case PM_EVENT_HIBERNATE:
+ 	case PM_EVENT_FREEZE:
+ 		break;
+ 	default:
+Index: linux-2.6/drivers/scsi/sd.c
+===================================================================
+--- linux-2.6.orig/drivers/scsi/sd.c
++++ linux-2.6/drivers/scsi/sd.c
+@@ -1835,8 +1835,7 @@ static int sd_suspend(struct device *dev
+ 			goto done;
+ 	}
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND &&
+-	    sdkp->device->manage_start_stop) {
++	if ((mesg.event & PM_EVENT_SLEEP) && sdkp->device->manage_start_stop) {
+ 		sd_printk(KERN_NOTICE, sdkp, "Stopping disk\n");
+ 		ret = sd_start_stop_device(sdkp, 0);
+ 	}
+Index: linux-2.6/drivers/usb/host/sl811-hcd.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/sl811-hcd.c
++++ linux-2.6/drivers/usb/host/sl811-hcd.c
+@@ -1766,6 +1766,7 @@ sl811h_suspend(struct platform_device *d
+ 		retval = sl811h_bus_suspend(hcd);
+ 		break;
+ 	case PM_EVENT_SUSPEND:
++	case PM_EVENT_HIBERNATE:
+ 	case PM_EVENT_PRETHAW:		/* explicitly discard hw state */
+ 		port_power(sl811, 0);
+ 		break;
+Index: linux-2.6/drivers/usb/host/u132-hcd.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/u132-hcd.c
++++ linux-2.6/drivers/usb/host/u132-hcd.c
+@@ -3214,14 +3214,19 @@ static int u132_suspend(struct platform_
+                 return -ESHUTDOWN;
+         } else {
+                 int retval = 0;
+-                if (state.event == PM_EVENT_FREEZE) {
 +
- config ACPI_CUSTOM_DSDT_INITRD
-      bool "Read Custom DSDT from initramfs"
-      depends on BLK_DEV_INITRD
-
-After applying the patch and continuing with the same randconfig
-reported earlier, the build fails with following error
-
-drivers/acpi/thermal.c: In function =E2=80=98acpi_thermal_init=E2=80=99=
-:
-drivers/acpi/thermal.c:1792: error: =E2=80=98thermal_dmi_table=E2=80=99=
- undeclared (first use in this function)
-drivers/acpi/thermal.c:1792: error: (Each undeclared identifier is repo=
-rted only once
-drivers/acpi/thermal.c:1792: error: for each function it appears in.)
-make[2]: *** [drivers/acpi/thermal.o] Error 1
-make[1]: *** [drivers/acpi] Error 2
-make: *** [drivers] Error 2
-
-I have tested the patch for build failure only.
-
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
---
---- linux-2.6.25-rc2/drivers/acpi/Kconfig	2008-02-23 19:54:11.000000000=
- +0530
-+++ linux-2.6.25-rc2/drivers/acpi/~Kconfig	2008-02-24 04:16:07.00000000=
-0 +0530
-@@ -187,7 +187,7 @@ config ACPI_HOTPLUG_CPU
-=20
- config ACPI_THERMAL
- 	tristate "Thermal Zone"
--	depends on ACPI_PROCESSOR
-+	depends on ACPI_PROCESSOR && DMI
- 	select THERMAL
- 	default y
- 	help
---=20
-Thanks & Regards,
-Kamalesh Babulal,
-Linux Technology Center,
-IBM, ISTL.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++		switch (state.event) {
++		case PM_EVENT_FREEZE:
+                         retval = u132_bus_suspend(hcd);
+-                } else if (state.event == PM_EVENT_SUSPEND) {
++			break;
++		case PM_EVENT_SUSPEND:
++		case PM_EVENT_HIBERNATE:
+                         int ports = MAX_U132_PORTS;
+                         while (ports-- > 0) {
+                                 port_power(u132, ports, 0);
+                         }
+-                }
++			break;
++		}
+                 if (retval == 0)
+                         pdev->dev.power.power_state = state;
+                 return retval;
+Index: linux-2.6/drivers/video/chipsfb.c
+===================================================================
+--- linux-2.6.orig/drivers/video/chipsfb.c
++++ linux-2.6/drivers/video/chipsfb.c
+@@ -459,7 +459,7 @@ static int chipsfb_pci_suspend(struct pc
+ 
+ 	if (state.event == pdev->dev.power.power_state.event)
+ 		return 0;
+-	if (state.event != PM_EVENT_SUSPEND)
++	if (!(state.event & PM_EVENT_SLEEP))
+ 		goto done;
+ 
+ 	acquire_console_sem();
+Index: linux-2.6/drivers/video/nvidia/nvidia.c
+===================================================================
+--- linux-2.6.orig/drivers/video/nvidia/nvidia.c
++++ linux-2.6/drivers/video/nvidia/nvidia.c
+@@ -1066,7 +1066,7 @@ static int nvidiafb_suspend(struct pci_d
+ 	acquire_console_sem();
+ 	par->pm_state = mesg.event;
+ 
+-	if (mesg.event == PM_EVENT_SUSPEND) {
++	if (mesg.event & PM_EVENT_SLEEP) {
+ 		fb_set_suspend(info, 1);
+ 		nvidiafb_blank(FB_BLANK_POWERDOWN, info);
+ 		nvidia_write_regs(par, &par->SavedReg);
+Index: linux-2.6/net/rfkill/rfkill.c
+===================================================================
+--- linux-2.6.orig/net/rfkill/rfkill.c
++++ linux-2.6/net/rfkill/rfkill.c
+@@ -232,7 +232,7 @@ static int rfkill_suspend(struct device 
+ 	struct rfkill *rfkill = to_rfkill(dev);
+ 
+ 	if (dev->power.power_state.event != state.event) {
+-		if (state.event == PM_EVENT_SUSPEND) {
++		if (state.event & PM_EVENT_SLEEP) {
+ 			mutex_lock(&rfkill->mutex);
+ 
+ 			if (rfkill->state == RFKILL_STATE_ON)
+Index: linux-2.6/Documentation/power/devices.txt
+===================================================================
+--- linux-2.6.orig/Documentation/power/devices.txt
++++ linux-2.6/Documentation/power/devices.txt
+@@ -310,9 +310,12 @@ used with suspend-to-disk:
+     PM_EVENT_SUSPEND -- quiesce the driver and put hardware into a low-power
+ 	state.  When used with system sleep states like "suspend-to-RAM" or
+ 	"standby", the upcoming resume() call will often be able to rely on
+-	state kept in hardware, or issue system wakeup events.  When used
+-	instead with suspend-to-disk, few devices support this capability;
+-	most are completely powered off.
++	state kept in hardware, or issue system wakeup events.
++
++    PM_EVENT_HIBERNATE -- Put hardware into a low-power state and enable wakeup
++	events as appropriate.  It is only used with hibernation
++	(suspend-to-disk) and few devices are able to wake up the system from
++	this state; most are completely powered off.
+ 
+     PM_EVENT_FREEZE -- quiesce the driver, but don't necessarily change into
+ 	any low power mode.  A system snapshot is about to be taken, often
+@@ -329,8 +332,8 @@ used with suspend-to-disk:
+ 	wakeup events nor DMA are allowed.
+ 
+ To enter "standby" (ACPI S1) or "Suspend to RAM" (STR, ACPI S3) states, or
+-the similarly named APM states, only PM_EVENT_SUSPEND is used; for "Suspend
+-to Disk" (STD, hibernate, ACPI S4), all of those event codes are used.
++the similarly named APM states, only PM_EVENT_SUSPEND is used; the other event
++codes are used for hibernation ("Suspend to Disk", STD, ACPI S4).
+ 
+ There's also PM_EVENT_ON, a value which never appears as a suspend event
+ but is sometimes used to record the "not suspended" device state.
