@@ -1,34 +1,144 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH] PM: Introduce PM_EVENT_HIBERNATE (was: Re: i915 hibernation patch (was: Re: 2.6.25-rc2 System no longer ...))
-Date: Sun, 24 Feb 2008 09:29:18 +0100
-Message-ID: <20080224082917.GA4784@ucw.cz>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <alpine.LFD.1.00.0802221805540.21332@woody.linux-foundation.org> <b6a2187b0802222036i33d5bcc2n4e3bafd6d846cc09@mail.gmail.com> <200802231913.27592.rjw@sisk.pl> <alpine.LFD.1.00.0802231041510.21332@woody.linux-foundation.org>
+Date: Sun, 24 Feb 2008 12:11:46 +0100
+Message-ID: <200802241211.48000.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <200802231913.27592.rjw@sisk.pl> <1203826599.30621.25.camel@mtlp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2059 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751573AbYBXI33 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 24 Feb 2008 03:29:29 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:52193 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752487AbYBXLNF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Feb 2008 06:13:05 -0500
+In-Reply-To: <1203826599.30621.25.camel@mtlp>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.00.0802231041510.21332@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Chua <jeff.chua.linux@gmail.com>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Mirco Tischler <mt-ml@gmx.de>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Alexey Starikovskiy <astarikovskiy@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Hi!
+On Sunday, 24 of February 2008, Mirco Tischler wrote:
+>=20
+> On Sa, 2008-02-23 at 19:13 +0100, Rafael J. Wysocki wrote:
+> > Index: linux-2.6/drivers/usb/host/u132-hcd.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux-2.6.orig/drivers/usb/host/u132-hcd.c
+> > +++ linux-2.6/drivers/usb/host/u132-hcd.c
+> > @@ -3214,14 +3214,19 @@ static int u132_suspend(struct platform_
+> >                  return -ESHUTDOWN;
+> >          } else {
+> >                  int retval =3D 0;
+> > -                if (state.event =3D=3D PM_EVENT_FREEZE) {
+> > +
+> > +		switch (state.event) {
+> > +		case PM_EVENT_FREEZE:
+> >                          retval =3D u132_bus_suspend(hcd);
+> > -                } else if (state.event =3D=3D PM_EVENT_SUSPEND) {
+> > +			break;
+> > +		case PM_EVENT_SUSPEND:
+> > +		case PM_EVENT_HIBERNATE:
+> >                          int ports =3D MAX_U132_PORTS;
+> >                          while (ports-- > 0) {
+> >                                  port_power(u132, ports, 0);
+> >                          }
+> > -                }
+> > +			break;
+> > +		}
+> >                  if (retval =3D=3D 0)
+> >                          pdev->dev.power.power_state =3D state;
+> >                  return retval;
+> =EF=BB=BFHmm. Doesn't compile for me in 2.6.25-rc2-git7:
+>=20
+>   CC [M]  drivers/usb/host/u132-hcd.o
+> drivers/usb/host/u132-hcd.c: In function =E2=80=98u132_suspend=E2=80=99=
+:
+> drivers/usb/host/u132-hcd.c:3224: error: expected expression before
+> =E2=80=98int=E2=80=99
+> drivers/usb/host/u132-hcd.c:3225: error: =E2=80=98ports=E2=80=99 unde=
+clared (first use
+> in this function)
+> drivers/usb/host/u132-hcd.c:3225: error: (Each undeclared identifier =
+is
+> reported only once
+> drivers/usb/host/u132-hcd.c:3225: error: for each function it appears
+> in.)
+> make[3]: *** [drivers/usb/host/u132-hcd.o] Error 1
+> make[2]: *** [drivers/usb/host] Error 2
+> make[1]: *** [drivers/usb] Error 2
+> make: *** [drivers] Error 2
+>=20
+> This fixes it:
+>=20
+> Thanks
+> Mirco
+>=20
+> ---
+> From: Mirco Tischler <mt-ml@gmx.de>
+>=20
+> Fixes the following compile error caused by commit
+> 3a2d5b700132f35401f1d9e22fe3c2cab02c2549
+>=20
+> ...
+>   CC [M]  drivers/usb/host/u132-hcd.o
+> drivers/usb/host/u132-hcd.c: In function =E2=80=98u132_suspend=E2=80=99=
+:
+> drivers/usb/host/u132-hcd.c:3224: error: expected expression before
+> =E2=80=98int=E2=80=99
+> drivers/usb/host/u132-hcd.c:3225: error: =E2=80=98ports=E2=80=99 unde=
+clared (first use
+> in this function)
+> ...
+>=20
+> Signed-off-by: Mirco Tischler <mt-ml@gmx.de>
+> ---
+>  drivers/usb/host/u132-hcd.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/usb/host/u132-hcd.c b/drivers/usb/host/u132-hcd.=
+c
+> index 6fca069..58830b2 100644
+> --- a/drivers/usb/host/u132-hcd.c
+> +++ b/drivers/usb/host/u132-hcd.c
+> @@ -3214,6 +3214,7 @@ static int u132_suspend(struct platform_device
+> *pdev, pm_message_t state)
+>                  return -ESHUTDOWN;
+>          } else {
+>                  int retval =3D 0;
+> +		int ports =3D 0;
 
-> Thanks, applied. 
-> 
-> With this, I also find that I dislike the use of suspend/resume for 
-> freezing for STD a lot less. It's still too easy to get confused, but at 
-> least now drivers always have total knowledge about what is really going 
-> on. I'd not like this interface as a driver writer, but now it's not 
-> fundamentally broken any more, just slightly confusing.
+Hm, why not to do:
 
-Heh, thanks :-).
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+---
+ drivers/usb/host/u132-hcd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/usb/host/u132-hcd.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/usb/host/u132-hcd.c
++++ linux-2.6/drivers/usb/host/u132-hcd.c
+@@ -3214,6 +3214,7 @@ static int u132_suspend(struct platform_
+                 return -ESHUTDOWN;
+         } else {
+                 int retval =3D 0;
++		int ports =3D MAX_U132_PORTS;
+=20
+ 		switch (state.event) {
+ 		case PM_EVENT_FREEZE:
+@@ -3221,7 +3222,6 @@ static int u132_suspend(struct platform_
+ 			break;
+ 		case PM_EVENT_SUSPEND:
+ 		case PM_EVENT_HIBERNATE:
+-                        int ports =3D MAX_U132_PORTS;
+                         while (ports-- > 0) {
+                                 port_power(u132, ports, 0);
+                         }
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
