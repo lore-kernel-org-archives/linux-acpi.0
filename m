@@ -1,95 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Introduce PM_EVENT_HIBERNATE (was: Re: i915 hibernation patch (was: Re: 2.6.25-rc2 System no longer ...))
-Date: Sun, 24 Feb 2008 12:25:20 +0100
-Message-ID: <200802241225.21510.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802210101050.3576@boston.corp.fedex.com> <1203826599.30621.25.camel@mtlp> <200802241211.48000.rjw@sisk.pl>
+Subject: Fwd: Re: 2.6.25-current-git hangs on boot
+Date: Sun, 24 Feb 2008 14:26:37 +0100
+Message-ID: <200802241426.38188.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_OCXwHbQxjMWXKk5"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52285 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52706 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329AbYBXL03 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Feb 2008 06:26:29 -0500
-In-Reply-To: <200802241211.48000.rjw@sisk.pl>
-Content-Disposition: inline
+	id S1751304AbYBXN2R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Feb 2008 08:28:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mirco Tischler <mt-ml@gmx.de>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Romano Giannetti <romano@dea.icai.upcomillas.es>, Dave Airlie <airlied@linux.ie>, Greg KH <gregkh@suse.de>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Alexey Starikovskiy <astarikovskiy@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Soeren Sonnenburg <kernel@nn7.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Sunday, 24 of February 2008, Rafael J. Wysocki wrote:
-> On Sunday, 24 of February 2008, Mirco Tischler wrote:
-> >=20
-> > On Sa, 2008-02-23 at 19:13 +0100, Rafael J. Wysocki wrote:
-> > > Index: linux-2.6/drivers/usb/host/u132-hcd.c
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > --- linux-2.6.orig/drivers/usb/host/u132-hcd.c
-> > > +++ linux-2.6/drivers/usb/host/u132-hcd.c
-> > > @@ -3214,14 +3214,19 @@ static int u132_suspend(struct platform_
-> > >                  return -ESHUTDOWN;
-> > >          } else {
-> > >                  int retval =3D 0;
-> > > -                if (state.event =3D=3D PM_EVENT_FREEZE) {
-> > > +
-> > > +		switch (state.event) {
-> > > +		case PM_EVENT_FREEZE:
-> > >                          retval =3D u132_bus_suspend(hcd);
-> > > -                } else if (state.event =3D=3D PM_EVENT_SUSPEND) =
-{
-> > > +			break;
-> > > +		case PM_EVENT_SUSPEND:
-> > > +		case PM_EVENT_HIBERNATE:
-> > >                          int ports =3D MAX_U132_PORTS;
-> > >                          while (ports-- > 0) {
-> > >                                  port_power(u132, ports, 0);
-> > >                          }
-> > > -                }
-> > > +			break;
-> > > +		}
-> > >                  if (retval =3D=3D 0)
-> > >                          pdev->dev.power.power_state =3D state;
-> > >                  return retval;
-> > =EF=BB=BFHmm. Doesn't compile for me in 2.6.25-rc2-git7:
-> >=20
-> >   CC [M]  drivers/usb/host/u132-hcd.o
-> > drivers/usb/host/u132-hcd.c: In function =E2=80=98u132_suspend=E2=80=
-=99:
-> > drivers/usb/host/u132-hcd.c:3224: error: expected expression before
-> > =E2=80=98int=E2=80=99
-> > drivers/usb/host/u132-hcd.c:3225: error: =E2=80=98ports=E2=80=99 un=
-declared (first use
-> > in this function)
-> > drivers/usb/host/u132-hcd.c:3225: error: (Each undeclared identifie=
-r is
-> > reported only once
-> > drivers/usb/host/u132-hcd.c:3225: error: for each function it appea=
-rs
-> > in.)
-> > make[3]: *** [drivers/usb/host/u132-hcd.o] Error 1
-> > make[2]: *** [drivers/usb/host] Error 2
-> > make[1]: *** [drivers/usb] Error 2
-> > make: *** [drivers] Error 2
-> >=20
-> > This fixes it:
-> >=20
-> > Thanks
-> > Mirco
-> >=20
-> > ---
-> > From: Mirco Tischler <mt-ml@gmx.de>
-> >=20
-> > Fixes the following compile error caused by commit
-> > 3a2d5b700132f35401f1d9e22fe3c2cab02c2549
+--Boundary-00=_OCXwHbQxjMWXKk5
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Ah, I see it's merged already.
+Venki, Len,
 
-Thanks for the fix, btw! :-)
+FYI, another configuration in which CONFIG_CPU_IDLE causes problems.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
+
+--Boundary-00=_OCXwHbQxjMWXKk5
+Content-Type: message/rfc822;
+  name="forwarded message"
+Content-Transfer-Encoding: 7bit
+Content-Description: Soeren Sonnenburg <kernel@nn7.de>: Re: 2.6.25-current-git hangs on boot
+Content-Disposition: inline
+
+Return-Path: <kernel@nn7.de>
+Received: from murder ([unix socket])
+	 by ogre.sisk.pl (Cyrus v2.2.12) with LMTPA;
+	 Sun, 24 Feb 2008 12:59:00 +0100
+X-Sieve: CMU Sieve 2.2
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ogre.sisk.pl (Postfix) with ESMTP id 00E7D8FA22
+	for <rafael@ogre.sisk.pl>; Sun, 24 Feb 2008 12:59:00 +0100 (CET)
+Received: from ogre.sisk.pl ([127.0.0.1])
+ by localhost (ogre.sisk.pl [127.0.0.1]) (amavisd-new, port 10024) with ESMTP
+ id 00812-01 for <rafael@ogre.sisk.pl>; Sun, 24 Feb 2008 12:58:44 +0100 (CET)
+Received: from nn7.de (nn7.de [85.214.94.156])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ogre.sisk.pl (Postfix) with ESMTP id 087588FD8F
+	for <rjw@sisk.pl>; Sun, 24 Feb 2008 12:58:44 +0100 (CET)
+Received: (qmail 11926 invoked from network); 24 Feb 2008 13:27:57 +0100
+Received: from unknown (HELO no.nn7.de) (85.178.177.95)
+  by nn7.de with (DHE-RSA-AES256-SHA encrypted) SMTP
+  (cert sonne@nn7.de); 24 Feb 2008 13:27:57 +0100
+Received: (nullmailer pid 6104 invoked by uid 1000);
+	Sun, 24 Feb 2008 12:27:57 -0000
+Subject: Re: 2.6.25-current-git hangs on boot
+From: Soeren Sonnenburg <kernel@nn7.de>
+To: "Rafael J\. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Pinter <oliver.pntr@gmail.com>,
+ Linux Kernel <linux-kernel@vger.kernel.org>,
+ Venki Pallipadi <venkatesh.pallipadi@intel.com>
+In-Reply-To: <200802241218.04617.rjw@sisk.pl>
+References: <1203789325.4063.9.camel@localhost>
+	 <6101e8c40802231100t3af57018r139de0b52cd556b5@mail.gmail.com>
+	 <1203833710.4006.3.camel@localhost>  <200802241218.04617.rjw@sisk.pl>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Date: Sun, 24 Feb 2008 13:27:56 +0100
+Message-Id: <1203856077.4356.2.camel@localhost>
+Mime-Version: 1.0
+X-Mailer: Evolution 2.12.3 
+X-Virus-Scanned: amavisd-new at ogre.sisk.pl using MkS_Vir for Linux
+X-Length: 2590
+X-UID: 564686
+
+On Sun, 2008-02-24 at 12:18 +0100, Rafael J. Wysocki wrote:
+> On Sunday, 24 of February 2008, Soeren Sonnenburg wrote:
+> > On Sat, 2008-02-23 at 20:00 +0100, Oliver Pinter wrote:
+> > > the pci=nommconf kernel parameter helped it?
+> > 
+> > yes indeed, this switch reliably helps to over come the hang at *this
+> > stage* (I tried booting with booth the switch and w/o).
+> > 
+> > however with 50% chance I still see a hang directly after
+> > 
+> > cpuidle: using governor ladder
+> 
+> Do you have CONFIG_CPU_IDLE set?  If you have, please try to unset it and
+> retest.
+
+Yes I had. When disabling that option booting 10 times in a row worked
+without problems.
+
+Soeren
+
+
+--Boundary-00=_OCXwHbQxjMWXKk5--
