@@ -1,53 +1,73 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: broken suspend in .2.6.25-rc3 on T61p (was Re: new regression
-	in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p)
-Date: Mon, 25 Feb 2008 22:50:49 +0100
-Message-ID: <20080225215049.GD2659@elf.ucw.cz>
-References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com> <20080225114611.d91791f6.akpm@linux-foundation.org> <8f53421d0802251245j5439b37die840e34bb293f995@mail.gmail.com> <200802252157.10412.rjw@sisk.pl> <20080225212615.GA2659@elf.ucw.cz> <8f53421d0802251331n31b37db8gb644dc9aa2d553d4@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 10071] New: kernel hang in inet_init
+Date: Mon, 25 Feb 2008 14:00:34 -0800
+Message-ID: <20080225140034.5ef88935.akpm@linux-foundation.org>
+References: <bug-10071-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43326 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753091AbYBYVuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 16:50:23 -0500
-Content-Disposition: inline
-In-Reply-To: <8f53421d0802251331n31b37db8gb644dc9aa2d553d4@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <bug-10071-10286@http.bugzilla.kernel.org/>
+Sender: netdev-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+Cc: bugme-daemon@bugzilla.kernel.org, yannick.dirou@axetic.com, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>
 
-Hi!
+On Sat, 23 Feb 2008 00:34:06 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
 
-> >  > commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
-> >  > Author: Pavel Machek <pavel@ucw.cz>
-> >  > Date:   Thu Feb 21 13:56:55 2008 +0100
-> >  >
-> >  >     power_state: get rid of write-only variable in SATA
-> >
-> >  This is pretty unlikely to be it. Can you double check that this patch
-> >  really breaks something?
+> http://bugzilla.kernel.org/show_bug.cgi?id=10071
 > 
-> I did and it seems to: just reverting
-> 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2 fixes resume for me.
-> 635adc28087ced0c843d2ecb6d4ae474d0e611cd which is
-> 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2~1
-> also resumes fine.
-
-Hmm, I guess that should teach me about "simple cleanups".
-
-Do you use any of:
-
-ata/sata_inic162x.c
-ata/sata_nv.c
-ata/sata_sil24.c
-
-by chance?
-
-(Ok, the patch is very safe to revert, it was "cleanup", it fixes
-nothing).
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>            Summary: kernel hang in inet_init
+>            Product: Networking
+>            Version: 2.5
+>      KernelVersion: 2.6.25 rc2 latest git
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: IPV4
+>         AssignedTo: shemminger@linux-foundation.org
+>         ReportedBy: yannick.dirou@axetic.com
+> 
+> 
+> Distribution:ubuntu hardy
+> Hardware Environment:dell dimension 5150
+> Problem Description:
+> kernel hang mostly but boot slowly sometimes
+> 
+> Steps to reproduce:
+> boot
+> 
+> when the computer manage to boot, inet_init last some time:
+> [    1.725306] NET: Registered protocol family 2
+> [    6.825384] IP route cache hash table entries: 32768 (order: 5, 131072
+> bytes)
+> [    6.825803] TCP established hash table entries: 131072 (order: 8, 1048576
+> bytes)
+> [    6.826691] TCP bind hash table entries: 65536 (order: 9, 2359296 bytes)
+> [    6.836160] TCP: Hash tables configured (established 131072 bind 65536)
+> [    6.836255] TCP reno registered
+> [    7.081569] initcall 0xc03b8920: inet_init+0x0/0x3aa() returned 0.
+> [    7.081569] initcall 0xc03b8920 ran for 5106 msecs: inet_init+0x0/0x3aa()
+> 
+> When booting with acpi=ht it works:
+> [0.124668] Calling initcall 0xc03b8920: inet_init+0x0/0x3aa()
+> [    0.124867] NET: Registered protocol family 2
+> [    0.288067] IP route cache hash table entries: 32768 (order: 5, 131072
+> bytes)
+> [    0.288856] TCP established hash table entries: 131072 (order: 8, 1048576
+> bytes)
+> [    0.289739] TCP bind hash table entries: 65536 (order: 9, 2359296 bytes)
+> [    0.299156] TCP: Hash tables configured (established 131072 bind 65536)
+> [    0.299250] TCP reno registered
+> Feb 23 09:10:28 tiyann kernel: [    0.162267] initcall 0xc03b8920:
+> inet_init+0x0/0x3aa() returned 0.
+> [    0.162383] initcall 0xc03b8920 ran for 33 msecs: inet_init+0x0/0x3aa()
+> 
+> there seem to be a weird interaction between acpi and inet_init
+> 
+> any hint on how to provide better information
+> thanks
+> 
