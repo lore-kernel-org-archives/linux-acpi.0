@@ -1,40 +1,36 @@
-From: Tomas Carnecky <tom@dbservice.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Tue, 26 Feb 2008 00:03:03 +0100
-Message-ID: <47C34927.7030803@dbservice.com>
-References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz>
+Date: Tue, 26 Feb 2008 00:05:01 +0100
+Message-ID: <200802260005.02613.rjw@sisk.pl>
+References: <20080225093914.GB4375@ics.muni.cz> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dbservice.com ([213.239.204.14]:34697 "EHLO
-	matterhorn.dbservice.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758791AbYBYXCX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 18:02:23 -0500
-In-Reply-To: <20080225220720.GA4523@ics.muni.cz>
+Received: from ogre.sisk.pl ([217.79.144.158]:32809 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754787AbYBYXGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 18:06:12 -0500
+In-Reply-To: <20080225230035.GA14503@khazad-dum.debian.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Lukas Hejtmanek wrote:
-> On Mon, Feb 25, 2008 at 06:01:13PM -0300, Henrique de Moraes Holschuh wrote:
->> Not even over the new netlink socket?  Or the thinkpad-acpi input device?
+On Tuesday, 26 of February 2008, Henrique de Moraes Holschuh wrote:
+> On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
+> > volume keys work. But anything through acpid does not. Even AC/battery switch
+> > is not signalized. So the bug may be somewhere else?
 > 
-> how can I check this?
+> Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
+> thinkpad.  I don't have a link to it right now, but if you look for the
+> messages to LKML on the last 48h, you will find it.
 
-A while ago I worked on a new acpi daemon that could receive events from 
-both netlink and /dev/input devices. Right now it's more like a testing 
-tool then a real replacement for the current acpid. I haven't had time 
-to work on it.
+http://bugzilla.kernel.org/show_bug.cgi?id=10100
 
-http://git.dbservice.com/?p=acpid;a=summary
-$ git clone git://dbservice.com/acpid
+(easy to remember ;=))
 
-You'll need dbus and lua to compile it. There's also a readme that 
-describes how to get it running and how it works. In its default 
-configuration it will print the events into stdout.
-
-tom
-
+Thanks,
+Rafael
