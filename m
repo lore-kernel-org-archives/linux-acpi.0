@@ -1,121 +1,87 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: The new thermal management sysfs class, and hwmon
-Date: Mon, 25 Feb 2008 09:53:36 +0100
-Message-ID: <47C28210.3050506@hhs.nl>
-References: <20080203022622.GA995@khazad-dum.debian.net>	 <1202031072.3042.54.camel@acpi-sony.sh.intel.com>	 <20080203164410.GL20687@jupiter.solarsys.private>	 <20080203175006.GB9159@khazad-dum.debian.net>	 <05B550FD4BD2014E841D83547B626008029899FE@bgsmsx411.gar.corp.intel.com>	 <20080205135725.GO20687@jupiter.solarsys.private>	 <05B550FD4BD2014E841D83547B626008029BF29B@bgsmsx411.gar.corp.intel.com>	 <1202915450.7977.607.camel@queen.suse.de>	 <20080214140855.GB12412@srcf.ucam.org>	 <1203659229.3210.45.camel@localhost.localdomain><47BE8105.30301@hhs.nl>	 <1203669206.3210.68.camel@localhost.localdomain><47BEA9CE.7030802@hhs.nl>	 <20080223092958.5d1c4471@hyperion.delvare> <1203893565.10256.21.camel@localhost.localdomain>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: [PATCH 2.6.25-rc3] cpuidle: fix cpuidle time and usage overflow
+Date: Mon, 25 Feb 2008 08:46:12 +0800
+Message-ID: <1203900372.4954.8.camel@yangyi-dev.bj.intel.com>
+References: <1199441414.19185.9.camel@yangyi-dev.bj.intel.com>
+	 <1201043126.3861.5.camel@yangyi-dev.bj.intel.com>
+	 <1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4.versatel.nl ([62.58.50.91]:40493 "EHLO smtp4.versatel.nl"
+Received: from mga03.intel.com ([143.182.124.21]:61667 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628AbYBYJAu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 04:00:50 -0500
-In-Reply-To: <1203893565.10256.21.camel@localhost.localdomain>
+	id S1753167AbYBYKHV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 05:07:21 -0500
+In-Reply-To: <1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
+To: akpm@linux-foundation.org
+Cc: venkatesh.pallipadi@intel.com, cpufreq@lists.linux.org.uk, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Zhang, Rui wrote:
-> On Sat, 2008-02-23 at 16:29 +0800, Jean Delvare wrote:
->> On Fri, 22 Feb 2008 11:54:06 +0100, Hans de Goede wrote:
->>> Zhang, Rui wrote:
->>>> Hi, Hans,
->>>>
->>>> On Fri, 2008-02-22 at 16:00 +0800, Hans de Goede wrote:
->>>>
->>>>> I think all that is really needed and asked for is for the new
->> thermal
->>>>> ACPI
->>>>> code to:
->>>>> 1) provide temp readings in the same format as hwmon (so milli
->> degrees
->>>>> celcius,
->>>>> not degrees celcius
->>>> Agree.
->>>>> 2) provide a hwmon interface so that tools like (but not limited
->> too):
->>>>> * net-snmp
->>>>> * mrtg
->>>>> * sensors
->>>>> * sensors-applet (gnome)
->>>>> * xfce-sensors-applet
->>>>> * ksysguard
->>>>> * ksensors
->>>>> * gkrellm
->>>>>
->>>>> Can provide temp and fan readings without having to be modified.
->>>> hmm, for fan device, maybe something like this?
->>>> pwm[1-*]_enable = 1 : manual fan control (using pwm[1-*])
->>>>               2+: automatic fan control (by acpi thermal driver)
->>>> pwm[1-*] = 0  : fan is off.
->>>> pwm[1-*] = 255: fan is on.
->>>> pwm[1-*] has only two valid values as ACPI fan only support
->>>> two states, ON/OFF. and it doesn't need fan[1-*]_input because the
->> fan
->>>> speed is not available.
->>>> Yes, it can work for ACPI fan although I don't think the existing
->> pwm
->>>> hwmon I/F maps well to what we need and it seems like a "forced
->> fit" to
->>>> use it. Any better ideas? :)
->>>>
->>> I wouldn't expose a pwm interface, doing so isn't that important as
->> none of the
->>> above listed apps actually use it, the pwm interface really only is
->> for people
->>
->> Note: libsensors itself doesn't care about the pwm files.
->>
->>> who want to manually tweak their fan speed and / or use some scripts
->> to control
->>> the fan speed based on temp when the hardware doesn't support it, as
->> such it
->>> doesn't get widely used, also since there isn't a really good
->> mapping between
->>> acpi thermalzone stuff and the hwmon pwm interface I wouldn't add a
->> pwm
->>> interface to a hwmon interface the the thermal zone code.
->>>
->>> And if fan speeds aren't available (aren't they?) then I would only
->> add a hwmon
->>>   class reference to a sysfs dir containing tempX_input's and a name
->> atrribute
->>> and leave it at that.
->>>
->>> But thats just my 2 euro-cents
->> FWIW, I agree with pretty much everything Hans said.
->>
->> Additionally, we could map the critical trip point to tempX_crit
->> (read-only).
->>
->> Note that since lm-sensors 3.0.1, libsensors accepts hardware
->> monitoring attributes in the hwmon "class" device directory, and I
->> recommend doing this so as to have a separate namespace. This will
->> ensure that we don't get name collisions, and it makes things cleaner
->> anyway.
-> then we'll have have duplicate attributes for temperature and critical
-> trip point, like:
-> /sys/class/hwmon/
-> |hwmon0
-> 	|---name
-> 	|---temp1_input
-> 	|---temp1_crit
-> 	|device		--->/sys/class/thermal/thermal_zone1
-> 		|---type
-> 		|---temp(in millidegree Celsius)
-> 		|---trip_point_0_type:	critical
-> 		|---trip_point_0_temp(in millidegree Celsius)
-> 		...
-> It's okay if we always keep these them in sync, right?
-> 
+cpuidle C-state sysfs node time and usage are very easy to overflow because
+they are all of unsigned int type, time will overflow within about two hours,
+usage will take longer time to overflow, but they are increasing for ever.
 
-Yes thats the whole idea, then lm_sensors using applications can get the info 
-you add to the hwmon dir without having to learn yet another API (esp since 
-allmost all these applications are always only reading things like temperature 
-and maybe limits, and are not interested in the more advanced stuff.
+This patch will convert them to unsigned long long.
 
-Regards,
 
-Hans
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+---
+ drivers/cpuidle/cpuidle.c |    2 +-
+ drivers/cpuidle/sysfs.c   |   10 ++++++++--
+ include/linux/cpuidle.h   |    4 ++--
+
+--- a/include/linux/cpuidle.h	2008-02-25 02:31:26.000000000 -0500
++++ b/include/linux/cpuidle.h	2008-02-25 04:30:24.000000000 -0500
+@@ -38,8 +38,8 @@ struct cpuidle_state {
+ 	unsigned int	power_usage; /* in mW */
+ 	unsigned int	target_residency; /* in US */
+ 
+-	unsigned int	usage;
+-	unsigned int	time; /* in US */
++	unsigned long long	usage;
++	unsigned long long	time; /* in US */
+ 
+ 	int (*enter)	(struct cpuidle_device *dev,
+ 			 struct cpuidle_state *state);
+--- a/drivers/cpuidle/cpuidle.c	2008-02-25 02:37:14.000000000 -0500
++++ b/drivers/cpuidle/cpuidle.c	2008-02-25 04:29:19.000000000 -0500
+@@ -67,7 +67,7 @@ static void cpuidle_idle_call(void)
+ 	/* enter the state and update stats */
+ 	dev->last_residency = target_state->enter(dev, target_state);
+ 	dev->last_state = target_state;
+-	target_state->time += dev->last_residency;
++	target_state->time += (unsigned long long)dev->last_residency;
+ 	target_state->usage++;
+ 
+ 	/* give the governor an opportunity to reflect on the outcome */
+--- a/drivers/cpuidle/sysfs.c	2008-02-25 02:33:14.000000000 -0500
++++ b/drivers/cpuidle/sysfs.c	2008-02-25 03:10:50.000000000 -0500
+@@ -218,6 +218,12 @@ static ssize_t show_state_##_name(struct
+ 	return sprintf(buf, "%u\n", state->_name);\
+ }
+ 
++#define define_show_state_ull_function(_name) \
++static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
++{ \
++	return sprintf(buf, "%llu\n", state->_name);\
++}
++
+ #define define_show_state_str_function(_name) \
+ static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
+ { \
+@@ -228,8 +234,8 @@ static ssize_t show_state_##_name(struct
+ 
+ define_show_state_function(exit_latency)
+ define_show_state_function(power_usage)
+-define_show_state_function(usage)
+-define_show_state_function(time)
++define_show_state_ull_function(usage)
++define_show_state_ull_function(time)
+ define_show_state_str_function(name)
+ define_show_state_str_function(desc)
+ 
+
+
