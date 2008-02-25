@@ -1,73 +1,126 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 10071] New: kernel hang in inet_init
-Date: Mon, 25 Feb 2008 14:00:34 -0800
-Message-ID: <20080225140034.5ef88935.akpm@linux-foundation.org>
-References: <bug-10071-10286@http.bugzilla.kernel.org/>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Mon, 25 Feb 2008 23:07:20 +0100
+Message-ID: <20080225220720.GA4523@ics.muni.cz>
+References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <bug-10071-10286@http.bugzilla.kernel.org/>
-Sender: netdev-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, netdev@vger.kernel.org
-Cc: bugme-daemon@bugzilla.kernel.org, yannick.dirou@axetic.com, "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from minas.ics.muni.cz ([147.251.4.40]:58047 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753568AbYBYWHb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 17:07:31 -0500
+Content-Disposition: inline
+In-Reply-To: <20080225210113.GF16513@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Sat, 23 Feb 2008 00:34:06 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
+On Mon, Feb 25, 2008 at 06:01:13PM -0300, Henrique de Moraes Holschuh w=
+rote:
+> Not even over the new netlink socket?  Or the thinkpad-acpi input dev=
+ice?
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=10071
-> 
->            Summary: kernel hang in inet_init
->            Product: Networking
->            Version: 2.5
->      KernelVersion: 2.6.25 rc2 latest git
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: IPV4
->         AssignedTo: shemminger@linux-foundation.org
->         ReportedBy: yannick.dirou@axetic.com
-> 
-> 
-> Distribution:ubuntu hardy
-> Hardware Environment:dell dimension 5150
-> Problem Description:
-> kernel hang mostly but boot slowly sometimes
-> 
-> Steps to reproduce:
-> boot
-> 
-> when the computer manage to boot, inet_init last some time:
-> [    1.725306] NET: Registered protocol family 2
-> [    6.825384] IP route cache hash table entries: 32768 (order: 5, 131072
-> bytes)
-> [    6.825803] TCP established hash table entries: 131072 (order: 8, 1048576
-> bytes)
-> [    6.826691] TCP bind hash table entries: 65536 (order: 9, 2359296 bytes)
-> [    6.836160] TCP: Hash tables configured (established 131072 bind 65536)
-> [    6.836255] TCP reno registered
-> [    7.081569] initcall 0xc03b8920: inet_init+0x0/0x3aa() returned 0.
-> [    7.081569] initcall 0xc03b8920 ran for 5106 msecs: inet_init+0x0/0x3aa()
-> 
-> When booting with acpi=ht it works:
-> [0.124668] Calling initcall 0xc03b8920: inet_init+0x0/0x3aa()
-> [    0.124867] NET: Registered protocol family 2
-> [    0.288067] IP route cache hash table entries: 32768 (order: 5, 131072
-> bytes)
-> [    0.288856] TCP established hash table entries: 131072 (order: 8, 1048576
-> bytes)
-> [    0.289739] TCP bind hash table entries: 65536 (order: 9, 2359296 bytes)
-> [    0.299156] TCP: Hash tables configured (established 131072 bind 65536)
-> [    0.299250] TCP reno registered
-> Feb 23 09:10:28 tiyann kernel: [    0.162267] initcall 0xc03b8920:
-> inet_init+0x0/0x3aa() returned 0.
-> [    0.162383] initcall 0xc03b8920 ran for 33 msecs: inet_init+0x0/0x3aa()
-> 
-> there seem to be a weird interaction between acpi and inet_init
-> 
-> any hint on how to provide better information
-> thanks
-> 
+how can I check this?
+
+volume keys work. But anything through acpid does not. Even AC/battery =
+switch
+is not signalized. So the bug may be somewhere else?
+
+> Please send me the debug output of thinkpad-acpi loading, just in cas=
+e.
+
+[  247.170385] thinkpad_acpi: ThinkPad ACPI Extras v0.19
+[  247.170398] thinkpad_acpi: http://ibm-acpi.sf.net/
+[  247.170402] thinkpad_acpi: ThinkPad BIOS 7LETB0WW (2.10 ), EC 7KHT24=
+WW-1.08
+[  247.170407] thinkpad_acpi: Lenovo ThinkPad T61
+[  247.171289] thinkpad_acpi: radio switch found; radios are enabled
+[  247.184889] thinkpad_acpi: requested hot key mask 0xffffffff, but fi=
+rmware forced it to 0x00ffffff
+[  247.188509] thinkpad_acpi: detected a 16-level brightness capable Th=
+inkPad
+[  247.189027] input: ThinkPad Extra Buttons as /devices/virtual/input/=
+input10
+[  418.790341] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
+_SB.PCI0.LPC.EC for ec
+[  418.793747] thinkpad_acpi: ibm_init: probing for driver
+[  418.793758] thinkpad_acpi: ThinkPad ACPI Extras v0.19
+[  418.793762] thinkpad_acpi: http://ibm-acpi.sf.net/
+[  418.793766] thinkpad_acpi: ThinkPad BIOS 7LETB0WW (2.10 ), EC 7KHT24=
+WW-1.08
+[  418.793771] thinkpad_acpi: Lenovo ThinkPad T61
+[  418.793775] thinkpad_acpi: ibm_init: driver installed
+[  418.793780] thinkpad_acpi: ibm_init: probing for hotkey
+[  418.793827] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
+KEY for hkey
+[  428.258389] thinkpad_acpi: radio switch found; radios are enabled
+[  428.258423] thinkpad_acpi: hotkey_init: using Lenovo default hot key=
+ map
+[  428.258431] thinkpad_acpi: hotkey_init: enabling hot key handling
+[  428.264778] thinkpad_acpi: hotkey_init: legacy hot key reporting ove=
+r procfs enabled
+[  418.806536] thinkpad_acpi: register_tpacpi_subdriver: registering ho=
+tkey as an ACPI driver
+[  418.808594] thinkpad_acpi: ibm_init: hotkey installed
+[  418.816087] thinkpad_acpi: requested hot key mask 0xffffffff, but fi=
+rmware forced it to 0x00ffffff
+[  418.816100] thinkpad_acpi: ibm_init: probing for bluetooth
+[  418.816114] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
+KEY for hkey
+[  418.821862] thinkpad_acpi: ibm_init: bluetooth installed
+[  418.821875] thinkpad_acpi: ibm_init: probing for wan
+[  418.821890] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
+KEY for hkey
+[  418.828238] thinkpad_acpi: wan_init: wan hardware not installed
+[  418.828251] thinkpad_acpi: ibm_init: probing for light
+[  418.828266] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
+UCMS for cmos
+[  418.842964] thinkpad_acpi: ibm_init: light installed
+[  418.843021] thinkpad_acpi: ibm_init: probing for bay
+[  418.843050] thinkpad_acpi: ibm_init: probing for cmos
+[  418.843060] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
+UCMS for cmos
+[  418.843378] thinkpad_acpi: ibm_init: cmos installed
+[  418.843385] thinkpad_acpi: ibm_init: probing for led
+[  418.843402] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle L=
+ED for led
+[  418.843407] thinkpad_acpi: ibm_init: led installed
+[  418.843412] thinkpad_acpi: ibm_init: probing for beep
+[  418.843418] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle B=
+EEP for beep
+[  418.843422] thinkpad_acpi: ibm_init: beep installed
+[  418.843429] thinkpad_acpi: ibm_init: probing for thermal
+[  418.849384] thinkpad_acpi: ibm_init: thermal installed
+[  418.849392] thinkpad_acpi: ibm_init: probing for ecdump
+[  418.849396] thinkpad_acpi: ibm_init: ecdump installed
+[  418.849401] thinkpad_acpi: ibm_init: probing for brightness
+[  418.849406] thinkpad_acpi: brightness_init: selected brightness_mode=
+=3D2
+[  418.849424] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
+_SB.PCI0.VID for vid
+[  418.849464] thinkpad_acpi: detected a 16-level brightness capable Th=
+inkPad
+[  418.850526] thinkpad_acpi: ibm_init: brightness installed
+[  418.850534] thinkpad_acpi: ibm_init: probing for volume
+[  418.850538] thinkpad_acpi: ibm_init: volume installed
+[  418.850545] thinkpad_acpi: ibm_init: probing for fan
+[  418.850853] thinkpad_acpi: ibm_init: fan installed
+[  418.850952] input: ThinkPad Extra Buttons as /devices/virtual/input/=
+input11
+
+> > I would be happy to test fixes to see whether things go well.
+>=20
+> Sure, try this one:
+
+not better.
+=20
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
