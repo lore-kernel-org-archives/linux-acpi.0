@@ -1,41 +1,53 @@
-From: Jeff Garzik <jeff@garzik.org>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: broken suspend in .2.6.25-rc3 on T61p (was Re: new regression
- in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p)
-Date: Mon, 25 Feb 2008 16:32:38 -0500
-Message-ID: <47C333F6.40501@garzik.org>
-References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com> <20080225114611.d91791f6.akpm@linux-foundation.org> <8f53421d0802251245j5439b37die840e34bb293f995@mail.gmail.com> <200802252157.10412.rjw@sisk.pl> <20080225212615.GA2659@elf.ucw.cz>
+	in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p)
+Date: Mon, 25 Feb 2008 22:50:49 +0100
+Message-ID: <20080225215049.GD2659@elf.ucw.cz>
+References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com> <20080225114611.d91791f6.akpm@linux-foundation.org> <8f53421d0802251245j5439b37die840e34bb293f995@mail.gmail.com> <200802252157.10412.rjw@sisk.pl> <20080225212615.GA2659@elf.ucw.cz> <8f53421d0802251331n31b37db8gb644dc9aa2d553d4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv5.dvmed.net ([207.36.208.214]:54018 "EHLO mail.dvmed.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751401AbYBYVdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 16:33:09 -0500
-In-Reply-To: <20080225212615.GA2659@elf.ucw.cz>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43326 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753091AbYBYVuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 16:50:23 -0500
+Content-Disposition: inline
+In-Reply-To: <8f53421d0802251331n31b37db8gb644dc9aa2d553d4@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>
 
-Pavel Machek wrote:
->> commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
->> Author: Pavel Machek <pavel@ucw.cz>
->> Date:   Thu Feb 21 13:56:55 2008 +0100
->>
->>     power_state: get rid of write-only variable in SATA
+Hi!
+
+> >  > commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
+> >  > Author: Pavel Machek <pavel@ucw.cz>
+> >  > Date:   Thu Feb 21 13:56:55 2008 +0100
+> >  >
+> >  >     power_state: get rid of write-only variable in SATA
+> >
+> >  This is pretty unlikely to be it. Can you double check that this patch
+> >  really breaks something?
 > 
-> This is pretty unlikely to be it. Can you double check that this patch
-> really breaks something?
+> I did and it seems to: just reverting
+> 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2 fixes resume for me.
+> 635adc28087ced0c843d2ecb6d4ae474d0e611cd which is
+> 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2~1
+> also resumes fine.
 
-Quote...
+Hmm, I guess that should teach me about "simple cleanups".
 
-	After reverting 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
-	on top of 2.6.25-rc3 the kernel again resumes from suspend to
-	ram.
+Do you use any of:
 
-Seems pretty clear to me.
+ata/sata_inic162x.c
+ata/sata_nv.c
+ata/sata_sil24.c
 
-	Jeff
+by chance?
 
-
+(Ok, the patch is very safe to revert, it was "cleanup", it fixes
+nothing).
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
