@@ -1,46 +1,39 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: Re: [PATCH 2.6.25-rc3] cpuidle: fix cpuidle time and usage overflow
-Date: Mon, 25 Feb 2008 09:10:26 +0800
-Message-ID: <1203901826.4954.11.camel@yangyi-dev.bj.intel.com>
-References: <1199441414.19185.9.camel@yangyi-dev.bj.intel.com>
-	 <1201043126.3861.5.camel@yangyi-dev.bj.intel.com>
-	 <1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
-	 <1203900372.4954.8.camel@yangyi-dev.bj.intel.com>
-	 <20080225101533.GB30685@elte.hu>
-Reply-To: yi.y.yang@intel.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Mon, 25 Feb 2008 12:47:29 +0100
+Message-ID: <200802251247.30605.rjw@sisk.pl>
+References: <20080225093914.GB4375@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43159 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:58009 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077AbYBYK0H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 05:26:07 -0500
-In-Reply-To: <20080225101533.GB30685@elte.hu>
+	id S1752768AbYBYLsg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 06:48:36 -0500
+In-Reply-To: <20080225093914.GB4375@ics.muni.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: akpm@linux-foundation.org, venkatesh.pallipadi@intel.com, cpufreq@lists.linux.org.uk, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: linux-kernel@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Mon, 2008-02-25 at 11:15 +0100, Ingo Molnar wrote:
-> * Yi Yang <yi.y.yang@intel.com> wrote:
-> 
-> > cpuidle C-state sysfs node time and usage are very easy to overflow 
-> > because they are all of unsigned int type, time will overflow within 
-> > about two hours, usage will take longer time to overflow, but they are 
-> > increasing for ever.
-> > 
-> > This patch will convert them to unsigned long long.
-> 
-> what happens if such an overflow happens - any particular regression or 
-> other misbehavior, or just funny looking stats in sysfs?
-They are just stats info in sysfs, cpuidle's behaviors don't depend on
-them. I didn't notice any regression or misbehaviors.
+On Monday, 25 of February 2008, Lukas Hejtmanek wrote:
+> Hello, 
 
-> 
-> 	Ingo
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
 
+Thanks for the report.
+
+> 2.6.25-rc2-git7 has regression, thinkpad keys do not work any more.
+> 
+> Probably this commit broke things 6c231bd5eb07ce546517019f334652b9ecfc329a
+
+Please always provide the commit subject along with the hash in bug reports.
+
+Also, CCing the author and the relevant list on a report usually is a good
+idea. :-)
+
+Thanks,
+Rafael
