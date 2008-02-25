@@ -1,46 +1,43 @@
-From: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
-Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p
-Date: Mon, 25 Feb 2008 22:45:02 +0200
-Message-ID: <8f53421d0802251245j5439b37die840e34bb293f995@mail.gmail.com>
-References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com>
-	 <20080225114611.d91791f6.akpm@linux-foundation.org>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Mon, 25 Feb 2008 21:49:51 +0100
+Message-ID: <20080225204951.GB4432@ics.muni.cz>
+References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:65202 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759271AbYBYUpE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2008 15:45:04 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so958431ugc.16
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Feb 2008 12:45:03 -0800 (PST)
-In-Reply-To: <20080225114611.d91791f6.akpm@linux-foundation.org>
+Received: from minas.ics.muni.cz ([147.251.4.40]:38394 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751563AbYBYUuQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 15:50:16 -0500
 Content-Disposition: inline
+In-Reply-To: <20080225200354.GE16513@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Mon, Feb 25, 2008 at 9:46 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
-> On Mon, 25 Feb 2008 21:19:24 +0200 "Michael S. Tsirkin" <m.s.tsirkin@gmail.com> wrote:
->
->  > On my T61p, 2.6.25-rc2 seems to get acpi events from keypresses
->  > such as Fn-F4 and lid open/close, prints them in /var/log/acpid
->  > and reacts accordingly (my acpi scripts suspend on lid close and Fn-F4).
->
->  You mean suspend-to-ram works correctly on your t61p?
->
->  Mine suspends, then five seconds later magically resumes itself and the
->  screen is all black.
+On Mon, Feb 25, 2008 at 05:03:54PM -0300, Henrique de Moraes Holschuh w=
+rote:
+> This commit is indeed broken, and I have a tentative fix for it.  But=
+ I'd
+> like to have a better description of just "how" the thinkpad keys do =
+not
+> work anymore, to make sure I fix the entire breakage in one go.  I wi=
+ll
+> stare at the code and the fix a bit more before sending in any patche=
+s,
+> though.
 
-Sorry, have not noticed what you were asking about.
-Yes, rc2 seems to suspend/resume fine.
+Well, keys generate ACPI interrupt but acpid never receives any event.
 
-And after reverting
+I would be happy to test fixes to see whether things go well.
 
-     revert commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2.
-     revert commit 208c70a45624400fafd7511b96bc426bf01f8f5e.
-
-r3 does, too.
-I just waited a couple of minutes after suspend to ram and it stays suspended.
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
