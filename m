@@ -1,39 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Mon, 25 Feb 2008 12:47:29 +0100
-Message-ID: <200802251247.30605.rjw@sisk.pl>
-References: <20080225093914.GB4375@ics.muni.cz>
+From: Evert Meulie <evert@witelcom.com>
+Subject: Lenovo 3000 V200
+Date: Mon, 25 Feb 2008 13:00:46 +0100
+Message-ID: <47C2ADEE.8090203@witelcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58009 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752768AbYBYLsg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 06:48:36 -0500
-In-Reply-To: <20080225093914.GB4375@ics.muni.cz>
-Content-Disposition: inline
+Received: from [84.247.144.144] ([84.247.144.144]:1129 "EHLO witelcom.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751611AbYBYMFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Feb 2008 07:05:46 -0500
+Received: from [192.168.10.25] by witelcom.com
+	(MDaemon.PRO.v8.1.3.R)
+	with ESMTP id md50000072290.msg
+	for <linux-acpi@vger.kernel.org>; Mon, 25 Feb 2008 12:59:33 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: linux-kernel@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Monday, 25 of February 2008, Lukas Hejtmanek wrote:
-> Hello, 
+as requested in dmesg:
 
-Hi,
 
-Thanks for the report.
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: LENOVO
+ACPI: DMI Product Name: 076432G
+ACPI: DMI Product Version: LENOVO3000 V200
+ACPI: DMI Board Name: INVALID
+ACPI: DMI BIOS Vendor: LENOVO
+ACPI: DMI BIOS Date: 07/09/2007
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-> 2.6.25-rc2-git7 has regression, thinkpad keys do not work any more.
-> 
-> Probably this commit broke things 6c231bd5eb07ce546517019f334652b9ecfc329a
 
-Please always provide the commit subject along with the hash in bug reports.
-
-Also, CCing the author and the relevant list on a report usually is a good
-idea. :-)
-
-Thanks,
-Rafael
