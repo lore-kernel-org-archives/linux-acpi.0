@@ -1,43 +1,33 @@
-From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Mon, 25 Feb 2008 21:49:51 +0100
-Message-ID: <20080225204951.GB4432@ics.muni.cz>
-References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on
+ thinkpad T61p
+Date: Mon, 25 Feb 2008 23:50:37 +0300
+Message-ID: <47C32A1D.8030604@suse.de>
+References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com>	 <47C31A1E.7080305@suse.de> <8f53421d0802251239h6b872d94w677995789990e31b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from minas.ics.muni.cz ([147.251.4.40]:38394 "EHLO minas.ics.muni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbYBYUuQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 15:50:16 -0500
-Content-Disposition: inline
-In-Reply-To: <20080225200354.GE16513@khazad-dum.debian.net>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:60346 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759581AbYBYUu7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2008 15:50:59 -0500
+In-Reply-To: <8f53421d0802251239h6b872d94w677995789990e31b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Mon, Feb 25, 2008 at 05:03:54PM -0300, Henrique de Moraes Holschuh w=
-rote:
-> This commit is indeed broken, and I have a tentative fix for it.  But=
- I'd
-> like to have a better description of just "how" the thinkpad keys do =
-not
-> work anymore, to make sure I fix the entire breakage in one go.  I wi=
-ll
-> stare at the code and the fix a bit more before sending in any patche=
-s,
-> though.
+Michael S. Tsirkin wrote:
+> Did you guys stop accepting reports by mail?
+> I hope not.
+It is easier to track bug information in bugzilla.
+If you for some reason do not wish to create a bug report,
+I can do it for you. You only need to provide acpidump.
+> 
+>> and attach acpidump?
+> 
+> I'll see if I can get acpidump output - in which state do you want it?
+> Right after boot on the broken kernel?
+acpidump output does not change over time, you could get it even with some other kernel.
 
-Well, keys generate ACPI interrupt but acpid never receives any event.
-
-I would be happy to test fixes to see whether things go well.
-
---=20
-Luk=E1=B9 Hejtm=E1nek
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
