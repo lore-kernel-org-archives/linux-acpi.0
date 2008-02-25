@@ -1,126 +1,94 @@
-From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Mon, 25 Feb 2008 23:07:20 +0100
-Message-ID: <20080225220720.GA4523@ics.muni.cz>
-References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net>
+From: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
+Subject: Re: broken suspend in .2.6.25-rc3 on T61p (was Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p)
+Date: Tue, 26 Feb 2008 00:15:04 +0200
+Message-ID: <8f53421d0802251415g2033ca6bqd4e6ea9e2d93f097@mail.gmail.com>
+References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com>
+	 <20080225114611.d91791f6.akpm@linux-foundation.org>
+	 <8f53421d0802251245j5439b37die840e34bb293f995@mail.gmail.com>
+	 <200802252157.10412.rjw@sisk.pl> <20080225212615.GA2659@elf.ucw.cz>
+	 <8f53421d0802251331n31b37db8gb644dc9aa2d553d4@mail.gmail.com>
+	 <20080225215049.GD2659@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from minas.ics.muni.cz ([147.251.4.40]:58047 "EHLO minas.ics.muni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753568AbYBYWHb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 17:07:31 -0500
+Received: from ug-out-1314.google.com ([66.249.92.172]:17372 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757253AbYBYWPG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Feb 2008 17:15:06 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so995663ugc.16
+        for <linux-acpi@vger.kernel.org>; Mon, 25 Feb 2008 14:15:05 -0800 (PST)
+In-Reply-To: <20080225215049.GD2659@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <20080225210113.GF16513@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>
 
-On Mon, Feb 25, 2008 at 06:01:13PM -0300, Henrique de Moraes Holschuh w=
-rote:
-> Not even over the new netlink socket?  Or the thinkpad-acpi input dev=
-ice?
+On Mon, Feb 25, 2008 at 11:50 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+>
+>  > >  > commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
+>  > >  > Author: Pavel Machek <pavel@ucw.cz>
+>  > >  > Date:   Thu Feb 21 13:56:55 2008 +0100
+>  > >  >
+>  > >  >     power_state: get rid of write-only variable in SATA
+>  > >
+>  > >  This is pretty unlikely to be it. Can you double check that this patch
+>  > >  really breaks something?
+>  >
+>  > I did and it seems to: just reverting
+>  > 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2 fixes resume for me.
+>  > 635adc28087ced0c843d2ecb6d4ae474d0e611cd which is
+>  > 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2~1
+>  > also resumes fine.
+>
+>  Hmm, I guess that should teach me about "simple cleanups".
+>
+>  Do you use any of:
+>
+>  ata/sata_inic162x.c
+>  ata/sata_nv.c
+>  ata/sata_sil24.c
+>
+>  by chance?
 
-how can I check this?
+I don't think so.
+Here are the only 3 ata modules I have built:
+drivers/ata/ahci.ko
+drivers/ata/ata_piix.ko
+drivers/ata/libata.ko
 
-volume keys work. But anything through acpid does not. Even AC/battery =
-switch
-is not signalized. So the bug may be somewhere else?
 
-> Please send me the debug output of thinkpad-acpi loading, just in cas=
-e.
+ahci.c seems to look at power_state.
 
-[  247.170385] thinkpad_acpi: ThinkPad ACPI Extras v0.19
-[  247.170398] thinkpad_acpi: http://ibm-acpi.sf.net/
-[  247.170402] thinkpad_acpi: ThinkPad BIOS 7LETB0WW (2.10 ), EC 7KHT24=
-WW-1.08
-[  247.170407] thinkpad_acpi: Lenovo ThinkPad T61
-[  247.171289] thinkpad_acpi: radio switch found; radios are enabled
-[  247.184889] thinkpad_acpi: requested hot key mask 0xffffffff, but fi=
-rmware forced it to 0x00ffffff
-[  247.188509] thinkpad_acpi: detected a 16-level brightness capable Th=
-inkPad
-[  247.189027] input: ThinkPad Extra Buttons as /devices/virtual/input/=
-input10
-[  418.790341] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
-_SB.PCI0.LPC.EC for ec
-[  418.793747] thinkpad_acpi: ibm_init: probing for driver
-[  418.793758] thinkpad_acpi: ThinkPad ACPI Extras v0.19
-[  418.793762] thinkpad_acpi: http://ibm-acpi.sf.net/
-[  418.793766] thinkpad_acpi: ThinkPad BIOS 7LETB0WW (2.10 ), EC 7KHT24=
-WW-1.08
-[  418.793771] thinkpad_acpi: Lenovo ThinkPad T61
-[  418.793775] thinkpad_acpi: ibm_init: driver installed
-[  418.793780] thinkpad_acpi: ibm_init: probing for hotkey
-[  418.793827] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
-KEY for hkey
-[  428.258389] thinkpad_acpi: radio switch found; radios are enabled
-[  428.258423] thinkpad_acpi: hotkey_init: using Lenovo default hot key=
- map
-[  428.258431] thinkpad_acpi: hotkey_init: enabling hot key handling
-[  428.264778] thinkpad_acpi: hotkey_init: legacy hot key reporting ove=
-r procfs enabled
-[  418.806536] thinkpad_acpi: register_tpacpi_subdriver: registering ho=
-tkey as an ACPI driver
-[  418.808594] thinkpad_acpi: ibm_init: hotkey installed
-[  418.816087] thinkpad_acpi: requested hot key mask 0xffffffff, but fi=
-rmware forced it to 0x00ffffff
-[  418.816100] thinkpad_acpi: ibm_init: probing for bluetooth
-[  418.816114] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
-KEY for hkey
-[  418.821862] thinkpad_acpi: ibm_init: bluetooth installed
-[  418.821875] thinkpad_acpi: ibm_init: probing for wan
-[  418.821890] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle H=
-KEY for hkey
-[  418.828238] thinkpad_acpi: wan_init: wan hardware not installed
-[  418.828251] thinkpad_acpi: ibm_init: probing for light
-[  418.828266] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
-UCMS for cmos
-[  418.842964] thinkpad_acpi: ibm_init: light installed
-[  418.843021] thinkpad_acpi: ibm_init: probing for bay
-[  418.843050] thinkpad_acpi: ibm_init: probing for cmos
-[  418.843060] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
-UCMS for cmos
-[  418.843378] thinkpad_acpi: ibm_init: cmos installed
-[  418.843385] thinkpad_acpi: ibm_init: probing for led
-[  418.843402] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle L=
-ED for led
-[  418.843407] thinkpad_acpi: ibm_init: led installed
-[  418.843412] thinkpad_acpi: ibm_init: probing for beep
-[  418.843418] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle B=
-EEP for beep
-[  418.843422] thinkpad_acpi: ibm_init: beep installed
-[  418.843429] thinkpad_acpi: ibm_init: probing for thermal
-[  418.849384] thinkpad_acpi: ibm_init: thermal installed
-[  418.849392] thinkpad_acpi: ibm_init: probing for ecdump
-[  418.849396] thinkpad_acpi: ibm_init: ecdump installed
-[  418.849401] thinkpad_acpi: ibm_init: probing for brightness
-[  418.849406] thinkpad_acpi: brightness_init: selected brightness_mode=
-=3D2
-[  418.849424] thinkpad_acpi: drv_acpi_handle_init: Found ACPI handle \=
-_SB.PCI0.VID for vid
-[  418.849464] thinkpad_acpi: detected a 16-level brightness capable Th=
-inkPad
-[  418.850526] thinkpad_acpi: ibm_init: brightness installed
-[  418.850534] thinkpad_acpi: ibm_init: probing for volume
-[  418.850538] thinkpad_acpi: ibm_init: volume installed
-[  418.850545] thinkpad_acpi: ibm_init: probing for fan
-[  418.850853] thinkpad_acpi: ibm_init: fan installed
-[  418.850952] input: ThinkPad Extra Buttons as /devices/virtual/input/=
-input11
+static int ahci_pci_device_resume(struct pci_dev *pdev)
+{
+        struct ata_host *host = dev_get_drvdata(&pdev->dev);
+        int rc;
 
-> > I would be happy to test fixes to see whether things go well.
->=20
-> Sure, try this one:
+        rc = ata_pci_device_do_resume(pdev);
+        if (rc)
+                return rc;
 
-not better.
-=20
---=20
-Luk=E1=B9 Hejtm=E1nek
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
+                rc = ahci_reset_controller(host);
+                if (rc)
+                        return rc;
+
+                ahci_init_controller(host);
+        }
+
+        ata_host_resume(host);
+
+        return 0;
+}
+
+Right?
+
+>  (Ok, the patch is very safe to revert, it was "cleanup", it fixes
+>  nothing).
+>
+>
+>                                                                         Pavel
