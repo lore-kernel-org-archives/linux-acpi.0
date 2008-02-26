@@ -1,54 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p - resume hang
-Date: Tue, 26 Feb 2008 22:22:47 +0100
-Message-ID: <200802262222.48428.rjw@sisk.pl>
-References: <Pine.LNX.4.64.0802261210080.3332@boston.corp.fedex.com>
+From: "Klaus S. Madsen" <ksm@hjernemadsen.org>
+Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p
+Date: Tue, 26 Feb 2008 22:32:00 +0100
+Message-ID: <20080226213200.GL17932@hjernemadsen.org>
+References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com> <20080225114611.d91791f6.akpm@linux-foundation.org> <20080226085403.GI17932@hjernemadsen.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38932 "EHLO ogre.sisk.pl"
+Received: from xspect.dk ([212.97.129.87]:59175 "EHLO xspect.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753897AbYBZVYE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2008 16:24:04 -0500
-In-Reply-To: <Pine.LNX.4.64.0802261210080.3332@boston.corp.fedex.com>
+	id S1765473AbYBZVcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Feb 2008 16:32:03 -0500
 Content-Disposition: inline
+In-Reply-To: <20080226085403.GI17932@hjernemadsen.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, "Jesse B, arnes"@localhost.corp.fedex.com, jesse.barnes@intel.com, Linus Torvalds <torvalds@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Jeff Garzik <jeff@garzik.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, 26 of February 2008, Jeff Chua wrote:
+> I also have a T61p, on which STR works. I haven't tried 2.6.25, but it
+> works with 2.6.24. Both using the suspend scripts included in Ubuntu
+> 7.10, and with s2ram 0.8 (although I need to use --acpi_sleep 2
+> (s3_mode) as an option, instead of 1 (s3_bios), which is used by default
+> on my model).
 > 
-> On Tue, Feb 26, 2008 at 4:45 AM, Michael S. Tsirkin 
-> <m.s.tsirkin@gmail.com> wrote:
-> > On Mon, Feb 25, 2008 at 9:46 PM, Andrew Morton 
-> <akpm@linux-foundation.org> wrote:
-> > > On Mon, 25 Feb 2008 21:19:24 +0200 "Michael S. Tsirkin" 
-> <m.s.tsirkin@gmail.com> wrote:
-> >  >  You mean suspend-to-ram works correctly on your t61p?
-> >  >  Mine suspends, then five seconds later magically resumes itself and 
-> the
-> >  >  screen is all black.
-> >  Sorry, have not noticed what you were asking about.
-> >  Yes, rc2 seems to suspend/resume fine.
-> >  And after reverting
-> >      revert commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2.
-> 
-> commit 559bbe6cbd0d8c68d40076a5f7dc98e3bf5864b2
-> Author: Pavel Machek <pavel@ucw.cz>
-> Date:   Thu Feb 21 13:56:55 2008 +0100
-> 
->      power_state: get rid of write-only variable in SATA
-> 
->      power_state is scheduled for removal, and libata uses it in write-only
->      mode. Remove it.
-> 
->      Signed-off-by: Pavel Machek <pavel@suse.cz>
->      Signed-off-by: Jeff Garzik <jeff@garzik.org>
+> But I'm using the NVidia module, so that most likely changes a lot of
+> things.  I'll see if I can find time tonight to test 2.6.25-rc3 + nv,
+> and report back.
+Ok. I've spent some time testing this. The good news is that with the nv
+driver, s2ram as available from suspend.sf.net works, when run without
+parameters on a 32-bit 2.6.24.3.
 
-That's already been reverted from the mainline.
+The bad news, however, is that it segfaults reliably after "Calling
+get_mode" when I run it on 2.6.25-rc3. GDB shows that the segmentation
+fault happens in the libx86 library, but as the version I use doesn't
+have debug symbols, I don't have a complete backtrace. I'll try to
+compile a version of libx86 tomorrow evening with debug symbols, and
+return with a proper backtrace.
 
-Thanks,
-Rafael
+I have also tried to bisect the problem (its somewhere between 2.6.24
+and 2.6.25rc1, quite a large span). However reverting the resulting
+commit didn't solve the problem, I suspect I took a wrong turn
+somewhere. I'll try to redo the bisection also tomorrow evening.
+
+So I'll return with a proper bug report tomorrow (in its own thread). I
+just wanted to give a heads up, if the above makes sense to anyone ;-)
+
+--
+Kind regards
+ 	Klaus S. Madsen
+
