@@ -1,47 +1,59 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on
- thinkpad T61p
-Date: Tue, 26 Feb 2008 22:44:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0802262242070.7699@twin.jikos.cz>
-References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com>
- <20080225114611.d91791f6.akpm@linux-foundation.org> <20080226085403.GI17932@hjernemadsen.org>
- <20080226213200.GL17932@hjernemadsen.org>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: ACPI: thinkpad-acpi: fix hotkey_get_tablet_mode
+Date: Tue, 26 Feb 2008 19:12:35 -0300
+Message-ID: <1204063955-5739-1-git-send-email-hmh@hmh.eng.br>
+References: <20080225200354.GE16513@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from twin.jikos.cz ([213.151.79.26]:37091 "EHLO twin.jikos.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765472AbYBZVo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2008 16:44:58 -0500
-In-Reply-To: <20080226213200.GL17932@hjernemadsen.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20080225200354.GE16513-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Zdenek Kabelac <zdenek.kabelac-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Lukas Hejtmanek <xhejtman-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Klaus S. Madsen" <ksm@hjernemadsen.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, 26 Feb 2008, Klaus S. Madsen wrote:
+I used the wrong return convention on hotkey_get_tablet_mode(), breaking a
+lot of stuff.  Bad Henrique!
 
-> The bad news, however, is that it segfaults reliably after "Calling
-> get_mode" when I run it on 2.6.25-rc3. GDB shows that the segmentation
-> fault happens in the libx86 library, but as the version I use doesn't
-> have debug symbols, I don't have a complete backtrace. I'll try to
-> compile a version of libx86 tomorrow evening with debug symbols, and
-> return with a proper backtrace.
+Fix it to return the status in the parameter-by-reference, and IO status on
+the function return value. Duh.
 
-Hmm, just a random shot (shouldn't be the case, but just to be on the safe 
-side) -- could you please try
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Zdenek Kabelac <zdenek.kabelac-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Lukas Hejtmanek <xhejtman-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
+---
+ drivers/misc/thinkpad_acpi.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-        echo 0 > /proc/sys/kernel/randomize_va_space
-
-to see whether it removes the segfault by any chance?
-
-I don't know how exactly execution of real-mode code through libx86 works, 
-but this might be worth trying before starting the next round of 
-bisection.
-
-Thanks,
-
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index bb269d0..6cb7812 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1078,7 +1078,8 @@ static int hotkey_get_tablet_mode(int *status)
+ 	if (!acpi_evalf(hkey_handle, &s, "MHKG", "d"))
+ 		return -EIO;
+ 
+-	return ((s & TP_HOTKEY_TABLET_MASK) != 0);
++	*status = ((s & TP_HOTKEY_TABLET_MASK) != 0);
++	return 0;
+ }
+ 
+ /*
 -- 
-Jiri Kosina
-SUSE Labs
+1.5.4.2
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by: Microsoft
+Defy all challenges. Microsoft(R) Visual Studio 2008.
+http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
