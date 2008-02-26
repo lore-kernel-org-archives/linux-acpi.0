@@ -1,284 +1,39 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Tue, 26 Feb 2008 09:39:42 +0100
-Message-ID: <47C3D04E.6090609@hhs.nl>
-References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
+From: "Klaus S. Madsen" <ksm@hjernemadsen.org>
+Subject: Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p
+Date: Tue, 26 Feb 2008 09:54:04 +0100
+Message-ID: <20080226085403.GI17932@hjernemadsen.org>
+References: <8f53421d0802251119q470a79c1p31048ef136271f84@mail.gmail.com> <20080225114611.d91791f6.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.versatel.nl ([62.58.50.88]:58224 "EHLO smtp1.versatel.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752328AbYBZIkZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2008 03:40:25 -0500
-In-Reply-To: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760153AbYBZIyS@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20080225114611.d91791f6.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-Zhang, Rui wrote:
-> Add hwmon sys I/F for the generic thermal device.
+On Mon, Feb 25, 2008 at 11:46:11 -0800, Andrew Morton wrote:
+> On Mon, 25 Feb 2008 21:19:24 +0200 "Michael S. Tsirkin" <m.s.tsirkin@gmail.com> wrote:
 > 
-
-Great!
-
-But I have several remarks:
-1) Looking at the new code, you only add temp1_input, so I'm guessing that you
-are registering a seperate hwmon class entry per zone? Please don't do that, 
-please register one hwmon class entry, and add multiple temp#_input attr to it 
-(and the same for crit).
-
-2) I see that temp_crit may not be always available:
- > +static ssize_t
- > +crit_trip_temp_show(struct device *dev, struct device_attribute *attr,
- > +			char *buf)
- > +{
- > +	struct device *device = dev->parent;
- > +	struct thermal_zone_device *tz = to_thermal_zone(device);
- > +	int result;
- > +
- > +	if (!tz->ops->get_trip_temp )
- > +		return -EPERM;
- > +
- > +	/* assume trip 0 to be the critical trip point by default */
- > +	if (tz->ops->get_trip_type) {
- > +		result = tz->ops->get_trip_type(tz, 0, buf);
- > +		if (result < 0)
- > +			return result;
- > +		if (strcmp(buf, "critical\n"))
- > +			return -ENODEV;
- > +	}
- > +
- > +	return tz->ops->get_trip_temp(tz, 0, buf);
- > +}
-
-But you do always register a temp#_crit sysfs attr, it would be much much 
-better to only add this if reading it actually has a chance of returning a 
-value, so if tz->ops->get_trip_temp != NULL and tz->ops->get_trip_type(tz, 0, 
-buf) returns "critical" in buf.
-
-Thanks & Regards,
-
-Hans
-
-
-
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  Documentation/thermal/sysfs-api.txt |   22 +++++----
->  drivers/thermal/Kconfig             |    1 
->  drivers/thermal/thermal.c           |   86 ++++++++++++++++++++++++++++++++----
->  include/linux/thermal.h             |    1 
->  4 files changed, 92 insertions(+), 18 deletions(-)
+> > On my T61p, 2.6.25-rc2 seems to get acpi events from keypresses
+> > such as Fn-F4 and lid open/close, prints them in /var/log/acpid
+> > and reacts accordingly (my acpi scripts suspend on lid close and Fn-F4).
 > 
-> Index: linux-2.6.25-rc2/Documentation/thermal/sysfs-api.txt
-> ===================================================================
-> --- linux-2.6.25-rc2.orig/Documentation/thermal/sysfs-api.txt	2008-02-25 22:43:29.000000000 -0500
-> +++ linux-2.6.25-rc2/Documentation/thermal/sysfs-api.txt	2008-02-25 22:43:38.000000000 -0500
-> @@ -141,12 +141,14 @@
->  
->  type				Strings which represent the thermal zone type.
->  				This is given by thermal zone driver as part of registration.
-> +				In order to keep the compatibility with hwmon,
-> +				it should not contain any spaces or dashes.
->  				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
->  				RO
-> -				Optional
-> +				Required
->  
->  temp				Current temperature as reported by thermal zone (sensor)
-> -				Unit: degree Celsius
-> +				Unit: millidegree Celsius
->  				RO
->  				Required
->  
-> @@ -163,7 +165,7 @@
->  					  charge of the thermal management.
->  
->  trip_point_[0-*]_temp		The temperature above which trip point will be fired
-> -				Unit: degree Celsius
-> +				Unit: millidegree Celsius
->  				RO
->  				Optional
->  
-> @@ -219,16 +221,16 @@
->  
->  |thermal_zone1:
->  	|-----type:			ACPI thermal zone
-> -	|-----temp:			37
-> +	|-----temp:			37000
->  	|-----mode:			kernel
-> -	|-----trip_point_0_temp:	100
-> +	|-----trip_point_0_temp:	100000
->  	|-----trip_point_0_type:	critical
-> -	|-----trip_point_1_temp:	80
-> +	|-----trip_point_1_temp:	80000
->  	|-----trip_point_1_type:	passive
-> -	|-----trip_point_2_temp:	70
-> -	|-----trip_point_2_type:	active[0]
-> -	|-----trip_point_3_temp:	60
-> -	|-----trip_point_3_type:	active[1]
-> +	|-----trip_point_2_temp:	70000
-> +	|-----trip_point_2_type:	active0
-> +	|-----trip_point_3_temp:	60000
-> +	|-----trip_point_3_type:	active1
->  	|-----cdev0:			--->/sys/class/thermal/cooling_device0
->  	|-----cdev0_trip_point:		1	/* cdev0 can be used for passive */
->  	|-----cdev1:			--->/sys/class/thermal/cooling_device3
-> Index: linux-2.6.25-rc2/drivers/thermal/Kconfig
-> ===================================================================
-> --- linux-2.6.25-rc2.orig/drivers/thermal/Kconfig	2008-02-25 22:43:29.000000000 -0500
-> +++ linux-2.6.25-rc2/drivers/thermal/Kconfig	2008-02-25 22:43:38.000000000 -0500
-> @@ -4,6 +4,7 @@
->  
->  menuconfig THERMAL
->  	bool "Generic Thermal sysfs driver"
-> +	select HWMON
->  	default y
->  	help
->  	  Generic Thermal Sysfs driver offers a generic mechanism for
-> Index: linux-2.6.25-rc2/drivers/thermal/thermal.c
-> ===================================================================
-> --- linux-2.6.25-rc2.orig/drivers/thermal/thermal.c	2008-02-25 22:43:29.000000000 -0500
-> +++ linux-2.6.25-rc2/drivers/thermal/thermal.c	2008-02-26 00:37:57.000000000 -0500
-> @@ -30,8 +30,9 @@
->  #include <linux/idr.h>
->  #include <linux/thermal.h>
->  #include <linux/spinlock.h>
-> +#include <linux/hwmon.h>
->  
-> -MODULE_AUTHOR("Zhang Rui")
-> +MODULE_AUTHOR("Zhang Rui");
->  MODULE_DESCRIPTION("Generic thermal management sysfs support");
->  MODULE_LICENSE("GPL");
->  
-> @@ -171,6 +172,47 @@
->  	return tz->ops->get_trip_temp(tz, trip, buf);
->  }
->  
-> +static ssize_t
-> +hwmon_type_show(struct device *dev, struct device_attribute *attr, char *buf)
-> +{
-> +	struct device *device = dev->parent;
-> +	return type_show(device, attr, buf);
-> +}
-> +
-> +static ssize_t
-> +hwmon_temp_show(struct device *dev, struct device_attribute *attr, char *buf)
-> +{
-> +	struct device *device = dev->parent;
-> +	return temp_show(device, attr, buf);
-> +}
-> +
-> +static ssize_t
-> +crit_trip_temp_show(struct device *dev, struct device_attribute *attr,
-> +			char *buf)
-> +{
-> +	struct device *device = dev->parent;
-> +	struct thermal_zone_device *tz = to_thermal_zone(device);
-> +	int result;
-> +
-> +	if (!tz->ops->get_trip_temp )
-> +		return -EPERM;
-> +
-> +	/* assume trip 0 to be the critical trip point by default */
-> +	if (tz->ops->get_trip_type) {
-> +		result = tz->ops->get_trip_type(tz, 0, buf);
-> +		if (result < 0)
-> +			return result;
-> +		if (strcmp(buf, "critical\n"))
-> +			return -ENODEV;
-> +	}
-> +
-> +	return tz->ops->get_trip_temp(tz, 0, buf);
-> +}
-> +
-> +static DEVICE_ATTR(name, 0444, hwmon_type_show, NULL);
-> +static DEVICE_ATTR(temp1_input, 0444, hwmon_temp_show, NULL);
-> +static DEVICE_ATTR(temp1_crit, 0444, crit_trip_temp_show, NULL);
-> +
->  static DEVICE_ATTR(type, 0444, type_show, NULL);
->  static DEVICE_ATTR(temp, 0444, temp_show, NULL);
->  static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
-> @@ -569,6 +611,9 @@
->  	int result;
->  	int count;
->  
-> +	if (!type)
-> +		return ERR_PTR(-EINVAL);
-> +
->  	if (strlen(type) >= THERMAL_NAME_LENGTH)
->  		return NULL;
->  
-> @@ -604,13 +649,33 @@
->  		return NULL;
->  	}
->  
-> -	/* sys I/F */
-> -	if (type) {
-> -		result = device_create_file(&tz->device, &dev_attr_type);
-> -		if (result)
-> -			goto unregister;
-> +	/* hwmon sys I/F */
-> +	tz->hwmon = hwmon_device_register(&tz->device);
-> +	if (IS_ERR(tz->hwmon)) {
-> +		result = PTR_ERR(tz->hwmon);
-> +		tz->hwmon = NULL;
-> +		printk(KERN_ERR PREFIX
-> +			"unable to register hwmon device\n");
-> +		goto unregister;
->  	}
->  
-> +	result = device_create_file(tz->hwmon, &dev_attr_name);
-> +	if (result)
-> +		goto unregister;
-> +
-> +	result = device_create_file(tz->hwmon, &dev_attr_temp1_input);
-> +	if (result)
-> +		goto unregister;
-> +
-> +	result = device_create_file(tz->hwmon, &dev_attr_temp1_crit);
-> +	if (result)
-> +		goto unregister;
-> +
-> +	/* sys I/F */
-> +	result = device_create_file(&tz->device, &dev_attr_type);
-> +	if (result)
-> +		goto unregister;
-> +
->  	result = device_create_file(&tz->device, &dev_attr_temp);
->  	if (result)
->  		goto unregister;
-> @@ -676,8 +741,13 @@
->  		    tz->ops->unbind(tz, cdev);
->  	mutex_unlock(&thermal_list_lock);
->  
-> -	if (tz->type[0])
-> -		device_remove_file(&tz->device, &dev_attr_type);
-> +	device_remove_file(&tz->device, &dev_attr_name);
-> +	device_remove_file(&tz->device, &dev_attr_temp1_input);
-> +	device_remove_file(&tz->device, &dev_attr_temp1_crit);
-> +	hwmon_device_unregister(tz->hwmon);
-> +	tz->hwmon = NULL;
-> +
-> +	device_remove_file(&tz->device, &dev_attr_type);
->  	device_remove_file(&tz->device, &dev_attr_temp);
->  	if (tz->ops->get_mode)
->  		device_remove_file(&tz->device, &dev_attr_mode);
-> Index: linux-2.6.25-rc2/include/linux/thermal.h
-> ===================================================================
-> --- linux-2.6.25-rc2.orig/include/linux/thermal.h	2008-02-25 22:43:29.000000000 -0500
-> +++ linux-2.6.25-rc2/include/linux/thermal.h	2008-02-25 22:43:38.000000000 -0500
-> @@ -69,6 +69,7 @@
->  	int id;
->  	char type[THERMAL_NAME_LENGTH];
->  	struct device device;
-> +	struct device *hwmon;
->  	void *devdata;
->  	int trips;
->  	struct thermal_zone_device_ops *ops;
+> You mean suspend-to-ram works correctly on your t61p?
 > 
-> 
-> 
+> Mine suspends, then five seconds later magically resumes itself and the
+> screen is all black.
+I also have a T61p, on which STR works. I haven't tried 2.6.25, but it
+works with 2.6.24. Both using the suspend scripts included in Ubuntu
+7.10, and with s2ram 0.8 (although I need to use --acpi_sleep 2
+(s3_mode) as an option, instead of 1 (s3_bios), which is used by default
+on my model).
 
+But I'm using the NVidia module, so that most likely changes a lot of
+things.  I'll see if I can find time tonight to test 2.6.25-rc3 + nv,
+and report back.
+
+-- 
+Kind regards
+	Klaus S. Madsen
