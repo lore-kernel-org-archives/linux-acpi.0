@@ -1,27 +1,51 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Kernel Version specific vendor override possibilities needed - Revert and provide osi=linux or provide a replacement
-Date: Tue, 26 Feb 2008 16:31:15 +0000
-Message-ID: <20080226163115.GB12020@srcf.ucam.org>
-References: <1203471860.3358.177.camel@linux-2bdv.site> <20080220173248.GA22709@srcf.ucam.org> <20080220182339.GC17648@khazad-dum.debian.net> <20080220184954.GB23679@srcf.ucam.org> <20080221031324.GB6344@khazad-dum.debian.net> <20080221091532.GA3091@srcf.ucam.org> <20080221135132.GE14614@mit.edu> <1204043205.4995.228.camel@queen.suse.de>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Tue, 26 Feb 2008 19:49:37 +0100
+Message-ID: <20080226184937.GA4280@ics.muni.cz>
+References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:51720 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbYBZQbp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2008 11:31:45 -0500
+Received: from minas.ics.muni.cz ([147.251.4.40]:60068 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755501AbYBZSty (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Feb 2008 13:49:54 -0500
 Content-Disposition: inline
-In-Reply-To: <1204043205.4995.228.camel@queen.suse.de>
+In-Reply-To: <20080225230035.GA14503@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Theodore Tso <tytso@MIT.EDU>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Starikovskiy, Alexey Y" <aystarik@gmail.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tue, Feb 26, 2008 at 05:26:45PM +0100, Thomas Renninger wrote:
+On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh w=
+rote:
+> On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
+> > volume keys work. But anything through acpid does not. Even AC/batt=
+ery switch
+> > is not signalized. So the bug may be somewhere else?
+>=20
+> Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
+> thinkpad.  I don't have a link to it right now, but if you look for t=
+he
+> messages to LKML on the last 48h, you will find it.
 
-> Return true for OSI("Linux") for some T61 is wrong. 
+this one fixes all my troubles with thinkpad hotkeys in rc3.
+http://lkml.org/lkml/2008/2/25/400
+=20
+> > [  418.816087] thinkpad_acpi: requested hot key mask 0xffffffff, bu=
+t firmware forced it to 0x00ffffff
+>=20
+> Don't do this.  Just let the driver select the default mask, unless y=
+ou
+> *really* know better.
 
-I agree, and I'd rather not have the whitelisting.
+OK, thanks.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
