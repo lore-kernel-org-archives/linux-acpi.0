@@ -1,52 +1,51 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [2.6.25-rc3] ACPI _PPC limiting processor speed...
-Date: Mon, 25 Feb 2008 15:48:45 -0800
-Message-ID: <20080225154845.2b71c200.akpm@linux-foundation.org>
-References: <6278d2220802251329x75b6d4c5lc3fab6fe6e75363f@mail.gmail.com>
+Subject: Re: [Bugme-new] [Bug 10072] New: WARNING: at
+ arch/x86/mm/ioremap.c:137 __ioremap+0x1d5/0x1f0() during bootup
+Date: Mon, 25 Feb 2008 16:00:47 -0800
+Message-ID: <20080225160047.6e4dd6bc.akpm@linux-foundation.org>
+References: <bug-10072-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41623 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756822AbYBYXuG (ORCPT
+	by vger.kernel.org with ESMTP id S1753686AbYBZACM (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Feb 2008 18:50:06 -0500
-In-Reply-To: <6278d2220802251329x75b6d4c5lc3fab6fe6e75363f@mail.gmail.com>
+	Mon, 25 Feb 2008 19:02:12 -0500
+In-Reply-To: <bug-10072-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: plamen.petrov@tk.ru.acad.bg
+Cc: bugme-daemon@bugzilla.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 25 Feb 2008 21:29:24 +0000 "Daniel J Blueman" <daniel.blueman@gmail.com> wrote:
+On Sat, 23 Feb 2008 09:09:25 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
 
-> My 2.2GHz [1] Thinkpad T61 is unable to get past 1.2GHz, seemingly
-> because of the _PPC ACPI objects [2].
+> http://bugzilla.kernel.org/show_bug.cgi?id=10072
 > 
-> Given that the _PPC object is different for both cores, is this more
-> of a BIOS bug or an ACPI interpreter problem? The problem was present
-> in 2.6.24-rc, 2.6.24 final and since.
+>            Summary: WARNING: at arch/x86/mm/ioremap.c:137
+>                     __ioremap+0x1d5/0x1f0() during bootup
+>            Product: Memory Management
+>            Version: 2.5
+>      KernelVersion: 2.6.25-rc2-00496-g39273b5
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: low
+>           Priority: P1
+>          Component: Other
+>         AssignedTo: akpm@osdl.org
+>         ReportedBy: plamen.petrov@tk.ru.acad.bg
 > 
-> BIOS is 7LETA9WW/2.09, so current - would any further information be
-> useful for debugging this problem, and would dumping the ACPI tables
-> be useful?
 > 
-> Thanks,
->   Daniel
+> Latest working kernel version:
+> Earliest failing kernel version:
+> Distribution: Slackware 12
+> Hardware Environment: AMD Duron 850MHz CPU, 512 MB RAM
+> Software Environment:
+> Problem Description: WARNING section in bootup log (attached)
 > 
-> --- [1]
-> 
-> freq-table: table entry 0: 2201000 kHz, 0 index
-> freq-table: table entry 1: 2200000 kHz, 1 index
-> freq-table: table entry 2: 1600000 kHz, 2 index
-> freq-table: table entry 3: 1200000 kHz, 3 index
-> freq-table: table entry 4: 800000 kHz, 4 index
-> 
-> --- [2]
-> 
-> cpufreq-core: CPU 0: _PPC is 3 - frequency  limited
-> cpufreq-core: CPU 1: _PPC is 0 - frequency not limited
 
-(cc linux-acpi)
-
-If nothing happens, please raise a report at bugzilla.kernel.org, thanks.
+This is an acpi regression, I believe.  And it was reported a week or two
+ago.
