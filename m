@@ -1,40 +1,41 @@
-From: Jarek Poplawski <jarkao2@gmail.com>
-Subject: Re: [Bugme-new] [Bug 10071] New: kernel hang in inet_init
-Date: Wed, 27 Feb 2008 13:49:48 +0000
-Message-ID: <20080227134948.GA6422@ff.dom.local>
-References: <20080225140034.5ef88935.akpm@linux-foundation.org>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: [PATCH] ACPI: Fix a duplicate log level
+Date: Wed, 27 Feb 2008 20:56:01 +0100
+Message-ID: <20080227205601.4c65ed1c@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:47522 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653AbYB0Nsr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Feb 2008 08:48:47 -0500
-Received: by ug-out-1314.google.com with SMTP id z38so341307ugc.16
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Feb 2008 05:48:45 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20080225140034.5ef88935.akpm@linux-foundation.org>
+Received: from smtp-dmz-233-wednesday.dmz.nerim.net ([195.5.254.233]:64147
+	"EHLO kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755370AbYB0T6K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Feb 2008 14:58:10 -0500
+Received: from kraid.nerim.net (smtp-103-wednesday.nerim.net [62.4.16.103])
+	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id 232F913DE0
+	for <linux-acpi@vger.kernel.org>; Wed, 27 Feb 2008 20:57:59 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yannick.dirou@axetic.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
-On 25-02-2008 23:00, Andrew Morton wrote:
-> On Sat, 23 Feb 2008 00:34:06 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
-> 
->> http://bugzilla.kernel.org/show_bug.cgi?id=10071
-...
->>      KernelVersion: 2.6.25 rc2 latest git
-...
->> there seem to be a weird interaction between acpi and inet_init
->>
->> any hint on how to provide better information
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Yannick, here are a few questions:
+--- linux-2.6.25-rc3.orig/drivers/acpi/osl.c	2008-02-16 10:37:18.000000000 +0100
++++ linux-2.6.25-rc3/drivers/acpi/osl.c	2008-02-27 19:08:01.000000000 +0100
+@@ -1237,7 +1237,7 @@ int acpi_check_resource_conflict(struct 
+ 
+ 	if (clash) {
+ 		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
+-			printk(KERN_INFO "%sACPI: %s resource %s [0x%llx-0x%llx]"
++			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+ 			       " conflicts with ACPI region %s"
+ 			       " [0x%llx-0x%llx]\n",
+ 			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
 
-- is this bug just with this git, but OK before (or 2.6.25-rc3?)?
-- do all other drivers work properly and only net is a problem?
-- could you add to bugzilla full dmesg in both cases?
 
-Regards,
-Jarek P.
+-- 
+Jean Delvare
