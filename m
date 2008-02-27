@@ -1,30 +1,41 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Linux 2.6.24.1  - kernel does not boot; IRQ trouble?
-Date: Tue, 26 Feb 2008 15:40:25 -0800
-Message-ID: <20080226234025.GC14117@kroah.com>
-References: <20080218050056.fb0fc0bf.akpm@linux-foundation.org> <667844.65249.qm@web52901.mail.re2.yahoo.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: broken suspend in .2.6.25-rc3 on T61p (was Re: new regression in 2.6.25-rc3: no keyboard/lid acpi events on thinkpad T61p)
+Date: Wed, 27 Feb 2008 01:12:51 +0100
+Message-ID: <200802270112.52652.rjw@sisk.pl>
+References: <20080225143932.6b83b65d.akpm@linux-foundation.org> <20080226105606.e56e4ec6.akpm@linux-foundation.org> <2c0942db0802261531s140aaa82w1daa1829b5a36a4a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:40114 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764006AbYBZXft (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Feb 2008 18:35:49 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:39763 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753358AbYB0AOL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Feb 2008 19:14:11 -0500
+In-Reply-To: <2c0942db0802261531s140aaa82w1daa1829b5a36a4a@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <667844.65249.qm@web52901.mail.re2.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Rankin <rankincj@yahoo.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ray Lee <ray-lk@madrabbit.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Dave Jones <davej@codemonkey.org.uk>, kernel list <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 26, 2008 at 10:36:00PM +0000, Chris Rankin wrote:
-> FYI, this hang still exists in 2.6.24.3 and so I am still needing to boot with the acpi=noirq
-> parameter.
+On Wednesday, 27 of February 2008, Ray Lee wrote:
+> On Tue, Feb 26, 2008 at 10:56 AM, Andrew Morton
+> <akpm@linux-foundation.org> wrote:
+> >  First thing we need to do is to work out why it won't stay suspended?
+> 
+> Forgive me the stupid question, but you don't happen to have Wake On
+> LAN or somesuch enabled in your BIOS, do you? (Given yours stays down
+> for five seconds then resumes, and other T61 owners aren't seeing that
+> behavior... <shrug>)
+> 
+> For Pavel and Rafael: Is there some sort of event that gets handed
+> back on resume to let the kernel know why the system woke up? One
+> would think that the Wake On LAN (keyboard, timer, etc.) would hand a
+> notification over to the OS. One is often wrong though.
 
-You're going to have to refresh my memory.  Was this a problem caused by
-the .1 .2 or .3 kernel releases?  Did 2.6.24 have this problem as well,
-or was it ok?
+In theory we should be able to get this kind of information from ACPI, but I've
+never seriously looked at that.  I'm not sure if anyone has ...
 
-thanks,
-
-greg k-h
+Thanks,
+Rafael
