@@ -1,110 +1,40 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 2/2] ACPI: show temperature in millidegree
-	Celsius
-Date: Wed, 27 Feb 2008 13:13:53 +0300
-Message-ID: <47C537E1.5090103@gmail.com>
-References: <1204072678.10256.112.camel@acpi-hp-zz.sh.intel.com>
+From: Jarek Poplawski <jarkao2@gmail.com>
+Subject: Re: [Bugme-new] [Bug 10071] New: kernel hang in inet_init
+Date: Wed, 27 Feb 2008 13:49:48 +0000
+Message-ID: <20080227134948.GA6422@ff.dom.local>
+References: <20080225140034.5ef88935.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-In-Reply-To: <1204072678.10256.112.camel@acpi-hp-zz.sh.intel.com>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.174]:47522 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755653AbYB0Nsr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Feb 2008 08:48:47 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so341307ugc.16
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Feb 2008 05:48:45 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20080225140034.5ef88935.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: yannick.dirou@axetic.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, bugme-daemon@bugzilla.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Rui,
+On 25-02-2008 23:00, Andrew Morton wrote:
+> On Sat, 23 Feb 2008 00:34:06 -0800 (PST) bugme-daemon@bugzilla.kernel.org wrote:
+> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=10071
+...
+>>      KernelVersion: 2.6.25 rc2 latest git
+...
+>> there seem to be a weird interaction between acpi and inet_init
+>>
+>> any hint on how to provide better information
 
-As I remember, ACPI returns temperature in 10ths of degree. If you are 
-going to report it in 1000ths of degree,
-there is no reason to round them to degree.
+Yannick, here are a few questions:
+
+- is this bug just with this git, but OK before (or 2.6.25-rc3?)?
+- do all other drivers work properly and only net is a problem?
+- could you add to bugzilla full dmesg in both cases?
 
 Regards,
-Alex.
-
-Zhang, Rui wrote:
-> Show the temperature in Millidegree Celsius.
->
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/thermal.c |   12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
->
-> Index: linux-2.6/drivers/acpi/thermal.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/thermal.c
-> +++ linux-2.6/drivers/acpi/thermal.c
-> @@ -879,6 +879,8 @@ static void acpi_thermal_check(void *dat
->  }
->  
->  /* sys I/F for generic thermal sysfs support */
-> +#define KELVIN_TO_MILLICELSIUS(t) (KELVIN_TO_CELSIUS(t) * 1000)
-> +
->  static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
->  {
->  	struct acpi_thermal *tz = thermal->devdata;
-> @@ -886,7 +888,7 @@ static int thermal_get_temp(struct therm
->  	if (!tz)
->  		return -EINVAL;
->  
-> -	return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(tz->temperature));
-> +	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
->  }
->  
->  static const char enabled[] = "kernel";
-> @@ -980,21 +982,21 @@ static int thermal_get_trip_temp(struct 
->  
->  	if (tz->trips.critical.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  				tz->trips.critical.temperature));
->  		trip--;
->  	}
->  
->  	if (tz->trips.hot.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.hot.temperature));
->  		trip--;
->  	}
->  
->  	if (tz->trips.passive.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.passive.temperature));
->  		trip--;
->  	}
-> @@ -1002,7 +1004,7 @@ static int thermal_get_trip_temp(struct 
->  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
->  		tz->trips.active[i].flags.valid; i++) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.active[i].temperature));
->  		trip--;
->  	}
->
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Jarek P.
