@@ -1,40 +1,42 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.25-rc2-git] crosslink ACPI and "real" device nodes
-Date: Tue, 26 Feb 2008 18:19:31 -0800
-Message-ID: <200802261819.31755.david-b@pacbell.net>
-References: <200802222154.25204.david-b@pacbell.net> <200802252317.43717.david-b@pacbell.net> <20080226131058.GA8234@khazad-dum.debian.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: Linux 2.6.24.1  - kernel does not boot; IRQ trouble?
+Date: Tue, 26 Feb 2008 18:52:16 -0800
+Message-ID: <20080226185216.f298784d.akpm@linux-foundation.org>
+References: <20080226234025.GC14117@kroah.com>
+	<91946.43854.qm@web52909.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:29129 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753126AbYB0CTe (ORCPT
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56584 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753730AbYB0CwT (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Feb 2008 21:19:34 -0500
-In-Reply-To: <20080226131058.GA8234@khazad-dum.debian.net>
-Content-Disposition: inline
+	Tue, 26 Feb 2008 21:52:19 -0500
+In-Reply-To: <91946.43854.qm@web52909.mail.re2.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 26 February 2008, Henrique de Moraes Holschuh wrote:
-> On Mon, 25 Feb 2008, David Brownell wrote:
-> > int __must_check sysfs_create_link(struct kobject *kobj, struct kobject *target,
-> >                                    const char *name);
+On Wed, 27 Feb 2008 00:55:38 +0000 (GMT) Chris Rankin <rankincj@yahoo.com> wrote:
+
+> --- Greg KH <greg@kroah.com> wrote:
+> > On Tue, Feb 26, 2008 at 10:36:00PM +0000, Chris Rankin wrote:
+> > > FYI, this hang still exists in 2.6.24.3 and so I am still needing to boot with the acpi=noirq
+> > > parameter.
 > > 
-> > Perhaps you disabled those warnings.  (And FWIW, I don't see any
-> > reasonable way to handle such faults, so ignoring them is thus
-> > the right "solution".)
+> > You're going to have to refresh my memory.  Was this a problem caused by
+> > the .1 .2 or .3 kernel releases?  Did 2.6.24 have this problem as well,
+> > or was it ok?
 > 
-> You issue a printk warning the user, and try to continue.
+> It's a bug introduced in 2.6.24; that ACPI fails to allocate IRQs correctly for PCI devices, which
+> makes the kernel hang at boot-time:
 
-That's not "handling" in any useful sense though.  There's no
-question about "try" to continue, by the way ... from inside
-the kernel this information is completely non-essential.
+You reported this regression nearly a month ago and apart from me flailing
+around nobody has bothered to do the slightest thing about it.
 
-- Dave
-
+If you can identify the offending commit (see
+http://www.kernel.org/doc/local/git-quick.html) we'll get it working again
+and I really don't care how many commits we have to revert to do it.
 
