@@ -1,87 +1,103 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: 2.6.25 regression/oops on boot (ACPI related?)
-Date: Thu, 28 Feb 2008 20:08:55 +0000
-Message-ID: <20080228200855.GJ9009@earth.li>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 2/2] ACPI: show temperature in millidegree  Celsius
+Date: Thu, 28 Feb 2008 22:00:02 +0100
+Message-ID: <20080228220002.709d0c61@hyperion.delvare>
+References: <1204072678.10256.112.camel@acpi-hp-zz.sh.intel.com>
+	<47C537E1.5090103@gmail.com>
+	<1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from the.earth.li ([217.147.81.2]:51305 "EHLO the.earth.li"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849AbYB1Uyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Feb 2008 15:54:53 -0500
-Content-Disposition: inline
+Received: from smtp-104-thursday.noc.nerim.net ([62.4.17.104]:3928 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760070AbYB1VAH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Feb 2008 16:00:07 -0500
+In-Reply-To: <1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Len Brown <lenb@kernel.org>
 
-I'm getting a "general protection fault" when trying to boot 2.6.25-rc3
-on my AMD64 box; 2.6.24 boots fine. The machine just seems to end up
-sitting there at the end, but still responds to a ctrl-alt-del to
-cleanly shutdown. The GPF is as follows:
+Hi Rui,
 
------
-general protection fault: 0000 [1] PREEMPT SMP 
-CPU 1 
-Modules linked in: thermal(+) processor fan
-Pid: 598, comm: modprobe Not tainted 2.6.25-rc3 #1
-RIP: 0010:[<ffffffff803590a8>]  [<ffffffff803590a8>] acpi_ns_map_handle_to_node+0x19/0x23
-RSP: 0018:ffff81011de5fc68  EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000001001 RCX: 0000000000000000
-RDX: 0000000000005067 RSI: 0000000000000001 RDI: 4d52454854584e4c
-RBP: ffff81011de5fc68 R08: 0000000000000000 R09: ffff81011de5fc78
-R10: ffff81011dcc0648 R11: ffffffff802d566a R12: 4d52454854584e4c
-R13: ffff81011de5fcf8 R14: ffffffff80362bd3 R15: 0000000000000003
-FS:  00007f04840336e0(0000) GS:ffff81011fab1bc0(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00007f0484032000 CR3: 000000011defc000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process modprobe (pid: 598, threadinfo ffff81011de5e000, task ffff81011de38640)
-Stack:  ffff81011de5fc98 ffffffff803584ab ffff81011de5fcf8 ffff81011df1a800
- 0000000000000000 ffff81011de5fcf8 ffff81011de5fcb8 ffffffff80362382
- ffff81011de52230 0000000000000001 ffff81011de5fd28 ffffffff880113a9
-Call Trace:
- [<ffffffff803584ab>] acpi_get_data+0x3f/0x70
- [<ffffffff80362382>] acpi_bus_get_device+0x25/0x39
- [<ffffffff880113a9>] :thermal:acpi_thermal_cooling_device_cb+0x6b/0x166
- [<ffffffff80405ee8>] ? thermal_zone_bind_cooling_device+0x0/0x26e
- [<ffffffff880114c6>] :thermal:acpi_thermal_bind_cooling_device+0x10/0x12
- [<ffffffff80405e68>] thermal_zone_device_register+0x252/0x2d2
- [<ffffffff88011626>] :thermal:acpi_thermal_add+0x15e/0x42b
- [<ffffffff80364138>] acpi_device_probe+0x45/0x92
- [<ffffffff803aac23>] driver_probe_device+0xc0/0x147
- [<ffffffff803aad55>] ? __driver_attach+0x0/0x94
- [<ffffffff803aadb0>] __driver_attach+0x5b/0x94
- [<ffffffff803a9f55>] bus_for_each_dev+0x4f/0x7f
- [<ffffffff803aaa6e>] driver_attach+0x1c/0x1e
- [<ffffffff803aa81e>] bus_add_driver+0xb7/0x201
- [<ffffffff803aafdb>] driver_register+0x5e/0xd6
- [<ffffffff803644ce>] acpi_bus_register_driver+0x3e/0x40
- [<ffffffff88017061>] :thermal:acpi_thermal_init+0x61/0x83
- [<ffffffff80257120>] sys_init_module+0x98/0x16b
- [<ffffffff8020c0eb>] system_call_after_swapgs+0x7b/0x80
+On Thu, 28 Feb 2008 07:51:30 +0800, Zhang, Rui wrote:
+> 
+> On Wed, 2008-02-27 at 18:13 +0800, Alexey Starikovskiy wrote:
+> > Rui,
+> > 
+> > As I remember, ACPI returns temperature in 10ths of degree. If you are
+> > going to report it in 1000ths of degree,
+> > there is no reason to round them to degree.
+> > 
+> 
+> Show the temperature in Millidegree Celsius.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/thermal.c |   12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/thermal.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/thermal.c
+> +++ linux-2.6/drivers/acpi/thermal.c
+> @@ -879,6 +879,8 @@ static void acpi_thermal_check(void *dat
+>  }
+>  
+>  /* sys I/F for generic thermal sysfs support */
+> +#define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
+> +
+>  static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
+>  {
+>  	struct acpi_thermal *tz = thermal->devdata;
+> @@ -886,7 +888,7 @@ static int thermal_get_temp(struct therm
+>  	if (!tz)
+>  		return -EINVAL;
+>  
+> -	return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(tz->temperature));
+> +	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
+>  }
+>  
+>  static const char enabled[] = "kernel";
+> @@ -980,21 +982,21 @@ static int thermal_get_trip_temp(struct 
+>  
+>  	if (tz->trips.critical.flags.valid) {
+>  		if (!trip)
+> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
+> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
+>  				tz->trips.critical.temperature));
+>  		trip--;
+>  	}
+>  
+>  	if (tz->trips.hot.flags.valid) {
+>  		if (!trip)
+> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
+> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
+>  					tz->trips.hot.temperature));
+>  		trip--;
+>  	}
+>  
+>  	if (tz->trips.passive.flags.valid) {
+>  		if (!trip)
+> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
+> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
+>  					tz->trips.passive.temperature));
+>  		trip--;
+>  	}
+> @@ -1002,7 +1004,7 @@ static int thermal_get_trip_temp(struct 
+>  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
+>  		tz->trips.active[i].flags.valid; i++) {
+>  		if (!trip)
+> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
+> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
+>  					tz->trips.active[i].temperature));
+>  		trip--;
+>  	}
 
+Yes, I like this one much better, thanks.
 
-Code: 83 c6 04 41 ff c8 45 85 c0 75 a7 c6 06 00 31 c0 c9 c3 48 8d 47 ff 55 48 83 f8 fd 48 89 e5 76 09 48 8b 05 cc 49 3f 00 eb 0a 31 c0 <80> 7f 08 0f 48 0f 44 c7 c9 c3 55 48 89 f8 48 89 e5 c9 c3 55 31 
-RIP  [<ffffffff803590a8>] acpi_ns_map_handle_to_node+0x19/0x23
- RSP <ffff81011de5fc68>
----[ end trace c027ad8802a9e766 ]---
-Segmentation fault
------
-
-Full boot log is at:
-
-http://the.earth.li/~noodles/2.6.25-breakage/meepok.console-2.6.25-rc3.log
-
-Config at:
-
-http://the.earth.li/~noodles/2.6.25-breakage/config-2.6.25-rc3
-
-2.6.25-rc1 and 2.6.25-rc2-git6 both show the same issue.
-
-J.
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
 -- 
-                                            jid: noodles@jabber.earth.li
-In God we trust; all else we walk through.
+Jean Delvare
