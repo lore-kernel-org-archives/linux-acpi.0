@@ -1,87 +1,135 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH] [repost] Make real parent for ACPI button input devices
-Date: Fri, 29 Feb 2008 20:30:18 +0300
-Message-ID: <200802292030.19481.arvidjaar@mail.ru>
-References: <200802282114.28680.arvidjaar@mail.ru> <20080228172724.e93f6b8d.akpm@linux-foundation.org>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: 100% C0 with 2.6.25-rc
+Date: Fri, 29 Feb 2008 10:24:32 -0800
+Message-ID: <20080229182432.GA28660@linux-os.sc.intel.com>
+References: <47BD600F.9090502@willies.info> <200802211733.54759.rjw@sisk.pl> <47BEF0A6.9000405@willies.info> <B5B0CFF685D7DF46A05CF1678CFB42ED20E00658@orsmsx423.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart5453444.b9aSijMykW";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx38.mail.ru ([194.67.23.16]:54590 "EHLO mx38.mail.ru"
+Received: from mga11.intel.com ([192.55.52.93]:63306 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757616AbYB2Rak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Feb 2008 12:30:40 -0500
-In-Reply-To: <20080228172724.e93f6b8d.akpm@linux-foundation.org>
+	id S1756890AbYB2ScF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Feb 2008 13:32:05 -0500
+Content-Disposition: inline
+In-Reply-To: <B5B0CFF685D7DF46A05CF1678CFB42ED20E00658@orsmsx423.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jan Willies <jan@willies.info>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
---nextPart5453444.b9aSijMykW
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-On Friday 29 February 2008, Andrew Morton wrote:
-> On Thu, 28 Feb 2008 21:14:26 +0300 Andrey Borzenkov <arvidjaar@mail.ru> w=
-rote:
+On Fri, Feb 22, 2008 at 09:03:55AM -0800, Pallipadi, Venkatesh wrote:
+> =20
 >=20
-> > From: Andrey Borzenkov <arvidjaar@mail.ru>
-> >=20
-> > Make sure input device for  ACPI button gets proper place
-> > in device tree.
-> >=20
-> > Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-> >=20
-> > ---
-> >=20
-> >  drivers/acpi/button.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >=20
-> >=20
-> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> > index 24a7865..6c5da83 100644
-> > --- a/drivers/acpi/button.c
-> > +++ b/drivers/acpi/button.c
-> > @@ -449,6 +449,7 @@ static int acpi_button_add(struct acpi_device *devi=
-ce)
-> >  	input->phys =3D button->phys;
-> >  	input->id.bustype =3D BUS_HOST;
-> >  	input->id.product =3D button->type;
-> > +	input->dev.parent =3D &device->dev;
-> > =20
-> >  	switch (button->type) {
-> >  	case ACPI_BUTTON_TYPE_POWER:
-> >=20
+> >-----Original Message-----
+> >From: Jan Willies [mailto:jan@willies.info]=20
+> >Sent: Friday, February 22, 2008 7:56 AM
+> >To: Rafael J. Wysocki
+> >Cc: linux-acpi@vger.kernel.org; Ingo Molnar; LKML; Thomas=20
+> >Gleixner; Pallipadi, Venkatesh
+> >Subject: Re: 100% C0 with 2.6.25-rc
+> >
+> >Rafael J. Wysocki wrote:
+> >> On Thursday, 21 of February 2008, Jan Willies wrote:
+> >>> Since 2.6.25-rc1 I have a lot of wakeups/s (=E2=89=88134191,4) an=
+d=20
+> >spend 100% in C0.
+> >>> It worked fine with 2.6.24 and commandline nolapic. Without=20
+> >nolapic I had 80k
+> >>> wakeups/s after some time, but not right from the start like now.=
+ =20
+> >>=20
+> >> We have a regression from 2.6.24, apparently interrupts-related.
+> >
+> >After a lot of bisecting I've found the bad commit:=20
+> >
+> >9b12e18cdc1553de62d931e73443c806347cd974 is first bad commit
+> >commit 9b12e18cdc1553de62d931e73443c806347cd974
+> >Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com=
+>
+> >Date:   Thu Jan 31 17:35:05 2008 -0800
+> >
+> >    ACPI: cpuidle: Support C1 idle time accounting
+> >   =20
+> >    Show C1 idle time in /sysfs cpuidle interface. C1 idle time may =
+not
+> >    be entirely accurate in all cases. It includes the time spent
+> >    in the interrupt handler after wakeup with "hlt" based C1.=20
+> >But, it will
+> >    be accurate with "mwait" based C1.
+> >
+> >
+> >Reverting the commit brings my laptop back to C2.
+> >
 >=20
-> What are the consequences of the bug which you've fixed?
+> Thanks for the bisect info. I will look at the bad side effects that =
+patch
+> may be having and I should have a patch for you to test later today..=
+=2E.
 >=20
 
-There is no direct negative impact; this is mostly cleanup that unifies
-sysfs representation of ACPI input devices. The patch was submitted for
-2.6.24-rc at the same time as similar patches for other ACPI input devices
-but was lost for whatever reason.
+Jan replied later on this issue that he is not able to reproduce this p=
+roblem
+any more. Looking at the above, I could see a potential problem where
+menu governor may get confused by the C-state residency time from poll
+idle or C1 idle, where this timing info is not accurate. This inaccurac=
+y is
+due to interrupts being handled before we account for C-state exit.
 
-> It helps very much if the changelog explains things like this so we can
-> decide whether the patch is needed in 2.6.25 or even 2.6.24.x.
->=20
+Patch below fixes this and is needed regardless of the issue pointed ou=
+t by
+Jan Willies here. But, I am suspecting that the patch will also fix the
+problem reported by Jan.
 
-I guess it can safely wait for post-2.6.25.
+Do not mark TIME_VALID for CO poll state.
+Mark C1 time as valid only with mwait (CSTATE_FFH) entry method.
 
---nextPart5453444.b9aSijMykW
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+This makes governors use the timing information only when it is correct=
+ and
+eliminates any wrong policy decisions that may result from invalid timi=
+ng
+information.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.8 (GNU/Linux)
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-iEYEABECAAYFAkfIQSsACgkQR6LMutpd94wL7ACgiAvMiYDToHcL+w7YMOU30b0Q
-um4AnjxDDuZDR4+fgWQ/+wuaPKVIJxgK
-=TM6w
------END PGP SIGNATURE-----
-
---nextPart5453444.b9aSijMykW--
+Index: linux-2.6.git/drivers/acpi/processor_idle.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.git.orig/drivers/acpi/processor_idle.c	2008-02-15 02:18:1=
+4.000000000 -0800
++++ linux-2.6.git/drivers/acpi/processor_idle.c	2008-02-26 07:02:30.000=
+000000 -0800
+@@ -1686,7 +1686,9 @@
+ 		switch (cx->type) {
+ 			case ACPI_STATE_C1:
+ 			state->flags |=3D CPUIDLE_FLAG_SHALLOW;
+-			state->flags |=3D CPUIDLE_FLAG_TIME_VALID;
++			if (cx->entry_method =3D=3D ACPI_CSTATE_FFH)
++				state->flags |=3D CPUIDLE_FLAG_TIME_VALID;
++
+ 			state->enter =3D acpi_idle_enter_c1;
+ 			dev->safe_state =3D state;
+ 			break;
+Index: linux-2.6.git/drivers/cpuidle/cpuidle.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.git.orig/drivers/cpuidle/cpuidle.c	2008-02-15 02:18:14.00=
+0000000 -0800
++++ linux-2.6.git/drivers/cpuidle/cpuidle.c	2008-02-22 03:59:01.0000000=
+00 -0800
+@@ -224,7 +224,7 @@
+ 	state->exit_latency =3D 0;
+ 	state->target_residency =3D 0;
+ 	state->power_usage =3D -1;
+-	state->flags =3D CPUIDLE_FLAG_POLL | CPUIDLE_FLAG_TIME_VALID;
++	state->flags =3D CPUIDLE_FLAG_POLL;
+ 	state->enter =3D poll_idle;
+ }
+ #else
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
