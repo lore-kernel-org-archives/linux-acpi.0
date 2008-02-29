@@ -1,59 +1,100 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 0/4, v7] PCI, ACPI: Physical PCI slot objects
-Date: Thu, 28 Feb 2008 17:23:41 -0700
-Message-ID: <20080229002341.GA21420@ldl.fc.hp.com>
+Subject: [PATCH 1/4] Remove path attribute from sgi_hotplug
+Date: Thu, 28 Feb 2008 17:26:40 -0700
+Message-ID: <20080229002640.GB21420@ldl.fc.hp.com>
+References: <20080229002341.GA21420@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762299AbYB2AX7@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:28047 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752534AbYB2A0m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Feb 2008 19:26:42 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20080229002341.GA21420@ldl.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net
 Cc: Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Hi Gary, John, Kenji-san, et. al,
+Rename the slot to be the contents of the 'path' sysfs attribute, and
+delete the attribute.  The mapping from pci address to slot name is
+supposed to be done through the 'address' file, which will be provided
+automatically later in this series of patches.
 
-Well, first Gary was on holiday for a month, and then I was on
-holiday for a month, but I'm back now, and have refreshed this
-patch series against 2.6.25.
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+---
+ drivers/pci/hotplug/sgi_hotplug.c |   32 +-------------------------------
+ 1 files changed, 1 insertions(+), 31 deletions(-)
 
-The major thing that happened was all the kobject changes
-(learned my lesson about taking long holidays when holding onto a
-largish chunk of code that hasn't been accepted yet ;), and so
-the only real change is in patch 3/4.
+diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
+index ef07c36..693519e 100644
+--- a/drivers/pci/hotplug/sgi_hotplug.c
++++ b/drivers/pci/hotplug/sgi_hotplug.c
+@@ -91,21 +91,6 @@ static struct hotplug_slot_ops sn_hotplug_slot_ops = {
+ 
+ static DEFINE_MUTEX(sn_hotplug_mutex);
+ 
+-static ssize_t path_show (struct hotplug_slot *bss_hotplug_slot,
+-	       		  char *buf)
+-{
+-	int retval = -ENOENT;
+-	struct slot *slot = bss_hotplug_slot->private;
+-
+-	if (!slot)
+-		return retval;
+-
+-	retval = sprintf (buf, "%s\n", slot->physical_path);
+-	return retval;
+-}
+-
+-static struct hotplug_slot_attribute sn_slot_path_attr = __ATTR_RO(path);
+-
+ static int sn_pci_slot_valid(struct pci_bus *pci_bus, int device)
+ {
+ 	struct pcibus_info *pcibus_info;
+@@ -173,18 +158,10 @@ static int sn_hp_slot_private_alloc(struct hotplug_slot *bss_hotplug_slot,
+ 		return -ENOMEM;
+ 	bss_hotplug_slot->private = slot;
+ 
+-	bss_hotplug_slot->name = kmalloc(SN_SLOT_NAME_SIZE, GFP_KERNEL);
+-	if (!bss_hotplug_slot->name) {
+-		kfree(bss_hotplug_slot->private);
+-		return -ENOMEM;
+-	}
++	bss_hotplug_slot->name = slot->physical_path;
+ 
+ 	slot->device_num = device;
+ 	slot->pci_bus = pci_bus;
+-	sprintf(bss_hotplug_slot->name, "%04x:%02x:%02x",
+-		pci_domain_nr(pci_bus),
+-		((u16)pcibus_info->pbi_buscommon.bs_persist_busnum),
+-		device + 1);
+ 
+ 	sn_generate_path(pci_bus, slot->physical_path);
+ 
+@@ -203,8 +180,6 @@ static struct hotplug_slot * sn_hp_destroy(void)
+ 		bss_hotplug_slot = slot->hotplug_slot;
+ 		list_del(&((struct slot *)bss_hotplug_slot->private)->
+ 			 hp_list);
+-		sysfs_remove_file(&bss_hotplug_slot->kobj,
+-				  &sn_slot_path_attr.attr);
+ 		break;
+ 	}
+ 	return bss_hotplug_slot;
+@@ -653,11 +628,6 @@ static int sn_hotplug_slot_register(struct pci_bus *pci_bus)
+ 		rc = pci_hp_register(bss_hotplug_slot);
+ 		if (rc)
+ 			goto register_err;
+-
+-		rc = sysfs_create_file(&bss_hotplug_slot->kobj,
+-				       &sn_slot_path_attr.attr);
+-		if (rc)
+-			goto register_err;
+ 	}
+ 	dev_dbg(&pci_bus->self->dev, "Registered bus with hotplug\n");
+ 	return rc;
+-- 
+1.5.3.1.g1e61
 
-The kobject changes were nice, btw. In the prior versions of this
-series, I could never figure out why my kobjects weren't getting
-released when their refcounts went to 1, and had some hacky code
-in there to manually release them. (I'm sure I was doing
-something wrong, but I couldn't figure out what.) I was able to
-remove that hack in this series because the kobjects are working
-the way they're supposed to.
-
-I did turn on kobject debugging, and all seems well except for
-one little thing. I based my module (pci_slot) on acpiphp, and
-the kobject system complains:
-
-kobject: 'acpiphp' (a00000020476aed0): does not have a release()
-function, it is broken and must be fixed.
-
-kobject: 'pci_slot' (a000000204791e50): does not have a release()
-function, it is broken and must be fixed.
-
-Not quite sure what to do about these yet, but since no one has
-fixed acpiphp yet, I'm thinking that I can't be *too* wrong. :)
-
-I'm *hoping* that my misunderstanding of kobjects last time
-around is what caused the weirdness on Gary's machine, and that
-we won't see any more problems.
-
-I've tested this series on my hp rx6600 with both acpiphp and
-pciehp drivers, and as before, any and all combinations of those
-modules can be modprobe'd/rmmod'ed in any order, etc.
-
-I'd love to see some more testing of this, and then (hopefully!)
-upstream acceptance.
-
-Thanks!
-
-/ac
