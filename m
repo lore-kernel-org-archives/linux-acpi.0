@@ -1,78 +1,87 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: Re: 2.6.25 regression/oops on boot (ACPI related?)
-Date: Fri, 29 Feb 2008 07:38:54 +0800
-Message-ID: <1204241934.10256.151.camel@acpi-hp-zz.sh.intel.com>
-References: <20080228200855.GJ9009@earth.li>
-	 <1204219227.10256.146.camel@acpi-hp-zz.sh.intel.com>
-	 <20080229075449.GK9009@earth.li>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] [repost] Make real parent for ACPI button input devices
+Date: Fri, 29 Feb 2008 20:30:18 +0300
+Message-ID: <200802292030.19481.arvidjaar@mail.ru>
+References: <200802282114.28680.arvidjaar@mail.ru> <20080228172724.e93f6b8d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart5453444.b9aSijMykW";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36945 "EHLO mga01.intel.com"
+Received: from mx38.mail.ru ([194.67.23.16]:54590 "EHLO mx38.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751759AbYB2I1O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Feb 2008 03:27:14 -0500
-In-Reply-To: <20080229075449.GK9009@earth.li>
+	id S1757616AbYB2Rak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Feb 2008 12:30:40 -0500
+In-Reply-To: <20080228172724.e93f6b8d.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
 
+--nextPart5453444.b9aSijMykW
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-On Fri, 2008-02-29 at 15:54 +0800, Jonathan McDowell wrote:
-> On Fri, Feb 29, 2008 at 01:20:27AM +0800, Zhang, Rui wrote:
-> > Please attach the acpidump output using the latest pmtools at :
-> > http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-> > Please attach the result of "cat /proc/acpi/thermal_zone/*/*" as
-> well.
-> 
-> I've attached the output of acpidump. The cat results in this output:
-> 
-> [noodles@meepok /proc/acpi/thermal_zone/THRM]$ cat *
-> 0 - Active; 1 - Passive
-> <polling disabled>
-> state:                   ok
-> temperature:             40 C
-> Segmentation fault
-> 
-> It also causes a general protection fault, which I've attached as
-> well.
-> 
-> This is a stock Debian kernel:
-> 
-> Linux meepok 2.6.24-1-amd64 #1 SMP Mon Feb 11 13:47:43 UTC 2008 x86_64
-> GNU/Linux
-> 
-> I have a patch from Ming Lin to try out but it'll have to wait until
-> tomorrow before I can do so.
-> 
-We've root caused the problem and Lin Ming's patch should work for you.
-Please give it a try. :)
+On Friday 29 February 2008, Andrew Morton wrote:
+> On Thu, 28 Feb 2008 21:14:26 +0300 Andrey Borzenkov <arvidjaar@mail.ru> w=
+rote:
+>=20
+> > From: Andrey Borzenkov <arvidjaar@mail.ru>
+> >=20
+> > Make sure input device for  ACPI button gets proper place
+> > in device tree.
+> >=20
+> > Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+> >=20
+> > ---
+> >=20
+> >  drivers/acpi/button.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> >=20
+> >=20
+> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> > index 24a7865..6c5da83 100644
+> > --- a/drivers/acpi/button.c
+> > +++ b/drivers/acpi/button.c
+> > @@ -449,6 +449,7 @@ static int acpi_button_add(struct acpi_device *devi=
+ce)
+> >  	input->phys =3D button->phys;
+> >  	input->id.bustype =3D BUS_HOST;
+> >  	input->id.product =3D button->type;
+> > +	input->dev.parent =3D &device->dev;
+> > =20
+> >  	switch (button->type) {
+> >  	case ACPI_BUTTON_TYPE_POWER:
+> >=20
+>=20
+> What are the consequences of the bug which you've fixed?
+>=20
 
-From: Lin Ming <ming.m.lin@intel.com>
+There is no direct negative impact; this is mostly cleanup that unifies
+sysfs representation of ACPI input devices. The patch was submitted for
+2.6.24-rc at the same time as similar patches for other ACPI input devices
+but was lost for whatever reason.
 
-Fix a memory overflow bug when copying
-NULL internal package element object to external.
+> It helps very much if the changelog explains things like this so we can
+> decide whether the patch is needed in 2.6.25 or even 2.6.24.x.
+>=20
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/utilities/utobject.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I guess it can safely wait for post-2.6.25.
 
-Index: linux-2.6/drivers/acpi/utilities/utobject.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/utilities/utobject.c
-+++ linux-2.6/drivers/acpi/utilities/utobject.c
-@@ -432,7 +432,7 @@ acpi_ut_get_simple_object_size(union acp
- 	 * element -- which is legal)
- 	 */
- 	if (!internal_object) {
--		*obj_length = 0;
-+		*obj_length = sizeof(union acpi_object);
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
+--nextPart5453444.b9aSijMykW
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (GNU/Linux)
 
+iEYEABECAAYFAkfIQSsACgkQR6LMutpd94wL7ACgiAvMiYDToHcL+w7YMOU30b0Q
+um4AnjxDDuZDR4+fgWQ/+wuaPKVIJxgK
+=TM6w
+-----END PGP SIGNATURE-----
+
+--nextPart5453444.b9aSijMykW--
