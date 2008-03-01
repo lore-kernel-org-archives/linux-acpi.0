@@ -1,59 +1,38 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: 2.6.25 regression/oops on boot (ACPI related?)
-Date: Sat, 1 Mar 2008 15:27:06 +0000
-Message-ID: <20080301152706.GO9009@earth.li>
-References: <20080228200855.GJ9009@earth.li> <1204219227.10256.146.camel@acpi-hp-zz.sh.intel.com> <20080229075449.GK9009@earth.li> <1204241934.10256.151.camel@acpi-hp-zz.sh.intel.com>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: nsdumpdv.c genuinely obsolete?
+Date: Sat, 1 Mar 2008 10:37:19 -0500 (EST)
+Message-ID: <alpine.LFD.1.00.0803011035320.7091@AU52T-1.iHotel.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from the.earth.li ([217.147.81.2]:40285 "EHLO the.earth.li"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754403AbYCAP1J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Mar 2008 10:27:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1204241934.10256.151.camel@acpi-hp-zz.sh.intel.com>
+Received: from astoria.ccjclearline.com ([64.235.106.9]:50011 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113AbYCAPh0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Mar 2008 10:37:26 -0500
+Received: from [209.217.70.150] (helo=crashcourse.ca)
+	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68)
+	(envelope-from <rpjday@crashcourse.ca>)
+	id 1JVTmg-0003hL-RV
+	for linux-acpi@vger.kernel.org; Sat, 01 Mar 2008 10:37:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Fri, Feb 29, 2008 at 07:38:54AM +0800, Zhang, Rui wrote:
-> On Fri, 2008-02-29 at 15:54 +0800, Jonathan McDowell wrote:
-> > On Fri, Feb 29, 2008 at 01:20:27AM +0800, Zhang, Rui wrote:
-> > > Please attach the acpidump output using the latest pmtools at :
-> > > http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-> > > Please attach the result of "cat /proc/acpi/thermal_zone/*/*" as
-> > well.
-> > 
-> > I've attached the output of acpidump. The cat results in this output:
-> > 
-> > [noodles@meepok /proc/acpi/thermal_zone/THRM]$ cat *
-> > 0 - Active; 1 - Passive
-> > <polling disabled>
-> > state:                   ok
-> > temperature:             40 C
-> > Segmentation fault
-> > 
-> > It also causes a general protection fault, which I've attached as
-> > well.
-> > 
-> > This is a stock Debian kernel:
-> > 
-> > Linux meepok 2.6.24-1-amd64 #1 SMP Mon Feb 11 13:47:43 UTC 2008 x86_64
-> > GNU/Linux
-> > 
-> > I have a patch from Ming Lin to try out but it'll have to wait until
-> > tomorrow before I can do so.
-> > 
-> We've root caused the problem and Lin Ming's patch should work for you.
-> Please give it a try. :)
 
-I've now done so; it fixes my problem and 2.6.25-rc3 boots fine with it
-applied. Thanks.
+  from drivers/acpi/namespace/nsdumpdv.c:
 
-J.
+/* TBD: This entire module is apparently obsolete and should be removed */
 
--- 
-Programmer, |   101 things you can't have too    |       Tel/SMS:
-sysadmin &  |        much of : 51 - News.        |   +423-663-212343
-BHMF.       |                                    |  Made by HuggieTag
+so should it?
+
+rday
+--
+
+========================================================================
+Robert P. J. Day
+Linux Consulting, Training and Annoying Kernel Pedantry:
+    Have classroom, will lecture.
+
+http://crashcourse.ca                          Waterloo, Ontario, CANADA
+========================================================================
