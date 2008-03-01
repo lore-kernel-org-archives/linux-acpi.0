@@ -1,35 +1,38 @@
-From: Greg KH <gregkh@suse.de>
+From: Matthew Wilcox <matthew@wil.cx>
 Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Fri, 29 Feb 2008 21:25:42 -0800
-Message-ID: <20080301052542.GD19353@suse.de>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002938.GE21420@ldl.fc.hp.com>
+Date: Sat, 1 Mar 2008 07:43:07 -0700
+Message-ID: <20080301144307.GD24386@parisc-linux.org>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002938.GE21420@ldl.fc.hp.com> <20080301052542.GD19353@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48691 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753731AbYCAFVT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Mar 2008 00:21:19 -0500
+Received: from palinux.external.hp.com ([192.25.206.14]:51004 "EHLO
+	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753335AbYCAOna (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Mar 2008 09:43:30 -0500
 Content-Disposition: inline
-In-Reply-To: <20080229002938.GE21420@ldl.fc.hp.com>
+In-Reply-To: <20080301052542.GD19353@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, Matthew Wilcox <matthew@wil.cx>, kristen.c.accardi@intel.com
+To: Greg KH <gregkh@suse.de>
+Cc: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Thu, Feb 28, 2008 at 05:29:38PM -0700, Alex Chiang wrote:
-> Detect all physical PCI slots as described by ACPI, and create
-> entries in /sys/bus/pci/slots/.
-> 
-> Not all physical slots are hotpluggable, and the acpiphp module
-> does not detect them. Now we know the physical PCI geography of
-> our system, without caring about hotplug.
+On Fri, Feb 29, 2008 at 09:25:42PM -0800, Greg KH wrote:
+> What is the guarantee that the names of these slots are correct and do
+> not happen to be the same as the hotpluggable ones?
 
-What is the guarantee that the names of these slots are correct and do
-not happen to be the same as the hotpluggable ones?
+That would be a bug -- and yes, bugs happen, and we have to deal with
+them.
 
-Why show this information on machines that can not do anything with
-these slots at all?  Will that not just confuse people?
+> Why show this information on machines that can not do anything with
+> these slots at all?  Will that not just confuse people?
 
-thanks,
+Only for people who think that /sys/bus/pci/slots/ is for hotpluggable
+slots only.  There is plenty of useful information available for slots
+that aren't hotpluggable (eg bus address, speed, width, error status).
 
-greg k-h
+-- 
+Intel are signing my paycheques ... these opinions are still mine
+"Bill, look, we understand that you're interested in selling us this
+operating system, but compare it to ours.  We can't possibly take such
+a retrograde step."
