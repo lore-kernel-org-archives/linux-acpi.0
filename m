@@ -1,21 +1,21 @@
-From: Sam Ravnborg <sam@ravnborg.org>
+From: Adrian Bunk <bunk@kernel.org>
 Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
-Date: Mon, 3 Mar 2008 10:31:03 +0100
-Message-ID: <20080303093103.GA23651@uranus.ravnborg.org>
+Date: Mon, 3 Mar 2008 11:45:56 +0200
+Message-ID: <20080303094556.GD4457@cs181133002.pp.htv.fi>
 References: <20080301161902.GN25835@cs181133002.pp.htv.fi> <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pasmtpa.tele.dk ([80.160.77.114]:60761 "EHLO pasmtpA.tele.dk"
+Received: from smtp6.pp.htv.fi ([213.243.153.40]:47214 "EHLO smtp6.pp.htv.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751284AbYCCJat (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2008 04:30:49 -0500
+	id S1751520AbYCCJrb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2008 04:47:31 -0500
 Content-Disposition: inline
 In-Reply-To: <20080303091714.GA18250@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
-Cc: Adrian Bunk <bunk@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 On Mon, Mar 03, 2008 at 10:17:14AM +0100, Ingo Molnar wrote:
 > 
@@ -45,15 +45,28 @@ On Mon, Mar 03, 2008 at 10:17:14AM +0100, Ingo Molnar wrote:
 >   -inline int acpi_battery_present(struct acpi_battery *battery)
 >   +static int acpi_battery_present(struct acpi_battery *battery)
 
->From compiler-gcc.h:
+It was used, since the #define affects all inline's in the kernel.
 
-#define inline          inline          __attribute__((always_inline))
+> > > (and CONFIG_FORCED_INLINING got removed from 2.6.25)
+> > 
+> > CONFIG_FORCED_INLINING never had any effect.
+> 
+> my experience was that it had effects. Why do you say it 'never had any 
+> effect'?
 
-So unless I am missing something obvious then each time we
-say inline to a function we require gcc to inline the function.
+I don't see how it could have possibly had any effect.
 
-It is my impression that today we only say inline if really needed
-and otherwise let gcc decide. So in almost all cases inlise should
-just be nuked?
+Which effects did you experience?
 
-	Sam
+> 	Ingo
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
