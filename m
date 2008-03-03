@@ -1,48 +1,71 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH]  ACPI:  Unneccessary to scan the PCI bus already
-	scanned.
-Date: Mon, 03 Mar 2008 16:18:42 +0800
-Message-ID: <1204532322.4080.22.camel@yakui_zhao.sh.intel.com>
-References: <1204525186.4080.11.camel@yakui_zhao.sh.intel.com>
-	 <20080303073214.GA5934@elte.hu>
+From: youquan_song@linux.intel.com
+Subject: [PATCH 2.6.25-rc3] processor_idle: fixed CPU 'active state' stably
+          remain C0 by cat /proc
+Date: Mon, 3 Mar 2008 00:53:02 -0800 (PST)
+Message-ID: <1467.172.16.116.56.1204534382.squirrel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:9263 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753185AbYCCIam (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2008 03:30:42 -0500
-In-Reply-To: <20080303073214.GA5934@elte.hu>
+Received: from mga06.intel.com ([134.134.136.21]:23994 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753255AbYCCIyq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 03:54:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: venkatesh.pallipadi@intel.com, youquan.song@intel.com
 
-On Mon, 2008-03-03 at 08:32 +0100, Ingo Molnar wrote:
-> small typo:
-> 
-> > +		 * If the desired bus exits, the content of bus->sysdata will
->                                         ^--- exists
-> > +		 * be replaced by sd.
-> 
-> also, it's not clear to me why the patch helps. Why does "double 
-> scanning" cause problems? We register devices twice? Shouldnt that just 
-> work? (except for a few "device already exists" type of messages)
-> 
-If the desired pci bus(domain,busnum) is already scanned, the call to
-pci_scan_bus_parented will return NULL pointer. The function of
-pci_bios_acpi_scan_root will also return NULL pointer subsequently. In
-such case it will bring that acpi_pci_root driver can't be loaded.  
+If cpuidle module is enabled by CONFIG_CPU_IDEL=y,user can check CPU idle
+information by both /proc and /sys. The /proc information keep consistent
+with the old kernel without cpuidle modules except the 'active state'.
+Because If we enable cpuidle, kernel will not record CPU active state, so
+if we run 'cat /proc/acpi/processor/CPU*/power', we will get the 'active
+state' stably remain C0. This is different from user experience which when
+run 'cat /proc', the "active state" change as the cpu real work.
 
-When the system works in acpi mode, there will be some potential problem
-if acpi_pci_root driver can't be loaded. For example:
-    http://bugzilla.kernel.org/show_bug.cgi?id=10124
+This patch will fix the bug by record the specail C state when CPU is
+going to enter to C state. we run 'cat /proc/acpi/processor/CPU*/power'
+and we will watch the CPU 'active state' change keeping the same with the
+cpu real work.
 
-Thanks.
-   Yakui
+Signed-off-by: Youquan Song <youquan.song@intel.com>
+---
+ processor_idle.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
+diff -urNa linux-2.6.25-rc3-orginal/drivers/acpi/processor_idle.c
+linux-2.6.25-rc3/drivers/acpi/processor_idle.c
+--- linux-2.6.25-rc3-orginal/drivers/acpi/processor_idle.c	2008-02-29
+07:58:51.000000000 -0500
++++ linux-2.6.25-rc3/drivers/acpi/processor_idle.c	2008-02-29
+11:56:39.000000000 -0500
+@@ -1425,6 +1425,8 @@
+ 		return 0;
 
+ 	local_irq_disable();
++	/* Record the active C state */
++	pr->power.state = cx;
 
-> 	Ingo
+ 	/* Do not access any ACPI IO ports in suspend path */
+ 	if (acpi_idle_suspend) {
+@@ -1468,6 +1470,8 @@
+ 		return(acpi_idle_enter_c1(dev, state));
+
+ 	local_irq_disable();
++	/* Record the active C state */
++	pr->power.state = cx;
+ 	current_thread_info()->status &= ~TS_POLLING;
+ 	/*
+ 	 * TS_POLLING-cleared state must be visible before we test
+@@ -1558,6 +1562,8 @@
+ 	}
+
+ 	local_irq_disable();
++	/* Record the active C state */
++	pr->power.state = cx;
+ 	current_thread_info()->status &= ~TS_POLLING;
+ 	/*
+ 	 * TS_POLLING-cleared state must be visible before we test
+
 
