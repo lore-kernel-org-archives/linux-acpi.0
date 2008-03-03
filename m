@@ -1,64 +1,75 @@
 From: Adrian Bunk <bunk@kernel.org>
 Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
-Date: Mon, 3 Mar 2008 11:45:56 +0200
-Message-ID: <20080303094556.GD4457@cs181133002.pp.htv.fi>
-References: <20080301161902.GN25835@cs181133002.pp.htv.fi> <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu>
+Date: Mon, 3 Mar 2008 11:48:59 +0200
+Message-ID: <20080303094859.GE4457@cs181133002.pp.htv.fi>
+References: <20080301161902.GN25835@cs181133002.pp.htv.fi> <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu> <20080303093103.GA23651@uranus.ravnborg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6.pp.htv.fi ([213.243.153.40]:47214 "EHLO smtp6.pp.htv.fi"
+Received: from smtp5.pp.htv.fi ([213.243.153.39]:56047 "EHLO smtp5.pp.htv.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751520AbYCCJrb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2008 04:47:31 -0500
+	id S1752720AbYCCJue (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2008 04:50:34 -0500
 Content-Disposition: inline
-In-Reply-To: <20080303091714.GA18250@elte.hu>
+In-Reply-To: <20080303093103.GA23651@uranus.ravnborg.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Mar 03, 2008 at 10:17:14AM +0100, Ingo Molnar wrote:
-> 
-> * Adrian Bunk <bunk@kernel.org> wrote:
-> 
-> > On Mon, Mar 03, 2008 at 09:57:20AM +0100, Ingo Molnar wrote:
-> > > 
-> > > * Adrian Bunk <bunk@kernel.org> wrote:
-> > > 
-> > > > On Sat, Mar 01, 2008 at 09:26:41PM +0300, Alexey Starikovskiy wrote:
-> > > > > May I keep them inline?
+On Mon, Mar 03, 2008 at 10:31:03AM +0100, Sam Ravnborg wrote:
+> On Mon, Mar 03, 2008 at 10:17:14AM +0100, Ingo Molnar wrote:
+> > 
+> > * Adrian Bunk <bunk@kernel.org> wrote:
+> > 
+> > > On Mon, Mar 03, 2008 at 09:57:20AM +0100, Ingo Molnar wrote:
 > > > > 
-> > > > The problem with such manual inlines is that we force gcc to always 
-> > > > inline them - and history has shown that functions grow without the 
-> > > > "inline" being removed.
+> > > > * Adrian Bunk <bunk@kernel.org> wrote:
+> > > > 
+> > > > > On Sat, Mar 01, 2008 at 09:26:41PM +0300, Alexey Starikovskiy wrote:
+> > > > > > May I keep them inline?
+> > > > > 
+> > > > > The problem with such manual inlines is that we force gcc to always 
+> > > > > inline them - and history has shown that functions grow without the 
+> > > > > "inline" being removed.
+> > > > 
+> > > > what do you mean by "we force gcc to always inline them"?
 > > > 
-> > > what do you mean by "we force gcc to always inline them"?
+> > > #define inline          inline          __attribute__((always_inline))
+> > > 
+> > > > gcc is free to decide whether to inline or to not inline.
+> > > 
+> > > Not with __attribute__((always_inline)).
 > > 
-> > #define inline          inline          __attribute__((always_inline))
+> > but that wasnt used in the code you patched:
 > > 
-> > > gcc is free to decide whether to inline or to not inline.
-> > 
-> > Not with __attribute__((always_inline)).
+> >   -inline int acpi_battery_present(struct acpi_battery *battery)
+> >   +static int acpi_battery_present(struct acpi_battery *battery)
 > 
-> but that wasnt used in the code you patched:
+> >From compiler-gcc.h:
 > 
->   -inline int acpi_battery_present(struct acpi_battery *battery)
->   +static int acpi_battery_present(struct acpi_battery *battery)
-
-It was used, since the #define affects all inline's in the kernel.
-
-> > > (and CONFIG_FORCED_INLINING got removed from 2.6.25)
-> > 
-> > CONFIG_FORCED_INLINING never had any effect.
+> #define inline          inline          __attribute__((always_inline))
 > 
-> my experience was that it had effects. Why do you say it 'never had any 
-> effect'?
+> So unless I am missing something obvious then each time we
+> say inline to a function we require gcc to inline the function.
 
-I don't see how it could have possibly had any effect.
+Exactly.
 
-Which effects did you experience?
+> It is my impression that today we only say inline if really needed
+> and otherwise let gcc decide. So in almost all cases inlise should
+> just be nuked?
 
-> 	Ingo
+The rule is:
+- all static functions in headers should be marked inline
+- no functions in .c files should be marked inline
+
+For the latter there are a _few_ exceptions in hotpaths where doing so 
+brings measurable advantages.
+
+But generally (and especially long-term) it's best to let gcc decide 
+which static functions in .c files should be inlined.
+
+> 	Sam
 
 cu
 Adrian
