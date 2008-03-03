@@ -1,52 +1,83 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
-Date: Mon, 3 Mar 2008 14:27:02 -0800
-Message-ID: <20080303142702.33483f97.randy.dunlap@oracle.com>
-References: <20080209013157.4895.70128.stgit@pacifica>
-	<20080211112339.31ae3a68.randy.dunlap@oracle.com>
-	<200802111929.30877.carlos@strangeworlds.co.uk>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 0/4, v7] PCI, ACPI: Physical PCI slot objects
+Date: Mon, 3 Mar 2008 16:35:56 -0700
+Message-ID: <20080303233556.GA3694@ldl.fc.hp.com>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080301051247.GB19353@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:60116 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbYCCW1g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 17:27:36 -0500
-In-Reply-To: <200802111929.30877.carlos@strangeworlds.co.uk>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:21332 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319AbYCCXf5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 18:35:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20080301051247.GB19353@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>, bart@samwel.tk
+To: Greg KH <gregkh@suse.de>
+Cc: Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, Matthew Wilcox <matthew@wil.cx>, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Mon, 11 Feb 2008 19:29:29 +0000 Carlos Corbacho wrote:
-
-> On Monday 11 February 2008 19:23:39 Randy Dunlap wrote:
-> > On Sat, 09 Feb 2008 01:31:57 +0000 Carlos Corbacho wrote:
-> > > The following series implements the proposed creation of
-> > > Documentation/laptops, and the movement of all the laptop driver
-> > > documentation to this directory. I've also taken the opportunity to tack
-> > > on the acer-wmi documentation in the final patch of this series.
-> > >
-> > > Because all the drivers in question go through the ACPI tree anyway, it's
-> > > probably easiest if this change goes through the ACPI tree as well.
-> > >
-> > > This should all be 2.6.25 material, since there is no code change here,
-> > > just rearranging the Documentation files, and updating Kconfig entries
-> > > where required. I've also tested this series against Linus' latest git
-> > > tree, with no problems applying it there.
-> >
-> > Hi,
-> > so should we also move Documentation/laptop-mode.txt to laptops/ dir?
+* Greg KH <gregkh@suse.de>:
+> On Thu, Feb 28, 2008 at 05:23:41PM -0700, Alex Chiang wrote:
+> > 
+> > I did turn on kobject debugging, and all seems well except for
+> > one little thing. I based my module (pci_slot) on acpiphp, and
+> > the kobject system complains:
+> > 
+> > kobject: 'acpiphp' (a00000020476aed0): does not have a release()
+> > function, it is broken and must be fixed.
+> > 
+> > kobject: 'pci_slot' (a000000204791e50): does not have a release()
+> > function, it is broken and must be fixed.
+> > 
+> > Not quite sure what to do about these yet, but since no one has
+> > fixed acpiphp yet, I'm thinking that I can't be *too* wrong. :)
 > 
-> [CC'ing Bart Samwel on this, as he wrote Documentation/laptop-mode.txt]
+> Um, the obvious solution of providing a release function for these
+> kobjects is somehow not correct?
 > 
-> Yes, we probably should.
+> Please do that, otherwise the code is wrong (and yes, acpiphp might be
+> wrong as well, I haven't seen that report yet.)
 
-Hi Bart,
-Is that OK with you?
-if we move laptop-mode.txt to the Documenation/laptops/ sub-directory?
+Hrm, maybe this is a false alarm? Those messages appear when
+doing an rmmod <foo>. Turns out you get those messages for lots
+of modules, for instance, uhci_ucd:
+
+[root@canola ~]# rmmod uhci_hcd
+kobject: 'uhci_hcd' (e0000005078e0000): kobject_cleanup
+kobject: 'uhci_hcd' (e0000005078e0000): auto cleanup 'remove' event
+kobject: 'uhci_hcd' (e0000005078e0000): kobject_uevent_env
+kobject: 'uhci_hcd' (e0000005078e0000): fill_kobj_path: path = '/bus/pci/drivers/uhci_hcd'
+kobject: 'uhci_hcd' (e0000005078e0000): auto cleanup kobject_del
+kobject: 'uhci_hcd' (e0000005078e0000): calling ktype release
+kobject: 'uhci_hcd': free name
+kobject: 'drivers' (e0000005065a0060): kobject_cleanup
+kobject: 'drivers' (e0000005065a0060): auto cleanup kobject_del
+kobject: 'drivers' (e0000005065a0060): calling ktype release
+kobject: (e0000005065a0060): dynamic_kobj_release
+kobject: 'drivers': free name
+kobject: 'holders' (e0000005065a0000): kobject_cleanup
+kobject: 'holders' (e0000005065a0000): auto cleanup kobject_del
+kobject: 'holders' (e0000005065a0000): calling ktype release
+kobject: (e0000005065a0000): dynamic_kobj_release
+kobject: 'holders': free name
+kobject: 'uhci_hcd' (a00000020427c8d0): kobject_cleanup
+kobject: 'uhci_hcd' (a00000020427c8d0): does not have a release() function, it is broken and must be fixed.
+kobject: 'uhci_hcd' (a00000020427c8d0): auto cleanup 'remove' event
+kobject: 'uhci_hcd' (a00000020427c8d0): kobject_uevent_env
+kobject: 'uhci_hcd' (a00000020427c8d0): fill_kobj_path: path = '/module/uhci_hcd'
+kobject: 'uhci_hcd' (a00000020427c8d0): auto cleanup kobject_del
+kobject: 'uhci_hcd': free name
+
+Are you saying that modules that call module_init/module_exit are
+supposed to supply a release() function?
+
+(those messages from my earlier email only came out when I did an
+rmmod <foo>, for foo = acpiphp, pci_slot)
+
+Thanks.
+
+/ac
 
 
----
-~Randy
+
