@@ -1,52 +1,36 @@
-From: Adrian Bunk <bunk@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
-Date: Mon, 3 Mar 2008 14:02:11 +0200
-Message-ID: <20080303120211.GG4457@cs181133002.pp.htv.fi>
-References: <20080301161902.GN25835@cs181133002.pp.htv.fi> <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu> <20080303093103.GA23651@uranus.ravnborg.org> <20080303103933.GC21190@elte.hu> <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu>
+Date: Mon, 3 Mar 2008 13:10:15 +0100
+Message-ID: <20080303121015.GA12660@elte.hu>
+References: <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu> <20080303093103.GA23651@uranus.ravnborg.org> <20080303103933.GC21190@elte.hu> <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu> <20080303120211.GG4457@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6.pp.htv.fi ([213.243.153.40]:56603 "EHLO smtp6.pp.htv.fi"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:54365 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316AbYCCMDr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2008 07:03:47 -0500
+	id S1751371AbYCCMKh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2008 07:10:37 -0500
 Content-Disposition: inline
-In-Reply-To: <20080303114533.GA4183@elte.hu>
+In-Reply-To: <20080303120211.GG4457@cs181133002.pp.htv.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
+To: Adrian Bunk <bunk@kernel.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Mar 03, 2008 at 12:45:34PM +0100, Ingo Molnar wrote:
-> 
-> * Adrian Bunk <bunk@kernel.org> wrote:
-> 
-> > are the result of a quick Google search of me stating this previously on 
-> > linux-kernel. It might have been more often, but I'm too lame too 
-> > search further.
+
+* Adrian Bunk <bunk@kernel.org> wrote:
+
+> > > http://lkml.org/lkml/2007/4/9/363
 > > 
-> > http://lkml.org/lkml/2007/1/19/36
+> > this second one is this very thread that i replied to.
+> >...
 > 
-> that's a side-note, not a bugreport and not a patch to fix it.
-> 
-> > http://lkml.org/lkml/2007/4/9/363
-> 
-> this second one is this very thread that i replied to.
->...
+> That's a lie.
 
+oops, i was simply wrong - it looked very much like this current thread 
+...
 
-That's a lie.
+(It would be a lie had i been writing that intentinally. Thanks for 
+giving me the benefit of the doubt.)
 
-
-> 	Ingo
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+	Ingo
