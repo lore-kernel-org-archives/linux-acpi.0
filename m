@@ -1,71 +1,34 @@
-From: youquan_song@linux.intel.com
-Subject: [PATCH 2.6.25-rc3] processor_idle: fixed CPU 'active state' stably
-          remain C0 by cat /proc
-Date: Mon, 3 Mar 2008 00:53:02 -0800 (PST)
-Message-ID: <1467.172.16.116.56.1204534382.squirrel@linux.intel.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
+Date: Mon, 3 Mar 2008 09:57:20 +0100
+Message-ID: <20080303085720.GD15943@elte.hu>
+References: <20080301161902.GN25835@cs181133002.pp.htv.fi> <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:23994 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753255AbYCCIyq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 03:54:46 -0500
+Received: from mx3.mail.elte.hu ([157.181.1.138]:46233 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753098AbYCCI5g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2008 03:57:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20080301183550.GC25835@cs181133002.pp.htv.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, youquan.song@intel.com
-
-If cpuidle module is enabled by CONFIG_CPU_IDEL=y,user can check CPU idle
-information by both /proc and /sys. The /proc information keep consistent
-with the old kernel without cpuidle modules except the 'active state'.
-Because If we enable cpuidle, kernel will not record CPU active state, so
-if we run 'cat /proc/acpi/processor/CPU*/power', we will get the 'active
-state' stably remain C0. This is different from user experience which when
-run 'cat /proc', the "active state" change as the cpu real work.
-
-This patch will fix the bug by record the specail C state when CPU is
-going to enter to C state. we run 'cat /proc/acpi/processor/CPU*/power'
-and we will watch the CPU 'active state' change keeping the same with the
-cpu real work.
-
-Signed-off-by: Youquan Song <youquan.song@intel.com>
----
- processor_idle.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff -urNa linux-2.6.25-rc3-orginal/drivers/acpi/processor_idle.c
-linux-2.6.25-rc3/drivers/acpi/processor_idle.c
---- linux-2.6.25-rc3-orginal/drivers/acpi/processor_idle.c	2008-02-29
-07:58:51.000000000 -0500
-+++ linux-2.6.25-rc3/drivers/acpi/processor_idle.c	2008-02-29
-11:56:39.000000000 -0500
-@@ -1425,6 +1425,8 @@
- 		return 0;
-
- 	local_irq_disable();
-+	/* Record the active C state */
-+	pr->power.state = cx;
-
- 	/* Do not access any ACPI IO ports in suspend path */
- 	if (acpi_idle_suspend) {
-@@ -1468,6 +1470,8 @@
- 		return(acpi_idle_enter_c1(dev, state));
-
- 	local_irq_disable();
-+	/* Record the active C state */
-+	pr->power.state = cx;
- 	current_thread_info()->status &= ~TS_POLLING;
- 	/*
- 	 * TS_POLLING-cleared state must be visible before we test
-@@ -1558,6 +1562,8 @@
- 	}
-
- 	local_irq_disable();
-+	/* Record the active C state */
-+	pr->power.state = cx;
- 	current_thread_info()->status &= ~TS_POLLING;
- 	/*
- 	 * TS_POLLING-cleared state must be visible before we test
+To: Adrian Bunk <bunk@kernel.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+* Adrian Bunk <bunk@kernel.org> wrote:
+
+> On Sat, Mar 01, 2008 at 09:26:41PM +0300, Alexey Starikovskiy wrote:
+> > May I keep them inline?
+> 
+> The problem with such manual inlines is that we force gcc to always 
+> inline them - and history has shown that functions grow without the 
+> "inline" being removed.
+
+what do you mean by "we force gcc to always inline them"? gcc is free to 
+decide whether to inline or to not inline. (and CONFIG_FORCED_INLINING 
+got removed from 2.6.25)
+
+	Ingo
