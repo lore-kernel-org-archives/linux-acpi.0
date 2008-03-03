@@ -1,45 +1,104 @@
-From: Harvey Harrison <harvey.harrison@gmail.com>
-Subject: Re: [patch] x86: phase out forced inlining
-Date: Mon, 03 Mar 2008 07:58:39 -0800
-Message-ID: <1204559919.3266.12.camel@brick>
-References: <20080301161902.GN25835@cs181133002.pp.htv.fi>
-	 <47C99FE1.8080206@gmail.com> <20080301183550.GC25835@cs181133002.pp.htv.fi>
-	 <20080303085720.GD15943@elte.hu>
-	 <20080303091314.GC4457@cs181133002.pp.htv.fi>
-	 <20080303091714.GA18250@elte.hu>
-	 <20080303093103.GA23651@uranus.ravnborg.org>
-	 <20080303103933.GC21190@elte.hu>
-	 <20080303113451.GF4457@cs181133002.pp.htv.fi>
-	 <20080303114533.GA4183@elte.hu> <20080303121335.GA15381@elte.hu>
-	 <20080303070117.0325e77a@laptopd505.fenrus.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 1/4] Remove path attribute from sgi_hotplug
+Date: Mon, 3 Mar 2008 10:48:20 -0800
+Message-ID: <200803031048.20762.jbarnes@virtuousgeek.org>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002640.GB21420@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.178]:38989 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756810AbYCCP6l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 10:58:41 -0500
-Received: by el-out-1112.google.com with SMTP id v27so121148ele.17
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Mar 2008 07:58:36 -0800 (PST)
-In-Reply-To: <20080303070117.0325e77a@laptopd505.fenrus.org>
+Received: from outbound-mail-29.bluehost.com ([69.89.17.211]:40427 "HELO
+	outbound-mail-29.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753640AbYCCSs7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2008 13:48:59 -0500
+In-Reply-To: <20080229002640.GB21420@ldl.fc.hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: Alex Chiang <achiang@hp.com>
+Cc: Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org, Prarit Bhargava <prarit@redhat.com>
 
+[Adding Prarit to cc since I think this is his code.]
 
-> eh.. we ALREADY HAD THIS.
-> someone seems to have removed this wronly; not forcing inline should have been
-> the default after the removal (in 2.6.25-rc)!
-> 
-> So lets fix it that way, rather than putting the config option back under a different name.
+On Thursday, February 28, 2008 4:26 pm Alex Chiang wrote:
+> Rename the slot to be the contents of the 'path' sysfs attribute, and
+> delete the attribute.  The mapping from pci address to slot name is
+> supposed to be done through the 'address' file, which will be provided
+> automatically later in this series of patches.
+>
+> Signed-off-by: Alex Chiang <achiang@hp.com>
+> Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+> ---
+>  drivers/pci/hotplug/sgi_hotplug.c |   32 +-------------------------------
+>  1 files changed, 1 insertions(+), 31 deletions(-)
+>
+> diff --git a/drivers/pci/hotplug/sgi_hotplug.c
+> b/drivers/pci/hotplug/sgi_hotplug.c index ef07c36..693519e 100644
+> --- a/drivers/pci/hotplug/sgi_hotplug.c
+> +++ b/drivers/pci/hotplug/sgi_hotplug.c
+> @@ -91,21 +91,6 @@ static struct hotplug_slot_ops sn_hotplug_slot_ops = {
+>
+>  static DEFINE_MUTEX(sn_hotplug_mutex);
+>
+> -static ssize_t path_show (struct hotplug_slot *bss_hotplug_slot,
+> -	       		  char *buf)
+> -{
+> -	int retval = -ENOENT;
+> -	struct slot *slot = bss_hotplug_slot->private;
+> -
+> -	if (!slot)
+> -		return retval;
+> -
+> -	retval = sprintf (buf, "%s\n", slot->physical_path);
+> -	return retval;
+> -}
+> -
+> -static struct hotplug_slot_attribute sn_slot_path_attr = __ATTR_RO(path);
+> -
+>  static int sn_pci_slot_valid(struct pci_bus *pci_bus, int device)
+>  {
+>  	struct pcibus_info *pcibus_info;
+> @@ -173,18 +158,10 @@ static int sn_hp_slot_private_alloc(struct
+> hotplug_slot *bss_hotplug_slot, return -ENOMEM;
+>  	bss_hotplug_slot->private = slot;
+>
+> -	bss_hotplug_slot->name = kmalloc(SN_SLOT_NAME_SIZE, GFP_KERNEL);
+> -	if (!bss_hotplug_slot->name) {
+> -		kfree(bss_hotplug_slot->private);
+> -		return -ENOMEM;
+> -	}
+> +	bss_hotplug_slot->name = slot->physical_path;
+>
+>  	slot->device_num = device;
+>  	slot->pci_bus = pci_bus;
+> -	sprintf(bss_hotplug_slot->name, "%04x:%02x:%02x",
+> -		pci_domain_nr(pci_bus),
+> -		((u16)pcibus_info->pbi_buscommon.bs_persist_busnum),
+> -		device + 1);
+>
+>  	sn_generate_path(pci_bus, slot->physical_path);
+>
+> @@ -203,8 +180,6 @@ static struct hotplug_slot * sn_hp_destroy(void)
+>  		bss_hotplug_slot = slot->hotplug_slot;
+>  		list_del(&((struct slot *)bss_hotplug_slot->private)->
+>  			 hp_list);
+> -		sysfs_remove_file(&bss_hotplug_slot->kobj,
+> -				  &sn_slot_path_attr.attr);
+>  		break;
+>  	}
+>  	return bss_hotplug_slot;
+> @@ -653,11 +628,6 @@ static int sn_hotplug_slot_register(struct pci_bus
+> *pci_bus) rc = pci_hp_register(bss_hotplug_slot);
+>  		if (rc)
+>  			goto register_err;
+> -
+> -		rc = sysfs_create_file(&bss_hotplug_slot->kobj,
+> -				       &sn_slot_path_attr.attr);
+> -		if (rc)
+> -			goto register_err;
+>  	}
+>  	dev_dbg(&pci_bus->self->dev, "Registered bus with hotplug\n");
+>  	return rc;
 
-The removal was my patch.  I did notice that the config option had no
-effect, I figured that was why it was on the removal schedule, as
-it had been made the default.
-
-My bad,
-
-Harvey
 
