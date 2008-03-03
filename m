@@ -1,15 +1,15 @@
 From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [PATCH] ACPI: Unneccessary to scan the PCI bus already scanned.
-Date: Mon, 3 Mar 2008 11:10:40 +0100
-Message-ID: <20080303101040.GG18281@elte.hu>
+Date: Mon, 3 Mar 2008 11:11:51 +0100
+Message-ID: <20080303101151.GH18281@elte.hu>
 References: <1204525186.4080.11.camel@yakui_zhao.sh.intel.com> <20080303073214.GA5934@elte.hu> <86802c440803030006m1879838awc238f07bc98ed43e@mail.gmail.com> <86802c440803030030p4ff9cec5tdb25d1cdc131d377@mail.gmail.com> <86802c440803030201i684f31c1m97fb3f1f1927d4f4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:40414 "EHLO mx3.mail.elte.hu"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:40665 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755012AbYCCKLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2008 05:11:13 -0500
+	id S1755571AbYCCKMI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2008 05:12:08 -0500
 Content-Disposition: inline
 In-Reply-To: <86802c440803030201i684f31c1m97fb3f1f1927d4f4@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -18,77 +18,37 @@ To: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Greg KH <gregkh@suse.de>, Muli Ben-Yehuda <muli@il.ibm.com>, Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 
-* Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-
-> also please use attached patch to replace the one patch in x86.git# 
-> testing. old one can not be applied after Yakui's patch.
-
-ok, thanks. Note, i still have the patch below filed up against it - is 
-that still needed?
+i also had to hand-merge the x86.git#testing patch below - could you 
+double-check that it's needed in this form?
 
 	Ingo
 
--------------->
-Subject: x86: fix k8-bus_64.c build
-From: Ingo Molnar <mingo@elte.hu>
-Date: Wed Feb 20 10:30:15 CET 2008
+----------->
+Subject: x86/acpi: make dev_to_node return online node
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Date: Wed, 20 Feb 2008 12:41:52 -0800
 
+some numa system (with multi HT chains) may return node without ram. aka it
+is not online. Try to get an online node, otherwise return -1
+
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 ---
- arch/x86/pci/k8-bus_64.c   |    6 ++++++
- include/asm-x86/topology.h |    4 ++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ arch/x86/pci/acpi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Index: linux-x86.q/arch/x86/pci/k8-bus_64.c
+Index: linux-x86.q/arch/x86/pci/acpi.c
 ===================================================================
---- linux-x86.q.orig/arch/x86/pci/k8-bus_64.c
-+++ linux-x86.q/arch/x86/pci/k8-bus_64.c
-@@ -22,6 +22,8 @@
- #define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
- #define PCI_DEVICE_ID_K8HTCONFIG 0x1100
- 
-+#ifdef CONFIG_NUMA
+--- linux-x86.q.orig/arch/x86/pci/acpi.c
++++ linux-x86.q/arch/x86/pci/acpi.c
+@@ -213,6 +213,9 @@ struct pci_bus * __devinit pci_acpi_scan
+ 		set_mp_bus_to_node(busnum, node);
+ 	else
+ 		node = get_mp_bus_to_node(busnum);
 +
- #define BUS_NR 256
- 
- static int mp_bus_to_node[BUS_NR];
-@@ -51,6 +53,8 @@ int get_mp_bus_to_node(int busnum)
- 	return node;
- }
- 
-+#endif
-+
- /**
-  * early_fill_mp_bus_to_node()
-  * called before pcibios_scan_root and pci_scan_bus
-@@ -60,6 +64,7 @@ int get_mp_bus_to_node(int busnum)
- __init static int
- early_fill_mp_bus_to_node(void)
- {
-+#ifdef CONFIG_NUMA
- 	int i, j;
- 	unsigned slot;
- 	u32 ldtbus, nid;
-@@ -111,6 +116,7 @@ early_fill_mp_bus_to_node(void)
- 		if (node >= 0)
- 			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
- 	}
-+#endif
- 	return 0;
- }
- 
-Index: linux-x86.q/include/asm-x86/topology.h
-===================================================================
---- linux-x86.q.orig/include/asm-x86/topology.h
-+++ linux-x86.q/include/asm-x86/topology.h
-@@ -165,8 +165,8 @@ extern int __node_distance(int, int);
- #define node_distance(a, b) __node_distance(a, b)
++	if (node != -1 && !node_online(node))
++		node = -1;
  #endif
  
--int get_mp_bus_to_node(int busnum);
--void set_mp_bus_to_node(int busnum, int node);
-+extern int get_mp_bus_to_node(int busnum);
-+extern void set_mp_bus_to_node(int busnum, int node);
- 
- #else /* CONFIG_NUMA */
- 
+ 	bus = pci_find_bus(domain, busnum);
+
