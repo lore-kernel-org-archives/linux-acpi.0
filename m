@@ -1,37 +1,72 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Tue, 4 Mar 2008 12:02:09 -0800
-Message-ID: <200803041202.09702.jbarnes@virtuousgeek.org>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <200803041018.29035.jbarnes@virtuousgeek.org> <20080304193036.GB5534@suse.de>
+Date: Tue, 4 Mar 2008 12:12:35 -0800
+Message-ID: <20080304121235.468756d6@appleyard>
+References: <20080229002341.GA21420@ldl.fc.hp.com>
+	<20080301144307.GD24386@parisc-linux.org>
+	<20080304054927.GA15566@suse.de>
+	<200803041018.29035.jbarnes@virtuousgeek.org>
+	<20080304193036.GB5534@suse.de>
+Reply-To: kristen.c.accardi@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933419AbYCDUCz@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:50013 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760269AbYCDUPe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 15:15:34 -0500
 In-Reply-To: <20080304193036.GB5534@suse.de>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Matthew Wilcox <matthew@wil.cx>, Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Wilcox <matthew@wil.cx>, Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Tuesday, March 04, 2008 11:30 am Greg KH wrote:
+On Tue, 4 Mar 2008 11:30:36 -0800
+Greg KH <gregkh@suse.de> wrote:
+
+> On Tue, Mar 04, 2008 at 10:18:28AM -0800, Jesse Barnes wrote:
+> > On Monday, March 03, 2008 9:49 pm Greg KH wrote:
+> > > On Sat, Mar 01, 2008 at 07:43:07AM -0700, Matthew Wilcox wrote:
+> > > > On Fri, Feb 29, 2008 at 09:25:42PM -0800, Greg KH wrote:
+> > > > > What is the guarantee that the names of these slots are
+> > > > > correct and do not happen to be the same as the hotpluggable
+> > > > > ones?
+> > > >
+> > > > That would be a bug -- and yes, bugs happen, and we have to
+> > > > deal with them.
+> > >
+> > > My main concern is that BIOS vendors will not fix these bugs, as
+> > > no other OS cares/does this kind of thing today.  The ammount of
+> > > bad information out there might be quite large, and I think this
+> > > was confirmed by some initial testing of IBM systems, right?
+> > 
+> > Yeah, but there's a flip side to this too:  if no one uses the
+> > data, no one will complain when it's wrong.  If Linux starts making
+> > it easy to see this stuff, there's a chance system vendors will
+> > start taking an extra 5 min. before shipment to make sure that the
+> > BIOS info is up to date...
+> > 
+> > OTOH, I'm not sure which is worse, bad data or no data.
+> 
 > bad data is worse.
-
-But we don't want to throw the baby out with the bathwater; assuming there are 
-lots of machines out there with good data (I really hope that's the case), 
-this feature seems like a really good idea.
-
+> 
 > And then there's the machines with duplicate slot names, how does this
 > code handle PCI slots with that?  I think some of the IBM machines had
 > non-hotplug slots named the same as the hotplug slots, right?
->
-> This stuff needs a _lot_ of testing on a lot of different machines, and
-> a sane way to fall-back if there are errors to ensure that working
+> 
+> This stuff needs a _lot_ of testing on a lot of different machines,
+> and a sane way to fall-back if there are errors to ensure that working
 > machines don't break.
+> 
+> And then there's the issue with userspace programs only expecting
+> hotplugable slots in the slots/ directory...
+> 
+> thanks,
+> 
+> greg k-h
+> 
 
-Yeah, I think a good fallback is important.  Might be good to have a blacklist 
-along with a heuristic for detecting duplicate slot names...  Anyway, yeah, 
-testing will be huge here.
+I too worry about interaction with other vendor's machines, so maybe we
+should make it easier to test by putting this series into linux-next?
 
-Jesse
