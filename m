@@ -1,52 +1,28 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Tue, 4 Mar 2008 22:12:12 +0100
-Message-ID: <20080304211212.GD6704@kernel.dk>
-References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] ACPI: Unneccessary to scan the PCI bus already scanned.
+Date: Tue, 4 Mar 2008 22:23:40 +0100
+Message-ID: <20080304212340.GE31546@elte.hu>
+References: <20080303073214.GA5934@elte.hu> <86802c440803030006m1879838awc238f07bc98ed43e@mail.gmail.com> <86802c440803030030p4ff9cec5tdb25d1cdc131d377@mail.gmail.com> <86802c440803030201i684f31c1m97fb3f1f1927d4f4@mail.gmail.com> <20080303101040.GG18281@elte.hu> <86802c440803030233s1b0cc0a6nbed683ee3d4fac63@mail.gmail.com> <20080303111124.GA27348@elte.hu> <86802c440803031057m7802a00cnd158da03c4bb507@mail.gmail.com> <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com> <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([87.55.233.238]:19864 "EHLO kernel.dk"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:48366 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752644AbYCDVMS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 16:12:18 -0500
+	id S1755787AbYCDVXx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 16:23:53 -0500
 Content-Disposition: inline
-In-Reply-To: <47CDBA74.5080304@gmail.com>
+In-Reply-To: <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Greg KH <gregkh@suse.de>, Muli Ben-Yehuda <muli@il.ibm.com>, Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Mar 05 2008, Alexey Starikovskiy wrote:
-> Jens Axboe wrote:
-> >On Tue, Feb 26 2008, Lukas Hejtmanek wrote:
-> >  
-> >>On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh 
-> >>wrote:
-> >>    
-> >>>On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
-> >>>      
-> >>>>volume keys work. But anything through acpid does not. Even AC/battery 
-> >>>>switch
-> >>>>is not signalized. So the bug may be somewhere else?
-> >>>>        
-> >>>Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
-> >>>thinkpad.  I don't have a link to it right now, but if you look for the
-> >>>messages to LKML on the last 48h, you will find it.
-> >>>      
-> >>this one fixes all my troubles with thinkpad hotkeys in rc3.
-> >>http://lkml.org/lkml/2008/2/25/400
-> >>    
-> >
-> >Ping - is anyone sending this upstream? Would be nice to have my x60
-> >usable for -rc4 at least.
-> >
-> >  
-> Please take a look at patches in #10100.
 
-Can you be more specific (eg if you want me to test any/all of them, let
-me know)?
+* Yinghai Lu <yhlu.kernel@gmail.com> wrote:
 
--- 
-Jens Axboe
+> use this v2 one please
 
+thanks, applied. (but this must ultimately go via the ACPI/PCI trees i 
+suspect, as it patches arch/x86/pci/acpi.c)
+
+	Ingo
