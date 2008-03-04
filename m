@@ -1,57 +1,41 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] PNP: use dev_printk for quirk messages
-Date: Tue, 4 Mar 2008 16:47:27 -0700
-Message-ID: <200803041647.28298.bjorn.helgaas@hp.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
+Date: Tue, 4 Mar 2008 16:46:46 -0700
+Message-ID: <20080304234646.GH3694@ldl.fc.hp.com>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002938.GE21420@ldl.fc.hp.com> <20080301052542.GD19353@suse.de> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <20080304225830.GC3694@ldl.fc.hp.com> <20080304231525.GA25125@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:12558 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823AbYCDXpS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:45:18 -0500
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:26343 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757011AbYCDXqr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:46:47 -0500
 Content-Disposition: inline
+In-Reply-To: <20080304231525.GA25125@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Adam Belay <ambx1@neo.rr.com>, linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-Convert quirk printks to dev_printk().
+Hi Greg, all,
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+* Greg KH <gregkh@suse.de>:
+> On Tue, Mar 04, 2008 at 03:58:30PM -0700, Alex Chiang wrote:
+> 
+> > Again, I'm thinking more exposure in linux-next might be a
+> > reasonable way for us to figure out how bad (or good) the
+> > situation might really be out there.
+> 
+> Ok, care to resend them with the requested updates?
 
-Index: linux-mm/drivers/pnp/quirks.c
-===================================================================
---- linux-mm.orig/drivers/pnp/quirks.c	2008-03-04 16:41:17.000000000 -0700
-+++ linux-mm/drivers/pnp/quirks.c	2008-03-04 16:44:00.000000000 -0700
-@@ -51,7 +51,8 @@
- 		port3->min += 0x800;
- 		port3->max += 0x800;
- 	}
--	printk(KERN_INFO "pnp: AWE32 quirk - adding two ports\n");
-+	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
-+		(unsigned long) port2->min, (unsigned long) port3->min);
- }
- 
- static void quirk_cmi8330_resources(struct pnp_dev *dev)
-@@ -74,7 +75,8 @@
- 			    IORESOURCE_DMA_8BIT)
- 				dma->map = 0x000A;
- 	}
--	printk(KERN_INFO "pnp: CMI8330 quirk - fixing interrupts and dma\n");
-+	dev_info(&dev->dev, "CMI8330 quirk - forced possible IRQs to 5, 7, 10 "
-+		"and DMA channels to 1, 3\n");
- }
- 
- static void quirk_sb16audio_resources(struct pnp_dev *dev)
-@@ -105,8 +107,7 @@
- 		changed = 1;
- 	}
- 	if (changed)
--		printk(KERN_INFO
--		       "pnp: SB audio device quirk - increasing port range\n");
-+		dev_info(&dev->dev, "SB audio device quirk - increased port range\n");
- }
- 
- static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
+Thanks, I need to review my patch that touches SGI after thinking
+about Prarit's comment some more.
+
+Look for v8 of series to come out later (and please ignore that
+stray patch I sent out a few minutes ago with subject [PATCH 3/4,
+v8]).
+
+Thanks.
+
+/ac
+
