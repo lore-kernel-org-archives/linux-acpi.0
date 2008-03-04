@@ -1,79 +1,74 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Tue, 4 Mar 2008 15:58:30 -0700
-Message-ID: <20080304225830.GC3694@ldl.fc.hp.com>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002938.GE21420@ldl.fc.hp.com> <20080301052542.GD19353@suse.de> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: akpm@linux-foundation.org
+Subject: [patch (for 2.6.25?) 1/3] ACPI: EC: fix regression
+Date: Tue, 04 Mar 2008 15:00:12 -0800
+Message-ID: <200803042300.m24N0CD9001543@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:7069 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324AbYCDW6c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 17:58:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20080304054927.GA15566@suse.de>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47184 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1765296AbYCDXBF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:01:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, astarikovskiy@suse.de, len.brown@intel.com, m.s.tsirkin@gmail.com, rjw@sisk.pl
 
-* Greg KH <gregkh@suse.de>:
-> On Sat, Mar 01, 2008 at 07:43:07AM -0700, Matthew Wilcox wrote:
-> > On Fri, Feb 29, 2008 at 09:25:42PM -0800, Greg KH wrote:
-> > > What is the guarantee that the names of these slots are correct
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-No guarantee there. We report whatever firmware tells us.
+no changelog?
 
-> > > and do not happen to be the same as the hotpluggable ones?
+Tested-by: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Stronger guarantee here, since both pci_slot and <foo>hp driver
-will be getting the name of the slot from the same place.
+ drivers/acpi/ec.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-> > That would be a bug -- and yes, bugs happen, and we have to deal with
-> > them.
-> 
-> My main concern is that BIOS vendors will not fix these bugs, as no
-> other OS cares/does this kind of thing today.  The ammount of bad
-> information out there might be quite large, and I think this was
-> confirmed by some initial testing of IBM systems, right?
-
-We saw problems on Fujitsu machines, where they return an error
-code when the _SUN method is called on a slot that exists in the
-namespace but isn't actually present.
-
-After discussing with Kenji-san about specs, we came to the
-agreement that he was ok with this behavior because he had the
-option to not load pci_slot on his machines.
-
-I agree that there might be lots of buggy firmwares out there,
-but we won't know for certain until we get some exposure. And I
-think the upside is worth it.
-
-Kristen suggested the linux-next tree. That sounds viable to
-me...
-
-> > > Why show this information on machines that can not do
-> > > anything with these slots at all?  Will that not just
-> > > confuse people?
-> > 
-> > Only for people who think that /sys/bus/pci/slots/ is for
-> > hotpluggable slots only.  There is plenty of useful
-> > information available for slots that aren't hotpluggable (eg
-> > bus address, speed, width, error status).
-> 
-> Can the userspace tools that are using the existing directories
-> thinking that only hotplug slots are there, handle
-> "non-hotplug" slots showing up in this location?
-
-Of course we shouldn't break userspace, no one wants that. But
-nothing about that name (/sys/bus/pci/slots/) implies "hotplug
-only", and we have no idea how big the problem might be.
-
-Again, I'm thinking more exposure in linux-next might be a
-reasonable way for us to figure out how bad (or good) the
-situation might really be out there.
-
-Thanks.
-
-/ac
-
+diff -puN drivers/acpi/ec.c~acpi-ec-fix-regression drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-fix-regression
++++ a/drivers/acpi/ec.c
+@@ -129,7 +129,8 @@ static struct acpi_ec {
+ 	struct mutex lock;
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
+-	u8 handlers_installed;
++	u8 handlers_installed:1;
++	u8 from_ecdt:1;
+ } *boot_ec, *first_ec;
+ 
+ /* --------------------------------------------------------------------------
+@@ -772,16 +773,18 @@ static int acpi_ec_add(struct acpi_devic
+ 
+ 	/* Check for boot EC */
+ 	if (boot_ec) {
+-		if (boot_ec->handle == device->handle) {
+-			/* Pre-loaded EC from DSDT, just move pointer */
+-			ec = boot_ec;
+-			boot_ec = NULL;
+-			goto end;
+-		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
++		if (boot_ec->from_ecdt &&
++		    (boot_ec->handle == device->handle ||
++		     boot_ec->handle == ACPI_ROOT_OBJECT)) {
+ 			/* ECDT-based EC, time to shut it down */
+ 			ec_remove_handlers(boot_ec);
+ 			kfree(boot_ec);
+ 			first_ec = boot_ec = NULL;
++		} else if (boot_ec->handle == device->handle) {
++			/* Pre-loaded EC from DSDT, just move pointer */
++			ec = boot_ec;
++			boot_ec = NULL;
++			goto end;
+ 		}
+ 	}
+ 
+@@ -943,6 +946,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 		boot_ec->command_addr = ecdt_ptr->control.address;
+ 		boot_ec->data_addr = ecdt_ptr->data.address;
+ 		boot_ec->gpe = ecdt_ptr->gpe;
++		boot_ec->from_ecdt = 1;
+ 		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
+ 				&boot_ec->handle))) {
+ 			pr_info("Failed to locate handle for boot EC\n");
+_
