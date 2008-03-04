@@ -1,97 +1,71 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Sam Ravnborg <sam@ravnborg.org>
 Subject: Re: [patch] x86: phase out forced inlining
-Date: Tue, 4 Mar 2008 00:00:31 -0800
-Message-ID: <20080304000031.49b558b8.akpm@linux-foundation.org>
-References: <20080301183550.GC25835@cs181133002.pp.htv.fi>
-	<20080303085720.GD15943@elte.hu>
-	<20080303091314.GC4457@cs181133002.pp.htv.fi>
-	<20080303091714.GA18250@elte.hu>
-	<20080303093103.GA23651@uranus.ravnborg.org>
-	<20080303103933.GC21190@elte.hu>
-	<20080303113451.GF4457@cs181133002.pp.htv.fi>
-	<20080303114533.GA4183@elte.hu>
-	<20080303121335.GA15381@elte.hu>
-	<20080303224231.86c22ed0.akpm@linux-foundation.org>
-	<20080304073248.GA2947@elte.hu>
+Date: Tue, 4 Mar 2008 09:03:59 +0100
+Message-ID: <20080304080335.GA5776@uranus.ravnborg.org>
+References: <20080301183550.GC25835@cs181133002.pp.htv.fi> <20080303085720.GD15943@elte.hu> <20080303091314.GC4457@cs181133002.pp.htv.fi> <20080303091714.GA18250@elte.hu> <20080303093103.GA23651@uranus.ravnborg.org> <20080303103933.GC21190@elte.hu> <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu> <20080303121335.GA15381@elte.hu> <20080303224231.86c22ed0.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39934 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755289AbYCDIBU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 03:01:20 -0500
-In-Reply-To: <20080304073248.GA2947@elte.hu>
+Received: from pasmtpb.tele.dk ([80.160.77.98]:33479 "EHLO pasmtpB.tele.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751427AbYCDI04 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 03:26:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20080303224231.86c22ed0.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Adrian Bunk <bunk@kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Tue, 4 Mar 2008 08:32:48 +0100 Ingo Molnar <mingo@elte.hu> wrote:
-
+On Mon, Mar 03, 2008 at 10:42:31PM -0800, Andrew Morton wrote:
+> On Mon, 3 Mar 2008 13:13:35 +0100 Ingo Molnar <mingo@elte.hu> wrote:
 > 
-> * Andrew Morton <akpm@linux-foundation.org> wrote:
+> > +config OPTIMIZE_INLINING
+> > +	bool "Allow gcc to uninline functions marked 'inline'"
+> > +	default y
+> > +	help
+> > +	  This option determines if the kernel forces gcc to inline the functions
+> > +	  developers have marked 'inline'. Doing so takes away freedom from gcc to
+> > +	  do what it thinks is best, which is desirable for the gcc 3.x series of
+> > +	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
+> > +	  disabling this option will generate a smaller kernel there. Hopefully
+> > +	  this algorithm is so good that allowing gcc4 to make the decision can
+> > +	  become the default in the future, until then this option is there to
+> > +	  test gcc for this.
 > 
-> > urgh.  This will cause whatever problem 
-> > 4507a6a59cfc6997e532cd812a8bd244181e6205 fixed five years ago to 
-> > resurface for incautious gcc-3.x users.
+> urgh.  This will cause whatever problem
+> 4507a6a59cfc6997e532cd812a8bd244181e6205 fixed five years ago to resurface
+> for incautious gcc-3.x users.
 > 
-> hm, commit 4507a6a59cfc6997e532cd812a8bd244181e6205 does not exist:
+> I'd suggest that this
 > 
->   fatal: bad object 4507a6a59cfc6997e532cd812a8bd244181e6205
+> > +#ifndef CONFIG_OPTIMIZE_INLINING
+> 
+> become something along the lines of
+> 
+> > +#ifndef CONFIG_OPTIMIZE_INLINING && (__GNUC__ > 3)
+> 
+> It would be nice to be able to feed the gcc version into the Kconfig logic,
+> really..
+We can do this using a few environment options.
 
-This was 2.5.x - you'll need to look in the historical-git tree.
+Somewhere in a Makefile:
+export CC_MAJOR=`magic`
+export CC_MINOR=`more magic`
 
-Here it is:
+And in a Kconfig file:
+
+config CC_MAJOR
+	string
+	option env=CC_MAJOR
 
 
+And then we can do:
+config CC_DEFAULT_INLINE
+	bool "Force inline of functions annotated inline"
+	default y if CC_MAJOR = 04
 
-: commit 4507a6a59cfc6997e532cd812a8bd244181e6205
-: Author: akpm <akpm>
-: Date:   Tue Mar 11 07:42:00 2003 +0000
-: 
-:     [PATCH] work around gcc-3.x inlining bugs
-:     
-:     Force inlining even when gcc-3.x is too confused to do it for us.
-:     
-:     BKrev: 3e6d9348GA9aKzeN-bjzQzMMt85t8g
-: 
-: diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-: index e92f472..a28d0d5 100644
-: --- a/include/linux/compiler.h
-: +++ b/include/linux/compiler.h
-: @@ -1,6 +1,12 @@
-:  #ifndef __LINUX_COMPILER_H
-:  #define __LINUX_COMPILER_H
-:  
-: +#if (__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
-: +#define inline		__inline__ __attribute__((always_inline))
-: +#define __inline__	__inline__ __attribute__((always_inline))
-: +#define __inline	__inline__ __attribute__((always_inline))
-: +#endif
-: +
-:  /* Somewhere in the middle of the GCC 2.96 development cycle, we implemented
-:     a mechanism by which the user can annotate likely branch directions and
-:     expect the blocks to be reordered appropriately.  Define __builtin_expect
-: 
+Shall I try to cook up a patch for this?
+[I may get access to my dev box tonight - cannot promise..]
 
-I was very bad about changelogging that one.  I do remember there was a bit
-of to-and-fro before we decided to do it this way.  Some googling would be
-needed.  
-
-> but i suspect it must be something along the lines of the known problem 
-> of really old gcc versions creating huge stackframes?
-
-iirc gcc was failing to inline functions which we'd marked `inline' and it
-was generating poorer code as a result.  It might also have been generating
-an out-of-line copy for each compilation unit which called the inline (it
-would have to do this?)
-
-> Those pristine gcc 
-> versions were practically unusable for distro kernels anyway (and were 
-> patched by distros) - but i have no problem with restricting this 
-> feature to gcc4x. gcc4x creates more compact -Os code too, so it's 
-> recommended for smaller image sizes.
-
-yup.
-
+	Sam
