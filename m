@@ -1,38 +1,57 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Tue, 4 Mar 2008 20:45:14 +0100
-Message-ID: <20080304194513.GY6704@kernel.dk>
-References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
+Date: Tue, 4 Mar 2008 11:30:36 -0800
+Message-ID: <20080304193036.GB5534@suse.de>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <200803041018.29035.jbarnes@virtuousgeek.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([87.55.233.238]:20123 "EHLO kernel.dk"
+Received: from mx2.suse.de ([195.135.220.15]:39180 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbYCDTpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 14:45:19 -0500
+	id S1758635AbYCDTwr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 14:52:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20080226184937.GA4280@ics.muni.cz>
+In-Reply-To: <200803041018.29035.jbarnes@virtuousgeek.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Matthew Wilcox <matthew@wil.cx>, Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Tue, Feb 26 2008, Lukas Hejtmanek wrote:
-> On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
-> > > volume keys work. But anything through acpid does not. Even AC/battery switch
-> > > is not signalized. So the bug may be somewhere else?
-> > 
-> > Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
-> > thinkpad.  I don't have a link to it right now, but if you look for the
-> > messages to LKML on the last 48h, you will find it.
+On Tue, Mar 04, 2008 at 10:18:28AM -0800, Jesse Barnes wrote:
+> On Monday, March 03, 2008 9:49 pm Greg KH wrote:
+> > On Sat, Mar 01, 2008 at 07:43:07AM -0700, Matthew Wilcox wrote:
+> > > On Fri, Feb 29, 2008 at 09:25:42PM -0800, Greg KH wrote:
+> > > > What is the guarantee that the names of these slots are correct and do
+> > > > not happen to be the same as the hotpluggable ones?
+> > >
+> > > That would be a bug -- and yes, bugs happen, and we have to deal with
+> > > them.
+> >
+> > My main concern is that BIOS vendors will not fix these bugs, as no
+> > other OS cares/does this kind of thing today.  The ammount of bad
+> > information out there might be quite large, and I think this was
+> > confirmed by some initial testing of IBM systems, right?
 > 
-> this one fixes all my troubles with thinkpad hotkeys in rc3.
-> http://lkml.org/lkml/2008/2/25/400
+> Yeah, but there's a flip side to this too:  if no one uses the data, no one 
+> will complain when it's wrong.  If Linux starts making it easy to see this 
+> stuff, there's a chance system vendors will start taking an extra 5 min. 
+> before shipment to make sure that the BIOS info is up to date...
+> 
+> OTOH, I'm not sure which is worse, bad data or no data.
 
-Ping - is anyone sending this upstream? Would be nice to have my x60
-usable for -rc4 at least.
+bad data is worse.
 
--- 
-Jens Axboe
+And then there's the machines with duplicate slot names, how does this
+code handle PCI slots with that?  I think some of the IBM machines had
+non-hotplug slots named the same as the hotplug slots, right?
 
+This stuff needs a _lot_ of testing on a lot of different machines, and
+a sane way to fall-back if there are errors to ensure that working
+machines don't break.
+
+And then there's the issue with userspace programs only expecting
+hotplugable slots in the slots/ directory...
+
+thanks,
+
+greg k-h
