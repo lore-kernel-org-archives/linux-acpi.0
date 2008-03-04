@@ -1,97 +1,38 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [PATCH] ACPI: Unneccessary to scan the PCI bus already scanned.
-Date: Tue, 4 Mar 2008 11:34:23 -0800
-Message-ID: <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
-References: <1204525186.4080.11.camel@yakui_zhao.sh.intel.com>
-	 <20080303073214.GA5934@elte.hu>
-	 <86802c440803030006m1879838awc238f07bc98ed43e@mail.gmail.com>
-	 <86802c440803030030p4ff9cec5tdb25d1cdc131d377@mail.gmail.com>
-	 <86802c440803030201i684f31c1m97fb3f1f1927d4f4@mail.gmail.com>
-	 <20080303101040.GG18281@elte.hu>
-	 <86802c440803030233s1b0cc0a6nbed683ee3d4fac63@mail.gmail.com>
-	 <20080303111124.GA27348@elte.hu>
-	 <86802c440803031057m7802a00cnd158da03c4bb507@mail.gmail.com>
-	 <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com>
+From: Jens Axboe <jens.axboe@oracle.com>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Tue, 4 Mar 2008 20:45:14 +0100
+Message-ID: <20080304194513.GY6704@kernel.dk>
+References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_15816_19985073.1204659263459"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.233]:60093 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759618AbYCDTe1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 14:34:27 -0500
-Received: by wr-out-0506.google.com with SMTP id 50so1469107wra.13
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2008 11:34:24 -0800 (PST)
-In-Reply-To: <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com>
+Received: from brick.kernel.dk ([87.55.233.238]:20123 "EHLO kernel.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750797AbYCDTpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 14:45:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20080226184937.GA4280@ics.muni.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Greg KH <gregkh@suse.de>, Muli Ben-Yehuda <muli@il.ibm.com>, Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-------=_Part_15816_19985073.1204659263459
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Tue, Feb 26 2008, Lukas Hejtmanek wrote:
+> On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
+> > > volume keys work. But anything through acpid does not. Even AC/battery switch
+> > > is not signalized. So the bug may be somewhere else?
+> > 
+> > Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
+> > thinkpad.  I don't have a link to it right now, but if you look for the
+> > messages to LKML on the last 48h, you will find it.
+> 
+> this one fixes all my troubles with thinkpad hotkeys in rc3.
+> http://lkml.org/lkml/2008/2/25/400
 
-On Tue, Mar 4, 2008 at 11:28 AM, Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-> I updated Yakui's patch, so it could be applied after x86.git#testing
->
->  Please check it
->
->  YH
+Ping - is anyone sending this upstream? Would be nice to have my x60
+usable for -rc4 at least.
 
-use this v2 one please
+-- 
+Jens Axboe
 
-YH
-
-------=_Part_15816_19985073.1204659263459
-Content-Type: text/x-patch; name=acpi_scan_root_after_v2.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fdevcmjf1
-Content-Disposition: attachment; filename=acpi_scan_root_after_v2.patch
-
-RnJvbSA6IFpoYW8gWWFrdWkgPHlha3VpLnpoYW9AaW50ZWwuY29tPgoKW1BBVENIXSBVbm5lY2Nl
-c3NhcnkgdG8gc2NhbiB0aGUgUENJIGJ1cyBhbHJlYWR5IHNjYW5uZWQgdjIKCmh0dHA6Ly9idWd6
-aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMDEyNAoKY29tbWl0IDA4ZjFjMTkyYzNj
-MzI3OTcwNjhiZmU5NzczOGJhYmIzMjk1YmJmNDIKQXV0aG9yOiBNdWxpIEJlbi1ZZWh1ZGEgPG11
-bGlAaWwuaWJtLmNvbT4KRGF0ZTogICBTdW4gSnVsIDIyIDAwOjIzOjM5IDIwMDcgKzAzMDAKCiAg
-IHg4Ni02NDogaW50cm9kdWNlIHN0cnVjdCBwY2lfc3lzZGF0YSB0byBmYWNpbGl0YXRlIHNoYXJp
-bmcgb2YgLT5zeXNkYXRhCgogICBUaGlzIHBhdGNoIGludHJvZHVjZXMgc3RydWN0IHBjaV9zeXNk
-YXRhIHRvIHg4NiBhbmQgeDg2LTY0LCBhbmQKICAgY29udmVydHMgdGhlIGV4aXN0aW5nIHR3byB1
-c2VycyAoTlVNQSwgQ2FsZ2FyeSkgdG8gdXNlIGl0LgoKICAgVGhpcyBsYXlzIHRoZSBncm91bmR3
-b3JrIGZvciBoYXZpbmcgb3RoZXIgdXNlcnMgb2Ygc3lzZGF0YSwgc3VjaCBhcwogICB0aGUgUENJ
-IGRvbWFpbnMgd29yay4KCiAgIFRoZSBDYWxnYXJ5IGJpdHMgYXJlIHRlc3RlZCwgdGhlIE5VTUEg
-Yml0cyBqdXN0IGxvb2sgb2suCgp0aGF0IHJlcGxhY2UgcGNpYmlvc19zY2FuX3Jvb3QgYnkgcGNp
-X3NjYW5fYnVzX3BhcmVudGVkLi4uCgpidXQgaW4gcGNpYmlvc19zY2FuX3Jvb3Qgd2UgaGF2ZSBj
-aGVjayBhYm91dCBzY2FubmVkIGJ1cwoKWWluZ2hhaSBtYWtlIGl0IGNhbiBiZSBhcHBsaWVkIGFm
-dGVyIHBhdGNoZXMgaW4geDg2LmdpdCN0ZXNpbmcKClNpZ25lZC1vZmYtYnk6IFpoYW8gWWFrdWkg
-PHlha3VpLnpoYW9AaW50ZWwuY29tPgpTaWduZWQtb2ZmLWJ5OiBMaSBTaGFvaHVhIDxzaGFvaHVh
-LmxpQGludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWhsdS5rZXJuZWxAZ21h
-aWwuY29tPgoKSW5kZXg6IGxpbnV4LTIuNi9hcmNoL3g4Ni9wY2kvYWNwaS5jCj09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0K
-LS0tIGxpbnV4LTIuNi5vcmlnL2FyY2gveDg2L3BjaS9hY3BpLmMKKysrIGxpbnV4LTIuNi9hcmNo
-L3g4Ni9wY2kvYWNwaS5jCkBAIC0yMTgsMjggKzIxOCwzNiBAQCBzdHJ1Y3QgcGNpX2J1cyAqIF9f
-ZGV2aW5pdCBwY2lfYWNwaV9zY2FuCiAJCW5vZGUgPSAtMTsKICNlbmRpZgogCi0JLyogQWxsb2Nh
-dGUgcGVyLXJvb3QtYnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRhLgotCSAqIFRP
-RE86IGxlYWs7IHRoaXMgbWVtb3J5IGlzIG5ldmVyIGZyZWVkLgotCSAqIEl0J3MgYXJndWFibGUg
-d2hldGhlciBpdCdzIHdvcnRoIHRoZSB0cm91YmxlIHRvIGNhcmUuCi0JICovCi0Jc2QgPSBremFs
-bG9jKHNpemVvZigqc2QpLCBHRlBfS0VSTkVMKTsKLQlpZiAoIXNkKSB7Ci0JCXByaW50ayhLRVJO
-X0VSUiAiUENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwgYnVzbnVtKTsKLQkJ
-cmV0dXJuIE5VTEw7Ci0JfQorCWJ1cyA9IHBjaV9maW5kX2J1cyhkb21haW4sIGJ1c251bSk7CisJ
-aWYgKGJ1cykgeworCQkvKiBhbHJlYWR5IHNjYW5uZWQgPyovCisJCXNkID0gYnVzLT5zeXNkYXRh
-OworCQlzZC0+bm9kZSA9IG5vZGU7CisJfSBlbHNlIHsKKwkJLyogQWxsb2NhdGUgcGVyLXJvb3Qt
-YnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRhLgorCQkgKiBUT0RPOiBsZWFrOyB0
-aGlzIG1lbW9yeSBpcyBuZXZlciBmcmVlZC4KKwkJICogSXQncyBhcmd1YWJsZSB3aGV0aGVyIGl0
-J3Mgd29ydGggdGhlIHRyb3VibGUgdG8gY2FyZS4KKwkJICovCisJCXNkID0ga3phbGxvYyhzaXpl
-b2YoKnNkKSwgR0ZQX0tFUk5FTCk7CisJCWlmICghc2QpIHsKKwkJCXByaW50ayhLRVJOX0VSUiAi
-UENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwKKwkJCQkgYnVzbnVtKTsKKwkJ
-CXJldHVybiBOVUxMOworCQl9CiAKLQlzZC0+ZG9tYWluID0gZG9tYWluOwotCXNkLT5ub2RlID0g
-bm9kZTsKKwkJc2QtPmRvbWFpbiA9IGRvbWFpbjsKKwkJc2QtPm5vZGUgPSBub2RlOwogCi0JYnVz
-ID0gcGNpX3NjYW5fYnVzX3BhcmVudGVkKE5VTEwsIGJ1c251bSwgJnBjaV9yb290X29wcywgc2Qp
-OwotCWlmICghYnVzKQotCQlrZnJlZShzZCk7CisJCWJ1cyA9IHBjaV9zY2FuX2J1c19wYXJlbnRl
-ZChOVUxMLCBidXNudW0sICZwY2lfcm9vdF9vcHMsIHNkKTsKKwkJaWYgKCFidXMpCisJCQlrZnJl
-ZShzZCk7CisJfQogCiAjaWZkZWYgQ09ORklHX0FDUElfTlVNQQogCWlmIChidXMpIHsKIAkJaWYg
-KHB4bSA+PSAwKSB7CiAJCQlwcmludGsoS0VSTl9ERUJVRyAiYnVzICUwMnggLT4gcHhtICVkIC0+
-IG5vZGUgJWRcbiIsCi0JCQkJYnVzbnVtLCBweG0sIHNkLT5ub2RlKTsKKwkJCQlidXNudW0sIHB4
-bSwgbm9kZSk7CiAJCX0KIAl9CiAjZW5kaWYK
-------=_Part_15816_19985073.1204659263459--
