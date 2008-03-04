@@ -1,1980 +1,1283 @@
 From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] laptops: move laptop-mode.txt to Documentation/laptops/
-Date: Tue, 4 Mar 2008 13:41:26 -0800
-Message-ID: <20080304134126.a0088c81.randy.dunlap@oracle.com>
+Subject: [PATCH] doc/power: move power-related files to Documentation/power/
+Date: Tue, 4 Mar 2008 13:48:37 -0800
+Message-ID: <20080304134837.dcfed6dd.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:20933 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112AbYCDVlx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 16:41:53 -0500
+Received: from rgminet01.oracle.com ([148.87.113.118]:40291 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756352AbYCDVuL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 16:50:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, bart@samwel.tk
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, cbou@mail.ru, dwmw2@infradead.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
-cc: Bart Samwel (bart@samwel.tk)
+=46rom: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move laptop-mode.txt into the laptops/ sub-directory to consolidate
-laptop doc files there.
+Move power-related files to Documentation/power/.
 
-Update references to the file's location.
+Move 00-INDEX entries to power/00-INDEX (and add entry for
+pm_qos_interface.txt).
+
+Update references to moved filenames.
+
+=46ix some trailing whitespace.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- Documentation/00-INDEX                |    2 
- Documentation/filesystems/proc.txt    |    4 
- Documentation/laptop-mode.txt         |  950 ------------------------
- Documentation/laptops/00-INDEX        |    2 
- Documentation/laptops/laptop-mode.txt |  950 ++++++++++++++++++++++++
- 5 files changed, 954 insertions(+), 954 deletions(-)
+ Documentation/00-INDEX                     |    4=20
+ Documentation/kernel-parameters.txt        |    2=20
+ Documentation/pm.txt                       |  257 -------------------
+ Documentation/pm_qos_interface.txt         |   59 ----
+ Documentation/power/00-INDEX               |    6=20
+ Documentation/power/pm.txt                 |  257 +++++++++++++++++++
+ Documentation/power/pm_qos_interface.txt   |   59 ++++
+ Documentation/power/power_supply_class.txt |  169 ++++++++++++
+ Documentation/power_supply_class.txt       |  169 ------------
+ arch/x86/Kconfig                           |    2=20
+ kernel/power/Kconfig                       |    2=20
+ 11 files changed, 494 insertions(+), 492 deletions(-)
 
---- linux-2.6.25-rc3-git6.orig/Documentation/laptop-mode.txt
-+++ /dev/null
-@@ -1,950 +0,0 @@
--How to conserve battery power using laptop-mode
-------------------------------------------------
--
--Document Author: Bart Samwel (bart@samwel.tk)
--Date created: January 2, 2004
--Last modified: December 06, 2004
--
--Introduction
--------------
--
--Laptop mode is used to minimize the time that the hard disk needs to be spun up,
--to conserve battery power on laptops. It has been reported to cause significant
--power savings.
--
--Contents
----------
--
--* Introduction
--* Installation
--* Caveats
--* The Details
--* Tips & Tricks
--* Control script
--* ACPI integration
--* Monitoring tool
--
--
--Installation
--------------
--
--To use laptop mode, you don't need to set any kernel configuration options
--or anything. Simply install all the files included in this document, and
--laptop mode will automatically be started when you're on battery. For
--your convenience, a tarball containing an installer can be downloaded at:
--
--http://www.samwel.tk/laptop_mode/laptop_mode/
--
--To configure laptop mode, you need to edit the configuration file, which is
--located in /etc/default/laptop-mode on Debian-based systems, or in
--/etc/sysconfig/laptop-mode on other systems.
--
--Unfortunately, automatic enabling of laptop mode does not work for
--laptops that don't have ACPI. On those laptops, you need to start laptop
--mode manually. To start laptop mode, run "laptop_mode start", and to
--stop it, run "laptop_mode stop". (Note: The laptop mode tools package now
--has experimental support for APM, you might want to try that first.)
--
--
--Caveats
---------
--
--* The downside of laptop mode is that you have a chance of losing up to 10
--  minutes of work. If you cannot afford this, don't use it! The supplied ACPI
--  scripts automatically turn off laptop mode when the battery almost runs out,
--  so that you won't lose any data at the end of your battery life.
--
--* Most desktop hard drives have a very limited lifetime measured in spindown
--  cycles, typically about 50.000 times (it's usually listed on the spec sheet).
--  Check your drive's rating, and don't wear down your drive's lifetime if you
--  don't need to.
--
--* If you mount some of your ext3/reiserfs filesystems with the -n option, then
--  the control script will not be able to remount them correctly. You must set
--  DO_REMOUNTS=0 in the control script, otherwise it will remount them with the
--  wrong options -- or it will fail because it cannot write to /etc/mtab.
--
--* If you have your filesystems listed as type "auto" in fstab, like I did, then
--  the control script will not recognize them as filesystems that need remounting.
--  You must list the filesystems with their true type instead.
--
--* It has been reported that some versions of the mutt mail client use file access
--  times to determine whether a folder contains new mail. If you use mutt and
--  experience this, you must disable the noatime remounting by setting the option
--  DO_REMOUNT_NOATIME to 0 in the configuration file.
--
--
--The Details
-------------
--
--Laptop mode is controlled by the knob /proc/sys/vm/laptop_mode. This knob is
--present for all kernels that have the laptop mode patch, regardless of any
--configuration options. When the knob is set, any physical disk I/O (that might
--have caused the hard disk to spin up) causes Linux to flush all dirty blocks. The
--result of this is that after a disk has spun down, it will not be spun up
--anymore to write dirty blocks, because those blocks had already been written
--immediately after the most recent read operation. The value of the laptop_mode
--knob determines the time between the occurrence of disk I/O and when the flush
--is triggered. A sensible value for the knob is 5 seconds. Setting the knob to
--0 disables laptop mode.
--
--To increase the effectiveness of the laptop_mode strategy, the laptop_mode
--control script increases dirty_expire_centisecs and dirty_writeback_centisecs in
--/proc/sys/vm to about 10 minutes (by default), which means that pages that are
--dirtied are not forced to be written to disk as often. The control script also
--changes the dirty background ratio, so that background writeback of dirty pages
--is not done anymore. Combined with a higher commit value (also 10 minutes) for
--ext3 or ReiserFS filesystems (also done automatically by the control script),
--this results in concentration of disk activity in a small time interval which
--occurs only once every 10 minutes, or whenever the disk is forced to spin up by
--a cache miss. The disk can then be spun down in the periods of inactivity.
--
--If you want to find out which process caused the disk to spin up, you can
--gather information by setting the flag /proc/sys/vm/block_dump. When this flag
--is set, Linux reports all disk read and write operations that take place, and
--all block dirtyings done to files. This makes it possible to debug why a disk
--needs to spin up, and to increase battery life even more. The output of
--block_dump is written to the kernel output, and it can be retrieved using
--"dmesg". When you use block_dump and your kernel logging level also includes
--kernel debugging messages, you probably want to turn off klogd, otherwise
--the output of block_dump will be logged, causing disk activity that is not
--normally there.
--
--
--Configuration
---------------
--
--The laptop mode configuration file is located in /etc/default/laptop-mode on
--Debian-based systems, or in /etc/sysconfig/laptop-mode on other systems. It
--contains the following options:
--
--MAX_AGE:
--
--Maximum time, in seconds, of hard drive spindown time that you are
--comfortable with. Worst case, it's possible that you could lose this
--amount of work if your battery fails while you're in laptop mode.
--
--MINIMUM_BATTERY_MINUTES:
--
--Automatically disable laptop mode if the remaining number of minutes of
--battery power is less than this value. Default is 10 minutes.
--
--AC_HD/BATT_HD:
--
--The idle timeout that should be set on your hard drive when laptop mode
--is active (BATT_HD) and when it is not active (AC_HD). The defaults are
--20 seconds (value 4) for BATT_HD  and 2 hours (value 244) for AC_HD. The
--possible values are those listed in the manual page for "hdparm" for the
--"-S" option.
--
--HD:
--
--The devices for which the spindown timeout should be adjusted by laptop mode.
--Default is /dev/hda. If you specify multiple devices, separate them by a space.
--
--READAHEAD:
--
--Disk readahead, in 512-byte sectors, while laptop mode is active. A large
--readahead can prevent disk accesses for things like executable pages (which are
--loaded on demand while the application executes) and sequentially accessed data
--(MP3s).
--
--DO_REMOUNTS:
--
--The control script automatically remounts any mounted journaled filesystems
--with appropriate commit interval options. When this option is set to 0, this
--feature is disabled.
--
--DO_REMOUNT_NOATIME:
--
--When remounting, should the filesystems be remounted with the noatime option?
--Normally, this is set to "1" (enabled), but there may be programs that require
--access time recording.
--
--DIRTY_RATIO:
--
--The percentage of memory that is allowed to contain "dirty" or unsaved data
--before a writeback is forced, while laptop mode is active. Corresponds to
--the /proc/sys/vm/dirty_ratio sysctl.
--
--DIRTY_BACKGROUND_RATIO:
--
--The percentage of memory that is allowed to contain "dirty" or unsaved data
--after a forced writeback is done due to an exceeding of DIRTY_RATIO. Set
--this nice and low. This corresponds to the /proc/sys/vm/dirty_background_ratio
--sysctl.
--
--Note that the behaviour of dirty_background_ratio is quite different
--when laptop mode is active and when it isn't. When laptop mode is inactive,
--dirty_background_ratio is the threshold percentage at which background writeouts
--start taking place. When laptop mode is active, however, background writeouts
--are disabled, and the dirty_background_ratio only determines how much writeback
--is done when dirty_ratio is reached.
--
--DO_CPU:
--
--Enable CPU frequency scaling when in laptop mode. (Requires CPUFreq to be setup.
--See Documentation/cpu-freq/user-guide.txt for more info. Disabled by default.)
--
--CPU_MAXFREQ:
--
--When on battery, what is the maximum CPU speed that the system should use? Legal
--values are "slowest" for the slowest speed that your CPU is able to operate at,
--or a value listed in /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies.
--
--
--Tips & Tricks
---------------
--
--* Bartek Kania reports getting up to 50 minutes of extra battery life (on top
--  of his regular 3 to 3.5 hours) using a spindown time of 5 seconds (BATT_HD=1).
--
--* You can spin down the disk while playing MP3, by setting disk readahead
--  to 8MB (READAHEAD=16384). Effectively, the disk will read a complete MP3 at
--  once, and will then spin down while the MP3 is playing. (Thanks to Bartek
--  Kania.)
--
--* Drew Scott Daniels observed: "I don't know why, but when I decrease the number
--  of colours that my display uses it consumes less battery power. I've seen
--  this on powerbooks too. I hope that this is a piece of information that
--  might be useful to the Laptop Mode patch or it's users."
--
--* In syslog.conf, you can prefix entries with a dash ``-'' to omit syncing the
--  file after every logging. When you're using laptop-mode and your disk doesn't
--  spin down, this is a likely culprit.
--
--* Richard Atterer observed that laptop mode does not work well with noflushd
--  (http://noflushd.sourceforge.net/), it seems that noflushd prevents laptop-mode
--  from doing its thing.
--
--* If you're worried about your data, you might want to consider using a USB
--  memory stick or something like that as a "working area". (Be aware though
--  that flash memory can only handle a limited number of writes, and overuse
--  may wear out your memory stick pretty quickly. Do _not_ use journalling
--  filesystems on flash memory sticks.)
--
--
--Configuration file for control and ACPI battery scripts
---------------------------------------------------------
--
--This allows the tunables to be changed for the scripts via an external
--configuration file
--
--It should be installed as /etc/default/laptop-mode on Debian, and as
--/etc/sysconfig/laptop-mode on Red Hat, SUSE, Mandrake, and other work-alikes.
--
----------------------CONFIG FILE BEGIN-------------------------------------------
--# Maximum time, in seconds, of hard drive spindown time that you are
--# comfortable with. Worst case, it's possible that you could lose this
--# amount of work if your battery fails you while in laptop mode.
--#MAX_AGE=600
--
--# Automatically disable laptop mode when the number of minutes of battery
--# that you have left goes below this threshold.
--MINIMUM_BATTERY_MINUTES=10
--
--# Read-ahead, in 512-byte sectors. You can spin down the disk while playing MP3/OGG
--# by setting the disk readahead to 8MB (READAHEAD=16384). Effectively, the disk
--# will read a complete MP3 at once, and will then spin down while the MP3/OGG is
--# playing.
--#READAHEAD=4096
--
--# Shall we remount journaled fs. with appropriate commit interval? (1=yes)
--#DO_REMOUNTS=1
--
--# And shall we add the "noatime" option to that as well? (1=yes)
--#DO_REMOUNT_NOATIME=1
--
--# Dirty synchronous ratio.  At this percentage of dirty pages the process
--# which
--# calls write() does its own writeback
--#DIRTY_RATIO=40
--
--#
--# Allowed dirty background ratio, in percent.  Once DIRTY_RATIO has been
--# exceeded, the kernel will wake pdflush which will then reduce the amount
--# of dirty memory to dirty_background_ratio.  Set this nice and low, so once
--# some writeout has commenced, we do a lot of it.
--#
--#DIRTY_BACKGROUND_RATIO=5
--
--# kernel default dirty buffer age
--#DEF_AGE=30
--#DEF_UPDATE=5
--#DEF_DIRTY_BACKGROUND_RATIO=10
--#DEF_DIRTY_RATIO=40
--#DEF_XFS_AGE_BUFFER=15
--#DEF_XFS_SYNC_INTERVAL=30
--#DEF_XFS_BUFD_INTERVAL=1
--
--# This must be adjusted manually to the value of HZ in the running kernel
--# on 2.4, until the XFS people change their 2.4 external interfaces to work in
--# centisecs. This can be automated, but it's a work in progress that still
--# needs# some fixes. On 2.6 kernels, XFS uses USER_HZ instead of HZ for
--# external interfaces, and that is currently always set to 100. So you don't
--# need to change this on 2.6.
--#XFS_HZ=100
--
--# Should the maximum CPU frequency be adjusted down while on battery?
--# Requires CPUFreq to be setup.
--# See Documentation/cpu-freq/user-guide.txt for more info
--#DO_CPU=0
--
--# When on battery what is the maximum CPU speed that the system should
--# use? Legal values are "slowest" for the slowest speed that your
--# CPU is able to operate at, or a value listed in:
--# /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
--# Only applicable if DO_CPU=1.
--#CPU_MAXFREQ=slowest
--
--# Idle timeout for your hard drive (man hdparm for valid values, -S option)
--# Default is 2 hours on AC (AC_HD=244) and 20 seconds for battery (BATT_HD=4).
--#AC_HD=244
--#BATT_HD=4
--
--# The drives for which to adjust the idle timeout. Separate them by a space,
--# e.g. HD="/dev/hda /dev/hdb".
--#HD="/dev/hda"
--
--# Set the spindown timeout on a hard drive?
--#DO_HD=1
--
----------------------CONFIG FILE END---------------------------------------------
--
--
--Control script
----------------
--
--Please note that this control script works for the Linux 2.4 and 2.6 series (thanks
--to Kiko Piris).
--
----------------------CONTROL SCRIPT BEGIN----------------------------------------
--#!/bin/bash
--
--# start or stop laptop_mode, best run by a power management daemon when
--# ac gets connected/disconnected from a laptop
--#
--# install as /sbin/laptop_mode
--#
--# Contributors to this script:   Kiko Piris
--#				 Bart Samwel
--#				 Micha Feigin
--#				 Andrew Morton
--#				 Herve Eychenne
--#				 Dax Kelson
--#
--# Original Linux 2.4 version by: Jens Axboe
--
--#############################################################################
--
--# Source config
--if [ -f /etc/default/laptop-mode ] ; then
--	# Debian
--	. /etc/default/laptop-mode
--elif [ -f /etc/sysconfig/laptop-mode ] ; then
--	# Others
--        . /etc/sysconfig/laptop-mode
--fi
--
--# Don't raise an error if the config file is incomplete
--# set defaults instead:
--
--# Maximum time, in seconds, of hard drive spindown time that you are
--# comfortable with. Worst case, it's possible that you could lose this
--# amount of work if your battery fails you while in laptop mode.
--MAX_AGE=${MAX_AGE:-'600'}
--
--# Read-ahead, in kilobytes
--READAHEAD=${READAHEAD:-'4096'}
--
--# Shall we remount journaled fs. with appropriate commit interval? (1=yes)
--DO_REMOUNTS=${DO_REMOUNTS:-'1'}
--
--# And shall we add the "noatime" option to that as well? (1=yes)
--DO_REMOUNT_NOATIME=${DO_REMOUNT_NOATIME:-'1'}
--
--# Shall we adjust the idle timeout on a hard drive?
--DO_HD=${DO_HD:-'1'}
--
--# Adjust idle timeout on which hard drive?
--HD="${HD:-'/dev/hda'}"
--
--# spindown time for HD (hdparm -S values)
--AC_HD=${AC_HD:-'244'}
--BATT_HD=${BATT_HD:-'4'}
--
--# Dirty synchronous ratio.  At this percentage of dirty pages the process which
--# calls write() does its own writeback
--DIRTY_RATIO=${DIRTY_RATIO:-'40'}
--
--# cpu frequency scaling
--# See Documentation/cpu-freq/user-guide.txt for more info
--DO_CPU=${CPU_MANAGE:-'0'}
--CPU_MAXFREQ=${CPU_MAXFREQ:-'slowest'}
--
--#
--# Allowed dirty background ratio, in percent.  Once DIRTY_RATIO has been
--# exceeded, the kernel will wake pdflush which will then reduce the amount
--# of dirty memory to dirty_background_ratio.  Set this nice and low, so once
--# some writeout has commenced, we do a lot of it.
--#
--DIRTY_BACKGROUND_RATIO=${DIRTY_BACKGROUND_RATIO:-'5'}
--
--# kernel default dirty buffer age
--DEF_AGE=${DEF_AGE:-'30'}
--DEF_UPDATE=${DEF_UPDATE:-'5'}
--DEF_DIRTY_BACKGROUND_RATIO=${DEF_DIRTY_BACKGROUND_RATIO:-'10'}
--DEF_DIRTY_RATIO=${DEF_DIRTY_RATIO:-'40'}
--DEF_XFS_AGE_BUFFER=${DEF_XFS_AGE_BUFFER:-'15'}
--DEF_XFS_SYNC_INTERVAL=${DEF_XFS_SYNC_INTERVAL:-'30'}
--DEF_XFS_BUFD_INTERVAL=${DEF_XFS_BUFD_INTERVAL:-'1'}
--
--# This must be adjusted manually to the value of HZ in the running kernel
--# on 2.4, until the XFS people change their 2.4 external interfaces to work in
--# centisecs. This can be automated, but it's a work in progress that still needs
--# some fixes. On 2.6 kernels, XFS uses USER_HZ instead of HZ for external
--# interfaces, and that is currently always set to 100. So you don't need to
--# change this on 2.6.
--XFS_HZ=${XFS_HZ:-'100'}
--
--#############################################################################
--
--KLEVEL="$(uname -r |
--             {
--	       IFS='.' read a b c
--	       echo $a.$b
--	     }
--)"
--case "$KLEVEL" in
--	"2.4"|"2.6")
--		;;
--	*)
--		echo "Unhandled kernel version: $KLEVEL ('uname -r' = '$(uname -r)')" >&2
--		exit 1
--		;;
--esac
--
--if [ ! -e /proc/sys/vm/laptop_mode ] ; then
--	echo "Kernel is not patched with laptop_mode patch." >&2
--	exit 1
--fi
--
--if [ ! -w /proc/sys/vm/laptop_mode ] ; then
--	echo "You do not have enough privileges to enable laptop_mode." >&2
--	exit 1
--fi
--
--# Remove an option (the first parameter) of the form option=<number> from
--# a mount options string (the rest of the parameters).
--parse_mount_opts () {
--	OPT="$1"
--	shift
--	echo ",$*," | sed		\
--	 -e 's/,'"$OPT"'=[0-9]*,/,/g'	\
--	 -e 's/,,*/,/g'			\
--	 -e 's/^,//'			\
--	 -e 's/,$//'
--}
--
--# Remove an option (the first parameter) without any arguments from
--# a mount option string (the rest of the parameters).
--parse_nonumber_mount_opts () {
--	OPT="$1"
--	shift
--	echo ",$*," | sed		\
--	 -e 's/,'"$OPT"',/,/g'		\
--	 -e 's/,,*/,/g'			\
--	 -e 's/^,//'			\
--	 -e 's/,$//'
--}
--
--# Find out the state of a yes/no option (e.g. "atime"/"noatime") in
--# fstab for a given filesystem, and use this state to replace the
--# value of the option in another mount options string. The device
--# is the first argument, the option name the second, and the default
--# value the third. The remainder is the mount options string.
--#
--# Example:
--# parse_yesno_opts_wfstab /dev/hda1 atime atime defaults,noatime
--#
--# If fstab contains, say, "rw" for this filesystem, then the result
--# will be "defaults,atime".
--parse_yesno_opts_wfstab () {
--	L_DEV="$1"
--	OPT="$2"
--	DEF_OPT="$3"
--	shift 3
--	L_OPTS="$*"
--	PARSEDOPTS1="$(parse_nonumber_mount_opts $OPT $L_OPTS)"
--	PARSEDOPTS1="$(parse_nonumber_mount_opts no$OPT $PARSEDOPTS1)"
--	# Watch for a default atime in fstab
--	FSTAB_OPTS="$(awk '$1 == "'$L_DEV'" { print $4 }' /etc/fstab)"
--	if echo "$FSTAB_OPTS" | grep "$OPT" > /dev/null ; then
--		# option specified in fstab: extract the value and use it
--		if echo "$FSTAB_OPTS" | grep "no$OPT" > /dev/null ; then
--			echo "$PARSEDOPTS1,no$OPT"
--		else
--			# no$OPT not found -- so we must have $OPT.
--			echo "$PARSEDOPTS1,$OPT"
--		fi
--	else
--		# option not specified in fstab -- choose the default.
--		echo "$PARSEDOPTS1,$DEF_OPT"
--	fi
--}
--
--# Find out the state of a numbered option (e.g. "commit=NNN") in
--# fstab for a given filesystem, and use this state to replace the
--# value of the option in another mount options string. The device
--# is the first argument, and the option name the second. The
--# remainder is the mount options string in which the replacement
--# must be done.
--#
--# Example:
--# parse_mount_opts_wfstab /dev/hda1 commit defaults,commit=7
--#
--# If fstab contains, say, "commit=3,rw" for this filesystem, then the
--# result will be "rw,commit=3".
--parse_mount_opts_wfstab () {
--	L_DEV="$1"
--	OPT="$2"
--	shift 2
--	L_OPTS="$*"
--	PARSEDOPTS1="$(parse_mount_opts $OPT $L_OPTS)"
--	# Watch for a default commit in fstab
--	FSTAB_OPTS="$(awk '$1 == "'$L_DEV'" { print $4 }' /etc/fstab)"
--	if echo "$FSTAB_OPTS" | grep "$OPT=" > /dev/null ; then
--		# option specified in fstab: extract the value, and use it
--		echo -n "$PARSEDOPTS1,$OPT="
--		echo ",$FSTAB_OPTS," | sed \
--		 -e 's/.*,'"$OPT"'=//'	\
--		 -e 's/,.*//'
--	else
--		# option not specified in fstab: set it to 0
--		echo "$PARSEDOPTS1,$OPT=0"
--	fi
--}
--
--deduce_fstype () {
--	MP="$1"
--	# My root filesystem unfortunately has
--	# type "unknown" in /etc/mtab. If we encounter
--	# "unknown", we try to get the type from fstab.
--	cat /etc/fstab |
--	grep -v '^#' |
--	while read FSTAB_DEV FSTAB_MP FSTAB_FST FSTAB_OPTS FSTAB_DUMP FSTAB_DUMP ; do
--		if [ "$FSTAB_MP" = "$MP" ]; then
--			echo $FSTAB_FST
--			exit 0
--		fi
--	done
--}
--
--if [ $DO_REMOUNT_NOATIME -eq 1 ] ; then
--	NOATIME_OPT=",noatime"
--fi
--
--case "$1" in
--	start)
--		AGE=$((100*$MAX_AGE))
--		XFS_AGE=$(($XFS_HZ*$MAX_AGE))
--		echo -n "Starting laptop_mode"
--
--		if [ -d /proc/sys/vm/pagebuf ] ; then
--			# (For 2.4 and early 2.6.)
--			# This only needs to be set, not reset -- it is only used when
--			# laptop mode is enabled.
--			echo $XFS_AGE > /proc/sys/vm/pagebuf/lm_flush_age
--			echo $XFS_AGE > /proc/sys/fs/xfs/lm_sync_interval
--		elif [ -f /proc/sys/fs/xfs/lm_age_buffer ] ; then
--			# (A couple of early 2.6 laptop mode patches had these.)
--			# The same goes for these.
--			echo $XFS_AGE > /proc/sys/fs/xfs/lm_age_buffer
--			echo $XFS_AGE > /proc/sys/fs/xfs/lm_sync_interval
--		elif [ -f /proc/sys/fs/xfs/age_buffer ] ; then
--			# (2.6.6)
--			# But not for these -- they are also used in normal
--			# operation.
--			echo $XFS_AGE > /proc/sys/fs/xfs/age_buffer
--			echo $XFS_AGE > /proc/sys/fs/xfs/sync_interval
--		elif [ -f /proc/sys/fs/xfs/age_buffer_centisecs ] ; then
--			# (2.6.7 upwards)
--			# And not for these either. These are in centisecs,
--			# not USER_HZ, so we have to use $AGE, not $XFS_AGE.
--			echo $AGE > /proc/sys/fs/xfs/age_buffer_centisecs
--			echo $AGE > /proc/sys/fs/xfs/xfssyncd_centisecs
--			echo 3000 > /proc/sys/fs/xfs/xfsbufd_centisecs
--		fi
--
--		case "$KLEVEL" in
--			"2.4")
--				echo 1					> /proc/sys/vm/laptop_mode
--				echo "30 500 0 0 $AGE $AGE 60 20 0"	> /proc/sys/vm/bdflush
--				;;
--			"2.6")
--				echo 5					> /proc/sys/vm/laptop_mode
--				echo "$AGE"				> /proc/sys/vm/dirty_writeback_centisecs
--				echo "$AGE"				> /proc/sys/vm/dirty_expire_centisecs
--				echo "$DIRTY_RATIO"			> /proc/sys/vm/dirty_ratio
--				echo "$DIRTY_BACKGROUND_RATIO"		> /proc/sys/vm/dirty_background_ratio
--				;;
--		esac
--		if [ $DO_REMOUNTS -eq 1 ]; then
--			cat /etc/mtab | while read DEV MP FST OPTS DUMP PASS ; do
--				PARSEDOPTS="$(parse_mount_opts "$OPTS")"
--				if [ "$FST" = 'unknown' ]; then
--					FST=$(deduce_fstype $MP)
--				fi
--				case "$FST" in
--					"ext3"|"reiserfs")
--						PARSEDOPTS="$(parse_mount_opts commit "$OPTS")"
--						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS,commit=$MAX_AGE$NOATIME_OPT
--						;;
--					"xfs")
--						mount $DEV -t $FST $MP -o remount,$OPTS$NOATIME_OPT
--						;;
--				esac
--				if [ -b $DEV ] ; then
--					blockdev --setra $(($READAHEAD * 2)) $DEV
--				fi
--			done
--		fi
--		if [ $DO_HD -eq 1 ] ; then
--			for THISHD in $HD ; do
--				/sbin/hdparm -S $BATT_HD $THISHD > /dev/null 2>&1
--				/sbin/hdparm -B 1 $THISHD > /dev/null 2>&1
--			done
--		fi
--		if [ $DO_CPU -eq 1 -a -e /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq ]; then
--			if [ $CPU_MAXFREQ = 'slowest' ]; then
--				CPU_MAXFREQ=`cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq`
--			fi
--			echo $CPU_MAXFREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
--		fi
--		echo "."
--		;;
--	stop)
--		U_AGE=$((100*$DEF_UPDATE))
--		B_AGE=$((100*$DEF_AGE))
--		echo -n "Stopping laptop_mode"
--		echo 0 > /proc/sys/vm/laptop_mode
--		if [ -f /proc/sys/fs/xfs/age_buffer -a ! -f /proc/sys/fs/xfs/lm_age_buffer ] ; then
--			# These need to be restored, if there are no lm_*.
--			echo $(($XFS_HZ*$DEF_XFS_AGE_BUFFER))	 	> /proc/sys/fs/xfs/age_buffer
--			echo $(($XFS_HZ*$DEF_XFS_SYNC_INTERVAL)) 	> /proc/sys/fs/xfs/sync_interval
--		elif [ -f /proc/sys/fs/xfs/age_buffer_centisecs ] ; then
--			# These need to be restored as well.
--			echo $((100*$DEF_XFS_AGE_BUFFER))	> /proc/sys/fs/xfs/age_buffer_centisecs
--			echo $((100*$DEF_XFS_SYNC_INTERVAL))	> /proc/sys/fs/xfs/xfssyncd_centisecs
--			echo $((100*$DEF_XFS_BUFD_INTERVAL))	> /proc/sys/fs/xfs/xfsbufd_centisecs
--		fi
--		case "$KLEVEL" in
--			"2.4")
--				echo "30 500 0 0 $U_AGE $B_AGE 60 20 0"	> /proc/sys/vm/bdflush
--				;;
--			"2.6")
--				echo "$U_AGE"				> /proc/sys/vm/dirty_writeback_centisecs
--				echo "$B_AGE"				> /proc/sys/vm/dirty_expire_centisecs
--				echo "$DEF_DIRTY_RATIO"			> /proc/sys/vm/dirty_ratio
--				echo "$DEF_DIRTY_BACKGROUND_RATIO"	> /proc/sys/vm/dirty_background_ratio
--				;;
--		esac
--		if [ $DO_REMOUNTS -eq 1 ] ; then
--			cat /etc/mtab | while read DEV MP FST OPTS DUMP PASS ; do
--				# Reset commit and atime options to defaults.
--				if [ "$FST" = 'unknown' ]; then
--					FST=$(deduce_fstype $MP)
--				fi
--				case "$FST" in
--					"ext3"|"reiserfs")
--						PARSEDOPTS="$(parse_mount_opts_wfstab $DEV commit $OPTS)"
--						PARSEDOPTS="$(parse_yesno_opts_wfstab $DEV atime atime $PARSEDOPTS)"
--						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS
--						;;
--					"xfs")
--						PARSEDOPTS="$(parse_yesno_opts_wfstab $DEV atime atime $OPTS)"
--						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS
--						;;
--				esac
--				if [ -b $DEV ] ; then
--					blockdev --setra 256 $DEV
--				fi
--			done
--		fi
--		if [ $DO_HD -eq 1 ] ; then
--			for THISHD in $HD ; do
--				/sbin/hdparm -S $AC_HD $THISHD > /dev/null 2>&1
--				/sbin/hdparm -B 255 $THISHD > /dev/null 2>&1
--			done
--		fi
--		if [ $DO_CPU -eq 1 -a -e /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq ]; then
--			echo `cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq` > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
--		fi
--		echo "."
--		;;
--	*)
--		echo "Usage: $0 {start|stop}" 2>&1
--		exit 1
--		;;
--
--esac
--
--exit 0
----------------------CONTROL SCRIPT END------------------------------------------
--
--
--ACPI integration
------------------
--
--Dax Kelson submitted this so that the ACPI acpid daemon will
--kick off the laptop_mode script and run hdparm. The part that
--automatically disables laptop mode when the battery is low was
--written by Jan Topinski.
--
-------------------/etc/acpi/events/ac_adapter BEGIN------------------------------
--event=ac_adapter
--action=/etc/acpi/actions/ac.sh %e
------------------/etc/acpi/events/ac_adapter END---------------------------------
--
--
-------------------/etc/acpi/events/battery BEGIN---------------------------------
--event=battery.*
--action=/etc/acpi/actions/battery.sh %e
------------------/etc/acpi/events/battery END------------------------------------
--
--
------------------/etc/acpi/actions/ac.sh BEGIN-----------------------------------
--#!/bin/bash
--
--# ac on/offline event handler
--
--status=`awk '/^state: / { print $2 }' /proc/acpi/ac_adapter/$2/state`
--
--case $status in
--        "on-line")
--                /sbin/laptop_mode stop
--                exit 0
--        ;;
--        "off-line")
--                /sbin/laptop_mode start
--                exit 0
--        ;;
--esac
-----------------------------/etc/acpi/actions/ac.sh END--------------------------
--
--
-----------------------------/etc/acpi/actions/battery.sh BEGIN-------------------
--#! /bin/bash
--
--# Automatically disable laptop mode when the battery almost runs out.
--
--BATT_INFO=/proc/acpi/battery/$2/state
--
--if [[ -f /proc/sys/vm/laptop_mode ]]
--then
--   LM=`cat /proc/sys/vm/laptop_mode`
--   if [[ $LM -gt 0 ]]
--   then
--     if [[ -f $BATT_INFO ]]
--     then
--        # Source the config file only now that we know we need
--        if [ -f /etc/default/laptop-mode ] ; then
--                # Debian
--                . /etc/default/laptop-mode
--        elif [ -f /etc/sysconfig/laptop-mode ] ; then
--                # Others
--                . /etc/sysconfig/laptop-mode
--        fi
--        MINIMUM_BATTERY_MINUTES=${MINIMUM_BATTERY_MINUTES:-'10'}
--
--        ACTION="`cat $BATT_INFO | grep charging | cut -c 26-`"
--        if [[ ACTION -eq "discharging" ]]
--        then
--           PRESENT_RATE=`cat $BATT_INFO | grep "present rate:" | sed  "s/.* \([0-9][0-9]* \).*/\1/" `
--           REMAINING=`cat $BATT_INFO | grep "remaining capacity:" | sed  "s/.* \([0-9][0-9]* \).*/\1/" `
--        fi
--        if (($REMAINING * 60 / $PRESENT_RATE < $MINIMUM_BATTERY_MINUTES))
--        then
--           /sbin/laptop_mode stop
--        fi
--     else
--       logger -p daemon.warning "You are using laptop mode and your battery interface $BATT_INFO is missing. This may lead to loss of data when the battery runs out. Check kernel ACPI support and /proc/acpi/battery folder, and edit /etc/acpi/battery.sh to set BATT_INFO to the correct path."
--     fi
--   fi
--fi
-----------------------------/etc/acpi/actions/battery.sh END--------------------
--
--
--Monitoring tool
-----------------
--
--Bartek Kania submitted this, it can be used to measure how much time your disk
--spends spun up/down.
--
-----------------------------dslm.c BEGIN-----------------------------------------
--/*
-- * Simple Disk Sleep Monitor
-- *  by Bartek Kania
-- * Licenced under the GPL
-- */
--#include <unistd.h>
--#include <stdlib.h>
--#include <stdio.h>
--#include <fcntl.h>
--#include <errno.h>
--#include <time.h>
--#include <string.h>
--#include <signal.h>
--#include <sys/ioctl.h>
--#include <linux/hdreg.h>
--
--#ifdef DEBUG
--#define D(x) x
--#else
--#define D(x)
--#endif
--
--int endit = 0;
--
--/* Check if the disk is in powersave-mode
-- * Most of the code is stolen from hdparm.
-- * 1 = active, 0 = standby/sleep, -1 = unknown */
--int check_powermode(int fd)
--{
--    unsigned char args[4] = {WIN_CHECKPOWERMODE1,0,0,0};
--    int state;
--
--    if (ioctl(fd, HDIO_DRIVE_CMD, &args)
--	&& (args[0] = WIN_CHECKPOWERMODE2) /* try again with 0x98 */
--	&& ioctl(fd, HDIO_DRIVE_CMD, &args)) {
--	if (errno != EIO || args[0] != 0 || args[1] != 0) {
--	    state = -1; /* "unknown"; */
--	} else
--	    state = 0; /* "sleeping"; */
--    } else {
--	state = (args[2] == 255) ? 1 : 0;
--    }
--    D(printf(" drive state is:  %d\n", state));
--
--    return state;
--}
--
--char *state_name(int i)
--{
--    if (i == -1) return "unknown";
--    if (i == 0) return "sleeping";
--    if (i == 1) return "active";
--
--    return "internal error";
--}
--
--char *myctime(time_t time)
--{
--    char *ts = ctime(&time);
--    ts[strlen(ts) - 1] = 0;
--
--    return ts;
--}
--
--void measure(int fd)
--{
--    time_t start_time;
--    int last_state;
--    time_t last_time;
--    int curr_state;
--    time_t curr_time = 0;
--    time_t time_diff;
--    time_t active_time = 0;
--    time_t sleep_time = 0;
--    time_t unknown_time = 0;
--    time_t total_time = 0;
--    int changes = 0;
--    float tmp;
--
--    printf("Starting measurements\n");
--
--    last_state = check_powermode(fd);
--    start_time = last_time = time(0);
--    printf("  System is in state %s\n\n", state_name(last_state));
--
--    while(!endit) {
--	sleep(1);
--	curr_state = check_powermode(fd);
--
--	if (curr_state != last_state || endit) {
--	    changes++;
--	    curr_time = time(0);
--	    time_diff = curr_time - last_time;
--
--	    if (last_state == 1) active_time += time_diff;
--	    else if (last_state == 0) sleep_time += time_diff;
--	    else unknown_time += time_diff;
--
--	    last_state = curr_state;
--	    last_time = curr_time;
--
--	    printf("%s: State-change to %s\n", myctime(curr_time),
--		   state_name(curr_state));
--	}
--    }
--    changes--; /* Compensate for SIGINT */
--
--    total_time = time(0) - start_time;
--    printf("\nTotal running time:  %lus\n", curr_time - start_time);
--    printf(" State changed %d times\n", changes);
--
--    tmp = (float)sleep_time / (float)total_time * 100;
--    printf(" Time in sleep state:   %lus (%.2f%%)\n", sleep_time, tmp);
--    tmp = (float)active_time / (float)total_time * 100;
--    printf(" Time in active state:  %lus (%.2f%%)\n", active_time, tmp);
--    tmp = (float)unknown_time / (float)total_time * 100;
--    printf(" Time in unknown state: %lus (%.2f%%)\n", unknown_time, tmp);
--}
--
--void ender(int s)
--{
--    endit = 1;
--}
--
--void usage()
--{
--    puts("usage: dslm [-w <time>] <disk>");
--    exit(0);
--}
--
--int main(int argc, char **argv)
--{
--    int fd;
--    char *disk = 0;
--    int settle_time = 60;
--
--    /* Parse the simple command-line */
--    if (argc == 2)
--	disk = argv[1];
--    else if (argc == 4) {
--	settle_time = atoi(argv[2]);
--	disk = argv[3];
--    } else
--	usage();
--
--    if (!(fd = open(disk, O_RDONLY|O_NONBLOCK))) {
--	printf("Can't open %s, because: %s\n", disk, strerror(errno));
--	exit(-1);
--    }
--
--    if (settle_time) {
--	printf("Waiting %d seconds for the system to settle down to "
--	       "'normal'\n", settle_time);
--	sleep(settle_time);
--    } else
--	puts("Not waiting for system to settle down");
--
--    signal(SIGINT, ender);
--
--    measure(fd);
--
--    close(fd);
--
--    return 0;
--}
-----------------------------dslm.c END-------------------------------------------
---- /dev/null
-+++ linux-2.6.25-rc3-git6/Documentation/laptops/laptop-mode.txt
-@@ -0,0 +1,950 @@
-+How to conserve battery power using laptop-mode
-+-----------------------------------------------
-+
-+Document Author: Bart Samwel (bart@samwel.tk)
-+Date created: January 2, 2004
-+Last modified: December 06, 2004
-+
-+Introduction
-+------------
-+
-+Laptop mode is used to minimize the time that the hard disk needs to be spun up,
-+to conserve battery power on laptops. It has been reported to cause significant
-+power savings.
-+
-+Contents
-+--------
-+
-+* Introduction
-+* Installation
-+* Caveats
-+* The Details
-+* Tips & Tricks
-+* Control script
-+* ACPI integration
-+* Monitoring tool
-+
-+
-+Installation
-+------------
-+
-+To use laptop mode, you don't need to set any kernel configuration options
-+or anything. Simply install all the files included in this document, and
-+laptop mode will automatically be started when you're on battery. For
-+your convenience, a tarball containing an installer can be downloaded at:
-+
-+http://www.samwel.tk/laptop_mode/laptop_mode/
-+
-+To configure laptop mode, you need to edit the configuration file, which is
-+located in /etc/default/laptop-mode on Debian-based systems, or in
-+/etc/sysconfig/laptop-mode on other systems.
-+
-+Unfortunately, automatic enabling of laptop mode does not work for
-+laptops that don't have ACPI. On those laptops, you need to start laptop
-+mode manually. To start laptop mode, run "laptop_mode start", and to
-+stop it, run "laptop_mode stop". (Note: The laptop mode tools package now
-+has experimental support for APM, you might want to try that first.)
-+
-+
-+Caveats
-+-------
-+
-+* The downside of laptop mode is that you have a chance of losing up to 10
-+  minutes of work. If you cannot afford this, don't use it! The supplied ACPI
-+  scripts automatically turn off laptop mode when the battery almost runs out,
-+  so that you won't lose any data at the end of your battery life.
-+
-+* Most desktop hard drives have a very limited lifetime measured in spindown
-+  cycles, typically about 50.000 times (it's usually listed on the spec sheet).
-+  Check your drive's rating, and don't wear down your drive's lifetime if you
-+  don't need to.
-+
-+* If you mount some of your ext3/reiserfs filesystems with the -n option, then
-+  the control script will not be able to remount them correctly. You must set
-+  DO_REMOUNTS=0 in the control script, otherwise it will remount them with the
-+  wrong options -- or it will fail because it cannot write to /etc/mtab.
-+
-+* If you have your filesystems listed as type "auto" in fstab, like I did, then
-+  the control script will not recognize them as filesystems that need remounting.
-+  You must list the filesystems with their true type instead.
-+
-+* It has been reported that some versions of the mutt mail client use file access
-+  times to determine whether a folder contains new mail. If you use mutt and
-+  experience this, you must disable the noatime remounting by setting the option
-+  DO_REMOUNT_NOATIME to 0 in the configuration file.
-+
-+
-+The Details
-+-----------
-+
-+Laptop mode is controlled by the knob /proc/sys/vm/laptop_mode. This knob is
-+present for all kernels that have the laptop mode patch, regardless of any
-+configuration options. When the knob is set, any physical disk I/O (that might
-+have caused the hard disk to spin up) causes Linux to flush all dirty blocks. The
-+result of this is that after a disk has spun down, it will not be spun up
-+anymore to write dirty blocks, because those blocks had already been written
-+immediately after the most recent read operation. The value of the laptop_mode
-+knob determines the time between the occurrence of disk I/O and when the flush
-+is triggered. A sensible value for the knob is 5 seconds. Setting the knob to
-+0 disables laptop mode.
-+
-+To increase the effectiveness of the laptop_mode strategy, the laptop_mode
-+control script increases dirty_expire_centisecs and dirty_writeback_centisecs in
-+/proc/sys/vm to about 10 minutes (by default), which means that pages that are
-+dirtied are not forced to be written to disk as often. The control script also
-+changes the dirty background ratio, so that background writeback of dirty pages
-+is not done anymore. Combined with a higher commit value (also 10 minutes) for
-+ext3 or ReiserFS filesystems (also done automatically by the control script),
-+this results in concentration of disk activity in a small time interval which
-+occurs only once every 10 minutes, or whenever the disk is forced to spin up by
-+a cache miss. The disk can then be spun down in the periods of inactivity.
-+
-+If you want to find out which process caused the disk to spin up, you can
-+gather information by setting the flag /proc/sys/vm/block_dump. When this flag
-+is set, Linux reports all disk read and write operations that take place, and
-+all block dirtyings done to files. This makes it possible to debug why a disk
-+needs to spin up, and to increase battery life even more. The output of
-+block_dump is written to the kernel output, and it can be retrieved using
-+"dmesg". When you use block_dump and your kernel logging level also includes
-+kernel debugging messages, you probably want to turn off klogd, otherwise
-+the output of block_dump will be logged, causing disk activity that is not
-+normally there.
-+
-+
-+Configuration
-+-------------
-+
-+The laptop mode configuration file is located in /etc/default/laptop-mode on
-+Debian-based systems, or in /etc/sysconfig/laptop-mode on other systems. It
-+contains the following options:
-+
-+MAX_AGE:
-+
-+Maximum time, in seconds, of hard drive spindown time that you are
-+comfortable with. Worst case, it's possible that you could lose this
-+amount of work if your battery fails while you're in laptop mode.
-+
-+MINIMUM_BATTERY_MINUTES:
-+
-+Automatically disable laptop mode if the remaining number of minutes of
-+battery power is less than this value. Default is 10 minutes.
-+
-+AC_HD/BATT_HD:
-+
-+The idle timeout that should be set on your hard drive when laptop mode
-+is active (BATT_HD) and when it is not active (AC_HD). The defaults are
-+20 seconds (value 4) for BATT_HD  and 2 hours (value 244) for AC_HD. The
-+possible values are those listed in the manual page for "hdparm" for the
-+"-S" option.
-+
-+HD:
-+
-+The devices for which the spindown timeout should be adjusted by laptop mode.
-+Default is /dev/hda. If you specify multiple devices, separate them by a space.
-+
-+READAHEAD:
-+
-+Disk readahead, in 512-byte sectors, while laptop mode is active. A large
-+readahead can prevent disk accesses for things like executable pages (which are
-+loaded on demand while the application executes) and sequentially accessed data
-+(MP3s).
-+
-+DO_REMOUNTS:
-+
-+The control script automatically remounts any mounted journaled filesystems
-+with appropriate commit interval options. When this option is set to 0, this
-+feature is disabled.
-+
-+DO_REMOUNT_NOATIME:
-+
-+When remounting, should the filesystems be remounted with the noatime option?
-+Normally, this is set to "1" (enabled), but there may be programs that require
-+access time recording.
-+
-+DIRTY_RATIO:
-+
-+The percentage of memory that is allowed to contain "dirty" or unsaved data
-+before a writeback is forced, while laptop mode is active. Corresponds to
-+the /proc/sys/vm/dirty_ratio sysctl.
-+
-+DIRTY_BACKGROUND_RATIO:
-+
-+The percentage of memory that is allowed to contain "dirty" or unsaved data
-+after a forced writeback is done due to an exceeding of DIRTY_RATIO. Set
-+this nice and low. This corresponds to the /proc/sys/vm/dirty_background_ratio
-+sysctl.
-+
-+Note that the behaviour of dirty_background_ratio is quite different
-+when laptop mode is active and when it isn't. When laptop mode is inactive,
-+dirty_background_ratio is the threshold percentage at which background writeouts
-+start taking place. When laptop mode is active, however, background writeouts
-+are disabled, and the dirty_background_ratio only determines how much writeback
-+is done when dirty_ratio is reached.
-+
-+DO_CPU:
-+
-+Enable CPU frequency scaling when in laptop mode. (Requires CPUFreq to be setup.
-+See Documentation/cpu-freq/user-guide.txt for more info. Disabled by default.)
-+
-+CPU_MAXFREQ:
-+
-+When on battery, what is the maximum CPU speed that the system should use? Legal
-+values are "slowest" for the slowest speed that your CPU is able to operate at,
-+or a value listed in /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies.
-+
-+
-+Tips & Tricks
-+-------------
-+
-+* Bartek Kania reports getting up to 50 minutes of extra battery life (on top
-+  of his regular 3 to 3.5 hours) using a spindown time of 5 seconds (BATT_HD=1).
-+
-+* You can spin down the disk while playing MP3, by setting disk readahead
-+  to 8MB (READAHEAD=16384). Effectively, the disk will read a complete MP3 at
-+  once, and will then spin down while the MP3 is playing. (Thanks to Bartek
-+  Kania.)
-+
-+* Drew Scott Daniels observed: "I don't know why, but when I decrease the number
-+  of colours that my display uses it consumes less battery power. I've seen
-+  this on powerbooks too. I hope that this is a piece of information that
-+  might be useful to the Laptop Mode patch or it's users."
-+
-+* In syslog.conf, you can prefix entries with a dash ``-'' to omit syncing the
-+  file after every logging. When you're using laptop-mode and your disk doesn't
-+  spin down, this is a likely culprit.
-+
-+* Richard Atterer observed that laptop mode does not work well with noflushd
-+  (http://noflushd.sourceforge.net/), it seems that noflushd prevents laptop-mode
-+  from doing its thing.
-+
-+* If you're worried about your data, you might want to consider using a USB
-+  memory stick or something like that as a "working area". (Be aware though
-+  that flash memory can only handle a limited number of writes, and overuse
-+  may wear out your memory stick pretty quickly. Do _not_ use journalling
-+  filesystems on flash memory sticks.)
-+
-+
-+Configuration file for control and ACPI battery scripts
-+-------------------------------------------------------
-+
-+This allows the tunables to be changed for the scripts via an external
-+configuration file
-+
-+It should be installed as /etc/default/laptop-mode on Debian, and as
-+/etc/sysconfig/laptop-mode on Red Hat, SUSE, Mandrake, and other work-alikes.
-+
-+--------------------CONFIG FILE BEGIN-------------------------------------------
-+# Maximum time, in seconds, of hard drive spindown time that you are
-+# comfortable with. Worst case, it's possible that you could lose this
-+# amount of work if your battery fails you while in laptop mode.
-+#MAX_AGE=600
-+
-+# Automatically disable laptop mode when the number of minutes of battery
-+# that you have left goes below this threshold.
-+MINIMUM_BATTERY_MINUTES=10
-+
-+# Read-ahead, in 512-byte sectors. You can spin down the disk while playing MP3/OGG
-+# by setting the disk readahead to 8MB (READAHEAD=16384). Effectively, the disk
-+# will read a complete MP3 at once, and will then spin down while the MP3/OGG is
-+# playing.
-+#READAHEAD=4096
-+
-+# Shall we remount journaled fs. with appropriate commit interval? (1=yes)
-+#DO_REMOUNTS=1
-+
-+# And shall we add the "noatime" option to that as well? (1=yes)
-+#DO_REMOUNT_NOATIME=1
-+
-+# Dirty synchronous ratio.  At this percentage of dirty pages the process
-+# which
-+# calls write() does its own writeback
-+#DIRTY_RATIO=40
-+
-+#
-+# Allowed dirty background ratio, in percent.  Once DIRTY_RATIO has been
-+# exceeded, the kernel will wake pdflush which will then reduce the amount
-+# of dirty memory to dirty_background_ratio.  Set this nice and low, so once
-+# some writeout has commenced, we do a lot of it.
-+#
-+#DIRTY_BACKGROUND_RATIO=5
-+
-+# kernel default dirty buffer age
-+#DEF_AGE=30
-+#DEF_UPDATE=5
-+#DEF_DIRTY_BACKGROUND_RATIO=10
-+#DEF_DIRTY_RATIO=40
-+#DEF_XFS_AGE_BUFFER=15
-+#DEF_XFS_SYNC_INTERVAL=30
-+#DEF_XFS_BUFD_INTERVAL=1
-+
-+# This must be adjusted manually to the value of HZ in the running kernel
-+# on 2.4, until the XFS people change their 2.4 external interfaces to work in
-+# centisecs. This can be automated, but it's a work in progress that still
-+# needs# some fixes. On 2.6 kernels, XFS uses USER_HZ instead of HZ for
-+# external interfaces, and that is currently always set to 100. So you don't
-+# need to change this on 2.6.
-+#XFS_HZ=100
-+
-+# Should the maximum CPU frequency be adjusted down while on battery?
-+# Requires CPUFreq to be setup.
-+# See Documentation/cpu-freq/user-guide.txt for more info
-+#DO_CPU=0
-+
-+# When on battery what is the maximum CPU speed that the system should
-+# use? Legal values are "slowest" for the slowest speed that your
-+# CPU is able to operate at, or a value listed in:
-+# /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-+# Only applicable if DO_CPU=1.
-+#CPU_MAXFREQ=slowest
-+
-+# Idle timeout for your hard drive (man hdparm for valid values, -S option)
-+# Default is 2 hours on AC (AC_HD=244) and 20 seconds for battery (BATT_HD=4).
-+#AC_HD=244
-+#BATT_HD=4
-+
-+# The drives for which to adjust the idle timeout. Separate them by a space,
-+# e.g. HD="/dev/hda /dev/hdb".
-+#HD="/dev/hda"
-+
-+# Set the spindown timeout on a hard drive?
-+#DO_HD=1
-+
-+--------------------CONFIG FILE END---------------------------------------------
-+
-+
-+Control script
-+--------------
-+
-+Please note that this control script works for the Linux 2.4 and 2.6 series (thanks
-+to Kiko Piris).
-+
-+--------------------CONTROL SCRIPT BEGIN----------------------------------------
-+#!/bin/bash
-+
-+# start or stop laptop_mode, best run by a power management daemon when
-+# ac gets connected/disconnected from a laptop
-+#
-+# install as /sbin/laptop_mode
-+#
-+# Contributors to this script:   Kiko Piris
-+#				 Bart Samwel
-+#				 Micha Feigin
-+#				 Andrew Morton
-+#				 Herve Eychenne
-+#				 Dax Kelson
-+#
-+# Original Linux 2.4 version by: Jens Axboe
-+
-+#############################################################################
-+
-+# Source config
-+if [ -f /etc/default/laptop-mode ] ; then
-+	# Debian
-+	. /etc/default/laptop-mode
-+elif [ -f /etc/sysconfig/laptop-mode ] ; then
-+	# Others
-+        . /etc/sysconfig/laptop-mode
-+fi
-+
-+# Don't raise an error if the config file is incomplete
-+# set defaults instead:
-+
-+# Maximum time, in seconds, of hard drive spindown time that you are
-+# comfortable with. Worst case, it's possible that you could lose this
-+# amount of work if your battery fails you while in laptop mode.
-+MAX_AGE=${MAX_AGE:-'600'}
-+
-+# Read-ahead, in kilobytes
-+READAHEAD=${READAHEAD:-'4096'}
-+
-+# Shall we remount journaled fs. with appropriate commit interval? (1=yes)
-+DO_REMOUNTS=${DO_REMOUNTS:-'1'}
-+
-+# And shall we add the "noatime" option to that as well? (1=yes)
-+DO_REMOUNT_NOATIME=${DO_REMOUNT_NOATIME:-'1'}
-+
-+# Shall we adjust the idle timeout on a hard drive?
-+DO_HD=${DO_HD:-'1'}
-+
-+# Adjust idle timeout on which hard drive?
-+HD="${HD:-'/dev/hda'}"
-+
-+# spindown time for HD (hdparm -S values)
-+AC_HD=${AC_HD:-'244'}
-+BATT_HD=${BATT_HD:-'4'}
-+
-+# Dirty synchronous ratio.  At this percentage of dirty pages the process which
-+# calls write() does its own writeback
-+DIRTY_RATIO=${DIRTY_RATIO:-'40'}
-+
-+# cpu frequency scaling
-+# See Documentation/cpu-freq/user-guide.txt for more info
-+DO_CPU=${CPU_MANAGE:-'0'}
-+CPU_MAXFREQ=${CPU_MAXFREQ:-'slowest'}
-+
-+#
-+# Allowed dirty background ratio, in percent.  Once DIRTY_RATIO has been
-+# exceeded, the kernel will wake pdflush which will then reduce the amount
-+# of dirty memory to dirty_background_ratio.  Set this nice and low, so once
-+# some writeout has commenced, we do a lot of it.
-+#
-+DIRTY_BACKGROUND_RATIO=${DIRTY_BACKGROUND_RATIO:-'5'}
-+
-+# kernel default dirty buffer age
-+DEF_AGE=${DEF_AGE:-'30'}
-+DEF_UPDATE=${DEF_UPDATE:-'5'}
-+DEF_DIRTY_BACKGROUND_RATIO=${DEF_DIRTY_BACKGROUND_RATIO:-'10'}
-+DEF_DIRTY_RATIO=${DEF_DIRTY_RATIO:-'40'}
-+DEF_XFS_AGE_BUFFER=${DEF_XFS_AGE_BUFFER:-'15'}
-+DEF_XFS_SYNC_INTERVAL=${DEF_XFS_SYNC_INTERVAL:-'30'}
-+DEF_XFS_BUFD_INTERVAL=${DEF_XFS_BUFD_INTERVAL:-'1'}
-+
-+# This must be adjusted manually to the value of HZ in the running kernel
-+# on 2.4, until the XFS people change their 2.4 external interfaces to work in
-+# centisecs. This can be automated, but it's a work in progress that still needs
-+# some fixes. On 2.6 kernels, XFS uses USER_HZ instead of HZ for external
-+# interfaces, and that is currently always set to 100. So you don't need to
-+# change this on 2.6.
-+XFS_HZ=${XFS_HZ:-'100'}
-+
-+#############################################################################
-+
-+KLEVEL="$(uname -r |
-+             {
-+	       IFS='.' read a b c
-+	       echo $a.$b
-+	     }
-+)"
-+case "$KLEVEL" in
-+	"2.4"|"2.6")
-+		;;
-+	*)
-+		echo "Unhandled kernel version: $KLEVEL ('uname -r' = '$(uname -r)')" >&2
-+		exit 1
-+		;;
-+esac
-+
-+if [ ! -e /proc/sys/vm/laptop_mode ] ; then
-+	echo "Kernel is not patched with laptop_mode patch." >&2
-+	exit 1
-+fi
-+
-+if [ ! -w /proc/sys/vm/laptop_mode ] ; then
-+	echo "You do not have enough privileges to enable laptop_mode." >&2
-+	exit 1
-+fi
-+
-+# Remove an option (the first parameter) of the form option=<number> from
-+# a mount options string (the rest of the parameters).
-+parse_mount_opts () {
-+	OPT="$1"
-+	shift
-+	echo ",$*," | sed		\
-+	 -e 's/,'"$OPT"'=[0-9]*,/,/g'	\
-+	 -e 's/,,*/,/g'			\
-+	 -e 's/^,//'			\
-+	 -e 's/,$//'
-+}
-+
-+# Remove an option (the first parameter) without any arguments from
-+# a mount option string (the rest of the parameters).
-+parse_nonumber_mount_opts () {
-+	OPT="$1"
-+	shift
-+	echo ",$*," | sed		\
-+	 -e 's/,'"$OPT"',/,/g'		\
-+	 -e 's/,,*/,/g'			\
-+	 -e 's/^,//'			\
-+	 -e 's/,$//'
-+}
-+
-+# Find out the state of a yes/no option (e.g. "atime"/"noatime") in
-+# fstab for a given filesystem, and use this state to replace the
-+# value of the option in another mount options string. The device
-+# is the first argument, the option name the second, and the default
-+# value the third. The remainder is the mount options string.
-+#
-+# Example:
-+# parse_yesno_opts_wfstab /dev/hda1 atime atime defaults,noatime
-+#
-+# If fstab contains, say, "rw" for this filesystem, then the result
-+# will be "defaults,atime".
-+parse_yesno_opts_wfstab () {
-+	L_DEV="$1"
-+	OPT="$2"
-+	DEF_OPT="$3"
-+	shift 3
-+	L_OPTS="$*"
-+	PARSEDOPTS1="$(parse_nonumber_mount_opts $OPT $L_OPTS)"
-+	PARSEDOPTS1="$(parse_nonumber_mount_opts no$OPT $PARSEDOPTS1)"
-+	# Watch for a default atime in fstab
-+	FSTAB_OPTS="$(awk '$1 == "'$L_DEV'" { print $4 }' /etc/fstab)"
-+	if echo "$FSTAB_OPTS" | grep "$OPT" > /dev/null ; then
-+		# option specified in fstab: extract the value and use it
-+		if echo "$FSTAB_OPTS" | grep "no$OPT" > /dev/null ; then
-+			echo "$PARSEDOPTS1,no$OPT"
-+		else
-+			# no$OPT not found -- so we must have $OPT.
-+			echo "$PARSEDOPTS1,$OPT"
-+		fi
-+	else
-+		# option not specified in fstab -- choose the default.
-+		echo "$PARSEDOPTS1,$DEF_OPT"
-+	fi
-+}
-+
-+# Find out the state of a numbered option (e.g. "commit=NNN") in
-+# fstab for a given filesystem, and use this state to replace the
-+# value of the option in another mount options string. The device
-+# is the first argument, and the option name the second. The
-+# remainder is the mount options string in which the replacement
-+# must be done.
-+#
-+# Example:
-+# parse_mount_opts_wfstab /dev/hda1 commit defaults,commit=7
-+#
-+# If fstab contains, say, "commit=3,rw" for this filesystem, then the
-+# result will be "rw,commit=3".
-+parse_mount_opts_wfstab () {
-+	L_DEV="$1"
-+	OPT="$2"
-+	shift 2
-+	L_OPTS="$*"
-+	PARSEDOPTS1="$(parse_mount_opts $OPT $L_OPTS)"
-+	# Watch for a default commit in fstab
-+	FSTAB_OPTS="$(awk '$1 == "'$L_DEV'" { print $4 }' /etc/fstab)"
-+	if echo "$FSTAB_OPTS" | grep "$OPT=" > /dev/null ; then
-+		# option specified in fstab: extract the value, and use it
-+		echo -n "$PARSEDOPTS1,$OPT="
-+		echo ",$FSTAB_OPTS," | sed \
-+		 -e 's/.*,'"$OPT"'=//'	\
-+		 -e 's/,.*//'
-+	else
-+		# option not specified in fstab: set it to 0
-+		echo "$PARSEDOPTS1,$OPT=0"
-+	fi
-+}
-+
-+deduce_fstype () {
-+	MP="$1"
-+	# My root filesystem unfortunately has
-+	# type "unknown" in /etc/mtab. If we encounter
-+	# "unknown", we try to get the type from fstab.
-+	cat /etc/fstab |
-+	grep -v '^#' |
-+	while read FSTAB_DEV FSTAB_MP FSTAB_FST FSTAB_OPTS FSTAB_DUMP FSTAB_DUMP ; do
-+		if [ "$FSTAB_MP" = "$MP" ]; then
-+			echo $FSTAB_FST
-+			exit 0
-+		fi
-+	done
-+}
-+
-+if [ $DO_REMOUNT_NOATIME -eq 1 ] ; then
-+	NOATIME_OPT=",noatime"
-+fi
-+
-+case "$1" in
-+	start)
-+		AGE=$((100*$MAX_AGE))
-+		XFS_AGE=$(($XFS_HZ*$MAX_AGE))
-+		echo -n "Starting laptop_mode"
-+
-+		if [ -d /proc/sys/vm/pagebuf ] ; then
-+			# (For 2.4 and early 2.6.)
-+			# This only needs to be set, not reset -- it is only used when
-+			# laptop mode is enabled.
-+			echo $XFS_AGE > /proc/sys/vm/pagebuf/lm_flush_age
-+			echo $XFS_AGE > /proc/sys/fs/xfs/lm_sync_interval
-+		elif [ -f /proc/sys/fs/xfs/lm_age_buffer ] ; then
-+			# (A couple of early 2.6 laptop mode patches had these.)
-+			# The same goes for these.
-+			echo $XFS_AGE > /proc/sys/fs/xfs/lm_age_buffer
-+			echo $XFS_AGE > /proc/sys/fs/xfs/lm_sync_interval
-+		elif [ -f /proc/sys/fs/xfs/age_buffer ] ; then
-+			# (2.6.6)
-+			# But not for these -- they are also used in normal
-+			# operation.
-+			echo $XFS_AGE > /proc/sys/fs/xfs/age_buffer
-+			echo $XFS_AGE > /proc/sys/fs/xfs/sync_interval
-+		elif [ -f /proc/sys/fs/xfs/age_buffer_centisecs ] ; then
-+			# (2.6.7 upwards)
-+			# And not for these either. These are in centisecs,
-+			# not USER_HZ, so we have to use $AGE, not $XFS_AGE.
-+			echo $AGE > /proc/sys/fs/xfs/age_buffer_centisecs
-+			echo $AGE > /proc/sys/fs/xfs/xfssyncd_centisecs
-+			echo 3000 > /proc/sys/fs/xfs/xfsbufd_centisecs
-+		fi
-+
-+		case "$KLEVEL" in
-+			"2.4")
-+				echo 1					> /proc/sys/vm/laptop_mode
-+				echo "30 500 0 0 $AGE $AGE 60 20 0"	> /proc/sys/vm/bdflush
-+				;;
-+			"2.6")
-+				echo 5					> /proc/sys/vm/laptop_mode
-+				echo "$AGE"				> /proc/sys/vm/dirty_writeback_centisecs
-+				echo "$AGE"				> /proc/sys/vm/dirty_expire_centisecs
-+				echo "$DIRTY_RATIO"			> /proc/sys/vm/dirty_ratio
-+				echo "$DIRTY_BACKGROUND_RATIO"		> /proc/sys/vm/dirty_background_ratio
-+				;;
-+		esac
-+		if [ $DO_REMOUNTS -eq 1 ]; then
-+			cat /etc/mtab | while read DEV MP FST OPTS DUMP PASS ; do
-+				PARSEDOPTS="$(parse_mount_opts "$OPTS")"
-+				if [ "$FST" = 'unknown' ]; then
-+					FST=$(deduce_fstype $MP)
-+				fi
-+				case "$FST" in
-+					"ext3"|"reiserfs")
-+						PARSEDOPTS="$(parse_mount_opts commit "$OPTS")"
-+						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS,commit=$MAX_AGE$NOATIME_OPT
-+						;;
-+					"xfs")
-+						mount $DEV -t $FST $MP -o remount,$OPTS$NOATIME_OPT
-+						;;
-+				esac
-+				if [ -b $DEV ] ; then
-+					blockdev --setra $(($READAHEAD * 2)) $DEV
-+				fi
-+			done
-+		fi
-+		if [ $DO_HD -eq 1 ] ; then
-+			for THISHD in $HD ; do
-+				/sbin/hdparm -S $BATT_HD $THISHD > /dev/null 2>&1
-+				/sbin/hdparm -B 1 $THISHD > /dev/null 2>&1
-+			done
-+		fi
-+		if [ $DO_CPU -eq 1 -a -e /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq ]; then
-+			if [ $CPU_MAXFREQ = 'slowest' ]; then
-+				CPU_MAXFREQ=`cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq`
-+			fi
-+			echo $CPU_MAXFREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-+		fi
-+		echo "."
-+		;;
-+	stop)
-+		U_AGE=$((100*$DEF_UPDATE))
-+		B_AGE=$((100*$DEF_AGE))
-+		echo -n "Stopping laptop_mode"
-+		echo 0 > /proc/sys/vm/laptop_mode
-+		if [ -f /proc/sys/fs/xfs/age_buffer -a ! -f /proc/sys/fs/xfs/lm_age_buffer ] ; then
-+			# These need to be restored, if there are no lm_*.
-+			echo $(($XFS_HZ*$DEF_XFS_AGE_BUFFER))	 	> /proc/sys/fs/xfs/age_buffer
-+			echo $(($XFS_HZ*$DEF_XFS_SYNC_INTERVAL)) 	> /proc/sys/fs/xfs/sync_interval
-+		elif [ -f /proc/sys/fs/xfs/age_buffer_centisecs ] ; then
-+			# These need to be restored as well.
-+			echo $((100*$DEF_XFS_AGE_BUFFER))	> /proc/sys/fs/xfs/age_buffer_centisecs
-+			echo $((100*$DEF_XFS_SYNC_INTERVAL))	> /proc/sys/fs/xfs/xfssyncd_centisecs
-+			echo $((100*$DEF_XFS_BUFD_INTERVAL))	> /proc/sys/fs/xfs/xfsbufd_centisecs
-+		fi
-+		case "$KLEVEL" in
-+			"2.4")
-+				echo "30 500 0 0 $U_AGE $B_AGE 60 20 0"	> /proc/sys/vm/bdflush
-+				;;
-+			"2.6")
-+				echo "$U_AGE"				> /proc/sys/vm/dirty_writeback_centisecs
-+				echo "$B_AGE"				> /proc/sys/vm/dirty_expire_centisecs
-+				echo "$DEF_DIRTY_RATIO"			> /proc/sys/vm/dirty_ratio
-+				echo "$DEF_DIRTY_BACKGROUND_RATIO"	> /proc/sys/vm/dirty_background_ratio
-+				;;
-+		esac
-+		if [ $DO_REMOUNTS -eq 1 ] ; then
-+			cat /etc/mtab | while read DEV MP FST OPTS DUMP PASS ; do
-+				# Reset commit and atime options to defaults.
-+				if [ "$FST" = 'unknown' ]; then
-+					FST=$(deduce_fstype $MP)
-+				fi
-+				case "$FST" in
-+					"ext3"|"reiserfs")
-+						PARSEDOPTS="$(parse_mount_opts_wfstab $DEV commit $OPTS)"
-+						PARSEDOPTS="$(parse_yesno_opts_wfstab $DEV atime atime $PARSEDOPTS)"
-+						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS
-+						;;
-+					"xfs")
-+						PARSEDOPTS="$(parse_yesno_opts_wfstab $DEV atime atime $OPTS)"
-+						mount $DEV -t $FST $MP -o remount,$PARSEDOPTS
-+						;;
-+				esac
-+				if [ -b $DEV ] ; then
-+					blockdev --setra 256 $DEV
-+				fi
-+			done
-+		fi
-+		if [ $DO_HD -eq 1 ] ; then
-+			for THISHD in $HD ; do
-+				/sbin/hdparm -S $AC_HD $THISHD > /dev/null 2>&1
-+				/sbin/hdparm -B 255 $THISHD > /dev/null 2>&1
-+			done
-+		fi
-+		if [ $DO_CPU -eq 1 -a -e /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq ]; then
-+			echo `cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq` > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-+		fi
-+		echo "."
-+		;;
-+	*)
-+		echo "Usage: $0 {start|stop}" 2>&1
-+		exit 1
-+		;;
-+
-+esac
-+
-+exit 0
-+--------------------CONTROL SCRIPT END------------------------------------------
-+
-+
-+ACPI integration
-+----------------
-+
-+Dax Kelson submitted this so that the ACPI acpid daemon will
-+kick off the laptop_mode script and run hdparm. The part that
-+automatically disables laptop mode when the battery is low was
-+written by Jan Topinski.
-+
-+-----------------/etc/acpi/events/ac_adapter BEGIN------------------------------
-+event=ac_adapter
-+action=/etc/acpi/actions/ac.sh %e
-+----------------/etc/acpi/events/ac_adapter END---------------------------------
-+
-+
-+-----------------/etc/acpi/events/battery BEGIN---------------------------------
-+event=battery.*
-+action=/etc/acpi/actions/battery.sh %e
-+----------------/etc/acpi/events/battery END------------------------------------
-+
-+
-+----------------/etc/acpi/actions/ac.sh BEGIN-----------------------------------
-+#!/bin/bash
-+
-+# ac on/offline event handler
-+
-+status=`awk '/^state: / { print $2 }' /proc/acpi/ac_adapter/$2/state`
-+
-+case $status in
-+        "on-line")
-+                /sbin/laptop_mode stop
-+                exit 0
-+        ;;
-+        "off-line")
-+                /sbin/laptop_mode start
-+                exit 0
-+        ;;
-+esac
-+---------------------------/etc/acpi/actions/ac.sh END--------------------------
-+
-+
-+---------------------------/etc/acpi/actions/battery.sh BEGIN-------------------
-+#! /bin/bash
-+
-+# Automatically disable laptop mode when the battery almost runs out.
-+
-+BATT_INFO=/proc/acpi/battery/$2/state
-+
-+if [[ -f /proc/sys/vm/laptop_mode ]]
-+then
-+   LM=`cat /proc/sys/vm/laptop_mode`
-+   if [[ $LM -gt 0 ]]
-+   then
-+     if [[ -f $BATT_INFO ]]
-+     then
-+        # Source the config file only now that we know we need
-+        if [ -f /etc/default/laptop-mode ] ; then
-+                # Debian
-+                . /etc/default/laptop-mode
-+        elif [ -f /etc/sysconfig/laptop-mode ] ; then
-+                # Others
-+                . /etc/sysconfig/laptop-mode
-+        fi
-+        MINIMUM_BATTERY_MINUTES=${MINIMUM_BATTERY_MINUTES:-'10'}
-+
-+        ACTION="`cat $BATT_INFO | grep charging | cut -c 26-`"
-+        if [[ ACTION -eq "discharging" ]]
-+        then
-+           PRESENT_RATE=`cat $BATT_INFO | grep "present rate:" | sed  "s/.* \([0-9][0-9]* \).*/\1/" `
-+           REMAINING=`cat $BATT_INFO | grep "remaining capacity:" | sed  "s/.* \([0-9][0-9]* \).*/\1/" `
-+        fi
-+        if (($REMAINING * 60 / $PRESENT_RATE < $MINIMUM_BATTERY_MINUTES))
-+        then
-+           /sbin/laptop_mode stop
-+        fi
-+     else
-+       logger -p daemon.warning "You are using laptop mode and your battery interface $BATT_INFO is missing. This may lead to loss of data when the battery runs out. Check kernel ACPI support and /proc/acpi/battery folder, and edit /etc/acpi/battery.sh to set BATT_INFO to the correct path."
-+     fi
-+   fi
-+fi
-+---------------------------/etc/acpi/actions/battery.sh END--------------------
-+
-+
-+Monitoring tool
-+---------------
-+
-+Bartek Kania submitted this, it can be used to measure how much time your disk
-+spends spun up/down.
-+
-+---------------------------dslm.c BEGIN-----------------------------------------
-+/*
-+ * Simple Disk Sleep Monitor
-+ *  by Bartek Kania
-+ * Licenced under the GPL
-+ */
-+#include <unistd.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <fcntl.h>
-+#include <errno.h>
-+#include <time.h>
-+#include <string.h>
-+#include <signal.h>
-+#include <sys/ioctl.h>
-+#include <linux/hdreg.h>
-+
-+#ifdef DEBUG
-+#define D(x) x
-+#else
-+#define D(x)
-+#endif
-+
-+int endit = 0;
-+
-+/* Check if the disk is in powersave-mode
-+ * Most of the code is stolen from hdparm.
-+ * 1 = active, 0 = standby/sleep, -1 = unknown */
-+int check_powermode(int fd)
-+{
-+    unsigned char args[4] = {WIN_CHECKPOWERMODE1,0,0,0};
-+    int state;
-+
-+    if (ioctl(fd, HDIO_DRIVE_CMD, &args)
-+	&& (args[0] = WIN_CHECKPOWERMODE2) /* try again with 0x98 */
-+	&& ioctl(fd, HDIO_DRIVE_CMD, &args)) {
-+	if (errno != EIO || args[0] != 0 || args[1] != 0) {
-+	    state = -1; /* "unknown"; */
-+	} else
-+	    state = 0; /* "sleeping"; */
-+    } else {
-+	state = (args[2] == 255) ? 1 : 0;
-+    }
-+    D(printf(" drive state is:  %d\n", state));
-+
-+    return state;
-+}
-+
-+char *state_name(int i)
-+{
-+    if (i == -1) return "unknown";
-+    if (i == 0) return "sleeping";
-+    if (i == 1) return "active";
-+
-+    return "internal error";
-+}
-+
-+char *myctime(time_t time)
-+{
-+    char *ts = ctime(&time);
-+    ts[strlen(ts) - 1] = 0;
-+
-+    return ts;
-+}
-+
-+void measure(int fd)
-+{
-+    time_t start_time;
-+    int last_state;
-+    time_t last_time;
-+    int curr_state;
-+    time_t curr_time = 0;
-+    time_t time_diff;
-+    time_t active_time = 0;
-+    time_t sleep_time = 0;
-+    time_t unknown_time = 0;
-+    time_t total_time = 0;
-+    int changes = 0;
-+    float tmp;
-+
-+    printf("Starting measurements\n");
-+
-+    last_state = check_powermode(fd);
-+    start_time = last_time = time(0);
-+    printf("  System is in state %s\n\n", state_name(last_state));
-+
-+    while(!endit) {
-+	sleep(1);
-+	curr_state = check_powermode(fd);
-+
-+	if (curr_state != last_state || endit) {
-+	    changes++;
-+	    curr_time = time(0);
-+	    time_diff = curr_time - last_time;
-+
-+	    if (last_state == 1) active_time += time_diff;
-+	    else if (last_state == 0) sleep_time += time_diff;
-+	    else unknown_time += time_diff;
-+
-+	    last_state = curr_state;
-+	    last_time = curr_time;
-+
-+	    printf("%s: State-change to %s\n", myctime(curr_time),
-+		   state_name(curr_state));
-+	}
-+    }
-+    changes--; /* Compensate for SIGINT */
-+
-+    total_time = time(0) - start_time;
-+    printf("\nTotal running time:  %lus\n", curr_time - start_time);
-+    printf(" State changed %d times\n", changes);
-+
-+    tmp = (float)sleep_time / (float)total_time * 100;
-+    printf(" Time in sleep state:   %lus (%.2f%%)\n", sleep_time, tmp);
-+    tmp = (float)active_time / (float)total_time * 100;
-+    printf(" Time in active state:  %lus (%.2f%%)\n", active_time, tmp);
-+    tmp = (float)unknown_time / (float)total_time * 100;
-+    printf(" Time in unknown state: %lus (%.2f%%)\n", unknown_time, tmp);
-+}
-+
-+void ender(int s)
-+{
-+    endit = 1;
-+}
-+
-+void usage()
-+{
-+    puts("usage: dslm [-w <time>] <disk>");
-+    exit(0);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+    int fd;
-+    char *disk = 0;
-+    int settle_time = 60;
-+
-+    /* Parse the simple command-line */
-+    if (argc == 2)
-+	disk = argv[1];
-+    else if (argc == 4) {
-+	settle_time = atoi(argv[2]);
-+	disk = argv[3];
-+    } else
-+	usage();
-+
-+    if (!(fd = open(disk, O_RDONLY|O_NONBLOCK))) {
-+	printf("Can't open %s, because: %s\n", disk, strerror(errno));
-+	exit(-1);
-+    }
-+
-+    if (settle_time) {
-+	printf("Waiting %d seconds for the system to settle down to "
-+	       "'normal'\n", settle_time);
-+	sleep(settle_time);
-+    } else
-+	puts("Not waiting for system to settle down");
-+
-+    signal(SIGINT, ender);
-+
-+    measure(fd);
-+
-+    close(fd);
-+
-+    return 0;
-+}
-+---------------------------dslm.c END-------------------------------------------
 --- linux-2.6.25-rc3-git6.orig/Documentation/00-INDEX
 +++ linux-2.6.25-rc3-git6/Documentation/00-INDEX
-@@ -227,8 +227,6 @@ kprobes.txt
- 	- documents the kernel probes debugging feature.
- kref.txt
- 	- docs on adding reference counters (krefs) to kernel objects.
--laptop-mode.txt
--	- how to conserve battery power using laptop-mode.
- laptops/
- 	- directory with laptop related info and laptop driver documentation.
- ldm.txt
---- linux-2.6.25-rc3-git6.orig/Documentation/laptops/00-INDEX
-+++ linux-2.6.25-rc3-git6/Documentation/laptops/00-INDEX
-@@ -2,6 +2,8 @@
- 	- This file
- acer-wmi.txt
- 	- information on the Acer Laptop WMI Extras driver.
-+laptop-mode.txt
-+	- how to conserve battery power using laptop-mode.
- sony-laptop.txt
- 	- Sony Notebook Control Driver (SNC) Readme.
- sonypi.txt
---- linux-2.6.25-rc3-git6.orig/Documentation/filesystems/proc.txt
-+++ linux-2.6.25-rc3-git6/Documentation/filesystems/proc.txt
-@@ -1506,13 +1506,13 @@ laptop_mode
- -----------
- 
- laptop_mode is a knob that controls "laptop mode". All the things that are
--controlled by this knob are discussed in Documentation/laptop-mode.txt.
-+controlled by this knob are discussed in Documentation/laptops/laptop-mode.txt.
- 
- block_dump
- ----------
- 
- block_dump enables block I/O debugging when set to a nonzero value. More
--information on block I/O debugging is in Documentation/laptop-mode.txt.
-+information on block I/O debugging is in Documentation/laptops/laptop-mode.txt.
- 
- swap_token_timeout
- ------------------
+@@ -303,12 +303,8 @@ pcmcia/
+ 	- info on the Linux PCMCIA driver.
+ pi-futex.txt
+ 	- documentation on lightweight PI-futexes.
+-pm.txt
+-	- info on Linux power management support.
+ pnp.txt
+ 	- Linux Plug and Play documentation.
+-power_supply_class.txt
+-	- Tells userspace about battery, UPS, AC or DC power supply propertie=
+s
+ power/
+ 	- directory with info on Linux PCI power management.
+ powerpc/
+--- linux-2.6.25-rc3-git6.orig/Documentation/power/00-INDEX
++++ linux-2.6.25-rc3-git6/Documentation/power/00-INDEX
+@@ -14,6 +14,12 @@ notifiers.txt
+ 	- Registering suspend notifiers in device drivers
+ pci.txt
+ 	- How the PCI Subsystem Does Power Management
++pm.txt
++	- info on Linux power management support.
++pm_qos_interface.txt
++	- info on Linux PM Quality of Service interface
++power_supply_class.txt
++	- Tells userspace about battery, UPS, AC or DC power supply propertie=
+s
+ s2ram.txt
+ 	- How to get suspend to ram working (and debug it when it isn't)
+ states.txt
+--- linux-2.6.25-rc3-git6.orig/Documentation/pm.txt
++++ /dev/null
+@@ -1,257 +0,0 @@
+-               Linux Power Management Support
+-
+-This document briefly describes how to use power management with your
+-Linux system and how to add power management support to Linux drivers.
+-
+-APM or ACPI?
+-------------
+-If you have a relatively recent x86 mobile, desktop, or server system,
+-odds are it supports either Advanced Power Management (APM) or
+-Advanced Configuration and Power Interface (ACPI).  ACPI is the newer
+-of the two technologies and puts power management in the hands of the
+-operating system, allowing for more intelligent power management than
+-is possible with BIOS controlled APM.
+-
+-The best way to determine which, if either, your system supports is to
+-build a kernel with both ACPI and APM enabled (as of 2.3.x ACPI is
+-enabled by default).  If a working ACPI implementation is found, the
+-ACPI driver will override and disable APM, otherwise the APM driver
+-will be used.
+-
+-No, sorry, you cannot have both ACPI and APM enabled and running at
+-once.  Some people with broken ACPI or broken APM implementations
+-would like to use both to get a full set of working features, but you
+-simply cannot mix and match the two.  Only one power management
+-interface can be in control of the machine at once.  Think about it..
+-
+-User-space Daemons
+-------------------
+-Both APM and ACPI rely on user-space daemons, apmd and acpid
+-respectively, to be completely functional.  Obtain both of these
+-daemons from your Linux distribution or from the Internet (see below)
+-and be sure that they are started sometime in the system boot process.
+-Go ahead and start both.  If ACPI or APM is not available on your
+-system the associated daemon will exit gracefully.
+-
+-  apmd:   http://worldvisions.ca/~apenwarr/apmd/
+-  acpid:  http://acpid.sf.net/
+-
+-Driver Interface -- OBSOLETE, DO NOT USE!
+-----------------*************************
+-
+-Note: pm_register(), pm_access(), pm_dev_idle() and friends are
+-obsolete. Please do not use them. Instead you should properly hook
+-your driver into the driver model, and use its suspend()/resume()
+-callbacks to do this kind of stuff.
+-
+-If you are writing a new driver or maintaining an old driver, it
+-should include power management support.  Without power management
+-support, a single driver may prevent a system with power management
+-capabilities from ever being able to suspend (safely).
+-
+-Overview:
+-1) Register each instance of a device with "pm_register"
+-2) Call "pm_access" before accessing the hardware.
+-   (this will ensure that the hardware is awake and ready)
+-3) Your "pm_callback" is called before going into a
+-   suspend state (ACPI D1-D3) or after resuming (ACPI D0)
+-   from a suspend.
+-4) Call "pm_dev_idle" when the device is not being used
+-   (optional but will improve device idle detection)
+-5) When unloaded, unregister the device with "pm_unregister"
+-
+-/*
+- * Description: Register a device with the power-management subsystem
+- *
+- * Parameters:
+- *   type - device type (PCI device, system device, ...)
+- *   id - instance number or unique identifier
+- *   cback - request handler callback (suspend, resume, ...)
+- *
+- * Returns: Registered PM device or NULL on error
+- *
+- * Examples:
+- *   dev =3D pm_register(PM_SYS_DEV, PM_SYS_VGA, vga_callback);
+- *
+- *   struct pci_dev *pci_dev =3D pci_find_dev(...);
+- *   dev =3D pm_register(PM_PCI_DEV, PM_PCI_ID(pci_dev), callback);
+- */
+-struct pm_dev *pm_register(pm_dev_t type, unsigned long id, pm_callbac=
+k cback);
+-
+-/*
+- * Description: Unregister a device with the power management subsyste=
+m
+- *
+- * Parameters:
+- *   dev - PM device previously returned from pm_register
+- */
+-void pm_unregister(struct pm_dev *dev);
+-
+-/*
+- * Description: Unregister all devices with a matching callback functi=
+on
+- *
+- * Parameters:
+- *   cback - previously registered request callback
+- *
+- * Notes: Provided for easier porting from old APM interface
+- */
+-void pm_unregister_all(pm_callback cback);
+-
+-/*
+- * Power management request callback
+- *
+- * Parameters:
+- *   dev - PM device previously returned from pm_register
+- *   rqst - request type
+- *   data - data, if any, associated with the request
+- *
+- * Returns: 0 if the request is successful
+- *          EINVAL if the request is not supported
+- *          EBUSY if the device is now busy and cannot handle the requ=
+est
+- *          ENOMEM if the device was unable to handle the request due =
+to memory
+- *         =20
+- * Details: The device request callback will be called before the
+- *          device/system enters a suspend state (ACPI D1-D3) or
+- *          or after the device/system resumes from suspend (ACPI D0).
+- *          For PM_SUSPEND, the ACPI D-state being entered is passed
+- *          as the "data" argument to the callback.  The device
+- *          driver should save (PM_SUSPEND) or restore (PM_RESUME)
+- *          device context when the request callback is called.
+- *
+- *          Once a driver returns 0 (success) from a suspend
+- *          request, it should not process any further requests or
+- *          access the device hardware until a call to "pm_access" is =
+made.
+- */
+-typedef int (*pm_callback)(struct pm_dev *dev, pm_request_t rqst, void=
+ *data);
+-
+-Driver Details
+---------------
+-This is just a quick Q&A as a stopgap until a real driver writers'
+-power management guide is available.
+-
+-Q: When is a device suspended?
+-
+-Devices can be suspended based on direct user request (eg. laptop lid
+-closes), system power policy (eg.  sleep after 30 minutes of console
+-inactivity), or device power policy (eg. power down device after 5
+-minutes of inactivity)
+-
+-Q: Must a driver honor a suspend request?
+-
+-No, a driver can return -EBUSY from a suspend request and this
+-will stop the system from suspending.  When a suspend request
+-fails, all suspended devices are resumed and the system continues
+-to run.  Suspend can be retried at a later time.
+-
+-Q: Can the driver block suspend/resume requests?
+-
+-Yes, a driver can delay its return from a suspend or resume
+-request until the device is ready to handle requests.  It
+-is advantageous to return as quickly as possible from a
+-request as suspend/resume are done serially.
+-
+-Q: What context is a suspend/resume initiated from?
+-
+-A suspend or resume is initiated from a kernel thread context.
+-It is safe to block, allocate memory, initiate requests
+-or anything else you can do within the kernel.
+-
+-Q: Will requests continue to arrive after a suspend?
+-
+-Possibly.  It is the driver's responsibility to queue(*),
+-fail, or drop any requests that arrive after returning
+-success to a suspend request.  It is important that the
+-driver not access its device until after it receives
+-a resume request as the device's bus may no longer
+-be active.
+-
+-(*) If a driver queues requests for processing after
+-    resume be aware that the device, network, etc.
+-    might be in a different state than at suspend time.
+-    It's probably better to drop requests unless
+-    the driver is a storage device.
+-
+-Q: Do I have to manage bus-specific power management registers
+-
+-No.  It is the responsibility of the bus driver to manage
+-PCI, USB, etc. power management registers.  The bus driver
+-or the power management subsystem will also enable any
+-wake-on functionality that the device has.
+-
+-Q: So, really, what do I need to do to support suspend/resume?
+-
+-You need to save any device context that would
+-be lost if the device was powered off and then restore
+-it at resume time.  When ACPI is active, there are
+-three levels of device suspend states; D1, D2, and D3.
+-(The suspend state is passed as the "data" argument
+-to the device callback.)  With D3, the device is powered
+-off and loses all context, D1 and D2 are shallower power
+-states and require less device context to be saved.  To
+-play it safe, just save everything at suspend and restore
+-everything at resume.
+-
+-Q: Where do I store device context for suspend?
+-
+-Anywhere in memory, kmalloc a buffer or store it
+-in the device descriptor.  You are guaranteed that the
+-contents of memory will be restored and accessible
+-before resume, even when the system suspends to disk.
+-
+-Q: What do I need to do for ACPI vs. APM vs. etc?
+-
+-Drivers need not be aware of the specific power management
+-technology that is active.  They just need to be aware
+-of when the overlying power management system requests
+-that they suspend or resume.
+-
+-Q: What about device dependencies?
+-
+-When a driver registers a device, the power management
+-subsystem uses the information provided to build a
+-tree of device dependencies (eg. USB device X is on
+-USB controller Y which is on PCI bus Z)  When power
+-management wants to suspend a device, it first sends
+-a suspend request to its driver, then the bus driver,
+-and so on up to the system bus.  Device resumes
+-proceed in the opposite direction.
+-
+-Q: Who do I contact for additional information about
+-   enabling power management for my specific driver/device?
+-
+-ACPI Development mailing list: linux-acpi@vger.kernel.org
+-
+-System Interface -- OBSOLETE, DO NOT USE!
+-----------------*************************
+-If you are providing new power management support to Linux (ie.
+-adding support for something like APM or ACPI), you should
+-communicate with drivers through the existing generic power
+-management interface.
+-
+-/*
+- * Send a request to all devices
+- *
+- * Parameters:
+- *   rqst - request type
+- *   data - data, if any, associated with the request
+- *
+- * Returns: 0 if the request is successful
+- *          See "pm_callback" return for errors
+- *
+- * Details: Walk list of registered devices and call pm_send
+- *          for each until complete or an error is encountered.
+- *          If an error is encountered for a suspend request,
+- *          return all devices to the state they were in before
+- *          the suspend request.
+- */
+-int pm_send_all(pm_request_t rqst, void *data);
+-
+-/*
+- * Find a matching device
+- *
+- * Parameters:
+- *   type - device type (PCI device, system device, or 0 to match all =
+devices)
+- *   from - previous match or NULL to start from the beginning
+- *
+- * Returns: Matching device or NULL if none found
+- */
+-struct pm_dev *pm_find(pm_dev_t type, struct pm_dev *from);
+--- /dev/null
++++ linux-2.6.25-rc3-git6/Documentation/power/pm.txt
+@@ -0,0 +1,257 @@
++               Linux Power Management Support
++
++This document briefly describes how to use power management with your
++Linux system and how to add power management support to Linux drivers.
++
++APM or ACPI?
++------------
++If you have a relatively recent x86 mobile, desktop, or server system,
++odds are it supports either Advanced Power Management (APM) or
++Advanced Configuration and Power Interface (ACPI).  ACPI is the newer
++of the two technologies and puts power management in the hands of the
++operating system, allowing for more intelligent power management than
++is possible with BIOS controlled APM.
++
++The best way to determine which, if either, your system supports is to
++build a kernel with both ACPI and APM enabled (as of 2.3.x ACPI is
++enabled by default).  If a working ACPI implementation is found, the
++ACPI driver will override and disable APM, otherwise the APM driver
++will be used.
++
++No, sorry, you cannot have both ACPI and APM enabled and running at
++once.  Some people with broken ACPI or broken APM implementations
++would like to use both to get a full set of working features, but you
++simply cannot mix and match the two.  Only one power management
++interface can be in control of the machine at once.  Think about it..
++
++User-space Daemons
++------------------
++Both APM and ACPI rely on user-space daemons, apmd and acpid
++respectively, to be completely functional.  Obtain both of these
++daemons from your Linux distribution or from the Internet (see below)
++and be sure that they are started sometime in the system boot process.
++Go ahead and start both.  If ACPI or APM is not available on your
++system the associated daemon will exit gracefully.
++
++  apmd:   http://worldvisions.ca/~apenwarr/apmd/
++  acpid:  http://acpid.sf.net/
++
++Driver Interface -- OBSOLETE, DO NOT USE!
++----------------*************************
++
++Note: pm_register(), pm_access(), pm_dev_idle() and friends are
++obsolete. Please do not use them. Instead you should properly hook
++your driver into the driver model, and use its suspend()/resume()
++callbacks to do this kind of stuff.
++
++If you are writing a new driver or maintaining an old driver, it
++should include power management support.  Without power management
++support, a single driver may prevent a system with power management
++capabilities from ever being able to suspend (safely).
++
++Overview:
++1) Register each instance of a device with "pm_register"
++2) Call "pm_access" before accessing the hardware.
++   (this will ensure that the hardware is awake and ready)
++3) Your "pm_callback" is called before going into a
++   suspend state (ACPI D1-D3) or after resuming (ACPI D0)
++   from a suspend.
++4) Call "pm_dev_idle" when the device is not being used
++   (optional but will improve device idle detection)
++5) When unloaded, unregister the device with "pm_unregister"
++
++/*
++ * Description: Register a device with the power-management subsystem
++ *
++ * Parameters:
++ *   type - device type (PCI device, system device, ...)
++ *   id - instance number or unique identifier
++ *   cback - request handler callback (suspend, resume, ...)
++ *
++ * Returns: Registered PM device or NULL on error
++ *
++ * Examples:
++ *   dev =3D pm_register(PM_SYS_DEV, PM_SYS_VGA, vga_callback);
++ *
++ *   struct pci_dev *pci_dev =3D pci_find_dev(...);
++ *   dev =3D pm_register(PM_PCI_DEV, PM_PCI_ID(pci_dev), callback);
++ */
++struct pm_dev *pm_register(pm_dev_t type, unsigned long id, pm_callbac=
+k cback);
++
++/*
++ * Description: Unregister a device with the power management subsyste=
+m
++ *
++ * Parameters:
++ *   dev - PM device previously returned from pm_register
++ */
++void pm_unregister(struct pm_dev *dev);
++
++/*
++ * Description: Unregister all devices with a matching callback functi=
+on
++ *
++ * Parameters:
++ *   cback - previously registered request callback
++ *
++ * Notes: Provided for easier porting from old APM interface
++ */
++void pm_unregister_all(pm_callback cback);
++
++/*
++ * Power management request callback
++ *
++ * Parameters:
++ *   dev - PM device previously returned from pm_register
++ *   rqst - request type
++ *   data - data, if any, associated with the request
++ *
++ * Returns: 0 if the request is successful
++ *          EINVAL if the request is not supported
++ *          EBUSY if the device is now busy and cannot handle the requ=
+est
++ *          ENOMEM if the device was unable to handle the request due =
+to memory
++ *
++ * Details: The device request callback will be called before the
++ *          device/system enters a suspend state (ACPI D1-D3) or
++ *          or after the device/system resumes from suspend (ACPI D0).
++ *          For PM_SUSPEND, the ACPI D-state being entered is passed
++ *          as the "data" argument to the callback.  The device
++ *          driver should save (PM_SUSPEND) or restore (PM_RESUME)
++ *          device context when the request callback is called.
++ *
++ *          Once a driver returns 0 (success) from a suspend
++ *          request, it should not process any further requests or
++ *          access the device hardware until a call to "pm_access" is =
+made.
++ */
++typedef int (*pm_callback)(struct pm_dev *dev, pm_request_t rqst, void=
+ *data);
++
++Driver Details
++--------------
++This is just a quick Q&A as a stopgap until a real driver writers'
++power management guide is available.
++
++Q: When is a device suspended?
++
++Devices can be suspended based on direct user request (eg. laptop lid
++closes), system power policy (eg.  sleep after 30 minutes of console
++inactivity), or device power policy (eg. power down device after 5
++minutes of inactivity)
++
++Q: Must a driver honor a suspend request?
++
++No, a driver can return -EBUSY from a suspend request and this
++will stop the system from suspending.  When a suspend request
++fails, all suspended devices are resumed and the system continues
++to run.  Suspend can be retried at a later time.
++
++Q: Can the driver block suspend/resume requests?
++
++Yes, a driver can delay its return from a suspend or resume
++request until the device is ready to handle requests.  It
++is advantageous to return as quickly as possible from a
++request as suspend/resume are done serially.
++
++Q: What context is a suspend/resume initiated from?
++
++A suspend or resume is initiated from a kernel thread context.
++It is safe to block, allocate memory, initiate requests
++or anything else you can do within the kernel.
++
++Q: Will requests continue to arrive after a suspend?
++
++Possibly.  It is the driver's responsibility to queue(*),
++fail, or drop any requests that arrive after returning
++success to a suspend request.  It is important that the
++driver not access its device until after it receives
++a resume request as the device's bus may no longer
++be active.
++
++(*) If a driver queues requests for processing after
++    resume be aware that the device, network, etc.
++    might be in a different state than at suspend time.
++    It's probably better to drop requests unless
++    the driver is a storage device.
++
++Q: Do I have to manage bus-specific power management registers
++
++No.  It is the responsibility of the bus driver to manage
++PCI, USB, etc. power management registers.  The bus driver
++or the power management subsystem will also enable any
++wake-on functionality that the device has.
++
++Q: So, really, what do I need to do to support suspend/resume?
++
++You need to save any device context that would
++be lost if the device was powered off and then restore
++it at resume time.  When ACPI is active, there are
++three levels of device suspend states; D1, D2, and D3.
++(The suspend state is passed as the "data" argument
++to the device callback.)  With D3, the device is powered
++off and loses all context, D1 and D2 are shallower power
++states and require less device context to be saved.  To
++play it safe, just save everything at suspend and restore
++everything at resume.
++
++Q: Where do I store device context for suspend?
++
++Anywhere in memory, kmalloc a buffer or store it
++in the device descriptor.  You are guaranteed that the
++contents of memory will be restored and accessible
++before resume, even when the system suspends to disk.
++
++Q: What do I need to do for ACPI vs. APM vs. etc?
++
++Drivers need not be aware of the specific power management
++technology that is active.  They just need to be aware
++of when the overlying power management system requests
++that they suspend or resume.
++
++Q: What about device dependencies?
++
++When a driver registers a device, the power management
++subsystem uses the information provided to build a
++tree of device dependencies (eg. USB device X is on
++USB controller Y which is on PCI bus Z)  When power
++management wants to suspend a device, it first sends
++a suspend request to its driver, then the bus driver,
++and so on up to the system bus.  Device resumes
++proceed in the opposite direction.
++
++Q: Who do I contact for additional information about
++   enabling power management for my specific driver/device?
++
++ACPI Development mailing list: linux-acpi@vger.kernel.org
++
++System Interface -- OBSOLETE, DO NOT USE!
++----------------*************************
++If you are providing new power management support to Linux (ie.
++adding support for something like APM or ACPI), you should
++communicate with drivers through the existing generic power
++management interface.
++
++/*
++ * Send a request to all devices
++ *
++ * Parameters:
++ *   rqst - request type
++ *   data - data, if any, associated with the request
++ *
++ * Returns: 0 if the request is successful
++ *          See "pm_callback" return for errors
++ *
++ * Details: Walk list of registered devices and call pm_send
++ *          for each until complete or an error is encountered.
++ *          If an error is encountered for a suspend request,
++ *          return all devices to the state they were in before
++ *          the suspend request.
++ */
++int pm_send_all(pm_request_t rqst, void *data);
++
++/*
++ * Find a matching device
++ *
++ * Parameters:
++ *   type - device type (PCI device, system device, or 0 to match all =
+devices)
++ *   from - previous match or NULL to start from the beginning
++ *
++ * Returns: Matching device or NULL if none found
++ */
++struct pm_dev *pm_find(pm_dev_t type, struct pm_dev *from);
+--- linux-2.6.25-rc3-git6.orig/Documentation/pm_qos_interface.txt
++++ /dev/null
+@@ -1,59 +0,0 @@
+-PM quality of Service interface.
+-
+-This interface provides a kernel and user mode interface for registeri=
+ng
+-performance expectations by drivers, subsystems and user space applica=
+tions on
+-one of the parameters.
+-
+-Currently we have {cpu_dma_latency, network_latency, network_throughpu=
+t} as the
+-initial set of pm_qos parameters.
+-
+-The infrastructure exposes multiple misc device nodes one per implemen=
+ted
+-parameter.  The set of parameters implement is defined by pm_qos_power=
+_init()
+-and pm_qos_params.h.  This is done because having the available parame=
+ters
+-being runtime configurable or changeable from a driver was seen as too=
+ easy to
+-abuse.
+-
+-For each parameter a list of performance requirements is maintained al=
+ong with
+-an aggregated target value.  The aggregated target value is updated wi=
+th
+-changes to the requirement list or elements of the list.  Typically th=
+e
+-aggregated target value is simply the max or min of the requirement va=
+lues held
+-in the parameter list elements.
+-
+-From kernel mode the use of this interface is simple:
+-pm_qos_add_requirement(param_id, name, target_value):
+-Will insert a named element in the list for that identified PM_QOS par=
+ameter
+-with the target value.  Upon change to this list the new target is rec=
+omputed
+-and any registered notifiers are called only if the target value is no=
+w
+-different.
+-
+-pm_qos_update_requirement(param_id, name, new_target_value):
+-Will search the list identified by the param_id for the named list ele=
+ment and
+-then update its target value, calling the notification tree if the agg=
+regated
+-target is changed.  with that name is already registered.
+-
+-pm_qos_remove_requirement(param_id, name):
+-Will search the identified list for the named element and remove it, a=
+fter
+-removal it will update the aggregate target and call the notification =
+tree if
+-the target was changed as a result of removing the named requirement.
+-
+-
+-From user mode:
+-Only processes can register a pm_qos requirement.  To provide for auto=
+matic
+-cleanup for process the interface requires the process to register its
+-parameter requirements in the following way:
+-
+-To register the default pm_qos target for the specific parameter, the =
+process
+-must open one of /dev/[cpu_dma_latency, network_latency, network_throu=
+ghput]
+-
+-As long as the device node is held open that process has a registered
+-requirement on the parameter.  The name of the requirement is "process=
+_<PID>"
+-derived from the current->pid from within the open system call.
+-
+-To change the requested target value the process needs to write a s32 =
+value to
+-the open device node.  This translates to a pm_qos_update_requirement =
+call.
+-
+-To remove the user mode request for a target value simply close the de=
+vice
+-node.
+-
+-
+-
+--- /dev/null
++++ linux-2.6.25-rc3-git6/Documentation/power/pm_qos_interface.txt
+@@ -0,0 +1,59 @@
++PM quality of Service interface.
++
++This interface provides a kernel and user mode interface for registeri=
+ng
++performance expectations by drivers, subsystems and user space applica=
+tions on
++one of the parameters.
++
++Currently we have {cpu_dma_latency, network_latency, network_throughpu=
+t} as the
++initial set of pm_qos parameters.
++
++The infrastructure exposes multiple misc device nodes one per implemen=
+ted
++parameter.  The set of parameters implement is defined by pm_qos_power=
+_init()
++and pm_qos_params.h.  This is done because having the available parame=
+ters
++being runtime configurable or changeable from a driver was seen as too=
+ easy to
++abuse.
++
++For each parameter a list of performance requirements is maintained al=
+ong with
++an aggregated target value.  The aggregated target value is updated wi=
+th
++changes to the requirement list or elements of the list.  Typically th=
+e
++aggregated target value is simply the max or min of the requirement va=
+lues held
++in the parameter list elements.
++
++From kernel mode the use of this interface is simple:
++pm_qos_add_requirement(param_id, name, target_value):
++Will insert a named element in the list for that identified PM_QOS par=
+ameter
++with the target value.  Upon change to this list the new target is rec=
+omputed
++and any registered notifiers are called only if the target value is no=
+w
++different.
++
++pm_qos_update_requirement(param_id, name, new_target_value):
++Will search the list identified by the param_id for the named list ele=
+ment and
++then update its target value, calling the notification tree if the agg=
+regated
++target is changed.  with that name is already registered.
++
++pm_qos_remove_requirement(param_id, name):
++Will search the identified list for the named element and remove it, a=
+fter
++removal it will update the aggregate target and call the notification =
+tree if
++the target was changed as a result of removing the named requirement.
++
++
++From user mode:
++Only processes can register a pm_qos requirement.  To provide for auto=
+matic
++cleanup for process the interface requires the process to register its
++parameter requirements in the following way:
++
++To register the default pm_qos target for the specific parameter, the =
+process
++must open one of /dev/[cpu_dma_latency, network_latency, network_throu=
+ghput]
++
++As long as the device node is held open that process has a registered
++requirement on the parameter.  The name of the requirement is "process=
+_<PID>"
++derived from the current->pid from within the open system call.
++
++To change the requested target value the process needs to write a s32 =
+value to
++the open device node.  This translates to a pm_qos_update_requirement =
+call.
++
++To remove the user mode request for a target value simply close the de=
+vice
++node.
++
++
++
+--- /dev/null
++++ linux-2.6.25-rc3-git6/Documentation/power/power_supply_class.txt
+@@ -0,0 +1,169 @@
++Linux power supply class
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++
++Synopsis
++~~~~~~~~
++Power supply class used to represent battery, UPS, AC or DC power supp=
+ly
++properties to user-space.
++
++It defines core set of attributes, which should be applicable to (almo=
+st)
++every power supply out there. Attributes are available via sysfs and u=
+event
++interfaces.
++
++Each attribute has well defined meaning, up to unit of measure used. W=
+hile
++the attributes provided are believed to be universally applicable to a=
+ny
++power supply, specific monitoring hardware may not be able to provide =
+them
++all, so any of them may be skipped.
++
++Power supply class is extensible, and allows to define drivers own att=
+ributes.
++The core attribute set is subject to the standard Linux evolution (i.e=
+=2E
++if it will be found that some attribute is applicable to many power su=
+pply
++types or their drivers, it can be added to the core set).
++
++It also integrates with LED framework, for the purpose of providing
++typically expected feedback of battery charging/fully charged status a=
+nd
++AC/USB power supply online status. (Note that specific details of the
++indication (including whether to use it at all) are fully controllable=
+ by
++user and/or specific machine defaults, per design principles of LED
++framework).
++
++
++Attributes/properties
++~~~~~~~~~~~~~~~~~~~~~
++Power supply class has predefined set of attributes, this eliminates c=
+ode
++duplication across drivers. Power supply class insist on reusing its
++predefined attributes *and* their units.
++
++So, userspace gets predictable set of attributes and their units for a=
+ny
++kind of power supply, and can process/present them to a user in consis=
+tent
++manner. Results for different power supplies and machines are also dir=
+ectly
++comparable.
++
++See drivers/power/ds2760_battery.c and drivers/power/pda_power.c for t=
+he
++example how to declare and handle attributes.
++
++
++Units
++~~~~~
++Quoting include/linux/power_supply.h:
++
++  All voltages, currents, charges, energies, time and temperatures in =
+=B5V,
++  =B5A, =B5Ah, =B5Wh, seconds and tenths of degree Celsius unless othe=
+rwise
++  stated. It's driver's job to convert its raw values to units in whic=
+h
++  this class operates.
++
++
++Attributes/properties detailed
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++~ ~ ~ ~ ~ ~ ~  Charge/Energy/Capacity - how to not confuse  ~ ~ ~ ~ ~ =
+~ ~
++~                                                                     =
+  ~
++~ Because both "charge" (=B5Ah) and "energy" (=B5Wh) represents "capac=
+ity"  ~
++~ of battery, this class distinguish these terms. Don't mix them!     =
+  ~
++~                                                                     =
+  ~
++~ CHARGE_* attributes represents capacity in =B5Ah only.              =
+    ~
++~ ENERGY_* attributes represents capacity in =B5Wh only.              =
+    ~
++~ CAPACITY attribute represents capacity in *percents*, from 0 to 100.=
+  ~
++~                                                                     =
+  ~
++~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ =
+~ ~
++
++Postfixes:
++_AVG - *hardware* averaged value, use it if your hardware is really ab=
+le to
++report averaged values.
++_NOW - momentary/instantaneous values.
++
++STATUS - this attribute represents operating status (charging, full,
++discharging (i.e. powering a load), etc.). This corresponds to
++BATTERY_STATUS_* values, as defined in battery.h.
++
++HEALTH - represents health of the battery, values corresponds to
++POWER_SUPPLY_HEALTH_*, defined in battery.h.
++
++VOLTAGE_MAX_DESIGN, VOLTAGE_MIN_DESIGN - design values for maximal and
++minimal power supply voltages. Maximal/minimal means values of voltage=
+s
++when battery considered "full"/"empty" at normal conditions. Yes, ther=
+e is
++no direct relation between voltage and battery capacity, but some dumb
++batteries use voltage for very approximated calculation of capacity.
++Battery driver also can use this attribute just to inform userspace
++about maximal and minimal voltage thresholds of a given battery.
++
++VOLTAGE_MAX, VOLTAGE_MIN - same as _DESIGN voltage values except that
++these ones should be used if hardware could only guess (measure and
++retain) the thresholds of a given power supply.
++
++CHARGE_FULL_DESIGN, CHARGE_EMPTY_DESIGN - design charge values, when
++battery considered full/empty.
++
++ENERGY_FULL_DESIGN, ENERGY_EMPTY_DESIGN - same as above but for energy=
+=2E
++
++CHARGE_FULL, CHARGE_EMPTY - These attributes means "last remembered va=
+lue
++of charge when battery became full/empty". It also could mean "value o=
+f
++charge when battery considered full/empty at given conditions (tempera=
+ture,
++age)". I.e. these attributes represents real thresholds, not design va=
+lues.
++
++ENERGY_FULL, ENERGY_EMPTY - same as above but for energy.
++
++CAPACITY - capacity in percents.
++
++TEMP - temperature of the power supply.
++TEMP_AMBIENT - ambient temperature.
++
++TIME_TO_EMPTY - seconds left for battery to be considered empty (i.e.
++while battery powers a load)
++TIME_TO_FULL - seconds left for battery to be considered full (i.e.
++while battery is charging)
++
++
++Battery <-> external power supply interaction
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Often power supplies are acting as supplies and supplicants at the sam=
+e
++time. Batteries are good example. So, batteries usually care if they'r=
+e
++externally powered or not.
++
++For that case, power supply class implements notification mechanism fo=
+r
++batteries.
++
++External power supply (AC) lists supplicants (batteries) names in
++"supplied_to" struct member, and each power_supply_changed() call
++issued by external power supply will notify supplicants via
++external_power_changed callback.
++
++
++QA
++~~
++Q: Where is POWER_SUPPLY_PROP_XYZ attribute?
++A: If you cannot find attribute suitable for your driver needs, feel f=
+ree
++   to add it and send patch along with your driver.
++
++   The attributes available currently are the ones currently provided =
+by the
++   drivers written.
++
++   Good candidates to add in future: model/part#, cycle_time, manufact=
+urer,
++   etc.
++
++
++Q: I have some very specific attribute (e.g. battery color), should I =
+add
++   this attribute to standard ones?
++A: Most likely, no. Such attribute can be placed in the driver itself,=
+ if
++   it is useful. Of course, if the attribute in question applicable to
++   large set of batteries, provided by many drivers, and/or comes from
++   some general battery specification/standard, it may be a candidate =
+to
++   be added to the core attribute set.
++
++
++Q: Suppose, my battery monitoring chip/firmware does not provides capa=
+city
++   in percents, but provides charge_{now,full,empty}. Should I calcula=
+te
++   percentage capacity manually, inside the driver, and register CAPAC=
+ITY
++   attribute? The same question about time_to_empty/time_to_full.
++A: Most likely, no. This class is designed to export properties which =
+are
++   directly measurable by the specific hardware available.
++
++   Inferring not available properties using some heuristics or mathema=
+tical
++   model is not subject of work for a battery driver. Such functionali=
+ty
++   should be factored out, and in fact, apm_power, the driver to serve
++   legacy APM API on top of power supply class, uses a simple heuristi=
+c of
++   approximating remaining battery capacity based on its charge, curre=
+nt,
++   voltage and so on. But full-fledged battery model is likely not sub=
+ject
++   for kernel at all, as it would require floating point calculation t=
+o deal
++   with things like differential equations and Kalman filters. This is
++   better be handled by batteryd/libbattery, yet to be written.
+--- linux-2.6.25-rc3-git6.orig/Documentation/power_supply_class.txt
++++ /dev/null
+@@ -1,169 +0,0 @@
+-Linux power supply class
+-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+-
+-Synopsis
+-~~~~~~~~
+-Power supply class used to represent battery, UPS, AC or DC power supp=
+ly
+-properties to user-space.
+-
+-It defines core set of attributes, which should be applicable to (almo=
+st)
+-every power supply out there. Attributes are available via sysfs and u=
+event
+-interfaces.
+-
+-Each attribute has well defined meaning, up to unit of measure used. W=
+hile
+-the attributes provided are believed to be universally applicable to a=
+ny
+-power supply, specific monitoring hardware may not be able to provide =
+them
+-all, so any of them may be skipped.
+-
+-Power supply class is extensible, and allows to define drivers own att=
+ributes.
+-The core attribute set is subject to the standard Linux evolution (i.e=
+=2E
+-if it will be found that some attribute is applicable to many power su=
+pply
+-types or their drivers, it can be added to the core set).
+-
+-It also integrates with LED framework, for the purpose of providing
+-typically expected feedback of battery charging/fully charged status a=
+nd
+-AC/USB power supply online status. (Note that specific details of the
+-indication (including whether to use it at all) are fully controllable=
+ by
+-user and/or specific machine defaults, per design principles of LED
+-framework).
+-
+-
+-Attributes/properties
+-~~~~~~~~~~~~~~~~~~~~~
+-Power supply class has predefined set of attributes, this eliminates c=
+ode
+-duplication across drivers. Power supply class insist on reusing its
+-predefined attributes *and* their units.
+-
+-So, userspace gets predictable set of attributes and their units for a=
+ny
+-kind of power supply, and can process/present them to a user in consis=
+tent
+-manner. Results for different power supplies and machines are also dir=
+ectly
+-comparable.
+-
+-See drivers/power/ds2760_battery.c and drivers/power/pda_power.c for t=
+he
+-example how to declare and handle attributes.
+-
+-
+-Units
+-~~~~~
+-Quoting include/linux/power_supply.h:
+-
+-  All voltages, currents, charges, energies, time and temperatures in =
+=B5V,
+-  =B5A, =B5Ah, =B5Wh, seconds and tenths of degree Celsius unless othe=
+rwise
+-  stated. It's driver's job to convert its raw values to units in whic=
+h
+-  this class operates.
+-
+-
+-Attributes/properties detailed
+-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-
+-~ ~ ~ ~ ~ ~ ~  Charge/Energy/Capacity - how to not confuse  ~ ~ ~ ~ ~ =
+~ ~
+-~                                                                     =
+  ~
+-~ Because both "charge" (=B5Ah) and "energy" (=B5Wh) represents "capac=
+ity"  ~
+-~ of battery, this class distinguish these terms. Don't mix them!     =
+  ~
+-~                                                                     =
+  ~
+-~ CHARGE_* attributes represents capacity in =B5Ah only.              =
+    ~
+-~ ENERGY_* attributes represents capacity in =B5Wh only.              =
+    ~
+-~ CAPACITY attribute represents capacity in *percents*, from 0 to 100.=
+  ~
+-~                                                                     =
+  ~
+-~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ =
+~ ~
+-
+-Postfixes:
+-_AVG - *hardware* averaged value, use it if your hardware is really ab=
+le to
+-report averaged values.
+-_NOW - momentary/instantaneous values.
+-
+-STATUS - this attribute represents operating status (charging, full,
+-discharging (i.e. powering a load), etc.). This corresponds to
+-BATTERY_STATUS_* values, as defined in battery.h.
+-
+-HEALTH - represents health of the battery, values corresponds to
+-POWER_SUPPLY_HEALTH_*, defined in battery.h.
+-
+-VOLTAGE_MAX_DESIGN, VOLTAGE_MIN_DESIGN - design values for maximal and
+-minimal power supply voltages. Maximal/minimal means values of voltage=
+s
+-when battery considered "full"/"empty" at normal conditions. Yes, ther=
+e is
+-no direct relation between voltage and battery capacity, but some dumb
+-batteries use voltage for very approximated calculation of capacity.
+-Battery driver also can use this attribute just to inform userspace
+-about maximal and minimal voltage thresholds of a given battery.
+-
+-VOLTAGE_MAX, VOLTAGE_MIN - same as _DESIGN voltage values except that
+-these ones should be used if hardware could only guess (measure and
+-retain) the thresholds of a given power supply.
+-
+-CHARGE_FULL_DESIGN, CHARGE_EMPTY_DESIGN - design charge values, when
+-battery considered full/empty.
+-
+-ENERGY_FULL_DESIGN, ENERGY_EMPTY_DESIGN - same as above but for energy=
+=2E
+-
+-CHARGE_FULL, CHARGE_EMPTY - These attributes means "last remembered va=
+lue
+-of charge when battery became full/empty". It also could mean "value o=
+f
+-charge when battery considered full/empty at given conditions (tempera=
+ture,
+-age)". I.e. these attributes represents real thresholds, not design va=
+lues.
+-
+-ENERGY_FULL, ENERGY_EMPTY - same as above but for energy.
+-
+-CAPACITY - capacity in percents.
+-
+-TEMP - temperature of the power supply.
+-TEMP_AMBIENT - ambient temperature.
+-
+-TIME_TO_EMPTY - seconds left for battery to be considered empty (i.e.
+-while battery powers a load)
+-TIME_TO_FULL - seconds left for battery to be considered full (i.e.
+-while battery is charging)
+-
+-
+-Battery <-> external power supply interaction
+-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-Often power supplies are acting as supplies and supplicants at the sam=
+e
+-time. Batteries are good example. So, batteries usually care if they'r=
+e
+-externally powered or not.
+-
+-For that case, power supply class implements notification mechanism fo=
+r
+-batteries.
+-
+-External power supply (AC) lists supplicants (batteries) names in
+-"supplied_to" struct member, and each power_supply_changed() call
+-issued by external power supply will notify supplicants via
+-external_power_changed callback.
+-
+-
+-QA
+-~~
+-Q: Where is POWER_SUPPLY_PROP_XYZ attribute?
+-A: If you cannot find attribute suitable for your driver needs, feel f=
+ree
+-   to add it and send patch along with your driver.
+-
+-   The attributes available currently are the ones currently provided =
+by the
+-   drivers written.
+-
+-   Good candidates to add in future: model/part#, cycle_time, manufact=
+urer,
+-   etc.
+-
+-
+-Q: I have some very specific attribute (e.g. battery color), should I =
+add
+-   this attribute to standard ones?
+-A: Most likely, no. Such attribute can be placed in the driver itself,=
+ if
+-   it is useful. Of course, if the attribute in question applicable to
+-   large set of batteries, provided by many drivers, and/or comes from
+-   some general battery specification/standard, it may be a candidate =
+to
+-   be added to the core attribute set.
+-
+-
+-Q: Suppose, my battery monitoring chip/firmware does not provides capa=
+city
+-   in percents, but provides charge_{now,full,empty}. Should I calcula=
+te
+-   percentage capacity manually, inside the driver, and register CAPAC=
+ITY
+-   attribute? The same question about time_to_empty/time_to_full.
+-A: Most likely, no. This class is designed to export properties which =
+are
+-   directly measurable by the specific hardware available.
+-
+-   Inferring not available properties using some heuristics or mathema=
+tical
+-   model is not subject of work for a battery driver. Such functionali=
+ty
+-   should be factored out, and in fact, apm_power, the driver to serve
+-   legacy APM API on top of power supply class, uses a simple heuristi=
+c of
+-   approximating remaining battery capacity based on its charge, curre=
+nt,
+-   voltage and so on. But full-fledged battery model is likely not sub=
+ject
+-   for kernel at all, as it would require floating point calculation t=
+o deal
+-   with things like differential equations and Kalman filters. This is
+-   better be handled by batteryd/libbattery, yet to be written.
+--- linux-2.6.25-rc3-git6.orig/arch/x86/Kconfig
++++ linux-2.6.25-rc3-git6/arch/x86/Kconfig
+@@ -1261,7 +1261,7 @@ menuconfig APM
+ 	  machines with more than one CPU.
+=20
+ 	  In order to use APM, you will need supporting software. For locatio=
+n
+-	  and more information, read <file:Documentation/pm.txt> and the
++	  and more information, read <file:Documentation/power/pm.txt> and th=
+e
+ 	  Battery Powered Linux mini-HOWTO, available from
+ 	  <http://www.tldp.org/docs.html#howto>.
+=20
+--- linux-2.6.25-rc3-git6.orig/kernel/power/Kconfig
++++ linux-2.6.25-rc3-git6/kernel/power/Kconfig
+@@ -190,7 +190,7 @@ config APM_EMULATION
+ 	  notification of APM "events" (e.g. battery status change).
+=20
+ 	  In order to use APM, you will need supporting software. For locatio=
+n
+-	  and more information, read <file:Documentation/pm.txt> and the
++	  and more information, read <file:Documentation/power/pm.txt> and th=
+e
+ 	  Battery Powered Linux mini-HOWTO, available from
+ 	  <http://www.tldp.org/docs.html#howto>.
+=20
+--- linux-2.6.25-rc3-git6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6.25-rc3-git6/Documentation/kernel-parameters.txt
+@@ -138,7 +138,7 @@ and is between 256 and 4096 characters.=20
+ 			strict -- Be less tolerant of platforms that are not
+ 				strictly ACPI specification compliant.
+=20
+-			See also Documentation/pm.txt, pci=3Dnoacpi
++			See also Documentation/power/pm.txt, pci=3Dnoacpi
+=20
+ 	acpi_apic_instance=3D	[ACPI, IOAPIC]
+ 			Format: <int>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
