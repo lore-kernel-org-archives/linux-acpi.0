@@ -1,7 +1,7 @@
 From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 Subject: Re: [PATCH] ACPI: Unneccessary to scan the PCI bus already scanned.
-Date: Tue, 4 Mar 2008 11:28:06 -0800
-Message-ID: <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com>
+Date: Tue, 4 Mar 2008 11:34:23 -0800
+Message-ID: <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
 References: <1204525186.4080.11.camel@yakui_zhao.sh.intel.com>
 	 <20080303073214.GA5934@elte.hu>
 	 <86802c440803030006m1879838awc238f07bc98ed43e@mail.gmail.com>
@@ -11,38 +11,44 @@ References: <1204525186.4080.11.camel@yakui_zhao.sh.intel.com>
 	 <86802c440803030233s1b0cc0a6nbed683ee3d4fac63@mail.gmail.com>
 	 <20080303111124.GA27348@elte.hu>
 	 <86802c440803031057m7802a00cnd158da03c4bb507@mail.gmail.com>
+	 <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_15807_18964770.1204658886619"
+	boundary="----=_Part_15816_19985073.1204659263459"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.229]:52123 "EHLO
+Received: from wr-out-0506.google.com ([64.233.184.233]:60093 "EHLO
 	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761245AbYCDT2L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 14:28:11 -0500
-Received: by wr-out-0506.google.com with SMTP id 50so1463850wra.13
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2008 11:28:07 -0800 (PST)
-In-Reply-To: <86802c440803031057m7802a00cnd158da03c4bb507@mail.gmail.com>
+	with ESMTP id S1759618AbYCDTe1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 14:34:27 -0500
+Received: by wr-out-0506.google.com with SMTP id 50so1469107wra.13
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2008 11:34:24 -0800 (PST)
+In-Reply-To: <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
 Cc: Greg KH <gregkh@suse.de>, Muli Ben-Yehuda <muli@il.ibm.com>, Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-------=_Part_15807_18964770.1204658886619
+------=_Part_15816_19985073.1204659263459
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-I updated Yakui's patch, so it could be applied after x86.git#testing
+On Tue, Mar 4, 2008 at 11:28 AM, Yinghai Lu <yhlu.kernel@gmail.com> wrote:
+> I updated Yakui's patch, so it could be applied after x86.git#testing
+>
+>  Please check it
+>
+>  YH
 
-Please check it
+use this v2 one please
 
 YH
 
-------=_Part_15807_18964770.1204658886619
-Content-Type: text/x-patch; name=acpi_scan_root_after.patch
+------=_Part_15816_19985073.1204659263459
+Content-Type: text/x-patch; name=acpi_scan_root_after_v2.patch
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fdev3ov10
-Content-Disposition: attachment; filename=acpi_scan_root_after.patch
+X-Attachment-Id: f_fdevcmjf1
+Content-Disposition: attachment; filename=acpi_scan_root_after_v2.patch
 
 RnJvbSA6IFpoYW8gWWFrdWkgPHlha3VpLnpoYW9AaW50ZWwuY29tPgoKW1BBVENIXSBVbm5lY2Nl
 c3NhcnkgdG8gc2NhbiB0aGUgUENJIGJ1cyBhbHJlYWR5IHNjYW5uZWQgdjIKCmh0dHA6Ly9idWd6
@@ -61,33 +67,31 @@ aGVjayBhYm91dCBzY2FubmVkIGJ1cwoKWWluZ2hhaSBtYWtlIGl0IGNhbiBiZSBhcHBsaWVkIGFm
 dGVyIHBhdGNoZXMgaW4geDg2LmdpdCN0ZXNpbmcKClNpZ25lZC1vZmYtYnk6IFpoYW8gWWFrdWkg
 PHlha3VpLnpoYW9AaW50ZWwuY29tPgpTaWduZWQtb2ZmLWJ5OiBMaSBTaGFvaHVhIDxzaGFvaHVh
 LmxpQGludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWhsdS5rZXJuZWxAZ21h
-aWwuY29tPgoKZGlmZiAtLWdpdCBhL2FyY2gveDg2L3BjaS9hY3BpLmMgYi9hcmNoL3g4Ni9wY2kv
-YWNwaS5jCmluZGV4IDJjMWE2NTEuLjdlMmJmZTMgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L3BjaS9h
-Y3BpLmMKKysrIGIvYXJjaC94ODYvcGNpL2FjcGkuYwpAQCAtMjEzLDMzICsyMTMsMzggQEAgc3Ry
-dWN0IHBjaV9idXMgKiBfX2RldmluaXQgcGNpX2FjcGlfc2Nhbl9yb290KHN0cnVjdCBhY3BpX2Rl
-dmljZSAqZGV2aWNlLCBpbnQgZG8KIAkJc2V0X21wX2J1c190b19ub2RlKGJ1c251bSwgbm9kZSk7
-CiAJZWxzZQogCQlub2RlID0gZ2V0X21wX2J1c190b19ub2RlKGJ1c251bSk7Ci0KLQlpZiAobm9k
-ZSAhPSAtMSAmJiAhbm9kZV9vbmxpbmUobm9kZSkpCi0JCW5vZGUgPSAtMTsKICNlbmRpZgogCi0J
-LyogQWxsb2NhdGUgcGVyLXJvb3QtYnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRh
-LgotCSAqIFRPRE86IGxlYWs7IHRoaXMgbWVtb3J5IGlzIG5ldmVyIGZyZWVkLgotCSAqIEl0J3Mg
-YXJndWFibGUgd2hldGhlciBpdCdzIHdvcnRoIHRoZSB0cm91YmxlIHRvIGNhcmUuCi0JICovCi0J
-c2QgPSBremFsbG9jKHNpemVvZigqc2QpLCBHRlBfS0VSTkVMKTsKLQlpZiAoIXNkKSB7Ci0JCXBy
-aW50ayhLRVJOX0VSUiAiUENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwgYnVz
-bnVtKTsKLQkJcmV0dXJuIE5VTEw7Ci0JfQorCWJ1cyA9IHBjaV9maW5kX2J1cyhkb21haW4sIGJ1
-c251bSk7CisJaWYgKGJ1cykgeworCQkvKiBhbHJlYWR5IHNjYW5uZWQgPyovCisJCXNkID0gYnVz
-LT5zeXNkYXRhOworCQlzZC0+bm9kZSA9IG5vZGU7CisJfSBlbHNlIHsKKwkJLyogQWxsb2NhdGUg
-cGVyLXJvb3QtYnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRhLgorCQkgKiBUT0RP
-OiBsZWFrOyB0aGlzIG1lbW9yeSBpcyBuZXZlciBmcmVlZC4KKwkJICogSXQncyBhcmd1YWJsZSB3
-aGV0aGVyIGl0J3Mgd29ydGggdGhlIHRyb3VibGUgdG8gY2FyZS4KKwkJICovCisJCXNkID0ga3ph
-bGxvYyhzaXplb2YoKnNkKSwgR0ZQX0tFUk5FTCk7CisJCWlmICghc2QpIHsKKwkJCXByaW50ayhL
-RVJOX0VSUiAiUENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwKKwkJCQkgYnVz
-bnVtKTsKKwkJCXJldHVybiBOVUxMOworCQl9CiAKLQlzZC0+ZG9tYWluID0gZG9tYWluOwotCXNk
-LT5ub2RlID0gbm9kZTsKKwkJc2QtPmRvbWFpbiA9IGRvbWFpbjsKKwkJc2QtPm5vZGUgPSBub2Rl
-OwogCi0JYnVzID0gcGNpX3NjYW5fYnVzX3BhcmVudGVkKE5VTEwsIGJ1c251bSwgJnBjaV9yb290
-X29wcywgc2QpOwotCWlmICghYnVzKQotCQlrZnJlZShzZCk7CisJCWJ1cyA9IHBjaV9zY2FuX2J1
-c19wYXJlbnRlZChOVUxMLCBidXNudW0sICZwY2lfcm9vdF9vcHMsIHNkKTsKKwkJaWYgKCFidXMp
-CisJCQlrZnJlZShzZCk7CisJfQogCiAjaWZkZWYgQ09ORklHX0FDUElfTlVNQQogCWlmIChidXMp
-IHsKIAkJaWYgKHB4bSA+PSAwKSB7CiAJCQlwcmludGsoS0VSTl9ERUJVRyAiYnVzICUwMnggLT4g
-cHhtICVkIC0+IG5vZGUgJWRcbiIsCi0JCQkJYnVzbnVtLCBweG0sIHNkLT5ub2RlKTsKKwkJCQli
-dXNudW0sIHB4bSwgbm9kZSk7CiAJCX0KIAl9CiAjZW5kaWYK
-------=_Part_15807_18964770.1204658886619--
+aWwuY29tPgoKSW5kZXg6IGxpbnV4LTIuNi9hcmNoL3g4Ni9wY2kvYWNwaS5jCj09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0K
+LS0tIGxpbnV4LTIuNi5vcmlnL2FyY2gveDg2L3BjaS9hY3BpLmMKKysrIGxpbnV4LTIuNi9hcmNo
+L3g4Ni9wY2kvYWNwaS5jCkBAIC0yMTgsMjggKzIxOCwzNiBAQCBzdHJ1Y3QgcGNpX2J1cyAqIF9f
+ZGV2aW5pdCBwY2lfYWNwaV9zY2FuCiAJCW5vZGUgPSAtMTsKICNlbmRpZgogCi0JLyogQWxsb2Nh
+dGUgcGVyLXJvb3QtYnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRhLgotCSAqIFRP
+RE86IGxlYWs7IHRoaXMgbWVtb3J5IGlzIG5ldmVyIGZyZWVkLgotCSAqIEl0J3MgYXJndWFibGUg
+d2hldGhlciBpdCdzIHdvcnRoIHRoZSB0cm91YmxlIHRvIGNhcmUuCi0JICovCi0Jc2QgPSBremFs
+bG9jKHNpemVvZigqc2QpLCBHRlBfS0VSTkVMKTsKLQlpZiAoIXNkKSB7Ci0JCXByaW50ayhLRVJO
+X0VSUiAiUENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwgYnVzbnVtKTsKLQkJ
+cmV0dXJuIE5VTEw7Ci0JfQorCWJ1cyA9IHBjaV9maW5kX2J1cyhkb21haW4sIGJ1c251bSk7CisJ
+aWYgKGJ1cykgeworCQkvKiBhbHJlYWR5IHNjYW5uZWQgPyovCisJCXNkID0gYnVzLT5zeXNkYXRh
+OworCQlzZC0+bm9kZSA9IG5vZGU7CisJfSBlbHNlIHsKKwkJLyogQWxsb2NhdGUgcGVyLXJvb3Qt
+YnVzIChub3QgcGVyIGJ1cykgYXJjaC1zcGVjaWZpYyBkYXRhLgorCQkgKiBUT0RPOiBsZWFrOyB0
+aGlzIG1lbW9yeSBpcyBuZXZlciBmcmVlZC4KKwkJICogSXQncyBhcmd1YWJsZSB3aGV0aGVyIGl0
+J3Mgd29ydGggdGhlIHRyb3VibGUgdG8gY2FyZS4KKwkJICovCisJCXNkID0ga3phbGxvYyhzaXpl
+b2YoKnNkKSwgR0ZQX0tFUk5FTCk7CisJCWlmICghc2QpIHsKKwkJCXByaW50ayhLRVJOX0VSUiAi
+UENJOiBPT00sIG5vdCBwcm9iaW5nIFBDSSBidXMgJTAyeFxuIiwKKwkJCQkgYnVzbnVtKTsKKwkJ
+CXJldHVybiBOVUxMOworCQl9CiAKLQlzZC0+ZG9tYWluID0gZG9tYWluOwotCXNkLT5ub2RlID0g
+bm9kZTsKKwkJc2QtPmRvbWFpbiA9IGRvbWFpbjsKKwkJc2QtPm5vZGUgPSBub2RlOwogCi0JYnVz
+ID0gcGNpX3NjYW5fYnVzX3BhcmVudGVkKE5VTEwsIGJ1c251bSwgJnBjaV9yb290X29wcywgc2Qp
+OwotCWlmICghYnVzKQotCQlrZnJlZShzZCk7CisJCWJ1cyA9IHBjaV9zY2FuX2J1c19wYXJlbnRl
+ZChOVUxMLCBidXNudW0sICZwY2lfcm9vdF9vcHMsIHNkKTsKKwkJaWYgKCFidXMpCisJCQlrZnJl
+ZShzZCk7CisJfQogCiAjaWZkZWYgQ09ORklHX0FDUElfTlVNQQogCWlmIChidXMpIHsKIAkJaWYg
+KHB4bSA+PSAwKSB7CiAJCQlwcmludGsoS0VSTl9ERUJVRyAiYnVzICUwMnggLT4gcHhtICVkIC0+
+IG5vZGUgJWRcbiIsCi0JCQkJYnVzbnVtLCBweG0sIHNkLT5ub2RlKTsKKwkJCQlidXNudW0sIHB4
+bSwgbm9kZSk7CiAJCX0KIAl9CiAjZW5kaWYK
+------=_Part_15816_19985073.1204659263459--
