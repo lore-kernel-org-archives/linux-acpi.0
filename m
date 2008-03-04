@@ -1,57 +1,50 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch] x86: phase out forced inlining
-Date: Tue, 4 Mar 2008 00:38:53 -0800
-Message-ID: <20080304003853.290f4dd0.akpm@linux-foundation.org>
-References: <20080301183550.GC25835@cs181133002.pp.htv.fi>
-	<20080303085720.GD15943@elte.hu>
-	<20080303091314.GC4457@cs181133002.pp.htv.fi>
-	<20080303091714.GA18250@elte.hu>
-	<20080303093103.GA23651@uranus.ravnborg.org>
-	<20080303103933.GC21190@elte.hu>
-	<20080303113451.GF4457@cs181133002.pp.htv.fi>
-	<20080303114533.GA4183@elte.hu>
-	<20080303121335.GA15381@elte.hu>
-	<20080303224231.86c22ed0.akpm@linux-foundation.org>
-	<20080304080335.GA5776@uranus.ravnborg.org>
+From: Bart Samwel <bart@samwel.tk>
+Subject: Re: [PATCH 0/5] Laptop driver documentation changes for 2.6.25
+Date: Tue, 04 Mar 2008 09:21:36 +0100
+Message-ID: <47CD0690.5080009@samwel.tk>
+References: <20080209013157.4895.70128.stgit@pacifica>	<20080211112339.31ae3a68.randy.dunlap@oracle.com>	<200802111929.30877.carlos@strangeworlds.co.uk> <20080303142702.33483f97.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42078 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754243AbYCDIkP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 03:40:15 -0500
-In-Reply-To: <20080304080335.GA5776@uranus.ravnborg.org>
+Received: from customer-vserver-jkruis-1.all2all.org ([62.58.108.47]:49484
+	"EHLO jkruis.all2all.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbYCDIsi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 03:48:38 -0500
+In-Reply-To: <20080303142702.33483f97.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@kernel.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mattia Dongili <malattia@linux.it>
 
-On Tue, 4 Mar 2008 09:03:59 +0100 Sam Ravnborg <sam@ravnborg.org> wrote:
+Randy Dunlap wrote:
+> On Mon, 11 Feb 2008 19:29:29 +0000 Carlos Corbacho wrote:
+> 
+>> On Monday 11 February 2008 19:23:39 Randy Dunlap wrote:
+>>> On Sat, 09 Feb 2008 01:31:57 +0000 Carlos Corbacho wrote:
+>>>> The following series implements the proposed creation of
+>>>> Documentation/laptops, and the movement of all the laptop driver
+>>>> documentation to this directory. I've also taken the opportunity to tack
+>>>> on the acer-wmi documentation in the final patch of this series.
+>>>>
+>>>> Because all the drivers in question go through the ACPI tree anyway, it's
+>>>> probably easiest if this change goes through the ACPI tree as well.
+>>>>
+>>>> This should all be 2.6.25 material, since there is no code change here,
+>>>> just rearranging the Documentation files, and updating Kconfig entries
+>>>> where required. I've also tested this series against Linus' latest git
+>>>> tree, with no problems applying it there.
+>>> Hi,
+>>> so should we also move Documentation/laptop-mode.txt to laptops/ dir?
+>> [CC'ing Bart Samwel on this, as he wrote Documentation/laptop-mode.txt]
+>>
+>> Yes, we probably should.
+> 
+> Hi Bart,
+> Is that OK with you?
+> if we move laptop-mode.txt to the Documenation/laptops/ sub-directory?
 
-> > It would be nice to be able to feed the gcc version into the Kconfig logic,
-> > really..
-> We can do this using a few environment options.
-> 
-> Somewhere in a Makefile:
-> export CC_MAJOR=`magic`
-> export CC_MINOR=`more magic`
-> 
-> And in a Kconfig file:
-> 
-> config CC_MAJOR
-> 	string
-> 	option env=CC_MAJOR
-> 
-> 
-> And then we can do:
-> config CC_DEFAULT_INLINE
-> 	bool "Force inline of functions annotated inline"
-> 	default y if CC_MAJOR = 04
+Sounds fine by me!
 
-Sounds neat.  I guess we should do HOST_CC too.
-
-> Shall I try to cook up a patch for this?
-> [I may get access to my dev box tonight - cannot promise..]
-
-accuracy=1/speed.  There's no rush on this ;)
+Cheers,
+Bart
