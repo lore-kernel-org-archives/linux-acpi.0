@@ -1,65 +1,45 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: =?utf-8?B?SsO2cm4=?= Engel <joern@logfs.org>
 Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
-Date: Tue, 4 Mar 2008 15:22:48 +0100
-Message-ID: <20080304142248.GA2201@elte.hu>
-References: <20080303103933.GC21190@elte.hu> <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu> <20080303120211.GG4457@cs181133002.pp.htv.fi> <20080303121015.GA12660@elte.hu> <20080303122953.GH4457@cs181133002.pp.htv.fi> <20080303125027.GA21577@elte.hu> <20080303145413.GA26072@cs181133002.pp.htv.fi> <20080304131600.GG29777@elte.hu> <20080304134701.GA20278@cs181133002.pp.htv.fi>
+Date: Tue, 4 Mar 2008 15:36:48 +0100
+Message-ID: <20080304143648.GA27484@lazybastard.org>
+References: <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu> <20080303120211.GG4457@cs181133002.pp.htv.fi> <20080303121015.GA12660@elte.hu> <20080303122953.GH4457@cs181133002.pp.htv.fi> <20080303125027.GA21577@elte.hu> <20080303145413.GA26072@cs181133002.pp.htv.fi> <20080304131600.GG29777@elte.hu> <20080304134701.GA20278@cs181133002.pp.htv.fi> <20080304142248.GA2201@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:37006 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751296AbYCDOXI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 09:23:08 -0500
+Received: from lazybastard.de ([212.112.238.170]:33912 "EHLO
+	longford.lazybastard.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114AbYCDOht (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 09:37:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20080304134701.GA20278@cs181133002.pp.htv.fi>
+In-Reply-To: <20080304142248.GA2201@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Adrian Bunk <bunk@kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
+On Tue, 4 March 2008 15:22:48 +0100, Ingo Molnar wrote:
+>=20
+> do you mean this paragraph:
 
-* Adrian Bunk <bunk@kernel.org> wrote:
+Could you two please refrain from sending any more of this?  Who said
+what when and where doesn't help anyone, not even either of your ego's
+or hurt feelings.
 
-> On Tue, Mar 04, 2008 at 02:16:00PM +0100, Ingo Molnar wrote:
-> > 
-> > * Adrian Bunk <bunk@stusta.de> wrote:
-> > 
-> > > > well, i'm trying to assume the best, so please explain the following 
-> > > > sequence of events to me:
-> > > > 
-> > > > 1) as you said you knew about this bug - which bug causes more inlining
-> > > >    overhead than hundreds of your uninlining patches combined. The bug
-> > > >    was introduced ~2 years ago in -mm - before the feature hit mainline
-> > > >    in v2.6.16.
-> > > 
-> > > I don't remember having ever said this.
-> > > 
-> > > Your choices are:
-> > > [ ] prove your accusation that I said I
-> > >     "knew about this bug before the feature hit mainline"
-> > > [ ] apologize
-> > > [ ] be the firest person ever in my killfile
-> > 
-> > Adrian, you must be misunderstanding something. Where exactly in the 
-> > above sentences do i assert that you "knew about this bug before the 
-> > feature hit mainline"? I dont say that and cannot say that -
-> 
-> Please explain your statement "before the feature hit mainline in 
-> v2.6.16" in the above sentence of you in a reasonable way other than 
-> that it should say I knew about it before the feature hit mainline.
+A huge paperbag bug was found and I'm happy it's gone.  It could and
+should have been fixed long ago.  As for personal motives, I just
+couldn't care less.  And this thread has devolved way beyond a
+metadiscussion about motives.
 
-do you mean this paragraph:
+J=C3=B6rn
 
-| 1) as you said you knew about this bug - which bug causes more 
-| inlining overhead than hundreds of your uninlining patches combined. 
-| The bug was introduced ~2 years ago in -mm - before the feature hit 
-| mainline in v2.6.16.
-
-sorry, but i know of no rule of grammar that could read your 
-interpretation into my two sentences.
-
-(and that's not surprising at all, because i never intended to even 
-suggest that you knew about this breakage "before it went mainline" - 
-why would i even care about such a detail?)
-
-	Ingo
+--=20
+Debugging is twice as hard as writing the code in the first place.
+Therefore, if you write the code as cleverly as possible, you are,
+by definition, not smart enough to debug it.
+-- Brian W. Kernighan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
