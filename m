@@ -1,39 +1,96 @@
-From: akpm@linux-foundation.org
-Subject: [patch 3/5] acpi: make real parent for ACPI button input devices
-Date: Tue, 04 Mar 2008 15:06:35 -0800
-Message-ID: <200803042306.m24N6ZGA001810@imap1.linux-foundation.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
+Date: Tue, 4 Mar 2008 16:09:37 -0700
+Message-ID: <20080304230937.GD3694@ldl.fc.hp.com>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <200803041018.29035.jbarnes@virtuousgeek.org> <20080304193036.GB5534@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39783 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934583AbYCDXIs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:08:48 -0500
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:44904 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934563AbYCDXJj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:09:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20080304193036.GB5534@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, arvidjaar@mail.ru, dtor@mail.ru
+To: Greg KH <gregkh@suse.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+* Greg KH <gregkh@suse.de>:
+> On Tue, Mar 04, 2008 at 10:18:28AM -0800, Jesse Barnes wrote:
+> > On Monday, March 03, 2008 9:49 pm Greg KH wrote:
+> > > On Sat, Mar 01, 2008 at 07:43:07AM -0700, Matthew Wilcox wrote:
+> > > > On Fri, Feb 29, 2008 at 09:25:42PM -0800, Greg KH wrote:
+> > > > > What is the guarantee that the names of these slots are correct and do
+> > > > > not happen to be the same as the hotpluggable ones?
+> > > >
+> > > > That would be a bug -- and yes, bugs happen, and we have to deal with
+> > > > them.
+> > >
+> > > My main concern is that BIOS vendors will not fix these bugs, as no
+> > > other OS cares/does this kind of thing today.  The ammount of bad
+> > > information out there might be quite large, and I think this was
+> > > confirmed by some initial testing of IBM systems, right?
+> > 
+> > Yeah, but there's a flip side to this too:  if no one uses the data, no one 
+> > will complain when it's wrong.  If Linux starts making it easy to see this 
+> > stuff, there's a chance system vendors will start taking an extra 5 min. 
+> > before shipment to make sure that the BIOS info is up to date...
+> > 
+> > OTOH, I'm not sure which is worse, bad data or no data.
+> 
+> bad data is worse.
+> 
+> And then there's the machines with duplicate slot names, how does this
+> code handle PCI slots with that?  I think some of the IBM machines had
+> non-hotplug slots named the same as the hotplug slots, right?
 
-Make sure input device for ACPI button gets proper place in device tree.
+At one point, I had some code in there to stick the names of the
+slots into a linked list and walk through it to try and detect
+duplicate slot names, but after a few iterations, the cases I was
+dealing with, it turned out to be easier to refcount them.
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+[my machines did not have colliding names between hp and non-hp
+slots, it was more like seeing the same SxFy object appear
+multiple times in the namespace and trying to create them
+multiple times.]
 
- drivers/acpi/button.c |    1 +
- 1 file changed, 1 insertion(+)
+It wasn't the IBM machine that was breaking; it was Fujitsu. They
+were returning an error code (the numerical value 1023) when I
+called the _SUN method on a slot object that existed in the ACPI
+namespace but was not present (as reported by the _STA method).
 
-diff -puN drivers/acpi/button.c~acpi-make-real-parent-for-acpi-button-input-devices drivers/acpi/button.c
---- a/drivers/acpi/button.c~acpi-make-real-parent-for-acpi-button-input-devices
-+++ a/drivers/acpi/button.c
-@@ -449,6 +449,7 @@ static int acpi_button_add(struct acpi_d
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
- 	input->id.product = button->type;
-+	input->dev.parent = &device->dev;
- 
- 	switch (button->type) {
- 	case ACPI_BUTTON_TYPE_POWER:
-_
+By the time I got that error report, I'd already dropped the
+duplicate name detection code, and was letting the kobject
+infrastructure warn about duplicate names because for my test
+cases, refcounting was a better solution.
+
+[Kenji-san from Fujitsu seemed to be ok with the progress I'd
+made at the time, he can speak up if he's changed his mind ;)]
+
+But even that is not the error case you're describing, where
+there is clear name collision of two physical slots in the
+machine, one being hotplug, the other non-hotplug.
+
+Maybe I would have to add some duplicate name detection code back
+in there but...
+
+> This stuff needs a _lot_ of testing on a lot of different
+> machines, and a sane way to fall-back if there are errors to
+> ensure that working machines don't break.
+> 
+> And then there's the issue with userspace programs only expecting
+> hotplugable slots in the slots/ directory...
+
+Yes -- totally agreed. And I'd like to see actual examples of
+name collisions or userspace breakage to get a better idea of how
+to handle real world problems rather than writing some crummy
+code based on what my limited imagination can think of.
+
+So how to get this test coverage? -mm? linux-next?
+
+Thanks.
+
+/ac
+
