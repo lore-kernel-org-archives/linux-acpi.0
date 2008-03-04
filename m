@@ -1,53 +1,74 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [patch] x86: phase out forced inlining
-Date: Tue, 04 Mar 2008 10:50:11 +0100
-Message-ID: <p73prua6coc.fsf@bingen.suse.de>
-References: <20080301183550.GC25835@cs181133002.pp.htv.fi>
-	<20080303085720.GD15943@elte.hu>
-	<20080303091314.GC4457@cs181133002.pp.htv.fi>
-	<20080303091714.GA18250@elte.hu>
-	<20080303093103.GA23651@uranus.ravnborg.org>
-	<20080303103933.GC21190@elte.hu>
-	<20080303113451.GF4457@cs181133002.pp.htv.fi>
-	<20080303114533.GA4183@elte.hu> <20080303121335.GA15381@elte.hu>
-	<20080303224231.86c22ed0.akpm@linux-foundation.org>
-	<20080304073248.GA2947@elte.hu>
-	<20080304000031.49b558b8.akpm@linux-foundation.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [2.6 patch] acpi/battery.c: make 2 functions static
+Date: Tue, 4 Mar 2008 14:16:00 +0100
+Message-ID: <20080304131600.GG29777@elte.hu>
+References: <20080303091714.GA18250@elte.hu> <20080303093103.GA23651@uranus.ravnborg.org> <20080303103933.GC21190@elte.hu> <20080303113451.GF4457@cs181133002.pp.htv.fi> <20080303114533.GA4183@elte.hu> <20080303120211.GG4457@cs181133002.pp.htv.fi> <20080303121015.GA12660@elte.hu> <20080303122953.GH4457@cs181133002.pp.htv.fi> <20080303125027.GA21577@elte.hu> <20080303145413.GA26072@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:41460 "EHLO mx1.suse.de"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:45087 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756926AbYCDJuN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 04:50:13 -0500
-In-Reply-To: <20080304000031.49b558b8.akpm@linux-foundation.org> (Andrew Morton's message of "Tue\, 4 Mar 2008 00\:00\:31 -0800")
+	id S1759379AbYCDNQl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Mar 2008 08:16:41 -0500
+Content-Disposition: inline
+In-Reply-To: <20080303145413.GA26072@cs181133002.pp.htv.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-Andrew Morton <akpm@linux-foundation.org> writes:
->
-> This was 2.5.x - you'll need to look in the historical-git tree.
->
-> Here it is:
->
->
->
-> : commit 4507a6a59cfc6997e532cd812a8bd244181e6205
-> : Author: akpm <akpm>
-> : Date:   Tue Mar 11 07:42:00 2003 +0000
-> : 
-> :     [PATCH] work around gcc-3.x inlining bugs
-> :     
-> :     Force inlining even when gcc-3.x is too confused to do it for us.
 
-I think these old inlining bugs were just caused by missing __always_inline
-(e.g. in the vsyscall code which requires forced inlining or in copy_*_user)
-AFAIK these all have __always_inline these days and if any are still missing these
-are easy to change over as needed.
+* Adrian Bunk <bunk@stusta.de> wrote:
 
-So Ingo's change is likely ok.
+> > well, i'm trying to assume the best, so please explain the following 
+> > sequence of events to me:
+> > 
+> > 1) as you said you knew about this bug - which bug causes more inlining
+> >    overhead than hundreds of your uninlining patches combined. The bug
+> >    was introduced ~2 years ago in -mm - before the feature hit mainline
+> >    in v2.6.16.
+> 
+> I don't remember having ever said this.
+> 
+> Your choices are:
+> [ ] prove your accusation that I said I
+>     "knew about this bug before the feature hit mainline"
+> [ ] apologize
+> [ ] be the firest person ever in my killfile
 
--Andi
- 
+Adrian, you must be misunderstanding something. Where exactly in the 
+above sentences do i assert that you "knew about this bug before the 
+feature hit mainline"? I dont say that and cannot say that - and it's 
+rather irrelevant. All i say is that you knew about this bug for a long 
+time.
+
+> >...
+> > still, while you clearly had interest in this general area of the kernel 
+> > (for example you wrote hundreds of tiny uninlining patches that work 
+> > towards a similar goal),
+> 
+> I'm not sure with whom you confuse me on this one.
+> Perhaps with Ilpo?
+
+i mean you send tons of trivial patches along the lines of:
+
+|  Author: Adrian Bunk <bunk@kernel.org>
+|  Date:   Fri Feb 22 21:58:37 2008 +0200
+|
+|    x86: don't make swapper_pg_pmd global
+
+to reduce size of the kernel. At 50 bytes of image savings a pop, the 
+127,000 bytes savings my patch gives would be equivalent to more than 
+2500 of such patches of yours.
+
+In other words: you knew about a bug that would have the same kernel 
+image size reduction equivalent to 2500 of your own tiny patches. Still 
+you didnt feel the need to pursue the issue?
+
+I'm not sure about you, but that sure looks weird to me, and i'm really 
+curious what your interpretation of it is. (which, AFAICS, you have not 
+offered so far. You have rejected my common-sense explanation of your 
+actions rather forcefully, so logically there must be some other 
+explanation.)
+
+	Ingo
