@@ -1,74 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch (for 2.6.25?) 1/3] ACPI: EC: fix regression
-Date: Tue, 04 Mar 2008 15:00:12 -0800
-Message-ID: <200803042300.m24N0CD9001543@imap1.linux-foundation.org>
+Subject: [patch (for 2.6.25?) 2/3] drivers/acpi/asus_acpi.c: correct use of ! and &
+Date: Tue, 04 Mar 2008 15:00:13 -0800
+Message-ID: <200803042300.m24N0DBP001546@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765296AbYCDXBF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:01:05 -0500
+	by vger.kernel.org with ESMTP id S1765380AbYCDXBH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:01:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, astarikovskiy@suse.de, len.brown@intel.com, m.s.tsirkin@gmail.com, rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, julia@diku.dk, kronos.it@gmail.com, len.brown@intel.com, maxime@tralhalla.org, trenn@suse.de
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Julia Lawall <julia@diku.dk>
 
-no changelog?
+In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
+involved converting !x & y to !(x & y).  The code below shows the same
+pattern, and thus should perhaps be fixed in the same way.
 
-Tested-by: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+This is not tested and clearly changes the semantics, so it is only
+something to consider.
+
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@ expression E1,E2; @@
+(
+  !E1 & !E2
+|
+- !E1 & E2
++ !(E1 & E2)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Luca Tettamanti <kronos.it@gmail.com>
 Cc: Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Maxime Austruy <maxime@tralhalla.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/acpi/asus_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/ec.c~acpi-ec-fix-regression drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-fix-regression
-+++ a/drivers/acpi/ec.c
-@@ -129,7 +129,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	u8 handlers_installed;
-+	u8 handlers_installed:1;
-+	u8 from_ecdt:1;
- } *boot_ec, *first_ec;
+diff -puN drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and
++++ a/drivers/acpi/asus_acpi.c
+@@ -610,7 +610,7 @@ write_led(const char __user * buffer, un
+ 	    (led_out) ? (hotk->status | ledmask) : (hotk->status & ~ledmask);
  
- /* --------------------------------------------------------------------------
-@@ -772,16 +773,18 @@ static int acpi_ec_add(struct acpi_devic
+ 	if (invert)		/* invert target value */
+-		led_out = !led_out & 0x1;
++		led_out = !led_out;
  
- 	/* Check for boot EC */
- 	if (boot_ec) {
--		if (boot_ec->handle == device->handle) {
--			/* Pre-loaded EC from DSDT, just move pointer */
--			ec = boot_ec;
--			boot_ec = NULL;
--			goto end;
--		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
-+		if (boot_ec->from_ecdt &&
-+		    (boot_ec->handle == device->handle ||
-+		     boot_ec->handle == ACPI_ROOT_OBJECT)) {
- 			/* ECDT-based EC, time to shut it down */
- 			ec_remove_handlers(boot_ec);
- 			kfree(boot_ec);
- 			first_ec = boot_ec = NULL;
-+		} else if (boot_ec->handle == device->handle) {
-+			/* Pre-loaded EC from DSDT, just move pointer */
-+			ec = boot_ec;
-+			boot_ec = NULL;
-+			goto end;
- 		}
- 	}
- 
-@@ -943,6 +946,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
-+		boot_ec->from_ecdt = 1;
- 		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
- 				&boot_ec->handle))) {
- 			pr_info("Failed to locate handle for boot EC\n");
+ 	if (!write_acpi_int(hotk->handle, ledname, led_out, NULL))
+ 		printk(KERN_WARNING "Asus ACPI: LED (%s) write failed\n",
 _
