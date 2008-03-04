@@ -1,131 +1,59 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 3/4] Introduce pci_slot
-Date: Mon, 3 Mar 2008 21:58:25 -0800
-Message-ID: <20080304055824.GD15566@suse.de>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002855.GD21420@ldl.fc.hp.com> <20080301052433.GC19353@suse.de> <20080303205621.GD17814@ldl.fc.hp.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch] x86: phase out forced inlining
+Date: Mon, 3 Mar 2008 22:42:31 -0800
+Message-ID: <20080303224231.86c22ed0.akpm@linux-foundation.org>
+References: <20080301161902.GN25835@cs181133002.pp.htv.fi>
+	<47C99FE1.8080206@gmail.com>
+	<20080301183550.GC25835@cs181133002.pp.htv.fi>
+	<20080303085720.GD15943@elte.hu>
+	<20080303091314.GC4457@cs181133002.pp.htv.fi>
+	<20080303091714.GA18250@elte.hu>
+	<20080303093103.GA23651@uranus.ravnborg.org>
+	<20080303103933.GC21190@elte.hu>
+	<20080303113451.GF4457@cs181133002.pp.htv.fi>
+	<20080303114533.GA4183@elte.hu>
+	<20080303121335.GA15381@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:34232 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756183AbYCDFyA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 00:54:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20080303205621.GD17814@ldl.fc.hp.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42956 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753210AbYCDGnQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 01:43:16 -0500
+In-Reply-To: <20080303121335.GA15381@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, Matthew Wilcox <matthew@wil.cx>, kristen.c.accardi@intel.com
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Adrian Bunk <bunk@kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Alexey Starikovskiy <aystarik@gmail.com>, lenb@kernel.org, astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Mon, Mar 03, 2008 at 01:56:21PM -0700, Alex Chiang wrote:
-> Hi Greg,
-> 
-> * Greg KH <gregkh@suse.de>:
-> > On Thu, Feb 28, 2008 at 05:28:55PM -0700, Alex Chiang wrote:
-> > >   - Make pci_slot the primary sysfs entity. hotplug_slot becomes a
-> > >     subsidiary structure.
-> > >     o pci_create_slot() creates and registers a slot with the PCI core
-> > >     o pci_slot_add_hotplug() gives it hotplug capability
-> > > 
-> > >   - Change the prototype of pci_hp_register() to take the bus and
-> > >     slot number (on parent bus) as parameters.
-> > > 
-> > >   - Remove all the ->get_address methods since this functionality is
-> > >     now handled by pci_slot directly.
-> > 
-> > This describes what you did, but not why you are doing this, making it a
-> > pretty bad changelog comment.
-> > 
-> > Can you refresh my memory as to the "why" for all of this 
-> 
-> How about this:
-> 
-> Currently, /sys/bus/pci/slots/ only exposes hotplug attributes
-> when a hotplug driver is loaded, but PCI slots have attributes
-> such as address, speed, width, etc. that are not related to
-> hotplug at all.
-> 
-> Introduce pci_slot as the primary data structure and kobject
-> model. Hotplug attributes described in hotplug_slot become a
-> secondary structure associated with the pci_slot.
-> 
-> This patch only creates the infrastructure that allows the
-> separation of PCI slot attributes and hotplug attributes.
-> In this patch, the PCI hotplug core remains the only user of this
-> infrastructure, and thus, /sys/bus/pci/slots/ will still only
-> become populated when a hotplug driver is loaded.
-> 
-> A later patch in this series will add a second user of this new
-> infrastructure and demonstrate splitting the task of exposing
-> pci_slot attributes from hotplug_slot attributes.
+On Mon, 3 Mar 2008 13:13:35 +0100 Ingo Molnar <mingo@elte.hu> wrote:
 
-Ok, that's a bit better, please include it in the changelog information
-in the patch next time :)
+> +config OPTIMIZE_INLINING
+> +	bool "Allow gcc to uninline functions marked 'inline'"
+> +	default y
+> +	help
+> +	  This option determines if the kernel forces gcc to inline the functions
+> +	  developers have marked 'inline'. Doing so takes away freedom from gcc to
+> +	  do what it thinks is best, which is desirable for the gcc 3.x series of
+> +	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
+> +	  disabling this option will generate a smaller kernel there. Hopefully
+> +	  this algorithm is so good that allowing gcc4 to make the decision can
+> +	  become the default in the future, until then this option is there to
+> +	  test gcc for this.
 
->   - Make pci_slot the primary sysfs entity. hotplug_slot becomes a
->     subsidiary structure.
->     o pci_create_slot() creates and registers a slot with the PCI core
->     o pci_slot_add_hotplug() gives it hotplug capability
-> 
->   - Change the prototype of pci_hp_register() to take the bus and
->     slot number (on parent bus) as parameters.
-> 
->   - Remove all the ->get_address methods since this functionality is
->     now handled by pci_slot directly.
-> 
-> > and how you are handling machines that do not export this
-> > information at all?
-> 
-> With this patch, there is no change from existing behavior that
-> users see; only infrastructure is changed. The existing hotplug
-> drivers will continue to expose whatever they were exposing
-> before (when they are loaded).
+urgh.  This will cause whatever problem
+4507a6a59cfc6997e532cd812a8bd244181e6205 fixed five years ago to resurface
+for incautious gcc-3.x users.
 
-The issue is for non-hotpluggable slots, right?  That's a big behavior
-change, especially for userspace tools not expecting that.
+I'd suggest that this
 
-> > and call kobject_uevent in the same function that you added the
-> > kobject in, unless there is a very good reason to do so,
-> > otherwise you just missed all of those events...
-> 
-> I *think* I might actually have a "good" reason, but welcome your
-> feedback.
-> 
-> In this patch, pci_create_slot() is responsible for
-> kobject_init_and_add, and it adds the 'address' attribute in
-> sysfs.
-> 
-> The caller of pci_create_slot() is pci_hp_register, and it is
-> calling kobject_uevent after pci_create_slot, because it still
-> has to expose the hotplug attributes in sysfs, which can only
-> happen *after* the pci_slot is created.
-> 
-> I don't think I want to emit the uevent until those hotplug
-> attributes are exposed, right?
+> +#ifndef CONFIG_OPTIMIZE_INLINING
 
-That is correct, but the location seemed a bit "odd", next time around
-I'll review it again to be sure.
+become something along the lines of
 
-> This kinda seems like a stupid design, but the next patch in the
-> series adds another callsite for pci_create_slot. The next patch
-> is detecting physical slots described by ACPI, but doesn't know
-> (or care) about their hotplug capabilities.
-> 
-> I don't think it makes sense to be emitting uevents simply upon
-> detecting a physical slot.
-> 
-> [over time, I hope to add more functionality to pci_slot, such as
-> displaying speed, width, etc., but right now, we only get the
-> address]
-> 
-> One alternative I can think of -- which would further complicate
-> this model that I'm introducing -- would be to make hotplug_slot
-> a kobject too, and then let pci_slot emit a uevent upon physical
-> slot detection, and then let pci_hp_register emit another uevent
-> when the hotplug_slot is created / added to sysfs. But I must
-> admit, I don't really like that alternative.
+> +#ifndef CONFIG_OPTIMIZE_INLINING && (__GNUC__ > 3)
 
-No, that's a mess, don't do that :)
+It would be nice to be able to feed the gcc version into the Kconfig logic,
+really..
 
-thanks,
-
-greg k-h
