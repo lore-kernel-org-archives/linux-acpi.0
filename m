@@ -1,28 +1,68 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] ACPI: Unneccessary to scan the PCI bus already scanned.
-Date: Tue, 4 Mar 2008 22:23:40 +0100
-Message-ID: <20080304212340.GE31546@elte.hu>
-References: <20080303073214.GA5934@elte.hu> <86802c440803030006m1879838awc238f07bc98ed43e@mail.gmail.com> <86802c440803030030p4ff9cec5tdb25d1cdc131d377@mail.gmail.com> <86802c440803030201i684f31c1m97fb3f1f1927d4f4@mail.gmail.com> <20080303101040.GG18281@elte.hu> <86802c440803030233s1b0cc0a6nbed683ee3d4fac63@mail.gmail.com> <20080303111124.GA27348@elte.hu> <86802c440803031057m7802a00cnd158da03c4bb507@mail.gmail.com> <86802c440803041128g16a2cf8chdf8c87f5f24742a1@mail.gmail.com> <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Wed, 05 Mar 2008 00:24:33 +0300
+Message-ID: <47CDBE11.4010900@gmail.com>
+References: <20080225093914.GB4375@ics.muni.cz> <200802251247.30605.rjw@sisk.pl> <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com> <20080304211212.GD6704@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:48366 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755787AbYCDVXx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2008 16:23:53 -0500
-Content-Disposition: inline
-In-Reply-To: <86802c440803041134t45c4e2b3yd6ee0f9f32298c55@mail.gmail.com>
+Received: from ug-out-1314.google.com ([66.249.92.168]:35166 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758235AbYCDVYZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 16:24:25 -0500
+Received: by ug-out-1314.google.com with SMTP id z38so2901270ugc.16
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2008 13:24:22 -0800 (PST)
+In-Reply-To: <20080304211212.GD6704@kernel.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Greg KH <gregkh@suse.de>, Muli Ben-Yehuda <muli@il.ibm.com>, Zhao Yakui <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+
+Jens Axboe wrote:
+> On Wed, Mar 05 2008, Alexey Starikovskiy wrote:
+>   
+>> Jens Axboe wrote:
+>>     
+>>> On Tue, Feb 26 2008, Lukas Hejtmanek wrote:
+>>>  
+>>>       
+>>>> On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh 
+>>>> wrote:
+>>>>    
+>>>>         
+>>>>> On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
+>>>>>      
+>>>>>           
+>>>>>> volume keys work. But anything through acpid does not. Even AC/battery 
+>>>>>> switch
+>>>>>> is not signalized. So the bug may be somewhere else?
+>>>>>>        
+>>>>>>             
+>>>>> Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
+>>>>> thinkpad.  I don't have a link to it right now, but if you look for the
+>>>>> messages to LKML on the last 48h, you will find it.
+>>>>>      
+>>>>>           
+>>>> this one fixes all my troubles with thinkpad hotkeys in rc3.
+>>>> http://lkml.org/lkml/2008/2/25/400
+>>>>    
+>>>>         
+>>> Ping - is anyone sending this upstream? Would be nice to have my x60
+>>> usable for -rc4 at least.
+>>>
+>>>  
+>>>       
+>> Please take a look at patches in #10100.
+>>     
+>
+> Can you be more specific (eg if you want me to test any/all of them, let
+> me know)?
+>
+>   
+Patch from comment #3 is in -mm at the moment, and has good chance to 
+appear in linus tree.
+I am trying to invent something less crufty along the lines of comment 
+#4, but not succeeded yet.
 
 
-* Yinghai Lu <yhlu.kernel@gmail.com> wrote:
-
-> use this v2 one please
-
-thanks, applied. (but this must ultimately go via the ACPI/PCI trees i 
-suspect, as it patches arch/x86/pci/acpi.c)
-
-	Ingo
