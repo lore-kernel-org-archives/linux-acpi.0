@@ -1,33 +1,65 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Wed, 5 Mar 2008 13:34:42 -0700
-Message-ID: <20080305203441.GP24386@parisc-linux.org>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <200803041018.29035.jbarnes@virtuousgeek.org> <20080304193036.GB5534@suse.de> <20080304230937.GD3694@ldl.fc.hp.com> <47CDF339.3060304@jp.fujitsu.com> <20080305202052.GN3694@ldl.fc.hp.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: Linux 2.6.25-rc4
+Date: Wed, 5 Mar 2008 22:30:32 +0000
+Message-ID: <20080305223032.GA1385@earth.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:53443 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753720AbYCEUfD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Mar 2008 15:35:03 -0500
+Received: from the.earth.li ([217.147.81.2]:40279 "EHLO the.earth.li"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754233AbYCEWae (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Mar 2008 17:30:34 -0500
 Content-Disposition: inline
-In-Reply-To: <20080305202052.GN3694@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Gary Hade <garyhade@us.ibm.com>, wa
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Mar 05, 2008 at 01:20:52PM -0700, Alex Chiang wrote:
-> So given that it's two versus one, I modified my
-> drivers/acpi/pci_slot module to consider Fujitsu machines to be a
-> quirk. :)
-> 
-> Can you please test patches 1 and 2 that I sent out as v8 of my
-> series, but replace patch 3 with this patch?
+In article
+<alpine.LFD.1.00.0803042044460.12253@woody.linux-foundation.org>
+(earth.lists.linux-kernel) you wrote:
 
-I like this idea.  Nicely done.
+> It's a few days late, but I was waiting for some updates for some of the 
+> most annoying regressions until releasing it, so the end result is 
+> hopefully more useful as a result.
+
+Still crashes in acpi_get_data for me; the patch mentioned
+<1204241934.10256.151.camel@acpi-hp-zz.sh.intel.com> and tracked at
+
+http://bugzilla.kernel.org/show_bug.cgi?id=10132
+
+still doesn't seem to have hit mainline and still fixes the issue for me.
+
+-----
+From: Lin Ming <ming.m.lin@intel.com>
+
+Fix a memory overflow bug when copying
+NULL internal package element object to external.
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/utilities/utobject.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/utilities/utobject.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/utilities/utobject.c
++++ linux-2.6/drivers/acpi/utilities/utobject.c
+@@ -432,7 +432,7 @@ acpi_ut_get_simple_object_size(union acp
+         * element -- which is legal)
+         */
+        if (!internal_object) {
+-               *obj_length = 0;
++               *obj_length = sizeof(union acpi_object);
+                return_ACPI_STATUS(AE_OK);
+        }
+
+-----
+
+J.
 
 -- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+/-\                             | 101 things you can't have too much
+|@/  Debian GNU/Linux Developer |     of : 8 - Hard drive space.
+\-                              |
