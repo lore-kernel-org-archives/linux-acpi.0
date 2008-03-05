@@ -1,41 +1,54 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Tue, 4 Mar 2008 16:46:46 -0700
-Message-ID: <20080304234646.GH3694@ldl.fc.hp.com>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002938.GE21420@ldl.fc.hp.com> <20080301052542.GD19353@suse.de> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <20080304225830.GC3694@ldl.fc.hp.com> <20080304231525.GA25125@suse.de>
+Subject: Re: [PATCH 1/4] Remove path attribute from sgi_hotplug
+Date: Tue, 4 Mar 2008 17:19:00 -0700
+Message-ID: <20080305001900.GI3694@ldl.fc.hp.com>
+References: <20080229002341.GA21420@ldl.fc.hp.com> <20080229002640.GB21420@ldl.fc.hp.com> <200803031048.20762.jbarnes@virtuousgeek.org> <47CC4948.7020307@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:26343 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757011AbYCDXqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 18:46:47 -0500
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:24750 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082AbYCEATD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2008 19:19:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20080304231525.GA25125@suse.de>
+In-Reply-To: <47CC4948.7020307@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-Hi Greg, all,
+* Prarit Bhargava <prarit@redhat.com>:
+>
+>>> -	bss_hotplug_slot->name = kmalloc(SN_SLOT_NAME_SIZE, GFP_KERNEL);
+>>> -	if (!bss_hotplug_slot->name) {
+>>> -		kfree(bss_hotplug_slot->private);
+>>> -		return -ENOMEM;
+>>> -	}
+>>> +	bss_hotplug_slot->name = slot->physical_path;
+>>>
+>>>  	slot->device_num = device;
+>>>  	slot->pci_bus = pci_bus;
+>>> -	sprintf(bss_hotplug_slot->name, "%04x:%02x:%02x",
+>>> -		pci_domain_nr(pci_bus),
+>>> -		((u16)pcibus_info->pbi_buscommon.bs_persist_busnum),
+>>> -		device + 1);
+>>>
+>>>     
+>>   
+> Ugh ... it has been a while since I've looked at or owned this code ;) -- 
+> but I do seem to recall that on SGI boxes the slot's name was different 
+> from the physical path of the device (ie, what was stamped on the back of 
+> the PCI hotplug chassis was different from Linux' PCI name) -- OTOH, I 
+> haven't recently looked at what slot->physical_path has been initialized 
+> to, so they might now be one-and-the-same ....
 
-* Greg KH <gregkh@suse.de>:
-> On Tue, Mar 04, 2008 at 03:58:30PM -0700, Alex Chiang wrote:
-> 
-> > Again, I'm thinking more exposure in linux-next might be a
-> > reasonable way for us to figure out how bad (or good) the
-> > situation might really be out there.
-> 
-> Ok, care to resend them with the requested updates?
+Nope, you are right -- slot->name is quite different from
+slot->physical_path.
 
-Thanks, I need to review my patch that touches SGI after thinking
-about Prarit's comment some more.
+I'm going to remove this patch from my series since it will
+definitely break SGI.
 
-Look for v8 of series to come out later (and please ignore that
-stray patch I sent out a few minutes ago with subject [PATCH 3/4,
-v8]).
-
-Thanks.
+Jesse, Prarit, thanks for the good catch.
 
 /ac
 
