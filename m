@@ -1,44 +1,29 @@
-From: "Luca Tettamanti" <kronos.it@gmail.com>
-Subject: Re: [patch (for 2.6.25?) 2/3] drivers/acpi/asus_acpi.c: correct use of ! and &
-Date: Wed, 5 Mar 2008 11:11:46 +0100
-Message-ID: <68676e00803050211m7cd24c95n8df974fcca3404f6@mail.gmail.com>
-References: <200803042300.m24N0DBP001546@imap1.linux-foundation.org>
+From: "=?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?=" <zajec5@gmail.com>
+Subject: Re: acer-wmi: can we bind wireless button when loading module?
+Date: Wed, 5 Mar 2008 18:54:46 +0100
+Message-ID: <b170af450803050954o2f57df64t3449f7485edc94e9@mail.gmail.com>
+References: <b170af450802251329m20fb2e8eu5ffdc5aea889f0b5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.188]:32635 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761284AbYCEKLt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Mar 2008 05:11:49 -0500
-Received: by rn-out-0910.google.com with SMTP id e11so6588rng.17
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Mar 2008 02:11:47 -0800 (PST)
-In-Reply-To: <200803042300.m24N0DBP001546@imap1.linux-foundation.org>
+Received: from wx-out-0506.google.com ([66.249.82.237]:33502 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761088AbYCERys (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Mar 2008 12:54:48 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so2059001wxd.4
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Mar 2008 09:54:47 -0800 (PST)
+In-Reply-To: <b170af450802251329m20fb2e8eu5ffdc5aea889f0b5@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, julia@diku.dk, len.brown@intel.com, maxime@tralhalla.org, trenn@suse.de
+To: linux-acpi@vger.kernel.org
 
-On Wed, Mar 5, 2008 at 12:00 AM,  <akpm@linux-foundation.org> wrote:
-> From: Julia Lawall <julia@diku.dk>
->
->  In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
->  involved converting !x & y to !(x & y).  The code below shows the same
->  pattern, and thus should perhaps be fixed in the same way.
-[...]
->  diff -puN drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and drivers/acpi/asus_acpi.c
->  --- a/drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and
->  +++ a/drivers/acpi/asus_acpi.c
->  @@ -610,7 +610,7 @@ write_led(const char __user * buffer, un
->             (led_out) ? (hotk->status | ledmask) : (hotk->status & ~ledmask);
->
->         if (invert)             /* invert target value */
->  -               led_out = !led_out & 0x1;
->  +               led_out = !led_out;
-
-led_out is actually a boolean, so the mask is superfluous.
-
-{Tested,Acked}-by: Luca Tettamanti <kronos.it@gmail.com>
-
-Luca
+MjAwOC8yLzI1LCBSYWZhxYIgTWnFgmVja2kgPHphamVjNUBnbWFpbC5jb20+Ogo+ICBJIGhhdmUg
+c21hbGwgcXVlc3Rpb24gYWJvdXQgaGFuZGxpbmcgd2lyZWxlc3Mgb24vb2ZmIGJ1dHRvbiBpbiBB
+Y2VyCj4gIG5vdGVib29rcy4gSXMgaXQgcG9zc2libGUgdG8gZGV0ZWN0IHRoaXMgYnV0dG9uJ3Mg
+ZXZlbnRzIGFuZCBjaGFuZ2luZwo+ICB3aXJlbGVzcyBzdGF0dXMgdGhlbj8KPgo+ICBJIGJlbGl2
+ZSB0aGUgbW9zdCBBY2VyIHVzZXJzIHdvdWxkIGxpa2UgdGhpcyBzb2x1dGlvbiBhcyBpdCdzIG11
+Y2gKPiAgZWFzaWVyIHRoYW4gbG9nZ2luZyBhcyByb290IGFuZCBlY2hvaW5nIDEgdG8KPiAgL3N5
+cy9kZXZpY2VzL3BsYXRmb3JtL2FjZXItd21pL3dpcmVsZXNzCgpCdW1wIGZvciBteSBxdWVzdGlv
+bi4gQW55b25lLCBwbGVhc2U/CgotLSAKUmFmYcWCIE1pxYJlY2tpCg==
