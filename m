@@ -1,46 +1,64 @@
-From: Johann Felix Soden <johfel@gmx.de>
-Subject: [PATCH] buffer array one byte too short in drivers/acpi/system.c
-Date: Thu, 06 Mar 2008 15:30:53 +0100
-Message-ID: <1204813853.25336.3.camel@localhost>
+From: Gary Hade <garyhade@us.ibm.com>
+Subject: Re: [PATCH 0/3, v8] PCI, ACPI: Physical PCI slot objects
+Date: Thu, 6 Mar 2008 09:49:53 -0800
+Message-ID: <20080306174952.GC6041@us.ibm.com>
+References: <20080305004252.GJ3694@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39008 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759709AbYCFOa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Mar 2008 09:30:59 -0500
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:42815 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758962AbYCFRuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Mar 2008 12:50:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20080305004252.GJ3694@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <gregkh@suse.de>, Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, kaneshige.kenji@jp.fujitsu.com, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org, lcm@us.ibm.com
 
-From: Johann Felix Soden <johfel@users.sourceforge.net>
+On Tue, Mar 04, 2008 at 05:42:52PM -0700, Alex Chiang wrote:
+> Hi Greg, all,
+> 
+> This is v8 of my "introduce pci_slot" series, to be considered for
+> inclusion in linux-next to get more test exposure and shake out
+> the bugs.
+> 
+> The major change in this revision is removing an earlier patch
+> which removed the 'path' sysfs attribute on SGI machines. After
+> review from Jesse Barnes and Prarit Bhargava, they kindly
+> informed me that 'path' is actually an SGI physical path, and not
+> a PCI address. My patch would have definitely broken userspace on
+> SGI machines, so I eliminated it, and 'path' remains on SGI boxes.
+> 
+> This brings the patch series down to a total of 3 patches:
+> 
+> 	0001-Construct-one-fakephp-slot-per-pci-slot.patch
+> 	0002-Introduce-pci_slot.patch
+> 	0003-ACPI-PCI-slot-detection-driver.patch
+> 
+> Thanks for all the code reviews from various people.
+> 
+> I'm now just looking for some people to beat on this code and let
+> me know where I screwed up. :)
 
-Since "ff_gbl_lock" has a length of 10 chars and is copied with sprintf to
-char buffer[10], there is a problem because of the closing zero byte. We
-need char buffer[11].
+Hi Alex,
+The x3950 M2 on which the earlier reported Oops (invalid opcode
+while in acpi_ev_notify_dispatch) reproduced is unfortunately still
+tied up because of a customer critical project.
 
-Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
----
- drivers/acpi/system.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I have been able to try these new patches on a single node
+x3850 [2 hotpluggable PCI-X slots, 4 hotpluggable PCIe slots]
+and a 2 node x3950 [12 total (6/node) hotpluggable PCI-X slots]
+and found no problems.
 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index 55cf4c0..037b679 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -319,7 +319,7 @@ void acpi_irq_stats_init(void)
- 		goto fail;
- 
- 	for (i = 0; i < num_counters; ++i) {
--		char buffer[10];
-+		char buffer[11];
- 		char *name;
- 
- 		if (i < num_gpes)
+Gary
+
 -- 
-1.5.4.3
-
-
+Gary Hade
+System x Enablement
+IBM Linux Technology Center
+503-578-4503  IBM T/L: 775-4503
+garyhade@us.ibm.com
+http://www.ibm.com/linux/ltc
 
