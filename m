@@ -1,57 +1,108 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH] Warn if packages with invalid references are evaluated
-Date: Fri, 07 Mar 2008 09:33:43 +0800
-Message-ID: <1204853623.14599.1.camel@minggr.sh.intel.com>
-References: <1204842824.8741.6.camel@linux-2bdv.site>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32 - please apply
+Date: Fri, 7 Mar 2008 14:27:13 +0800
+Message-ID: <823A93EED437D048963A3697DB0E35DE0129BE5A@pdsmsx414.ccr.corp.intel.com>
+References: <20071110014448.471e384b.miknix@gmail.com><200711100321.22500.carlos@strangeworlds.co.uk><20071112000534.e0489eca.miknix@gmail.com><200711120002.24474.carlos@strangeworlds.co.uk><20071123152446.144ac193.miknix@gmail.com> <20080119151929.1674103b.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32894 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:17363 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758184AbYCGBgf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Mar 2008 20:36:35 -0500
-In-Reply-To: <1204842824.8741.6.camel@linux-2bdv.site>
+	id S1751219AbYCGG2x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Mar 2008 01:28:53 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20080119151929.1674103b.miknix@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: rui.zhang@intel.com, linux-acpi <linux-acpi@vger.kernel.org>
+To: =?iso-8859-1?Q?=C2ngelo_Miguel_Arrifano?= <miknix@gmail.com>, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
+Hi, Angelo,
 
-On Thu, 2008-03-06 at 23:33 +0100, Thomas Renninger wrote:
-> Warn if packages with invalid references are evaluated
-> 
-> And return an error to avoid NULL pointer access.
-> Lin Ming's patch avoids corrupted mem access when
-> BIOS has invalid references included, the handle is now zero
-> instead of corrupted.
+=46or a typical ACPI device driver, it usually works like this:
+1. Register the ACPI device driver is the module_init
+2. Enable the device, create the sys I/F in the drivers .add method.
+3. Remove the device I/F in .remove method.
+4. unregister the ACPI device driver in module_exit.
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+With your patch applied, the sys I/F will be created even if no PNP0C32=
+ device exists in the ACPI namespace. IMO, moving this piece of code to=
+ the .add method will be much better.
+
+BTW: please don't send a patch as an attachment, it's difficult for rev=
+iew. :)
 
 Thanks,
-Lin Ming
-> 
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> 
-> ---
-> Index: linux-2.6.24/drivers/acpi/utils.c
-> ===================================================================
-> --- linux-2.6.24.orig/drivers/acpi/utils.c
-> +++ linux-2.6.24/drivers/acpi/utils.c
-> @@ -407,6 +407,12 @@ acpi_evaluate_reference(acpi_handle hand
->  			break;
->  		}
->  
-> +		if (!element->reference.handle) {
-> +			printk(KERN_WARNING PREFIX "Invalid reference in"
-> +			       " package %s\n", pathname);
-> +			status = AE_NULL_ENTRY;
-> +			break;
-> +		}
->  		/* Get the  acpi_handle. */
->  
->  		list->handles[i] = element->reference.handle;
-> 
-> 
+rui
 
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org
+>[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of ?ngelo Miguel A=
+rrifano
+>Sent: Saturday, January 19, 2008 11:19 PM
+>To: lenb@kernel.org
+>Cc: linux-acpi@vger.kernel.org
+>Subject: Re: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32 =
+- please
+>apply
+>
+>-----BEGIN PGP SIGNED MESSAGE-----
+>Hash: SHA1
+>
+>On Fri, 23 Nov 2007 15:24:46 +0000
+>=C2ngelo Miguel Arrifano <miknix@gmail.com> wrote:
+>
+>> Hello all,
+>>
+>> I opened a SF.net project to support devices found under PNP0C32.
+>> These devices are known as Direct App Launch Buttons and are used on=
+ Vista
+>Hotstart(TM) technology.
+>> I believe most of Vista "ready" laptops have this.
+>>
+>> The project aims to provide similar functionality to Vista Hotstart(=
+TM) in
+>linux.
+>> You can read more at http://quickstart.sourceforge.net/
+>>
+>> Greetings,
+>> --
+>> Angelo Arrifano AKA MiKNiX
+>> CSE Student at UBI, Portugal
+>> Gentoo Linux AMD64 Arch Tester
+>> miknix@gmail.com
+>> http://miknix.homelinux.com
+>> PGP Pubkey online
+>>
+>> - -
+>>
+>> Q: How many Chuck Norris' does it take to change a light bulb?
+>> A: None, Chuck Norris prefers to kill in the dark.
+>
+>The project is running for some time now. During this time there
+>were no reports of people getting it trouble with it.
+>
+>Attached is the patch.
+>
+>Thanks,
+>- --
+>Angelo Arrifano AKA MiKNiX
+>CSE Student at UBI, Portugal
+>Gentoo Linux AMD64 Arch Tester
+>Linwizard Developer
+>miknix@gmail.com
+>http://miknix.homelinux.com
+>PGP Pubkey 0x3D92BB0B
+>-----BEGIN PGP SIGNATURE-----
+>Version: GnuPG v2.0.7 (GNU/Linux)
+>
+>iD8DBQFHkhUBNahyoD2SuwsRAn8gAJ4yj/kQl3RyAbBw3s9/2R04rEjFbQCfc1fC
+>/HlHqqB8B9my/vP67QMWrBM=3D
+>=3DnVRr
+>-----END PGP SIGNATURE-----
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
