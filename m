@@ -1,62 +1,37 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Subject: Re: acer-wmi uses input:i8042_command() => build error
-Date: Mon, 10 Mar 2008 16:06:49 -0700
-Message-ID: <20080310160649.5d225ac7.randy.dunlap@oracle.com>
-References: <20080310124754.4ec3f24d.randy.dunlap@oracle.com>
-	<200803101959.06441.carlos@strangeworlds.co.uk>
-	<Pine.LNX.4.64.0803102227540.18589@twin.jikos.cz>
+Date: Mon, 10 Mar 2008 23:14:26 +0000
+Message-ID: <200803102314.26951.carlos@strangeworlds.co.uk>
+References: <20080310124754.4ec3f24d.randy.dunlap@oracle.com> <Pine.LNX.4.64.0803102227540.18589@twin.jikos.cz> <20080310160649.5d225ac7.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:14862 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752348AbYCJXHX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2008 19:07:23 -0400
-In-Reply-To: <Pine.LNX.4.64.0803102227540.18589@twin.jikos.cz>
+Received: from phoenix.slamd64.com ([217.10.145.2]:32990 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757586AbYCJXPZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2008 19:15:25 -0400
+In-Reply-To: <20080310160649.5d225ac7.randy.dunlap@oracle.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jiri Kosina <jkosina@suse.cz>, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-On Mon, 10 Mar 2008 22:29:37 +0100 (CET) Jiri Kosina wrote:
+On Monday 10 March 2008 23:06:49 Randy Dunlap wrote:
+> Yes, thanks.
+> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-> On Mon, 10 Mar 2008, Randy Dunlap wrote:
-> 
-> > drivers/built-in.o: In function `set_u32':
-> > acer-wmi.c:(.text+0xb9bf6): undefined reference to `i8042_command'
-> > make[1]: *** [vmlinux] Error 1
-> > make: *** [sub-make] Error 2
-> 
-> Does the patch below fix your build?
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Yes, thanks.
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+(I'll add this to my queue, although given my last set of patches hasn't been 
+applied to the ACPI tree yet, and Len seems to have gone AWOL for the last 
+two weeks since then, I have no idea on the chances of this getting in, 
+unless someone else wants to pick it up?)
 
-
-> From: Jiri Kosina <jkosina@suse.cz>
-> 
-> Acer-wmi dependends on i8042 code.
-> 
-> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-> 
-> --- 
->  drivers/misc/Kconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> index 982e27b..962817e 100644
-> --- a/drivers/misc/Kconfig
-> +++ b/drivers/misc/Kconfig
-> @@ -108,6 +108,7 @@ config ACER_WMI
->  	depends on ACPI
->  	depends on LEDS_CLASS
->  	depends on BACKLIGHT_CLASS_DEVICE
-> +	depends on SERIO_I8042
->  	select ACPI_WMI
->  	---help---
->  	  This is a driver for newer Acer (and Wistron) laptops. It adds
-> --
-
----
-~Randy
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
