@@ -1,74 +1,62 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Problem with the Fn+F3 key. acpi problem ?
-Date: Mon, 10 Mar 2008 12:23:11 +0100
-Message-ID: <1205148191.25830.106.camel@queen.suse.de>
-References: <fmaaj5$jsl$1@ger.gmane.org>
-	 <20080112121714.GB15173@srcf.ucam.org> <fmac61$oc8$1@ger.gmane.org>
-	 <20080112124619.GA15578@srcf.ucam.org>  <fmakts$gqs$1@ger.gmane.org>
-	 <1203347919.6019.79.camel@queen.suse.de> <fqtkjq$rod$1@ger.gmane.org>
-	 <fqtor7$5mu$1@ger.gmane.org>
-	 <1205111890.4069.1.camel@yakui_zhao.sh.intel.com>
-Reply-To: trenn@suse.de
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: 2.6.25 regression/oops on boot (ACPI related?)
+Date: Mon, 10 Mar 2008 14:37:09 +0000
+Message-ID: <20080310143709.GM9009@earth.li>
+References: <20080228200855.GJ9009@earth.li> <1204219227.10256.146.camel@acpi-hp-zz.sh.intel.com> <20080229075449.GK9009@earth.li> <1204241934.10256.151.camel@acpi-hp-zz.sh.intel.com> <20080301152706.GO9009@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:58479 "EHLO mx2.suse.de"
+Received: from the.earth.li ([217.147.81.2]:39566 "EHLO the.earth.li"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057AbYCJLXM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Mar 2008 07:23:12 -0400
-In-Reply-To: <1205111890.4069.1.camel@yakui_zhao.sh.intel.com>
+	id S1751011AbYCJOhK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Mar 2008 10:37:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20080301152706.GO9009@earth.li>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: giggz <giggzounet@gmail.com>, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com
 
-On Mon, 2008-03-10 at 09:18 +0800, Zhao Yakui wrote:
-> On Sat, 2008-03-08 at 11:08 +0100, giggz wrote:
-> > giggz a =C3=A9crit :
-> > [snip]
-> >=20
-> > >>>> In that case, try catting /proc/acpi/event and hit the button.
-> > >> On SUSE, instead of stopping acpid, you can use:
-> > >> acpi_listen
-> > >> to log acpi events.
-> > >>
-> >=20
-> > in my case when I increase the level of acpi debug and hit the Fn+F=
-3
-> > button I don't see anything when I cat /proc/acpi/event. And it's t=
-he
-> > same if I use acpi_listen. I launch acpi_listen and the hit the but=
-ton,
-> > but nothing appears. I just get the message I posted in the
-> > /var/log/messages.
-> >=20
-> Will you please attach the acpidump output ?
-> The pmtools can be downloaded from :
-> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools=
--20071116.tar.bz2
+On Sat, Mar 01, 2008 at 03:27:06PM +0000, Jonathan McDowell wrote:
+> On Fri, Feb 29, 2008 at 07:38:54AM +0800, Zhang, Rui wrote:
+> > On Fri, 2008-02-29 at 15:54 +0800, Jonathan McDowell wrote:
+> > > On Fri, Feb 29, 2008 at 01:20:27AM +0800, Zhang, Rui wrote:
+> > > > Please attach the acpidump output using the latest pmtools at :
+> > > > http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+> > > > Please attach the result of "cat /proc/acpi/thermal_zone/*/*" as
+> > > well.
+> > > 
+> > > I've attached the output of acpidump. The cat results in this output:
+> > > 
+> > > [noodles@meepok /proc/acpi/thermal_zone/THRM]$ cat *
+> > > 0 - Active; 1 - Passive
+> > > <polling disabled>
+> > > state:                   ok
+> > > temperature:             40 C
+> > > Segmentation fault
+> > > 
+> > > It also causes a general protection fault, which I've attached as
+> > > well.
+> > > 
+> > > This is a stock Debian kernel:
+> > > 
+> > > Linux meepok 2.6.24-1-amd64 #1 SMP Mon Feb 11 13:47:43 UTC 2008 x86_64
+> > > GNU/Linux
+> > > 
+> > > I have a patch from Ming Lin to try out but it'll have to wait until
+> > > tomorrow before I can do so.
+> > > 
+> > We've root caused the problem and Lin Ming's patch should work for you.
+> > Please give it a try. :)
+> 
+> I've now done so; it fixes my problem and 2.6.25-rc3 boots fine with it
+> applied. Thanks.
 
-Yep.
-Depending on your distribution you might find the acpidump binary in a
-package. On SUSE it would be the pmtools package. A bit googling should
-tell you what package you need to install on your distri to get
-acpidump.
+Is there a reason this still hasn't made it into 2.6.25-rc5?
 
-Best is you open a bug here:
-http://bugzilla.kernel.org/
-and attach the info you already posted on the list (the dmesg output
-with increased ACPI debug output) and the acpidump.
-Please add me to CC of the bug then.
-Currently there are patches to connect ACPI and graphics driver on the
-way, it could be that we miss some support in the kernel of the latter,
-I don't know, let's evaluate this a bit further in the bug...
+J.
 
-Thanks,
-
-   Thomas
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Covered in paint and high as a kite.
+This .sig brought to you by the letter I and the number 13
+Product of the Republic of HuggieTag
