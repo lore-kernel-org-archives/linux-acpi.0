@@ -1,114 +1,100 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Separate suspend and hibernation callbacks
- (highest level) - updated
-Date: Sun, 9 Mar 2008 22:52:17 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803092219290.31643-100000@netrider.rowland.org>
-References: <200803092150.07065.rjw@sisk.pl>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: *NEW* ACPI driver to support App Hot Startup AKA PNP0C32 -
+	please apply
+Date: Mon, 10 Mar 2008 11:23:36 +0800
+Message-ID: <1205119416.10256.218.camel@acpi-hp-zz.sh.intel.com>
+References: <20071110014448.471e384b.miknix@gmail.com>
+	 <200711100321.22500.carlos@strangeworlds.co.uk>
+	 <20071112000534.e0489eca.miknix@gmail.com>
+	 <200711120002.24474.carlos@strangeworlds.co.uk>
+	 <20071123152446.144ac193.miknix@gmail.com>
+	 <20080119151929.1674103b.miknix@gmail.com>
+	 <823A93EED437D048963A3697DB0E35DE0129BE5A@pdsmsx414.ccr.corp.intel.com>
+	 <20080307112505.7281ef4b.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3638 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752252AbYCJCwS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Mar 2008 22:52:18 -0400
-In-Reply-To: <200803092150.07065.rjw@sisk.pl>
+Received: from mga11.intel.com ([192.55.52.93]:13897 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751095AbYCJDe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Mar 2008 23:34:26 -0400
+In-Reply-To: <20080307112505.7281ef4b.miknix@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, David Brownell <david-b@pacbell.net>
+To: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Sun, 9 Mar 2008, Rafael J. Wysocki wrote:
+As there is nothing private, add linux-acpi in the discussion. :)
 
-> > If @prepare returns an error (such as -EAGAIN) then @complete shouldn't be called.
-> 
-> Hmm, I'd prefer to call it if ->prepare() fails too.  The -EAGAIN case is
-> special, because in fact there's no warranty that ->prepare() will be called
-> again (for example, the new child's ->suspend() may fail before that happens),
-> so we need to do the clean up after it.  In general, if ->complete() is assumed
-> to be called after a failing ->prepare() too, that simplifies the code a bit.
+On Fri, 2008-03-07 at 19:25 +0800, =C3=82ngelo Miguel Arrifano wrote:
+> On Fri, 7 Mar 2008 14:27:13 +0800
+> "Zhang, Rui" <rui.zhang@intel.com> wrote:
+>=20
+> > Hi, Angelo,
+> >
+> > For a typical ACPI device driver, it usually works like this:
+> > 1. Register the ACPI device driver is the module_init
+> > 2. Enable the device, create the sys I/F in the drivers .add method=
+=2E
+> > 3. Remove the device I/F in .remove method.
+> > 4. unregister the ACPI device driver in module_exit.
+> >
+> > With your patch applied, the sys I/F will be created even if no
+> PNP0C32 device exists in the ACPI namespace. IMO, moving this piece o=
+f
+> code to the .add method will be much better.
+>=20
+> That's right, but the sys I/F being created are not in a per-device
+> basis. I mean:
+>=20
+> Suppose PNP0C32 has three devices:
+> ABTN
+> BBTN
+> CBTN
+You mean three devces with _HID(PNP0C32), or three devices enumerated
+under a PNP0C32 device? could you please attach the acpidump output?
+> The sys files are created for PNP0C32 and not for every [ABC]BTN
+> device.
+>  So, moving the
+> sys I/F code into .add, AFAIK, will get the sys files created several
+> times which is not
+> the purpose.
+=2Eadd method is called for each PNP0C32 device,not for each button.
+so in this case, I think it will only create two sys files...
+>=20
+> The sys files created are "buttons" and "pressed_button".
+> "buttons" displays all devices (buttons) under PNP0C32 for, IMHO,
+> easier enumeration by
+> userspace; instead of having a file for each device.
+> "pressed_buttons" displays the button used to turn on/resume the
+> computer.
+>=20
+> But you are still right, the driver loads successfully (although
+> displaying "none" on "buttons" sys file) when no PNP0C32 is present a=
+s
+> we can see on this user post which doesn't have PNP0C32 at all:
+> http://sourceforge.net/forum/forum.php?thread_id=3D1959640&forum_id=3D=
+754264
+>=20
+> On the code below, shouldn't (status < 0) be true when no PNP0C32 is
+> present?
+>=20
+>         /* ACPI driver register */
+>         status =3D acpi_bus_register_driver(&quickstart_acpi_driver);
+>         if (status < 0)
+>                 return -ENODEV;
+>=20
+> This was supposed to exit with -ENODEV before creating sys I/F.
+No, acpi_bus_register_driver returns 0 if no matched device is found, i=
+n
+order to support device hotplug.
 
-I'm quite certain this is a bad idea.
+thanks,
+rui
 
-The kerneldoc says it all: @complete undoes the changes made by
-@prepare.  If @prepare failed then it didn't make any changes (or else
-it already undid any changes that were made), so @complete shouldn't be
-called.  This is the way all programming interfaces should work.
-
-Don't worry about complicating the core code a little bit.  It's just
-in one spot; much more important is that the calling convention should
-be clear.  My way is very simple: Every successful call to @prepare is
-balanced by exactly one call to @complete.
-
-> First, I moved the pm_dev_dbg() stuff into the inner if () blocks.
-> Second, I made it possible to use ->prepare() and ->complete() in the
-> "noirq" case as well and added a comment about the "noirq" callbacks.
-> Finally, I cut some rough edges here and there (at least I hope so).
-
-There's almost nothing left to comment on in the patch itself.  I'll 
-have to try it out before giving any further feedback...
-
-> + * @complete: Undo the changes made by @prepare().  This method is executed for
-> + *	all kinds of resume transitions, immediately following one of the resume
-> + *	callbacks: @resume(), @thaw(), @restore(), or @recover().  Also executed
-> + *	if a suspend callback (@suspend(), @freeze(), @poweroff(), @quiesce())
-> + *	immediately following a successful @prepare() fails OR if @prepare()
-> + *	itself fails.  @complete() cannot fail.
-
-Of course this comment should be changed to match the actual behavior.  
-There's no need to mention that @complete cannot fail; this is obvious
-because it returns void.
-
-> + * @thaw: Hibernation-specific, executed after creating a hibernation image.
-> + *	Undo the changes made by the preceding @freeze(), so the device can be
-> + *	operated in the same was as immediately before the call to @freeze().
-
-s/was/way/   I spotted this typo in @recover before but missed it here.
-
-> +struct pm_ops {
-> +#ifdef CONFIG_PM_SLEEP
-> +	int (*prepare)(struct device *dev);
-> +	void (*complete)(struct device *dev);
-> +#endif
-> +#ifdef CONFIG_SUSPEND
-> +	int (*suspend)(struct device *dev);
-> +	int (*resume)(struct device *dev);
-> +#endif
-> +#ifdef CONFIG_HIBERNATION
-> +	int (*freeze)(struct device *dev);
-> +	int (*thaw)(struct device *dev);
-> +	int (*poweroff)(struct device *dev);
-> +	int (*quiesce)(struct device *dev);
-> +	int (*restore)(struct device *dev);
-> +	int (*recover)(struct device *dev);
-> +#endif
-
-Mention perhaps that although the "resuming" operations (i.e.,
-resume, thaw, restore, and recover) can return errors, the PM core
-doesn't do anything about those errors other than print them in the
-system log.  There's nothing it _can_ do...
-
-> +/**
-> + * Device power management states
-> + *
-> + * These state labels are used internally by the PM core to indicate the current
-> + * status of a device with respect to the PM core operations.
-> + *
-> + * DPM_ON		Device is regarded as operational.
-
-Add: Set this way initially and when ->resume(), ->thaw(), ->restore(), 
-->recover(), or ->complete() is about to be called.  Also set when 
-->prepare() fails.
-
-> + *
-> + * DPM_SUSPENDING	Device is currently being suspended.
-
-Add: Set when ->prepare() is about to be called.
-
-> + *
-> + * DPM_OFF		Device is regarded as suspended.
-
-Add: Set when ->suspend(), ->freeze(), ->poweroff(), or ->quiesce() is 
-about to be called.
-
-Alan Stern
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
