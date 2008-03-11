@@ -1,34 +1,50 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: Re: ACPI patches for 2.6.25-rc5
-Date: Tue, 11 Mar 2008 16:16:46 +0800
-Message-ID: <1205223406.2240.14.camel@acpi-hp-zz.sh.intel.com>
-References: <1205218309-19695-1-git-send-email-lenb@kernel.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH]  ACPI:  Ignore _BQC object when registering backlight
+	device
+Date: Tue, 11 Mar 2008 16:56:47 +0800
+Message-ID: <1205225807.6425.3.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51544 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:41243 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754688AbYCKI3F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2008 04:29:05 -0400
-In-Reply-To: <1205218309-19695-1-git-send-email-lenb@kernel.org>
+	id S1750982AbYCKJI2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2008 05:08:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
+Subject: ACPI: Ignore _BQC object when registering backlight device
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-On Tue, 2008-03-11 at 02:51 -0400, Len Brown wrote:
-> Here is the current queue for 2.6.25-rc5
-> 
-> If you see anything that isn't rc5 worthy
-> or you see that I missed something that is,
-> please let me know.
-Hi, len,
+According to acpi spec , the objects of  _BCL and _BCM are required if
+integrated LCD is present and supports brightness level .The _BQC is
+the optional object. So the _BQC object is ignored when the backlight device
+is registered in ACPI video driver.
 
-Please consider the patches of adding hwmon sys I/F for generic thermal
-driver.
+http://bugzilla.kernel.org/show_bug.cgi?id=10206
 
-thanks,
-rui
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
+
+---
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -713,7 +713,7 @@ static void acpi_video_device_find_cap(s
+ 
+ 	kfree(obj);
+ 
+-	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
++	if (device->cap._BCL && device->cap._BCM && max_level > 0) {
+ 		int result;
+ 		static int count = 0;
+ 		char *name;
+
 
