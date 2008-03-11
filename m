@@ -1,56 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: mpparse_{32,64}.c merge questions
-Date: Tue, 11 Mar 2008 13:28:43 -0400
-Message-ID: <200803111328.43314.lenb@kernel.org>
-References: <47CDB9D7.9030107@suse.de> <47CDBFD9.1050703@suse.de> <20080304213552.GD8944@elte.hu>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH, RFC] Create 'slot' sysfs attribute in/sys/devices/system/cpu/cpuN/topology/
+Date: Tue, 11 Mar 2008 10:31:43 -0700
+Message-ID: <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
+References: <20080310222735.GA22619@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39439 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751828AbYCKR3W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2008 13:29:22 -0400
-In-Reply-To: <20080304213552.GD8944@elte.hu>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <20080310222735.GA22619@ldl.fc.hp.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>, lenb@kernel.org
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Andi Kleen <ak@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Tuesday 04 March 2008, Ingo Molnar wrote:
-> 
-> (more folks Cc:-ed)
-> 
-> * Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
-> 
-> >>> I've decided to start with merge of mpparse files, and I'd like to 
-> >>> know your opinion on some differences... Ingo, I know you work on 
-> >>> merging the 32/64 files, do I step on your toes?
-> >>
-> >> My suggestion would be to do a redesign first and then do that for 
-> >> both.
-> > I was thinking that redesign on one file would go easier... And we 
-> > don't need both, do we?
-> 
-> we dont, but please do _not_ "redesign" anything during unification.
-> 
-> try to keep it simple and bisectable. Lots of small patches. Stupid
-> #ifdefs if need to be. Pick the 32-bit version or the 64-bit version of
-> any approach, if it's obvious that the unified version will still work 
-> fine. Ask if in doubt.
+> A while back, I submitted a patch to expose the value of the _SUN
+> method for CPUs. On ia64, the "physical id" field in
+> /proc/cpuinfo isn't sufficient for some legacy HP ia64 platforms,
+> as they do not have a modern SAL or PAL.
 
+Do these legacy systems with ancient SAL/PAL actually support
+processor hot plug?
 
-I agree with Ingo on the "keep it simple" merge steps..
+Perhaps this next rant is beyond the scope of Linux architecture
+and more on overall systems useabilty.  It is just asking for
+trouble to print a message on the console telling the user to go
+pull out the board in "slot 2".  Do the slot numbers count from
+"0" or from "1"?  Are they numbered left-to-right or right-to-left?
+What if the rack is non-standard so the system was rotated 90
+degrees?  Now are they numbered top-to-bottom or bottom-to-top.
 
-I can't resist mentioning, however, what I'd like to see long term.
+Best idea is to have a (blinking) (red) light on the board and
+instruct the operator to pull out the board with the fail-light
+(but even then a red-green colour blind operator will still mess
+it up for you and pull the wrong board :-)
 
-I'd like to see mpparse.o depend on CONFIG_MPS=y
-I'd like to be able to build CONFIG_ACPI=y and CONFIG_MPS=n
-
-Andy Grover prototyped splititing MPS from ACPI a while back,
-but it never made it upstream.
-
-thanks,
--Len
+-Tony
