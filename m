@@ -1,41 +1,32 @@
-From: Vasily Khoruzhick <anarsoul@gmail.com>
-Subject: Re: lenovo 3000 n100 thermal+hibernate
-Date: Tue, 11 Mar 2008 15:40:29 +0200
-Message-ID: <200803111540.29981.anarsoul@gmail.com>
-References: <200803091310.22074.anarsoul@gmail.com> <1205112347.4069.5.camel@yakui_zhao.sh.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI patches for 2.6.25-rc5
+Date: Tue, 11 Mar 2008 12:14:38 -0300
+Message-ID: <20080311151437.GA17573@khazad-dum.debian.net>
+References: <1205218309-19695-1-git-send-email-lenb@kernel.org> <1205223406.2240.14.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:1926 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923AbYCKNko (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 09:40:44 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so2418209fga.17
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Mar 2008 06:40:41 -0700 (PDT)
-In-Reply-To: <1205112347.4069.5.camel@yakui_zhao.sh.intel.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:60380 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752335AbYCKPOk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2008 11:14:40 -0400
 Content-Disposition: inline
+In-Reply-To: <1205223406.2240.14.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On 10 March 2008 03:25:47 Zhao Yakui wrote:
+On Tue, 11 Mar 2008, Zhang, Rui wrote:
+> Please consider the patches of adding hwmon sys I/F for generic thermal
+> driver.
 
-> Please file a bug report here:
-> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
->
-> and attach the info you sent, plus the output from acpidump.
->
-> The acpidump tool can be downloaded from:
-> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools-20071
->116.tar.bz2
->
-> Thanks.
->
+I second this request very, very strongly.  Please do NOT let the older,
+non-hwmon-friendly API leak to any stable kernels.
 
-Here it is:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=10223
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
