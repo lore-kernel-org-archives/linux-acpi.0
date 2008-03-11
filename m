@@ -1,45 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/12] sony-laptop.c: fix off-by-one
-Date: Tue, 11 Mar 2008 02:51:41 -0400
-Message-ID: <d399d130c82a1e1751b7770944f487fbd8b6272a.1205217406.git.len.brown@intel.com>
+Subject: [PATCH 05/12] ACPI: Do not pass NULL to acpi_get_handle() when looking for _EJD
+Date: Tue, 11 Mar 2008 02:51:42 -0400
+Message-ID: <3b5fee5952ff7eb6ff7a64247a01040b8b331b74.1205217406.git.len.brown@intel.com>
 References: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:14880 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:2378 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754187AbYCKGyy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:54 -0400
+	with ESMTP id S1751392AbYCKGyz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:55 -0400
 In-Reply-To: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 References: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Adrian Bunk <bunk@kernel.org>, Len Brown <len.brown@intel.com>
+Cc: Holger Macht <hmacht@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Adrian Bunk <bunk@kernel.org>
+From: Holger Macht <hmacht@suse.de>
 
-This patch fixes an off-by-one spotted by the Coverity checker.
+When trying to get the acpi_handle from an acpi_buffer, pass
+ACPI_ROOT_OBJECT instead of NULL to acpi_get_handle(). This fixes the
+detection of dock dependent bays.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Tested-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/sony-laptop.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/scan.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 899e3f7..02ff3d1 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -315,7 +315,7 @@ static void sony_laptop_report_input_event(u8 event)
- 		break;
- 
- 	default:
--		if (event > ARRAY_SIZE(sony_laptop_input_index)) {
-+		if (event >= ARRAY_SIZE(sony_laptop_input_index)) {
- 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
- 			break;
- 		}
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 3fac011..d9b9143 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -609,7 +609,8 @@ acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd)
+ 	status = acpi_evaluate_object(handle, "_EJD", NULL, &buffer);
+ 	if (ACPI_SUCCESS(status)) {
+ 		obj = buffer.pointer;
+-		status = acpi_get_handle(NULL, obj->string.pointer, ejd);
++		status = acpi_get_handle(ACPI_ROOT_OBJECT, obj->string.pointer,
++					 ejd);
+ 		kfree(buffer.pointer);
+ 	}
+ 	return status;
 -- 
 1.5.4.3.422.g34cd6
 
