@@ -1,38 +1,30 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH, RFC] Create 'slot' sysfs attribute in/sys/devices/system/cpu/cpuN/topology/
-Date: Tue, 11 Mar 2008 10:31:43 -0700
-Message-ID: <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: mpparse_{32,64}.c merge questions
+Date: Tue, 11 Mar 2008 20:34:36 +0300
+Message-ID: <47D6C2AC.8010907@suse.de>
+References: <47CDB9D7.9030107@suse.de> <47CDBFD9.1050703@suse.de> <20080304213552.GD8944@elte.hu> <200803111328.43314.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20080310222735.GA22619@ldl.fc.hp.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, lenb@kernel.org
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:51401 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752497AbYCKReq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 13:34:46 -0400
+In-Reply-To: <200803111328.43314.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-> A while back, I submitted a patch to expose the value of the _SUN
-> method for CPUs. On ia64, the "physical id" field in
-> /proc/cpuinfo isn't sufficient for some legacy HP ia64 platforms,
-> as they do not have a modern SAL or PAL.
+Len Brown wrote:
+> I agree with Ingo on the "keep it simple" merge steps..
+> 
+> I can't resist mentioning, however, what I'd like to see long term.
+> 
+> I'd like to see mpparse.o depend on CONFIG_MPS=y
+> I'd like to be able to build CONFIG_ACPI=y and CONFIG_MPS=n
+That was original goal set by Andy Kleen.
 
-Do these legacy systems with ancient SAL/PAL actually support
-processor hot plug?
-
-Perhaps this next rant is beyond the scope of Linux architecture
-and more on overall systems useabilty.  It is just asking for
-trouble to print a message on the console telling the user to go
-pull out the board in "slot 2".  Do the slot numbers count from
-"0" or from "1"?  Are they numbered left-to-right or right-to-left?
-What if the rack is non-standard so the system was rotated 90
-degrees?  Now are they numbered top-to-bottom or bottom-to-top.
-
-Best idea is to have a (blinking) (red) light on the board and
-instruct the operator to pull out the board with the fail-light
-(but even then a red-green colour blind operator will still mess
-it up for you and pull the wrong board :-)
-
--Tony
+Thanks,
+Alex.
