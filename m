@@ -1,42 +1,92 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH, RFC] Create 'slot' sysfs attribute in/sys/devices/system/cpu/cpuN/topology/
-Date: Tue, 11 Mar 2008 11:48:12 -0600
-Message-ID: <20080311174812.GD21482@parisc-linux.org>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
+Date: Tue, 11 Mar 2008 11:04:03 -0700
+Message-ID: <20080311110403.7db9527c@appleyard>
+References: <20080229002341.GA21420@ldl.fc.hp.com>
+	<20080301144307.GD24386@parisc-linux.org>
+	<20080304054927.GA15566@suse.de>
+	<200803041018.29035.jbarnes@virtuousgeek.org>
+	<20080304193036.GB5534@suse.de>
+	<20080304230937.GD3694@ldl.fc.hp.com>
+	<47CDF339.3060304@jp.fujitsu.com>
+	<20080305202052.GN3694@ldl.fc.hp.com>
+	<47D684D0.6060200@jp.fujitsu.com>
+Reply-To: kristen.c.accardi@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palinux.external.hp.com ([192.25.206.14]:44845 "EHLO
-	mail.parisc-linux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296AbYCKRsO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 13:48:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
+Received: from mga03.intel.com ([143.182.124.21]:32072 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752788AbYCKSIC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 14:08:02 -0400
+In-Reply-To: <47D684D0.6060200@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Alex Chiang <achiang@hp.com>, lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Alex Chiang <achiang@hp.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Tue, Mar 11, 2008 at 10:31:43AM -0700, Luck, Tony wrote:
-> Perhaps this next rant is beyond the scope of Linux architecture
-> and more on overall systems useabilty.  It is just asking for
-> trouble to print a message on the console telling the user to go
-> pull out the board in "slot 2".  Do the slot numbers count from
-> "0" or from "1"?  Are they numbered left-to-right or right-to-left?
-> What if the rack is non-standard so the system was rotated 90
-> degrees?  Now are they numbered top-to-bottom or bottom-to-top.
+On Tue, 11 Mar 2008 22:10:40 +0900
+Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
 
-Some systems (particularly those designed for hotplug) have the numbers
-silk-screened onto the case.  It's like PCI slots ... my beige-box
-homebrew PCs don't have slot numbers written on them, but the machines I
-have from HP are very clearly labelled with slot numbers beside each PCI
-slot.
+> Hi Alex-san,
+>=20
+> Alex Chiang wrote:
+> >>> It wasn't the IBM machine that was breaking; it was Fujitsu. They
+> >>> were returning an error code (the numerical value 1023) when I
+> >>> called the _SUN method on a slot object that existed in the ACPI
+> >>> namespace but was not present (as reported by the _STA method).
+> >>> By the time I got that error report, I'd already dropped the
+> >>> duplicate name detection code, and was letting the kobject
+> >>> infrastructure warn about duplicate names because for my test
+> >>> cases, refcounting was a better solution.
+> >>> [Kenji-san from Fujitsu seemed to be ok with the progress I'd
+> >>> made at the time, he can speak up if he's changed his mind ;)]
+> >> Unfortunatelly, I have not tried the new version of slot detection
+> >> driver because of the lack of test environment. Maybe we need more
+> >> several days to wait for test environment.=20
+> >> BTW, does the new one fixes the issue I reported before? I could
+> >> not find it in the changelog. IIRC, this issue was difficult to
+> >> solve because the root cause of this issue is from the difference
+> >> of interpretation of ACPI spec between HP and Fujitsu (I still
+> >> don't think it's a good idea to evaluate _SUN for the device
+> >> object whose _STA is 0).
+> >=20
+> > It looks like we disagree on how to interpret the spec (IBM
+> > machines interpret the spec the same way HP machines do).
+> >=20
 
-Admittedly, the flashing red LED is a better UI, but it's not
-necessarily as confusing as you're painting it.
+OK, let me see if I can understand what the issue is here.  Please
+correct me if I'm wrong.  The debate is about whether or not it is
+legitimate to call _SUN if _STA indicates that the device is not
+present and functional.  I've checked ACPI 3.0b, and from what I've
+read, you may not evaluate _SUN until _INI is called.  And _INI should
+not be called unless _STA indicates that a device is present and
+functional.
 
--- 
-Intel are signing my paycheques ... these opinions are still mine
-"Bill, look, we understand that you're interested in selling us this
-operating system, but compare it to ours.  We can't possibly take such
-a retrograde step."
+"OSPM evaluates the _STA object before it evaluates a device _INI
+method. The return values of the Present and Functioning bits
+determines whether _INI should be evaluated and whether children of the
+device should be enumerated and initialized. See section 6.5.1, =E2=80=9C=
+_INI
+(Init)=E2=80=9D."
+
+My interpretation of this is that if Alex's driver scans the Fujitsu
+machine and calls _STA on one of the slots and gets Bit 0 (present) and
+Bit 3 (functioning) set, then it is ok to enumerate it's children and
+evaluate _ADR and _SUN for the children.  If they are returning 1023,
+that would mean you should not evaluate the children of that object
+since the functional bit is not set.  Is this correct?
+
+If that is the case, I would say that Alex's driver needs to obey the
+spec - or else if the this is allowed in an earlier version of the spec
+then he needs to check for the version of the spec that was implemented
+and make some different rules for that.
+
+Thanks for the clarification,
+Kristen
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
