@@ -1,75 +1,74 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 02/12] acer-wmi: fix section mismatch warnings
-Date: Tue, 11 Mar 2008 02:51:39 -0400
-Message-ID: <7560e385651c60e5ffdf07cb94fa7d1658ab0b7a.1205217406.git.len.brown@intel.com>
+Subject: [PATCH 08/12] ACPI Exception (): AE_NOT_FOUND, Processor Device is not present (update)
+Date: Tue, 11 Mar 2008 02:51:45 -0400
+Message-ID: <d0ce46f550ebbd765881e8c48f43b66285d798b0.1205217406.git.len.brown@intel.com>
 References: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:2378 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:33378 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753082AbYCKGyx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:53 -0400
+	with ESMTP id S1754216AbYCKGyz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:55 -0400
 In-Reply-To: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 References: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sam Ravnborg <sam@ravnborg.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Sam Ravnborg <sam@ravnborg.org>
+From: Zhang Rui <rui.zhang@intel.com>
 
-Fix following warnings:
-WARNING: vmlinux.o(.text+0x672615): Section mismatch in reference from the function acer_platform_remove() to the function .exit.text:acer_backlight_exit()
-WARNING: vmlinux.o(.devinit.text+0x1e859): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_led_init()
-WARNING: vmlinux.o(.devinit.text+0x1e878): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_backlight_init()
+update cfaf3747ff3d431fba33f75083b7f50f58ae22ff
+ACPI: ACPI Exception (): AE_NOT_FOUND, Processor Device is not present
 
-Remove __exit annotation from acer_backlight_exit(). We cannot reference
-a __exit annotated function from non __exit functions.
+is_processor_present is only called in the processor hotplug case,
+and _STA method is mandatory at this time.
 
-acer_led_init() and acer_backlight_init() where both annotated __init but
-used from a __devinit function. This would result in an oops should
-gcc drop their inlining and the module are hot plugged.
+We should ignore those processors that are disabled in the MADT
+and don't have _STA methods.
+Because they will never exist in this system.
+For the processors that don't physically exist but can be
+hot plugged later, we still need this debug info.
 
-Fix by annotating acer_led_init() and acer_backlight_init() __devinit.
+http://bugzilla.kernel.org/show_bug.cgi?id=8570
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/acer-wmi.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_core.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index d7aea93..cdc733b 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -756,7 +756,7 @@ static struct led_classdev mail_led = {
- 	.brightness_set = mail_led_set,
- };
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index a3cc8a9..d9316ab 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -840,17 +840,19 @@ static int is_processor_present(acpi_handle handle)
  
--static int __init acer_led_init(struct device *dev)
-+static int __devinit acer_led_init(struct device *dev)
- {
- 	return led_classdev_register(dev, &mail_led);
- }
-@@ -789,7 +789,7 @@ static struct backlight_ops acer_bl_ops = {
- 	.update_status = update_bl_status,
- };
  
--static int __init acer_backlight_init(struct device *dev)
-+static int __devinit acer_backlight_init(struct device *dev)
- {
- 	struct backlight_device *bd;
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	/*
+-	 * if a processor object does not have an _STA object,
+-	 * OSPM assumes that the processor is present.
+-	 */
+-	if (status == AE_NOT_FOUND)
+-		return 1;
  
-@@ -808,7 +808,7 @@ static int __init acer_backlight_init(struct device *dev)
+ 	if (ACPI_SUCCESS(status) && (sta & ACPI_STA_DEVICE_PRESENT))
+ 		return 1;
+ 
+-	ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
++	/*
++	 * _STA is mandatory for a processor that supports hot plug
++	 */
++	if (status == AE_NOT_FOUND)
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				"Processor does not support hot plug\n"));
++	else
++		ACPI_EXCEPTION((AE_INFO, status,
++				"Processor Device is not present"));
  	return 0;
  }
  
--static void __exit acer_backlight_exit(void)
-+static void acer_backlight_exit(void)
- {
- 	backlight_device_unregister(acer_backlight_device);
- }
 -- 
 1.5.4.3.422.g34cd6
 
