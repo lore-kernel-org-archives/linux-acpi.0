@@ -1,74 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/12] ACPI: prevent randconfig build failure on empty ACPI_CUSTOM_DSDT_FILE
-Date: Tue, 11 Mar 2008 02:51:43 -0400
-Message-ID: <7ce9573e093891f5807e6e50f3bd2012f1e5d0fe.1205217406.git.len.brown@intel.com>
+Subject: [PATCH 09/12] ACPI: fix boot oops regression in thermal
+Date: Tue, 11 Mar 2008 02:51:46 -0400
+Message-ID: <c8d16e27a3601d1cbcdfe657eb4ff5e762019e8d.1205217406.git.len.brown@intel.com>
 References: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:2378 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:14880 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754126AbYCKGyy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:54 -0400
+	with ESMTP id S1754256AbYCKGyz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:55 -0400
 In-Reply-To: <1205218309-19695-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 References: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-Make ACPI_CUSTOM_DSDT boolean config symbol a hidden and derived
-value, based on the value of ACPI_CUSTOM_DSDT_FILE (string).
-Only the latter is presented to the user as a config option.
+Fix a memory overflow bug when copying
+NULL internal package element object to external.
 
-This fixes problems with "make randconfig" setting ACPI_CUSTOM_DSDT
-but leaving ACPI_CUSTOM_DSDT_FILE empty/blank.
+http://bugzilla.kernel.org/show_bug.cgi?id=10132
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |   19 +++++++++----------
- 1 files changed, 9 insertions(+), 10 deletions(-)
+ drivers/acpi/utilities/utobject.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index f688c21..fbcaa06 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -283,24 +283,23 @@ config ACPI_TOSHIBA
- 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
- 	  series), say Y.
+diff --git a/drivers/acpi/utilities/utobject.c b/drivers/acpi/utilities/utobject.c
+index 76ee766..e08b3fa 100644
+--- a/drivers/acpi/utilities/utobject.c
++++ b/drivers/acpi/utilities/utobject.c
+@@ -432,7 +432,7 @@ acpi_ut_get_simple_object_size(union acpi_operand_object *internal_object,
+ 	 * element -- which is legal)
+ 	 */
+ 	if (!internal_object) {
+-		*obj_length = 0;
++		*obj_length = sizeof(union acpi_object);
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
  
--config ACPI_CUSTOM_DSDT
--	bool "Include Custom DSDT"
-+config ACPI_CUSTOM_DSDT_FILE
-+	string "Custom DSDT Table file to include"
-+	default ""
- 	depends on !STANDALONE
--	default n 
- 	help
- 	  This option supports a custom DSDT by linking it into the kernel.
- 	  See Documentation/acpi/dsdt-override.txt
- 
--	  If unsure, say N.
--
--config ACPI_CUSTOM_DSDT_FILE
--	string "Custom DSDT Table file to include"
--	depends on ACPI_CUSTOM_DSDT
--	default ""
--	help
- 	  Enter the full path name to the file which includes the AmlCode
- 	  declaration.
- 
-+	  If unsure, don't enter a file name.
-+
-+config ACPI_CUSTOM_DSDT
-+	bool
-+	default ACPI_CUSTOM_DSDT_FILE != ""
-+
- config ACPI_CUSTOM_DSDT_INITRD
- 	bool "Read Custom DSDT from initramfs"
- 	depends on BLK_DEV_INITRD
 -- 
 1.5.4.3.422.g34cd6
 
