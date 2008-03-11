@@ -1,42 +1,56 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Tue, 11 Mar 2008 09:56:37 -0700
-Message-ID: <200803110956.37619.jbarnes@virtuousgeek.org>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <47D684D0.6060200@jp.fujitsu.com> <20080311132800.GC21482@parisc-linux.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: mpparse_{32,64}.c merge questions
+Date: Tue, 11 Mar 2008 13:28:43 -0400
+Message-ID: <200803111328.43314.lenb@kernel.org>
+References: <47CDB9D7.9030107@suse.de> <47CDBFD9.1050703@suse.de> <20080304213552.GD8944@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-06.bluehost.com ([69.89.17.206]:43136 "HELO
-	outbound-mail-06.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751747AbYCKQ5K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2008 12:57:10 -0400
-In-Reply-To: <20080311132800.GC21482@parisc-linux.org>
+Received: from hera.kernel.org ([140.211.167.34]:39439 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbYCKR3W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2008 13:29:22 -0400
+In-Reply-To: <20080304213552.GD8944@elte.hu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@atrey.karlin.mff.cuni.cz
-Cc: Matthew Wilcox <matthew@wil.cx>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Alex Chiang <achiang@hp.com>, Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, warthog19@eaglescrag.net, kristen.c.accardi@intel.com, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Andi Kleen <ak@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Tuesday, March 11, 2008 6:28 am Matthew Wilcox wrote:
-> On Tue, Mar 11, 2008 at 10:10:40PM +0900, Kenji Kaneshige wrote:
-> > 1) I checked ACPI spec again and again, but I could not find any
-> >    reason to add Fujitsu servers to quirks list. So I'd like you to
-> >    add HP servers to the quirks list. I'll send the following patches
-> >    followed by this e-mail.
->
-> Alex pointed out that IBM interprets the spec the same way that HP does.
-> Are there any other machines that follow the spec the same way that
-> Fujitsu does?
+On Tuesday 04 March 2008, Ingo Molnar wrote:
+> 
+> (more folks Cc:-ed)
+> 
+> * Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+> 
+> >>> I've decided to start with merge of mpparse files, and I'd like to 
+> >>> know your opinion on some differences... Ingo, I know you work on 
+> >>> merging the 32/64 files, do I step on your toes?
+> >>
+> >> My suggestion would be to do a redesign first and then do that for 
+> >> both.
+> > I was thinking that redesign on one file would go easier... And we 
+> > don't need both, do we?
+> 
+> we dont, but please do _not_ "redesign" anything during unification.
+> 
+> try to keep it simple and bisectable. Lots of small patches. Stupid
+> #ifdefs if need to be. Pick the 32-bit version or the 64-bit version of
+> any approach, if it's obvious that the unified version will still work 
+> fine. Ask if in doubt.
 
-So Kenji is arguing that _STA should be called before _SUN (iow that the _SUN 
-value is bogus unless _STA indicates that the slot is powered)?  That seems 
-harder for the user; often times you want to find a slot even if it's powered 
-down & empty (say to add a new card)...  It looks like the current code won't 
-provide a slot name on Fujitsu machines in this case, or am I missing 
-something?
 
-Thanks,
-Jesse
+I agree with Ingo on the "keep it simple" merge steps..
+
+I can't resist mentioning, however, what I'd like to see long term.
+
+I'd like to see mpparse.o depend on CONFIG_MPS=y
+I'd like to be able to build CONFIG_ACPI=y and CONFIG_MPS=n
+
+Andy Grover prototyped splititing MPS from ACPI a while back,
+but it never made it upstream.
+
+thanks,
+-Len
