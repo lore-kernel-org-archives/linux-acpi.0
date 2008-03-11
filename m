@@ -1,100 +1,58 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/12] ACPI: replace remaining __FUNCTION__ occurrences
-Date: Tue, 11 Mar 2008 02:51:49 -0400
-Message-ID: <96b2dd1f1fdb9a131b7f2e79e5c7b2e4282cfcbf.1205217406.git.len.brown@intel.com>
-References: <1205218309-19695-1-git-send-email-lenb@kernel.org>
+Subject: Re: [PATCH] buffer array one byte too short in drivers/acpi/system.c
+Date: Tue, 11 Mar 2008 03:05:33 -0400
+Message-ID: <200803110305.33662.lenb@kernel.org>
+References: <1204813853.25336.3.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:2378 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754378AbYCKGy4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 02:54:56 -0400
-In-Reply-To: <1205218309-19695-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
-References: <b95e9e8d94484c2823be67416f25e9756db149dc.1205217406.git.len.brown@intel.com>
+Received: from hera.kernel.org ([140.211.167.34]:34011 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751148AbYCKHFt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2008 03:05:49 -0400
+In-Reply-To: <1204813853.25336.3.camel@localhost>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Harvey Harrison <harvey.harrison@gmail.com>, Len Brown <len.brown@intel.com>
+To: Johann Felix Soden <johfel@gmx.de>
+Cc: linux-acpi@vger.kernel.org
 
-From: Harvey Harrison <harvey.harrison@gmail.com>
+On Thursday 06 March 2008, Johann Felix Soden wrote:
+> From: Johann Felix Soden <johfel@users.sourceforge.net>
+> 
+> Since "ff_gbl_lock" has a length of 10 chars and is copied with sprintf to
+> char buffer[10], there is a problem because of the closing zero byte. We
+> need char buffer[11].
 
-__FUNCTION__ is gcc-specific, use __func__
+"ff_gbl_lock" is 11 characters, and sprintf adds a null, so
+buffer should be 12, yes?
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/bus.c               |    2 +-
- drivers/acpi/scan.c              |    2 +-
- drivers/acpi/sleep/main.c        |    2 +-
- drivers/acpi/utilities/utdebug.c |    2 +-
- drivers/acpi/video.c             |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+looking at this code, i think i must have been asleep when i wrote it.
+the strings such as "ff_gbl_lock" are in kernel data, and then
+we copy to a local stack buffer, and then we copy to a heap
+buffer -- when we should have just pointed to the data.
+oh well, cleanup for .26...
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index ce3c0a2..5b6760e 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -776,7 +776,7 @@ static int __init acpi_init(void)
- 
- 	acpi_kobj = kobject_create_and_add("acpi", firmware_kobj);
- 	if (!acpi_kobj) {
--		printk(KERN_WARNING "%s: kset create error\n", __FUNCTION__);
-+		printk(KERN_WARNING "%s: kset create error\n", __func__);
- 		acpi_kobj = NULL;
- 	}
- 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3fac011..b26e301 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -966,7 +966,7 @@ static void acpi_device_set_id(struct acpi_device *device,
- 	case ACPI_BUS_TYPE_DEVICE:
- 		status = acpi_get_object_info(handle, &buffer);
- 		if (ACPI_FAILURE(status)) {
--			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __FUNCTION__);
-+			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __func__);
- 			return;
- 		}
- 
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 293a1cb..d2f71a5 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -504,7 +504,7 @@ static void acpi_power_off_prepare(void)
- static void acpi_power_off(void)
- {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
--	printk("%s called\n", __FUNCTION__);
-+	printk("%s called\n", __func__);
- 	local_irq_disable();
- 	acpi_enable_wakeup_device(ACPI_STATE_S5);
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
-diff --git a/drivers/acpi/utilities/utdebug.c b/drivers/acpi/utilities/utdebug.c
-index c7e128e..7361204 100644
---- a/drivers/acpi/utilities/utdebug.c
-+++ b/drivers/acpi/utilities/utdebug.c
-@@ -109,7 +109,7 @@ void acpi_ut_track_stack_ptr(void)
-  * RETURN:      Updated pointer to the function name
-  *
-  * DESCRIPTION: Remove the "Acpi" prefix from the function name, if present.
-- *              This allows compiler macros such as __FUNCTION__ to be used
-+ *              This allows compiler macros such as __func__ to be used
-  *              with no change to the debug output.
-  *
-  ******************************************************************************/
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 12cce69..d64a142 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1201,7 +1201,7 @@ static int acpi_video_bus_ROM_seq_show(struct seq_file *seq, void *offset)
- 	if (!video)
- 		goto end;
- 
--	printk(KERN_INFO PREFIX "Please implement %s\n", __FUNCTION__);
-+	printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
- 	seq_printf(seq, "<TODO>\n");
- 
-       end:
--- 
-1.5.4.3.422.g34cd6
+> 
+> Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
+> ---
+>  drivers/acpi/system.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+> index 55cf4c0..037b679 100644
+> --- a/drivers/acpi/system.c
+> +++ b/drivers/acpi/system.c
+> @@ -319,7 +319,7 @@ void acpi_irq_stats_init(void)
+>  		goto fail;
+>  
+>  	for (i = 0; i < num_counters; ++i) {
+> -		char buffer[10];
+> +		char buffer[11];
+>  		char *name;
+>  
+>  		if (i < num_gpes)
+
 
