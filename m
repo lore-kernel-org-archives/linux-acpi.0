@@ -1,35 +1,42 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH 2/4] acer-wmi: Make device detection error messages more descriptive
-Date: Tue, 11 Mar 2008 22:10:45 +0000
-Message-ID: <200803112210.45888.carlos@strangeworlds.co.uk>
-References: <20080224133412.2317.5802.stgit@pacifica> <20080224133424.2317.90354.stgit@pacifica> <200803111757.37771.lenb@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 0/2] PNP: disable PNP motherboard resources
+	that	overlap PCI BARs
+Date: Wed, 12 Mar 2008 00:14:18 +0100
+Message-ID: <1205277258.8194.13.camel@linux-2bdv.site>
+References: <20080311212439.293001409@ldl.fc.hp.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:56292 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508AbYCKWKw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 18:10:52 -0400
-In-Reply-To: <200803111757.37771.lenb@kernel.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20080311212439.293001409@ldl.fc.hp.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Robert Hancock <hancockr@shaw.ca>, alsa-devel@alsa-project.org, Avuton Olrich <avuton@gmail.com>, Karl Bellve <karl.bellve@umassmed.edu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Willem Riede <wriede@riede.org>, Li Shaohua <shaohua.li@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Matthew Hall <mhall@mhcomputing.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 11 March 2008 21:57:37 Len Brown wrote:
-> Instead, to get under 80 columns, you simpmly want to do something like
-> this:
->
-> printk(ACER_ERR "Unable to detect available WMID "
-> 	"devices");
-
-Will do.
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Ck9uIFR1ZSwgMjAwOC0wMy0xMSBhdCAxNToyNCAtMDYwMCwgQmpvcm4gSGVsZ2FhcyB3cm90ZToK
+PiBUaGUgZm9sbG93aW5nIHR3byBwYXRjaGVzIGZpeCBzZXZlcmFsIHByb2JsZW1zIGNhdXNlZCBi
+eSBCSU9TZXMgdGhhdAo+IHJlcG9ydCBQTlAgbW90aGVyYm9hcmQgZGV2aWNlIHJlc291cmNlcyB0
+aGF0IG92ZXJsYXAgd2l0aCBQQ0kgQkFScy4KPiAKPiBJIHRoaW5rIHRoZXNlIHNob3VsZCBnbyBp
+biBiZWZvcmUgMi42LjI1IGJlY2F1c2Ugc29tZSBvZiB0aGVzZSBwcm9ibGVtcwo+IHNob3dlZCB1
+cCBpbiAyLjYuMjQgd2hlbiB3ZSBpbmNyZWFzZWQgUE5QX01BWF9NRU0gZnJvbSA0IHRvIDEyLCBh
+bmQKPiB0aGVyZSdzIG5vIGdvb2Qgd2F5IHRvIHdvcmsgYXJvdW5kIHRoZW0uCgrvu79JIGNhbm5v
+dCBqdWRnZSBhYm91dCB0aGUgImNsZWFubmVzcyIgYmVjYXVzZSBvZiBwb3NzaWJsZSBjaGFuZ2Vz
+IG9mCmluaXRpYWxpemF0aW9uIHRpbWUgb2YgcGNpL3BucCBvciB3aGF0ZXZlci4KCkkgY2FuIGNv
+bmZpcm0gdGhhdCBBQ1BJIHJlc291cmNlIGRlY2xhcmF0aW9ucyAoZXNwZWNpYWxseSAob25seT8p
+IGluIHRoZQpnZW5lcmFsIG1vdGhlcmJvYXJkIGRldmljZXMpIGFyZSDvu79vZnRlbiByYXRoZXIg
+YnJva2VuLgpUaGVyZWZvcmUgSSBsaWtlIHlvdXIgZ2VuZXJhbCBhcHByb2FjaCBjb21wYXJlZCB0
+byB0aGUgcGVyIG1hY2hpbmUgZG1pCm1hdGNoIHF1aXJrcy4gSSBleHBlY3QgdGhlIGxhdHRlciAo
+ZG1pIG1hdGNoaW5nKSBpcyByYXRoZXIgaG9wZWxlc3MuCgoKICAgVGhvbWFzCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcg
+bGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9q
+ZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
