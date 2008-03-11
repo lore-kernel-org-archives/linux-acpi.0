@@ -1,30 +1,32 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: mpparse_{32,64}.c merge questions
-Date: Tue, 11 Mar 2008 20:34:36 +0300
-Message-ID: <47D6C2AC.8010907@suse.de>
-References: <47CDB9D7.9030107@suse.de> <47CDBFD9.1050703@suse.de> <20080304213552.GD8944@elte.hu> <200803111328.43314.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 4/5] misc,acpi,backlight: compal Laptop Extras
+Date: Tue, 11 Mar 2008 13:45:04 -0400
+Message-ID: <200803111345.05359.lenb@kernel.org>
+References: <200803042306.m24N6atm001813@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:51401 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752497AbYCKReq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 13:34:46 -0400
-In-Reply-To: <200803111328.43314.lenb@kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:55125 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752655AbYCKRqQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2008 13:46:16 -0400
+In-Reply-To: <200803042306.m24N6atm001813@imap1.linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andi Kleen <ak@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, rpurdie@rpsys.net
 
-Len Brown wrote:
-> I agree with Ingo on the "keep it simple" merge steps..
+On Tuesday 04 March 2008, akpm@linux-foundation.org wrote:
+> From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 > 
-> I can't resist mentioning, however, what I'd like to see long term.
-> 
-> I'd like to see mpparse.o depend on CONFIG_MPS=y
-> I'd like to be able to build CONFIG_ACPI=y and CONFIG_MPS=n
-That was original goal set by Andy Kleen.
+> This is driver for Compal Laptop: FL90/IFL90, based on MSI driver.
 
-Thanks,
-Alex.
+The MSI driver has an entry in MAINTAINERS.
+If this Compal driver is to make it upstream,
+it will first need one too.
+
+thanks,
+-Len
