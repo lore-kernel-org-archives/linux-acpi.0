@@ -1,60 +1,73 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [linux-pm] [PATCH] doc/power: move power-related files to Documentation/power/
-Date: Wed, 12 Mar 2008 18:08:53 -0400
-Message-ID: <200803121808.53851.lenb@kernel.org>
-References: <20080304134837.dcfed6dd.randy.dunlap@oracle.com> <200803121749.37889.lenb@kernel.org> <20080312145431.08222a61.randy.dunlap@oracle.com>
+Subject: Re: [PATCH] buffer array one byte too short in drivers/acpi/system.c
+Date: Wed, 12 Mar 2008 18:23:24 -0400
+Message-ID: <200803121823.24755.lenb@kernel.org>
+References: <1204813853.25336.3.camel@localhost> <200803110305.33662.lenb@kernel.org> <1205250266.6930.15.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34095 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:51944 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751816AbYCLWKW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 18:10:22 -0400
-In-Reply-To: <20080312145431.08222a61.randy.dunlap@oracle.com>
+	id S1751772AbYCLWXj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 18:23:39 -0400
+In-Reply-To: <1205250266.6930.15.camel@localhost>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, dwmw2@infradead.org, cbou@mail.ru
+To: Johann Felix Soden <johfel@gmx.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Wednesday 12 March 2008, Randy Dunlap wrote:
-> On Wed, 12 Mar 2008 17:49:37 -0400 Len Brown wrote:
+On Tuesday 11 March 2008, Johann Felix Soden wrote:
+> On Tuesday 11 March 2008, Len Brown wrote:
+> > On Thursday 06 March 2008, Johann Felix Soden wrote:
+> > > From: Johann Felix Soden <johfel@users.sourceforge.net>
+> > > 
+> > > Since "ff_gbl_lock" has a length of 10 chars and is copied with sprintf to
+> > > char buffer[10], there is a problem because of the closing zero byte. We
+> > > need char buffer[11].
+> > 
+> > "ff_gbl_lock" is 11 characters, and sprintf adds a null, so
+> > buffer should be 12, yes?
 > 
-> > On Wednesday 12 March 2008, Randy Dunlap wrote:
-> > > On Wed, 12 Mar 2008 16:00:45 -0400 Len Brown wrote:
-> > > 
-> > > > linus top of tree.  i was wrong that it was already gone,
-> > > > i guess i assumed that since it had 1 hunk and patch
-> > > > told me the hunk was reversed i assumed that part
-> > > > had been applied already.
-> > > 
-> > > Can you try the patch below?
-> > > It works_for_me but that doesn't give me lots of confidence.
-> > > 
-> > > ---
-> ...
-> > > 
-> > 
-> > not better
-> > 
-> > Please send it to me as an attachment,
-> > maybe kmail is getting confused b/c this text has non ascii characters?
-> > 
-> > (does this patch apply for anybody else?)
+> I have noticed my miscounting and have sent a new patch to you, Len
+> Brown, some days ago. If it is needed anymore, below is the corrected
+> patch again.
 > 
-> OK, attached.
+> ---
+> From: Johann Felix Soden <johfel@users.sourceforge.net>
+> 
+> Since "ff_gbl_lock" has a length of 11 chars and is copied with sprintf
+> to char buffer[10], there is a problem. We need char buffer[12] because
+> of the closing zero byte.
+> 
+> Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
+> ---
+>  drivers/acpi/system.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+> index 55cf4c0..4749f37 100644
+> --- a/drivers/acpi/system.c
+> +++ b/drivers/acpi/system.c
+> @@ -319,7 +319,7 @@ void acpi_irq_stats_init(void)
+>                 goto fail;
+>  
+>         for (i = 0; i < num_counters; ++i) {
+> -               char buffer[10];
+> +               char buffer[12];
+>                 char *name;
+>  
+>                 if (i < num_gpes)
 
-the attachment worked.
-i guess the problem was something to do with the non-ascii characters
-in that document file.
+thanks for re-sending, i fixed the whitespace damage and checked it in.
 
-i use kmail for about 18 months b/c it seems to handle both plain text
-and attachments.
-This is the first issue I've had with it (though I did
-recently change to the kmail that comes with FC8 from
-the old version that camem with opensuse 10.2)
+BTW. the reason i didn't see your private re-send to my intel.com account
+is b/c my intel.com mailbox is not the ideal place to send patches.
+per http://www.lesswatts.org/projects/acpi/submitting-patches.php
+I see patches send to the list, and patches sent to my kernel.org account.
 
 thanks,
 -Len
+
