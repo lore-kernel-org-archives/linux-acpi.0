@@ -1,47 +1,48 @@
-From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Wed, 12 Mar 2008 14:55:21 +0100
-Message-ID: <20080312135521.GE8141@ics.muni.cz>
-References: <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com> <20080304211212.GD6704@kernel.dk> <47CDBE11.4010900@gmail.com> <20080312125912.GM17940@kernel.dk> <20080312131737.GA21290@khazad-dum.debian.net> <20080312132419.GN17940@kernel.dk> <20080312133529.GB21290@khazad-dum.debian.net>
+From: "S. Umar" <umar@compsci.cas.vanderbilt.edu>
+Subject: Please send DMI info above to linux-acpi@vger.kernel.org
+Date: Wed, 12 Mar 2008 09:25:49 -0500
+Message-ID: <200803120925.49842.umar@compsci.cas.vanderbilt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from minas.ics.muni.cz ([147.251.4.40]:35888 "EHLO minas.ics.muni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751585AbYCLN4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 09:56:15 -0400
+Received: from compsci.cas.Vanderbilt.Edu ([129.59.116.43]:55726 "EHLO
+	compsci.cas.vanderbilt.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750875AbYCLOf1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 10:35:27 -0400
+Received: from compsci.cas.vanderbilt.edu (localhost.localdomain [127.0.0.1])
+	by compsci.cas.vanderbilt.edu (8.14.2/8.14.2) with ESMTP id m2CEPoUo002949
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Mar 2008 09:25:50 -0500
+Received: from localhost (localhost [[UNIX: localhost]])
+	by compsci.cas.vanderbilt.edu (8.14.2/8.14.2/Submit) id m2CEPnGm002947
+	for linux-acpi@vger.kernel.org; Wed, 12 Mar 2008 09:25:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20080312133529.GB21290@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Holschuh w=
-rote:
-> You shouldn't need to do anything other than teach userspace to respo=
-nd to
-> them, as they generate the proper KEY_* events.  If you are giving th=
-e AML
-> _OSI(Linux), at least...
->=20
-> But maybe looking at the keyboard output in console mode, to make tri=
-ple
-> sure the events ARE being sent over the KDC as they should, would be =
-in
-> order?
 
-so, do I understand correctly that volume keys have been controlled by =
-ACPI
-and seemed to work independently on SW and now (exactly since when?) ar=
-e
-passed complety to the user space as key codes?
+ACPI: bus type pci registered
+PCI: Using configuration type 1
+ACPI: EC: Look up EC in DSDT
+ACPI: BIOS _OSI(Linux) query ignored
+ACPI: DMI System Vendor: Dell Inc.
+ACPI: DMI Product Name: Precision WorkStation T3400
+ACPI: DMI Product Version:
+ACPI: DMI Board Name: 0TP412
+ACPI: DMI BIOS Vendor: Dell Inc.
+ACPI: DMI BIOS Date: 01/31/2008
+ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+ACPI: If "acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
+ACPI: Interpreter enabled
 
---=20
-Luk=E1=B9 Hejtm=E1nek
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Prof. S. Umar
+Dept. of Physics & Astronomy
+Vanderbilt University
+Nashville, TN 37235
+Tel : (615) 322-2459
+umar@compsci.cas.vanderbilt.edu
+http://compsci.cas.vanderbilt.edu/~umar/resume.pdf
