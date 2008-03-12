@@ -1,95 +1,63 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPI: disable stray gpe correctly
-Date: Wed, 12 Mar 2008 14:59:15 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4046686CF@orsmsx415.amr.corp.intel.com>
-References: <1205114649.10256.200.camel@acpi-hp-zz.sh.intel.com> <200803110206.45590.lenb@kernel.org> <47D8351F.7080802@redhat.com> <200803121609.46134.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: add _PRT quirks to work around broken firmware
+Date: Wed, 12 Mar 2008 18:04:25 -0400
+Message-ID: <200803121804.26015.lenb@kernel.org>
+References: <200803111445.16316.bjorn.helgaas@hp.com> <200803112340.05293.lenb@kernel.org> <200803121600.50080.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20686 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:34091 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768AbYCLWFX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 18:05:23 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <200803121609.46134.lenb@kernel.org>
+	id S1751816AbYCLWJh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 18:09:37 -0400
+In-Reply-To: <200803121600.50080.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, davej@redhat.com
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Pierre Ossman <drzeus-bugzilla@drzeus.cx>, Michael Fu <michael.fu@intel.com>, Martin Kirst <martin.kirst@s1998.tu-chemnitz.de>, Hadmut Danisch <hadmut@danisch.de>, Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>, Dominik =?iso-8859-1?q?Sch=E4fer?= <schaedpq2@gmx.de>, Alex Williamson <alex.williamson@hp.com>, Aron Griffis <aron@hp.com>
 
-This patch looked fairly benign to me, so I've committed it to the
-ACPICA core for the next release this week.
+On Wednesday 12 March 2008, Bjorn Helgaas wrote:
+> On Tuesday 11 March 2008 09:40:04 pm Len Brown wrote:
+> > Thanks for following up on these, Bjorn.
+> > 
+> > Is it true that simply enabling pci=routeirq on these boxes
+> > is an insufficient workaround?
+> > 
+> > I suspect the answer is yes, because when pci=routeirq works
+> > we may just be lucky -- eg. we happen to assign the real
+> > and the fake link to the same IRQ and thus the driver
+> > actually registers for the correct IRQ, but by accident.
+> 
+> I double-checked this, and your guess is correct.  On the MD9580
+> laptop, the BIOS reports 00:09[A] is connected to LNKA, which we
+> assign to IRQ 10:
+> 
+>   ACPI: PCI Interrupt 0000:00:09.0[A] -> Link [LNKA] -> GSI 10 (level, low) -> IRQ 10
+> 
+> The device is actually connected to LNKB, which we also assigned
+> to IRQ 10 (before my patch, we only enable LNKB with pci=routeirq
+> because it's used by 00:06, for which we don't have a driver):
+> 
+>   ACPI: PCI Interrupt 0000:00:06.0[A] -> Link [LNKB] -> GSI 10 (level, low) -> IRQ 10
+> 
+> Similarly, on the Dell OptiPlex, we set both LNKA and LNKB to IRQ 10.
+> The 00:0d[A] line is connected to LNKA, but the BIOS reports it on
+> LNKB.  Without pci=routeirq, we may not enable LNKA because it's
+> only used by 01:00[A], which is a VGA device.
 
-The comment I added for the patch looks like this:
+Thanks, Bjorn.
 
-    /*
-     * Ignore this if the GPE is valid and not enabled.
-     *
-     * Flags is only zero if GPE is neither enabled or disabled -- it
-may
-     * be a spurious or stray GPE -- disable it in the default case
-below.
-     */
-    if (GpeEventInfo->Flags &&
-       (!(GpeEventInfo->Flags & ACPI_GPE_ENABLE_MASK)))
-    {
-        return_ACPI_STATUS (AE_OK);
-    }
+This again raises suspicion that Windows doesn't disable and then re-enable
+PCI interrupt links.  It is probably just using them in-place.
 
+While we disable them at boot and re-enable at probe
+b/c it fixed some spurious interrupt issues --
+it may be that those issues were IOAPIC mode issues
+and for PIC systems we should do something different,
+such as not touch the links at all.
 
-If there are problems, I will back it out. Please let me know ASAP what
-the issue is in 436959.
-
-Thanks,
-Bob
-
-
-
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Wednesday, March 12, 2008 1:10 PM
->To: Chuck Ebbert
->Cc: Zhang, Rui; linux-acpi; Lin, Ming M; Moore, Robert;
-davej@redhat.com
->Subject: Re: [PATCH] ACPI: disable stray gpe correctly
->
->
->> > On Sunday 09 March 2008, Zhang, Rui wrote:
->> >> Disable stray GPE correctly
->> >> https://bugzilla.redhat.com/show_bug.cgi?id=251744
->> >> http://bugzilla.kernel.org/show_bug.cgi?id=6217
->> >>
->> >> Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
->> >> ---
->> >>  drivers/acpi/events/evgpe.c |    3 ++-
->> >>  1 file changed, 2 insertions(+), 1 deletion(-)
->> >>
->> >> Index: linux-2.6/drivers/acpi/events/evgpe.c
->> >>
-===================================================================
->> >> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
->> >> +++ linux-2.6/drivers/acpi/events/evgpe.c
->> >> @@ -248,7 +248,8 @@ acpi_status acpi_ev_disable_gpe(struct a
->> >>
->> >>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
->> >>
->> >> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
->> >> +	if (gpe_event_info->flags &&
->> >> +		(!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
->> >>  		return_ACPI_STATUS(AE_OK);
->> >>  	}
->> >>
->>
->> Causes ACPI battery problems...
->>
->> https://bugzilla.redhat.com/show_bug.cgi?id=436959
->
->Okay, i've droppped it until 436959 can be figured out.
->
->thanks Chuck,
->-Len
->
->
+-Len
 
