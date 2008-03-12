@@ -1,40 +1,65 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 2/3] acer-wmi: Fix DSDT path in documentation
-Date: Wed, 12 Mar 2008 20:12:55 +0000
-Message-ID: <20080312201255.2071.33288.stgit@pacifica>
+Subject: [PATCH 3/3] acer-wmi: Add mail LED support for Acer Aspire 3610/ 5610
+Date: Wed, 12 Mar 2008 20:13:00 +0000
+Message-ID: <20080312201300.2071.42198.stgit@pacifica>
 References: <20080312201238.2071.31534.stgit@pacifica>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:45900 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:45901 "EHLO
 	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752519AbYCLUNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:13:11 -0400
+	id S1752574AbYCLUNQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 16:13:16 -0400
 In-Reply-To: <20080312201238.2071.31534.stgit@pacifica>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
+Add a DMI quirk entry to add mail LED support for this laptop series.
+
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
 
- Documentation/laptops/acer-wmi.txt |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/misc/acer-wmi.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
 
-diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
-index a346c86..23df051 100644
---- a/Documentation/laptops/acer-wmi.txt
-+++ b/Documentation/laptops/acer-wmi.txt
-@@ -48,7 +48,7 @@ DSDT.
- 
- To send me the DSDT, as root/sudo:
- 
--cat /sys/firmware/acpi/DSDT > dsdt
-+cat /sys/firmware/acpi/tables/DSDT > dsdt
- 
- And send me the resulting 'dsdt' file.
- 
+diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
+index 89d346b..dd13a37 100644
+--- a/drivers/misc/acer-wmi.c
++++ b/drivers/misc/acer-wmi.c
+@@ -219,6 +219,15 @@ static struct dmi_system_id acer_quirks[] = {
+ 	},
+ 	{
+ 		.callback = dmi_matched,
++		.ident = "Acer Aspire 3610",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 3610"),
++		},
++		.driver_data = &quirk_acer_travelmate_2490,
++	},
++	{
++		.callback = dmi_matched,
+ 		.ident = "Acer Aspire 5100",
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+@@ -228,6 +237,15 @@ static struct dmi_system_id acer_quirks[] = {
+ 	},
+ 	{
+ 		.callback = dmi_matched,
++		.ident = "Acer Aspire 5610",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5610"),
++		},
++		.driver_data = &quirk_acer_travelmate_2490,
++	},
++	{
++		.callback = dmi_matched,
+ 		.ident = "Acer Aspire 5630",
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 
