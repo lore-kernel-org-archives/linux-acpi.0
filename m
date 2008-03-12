@@ -1,58 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: disable stray gpe correctly
-Date: Wed, 12 Mar 2008 16:09:45 -0400
-Message-ID: <200803121609.46134.lenb@kernel.org>
-References: <1205114649.10256.200.camel@acpi-hp-zz.sh.intel.com> <200803110206.45590.lenb@kernel.org> <47D8351F.7080802@redhat.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 0/3] acer-wmi patches for 2.6.25-rc5
+Date: Wed, 12 Mar 2008 20:12:39 +0000
+Message-ID: <20080312201238.2071.31534.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55767 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752347AbYCLUKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:10:38 -0400
-In-Reply-To: <47D8351F.7080802@redhat.com>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:45898 "EHLO
+	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752500AbYCLUNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 16:13:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chuck Ebbert <cebbert@redhat.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, robert.moore@intel.com, davej@redhat.com
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
+
+Len,
+
+The following patchset is some minor cleanups and an extra DMI quirk for
+2.6.25-rc5.
+
+If you're not happy with applying patch #3 now, it can always wait until 2.6.26
+
+-Carlos
+---
+
+Carlos Corbacho (3):
+      acer-wmi: Add mail LED support for Acer Aspire 3610/ 5610
+      acer-wmi: Fix DSDT path in documentation
+      acer-wmi: Make device detection error messages more descriptive
 
 
-> > On Sunday 09 March 2008, Zhang, Rui wrote:
-> >> Disable stray GPE correctly
-> >> https://bugzilla.redhat.com/show_bug.cgi?id=251744
-> >> http://bugzilla.kernel.org/show_bug.cgi?id=6217
-> >>
-> >> Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >> ---
-> >>  drivers/acpi/events/evgpe.c |    3 ++-
-> >>  1 file changed, 2 insertions(+), 1 deletion(-)
-> >>
-> >> Index: linux-2.6/drivers/acpi/events/evgpe.c
-> >> ===================================================================
-> >> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
-> >> +++ linux-2.6/drivers/acpi/events/evgpe.c
-> >> @@ -248,7 +248,8 @@ acpi_status acpi_ev_disable_gpe(struct a
-> >>  
-> >>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
-> >>  
-> >> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
-> >> +	if (gpe_event_info->flags &&
-> >> +		(!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
-> >>  		return_ACPI_STATUS(AE_OK);
-> >>  	}
-> >>  
-> 
-> Causes ACPI battery problems...
-> 
-> https://bugzilla.redhat.com/show_bug.cgi?id=436959
-
-Okay, i've droppped it until 436959 can be figured out.
-
-thanks Chuck,
--Len
-
+ Documentation/laptops/acer-wmi.txt |    2 +-
+ drivers/misc/acer-wmi.c            |   30 +++++++++++++++++++++++++-----
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
 
