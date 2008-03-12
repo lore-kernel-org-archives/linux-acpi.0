@@ -1,47 +1,93 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] ACPI: Set flag DOCK_UNDOCKING when triggered via sysfs
-Date: Tue, 11 Mar 2008 22:35:22 -0700
-Message-ID: <20080311223522.3326b6ee.akpm@linux-foundation.org>
-References: <20080312000727.GB4089@homac>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 3/3] [2.6.25-rc5] Warn user about a BIOS bug in recent asus boards
+Date: Wed, 12 Mar 2008 01:40:14 -0400
+Message-ID: <200803120140.14243.lenb@kernel.org>
+References: <1205280392.8194.46.camel@linux-2bdv.site> <200803120010.41373.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47035 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbYCLFgJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:36:09 -0400
-In-Reply-To: <20080312000727.GB4089@homac>
+Received: from hera.kernel.org ([140.211.167.34]:51987 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751747AbYCLFkb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 01:40:31 -0400
+In-Reply-To: <200803120010.41373.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, stable@kernel.org
+To: trenn@suse.de
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Wed, 12 Mar 2008 01:07:27 +0100 Holger Macht <hmacht@suse.de> wrote:
+Actually,
+This case (and others)
+seems to be taken care of by Rui's recent patch for 8544, yes?
 
-> begin_undock() is only called when triggered via a acpi notify handler
-> (pressing the undock button on the dock station), but complete_undock() is
-> always called after the eject. So if a undock is triggered through a sysfs
-> write, the flag DOCK_UNDOCKING has to be set for the dock station,
-> too. Otherwise this will freeze the system hard.
+ [PATCH] ACPI: thermal fixup for broken BIOS which has invalid trip points
+
+-Len
+
+On Wednesday 12 March 2008, Len Brown wrote:
+> Applied.
+> 
+> thanks,
+> -Len
+> 
+> On Tuesday 11 March 2008, Thomas Renninger wrote:
+> > Warn user about a BIOS bug in recent asus boards
+> > 
+> > Do copy passive devices only if they are valid.
+> > 
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > 
+> > ---
+> >  drivers/acpi/thermal.c |   20 +++++++++++---------
+> >  1 file changed, 11 insertions(+), 9 deletions(-)
+> > 
+> > Index: linux-2.6.24/drivers/acpi/thermal.c
+> > ===================================================================
+> > --- linux-2.6.24.orig/drivers/acpi/thermal.c
+> > +++ linux-2.6.24/drivers/acpi/thermal.c
+> > @@ -440,16 +440,18 @@ static int acpi_thermal_trips_update(str
+> >  		memset(&devices, 0, sizeof(struct acpi_handle_list));
+> >  		status = acpi_evaluate_reference(tz->device->handle, "_PSL",
+> >  							NULL, &devices);
+> > -		if (ACPI_FAILURE(status))
+> > -			tz->trips.passive.flags.valid = 0;
+> > -		else
+> > +		if (ACPI_SUCCESS(status)) {
+> >  			tz->trips.passive.flags.valid = 1;
+> > -
+> > -		if (memcmp(&tz->trips.passive.devices, &devices,
+> > -				sizeof(struct acpi_handle_list))) {
+> > -			memcpy(&tz->trips.passive.devices, &devices,
+> > -				sizeof(struct acpi_handle_list));
+> > -			ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
+> > +			if (memcmp(&tz->trips.passive.devices, &devices,
+> > +				   sizeof(struct acpi_handle_list))) {
+> > +				memcpy(&tz->trips.passive.devices, &devices,
+> > +				       sizeof(struct acpi_handle_list));
+> > +				ACPI_THERMAL_TRIPS_EXCEPTION(flag, "device");
+> > +			}
+> > +		} else {
+> > +			tz->trips.passive.flags.valid = 0;
+> > +			ACPI_EXCEPTION((AE_INFO, status, "Invalid passiv trip"
+> > +					" point\n"));
+> >  		}
+> >  	}
+> >  	if ((flag & ACPI_TRIPS_PASSIVE) || (flag & ACPI_TRIPS_DEVICES)) {
+> > 
+> > 
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
 > 
 
-We prefer not to make systems freeze hard.
 
-> ---
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 307cef6..fa44fb9 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -710,6 +710,7 @@ static ssize_t write_undock(struct device *dev, struct device_attribute *attr,
->  	if (!count)
->  		return -EINVAL;
->  
-> +	begin_undock(dock_station);
->  	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
->  	return ret ? ret: count;
->  }
-
-I assume that this is needed in 2.6.24.x as well?
