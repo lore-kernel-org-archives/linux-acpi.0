@@ -1,45 +1,50 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Wed, 12 Mar 2008 18:13:07 -0300
-Message-ID: <20080312211306.GD30864@khazad-dum.debian.net>
-References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080312193637.GA27873@ics.muni.cz>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] PNP: use dev_printk for quirk messages
+Date: Wed, 12 Mar 2008 14:22:31 -0700
+Message-ID: <20080312142231.cf6ecc46.akpm@linux-foundation.org>
+References: <200803041647.28298.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:54418 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752218AbYCLVNL (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33295 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751672AbYCLVWt (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 17:13:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20080312193637.GA27873@ics.muni.cz>
+	Wed, 12 Mar 2008 17:22:49 -0400
+In-Reply-To: <200803041647.28298.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Arkadiusz Miskiewicz <arekm@maven.pl>, Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: ambx1@neo.rr.com, linux-acpi@vger.kernel.org
 
-On Wed, 12 Mar 2008, Lukas Hejtmanek wrote:
-> On Wed, Mar 12, 2008 at 07:52:41PM +0100, Arkadiusz Miskiewicz wrote:
-> > I'm also seeing regression on my thinkpad z60m where with git tree (tested 
-> > again with 2 days old git) "thinkvantage" button stopped working (pressing it 
-> > was previously seen by some userspace kde which run konsole).
-> > 
-> > On 2.6.24 presses are seen.
+On Tue, 4 Mar 2008 16:47:27 -0700
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+
+> Convert quirk printks to dev_printk().
 > 
-> well, on 2.6.25-rc4, some keys are not reported as input (xev does not see any
-> key press), some keys are. Is this desired? Or all the keys (fn+f1-12 + volume
-> + backlight + think vantage) should be reported as some input event and thus
-> acpid makes no sense any more?
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Index: linux-mm/drivers/pnp/quirks.c
+> ===================================================================
+> --- linux-mm.orig/drivers/pnp/quirks.c	2008-03-04 16:41:17.000000000 -0700
+> +++ linux-mm/drivers/pnp/quirks.c	2008-03-04 16:44:00.000000000 -0700
+> @@ -51,7 +51,8 @@
+>  		port3->min += 0x800;
+>  		port3->max += 0x800;
+>  	}
+> -	printk(KERN_INFO "pnp: AWE32 quirk - adding two ports\n");
+> +	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
+> +		(unsigned long) port2->min, (unsigned long) port3->min);
+>  }
 
-xev has to get events from somewhere.  That somewhere happens to be a buggy
-mess right now (X.org evdev device).  Or it is getting it through some other
-middleware, like HAL, which can have its own problems.
+drivers/pnp/quirks.c: In function 'quirk_awe32_resources':
+drivers/pnp/quirks.c:25: warning: 'port3' may be used uninitialized in this function
+drivers/pnp/quirks.c:25: warning: 'port2' may be used uninitialized in this function
 
-If you want to test thinkpad-acpi functionality, get HAL and X.org out of
-the way.  The easiest way is to do it in single user mode.
+the warning is correct, methinks.  If dev->dependent happens to be NULL,
+we oops.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I'll just move the dev_info() inside the loop, which is more logical and
+is actually correct.  The code at present will only print the last-added
+ports?
