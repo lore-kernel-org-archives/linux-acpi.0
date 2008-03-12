@@ -1,48 +1,76 @@
-From: "S. Umar" <umar@compsci.cas.vanderbilt.edu>
-Subject: Please send DMI info above to linux-acpi@vger.kernel.org
-Date: Wed, 12 Mar 2008 09:25:49 -0500
-Message-ID: <200803120925.49842.umar@compsci.cas.vanderbilt.edu>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH, RFC] Create 'slot' sysfs attribute
+	in/sys/devices/system/cpu/cpuN/topology/
+Date: Wed, 12 Mar 2008 09:45:35 -0600
+Message-ID: <20080312154535.GB9996@ldl.fc.hp.com>
+References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from compsci.cas.Vanderbilt.Edu ([129.59.116.43]:55726 "EHLO
-	compsci.cas.vanderbilt.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbYCLOf1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 10:35:27 -0400
-Received: from compsci.cas.vanderbilt.edu (localhost.localdomain [127.0.0.1])
-	by compsci.cas.vanderbilt.edu (8.14.2/8.14.2) with ESMTP id m2CEPoUo002949
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Mar 2008 09:25:50 -0500
-Received: from localhost (localhost [[UNIX: localhost]])
-	by compsci.cas.vanderbilt.edu (8.14.2/8.14.2/Submit) id m2CEPnGm002947
-	for linux-acpi@vger.kernel.org; Wed, 12 Mar 2008 09:25:49 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1FE6DD409037234FAB833C420AA843ECC8960D@orsmsx424.amr.corp.intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+* Luck, Tony <tony.luck@intel.com>:
+> > A while back, I submitted a patch to expose the value of the _SUN
+> > method for CPUs. On ia64, the "physical id" field in
+> > /proc/cpuinfo isn't sufficient for some legacy HP ia64 platforms,
+> > as they do not have a modern SAL or PAL.
+> 
+> Do these legacy systems with ancient SAL/PAL actually support
+> processor hot plug?
 
-ACPI: bus type pci registered
-PCI: Using configuration type 1
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: Precision WorkStation T3400
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0TP412
-ACPI: DMI BIOS Vendor: Dell Inc.
-ACPI: DMI BIOS Date: 01/31/2008
-ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
-ACPI: If "acpi_osi=Linux" works better, please notify linux-acpi@vger.kernel.org
-ACPI: Interpreter enabled
+No, they do not; that was simply the most convenient / obvious
+example I could think of for someone reading changelogs a few
+years later and wondering why we created this sysfs attribute.
 
--- 
-Prof. S. Umar
-Dept. of Physics & Astronomy
-Vanderbilt University
-Nashville, TN 37235
-Tel : (615) 322-2459
-umar@compsci.cas.vanderbilt.edu
-http://compsci.cas.vanderbilt.edu/~umar/resume.pdf
+A real world example would be HP managability software keeping
+track of CMC/CPE data for CPUs over a long period of time for the
+purpose of doing long-term failure analysis.
+
+This software can already grab a bunch of info from IPMI, such as
+CPU serial number, date code, physical location, but cannot
+correlate it to the kernel's idea of logical CPU number and
+physloc.
+
+Having the kernel expose the physical slot ties it all together.
+
+This example is something any vendor selling higher level
+managability software might want to do, and specifically HP wants
+to do it to take care of our customers who have large deployments
+of these legacy systems.
+
+Hopefully that is enough justification to warrant at least
+looking at the patch and telling me why it sucks. ;)
+
+> Perhaps this next rant is beyond the scope of Linux architecture
+> and more on overall systems useabilty.  It is just asking for
+> trouble to print a message on the console telling the user to go
+> pull out the board in "slot 2".  Do the slot numbers count from
+> "0" or from "1"?  Are they numbered left-to-right or right-to-left?
+> What if the rack is non-standard so the system was rotated 90
+> degrees?  Now are they numbered top-to-bottom or bottom-to-top.
+
+Well, at least for HP ia64 machines, we have lots of
+silk-screening on the backplane, as well as pretty diagrams on
+chassis covers, and we took care in making sure our what our
+firmware matches up with those pictures.
+
+But in general, I like the idea of das blinkenlights too. :)
+
+> Best idea is to have a (blinking) (red) light on the board and
+> instruct the operator to pull out the board with the fail-light
+> (but even then a red-green colour blind operator will still
+> mess it up for you and pull the wrong board :-)
+
+Heh, then just make the failure light either blink (for failure)
+or not blink (default). Then as long as the operator can detect
+lumens, he/she would just be able to pull the blinky board. :)
+
+Thanks.
+
+/ac
+
