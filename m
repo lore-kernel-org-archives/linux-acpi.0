@@ -1,35 +1,45 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/4] ACPI: video: prevent ACPI video actions upondisplay switch notifications
-Date: Wed, 12 Mar 2008 18:09:58 +0000
-Message-ID: <20080312180958.GA29487@srcf.ucam.org>
-References: <1201243677.4663.18.camel@acpi-sony.sh.intel.com> <1205281262.8194.58.camel@linux-2bdv.site> <1205284888.8194.72.camel@linux-2bdv.site> <1205290380.2240.41.camel@acpi-hp-zz.sh.intel.com> <1205338005.29877.247.camel@queen.suse.de>
+From: Arkadiusz Miskiewicz <arekm@maven.pl>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Wed, 12 Mar 2008 19:52:41 +0100
+Message-ID: <200803121952.42666.arekm@maven.pl>
+References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([78.32.9.130]:42305 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751587AbYCLSKQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 14:10:16 -0400
+Received: from main.carme.maven.pl ([193.239.45.138]:25667 "EHLO
+	main.carme.maven.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbYCLTNX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 15:13:23 -0400
+In-Reply-To: <20080312135521.GE8141@ics.muni.cz>
 Content-Disposition: inline
-In-Reply-To: <1205338005.29877.247.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, lenb <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-gfx@linux.intel.com
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, Mar 12, 2008 at 05:06:45PM +0100, Thomas Renninger wrote:
 
-> Above was not from myself, but copied out from the bug.
-> The guy(s) complained that DOS=0 now breaks their machines...
-> I try to find some time to look at this a bit deeper and will then
-> comment in the bug (can take some time...).
-> IMO recent HPs can/should be taken as a reference as they tend to stick
-> to the ACPI spec closely.
+> On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Holschuh=
+ wrote:
+> > You shouldn't need to do anything other than teach userspace to res=
+pond
+> > to them, as they generate the proper KEY_* events.  If you are givi=
+ng the
+> > AML _OSI(Linux), at least...
 
-Setting my HP 2510p to a DOS of 0 leaves it smashing CPU state on every 
-other lid open event, so I suspect it's not tested at all. I'd lean 
-towards saying that the kernel default should probably be 1, with 
-userspace altering that as appropriate.
+I'm also seeing regression on my thinkpad z60m where with git tree (tes=
+ted=20
+again with 2 days old git) "thinkvantage" button stopped working (press=
+ing it=20
+was previously seen by some userspace kde which run konsole).
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+On 2.6.24 presses are seen.
+
+--=20
+Arkadiusz Mi=B6kiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
