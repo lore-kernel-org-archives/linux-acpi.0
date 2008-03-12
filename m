@@ -1,172 +1,73 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
-Date: Wed, 12 Mar 2008 21:25:19 +0900
-Message-ID: <47D7CBAF.4090308@jp.fujitsu.com>
-References: <20071117182954.GA25003@ldl.fc.hp.com>	<20071119233225.GA6931@us.ibm.com>	<20071126222253.GA31708@ldl.fc.hp.com>	<474E6E82.40307@jp.fujitsu.com> <20080311121516.42e3a727@appleyard>
+From: Jens Axboe <jens.axboe@oracle.com>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Wed, 12 Mar 2008 13:59:13 +0100
+Message-ID: <20080312125912.GM17940@kernel.dk>
+References: <20080225200354.GE16513@khazad-dum.debian.net> <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com> <20080304211212.GD6704@kernel.dk> <47CDBE11.4010900@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:39603 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982AbYCLMhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 08:37:09 -0400
-In-Reply-To: <20080311121516.42e3a727@appleyard>
+Received: from brick.kernel.dk ([87.55.233.238]:22617 "EHLO kernel.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420AbYCLM7Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 08:59:16 -0400
+Content-Disposition: inline
+In-Reply-To: <47CDBE11.4010900@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kristen.c.accardi@intel.com
-Cc: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Hi Kristen,
+On Wed, Mar 05 2008, Alexey Starikovskiy wrote:
+> Jens Axboe wrote:
+> >On Wed, Mar 05 2008, Alexey Starikovskiy wrote:
+> >  
+> >>Jens Axboe wrote:
+> >>    
+> >>>On Tue, Feb 26 2008, Lukas Hejtmanek wrote:
+> >>> 
+> >>>      
+> >>>>On Mon, Feb 25, 2008 at 08:00:35PM -0300, Henrique de Moraes Holschuh 
+> >>>>wrote:
+> >>>>   
+> >>>>        
+> >>>>>On Mon, 25 Feb 2008, Lukas Hejtmanek wrote:
+> >>>>>     
+> >>>>>          
+> >>>>>>volume keys work. But anything through acpid does not. Even 
+> >>>>>>AC/battery switch
+> >>>>>>is not signalized. So the bug may be somewhere else?
+> >>>>>>       
+> >>>>>>            
+> >>>>>Yeah, there is an EC-related regression in 2.6.25-rc3 that bites your
+> >>>>>thinkpad.  I don't have a link to it right now, but if you look for the
+> >>>>>messages to LKML on the last 48h, you will find it.
+> >>>>>     
+> >>>>>          
+> >>>>this one fixes all my troubles with thinkpad hotkeys in rc3.
+> >>>>http://lkml.org/lkml/2008/2/25/400
+> >>>>   
+> >>>>        
+> >>>Ping - is anyone sending this upstream? Would be nice to have my x60
+> >>>usable for -rc4 at least.
+> >>>
+> >>> 
+> >>>      
+> >>Please take a look at patches in #10100.
+> >>    
+> >
+> >Can you be more specific (eg if you want me to test any/all of them, let
+> >me know)?
+> >
+> >  
+> Patch from comment #3 is in -mm at the moment, and has good chance to 
+> appear in linus tree.
+> I am trying to invent something less crufty along the lines of comment 
+> #4, but not succeeded yet.
 
-> Hello - back to this mail for a moment.  I wanted to talk about acpiphp
-> again.  You say that acpiphp has this same problem as Alex's driver wrt
-> evalating _SUN on a non existant object.  If we skip registering the
-> slot in acpiphp's register_slot function if it returns 0 for _STA, we
-> will not detect any hotplug slots, since leaf nodes will return 0 for
-> _STA if a device is not present. Should we only skip it if it's parent
-> is a p2p bridge that has _EJ0 and the parent's _STA says empty?
+Updating and doing what the bugzilla entry suggests, that is reverting
+the offending commit. That makes my brightness controls work, but the
+volume and mute keys still do not work.
 
-I've been not looking at acpiphp code for a long time. So I need refresh
-my memory before answering. Sorry.
-
-But I want to say one thing. We can detect all the hotplug slots if ACPI
-firmware doesn't provide _STA. We don't need _STA for PCI hotplug slots
-and should not provide _STA for PCI hotplug slots if the system is based
-on ACPI2.0 or later, because those are _ADR based devices (PCI root bridge,
-which is _HID based device, is a exception). For _ADR based devices, we
-should check the presence of the device using PCI bus drivers instead of
-evaluating _STA. Please see the section of "_EJx (Eject)" in ACPI2.0b or
-later spec. It says "For _HID devices, OSPM evaluates the _STA method. For
-_ADR devices, OSPM checks with the bus driver for that device.".
-
-BTW, acpiphp_glue.c says _STA is "optionally". I don't know what it means.
-
-Thanks,
-Kenji Kaneshige
-
-
-Kristen Carlson Accardi wrote:
-> On Thu, 29 Nov 2007 16:47:14 +0900
-> Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
-> 
->>> Hi Gary, Kenji-san, et. al,
->>>
->>> * Gary Hade <garyhade@us.ibm.com>:
->>>> Alex, What I was trying to suggest is a boot-time kernel
->>>> option, not a kernel configuration option.  The basic idea is
->>>> to give the user (with a single binary kernel) the ability to
->>>> include your ACPI-PCI slot driver feature changes only when
->>>> they are really needed.  In addition to reducing the number of
->>>> system/PCI hotplug driver combinations where your changes would
->>>> need to be validated, I believe would also help alleviate other
->>>> worries (e.g. Andi Kleen's memory consumption concern).  I
->>>> believe this goal could also be achieved with the kernel config
->>>> option by making the pci_slot module runtime loadable with the
->>>> PCI hotplug drivers only visiting your new code when the
->>>> pci_slot driver is loaded, although I think this would be more
->>>> difficult to implement.
->>> I have modified my patch series so that the final patch that
->>> introduces my ACPI-PCI slot driver is a full-fledged module, that
->>> has a tristate Kconfig option.
->>>
->> Thank you for your good job.
->>
->> I tested shpchp and pciehp both with and without pci_slot module.
->> There seems no regression from shpchp and pciehp's point of view.
->> (I had a little concern about the hotplug slots' name that vary
->> depending on whether pci_slot functionality is enabled or disabled.
->> But, now that we can build pci_slot driver as a kernel module, I
->> don't think it is a big problem).
->>
->> Only the problems is that I got Call Traces with the following error
->> messages when pci_slot driver was loaded, and one strange slot named
->> '1023' was registered (other slots are fine). This is the same problem
->> I reported before.
->>
->>     sysfs: duplicate filename '1023' can not be created
->>     WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
->>
->>     kobject_add failed for 1023 with -EEXIST, don't try to register
->>     things with the same name in the same directory.
->>
->> On my system, hotplug slots themselves can be added, removed and
->> replaced with the ohter type of I/O box. The ACPI firmware tells OS
->> the presence of those slots using _STA method (That is, it doesn't
->> use 'LoadTable()' AML operator). On the other hand, current pci_slot
->> driver doesn't check _STA. As a result, pci_slot driver tryied to
->> register the invalid (non-existing) slots. The ACPI firmware of my
->> system returns '1023' if the invalid slot's _SUN is evaluated. This
->> is the cause of Call Traces mentioned above. To fix this problem,
->> pci_slot driver need to check _STA when scanning ACPI Namespace.
->>
->> I'm sorry for reporting this so late. I'm attaching the patch to fix
->> the problem. This is against 2.6.24-rc3 with your patches applied.
->> Could you try it?
->>
->> BTW, acpiphp also seems to have the same problem...
->>
->> Thanks,
->> Kenji Kaneshige
-> 
-> Hello - back to this mail for a moment.  I wanted to talk about acpiphp
-> again.  You say that acpiphp has this same problem as Alex's driver wrt
-> evalating _SUN on a non existant object.  If we skip registering the
-> slot in acpiphp's register_slot function if it returns 0 for _STA, we
-> will not detect any hotplug slots, since leaf nodes will return 0 for
-> _STA if a device is not present. Should we only skip it if it's parent
-> is a p2p bridge that has _EJ0 and the parent's _STA says empty?
-> 
-> Your input is appreciated,
-> Kristen
-> 
->> ---
->>  drivers/acpi/pci_slot.c |   13 +++++++++++++
->>  1 file changed, 13 insertions(+)
->>
->> Index: linux-2.6.24-rc3/drivers/acpi/pci_slot.c
->> ===================================================================
->> --- linux-2.6.24-rc3.orig/drivers/acpi/pci_slot.c
->> +++ linux-2.6.24-rc3/drivers/acpi/pci_slot.c
->> @@ -113,10 +113,17 @@ register_slot(acpi_handle handle, u32 lv
->>  	int device;
->>  	unsigned long sun;
->>  	char name[KOBJ_NAME_LEN];
->> +	acpi_status status;
->> +	struct acpi_device *dummy_device;
->>  
->>  	struct pci_slot *pci_slot;
->>  	struct pci_bus *pci_bus = context;
->>  
->> +	/* Skip non-existing device object. */
->> +	status = acpi_bus_get_device(handle, &dummy_device);
->> +	if (ACPI_FAILURE(status))
->> +		return AE_OK;
->> +
->>  	if (check_slot(handle, &device, &sun))
->>  		return AE_OK;
->>  
->> @@ -150,12 +157,18 @@ walk_p2p_bridge(acpi_handle handle, u32 
->>  	acpi_status status;
->>  	acpi_handle dummy_handle;
->>  	acpi_walk_callback user_function;
->> +	struct acpi_device *dummy_device;
->>  
->>  	struct pci_dev *dev;
->>  	struct pci_bus *pci_bus;
->>  	struct p2p_bridge_context child_context;
->>  	struct p2p_bridge_context *parent_context = context;
->>  
->> +	/* Skip non-existing device object. */
->> +	status = acpi_bus_get_device(handle, &dummy_device);
->> +	if (ACPI_FAILURE(status))
->> +		return AE_OK;
->> +
->>  	pci_bus = parent_context->pci_bus;
->>  	user_function = parent_context->user_function;
->>  
->>
-> 
-> 
-
+-- 
+Jens Axboe
 
