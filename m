@@ -1,65 +1,52 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 3/3] acer-wmi: Add mail LED support for Acer Aspire 3610/ 5610
-Date: Wed, 12 Mar 2008 20:13:00 +0000
-Message-ID: <20080312201300.2071.42198.stgit@pacifica>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/3] acer-wmi patches for 2.6.25-rc5
+Date: Wed, 12 Mar 2008 16:25:56 -0400
+Message-ID: <200803121625.56814.lenb@kernel.org>
 References: <20080312201238.2071.31534.stgit@pacifica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:45901 "EHLO
-	pacifica" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752574AbYCLUNQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:13:16 -0400
+Received: from hera.kernel.org ([140.211.167.34]:58169 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751780AbYCLU0S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 16:26:18 -0400
 In-Reply-To: <20080312201238.2071.31534.stgit@pacifica>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-Add a DMI quirk entry to add mail LED support for this laptop series.
+On Wednesday 12 March 2008, Carlos Corbacho wrote:
+> Len,
+> 
+> The following patchset is some minor cleanups and an extra DMI quirk for
+> 2.6.25-rc5.
+> 
+> If you're not happy with applying patch #3 now, it can always wait until 2.6.26
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
+i think a DMI entry for a hook in a brand-new driver is fine.
 
- drivers/misc/acer-wmi.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+1,2,3 applied.
 
+thanks,
+-Lenn
 
-diff --git a/drivers/misc/acer-wmi.c b/drivers/misc/acer-wmi.c
-index 89d346b..dd13a37 100644
---- a/drivers/misc/acer-wmi.c
-+++ b/drivers/misc/acer-wmi.c
-@@ -219,6 +219,15 @@ static struct dmi_system_id acer_quirks[] = {
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Acer Aspire 3610",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 3610"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "Acer Aspire 5100",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-@@ -228,6 +237,15 @@ static struct dmi_system_id acer_quirks[] = {
- 	},
- 	{
- 		.callback = dmi_matched,
-+		.ident = "Acer Aspire 5610",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5610"),
-+		},
-+		.driver_data = &quirk_acer_travelmate_2490,
-+	},
-+	{
-+		.callback = dmi_matched,
- 		.ident = "Acer Aspire 5630",
- 		.matches = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> -Carlos
+> ---
+> 
+> Carlos Corbacho (3):
+>       acer-wmi: Add mail LED support for Acer Aspire 3610/ 5610
+>       acer-wmi: Fix DSDT path in documentation
+>       acer-wmi: Make device detection error messages more descriptive
+> 
+> 
+>  Documentation/laptops/acer-wmi.txt |    2 +-
+>  drivers/misc/acer-wmi.c            |   30 +++++++++++++++++++++++++-----
+>  2 files changed, 26 insertions(+), 6 deletions(-)
+> 
+> 
+
 
