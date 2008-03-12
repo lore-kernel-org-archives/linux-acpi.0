@@ -1,48 +1,59 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Wed, 12 Mar 2008 14:39:08 -0300
-Message-ID: <20080312173908.GA30864@khazad-dum.debian.net>
-References: <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com> <20080304211212.GD6704@kernel.dk> <47CDBE11.4010900@gmail.com> <20080312125912.GM17940@kernel.dk> <20080312131737.GA21290@khazad-dum.debian.net> <20080312132419.GN17940@kernel.dk> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: PNP: increase the maximum number of resources
+Date: Wed, 12 Mar 2008 13:45:20 -0400
+Message-ID: <200803121345.21297.lenb@kernel.org>
+References: <20080312151452.GA4523@codemonkey.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:49797 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750968AbYCLRjM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 13:39:12 -0400
+Received: from hera.kernel.org ([140.211.167.34]:57180 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751188AbYCLRqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 13:46:11 -0400
+In-Reply-To: <20080312151452.GA4523@codemonkey.org.uk>
 Content-Disposition: inline
-In-Reply-To: <20080312135521.GE8141@ics.muni.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Thomas Renninger <trenn@suse.de>, Linux Kernel <linux-kernel@vger.kernel.org>
 
-On Wed, 12 Mar 2008, Lukas Hejtmanek wrote:
-> On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Holschuh wrote:
-> > You shouldn't need to do anything other than teach userspace to respond to
-> > them, as they generate the proper KEY_* events.  If you are giving the AML
-> > _OSI(Linux), at least...
-> > 
-> > But maybe looking at the keyboard output in console mode, to make triple
-> > sure the events ARE being sent over the KDC as they should, would be in
-> > order?
-> 
-> so, do I understand correctly that volume keys have been controlled by ACPI
-> and seemed to work independently on SW and now (exactly since when?) are
-> passed complety to the user space as key codes?
+On Wednesday 12 March 2008, Dave Jones wrote:
+> In commit a7839e960675b549f06209d18283d5cee2ce9261 the number of PNP resources
+> was increased.  In testing, we've found that the 'exceeded' warnings still get
+> hit with quite high frequency. See https://bugzilla.redhat.com/show_bug.cgi?id=436589
 
-Yes, since the first *61 model.  And field-upgradeable firmware revisons
-have a say on how this thing works, since the entire KDC is software in a
-Lenovo ThinkPad (it is just a small part of the EC firmware, that comes with
-the BIOS upgrades).
+In 2.6.23 we had:
 
-I have some long email sitting on my draft folders about how to restore full
-sanity to thinkpad mixer behaviour on Linux, but I have to cool down for a
-few days before I revise it and send it.
+#define PNP_MAX_PORT            8
+#define PNP_MAX_MEM             4
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+And the kernel silently ignored a BIOS exceeding these limits
+
+In 2.6.24 we have:
+
+#define PNP_MAX_PORT            40
+#define PNP_MAX_MEM             12
+
+And the kernel complains with KERN_ERR when a BIOS has more resources
+than the kernel can describe within these limits.
+
+We know that there are cases where these static limits will be exceeded
+but refrained from making these numbers larger due to concern about data structure size
+and expectation that the majory of systems will fit within these limits.
+(eg. there was one box with about 96 IO resources)
+
+I agree that having a KERN_ERR that you know is going to fire is not a good situation.
+We can either delete or KERN_DEBUG the message if it causes support issues --
+for we know that <= 2.6.23 did worse by being silent.
+
+Thomas worked on a patch to make resource allocation dynamic and do away
+with these limits.  Unfortunately it was rather large and it wasn't in
+time for the 2.6.25-rc1 window.  So right now we are on a trajectory
+for 2.6.25 to behave exactly like 2.6.24.
+Indeed, I don't think that patch made it into the test tree,
+so unless we revive that patch, it will miss 2.6.26 as well.
+
+thanks,
+-Len
