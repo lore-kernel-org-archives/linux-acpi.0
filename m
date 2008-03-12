@@ -1,59 +1,201 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: PNP: increase the maximum number of resources
-Date: Wed, 12 Mar 2008 13:45:20 -0400
-Message-ID: <200803121345.21297.lenb@kernel.org>
-References: <20080312151452.GA4523@codemonkey.org.uk>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] ACPI: add _PRT quirks to work around broken firmware
+Date: Wed, 12 Mar 2008 11:55:12 -0600
+Message-ID: <200803121155.13321.bjorn.helgaas@hp.com>
+References: <200803111445.16316.bjorn.helgaas@hp.com> <200803112340.05293.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57180 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751188AbYCLRqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 13:46:11 -0400
-In-Reply-To: <20080312151452.GA4523@codemonkey.org.uk>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:16193 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755039AbYCLRw1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 13:52:27 -0400
+In-Reply-To: <200803112340.05293.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Thomas Renninger <trenn@suse.de>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Pierre Ossman <drzeus-bugzilla@drzeus.cx>, Michael Fu <michael.fu@intel.com>, Martin Kirst <martin.kirst@s1998.tu-chemnitz.de>, Hadmut Danisch <hadmut@danisch.de>, Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>, Dominik =?iso-8859-1?q?Sch=E4fer?= <schaedpq2@gmx.de>, Alex Williamson <alex.williamson@hp.com>, Aron Griffis <aron@hp.com>
 
-On Wednesday 12 March 2008, Dave Jones wrote:
-> In commit a7839e960675b549f06209d18283d5cee2ce9261 the number of PNP resources
-> was increased.  In testing, we've found that the 'exceeded' warnings still get
-> hit with quite high frequency. See https://bugzilla.redhat.com/show_bug.cgi?id=436589
+On Tuesday 11 March 2008 09:40:04 pm Len Brown wrote:
+> Is it true that simply enabling pci=routeirq on these boxes
+> is an insufficient workaround?
 
-In 2.6.23 we had:
+I'm told that pci=routeirq is a sufficient workaround for the
+first two issues, but I verified that it is not sufficient on
+the t5710.
 
-#define PNP_MAX_PORT            8
-#define PNP_MAX_MEM             4
+On the t5710, even with pci=routeirq, as soon as we turn on the
+radeon interrupt, it starts generating interrupts on LNK3.  Since
+the radeon driver isn't listening there, we eventually turn off
+that IRQ, killing other other devices sharing it as a side-effect.
 
-And the kernel silently ignored a BIOS exceeding these limits
+I don't know why pci=routeirq works on the other two boxes.  Maybe
+because of your guess below.
 
-In 2.6.24 we have:
+> I suspect the answer is yes, because when pci=routeirq works
+> we may just be lucky -- eg. we happen to assign the real
+> and the fake link to the same IRQ and thus the driver
+> actually registers for the correct IRQ, but by accident.
+> 
+> I'll put this patch into the acpi test tree.
 
-#define PNP_MAX_PORT            40
-#define PNP_MAX_MEM             12
+Thanks.
 
-And the kernel complains with KERN_ERR when a BIOS has more resources
-than the kernel can describe within these limits.
+> On Tuesday 11 March 2008, Bjorn Helgaas wrote:
+> > This patch works around incorrect _PRT (PCI interrupt routing)
+> > information from firmware.  This does not fix any regressions
+> > and can wait for the next kernel release.
+> > 
+> > On the Medion MD9580-F laptop, the BIOS says the builtin RTL8139
+> > NIC interrupt at 00:09.0[A] is connected to \_SB.PCI0.ISA.LNKA, but
+> > it's really connected to \_SB.PCI0.ISA.LNKB.  Before this patch,
+> > the workaround was to use "pci=routeirq".  More details at
+> > http://bugzilla.kernel.org/show_bug.cgi?id=4773.
+> > 
+> > On the Dell OptiPlex GX1, the BIOS says the PCI slot interrupt
+> > 00:0d[A] is connected to LNKB, but it's really connected to LNKA.
+> > Before this patch, the workaround was to use "pci=routeirq".
+> > Pierre Ossman tested a previous version of this patch and confirmed
+> > that it fixed the problem.  More details at
+> > http://bugzilla.kernel.org/show_bug.cgi?id=5044.
+> > 
+> > On the HP t5710 thin client, the BIOS says the builtin Radeon
+> > video interrupt at 01:00[A] is connected to LNK1, but it's really
+> > connected to LNK3.  The previous workaround was to use a custom
+> > DSDT.  I tested this patch and verified that it fixes the problem.
+> > More details at http://bugzilla.kernel.org/show_bug.cgi?id=10138.  
+> > 
+> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> > 
+> > Index: work7/drivers/acpi/pci_irq.c
+> > ===================================================================
+> > --- work7.orig/drivers/acpi/pci_irq.c	2008-03-06 09:06:28.000000000 -0700
+> > +++ work7/drivers/acpi/pci_irq.c	2008-03-11 14:40:57.000000000 -0600
+> > @@ -25,6 +25,7 @@
+> >   */
+> >  
+> >  
+> > +#include <linux/dmi.h>
+> >  #include <linux/kernel.h>
+> >  #include <linux/module.h>
+> >  #include <linux/init.h>
+> > @@ -76,6 +77,101 @@
+> >  	return NULL;
+> >  }
+> >  
+> > +/* http://bugzilla.kernel.org/show_bug.cgi?id=4773 */
+> > +static struct dmi_system_id medion_md9580[] = {
+> > +	{
+> > +		.ident = "Medion MD9580-F laptop",
+> > +		.matches = {
+> > +			DMI_MATCH(DMI_SYS_VENDOR, "MEDIONNB"),
+> > +			DMI_MATCH(DMI_PRODUCT_NAME, "A555"),
+> > +		},
+> > +	},
+> > +	{ }
+> > +};
+> > +
+> > +/* http://bugzilla.kernel.org/show_bug.cgi?id=5044 */
+> > +static struct dmi_system_id dell_optiplex[] = {
+> > +	{
+> > +		.ident = "Dell Optiplex GX1",
+> > +		.matches = {
+> > +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Computer Corporation"),
+> > +			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex GX1 600S+"),
+> > +		},
+> > +	},
+> > +	{ }
+> > +};
+> > +
+> > +/* http://bugzilla.kernel.org/show_bug.cgi?id=10138 */
+> > +static struct dmi_system_id hp_t5710[] = {
+> > +	{
+> > +		.ident = "HP t5710",
+> > +		.matches = {
+> > +			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> > +			DMI_MATCH(DMI_PRODUCT_NAME, "hp t5000 series"),
+> > +			DMI_MATCH(DMI_BOARD_NAME, "098Ch"),
+> > +		},
+> > +	},
+> > +	{ }
+> > +};
+> > +
+> > +struct prt_quirk {
+> > +	struct dmi_system_id	*system;
+> > +	unsigned int		segment;
+> > +	unsigned int		bus;
+> > +	unsigned int		device;
+> > +	unsigned char		pin;
+> > +	char			*source;	/* according to BIOS */
+> > +	char			*actual_source;
+> > +};
+> > +
+> > +/*
+> > + * These systems have incorrect _PRT entries.  The BIOS claims the PCI
+> > + * interrupt at the listed segment/bus/device/pin is connected to the first
+> > + * link device, but it is actually connected to the second.
+> > + */
+> > +static struct prt_quirk prt_quirks[] = {
+> > +	{ medion_md9580, 0, 0, 9, 'A',
+> > +		"\\_SB_.PCI0.ISA.LNKA",
+> > +		"\\_SB_.PCI0.ISA.LNKB"},
+> > +	{ dell_optiplex, 0, 0, 0xd, 'A',
+> > +		"\\_SB_.LNKB",
+> > +		"\\_SB_.LNKA"},
+> > +	{ hp_t5710, 0, 0, 1, 'A',
+> > +		"\\_SB_.PCI0.LNK1",
+> > +		"\\_SB_.PCI0.LNK3"},
+> > +};
+> > +
+> > +static void
+> > +do_prt_fixups(struct acpi_prt_entry *entry, struct acpi_pci_routing_table *prt)
+> > +{
+> > +	int i;
+> > +	struct prt_quirk *quirk;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(prt_quirks); i++) {
+> > +		quirk = &prt_quirks[i];
+> > +
+> > +		/* All current quirks involve link devices, not GSIs */
+> > +		if (!prt->source)
+> > +			continue;
+> > +
+> > +		if (dmi_check_system(quirk->system) &&
+> > +		    entry->id.segment == quirk->segment &&
+> > +		    entry->id.bus == quirk->bus &&
+> > +		    entry->id.device == quirk->device &&
+> > +		    entry->pin + 'A' == quirk->pin &&
+> > +		    !strcmp(prt->source, quirk->source) &&
+> > +		    strlen(prt->source) >= strlen(quirk->actual_source)) {
+> > +			printk(KERN_WARNING PREFIX "firmware reports "
+> > +				"%04x:%02x:%02x[%c] connected to %s; "
+> > +				"changing to %s\n",
+> > +				entry->id.segment, entry->id.bus,
+> > +				entry->id.device, 'A' + entry->pin,
+> > +				prt->source, quirk->actual_source);
+> > +			strcpy(prt->source, quirk->actual_source);
+> > +		}
+> > +	}
+> > +}
+> > +
+> >  static int
+> >  acpi_pci_irq_add_entry(acpi_handle handle,
+> >  		       int segment, int bus, struct acpi_pci_routing_table *prt)
+> > @@ -96,6 +192,8 @@
+> >  	entry->id.function = prt->address & 0xFFFF;
+> >  	entry->pin = prt->pin;
+> >  
+> > +	do_prt_fixups(entry, prt);
+> > +
+> >  	/*
+> >  	 * Type 1: Dynamic
+> >  	 * ---------------
+> > 
+> 
+> 
+> 
 
-We know that there are cases where these static limits will be exceeded
-but refrained from making these numbers larger due to concern about data structure size
-and expectation that the majory of systems will fit within these limits.
-(eg. there was one box with about 96 IO resources)
 
-I agree that having a KERN_ERR that you know is going to fire is not a good situation.
-We can either delete or KERN_DEBUG the message if it causes support issues --
-for we know that <= 2.6.23 did worse by being silent.
-
-Thomas worked on a patch to make resource allocation dynamic and do away
-with these limits.  Unfortunately it was rather large and it wasn't in
-time for the 2.6.25-rc1 window.  So right now we are on a trajectory
-for 2.6.25 to behave exactly like 2.6.24.
-Indeed, I don't think that patch made it into the test tree,
-so unless we revive that patch, it will miss 2.6.26 as well.
-
-thanks,
--Len
