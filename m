@@ -1,96 +1,58 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] doc/power: move power-related files to Documentation/power/
-Date: Wed, 12 Mar 2008 16:00:45 -0400
-Message-ID: <200803121600.45535.lenb@kernel.org>
-References: <20080304134837.dcfed6dd.randy.dunlap@oracle.com> <200803120247.27649.lenb@kernel.org> <20080312093350.785d6cde.randy.dunlap@oracle.com>
+Subject: Re: [PATCH] ACPI: disable stray gpe correctly
+Date: Wed, 12 Mar 2008 16:09:45 -0400
+Message-ID: <200803121609.46134.lenb@kernel.org>
+References: <1205114649.10256.200.camel@acpi-hp-zz.sh.intel.com> <200803110206.45590.lenb@kernel.org> <47D8351F.7080802@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54485 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:55767 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754686AbYCLUBu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:01:50 -0400
-In-Reply-To: <20080312093350.785d6cde.randy.dunlap@oracle.com>
+	id S1752347AbYCLUKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 16:10:38 -0400
+In-Reply-To: <47D8351F.7080802@redhat.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, cbou@mail.ru, dwmw2@infradead.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, robert.moore@intel.com, davej@redhat.com
 
-On Wednesday 12 March 2008, Randy Dunlap wrote:
-> On Wed, 12 Mar 2008 02:47:27 -0400 Len Brown wrote:
+
+> > On Sunday 09 March 2008, Zhang, Rui wrote:
+> >> Disable stray GPE correctly
+> >> https://bugzilla.redhat.com/show_bug.cgi?id=251744
+> >> http://bugzilla.kernel.org/show_bug.cgi?id=6217
+> >>
+> >> Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
+> >> ---
+> >>  drivers/acpi/events/evgpe.c |    3 ++-
+> >>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>
+> >> Index: linux-2.6/drivers/acpi/events/evgpe.c
+> >> ===================================================================
+> >> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
+> >> +++ linux-2.6/drivers/acpi/events/evgpe.c
+> >> @@ -248,7 +248,8 @@ acpi_status acpi_ev_disable_gpe(struct a
+> >>  
+> >>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
+> >>  
+> >> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
+> >> +	if (gpe_event_info->flags &&
+> >> +		(!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK))) {
+> >>  		return_ACPI_STATUS(AE_OK);
+> >>  	}
+> >>  
 > 
-> > On Tuesday 04 March 2008, Randy Dunlap wrote:
-> > > From: Randy Dunlap <randy.dunlap@oracle.com>
-> > > 
-> > > Move power-related files to Documentation/power/.
-> > > 
-> > > Move 00-INDEX entries to power/00-INDEX (and add entry for
-> > > pm_qos_interface.txt).
-> > > 
-> > > Update references to moved filenames.
-> > > 
-> > > Fix some trailing whitespace.
-> > > 
-> > > Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> > > ---
-> > >  Documentation/00-INDEX                     |    4 
-> > >  Documentation/kernel-parameters.txt        |    2 
-> > >  Documentation/pm.txt                       |  257 -------------------
-> > >  Documentation/pm_qos_interface.txt         |   59 ----
-> > >  Documentation/power/00-INDEX               |    6 
-> > >  Documentation/power/pm.txt                 |  257 +++++++++++++++++++
-> > >  Documentation/power/pm_qos_interface.txt   |   59 ++++
-> > >  Documentation/power/power_supply_class.txt |  169 ++++++++++++
-> > >  Documentation/power_supply_class.txt       |  169 ------------
-> > >  arch/x86/Kconfig                           |    2 
-> > >  kernel/power/Kconfig                       |    2 
-> > >  11 files changed, 494 insertions(+), 492 deletions(-)
-> > 
-> > Randy,
-> > This one doesn't apply any more.
-> > somebody already remove the power_supply_class.txt file?
+> Causes ACPI battery problems...
 > 
-> Don't think so, but I can't reproduce the problem.
-> What kernel tree are you applying it to?
-> 
+> https://bugzilla.redhat.com/show_bug.cgi?id=436959
 
-linus top of tree.  i was wrong that it was already gone,
-i guess i assumed that since it had 1 hunk and patch
-told me the hunk was reversed i assumed that part
-had been applied already.
+Okay, i've droppped it until 436959 can be figured out.
 
-[lenb@t61 linus (master)]$ patch -Np1 --dry-run <  ~/Documents/doc1.patch
-patching file Documentation/00-INDEX
-Hunk #1 succeeded at 301 (offset -2 lines).
-patching file Documentation/power/00-INDEX
-patching file Documentation/pm.txt
-patching file Documentation/power/pm.txt
-patching file Documentation/pm_qos_interface.txt
-patching file Documentation/power/pm_qos_interface.txt
-patching file Documentation/power/power_supply_class.txt
-patching file Documentation/power_supply_class.txt
-Reversed (or previously applied) patch detected!  Skipping patch.
-1 out of 1 hunk ignored -- saving rejects to file Documentation/power_supply_class.txt.rej
-patching file arch/x86/Kconfig
-Hunk #1 succeeded at 1259 (offset -2 lines).
-patching file kernel/power/Kconfig
-patching file Documentation/kernel-parameters.txt
+thanks Chuck,
+-Len
 
 
-git-am didn't do any better:
-
-Apply? [y]es/[n]o/[e]dit/[v]iew patch/[a]ccept all y
-Applying doc/power: move power-related files to Documentation/power/
-error: patch failed: Documentation/power_supply_class.txt:1
-error: Documentation/power_supply_class.txt: patch does not apply
-fatal: sha1 information is lacking or useless (Documentation/00-INDEX).
-Repository lacks necessary blobs to fall back on 3-way merge.
-Cannot fall back to three-way merge.
-Patch failed at 0001.
-When you have resolved this problem run "git-am -i -3 --resolved".
-If you would prefer to skip this patch, instead run "git-am -i -3 --skip".
-                 
 
