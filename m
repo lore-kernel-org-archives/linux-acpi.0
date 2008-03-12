@@ -1,51 +1,86 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH, RFC] Create 'slot' sysfs attribute in/sys/devices/system/cpu/cpuN/topology/
-Date: Wed, 12 Mar 2008 14:42:04 -0700
-Message-ID: <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [linux-pm] [PATCH] doc/power: move power-related files to Documentation/power/
+Date: Wed, 12 Mar 2008 17:49:37 -0400
+Message-ID: <200803121749.37889.lenb@kernel.org>
+References: <20080304134837.dcfed6dd.randy.dunlap@oracle.com> <200803121600.45535.lenb@kernel.org> <20080312144110.113c853b.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20080310222735.GA22619@ldl.fc.hp.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, lenb@kernel.org
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:49352 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752099AbYCLVvA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 17:51:00 -0400
+In-Reply-To: <20080312144110.113c853b.randy.dunlap@oracle.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, dwmw2@infradead.org, cbou@mail.ru
 
-> include/asm-x86/cpu.h         |    1 +
+On Wednesday 12 March 2008, Randy Dunlap wrote:
+> On Wed, 12 Mar 2008 16:00:45 -0400 Len Brown wrote:
+> 
+> > linus top of tree.  i was wrong that it was already gone,
+> > i guess i assumed that since it had 1 hunk and patch
+> > told me the hunk was reversed i assumed that part
+> > had been applied already.
+> 
+> Can you try the patch below?
+> It works_for_me but that doesn't give me lots of confidence.
+> 
+> ---
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> Move power-related files to Documentation/power/.
+> 
+> Move 00-INDEX entries to power/00-INDEX (and add entry for
+> pm_qos_interface.txt).
+> 
+> Update references to moved filenames.
+> 
+> Fix some trailing whitespace.
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> ---
+>  Documentation/00-INDEX                     |    4 
+>  Documentation/kernel-parameters.txt        |    2 
+>  Documentation/pm.txt                       |  257 -------------------
+>  Documentation/pm_qos_interface.txt         |   59 ----
+>  Documentation/power/00-INDEX               |    6 
+>  Documentation/power/pm.txt                 |  257 +++++++++++++++++++
+>  Documentation/power/pm_qos_interface.txt   |   59 ++++
+>  Documentation/power/power_supply_class.txt |  169 ++++++++++++
+>  Documentation/power_supply_class.txt       |  169 ------------
+>  arch/x86/Kconfig                           |    2 
+>  kernel/power/Kconfig                       |    2 
+>  11 files changed, 494 insertions(+), 492 deletions(-)
+> 
 
-I assume this slipped in accidentally (though it would
-eventually be needed for an x86 version of this patch).
+not better
 
-> +#ifdef	topology_slot
-> +define_id_show_func(slot);
-> +define_one_ro(slot);
-> +#define ref_slot_attr			&attr_slot.attr,
-> +#else
-> +#define ref_slot_attr
-> +#endif
+Please send it to me as an attachment,
+maybe kmail is getting confused b/c this text has non ascii characters?
 
-This is a bit ugly ... I don't see how to make it better (but
-I'm sure that akpm will say "You could just ...", and then
-I'll wonder why I didn't think of that).
+(does this patch apply for anybody else?)
 
-> +EXPORT_SYMBOL(arch_set_topology_slot);
+thanks,
+-Len
 
-As the author you get to choose the license ... but there is
-strong movement to make new exported symbols GPL only.
+[lenb@t61 linus (master)]$ patch -Np1 --dry-run < ~/Documents/doc-new.patch
+patching file Documentation/00-INDEX
+patching file Documentation/power/00-INDEX
+patching file Documentation/pm.txt
+patching file Documentation/power/pm.txt
+patching file Documentation/pm_qos_interface.txt
+patching file Documentation/power/pm_qos_interface.txt
+patching file Documentation/power/power_supply_class.txt
+patching file Documentation/power_supply_class.txt
+Reversed (or previously applied) patch detected!  Skipping patch.
+1 out of 1 hunk ignored -- saving rejects to file Documentation/power_supply_class.txt.rej
+patching file arch/x86/Kconfig
+patching file kernel/power/Kconfig
+patching file Documentation/kernel-parameters.txt
+[lenb@t61 linus (master)]$   
 
-When I apply this patch and run it on my tiger, I see a slew
-of
-
-	ACPI: Invalid PBLK length [0]
-
-messages on my console during boot and the see
-
-	$ cat /sys/devices/system/cpu/cpu0/topology/slot
-	-1
-
-So I guess that the _SUN method isn't there on my machine.
-
--Tony
