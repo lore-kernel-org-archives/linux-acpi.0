@@ -1,46 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Suspend and hibernation patchset
-Date: Wed, 12 Mar 2008 01:29:24 +0100
-Message-ID: <200803120129.25585.rjw@sisk.pl>
+From: "Dave Young" <hidave.darkstar@gmail.com>
+Subject: Re: 2.6.25-rc5-mm1
+Date: Wed, 12 Mar 2008 09:14:55 +0800
+Message-ID: <a8e1da0803111814h3192f856oe4ffa6e92d1d7a92@mail.gmail.com>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37283 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765AbYCLAa0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2008 20:30:26 -0400
+Received: from wr-out-0506.google.com ([64.233.184.225]:39732 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751353AbYCLBO5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2008 21:14:57 -0400
+Received: by wr-out-0506.google.com with SMTP id 50so1672150wra.13
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Mar 2008 18:14:56 -0700 (PDT)
+In-Reply-To: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Shaohua Li <shaohua.li@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi,
+Hi, I got the following lockdep warning:
+(add linux-acpi to cc)
 
-For everyone interested, I have put together a patchset containing some "fresh"
-patches related to suspend and hibernation, on top of 2.6.25-rc5, located at:
-
-http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.25-rc5/patches/
-
-I have not yet decided what to do with patches 01-03.  Patch 03 will probably
-be sent upstream soon.
-
-Patch 04 is currently in the "test" branch of the ACPI tree and has been
-tested already for some time in -mm and linux-next.
-
-Patches 05-08, being mainly fixes, have just been sent upstream.
-
-Patch 09, which I'm considering as the most important one, is the first of
-a series that will introduce a new suspend and hibernation framework for
-device drivers.  It introduces the highest-level structures and documents
-them, so if you are planning any modifications in this area, have a look at it
-and please let me know if there are any conflicts, so that we can avoid them.
-
-Thanks,
-Rafael
-
-
--- 
-"Premature optimization is the root of all evil." - Donald Knuth
+[    0.097109] ACPI: Core revision 20070126
+[    0.097282] INFO: trying to register non-static key.
+[    0.097355] the code is fine but needs lockdep annotation.
+[    0.097428] turning off the locking correctness validator.
+[    0.097503] Pid: 0, comm: swapper Not tainted 2.6.25-rc5-mm1 #3
+[    0.097578]  [<c0127bf8>] ? printk+0x18/0x20
+[    0.097716]  [<c014b01c>] __lock_acquire+0x40c/0x760
+[    0.097822]  [<c0181ba0>] ? alloc_debug_processing+0xb0/0x140
+[    0.097959]  [<c014b969>] lock_acquire+0x79/0xb0
+[    0.098063]  [<c0140204>] ? down_trylock+0x14/0x40
+[    0.098197]  [<c03df9e8>] _spin_lock_irqsave+0x48/0xa0
+[    0.098303]  [<c0140204>] ? down_trylock+0x14/0x40
+[    0.098436]  [<c0140204>] down_trylock+0x14/0x40
+[    0.098540]  [<c027c7ea>] acpi_os_wait_semaphore+0x3e/0xb9
+[    0.098647]  [<c029263e>] acpi_ut_acquire_mutex+0x34/0x72
+[    0.098753]  [<c0289ab1>] acpi_ns_root_initialize+0x19/0x250
+[    0.098859]  [<c05453e6>] acpi_initialize_subsystem+0x42/0x64
+[    0.098966]  [<c0545725>] acpi_early_init+0x50/0xef
+[    0.099070]  [<c052b7f6>] start_kernel+0x1e6/0x250
+[    0.099175]  [<c052b1a0>] ? unknown_bootoption+0x0/0x130
+[    0.099310]  [<c052b008>] __init_begin+0x8/0x10
+[    0.099414]  =======================
