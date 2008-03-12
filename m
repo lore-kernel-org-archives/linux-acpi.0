@@ -1,102 +1,380 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: show temperature in millidegree Celsius
-Date: Wed, 12 Mar 2008 00:28:50 -0400
-Message-ID: <200803120028.50457.lenb@kernel.org>
-References: <1204072678.10256.112.camel@acpi-hp-zz.sh.intel.com> <47C537E1.5090103@gmail.com> <1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Wed, 12 Mar 2008 00:29:09 -0400
+Message-ID: <200803120029.09505.lenb@kernel.org>
+References: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:48940 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:48948 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008AbYCLE3k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:29:40 -0400
-In-Reply-To: <1204156290.10256.132.camel@acpi-hp-zz.sh.intel.com>
+	id S1751819AbYCLE3x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 00:29:53 -0400
+In-Reply-To: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
 Applied.
 
 thanks,
 -Len
 
-On Wednesday 27 February 2008, Zhang, Rui wrote:
+On Tuesday 26 February 2008, Zhang, Rui wrote:
 > 
-> On Wed, 2008-02-27 at 18:13 +0800, Alexey Starikovskiy wrote:
-> > Rui,
-> > 
-> > As I remember, ACPI returns temperature in 10ths of degree. If you are
-> > going to report it in 1000ths of degree,
-> > there is no reason to round them to degree.
-> > 
-> 
-> Show the temperature in Millidegree Celsius.
+> Add hwmon sys I/F for the generic thermal device.
 > 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Cc: Hans de Geode <j.w.r.degoede@hhs.nl>
 > ---
->  drivers/acpi/thermal.c |   12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
+>  Documentation/thermal/sysfs-api.txt |   22 ++--
+>  drivers/thermal/Kconfig             |    1 
+>  drivers/thermal/thermal.c           |  169 ++++++++++++++++++++++++++++++------
+>  3 files changed, 155 insertions(+), 37 deletions(-)
 > 
-> Index: linux-2.6/drivers/acpi/thermal.c
+> Index: linux-2.6/Documentation/thermal/sysfs-api.txt
 > ===================================================================
-> --- linux-2.6.orig/drivers/acpi/thermal.c
-> +++ linux-2.6/drivers/acpi/thermal.c
-> @@ -879,6 +879,8 @@ static void acpi_thermal_check(void *dat
->  }
+> --- linux-2.6.orig/Documentation/thermal/sysfs-api.txt
+> +++ linux-2.6/Documentation/thermal/sysfs-api.txt
+> @@ -143,10 +143,10 @@ type				Strings which represent the ther
+>  				This is given by thermal zone driver as part of registration.
+>  				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
+>  				RO
+> -				Optional
+> +				Required
 >  
->  /* sys I/F for generic thermal sysfs support */
-> +#define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
+>  temp				Current temperature as reported by thermal zone (sensor)
+> -				Unit: degree Celsius
+> +				Unit: millidegree Celsius
+>  				RO
+>  				Required
+>  
+> @@ -163,7 +163,7 @@ mode				One of the predefined values in 
+>  					  charge of the thermal management.
+>  
+>  trip_point_[0-*]_temp		The temperature above which trip point will be fired
+> -				Unit: degree Celsius
+> +				Unit: millidegree Celsius
+>  				RO
+>  				Optional
+>  
+> @@ -193,7 +193,7 @@ type				String which represents the type
+>  				eg. For memory controller device on intel_menlow platform:
+>  				this should be "Memory controller"
+>  				RO
+> -				Optional
+> +				Required
+>  
+>  max_state			The maximum permissible cooling state of this cooling device.
+>  				RO
+> @@ -219,16 +219,16 @@ the sys I/F structure will be built like
+>  
+>  |thermal_zone1:
+>  	|-----type:			ACPI thermal zone
+> -	|-----temp:			37
+> +	|-----temp:			37000
+>  	|-----mode:			kernel
+> -	|-----trip_point_0_temp:	100
+> +	|-----trip_point_0_temp:	100000
+>  	|-----trip_point_0_type:	critical
+> -	|-----trip_point_1_temp:	80
+> +	|-----trip_point_1_temp:	80000
+>  	|-----trip_point_1_type:	passive
+> -	|-----trip_point_2_temp:	70
+> -	|-----trip_point_2_type:	active[0]
+> -	|-----trip_point_3_temp:	60
+> -	|-----trip_point_3_type:	active[1]
+> +	|-----trip_point_2_temp:	70000
+> +	|-----trip_point_2_type:	active0
+> +	|-----trip_point_3_temp:	60000
+> +	|-----trip_point_3_type:	active1
+>  	|-----cdev0:			--->/sys/class/thermal/cooling_device0
+>  	|-----cdev0_trip_point:		1	/* cdev0 can be used for passive */
+>  	|-----cdev1:			--->/sys/class/thermal/cooling_device3
+> Index: linux-2.6/drivers/thermal/Kconfig
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/Kconfig
+> +++ linux-2.6/drivers/thermal/Kconfig
+> @@ -4,6 +4,7 @@
+>  
+>  menuconfig THERMAL
+>  	bool "Generic Thermal sysfs driver"
+> +	select HWMON
+>  	default y
+>  	help
+>  	  Generic Thermal Sysfs driver offers a generic mechanism for
+> Index: linux-2.6/drivers/thermal/thermal.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/thermal/thermal.c
+> +++ linux-2.6/drivers/thermal/thermal.c
+> @@ -30,8 +30,10 @@
+>  #include <linux/idr.h>
+>  #include <linux/thermal.h>
+>  #include <linux/spinlock.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+>  
+> -MODULE_AUTHOR("Zhang Rui")
+> +MODULE_AUTHOR("Zhang Rui");
+>  MODULE_DESCRIPTION("Generic thermal management sysfs support");
+>  MODULE_LICENSE("GPL");
+>  
+> @@ -56,6 +58,9 @@ static LIST_HEAD(thermal_tz_list);
+>  static LIST_HEAD(thermal_cdev_list);
+>  static DEFINE_MUTEX(thermal_list_lock);
+>  
+> +static struct device *thermal_hwmon;
+> +#define MAX_THERMAL_ZONES	10
 > +
->  static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
+>  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
 >  {
->  	struct acpi_thermal *tz = thermal->devdata;
-> @@ -886,7 +888,7 @@ static int thermal_get_temp(struct therm
->  	if (!tz)
->  		return -EINVAL;
->  
-> -	return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(tz->temperature));
-> +	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
+>  	int err;
+> @@ -87,7 +92,67 @@ static void release_idr(struct idr *idr,
+>  		mutex_unlock(lock);
 >  }
 >  
->  static const char enabled[] = "kernel";
-> @@ -980,21 +982,21 @@ static int thermal_get_trip_temp(struct 
+> -/* sys I/F for thermal zone */
+> +/* hwmon sys I/F*/
+> +static ssize_t
+> +name_show(struct device *dev, struct device_attribute *attr, char *buf)
+> +{
+> +	return sprintf(buf, "thermal_sys_class\n");
+> +}
+> +
+> +static ssize_t
+> +temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
+> +{
+> +	struct thermal_zone_device *tz;
+> +	struct sensor_device_attribute *sensor_attr
+> +						= to_sensor_dev_attr(attr);
+> +
+> +	list_for_each_entry(tz, &thermal_tz_list, node)
+> +		if (tz->id == sensor_attr->index)
+> +			return tz->ops->get_temp(tz, buf);
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static ssize_t
+> +temp_crit_show(struct device *dev, struct device_attribute *attr,
+> +		char *buf)
+> +{
+> +	struct thermal_zone_device *tz;
+> +	struct sensor_device_attribute *sensor_attr
+> +						= to_sensor_dev_attr(attr);
+> +
+> +	list_for_each_entry(tz, &thermal_tz_list, node)
+> +		if (tz->id == sensor_attr->index)
+> +			return tz->ops->get_trip_temp(tz, 0, buf);
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static DEVICE_ATTR(name, 0444, name_show, NULL);
+> +static struct sensor_device_attribute sensor_attrs[] = {
+> +	SENSOR_ATTR(temp1_input, 0444, temp_input_show, NULL, 0),
+> +	SENSOR_ATTR(temp1_crit, 0444, temp_crit_show, NULL, 0),
+> +	SENSOR_ATTR(temp2_input, 0444, temp_input_show, NULL, 1),
+> +	SENSOR_ATTR(temp2_crit, 0444, temp_crit_show, NULL, 1),
+> +	SENSOR_ATTR(temp3_input, 0444, temp_input_show, NULL, 2),
+> +	SENSOR_ATTR(temp3_crit, 0444, temp_crit_show, NULL, 2),
+> +	SENSOR_ATTR(temp4_input, 0444, temp_input_show, NULL, 3),
+> +	SENSOR_ATTR(temp4_crit, 0444, temp_crit_show, NULL, 3),
+> +	SENSOR_ATTR(temp5_input, 0444, temp_input_show, NULL, 4),
+> +	SENSOR_ATTR(temp5_crit, 0444, temp_crit_show, NULL, 4),
+> +	SENSOR_ATTR(temp6_input, 0444, temp_input_show, NULL, 5),
+> +	SENSOR_ATTR(temp6_crit, 0444, temp_crit_show, NULL, 5),
+> +	SENSOR_ATTR(temp7_input, 0444, temp_input_show, NULL, 6),
+> +	SENSOR_ATTR(temp7_crit, 0444, temp_crit_show, NULL, 6),
+> +	SENSOR_ATTR(temp8_input, 0444, temp_input_show, NULL, 7),
+> +	SENSOR_ATTR(temp8_crit, 0444, temp_crit_show, NULL, 7),
+> +	SENSOR_ATTR(temp9_input, 0444, temp_input_show, NULL, 8),
+> +	SENSOR_ATTR(temp9_crit, 0444, temp_crit_show, NULL, 8),
+> +	SENSOR_ATTR(temp10_input, 0444, temp_input_show, NULL, 9),
+> +	SENSOR_ATTR(temp10_crit, 0444, temp_crit_show, NULL, 9),
+> +};
+> +
+> +/* thermal zone sys I/F */
 >  
->  	if (tz->trips.critical.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  				tz->trips.critical.temperature));
->  		trip--;
+>  #define to_thermal_zone(_dev) \
+>  	container_of(_dev, struct thermal_zone_device, device)
+> @@ -214,7 +279,7 @@ do {	\
+>  	device_remove_file(_dev, &trip_point_attrs[_index * 2 + 1]);	\
+>  } while (0)
+>  
+> -/* sys I/F for cooling device */
+> +/* cooling device sys I/F */
+>  #define to_cooling_device(_dev)	\
+>  	container_of(_dev, struct thermal_cooling_device, device)
+>  
+> @@ -447,6 +512,9 @@ struct thermal_cooling_device *thermal_c
+>  	struct thermal_zone_device *pos;
+>  	int result;
+>  
+> +	if (!type)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	if (strlen(type) >= THERMAL_NAME_LENGTH)
+>  		return ERR_PTR(-EINVAL);
+>  
+> @@ -477,11 +545,9 @@ struct thermal_cooling_device *thermal_c
 >  	}
 >  
->  	if (tz->trips.hot.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.hot.temperature));
->  		trip--;
+>  	/* sys I/F */
+> -	if (type) {
+> -		result = device_create_file(&cdev->device, &dev_attr_cdev_type);
+> -		if (result)
+> -			goto unregister;
+> -	}
+> +	result = device_create_file(&cdev->device, &dev_attr_cdev_type);
+> +	if (result)
+> +		goto unregister;
+>  
+>  	result = device_create_file(&cdev->device, &dev_attr_max_state);
+>  	if (result)
+> @@ -547,8 +613,8 @@ void thermal_cooling_device_unregister(s
+>  		tz->ops->unbind(tz, cdev);
+>  	}
+>  	mutex_unlock(&thermal_list_lock);
+> -	if (cdev->type[0])
+> -		device_remove_file(&cdev->device, &dev_attr_cdev_type);
+> +
+> +	device_remove_file(&cdev->device, &dev_attr_cdev_type);
+>  	device_remove_file(&cdev->device, &dev_attr_max_state);
+>  	device_remove_file(&cdev->device, &dev_attr_cur_state);
+>  
+> @@ -580,6 +646,9 @@ struct thermal_zone_device *thermal_zone
+>  	int result;
+>  	int count;
+>  
+> +	if (!type)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	if (strlen(type) >= THERMAL_NAME_LENGTH)
+>  		return ERR_PTR(-EINVAL);
+>  
+> @@ -601,6 +670,13 @@ struct thermal_zone_device *thermal_zone
+>  		kfree(tz);
+>  		return ERR_PTR(result);
+>  	}
+> +	if (tz->id >= MAX_THERMAL_ZONES) {
+> +		printk(KERN_ERR PREFIX
+> +			"Too many thermal zones\n");
+> +		release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+> +		kfree(tz);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+>  
+>  	strcpy(tz->type, type);
+>  	tz->ops = ops;
+> @@ -615,13 +691,28 @@ struct thermal_zone_device *thermal_zone
+>  		return ERR_PTR(result);
 >  	}
 >  
->  	if (tz->trips.passive.flags.valid) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.passive.temperature));
->  		trip--;
+> -	/* sys I/F */
+> -	if (type) {
+> -		result = device_create_file(&tz->device, &dev_attr_type);
+> -		if (result)
+> -			goto unregister;
+> +	/* hwmon sys I/F */
+> +	result = device_create_file(thermal_hwmon,
+> +					&sensor_attrs[tz->id * 2].dev_attr);
+> +	if (result)
+> +		goto unregister;
+> +
+> +	if (trips > 0) {
+> +		char buf[40];
+> +		result = tz->ops->get_trip_type(tz, 0, buf);
+> +		if (result > 0 && !strcmp(buf, "critical\n")) {
+> +			result = device_create_file(thermal_hwmon,
+> +					&sensor_attrs[tz->id * 2 + 1].dev_attr);
+> +			if (result)
+> +				goto unregister;
+> +		}
 >  	}
-> @@ -1002,7 +1004,7 @@ static int thermal_get_trip_temp(struct 
->  	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
->  		tz->trips.active[i].flags.valid; i++) {
->  		if (!trip)
-> -			return sprintf(buf, "%ld\n", KELVIN_TO_CELSIUS(
-> +			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
->  					tz->trips.active[i].temperature));
->  		trip--;
+>  
+> +	/* sys I/F */
+> +	result = device_create_file(&tz->device, &dev_attr_type);
+> +	if (result)
+> +		goto unregister;
+> +
+>  	result = device_create_file(&tz->device, &dev_attr_temp);
+>  	if (result)
+>  		goto unregister;
+> @@ -687,8 +778,17 @@ void thermal_zone_device_unregister(stru
+>  		    tz->ops->unbind(tz, cdev);
+>  	mutex_unlock(&thermal_list_lock);
+>  
+> -	if (tz->type[0])
+> -		device_remove_file(&tz->device, &dev_attr_type);
+> +	device_remove_file(thermal_hwmon,
+> +				&sensor_attrs[tz->id * 2].dev_attr);
+> +	if (tz->trips > 0) {
+> +		char buf[40];
+> +		if (tz->ops->get_trip_type(tz, 0, buf) > 0)
+> +			if (!strcmp(buf, "critical\n"))
+> +				device_remove_file(thermal_hwmon,
+> +				&sensor_attrs[tz->id * 2 + 1].dev_attr);
+> +	}
+> +
+> +	device_remove_file(&tz->device, &dev_attr_type);
+>  	device_remove_file(&tz->device, &dev_attr_temp);
+>  	if (tz->ops->get_mode)
+>  		device_remove_file(&tz->device, &dev_attr_mode);
+> @@ -705,6 +805,19 @@ void thermal_zone_device_unregister(stru
+>  
+>  EXPORT_SYMBOL(thermal_zone_device_unregister);
+>  
+> +static void __exit thermal_exit(void)
+> +{
+> +	if (thermal_hwmon) {
+> +		device_remove_file(thermal_hwmon, &dev_attr_name);
+> +		hwmon_device_unregister(thermal_hwmon);
+> +	}
+> +	class_unregister(&thermal_class);
+> +	idr_destroy(&thermal_tz_idr);
+> +	idr_destroy(&thermal_cdev_idr);
+> +	mutex_destroy(&thermal_idr_lock);
+> +	mutex_destroy(&thermal_list_lock);
+> +}
+> +
+>  static int __init thermal_init(void)
+>  {
+>  	int result = 0;
+> @@ -716,16 +829,20 @@ static int __init thermal_init(void)
+>  		mutex_destroy(&thermal_idr_lock);
+>  		mutex_destroy(&thermal_list_lock);
 >  	}
+> -	return result;
+> -}
+>  
+> -static void __exit thermal_exit(void)
+> -{
+> -	class_unregister(&thermal_class);
+> -	idr_destroy(&thermal_tz_idr);
+> -	idr_destroy(&thermal_cdev_idr);
+> -	mutex_destroy(&thermal_idr_lock);
+> -	mutex_destroy(&thermal_list_lock);
+> +	thermal_hwmon = hwmon_device_register(NULL);
+> +	if (IS_ERR(thermal_hwmon)) {
+> +		result = PTR_ERR(thermal_hwmon);
+> +		thermal_hwmon = NULL;
+> +		printk(KERN_ERR PREFIX
+> +			"unable to register hwmon device\n");
+> +		thermal_exit();
+> +		return result;
+> +	}
+> +
+> +	result = device_create_file(thermal_hwmon, &dev_attr_name);
+> +
+> +	return result;
+>  }
+>  
+>  subsys_initcall(thermal_init);
 > 
 > 
 > -
