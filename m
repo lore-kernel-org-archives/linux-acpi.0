@@ -1,103 +1,43 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Wed, 12 Mar 2008 21:59:01 +0900
-Message-ID: <47D7D395.4070909@jp.fujitsu.com>
-References: <20080229002341.GA21420@ldl.fc.hp.com>	<20080301144307.GD24386@parisc-linux.org>	<20080304054927.GA15566@suse.de>	<200803041018.29035.jbarnes@virtuousgeek.org>	<20080304193036.GB5534@suse.de>	<20080304230937.GD3694@ldl.fc.hp.com>	<47CDF339.3060304@jp.fujitsu.com>	<20080305202052.GN3694@ldl.fc.hp.com>	<47D684D0.6060200@jp.fujitsu.com> <20080311163411.7ddd9267@appleyard>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Wed, 12 Mar 2008 10:17:37 -0300
+Message-ID: <20080312131737.GA21290@khazad-dum.debian.net>
+References: <20080225204951.GB4432@ics.muni.cz> <20080225210113.GF16513@khazad-dum.debian.net> <20080225220720.GA4523@ics.muni.cz> <20080225230035.GA14503@khazad-dum.debian.net> <20080226184937.GA4280@ics.muni.cz> <20080304194513.GY6704@kernel.dk> <47CDBA74.5080304@gmail.com> <20080304211212.GD6704@kernel.dk> <47CDBE11.4010900@gmail.com> <20080312125912.GM17940@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:40186 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbYCLNAQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 09:00:16 -0400
-In-Reply-To: <20080311163411.7ddd9267@appleyard>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:36849 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750868AbYCLNRl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2008 09:17:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20080312125912.GM17940@kernel.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kristen.c.accardi@intel.com
-Cc: Alex Chiang <achiang@hp.com>, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Wilcox <matthew@wil.cx>, Gary Hade <garyhade@us.ibm.com>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Kristen Carlson Accardi wrote:
-> On Tue, 11 Mar 2008 22:10:40 +0900
-> Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
+On Wed, 12 Mar 2008, Jens Axboe wrote:
+> > >>Please take a look at patches in #10100.
+> > >
+> > >Can you be more specific (eg if you want me to test any/all of them, let
+> > >me know)?
+> > >  
+> > Patch from comment #3 is in -mm at the moment, and has good chance to 
+> > appear in linus tree.
+> > I am trying to invent something less crufty along the lines of comment 
+> > #4, but not succeeded yet.
 > 
->> Hi Alex-san,
->>
->> I tried your patches, and I have two comments. I want 1) to be fixed
->> before merge to Greg's tree (or linux-next?), at least.
-> 
-> yes, we will not merge these patches without your ack.
-> 
->>  1) I checked ACPI spec again and again, but I could not find any
->>     reason to add Fujitsu servers to quirks list. So I'd like you to
->>     add HP servers to the quirks list. I'll send the following patches
->>     followed by this e-mail.
-> 
-> I have followed up with a question on this on another thread, so I'll
-> skip to #2...
-> <snip>
-> 
->>  2) The ACPI PCI slot detection driver would change the slot names of
->>     some hotplug drivers (at least I checked shpchp and pciehp). And
->>     the name of slots are depending on the order of driver loading.
->>     For example, on my system which has several SHPCHP slots and
->>     PCIEHP slots, the name of PCIEHP slots are changed as
->>     follows. Please note that PCIEHP based slots are 0034_0027 and
->>     0032_0026, and others are SHPCHP based slots.
->>
->>     - Without ACPI PCI slot detection driver
->>       # ls /sys/bus/pci/slots/
->>       0009_0016  0014_0018  0019_0020  0021_0022  0034_0027
->>       0011_0017  0016_0019  0021_0021  0032_0026
->>
->>     - With ACPI PCI slot detection driver
->>       # ls /sys/bus/pci/slots/
->>       0009_0016  0014_0018  0019_0020  0021_0022  27
->>       0011_0017  0016_0019  0021_0021  26
->>
->>     I had thought it is not a big problem before because people who
->>     don't like new names would not load the PCI slot driver. But since
->>     it is loaded automatically at boot time, I'm wondering that it
->>     would be a problem. For example, some platform, not fujitsu,
->>     depends on the old slot name to work, IIRC (Maybe Kristen knows
->>     the background about it). And I don't think the fact that slot
->>     names are changed depending on the order of driver loading is
->>     acceptable by system management people/software, though I don't
->>     have such software.
->>
->>     Though I don't have any specific idea about this, folliwings might
->>     be candidates.
->>
->>     - Override slot names with hotplug driver's slot names
-> 
-> I think this should be done - if the pci slot driver detects that a
-> hotplug driver is controlling a slot, it should allow that driver to
-> set the name of the slot.
-> 
+> Updating and doing what the bugzilla entry suggests, that is reverting
+> the offending commit. That makes my brightness controls work, but the
+> volume and mute keys still do not work.
 
-Yes, it is what I thought.
-But maybe we should try unifying slots names first, I think.
+Those are not an ACPI business in your thinkpad anymore.  They go over the
+KDC, so we're out of the loop.   That means the bug is fixed completely.
 
->>     - Unify slot names among all hotplug drivers
-> 
-> I'm not sure if we can do this, since slot name might depend on what
-> spec people are implementing.
->
-
-I'm not sure too. But I think we can unify the slot names using the
-combination of chassis number and slot number among the controllers
-which is based on PCI Hot-Plug spec.
-
->>     - Stop automatic loading of ACPI PCI slot driver
-> 
-> I think we should definitely implement this one ^^^.
-> 
-
-Yes. It's the simplest workaround.
-
-BTW, I'll be out of office tomorrow. So replying to this discussion
-will be delayed. I'm sorry about that.
-
-Thanks,
-Kenji Kaneshige
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
