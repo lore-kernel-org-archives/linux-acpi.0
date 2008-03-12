@@ -1,55 +1,172 @@
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Wed, 12 Mar 2008 20:33:00 +0900
-Message-ID: <47D7BF6C.3080306@jp.fujitsu.com>
-References: <20080229002341.GA21420@ldl.fc.hp.com> <20080301144307.GD24386@parisc-linux.org> <20080304054927.GA15566@suse.de> <200803041018.29035.jbarnes@virtuousgeek.org> <20080304193036.GB5534@suse.de> <20080304230937.GD3694@ldl.fc.hp.com> <47CDF339.3060304@jp.fujitsu.com> <20080305202052.GN3694@ldl.fc.hp.com> <47D684D0.6060200@jp.fujitsu.com> <20080311110403.7db9527c@appleyard> <20080311191406.GB29344@ldl.fc.hp.com>
+Subject: Re: [PATCH 0/4, v3] Physical PCI slot objects
+Date: Wed, 12 Mar 2008 21:25:19 +0900
+Message-ID: <47D7CBAF.4090308@jp.fujitsu.com>
+References: <20071117182954.GA25003@ldl.fc.hp.com>	<20071119233225.GA6931@us.ibm.com>	<20071126222253.GA31708@ldl.fc.hp.com>	<474E6E82.40307@jp.fujitsu.com> <20080311121516.42e3a727@appleyard>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:38488 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbYCLLej (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 07:34:39 -0400
-In-Reply-To: <20080311191406.GB29344@ldl.fc.hp.com>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:39603 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750982AbYCLMhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2008 08:37:09 -0400
+In-Reply-To: <20080311121516.42e3a727@appleyard>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes>
+To: kristen.c.accardi@intel.com
+Cc: Alex Chiang <achiang@hp.com>, Gary Hade <garyhade@us.ibm.com>, Matthew Wilcox <matthew@wil.cx>, gregkh@suse.de, lenb@kernel.org, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Hi Alex-san,
+Hi Kristen,
 
-> On my machine, it is legal to evaluate S1F0._SUN independent of
-> S1F0._STA because L001._INI has already been evaluated.
-> 
-> It would be helpful to know what Fujitsu's namespace looks like.
-> If Fujitsu slot objects contain _STA and _INI, then I agree with
-> Kenji-san -- I definitely need to check _STA before evaluating
-> _SUN.
+> Hello - back to this mail for a moment.  I wanted to talk about acpiphp
+> again.  You say that acpiphp has this same problem as Alex's driver wrt
+> evalating _SUN on a non existant object.  If we skip registering the
+> slot in acpiphp's register_slot function if it returns 0 for _STA, we
+> will not detect any hotplug slots, since leaf nodes will return 0 for
+> _STA if a device is not present. Should we only skip it if it's parent
+> is a p2p bridge that has _EJ0 and the parent's _STA says empty?
 
-Thank you for explanation. Maybe I understood the summary of
-implementation of HP firmware. But how to use or where to put _INI
-method in the ACPI namespace never becomes reasonable reason why
-your driver may ignore _STA before evaluating _SUN.
+I've been not looking at acpiphp code for a long time. So I need refresh
+my memory before answering. Sorry.
 
-> But in any case, I think both HP and Fujitsu firmware are doing
-> legal things -- neither firmware is breaking the spec.
+But I want to say one thing. We can detect all the hotplug slots if ACPI
+firmware doesn't provide _STA. We don't need _STA for PCI hotplug slots
+and should not provide _STA for PCI hotplug slots if the system is based
+on ACPI2.0 or later, because those are _ADR based devices (PCI root bridge,
+which is _HID based device, is a exception). For _ADR based devices, we
+should check the presence of the device using PCI bus drivers instead of
+evaluating _STA. Please see the section of "_EJx (Eject)" in ACPI2.0b or
+later spec. It says "For _HID devices, OSPM evaluates the _STA method. For
+_ADR devices, OSPM checks with the bus driver for that device.".
 
-My understanding of your explanation so far is:
-
-- evaluating _SUN without checking _STA doesn't cause problem,
-  from the view point of HP's implementation.
-- some IBM machine is doing same as HP
-
-I never think those are reasonable reasons why ignoring _STA
-before evaluating _SUN is legal. Am I missing something?
-
-> If one list is shorter than the other, then that should be the
-> list to put in the kernel, and the default behavior should be
-> "majority rule".
-
-I don't want to consider "majority rule" before I understand why
-ignoring _STA is legal.
+BTW, acpiphp_glue.c says _STA is "optionally". I don't know what it means.
 
 Thanks,
 Kenji Kaneshige
+
+
+Kristen Carlson Accardi wrote:
+> On Thu, 29 Nov 2007 16:47:14 +0900
+> Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
+> 
+>>> Hi Gary, Kenji-san, et. al,
+>>>
+>>> * Gary Hade <garyhade@us.ibm.com>:
+>>>> Alex, What I was trying to suggest is a boot-time kernel
+>>>> option, not a kernel configuration option.  The basic idea is
+>>>> to give the user (with a single binary kernel) the ability to
+>>>> include your ACPI-PCI slot driver feature changes only when
+>>>> they are really needed.  In addition to reducing the number of
+>>>> system/PCI hotplug driver combinations where your changes would
+>>>> need to be validated, I believe would also help alleviate other
+>>>> worries (e.g. Andi Kleen's memory consumption concern).  I
+>>>> believe this goal could also be achieved with the kernel config
+>>>> option by making the pci_slot module runtime loadable with the
+>>>> PCI hotplug drivers only visiting your new code when the
+>>>> pci_slot driver is loaded, although I think this would be more
+>>>> difficult to implement.
+>>> I have modified my patch series so that the final patch that
+>>> introduces my ACPI-PCI slot driver is a full-fledged module, that
+>>> has a tristate Kconfig option.
+>>>
+>> Thank you for your good job.
+>>
+>> I tested shpchp and pciehp both with and without pci_slot module.
+>> There seems no regression from shpchp and pciehp's point of view.
+>> (I had a little concern about the hotplug slots' name that vary
+>> depending on whether pci_slot functionality is enabled or disabled.
+>> But, now that we can build pci_slot driver as a kernel module, I
+>> don't think it is a big problem).
+>>
+>> Only the problems is that I got Call Traces with the following error
+>> messages when pci_slot driver was loaded, and one strange slot named
+>> '1023' was registered (other slots are fine). This is the same problem
+>> I reported before.
+>>
+>>     sysfs: duplicate filename '1023' can not be created
+>>     WARNING: at fs/sysfs/dir.c:424 sysfs_add_one()
+>>
+>>     kobject_add failed for 1023 with -EEXIST, don't try to register
+>>     things with the same name in the same directory.
+>>
+>> On my system, hotplug slots themselves can be added, removed and
+>> replaced with the ohter type of I/O box. The ACPI firmware tells OS
+>> the presence of those slots using _STA method (That is, it doesn't
+>> use 'LoadTable()' AML operator). On the other hand, current pci_slot
+>> driver doesn't check _STA. As a result, pci_slot driver tryied to
+>> register the invalid (non-existing) slots. The ACPI firmware of my
+>> system returns '1023' if the invalid slot's _SUN is evaluated. This
+>> is the cause of Call Traces mentioned above. To fix this problem,
+>> pci_slot driver need to check _STA when scanning ACPI Namespace.
+>>
+>> I'm sorry for reporting this so late. I'm attaching the patch to fix
+>> the problem. This is against 2.6.24-rc3 with your patches applied.
+>> Could you try it?
+>>
+>> BTW, acpiphp also seems to have the same problem...
+>>
+>> Thanks,
+>> Kenji Kaneshige
+> 
+> Hello - back to this mail for a moment.  I wanted to talk about acpiphp
+> again.  You say that acpiphp has this same problem as Alex's driver wrt
+> evalating _SUN on a non existant object.  If we skip registering the
+> slot in acpiphp's register_slot function if it returns 0 for _STA, we
+> will not detect any hotplug slots, since leaf nodes will return 0 for
+> _STA if a device is not present. Should we only skip it if it's parent
+> is a p2p bridge that has _EJ0 and the parent's _STA says empty?
+> 
+> Your input is appreciated,
+> Kristen
+> 
+>> ---
+>>  drivers/acpi/pci_slot.c |   13 +++++++++++++
+>>  1 file changed, 13 insertions(+)
+>>
+>> Index: linux-2.6.24-rc3/drivers/acpi/pci_slot.c
+>> ===================================================================
+>> --- linux-2.6.24-rc3.orig/drivers/acpi/pci_slot.c
+>> +++ linux-2.6.24-rc3/drivers/acpi/pci_slot.c
+>> @@ -113,10 +113,17 @@ register_slot(acpi_handle handle, u32 lv
+>>  	int device;
+>>  	unsigned long sun;
+>>  	char name[KOBJ_NAME_LEN];
+>> +	acpi_status status;
+>> +	struct acpi_device *dummy_device;
+>>  
+>>  	struct pci_slot *pci_slot;
+>>  	struct pci_bus *pci_bus = context;
+>>  
+>> +	/* Skip non-existing device object. */
+>> +	status = acpi_bus_get_device(handle, &dummy_device);
+>> +	if (ACPI_FAILURE(status))
+>> +		return AE_OK;
+>> +
+>>  	if (check_slot(handle, &device, &sun))
+>>  		return AE_OK;
+>>  
+>> @@ -150,12 +157,18 @@ walk_p2p_bridge(acpi_handle handle, u32 
+>>  	acpi_status status;
+>>  	acpi_handle dummy_handle;
+>>  	acpi_walk_callback user_function;
+>> +	struct acpi_device *dummy_device;
+>>  
+>>  	struct pci_dev *dev;
+>>  	struct pci_bus *pci_bus;
+>>  	struct p2p_bridge_context child_context;
+>>  	struct p2p_bridge_context *parent_context = context;
+>>  
+>> +	/* Skip non-existing device object. */
+>> +	status = acpi_bus_get_device(handle, &dummy_device);
+>> +	if (ACPI_FAILURE(status))
+>> +		return AE_OK;
+>> +
+>>  	pci_bus = parent_context->pci_bus;
+>>  	user_function = parent_context->user_function;
+>>  
+>>
+> 
+> 
+
 
