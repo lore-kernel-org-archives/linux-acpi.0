@@ -1,45 +1,42 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Thu, 13 Mar 2008 20:17:38 -0300
-Message-ID: <20080313231738.GH30864@khazad-dum.debian.net>
-References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl>
+Date: Thu, 13 Mar 2008 19:55:20 -0300
+Message-ID: <20080313225520.GF30864@khazad-dum.debian.net>
+References: <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080312193637.GA27873@ics.muni.cz> <20080312211306.GD30864@khazad-dum.debian.net> <20080313120514.GH17940@kernel.dk> <20080313122344.GD27873@ics.muni.cz> <20080313124633.GS17940@kernel.dk> <20080313125503.GE27873@ics.muni.cz> <20080313125933.GT17940@kernel.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:39439 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53386 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752203AbYCMXRk (ORCPT
+	by vger.kernel.org with ESMTP id S1757563AbYCMXTS (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:17:40 -0400
+	Thu, 13 Mar 2008 19:19:18 -0400
 Content-Disposition: inline
-In-Reply-To: <200803121952.42666.arekm@maven.pl>
+In-Reply-To: <20080313125933.GT17940@kernel.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Arkadiusz Miskiewicz <arekm@maven.pl>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, 12 Mar 2008, Arkadiusz Miskiewicz wrote:
-> > On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Holschuh wrote:
-> > > You shouldn't need to do anything other than teach userspace to respond
-> > > to them, as they generate the proper KEY_* events.  If you are giving the
-> > > AML _OSI(Linux), at least...
+On Thu, 13 Mar 2008, Jens Axboe wrote:
+> On Thu, Mar 13 2008, Lukas Hejtmanek wrote:
+> > On Thu, Mar 13, 2008 at 01:46:33PM +0100, Jens Axboe wrote:
+> > > They do not generate any events, xev reports nothing. The ThinkVantage
+> > > button doesn't generate any events either.
+> > 
+> > what about BIOS upgrade? I think this really should work.
 > 
-> I'm also seeing regression on my thinkpad z60m where with git tree (tested 
-> again with 2 days old git) "thinkvantage" button stopped working (pressing it 
-> was previously seen by some userspace kde which run konsole).
-> 
-> On 2.6.24 presses are seen.
+> The BIOS isn't that old, probably updated it a couple of months ago.
 
-There were no changes to thinkpad-acpi that should have caused this.  So I
-need more data to find out what is happening.  Might be a problem elsewhere
-in ACPI, or some bug in thinkpad-acpi.
+On a T61/X61 Thinkpad, anything but the very latest BIOS is too old.  They
+have been modifying the BIOS in areas that are directly related to Linux
+support.
 
-You DO have /proc/acpi/event, correct?  Please send me the debug output of
-thinkpad-acpi when it is loaded with "debug=0xffff" as a parameter (and for
-extra bonus, please compile it with the verbose debug Kconfig option).
+> > Ahh, maybe you are facing EC problems? Are you using just stock vanila
+> > kernel or some additional patches?
 
-Also, send me the output of 
-"grep . /sys/bus/platform/devices/thinkpad_acpi/*"
+EC problems anywhere in the entire ACPI subsystem can, and have, caused
+weird thinkpad-acpi issues.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
