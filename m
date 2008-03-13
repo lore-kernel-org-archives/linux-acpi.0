@@ -1,31 +1,65 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Thu, 13 Mar 2008 14:13:35 +0100
-Message-ID: <20080313131334.GV17940@kernel.dk>
-References: <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080312193637.GA27873@ics.muni.cz> <20080312211306.GD30864@khazad-dum.debian.net> <20080313120514.GH17940@kernel.dk> <20080313122344.GD27873@ics.muni.cz> <20080313124633.GS17940@kernel.dk> <20080313125503.GE27873@ics.muni.cz> <20080313125933.GT17940@kernel.dk> <20080313130934.GG27873@ics.muni.cz>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc5
+Date: Thu, 13 Mar 2008 14:25:37 +0100
+Message-ID: <1205414737.29877.366.camel@queen.suse.de>
+References: <200803130214.36861.lenb@kernel.org>
+	 <20080312234516.bb079cc5.akpm@linux-foundation.org>
+	 <1205391105.2240.68.camel@acpi-hp-zz.sh.intel.com>
+	 <20080313125541.GA7365@v2.random>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([87.55.233.238]:20399 "EHLO kernel.dk"
+Received: from cantor2.suse.de ([195.135.220.15]:52106 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755923AbYCMNNi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2008 09:13:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20080313130934.GG27873@ics.muni.cz>
+	id S1754055AbYCMNZq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 09:25:46 -0400
+In-Reply-To: <20080313125541.GA7365@v2.random>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Arkadiusz Miskiewicz <arekm@maven.pl>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Andrea Arcangeli <andrea@qumranet.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Mar 13 2008, Lukas Hejtmanek wrote:
-> On Thu, Mar 13, 2008 at 01:59:34PM +0100, Jens Axboe wrote:
-> > The BIOS isn't that old, probably updated it a couple of months ago.
+On Thu, 2008-03-13 at 13:55 +0100, Andrea Arcangeli wrote:
+> On Thu, Mar 13, 2008 at 02:51:45PM +0800, Zhang, Rui wrote:
+> > Well, the patch looks good, this may be caused by a BIOS problem.
+> > anyway, I wish to get the response from Andrea so that I can do some
+> > investigation ASAP.
 > 
-> I use the latest BIOS for my T61 and it just works. At least the event is
-> generated either for acpid or for Xserver.
+> Here attached again. syslog isn't available because by the time it
+> crash netconsole isn't up yet, but I try to compile it as module and
+> see if it crashes by loading it manually later after netconsole
+> started. (you didn't ask for syslog until today)
+> 
+> Hardware is ASUS M2A-VM ACPI BIOS Revision 1604.
+This is pretty sure fixed in 2.6.25-rc5.
+ 
+It's probably this:
+https://bugzilla.novell.com/show_bug.cgi?id=350017
+It's fixed by:
+c8d16e27a3601d1cbcdfe657eb4ff5e762019e8d
+-> fixing the memory corruption
+b6a163875935ce8e8e85901a7f2b68f7a314d914
+-> check the pointer which is now not corrupted anymore, but NULL.
 
-This is an x60, so there may be other differences there.
+Hmm, the commits are only in Len's tree and have not hit
+Linus' tree yet.
 
--- 
-Jens Axboe
+   Thomas
+
+> email message attachment
+> > -------- Forwarded Message --------
+> > From: Andrea Arcangeli <andrea@qumranet.com>
+> > To: Zhang, Rui <rui.zhang@intel.com>
+> > Cc: Thomas, Sujith <sujith.thomas@intel.com>, Brown, Len
+> > <len.brown@intel.com>
+> > Subject: Re: thermal.c crash at boot
+> > Date: Thu, 21 Feb 2008 15:55:56 +0100
+> > 
+> > On Mon, Feb 18, 2008 at 09:15:13AM +0800, Zhang, Rui wrote:
+> > > Please attach the acpidump output.
+> > 
+> > attached.
+> > 
 
