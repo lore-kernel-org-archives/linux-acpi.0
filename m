@@ -1,74 +1,50 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [PATCH] ACPI: Set flag DOCK_UNDOCKING when triggered via sysfs
-Date: Thu, 13 Mar 2008 10:27:57 -0700
-Message-ID: <20080313102757.435c9d1a@appleyard>
-References: <20080312000727.GB4089@homac>
-	<20080311223522.3326b6ee.akpm@linux-foundation.org>
-	<20080312104034.GA4371@homac>
-Reply-To: kristen.c.accardi@intel.com
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc5
+Date: Thu, 13 Mar 2008 13:49:27 -0400
+Message-ID: <200803131349.27964.lenb@kernel.org>
+References: <200803130214.36861.lenb@kernel.org>
+	<20080312234516.bb079cc5.akpm@linux-foundation.org>
+	<20080313125016.GZ7365@v2.random>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755568AbYCMRcl@vger.kernel.org>
-In-Reply-To: <20080312104034.GA4371@homac>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, stable@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20080313125016.GZ7365@v2.random>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Andrea Arcangeli <andrea@qumranet.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 12 Mar 2008 11:40:35 +0100
-Holger Macht <hmacht@suse.de> wrote:
+On Thursday 13 March 2008, Andrea Arcangeli wrote:
+> On Wed, Mar 12, 2008 at 11:45:16PM -0700, Andrew Morton wrote:
+> > http://userweb.kernel.org/~akpm/mmotm/broken-out/revert-acpi-thermal-fixup.patch
+> > 
+> >   Hopeully fix a regression which Andrea Arcangeli hit.  Although I'm not sure
+> >   that he has confirmed that this revert actually works?
 
-> On Di 11. M=C3=A4r - 22:35:22, Andrew Morton wrote:
-> > On Wed, 12 Mar 2008 01:07:27 +0100 Holger Macht <hmacht@suse.de>
-> > wrote:
-> >=20
-> > > begin_undock() is only called when triggered via a acpi notify
-> > > handler (pressing the undock button on the dock station), but
-> > > complete_undock() is always called after the eject. So if a
-> > > undock is triggered through a sysfs write, the flag
-> > > DOCK_UNDOCKING has to be set for the dock station, too. Otherwise
-> > > this will freeze the system hard.
-> > >=20
-> >=20
-> > We prefer not to make systems freeze hard.
-> >=20
-> > > ---
-> > >=20
-> > > diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> > > index 307cef6..fa44fb9 100644
-> > > --- a/drivers/acpi/dock.c
-> > > +++ b/drivers/acpi/dock.c
-> > > @@ -710,6 +710,7 @@ static ssize_t write_undock(struct device
-> > > *dev, struct device_attribute *attr, if (!count)
-> > >  		return -EINVAL;
-> > > =20
-> > > +	begin_undock(dock_station);
-> > >  	ret =3D handle_eject_request(dock_station,
-> > > ACPI_NOTIFY_EJECT_REQUEST); return ret ? ret: count;
-> > >  }
-> >=20
-> > I assume that this is needed in 2.6.24.x as well?
->=20
-> I tested this, and no, I weren't able to reproduce on 2.6.24.
->=20
-> Moreover, it seems that the freeze is related to some libata issue
-> because it only freezes when a drive is in the dock station.
->=20
-> Nevertheless, I think the patch is correct. Maybe there's a race
-> involved somewhere I'm not aware of. I really like to wait for
-> Kristen to comment before pushing it into more trees.
->=20
-> Thanks,
-> 	Holger
->=20
+Thanks for the reply, Andrea,
 
-Hum, I'm surprised this caused a freeze - you are sure this fixes your
-problem?  This flag is never checked anywhere in the dock code, and if
-it's not set, it will not matter, it will still do the undock.  The
-flags file is exported to user space via sysfs though, so maybe because
-the flag isn't being set, some user space script is doing something it
-shouldn't?  The patch does seem correct though, so might as well add it=
-=2E
+Does your system still fail running the latest ACPI release patch?
 
-Acked-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+You can get it here:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+
+or check out Linus' top of tree and apply the plain patch:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.25/acpi-release-20070126-2.6.25-rc5.diff.gz
+
+If no, does applying
+http://userweb.kernel.org/~akpm/mmotm/broken-out/revert-acpi-thermal-fixup.patch
+still fix the issue?
+
+thanks,
+-Len
