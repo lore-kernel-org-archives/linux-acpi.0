@@ -1,72 +1,46 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: PNP: dynamic pnp resources
-Date: Thu, 13 Mar 2008 13:04:08 +0100
-Message-ID: <1205409848.29877.358.camel@queen.suse.de>
-References: <20080312151452.GA4523@codemonkey.org.uk>
-	 <200803121345.21297.lenb@kernel.org>
-Reply-To: trenn@suse.de
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Thu, 13 Mar 2008 13:23:44 +0100
+Message-ID: <20080313122344.GD27873@ics.muni.cz>
+References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080312193637.GA27873@ics.muni.cz> <20080312211306.GD30864@khazad-dum.debian.net> <20080313120514.GH17940@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755499AbYCMME0@vger.kernel.org>
-In-Reply-To: <200803121345.21297.lenb@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Rene Herman <rene.herman@keyaccess.nl>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from minas.ics.muni.cz ([147.251.4.40]:38481 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500AbYCMMYJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 08:24:09 -0400
+Content-Disposition: inline
+In-Reply-To: <20080313120514.GH17940@kernel.dk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Arkadiusz Miskiewicz <arekm@maven.pl>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, 2008-03-12 at 13:45 -0400, Len Brown wrote:
-> On Wednesday 12 March 2008, Dave Jones wrote:
-...
-> Thomas worked on a patch to make resource allocation dynamic and do away
-> with these limits.  Unfortunately it was rather large and it wasn't in
-> time for the 2.6.25-rc1 window.
+On Thu, Mar 13, 2008 at 01:05:14PM +0100, Jens Axboe wrote:
+> And lets now get back to reality - the reality that now breaks the
+> previously working setup of lots of users. So you are telling me that=
+ in
+> order to get my volume key functionality back I have to get rid of HA=
+L
+> and X?
+>=20
+> Lets turn back time a bit. Why was this change made? IOW, what was th=
+e
+> reason for breaking a working setup for lots of users? It better be a
+> damn good reason, or I would heavily argue for reverting this change =
+so
+> that 2.6.25 actually WORKS as expected for thinkpad users.
 
-I had the problem that I could not test on isa systems.
-Rene Herman helped here a lot.
-There are still open issues, last state was (comment from Rene):
-------------------------
-No. Please note we're talking about ISAPnP, not PnPBIOS. No BIOS
-involved at all.
+so, you are telling that xev does not show keycodes of volume buttons f=
+or you,
+right? Because for me, it works. Thinkvantage does not work.
 
-Driver (sound/isa/cs423x/cs4236.c) furthermore does not use anything but
-the PnP layer itself. Start at snd_cs423x_pnpc_detect, which is the
-pnp .probe() method.
-
-I'll look into providing a more extensive answer and/or test whatever
-comes in later.
--------------------------
-I can also look at this, any hints until then are appreciated.
-
-I also expect Bjorn was bound to other bugs and pushing things in a rush
-is not good thing anyway.
-At the end I asked for a macro problem I only had a rather ugly
-solution, didn't get an answer (IIRC I also added a compile bug in my
-suggestions) and things got stuck...
-
-Do you want me to rework the patches, lay out where I see problems and
-give it another try to get this into -mm?
-
-I am bound to work the next days, but it shouldn't be that much work
-after all anymore to summarize things and send something (not sure about
-the ISA things).
-
-Hmm, maybe someone still can give a comment on my last one, it's still valid.
-I want to check every pnp_{port,mem,irq,dma}_{start,end..} whether they are valid.
-
-This macro does not work:
-+#define pnp_port_start(dev,bar)   (pnp_port_valid((dev),(bar)) ? (dev)->res.port_resource[(bar)].start \
-+                                  : pnp_dbg("WARN: Port start %d - [%s] invalid - %s:%d", (bar), (dev->name), __FUNCTION__, __LINE__))
-
-The only solution I see is to use small inline functions, but that would
-blow up include/linux/pnp.h significantly. The idea of the inline
-functions is stated here:
-http://kerneltrap.org/mailarchive/linux-kernel/2008/2/6/743614
-
-The warning can also be omitted (the drivers should have checked for
-valid already - in theory...), but it should at least stay there at the
-beginning to find drivers who do not check for valid before accessing
-pnp_resource_table entries.
-
-
-   Thomas
+--=20
+Luk=E1=B9 Hejtm=E1nek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
