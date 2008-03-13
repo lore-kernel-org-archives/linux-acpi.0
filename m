@@ -1,78 +1,67 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Thu, 13 Mar 2008 16:09:45 +0100
-Message-ID: <20080313150945.GC17940@kernel.dk>
-References: <20080313124633.GS17940@kernel.dk> <20080313125503.GE27873@ics.muni.cz> <20080313125933.GT17940@kernel.dk> <20080313130934.GG27873@ics.muni.cz> <20080313131334.GV17940@kernel.dk> <47D93C2C.8040907@gmail.com> <20080313143930.GZ17940@kernel.dk> <47D93F95.50807@gmail.com> <20080313145932.GA17940@kernel.dk> <47D94289.9030608@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: PNP: dynamic pnp resources
+Date: Thu, 13 Mar 2008 09:17:20 -0600
+Message-ID: <200803130917.21335.bjorn.helgaas@hp.com>
+References: <20080312151452.GA4523@codemonkey.org.uk> <200803121345.21297.lenb@kernel.org> <1205409848.29877.358.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754774AbYCMPKF@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:41233 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753842AbYCMPO2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2008 11:14:28 -0400
+In-Reply-To: <1205409848.29877.358.camel@queen.suse.de>
 Content-Disposition: inline
-In-Reply-To: <47D94289.9030608@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Arkadiusz Miskiewicz <arekm@maven.pl>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Len Brown <lenb@kernel.org>, Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Rene Herman <rene.herman@keyaccess.nl>
 
-On Thu, Mar 13 2008, Alexey Starikovskiy wrote:
-> Jens Axboe wrote:
-> >On Thu, Mar 13 2008, Alexey Starikovskiy wrote:
-> >  
-> >>Jens Axboe wrote:
-> >>    
-> >>>On Thu, Mar 13 2008, Alexey Starikovskiy wrote:
-> >>> 
-> >>>      
-> >>>>Jens Axboe wrote:
-> >>>>   
-> >>>>        
-> >>>>>On Thu, Mar 13 2008, Lukas Hejtmanek wrote:
-> >>>>>
-> >>>>>     
-> >>>>>          
-> >>>>>>On Thu, Mar 13, 2008 at 01:59:34PM +0100, Jens Axboe wrote:
-> >>>>>>  
-> >>>>>>       
-> >>>>>>            
-> >>>>>>>The BIOS isn't that old, probably updated it a couple of months ago.
-> >>>>>>>    
-> >>>>>>>         
-> >>>>>>>              
-> >>>>>>I use the latest BIOS for my T61 and it just works. At least the 
-> >>>>>>event is
-> >>>>>>generated either for acpid or for Xserver.
-> >>>>>>  
-> >>>>>>       
-> >>>>>>            
-> >>>>>This is an x60, so there may be other differences there.
-> >>>>>
-> >>>>>
-> >>>>>     
-> >>>>>          
-> >>>>There are was some playing with acpi_osi=Linux in this timeframe, known
-> >>>>to deal with sound buttons too.
-> >>>>Some of Thinkpads were inserted into the blacklist to need this OSI.
-> >>>>It might be that your Thinkpad needs it too...
-> >>>>   
-> >>>>        
-> >>>Please talk to me like I'm an ACPI ignorant - because I am. Where is
-> >>>this blacklist?
-> >>>
-> >>> 
-> >>>      
-> >>drivers/acpi/blacklist.c:485.
-> >>You probably could set acp_osi=Linux as kernel parameter to check if it 
-> >>helps.
-> >>    
-> >
-> >I booted with acpi_osi=Linux and it has made no difference.
-> >
-> >  
-> What is the last kernel there these buttons work?
+On Thursday 13 March 2008 06:04:08 am Thomas Renninger wrote:
+> On Wed, 2008-03-12 at 13:45 -0400, Len Brown wrote:
+> > On Wednesday 12 March 2008, Dave Jones wrote:
+> ...
+> > Thomas worked on a patch to make resource allocation dynamic and do away
+> > with these limits.  Unfortunately it was rather large and it wasn't in
+> > time for the 2.6.25-rc1 window.
+> 
+> I had the problem that I could not test on isa systems.
+> Rene Herman helped here a lot.
+> There are still open issues, last state was (comment from Rene):
+> ------------------------
+> No. Please note we're talking about ISAPnP, not PnPBIOS. No BIOS
+> involved at all.
+> 
+> Driver (sound/isa/cs423x/cs4236.c) furthermore does not use anything but
+> the PnP layer itself. Start at snd_cs423x_pnpc_detect, which is the
+> pnp .probe() method.
+> 
+> I'll look into providing a more extensive answer and/or test whatever
+> comes in later.
+> -------------------------
+> I can also look at this, any hints until then are appreciated.
+> 
+> I also expect Bjorn was bound to other bugs and pushing things in a rush
+> is not good thing anyway.
+> At the end I asked for a macro problem I only had a rather ugly
+> solution, didn't get an answer (IIRC I also added a compile bug in my
+> suggestions) and things got stuck...
+> 
+> Do you want me to rework the patches, lay out where I see problems and
+> give it another try to get this into -mm?
 
-It worked fine in 2.6.24, not sure when it broke in 2.6.25-rcX, but it
-was some time ago. I initially thought it was the same issue and would
-be fixed by the revert of 208c70a45624400fafd7511b96bc426bf01f8f5e, but
-that turned out not to be the case.
+I'm sorry that I haven't responded to this.  I have some reservations,
+but I wanted to try out some alternate ideas before just being a nay-
+sayer because usually my grand ideas turn out to have fatal flaws.
 
--- 
-Jens Axboe
+My current grand but untested idea is that struct pnp_resource_table
+is too exposed and should be better abstracted, even inside the PNP
+subsystem.  Since PNP is supposed to be a way to discover platform
+devices, I'm looking at the platform device interfaces for ideas.
+
+Whatever we do, I think it has to be done incrementally to make it
+reviewable and bisectable.
+
+Bjorn
