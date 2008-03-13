@@ -1,67 +1,74 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PNP: dynamic pnp resources
-Date: Thu, 13 Mar 2008 09:17:20 -0600
-Message-ID: <200803130917.21335.bjorn.helgaas@hp.com>
-References: <20080312151452.GA4523@codemonkey.org.uk> <200803121345.21297.lenb@kernel.org> <1205409848.29877.358.camel@queen.suse.de>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [PATCH] ACPI: Set flag DOCK_UNDOCKING when triggered via sysfs
+Date: Thu, 13 Mar 2008 10:27:57 -0700
+Message-ID: <20080313102757.435c9d1a@appleyard>
+References: <20080312000727.GB4089@homac>
+	<20080311223522.3326b6ee.akpm@linux-foundation.org>
+	<20080312104034.GA4371@homac>
+Reply-To: kristen.c.accardi@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:41233 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbYCMPO2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2008 11:14:28 -0400
-In-Reply-To: <1205409848.29877.358.camel@queen.suse.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755568AbYCMRcl@vger.kernel.org>
+In-Reply-To: <20080312104034.GA4371@homac>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Holger Macht <hmacht@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, stable@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Len Brown <lenb@kernel.org>, Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Adam M Belay <abelay@mit.edu>, Zhao Yakui <yakui.zhao@intel.com>, Li Shaohua <shaohua.li@intel.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Rene Herman <rene.herman@keyaccess.nl>
 
-On Thursday 13 March 2008 06:04:08 am Thomas Renninger wrote:
-> On Wed, 2008-03-12 at 13:45 -0400, Len Brown wrote:
-> > On Wednesday 12 March 2008, Dave Jones wrote:
-> ...
-> > Thomas worked on a patch to make resource allocation dynamic and do away
-> > with these limits.  Unfortunately it was rather large and it wasn't in
-> > time for the 2.6.25-rc1 window.
-> 
-> I had the problem that I could not test on isa systems.
-> Rene Herman helped here a lot.
-> There are still open issues, last state was (comment from Rene):
-> ------------------------
-> No. Please note we're talking about ISAPnP, not PnPBIOS. No BIOS
-> involved at all.
-> 
-> Driver (sound/isa/cs423x/cs4236.c) furthermore does not use anything but
-> the PnP layer itself. Start at snd_cs423x_pnpc_detect, which is the
-> pnp .probe() method.
-> 
-> I'll look into providing a more extensive answer and/or test whatever
-> comes in later.
-> -------------------------
-> I can also look at this, any hints until then are appreciated.
-> 
-> I also expect Bjorn was bound to other bugs and pushing things in a rush
-> is not good thing anyway.
-> At the end I asked for a macro problem I only had a rather ugly
-> solution, didn't get an answer (IIRC I also added a compile bug in my
-> suggestions) and things got stuck...
-> 
-> Do you want me to rework the patches, lay out where I see problems and
-> give it another try to get this into -mm?
+On Wed, 12 Mar 2008 11:40:35 +0100
+Holger Macht <hmacht@suse.de> wrote:
 
-I'm sorry that I haven't responded to this.  I have some reservations,
-but I wanted to try out some alternate ideas before just being a nay-
-sayer because usually my grand ideas turn out to have fatal flaws.
+> On Di 11. M=C3=A4r - 22:35:22, Andrew Morton wrote:
+> > On Wed, 12 Mar 2008 01:07:27 +0100 Holger Macht <hmacht@suse.de>
+> > wrote:
+> >=20
+> > > begin_undock() is only called when triggered via a acpi notify
+> > > handler (pressing the undock button on the dock station), but
+> > > complete_undock() is always called after the eject. So if a
+> > > undock is triggered through a sysfs write, the flag
+> > > DOCK_UNDOCKING has to be set for the dock station, too. Otherwise
+> > > this will freeze the system hard.
+> > >=20
+> >=20
+> > We prefer not to make systems freeze hard.
+> >=20
+> > > ---
+> > >=20
+> > > diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> > > index 307cef6..fa44fb9 100644
+> > > --- a/drivers/acpi/dock.c
+> > > +++ b/drivers/acpi/dock.c
+> > > @@ -710,6 +710,7 @@ static ssize_t write_undock(struct device
+> > > *dev, struct device_attribute *attr, if (!count)
+> > >  		return -EINVAL;
+> > > =20
+> > > +	begin_undock(dock_station);
+> > >  	ret =3D handle_eject_request(dock_station,
+> > > ACPI_NOTIFY_EJECT_REQUEST); return ret ? ret: count;
+> > >  }
+> >=20
+> > I assume that this is needed in 2.6.24.x as well?
+>=20
+> I tested this, and no, I weren't able to reproduce on 2.6.24.
+>=20
+> Moreover, it seems that the freeze is related to some libata issue
+> because it only freezes when a drive is in the dock station.
+>=20
+> Nevertheless, I think the patch is correct. Maybe there's a race
+> involved somewhere I'm not aware of. I really like to wait for
+> Kristen to comment before pushing it into more trees.
+>=20
+> Thanks,
+> 	Holger
+>=20
 
-My current grand but untested idea is that struct pnp_resource_table
-is too exposed and should be better abstracted, even inside the PNP
-subsystem.  Since PNP is supposed to be a way to discover platform
-devices, I'm looking at the platform device interfaces for ideas.
+Hum, I'm surprised this caused a freeze - you are sure this fixes your
+problem?  This flag is never checked anywhere in the dock code, and if
+it's not set, it will not matter, it will still do the undock.  The
+flags file is exported to user space via sysfs though, so maybe because
+the flag isn't being set, some user space script is doing something it
+shouldn't?  The patch does seem correct though, so might as well add it=
+=2E
 
-Whatever we do, I think it has to be done incrementally to make it
-reviewable and bisectable.
-
-Bjorn
+Acked-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
