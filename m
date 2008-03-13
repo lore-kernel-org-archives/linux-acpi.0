@@ -1,201 +1,251 @@
-From: Corentin CHARY <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
-Subject: [PATCH 2/3] eeepc-laptop: add backlight
-Date: Thu, 13 Mar 2008 12:56:37 +0100
-Message-ID: <200803131256.37295.corentincj@iksaif.net>
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: [PATCH 3/3] eeepc-laptop: add hwmon fan control
+Date: Thu, 13 Mar 2008 12:57:18 +0100
+Message-ID: <200803131257.18837.corentincj@iksaif.net>
 References: <200803131254.01518.corentincj@iksaif.net>
-Reply-To: corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org
+Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200803131254.01518.corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iksaif.dns26.com ([84.246.226.15]:52810 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752318AbYCML5v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 07:57:51 -0400
+In-Reply-To: <200803131254.01518.corentincj@iksaif.net>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, eeecommunity-donated-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: acpi4asus-user@lists.sourceforge.net, eeecommunity-donated@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-From: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Add backlight class support to the eeepc-laptop driver.
+Adds an hwmon interface to control the fan.
 
-Signed-off-by: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
 
  Kconfig        |    1 
- eeepc-laptop.c |   77 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ eeepc-laptop.c |  147 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 148 insertions(+)
 
---- a/drivers/misc/eeepc-laptop.c	2008-03-11 10:34:45.000000000 +0100
-+++ b/drivers/misc/eeepc-laptop.c	2008-03-11 10:35:37.000000000 +0100
-@@ -21,6 +21,8 @@
- #include <linux/init.h>
- #include <linux/types.h>
+--- a/drivers/misc/eeepc-laptop.c	2008-03-11 10:37:04.000000000 +0100
++++ b/drivers/misc/eeepc-laptop.c	2008-03-11 18:42:51.000000000 +0100
+@@ -23,6 +23,8 @@
  #include <linux/platform_device.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/fb.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
  #include <acpi/acpi_drivers.h>
  #include <acpi/acpi_bus.h>
  #include <asm/uaccess.h>
-@@ -43,6 +45,8 @@
-  * Definitions for Asus EeePC
-  */
- #define	NOTIFY_WLAN_ON	0x10
-+#define NOTIFY_BRN_MIN	0x20
-+#define NOTIFY_BRN_MAX	0x2f
- 
- enum {
- 	DISABLE_ASL_WLAN = 0x0001,
-@@ -147,6 +151,19 @@
- 	},
+@@ -103,6 +105,15 @@
+ 	"CRDS", NULL
  };
  
-+/* The backlight device /sys/class/backlight */
-+static struct backlight_device *eeepc_backlight_device;
++#define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
 +
-+/*
-+ * The backlight class declaration
++#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
++#define EEEPC_EC_SC02		0x63
++#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
++#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
++#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
++#define EEEPC_EC_SFB3		0xD3
++
+ /*
+  * This is the main structure, we can use it to store useful information
+  * about the hotk device
+@@ -154,6 +165,9 @@
+ /* The backlight device /sys/class/backlight */
+ static struct backlight_device *eeepc_backlight_device;
+ 
++/* The hwmon device */
++static struct device *eeepc_hwmon_device;
++
+ /*
+  * The backlight class declaration
+  */
+@@ -429,6 +443,100 @@
+ }
+ 
+ /*
++ * Hwmon
 + */
-+static int read_brightness(struct backlight_device *bd);
-+static int update_bl_status(struct backlight_device *bd);
-+static struct backlight_ops eeepcbl_ops = {
-+	.get_brightness = read_brightness,
-+	.update_status = update_bl_status,
++static int eeepc_get_fan_pwm(void)
++{
++	int value = 0;
++
++	read_acpi_int(NULL, EEEPC_EC_FAN_PWM, &value);
++	return (value);
++}
++
++static void eeepc_set_fan_pwm(int value)
++{
++	value = SENSORS_LIMIT(value, 0, 100);
++	ec_write(EEEPC_EC_SC02, value);
++}
++
++static int eeepc_get_fan_rpm(void)
++{
++	int high = 0;
++	int low = 0;
++
++	read_acpi_int(NULL, EEEPC_EC_FAN_HRPM, &high);
++	read_acpi_int(NULL, EEEPC_EC_FAN_LRPM, &low);
++	return (high << 8 | low);
++}
++
++static int eeepc_get_fan_ctrl(void)
++{
++	int value = 0;
++
++	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	return ((value & 0x02 ? 1 : 0));
++}
++
++static void eeepc_set_fan_ctrl(int manual)
++{
++	int value = 0;
++
++	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	if (manual)
++		value |= 0x02;
++	else
++		value &= ~0x02;
++	ec_write(EEEPC_EC_SFB3, value);
++}
++
++static ssize_t store_sys_hwmon(void (*set)(int), const char *buf, size_t count)
++{
++	int rv, value;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0)
++		set(value);
++	return rv;
++}
++
++static ssize_t show_sys_hwmon(int (*get)(void), char *buf)
++{
++	return sprintf(buf, "%d\n", get());
++}
++
++#define EEEPC_CREATE_SENSOR_ATTR(_name, _mode, _set, _get)		\
++	static ssize_t show_##_name(struct device *dev,			\
++				    struct device_attribute *attr,	\
++				    char *buf)				\
++	{								\
++		return show_sys_hwmon(_set, buf);			\
++	}								\
++	static ssize_t store_##_name(struct device *dev,		\
++				     struct device_attribute *attr,	\
++				     const char *buf, size_t count)	\
++	{								\
++		return store_sys_hwmon(_get, buf, count);		\
++	}								\
++	static SENSOR_DEVICE_ATTR(_name, _mode, show_##_name, store_##_name, 0);
++
++EEEPC_CREATE_SENSOR_ATTR(fan1_input, S_IRUGO, eeepc_get_fan_rpm, NULL);
++EEEPC_CREATE_SENSOR_ATTR(fan1_pwm, S_IRUGO | S_IWUSR,
++			 eeepc_get_fan_pwm, eeepc_set_fan_pwm);
++EEEPC_CREATE_SENSOR_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
++			 eeepc_get_fan_ctrl, eeepc_set_fan_ctrl);
++
++static struct attribute *hwmon_attributes[] = {
++	&sensor_dev_attr_fan1_pwm.dev_attr.attr,
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
++	NULL
 +};
 +
- MODULE_AUTHOR("Eric Cooper, Andrew Tipton, Corentin Chary");
- MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
- MODULE_LICENSE("GPL");
-@@ -211,6 +228,25 @@
- }
- 
- /*
-+ * Backlight
-+ */
-+static int read_brightness(struct backlight_device *bd)
-+{
-+	return get_acpi(CM_ASL_PANELBRIGHT);
-+}
-+
-+static int set_brightness(struct backlight_device *bd, int value)
-+{
-+	value = max(0, min(15, value));
-+	return set_acpi(CM_ASL_PANELBRIGHT, value);
-+}
-+
-+static int update_bl_status(struct backlight_device *bd)
-+{
-+	return set_brightness(bd, bd->props.brightness);
-+}
++static struct attribute_group hwmon_attribute_group = {
++	.attrs = hwmon_attributes
++};
 +
 +/*
-  * Sys helpers
-  */
- static int parse_arg(const char *buf, unsigned long count, int *val)
-@@ -328,12 +364,20 @@
- 	}
- }
- 
-+static void notify_brn(void)
-+{
-+	struct backlight_device *bd = eeepc_backlight_device;
-+	bd->props.brightness = read_brightness(bd);
-+}
-+
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	if (!ehotk)
- 		return;
- 	if (event == NOTIFY_WLAN_ON && (DISABLE_ASL_WLAN & ehotk->init_flag))
- 		notify_wlan(&event);
-+	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
-+		notify_brn();
- 	acpi_bus_generate_proc_event(ehotk->device, event,
- 				     ehotk->event_count[event % 128]++);
- }
-@@ -387,8 +431,16 @@
- /*
   * exit/init
   */
-+static void eeepc_backlight_exit(void)
+ static void eeepc_backlight_exit(void)
+@@ -438,9 +546,23 @@
+ 	eeepc_backlight_device = NULL;
+ }
+ 
++static void eeepc_hwmon_exit(void)
 +{
-+	if (eeepc_backlight_device)
-+		backlight_device_unregister(eeepc_backlight_device);
-+	eeepc_backlight_device = NULL;
++	struct device *hwmon;
++
++	hwmon = eeepc_hwmon_device;
++	if (!hwmon)
++		return ;
++	hwmon_device_unregister(hwmon);
++	sysfs_remove_group(&hwmon->kobj,
++			   &hwmon_attribute_group);
++	eeepc_hwmon_device = NULL;
 +}
 +
  static void __exit eeepc_laptop_exit(void)
  {
-+	eeepc_backlight_exit();
+ 	eeepc_backlight_exit();
++	eeepc_hwmon_exit();
  	acpi_bus_unregister_driver(&eeepc_hotk_driver);
  	sysfs_remove_group(&platform_device->dev.kobj,
  			   &platform_attribute_group);
-@@ -396,6 +448,26 @@
- 	platform_driver_unregister(&platform_driver);
+@@ -468,6 +590,26 @@
+ 	return 0;
  }
  
-+static int eeepc_backlight_init(struct device *dev)
++static int eeepc_hwmon_init(struct device *dev)
 +{
-+	struct backlight_device *bd;
++	struct device *hwmon;
++	int result;
 +
-+	bd = backlight_device_register(EEEPC_HOTK_FILE, dev,
-+				       NULL, &eeepcbl_ops);
-+	if (IS_ERR(bd)) {
++	hwmon = hwmon_device_register(dev);
++	if (IS_ERR(hwmon)) {
 +		printk(EEEPC_ERR
-+		       "Could not register eeepc backlight device\n");
-+		eeepc_backlight_device = NULL;
-+		return PTR_ERR(bd);
++		       "Could not register eeepc hwmon device\n");
++		eeepc_hwmon_device = NULL;
++		return PTR_ERR(hwmon);
 +	}
-+	eeepc_backlight_device = bd;
-+	bd->props.max_brightness = 15;
-+	bd->props.brightness = read_brightness(NULL);
-+	bd->props.power = FB_BLANK_UNBLANK;
-+	backlight_update_status(bd);
-+	return 0;
++	eeepc_hwmon_device = hwmon;
++	result = sysfs_create_group(&hwmon->kobj,
++				    &hwmon_attribute_group);
++	if (result)
++		eeepc_hwmon_exit();
++	return result;
 +}
 +
  static int __init eeepc_laptop_init(void)
  {
  	struct device *dev;
-@@ -411,6 +483,9 @@
- 		return -ENODEV;
- 	}
- 	dev = acpi_get_physical_device(ehotk->device->handle);
-+	result = eeepc_backlight_init(dev);
+@@ -486,6 +628,9 @@
+ 	result = eeepc_backlight_init(dev);
+ 	if (result)
+ 		goto fail_backlight;
++	result = eeepc_hwmon_init(dev);
 +	if (result)
-+		goto fail_backlight;
++		goto fail_hwmon;
  	/* Register platform stuff */
  	result = platform_driver_register(&platform_driver);
  	if (result)
-@@ -435,6 +510,8 @@
+@@ -510,6 +655,8 @@
  fail_platform_device1:
  	platform_driver_unregister(&platform_driver);
  fail_platform_driver:
-+	eeepc_backlight_exit();
-+fail_backlight:
++	eeepc_hwmon_exit();
++fail_hwmon:
+ 	eeepc_backlight_exit();
+ fail_backlight:
  	return result;
- }
- 
---- a/drivers/misc/Kconfig	2008-03-11 10:34:42.000000000 +0100
-+++ b/drivers/misc/Kconfig	2008-03-11 18:35:23.000000000 +0100
-@@ -236,6 +236,7 @@
- 	tristate "Eee PC Hotkey Driver (EXPERIMENTAL)"
+--- a/drivers/misc/Kconfig	2008-03-11 18:43:26.000000000 +0100
++++ b/drivers/misc/Kconfig	2008-03-11 18:38:51.000000000 +0100
+@@ -237,6 +237,7 @@
  	depends on X86
  	depends on ACPI
-+	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on BACKLIGHT_CLASS_DEVICE
++	depends on HWMON
  	depends on EXPERIMENTAL
  	---help---
  	  This driver supports the Fn-Fx keys on Eee PC laptops.
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by: Microsoft
-Defy all challenges. Microsoft(R) Visual Studio 2008.
-http://clk.atdmt.com/MRT/go/vse0120000070mrt/direct/01/
