@@ -1,34 +1,52 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Thu, 13 Mar 2008 20:09:19 -0300
-Message-ID: <20080313230919.GG30864@khazad-dum.debian.net>
-References: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com> <200803120029.09505.lenb@kernel.org> <200803130109.45531.lenb@kernel.org> <1205405941.29877.341.camel@queen.suse.de>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Thu, 13 Mar 2008 19:53:02 -0300
+Message-ID: <20080313225301.GE30864@khazad-dum.debian.net>
+References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080312193637.GA27873@ics.muni.cz> <20080312211306.GD30864@khazad-dum.debian.net> <20080313120514.GH17940@kernel.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60325 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54796 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753267AbYCMXJV (ORCPT
+	by vger.kernel.org with ESMTP id S1752567AbYCMXOQ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:09:21 -0400
+	Thu, 13 Mar 2008 19:14:16 -0400
 Content-Disposition: inline
-In-Reply-To: <1205405941.29877.341.camel@queen.suse.de>
+In-Reply-To: <20080313120514.GH17940@kernel.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>, Arkadiusz Miskiewicz <arekm@maven.pl>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thu, 13 Mar 2008, Thomas Renninger wrote:
-> This also happens in drivers/misc/thinkpad_acpi.c.
+On Thu, 13 Mar 2008, Jens Axboe wrote:
+> > If you want to test thinkpad-acpi functionality, get HAL and X.org out of
+> > the way.  The easiest way is to do it in single user mode.
+> 
+> And lets now get back to reality - the reality that now breaks the
+> previously working setup of lots of users. So you are telling me that in
+> order to get my volume key functionality back I have to get rid of HAL
+> and X?
 
-I was sure I had removed __exit from every thinkpad-acpi exit handler that
-was also called from __init a long time ago...
+I am telling you to go single user mode to check if the problem is in
+thinkpad-acpi.  Nothing more, nothing less.  AFTER we find out where the
+problem is, we see what should be done about it.
 
-Let's see... nope, there isn't a single instance of __exit in
-thinkpad-acpi.c, so I must have misunderstood you.  I do have lots of
-__init code, but I don't get any warnings from gcc 4.3 about that on ia32.
+> Lets turn back time a bit. Why was this change made? IOW, what was the
 
-Can you please send me the warnings/errors you get in thinkpad-acpi?
+What change?  For all we know, it could be a bug.  And if it is not a bug,
+read the thinkpad-acpi documentation, and complain to me exactly about
+whatever change described in there that is giving you issues.  Or give me a
+bissect culprit.  Or do the testing I asked you to do, and tell me the
+results.
+
+> reason for breaking a working setup for lots of users? It better be a
+> damn good reason, or I would heavily argue for reverting this change so
+> that 2.6.25 actually WORKS as expected for thinkpad users.
+
+I will get pissed very fast, if you keep up with this tone.  I certainly did
+not send in any changes that should cause what you describe on purpose,
+UNLESS you have disabled with the "deprecated" /proc/acpi/event stuff.  In
+which case, it is your problem to get proper userspace.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
