@@ -1,63 +1,104 @@
-From: Dave Jones <davej@codemonkey.org.uk>
-Subject: Re: [2.6.25-rc5-mm1] WARNING: at drivers/base/sys.c:173
-Date: Thu, 13 Mar 2008 15:57:54 -0400
-Message-ID: <20080313195754.GB32463@codemonkey.org.uk>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org> <47D87238.8080305@imap.cc> <20080313183439.GA12798@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI lockdep warning on boot, 2.6.25-rc5
+Date: Thu, 13 Mar 2008 16:14:32 -0400
+Message-ID: <200803131614.33386.lenb@kernel.org>
+References: <E1JZOGd-00057d-BU@pomaz-ex.szeredi.hu> <200803122301.17356.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from testure.choralone.org ([194.9.77.134]:53552 "EHLO
-	testure.choralone.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341AbYCMT6E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2008 15:58:04 -0400
+Received: from hera.kernel.org ([140.211.167.34]:36697 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752203AbYCMUPI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 16:15:08 -0400
+In-Reply-To: <200803122301.17356.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <20080313183439.GA12798@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Mar 13, 2008 at 11:34:39AM -0700, Greg KH wrote:
- > On Thu, Mar 13, 2008 at 01:15:52AM +0100, Tilman Schmidt wrote:
- > > Am 11.03.2008 09:14 schrieb Andrew Morton:
- > > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.25-rc5/2.6.25-rc5-mm1/
- > > 
- > > Late during boot, this issues the following warning on my Pentium D,
- > > apparently when trying to load an appropriate CPU frequency driver:
- > > 
- > > [   56.759128] ------------[ cut here ]------------
- > > [   56.765058] WARNING: at drivers/base/sys.c:173 sysdev_driver_register+0x34/0xce()
- > > [   56.776027] Modules linked in: acpi_cpufreq(+) speedstep_lib ip6table_filter ip6_tables x_tables ipv6 microcode firmware_class loop osst st sr_mod cdrom pata_acpi bas_gigaset snd_hda_intel gigaset isdn snd_pcm ata_generic<6>ip_tables: (C) 2000-2006 Netfilter Core Team
- > > [   56.785293]  snd_timer aic7xxx slhc snd ohci1394 rtc_cmos ieee1394 shpchp crc_ccitt iTCO_wdt e1000e rtc_core iTCO_vendor_support soundcore scsi_transport_spi watchdog_core pci_hotplug intel_agp button thermal agpgart rtc_lib processor i2c_i801 watchdog_dev parport_pc i2c_core snd_page_alloc parport pata_marvell sg ext3 jbd mbcache linear sd_mod usbhid hid ff_memless ahci libata scsi_mod ehci_hcd uhci_hcd usbcore dm_snapshot dm_mod
- > > [   56.805358] Pid: 2856, comm: modprobe Not tainted 2.6.25-rc5-mm1-testing #1
- > > [   56.810766]  [<c01272e9>] warn_on_slowpath+0x41/0x6d
- > > [   56.820628]  [<c0230065>] ? acpi_ns_lookup+0x2b5/0x497
- > > [   56.830455]  [<c0230e25>] ? acpi_evaluate_object+0x23e/0x249
- > > [   56.840414]  [<c02ff809>] ? mutex_unlock+0x8/0xa
- > > [   56.848380]  [<fa9fec1d>] ? acpi_processor_preregister_performance+0x4e6/0x4f1 [processor]
- > > [   56.858297]  [<c0286438>] ? cpufreq_register_driver+0x42/0xfc
- > > [   56.868263]  [<c026423d>] sysdev_driver_register+0x34/0xce
- > > [   56.877974]  [<c0286476>] cpufreq_register_driver+0x80/0xfc
- > > [   56.887327]  [<facde034>] acpi_cpufreq_init+0x34/0x3a [acpi_cpufreq]
- > > [   56.897290]  [<c014ad7a>] sys_init_module+0x1816/0x1943
- > > [   56.907304]  [<facb5000>] ? icmp_checkentry+0x0/0x14 [ip_tables]
- > > [   56.917255]  [<c0183cd2>] ? sys_read+0x3b/0x60
- > > [   56.925094]  [<c0106aec>] sysenter_past_esp+0x6d/0xc5
- > > [   56.935071]  =======================
- > > [   56.945016] ---[ end trace 9ade9adb26b6da0a ]---
- > > 
- > > Looking back, -rc3-mm1 did that too.
- > > Mainline (-rc3 through -rc5) never did.
- > > Let me know if you need more information.
- > > CCing Dave Jones for cpufreq and Greg KH for sysdev.
- > 
- > This implys that a cpufreq module is getting registered twice in the
- > sysdev code :(
+On Wednesday 12 March 2008, Rafael J. Wysocki wrote:
+> On Wednesday, 12 of March 2008, Miklos Szeredi wrote:
+> > I don't know whether this is a problem in reality or not, but it does
+> > interfere with debugging the rest of the kernel, since this turns off
+> > lockdep at boottime.
+> 
+> Well, I think Venki should see it (CCed).
+> 
+> Thanks,
+> Rafael
+> 
+>  
+> > [    0.592488] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+> > [    0.593038] ------------[ cut here ]------------
+> > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > [    0.593596] Modules linked in:
+> > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > [    0.594017] 
+> > [    0.594017] Call Trace:
+> > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > [    0.598464] 
+> > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
 
-I'm wondering if the processor driver has registered something
-that acpi_cpufreq is also trying to do.  Cc'ing linux-acpi
+Venki,
 
-	Dave
+this reproduces in my t61 using Miklos' config (though i had to increase
+the logbuff to catch it)
 
--- 
-http://www.codemonkey.org.uk
+-Len
+
+ACPI: SSDT 7D6E1B32, 02C4 (r1  PmRef  Cpu0Ist      100 INTL 20050513)
+ACPI: SSDT 7D6E1E7B, 085E (r1  PmRef  Cpu0Cst      100 INTL 20050513)
+Monitor-Mwait will be used to enter C-1 state
+Monitor-Mwait will be used to enter C-2 state
+Monitor-Mwait will be used to enter C-3 state
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+kobject: 'cooling_device0' (ffff81007d195bf0): kobject_add_internal: parent: 'thermal', set: 'devices'
+kobject: 'cooling_device0' (ffff81007d195bf0): kobject_uevent_env
+kobject: 'cooling_device0' (ffff81007d195bf0): fill_kobj_path: path = '/class/thermal/cooling_device0'
+------------[ cut here ]------------
+WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+Modules linked in:
+Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #19
+
+Call Trace:
+ [<ffffffff80231687>] warn_on_slowpath+0x58/0x6b
+ [<ffffffff80211d32>] ? native_sched_clock+0x50/0x6d
+ [<ffffffff80329df3>] ? acpi_os_release_lock+0x9/0xb
+ [<ffffffff8024e314>] ? lock_release_holdtime+0x45/0x4a
+ [<ffffffff804964fd>] ? _spin_unlock_irqrestore+0x38/0x47
+ [<ffffffff80329df3>] ? acpi_os_release_lock+0x9/0xb
+ [<ffffffff80337c1f>] ? acpi_set_register+0x161/0x173
+ [<ffffffff8034ccd4>] ? acpi_processor_idle+0x1f0/0x564
+ [<ffffffff802501df>] trace_hardirqs_on+0xa0/0x115
+ [<ffffffff8034cae4>] ? acpi_processor_idle+0x0/0x564
+ [<ffffffff8034ccd4>] acpi_processor_idle+0x1f0/0x564
+ [<ffffffff8034cae4>] ? acpi_processor_idle+0x0/0x564
+ [<ffffffff8020a2f9>] cpu_idle+0xa4/0xce
+ [<ffffffff804868f1>] rest_init+0x55/0x57
+ [<ffffffff80635b3f>] start_kernel+0x29d/0x2a8
+ [<ffffffff806351da>] _sinittext+0x1da/0x1e1
+
+---[ end trace 778e504de7e3b1e3 ]---
+ACPI: ACPI0007:00 is registered as cooling_device0
+ACPI: Processor [CPU0] (supports 8 throttling states)
+ACPI: SSDT 7D6E1A6A, 00C8 (r1  PmRef  Cpu1Ist      100 INTL 20050513)
+ACPI: SSDT 7D6E1DF6, 0085 (r1  PmRef  Cpu1Cst      100 INTL 20050513)
+ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])
