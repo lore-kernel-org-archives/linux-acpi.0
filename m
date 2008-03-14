@@ -1,145 +1,24 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: Re: ACPI lockdep warning on boot, 2.6.25-rc5
-Date: Thu, 13 Mar 2008 17:18:19 -0700
-Message-ID: <20080314001819.GA32584@linux-os.sc.intel.com>
-References: <E1JZOGd-00057d-BU@pomaz-ex.szeredi.hu> <200803122301.17356.rjw@sisk.pl> <200803131614.33386.lenb@kernel.org>
+From: Andrea Arcangeli <andrea@qumranet.com>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc5
+Date: Fri, 14 Mar 2008 01:28:57 +0100
+Message-ID: <20080314002857.GO7365@v2.random>
+References: <200803130214.36861.lenb@kernel.org> <20080312234516.bb079cc5.akpm@linux-foundation.org> <20080313125016.GZ7365@v2.random> <200803131349.27964.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12517 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbYCNAUz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2008 20:20:55 -0400
+Received: from host36-195-149-62.serverdedicati.aruba.it ([62.149.195.36]:55764
+	"EHLO mx.cpushare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753275AbYCNA27 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2008 20:28:59 -0400
 Content-Disposition: inline
-In-Reply-To: <200803131614.33386.lenb@kernel.org>
+In-Reply-To: <200803131349.27964.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Mar 13, 2008 at 04:14:32PM -0400, Len Brown wrote:
-> On Wednesday 12 March 2008, Rafael J. Wysocki wrote:
-> > On Wednesday, 12 of March 2008, Miklos Szeredi wrote:
-> > > I don't know whether this is a problem in reality or not, but it does
-> > > interfere with debugging the rest of the kernel, since this turns off
-> > > lockdep at boottime.
-> > 
-> > Well, I think Venki should see it (CCed).
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> >  
-> > > [    0.592488] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
-> > > [    0.593038] ------------[ cut here ]------------
-> > > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
-> > > [    0.593596] Modules linked in:
-> > > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
-> > > [    0.594017] 
-> > > [    0.594017] Call Trace:
-> > > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
-> > > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
-> > > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
-> > > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
-> > > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
-> > > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
-> > > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
-> > > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
-> > > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
-> > > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
-> > > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
-> > > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
-> > > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
-> > > [    0.598464] 
-> > > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
-> 
-> Venki,
-> 
-> this reproduces in my t61 using Miklos' config (though i had to increase
-> the logbuff to catch it)
-> 
-> -Len
+On Thu, Mar 13, 2008 at 01:49:27PM -0400, Len Brown wrote:
+> or check out Linus' top of tree and apply the plain patch:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.25/acpi-release-20070126-2.6.25-rc5.diff.gz
 
-Below patch should fix this warning. I would say warning is pretty harmless.. 
-
-Thanks,
-Venki
-
----
-
-This avoids the harmless WARNING by lockdep in acpi_processor_idle().
-
-The reason for WARNING is because at the depth of idle handling code,
-some of the idle handlers disable interrupts, some times, while returning from
-the idle handler. After return, acpi_processor_idle and few other routines
-in the file did an unconditional local_irq_enable(). With LOCKDEP, enabling
-irq when it is alread enabled generates the below WARNING.
-
-> > [    0.593038] ------------[ cut here ]------------
-> > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
-> > [    0.593596] Modules linked in:
-> > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
-> > [    0.594017] 
-> > [    0.594017] Call Trace:
-> > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
-> > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
-> > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
-> > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
-> > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
-> > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
-> > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
-> > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
-> > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
-> > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
-> > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
-> > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
-> > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
-> > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
-> > [    0.598464] 
-> > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
-Index: linux-2.6.git/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.git.orig/drivers/acpi/processor_idle.c	2008-03-12 05:17:12.000000000 -0700
-+++ linux-2.6.git/drivers/acpi/processor_idle.c	2008-03-13 10:00:47.000000000 -0700
-@@ -216,8 +216,10 @@
- 	 * test NEED_RESCHED:
- 	 */
- 	smp_mb();
--	if (!need_resched())
-+	if (!need_resched()) {
- 		safe_halt();
-+		local_irq_disable();
-+	}
- 	current_thread_info()->status |= TS_POLLING;
- }
- 
-@@ -421,7 +423,9 @@
- 		else
- 			acpi_safe_halt();
- 
--		local_irq_enable();
-+		if (irqs_disabled())
-+			local_irq_enable();
-+
- 		return;
- 	}
- 
-@@ -530,7 +534,9 @@
- 		 *       skew otherwise.
- 		 */
- 		sleep_ticks = 0xFFFFFFFF;
--		local_irq_enable();
-+		if (irqs_disabled())
-+			local_irq_enable();
-+
- 		break;
- 
- 	case ACPI_STATE_C2:
+This fixed my problem thanks.
