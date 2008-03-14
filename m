@@ -1,211 +1,72 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Thu, 13 Mar 2008 19:16:46 -0700
-Message-ID: <20080314021646.GC6145@us.ibm.com>
-References: <200803041018.29035.jbarnes@virtuousgeek.org> <20080304193036.GB5534@suse.de> <20080304230937.GD3694@ldl.fc.hp.com> <47CDF339.3060304@jp.fujitsu.com> <20080305202052.GN3694@ldl.fc.hp.com> <47D684D0.6060200@jp.fujitsu.com> <20080311110403.7db9527c@appleyard> <20080311191406.GB29344@ldl.fc.hp.com> <47D7BF6C.3080306@jp.fujitsu.com> <20080313032410.GA17561@ldl.fc.hp.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [Linux-gfx] Re: [PATCH 2/4] ACPI: video: prevent ACPI video
+	actions upondisplay switch notifications
+Date: Fri, 14 Mar 2008 10:12:56 +0800
+Message-ID: <1205460776.2240.88.camel@acpi-hp-zz.sh.intel.com>
+References: <1201243677.4663.18.camel@acpi-sony.sh.intel.com>
+	 <1205290380.2240.41.camel@acpi-hp-zz.sh.intel.com>
+	 <1205338005.29877.247.camel@queen.suse.de>
+	 <200803121035.40860.jesse.barnes@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e35.co.us.ibm.com ([32.97.110.153]:44551 "EHLO
-	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbYCNCQx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2008 22:16:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20080313032410.GA17561@ldl.fc.hp.com>
+Received: from mga01.intel.com ([192.55.52.88]:51245 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751927AbYCNC0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 22:26:53 -0400
+In-Reply-To: <200803121035.40860.jesse.barnes@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Greg KH <gregkh@suse.de>, Jesse Barnes <jbarnes>
+To: "Barnes, Jesse" <jesse.barnes@intel.com>
+Cc: linux-gfx@linux.intel.com, trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, lenb <lenb@kernel.org>
 
-Hi Alex/Kenji-san,
 
-Time for my 2 cents.
-
-On Wed, Mar 12, 2008 at 09:24:10PM -0600, Alex Chiang wrote:
-> Hi Kenji-san,
-> 
-> * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> > Hi Alex-san,
+On Thu, 2008-03-13 at 01:35 +0800, Barnes, Jesse wrote:
+> On Wednesday, March 12, 2008 9:06 am Thomas Renninger wrote:
+> > Above was not from myself, but copied out from the bug.
+> > The guy(s) complained that DOS=0 now breaks their machines...
+> > I try to find some time to look at this a bit deeper and will then
+> > comment in the bug (can take some time...).
+> > IMO recent HPs can/should be taken as a reference as they tend to
+> stick
+> > to the ACPI spec closely.
+> > As said, it was late and I mixed up patches, the patch to switch
+> _DOS
+> > default value to 0 was already in 2.6.24?
+> > I don't know now how much was tried already.
+> > A) To switch DOS to 0 when e.g. intel graphics driver gets active
+> > (should be done by the graphics driver package or if X is started if
+> the
+> > driver is aware of the hotkey and can do the switching).
+> > B) Otherwise (e.g. if framebuffer or graphics driver which do not
+> switch
+> > the display) it should stay to be BIOS handled.
+> > This is the correct way IMO this should get handled.
 > >
-> >> On my machine, it is legal to evaluate S1F0._SUN independent of
-> >> S1F0._STA because L001._INI has already been evaluated.
-> >> It would be helpful to know what Fujitsu's namespace looks like.
-> >> If Fujitsu slot objects contain _STA and _INI, then I agree with
-> >> Kenji-san -- I definitely need to check _STA before evaluating
-> >> _SUN.
-> >
-> > Thank you for explanation. Maybe I understood the summary of
-> > implementation of HP firmware. But how to use or where to put _INI
-> > method in the ACPI namespace never becomes reasonable reason why
-> > your driver may ignore _STA before evaluating _SUN.
-> >
-> >> But in any case, I think both HP and Fujitsu firmware are doing
-> >> legal things -- neither firmware is breaking the spec.
-> >
-> > My understanding of your explanation so far is:
-> >
-> > - evaluating _SUN without checking _STA doesn't cause problem,
-> >  from the view point of HP's implementation.
-> > - some IBM machine is doing same as HP
-> >
-> > I never think those are reasonable reasons why ignoring _STA
-> > before evaluating _SUN is legal. Am I missing something?
+> > Puhh, this needs a lot testing (different graphics drivers,
+> different
+> > machines,...) and implementation to switch to DOS=0 in graphics
+> > drivers...
 > 
-> I think the piece that I did not explain clearly is that the spec
-> does not require checking _STA immediately before _SUN. The spec
-> says: 
-> 
-> 	- you must check _STA before calling _INI
-Agreed. 
+> Yeah, you're right that userspace drivers should probably set the DOS
+> value
+> when they startup, though '3' may be a better value since userspace
+> probably
+> doesn't care about the _DGS stuff.
+Well, it doesn't work on many platforms.
 
-> 	- _INI must be called to initialize _SUN
-Based on my review of ACPI spec 3.0b I would add:
-  1. For a specific device that has only _STA and _SUN methods,
-     _SUN can be run and it's results can be trusted irrespective
-     of the _STA return value.
-  2. For a specific device that has _STA, _INI, and _SUN methods,
-     _SUN can be run and it's results can be trusted even if
-    _INI is not run because the device is absent.  If the device
-    is present and _INI is run then _SUN cannot be run until
-    after _INI is run.
+And from the comments here:
+http://bugzilla.kernel.org/show_bug.cgi?id=9159#c5
+Maybe DOS values other than "1" is not well tested.
 
-  See ACPI spec 3.0b "6.1.8 _SUN (Slot User Number)" which
-  says nothing about a required presence of the device.
 
-> 	- _INI is called once, when the table is loaded
-Agreed.
+> The trouble is that DOS=0 works for some machines but breaks others,
+> does
+> anyone have a summary of the reports against the various values?
+No. :(.
+And I'm afraid that the symptom is different on different machines...
 
-> 
-> On HP's implementation, we do obey those rules. We call _INI on
-> the PCI bridge during boot, which then initializes the children
-> SxFy objects. From that point on, it is legal for us to call
-> _SUN.
-> 
-> The other issue is that the spec does not specify the *semantics*
-> of _STA. P/IBM firmware engineers think _STA should indicate card
-> presence, 
-
-I checked this on the IBM x3850 and it appears to be true.  I 
-instrumented register_slot() in drivers/pci/hotplug/acpiphp_glue.c
-to print _STA and _SUN returns and got the following results with
-slot 1 (PCI-X) populated, slot 2 (PCI-X) vacant, slot 3 (PCIe) vacant,
-slot 4 (PCIe) populated, slot 5 (PCIe) vacant, and slot 6 (PCIe)
-populated.  When a card is present _STA returns non-zero status
-for all functions, otherwise it returns zero.  None of the SxFy
-devices have an _INI method.
-
-acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-acpiphp_glue: found PCI host-bus bridge with hot-pluggable slots
-acpiphp_glue: register_slot: \_SB_.VP02.S1F0 sta=0 sun=1
-acpiphp_glue: found ACPI PCI Hotplug slot 1 at PCI 0000:02:01
-acpiphp: Slot [1] registered
-acpiphp_glue: register_slot: \_SB_.VP02.S1F1 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F2 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F3 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F4 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F5 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F6 sta=0 sun=1
-acpiphp_glue: register_slot: \_SB_.VP02.S1F7 sta=0 sun=1
-acpiphp_glue: found PCI host-bus bridge with hot-pluggable slots
-acpiphp_glue: register_slot: \_SB_.VP03.S2F0 sta=f sun=2
-acpiphp_glue: found ACPI PCI Hotplug slot 2 at PCI 0000:06:01
-acpiphp: Slot [2] registered
-acpiphp_glue: register_slot: \_SB_.VP03.S2F1 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F2 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F3 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F4 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F5 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F6 sta=f sun=2
-acpiphp_glue: register_slot: \_SB_.VP03.S2F7 sta=f sun=2
-acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:0a:00.0
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F0 sta=0 sun=3
-acpiphp_glue: found ACPI PCI Hotplug slot 3 at PCI 0000:0b:00
-acpiphp: Slot [3] registered
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F1 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F2 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F3 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F4 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F5 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F6 sta=0 sun=3
-acpiphp_glue: register_slot: \_SB_.VP04.CALG.E3F7 sta=0 sun=3
-acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:0f:00.0
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F0 sta=f sun=4
-acpiphp_glue: found ACPI PCI Hotplug slot 4 at PCI 0000:10:00
-acpiphp: Slot [4] registered
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F1 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F2 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F3 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F4 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F5 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F6 sta=f sun=4
-acpiphp_glue: register_slot: \_SB_.VP05.CALG.E4F7 sta=f sun=4
-acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:14:00.0
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F0 sta=0 sun=5
-acpiphp_glue: found ACPI PCI Hotplug slot 5 at PCI 0000:15:00
-acpiphp: Slot [5] registered
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F1 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F2 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F3 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F4 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F5 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F6 sta=0 sun=5
-acpiphp_glue: register_slot: \_SB_.VP06.CALG.E5F7 sta=0 sun=5
-acpiphp_glue: found PCI-to-PCI bridge at PCI 0000:19:00.0
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F0 sta=f sun=6
-acpiphp_glue: found ACPI PCI Hotplug slot 6 at PCI 0000:1a:00
-acpiphp: Slot [6] registered
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F1 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F2 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F3 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F4 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F5 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F6 sta=f sun=6
-acpiphp_glue: register_slot: \_SB_.VP07.CALG.E6F7 sta=f sun=6
-acpiphp_glue: Bus 0000:1a has 1 slot
-acpiphp_glue: Bus 0000:15 has 1 slot
-acpiphp_glue: Bus 0000:10 has 1 slot
-acpiphp_glue: Bus 0000:0b has 1 slot
-acpiphp_glue: Bus 0000:06 has 1 slot
-acpiphp_glue: Bus 0000:02 has 1 slot
-acpiphp_glue: Total 6 slots
-
-> but Fujitsu firmware engineers think _STA should
-> indicate slot presence.
-> 
-> I don't think either firmware team is incorrect -- it is simply
-> the case that the specification was not precise enough, to the
-> point where separate teams following the same spec came up with
-> implementations with different behaviors and different semantics.
-> 
-> I believe that we both have compliant, legal firmware.
-> 
-> >> If one list is shorter than the other, then that should be the
-> >> list to put in the kernel, and the default behavior should be
-> >> "majority rule".
-> >
-> > I don't want to consider "majority rule" before I understand why
-> > ignoring _STA is legal.
-> 
-> On HP and IBM machines, it *is* legal because we *did* call _STA,
-> then _INI, then _SUN. That is one interpretation of the spec.
-> 
-> On Fujitsu machines, the semantics of _STA are different, and it
-> is not legal to ignore _STA. That is another interpretation of
-> the spec.
-
-I am not convinced that this a correct interpretation.  I believe
-that the ACPI spec indicates that it is legal to call _SUN and
-trust it's results no matter what _STA returns.  I believe the
-only constraint on running _SUN is that it be run after _INI is run
-if _INI exists for the same device and _STA for that device
-indicates that it should be run.
-
-Gary
-
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+thanks,
+rui
 
