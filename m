@@ -1,126 +1,133 @@
-From: Dave Hansen <haveblue@us.ibm.com>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Fri, 14 Mar 2008 16:29:55 -0700
-Message-ID: <1205537395.8167.31.camel@nimitz.home.sr71.net>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
-	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
-	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
-	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
-	 <47DAE55C.3080506@tremplin-utc.net>
-	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
-	 <47DB013D.3060102@tremplin-utc.net>
+From: Fabien Crespel <fabien@crespel.net>
+Subject: Best practices to improve a laptop driver using ACPI (hotkeys, rfkill,
+ kill switch...)
+Date: Sat, 15 Mar 2008 00:41:09 +0100
+Message-ID: <47DB0D15.4040505@crespel.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e5.ny.us.ibm.com ([32.97.182.145]:48970 "EHLO e5.ny.us.ibm.com"
+Received: from smtp2f.orange.fr ([80.12.242.150]:35568 "EHLO smtp2f.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753587AbYCNXaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 19:30:03 -0400
-In-Reply-To: <47DB013D.3060102@tremplin-utc.net>
+	id S1751560AbYCNXkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 19:40:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>
+To: acpi4asus-user@lists.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-input@vger.kernel.org, Corentin CHARY <corentincj@iksaif.net>
 
-On Fri, 2008-03-14 at 23:50 +0100, Eric Piel wrote:
-> > It'd be a shame to have to have "super_early_fs_initcall()" logic for
-> > every part of the VFS or any other initcall for that matter that you
-> > might need.  How do we tell all future VFS hackers that they have to do
-> > this so that the next guy doesn't break it?  I certainly missed it. :)
-> Well, my point was that actually populate_rootfs() does _very_ little 
-> with regard to FS manipulation, acpi_find_dsdt_initrd() even less. The 
-> task of checking that everything needed is available beforehand is 
-> certainly not the same magnitude as the one of the Danaides as you 
-> seemed to implied ;-)
+Hello,
 
-The problem is defining how much "very little" is, and making sure that
-all the other kernel developers agree with you on it.
+as an ASUS laptop owner, quite new to Linux kernel driver programming but long
+time programmer, I'm interested in improving the asus-laptop driver in several
+ways, with anyone that might be interested in the process (and of course 
+especially the maintainer, Corentin Chary).
 
-Anyway, I'm sick of too much bitching and too little coding.  Andrew,
-here's a patch for -mm that will at least shut up the spinlock warnings.
-Al, you'll also need something similar to this for when you get Linus to
-pull your git tree that has the r/o bind mount patches. 
-It's a hack, but I don't know any better way to do it until the ACPI
-mess gets cleaned up.
-
-Arjan, is there a way to statically set lockdep classes for a spinlock
-that I'm missing?
-
-I'll leave it to everyone else to describe the evils of calling into
-*any* fs code before the fs initcalls have been made. 
-
--- Dave
+But for this, I would first like to know what the "best practices" are, to avoid
+design mistakes. So here I come with many questions and unclear points I'd like
+to define a bit better. Sorry if some questions have already been answered
+elsewhere, but if they haven't, maybe the resulting discussion will also be
+useful for other laptop drivers :)
 
 
-I'm not happy with this patch, but I don't see an easier way
-to do it.  We can't statically initialize the lockdep classes
-as far as I can see.
+___ INTRODUCTION _______________________________________________________________
 
----
+Before asking anything, let me explain quickly how things work on ASUS laptops:
+- hotkeys use ACPI notifications catched by the driver with a notify handler.
+- there are several "operation modes" in most DSDTs, controlled by the CWAP
+method / WAPF variable:
+   0 = no driver (behavior hardcoded in the DSDT),
+   1 = half-driver, half-hardware (current default in asus-laptop),
+   4 = pure driver mode (notifications only for most events)
+- in all modes, the Bluetooth device and LED (if present) are tied together, i.e.
+toggling the LED through an ACPI method (BLED) also toggles the device.
+- the WLAN device and LED are more tricky depending on the mode:
+   0 = tied together on some models,
+   1 and 4 = only the LED can be toggled with an ACPI method (WLED).
 
- linux-2.6.git-dave/fs/namespace.c        |    3 +--
- linux-2.6.git-dave/include/linux/mount.h |    1 +
- linux-2.6.git-dave/init/main.c           |    8 ++++++++
- 3 files changed, 10 insertions(+), 2 deletions(-)
+The goals of the proposed driver enhancements are to move to "mode 4" (pure
+driver mode) on all ASUS laptops, to support more modern ways of handling things
+like hotkeys, and to support new features like the hardware kill switch and the
+Fn+F2 WLAN/Bluetooth toggle key.
 
-diff -puN fs/namei.c~robind-statically-initialize-locks fs/namei.c
-diff -puN fs/namespace.c~robind-statically-initialize-locks fs/namespace.c
---- linux-2.6.git/fs/namespace.c~robind-statically-initialize-locks	2008-03-14 16:12:44.000000000 -0700
-+++ linux-2.6.git-dave/fs/namespace.c	2008-03-14 16:16:43.000000000 -0700
-@@ -158,7 +158,7 @@ struct mnt_writer {
- } ____cacheline_aligned_in_smp;
- static DEFINE_PER_CPU(struct mnt_writer, mnt_writers);
- 
--static int __init init_mnt_writers(void)
-+int __init init_mnt_writers(void)
- {
- 	int cpu;
- 	for_each_possible_cpu(cpu) {
-@@ -169,7 +169,6 @@ static int __init init_mnt_writers(void)
- 	}
- 	return 0;
- }
--fs_initcall(init_mnt_writers);
- 
- static void unlock_mnt_writers(void)
- {
-diff -puN init/main.c~robind-statically-initialize-locks init/main.c
---- linux-2.6.git/init/main.c~robind-statically-initialize-locks	2008-03-14 16:13:02.000000000 -0700
-+++ linux-2.6.git-dave/init/main.c	2008-03-14 16:17:33.000000000 -0700
-@@ -58,6 +58,7 @@
- #include <linux/kthread.h>
- #include <linux/sched.h>
- #include <linux/signal.h>
-+#include <linux/mount.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -650,6 +651,13 @@ asmlinkage void __init start_kernel(void
- 
- 	check_bugs();
- 
-+	/*
-+	 * This is a horrible hack.  The ACPI code needs
-+	 * to learn how to do "DSDT override" without fs
-+	 * access or do it later in boot - Dave Hansen
-+	 */
-+	init_mnt_writers();
-+
- 	populate_rootfs(); /* For DSDT override from initramfs */
- 	acpi_early_init(); /* before LAPIC and SMP init */
- 
-diff -puN include/linux/mount.h~robind-statically-initialize-locks include/linux/mount.h
---- linux-2.6.git/include/linux/mount.h~robind-statically-initialize-locks	2008-03-14 16:16:04.000000000 -0700
-+++ linux-2.6.git-dave/include/linux/mount.h	2008-03-14 16:16:34.000000000 -0700
-@@ -79,6 +79,7 @@ static inline struct vfsmount *mntget(st
- 	return mnt;
- }
- 
-+extern int init_mnt_writers(void);
- extern int mnt_want_write(struct vfsmount *mnt);
- extern void mnt_drop_write(struct vfsmount *mnt);
- extern void mntput_no_expire(struct vfsmount *mnt);
-_
+
+___ HOTKEYS ____________________________________________________________________
+
+Currently, hotkeys generate ACPI events (with acpi_bus_generate_proc_event) with
+the notification code, which are handled directly by acpid scripts or userspace
+programs like Lapsus. On some distros (like openSUSE 10.3 and probably Ubuntu),
+the acpi-keys daemon (from the hotkey-setup package) converts some of these
+events to keycodes.
+
+Here the way to go seems to be the input framework, for which I noticed two
+implementations:
+- thinkpad_acpi's with the keymap of known key scancodes defined in the driver,
+and only allowing to remap unknown keys.
+- sony-laptop's with a predefined keymap too, but only allowing the known keys to
+be remapped.
+
+I'd rather be for the thinkpad_acpi implementation, but what do you think?
+
+
+___ WLAN + Bluetooth control ___________________________________________________
+
+There are many ways to control WLAN and BT depending on the laptop model:
+- dedicated button to toggle WLAN
+- dedicated button to toggle BT, always works fine but seems to be out of
+software control (simply sends a notification after toggling the device and LED)
+- Fn+F2 key, which usually works as a cycle between WL+BT -> WL -> BT -> OFF, or
+just WL ON/OFF if the laptop doesn't have a Bluetooth device (on Windows or in
+"mode 0", if supported)
+- hardware kill switch (see further down in this message)
+
+The problem here is whether to use the rfkill class device to implement the Fn+F2
+key, because it controls *both* WLAN and BT, which AFAIK isn't supported in any
+way by rfkill... There seems to be a KEY_RADIO keycode but I'm not sure if it
+applies to this situation, or if it's even useful at all...? But, as the WLAN
+device can't be controlled by the driver (it would only control the LED), I don't
+know of any way to actually toggle the device other than rfkill...
+
+IMO, switching WL and BT in turn with the same sequence as in Windows (WL+BT ->
+WL -> BT -> OFF) should be the preferred behavior for asus-laptop, so that it
+stays consistent with the Windows/hardware behavior. Another possibility would be
+to toggle WL+BT together, but I'm not really for it as there is often a hardware
+kill switch to do that.
+
+So, a possible implementation of this Fn+F2 key would be to hardcode the sequence
+in the ACPI notify handler of the driver, to send KEY_WLAN or KEY_BLUETOOTH
+only in the appropriate case. Then the rfkill input handler would catch that and
+call the appropriate rfkill function of the asus-laptop driver to finally switch
+the WL LED or BT LED+device.
+
+But is this kind of 'hack' a real solution?
+Do other laptop drivers have the same problem and if so, how do they handle it?
+
+
+___ Kill Switch _______________________________________________________________
+
+The last tricky thing is the hardware Kill Switch, which of course is completely
+out of software control but still provides ACPI notifications when it's toggled.
+
+Is there any recommended way of exposing its status to userspace? rfkill
+doesn't seem to have any way to say 'this device is completely disabled and not
+just OFF' ; a sysfs interface is possible but driver-specific ; and what about HAL?
+
+For instance, how to inform programs like NetworkManager that the WLAN connection
+is disabled? a keycode? HAL?
+
+Finally, how should "set/get status" interfaces in sysfs and/or rfkill behave? in 
+a previous patch (not applied for the moment), I used the internal driver status
+when the kill switch is enabled, so that we can still read what devices were
+enabled and change them before toggling the kill switch again. At the time it
+appeared to be 'possibly useful' but a consequence is that it reports an
+inaccurate status, unless if the user or program is aware that the kill switch is
+ON. Would it be better to say all devices are OFF, and simply ignore changes made
+through sysfs/rfkill?
+
+
+So this is it, sorry for making such a long post :P
+Thanks for reading, and thanks for any constructive answer you might provide.
+
+- Fabien.
 
 
