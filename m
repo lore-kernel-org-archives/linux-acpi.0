@@ -1,93 +1,145 @@
-From: Tilman Schmidt <tilman@imap.cc>
-Subject: Re: [2.6.25-rc5-mm1] WARNING: at drivers/base/sys.c:173
-Date: Fri, 14 Mar 2008 01:01:18 +0100
-Message-ID: <47D9C04E.3060208@imap.cc>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org> <47D87238.8080305@imap.cc> <20080313195656.GA32463@codemonkey.org.uk>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: ACPI lockdep warning on boot, 2.6.25-rc5
+Date: Thu, 13 Mar 2008 17:18:19 -0700
+Message-ID: <20080314001819.GA32584@linux-os.sc.intel.com>
+References: <E1JZOGd-00057d-BU@pomaz-ex.szeredi.hu> <200803122301.17356.rjw@sisk.pl> <200803131614.33386.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigCFAC5A2B1B59E325AD5EDA6A"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758171AbYCNABl@vger.kernel.org>
-In-Reply-To: <20080313195656.GA32463@codemonkey.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Jones <davej@codemonkey.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:12517 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751477AbYCNAUz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2008 20:20:55 -0400
+Content-Disposition: inline
+In-Reply-To: <200803131614.33386.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigCFAC5A2B1B59E325AD5EDA6A
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, Mar 13, 2008 at 04:14:32PM -0400, Len Brown wrote:
+> On Wednesday 12 March 2008, Rafael J. Wysocki wrote:
+> > On Wednesday, 12 of March 2008, Miklos Szeredi wrote:
+> > > I don't know whether this is a problem in reality or not, but it does
+> > > interfere with debugging the rest of the kernel, since this turns off
+> > > lockdep at boottime.
+> > 
+> > Well, I think Venki should see it (CCed).
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> >  
+> > > [    0.592488] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+> > > [    0.593038] ------------[ cut here ]------------
+> > > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > > [    0.593596] Modules linked in:
+> > > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > > [    0.594017] 
+> > > [    0.594017] Call Trace:
+> > > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > > [    0.598464] 
+> > > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
+> 
+> Venki,
+> 
+> this reproduces in my t61 using Miklos' config (though i had to increase
+> the logbuff to catch it)
+> 
+> -Len
 
-Am 13.03.2008 20:56 schrieb Dave Jones:
+Below patch should fix this warning. I would say warning is pretty harmless.. 
 
->  > [   56.759128] ------------[ cut here ]------------
->  > [   56.765058] WARNING: at drivers/base/sys.c:173 sysdev_driver_regi=
-ster+0x34/0xce()
->  > [   56.776027] Modules linked in: acpi_cpufreq(+) speedstep_lib ip6t=
-able_filter ip6_tables x_tables ipv6 microcode firmware_class loop osst s=
-t sr_mod cdrom pata_acpi bas_gigaset snd_hda_intel gigaset isdn snd_pcm a=
-ta_generic<6>ip_tables: (C) 2000-2006 Netfilter Core Team
->  > [   56.785293]  snd_timer aic7xxx slhc snd ohci1394 rtc_cmos ieee139=
-4 shpchp crc_ccitt iTCO_wdt e1000e rtc_core iTCO_vendor_support soundcore=
- scsi_transport_spi watchdog_core pci_hotplug intel_agp button thermal ag=
-pgart rtc_lib processor i2c_i801 watchdog_dev parport_pc i2c_core snd_pag=
-e_alloc parport pata_marvell sg ext3 jbd mbcache linear sd_mod usbhid hid=
- ff_memless ahci libata scsi_mod ehci_hcd uhci_hcd usbcore dm_snapshot dm=
-_mod
->  > [   56.805358] Pid: 2856, comm: modprobe Not tainted 2.6.25-rc5-mm1-=
-testing #1
->  > [   56.810766]  [<c01272e9>] warn_on_slowpath+0x41/0x6d
->  > [   56.820628]  [<c0230065>] ? acpi_ns_lookup+0x2b5/0x497
->  > [   56.830455]  [<c0230e25>] ? acpi_evaluate_object+0x23e/0x249
->  > [   56.840414]  [<c02ff809>] ? mutex_unlock+0x8/0xa
->  > [   56.848380]  [<fa9fec1d>] ? acpi_processor_preregister_performanc=
-e+0x4e6/0x4f1 [processor]
->  > [   56.858297]  [<c0286438>] ? cpufreq_register_driver+0x42/0xfc
->  > [   56.868263]  [<c026423d>] sysdev_driver_register+0x34/0xce
->  > [   56.877974]  [<c0286476>] cpufreq_register_driver+0x80/0xfc
->  > [   56.887327]  [<facde034>] acpi_cpufreq_init+0x34/0x3a [acpi_cpufr=
-eq]
->  > [   56.897290]  [<c014ad7a>] sys_init_module+0x1816/0x1943
->  > [   56.907304]  [<facb5000>] ? icmp_checkentry+0x0/0x14 [ip_tables]
->  > [   56.917255]  [<c0183cd2>] ? sys_read+0x3b/0x60
->  > [   56.925094]  [<c0106aec>] sysenter_past_esp+0x6d/0xc5
->  > [   56.935071]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
->  > [   56.945016] ---[ end trace 9ade9adb26b6da0a ]---
+Thanks,
+Venki
 
-> Full dmesg please, with CPU_FREQ_DEBUG=3Dy, and boot with cpufreq.debug=
-=3D7
+---
 
-You can find it at
-http://gollum.phnxsoft.com/~ts/linux/dmesg.out
-and the corresponding .config right beside it at
-http://gollum.phnxsoft.com/~ts/linux/config-2.6.25-rc5-mm1
+This avoids the harmless WARNING by lockdep in acpi_processor_idle().
 
-CCing linux-acpi as you did in your other mail.
+The reason for WARNING is because at the depth of idle handling code,
+some of the idle handlers disable interrupts, some times, while returning from
+the idle handler. After return, acpi_processor_idle and few other routines
+in the file did an unconditional local_irq_enable(). With LOCKDEP, enabling
+irq when it is alread enabled generates the below WARNING.
 
-HTH
-T.
+> > [    0.593038] ------------[ cut here ]------------
+> > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > [    0.593596] Modules linked in:
+> > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > [    0.594017] 
+> > [    0.594017] Call Trace:
+> > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > [    0.598464] 
+> > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
 
---=20
-Tilman Schmidt                          E-Mail: tilman@imap.cc
-Bonn, Germany
-Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
-Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-
---------------enigCFAC5A2B1B59E325AD5EDA6A
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3rc1 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFH2cBPMdB4Whm86/kRAsUUAJ0TgS7GL56Fwk36nUofH85sQ9uhLQCfS2RH
-0cbiBmYoLPdP90f5vAonEPQ=
-=pyjM
------END PGP SIGNATURE-----
-
---------------enigCFAC5A2B1B59E325AD5EDA6A--
+Index: linux-2.6.git/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.git.orig/drivers/acpi/processor_idle.c	2008-03-12 05:17:12.000000000 -0700
++++ linux-2.6.git/drivers/acpi/processor_idle.c	2008-03-13 10:00:47.000000000 -0700
+@@ -216,8 +216,10 @@
+ 	 * test NEED_RESCHED:
+ 	 */
+ 	smp_mb();
+-	if (!need_resched())
++	if (!need_resched()) {
+ 		safe_halt();
++		local_irq_disable();
++	}
+ 	current_thread_info()->status |= TS_POLLING;
+ }
+ 
+@@ -421,7 +423,9 @@
+ 		else
+ 			acpi_safe_halt();
+ 
+-		local_irq_enable();
++		if (irqs_disabled())
++			local_irq_enable();
++
+ 		return;
+ 	}
+ 
+@@ -530,7 +534,9 @@
+ 		 *       skew otherwise.
+ 		 */
+ 		sleep_ticks = 0xFFFFFFFF;
+-		local_irq_enable();
++		if (irqs_disabled())
++			local_irq_enable();
++
+ 		break;
+ 
+ 	case ACPI_STATE_C2:
