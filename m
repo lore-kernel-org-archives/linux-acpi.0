@@ -1,49 +1,45 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Fri, 14 Mar 2008 08:30:12 +0100
-Message-ID: <20080314073012.GF17940@kernel.dk>
-References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080313231738.GH30864@khazad-dum.debian.net>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
+Date: Fri, 14 Mar 2008 15:50:45 +0800
+Message-ID: <1205481045.16349.1.camel@sli10-desk.sh.intel.com>
+References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
+	 <20080314044408.GB17961@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([87.55.233.238]:25053 "EHLO kernel.dk"
+Received: from mga02.intel.com ([134.134.136.20]:6247 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750935AbYCNHaO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 03:30:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20080313231738.GH30864@khazad-dum.debian.net>
+	id S1753192AbYCNHwI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 03:52:08 -0400
+In-Reply-To: <20080314044408.GB17961@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Arkadiusz Miskiewicz <arekm@maven.pl>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Greg KH <gregkh@suse.de>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Mar 13 2008, Henrique de Moraes Holschuh wrote:
-> On Wed, 12 Mar 2008, Arkadiusz Miskiewicz wrote:
-> > > On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Holschuh wrote:
-> > > > You shouldn't need to do anything other than teach userspace to respond
-> > > > to them, as they generate the proper KEY_* events.  If you are giving the
-> > > > AML _OSI(Linux), at least...
-> > 
-> > I'm also seeing regression on my thinkpad z60m where with git tree (tested 
-> > again with 2 days old git) "thinkvantage" button stopped working (pressing it 
-> > was previously seen by some userspace kde which run konsole).
-> > 
-> > On 2.6.24 presses are seen.
+
+On Thu, 2008-03-13 at 21:44 -0700, Greg KH wrote:
+> On Fri, Mar 14, 2008 at 11:49:09AM +0800, Shaohua Li wrote:
+> > diff --git a/include/linux/pci.h b/include/linux/pci.h
+> > index 9010f54..821ad02 100644
+> > --- a/include/linux/pci.h
+> > +++ b/include/linux/pci.h
+> > @@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
+> >  	pci_fixup_final,	/* Final phase of device fixups */
+> >  	pci_fixup_enable,	/* pci_enable_device() time */
+> >  	pci_fixup_resume,	/* pci_enable_device() time */
+> > +	pci_fixup_suspend,
+> > +	pci_fixup_resume_later,
 > 
-> There were no changes to thinkpad-acpi that should have caused this.  So I
-> need more data to find out what is happening.  Might be a problem elsewhere
-> in ACPI, or some bug in thinkpad-acpi.
-> 
-> You DO have /proc/acpi/event, correct?  Please send me the debug output of
-> thinkpad-acpi when it is loaded with "debug=0xffff" as a parameter (and for
-> extra bonus, please compile it with the verbose debug Kconfig option).
+> Please document when these quirks are run.
+will do if you think the method is correct.
 
-Updated to current kernel (saw it had a bunch of acpi fixes), and it now
-works correctly! xev sees the events and the mixer sees mute/unmute and
-volume up+down events.
+> And why "_later"?  What's wrong with the normal resume time?
+pci_fixup_resume is called in pci_device_resume_earily(), which is
+called with interrupt disable, so I added a new one which is called at
+pci_device_resume(), this routine is called with interrupt enabled.
 
-So I think we can lay this one to rest, thankfully.
-
--- 
-Jens Axboe
+Thanks,
+Shaohua
 
