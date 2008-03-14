@@ -1,44 +1,58 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Fri, 14 Mar 2008 10:03:16 +0100
-Message-ID: <1205485397.21619.35.camel@queen.suse.de>
-References: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com>
-	 <200803120029.09505.lenb@kernel.org> <200803130109.45531.lenb@kernel.org>
-	 <1205405941.29877.341.camel@queen.suse.de>
-	 <20080313230919.GG30864@khazad-dum.debian.net>
-Reply-To: trenn@suse.de
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: Re: [2.6.25-rc5-mm1] WARNING: at drivers/base/sys.c:173
+Date: Fri, 14 Mar 2008 10:58:17 +0100
+Message-ID: <47DA4C39.2030304@imap.cc>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>	 <47D87238.8080305@imap.cc> <20080313195656.GA32463@codemonkey.org.uk>	 <47D9C04E.3060208@imap.cc> <1205456231.4082.2.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:58330 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907AbYCNJDU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 05:03:20 -0400
-In-Reply-To: <20080313230919.GG30864@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig0805B2AAF6E7448CC847E1BD"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755740AbYCNJ7S@vger.kernel.org>
+In-Reply-To: <1205456231.4082.2.camel@yakui_zhao.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
-On Thu, 2008-03-13 at 20:09 -0300, Henrique de Moraes Holschuh wrote:
-> On Thu, 13 Mar 2008, Thomas Renninger wrote:
-> > This also happens in drivers/misc/thinkpad_acpi.c.
-> 
-> I was sure I had removed __exit from every thinkpad-acpi exit handler that
-> was also called from __init a long time ago...
-> 
-> Let's see... nope, there isn't a single instance of __exit in
-> thinkpad-acpi.c, so I must have misunderstood you.  I do have lots of
-> __init code, but I don't get any warnings from gcc 4.3 about that on ia32.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig0805B2AAF6E7448CC847E1BD
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-Ahh, I just checked that the module_init function calls the module_exit
-function...
-But the module_exit function probably because of this is not declared
-__exit.
+On Fri, 14 Mar 2008 08:57:11 +0800, Zhao Yakui wrote:
+> Please set CONFIG_ACPI_DEBUG and boot the system with the option of
+> "acpi.debug_layer=3D0x01010000 acpi.debug_level=3D0x1f".
 
-This looks a bit uncommon. I don't know whether it should be avoided,
-but I cannot see why it should hurt.
+CONFIG_ACPI_DEBUG is already set, but I cannot reboot the machine
+right now. I'll probably get a chance for that in about 12 hours.
 
-  Thomas
+> It will be great if the acpidump output is attached.
 
+Available now at
+http://gollum.phnxsoft.com/~ts/linux/acpidump.out
+
+HTH
+T.
+
+--=20
+Tilman Schmidt                    E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+
+
+--------------enig0805B2AAF6E7448CC847E1BD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFH2kw5Q3+did9BuFsRAiQfAJ9ktPJAi7bfpWv+cejecN2unJs+VACeLvtV
+LpkxqJ7GwcPKg8Xj5VOaYQE=
+=Cdst
+-----END PGP SIGNATURE-----
+
+--------------enig0805B2AAF6E7448CC847E1BD--
