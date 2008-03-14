@@ -1,55 +1,70 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Fri, 14 Mar 2008 10:15:50 -0700
-Message-ID: <200803141015.51019.jbarnes@virtuousgeek.org>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com> <1205481045.16349.1.camel@sli10-desk.sh.intel.com> <200803141537.50589.rjw@sisk.pl>
+From: Arkadiusz Miskiewicz <arekm@maven.pl>
+Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
+Date: Fri, 14 Mar 2008 19:23:32 +0100
+Message-ID: <200803141923.32544.arekm@maven.pl>
+References: <20080225230035.GA14503@khazad-dum.debian.net> <20080313231738.GH30864@khazad-dum.debian.net> <20080314073012.GF17940@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-118.bluehost.com ([69.89.22.18]:59442 "HELO
-	outbound-mail-118.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753415AbYCNRQA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 13:16:00 -0400
-In-Reply-To: <200803141537.50589.rjw@sisk.pl>
+Received: from main.carme.maven.pl ([193.239.45.138]:36370 "EHLO
+	main.carme.maven.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367AbYCNSYF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2008 14:24:05 -0400
+In-Reply-To: <20080314073012.GF17940@kernel.dk>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@atrey.karlin.mff.cuni.cz
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Shaohua Li <shaohua.li@intel.com>, Greg KH <gregkh@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Jens Axboe <jens.axboe@oracle.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday, March 14, 2008 7:37 am Rafael J. Wysocki wrote:
-> On Friday, 14 of March 2008, Shaohua Li wrote:
-> > On Thu, 2008-03-13 at 21:44 -0700, Greg KH wrote:
-> > > On Fri, Mar 14, 2008 at 11:49:09AM +0800, Shaohua Li wrote:
-> > > > diff --git a/include/linux/pci.h b/include/linux/pci.h
-> > > > index 9010f54..821ad02 100644
-> > > > --- a/include/linux/pci.h
-> > > > +++ b/include/linux/pci.h
-> > > > @@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
-> > > >  	pci_fixup_final,	/* Final phase of device fixups */
-> > > >  	pci_fixup_enable,	/* pci_enable_device() time */
-> > > >  	pci_fixup_resume,	/* pci_enable_device() time */
-> > > > +	pci_fixup_suspend,
-> > > > +	pci_fixup_resume_later,
+On Friday 14 of March 2008, Jens Axboe wrote:
+> On Thu, Mar 13 2008, Henrique de Moraes Holschuh wrote:
+> > On Wed, 12 Mar 2008, Arkadiusz Miskiewicz wrote:
+> > > > On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Ho=
+lschuh=20
+wrote:
+> > > > > You shouldn't need to do anything other than teach userspace =
+to
+> > > > > respond to them, as they generate the proper KEY_* events.  I=
+f you
+> > > > > are giving the AML _OSI(Linux), at least...
 > > >
-> > > Please document when these quirks are run.
+> > > I'm also seeing regression on my thinkpad z60m where with git tre=
+e
+> > > (tested again with 2 days old git) "thinkvantage" button stopped
+> > > working (pressing it was previously seen by some userspace kde wh=
+ich
+> > > run konsole).
+> > >
+> > > On 2.6.24 presses are seen.
 > >
-> > will do if you think the method is correct.
+> > There were no changes to thinkpad-acpi that should have caused this=
+=2E  So
+> > I need more data to find out what is happening.  Might be a problem
+> > elsewhere in ACPI, or some bug in thinkpad-acpi.
 > >
-> > > And why "_later"?  What's wrong with the normal resume time?
-> >
-> > pci_fixup_resume is called in pci_device_resume_earily(), which is
-> > called with interrupt disable, so I added a new one which is called at
-> > pci_device_resume(), this routine is called with interrupt enabled.
+> > You DO have /proc/acpi/event, correct?  Please send me the debug ou=
+tput
+> > of thinkpad-acpi when it is loaded with "debug=3D0xffff" as a param=
+eter
+> > (and for extra bonus, please compile it with the verbose debug Kcon=
+fig
+> > option).
 >
-> Is the pci_fixup_resume thing used at all?  If it is, how can I check who
-> uses it?
+> Updated to current kernel (saw it had a bunch of acpi fixes), and it =
+now
+> works correctly! xev sees the events and the mixer sees mute/unmute a=
+nd
+> volume up+down events.
 
-Oh good catch, it looks like it's unused at this point (at least there's no 
-DECLARE_PCI_FIXUP_SUSPEND macro in pci.h), it was probably just put there for 
-completeness.
+Same here, recent git works fine on z60m.
 
-Jesse
+--=20
+Arkadiusz Mi=B6kiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
