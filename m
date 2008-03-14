@@ -1,86 +1,126 @@
-From: Eric Piel <eric.piel@tremplin-utc.net>
+From: Dave Hansen <haveblue@us.ibm.com>
 Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Fri, 14 Mar 2008 23:50:37 +0100
-Message-ID: <47DB013D.3060102@tremplin-utc.net>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>	 <1205525184.12763.32.camel@nimitz.home.sr71.net>	 <47DAE55C.3080506@tremplin-utc.net> <1205530551.8167.20.camel@nimitz.home.sr71.net>
+Date: Fri, 14 Mar 2008 16:29:55 -0700
+Message-ID: <1205537395.8167.31.camel@nimitz.home.sr71.net>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
+	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
+	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
+	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
+	 <47DAE55C.3080506@tremplin-utc.net>
+	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
+	 <47DB013D.3060102@tremplin-utc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailservice.tudelft.nl ([130.161.131.5]:31067 "EHLO
-	mailservice.tudelft.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754789AbYCNWus (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2008 18:50:48 -0400
-In-Reply-To: <1205530551.8167.20.camel@nimitz.home.sr71.net>
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:48970 "EHLO e5.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753587AbYCNXaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 19:30:03 -0400
+In-Reply-To: <47DB013D.3060102@tremplin-utc.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Hansen <haveblue@us.ibm.com>
-Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org
+To: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>
 
-Dave Hansen wrote:
-> On Fri, 2008-03-14 at 21:51 +0100, Eric Piel wrote:
->> I'm not sure it would be possible to delay acpi_early_init() until after 
->> the fs initcalls. Maybe Len knows. How about trying the opposite: what 
->> is the barely minimum to initialize so that the rootfs can be populated 
->> and read? Would it be possible to have a kind of 
->> early_mnt_writer_initialize() that would do that?
-> 
-> I *can* probably do it earlier, maybe even statically, but I think
-> you're missing the point a bit here.  We've just been super lucky so far
-> that populate_rootfs() doesn't depend on any other initcalls (or at
-> least BUG_ON() because of them).  There may be some more buglets hiding
-> around.
-Actually, each time I look at init/main.c I feel like we are super lucky 
-that Linux boots ;-)
+On Fri, 2008-03-14 at 23:50 +0100, Eric Piel wrote:
+> > It'd be a shame to have to have "super_early_fs_initcall()" logic for
+> > every part of the VFS or any other initcall for that matter that you
+> > might need.  How do we tell all future VFS hackers that they have to do
+> > this so that the next guy doesn't break it?  I certainly missed it. :)
+> Well, my point was that actually populate_rootfs() does _very_ little 
+> with regard to FS manipulation, acpi_find_dsdt_initrd() even less. The 
+> task of checking that everything needed is available beforehand is 
+> certainly not the same magnitude as the one of the Danaides as you 
+> seemed to implied ;-)
 
-> 
-> It'd be a shame to have to have "super_early_fs_initcall()" logic for
-> every part of the VFS or any other initcall for that matter that you
-> might need.  How do we tell all future VFS hackers that they have to do
-> this so that the next guy doesn't break it?  I certainly missed it. :)
-Well, my point was that actually populate_rootfs() does _very_ little 
-with regard to FS manipulation, acpi_find_dsdt_initrd() even less. The 
-task of checking that everything needed is available beforehand is 
-certainly not the same magnitude as the one of the Danaides as you 
-seemed to implied ;-)
+The problem is defining how much "very little" is, and making sure that
+all the other kernel developers agree with you on it.
 
-The fact is, this patch has been tested a lot, because it's been used by 
-several distributions for a long time. I expect that the only potential 
-problems are corner cases that are possible to work around.
+Anyway, I'm sick of too much bitching and too little coding.  Andrew,
+here's a patch for -mm that will at least shut up the spinlock warnings.
+Al, you'll also need something similar to this for when you get Linus to
+pull your git tree that has the r/o bind mount patches. 
+It's a hack, but I don't know any better way to do it until the ACPI
+mess gets cleaned up.
 
-> 
-> We could separate out the initcalls and just have the fs ones run before
-> the rest do.  But, I'm not sure what interactions *THAT* might have.
-> There are arch-specific initcalls, and I have no idea if the fs init
-> code depends on *those*.  That's a lot of code to check.
-Yes, we agree on this. That would be crazy :-)
+Arjan, is there a way to statically set lockdep classes for a spinlock
+that I'm missing?
 
-> 
-> It is nailed when you the patch says:
-> 
-> +       /*
-> +        * Never do this at home, only the user-space is allowed to open a file.
-> +        * The clean way would be to use the firmware loader. But this code must be run
-> +        * before there is any userspace available. So we need a static/init firmware
-> +        * infrastructure, which doesn't exist yet...
-> +        */
-> 
-> I think requiring FS access this early in the boot processes is just
-> broken.  It seems like the author of the patch knew a better way and
-> tried to get away with a hack.  I think it backfired. :)
-I'm actually the author of this comment... The static/init firmware 
-infrastructure that I mentioned was more just about a way to hide the fs 
-access in a special part of the kernel, not avoiding it. We used to have 
-a different way but it was even uglier: append the DSDT after the 
-initramfs, and then access it _directly_. This implies teaching 
-populate_rootfs() to not panic when seeing DSDTs and loosing the benefit 
-of the compression.
+I'll leave it to everyone else to describe the evils of calling into
+*any* fs code before the fs initcalls have been made. 
 
-That said, I'm really not against any complete different approach. All 
-that is needed is being able to read a file early at boot (the DSDT) 
-without having to recompile the kernel each time the file is modified. 
-For instance someone had once mentioned modifying the in-kernel DSDT by 
-unlinking and relinking the bzimage. If one can show me how to do that 
-I'd be happy to implement it...
+-- Dave
 
-Eric
+
+I'm not happy with this patch, but I don't see an easier way
+to do it.  We can't statically initialize the lockdep classes
+as far as I can see.
+
+---
+
+ linux-2.6.git-dave/fs/namespace.c        |    3 +--
+ linux-2.6.git-dave/include/linux/mount.h |    1 +
+ linux-2.6.git-dave/init/main.c           |    8 ++++++++
+ 3 files changed, 10 insertions(+), 2 deletions(-)
+
+diff -puN fs/namei.c~robind-statically-initialize-locks fs/namei.c
+diff -puN fs/namespace.c~robind-statically-initialize-locks fs/namespace.c
+--- linux-2.6.git/fs/namespace.c~robind-statically-initialize-locks	2008-03-14 16:12:44.000000000 -0700
++++ linux-2.6.git-dave/fs/namespace.c	2008-03-14 16:16:43.000000000 -0700
+@@ -158,7 +158,7 @@ struct mnt_writer {
+ } ____cacheline_aligned_in_smp;
+ static DEFINE_PER_CPU(struct mnt_writer, mnt_writers);
+ 
+-static int __init init_mnt_writers(void)
++int __init init_mnt_writers(void)
+ {
+ 	int cpu;
+ 	for_each_possible_cpu(cpu) {
+@@ -169,7 +169,6 @@ static int __init init_mnt_writers(void)
+ 	}
+ 	return 0;
+ }
+-fs_initcall(init_mnt_writers);
+ 
+ static void unlock_mnt_writers(void)
+ {
+diff -puN init/main.c~robind-statically-initialize-locks init/main.c
+--- linux-2.6.git/init/main.c~robind-statically-initialize-locks	2008-03-14 16:13:02.000000000 -0700
++++ linux-2.6.git-dave/init/main.c	2008-03-14 16:17:33.000000000 -0700
+@@ -58,6 +58,7 @@
+ #include <linux/kthread.h>
+ #include <linux/sched.h>
+ #include <linux/signal.h>
++#include <linux/mount.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -650,6 +651,13 @@ asmlinkage void __init start_kernel(void
+ 
+ 	check_bugs();
+ 
++	/*
++	 * This is a horrible hack.  The ACPI code needs
++	 * to learn how to do "DSDT override" without fs
++	 * access or do it later in boot - Dave Hansen
++	 */
++	init_mnt_writers();
++
+ 	populate_rootfs(); /* For DSDT override from initramfs */
+ 	acpi_early_init(); /* before LAPIC and SMP init */
+ 
+diff -puN include/linux/mount.h~robind-statically-initialize-locks include/linux/mount.h
+--- linux-2.6.git/include/linux/mount.h~robind-statically-initialize-locks	2008-03-14 16:16:04.000000000 -0700
++++ linux-2.6.git-dave/include/linux/mount.h	2008-03-14 16:16:34.000000000 -0700
+@@ -79,6 +79,7 @@ static inline struct vfsmount *mntget(st
+ 	return mnt;
+ }
+ 
++extern int init_mnt_writers(void);
+ extern int mnt_want_write(struct vfsmount *mnt);
+ extern void mnt_drop_write(struct vfsmount *mnt);
+ extern void mntput_no_expire(struct vfsmount *mnt);
+_
+
+
