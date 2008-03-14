@@ -1,70 +1,56 @@
-From: Arkadiusz Miskiewicz <arekm@maven.pl>
-Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Fri, 14 Mar 2008 19:23:32 +0100
-Message-ID: <200803141923.32544.arekm@maven.pl>
-References: <20080225230035.GA14503@khazad-dum.debian.net> <20080313231738.GH30864@khazad-dum.debian.net> <20080314073012.GF17940@kernel.dk>
+From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Fri, 14 Mar 2008 13:06:24 -0700
+Message-ID: <1205525184.12763.32.camel@nimitz.home.sr71.net>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
+	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
+	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.carme.maven.pl ([193.239.45.138]:36370 "EHLO
-	main.carme.maven.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367AbYCNSYF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2008 14:24:05 -0400
-In-Reply-To: <20080314073012.GF17940@kernel.dk>
-Content-Disposition: inline
+Received: from e32.co.us.ibm.com ([32.97.110.150]:36374 "EHLO
+	e32.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134AbYCNUG2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2008 16:06:28 -0400
+In-Reply-To: <1205517802.12763.18.camel@nimitz.home.sr71.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jens Axboe <jens.axboe@oracle.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lukas Hejtmanek <xhejtman@ics.muni.cz>, Alexey Starikovskiy <aystarik@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Tilman Schmidt <tilman@imap.cc>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Eric Piel <eric.piel@tremplin-utc.net>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org
 
-On Friday 14 of March 2008, Jens Axboe wrote:
-> On Thu, Mar 13 2008, Henrique de Moraes Holschuh wrote:
-> > On Wed, 12 Mar 2008, Arkadiusz Miskiewicz wrote:
-> > > > On Wed, Mar 12, 2008 at 10:35:29AM -0300, Henrique de Moraes Ho=
-lschuh=20
-wrote:
-> > > > > You shouldn't need to do anything other than teach userspace =
-to
-> > > > > respond to them, as they generate the proper KEY_* events.  I=
-f you
-> > > > > are giving the AML _OSI(Linux), at least...
-> > >
-> > > I'm also seeing regression on my thinkpad z60m where with git tre=
-e
-> > > (tested again with 2 days old git) "thinkvantage" button stopped
-> > > working (pressing it was previously seen by some userspace kde wh=
-ich
-> > > run konsole).
-> > >
-> > > On 2.6.24 presses are seen.
-> >
-> > There were no changes to thinkpad-acpi that should have caused this=
-=2E  So
-> > I need more data to find out what is happening.  Might be a problem
-> > elsewhere in ACPI, or some bug in thinkpad-acpi.
-> >
-> > You DO have /proc/acpi/event, correct?  Please send me the debug ou=
-tput
-> > of thinkpad-acpi when it is loaded with "debug=3D0xffff" as a param=
-eter
-> > (and for extra bonus, please compile it with the verbose debug Kcon=
-fig
-> > option).
->
-> Updated to current kernel (saw it had a bunch of acpi fixes), and it =
-now
-> works correctly! xev sees the events and the mixer sees mute/unmute a=
-nd
-> volume up+down events.
+For those of you new to this thread, here's the initial report:
 
-Same here, recent git works fine on z60m.
+	http://marc.info/?t=120536629300001&r=1&w=2
 
---=20
-Arkadiusz Mi=B6kiewicz        PLD/Linux Team
-arekm / maven.pl            http://ftp.pld-linux.org/
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm pretty sure the root cause of this bug is this commit:
+
+	ACPI: basic initramfs DSDT override support
+	71fc47a9adf8ee89e5c96a47222915c5485ac437
+
+Which did this hunk:
+        
+        @@ -648,6 +654,7 @@ asmlinkage void __init start_kernel(void)
+         
+                check_bugs();
+         
+        +       populate_rootfs(); /* For DSDT override from initramfs
+        */
+                acpi_early_init(); /* before LAPIC and SMP init */
+         
+                /* Do the rest non-__init'ed, we're now alive */
+        	rest_init();
+        ...
+
+Well, the fs initcalls aren't actually done until during rest_init(),
+including initializing my mnt_writer[] spinlocks.  I guess I could
+statically initialize them, but that's not the root of the problem, it's
+just the canary in the coal mine.
+
+I think the populate_rootfs() call is completely bogus and certainly
+can't be done before the initcalls.  But, I don't immediately have any
+better suggestions for you.  Can you delay the ACPI init until after the
+fs initcalls are made?
+
+-- Dave
+
