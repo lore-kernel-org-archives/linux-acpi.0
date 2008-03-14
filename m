@@ -1,185 +1,160 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Fri, 14 Mar 2008 11:49:09 +0800
-Message-ID: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI lockdep warning on boot, 2.6.25-rc5
+Date: Fri, 14 Mar 2008 00:07:31 -0400
+Message-ID: <200803140007.31515.lenb@kernel.org>
+References: <E1JZOGd-00057d-BU@pomaz-ex.szeredi.hu> <200803131614.33386.lenb@kernel.org> <20080314001819.GA32584@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39555 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:60999 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752053AbYCNDwX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2008 23:52:23 -0400
+	id S1750889AbYCNEIN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 00:08:13 -0400
+In-Reply-To: <20080314001819.GA32584@linux-os.sc.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
+To: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Miklos Szeredi <miklos@szeredi.hu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-asus_hides_smbus_lpc_ich6() is called with interrupt disabled in resume
-time, but ioremap_nocache() and iounmap() can't be called with interrupt
-disabled. Below is my debug fix. If you have better fix, please speak. 
+applied to acpi-test
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+thanks,
+-Len
 
-diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-index e571c72..2abb85a 100644
---- a/drivers/pci/pci-driver.c
-+++ b/drivers/pci/pci-driver.c
-@@ -289,6 +289,9 @@ static int pci_device_suspend(struct device * dev, pm_message_t state)
- 		if (pci_dev->current_state == PCI_D0)
- 			pci_dev->current_state = PCI_UNKNOWN;
- 	}
-+
-+	pci_fixup_device(pci_fixup_suspend, pci_dev);
-+
- 	return i;
- }
- 
-@@ -334,6 +337,7 @@ static int pci_device_resume(struct device * dev)
- 		error = drv->resume(pci_dev);
- 	else
- 		error = pci_default_resume(pci_dev);
-+	pci_fixup_device(pci_fixup_resume_later, pci_dev);
- 	return error;
- }
- 
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index e9a333d..32e9b61 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -1100,23 +1100,53 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801CA_12,	as
- DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_12,	asus_hides_smbus_lpc);
- DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801EB_0,	asus_hides_smbus_lpc);
- 
--static void asus_hides_smbus_lpc_ich6(struct pci_dev *dev)
-+/* It appears we just have one such device. If not, we have a warning */
-+static void __iomem *asus_rcba_base;
-+static void asus_hides_smbus_lpc_ich6_suspend(struct pci_dev *dev)
- {
--	u32 val, rcba;
--	void __iomem *base;
-+	u32 rcba;
- 
- 	if (likely(!asus_hides_smbus))
- 		return;
-+	WARN_ON(asus_rcba_base);
-+
- 	pci_read_config_dword(dev, 0xF0, &rcba);
--	base = ioremap_nocache(rcba & 0xFFFFC000, 0x4000); /* use bits 31:14, 16 kB aligned */
--	if (base == NULL) return;
--	val=readl(base + 0x3418); /* read the Function Disable register, dword mode only */
--	writel(val & 0xFFFFFFF7, base + 0x3418); /* enable the SMBus device */
--	iounmap(base);
-+	/* use bits 31:14, 16 kB aligned */
-+	asus_rcba_base = ioremap_nocache(rcba & 0xFFFFC000, 0x4000);
-+	if (asus_rcba_base == NULL)
-+		return;
-+}
-+
-+static void asus_hides_smbus_lpc_ich6_resume(struct pci_dev *dev)
-+{
-+	u32 val;
-+
-+	if (likely(!asus_hides_smbus || !asus_rcba_base))
-+		return;
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(asus_rcba_base + 0x3418);
-+	writel(val & 0xFFFFFFF7, asus_rcba_base + 0x3418); /* enable the SMBus device */
-+}
-+
-+static void asus_hides_smbus_lpc_ich6_resume_later(struct pci_dev *dev)
-+{
-+	if (likely(!asus_hides_smbus || !asus_rcba_base))
-+		return;
-+	iounmap(asus_rcba_base);
-+	asus_rcba_base = NULL;
- 	dev_info(&dev->dev, "Enabled ICH6/i801 SMBus device\n");
- }
-+
-+static void asus_hides_smbus_lpc_ich6(struct pci_dev *dev)
-+{
-+	asus_hides_smbus_lpc_ich6_suspend(dev);
-+	asus_hides_smbus_lpc_ich6_resume(dev);
-+	asus_hides_smbus_lpc_ich6_resume_later(dev);
-+}
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6);
--DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6);
-+DECLARE_PCI_FIXUP_SUSPEND(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6_suspend);
-+DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6_resume);
-+DECLARE_PCI_FIXUP_RESUME_LATER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6_resume_later);
- 
- /*
-  * SiS 96x south bridge: BIOS typically hides SMBus device...
-@@ -1521,6 +1551,10 @@ extern struct pci_fixup __start_pci_fixups_enable[];
- extern struct pci_fixup __end_pci_fixups_enable[];
- extern struct pci_fixup __start_pci_fixups_resume[];
- extern struct pci_fixup __end_pci_fixups_resume[];
-+extern struct pci_fixup __start_pci_fixups_resume_later[];
-+extern struct pci_fixup __end_pci_fixups_resume_later[];
-+extern struct pci_fixup __start_pci_fixups_suspend[];
-+extern struct pci_fixup __end_pci_fixups_suspend[];
- 
-
- void pci_fixup_device(enum pci_fixup_pass pass, struct pci_dev *dev)
-@@ -1553,6 +1587,16 @@ void pci_fixup_device(enum pci_fixup_pass pass, struct pci_dev *dev)
- 		end = __end_pci_fixups_resume;
- 		break;
- 
-+	case pci_fixup_resume_later:
-+		start = __start_pci_fixups_resume_later;
-+		end = __end_pci_fixups_resume_later;
-+		break;
-+
-+	case pci_fixup_suspend:
-+		start = __start_pci_fixups_suspend;
-+		end = __end_pci_fixups_suspend;
-+		break;
-+
- 	default:
- 		/* stupid compiler warning, you would think with an enum... */
- 		return;
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index f054778..06ac714 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -84,6 +84,12 @@
- 		VMLINUX_SYMBOL(__start_pci_fixups_resume) = .;		\
- 		*(.pci_fixup_resume)					\
- 		VMLINUX_SYMBOL(__end_pci_fixups_resume) = .;		\
-+		VMLINUX_SYMBOL(__start_pci_fixups_resume_later) = .;	\
-+		*(.pci_fixup_resume_later)				\
-+		VMLINUX_SYMBOL(__end_pci_fixups_resume_later) = .;	\
-+		VMLINUX_SYMBOL(__start_pci_fixups_suspend) = .;		\
-+		*(.pci_fixup_suspend)					\
-+		VMLINUX_SYMBOL(__end_pci_fixups_suspend) = .;		\
- 	}								\
- 									\
- 	/* RapidIO route ops */						\
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 9010f54..821ad02 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
- 	pci_fixup_final,	/* Final phase of device fixups */
- 	pci_fixup_enable,	/* pci_enable_device() time */
- 	pci_fixup_resume,	/* pci_enable_device() time */
-+	pci_fixup_suspend,
-+	pci_fixup_resume_later,
- };
- 
- /* Anonymous variables would be nice... */
-@@ -1037,6 +1039,12 @@ enum pci_fixup_pass {
- #define DECLARE_PCI_FIXUP_RESUME(vendor, device, hook)			\
- 	DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume,			\
- 			resume##vendor##device##hook, vendor, device, hook)
-+#define DECLARE_PCI_FIXUP_RESUME_LATER(vendor, device, hook)			\
-+	DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume_later,			\
-+			resume_later##vendor##device##hook, vendor, device, hook)
-+#define DECLARE_PCI_FIXUP_SUSPEND(vendor, device, hook)			\
-+	DECLARE_PCI_FIXUP_SECTION(.pci_fixup_suspend,			\
-+			suspend##vendor##device##hook, vendor, device, hook)
- 
-
- void pci_fixup_device(enum pci_fixup_pass pass, struct pci_dev *dev);
+On Thursday 13 March 2008, Venki Pallipadi wrote:
+> On Thu, Mar 13, 2008 at 04:14:32PM -0400, Len Brown wrote:
+> > On Wednesday 12 March 2008, Rafael J. Wysocki wrote:
+> > > On Wednesday, 12 of March 2008, Miklos Szeredi wrote:
+> > > > I don't know whether this is a problem in reality or not, but it does
+> > > > interfere with debugging the rest of the kernel, since this turns off
+> > > > lockdep at boottime.
+> > > 
+> > > Well, I think Venki should see it (CCed).
+> > > 
+> > > Thanks,
+> > > Rafael
+> > > 
+> > >  
+> > > > [    0.592488] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+> > > > [    0.593038] ------------[ cut here ]------------
+> > > > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > > > [    0.593596] Modules linked in:
+> > > > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > > > [    0.594017] 
+> > > > [    0.594017] Call Trace:
+> > > > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > > > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > > > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > > > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > > > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > > > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > > > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > > > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > > > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > > > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > > > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > > > [    0.598464] 
+> > > > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
+> > 
+> > Venki,
+> > 
+> > this reproduces in my t61 using Miklos' config (though i had to increase
+> > the logbuff to catch it)
+> > 
+> > -Len
+> 
+> Below patch should fix this warning. I would say warning is pretty harmless.. 
+> 
+> Thanks,
+> Venki
+> 
+> ---
+> 
+> This avoids the harmless WARNING by lockdep in acpi_processor_idle().
+> 
+> The reason for WARNING is because at the depth of idle handling code,
+> some of the idle handlers disable interrupts, some times, while returning from
+> the idle handler. After return, acpi_processor_idle and few other routines
+> in the file did an unconditional local_irq_enable(). With LOCKDEP, enabling
+> irq when it is alread enabled generates the below WARNING.
+> 
+> > > [    0.593038] ------------[ cut here ]------------
+> > > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > > [    0.593596] Modules linked in:
+> > > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > > [    0.594017] 
+> > > [    0.594017] Call Trace:
+> > > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > > [    0.598464] 
+> > > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> Index: linux-2.6.git/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.git.orig/drivers/acpi/processor_idle.c	2008-03-12 05:17:12.000000000 -0700
+> +++ linux-2.6.git/drivers/acpi/processor_idle.c	2008-03-13 10:00:47.000000000 -0700
+> @@ -216,8 +216,10 @@
+>  	 * test NEED_RESCHED:
+>  	 */
+>  	smp_mb();
+> -	if (!need_resched())
+> +	if (!need_resched()) {
+>  		safe_halt();
+> +		local_irq_disable();
+> +	}
+>  	current_thread_info()->status |= TS_POLLING;
+>  }
+>  
+> @@ -421,7 +423,9 @@
+>  		else
+>  			acpi_safe_halt();
+>  
+> -		local_irq_enable();
+> +		if (irqs_disabled())
+> +			local_irq_enable();
+> +
+>  		return;
+>  	}
+>  
+> @@ -530,7 +534,9 @@
+>  		 *       skew otherwise.
+>  		 */
+>  		sleep_ticks = 0xFFFFFFFF;
+> -		local_irq_enable();
+> +		if (irqs_disabled())
+> +			local_irq_enable();
+> +
+>  		break;
+>  
+>  	case ACPI_STATE_C2:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
