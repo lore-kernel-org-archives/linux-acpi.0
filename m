@@ -1,58 +1,39 @@
-From: Tilman Schmidt <tilman@imap.cc>
-Subject: Re: [2.6.25-rc5-mm1] WARNING: at drivers/base/sys.c:173
-Date: Fri, 14 Mar 2008 10:58:17 +0100
-Message-ID: <47DA4C39.2030304@imap.cc>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>	 <47D87238.8080305@imap.cc> <20080313195656.GA32463@codemonkey.org.uk>	 <47D9C04E.3060208@imap.cc> <1205456231.4082.2.camel@yakui_zhao.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend order - again
+Date: Fri, 14 Mar 2008 12:54:55 +0100
+Message-ID: <200803141254.55597.rjw@sisk.pl>
+References: <1205482960.23855.4.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig0805B2AAF6E7448CC847E1BD"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755740AbYCNJ7S@vger.kernel.org>
-In-Reply-To: <1205456231.4082.2.camel@yakui_zhao.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:54648 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752153AbYCNLzg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 07:55:36 -0400
+In-Reply-To: <1205482960.23855.4.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig0805B2AAF6E7448CC847E1BD
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
+On Friday, 14 of March 2008, Shaohua Li wrote:
+> I just found a system (Asus A6B00VC) suffers a regression of suspend
+> order adjust. In the system, if _PTS is called before pci device
+> suspend, pci config read of slot 01:01.0 will always return 0xffffffff
+> (only this slot, not other devices). Adding acpi_new_pts_ordering fixes
+> this. I checked the log, _PTS itself doesn't generate any pci config
+> access, it appears _PTS call into SMBIOS and changes something. Note,
+> this is ACPI 1.0 table. Should we just blacklist the system or re-think
+> the suspend order?
 
-On Fri, 14 Mar 2008 08:57:11 +0800, Zhao Yakui wrote:
-> Please set CONFIG_ACPI_DEBUG and boot the system with the option of
-> "acpi.debug_layer=3D0x01010000 acpi.debug_level=3D0x1f".
+I don't want to change the ordering of code.  It's been changed for many times
+and it always turned out that some systems didn't work.
 
-CONFIG_ACPI_DEBUG is already set, but I cannot reboot the machine
-right now. I'll probably get a chance for that in about 12 hours.
+If we can implement the blacklisting in a reasonable fashion, I'd prefer to do
+just that.
 
-> It will be great if the acpidump output is attached.
-
-Available now at
-http://gollum.phnxsoft.com/~ts/linux/acpidump.out
-
-HTH
-T.
-
---=20
-Tilman Schmidt                    E-Mail: tilman@imap.cc
-Bonn, Germany
-Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
-Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
-
-
---------------enig0805B2AAF6E7448CC847E1BD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.4 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFH2kw5Q3+did9BuFsRAiQfAJ9ktPJAi7bfpWv+cejecN2unJs+VACeLvtV
-LpkxqJ7GwcPKg8Xj5VOaYQE=
-=Cdst
------END PGP SIGNATURE-----
-
---------------enig0805B2AAF6E7448CC847E1BD--
+Thanks,
+Rafael
