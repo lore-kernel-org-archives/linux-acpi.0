@@ -1,45 +1,44 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Fri, 14 Mar 2008 15:50:45 +0800
-Message-ID: <1205481045.16349.1.camel@sli10-desk.sh.intel.com>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
-	 <20080314044408.GB17961@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Fri, 14 Mar 2008 10:03:16 +0100
+Message-ID: <1205485397.21619.35.camel@queen.suse.de>
+References: <1204072670.10256.111.camel@acpi-hp-zz.sh.intel.com>
+	 <200803120029.09505.lenb@kernel.org> <200803130109.45531.lenb@kernel.org>
+	 <1205405941.29877.341.camel@queen.suse.de>
+	 <20080313230919.GG30864@khazad-dum.debian.net>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6247 "EHLO mga02.intel.com"
+Received: from ns1.suse.de ([195.135.220.2]:58330 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753192AbYCNHwI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 03:52:08 -0400
-In-Reply-To: <20080314044408.GB17961@suse.de>
+	id S1751907AbYCNJDU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 05:03:20 -0400
+In-Reply-To: <20080313230919.GG30864@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Hans de Goede <j.w.r.degoede@hhs.nl>
 
-
-On Thu, 2008-03-13 at 21:44 -0700, Greg KH wrote:
-> On Fri, Mar 14, 2008 at 11:49:09AM +0800, Shaohua Li wrote:
-> > diff --git a/include/linux/pci.h b/include/linux/pci.h
-> > index 9010f54..821ad02 100644
-> > --- a/include/linux/pci.h
-> > +++ b/include/linux/pci.h
-> > @@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
-> >  	pci_fixup_final,	/* Final phase of device fixups */
-> >  	pci_fixup_enable,	/* pci_enable_device() time */
-> >  	pci_fixup_resume,	/* pci_enable_device() time */
-> > +	pci_fixup_suspend,
-> > +	pci_fixup_resume_later,
+On Thu, 2008-03-13 at 20:09 -0300, Henrique de Moraes Holschuh wrote:
+> On Thu, 13 Mar 2008, Thomas Renninger wrote:
+> > This also happens in drivers/misc/thinkpad_acpi.c.
 > 
-> Please document when these quirks are run.
-will do if you think the method is correct.
+> I was sure I had removed __exit from every thinkpad-acpi exit handler that
+> was also called from __init a long time ago...
+> 
+> Let's see... nope, there isn't a single instance of __exit in
+> thinkpad-acpi.c, so I must have misunderstood you.  I do have lots of
+> __init code, but I don't get any warnings from gcc 4.3 about that on ia32.
 
-> And why "_later"?  What's wrong with the normal resume time?
-pci_fixup_resume is called in pci_device_resume_earily(), which is
-called with interrupt disable, so I added a new one which is called at
-pci_device_resume(), this routine is called with interrupt enabled.
+Ahh, I just checked that the module_init function calls the module_exit
+function...
+But the module_exit function probably because of this is not declared
+__exit.
 
-Thanks,
-Shaohua
+This looks a bit uncommon. I don't know whether it should be avoided,
+but I cannot see why it should hurt.
+
+  Thomas
 
