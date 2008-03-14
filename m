@@ -1,15 +1,15 @@
 From: Jens Axboe <jens.axboe@oracle.com>
 Subject: Re: 2.6.25-rc2 Regression Thinkpad acpi
-Date: Fri, 14 Mar 2008 08:05:28 +0100
-Message-ID: <20080314070528.GE17940@kernel.dk>
+Date: Fri, 14 Mar 2008 08:30:12 +0100
+Message-ID: <20080314073012.GF17940@kernel.dk>
 References: <20080225230035.GA14503@khazad-dum.debian.net> <20080312133529.GB21290@khazad-dum.debian.net> <20080312135521.GE8141@ics.muni.cz> <200803121952.42666.arekm@maven.pl> <20080313231738.GH30864@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([87.55.233.238]:7496 "EHLO kernel.dk"
+Received: from brick.kernel.dk ([87.55.233.238]:25053 "EHLO kernel.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751719AbYCNHFa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 03:05:30 -0400
+	id S1750935AbYCNHaO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2008 03:30:14 -0400
 Content-Disposition: inline
 In-Reply-To: <20080313231738.GH30864@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -38,29 +38,11 @@ On Thu, Mar 13 2008, Henrique de Moraes Holschuh wrote:
 > thinkpad-acpi when it is loaded with "debug=0xffff" as a parameter (and for
 > extra bonus, please compile it with the verbose debug Kconfig option).
 
-Yep, I do have /proc/acpi event. I'll build thinkpad-acpi modular and
-set the extra debug option.
+Updated to current kernel (saw it had a bunch of acpi fixes), and it now
+works correctly! xev sees the events and the mixer sees mute/unmute and
+volume up+down events.
 
-> Also, send me the output of 
-> "grep . /sys/bus/platform/devices/thinkpad_acpi/*"
-
-/sys/bus/platform/devices/thinkpad_acpi/bluetooth_enable:0
-grep: /sys/bus/platform/devices/thinkpad_acpi/cmos_command: Permission denied
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_all_mask:0x00ffffff
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_bios_enabled:0
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_bios_mask:0x0000080c
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_enable:1
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_mask:0x008c7fff
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_radio_sw:1
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_recommended_mask:0x008c7fff
-/sys/bus/platform/devices/thinkpad_acpi/hotkey_report_mode:1
-/sys/bus/platform/devices/thinkpad_acpi/modalias:platform:thinkpad_acpi
-/sys/bus/platform/devices/thinkpad_acpi/uevent:DRIVER=thinkpad_acpi
-/sys/bus/platform/devices/thinkpad_acpi/uevent:PHYSDEVBUS=platform
-/sys/bus/platform/devices/thinkpad_acpi/uevent:PHYSDEVDRIVER=thinkpad_acpi
-/sys/bus/platform/devices/thinkpad_acpi/uevent:MODALIAS=platform:thinkpad_acpi
-/sys/bus/platform/devices/thinkpad_acpi/wakeup_hotunplug_complete:0
-/sys/bus/platform/devices/thinkpad_acpi/wakeup_reason:0
+So I think we can lay this one to rest, thankfully.
 
 -- 
 Jens Axboe
