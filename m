@@ -1,61 +1,108 @@
-From: Dave Hansen <haveblue@us.ibm.com>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Fri, 14 Mar 2008 14:35:51 -0700
-Message-ID: <1205530551.8167.20.camel@nimitz.home.sr71.net>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
-	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
-	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
-	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
-	 <47DAE55C.3080506@tremplin-utc.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI: disable stray gpe correctly
+Date: Fri, 14 Mar 2008 14:48:31 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4046ACA22@orsmsx415.amr.corp.intel.com>
+References: <1205114649.10256.200.camel@acpi-hp-zz.sh.intel.com> <200803110206.45590.lenb@kernel.org> <47D8351F.7080802@redhat.com> <200803121609.46134.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e5.ny.us.ibm.com ([32.97.182.145]:33558 "EHLO e5.ny.us.ibm.com"
+Received: from mga09.intel.com ([134.134.136.24]:54468 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201AbYCNVf4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2008 17:35:56 -0400
-In-Reply-To: <47DAE55C.3080506@tremplin-utc.net>
+	id S1755017AbYCNVss convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2008 17:48:48 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, davej@redhat.com
 
-On Fri, 2008-03-14 at 21:51 +0100, Eric Piel wrote:
-> I'm not sure it would be possible to delay acpi_early_init() until after 
-> the fs initcalls. Maybe Len knows. How about trying the opposite: what 
-> is the barely minimum to initialize so that the rootfs can be populated 
-> and read? Would it be possible to have a kind of 
-> early_mnt_writer_initialize() that would do that?
+I'm going to back this out until the reported problem is resolved.
+Bob
 
-I *can* probably do it earlier, maybe even statically, but I think
-you're missing the point a bit here.  We've just been super lucky so far
-that populate_rootfs() doesn't depend on any other initcalls (or at
-least BUG_ON() because of them).  There may be some more buglets hiding
-around.
 
-It'd be a shame to have to have "super_early_fs_initcall()" logic for
-every part of the VFS or any other initcall for that matter that you
-might need.  How do we tell all future VFS hackers that they have to do
-this so that the next guy doesn't break it?  I certainly missed it. :)
-
-We could separate out the initcalls and just have the fs ones run before
-the rest do.  But, I'm not sure what interactions *THAT* might have.
-There are arch-specific initcalls, and I have no idea if the fs init
-code depends on *those*.  That's a lot of code to check.
-
-It is nailed when you the patch says:
-
-+       /*
-+        * Never do this at home, only the user-space is allowed to open a file.
-+        * The clean way would be to use the firmware loader. But this code must be run
-+        * before there is any userspace available. So we need a static/init firmware
-+        * infrastructure, which doesn't exist yet...
-+        */
-
-I think requiring FS access this early in the boot processes is just
-broken.  It seems like the author of the patch knew a better way and
-tried to get away with a hack.  I think it backfired. :)
-
--- Dave
+>-----Original Message-----
+>From: Moore, Robert
+>Sent: Wednesday, March 12, 2008 2:59 PM
+>To: 'Len Brown'; Chuck Ebbert
+>Cc: Zhang, Rui; linux-acpi; Lin, Ming M; davej@redhat.com
+>Subject: RE: [PATCH] ACPI: disable stray gpe correctly
+>
+>This patch looked fairly benign to me, so I've committed it to the
+ACPICA
+>core for the next release this week.
+>
+>The comment I added for the patch looks like this:
+>
+>    /*
+>     * Ignore this if the GPE is valid and not enabled.
+>     *
+>     * Flags is only zero if GPE is neither enabled or disabled -- it
+may
+>     * be a spurious or stray GPE -- disable it in the default case
+below.
+>     */
+>    if (GpeEventInfo->Flags &&
+>       (!(GpeEventInfo->Flags & ACPI_GPE_ENABLE_MASK)))
+>    {
+>        return_ACPI_STATUS (AE_OK);
+>    }
+>
+>
+>If there are problems, I will back it out. Please let me know ASAP what
+the
+>issue is in 436959.
+>
+>Thanks,
+>Bob
+>
+>
+>
+>>-----Original Message-----
+>>From: Len Brown [mailto:lenb@kernel.org]
+>>Sent: Wednesday, March 12, 2008 1:10 PM
+>>To: Chuck Ebbert
+>>Cc: Zhang, Rui; linux-acpi; Lin, Ming M; Moore, Robert;
+davej@redhat.com
+>>Subject: Re: [PATCH] ACPI: disable stray gpe correctly
+>>
+>>
+>>> > On Sunday 09 March 2008, Zhang, Rui wrote:
+>>> >> Disable stray GPE correctly
+>>> >> https://bugzilla.redhat.com/show_bug.cgi?id=251744
+>>> >> http://bugzilla.kernel.org/show_bug.cgi?id=6217
+>>> >>
+>>> >> Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
+>>> >> ---
+>>> >>  drivers/acpi/events/evgpe.c |    3 ++-
+>>> >>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>> >>
+>>> >> Index: linux-2.6/drivers/acpi/events/evgpe.c
+>>> >>
+===================================================================
+>>> >> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
+>>> >> +++ linux-2.6/drivers/acpi/events/evgpe.c
+>>> >> @@ -248,7 +248,8 @@ acpi_status acpi_ev_disable_gpe(struct a
+>>> >>
+>>> >>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
+>>> >>
+>>> >> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
+>>> >> +	if (gpe_event_info->flags &&
+>>> >> +		(!(gpe_event_info->flags &
+ACPI_GPE_ENABLE_MASK))) {
+>>> >>  		return_ACPI_STATUS(AE_OK);
+>>> >>  	}
+>>> >>
+>>>
+>>> Causes ACPI battery problems...
+>>>
+>>> https://bugzilla.redhat.com/show_bug.cgi?id=436959
+>>
+>>Okay, i've droppped it until 436959 can be figured out.
+>>
+>>thanks Chuck,
+>>-Len
+>>
+>>
 
