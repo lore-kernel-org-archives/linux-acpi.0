@@ -1,56 +1,113 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Dependency chain of new thermal driver
-Date: Sun, 16 Mar 2008 15:56:59 +0100
-Message-ID: <20080316155659.7ab2446d@hyperion.delvare>
+From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Sun, 16 Mar 2008 13:11:19 -0700
+Message-ID: <1205698279.8167.44.camel@nimitz.home.sr71.net>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
+	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
+	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
+	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
+	 <47DAE55C.3080506@tremplin-utc.net>
+	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
+	 <47DB013D.3060102@tremplin-utc.net>
+	 <1205537395.8167.31.camel@nimitz.home.sr71.net>  <47DBC578.7050101@imap.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-dmz-230-sunday.dmz.nerim.net ([195.5.254.230]:57006 "EHLO
-	kellthuzad.dmz.nerim.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752006AbYCPPBx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Mar 2008 11:01:53 -0400
-Received: from kraid.nerim.net (smtp-100-sunday.nerim.net [62.4.16.100])
-	by kellthuzad.dmz.nerim.net (Postfix) with ESMTP id 341B216FC7
-	for <linux-acpi@vger.kernel.org>; Sun, 16 Mar 2008 16:01:45 +0100 (CET)
+Received: from e33.co.us.ibm.com ([32.97.110.151]:48810 "EHLO
+	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751937AbYCPULb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Mar 2008 16:11:31 -0400
+In-Reply-To: <47DBC578.7050101@imap.cc>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: Tilman Schmidt <tilman@imap.cc>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Hi Rui,
+On Sat, 2008-03-15 at 13:47 +0100, Tilman Schmidt wrote:
+> > Anyway, I'm sick of too much bitching and too little coding.
+> Andrew,
+> > here's a patch for -mm that will at least shut up the spinlock
+> warnings.
+> 
+> Sorry to say, it doesn't. That is, it does shut up the warning I
+> reported, but there's a new one appearing now instead, three lines
+> later. Here's the dmesg diff:
+> 
+> @@ -216,29 +216,30 @@
+>  CPU0: Thermal monitoring enabled
+>  Compat vDSO mapped to ffffe000.
+>  Checking 'hlt' instruction... OK.
+> -BUG: spinlock bad magic on CPU#0, swapper/0
+> - lock: c2c19380, .magic: 00000000, .owner: swapper/0, .owner_cpu: 0
+> -Pid: 0, comm: swapper Not tainted 2.6.25-rc5-mm1-testing #2
+> - [<c01f728c>] spin_bug+0x7c/0x87
+> - [<c01f72b0>] _raw_spin_unlock+0x19/0x71
+> - [<c0301922>] _spin_unlock+0x1d/0x3c
+> - [<c01981aa>] mnt_want_write+0x62/0x88
+> - [<c018c382>] sys_mkdirat+0x86/0xd6
+> - [<c04260ab>] ? clean_path+0x16/0x4a
+> - [<c017fd6f>] ? kfree+0xd8/0xec
+> - [<c018c3e2>] sys_mkdir+0x10/0x12
+> - [<c0426353>] do_name+0x112/0x1b3
+> - [<c042558b>] write_buffer+0x1d/0x2c
+> - [<c04255fe>] flush_window+0x64/0xb3
+> - [<c04272f5>] unpack_to_rootfs+0x62c/0x8b9
+> - [<c04275a2>] populate_rootfs+0x20/0x109
+> - [<c0429ed2>] ? alternative_instructions+0x153/0x158
+> - [<c04248f5>] start_kernel+0x343/0x355
+> - [<c0424019>] i386_start_kernel+0x8/0xa
+> - =======================
+>  Unpacking initramfs... done
+> -Freeing initrd memory: 8767k freed
+> +Freeing initrd memory: 8834k freed
+>  ACPI: Core revision 20070126
+> +INFO: trying to register non-static key.
+> +the code is fine but needs lockdep annotation.
+> +turning off the locking correctness validator.
+> +Pid: 0, comm: swapper Not tainted 2.6.25-rc5-mm1-testing #3
+> + [<c014321e>] __lock_acquire+0x144/0xb6e
+> + [<c010b1a2>] ? native_sched_clock+0xe0/0xff
+> + [<c017fc57>] ? kmem_cache_alloc+0x89/0xc9
+> + [<c0142ce0>] ? trace_hardirqs_on+0xe8/0x11d
+> + [<c014404f>] lock_acquire+0x6a/0x90
+> + [<c013b460>] ? down_trylock+0xc/0x27
+> + [<c03016cb>] _spin_lock_irqsave+0x42/0x72
+> + [<c013b460>] ? down_trylock+0xc/0x27
+> + [<c013b460>] down_trylock+0xc/0x27
+> + [<c021fa65>] acpi_os_wait_semaphore+0x67/0x13d
+> + [<c023a39e>] acpi_ut_acquire_mutex+0x65/0xcf
+> + [<c0230261>] acpi_ns_root_initialize+0x1a/0x289
+> + [<c043ad54>] acpi_initialize_subsystem+0x47/0x6a
+> + [<c043afd4>] acpi_early_init+0x57/0xf8
+> + [<c04248ff>] start_kernel+0x34d/0x35a
+> + [<c0424019>] i386_start_kernel+0x8/0xa
+> + =======================
+>  ACPI: Checking initramfs for custom DSDT
+>  Parsing all Control Methods:
+>  Table [DSDT](id 0001) - 637 Objects with 63 Devices 160 Methods 41
+> Regions
 
-I am testing your new thermal driver and I am not very happy with the
-dependencies introduced by this driver. The ACPI thermal driver selects
-the generic thermal driver, which in turn selects the hwmon base
-module. As the generic thermal driver's configuration option is a
-boolean, this means that as soon as one selects the ACPI thermal driver
-(built-in or modular), the hwmon thermal driver has to be built into
-the kernel. This is a problem especially when both the ACPI_THERMAL and
-THERMAL options default to y.
+Hi Tim,
 
-I fail to see why we are using select at all. The ACPI thermal driver
-clearly works without the generic thermal driver (even though the
-generic interface is preferred now.) Likewise, the generic thermal
-interface driver doesn't need the hwmon base module to work; the hwmon
-interface is only an extension, so it should be possible to build the
-generic thermal driver without hwmon support. On top of that, I really
-would like to be able to build the generic thermal driver as a module.
+Again, thanks for the excellent bug reporting. 
 
-One of the reasons why I would like this to change is this bug:
-https://bugzilla.redhat.com/show_bug.cgi?id=437637
-http://bugzilla.kernel.org/show_bug.cgi?id=10259
-(At the moment I think both reports are the exact same bug.)
+This is actually a different problem (and not my code again, thank
+goodness).  I think a few of these got fixed in current -mm.  According
+to Peter Z, these mean:
 
-We will have to fix this bug of course (not sure how...) but the fact
-that the users can't temporarily remove the generic thermal driver is a
-problem both for bug investigation and for working around the bug until
-it's fixed. I really would like to be able to tell the user "rmmod this
-module until we come up with a fix", but right now I can't.
+> It means the lock_class_key ended up in non-static storage.
+> 
+> In practise it often means you initialized a on-stack structure
+> incorrectly. DECLARE_WAIT_QUEUE_HEAD() vs
+> DECLARE_WAIT_QUEUE_HEAD_ONSTACK() for example.
 
-A more modular setup would give us much more flexibility both at build
-time and when bugs are reported. Please think about it.
+So, this looks like an on-stack ACPI structure that got initialized
+wrongly.  At least we already have those dudes on the cc. :)
 
--- 
-Jean Delvare
+But, this might also get fixed by reverting the patch as Linus just did.
+It might just be best to wait for another -mm release and see how it
+settles out.  
+
+-- Dave
+
