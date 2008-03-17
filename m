@@ -1,96 +1,82 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Mon, 17 Mar 2008 14:48:11 +0100
-Message-ID: <20080317144811.12b7d6cb@hyperion.delvare>
-References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
-	<47C3D04E.6090609@hhs.nl>
-	<20080317133732.05b79f4d@hyperion.delvare>
-	<47DE6A24.7040705@hhs.nl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
+Date: Mon, 17 Mar 2008 17:26:46 +0100
+Message-ID: <200803171726.46904.rjw@sisk.pl>
+References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com> <200803142203.33821.rjw@sisk.pl> <1205716543.26236.6.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-101-monday.nerim.net ([62.4.16.101]:64225 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751976AbYCQNsO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Mar 2008 09:48:14 -0400
-In-Reply-To: <47DE6A24.7040705@hhs.nl>
+Received: from ogre.sisk.pl ([217.79.144.158]:42893 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751908AbYCQQ1q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2008 12:27:46 -0400
+In-Reply-To: <1205716543.26236.6.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <j.w.r.degoede@hhs.nl>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@atrey.karlin.mff.cuni.cz, Greg KH <gregkh@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Mon, 17 Mar 2008 13:55:00 +0100, Hans de Goede wrote:
-> Jean Delvare wrote:
-> > Hi Hans,
-> > 
-> > On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
-> >> Zhang, Rui wrote:
-> >>> Add hwmon sys I/F for the generic thermal device.
-> >>>
-> >> Great!
-> >>
-> >> But I have several remarks:
-> >> 1) Looking at the new code, you only add temp1_input, so I'm guessing that you
-> >> are registering a seperate hwmon class entry per zone? Please don't do that, 
-> >> please register one hwmon class entry, and add multiple temp#_input attr to it 
-> >> (and the same for crit).
-> > 
-> > I am sorry that I did not notice when you suggested this. I disagree,
-> > but now Rui's code is upstream so I guess it's too late to complain.
-> > Still here are my reasons:
-> > 
-> > One of the great things about libsensors is that it gives unique names
-> > to hardware monitoring devices, and for each device, each feature has a
-> > unique name as well. This makes it possible to ignore or label a
-> > specific feature in /etc/sensors.conf in a way that is stable over
-> > reboot and addition of new hardware.
-> > 
-> > By going with a single virtual device for all thermal zones, you break
-> > this model. Depending on which thermal zone drivers are loaded and in
-> > which order they are loaded, there will be more or less temp* files in
-> > the hwmon directory and you also can't predict their order. The
-> > labelling issue could be solved by adding temp*_label files, but this
-> > still prevents the user from overriding a label. And there's no way to
-> > reliably ignore a specific thermal zone or to ask for information about
-> > a specific thermal zone with the current model.
-> > 
-> > For this reason, I think it would be much better to have one hwmon
-> > class device for each _type_ of thermal zone. For example, all ACPI
-> > thermal zones would be listed as one hwmon class device. If we later
-> > add support for another type of thermal zones, all thermal zones of
-> > this type would be listed as one (different) hwmon class device. This
-> > makes each specific thermal zone driver responsible for the stability
-> > of the numbering of the various thermal zones of a given type. This
-> > would also let us give names to the different thermal zone types (e.g.
-> > "acpitz" for ACPI thermal zones) so that the users and supporters have
-> > an idea who is providing these temperature values and limits.
-> > 
+On Monday, 17 of March 2008, Shaohua Li wrote:
 > 
-> I fully agree, I didn't know there was a generic thermal zone model, and that 
-> there could be multiple drivers implementing it (let alone multiple thermal 
-> zone drivers active for one system ??) I thought this was all ACPI only,
+> On Fri, 2008-03-14 at 22:03 +0100, Rafael J. Wysocki wrote:
+> > On Friday, 14 of March 2008, Jesse Barnes wrote:
+> > > On Friday, March 14, 2008 7:37 am Rafael J. Wysocki wrote:
+> > > > On Friday, 14 of March 2008, Shaohua Li wrote:
+> > > > > On Thu, 2008-03-13 at 21:44 -0700, Greg KH wrote:
+> > > > > > On Fri, Mar 14, 2008 at 11:49:09AM +0800, Shaohua Li wrote:
+> > > > > > > diff --git a/include/linux/pci.h b/include/linux/pci.h
+> > > > > > > index 9010f54..821ad02 100644
+> > > > > > > --- a/include/linux/pci.h
+> > > > > > > +++ b/include/linux/pci.h
+> > > > > > > @@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
+> > > > > > >  	pci_fixup_final,	/* Final phase of device fixups */
+> > > > > > >  	pci_fixup_enable,	/* pci_enable_device() time */
+> > > > > > >  	pci_fixup_resume,	/* pci_enable_device() time */
+> > > > > > > +	pci_fixup_suspend,
+> > > > > > > +	pci_fixup_resume_later,
+> > > > > >
+> > > > > > Please document when these quirks are run.
+> > > > >
+> > > > > will do if you think the method is correct.
+> > > > >
+> > > > > > And why "_later"?  What's wrong with the normal resume time?
+> > > > >
+> > > > > pci_fixup_resume is called in pci_device_resume_earily(), which is
+> > > > > called with interrupt disable, so I added a new one which is called at
+> > > > > pci_device_resume(), this routine is called with interrupt enabled.
+> > > >
+> > > > Is the pci_fixup_resume thing used at all?  If it is, how can I check who
+> > > > uses it?
+> > > 
+> > > Oh good catch, it looks like it's unused at this point (at least there's no 
+> > > DECLARE_PCI_FIXUP_SUSPEND macro in pci.h), it was probably just put there for 
+> > > completeness.
+> > 
+> > It seems to be used only in quirks.c .
+> > 
+> > I'd prefer to rename the existing one to pci_fixup_resume_noirq and define a
+> > new one called pci_fixup_resume to be used by pci_device_resume().
+> > 
+> > Also, it would be worth checking if all of the existing resume quirks need to
+> > be run with interrupts disabled.
+> As far as I checked, only this one need interrupt enabled.
 
-My understanding is that the new thermal zone code is meant to be
-generic and ACPI is only one possible underlying implementations, which
-sounds very good to me. ACPI just happens to be the only implementation
-at the time being.
+Still, do all of the others _require_ interrupts to be disabled?
 
-> If this (multiple thermal zone drivers active for one system) can really happen 
-> then we really should fix it so that there is one hwmon class entry per thermal 
-> zone driver. This can be done without changing the ABI, as things would still 
-> follow the standard hwmon ABI.
+> Introducing 
+> pci_fixup_resume_noirq and move the quirk to .resume is feasible in the
+> case, but it's not quite good to me. The quirk is to make smbus
+> controller not hide and then smbus can be resumed, the order is
+> important. If the quirk is called in .resume, that means smbus
+> controller can't have a .resume_early. The quirk is a FIXUP_HEADER, it
+> really should be called early, eg in .resume_early.
 
-I have to admit that I'm not sure what sense that would make (and how
-safe it would be) to have more than one type of thermal zones active at
-the same time. If the idea if that only one type of thermal zones can
-exist for a given system (i.e. the selection happens at build time),
-then my objection can safely be ignored, except for the fact that I
-still would like the "name" attribute to reflect the type of the
-thermal zones.
+I meant "move all of the other quirks that need to run with interrupts
+disabled to pci_fixup_resume_noirq, leave those that may run with interrups
+enabled within pci_fixup_resume and add yours to pci_fixup_resume".
 
-Rui, Len, how did you originally envision the coexistence (or not) of
-different types of thermal zones?
-
--- 
-Jean Delvare
+Thanks,
+Rafael
