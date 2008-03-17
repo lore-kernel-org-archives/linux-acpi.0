@@ -1,82 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Mon, 17 Mar 2008 17:26:46 +0100
-Message-ID: <200803171726.46904.rjw@sisk.pl>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com> <200803142203.33821.rjw@sisk.pl> <1205716543.26236.6.camel@sli10-desk.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Mon, 17 Mar 2008 13:27:15 -0400
+Message-ID: <200803171327.16695.lenb@kernel.org>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org> <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org> <47DC66A8.1020905@tremplin-utc.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42893 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:56173 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751908AbYCQQ1q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2008 12:27:46 -0400
-In-Reply-To: <1205716543.26236.6.camel@sli10-desk.sh.intel.com>
+	id S1751778AbYCQR3q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2008 13:29:46 -0400
+In-Reply-To: <47DC66A8.1020905@tremplin-utc.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@atrey.karlin.mff.cuni.cz, Greg KH <gregkh@suse.de>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: =?iso-8859-1?q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>
 
-On Monday, 17 of March 2008, Shaohua Li wrote:
-> 
-> On Fri, 2008-03-14 at 22:03 +0100, Rafael J. Wysocki wrote:
-> > On Friday, 14 of March 2008, Jesse Barnes wrote:
-> > > On Friday, March 14, 2008 7:37 am Rafael J. Wysocki wrote:
-> > > > On Friday, 14 of March 2008, Shaohua Li wrote:
-> > > > > On Thu, 2008-03-13 at 21:44 -0700, Greg KH wrote:
-> > > > > > On Fri, Mar 14, 2008 at 11:49:09AM +0800, Shaohua Li wrote:
-> > > > > > > diff --git a/include/linux/pci.h b/include/linux/pci.h
-> > > > > > > index 9010f54..821ad02 100644
-> > > > > > > --- a/include/linux/pci.h
-> > > > > > > +++ b/include/linux/pci.h
-> > > > > > > @@ -1016,6 +1016,8 @@ enum pci_fixup_pass {
-> > > > > > >  	pci_fixup_final,	/* Final phase of device fixups */
-> > > > > > >  	pci_fixup_enable,	/* pci_enable_device() time */
-> > > > > > >  	pci_fixup_resume,	/* pci_enable_device() time */
-> > > > > > > +	pci_fixup_suspend,
-> > > > > > > +	pci_fixup_resume_later,
-> > > > > >
-> > > > > > Please document when these quirks are run.
-> > > > >
-> > > > > will do if you think the method is correct.
-> > > > >
-> > > > > > And why "_later"?  What's wrong with the normal resume time?
-> > > > >
-> > > > > pci_fixup_resume is called in pci_device_resume_earily(), which is
-> > > > > called with interrupt disable, so I added a new one which is called at
-> > > > > pci_device_resume(), this routine is called with interrupt enabled.
-> > > >
-> > > > Is the pci_fixup_resume thing used at all?  If it is, how can I check who
-> > > > uses it?
-> > > 
-> > > Oh good catch, it looks like it's unused at this point (at least there's no 
-> > > DECLARE_PCI_FIXUP_SUSPEND macro in pci.h), it was probably just put there for 
-> > > completeness.
-> > 
-> > It seems to be used only in quirks.c .
-> > 
-> > I'd prefer to rename the existing one to pci_fixup_resume_noirq and define a
-> > new one called pci_fixup_resume to be used by pci_device_resume().
-> > 
-> > Also, it would be worth checking if all of the existing resume quirks need to
-> > be run with interrupts disabled.
-> As far as I checked, only this one need interrupt enabled.
+I agree with Linus' decision to revert/disable this feature.
+I think it is appropriate to muck with this in -mm, but not in -rc6
+Kudos to Christoph, who recommended we revert it back at -rc2.
 
-Still, do all of the others _require_ interrupts to be disabled?
+> > What's the problem with just loading a new DSDT later? Potentially as in 
+> > *much* later: including when user-space is all up-and-running? 
 
-> Introducing 
-> pci_fixup_resume_noirq and move the quirk to .resume is feasible in the
-> case, but it's not quite good to me. The quirk is to make smbus
-> controller not hide and then smbus can be resumed, the order is
-> important. If the quirk is called in .resume, that means smbus
-> controller can't have a .resume_early. The quirk is a FIXUP_HEADER, it
-> really should be called early, eg in .resume_early.
+I don't think re-loading the DSDT at run-time would be practical.
 
-I meant "move all of the other quirks that need to run with interrupts
-disabled to pci_fixup_resume_noirq, leave those that may run with interrups
-enabled within pci_fixup_resume and add yours to pci_fixup_resume".
+First, booting with the OEM DSDT may nullify the benefit
+of overriding the OEM DSDT -- the damage may have already been done.
 
-Thanks,
-Rafael
+Secondly, unwinding everything that depends on the DSDT is on the
+order of kexec or suspend/resume.  We're talking about all the stuff
+that PNP does at boot time, plus device discovery and driver binding.
+
+The feature on the table here is an initrd DSDT override.
+We already have the ability to statically compile a DSDT
+override into the kernel image.  That capability is sufficient
+for kernel developers.
+
+The initrd version of the DSDT override is really for one scenario.
+Somebody who has a BIOS that even Windows can't deal with -- so
+no amount of "Windows bug compatbility" will help Linux with it.
+They must be capable eough to generate or acquire a modified DSDT.
+They must be unwilling/unable to re-build their kenrel from scratch
+each time they update it.  Eg. following debian unstable updates etc.
+
+I think that customer deserves support, particularly because they get
+bragging rights that Linux works better on a box build for Windows
+than Windows does:-)
+However, I don't think there are enough customers like this to
+justify a huge effort that would add risk to Linux.
+
+-Len
