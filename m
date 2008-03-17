@@ -1,122 +1,95 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH] ACPI: disable stray gpe correctly
-Date: Mon, 17 Mar 2008 10:09:27 +0800
-Message-ID: <823A93EED437D048963A3697DB0E35DE0131BB1B@pdsmsx414.ccr.corp.intel.com>
-References: <1205114649.10256.200.camel@acpi-hp-zz.sh.intel.com> <200803110206.45590.lenb@kernel.org> <47D8351F.7080802@redhat.com> <200803121609.46134.lenb@kernel.org>  <B28E9812BAF6E2498B7EC5C427F293A4046ACA22@orsmsx415.amr.corp.intel.com>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
+Date: Mon, 17 Mar 2008 03:40:09 +0000
+Message-ID: <1205725210.27560.9.camel@segulix.localdomain>
+References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-+lyaunyatURe2oDbd9ee"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13043 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751325AbYCQCJb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Mar 2008 22:09:31 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4046ACA22@orsmsx415.amr.corp.intel.com>
+Received: from smtp1.netcabo.pt ([212.113.174.28]:41301 "EHLO
+	exch01smtp11.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752838AbYCQDkW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Mar 2008 23:40:22 -0400
+In-Reply-To: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Chuck Ebbert <cebbert@redhat.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, davej@redhat.com
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
 
-Agree. :)
-I'll work on that problem.
 
-Thanks,
-rui
+--=-+lyaunyatURe2oDbd9ee
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
->-----Original Message-----
->From: Moore, Robert
->Sent: Saturday, March 15, 2008 5:49 AM
->To: Moore, Robert; Len Brown; Chuck Ebbert
->Cc: Zhang, Rui; linux-acpi; Lin, Ming M; davej@redhat.com
->Subject: RE: [PATCH] ACPI: disable stray gpe correctly
->
->I'm going to back this out until the reported problem is resolved.
->Bob
->
->
->>-----Original Message-----
->>From: Moore, Robert
->>Sent: Wednesday, March 12, 2008 2:59 PM
->>To: 'Len Brown'; Chuck Ebbert
->>Cc: Zhang, Rui; linux-acpi; Lin, Ming M; davej@redhat.com
->>Subject: RE: [PATCH] ACPI: disable stray gpe correctly
->>
->>This patch looked fairly benign to me, so I've committed it to the
-ACPICA
->>core for the next release this week.
->>
->>The comment I added for the patch looks like this:
->>
->>    /*
->>     * Ignore this if the GPE is valid and not enabled.
->>     *
->>     * Flags is only zero if GPE is neither enabled or disabled -- it
-may
->>     * be a spurious or stray GPE -- disable it in the default case
-below.
->>     */
->>    if (GpeEventInfo->Flags &&
->>       (!(GpeEventInfo->Flags & ACPI_GPE_ENABLE_MASK)))
->>    {
->>        return_ACPI_STATUS (AE_OK);
->>    }
->>
->>
->>If there are problems, I will back it out. Please let me know ASAP
-what the
->>issue is in 436959.
->>
->>Thanks,
->>Bob
->>
->>
->>
->>>-----Original Message-----
->>>From: Len Brown [mailto:lenb@kernel.org]
->>>Sent: Wednesday, March 12, 2008 1:10 PM
->>>To: Chuck Ebbert
->>>Cc: Zhang, Rui; linux-acpi; Lin, Ming M; Moore, Robert;
-davej@redhat.com
->>>Subject: Re: [PATCH] ACPI: disable stray gpe correctly
->>>
->>>
->>>> > On Sunday 09 March 2008, Zhang, Rui wrote:
->>>> >> Disable stray GPE correctly
->>>> >> https://bugzilla.redhat.com/show_bug.cgi?id=251744
->>>> >> http://bugzilla.kernel.org/show_bug.cgi?id=6217
->>>> >>
->>>> >> Sighed-off-by: Zhang Rui <rui.zhang@intel.com>
->>>> >> ---
->>>> >>  drivers/acpi/events/evgpe.c |    3 ++-
->>>> >>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>> >>
->>>> >> Index: linux-2.6/drivers/acpi/events/evgpe.c
->>>> >>
-===================================================================
->>>> >> --- linux-2.6.orig/drivers/acpi/events/evgpe.c
->>>> >> +++ linux-2.6/drivers/acpi/events/evgpe.c
->>>> >> @@ -248,7 +248,8 @@ acpi_status acpi_ev_disable_gpe(struct a
->>>> >>
->>>> >>  	ACPI_FUNCTION_TRACE(ev_disable_gpe);
->>>> >>
->>>> >> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
->>>> >> +	if (gpe_event_info->flags &&
->>>> >> +		(!(gpe_event_info->flags &
-ACPI_GPE_ENABLE_MASK))) {
->>>> >>  		return_ACPI_STATUS(AE_OK);
->>>> >>  	}
->>>> >>
->>>>
->>>> Causes ACPI battery problems...
->>>>
->>>> https://bugzilla.redhat.com/show_bug.cgi?id=436959
->>>
->>>Okay, i've droppped it until 436959 can be figured out.
->>>
->>>thanks Chuck,
->>>-Len
->>>
->>>
+
+On Fri, 2008-03-14 at 11:49 +0800, Shaohua Li wrote:
+> asus_hides_smbus_lpc_ich6() is called with interrupt disabled in
+> resume
+> time, but ioremap_nocache() and iounmap() can't be called with
+> interrupt
+> disabled. Below is my debug fix. If you have better fix, please
+> speak.=20
+
+yap , I have a better fix for my laptop=20
+I have a Compaq nx , and this quirk is applied ,
+
+I simply remove the quirk like I had write=20
+http://lkml.org/lkml/2007/3/9/516
+
+Especially if we don't an ASUS, which may need the quirk.
+
+I have been working almost an year without the quirk on my laptop and
+things seems that work better=20
+
+=20
+--=20
+S=C3=A9rgio M. B.
+
+--=-+lyaunyatURe2oDbd9ee
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
+NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
+do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
+1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
+lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
+jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
+5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
+9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
+el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDMxNzAzNDAwNVowIwYJKoZI
+hvcNAQkEMRYEFKpmqMTG3oLpV8HfJ1BpSyy5rZYUMA0GCSqGSIb3DQEBAQUABIIBAHhIsmymvRyF
+b9J6eN3UU05JnzIyGofXwu6kCoDW+Pz0gC3V65m40RFkgccE/1ZKU7VG9vJ8HtPFG0apfUZFdA3R
+sMnmWgqu03HxYcclNUcwB/9eCJgNoO1UlurUMA5As1JvepMNdt6zWDztJ78oH89zyMDHJuwoghND
+WGq1kDZodPpUlNP179hfE2S1jrm2GRoKIS+hhCpsLlg0WOnKnTPOsL1m31LynF2dE9aHIqMlPOZL
+REfjpbReEVKPhtVRiUSmKTILnEyBM06fQW7mkQxJoVPBMOUjwy/o+g8CdAW485rdtwPCfdBMQzgN
+62R9lYoMi5s8cq0CV5mOYLVKLBQAAAAAAAA=
+
+
+--=-+lyaunyatURe2oDbd9ee--
 
