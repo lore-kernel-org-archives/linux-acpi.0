@@ -1,95 +1,85 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Mon, 17 Mar 2008 03:40:09 +0000
-Message-ID: <1205725210.27560.9.camel@segulix.localdomain>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Mon, 17 Mar 2008 13:23:35 +0100
+Message-ID: <1205756615.8514.311.camel@twins>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
+	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>
+	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>
+	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
+	 <47DAE55C.3080506@tremplin-utc.net>
+	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
+	 <47DB013D.3060102@tremplin-utc.net>
+	 <1205537395.8167.31.camel@nimitz.home.sr71.net>  <47DBC578.7050101@imap.cc>
+	 <1205698279.8167.44.camel@nimitz.home.sr71.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-+lyaunyatURe2oDbd9ee"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.netcabo.pt ([212.113.174.28]:41301 "EHLO
-	exch01smtp11.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752838AbYCQDkW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Mar 2008 23:40:22 -0400
-In-Reply-To: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
+Received: from viefep18-int.chello.at ([213.46.255.22]:8940 "EHLO
+	viefep14-int.chello.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752707AbYCQMXp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Mar 2008 08:23:45 -0400
+In-Reply-To: <1205698279.8167.44.camel@nimitz.home.sr71.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
+To: Dave Hansen <haveblue@us.ibm.com>
+Cc: Tilman Schmidt <tilman@imap.cc>, Eric Piel <eric.piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>
 
+On Sun, 2008-03-16 at 13:11 -0700, Dave Hansen wrote:
 
---=-+lyaunyatURe2oDbd9ee
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+> >  ACPI: Core revision 20070126
+> > +INFO: trying to register non-static key.
+> > +the code is fine but needs lockdep annotation.
+> > +turning off the locking correctness validator.
+> > +Pid: 0, comm: swapper Not tainted 2.6.25-rc5-mm1-testing #3
+> > + [<c014321e>] __lock_acquire+0x144/0xb6e
+> > + [<c010b1a2>] ? native_sched_clock+0xe0/0xff
+> > + [<c017fc57>] ? kmem_cache_alloc+0x89/0xc9
+> > + [<c0142ce0>] ? trace_hardirqs_on+0xe8/0x11d
+> > + [<c014404f>] lock_acquire+0x6a/0x90
+> > + [<c013b460>] ? down_trylock+0xc/0x27
+> > + [<c03016cb>] _spin_lock_irqsave+0x42/0x72
+> > + [<c013b460>] ? down_trylock+0xc/0x27
+> > + [<c013b460>] down_trylock+0xc/0x27
+> > + [<c021fa65>] acpi_os_wait_semaphore+0x67/0x13d
+> > + [<c023a39e>] acpi_ut_acquire_mutex+0x65/0xcf
+> > + [<c0230261>] acpi_ns_root_initialize+0x1a/0x289
+> > + [<c043ad54>] acpi_initialize_subsystem+0x47/0x6a
+> > + [<c043afd4>] acpi_early_init+0x57/0xf8
+> > + [<c04248ff>] start_kernel+0x34d/0x35a
+> > + [<c0424019>] i386_start_kernel+0x8/0xa
+> > + =======================
+> >  ACPI: Checking initramfs for custom DSDT
+> >  Parsing all Control Methods:
+> >  Table [DSDT](id 0001) - 637 Objects with 63 Devices 160 Methods 41
+> > Regions
+> 
+> Hi Tim,
+> 
+> Again, thanks for the excellent bug reporting. 
+> 
+> This is actually a different problem (and not my code again, thank
+> goodness).  I think a few of these got fixed in current -mm.  According
+> to Peter Z, these mean:
+> 
+> > It means the lock_class_key ended up in non-static storage.
+> > 
+> > In practise it often means you initialized a on-stack structure
+> > incorrectly. DECLARE_WAIT_QUEUE_HEAD() vs
+> > DECLARE_WAIT_QUEUE_HEAD_ONSTACK() for example.
+> 
+> So, this looks like an on-stack ACPI structure that got initialized
+> wrongly.  At least we already have those dudes on the cc. :)
 
+Actually looks like the semaphore thing again, its a spinlock inside of
+down_tylock().
 
-On Fri, 2008-03-14 at 11:49 +0800, Shaohua Li wrote:
-> asus_hides_smbus_lpc_ich6() is called with interrupt disabled in
-> resume
-> time, but ioremap_nocache() and iounmap() can't be called with
-> interrupt
-> disabled. Below is my debug fix. If you have better fix, please
-> speak.=20
+> But, this might also get fixed by reverting the patch as Linus just did.
+> It might just be best to wait for another -mm release and see how it
+> settles out.  
 
-yap , I have a better fix for my laptop=20
-I have a Compaq nx , and this quirk is applied ,
+Looks like another of the semaphore thingies.. Does this go away once
+you apply the semaphore lockdep fixup from here:
 
-I simply remove the quirk like I had write=20
-http://lkml.org/lkml/2007/3/9/516
-
-Especially if we don't an ASUS, which may need the quirk.
-
-I have been working almost an year without the quirk on my laptop and
-things seems that work better=20
-
-=20
---=20
-S=C3=A9rgio M. B.
-
---=-+lyaunyatURe2oDbd9ee
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
-NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
-do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
-1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
-lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
-jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
-5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
-9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
-el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDMxNzAzNDAwNVowIwYJKoZI
-hvcNAQkEMRYEFKpmqMTG3oLpV8HfJ1BpSyy5rZYUMA0GCSqGSIb3DQEBAQUABIIBAHhIsmymvRyF
-b9J6eN3UU05JnzIyGofXwu6kCoDW+Pz0gC3V65m40RFkgccE/1ZKU7VG9vJ8HtPFG0apfUZFdA3R
-sMnmWgqu03HxYcclNUcwB/9eCJgNoO1UlurUMA5As1JvepMNdt6zWDztJ78oH89zyMDHJuwoghND
-WGq1kDZodPpUlNP179hfE2S1jrm2GRoKIS+hhCpsLlg0WOnKnTPOsL1m31LynF2dE9aHIqMlPOZL
-REfjpbReEVKPhtVRiUSmKTILnEyBM06fQW7mkQxJoVPBMOUjwy/o+g8CdAW485rdtwPCfdBMQzgN
-62R9lYoMi5s8cq0CV5mOYLVKLBQAAAAAAAA=
-
-
---=-+lyaunyatURe2oDbd9ee--
+  http://lkml.org/lkml/2008/3/12/63
 
