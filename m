@@ -1,28 +1,30 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
-Date: Wed, 19 Mar 2008 02:40:19 +0300
-Message-ID: <47E052E3.4000107@suse.de>
+Date: Wed, 19 Mar 2008 02:53:14 +0300
+Message-ID: <47E055EA.5000300@suse.de>
 References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>	 <47DFC0D5.8020104@suse.de> <3d8471ca0803181629h63530825k6087b2a838484dca@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:40142 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:42376 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S966064AbYCSVVt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 17:21:49 -0400
+	with ESMTP id S932972AbYCSVil (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 17:38:41 -0400
 In-Reply-To: <3d8471ca0803181629h63530825k6087b2a838484dca@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Guillaume Chazarain <guichaz@gmail.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Tim Elliott <tle@holymonkey.com>
 
-Hi Guillaume,
+Hi Guilaume,
 
-Thanks for tests, it looks like call_psw_on_capable_devices.patch does not
-help at all, and we should just revert the offending patch.
+May I ask you for one more favor?
+Could you please uncomment DEBUG at the beginning of drivers/acpi/ec.c
+and send me dmesg (or, better, attach it to bugzilla.kernel.org #9998) with
+the reverted offender patch?
 
-Sorry for the toruble,
+Thanks,
 Alex.
 
 Guillaume Chazarain wrote:
