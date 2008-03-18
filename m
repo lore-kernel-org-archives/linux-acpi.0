@@ -1,93 +1,98 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 4/6] thermal: re-document thermal units
-Date: Tue, 18 Mar 2008 02:02:10 -0400
-Message-ID: <6d7f014e55c5227220da1f021c518487fcfd585a.1205819948.git.len.brown@intel.com>
+Subject: [PATCH 1/6] ACPI: lockdep warning on boot, 2.6.25-rc5
+Date: Tue, 18 Mar 2008 02:02:07 -0400
+Message-ID: <71e93d15612c61c2e26a169567becf088e71b8ff.1205819948.git.len.brown@intel.com>
 References: <1205820132-21689-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:55500 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:55486 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751558AbYCRGGa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 02:06:30 -0400
+	with ESMTP id S1751213AbYCRGG3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 02:06:29 -0400
 In-Reply-To: <1205820132-21689-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <71e93d15612c61c2e26a169567becf088e71b8ff.1205819948.git.len.brown@intel.com>
-References: <71e93d15612c61c2e26a169567becf088e71b8ff.1205819948.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang, Rui <rui.zhang@intel.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-(reverting the previous sysfs patch also reverted a fix
- to the thermal units documentation, which is restored by this commit)
+This avoids the harmless WARNING by lockdep in acpi_processor_idle().
 
-The generic thermal driver shows temperature in millidegree Celsius.
+The reason for WARNING is because at the depth of idle handling code,
+some of the idle handlers disable interrupts, some times, while returning from
+the idle handler. After return, acpi_processor_idle and few other routines
+in the file did an unconditional local_irq_enable(). With LOCKDEP, enabling
+irq when it is already enabled generates the below WARNING.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > [    0.593038] ------------[ cut here ]------------
+> > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+> > [    0.593596] Modules linked in:
+> > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+> > [    0.594017]
+> > [    0.594017] Call Trace:
+> > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+> > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+> > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+> > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+> > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+> > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+> > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+> > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+> > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+> > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+> > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+> > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+> > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+> > [    0.598464]
+> > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thermal/sysfs-api.txt |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/acpi/processor_idle.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index ba9c2da..d9f28be 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -143,10 +143,10 @@ type				Strings which represent the thermal zone type.
- 				This is given by thermal zone driver as part of registration.
- 				Eg: "ACPI thermal zone" indicates it's a ACPI thermal device
- 				RO
--				Optional
-+				Required
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 6f3b217..e8e2d88 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -216,8 +216,10 @@ static void acpi_safe_halt(void)
+ 	 * test NEED_RESCHED:
+ 	 */
+ 	smp_mb();
+-	if (!need_resched())
++	if (!need_resched()) {
+ 		safe_halt();
++		local_irq_disable();
++	}
+ 	current_thread_info()->status |= TS_POLLING;
+ }
  
- temp				Current temperature as reported by thermal zone (sensor)
--				Unit: degree Celsius
-+				Unit: millidegree Celsius
- 				RO
- 				Required
+@@ -421,7 +423,9 @@ static void acpi_processor_idle(void)
+ 		else
+ 			acpi_safe_halt();
  
-@@ -163,7 +163,7 @@ mode				One of the predefined values in [kernel, user]
- 					  charge of the thermal management.
+-		local_irq_enable();
++		if (irqs_disabled())
++			local_irq_enable();
++
+ 		return;
+ 	}
  
- trip_point_[0-*]_temp		The temperature above which trip point will be fired
--				Unit: degree Celsius
-+				Unit: millidegree Celsius
- 				RO
- 				Optional
+@@ -530,7 +534,9 @@ static void acpi_processor_idle(void)
+ 		 *       skew otherwise.
+ 		 */
+ 		sleep_ticks = 0xFFFFFFFF;
+-		local_irq_enable();
++		if (irqs_disabled())
++			local_irq_enable();
++
+ 		break;
  
-@@ -193,7 +193,7 @@ type				String which represents the type of device
- 				eg. For memory controller device on intel_menlow platform:
- 				this should be "Memory controller"
- 				RO
--				Optional
-+				Required
- 
- max_state			The maximum permissible cooling state of this cooling device.
- 				RO
-@@ -219,16 +219,16 @@ the sys I/F structure will be built like this:
- 
- |thermal_zone1:
- 	|-----type:			ACPI thermal zone
--	|-----temp:			37
-+	|-----temp:			37000
- 	|-----mode:			kernel
--	|-----trip_point_0_temp:	100
-+	|-----trip_point_0_temp:	100000
- 	|-----trip_point_0_type:	critical
--	|-----trip_point_1_temp:	80
-+	|-----trip_point_1_temp:	80000
- 	|-----trip_point_1_type:	passive
--	|-----trip_point_2_temp:	70
--	|-----trip_point_2_type:	active[0]
--	|-----trip_point_3_temp:	60
--	|-----trip_point_3_type:	active[1]
-+	|-----trip_point_2_temp:	70000
-+	|-----trip_point_2_type:	active0
-+	|-----trip_point_3_temp:	60000
-+	|-----trip_point_3_type:	active1
- 	|-----cdev0:			--->/sys/class/thermal/cooling_device0
- 	|-----cdev0_trip_point:		1	/* cdev0 can be used for passive */
- 	|-----cdev1:			--->/sys/class/thermal/cooling_device3
+ 	case ACPI_STATE_C2:
 -- 
 1.5.5.rc0.6.gdeda
 
