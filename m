@@ -1,78 +1,45 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH] ACPI : Disable the device's ability to wake the sleeping
-	system in the boot phase
-Date: Tue, 18 Mar 2008 13:47:52 +0800
-Message-ID: <1205819272.15975.3.camel@yakui_zhao.sh.intel.com>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [PATCH] Re: In function `ata_acpi_associate': undefined reference
+ to `register_hotplug_dock_device'
+Date: Tue, 18 Mar 2008 15:16:24 +0900
+Message-ID: <47DF5E38.3030007@gmail.com>
+References: <47DEC970.2050402@m3y3r.de> <47DECD54.5060202@m3y3r.de> <200803172357.54253.lenb@kernel.org> <200803180011.49190.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63173 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751060AbYCRGLd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Mar 2008 02:11:33 -0400
+Received: from wa-out-1112.google.com ([209.85.146.183]:4813 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875AbYCRGQd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 02:16:33 -0400
+Received: by wa-out-1112.google.com with SMTP id v27so6767372wah.23
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Mar 2008 23:16:33 -0700 (PDT)
+In-Reply-To: <200803180011.49190.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Meyer <thomas@m3y3r.de>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, linux-acpi@vger.kernel.org, Adrian Bunk <bunk@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jeff@garzik.org
 
-Subject: ACPI : Disable the device's ability to wake the sleeping system in the boot phase
->From : Zhao Yakui <yakui.zhao@intel.com>
+Len Brown wrote:
+> Subject: fix ATA_ACPI build
+> From: Len Brown <len.brown@intel.com>
+> 
+> drivers/ata/libata-acpi.c fails to build
+> 
+> drivers/built-in.o: In function `ata_acpi_associate':
+> (.text+0x7106a): undefined reference to `register_hotplug_dock_device'
+> 
+> When CONFIG_ATA_ACPI=y and CONFIG_ACPI_DOCK=m
+> But if dock is selected from ata_acpi, dock will =y
+> when ata_acpi=y, avoiding this problem.
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-In some machines some GPE is shared by several ACPI devices, for example:
-sleep button, keyboard, mouse. At the same time one of them is 
-non-wake(runtime) device and the other are wake devices. In such case OSPM
-should call the _PSW object to disable the device's ability to 
-wake the sleeping system in the boot phase.
-Otherwise there will be ACPI interrupt flood triggered by the GPE input.
+Acked-by: Tejun Heo <htejun@gmail.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9781
-http://bugzilla.kernel.org/show_bug.cgi?id=10224
+I think this one will be more straight forward for users.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
+Thanks.
 
----
- drivers/acpi/scan.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -686,6 +686,9 @@ static int acpi_bus_get_wakeup_device_fl
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *package = NULL;
-+	union acpi_object arg = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list arg_list = { 1, &arg };
-+	acpi_status psw_status = AE_OK;
- 
- 	struct acpi_device_id button_device_ids[] = {
- 		{"PNP0C0D", 0},
-@@ -695,6 +698,7 @@ static int acpi_bus_get_wakeup_device_fl
- 	};
- 
- 
-+	arg.integer.value = 0;
- 	/* _PRW */
- 	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -712,6 +716,15 @@ static int acpi_bus_get_wakeup_device_fl
- 	kfree(buffer.pointer);
- 
- 	device->wakeup.flags.valid = 1;
-+	/* Call _PSW object to disable its ability to wake the sleeping
-+	 * system for the ACPI device with the _PRW object.
-+	 */
-+#ifdef CONFIG_ACPI_POWER
-+	psw_status = acpi_evaluate_object(device->handle, "_PSW",
-+						&arg_list, NULL);
-+	if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in evaluate _PSW\n"));
-+#endif
- 	/* Power button, Lid switch always enable wakeup */
- 	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
-
-
+-- 
+tejun
