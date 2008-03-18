@@ -1,87 +1,88 @@
-From: Tilman Schmidt <tilman@imap.cc>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Thu, 20 Mar 2008 00:50:34 +0100
-Message-ID: <47E1A6CA.7070608@imap.cc>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>	 <47D86D43.2060108@imap.cc> <1205441216.4971.65.camel@nimitz.home.sr71.net>	 <47D9C853.3040701@imap.cc> <1205517802.12763.18.camel@nimitz.home.sr71.net>	 <1205525184.12763.32.camel@nimitz.home.sr71.net>	 <47DAE55C.3080506@tremplin-utc.net>	 <1205530551.8167.20.camel@nimitz.home.sr71.net>	 <47DB013D.3060102@tremplin-utc.net>	 <1205537395.8167.31.camel@nimitz.home.sr71.net>  <47DBC578.7050101@imap.cc>	 <1205698279.8167.44.camel@nimitz.home.sr71.net> <1205756615.8514.311.camel@twins>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 6/6] Revert "ACPI: video: Ignore ACPI video devices that aren't present in hardware"
+Date: Tue, 18 Mar 2008 17:01:30 -0400
+Message-ID: <200803181701.30447.lenb@kernel.org>
+References: <1205820132-21689-1-git-send-email-lenb@kernel.org> <f0d6752c9fa51d24c86b57c76ec5b2926a716b23.1205819948.git.len.brown@intel.com> <1205852061.21619.192.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig6BA0E70E9347D3E7759D1B6E"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:55572 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761811AbYCSXuk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Mar 2008 19:50:40 -0400
-In-Reply-To: <1205756615.8514.311.camel@twins>
+Received: from hera.kernel.org ([140.211.167.34]:35735 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756034AbYCTBRQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 21:17:16 -0400
+In-Reply-To: <1205852061.21619.192.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Dave Hansen <haveblue@us.ibm.com>, Eric Piel <eric.piel@tremplin-utc.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, Adrian Bunk <bunk@stusta.de>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig6BA0E70E9347D3E7759D1B6E
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 18 March 2008, Thomas Renninger wrote:
+> On Tue, 2008-03-18 at 02:02 -0400, Len Brown wrote:
+> > From: Len Brown <len.brown@intel.com>
+> > 
+> > This reverts commit 3fa2cdcc45a0176de15cac9dbf4ed2834ebf8932.
+> > 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=9995
+> 
+> This is so wrong...
+> You register a driver on a device which does not exist.
+> You do this because on T61 ThinkPads, the external graphics device
+> method (soft-int 10) for brightness switching also works for the
+> internal Intel graphics card by pure luck...
+>
+> You introduce this obviously wrong approach and break other machines
+> intentionally (this is not a regression, because brightness switching
+> was done through thinkpad_acpi before).
 
-Am 17.03.2008 13:23 schrieb Peter Zijlstra:
-> On Sun, 2008-03-16 at 13:11 -0700, Dave Hansen wrote:
->=20
->>>  ACPI: Core revision 20070126
->>> +INFO: trying to register non-static key.
->>> +the code is fine but needs lockdep annotation.
->>> +turning off the locking correctness validator.
->>> +Pid: 0, comm: swapper Not tainted 2.6.25-rc5-mm1-testing #3
->>> + [<c014321e>] __lock_acquire+0x144/0xb6e
->>> + [<c010b1a2>] ? native_sched_clock+0xe0/0xff
->>> + [<c017fc57>] ? kmem_cache_alloc+0x89/0xc9
->>> + [<c0142ce0>] ? trace_hardirqs_on+0xe8/0x11d
->>> + [<c014404f>] lock_acquire+0x6a/0x90
->>> + [<c013b460>] ? down_trylock+0xc/0x27
->>> + [<c03016cb>] _spin_lock_irqsave+0x42/0x72
->>> + [<c013b460>] ? down_trylock+0xc/0x27
->>> + [<c013b460>] down_trylock+0xc/0x27
->>> + [<c021fa65>] acpi_os_wait_semaphore+0x67/0x13d
->>> + [<c023a39e>] acpi_ut_acquire_mutex+0x65/0xcf
->>> + [<c0230261>] acpi_ns_root_initialize+0x1a/0x289
->>> + [<c043ad54>] acpi_initialize_subsystem+0x47/0x6a
->>> + [<c043afd4>] acpi_early_init+0x57/0xf8
->>> + [<c04248ff>] start_kernel+0x34d/0x35a
->>> + [<c0424019>] i386_start_kernel+0x8/0xa
->>> + =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+acpi video brightness worked on the T61 before this patch, eg. in 2.6.24.
+acpi video brightness stopped working when this patch was applied.
+acpi video brightness works again when this patch (and its clone) were reverted.
 
->>>  ACPI: Checking initramfs for custom DSDT
-[...]
-> Looks like another of the semaphore thingies.. Does this go away once
-> you apply the semaphore lockdep fixup from here:
->=20
->   http://lkml.org/lkml/2008/3/12/63
+> This is known for months and reverting this in last minute is the wrong
+> action.
+> This should be:
+>   - fixed up in BIOS through a OSI("IGD") string
 
-Yes, it does. With that patch on top of Dave's, I see no stack
-backtraces in dmesg anymore.
+IGD isn't part of this discussion, since that support didn't ship
+in 2.6.24, and isn't shipping in 2.6.25.
 
-HTH
-T.
+Enabling IGD, or any other feature, via OSI on a platform that has
+already shipped is effectively impossible.  It would require every
+BIOS and every OS to be updated.
 
---=20
-Tilman Schmidt                          E-Mail: tilman@imap.cc
-Bonn, Germany
-Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
-Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
+>   - get workarounded (as it always has been done) in thinkpad-acpi
+>     meanwhile.
+>
+> Please try to not load the ACPI video driver.
+> Instead load the thinkpad_acpi driver with:
+> brightness_enable=1
+> parameter. Does this work?
+> If that works, this is the right workaround for T61 with
+> internal/on-board
+> Intel graphics card.
 
+Yes, the thinkpad_acpi driver with brightness_enable=1 works.
 
---------------enig6BA0E70E9347D3E7759D1B6E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+The thinkpad_acpi driver is really useful.
+It provides ways to get to thinkpad features for which
+no standard interface in Linux currently exists.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3rc1 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+However, the thinkpad_acpi driver should not be used
+to provide features for which a generic method exists.
 
-iD8DBQFH4abKMdB4Whm86/kRApucAJ4iM0kk6tR52+iNAPS7g6dXsLA+1QCePpm1
-OfDDZfS22n8WiK8Zh5PBNEk=
-=NP1u
------END PGP SIGNATURE-----
+I understand that a distro may latch onto thinkpad_acpi
+to get features in the hands of customers as soon as possible.
+I understand that the transition off of custom solutions
+is never easy.  brightness_enable=1 was added to ease that
+transition.  If you have additional suggestions, please speak up.
 
---------------enig6BA0E70E9347D3E7759D1B6E--
+> You can get a dmi blacklisting so that video driver is not loaded on the
+> ThinkPads or this can be done in user-space, but pls do not revert this
+> obvious fix.
+
+This patch was far from obvious, including to Matthew, who created it.
+
+-Len
