@@ -1,59 +1,181 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Tue, 18 Mar 2008 11:06:18 +0100
-Message-ID: <20080318110618.735572d2@hyperion.delvare>
-References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
-	<47C3D04E.6090609@hhs.nl>
-	<20080317133732.05b79f4d@hyperion.delvare>
-	<47DE6A24.7040705@hhs.nl>
-	<20080317144811.12b7d6cb@hyperion.delvare>
-	<1205811952.3171.80.camel@acpi-hp-zz.sh.intel.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
+Date: Tue, 18 Mar 2008 13:22:38 +0300
+Message-ID: <47DF97EE.3080402@suse.de>
+References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------060906060409040606060807"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:57883 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751605AbYCRKGV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 06:06:21 -0400
-In-Reply-To: <1205811952.3171.80.camel@acpi-hp-zz.sh.intel.com>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:33351 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751078AbYCRKWo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 06:22:44 -0400
+In-Reply-To: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>
+To: Guillaume Chazarain <guichaz@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Tue, 18 Mar 2008 11:45:52 +0800, Zhang, Rui wrote:
-> On Mon, 2008-03-17 at 21:48 +0800, Jean Delvare wrote:
-> > Rui, Len, how did you originally envision the coexistence (or not) of
-> >  different types of thermal zones?
-> 
-> driver/thermal/thermal.c won't change any behavior of the current
-> system. It just creates a generic sys I/F, that's why we call it the
-> Generic Thermal Sysfs driver. :)
-> 
-> We want to introduce a generic solution for thermal management, which
-> usually contains a user application for policy control, a generic
-> thermal sysfs driver which provides a set of platform-independent
-> interfaces, native sensor drivers and device drivers for thermal
-> monitoring and device throttling.
-> Note that the target is the handheld devices which is not covered by
-> hwmon.
-> The idea comes from Len's ols paper, please refer to
-> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/OLS2007-cool-web/
-> 
-> I don't think the generic thermal sysfs driver need to handle the
-> coexistence of different types of thermal zones, because:
-> If there are any, they always exist without the generic thermal driver.
-> If they break something, it's broken before the generic thermal driver
-> is implemented, and the generic thermal driver give it a chance to
-> handle this in user space.
-> Please correct me if I misunderstand your question. :)
+This is a multi-part message in MIME format.
+--------------060906060409040606060807
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Maybe I have not been clear, but my question was not about the generic
-thermal driver itself. I understand that it's only adding an interface
-to other drivers and not creating anything new. My question was about
-thermal zones in general, i.e.: Do we expect systems to have more than
-one thermal zone type at a given time, or not? Len seems to think we do.
+Hi,
 
--- 
-Jean Delvare
+Please provide 'cat /proc/interrupts'.
+Could you try if such patch works?
+
+Thanks,
+Alex.
+
+Guillaume Chazarain wrote:
+> Hi,
+> 
+> There is an ACPI regression in 2.6.25-rc6, which causes the ACPI keys
+> to stop working on my laptop, an Asus V6VA. git bisect identified the
+> appended commit as guilty, and reverting it indeed fixes the problem
+> for me. Attached are my .config, a good dmesg and a bad one. The diff
+> between both dmesg reveals this interesting hunk:
+> 
+> @@ -121,8 +121,9 @@
+>  ACPI: (supports S0 S1 S3 S4 S5)
+>  ACPI: Using IOAPIC for interrupt routing
+>  ACPI: EC: non-query interrupt received, switching to interrupt mode
+> +ACPI: EC: GPE storm detected, disabling EC GPE
+>  ACPI: EC: GPE = 0x1c, I/O: command/status = 0x66, data = 0x62
+> -ACPI: EC: driver started in interrupt mode
+> +ACPI: EC: driver started in poll mode
+>  ACPI: PCI Root Bridge [PCI0] (0000:00)
+>  pci 0000:00:1f.0: Enabled ICH6/i801 SMBus device
+>  pci 0000:00:1f.0: quirk: region 0800-087f claimed by ICH6 ACPI/GPIO/TCO
+> 
+> 
+> Thanks.
+> 
+> 
+> commit 2c81ce4c9c37b910210f2640c28e98a0c398dc26
+> Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+> Date:   Tue Mar 11 13:30:00 2008 -0400
+> 
+>     ACPI: EC: Handle IRQ storm on Acer laptops
+> 
+>     On some Acer systems, the HW fails to clear the GPE source,
+>     causing an interrupt storm.
+> 
+>     So in EC interrupt mode, we count how many interrupts we
+>     receive when waiting.  If we get more than 5, we give
+>     up on interrupt mode and revert to polling mode.
+> 
+>     Also, for polling mode to work on Acers, we need
+>     to insert a delay.
+> 
+>     Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index caf873c..2c77359 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -129,6 +129,7 @@ static struct acpi_ec {
+>  	struct mutex lock;
+>  	wait_queue_head_t wait;
+>  	struct list_head list;
+> +	atomic_t irq_count;
+>  	u8 handlers_installed;
+>  } *boot_ec, *first_ec;
+> 
+> @@ -181,6 +182,8 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
+> ec_event event, int force_poll)
+>  {
+>  	int ret = 0;
+> 
+> +	atomic_set(&ec->irq_count, 0);
+> +
+>  	if (unlikely(event == ACPI_EC_EVENT_OBF_1 &&
+>  		     test_bit(EC_FLAGS_NO_OBF1_GPE, &ec->flags)))
+>  		force_poll = 1;
+> @@ -227,6 +230,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
+> ec_event event, int force_poll)
+>  		while (time_before(jiffies, delay)) {
+>  			if (acpi_ec_check_status(ec, event))
+>  				goto end;
+> +			msleep(5);
+>  		}
+>  	}
+>  	pr_err(PREFIX "acpi_ec_wait timeout,"
+> @@ -529,6 +533,13 @@ static u32 acpi_ec_gpe_handler(void *data)
+>  	struct acpi_ec *ec = data;
+> 
+>  	pr_debug(PREFIX "~~~> interrupt\n");
+> +	atomic_inc(&ec->irq_count);
+> +	if (atomic_read(&ec->irq_count) > 5) {
+> +		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+> +		acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
+> +		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+> +		return ACPI_INTERRUPT_HANDLED;
+> +	}
+>  	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+>  	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
+>  		wake_up(&ec->wait);
+> 
+> 
+
+
+--------------060906060409040606060807
+Content-Type: text/x-patch;
+ name="dont_disable_ec_gpe_completely_at_storm.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dont_disable_ec_gpe_completely_at_storm.patch"
+
+ACPI: EC: Don't disable EC GPE completely at detected storm
+
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+
+ drivers/acpi/ec.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index e7e197e..461acd1 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -527,17 +527,30 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+ 	mutex_unlock(&ec->lock);
+ }
+ 
++static void acpi_ec_enable_gpe(void *context)
++{
++	struct acpi_ec *ec = context;
++	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++	atomic_set(&ec->irq_count, 0);
++	set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
++}
++
+ static u32 acpi_ec_gpe_handler(void *data)
+ {
+ 	acpi_status status = AE_OK;
+ 	struct acpi_ec *ec = data;
++	static bool gpe_storm = 0;
+ 
+ 	pr_debug(PREFIX "~~~> interrupt\n");
+ 	atomic_inc(&ec->irq_count);
+-	if (atomic_read(&ec->irq_count) > 5) {
+-		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
++	if (atomic_read(&ec->irq_count) > 2) {
++		if (!gpe_storm) {
++			pr_err(PREFIX "GPE storm detected, throttle EC GPE\n");
++			gpe_storm = 1;
++		}
+ 		acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
+ 		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
++		acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_enable_gpe, ec);
+ 		return ACPI_INTERRUPT_HANDLED;
+ 	}
+ 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+
+--------------060906060409040606060807--
