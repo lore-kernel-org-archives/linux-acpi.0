@@ -1,63 +1,78 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2/6] ACPI: battery: Don't return -EFAIL on broken packages.
-Date: Tue, 18 Mar 2008 02:02:08 -0400
-Message-ID: <b8a1bdb14940946fcf0438a6337b2a6c54294fb8.1205819948.git.len.brown@intel.com>
-References: <1205820132-21689-1-git-send-email-lenb@kernel.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: [PATCH] ACPI : Disable the device's ability to wake the sleeping
+	system in the boot phase
+Date: Tue, 18 Mar 2008 13:47:52 +0800
+Message-ID: <1205819272.15975.3.camel@yakui_zhao.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:55486 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751081AbYCRGGa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 02:06:30 -0400
-In-Reply-To: <1205820132-21689-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <71e93d15612c61c2e26a169567becf088e71b8ff.1205819948.git.len.brown@intel.com>
-References: <71e93d15612c61c2e26a169567becf088e71b8ff.1205819948.git.len.brown@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:63173 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751060AbYCRGLd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2008 02:11:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: ACPI : Disable the device's ability to wake the sleeping system in the boot phase
+>From : Zhao Yakui <yakui.zhao@intel.com>
 
-Acer BIOS has a bug which is exposed when a dead battery is present.
+In some machines some GPE is shared by several ACPI devices, for example:
+sleep button, keyboard, mouse. At the same time one of them is 
+non-wake(runtime) device and the other are wake devices. In such case OSPM
+should call the _PSW object to disable the device's ability to 
+wake the sleeping system in the boot phase.
+Otherwise there will be ACPI interrupt flood triggered by the GPE input.
 
-The package template that is used to describe battery status is
-over-written with sane values when the battery is live.
-But when the batter is dead, a bogus reference in the template
-is used.  In this case, Linux returns a fault, when instead
-it should simply return that it doesn't know the missing value.
+http://bugzilla.kernel.org/show_bug.cgi?id=9781
+http://bugzilla.kernel.org/show_bug.cgi?id=10224
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8573
-http://bugzilla.kernel.org/show_bug.cgi?id=10202
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/acpi/scan.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index f6215e8..d5729d5 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -293,13 +293,12 @@ static int extract_package(struct acpi_battery *battery,
- 				strncpy(ptr, (u8 *)&element->integer.value,
- 					sizeof(acpi_integer));
- 				ptr[sizeof(acpi_integer)] = 0;
--			} else return -EFAULT;
-+			} else
-+				*ptr = 0; /* don't have value */
- 		} else {
--			if (element->type == ACPI_TYPE_INTEGER) {
--				int *x = (int *)((u8 *)battery +
--						offsets[i].offset);
--				*x = element->integer.value;
--			} else return -EFAULT;
-+			int *x = (int *)((u8 *)battery + offsets[i].offset);
-+			*x = (element->type == ACPI_TYPE_INTEGER) ?
-+				element->integer.value : -1;
- 		}
- 	}
- 	return 0;
--- 
-1.5.5.rc0.6.gdeda
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -686,6 +686,9 @@ static int acpi_bus_get_wakeup_device_fl
+ 	acpi_status status = 0;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *package = NULL;
++	union acpi_object arg = { ACPI_TYPE_INTEGER };
++	struct acpi_object_list arg_list = { 1, &arg };
++	acpi_status psw_status = AE_OK;
+ 
+ 	struct acpi_device_id button_device_ids[] = {
+ 		{"PNP0C0D", 0},
+@@ -695,6 +698,7 @@ static int acpi_bus_get_wakeup_device_fl
+ 	};
+ 
+ 
++	arg.integer.value = 0;
+ 	/* _PRW */
+ 	status = acpi_evaluate_object(device->handle, "_PRW", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+@@ -712,6 +716,15 @@ static int acpi_bus_get_wakeup_device_fl
+ 	kfree(buffer.pointer);
+ 
+ 	device->wakeup.flags.valid = 1;
++	/* Call _PSW object to disable its ability to wake the sleeping
++	 * system for the ACPI device with the _PRW object.
++	 */
++#ifdef CONFIG_ACPI_POWER
++	psw_status = acpi_evaluate_object(device->handle, "_PSW",
++						&arg_list, NULL);
++	if (ACPI_FAILURE(psw_status) && (psw_status != AE_NOT_FOUND))
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "error in evaluate _PSW\n"));
++#endif
+ 	/* Power button, Lid switch always enable wakeup */
+ 	if (!acpi_match_device_ids(device, button_device_ids))
+ 		device->wakeup.flags.run_wake = 1;
+
 
