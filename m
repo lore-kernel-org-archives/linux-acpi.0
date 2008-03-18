@@ -1,39 +1,120 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 2/3] PM: New suspend and hibernation callbacks for
-	platform bus type
-Date: Tue, 18 Mar 2008 11:02:20 +0100
-Message-ID: <20080318100220.GB10830@elf.ucw.cz>
-References: <200803170020.55473.rjw@sisk.pl> <200803170024.23451.rjw@sisk.pl>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
+Date: Tue, 18 Mar 2008 16:17:09 +0300
+Message-ID: <47DFC0D5.8020104@suse.de>
+References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:42248 "EHLO
-	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753160AbYCRLrR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 07:47:17 -0400
-Content-Disposition: inline
-In-Reply-To: <200803170024.23451.rjw@sisk.pl>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:51942 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752622AbYCRNRT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 09:17:19 -0400
+In-Reply-To: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
+To: Guillaume Chazarain <guichaz@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Mon 2008-03-17 00:24:22, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi Guillaume,
+
+Please check if the patch to call _PSW methods, attached to bug #9998
+helps to reduce number of ACPI interrupts if you revert the 2c81ce4c9c3
+
+Thanks,
+Alex.
+
+
+Guillaume Chazarain wrote:
+> Hi,
 > 
-> Implement new suspend and hibernation callbacks for the platform bus
-> type.
+> There is an ACPI regression in 2.6.25-rc6, which causes the ACPI keys
+> to stop working on my laptop, an Asus V6VA. git bisect identified the
+> appended commit as guilty, and reverting it indeed fixes the problem
+> for me. Attached are my .config, a good dmesg and a bad one. The diff
+> between both dmesg reveals this interesting hunk:
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> @@ -121,8 +121,9 @@
+>  ACPI: (supports S0 S1 S3 S4 S5)
+>  ACPI: Using IOAPIC for interrupt routing
+>  ACPI: EC: non-query interrupt received, switching to interrupt mode
+> +ACPI: EC: GPE storm detected, disabling EC GPE
+>  ACPI: EC: GPE = 0x1c, I/O: command/status = 0x66, data = 0x62
+> -ACPI: EC: driver started in interrupt mode
+> +ACPI: EC: driver started in poll mode
+>  ACPI: PCI Root Bridge [PCI0] (0000:00)
+>  pci 0000:00:1f.0: Enabled ICH6/i801 SMBus device
+>  pci 0000:00:1f.0: quirk: region 0800-087f claimed by ICH6 ACPI/GPIO/TCO
+> 
+> 
+> Thanks.
+> 
+> 
+> commit 2c81ce4c9c37b910210f2640c28e98a0c398dc26
+> Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+> Date:   Tue Mar 11 13:30:00 2008 -0400
+> 
+>     ACPI: EC: Handle IRQ storm on Acer laptops
+> 
+>     On some Acer systems, the HW fails to clear the GPE source,
+>     causing an interrupt storm.
+> 
+>     So in EC interrupt mode, we count how many interrupts we
+>     receive when waiting.  If we get more than 5, we give
+>     up on interrupt mode and revert to polling mode.
+> 
+>     Also, for polling mode to work on Acers, we need
+>     to insert a delay.
+> 
+>     Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index caf873c..2c77359 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -129,6 +129,7 @@ static struct acpi_ec {
+>  	struct mutex lock;
+>  	wait_queue_head_t wait;
+>  	struct list_head list;
+> +	atomic_t irq_count;
+>  	u8 handlers_installed;
+>  } *boot_ec, *first_ec;
+> 
+> @@ -181,6 +182,8 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
+> ec_event event, int force_poll)
+>  {
+>  	int ret = 0;
+> 
+> +	atomic_set(&ec->irq_count, 0);
+> +
+>  	if (unlikely(event == ACPI_EC_EVENT_OBF_1 &&
+>  		     test_bit(EC_FLAGS_NO_OBF1_GPE, &ec->flags)))
+>  		force_poll = 1;
+> @@ -227,6 +230,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
+> ec_event event, int force_poll)
+>  		while (time_before(jiffies, delay)) {
+>  			if (acpi_ec_check_status(ec, event))
+>  				goto end;
+> +			msleep(5);
+>  		}
+>  	}
+>  	pr_err(PREFIX "acpi_ec_wait timeout,"
+> @@ -529,6 +533,13 @@ static u32 acpi_ec_gpe_handler(void *data)
+>  	struct acpi_ec *ec = data;
+> 
+>  	pr_debug(PREFIX "~~~> interrupt\n");
+> +	atomic_inc(&ec->irq_count);
+> +	if (atomic_read(&ec->irq_count) > 5) {
+> +		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+> +		acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
+> +		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+> +		return ACPI_INTERRUPT_HANDLED;
+> +	}
+>  	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+>  	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
+>  		wake_up(&ec->wait);
+> 
+> 
 
-ACK... but... this is getting quite big:
-
->  drivers/base/platform.c         |  444 ++++++++++++++++++++++++++++++++++++++--
->  include/linux/platform_device.h |    2
-
-...I hope cleanups in drivers are worth it...
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-pomozte zachranit klanovicky les:  http://www.ujezdskystrom.info/
