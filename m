@@ -1,53 +1,105 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: [PATCH] ACPI : Disable the device's ability to wake the sleeping
-	system in the boot phase
-Date: Tue, 18 Mar 2008 09:03:26 +0800
-Message-ID: <1205802206.4085.5.camel@yakui_zhao.sh.intel.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Tue, 18 Mar 2008 09:59:29 +0800
+Message-ID: <1205805569.3171.23.camel@acpi-hp-zz.sh.intel.com>
+References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
+	 <47C3D04E.6090609@hhs.nl>  <20080317133732.05b79f4d@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28362 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:20391 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752606AbYCRBQ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2008 21:16:26 -0400
+	id S1752999AbYCRCMS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2008 22:12:18 -0400
+In-Reply-To: <20080317133732.05b79f4d@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
-Subject: ACPI : Disable the device's ability to wake the sleeping system in the boot phase
->From : Zhao Yakui <yakui.zhao@intel.com>
 
-In some machines some GPE is shared by several ACPI devices, for example:
-sleep button, keyboard, mouse. At the same time one of them is 
-non-wake(runtime) device and the other are wake devices. In such case OSPM
-should disable the device's ability to wake the sleeping system in the boot 
-phase.Otherwise there will be ACPI interrupt flood triggered by the GPE input.
+On Mon, 2008-03-17 at 20:37 +0800, Jean Delvare wrote:
+> Hi Hans,
+> 
+> On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
+> > Zhang, Rui wrote:
+> > > Add hwmon sys I/F for the generic thermal device.
+> > >
+> >
+> > Great!
+> >
+> > But I have several remarks:
+> > 1) Looking at the new code, you only add temp1_input, so I'm
+> guessing that you
+> > are registering a seperate hwmon class entry per zone? Please don't
+> do that,
+> > please register one hwmon class entry, and add multiple temp#_input
+> attr to it
+> > (and the same for crit).
+> 
+> I am sorry that I did not notice when you suggested this. I disagree,
+> but now Rui's code is upstream so I guess it's too late to complain.
+> Still here are my reasons:
+> 
+> One of the great things about libsensors is that it gives unique names
+> to hardware monitoring devices, and for each device, each feature has
+> a
+> unique name as well. This makes it possible to ignore or label a
+> specific feature in /etc/sensors.conf in a way that is stable over
+> reboot and addition of new hardware.
+Interesting.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9781
-http://bugzilla.kernel.org/show_bug.cgi?id=10224
+> By going with a single virtual device for all thermal zones, you break
+> this model. Depending on which thermal zone drivers are loaded and in
+> which order they are loaded, there will be more or less temp* files in
+> the hwmon directory and you also can't predict their order.
+Yes, you're right.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui  <rui.zhang@intel.com>
-
----
- drivers/acpi/scan.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-Index: linux-2.6/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/scan.c
-+++ linux-2.6/drivers/acpi/scan.c
-@@ -712,6 +712,9 @@ static int acpi_bus_get_wakeup_device_fl
- 	kfree(buffer.pointer);
+> The
+> labelling issue could be solved by adding temp*_label files, but this
+> still prevents the user from overriding a label.
+why user needs to override the label?
+>  And there's no way to
+> reliably ignore a specific thermal zone or to ask for information
+> about a specific thermal zone with the current model.
+> 
+> For this reason, I think it would be much better to have one hwmon
+> class device for each _type_ of thermal zone.
+Well. I disagree.
+First, the generic thermal driver only checks the callbacks and builds
+the sys I/F for each thermal zone registered. So there is no difference
+between different thermal zones. Checking the type of different thermal
+zone and register a hwmon device for each _type of thermal zones doesn't
+make sense to me. :(
+Second, take ACPI thermal zone for example, the number/order of the ACPI
+thermal zones can not be predicted either. All of this information is
+gotten during system boot time.
  
- 	device->wakeup.flags.valid = 1;
-+#ifdef CONFIG_ACPI_POWER
-+	acpi_disable_wakeup_device_power(device);
-+#endif
- 	/* Power button, Lid switch always enable wakeup */
- 	if (!acpi_match_device_ids(device, button_device_ids))
- 		device->wakeup.flags.run_wake = 1;
+>  For example, all ACPI
+> thermal zones would be listed as one hwmon class device. If we later
+> add support for another type of thermal zones, all thermal zones of
+> this type would be listed as one (different) hwmon class device. This
+> makes each specific thermal zone driver responsible for the stability
+> of the numbering of the various thermal zones of a given type. This
+> would also let us give names to the different thermal zone types (e.g.
+> "acpitz" for ACPI thermal zones) so that the users and supporters have
+> an idea who is providing these temperature values and limits.
+If we really need to do this, I suggest we do this in the native driver.
+Say acpi thermal driver is responsible for registering a hwmon device
+for ACPI thermal zones, just like the other hwmon native sensor drivers.
+what do you think?
 
+thanks,
+rui
+> 
+> --
+> Jean Delvare
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
