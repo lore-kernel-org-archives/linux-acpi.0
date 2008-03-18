@@ -1,46 +1,155 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: In function `ata_acpi_associate': undefined reference =?utf-8?q?to=09=60register=5Fhotplug=5Fdock=5Fdevice=27?=
-Date: Mon, 17 Mar 2008 23:57:53 -0400
-Message-ID: <200803172357.54253.lenb@kernel.org>
-References: <47DEC970.2050402@m3y3r.de> <20080317194809.GB9550@cs181133002.pp.htv.fi> <47DECD54.5060202@m3y3r.de>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Tue, 18 Mar 2008 11:45:52 +0800
+Message-ID: <1205811952.3171.80.camel@acpi-hp-zz.sh.intel.com>
+References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
+	 <47C3D04E.6090609@hhs.nl><20080317133732.05b79f4d@hyperion.delvare>
+	 <47DE6A24.7040705@hhs.nl>  <20080317144811.12b7d6cb@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42665 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:53928 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752002AbYCRD62 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:58:28 -0400
-In-Reply-To: <47DECD54.5060202@m3y3r.de>
-Content-Disposition: inline
+	id S1752222AbYCREIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2008 00:08:55 -0400
+In-Reply-To: <20080317144811.12b7d6cb@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Meyer <thomas@m3y3r.de>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, linux-acpi@vger.kernel.org
-Cc: Adrian Bunk <bunk@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, htejun@gmail.com, jeff@garzik.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>
 
-> drivers/built-in.o: In function `ata_acpi_associate':
-> (.text+0x7106a): undefined reference to `register_hotplug_dock_device'
 
-CONFIG_ACPI_DOCK=m
-CONFIG_ATA_ACPI=y
+On Mon, 2008-03-17 at 21:48 +0800, Jean Delvare wrote:
+> On Mon, 17 Mar 2008 13:55:00 +0100, Hans de Goede wrote:
+> > Jean Delvare wrote:
+> > > Hi Hans,
+> > >
+> > > On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
+> > >> Zhang, Rui wrote:
+> > >>> Add hwmon sys I/F for the generic thermal device.
+> > >>>
+> > >> Great!
+> > >>
+> > >> But I have several remarks:
+> > >> 1) Looking at the new code, you only add temp1_input, so I'm
+> guessing that you
+> > >> are registering a seperate hwmon class entry per zone? Please
+> don't do that,
+> > >> please register one hwmon class entry, and add multiple
+> temp#_input attr to it
+> > >> (and the same for crit).
+> > >
+> > > I am sorry that I did not notice when you suggested this. I
+> disagree,
+> > > but now Rui's code is upstream so I guess it's too late to
+> complain.
+> > > Still here are my reasons:
+> > >
+> > > One of the great things about libsensors is that it gives unique
+> names
+> > > to hardware monitoring devices, and for each device, each feature
+> has a
+> > > unique name as well. This makes it possible to ignore or label a
+> > > specific feature in /etc/sensors.conf in a way that is stable over
+> > > reboot and addition of new hardware.
+> > >
+> > > By going with a single virtual device for all thermal zones, you
+> break
+> > > this model. Depending on which thermal zone drivers are loaded and
+> in
+> > > which order they are loaded, there will be more or less temp*
+> files in
+> > > the hwmon directory and you also can't predict their order. The
+> > > labelling issue could be solved by adding temp*_label files, but
+> this
+> > > still prevents the user from overriding a label. And there's no
+> way to
+> > > reliably ignore a specific thermal zone or to ask for information
+> about
+> > > a specific thermal zone with the current model.
+> > >
+> > > For this reason, I think it would be much better to have one hwmon
+> > > class device for each _type_ of thermal zone. For example, all
+> ACPI
+> > > thermal zones would be listed as one hwmon class device. If we
+> later
+> > > add support for another type of thermal zones, all thermal zones
+> of
+> > > this type would be listed as one (different) hwmon class device.
+> This
+> > > makes each specific thermal zone driver responsible for the
+> stability
+> > > of the numbering of the various thermal zones of a given type.
+> This
+> > > would also let us give names to the different thermal zone types
+> (e.g.
+> > > "acpitz" for ACPI thermal zones) so that the users and supporters
+> have
+> > > an idea who is providing these temperature values and limits.
+> > >
+> >
+> > I fully agree, I didn't know there was a generic thermal zone model,
+> and that
+> > there could be multiple drivers implementing it (let alone multiple
+> thermal
+> > zone drivers active for one system ??) I thought this was all ACPI
+> only,
+> 
+> My understanding is that the new thermal zone code is meant to be
+> generic and ACPI is only one possible underlying implementations,
+> which
+> sounds very good to me. ACPI just happens to be the only
+> implementation
+> at the time being.
+> 
+> > If this (multiple thermal zone drivers active for one system) can
+> really happen
+> > then we really should fix it so that there is one hwmon class entry
+> per thermal
+> > zone driver. This can be done without changing the ABI, as things
+> would still
+> > follow the standard hwmon ABI.
+> 
+> I have to admit that I'm not sure what sense that would make (and how
+> safe it would be) to have more than one type of thermal zones active
+> at
+> the same time.
 
-don't work together.
+>  If the idea if that only one type of thermal zones can
+> exist for a given system (i.e. the selection happens at build time),
+> then my objection can safely be ignored, except for the fact that I
+> still would like the "name" attribute to reflect the type of the
+> thermal zones.
+> 
+> Rui, Len, how did you originally envision the coexistence (or not) of
+>  different types of thermal zones?
 
-particularly this:
+driver/thermal/thermal.c won't change any behavior of the current
+system. It just creates a generic sys I/F, that's why we call it the
+Generic Thermal Sysfs driver. :)
 
-drivers/ata/libata-acpi.c
-...
-#if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
-                        /* we might be on a docking station */
-                        register_hotplug_dock_device(ap->acpi_handle,
-                                                     ata_acpi_ap_notify, ap);
-#endif
+We want to introduce a generic solution for thermal management, which
+usually contains a user application for policy control, a generic
+thermal sysfs driver which provides a set of platform-independent
+interfaces, native sensor drivers and device drivers for thermal
+monitoring and device throttling.
+Note that the target is the handheld devices which is not covered by
+hwmon.
+The idea comes from Len's ols paper, please refer to
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/OLS2007-cool-web/
 
-does not link with an EXPORT_SYMBOL_GPL in dock.c when that is a module.
+I don't think the generic thermal sysfs driver need to handle the
+coexistence of different types of thermal zones, because:
+If there are any, they always exist without the generic thermal driver.
+If they break something, it's broken before the generic thermal driver
+is implemented, and the generic thermal driver give it a chance to
+handle this in user space.
+Please correct me if I misunderstand your question. :)
 
-you can change them both to be =y (or either to be =n) to work around it.
-however, this is a 2.6.25 regression, since 2.6.24 could make ATA=y
-and make dock=m
+thanks,
+rui
 
--Len
+
+
+
