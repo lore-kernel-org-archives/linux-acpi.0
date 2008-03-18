@@ -1,145 +1,46 @@
-From: "Guillaume Chazarain" <guichaz@gmail.com>
-Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
-Date: Wed, 19 Mar 2008 00:29:03 +0100
-Message-ID: <3d8471ca0803181629h63530825k6087b2a838484dca@mail.gmail.com>
-References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
-	 <47DFC0D5.8020104@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Tue, 18 Mar 2008 16:32:43 -0400
+Message-ID: <200803181632.44288.lenb@kernel.org>
+References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org> <200803171327.16695.lenb@kernel.org> <1205858252.21619.233.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759183AbYCTBay@vger.kernel.org>
-In-Reply-To: <47DFC0D5.8020104@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:40095 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756768AbYCTCRP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 22:17:15 -0400
+In-Reply-To: <1205858252.21619.233.camel@queen.suse.de>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Tim Elliott <tle@holymonkey.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hi Alexey,
-
-Thanks for your assistance. Here are the results of various tests:
-
-=== vanilla:
-           CPU0
-  0:      14637   IO-APIC-edge      timer
-  1:        213   IO-APIC-edge      i8042
-  3:          2   IO-APIC-edge
-  8:          1   IO-APIC-edge      rtc
-  9:        318   IO-APIC-fasteoi   acpi
- 12:       3534   IO-APIC-edge      i8042
- 14:      12481   IO-APIC-edge      ata_piix
- 15:          0   IO-APIC-edge      ata_piix
- 16:      14609   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-radeon@pci:0000:01:00.0
- 17:       5681   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
- 18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, sdhc0:slot0, eth0
- 19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
- 23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-NMI:          0   Non-maskable interrupts
-LOC:      22742   Local timer interrupts
-TRM:          0   Thermal event interrupts
-SPU:          0   Spurious interrupts
-ERR:          0
-MIS:          0
-
-ACPI keys don't work at all
-
-=== 2c81ce4c9c3 reverted:
-
-           CPU0
-  0:      13379   IO-APIC-edge      timer
-  1:        205   IO-APIC-edge      i8042
-  3:          2   IO-APIC-edge
-  8:          1   IO-APIC-edge      rtc
-  9:       3599   IO-APIC-fasteoi   acpi
- 12:       3654   IO-APIC-edge      i8042
- 14:      13034   IO-APIC-edge      ata_piix
- 15:          0   IO-APIC-edge      ata_piix
- 16:      14073   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-radeon@pci:0000:01:00.0
- 17:       7855   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
- 18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, eth0, sdhc0:slot0
- 19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
- 23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-NMI:          0   Non-maskable interrupts
-LOC:      22153   Local timer interrupts
-TRM:          0   Thermal event interrupts
-SPU:          0   Spurious interrupts
-ERR:          0
-MIS:          0
-
-ACPI keys work fine.
-
-=== 2c81ce4c9c3 reverted + call_psw_on_capable_devices.patch
-
-           CPU0
-  0:      12372   IO-APIC-edge      timer
-  1:        195   IO-APIC-edge      i8042
-  3:          2   IO-APIC-edge
-  8:          1   IO-APIC-edge      rtc
-  9:       7976   IO-APIC-fasteoi   acpi
- 12:       1824   IO-APIC-edge      i8042
- 14:      12168   IO-APIC-edge      ata_piix
- 15:          0   IO-APIC-edge      ata_piix
- 16:      11829   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-radeon@pci:0000:01:00.0
- 17:       4803   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
- 18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, sdhc0:slot0, eth0
- 19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
- 23:         58   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-NMI:          0   Non-maskable interrupts
-LOC:      21962   Local timer interrupts
-TRM:          0   Thermal event interrupts
-SPU:          0   Spurious interrupts
-ERR:          0
-MIS:          0
-
-ACPI keys work fine.
-
-=== dont_disable_ec_gpe_completely_at_storm.patch
-
-           CPU0
-  0:      19657   IO-APIC-edge      timer
-  1:        434   IO-APIC-edge      i8042
-  3:          2   IO-APIC-edge
-  8:          1   IO-APIC-edge      rtc
-  9:       3310   IO-APIC-fasteoi   acpi
- 12:       7224   IO-APIC-edge      i8042
- 14:      13055   IO-APIC-edge      ata_piix
- 15:          0   IO-APIC-edge      ata_piix
- 16:      18637   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-radeon@pci:0000:01:00.0
- 17:       7281   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
- 18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, eth0, sdhc0:slot0
- 19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
- 20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
- 23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-NMI:          0   Non-maskable interrupts
-LOC:      26645   Local timer interrupts
-TRM:          0   Thermal event interrupts
-SPU:          0   Spurious interrupts
-ERR:          0
-MIS:          0
-
-dmesg contains:
-ACPI: EC: GPE storm detected, throttle EC GPE
-ACPI: EC: missing write data confirmation, don't expect it any longer.
-
-ACPI keys quite work but are very laggy (in the order of seconds).
+To: trenn@suse.de
+Cc: =?utf-8?q?=C3=89ric_Piel?= <Eric.Piel@tremplin-utc.net>, Linus Torvalds <torvalds@linux-foundation.org>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Arjan van de Ven <arjan@infradead.org>
 
 
-Conclusion: I never experienced acpi interrupts flood in any case, in
-vanilla the interrupt count is much lower but then there are no
-interrupts even when I press acpi keys.
-dont_disable_ec_gpe_completely_at_storm.patch does not correctly fix
-the problem for me. When 2c81ce4c9c3 is reverted,
-call_psw_on_capable_devices.patch makes no difference as it still
-works well.
+> > The initrd version of the DSDT override is really for one scenario.
+> > Somebody who has a BIOS that even Windows can't deal with -- so
+> > no amount of "Windows bug compatbility" will help Linux with it.
 
-Thanks.
+> No, this is for people getting involved in ACPI.
+> Everybody thinks ACPI is that complicated..., but it's not.
+> It's amazing how far people can debug ACPI bugs (yes, even people who
+> "do not even know" how to compile a kernel) by simply analyzing the ASL
+> BIOS code.
 
--- 
-Guillaume
+Thomas,
+The justification above is what convinced me
+that we should try to integrate this feature.
+Further, although we failed in 2.6.25,
+I think we should continue to try to get this capability integrated.
+
+If you think it will be useful for additional purposes, that's great.
+As you know, I'm somewhat skeptical, as I've seen huge mistakes such
+as a database of modified BIOS images created and used when the users
+have absolutely no idea what they're doing.  But we don't have to
+agree on this to move forward.
+
+thanks,
+-Len
