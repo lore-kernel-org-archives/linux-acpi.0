@@ -1,64 +1,107 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Tue, 18 Mar 2008 11:14:50 +0800
-Message-ID: <1205810090.11199.1.camel@sli10-desk.sh.intel.com>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
-	 <1205725210.27560.9.camel@segulix.localdomain>
-	 <1205789993.6918.30.camel@segulix.localdomain>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Tue, 18 Mar 2008 11:11:10 +0800
+Message-ID: <1205809870.3171.47.camel@acpi-hp-zz.sh.intel.com>
+References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com>
+	 <47C3D04E.6090609@hhs.nl> <20080317133732.05b79f4d@hyperion.delvare>
+	 <47DE6A24.7040705@hhs.nl>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21228 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:33144 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752016AbYCRDNy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:13:54 -0400
-In-Reply-To: <1205789993.6918.30.camel@segulix.localdomain>
+	id S1752162AbYCRDhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2008 23:37:33 -0400
+In-Reply-To: <47DE6A24.7040705@hhs.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Richard Hughes <hughsient@gmail.com>
 
 
-On Mon, 2008-03-17 at 21:39 +0000, Sergio Monteiro Basto wrote:
-> On Mon, 2008-03-17 at 03:40 +0000, Sergio Monteiro Basto wrote:
-> > On Fri, 2008-03-14 at 11:49 +0800, Shaohua Li wrote:
-> > > asus_hides_smbus_lpc_ich6() is called with interrupt disabled in
-> > > resume
-> > > time, but ioremap_nocache() and iounmap() can't be called with
-> > > interrupt
-> > > disabled. Below is my debug fix. If you have better fix, please
-> > > speak. 
-> > 
-> > yap , I have a better fix for my laptop 
-> > I have a Compaq nx , and this quirk is applied ,
-> > 
-> > I simply remove the quirk like I had write 
-> > http://lkml.org/lkml/2007/3/9/516
-> > 
-> > Especially if we don't an ASUS, which may need the quirk.
-> > 
-> > I have been working almost an year without the quirk on my laptop and
-> > things seems that work better 
+On Mon, 2008-03-17 at 20:55 +0800, Hans de Goede wrote:
+> Jean Delvare wrote:
+> > Hi Hans,
+> >
+> > On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
+> >> Zhang, Rui wrote:
+> >>> Add hwmon sys I/F for the generic thermal device.
+> >>>
+> >> Great!
+> >>
+> >> But I have several remarks:
+> >> 1) Looking at the new code, you only add temp1_input, so I'm
+> guessing that you
+> >> are registering a seperate hwmon class entry per zone? Please don't
+> do that,
+> >> please register one hwmon class entry, and add multiple temp#_input
+> attr to it
+> >> (and the same for crit).
+> >
+> > I am sorry that I did not notice when you suggested this. I
+> disagree,
+> > but now Rui's code is upstream so I guess it's too late to complain.
+> > Still here are my reasons:
+> >
+> > One of the great things about libsensors is that it gives unique
+> names
+> > to hardware monitoring devices, and for each device, each feature
+> has a
+> > unique name as well. This makes it possible to ignore or label a
+> > specific feature in /etc/sensors.conf in a way that is stable over
+> > reboot and addition of new hardware.
+> >
+> > By going with a single virtual device for all thermal zones, you
+> break
+> > this model. Depending on which thermal zone drivers are loaded and
+> in
+> > which order they are loaded, there will be more or less temp* files
+> in
+> > the hwmon directory and you also can't predict their order. The
+> > labelling issue could be solved by adding temp*_label files, but
+> this
+> > still prevents the user from overriding a label. And there's no way
+> to
+> > reliably ignore a specific thermal zone or to ask for information
+> about
+> > a specific thermal zone with the current model.
+> >
+> > For this reason, I think it would be much better to have one hwmon
+> > class device for each _type_ of thermal zone. For example, all ACPI
+> > thermal zones would be listed as one hwmon class device. If we later
+> > add support for another type of thermal zones, all thermal zones of
+> > this type would be listed as one (different) hwmon class device.
+> This
+> > makes each specific thermal zone driver responsible for the
+> stability
+> > of the numbering of the various thermal zones of a given type. This
+> > would also let us give names to the different thermal zone types
+> (e.g.
+> > "acpitz" for ACPI thermal zones) so that the users and supporters
+> have
+> > an idea who is providing these temperature values and limits.
+> >
 > 
-> Btw I am running  2.6.24.3-12 fedora kernel , I recompile from the
-> src.rpm and apply with 2 patches one: 
-> http://bugzilla.kernel.org/show_bug.cgi?id=9642
-> this one seems that I don't need anymore on 2.6.25-rc 
-> and remove this quirk.
-> And enable ACPI_DEBUG.
-> 
-> And I am very happy with it , hibernation, suspend works very well and
-> don't loose ACPI events after resume, backlight also works always fine,
-> ACPI events always on, resume from ram don't have to go to console to
-> have screen .
-> I just use git Intel drive. 
-> 
-> Which make me think, will not updates kernels for a very long time :)  
-> Regards, 
-Sure, you can remove the quirk without any problem if you don't want to
-use the smbus device.
+> I fully agree, I didn't know there was a generic thermal zone model,
+> and that
+> there could be multiple drivers implementing it (let alone multiple
+> thermal
+> zone drivers active for one system ??) I thought this was all ACPI
+> only,
+The purpose of the thermal zone driver is to build a generic sys I/F for
+thermal management in user space. Different type of thermal zones can
+make use of it doesn't mean they are active for one system. :)
 
-Thanks,
-Shaohua
+thanks,
+rui
+> If this (multiple thermal zone drivers active for one system) can
+> really happen
+> then we really should fix it so that there is one hwmon class entry
+> per thermal
+> zone driver.
+
+>  This can be done without changing the ABI, as things would still
+> follow the standard hwmon ABI.
+
 
