@@ -1,37 +1,37 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 3/3] PM: New suspend and hibernation callbacks for
-	PCI bus type
-Date: Tue, 18 Mar 2008 11:02:56 +0100
-Message-ID: <20080318100256.GC10830@elf.ucw.cz>
-References: <200803170020.55473.rjw@sisk.pl> <200803170025.16149.rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 2/3] PM: New suspend and hibernation callbacks for
+	platform bus type
+Date: Tue, 18 Mar 2008 11:02:20 +0100
+Message-ID: <20080318100220.GB10830@elf.ucw.cz>
+References: <200803170020.55473.rjw@sisk.pl> <200803170024.23451.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753875AbYCRLru@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:42248 "EHLO
+	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160AbYCRLrR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 07:47:17 -0400
 Content-Disposition: inline
-In-Reply-To: <200803170025.16149.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <200803170024.23451.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
-List-Id: linux-acpi@vger.kernel.org
 
-On Mon 2008-03-17 00:25:15, Rafael J. Wysocki wrote:
+On Mon 2008-03-17 00:24:22, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Implement new suspend and hibernation callbacks for the PCI busi type.
-
-"bus", I guess.
-
+> Implement new suspend and hibernation callbacks for the platform bus
+> type.
+> 
 > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-ACK.
+ACK... but... this is getting quite big:
 
-> ---
->  drivers/pci/pci-driver.c |  497 ++++++++++++++++++++++++++++++++++++++++++-----
->  include/linux/pci.h      |    2 
->  2 files changed, 453 insertions(+), 46 deletions(-)
+>  drivers/base/platform.c         |  444 ++++++++++++++++++++++++++++++++++++++--
+>  include/linux/platform_device.h |    2
 
-...but big, too :-(.
-									Pavel
+...I hope cleanups in drivers are worth it...
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
