@@ -1,104 +1,233 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Dependency chain of new thermal driver
-Date: Tue, 18 Mar 2008 10:11:33 +0100
-Message-ID: <20080318101133.525ecca0@hyperion.delvare>
-References: <20080316155659.7ab2446d@hyperion.delvare>
-	<200803180131.30662.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.25-rc6
+Date: Tue, 18 Mar 2008 05:10:47 -0400
+Message-ID: <200803180510.47670.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:54635 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751530AbYCRJLg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 05:11:36 -0400
-In-Reply-To: <200803180131.30662.lenb@kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:60645 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbYCRJMI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2008 05:12:08 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Hi Len,
+Hi Linus,
 
-On Tue, 18 Mar 2008 01:31:30 -0400, Len Brown wrote:
-> On Sunday 16 March 2008, Jean Delvare wrote:
-> > Hi Rui,
-> > 
-> > I am testing your new thermal driver and I am not very happy with the
-> > dependencies introduced by this driver. The ACPI thermal driver selects
-> > the generic thermal driver, which in turn selects the hwmon base
-> > module. As the generic thermal driver's configuration option is a
-> > boolean, this means that as soon as one selects the ACPI thermal driver
-> > (built-in or modular), the hwmon thermal driver has to be built into
-> > the kernel. This is a problem especially when both the ACPI_THERMAL and
-> > THERMAL options default to y.
-> > 
-> > I fail to see why we are using select at all. The ACPI thermal driver
-> > clearly works without the generic thermal driver (even though the
-> > generic interface is preferred now.) Likewise, the generic thermal
-> > interface driver doesn't need the hwmon base module to work; the hwmon
-> > interface is only an extension, so it should be possible to build the
-> > generic thermal driver without hwmon support. On top of that, I really
-> > would like to be able to build the generic thermal driver as a module.
-> > 
-> > One of the reasons why I would like this to change is this bug:
-> > https://bugzilla.redhat.com/show_bug.cgi?id=437637
-> > http://bugzilla.kernel.org/show_bug.cgi?id=10259
-> > (At the moment I think both reports are the exact same bug.)
-> > 
-> > We will have to fix this bug of course (not sure how...) but the fact
-> > that the users can't temporarily remove the generic thermal driver is a
-> > problem both for bug investigation and for working around the bug until
-> > it's fixed. I really would like to be able to tell the user "rmmod this
-> > module until we come up with a fix", but right now I can't.
-> > 
-> > A more modular setup would give us much more flexibility both at build
-> > time and when bugs are reported. Please think about it.
-> 
-> You are absolutely right -- this is gone from 2.6.25,
-> lets get it right in 2.6.26.
+please pull from: 
 
-Great, thanks.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-> BTW. speaking of 2.6.26....
-> the patch below might become helpful.  For it would
-> be nice if at build-time we could just have hwmon_device_register()
-> fail, rather than put a bunch of #ifdef HWMON in our code.
-> 
-> thanks,
-> -Len
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> 
-> diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
-> index 6b6ee70..68968cc 100644
-> --- a/include/linux/hwmon.h
-> +++ b/include/linux/hwmon.h
-> @@ -16,9 +16,13 @@
->  
->  #include <linux/device.h>
->  
-> +#ifdef CONFIG_HWMON
->  struct device *hwmon_device_register(struct device *dev);
-> -
->  void hwmon_device_unregister(struct device *dev);
-> +#else
-> +static struct device *hwmon_device_register(struct device *dev) { return ERR_PTR(-ENODEV); };
-> +static void hwmon_device_unregister(struct device *dev) { return; };
-> +#endif
->  
->  /* Scale user input to sensible values */
->  static inline int SENSORS_LIMIT(long value, long low, long high)
+This will update the files shown below.
 
-I'm not sure it's such a good idea. Registering a hwmon device is not
-only about calling hwmon_device_register(), it's also about creating
-all the sysfs attribute files and initializing everything that's needed
-for these files. There's already one driver which optionally registers
-a hwmon device (drivers/input/touchscreen/ads7846.c) and looking at the
-code, the patch above wouldn't really help. I think it only makes sense
-to handle the conditional in <linux/hwmon.h> if (almost) everything can
-be handled there and it is transparent to the drivers. Otherwise I'd say
-it's not worth it, as we will still need #ifdefs in the driver code.
+thanks!
 
--- 
-Jean Delvare
+-Len
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.25/acpi-release-20070126-2.6.25-rc6.diff.gz
+
+ drivers/acpi/asus_acpi.c      |    2 +-
+ drivers/acpi/battery.c        |   11 +--
+ drivers/acpi/processor_idle.c |   12 ++-
+ drivers/acpi/video.c          |   60 +--------------
+ drivers/ata/Kconfig           |    1 +
+ drivers/thermal/Kconfig       |    2 -
+ drivers/thermal/thermal.c     |  169 ++++++----------------------------------
+ 7 files changed, 43 insertions(+), 214 deletions(-)
+
+through these commits:
+
+Alexey Starikovskiy (1):
+      ACPI: battery: Don't return -EFAIL on broken packages.
+
+Julia Lawall (1):
+      asus_acpi: remove misleading mask
+
+Len Brown (5):
+      ACPI: fix ATA_ACPI build
+      Revert "thermal: fix generic thermal I/F for hwmon"
+      thermal: delete "default y"
+      Revert "ACPI: video: Ignore ACPI video devices that aren't present in hardware"
+      Revert "ACPI: video: Ignore devices that aren't present in hardware"
+
+Venki Pallipadi (1):
+      ACPI: lockdep warning on boot, 2.6.25-rc5
+
+Zhang, Rui (1):
+      thermal: re-document thermal units
+
+with this log:
+
+commit d9ea1364d37b53710519909ab125a53b0a8ca64f
+Merge: abc5a87... b8a1bdb... 77321e6... 0ac4a3c... 71e93d1... ece54e2...
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 04:52:57 2008 -0400
+
+    Merge branches 'release', 'asus', 'bugzilla-8573', 'bugzilla-9995', 'bugzilla-10272', 'lockdep' and 'thermal' into release
+
+commit 77321e624b64f1e5985a20f3cd16b94c96d0dbb4
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 04:04:35 2008 -0400
+
+    Revert "ACPI: video: Ignore devices that aren't present in hardware"
+    
+    This reverts commit 0119509c4fbc9adcef1472817fda295334612976.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=9995
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit abc5a87f4e627e058813a95b112e9f5f21668f9d
+Author: Julia Lawall <julia@diku.dk>
+Date:   Tue Mar 4 15:00:13 2008 -0800
+
+    asus_acpi: remove misleading mask
+    
+    led_out is boolean, so there is no functional change here,
+    but apparently an extra mask with 1 caused some style checkers
+    to flag this as logic bug.
+    
+    Signed-off-by: Julia Lawall <julia@diku.dk>
+    Acked-by: Luca Tettamanti <kronos.it@gmail.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit f0d6752c9fa51d24c86b57c76ec5b2926a716b23
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 01:43:53 2008 -0400
+
+    Revert "ACPI: video: Ignore ACPI video devices that aren't present in hardware"
+    
+    This reverts commit 3fa2cdcc45a0176de15cac9dbf4ed2834ebf8932.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=9995
+    
+    Signed-off-by: Len Brown <len.brown>
+
+commit ece54e2ff45062852e4647e85b2bb5f6aee8211c
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 01:22:10 2008 -0400
+
+    thermal: delete "default y"
+    
+    The generic thermal I/F gets selected by ACPI_THERMAL --
+    its only current customer.
+    it doesn't need to clutter other configs by default.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 6d7f014e55c5227220da1f021c518487fcfd585a
+Author: Zhang, Rui <rui.zhang@intel.com>
+Date:   Tue Mar 18 10:40:29 2008 +0800
+
+    thermal: re-document thermal units
+    From: Zhang Rui <rui.zhang@intel.com>
+    
+    (reverting the previous sysfs patch also reverted a fix
+     to the thermal units documentation, which is restored by this commit)
+    
+    The generic thermal driver shows temperature in millidegree Celsius.
+    
+    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 91f57fa1215952af579f304821a15cc6c656042c
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 01:14:37 2008 -0400
+
+    Revert "thermal: fix generic thermal I/F for hwmon"
+    
+    This reverts commit 3152fb9f11cdd2fd8688c2c5cb805e5c09b53dd9.
+    
+    This broke libsensors.
+    
+    Acked-by: Zhang Rui <rui.zhang@intel.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 0ac4a3c2fbbcadc3e96e4dc47d4ae802d66e6f67
+Author: Len Brown <len.brown@intel.com>
+Date:   Tue Mar 18 00:26:07 2008 -0400
+
+    ACPI: fix ATA_ACPI build
+    
+    drivers/ata/libata-acpi.c fails to build
+    
+    drivers/built-in.o: In function `ata_acpi_associate':
+    (.text+0x7106a): undefined reference to `register_hotplug_dock_device'
+    
+    When CONFIG_ATA_ACPI=y and CONFIG_ACPI_DOCK=m
+    But if dock is selected from ata_acpi, dock will =y
+    when ata_acpi=y, avoiding this problem.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=10272
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b8a1bdb14940946fcf0438a6337b2a6c54294fb8
+Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+Date:   Mon Mar 17 22:37:42 2008 -0400
+
+    ACPI: battery: Don't return -EFAIL on broken packages.
+    
+    Acer BIOS has a bug which is exposed when a dead battery is present.
+    
+    The package template that is used to describe battery status is
+    over-written with sane values when the battery is live.
+    But when the batter is dead, a bogus reference in the template
+    is used.  In this case, Linux returns a fault, when instead
+    it should simply return that it doesn't know the missing value.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=8573
+    http://bugzilla.kernel.org/show_bug.cgi?id=10202
+    
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 71e93d15612c61c2e26a169567becf088e71b8ff
+Author: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Thu Mar 13 17:18:19 2008 -0700
+
+    ACPI: lockdep warning on boot, 2.6.25-rc5
+    
+    This avoids the harmless WARNING by lockdep in acpi_processor_idle().
+    
+    The reason for WARNING is because at the depth of idle handling code,
+    some of the idle handlers disable interrupts, some times, while returning from
+    the idle handler. After return, acpi_processor_idle and few other routines
+    in the file did an unconditional local_irq_enable(). With LOCKDEP, enabling
+    irq when it is already enabled generates the below WARNING.
+    
+    > > [    0.593038] ------------[ cut here ]------------
+    > > [    0.593267] WARNING: at kernel/lockdep.c:2035 trace_hardirqs_on+0xa0/0x115()
+    > > [    0.593596] Modules linked in:
+    > > [    0.593756] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #8
+    > > [    0.594017]
+    > > [    0.594017] Call Trace:
+    > > [    0.594216]  [<ffffffff80231663>] warn_on_slowpath+0x58/0x6b
+    > > [    0.594495]  [<ffffffff80495966>] ? _spin_unlock_irqrestore+0x38/0x47
+    > > [    0.594809]  [<ffffffff80329a86>] ? acpi_os_release_lock+0x9/0xb
+    > > [    0.595103]  [<ffffffff80337840>] ? acpi_set_register+0x161/0x173
+    > > [    0.595401]  [<ffffffff8034c8d4>] ? acpi_processor_idle+0x1de/0x546
+    > > [    0.595706]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+    > > [    0.595970]  [<ffffffff8024fc0e>] trace_hardirqs_on+0xa0/0x115
+    > > [    0.596049]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+    > > [    0.596346]  [<ffffffff8034c8d4>] acpi_processor_idle+0x1de/0x546
+    > > [    0.596642]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+    > > [    0.596912]  [<ffffffff8034c6f6>] ? acpi_processor_idle+0x0/0x546
+    > > [    0.597209]  [<ffffffff8020a23b>] ? default_idle+0x0/0x73
+    > > [    0.597472]  [<ffffffff8020a355>] cpu_idle+0xa7/0xd1
+    > > [    0.597717]  [<ffffffff80485fa1>] rest_init+0x55/0x57
+    > > [    0.597957]  [<ffffffff8062fb49>] start_kernel+0x29d/0x2a8
+    > > [    0.598215]  [<ffffffff8062f1da>] _sinittext+0x1da/0x1e1
+    > > [    0.598464]
+    > > [    0.598546] ---[ end trace 778e504de7e3b1e3 ]---
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
