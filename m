@@ -1,106 +1,89 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
-Date: Tue, 18 Mar 2008 01:12:58 -0400
-Message-ID: <200803180112.58655.lenb@kernel.org>
-References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com> <47DE6A24.7040705@hhs.nl> <20080317144811.12b7d6cb@hyperion.delvare>
+Subject: [PATCH] Re: Dependency chain of new thermal driver
+Date: Tue, 18 Mar 2008 01:31:30 -0400
+Message-ID: <200803180131.30662.lenb@kernel.org>
+References: <20080316155659.7ab2446d@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51809 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:46889 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968AbYCRFOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Mar 2008 01:14:15 -0400
-In-Reply-To: <20080317144811.12b7d6cb@hyperion.delvare>
+	id S1751097AbYCRFxO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2008 01:53:14 -0400
+In-Reply-To: <20080316155659.7ab2446d@hyperion.delvare>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
 
-On Monday 17 March 2008, Jean Delvare wrote:
-> On Mon, 17 Mar 2008 13:55:00 +0100, Hans de Goede wrote:
-> > Jean Delvare wrote:
-> > > Hi Hans,
-> > > 
-> > > On Tue, 26 Feb 2008 09:39:42 +0100, Hans de Goede wrote:
-> > >> Zhang, Rui wrote:
-> > >>> Add hwmon sys I/F for the generic thermal device.
-> > >>>
-> > >> Great!
-> > >>
-> > >> But I have several remarks:
-> > >> 1) Looking at the new code, you only add temp1_input, so I'm guessing that you
-> > >> are registering a seperate hwmon class entry per zone? Please don't do that, 
-> > >> please register one hwmon class entry, and add multiple temp#_input attr to it 
-> > >> (and the same for crit).
-> > > 
-> > > I am sorry that I did not notice when you suggested this. I disagree,
-> > > but now Rui's code is upstream so I guess it's too late to complain.
-> > > Still here are my reasons:
-> > > 
-> > > One of the great things about libsensors is that it gives unique names
-> > > to hardware monitoring devices, and for each device, each feature has a
-> > > unique name as well. This makes it possible to ignore or label a
-> > > specific feature in /etc/sensors.conf in a way that is stable over
-> > > reboot and addition of new hardware.
-> > > 
-> > > By going with a single virtual device for all thermal zones, you break
-> > > this model. Depending on which thermal zone drivers are loaded and in
-> > > which order they are loaded, there will be more or less temp* files in
-> > > the hwmon directory and you also can't predict their order. The
-> > > labelling issue could be solved by adding temp*_label files, but this
-> > > still prevents the user from overriding a label. And there's no way to
-> > > reliably ignore a specific thermal zone or to ask for information about
-> > > a specific thermal zone with the current model.
-> > > 
-> > > For this reason, I think it would be much better to have one hwmon
-> > > class device for each _type_ of thermal zone. For example, all ACPI
-> > > thermal zones would be listed as one hwmon class device. If we later
-> > > add support for another type of thermal zones, all thermal zones of
-> > > this type would be listed as one (different) hwmon class device. This
-> > > makes each specific thermal zone driver responsible for the stability
-> > > of the numbering of the various thermal zones of a given type. This
-> > > would also let us give names to the different thermal zone types (e.g.
-> > > "acpitz" for ACPI thermal zones) so that the users and supporters have
-> > > an idea who is providing these temperature values and limits.
-> > > 
-> > 
-> > I fully agree, I didn't know there was a generic thermal zone model, and that 
-> > there could be multiple drivers implementing it (let alone multiple thermal 
-> > zone drivers active for one system ??) I thought this was all ACPI only,
+On Sunday 16 March 2008, Jean Delvare wrote:
+> Hi Rui,
 > 
-> My understanding is that the new thermal zone code is meant to be
-> generic and ACPI is only one possible underlying implementations, which
-> sounds very good to me. ACPI just happens to be the only implementation
-> at the time being.
-
-Your understanding is correct.
-While ACPI is currently the only customer of the generic thermal I/F,
-there is a future platform in the pipeline that has no ACPI
-and it too will use the generic thermal I/F.
-
-> > If this (multiple thermal zone drivers active for one system) can really happen 
-> > then we really should fix it so that there is one hwmon class entry per thermal 
-> > zone driver. This can be done without changing the ABI, as things would still 
-> > follow the standard hwmon ABI.
+> I am testing your new thermal driver and I am not very happy with the
+> dependencies introduced by this driver. The ACPI thermal driver selects
+> the generic thermal driver, which in turn selects the hwmon base
+> module. As the generic thermal driver's configuration option is a
+> boolean, this means that as soon as one selects the ACPI thermal driver
+> (built-in or modular), the hwmon thermal driver has to be built into
+> the kernel. This is a problem especially when both the ACPI_THERMAL and
+> THERMAL options default to y.
 > 
-> I have to admit that I'm not sure what sense that would make (and how
-> safe it would be) to have more than one type of thermal zones active at
-> the same time. If the idea if that only one type of thermal zones can
-> exist for a given system (i.e. the selection happens at build time),
-> then my objection can safely be ignored, except for the fact that I
-> still would like the "name" attribute to reflect the type of the
-> thermal zones.
+> I fail to see why we are using select at all. The ACPI thermal driver
+> clearly works without the generic thermal driver (even though the
+> generic interface is preferred now.) Likewise, the generic thermal
+> interface driver doesn't need the hwmon base module to work; the hwmon
+> interface is only an extension, so it should be possible to build the
+> generic thermal driver without hwmon support. On top of that, I really
+> would like to be able to build the generic thermal driver as a module.
 > 
-> Rui, Len, how did you originally envision the coexistence (or not) of
-> different types of thermal zones?
+> One of the reasons why I would like this to change is this bug:
+> https://bugzilla.redhat.com/show_bug.cgi?id=437637
+> http://bugzilla.kernel.org/show_bug.cgi?id=10259
+> (At the moment I think both reports are the exact same bug.)
+> 
+> We will have to fix this bug of course (not sure how...) but the fact
+> that the users can't temporarily remove the generic thermal driver is a
+> problem both for bug investigation and for working around the bug until
+> it's fixed. I really would like to be able to tell the user "rmmod this
+> module until we come up with a fix", but right now I can't.
+> 
+> A more modular setup would give us much more flexibility both at build
+> time and when bugs are reported. Please think about it.
+> 
 
-Right now we seem to be ACPI and then non-ACPI on different systems.
-However, I don't see any reason that both can't be on the same system.
+You are absolutely right -- this is gone from 2.6.25,
+lets get it right in 2.6.26.
 
+BTW. speaking of 2.6.26....
+the patch below might become helpful.  For it would
+be nice if at build-time we could just have hwmon_device_register()
+fail, rather than put a bunch of #ifdef HWMON in our code.
+
+thanks,
 -Len
 
+Signed-off-by: Len Brown <len.brown@intel.com>
 
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+index 6b6ee70..68968cc 100644
+--- a/include/linux/hwmon.h
++++ b/include/linux/hwmon.h
+@@ -16,9 +16,13 @@
+ 
+ #include <linux/device.h>
+ 
++#ifdef CONFIG_HWMON
+ struct device *hwmon_device_register(struct device *dev);
+-
+ void hwmon_device_unregister(struct device *dev);
++#else
++static struct device *hwmon_device_register(struct device *dev) { return ERR_PTR(-ENODEV); };
++static void hwmon_device_unregister(struct device *dev) { return; };
++#endif
+ 
+ /* Scale user input to sensible values */
+ static inline int SENSORS_LIMIT(long value, long low, long high)
 
