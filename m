@@ -1,181 +1,75 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
-Date: Tue, 18 Mar 2008 13:22:38 +0300
-Message-ID: <47DF97EE.3080402@suse.de>
-References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
+	hibernation callbacks
+Date: Tue, 18 Mar 2008 11:01:06 +0100
+Message-ID: <20080318100106.GA10830@elf.ucw.cz>
+References: <200803170020.55473.rjw@sisk.pl> <200803170022.30345.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060906060409040606060807"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:33351 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751078AbYCRKWo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Mar 2008 06:22:44 -0400
-In-Reply-To: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752656AbYCRLsI@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200803170022.30345.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Guillaume Chazarain <guichaz@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-This is a multi-part message in MIME format.
---------------060906060409040606060807
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi!
 
-Hi,
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Please provide 'cat /proc/interrupts'.
-Could you try if such patch works?
+ACK.
 
-Thanks,
-Alex.
+> + * The externally visible transitions are handled with the help of the following
+> + * callbacks included in this structure:
+> + *
+> + * @prepare: Prepare the device for the upcoming transition, but do NOT change
+> + *	its hardware state.  Prevent new children of the device from being
+> + *	registered and prevent new calls to the probe method from being made
+> + *	after @prepare() returns.  Also, if a concurrent child registration
+> + *	or a call to the probe method already in progress is detected by
+> + *	@prepare(), it may return -EAGAIN, so that the PM core can execute it
+> + *	once again (e.g. after suspending the newly registered child) to recover
+> + *	from the race condition. This method is executed for all kinds of
+> + *	suspend transitions and is immediately followed by one of the suspend
+> + *	callbacks: @suspend(), @freeze(), @poweroff(), or @quiesce().
+> + *
+> + * @complete: Undo the changes made by @prepare().  This method is executed for
+> + *	all kinds of resume transitions, immediately following one of the resume
+> + *	callbacks: @resume(), @thaw(), @restore(), or @recover().  Also executed
+> + *	if a suspend callback (@suspend(), @freeze(), @poweroff(), @quiesce())
+> + *	immediately following a successful @prepare() fails OR if a new child
+> + *	of the device has been registered during @prepare().
 
-Guillaume Chazarain wrote:
-> Hi,
-> 
-> There is an ACPI regression in 2.6.25-rc6, which causes the ACPI keys
-> to stop working on my laptop, an Asus V6VA. git bisect identified the
-> appended commit as guilty, and reverting it indeed fixes the problem
-> for me. Attached are my .config, a good dmesg and a bad one. The diff
-> between both dmesg reveals this interesting hunk:
-> 
-> @@ -121,8 +121,9 @@
->  ACPI: (supports S0 S1 S3 S4 S5)
->  ACPI: Using IOAPIC for interrupt routing
->  ACPI: EC: non-query interrupt received, switching to interrupt mode
-> +ACPI: EC: GPE storm detected, disabling EC GPE
->  ACPI: EC: GPE = 0x1c, I/O: command/status = 0x66, data = 0x62
-> -ACPI: EC: driver started in interrupt mode
-> +ACPI: EC: driver started in poll mode
->  ACPI: PCI Root Bridge [PCI0] (0000:00)
->  pci 0000:00:1f.0: Enabled ICH6/i801 SMBus device
->  pci 0000:00:1f.0: quirk: region 0800-087f claimed by ICH6 ACPI/GPIO/TCO
-> 
-> 
-> Thanks.
-> 
-> 
-> commit 2c81ce4c9c37b910210f2640c28e98a0c398dc26
-> Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Date:   Tue Mar 11 13:30:00 2008 -0400
-> 
->     ACPI: EC: Handle IRQ storm on Acer laptops
-> 
->     On some Acer systems, the HW fails to clear the GPE source,
->     causing an interrupt storm.
-> 
->     So in EC interrupt mode, we count how many interrupts we
->     receive when waiting.  If we get more than 5, we give
->     up on interrupt mode and revert to polling mode.
-> 
->     Also, for polling mode to work on Acers, we need
->     to insert a delay.
-> 
->     Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->     Signed-off-by: Len Brown <len.brown@intel.com>
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index caf873c..2c77359 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -129,6 +129,7 @@ static struct acpi_ec {
->  	struct mutex lock;
->  	wait_queue_head_t wait;
->  	struct list_head list;
-> +	atomic_t irq_count;
->  	u8 handlers_installed;
->  } *boot_ec, *first_ec;
-> 
-> @@ -181,6 +182,8 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
-> ec_event event, int force_poll)
->  {
->  	int ret = 0;
-> 
-> +	atomic_set(&ec->irq_count, 0);
-> +
->  	if (unlikely(event == ACPI_EC_EVENT_OBF_1 &&
->  		     test_bit(EC_FLAGS_NO_OBF1_GPE, &ec->flags)))
->  		force_poll = 1;
-> @@ -227,6 +230,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
-> ec_event event, int force_poll)
->  		while (time_before(jiffies, delay)) {
->  			if (acpi_ec_check_status(ec, event))
->  				goto end;
-> +			msleep(5);
->  		}
->  	}
->  	pr_err(PREFIX "acpi_ec_wait timeout,"
-> @@ -529,6 +533,13 @@ static u32 acpi_ec_gpe_handler(void *data)
->  	struct acpi_ec *ec = data;
-> 
->  	pr_debug(PREFIX "~~~> interrupt\n");
-> +	atomic_inc(&ec->irq_count);
-> +	if (atomic_read(&ec->irq_count) > 5) {
-> +		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-> +		acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
-> +		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-> +		return ACPI_INTERRUPT_HANDLED;
-> +	}
->  	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
->  	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
->  		wake_up(&ec->wait);
-> 
-> 
+So... we do prepare() but it detects new child, so it returns -EAGAIN.
+  so we call complete() based on description above
+...and then we call prepare() to suspend again?
 
+> + * @suspend: Executed before putting the system into a sleep state in which the
+> + *	contents of main memory are preserved.  Quiesce the device, put it into
 
---------------060906060409040606060807
-Content-Type: text/x-patch;
- name="dont_disable_ec_gpe_completely_at_storm.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dont_disable_ec_gpe_completely_at_storm.patch"
+content....is?
 
-ACPI: EC: Don't disable EC GPE completely at detected storm
+> + * @resume: Executed after waking the system up from a sleep state in which the
+> + *	contents of main memory were preserved.  Put the device into the
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+content...is?
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+> + * @freeze: Hibernation-specific, executed before creating a hibernation image.
+> + *	Quiesce operations so that a consistent image can be created, but do NOT
+> + *	otherwise put the device into a low power device state and do NOT emit
+> + *	system wakeup events.  Save in main memory the device settings to be
 
- drivers/acpi/ec.c |   17 +++++++++++++++--
- 1 files changed, 15 insertions(+), 2 deletions(-)
+"Save device settings (used by @restore()) into main memory"?
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e7e197e..461acd1 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -527,17 +527,30 @@ static void acpi_ec_gpe_query(void *ec_cxt)
- 	mutex_unlock(&ec->lock);
- }
- 
-+static void acpi_ec_enable_gpe(void *context)
-+{
-+	struct acpi_ec *ec = context;
-+	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	atomic_set(&ec->irq_count, 0);
-+	set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-+}
-+
- static u32 acpi_ec_gpe_handler(void *data)
- {
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
-+	static bool gpe_storm = 0;
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
-+	if (atomic_read(&ec->irq_count) > 2) {
-+		if (!gpe_storm) {
-+			pr_err(PREFIX "GPE storm detected, throttle EC GPE\n");
-+			gpe_storm = 1;
-+		}
- 		acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
- 		clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
-+		acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_enable_gpe, ec);
- 		return ACPI_INTERRUPT_HANDLED;
- 	}
- 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+> + * @quiesce: Hibernation-specific, executed after loading a hibernation image
+> + *	and before restoring the contents of main memory from it.  Quiesce
+> + *	operations so that the contents of main memory can be restored from the
 
---------------060906060409040606060807--
+operations, so ?
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+pomozte zachranit klanovicky les:  http://www.ujezdskystrom.info/
