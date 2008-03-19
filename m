@@ -1,80 +1,130 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: suspend slow in 2.6.25-rc6 (was Re: Suspend and
- hibernation	patchset against -rc6)
-Date: Thu, 20 Mar 2008 00:07:37 +0300
-Message-ID: <47E18099.5060100@suse.de>
-References: <200803172317.33745.rjw@sisk.pl> <20080318130642.GA1609@elf.ucw.cz>
-	<20080318130710.GB1609@elf.ucw.cz>
-	<alpine.LFD.1.00.0803181028400.3020@woody.linux-foundation.org>
-	<20080318225201.GA2115@elf.ucw.cz>
-	<alpine.LFD.1.00.0803181736340.3020@woody.linux-foundation.org>
-	<20080319114851.GB21270@atrey.karlin.mff.cuni.cz>
-	<alpine.LFD.1.00.0803190742450.3020@woody.linux-foundation.org>
-	<20080319202323.GA1811@elf.ucw.cz> <47E178FE.6050500@suse.de>
-	<20080319205812.GC1811@elf.ucw.cz>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
+Date: Wed, 19 Mar 2008 14:06:22 +0100
+Message-ID: <1205931982.21619.301.camel@queen.suse.de>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+	 <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
+	 <200801100943.08780.maximlevitsky@gmail.com>
+	 <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
+	 <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20080319205812.GC1811@elf.ucw.cz>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Johannes Berg <johannes@sipsolutions.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns.suse.de ([195.135.220.2]:47644 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936513AbYCSVMQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 17:12:16 -0400
+In-Reply-To: <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: yi.y.yang@intel.com
+Cc: Zhang Rui <rui.zhang@intel.com>, Maxim Levitsky <maximlevitsky@gmail.com>, david-b@pacbell.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net, Holger Macht <hmacht@suse.de>
 
-Pavel Machek wrote:
-> On Wed 2008-03-19 23:35:10, Alexey Starikovskiy wrote:
->> Pavel Machek wrote:
->>> Hi!
->>>
->>>>> Ok, 7c0... is innocent. Reverting not only the mdelay, but also rest
->>>>> of drivers/acpi/ec.c patch fixed the
->>>>> "rc6-breaks-backlight-in-X-over-lid-close", good.
->>>> Can you clarify a bit?
->>>>
->>>> Do you mean that the full revert of 2c81ce4 that already got committed is 
->>>> sufficient for you, or do you need to totally undo everything we've done 
->>>> to ec.c since -rc5, and thus also to revert the _other_ revert we did (in 
->>>> 4af8e10a6c57e7292862bd1703712f0565c7e429)?
->>> I did some more testing, and realized I was wrong. We need to totally
->>> undo everything we've done to ec.c since -rc5... (that has small
->>> sideffect of brightness up/down keys no longer working -- regression
->>> since 2.6.24, but saves us from "backlight gone after
->>> closing/reopening lid" which is _NASTY_ regression from 2.6.25-rc5).
->>>
->>> ACPI sucks.
->>>
->>> I.e. this patch:
->>>
->>>
->>> Revert ec.c to 2.6.25-rc5 state:
->>>
->>> * this fixes backlight after closing/reopening the lid while in X on
->>> thinkpad x60
->>>
->>> * unfortunately it breaks fn-home/end keyboard brightness control
->> It should also break volume up/down/mute keys. Essentially all the keys on Thinkpad.
->> And it would also be regression to 2.6.24 level.
+On Fri, 2008-01-11 at 07:55 +0800, Yi Yang wrote:
+> > > I think that it would be much much better to place wake-up attributes under
+> > > corresponding PCI and PNP devices.
+> > > Probably it is even better to link this code to PCI code, so PCI drivers will be aware of ACPI.
+> > I like this idea, maxim. :)
+> > And that's what we actually did about half a year ago.
+> > 
+> > Yi,
+> > Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=6892
+> > and David's patch set here:
+> > http://marc.info/?l=linux-mm-commits&m=117701595209299&w=2
+> > http://marc.info/?l=linux-mm-commits&m=117701866524935&w=2
+> > You can have a look at this thread as well:
+> > http://marc.info/?l=linux-acpi&m=119982937409968&w=2
+> > 
+> I checked those patches you mentioned, they did bind two wakeup flag to
+> some extent, but they can't be exchanged to use and they are just partly
+> in current linus tree, two flags bind isn't in linus tree.
 > 
-> As I explained above.
+> According to my test on the latest linus tree, wakeup flag of
+> acpi_device hasn't any association with device's, i don't know if they
+> are the same thing. if we enbale or disable it manually, what will
+> happen? From source code, it is just a flag, it doesn't trigger any
+> event or hardware operation.
 > 
-> Unfortunately, applying this means I loose screen as soon as I
-> close/reopen lid. 2.6.24 did not behave like that. And it makes my
-> machine mostly unusable -- as soon as you try to carry it away, you
-> loose video. BAD.
-> 								Pavel
-> 
-Pavel,
-You are reverting a revert of the patch, which was introduced _after_ 2.6.24. 
-Thus, you regression to 2.6.24 should lay somewhere else.
+> > thanks,
+> > Rui
+> > > For example it will fix the 'EHCI instantly wakes up the system from S4' on my system, since here USB doesn't wake
+> > > up anything from S4, and ACPI tables correctly show that.
+> > > 
+> > > If ehci driver was aware of that it could disable #PME on entrance to S4.
+> > > And we even can reuse its 'wakeup' attribute, thus enabling wakeup automatically.
+> > > 
+> > > Going ever further, I think that it will be great to get rid of ACPI device tree, since
+> > > most acpi devices are ether PCI of PNP ones.
+> > > 
+> > > Or, even better have a small ACPI tree, that will contain 'true' ACPI devices, like cpus
+> > > thermal sensors, buttons, etc. 
 
-Regards,
-Alex.
+Any news on this?
+I ran into a problem with the current implementation:
+
+If one GPE is tight to several devices you get a message:
+echo XYZ >/tmp/acpi/wakeup
+ACPI: 'XXX' and 'XYZ' have the same GPE, can't disable/enable one
+seperately
+ACPI: 'YYY' and 'XYZ' have the same GPE, can't disable/enable one
+seperately
+and none of the devices are activated to be able to wake the machine up.
+Which I expect is wrong, all should be enabled/disabled then IMO, but
+it's probably not worth much fixing in /proc/acpi/...
+
+The correct interface to use seem to be:
+drivers/base/power/sysfs.c
+But this is rather broken?
+Here an output of /proc/acpi/wakeup and /sys/...:
+for x in `find /sys/ |grep wakeup`;do if [ $(cat $x) ];then echo $x; cat $x;fi;done
+/sys/devices/pnp0/00:04/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.7/usb4/4-5/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.7/usb4/4-1/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.7/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.1/usb2/power/wakeup
+enabled
+/sys/devices/pci0000:00/0000:00:1d.0/usb1/power/wakeup
+enabled
+trenn@stravinsky:/extern/trenn/packages/home:trenn> cat /proc/acpi/wakeup 
+Device  S-state   Status   Sysfs node
+PCI0      S5     disabled  no-bus:pci0000:00
+
+I still think (from comments in drivers/base/power/sysfs.c, not sure
+whether it really is that appropriate) it is wakeup sysfs file that
+should be used for this.
+I wonder why each device has a wakeup file, it should be enough to
+create them dynamically if wakeup enable/disable is supported for a
+specific device?
+Also a second file is missing from which state (S3,S4,S5) the device can
+wake the machine up.
+
+If there can be multiple devices for one GPE, this information (the
+power directory of multiple devices) could be linked together in sysfs?
+E.g.
+/sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+is a link to:
+/sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+If both are using one wake-up GPE.
+
+Also if the ACPI device caught through acpi_get_physical device is a PCI
+bridge, it should get evaluated what is behind the bridge and this
+device (e.g. a network card) should get the wakeup stuff set up, not the
+bridge?
+
+Does someone still look at this?
+If not, shall I or is it on some queue?
+Should this be discussed a bit more detailed first?
+
+   Thomas
+
