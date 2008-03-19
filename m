@@ -1,167 +1,58 @@
-From: "Tim Elliott" <tle@holymonkey.com>
-Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
-Date: Tue, 18 Mar 2008 10:23:07 -0700
-Message-ID: <1a25886d0803181023o785efa42w523ea48896a0331c@mail.gmail.com>
-References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>
-	 <47DFC0D5.8020104@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend slow in 2.6.25-rc6 (was Re: Suspend and =?iso-8859-1?q?hibernation=09patchset_against?= -rc6)
+Date: Wed, 19 Mar 2008 21:47:07 +0100
+Message-ID: <200803192147.08942.rjw@sisk.pl>
+References: <200803120129.25585.rjw@sisk.pl> <20080319202323.GA1811@elf.ucw.cz> <47E178FE.6050500@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:48351 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756795AbYCSUpn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 16:45:43 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so1312754ugc.16
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Mar 2008 13:45:38 -0700 (PDT)
-In-Reply-To: <47DFC0D5.8020104@suse.de>
+Received: from ogre.sisk.pl ([217.79.144.158]:57745 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755796AbYCSUrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 16:47:45 -0400
+In-Reply-To: <47E178FE.6050500@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Guillaume Chazarain <guichaz@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
+Cc: Pavel Machek <pavel@ucw.cz>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>
 
-I am seeing the same problem on my Lenovo 3000 v100. The function keys
-stopped working.
+On Wednesday, 19 of March 2008, Alexey Starikovskiy wrote:
+> Pavel Machek wrote:
+> > Hi!
+> > 
+> >>> Ok, 7c0... is innocent. Reverting not only the mdelay, but also rest
+> >>> of drivers/acpi/ec.c patch fixed the
+> >>> "rc6-breaks-backlight-in-X-over-lid-close", good.
+> >> Can you clarify a bit?
+> >>
+> >> Do you mean that the full revert of 2c81ce4 that already got committed is 
+> >> sufficient for you, or do you need to totally undo everything we've done 
+> >> to ec.c since -rc5, and thus also to revert the _other_ revert we did (in 
+> >> 4af8e10a6c57e7292862bd1703712f0565c7e429)?
+> > 
+> > I did some more testing, and realized I was wrong. We need to totally
+> > undo everything we've done to ec.c since -rc5... (that has small
+> > sideffect of brightness up/down keys no longer working -- regression
+> > since 2.6.24, but saves us from "backlight gone after
+> > closing/reopening lid" which is _NASTY_ regression from 2.6.25-rc5).
+> > 
+> > ACPI sucks.
+> > 
+> > I.e. this patch:
+> > 
+> > 
+> > Revert ec.c to 2.6.25-rc5 state:
+> > 
+> > * this fixes backlight after closing/reopening the lid while in X on
+> > thinkpad x60
+> > 
+> > * unfortunately it breaks fn-home/end keyboard brightness control
+> It should also break volume up/down/mute keys. Essentially all the keys on Thinkpad.
+> And it would also be regression to 2.6.24 level.
 
-tim@tim-len:~$ cat /proc/interrupts
-           CPU0       CPU1
-  0:     164105          0   IO-APIC-edge      timer
-  1:      12560          0   IO-APIC-edge      i8042
-  9:          6          0   IO-APIC-fasteoi   acpi
- 12:     117534          0   IO-APIC-edge      i8042
- 14:         51          0   IO-APIC-edge      ide0
- 16:         31          0   IO-APIC-fasteoi   uhci_hcd:usb4,
-i915@pci:0000:00:02.0
- 18:     121892          0   IO-APIC-fasteoi   uhci_hcd:usb3, iwl3945
- 19:      36197          0   IO-APIC-fasteoi   uhci_hcd:usb2, ahci
- 20:       7931          0   IO-APIC-fasteoi   eth0
- 22:      11071          0   IO-APIC-fasteoi   sdhc0:slot0, HDA Intel
- 23:          5          0   IO-APIC-fasteoi   uhci_hcd:usb1, ehci_hcd:usb5
-NMI:          0          0   Non-maskable interrupts
-LOC:      11296      73879   Local timer interrupts
-RES:      23199      49164   Rescheduling interrupts
-CAL:        297      27033   function call interrupts
-TLB:        838       1286   TLB shootdowns
-TRM:          0          0   Thermal event interrupts
-THR:          0          0   Threshold APIC interrupts
-SPU:          0          0   Spurious interrupts
-ERR:          0
+Well, and what's the underlying issue?
 
-The problem goes away when reverting 2c81ce4c9c37b910210f2640c28e98a0c398dc26
-
-Reverting the above and applying the patch in comment #38 of bug #9998
-also works (http://bugzilla.kernel.org/show_bug.cgi?id=9998).
-
-Cheers,
-Tim
-
-On 3/18/08, Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
-> Hi Guillaume,
->
->  Please check if the patch to call _PSW methods, attached to bug #9998
->  helps to reduce number of ACPI interrupts if you revert the 2c81ce4c9c3
->
->  Thanks,
->  Alex.
->
->
->  Guillaume Chazarain wrote:
->  > Hi,
->  >
->  > There is an ACPI regression in 2.6.25-rc6, which causes the ACPI keys
->  > to stop working on my laptop, an Asus V6VA. git bisect identified the
->  > appended commit as guilty, and reverting it indeed fixes the problem
->  > for me. Attached are my .config, a good dmesg and a bad one. The diff
->  > between both dmesg reveals this interesting hunk:
->  >
->  > @@ -121,8 +121,9 @@
->  >  ACPI: (supports S0 S1 S3 S4 S5)
->  >  ACPI: Using IOAPIC for interrupt routing
->  >  ACPI: EC: non-query interrupt received, switching to interrupt mode
->  > +ACPI: EC: GPE storm detected, disabling EC GPE
->  >  ACPI: EC: GPE = 0x1c, I/O: command/status = 0x66, data = 0x62
->  > -ACPI: EC: driver started in interrupt mode
->  > +ACPI: EC: driver started in poll mode
->  >  ACPI: PCI Root Bridge [PCI0] (0000:00)
->  >  pci 0000:00:1f.0: Enabled ICH6/i801 SMBus device
->  >  pci 0000:00:1f.0: quirk: region 0800-087f claimed by ICH6 ACPI/GPIO/TCO
->  >
->  >
->  > Thanks.
->  >
->  >
->  > commit 2c81ce4c9c37b910210f2640c28e98a0c398dc26
->  > Author: Alexey Starikovskiy <astarikovskiy@suse.de>
->  > Date:   Tue Mar 11 13:30:00 2008 -0400
->  >
->  >     ACPI: EC: Handle IRQ storm on Acer laptops
->  >
->  >     On some Acer systems, the HW fails to clear the GPE source,
->  >     causing an interrupt storm.
->  >
->  >     So in EC interrupt mode, we count how many interrupts we
->  >     receive when waiting.  If we get more than 5, we give
->  >     up on interrupt mode and revert to polling mode.
->  >
->  >     Also, for polling mode to work on Acers, we need
->  >     to insert a delay.
->  >
->  >     Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->  >     Signed-off-by: Len Brown <len.brown@intel.com>
->  >
->  > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
->  > index caf873c..2c77359 100644
->  > --- a/drivers/acpi/ec.c
->  > +++ b/drivers/acpi/ec.c
->  > @@ -129,6 +129,7 @@ static struct acpi_ec {
->  >       struct mutex lock;
->  >       wait_queue_head_t wait;
->  >       struct list_head list;
->  > +     atomic_t irq_count;
->  >       u8 handlers_installed;
->  >  } *boot_ec, *first_ec;
->  >
->  > @@ -181,6 +182,8 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
->  > ec_event event, int force_poll)
->  >  {
->  >       int ret = 0;
->  >
->  > +     atomic_set(&ec->irq_count, 0);
->  > +
->  >       if (unlikely(event == ACPI_EC_EVENT_OBF_1 &&
->  >                    test_bit(EC_FLAGS_NO_OBF1_GPE, &ec->flags)))
->  >               force_poll = 1;
->  > @@ -227,6 +230,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum
->  > ec_event event, int force_poll)
->  >               while (time_before(jiffies, delay)) {
->  >                       if (acpi_ec_check_status(ec, event))
->  >                               goto end;
->  > +                     msleep(5);
->  >               }
->  >       }
->  >       pr_err(PREFIX "acpi_ec_wait timeout,"
->  > @@ -529,6 +533,13 @@ static u32 acpi_ec_gpe_handler(void *data)
->  >       struct acpi_ec *ec = data;
->  >
->  >       pr_debug(PREFIX "~~~> interrupt\n");
->  > +     atomic_inc(&ec->irq_count);
->  > +     if (atomic_read(&ec->irq_count) > 5) {
->  > +             pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
->  > +             acpi_disable_gpe(NULL, ec->gpe, ACPI_ISR);
->  > +             clear_bit(EC_FLAGS_GPE_MODE, &ec->flags);
->  > +             return ACPI_INTERRUPT_HANDLED;
->  > +     }
->  >       clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
->  >       if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
->  >               wake_up(&ec->wait);
->  >
->  >
->
->
->  --
->  To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->  the body of a message to majordomo@vger.kernel.org
->  More majordomo info at  http://vger.kernel.org/majordomo-info.html
->  Please read the FAQ at  http://www.tux.org/lkml/
->
+Rafael
