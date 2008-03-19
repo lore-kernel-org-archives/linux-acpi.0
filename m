@@ -1,130 +1,254 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: [RFC] fix asus_hides_smbus_lpc_ich6() for resume
-Date: Tue, 18 Mar 2008 23:47:07 +0000
-Message-ID: <1205884027.3096.15.camel@monteirov>
-References: <1205466549.5127.2.camel@sli10-desk.sh.intel.com>
-	 <1205725210.27560.9.camel@segulix.localdomain>
-	 <1205789993.6918.30.camel@segulix.localdomain>
-	 <1205810090.11199.1.camel@sli10-desk.sh.intel.com>
-Reply-To: sergio@sergiomb.no-ip.org
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
+Date: Wed, 19 Mar 2008 11:52:08 -0700
+Message-ID: <200803191152.09482.david-b@pacbell.net>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com> <1200009342.5389.12.camel@yangyi-dev.bj.intel.com> <1205931982.21619.301.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-iT9BlflTz+t2ZfUbCZsx"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.netcabo.pt ([212.113.174.30]:36587 "EHLO
-	exch01smtp12.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756062AbYCSTtW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 15:49:22 -0400
-In-Reply-To: <1205810090.11199.1.camel@sli10-desk.sh.intel.com>
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:25236 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1760196AbYCSTwN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 15:52:13 -0400
+In-Reply-To: <1205931982.21619.301.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-pci <linux-pci@atrey.karlin.mff.cuni.cz>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>
+To: trenn@suse.de, yi.y.yang@intel.com
+Cc: Zhang Rui <rui.zhang@intel.com>, Maxim Levitsky <maximlevitsky@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net, Holger Macht <hmacht@suse.de>
+
+On Wednesday 19 March 2008, Thomas Renninger wrote:
+> On Fri, 2008-01-11 at 07:55 +0800, Yi Yang wrote:
+> > > > I think that it would be much much better to place wake-up attributes under
+> > > > corresponding PCI and PNP devices.
+> > > > Probably it is even better to link this code to PCI code, so PCI
+> > > > drivers will be aware of ACPI. 
+> > >
+> > > I like this idea, maxim. :)
+> > > And that's what we actually did about half a year ago.
+> > > 
+> > > Yi,
+> > > Please refer to http://bugzilla.kernel.org/show_bug.cgi?id=6892
+> > > and David's patch set here:
+> > > http://marc.info/?l=linux-mm-commits&m=117701595209299&w=2
+> > > http://marc.info/?l=linux-mm-commits&m=117701866524935&w=2
+> > > You can have a look at this thread as well:
+> > > http://marc.info/?l=linux-acpi&m=119982937409968&w=2
+
+And I have some more split-out versions of those patches
+now, too.  Cleanups and simplifications should be more
+directly mergeable, and the tricky bits affecting GPE use
+can be addressed by folk who are actively involved in the
+nitty-gritty of making the power management parts of ACPI
+work right for Linux.
+
+I think I'll repost them soonish, to linux-pm and, as relevant,
+to linux-acpi.  LKML for stuff that's IMO mergeable as-is.
+
+ 
+> > I checked those patches you mentioned, they did bind two wakeup flag to
+> > some extent, but they can't be exchanged to use and they are just partly
+> > in current linus tree, two flags bind isn't in linus tree.
+
+Right.
 
 
---=-iT9BlflTz+t2ZfUbCZsx
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+> > According to my test on the latest linus tree, wakeup flag of
+> > acpi_device hasn't any association with device's, i don't know if they
+> > are the same thing. if we enbale or disable it manually, what will
+> > happen? From source code, it is just a flag, it doesn't trigger any
+> > event or hardware operation.
+
+Currently ACPI wakeup mechanisms are not at all integrated with
+driver model mechanisms, or with non-ACPI bits of the system.
+
+The "why" of that is that those patches still haven't been merged;
+and the "why" of *that* is, AFAICT, that ACPI sleep/wake/resume
+support is still in serious flux.
+
+The current model is, yes, those are just flags ... and they only
+kick in during driver state transitions.  Someday we can hope
+they will support runtime power management (e.g. putting PCI
+devices in PCI_D3hot to save power, then letting them trigger
+runtime wake events when external hardware asks for that) ...
+but for now, those transitions only kick in when the system as
+a whole enters a sleep state, via /sys/power/state writes.
 
 
-On Tue, 2008-03-18 at 11:14 +0800, Shaohua Li wrote:
-> On Mon, 2008-03-17 at 21:39 +0000, Sergio Monteiro Basto wrote:
-> > On Mon, 2008-03-17 at 03:40 +0000, Sergio Monteiro Basto wrote:
-> > > On Fri, 2008-03-14 at 11:49 +0800, Shaohua Li wrote:
-> > > > asus_hides_smbus_lpc_ich6() is called with interrupt disabled in
-> > > > resume
-> > > > time, but ioremap_nocache() and iounmap() can't be called with
-> > > > interrupt
-> > > > disabled. Below is my debug fix. If you have better fix, please
-> > > > speak.=20
-> > >=20
-> > > yap , I have a better fix for my laptop=20
-> > > I have a Compaq nx , and this quirk is applied ,
-> > >=20
-> > > I simply remove the quirk like I had write=20
-> > > http://lkml.org/lkml/2007/3/9/516
-> > >=20
-> > > Especially if we don't an ASUS, which may need the quirk.
-> > >=20
-> > > I have been working almost an year without the quirk on my laptop and
-> > > things seems that work better=20
-> >=20
-> > Btw I am running  2.6.24.3-12 fedora kernel , I recompile from the
-> > src.rpm and apply with 2 patches one:=20
-> > http://bugzilla.kernel.org/show_bug.cgi?id=3D9642
-> > this one seems that I don't need anymore on 2.6.25-rc=20
-> > and remove this quirk.
-> > And enable ACPI_DEBUG.
-> >=20
-> > And I am very happy with it , hibernation, suspend works very well and
-> > don't loose ACPI events after resume, backlight also works always fine,
-> > ACPI events always on, resume from ram don't have to go to console to
-> > have screen .
-> > I just use git Intel drive.=20
-> >=20
-> > Which make me think, will not updates kernels for a very long time :) =20
-> > Regards,=20
+> > > thanks,
+> > > Rui
+> > > > For example it will fix the 'EHCI instantly wakes up the system
+> > > > from S4' on my system, since here USB doesn't wake 
+> > > > up anything from S4, and ACPI tables correctly show that.
+> > > > 
+> > > > If ehci driver was aware of that it could disable #PME on entrance to S4.
+> > > > And we even can reuse its 'wakeup' attribute, thus enabling wakeup
+> > > > automatically. 
+> > > > 
+> > > > Going ever further, I think that it will be great to get rid of ACPI
+> > > > device tree, since 
+> > > > most acpi devices are ether PCI of PNP ones.
+> > > > 
+> > > > Or, even better have a small ACPI tree, that will contain 'true'
+> > > > ACPI devices, like cpus thermal sensors, buttons, etc. 
 
-> Sure, you can remove the quirk without any problem if you don't want to
-> use the smbus device.
-
-smbus came with lm_sensors ? isn't it ?=20
-
-I will see, If I can have smbus working or not but just in next month, I
-am very busy right now.
-
-But at least name of quirk is wrong, says that if for an ASUS, which I
-though that not should be applied on HP Compaqs .
-
-Thanks,=20
-
---=20
-S=E9rgio M.B.
-
---=-iT9BlflTz+t2ZfUbCZsx
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICECv58J8+j9G8Y7r6tize4dAwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MTAxMzIyMjE1NFoXDTA4MTAxMjIyMjE1
-NFowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALmR
-do8nLKka6p0NNur5o8znYir80AaybL3nuKDDeY2CNjm8JdpJPea9KmXurRU9Q/jnsmgtn2UH9blF
-1qUDxzUvFrZ8fEFkMBht+DJMPShJIa885JyggTvRg+ZUEPdjvb7pHrvpEhxlDcJ9vpYnB4M06D2p
-lefGl9TVq9srUCUMc/4/G/OLaLz0f6Nhc0Gb7YcUDIRINHR0pWuCpxl8wxOU8YSx43KbNgPOo3Kn
-jtdcgGRoy7kAKN2rQmU4tgLDh8F+f9a3mMc3YRs0CfkPq7RSGMWcNagkEWCcoh0f5tDYjq1iQEWD
-5fK1esWmiR5onZ+QyUd+kU7IycY68iMD5BMCAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAetiCq+dKlfTpFybx+lLoL7A/ep10fER7eHDGB6MQ
-9n8HDqz2eOXMZrw0WSYfWXhG+fnrpUE85DseFXQFJDf6gBdD/KlYqnmaDY0nK9LdFHA3hapRARvB
-el9wYF60z+1yI69bFzyoZpCnY3+1oFQGews7kwT6u77QVdj6Y8v+Ai0wggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECECv58J8+j9G8Y7r6tize4dAwCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MDMxODIzNDcwMlowIwYJKoZI
-hvcNAQkEMRYEFKZhWiqceaIpuxOYQQkt4lksiFDzMA0GCSqGSIb3DQEBAQUABIIBABe7WahB27kO
-r/WoeHeg9Y/lVGJLHMfmJFCoR+LEzS7TmtfXrZ0IoSXLyr/Miz5DRmVq54DSyK9Ifd1Kh7cvW0US
-66no5TFM/ITo/fE+mFlvQvYT126edTpws+/dqsJj+T2faJMI9uzKTKA4xTyqa55s/+FPM7YxTuxw
-roO35Q9Awx5Te+8P5ns3nPvUzImNaDHrlWlEEJyVo4jO4FAVIfoRjDHX1G3ATKZJLZy62PccKc1+
-Kgr8LrAsGyspbk1vNrq4xG33BbXLvGUfGWx63EyLGODaw/6eaMw7IFvzSsW9Y2rEl2bjrbsKoktt
-cY+tc80RThoPqyhM0hg6K/tcgz4AAAAAAAA=
+There's a bit of state in the ACPI device nodes that's not
+currently visible through PCI or PNP.  The patch I posted
+a while back to cross-link ACPI nodes to the "real" nodes
+should help sort out some of that.  (Basically, it's just
+an updated version of a patch from Zhang Rui.)
 
 
---=-iT9BlflTz+t2ZfUbCZsx--
+> Any news on this?
 
+Not from me, but that sounds like a useful direction.  In
+the same vein, it'd make sense to properly root PCI from the
+PNP record for the PCI root.
+
+
+> I ran into a problem with the current implementation:
+> 
+> If one GPE is tight to several devices you get a message:
+> echo XYZ >/tmp/acpi/wakeup
+> ACPI: 'XXX' and 'XYZ' have the same GPE, can't disable/enable one
+> seperately
+> ACPI: 'YYY' and 'XYZ' have the same GPE, can't disable/enable one
+> seperately
+> and none of the devices are activated to be able to wake the machine up.
+
+I've not happened across that myself.
+
+
+> Which I expect is wrong, all should be enabled/disabled then IMO, but
+> it's probably not worth much fixing in /proc/acpi/...
+
+Agreed.
+
+ 
+> The correct interface to use seem to be:
+> drivers/base/power/sysfs.c
+> But this is rather broken?
+> Here an output of /proc/acpi/wakeup and /sys/...:
+> for x in `find /sys/ |grep wakeup`;do if [ $(cat $x) ];then echo $x; cat $x;fi;done
+> /sys/devices/pnp0/00:04/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-5/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-1/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.1/usb2/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.0/usb1/power/wakeup
+> enabled
+
+In short:  only USB portions of the tree have those flags set,
+since USB (a) has some workarounds for the lack of ACPI support
+on OHCI and EHCI controllers, like 00:1d.7, and (b) supports
+those flags for devices that ACPI doesn't know about, such as
+most USB keyboards, hubs, mice, and so forth.  Plus, (c) you
+aren't using the rtc-cmos driver, which works better with the
+rest of Linux than the legacy drivers/char/rtc driver.
+
+If you had applied patches like my "teach ACPI how to use the
+wakeup flags", you should see more devices with such flags.
+
+
+> trenn@stravinsky:/extern/trenn/packages/home:trenn> cat /proc/acpi/wakeup 
+> Device  S-state   Status   Sysfs node
+> PCI0      S5     disabled  no-bus:pci0000:00
+
+Hmm, and (d) you've got a system that doesn't do much in terms
+of ACPI wakeup:  a PCI root bridge, and maybe some buttons.  Why
+that root bridge shows up as a "no-bus" node I don't know... 
+there's usually a PNP node for it, and otherwise it'd seem like
+it should be a PCI device.  (The buttons seem to never show up.)
+
+It's not uncommon for the ACPI device tables to list devices
+that don't actually exist in /proc/acpi/wakeup.  Many of the
+devices with no sysfs node seem to be of that type.  To me,
+this just highlights the current weak handling of wakeups in
+the ACPI stack.
+
+
+> I still think (from comments in drivers/base/power/sysfs.c, not sure
+> whether it really is that appropriate) it is wakeup sysfs file that
+> should be used for this.
+
+Yes.
+
+
+> I wonder why each device has a wakeup file, it should be enough to
+> create them dynamically if wakeup enable/disable is supported for a
+> specific device?
+
+Because that can change dynamically.  Classic example:  a USB
+device with two active configurations, plus "configuration zero".
+Whether it's wakeup-capable depends on a bit in the descriptor
+for the active configuration ... so config zero may never waake
+the system, while either (or both!) of the active configs might.
+
+
+> Also a second file is missing from which state (S3,S4,S5) the device can
+> wake the machine up.
+
+Those labels are ACPI-specific, and anything at the core of
+Linux (like the driver model and its wakeup flags) should
+never be ACPI-specific!
+
+Plus, it's not clear how much that matters.  It's not as if
+drivers should prevent entering sleep states if they can't
+act as wake event sources in that level (e.g. S3 == "mem").
+That information can stay in /proc/acpi/wakeup until that's
+finally removed; if no userspace tools need that info, I see
+no good reason for exporting it.
+
+
+> If there can be multiple devices for one GPE, this information (the
+> power directory of multiple devices) could be linked together in sysfs?
+> E.g.
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+> is a link to:
+> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+> If both are using one wake-up GPE.
+
+That doesn't seem helpful ... it'd mean that you couldn't
+manage wakeup policy for individual devices. 
+
+This issue is an ACPI-ism, having to do with how wakeup
+is implemented on one platform:  "GPE" signals, which are
+not exposed in any useful way, rather than IRQs (fully
+exposed and shareable, see irq_chip.set_wake) or some other
+mechanism.  So it doesn't belong in the driver model core.
+
+
+> Also if the ACPI device caught through acpi_get_physical device is a PCI
+> bridge, it should get evaluated what is behind the bridge and this
+> device (e.g. a network card) should get the wakeup stuff set up, not the
+> bridge?
+
+One part of the bug 6892 discussion is specifically about
+how PCI bridges don't support wakeup events ... PME# signals,
+or their PCIE equivalent, as issued by add-in PCI cards.
+
+I think that'll work better if ACPI gets sane support for
+wakeup from the built-in devices first.  And oddly enough,
+basic patches supporting that have been around for well over
+a year now ...
+
+
+> Does someone still look at this?
+> If not, shall I or is it on some queue?
+> Should this be discussed a bit more detailed first?
+
+I'll do my bit by (re)reposting the patches I have.
+
+- Dave
