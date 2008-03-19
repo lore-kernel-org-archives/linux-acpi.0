@@ -1,50 +1,88 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 0/3, v10] PCI, ACPI: Physical PCI slot objects
-Date: Tue, 18 Mar 2008 15:05:39 -0600
-Message-ID: <20080318210539.GA30421@ldl.fc.hp.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: suspend slow in 2.6.25-rc6 (was Re: Suspend and
+	hibernation	patchset against -rc6)
+Date: Wed, 19 Mar 2008 21:23:23 +0100
+Message-ID: <20080319202323.GA1811@elf.ucw.cz>
+References: <200803120129.25585.rjw@sisk.pl> <200803172317.33745.rjw@sisk.pl>
+	<20080318130642.GA1609@elf.ucw.cz>
+	<20080318130710.GB1609@elf.ucw.cz>
+	<alpine.LFD.1.00.0803181028400.3020@woody.linux-foundation.org>
+	<20080318225201.GA2115@elf.ucw.cz>
+	<alpine.LFD.1.00.0803181736340.3020@woody.linux-foundation.org>
+	<20080319114851.GB21270@atrey.karlin.mff.cuni.cz>
+	<alpine.LFD.1.00.0803190742450.3020@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:45046 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762115AbYCSUAs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 16:00:48 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <alpine.LFD.1.00.0803190742450.3020@woody.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>
-Cc: Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-Hi Greg, Kenji-san,
+Hi!
 
-This is v10 of my "introduce pci_slot" series, to be considered
-for inclusion in linux-next to get more test exposure and shake
-out the bugs.
+> > Ok, 7c0... is innocent. Reverting not only the mdelay, but also rest
+> > of drivers/acpi/ec.c patch fixed the
+> > "rc6-breaks-backlight-in-X-over-lid-close", good.
+> 
+> Can you clarify a bit?
+> 
+> Do you mean that the full revert of 2c81ce4 that already got committed is 
+> sufficient for you, or do you need to totally undo everything we've done 
+> to ec.c since -rc5, and thus also to revert the _other_ revert we did (in 
+> 4af8e10a6c57e7292862bd1703712f0565c7e429)?
 
-* Greg KH <gregkh@suse.de>:
-> Can you work with Kenji to get his approval on this before I
-> add this to the tree?  It sounds like there are still some
-> outstanding issues getting this to work properly on his
-> hardware.  It needs to work without relying on a module not
-> being loaded, as the distros are never going to go for that
-> kind of solution.
+I did some more testing, and realized I was wrong. We need to totally
+undo everything we've done to ec.c since -rc5... (that has small
+sideffect of brightness up/down keys no longer working -- regression
+since 2.6.24, but saves us from "backlight gone after
+closing/reopening lid" which is _NASTY_ regression from 2.6.25-rc5).
 
-New in v10 is the addition of a DMI list to do the right thing on
-Fujitsu hardware, and does not rely on "don't load the module" to
-get the correct behavior.
+ACPI sucks.
 
-Also, v10 should fix the "pci_slot module changes the sysfs name"
-issue that Kenji-san was seeing.
+I.e. this patch:
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> Alex-san, could you send me the updated patches? I'll Ack the
-> patch after adding Fujitsu firmware versions to the DMI list
-> and testing it.
 
-Thanks, I'd like to know if the naming issue is fixed for you as
-well.
+Revert ec.c to 2.6.25-rc5 state:
 
-cheers,
+* this fixes backlight after closing/reopening the lid while in X on
+thinkpad x60
 
-/ac
+* unfortunately it breaks fn-home/end keyboard brightness control
 
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 7222a18..caf873c 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -943,7 +943,11 @@ int __init acpi_ec_ecdt_probe(void)
+ 		boot_ec->command_addr = ecdt_ptr->control.address;
+ 		boot_ec->data_addr = ecdt_ptr->data.address;
+ 		boot_ec->gpe = ecdt_ptr->gpe;
+-		boot_ec->handle = ACPI_ROOT_OBJECT;
++		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
++				&boot_ec->handle))) {
++			pr_info("Failed to locate handle for boot EC\n");
++			boot_ec->handle = ACPI_ROOT_OBJECT;
++		}
+ 	} else {
+ 		/* This workaround is needed only on some broken machines,
+ 		 * which require early EC, but fail to provide ECDT */
+
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+pomozte zachranit klanovicky les:  http://www.ujezdskystrom.info/
