@@ -1,78 +1,61 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: suspend slow in 2.6.25-rc6 (was Re: Suspend and hibernation
-	patchset against -rc6)
-Date: Wed, 19 Mar 2008 23:02:11 +0100
-Message-ID: <20080319220210.GG1811@elf.ucw.cz>
-References: <200803172317.33745.rjw@sisk.pl> <200803192243.14520.rjw@sisk.pl> <20080319215729.GF1811@elf.ucw.cz> <200803192259.00091.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
+Date: Wed, 19 Mar 2008 23:10:17 +0100
+Message-ID: <200803192310.18692.rjw@sisk.pl>
+References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com> <1a25886d0803181023o785efa42w523ea48896a0331c@mail.gmail.com> <47E01C86.9080306@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:57656 "EHLO
-	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934494AbYCSWBk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 18:01:40 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:58276 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S939837AbYCSWKg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 18:10:36 -0400
+In-Reply-To: <47E01C86.9080306@suse.de>
 Content-Disposition: inline
-In-Reply-To: <200803192259.00091.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Tim Elliott <tle@holymonkey.com>, Guillaume Chazarain <guichaz@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Wed 2008-03-19 22:58:59, Rafael J. Wysocki wrote:
-> On Wednesday, 19 of March 2008, Pavel Machek wrote:
+On Tuesday, 18 of March 2008, Alexey Starikovskiy wrote:
+> Tim Elliott wrote:
+> > I am seeing the same problem on my Lenovo 3000 v100. The function keys
+> > stopped working.
 > > 
-> > > > >> Revert ec.c to 2.6.25-rc5 state:
-> > > > >>
-> > > > >> * this fixes backlight after closing/reopening the lid while in X on
-> > > > >> thinkpad x60
-> > > > >>
-> > > > >> * unfortunately it breaks fn-home/end keyboard brightness control
-> > > > > It should also break volume up/down/mute keys. Essentially all the keys on Thinkpad.
-> > > > > And it would also be regression to 2.6.24 level.
-> > > > 
-> > > > As I explained above.
-> > > > 
-> > > > Unfortunately, applying this means I loose screen as soon as I
-> > > > close/reopen lid. 2.6.24 did not behave like that. And it makes my
-> > > > machine mostly unusable -- as soon as you try to carry it away, you
-> > > > loose video. BAD.
-> > > 
-> > > Can you text the current -git (preferably without anything on top) pretty please?
+> > tim@tim-len:~$ cat /proc/interrupts
+> >            CPU0       CPU1
+> >   0:     164105          0   IO-APIC-edge      timer
+> >   1:      12560          0   IO-APIC-edge      i8042
+> >   9:          6          0   IO-APIC-fasteoi   acpi
+> >  12:     117534          0   IO-APIC-edge      i8042
+> >  14:         51          0   IO-APIC-edge      ide0
+> >  16:         31          0   IO-APIC-fasteoi   uhci_hcd:usb4,
+> > i915@pci:0000:00:02.0
+> >  18:     121892          0   IO-APIC-fasteoi   uhci_hcd:usb3, iwl3945
+> >  19:      36197          0   IO-APIC-fasteoi   uhci_hcd:usb2, ahci
+> >  20:       7931          0   IO-APIC-fasteoi   eth0
+> >  22:      11071          0   IO-APIC-fasteoi   sdhc0:slot0, HDA Intel
+> >  23:          5          0   IO-APIC-fasteoi   uhci_hcd:usb1, ehci_hcd:usb5
+> > NMI:          0          0   Non-maskable interrupts
+> > LOC:      11296      73879   Local timer interrupts
+> > RES:      23199      49164   Rescheduling interrupts
+> > CAL:        297      27033   function call interrupts
+> > TLB:        838       1286   TLB shootdowns
+> > TRM:          0          0   Thermal event interrupts
+> > THR:          0          0   Threshold APIC interrupts
+> > SPU:          0          0   Spurious interrupts
+> > ERR:          0
 > > 
-> > Did anything relevant change in the last 8 hours or so?
-> 
-> No, it didn't.
-> 
-> > My scripts tell me there's nothing to pull:
+> > The problem goes away when reverting 2c81ce4c9c37b910210f2640c28e98a0c398dc26
 > > 
-> > Done counting 441 objects.
-> > Result has 304 objects.
-> > Deltifying 304 objects.
-> >  100% (304/304) done
-> > Total 304, written 304 (delta 236), reused 121 (delta 75)
-> > Fetching pack (head and objects)...
-> > Fetching tags...
-> > Up to date.
-> > 
-> > Applying changes...
-> > Branch already fully merged.
-> > pavel@amd:~$
-> 
-> Still, the current -git has the offending patch reverted and you're seeing a
-> regression nevertheless.
-> 
-> Is that correct?
+> > Reverting the above and applying the patch in comment #38 of bug #9998
+> > also works (http://bugzilla.kernel.org/show_bug.cgi?id=9998).
+> reverting the above and patch in comment #38 of #9998 are the same thing.
+> I am really interested if after revert (or application of #38) you notice a
+> difference in interrupt count before and after applying #37 from #9998.
 
-Yes.
+What is the relationship between this problem and bug #10279?
 
-(Or more precisely, there are two regressions:
-
-* s2ram 5 seconds slower -- fixed by current git
-
-* backlight goes out in X -- not fixed by current git)
-
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
-pomozte zachranit klanovicky les:  http://www.ujezdskystrom.info/
+Rafael
