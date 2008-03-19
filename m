@@ -1,157 +1,69 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI regression in 2.6.25-rc6 (function keys stop working)
-Date: Wed, 19 Mar 2008 02:53:14 +0300
-Message-ID: <47E055EA.5000300@suse.de>
-References: <3d8471ca0803171713q31b87939y557f6408543ac881@mail.gmail.com>	 <47DFC0D5.8020104@suse.de> <3d8471ca0803181629h63530825k6087b2a838484dca@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend slow in 2.6.25-rc6 (was Re: Suspend and hibernation patchset against -rc6)
+Date: Wed, 19 Mar 2008 22:43:13 +0100
+Message-ID: <200803192243.14520.rjw@sisk.pl>
+References: <200803172317.33745.rjw@sisk.pl> <47E178FE.6050500@suse.de> <20080319205812.GC1811@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:42376 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932972AbYCSVil (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 17:38:41 -0400
-In-Reply-To: <3d8471ca0803181629h63530825k6087b2a838484dca@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:58096 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S938434AbYCSVpb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 17:45:31 -0400
+In-Reply-To: <20080319205812.GC1811@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guillaume Chazarain <guichaz@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, Tim Elliott <tle@holymonkey.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>, Johannes Berg <johannes@sipsolutions.net>
 
-Hi Guilaume,
+On Wednesday, 19 of March 2008, Pavel Machek wrote:
+> On Wed 2008-03-19 23:35:10, Alexey Starikovskiy wrote:
+> > Pavel Machek wrote:
+> >> Hi!
+> >>
+> >>>> Ok, 7c0... is innocent. Reverting not only the mdelay, but also rest
+> >>>> of drivers/acpi/ec.c patch fixed the
+> >>>> "rc6-breaks-backlight-in-X-over-lid-close", good.
+> >>> Can you clarify a bit?
+> >>>
+> >>> Do you mean that the full revert of 2c81ce4 that already got committed is 
+> >>> sufficient for you, or do you need to totally undo everything we've done 
+> >>> to ec.c since -rc5, and thus also to revert the _other_ revert we did (in 
+> >>> 4af8e10a6c57e7292862bd1703712f0565c7e429)?
+> >>
+> >> I did some more testing, and realized I was wrong. We need to totally
+> >> undo everything we've done to ec.c since -rc5... (that has small
+> >> sideffect of brightness up/down keys no longer working -- regression
+> >> since 2.6.24, but saves us from "backlight gone after
+> >> closing/reopening lid" which is _NASTY_ regression from 2.6.25-rc5).
+> >>
+> >> ACPI sucks.
+> >>
+> >> I.e. this patch:
+> >>
+> >>
+> >> Revert ec.c to 2.6.25-rc5 state:
+> >>
+> >> * this fixes backlight after closing/reopening the lid while in X on
+> >> thinkpad x60
+> >>
+> >> * unfortunately it breaks fn-home/end keyboard brightness control
+> > It should also break volume up/down/mute keys. Essentially all the keys on Thinkpad.
+> > And it would also be regression to 2.6.24 level.
+> 
+> As I explained above.
+> 
+> Unfortunately, applying this means I loose screen as soon as I
+> close/reopen lid. 2.6.24 did not behave like that. And it makes my
+> machine mostly unusable -- as soon as you try to carry it away, you
+> loose video. BAD.
 
-May I ask you for one more favor?
-Could you please uncomment DEBUG at the beginning of drivers/acpi/ec.c
-and send me dmesg (or, better, attach it to bugzilla.kernel.org #9998) with
-the reverted offender patch?
+Pavel,
+
+Can you text the current -git (preferably without anything on top) pretty please?
 
 Thanks,
-Alex.
-
-Guillaume Chazarain wrote:
-> Hi Alexey,
-> 
-> Thanks for your assistance. Here are the results of various tests:
-> 
-> === vanilla:
->            CPU0
->   0:      14637   IO-APIC-edge      timer
->   1:        213   IO-APIC-edge      i8042
->   3:          2   IO-APIC-edge
->   8:          1   IO-APIC-edge      rtc
->   9:        318   IO-APIC-fasteoi   acpi
->  12:       3534   IO-APIC-edge      i8042
->  14:      12481   IO-APIC-edge      ata_piix
->  15:          0   IO-APIC-edge      ata_piix
->  16:      14609   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-> radeon@pci:0000:01:00.0
->  17:       5681   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
->  18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, sdhc0:slot0, eth0
->  19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
->  20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
->  23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-> NMI:          0   Non-maskable interrupts
-> LOC:      22742   Local timer interrupts
-> TRM:          0   Thermal event interrupts
-> SPU:          0   Spurious interrupts
-> ERR:          0
-> MIS:          0
-> 
-> ACPI keys don't work at all
-> 
-> === 2c81ce4c9c3 reverted:
-> 
->            CPU0
->   0:      13379   IO-APIC-edge      timer
->   1:        205   IO-APIC-edge      i8042
->   3:          2   IO-APIC-edge
->   8:          1   IO-APIC-edge      rtc
->   9:       3599   IO-APIC-fasteoi   acpi
->  12:       3654   IO-APIC-edge      i8042
->  14:      13034   IO-APIC-edge      ata_piix
->  15:          0   IO-APIC-edge      ata_piix
->  16:      14073   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-> radeon@pci:0000:01:00.0
->  17:       7855   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
->  18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, eth0, sdhc0:slot0
->  19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
->  20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
->  23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-> NMI:          0   Non-maskable interrupts
-> LOC:      22153   Local timer interrupts
-> TRM:          0   Thermal event interrupts
-> SPU:          0   Spurious interrupts
-> ERR:          0
-> MIS:          0
-> 
-> ACPI keys work fine.
-> 
-> === 2c81ce4c9c3 reverted + call_psw_on_capable_devices.patch
-> 
->            CPU0
->   0:      12372   IO-APIC-edge      timer
->   1:        195   IO-APIC-edge      i8042
->   3:          2   IO-APIC-edge
->   8:          1   IO-APIC-edge      rtc
->   9:       7976   IO-APIC-fasteoi   acpi
->  12:       1824   IO-APIC-edge      i8042
->  14:      12168   IO-APIC-edge      ata_piix
->  15:          0   IO-APIC-edge      ata_piix
->  16:      11829   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-> radeon@pci:0000:01:00.0
->  17:       4803   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
->  18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, sdhc0:slot0, eth0
->  19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
->  20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
->  23:         58   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-> NMI:          0   Non-maskable interrupts
-> LOC:      21962   Local timer interrupts
-> TRM:          0   Thermal event interrupts
-> SPU:          0   Spurious interrupts
-> ERR:          0
-> MIS:          0
-> 
-> ACPI keys work fine.
-> 
-> === dont_disable_ec_gpe_completely_at_storm.patch
-> 
->            CPU0
->   0:      19657   IO-APIC-edge      timer
->   1:        434   IO-APIC-edge      i8042
->   3:          2   IO-APIC-edge
->   8:          1   IO-APIC-edge      rtc
->   9:       3310   IO-APIC-fasteoi   acpi
->  12:       7224   IO-APIC-edge      i8042
->  14:      13055   IO-APIC-edge      ata_piix
->  15:          0   IO-APIC-edge      ata_piix
->  16:      18637   IO-APIC-fasteoi   uhci_hcd:usb5, firewire_ohci,
-> radeon@pci:0000:01:00.0
->  17:       7281   IO-APIC-fasteoi   yenta, ipw2200, Intel ICH6
->  18:          0   IO-APIC-fasteoi   uhci_hcd:usb4, eth0, sdhc0:slot0
->  19:          0   IO-APIC-fasteoi   uhci_hcd:usb3
->  20:          0   IO-APIC-fasteoi   Intel ICH6 Modem
->  23:          4   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
-> NMI:          0   Non-maskable interrupts
-> LOC:      26645   Local timer interrupts
-> TRM:          0   Thermal event interrupts
-> SPU:          0   Spurious interrupts
-> ERR:          0
-> MIS:          0
-> 
-> dmesg contains:
-> ACPI: EC: GPE storm detected, throttle EC GPE
-> ACPI: EC: missing write data confirmation, don't expect it any longer.
-> 
-> ACPI keys quite work but are very laggy (in the order of seconds).
-> 
-> 
-> Conclusion: I never experienced acpi interrupts flood in any case, in
-> vanilla the interrupt count is much lower but then there are no
-> interrupts even when I press acpi keys.
-> dont_disable_ec_gpe_completely_at_storm.patch does not correctly fix
-> the problem for me. When 2c81ce4c9c3 is reverted,
-> call_psw_on_capable_devices.patch makes no difference as it still
-> works well.
-> 
-> Thanks.
-> 
-
+Rafael
