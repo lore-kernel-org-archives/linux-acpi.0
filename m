@@ -1,83 +1,60 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 0/3, v10] PCI, ACPI: Physical PCI slot objects
-Date: Tue, 18 Mar 2008 19:52:06 -0600
-Message-ID: <20080319015206.GE30421@ldl.fc.hp.com>
-References: <20080318210539.GA30421@ldl.fc.hp.com> <20080319005535.GB424@parisc-linux.org>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: ACPI lockdep warning on boot, 2.6.25-rc5
+Date: Wed, 19 Mar 2008 13:09:31 -0700
+Message-ID: <20080319200931.GA1525@linux-os.sc.intel.com>
+References: <E1JZOGd-00057d-BU@pomaz-ex.szeredi.hu> <200803122301.17356.rjw@sisk.pl> <200803131614.33386.lenb@kernel.org> <20080314001819.GA32584@linux-os.sc.intel.com> <20080315131611.GA4828@ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:31324 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763967AbYCSUIr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2008 16:08:47 -0400
+Received: from mga02.intel.com ([134.134.136.20]:1833 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757339AbYCSUQX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 16:16:23 -0400
 Content-Disposition: inline
-In-Reply-To: <20080319005535.GB424@parisc-linux.org>
+In-Reply-To: <20080315131611.GA4828@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <matthew@wil.cx>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Miklos Szeredi <miklos@szeredi.hu>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Willy,
-
-* Matthew Wilcox <matthew@wil.cx>:
-> On Tue, Mar 18, 2008 at 03:05:39PM -0600, Alex Chiang wrote:
-> > Also, v10 should fix the "pci_slot module changes the sysfs
-> > name" issue that Kenji-san was seeing.
+On Sat, Mar 15, 2008 at 02:16:11PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> I thought we agreed that the current names are wrong, and we
-> shouldn't consider this 'different name' an issue.
-
-I did see some discussion around this, but wasn't actually sure
-what we decided on. For v10, the little adjustment I made keeps
-the existing userspace names for pciehp, but doesn't affect
-shpchp.
-
-[The example that Kenji-san sent out earlier showed that his
-pciehp slot names changed depending on the order of module
-loading between pciehp and pci_slot; his shpchp slot names did
-not change.]
-
-Injecting my thoughts into the exchange between Kenji-san and
-Kristen earlier on this subject...
-
-> > * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> * Kristen Carlson Accardi <kristen.c.accardi@intel.com>:
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> > >     Though I don't have any specific idea about this,
-> > >     folliwings might be candidates.                                                           
-> > >                                                                              
-> > >     - Override slot names with hotplug driver's slot names                   
-> > I think this should be done - if the pci slot driver detects
-> > that a hotplug driver is controlling a slot, it should allow
-> > that driver to set the name of the slot.                                                     
+> > @@ -421,7 +423,9 @@
+> >  		else
+> >  			acpi_safe_halt();
+> >  
+> > -		local_irq_enable();
+> > +		if (irqs_disabled())
+> > +			local_irq_enable();
+> > +
+> >  		return;
+> >  	}
+> >  
+> > @@ -530,7 +534,9 @@
+> >  		 *       skew otherwise.
+> >  		 */
+> >  		sleep_ticks = 0xFFFFFFFF;
+> > -		local_irq_enable();
+> > +		if (irqs_disabled())
+> > +			local_irq_enable();
+> > +
+> >  		break;
+> >  
+> >  	case ACPI_STATE_C2:
 > 
-> Yes, it is what I thought.  But maybe we should try unifying
-> slots names first, I think.
-
-This is the tweak I added in v10.
-
-> > >     - Unify slot names among all hotplug drivers                             
-> > I'm not sure if we can do this, since slot name might depend
-> > on what spec people are implementing.                                                 
+> That's pretty ugly. Could the code be modified to have interrupt
+> consistent at this point?
 > 
-> I'm not sure too. But I think we can unify the slot names using
-> the combination of chassis number and slot number among the
-> controllers which is based on PCI Hot-Plug spec.
 
-I could take this approach instead, but it will definitely change
-what userspace sees. I'd like to get an ACK from Kristen before
-starting down this path.
+Agreed that this is not very clean. The problem is that we cannot be sure
+about the interrupt state at this point as the low level idle handlers at
+this point can come from variety of different places like safe_halt, arch
+dependent pm_idle code (which is different for (32 and 64 bit at this point)
+and also pm_idle can be somewhere outside the kernel in some module as it is
+a function pointer.
 
-Actually, my real preference would be to save it for a future
-patch set, while I work on getting this one into the tree. ;)
+Thanks,
+Venki
 
-> > >     - Stop automatic loading of ACPI PCI slot driver                         
-> > I think we should definitely implement this one ^^^. 
-
-I don't think that should be happening anyway. On my Fedora Core
-8 userspace, pci_slot doesn't get loaded until I modprobe it.
-
-Maybe Kenji-san is building it into his kernel?
-
-/ac
-
+ 
