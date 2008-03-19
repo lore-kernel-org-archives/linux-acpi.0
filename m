@@ -1,46 +1,115 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Tue, 18 Mar 2008 16:32:43 -0400
-Message-ID: <200803181632.44288.lenb@kernel.org>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org> <200803171327.16695.lenb@kernel.org> <1205858252.21619.233.camel@queen.suse.de>
+From: Yi Yang <yi.y.yang@intel.com>
+Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
+Date: Wed, 19 Mar 2008 22:37:24 +0800
+Message-ID: <1205937444.3842.82.camel@yangyi-dev>
+References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
+	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
+	 <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
+	 <200801100943.08780.maximlevitsky@gmail.com>
+	 <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
+	 <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
+	 <1205931982.21619.301.camel@queen.suse.de>
+Reply-To: yi.y.yang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40095 "EHLO hera.kernel.org"
+Received: from mga02.intel.com ([134.134.136.20]:44206 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756768AbYCTCRP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Mar 2008 22:17:15 -0400
-In-Reply-To: <1205858252.21619.233.camel@queen.suse.de>
-Content-Disposition: inline
+	id S1752717AbYCTCZl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 22:25:41 -0400
+In-Reply-To: <1205931982.21619.301.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: trenn@suse.de
-Cc: =?utf-8?q?=C3=89ric_Piel?= <Eric.Piel@tremplin-utc.net>, Linus Torvalds <torvalds@linux-foundation.org>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Maxim Levitsky <maximlevitsky@gmail.com>, david-b@pacbell.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net, Holger Macht <hmacht@suse.de>
 
+> Any news on this?
+> I ran into a problem with the current implementation:
+> 
+> If one GPE is tight to several devices you get a message:
+> echo XYZ >/tmp/acpi/wakeup
+> ACPI: 'XXX' and 'XYZ' have the same GPE, can't disable/enable one
+> seperately
+> ACPI: 'YYY' and 'XYZ' have the same GPE, can't disable/enable one
+> seperately
+> and none of the devices are activated to be able to wake the machine up.
+> Which I expect is wrong, all should be enabled/disabled then IMO, but
+> it's probably not worth much fixing in /proc/acpi/...
+"Can't disable/enable one seperately" is just a warning, all the devices
+with the same GPE can be disabled/enabled once.
 
-> > The initrd version of the DSDT override is really for one scenario.
-> > Somebody who has a BIOS that even Windows can't deal with -- so
-> > no amount of "Windows bug compatbility" will help Linux with it.
+> 
+> The correct interface to use seem to be:
+> drivers/base/power/sysfs.c
+wakeup flag in this driver is a generic software flag in "struct
+device", but the wakeup flag you see in /proc/acpi/wakeup is a hardware
+wakeup flag in ACPI device, all the wakeup events triggered by hardware
+devices are handled by ACPI driver.
 
-> No, this is for people getting involved in ACPI.
-> Everybody thinks ACPI is that complicated..., but it's not.
-> It's amazing how far people can debug ACPI bugs (yes, even people who
-> "do not even know" how to compile a kernel) by simply analyzing the ASL
-> BIOS code.
+But i indeed regret wakeup flags in /sys/... and /proc/acpi/wakeup
+haven't any association. They should be consolidated in my opinion.
 
-Thomas,
-The justification above is what convinced me
-that we should try to integrate this feature.
-Further, although we failed in 2.6.25,
-I think we should continue to try to get this capability integrated.
+Zhang Rui said they are doing it, but i didn't get any information about
+progress, i completely agree it should be done ASAP.
 
-If you think it will be useful for additional purposes, that's great.
-As you know, I'm somewhat skeptical, as I've seen huge mistakes such
-as a database of modified BIOS images created and used when the users
-have absolutely no idea what they're doing.  But we don't have to
-agree on this to move forward.
+If you need to enbale wakeup, you.d better enable wakeup flag in
+both /proc/acpi/wakeup and /sys/..., i can use USB mouse to wake up my
+machine from S3.
 
-thanks,
--Len
+> But this is rather broken?
+> Here an output of /proc/acpi/wakeup and /sys/...:
+> for x in `find /sys/ |grep wakeup`;do if [ $(cat $x) ];then echo $x; cat $x;fi;done
+> /sys/devices/pnp0/00:04/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-5/power/wakeu
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-1/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.7/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.1/usb2/power/wakeup
+> enabled
+> /sys/devices/pci0000:00/0000:00:1d.0/usb1/power/wakeup
+> enabled
+> trenn@stravinsky:/extern/trenn/packages/home:trenn> cat /proc/acpi/wakeup 
+> Device  S-state   Status   Sysfs node
+> PCI0      S5     disabled  no-bus:pci0000:00
+> 
+> I still think (from comments in drivers/base/power/sysfs.c, not sure
+> whether it really is that appropriate) it is wakeup sysfs file that
+> should be used for this.
+> I wonder why each device has a wakeup file, it should be enough to
+> create them dynamically if wakeup enable/disable is supported for a
+> specific device?
+> Also a second file is missing from which state (S3,S4,S5) the device can
+> wake the machine up.
+> 
+> If there can be multiple devices for one GPE, this information (the
+> power directory of multiple devices) could be linked together in sysfs?
+> E.g.
+> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
+> is a link to:
+> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
+> If both are using one wake-up GPE.
+> 
+> Also if the ACPI device caught through acpi_get_physical device is a PCI
+> bridge, it should get evaluated what is behind the bridge and this
+> device (e.g. a network card) should get the wakeup stuff set up, not the
+> bridge?
+> 
+> Does someone still look at this?
+> If not, shall I or is it on some queue?
+> Should this be discussed a bit more detailed first?
+> 
+>    Thomas
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
