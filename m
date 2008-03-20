@@ -1,123 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
-Date: Thu, 20 Mar 2008 23:37:06 +0100
-Message-ID: <200803202337.07465.rjw@sisk.pl>
-References: <200803201408.33466.david-b@pacbell.net> <200803201412.44181.david-b@pacbell.net>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
+ hibernation callbacks
+Date: Thu, 20 Mar 2008 18:57:05 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0803201841520.8453-100000@netrider.rowland.org>
+References: <1206052477.8420.26.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37653 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757851AbYCTWhy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Mar 2008 18:37:54 -0400
-In-Reply-To: <200803201412.44181.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:4503 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751395AbYCTW5G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 18:57:06 -0400
+In-Reply-To: <1206052477.8420.26.camel@pasglop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
 
-On Thursday, 20 of March 2008, David Brownell wrote:
-> Clean up pci_choose_state():
-> 
->  - pci_choose_state() should only return PCI_D0, unless the system is
->    entering a suspend (or hibernate) system state.
-> 
->  - Only use platform_pci_choose_state() when entering a suspend
->    state ... and avoid PCI_D1 and PCI_D2 when appropriate.
-> 
->  - Corrrect kerneldoc.
-> 
-> Note that for now only ACPI provides platform_pci_choose_state(), so
-> this could be a minor change in behavior on some non-PC systems:  it
-> avoids D3 except in the final stage of hibernation.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/pci/pci.c |   47 ++++++++++++++++++++++++++---------------------
->  1 file changed, 26 insertions(+), 21 deletions(-)
-> 
-> --- g26.orig/drivers/pci/pci.c	2008-02-24 00:18:16.000000000 -0800
-> +++ g26/drivers/pci/pci.c	2008-02-24 00:41:18.000000000 -0800
-> @@ -523,44 +523,49 @@ pci_set_power_state(struct pci_dev *dev,
->  }
->  
->  pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
-> - 
-> +
->  /**
->   * pci_choose_state - Choose the power state of a PCI device
->   * @dev: PCI device to be suspended
-> - * @state: target sleep state for the whole system. This is the value
-> - *	that is passed to suspend() function.
-> + * @mesg: value passed to suspend() function.
->   *
->   * Returns PCI power state suitable for given device and given system
-> - * message.
-> + * power state transition.
->   */
->  
-> -pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
-> +pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t mesg)
->  {
->  	pci_power_t ret;
->  
-> +	/* PCI legacy PM? */
->  	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
->  		return PCI_D0;
->  
-> -	if (platform_pci_choose_state) {
-> -		ret = platform_pci_choose_state(dev, state);
-> -		if (ret != PCI_POWER_ERROR)
-> -			return ret;
-> -	}
-> -
-> -	switch (state.event) {
-> -	case PM_EVENT_ON:
-> -		return PCI_D0;
-> -	case PM_EVENT_FREEZE:
-> -	case PM_EVENT_PRETHAW:
-> -		/* REVISIT both freeze and pre-thaw "should" use D0 */
-> +	switch (mesg.event) {
->  	case PM_EVENT_SUSPEND:
-> +		/* NOTE:  platform_pci_choose_state() should only return
-> +		 * states where wakeup won't work if
-> +		 *   - !device_may_wakeup(&dev->dev), or
-> +		 *   - dev can't wake from the target system state
-> +		 */
-> +		if (platform_pci_choose_state) {
-> +			ret = platform_pci_choose_state(dev, mesg);
-> +			if (ret == PCI_POWER_ERROR)
-> +				ret = PCI_D3hot;
-> +			else if ((ret == PCI_D1 || ret == PCI_D2)
-> +					&& pci_no_d1d2(dev))
-> +				ret = PCI_D3hot;
-> +			break;
-> +		}
-> +		/* FALLTHROUGH ... D3hot works, but may be suboptimal */
->  	case PM_EVENT_HIBERNATE:
-> -		return PCI_D3hot;
-> +		ret = PCI_D3hot;
+On Fri, 21 Mar 2008, Benjamin Herrenschmidt wrote:
 
-This is clearly wrong.  It should do the same as for suspend here (_S4D may be
-defined and we should take it into account if it is).
+> 
+> On Thu, 2008-03-20 at 14:26 -0400, Alan Stern wrote:
+> > 
+> > One of the things we don't want to do is bind a new driver to a device
+> > after it has gone through the prepare() stage.  Doing so would involve
+> > calling the driver's probe() routine, which is likely to want to
+> > register new children and who knows what else.  The probe routine might 
+> > even end up running after the device was suspended!  Clearly this 
+> > should be avoided.
+> > 
+> > But the user can force a binding to occur by writing the device's path
+> > to the driver's "bind" attribute in sysfs.  This means that
+> > driver_bind() in drivers/base/bus.c will need to know whether or not
+> > the device has gone through the prepare() stage, which means the device
+> > structure will need to have a flag set before prepare() is called (more 
+> > precisely, the flag must be set before dev->sem is released following 
+> > the call to prepare).
+> > 
+> > Either that or else driver_bind() must always block whenever a system
+> > sleep is in progress.  That would be easier -- but it's a lot like what 
+> > the freezer would do.  Which would you prefer?
+> 
+> I don't fully understand what you are saying here.
+> 
+> You say "bind a new driver to a device after it has gone through the
+> prepare() stage"
+> 
+> So either there was already a driver bound to that device, which got a
+> prepare() callback, and in which case bind() doesn't mean much. Or there
+> was not, in which case there was no prepare() call involved.
 
-> +		break;
->  	default:
-> -		printk("Unrecognized suspend event %d\n", state.event);
-> -		BUG();
-> +		ret = PCI_D0;
-> +		break;
->  	}
-> -	return PCI_D0;
-> +	return ret;
->  }
->  
->  EXPORT_SYMBOL(pci_choose_state);
+That's why I said "gone through the prepare() stage" instead of saying 
+"after prepare() was called".  Yes, if there's no driver bound then 
+there's no method to call.  But the PM core will still pass the device 
+to a subroutine whose job is to call the corresponding method, if one 
+exists.
 
-I really don't think pci_choose_state() should take the state argument at all.
+> I suppose if you prepare(), then unbind(), then something tries to
+> bind()... But wouldn't the core flag set after prepare() be plenty
+> enough to shield against that ?
+> 
+> I fail to see the race you are talking about here.
 
-Thanks,
-Rafael
+Let's say Task 0 is starting a sleep transition when Task 1 calls
+driver_bind():
+
+	Task 0				Task 1
+	------				------
+	down(&dev->sem) succeeds	down(&dev->sem) blocks
+	Sees that dev has no driver
+	  so there is no prepare
+	  method to call
+	up(&dev->sem)
+					down() succeeds
+					Sees that dev->power.prepared
+					  flag isn't set
+					Calls (drv->probe)(dev)
+	Sets dev->power.prepared
+	  flag
+					drv tries to register a child
+					  device and fails for no good
+					  reason
+
+One way to fix this is to set dev->power.prepared before releasing
+dev->sem.  Another way to fix it is to have driver_bind() block
+(as though it were frozen) whenever a system sleep is underway.
+
+Which do you prefer?
+
+Alan Stern
+
