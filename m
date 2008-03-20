@@ -1,57 +1,57 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Thu, 20 Mar 2008 15:28:19 +0100
-Message-ID: <1206023299.21619.358.camel@queen.suse.de>
-References: <20080311011434.ad8c8d7d.akpm@linux-foundation.org>
-	 <200803171327.16695.lenb@kernel.org>
-	 <1205858252.21619.233.camel@queen.suse.de>
-	 <200803181632.44288.lenb@kernel.org>
-Reply-To: trenn@suse.de
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
+ hibernation callbacks
+Date: Thu, 20 Mar 2008 10:45:38 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0803201037590.9468-100000@netrider.rowland.org>
+References: <1205984008.26869.408.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54394 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755473AbYCTO2V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Mar 2008 10:28:21 -0400
-In-Reply-To: <200803181632.44288.lenb@kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:3486 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755531AbYCTOpj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 10:45:39 -0400
+In-Reply-To: <1205984008.26869.408.camel@pasglop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: =?ISO-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>, Linus Torvalds <torvalds@linux-foundation.org>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Arjan van de Ven <arjan@infradead.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
 
-On Tue, 2008-03-18 at 16:32 -0400, Len Brown wrote:
-> > > The initrd version of the DSDT override is really for one scenario.
-> > > Somebody who has a BIOS that even Windows can't deal with -- so
-> > > no amount of "Windows bug compatbility" will help Linux with it.
-> 
-> > No, this is for people getting involved in ACPI.
-> > Everybody thinks ACPI is that complicated..., but it's not.
-> > It's amazing how far people can debug ACPI bugs (yes, even people who
-> > "do not even know" how to compile a kernel) by simply analyzing the ASL
-> > BIOS code.
-> 
-> Thomas,
-> The justification above is what convinced me
-> that we should try to integrate this feature.
-> Further, although we failed in 2.6.25,
-> I think we should continue to try to get this capability integrated.
-> 
-> If you think it will be useful for additional purposes, that's great.
-> As you know, I'm somewhat skeptical, as I've seen huge mistakes such
-> as a database of modified BIOS images created and used when the users
-> have absolutely no idea what they're doing.
-But even here we now have the only existing database for some research.
--> very important IMO.
-> But we don't have to
-> agree on this to move forward.
-I think we fully agree.
-I don't mind to add a message in big letters: "Only override the DSDT
-for debugging, please report any findings" or whatever, we can add this
-ten times in a row, still it is an important feature which is worth
-pushing (and getting populate_root_fs being able to be executed earlier
-is a feature others also like to see AFAIK).
+On Thu, 20 Mar 2008, Benjamin Herrenschmidt wrote:
 
-    Thomas
+> > An important point I tried to make in the earlier email is that drivers
+> > will want a simple way to know when it is illegal for them to register
+> > new children.  For example, suppose the registration is done by a
+> > workqueue routine.  The most reliable way for the driver to insure that
+> > the routine won't try to register new children improperly is to have
+> > the routine check a flag which gets set _before_ prepare() is called.
+> 
+> I don't totally agree here. Drivers could have their own flag set
+> internally with appropriate locking. The problem with your approach is
+> locking. Just setting a flag is mostly useless, -unless- there
+> appropriate locking between setter and testers. 
+
+I didn't mention locking because it seemed obvious that locking is
+needed.  Of course a flag alone is mostly useless.
+
+But we already _do_ have a lock (dev->sem) and we _don't_ have a flag.  
+I was pointing out that some drivers will want to have a flag added.
+Maybe so many drivers will want it that the flag should be added to the
+PM structure, where it will be available for every device.  If only a
+few drivers want this new flag, then yes, they can put it in their
+private data structures.
+
+> However, I think this is mostly a non-issue, because the core _does_
+> provide something here that is useful for drivers who don't want to
+> bother with the above: The failure return from device_add. If drivers
+> don't want to do something akin to what I described, they can just be
+> made to deal gracefully with the failure from device_add that would
+> happen due to the core internal flag being set after the return from
+> prepare().
+
+Relying on a registration failure to handle this sort of thing is _not_
+a good idea.  For example, how would the driver distinguish failure
+caused by impending suspend from other sorts of failure?
+
+Alan Stern
 
