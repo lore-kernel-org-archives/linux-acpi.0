@@ -1,24 +1,42 @@
-From: "=?BIG5?B?w1G6vajI?=" <tx67kx6329q@gmail.com>
-Subject: =?BIG5?B?MjAwOC8zLzIxIKH3ob2h81BIUMHK?= =?BIG5?B?qquorrjqrsaud7r0r7ixTa7XobqhvaHRIDM6MzI=?=
-Date: Fri, 21 Mar 2008 03:32:38 +0800
-Message-ID: <b99fa2c0803201232o350bcd5ev7e8e2425d938738a__15116.7563665242$1206041634$gmane$org@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.25-rc6 0/7] misc pm wake patches
+Date: Thu, 20 Mar 2008 14:08:33 -0700
+Message-ID: <200803201408.33466.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=BIG5
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.235]:26522 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754933AbYCTTcm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 15:32:42 -0400
-Received: by qb-out-0506.google.com with SMTP id e11so1258704qbe.15
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Mar 2008 12:32:39 -0700 (PDT)
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39627 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756989AbYCTVam (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Mar 2008 17:30:42 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: samemall@pchome.com.tw
+To: linux-pm@lists.linux-foundation.org
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-MjAwOC0zLTIxCqH2Cgqkc+C+rOyn3rr0rbazXa1wCrF6wdmoU6azpECt07FNxN2quqX4t3669K+4
-ttyhSAoKpHPgvqzsp96xwKVYUEhQwcqqq6iuuOquxq53uvSvuLFNrtcKpXWtbqJDorGis6FBorii
-r6KvCqFlt3yt+6FEsqOrfqFErXGz5rjqrsaudy4uLi4uLrWloWYKpkGwZaRApn4xMDBNQqSjra2s
-ebZxterAwKVEvvcKCqTfsMqko6ZwsKikV6bmsMqz4Qqkc+C+rOyn3rjqsFSms62tpL2lcQq90KjT
-uXGsorjftsCxTa37oUcwOTM4NzY0Mzk1CgozOjMyOjM0CgrDpwo=
+Here are patches I've had sitting around for a while ... many of
+them are IMO now mergeable, but I think the last two need work
+to integrate better with ACPI and PCI.
+
+ - Crosslink ACPI and matching "real" device nodes in sysfs.
+   Updated version of a patch from early last year.
+
+ - acpi_pm_device_sleep_state() cleanup
+
+ - pci_choose_state() cleanup and fixes (but arguably this
+   needs to change given the new method scheme)
+
+ - USB uses pci_choose_state(), seems safe given those fixes
+
+ - Make ACPI set up device.power.can_wakeup driver model flags
+
+ - Make ACPI use device_may_wakeup(dev) policy inputs from
+   userspace, instead of /proc/acpi/wakeup ... probably needs
+   work yet given the method reordering stuff
+
+ - Make PCI set up device.power.can_wakeup flags ... presumably
+   this still breaks on PPC, which needs more work.
