@@ -1,57 +1,39 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
- hibernation callbacks
-Date: Thu, 20 Mar 2008 10:45:38 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803201037590.9468-100000@netrider.rowland.org>
-References: <1205984008.26869.408.camel@pasglop>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/2] thermal: add hwmon sys I/F for thermal device
+Date: Thu, 20 Mar 2008 11:58:22 -0300
+Message-ID: <20080320145822.GB5615@khazad-dum.debian.net>
+References: <1203975102.10256.82.camel@acpi-hp-zz.sh.intel.com> <47C3D04E.6090609@hhs.nl> <20080317133732.05b79f4d@hyperion.delvare> <47DE6A24.7040705@hhs.nl> <20080317144811.12b7d6cb@hyperion.delvare> <1205811952.3171.80.camel@acpi-hp-zz.sh.intel.com> <20080318110618.735572d2@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3486 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755531AbYCTOpj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 10:45:39 -0400
-In-Reply-To: <1205984008.26869.408.camel@pasglop>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:50026 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751750AbYCTO61 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Mar 2008 10:58:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20080318110618.735572d2@hyperion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Thomas, Sujith" <sujith.thomas@intel.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Richard Hughes <hughsient@gmail.com>
 
-On Thu, 20 Mar 2008, Benjamin Herrenschmidt wrote:
+On Tue, 18 Mar 2008, Jean Delvare wrote:
+> Maybe I have not been clear, but my question was not about the generic
+> thermal driver itself. I understand that it's only adding an interface
+> to other drivers and not creating anything new. My question was about
+> thermal zones in general, i.e.: Do we expect systems to have more than
+> one thermal zone type at a given time, or not? Len seems to think we do.
 
-> > An important point I tried to make in the earlier email is that drivers
-> > will want a simple way to know when it is illegal for them to register
-> > new children.  For example, suppose the registration is done by a
-> > workqueue routine.  The most reliable way for the driver to insure that
-> > the routine won't try to register new children improperly is to have
-> > the routine check a flag which gets set _before_ prepare() is called.
-> 
-> I don't totally agree here. Drivers could have their own flag set
-> internally with appropriate locking. The problem with your approach is
-> locking. Just setting a flag is mostly useless, -unless- there
-> appropriate locking between setter and testers. 
+We do, unless we decide to emulate ACPI-style zones to hide that.
 
-I didn't mention locking because it seemed obvious that locking is
-needed.  Of course a flag alone is mostly useless.
+Thinkpads have at least two types *always*, for example.  EC ones, and the
+ACPI ones... and there is some variable overlap between them.  And there are
+at least four devices related to the thermal control (CPU, GPU, gig-E, fan),
+of which one (fan) is systemic and works for all zones.
 
-But we already _do_ have a lock (dev->sem) and we _don't_ have a flag.  
-I was pointing out that some drivers will want to have a flag added.
-Maybe so many drivers will want it that the flag should be added to the
-PM structure, where it will be available for every device.  If only a
-few drivers want this new flag, then yes, they can put it in their
-private data structures.
-
-> However, I think this is mostly a non-issue, because the core _does_
-> provide something here that is useful for drivers who don't want to
-> bother with the above: The failure return from device_add. If drivers
-> don't want to do something akin to what I described, they can just be
-> made to deal gracefully with the failure from device_add that would
-> happen due to the core internal flag being set after the return from
-> prepare().
-
-Relying on a registration failure to handle this sort of thing is _not_
-a good idea.  For example, how would the driver distinguish failure
-caused by impending suspend from other sorts of failure?
-
-Alan Stern
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
