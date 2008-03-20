@@ -1,92 +1,74 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
- hibernation callbacks
-Date: Thu, 20 Mar 2008 18:57:05 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803201841520.8453-100000@netrider.rowland.org>
-References: <1206052477.8420.26.camel@pasglop>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
+Date: Thu, 20 Mar 2008 16:03:01 -0700
+Message-ID: <20080320230301.8EFB235F4AF@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
+References: <200803201408.33466.david-b@pacbell.net>
+ <200803201412.44181.david-b@pacbell.net>
+ <200803202337.07465.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:4503 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751395AbYCTW5G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 18:57:06 -0400
-In-Reply-To: <1206052477.8420.26.camel@pasglop>
+Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:47442 "HELO
+	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759665AbYCTXDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Mar 2008 19:03:05 -0400
+In-Reply-To: <200803202337.07465.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: trenn@suse.de, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Fri, 21 Mar 2008, Benjamin Herrenschmidt wrote:
+> > +	switch (mesg.event) {
+> >  	case PM_EVENT_SUSPEND:
+> > +		/* NOTE:  platform_pci_choose_state() should only return
+> > +		 * states where wakeup won't work if
+> > +		 *   - !device_may_wakeup(&dev->dev), or
+> > +		 *   - dev can't wake from the target system state
+> > +		 */
+> > +		if (platform_pci_choose_state) {
+> > +			ret = platform_pci_choose_state(dev, mesg);
+> > +			if (ret == PCI_POWER_ERROR)
+> > +				ret = PCI_D3hot;
+> > +			else if ((ret == PCI_D1 || ret == PCI_D2)
+> > +					&& pci_no_d1d2(dev))
+> > +				ret = PCI_D3hot;
+> > +			break;
+> > +		}
+> > +		/* FALLTHROUGH ... D3hot works, but may be suboptimal */
+> >  	case PM_EVENT_HIBERNATE:
+> > -		return PCI_D3hot;
+> > +		ret = PCI_D3hot;
+>
+> This is clearly wrong.  It should do the same as for suspend here (_S4D may be
+> defined and we should take it into account if it is).
 
-> 
-> On Thu, 2008-03-20 at 14:26 -0400, Alan Stern wrote:
-> > 
-> > One of the things we don't want to do is bind a new driver to a device
-> > after it has gone through the prepare() stage.  Doing so would involve
-> > calling the driver's probe() routine, which is likely to want to
-> > register new children and who knows what else.  The probe routine might 
-> > even end up running after the device was suspended!  Clearly this 
-> > should be avoided.
-> > 
-> > But the user can force a binding to occur by writing the device's path
-> > to the driver's "bind" attribute in sysfs.  This means that
-> > driver_bind() in drivers/base/bus.c will need to know whether or not
-> > the device has gone through the prepare() stage, which means the device
-> > structure will need to have a flag set before prepare() is called (more 
-> > precisely, the flag must be set before dev->sem is released following 
-> > the call to prepare).
-> > 
-> > Either that or else driver_bind() must always block whenever a system
-> > sleep is in progress.  That would be easier -- but it's a lot like what 
-> > the freezer would do.  Which would you prefer?
-> 
-> I don't fully understand what you are saying here.
-> 
-> You say "bind a new driver to a device after it has gone through the
-> prepare() stage"
-> 
-> So either there was already a driver bound to that device, which got a
-> prepare() callback, and in which case bind() doesn't mean much. Or there
-> was not, in which case there was no prepare() call involved.
+So you're saying the original code was wrong, and this patch should
+change that behavior too?
 
-That's why I said "gone through the prepare() stage" instead of saying 
-"after prepare() was called".  Yes, if there's no driver bound then 
-there's no method to call.  But the PM core will still pass the device 
-to a subroutine whose job is to call the corresponding method, if one 
-exists.
 
-> I suppose if you prepare(), then unbind(), then something tries to
-> bind()... But wouldn't the core flag set after prepare() be plenty
-> enough to shield against that ?
-> 
-> I fail to see the race you are talking about here.
 
-Let's say Task 0 is starting a sleep transition when Task 1 calls
-driver_bind():
+> > +		break;
+> >  	default:
+> > -		printk("Unrecognized suspend event %d\n", state.event);
+> > -		BUG();
+> > +		ret = PCI_D0;
+> > +		break;
+> >  	}
+> > -	return PCI_D0;
+> > +	return ret;
+> >  }
+> >  
+> >  EXPORT_SYMBOL(pci_choose_state);
+>
+> I really don't think pci_choose_state() should take the state argument at all.
 
-	Task 0				Task 1
-	------				------
-	down(&dev->sem) succeeds	down(&dev->sem) blocks
-	Sees that dev has no driver
-	  so there is no prepare
-	  method to call
-	up(&dev->sem)
-					down() succeeds
-					Sees that dev->power.prepared
-					  flag isn't set
-					Calls (drv->probe)(dev)
-	Sets dev->power.prepared
-	  flag
-					drv tries to register a child
-					  device and fails for no good
-					  reason
+There is no "state" argument.  It's a pm_message_t, which does
+not package the target state.
 
-One way to fix this is to set dev->power.prepared before releasing
-dev->sem.  Another way to fix it is to have driver_bind() block
-(as though it were frozen) whenever a system sleep is underway.
+A patch to change the calling syntax for this would necessarily
+be a different patch... and would need to change the callers too.
 
-Which do you prefer?
-
-Alan Stern
+- Dave
 
