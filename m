@@ -1,18 +1,18 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.25-rc6 7/7] PCI set up device.power.can_wakeup flags
-Date: Thu, 20 Mar 2008 14:25:54 -0700
-Message-ID: <200803201425.54587.david-b@pacbell.net>
+Subject: [patch 2.6.25-rc6 4/7] USB uses pci_choose_state()
+Date: Thu, 20 Mar 2008 14:15:07 -0700
+Message-ID: <200803201415.07957.david-b@pacbell.net>
 References: <200803201408.33466.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39680 "HELO
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39656 "HELO
 	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757141AbYCTVaq (ORCPT
+	by vger.kernel.org with SMTP id S1757083AbYCTVao (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:30:46 -0400
+	Thu, 20 Mar 2008 17:30:44 -0400
 In-Reply-To: <200803201408.33466.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -20,80 +20,78 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
 Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-This patch teaches "pci_dev" about the driver model wakeup support, by
-marking devices as supporting wakeup when the PME# capability is listed
-in a PCI PM capability.  Right now, few PCI drivers support wakeup events:
-only USB hosts, and various network drivers.
+Given a preceding patch that makes pci_choose_state() behave sanely,
+use it to select the appropriate PCI_Dx state to use when suspending
+a host controller.
 
-A previous version of this patch broke on PowerPC platforms after they
-changed how they do early PCI initialization (following the first version
-of this patch).  Potentially the real fix involves switching PCI init on
-all platforms so they all adopt the driver model "init() then add()" model,
-calling device_initialize() early and pci_setup_device() before device_add().
+USB hosts may now use states like PCI_D1 and PCI_D2, where appropriate.
 
-Also, note that ACPI has its own notions of what devices are wakeup-capable.
-Assuming that the PCI PM# capability is queried before calling device_add()
-to initialize driver model wakeup flags, ACPI overrides those settings for
-devices with entries in ACPI tables in its platform_notify().
-
-That's how ACPI kicks in legacy PCI PM (e.g. Intel's UHCI controllers
-don't use PME#), declares that _it_ will handle SMBUSALERT# thank you, and
-handles various other board quirks.
-
-The fact that ACPI flags some bridges as wakeup-capable is puzzling though.
-I'm guessing it relates to whether PME# (or WAKE# on PCIE, etc) is actually
-wired up for use by add-on cards, and this marks an area where ACPI doesn't
-yet work correctly (it doesn't handle such wakeups).
-
-
-NOT YET READY FOR PRIME TIME ... expected to still break PowerPC.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- drivers/pci/probe.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/usb/core/hcd-pci.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
---- g26.orig/drivers/pci/probe.c	2008-02-24 00:18:23.000000000 -0800
-+++ g26/drivers/pci/probe.c	2008-02-24 01:02:30.000000000 -0800
-@@ -678,6 +678,7 @@ static void pci_read_irq(struct pci_dev 
- static int pci_setup_device(struct pci_dev * dev)
- {
- 	u32 class;
-+	u16 pm;
+--- g26.orig/drivers/usb/core/hcd-pci.c	2008-02-24 02:02:45.000000000 -0800
++++ g26/drivers/usb/core/hcd-pci.c	2008-02-24 02:08:08.000000000 -0800
+@@ -224,18 +224,6 @@ int usb_hcd_pci_suspend(struct pci_dev *
+ 	}
+ 	synchronize_irq(dev->irq);
  
- 	sprintf(pci_name(dev), "%04x:%02x:%02x.%d", pci_domain_nr(dev->bus),
- 		dev->bus->number, PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
-@@ -707,6 +708,19 @@ static int pci_setup_device(struct pci_d
- 		pci_read_config_word(dev, PCI_SUBSYSTEM_VENDOR_ID, &dev->subsystem_vendor);
- 		pci_read_config_word(dev, PCI_SUBSYSTEM_ID, &dev->subsystem_device);
+-	/* FIXME until the generic PM interfaces change a lot more, this
+-	 * can't use PCI D1 and D2 states.  For example, the confusion
+-	 * between messages and states will need to vanish, and messages
+-	 * will need to provide a target system state again.
+-	 *
+-	 * It'll be important to learn characteristics of the target state,
+-	 * especially on embedded hardware where the HCD will often be in
+-	 * charge of an external VBUS power supply and one or more clocks.
+-	 * Some target system states will leave them active; others won't.
+-	 * (With PCI, that's often handled by platform BIOS code.)
+-	 */
+-
+ 	/* even when the PCI layer rejects some of the PCI calls
+ 	 * below, HCs can try global suspend and reduce DMA traffic.
+ 	 * PM-sensitive HCDs may already have done this.
+@@ -248,6 +236,7 @@ int usb_hcd_pci_suspend(struct pci_dev *
+ 	 * low power state, if the hardware allows.
+ 	 */
+ 	if (hcd->state == HC_STATE_SUSPENDED) {
++		pci_power_t		d_state;
  
-+		/* PCI PM capable devices may be able to issue PME# (wakeup) */
-+		pm = pci_find_capability(dev, PCI_CAP_ID_PM);
-+		if (pm) {
-+			pci_read_config_word(dev, pm + PCI_PM_PMC, &pm);
-+			if (pm & PCI_PM_CAP_PME_MASK)
-+				device_init_wakeup(&dev->dev, 1);
-+
-+			/* REVISIT: if (pm & PCI_PM_CAP_PME_D3cold) then
-+			 * pci pm spec 1.2, section 3.2.4 says we should
-+			 * init PCI_PM_CTRL_PME_{STATUS,ENABLE} ...
-+			 */
-+		}
-+
- 		/*
- 		 *	Do the ugly legacy mode stuff here rather than broken chip
- 		 *	quirk code. Legacy mode ATA controllers have fixed
-@@ -903,6 +917,7 @@ pci_scan_device(struct pci_bus *bus, int
+ 		/* no DMA or IRQs except when HC is active */
+ 		if (dev->current_state == PCI_D0) {
+@@ -265,27 +254,29 @@ int usb_hcd_pci_suspend(struct pci_dev *
+ 			dev_dbg(hcd->self.controller, "--> PCI D0/legacy\n");
+ 			goto done;
+ 		}
++		d_state = pci_choose_state(dev, message);
  
- 	dev->bus = bus;
- 	dev->sysdata = bus->sysdata;
-+	device_initialize(&dev->dev);
- 	dev->dev.parent = bus->bridge;
- 	dev->dev.bus = &pci_bus_type;
- 	dev->devfn = devfn;
-@@ -927,7 +942,6 @@ pci_scan_device(struct pci_bus *bus, int
+-		/* NOTE:  dev->current_state becomes nonzero only here, and
+-		 * only for devices that support PCI PM.  Also, exiting
++		/* NOTE:  dev->current_state becomes nonzero only here, using
++		 * D3hot unless the platform chooses D2 or D1.  Also, exiting
+ 		 * PCI_D3 (but not PCI_D1 or PCI_D2) is allowed to reset
+ 		 * some device state (e.g. as part of clock reinit).
+ 		 */
+-		retval = pci_set_power_state(dev, PCI_D3hot);
++		retval = pci_set_power_state(dev, d_state);
+ 		suspend_report_result(pci_set_power_state, retval);
+ 		if (retval == 0) {
+ 			int wake = device_can_wakeup(&hcd->self.root_hub->dev);
  
- void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- {
--	device_initialize(&dev->dev);
- 	dev->dev.release = pci_release_dev;
- 	pci_dev_get(dev);
+ 			wake = wake && device_may_wakeup(hcd->self.controller);
  
+-			dev_dbg(hcd->self.controller, "--> PCI D3%s\n",
++			dev_dbg(hcd->self.controller, "--> PCI D%d%s\n",
++					d_state,
+ 					wake ? "/wakeup" : "");
+ 
+ 			/* Ignore these return values.  We rely on pci code to
+ 			 * reject requests the hardware can't implement, rather
+ 			 * than coding the same thing.
+ 			 */
+-			(void) pci_enable_wake(dev, PCI_D3hot, wake);
++			(void) pci_enable_wake(dev, d_state, wake);
+ 			(void) pci_enable_wake(dev, PCI_D3cold, wake);
+ 		} else {
+ 			dev_dbg(&dev->dev, "PCI D3 suspend fail, %d\n",
