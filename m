@@ -1,115 +1,76 @@
-From: Yi Yang <yi.y.yang@intel.com>
-Subject: Re: [PATCH] ACPI: Add sysfs interface for acpi device wakeup
-Date: Wed, 19 Mar 2008 22:37:24 +0800
-Message-ID: <1205937444.3842.82.camel@yangyi-dev>
-References: <1198738022.8950.3.camel@yangyi-dev.bj.intel.com>
-	 <1199688961.3551.19.camel@yangyi-dev.bj.intel.com>
-	 <1199917306.9596.3.camel@yangyi-dev.bj.intel.com>
-	 <200801100943.08780.maximlevitsky@gmail.com>
-	 <1200039383.3749.124.camel@acpi-sony.sh.intel.com>
-	 <1200009342.5389.12.camel@yangyi-dev.bj.intel.com>
-	 <1205931982.21619.301.camel@queen.suse.de>
-Reply-To: yi.y.yang@intel.com
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
+	hibernation callbacks
+Date: Thu, 20 Mar 2008 14:33:28 +1100
+Message-ID: <1205984008.26869.408.camel@pasglop>
+References: <Pine.LNX.4.44L0.0803191101050.4958-100000@netrider.rowland.org>
+Reply-To: benh@kernel.crashing.org
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44206 "EHLO mga02.intel.com"
+Received: from gate.crashing.org ([63.228.1.57]:52130 "EHLO gate.crashing.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752717AbYCTCZl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Mar 2008 22:25:41 -0400
-In-Reply-To: <1205931982.21619.301.camel@queen.suse.de>
+	id S1752775AbYCTDf1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2008 23:35:27 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0803191101050.4958-100000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: Zhang Rui <rui.zhang@intel.com>, Maxim Levitsky <maximlevitsky@gmail.com>, david-b@pacbell.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, acpi-bugzilla@lists.sourceforge.net, Holger Macht <hmacht@suse.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
 
-> Any news on this?
-> I ran into a problem with the current implementation:
-> 
-> If one GPE is tight to several devices you get a message:
-> echo XYZ >/tmp/acpi/wakeup
-> ACPI: 'XXX' and 'XYZ' have the same GPE, can't disable/enable one
-> seperately
-> ACPI: 'YYY' and 'XYZ' have the same GPE, can't disable/enable one
-> seperately
-> and none of the devices are activated to be able to wake the machine up.
-> Which I expect is wrong, all should be enabled/disabled then IMO, but
-> it's probably not worth much fixing in /proc/acpi/...
-"Can't disable/enable one seperately" is just a warning, all the devices
-with the same GPE can be disabled/enabled once.
 
-> 
-> The correct interface to use seem to be:
-> drivers/base/power/sysfs.c
-wakeup flag in this driver is a generic software flag in "struct
-device", but the wakeup flag you see in /proc/acpi/wakeup is a hardware
-wakeup flag in ACPI device, all the wakeup events triggered by hardware
-devices are handled by ACPI driver.
+> That was in fact the original plan, before Rafael changed over to
+> calling prepare() just prior to suspend().
 
-But i indeed regret wakeup flags in /sys/... and /proc/acpi/wakeup
-haven't any association. They should be consolidated in my opinion.
+Heh, ok :-)
 
-Zhang Rui said they are doing it, but i didn't get any information about
-progress, i completely agree it should be done ASAP.
+> Your analysis is right.  Removal isn't a problem; we don't care if 
+> drivers are prohibited from registering new children when they are 
+> unbound.  In general we want to make it possible to unregister devices 
+> at any time during the suspend-resume procedure (except of course that 
+> a device can't be unregistered while one of its methods is running).
+> 
+> An important point I tried to make in the earlier email is that drivers
+> will want a simple way to know when it is illegal for them to register
+> new children.  For example, suppose the registration is done by a
+> workqueue routine.  The most reliable way for the driver to insure that
+> the routine won't try to register new children improperly is to have
+> the routine check a flag which gets set _before_ prepare() is called.
 
-If you need to enbale wakeup, you.d better enable wakeup flag in
-both /proc/acpi/wakeup and /sys/..., i can use USB mouse to wake up my
-machine from S3.
+I don't totally agree here. Drivers could have their own flag set
+internally with appropriate locking. The problem with your approach is
+locking. Just setting a flag is mostly useless, -unless- there
+appropriate locking between setter and testers. 
 
-> But this is rather broken?
-> Here an output of /proc/acpi/wakeup and /sys/...:
-> for x in `find /sys/ |grep wakeup`;do if [ $(cat $x) ];then echo $x; cat $x;fi;done
-> /sys/devices/pnp0/00:04/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-5/power/wakeu
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.7/usb4/4-1/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.7/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.1/usb2/power/wakeup
-> enabled
-> /sys/devices/pci0000:00/0000:00:1d.0/usb1/power/wakeup
-> enabled
-> trenn@stravinsky:/extern/trenn/packages/home:trenn> cat /proc/acpi/wakeup 
-> Device  S-state   Status   Sysfs node
-> PCI0      S5     disabled  no-bus:pci0000:00
-> 
-> I still think (from comments in drivers/base/power/sysfs.c, not sure
-> whether it really is that appropriate) it is wakeup sysfs file that
-> should be used for this.
-> I wonder why each device has a wakeup file, it should be enough to
-> create them dynamically if wakeup enable/disable is supported for a
-> specific device?
-> Also a second file is missing from which state (S3,S4,S5) the device can
-> wake the machine up.
-> 
-> If there can be multiple devices for one GPE, this information (the
-> power directory of multiple devices) could be linked together in sysfs?
-> E.g.
-> /sys/devices/pci0000:00/0000:00:1d.7/usb4/power/wakeup
-> is a link to:
-> /sys/devices/pci0000:00/0000:00:1d.2/usb3/power/wakeup
-> If both are using one wake-up GPE.
-> 
-> Also if the ACPI device caught through acpi_get_physical device is a PCI
-> bridge, it should get evaluated what is behind the bridge and this
-> device (e.g. a network card) should get the wakeup stuff set up, not the
-> bridge?
-> 
-> Does someone still look at this?
-> If not, shall I or is it on some queue?
-> Should this be discussed a bit more detailed first?
-> 
->    Thomas
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For example, the flags we talked about previously, the one set _after_
+prepare that causes device_add() to fail, this one must have its setting
+done within the same mutex/lock as device_add() internally uses to
+protect the list. Or something along those lines.
+
+Now, your idea of having the core set some other flag to tell drivers to
+stop doing addition wouldn't work here because the driver would -not-
+hold the core device list mutex between testing it and performing the
+addition.
+
+As a general matter, the driver would need to internally, using it's own
+locking mechanisms, ensure that it will not do any further device_add,
+and that's not something the core can help with. In our case, that could
+be acheived by flushing the work queues and ensuring we don't queue
+another one, or using some driver internal semaphore to set a "stop
+adding" flag whatever... 
+
+However, I think this is mostly a non-issue, because the core _does_
+provide something here that is useful for drivers who don't want to
+bother with the above: The failure return from device_add. If drivers
+don't want to do something akin to what I described, they can just be
+made to deal gracefully with the failure from device_add that would
+happen due to the core internal flag being set after the return from
+prepare().
+
+So I don't think we need anything else.
+
+Cheers,
+Ben.
+
 
