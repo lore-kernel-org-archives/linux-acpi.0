@@ -1,56 +1,24 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and
- hibernation callbacks
-Date: Thu, 20 Mar 2008 14:26:32 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803201412210.22752-100000@netrider.rowland.org>
-References: <1205984008.26869.408.camel@pasglop>
+From: "=?BIG5?B?w1G6vajI?=" <tx67kx6329q@gmail.com>
+Subject: =?BIG5?B?MjAwOC8zLzIxIKH3ob2h81BIUMHK?= =?BIG5?B?qquorrjqrsaud7r0r7ixTa7XobqhvaHRIDM6MzI=?=
+Date: Fri, 21 Mar 2008 03:32:38 +0800
+Message-ID: <b99fa2c0803201232o350bcd5ev7e8e2425d938738a__15116.7563665242$1206041634$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=BIG5
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3987 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754867AbYCTS0e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 14:26:34 -0400
-In-Reply-To: <1205984008.26869.408.camel@pasglop>
+Received: from qb-out-0506.google.com ([72.14.204.235]:26522 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754933AbYCTTcm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 15:32:42 -0400
+Received: by qb-out-0506.google.com with SMTP id e11so1258704qbe.15
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Mar 2008 12:32:39 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>
+To: samemall@pchome.com.tw
 
-On Thu, 20 Mar 2008, Benjamin Herrenschmidt wrote:
-
-> > An important point I tried to make in the earlier email is that drivers
-> > will want a simple way to know when it is illegal for them to register
-> > new children.  For example, suppose the registration is done by a
-> > workqueue routine.  The most reliable way for the driver to insure that
-> > the routine won't try to register new children improperly is to have
-> > the routine check a flag which gets set _before_ prepare() is called.
-> 
-> I don't totally agree here. Drivers could have their own flag set
-> internally with appropriate locking. The problem with your approach is
-> locking. Just setting a flag is mostly useless, -unless- there
-> appropriate locking between setter and testers. 
-
-Here's an example of what I mean.
-
-One of the things we don't want to do is bind a new driver to a device
-after it has gone through the prepare() stage.  Doing so would involve
-calling the driver's probe() routine, which is likely to want to
-register new children and who knows what else.  The probe routine might 
-even end up running after the device was suspended!  Clearly this 
-should be avoided.
-
-But the user can force a binding to occur by writing the device's path
-to the driver's "bind" attribute in sysfs.  This means that
-driver_bind() in drivers/base/bus.c will need to know whether or not
-the device has gone through the prepare() stage, which means the device
-structure will need to have a flag set before prepare() is called (more 
-precisely, the flag must be set before dev->sem is released following 
-the call to prepare).
-
-Either that or else driver_bind() must always block whenever a system
-sleep is in progress.  That would be easier -- but it's a lot like what 
-the freezer would do.  Which would you prefer?
-
-Alan Stern
-
+MjAwOC0zLTIxCqH2Cgqkc+C+rOyn3rr0rbazXa1wCrF6wdmoU6azpECt07FNxN2quqX4t3669K+4
+ttyhSAoKpHPgvqzsp96xwKVYUEhQwcqqq6iuuOquxq53uvSvuLFNrtcKpXWtbqJDorGis6FBorii
+r6KvCqFlt3yt+6FEsqOrfqFErXGz5rjqrsaudy4uLi4uLrWloWYKpkGwZaRApn4xMDBNQqSjra2s
+ebZxterAwKVEvvcKCqTfsMqko6ZwsKikV6bmsMqz4Qqkc+C+rOyn3rjqsFSms62tpL2lcQq90KjT
+uXGsorjftsCxTa37oUcwOTM4NzY0Mzk1CgozOjMyOjM0CgrDpwo=
