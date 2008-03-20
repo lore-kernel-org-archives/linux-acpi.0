@@ -1,18 +1,18 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.25-rc6 4/7] USB uses pci_choose_state()
-Date: Thu, 20 Mar 2008 14:15:07 -0700
-Message-ID: <200803201415.07957.david-b@pacbell.net>
+Subject: [patch 2.6.25-rc6 6/7] ACPI uses device_may_wakeup() policy inputs
+Date: Thu, 20 Mar 2008 14:22:54 -0700
+Message-ID: <200803201422.55014.david-b@pacbell.net>
 References: <200803201408.33466.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39656 "HELO
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39675 "HELO
 	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757083AbYCTVao (ORCPT
+	by vger.kernel.org with SMTP id S1757114AbYCTVap (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:30:44 -0400
+	Thu, 20 Mar 2008 17:30:45 -0400
 In-Reply-To: <200803201408.33466.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -20,78 +20,134 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
 Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-Given a preceding patch that makes pci_choose_state() behave sanely,
-use it to select the appropriate PCI_Dx state to use when suspending
-a host controller.
+This imports the driver model device.power.may_wakeup flags to ACPI,
+using it to *REPLACE* the /proc/acpi/wakeup flags for some devices.
+It depends on the previous patch making device.power.can_wakeup behave.
+It does that by:
 
-USB hosts may now use states like PCI_D1 and PCI_D2, where appropriate.
+ - Implementing platform_enable_wakeup(), which is currently invoked only
+   by pci_enable_wake().  When that's called -- probably in the driver
+   suspend() call -- it updates acpi_device.wakeup.state.enabled flag in
+   the same way writing to /proc/acpi/wakeup updates it.
+   
+ - Updating the usage of the corresponding ACPI flags when turning on
+   wakeup power domains and GPEs.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+THIS PATCH NEEDS MORE ATTENTION because of the way the ACPI method
+invocations have been changing, e.g. the 1.0 vs 2.0 sequencing.
+
+Right now it's not clear to me whether the GPEs are always enabled at
+the right time, and for that matter whether the rules haven't changed
+so that drivers can no longer effectively control those settings from
+suspend() unless acpi_new_pts_ordering is in effect...
+
 ---
- drivers/usb/core/hcd-pci.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ drivers/acpi/sleep/main.c   |    2 +-
+ drivers/acpi/sleep/wakeup.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 43 insertions(+), 3 deletions(-)
 
---- g26.orig/drivers/usb/core/hcd-pci.c	2008-02-24 02:02:45.000000000 -0800
-+++ g26/drivers/usb/core/hcd-pci.c	2008-02-24 02:08:08.000000000 -0800
-@@ -224,18 +224,6 @@ int usb_hcd_pci_suspend(struct pci_dev *
- 	}
- 	synchronize_irq(dev->irq);
- 
--	/* FIXME until the generic PM interfaces change a lot more, this
--	 * can't use PCI D1 and D2 states.  For example, the confusion
--	 * between messages and states will need to vanish, and messages
--	 * will need to provide a target system state again.
--	 *
--	 * It'll be important to learn characteristics of the target state,
--	 * especially on embedded hardware where the HCD will often be in
--	 * charge of an external VBUS power supply and one or more clocks.
--	 * Some target system states will leave them active; others won't.
--	 * (With PCI, that's often handled by platform BIOS code.)
--	 */
--
- 	/* even when the PCI layer rejects some of the PCI calls
- 	 * below, HCs can try global suspend and reduce DMA traffic.
- 	 * PM-sensitive HCDs may already have done this.
-@@ -248,6 +236,7 @@ int usb_hcd_pci_suspend(struct pci_dev *
- 	 * low power state, if the hardware allows.
+--- g26.orig/drivers/acpi/sleep/main.c	2008-02-24 02:07:57.000000000 -0800
++++ g26/drivers/acpi/sleep/main.c	2008-02-24 02:08:04.000000000 -0800
+@@ -470,7 +470,7 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * can wake the system.  _S0W may be valid, too.
  	 */
- 	if (hcd->state == HC_STATE_SUSPENDED) {
-+		pci_power_t		d_state;
+ 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
++	    (device_may_wakeup(dev) &&
+ 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
+ 		acpi_status status;
  
- 		/* no DMA or IRQs except when HC is active */
- 		if (dev->current_state == PCI_D0) {
-@@ -265,27 +254,29 @@ int usb_hcd_pci_suspend(struct pci_dev *
- 			dev_dbg(hcd->self.controller, "--> PCI D0/legacy\n");
- 			goto done;
+--- g26.orig/drivers/acpi/sleep/wakeup.c	2008-02-24 02:03:27.000000000 -0800
++++ g26/drivers/acpi/sleep/wakeup.c	2008-02-24 02:08:04.000000000 -0800
+@@ -35,12 +35,22 @@ void acpi_enable_wakeup_device_prep(u8 s
+ 		struct acpi_device *dev = container_of(node,
+ 						       struct acpi_device,
+ 						       wakeup_list);
++		struct device *ldev;
+ 
+ 		if (!dev->wakeup.flags.valid ||
+ 		    !dev->wakeup.state.enabled ||
+ 		    (sleep_state > (u32) dev->wakeup.sleep_state))
+ 			continue;
+ 
++		ldev = acpi_get_physical_device(dev->handle);
++		if (ldev) {
++			int flag = device_may_wakeup(ldev);
++
++			put_device(ldev);
++			if (!flag)
++				continue;
++		}
++
+ 		spin_unlock(&acpi_device_lock);
+ 		acpi_enable_wakeup_device_power(dev);
+ 		spin_lock(&acpi_device_lock);
+@@ -57,8 +67,8 @@ void acpi_enable_wakeup_device(u8 sleep_
+ {
+ 	struct list_head *node, *next;
+ 
+-	/* 
+-	 * Caution: this routine must be invoked when interrupt is disabled 
++	/*
++	 * Caution: this routine must be invoked when interrupt is disabled
+ 	 * Refer ACPI2.0: P212
+ 	 */
+ 	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
+@@ -107,6 +117,7 @@ void acpi_disable_wakeup_device(u8 sleep
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev =
+ 			container_of(node, struct acpi_device, wakeup_list);
++		struct device *ldev;
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+@@ -125,6 +136,15 @@ void acpi_disable_wakeup_device(u8 sleep
+ 			continue;
  		}
-+		d_state = pci_choose_state(dev, message);
  
--		/* NOTE:  dev->current_state becomes nonzero only here, and
--		 * only for devices that support PCI PM.  Also, exiting
-+		/* NOTE:  dev->current_state becomes nonzero only here, using
-+		 * D3hot unless the platform chooses D2 or D1.  Also, exiting
- 		 * PCI_D3 (but not PCI_D1 or PCI_D2) is allowed to reset
- 		 * some device state (e.g. as part of clock reinit).
- 		 */
--		retval = pci_set_power_state(dev, PCI_D3hot);
-+		retval = pci_set_power_state(dev, d_state);
- 		suspend_report_result(pci_set_power_state, retval);
- 		if (retval == 0) {
- 			int wake = device_can_wakeup(&hcd->self.root_hub->dev);
++		ldev = acpi_get_physical_device(dev->handle);
++		if (ldev) {
++			int flag = device_may_wakeup(ldev);
++
++			put_device(ldev);
++			if (!flag)
++				continue;
++		}
++
+ 		spin_unlock(&acpi_device_lock);
+ 		acpi_disable_wakeup_device_power(dev);
+ 		/* Never disable run-wake GPE */
+@@ -139,6 +159,24 @@ void acpi_disable_wakeup_device(u8 sleep
+ 	spin_unlock(&acpi_device_lock);
+ }
  
- 			wake = wake && device_may_wakeup(hcd->self.controller);
++static int acpi_platform_enable_wakeup(struct device *dev, int is_on)
++{
++	struct acpi_device	*adev;
++	int			status;
++
++	if (!device_can_wakeup(dev))
++		return -EINVAL;
++	if (is_on && !device_may_wakeup(dev))
++		return -EINVAL;
++
++	status = acpi_bus_get_device(DEVICE_ACPI_HANDLE(dev), &adev);
++	if (status < 0)
++		return status;
++
++	adev->wakeup.state.enabled = !!is_on;
++	return 0;
++}
++
+ static int __init acpi_wakeup_device_init(void)
+ {
+ 	struct list_head *node, *next;
+@@ -146,6 +184,8 @@ static int __init acpi_wakeup_device_ini
+ 	if (acpi_disabled)
+ 		return 0;
  
--			dev_dbg(hcd->self.controller, "--> PCI D3%s\n",
-+			dev_dbg(hcd->self.controller, "--> PCI D%d%s\n",
-+					d_state,
- 					wake ? "/wakeup" : "");
- 
- 			/* Ignore these return values.  We rely on pci code to
- 			 * reject requests the hardware can't implement, rather
- 			 * than coding the same thing.
- 			 */
--			(void) pci_enable_wake(dev, PCI_D3hot, wake);
-+			(void) pci_enable_wake(dev, d_state, wake);
- 			(void) pci_enable_wake(dev, PCI_D3cold, wake);
- 		} else {
- 			dev_dbg(&dev->dev, "PCI D3 suspend fail, %d\n",
++	platform_enable_wakeup = acpi_platform_enable_wakeup;
++
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev = container_of(node,
