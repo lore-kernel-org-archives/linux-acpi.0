@@ -1,55 +1,46 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Fri, 21 Mar 2008 14:17:38 +0100
-Message-ID: <20080321131737.GC5331@ucw.cz>
-References: <1205517802.12763.18.camel@nimitz.home.sr71.net> <1205525184.12763.32.camel@nimitz.home.sr71.net> <47DAE55C.3080506@tremplin-utc.net> <1205530551.8167.20.camel@nimitz.home.sr71.net> <47DB013D.3060102@tremplin-utc.net> <1205537395.8167.31.camel@nimitz.home.sr71.net> <47DBC578.7050101@imap.cc> <alpine.LFD.1.00.0803151212180.3020@woody.linux-foundation.org> <47DC26BC.7060502@tremplin-utc.net> <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH 1/6] Restore udelay in poll mode
+Date: Fri, 21 Mar 2008 17:06:57 +0300
+Message-ID: <20080321140648.30578.73816.stgit@thinkpad.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1847 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753460AbYCUOFi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Mar 2008 10:05:38 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:51630 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751397AbYCUOHP (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 10:07:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ?ric Piel <Eric.Piel@tremplin-utc.net>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-Hi!
+Allow EC to serve keyboard even then we polling it.
 
-> > It's a pity, I had just nearly finished a new approach. Instead of
-> > relying on populate_rootfs() and the filesystem infrastructure, the new
-> > approach directly finds the file in the initramfs.
-> 
-> So that avoids the VFS layer issues, but it's still strictly much worse 
-> than just having a run-time loading.
-> 
-> What's the problem with just loading a new DSDT later? Potentially as in 
-> *much* later: including when user-space is all up-and-running? 
-> 
-> For things like DVD install images, you'd quite possibly want to have a 
-> few known-workaround DSDT images with the installer, and just say "ok, we 
-> want to fix up this ACPI crap in order to get working suspend/resume" kind 
-> of thing.
-> 
-> So what's the reason for pushing for this insanely-early workaround in the 
-> first place, instead of letting user-space do something like
-> 
-> 	cat my-dsdt-image > /proc/sys/acpi/DSDT
-> 
-> or whatever at runtime?
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-You have interpretted code runing (AML), and you want to replace it
-with different code?
+ drivers/acpi/ec.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Akin to changing from one kernel to different during runtime?
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 7222a18..828c752 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -73,6 +73,7 @@ enum ec_event {
+ 
+ #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
+ #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
++#define ACPI_EC_UDELAY		100	/* Wait 100us before polling EC again */
+ 
+ enum {
+ 	EC_FLAGS_WAIT_GPE = 0,		/* Don't check status until GPE arrives */
+@@ -227,6 +228,7 @@ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+ 		while (time_before(jiffies, delay)) {
+ 			if (acpi_ec_check_status(ec, event))
+ 				goto end;
++			udelay(ACPI_EC_UDELAY);
+ 		}
+ 	}
+ 	pr_err(PREFIX "acpi_ec_wait timeout,"
 
-Yes, I guess it might work for very simple changes, but if you need to change
-data structures between origina and modified DSDT, you are in for a
-big trouble, right?
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
