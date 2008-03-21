@@ -1,135 +1,158 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ISAPNP: fix limits of logical device register set
-Date: Fri, 21 Mar 2008 12:08:37 -0600
-Message-ID: <200803211208.39124.bjorn.helgaas@hp.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH  5/16] PCI slot: Use list_head for pci slot list (Not
+	for mainline!)
+Date: Fri, 21 Mar 2008 12:40:37 -0600
+Message-ID: <20080321184037.GK17292@ldl.fc.hp.com>
+References: <20080318210539.GA30421@ldl.fc.hp.com> <47E33472.1000602@jp.fujitsu.com> <47E335D6.5070909@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:42391 "EHLO
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:2565 "EHLO
 	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbYCUSFH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 14:05:07 -0400
+	with ESMTP id S1753077AbYCUSki (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 14:40:38 -0400
 Content-Disposition: inline
+In-Reply-To: <47E335D6.5070909@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>, Adam Belay <ambx1@neo.rr.com>, Len Brown <lenb@kernel.org>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-[I think we should consider this for 2.6.25.  I know it's late in
-the cycle but it is low-risk.  Without this patch, we can read and
-write off the end of the ISAPNP hardware register set with unknown
-consequences.  This was also broken in 2.6.24, and I haven't heard
-any reports, but if 2.6.25 ends up being more widely-used, ISAPNP
-users might start tripping over it.]
+* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
+> To make code simple, we should use list_head for physical slot list on
+> the bus.
 
+Merged, thanks.
 
-PNP_MAX_MEM and PNP_MAX_PORT are mainly used to size tables of PNP
-device resources.  In 2.6.24, we increased their values to accomodate
-ACPI devices that have many resources:
+/ac
 
-                 2.6.23    2.6.24
-                 ------    ------
-  PNP_MAX_MEM       4         12
-  PNP_MAX_PORT      8         40
-
-However, ISAPNP also used these constants as the size of parts of the
-logical device register set.  This register set is fixed by hardware,
-so increasing the constants meant that we were reading and writing
-unintended parts of the register set.
-
-This patch changes ISAPNP to use the correct register set sizes (the
-same values we used prior to 2.6.24).
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-21 11:45:41.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-21 11:52:12.000000000 -0600
-@@ -88,6 +88,15 @@
- #define _LTAG_MEM32RANGE	0x85
- #define _LTAG_FIXEDMEM32RANGE	0x86
- 
-+/*
-+ * Sizes of ISAPNP logical device configuration register sets.
-+ * See PNP-ISA-v1.0a.pdf, Appendix A.
-+ */
-+#define ISAPNP_MAX_MEM		4
-+#define ISAPNP_MAX_PORT		8
-+#define ISAPNP_MAX_IRQ		2
-+#define ISAPNP_MAX_DMA		2
-+
- static unsigned char isapnp_checksum_value;
- static DEFINE_MUTEX(isapnp_cfg_mutex);
- static int isapnp_csn_count;
-@@ -945,14 +954,14 @@
- 
- 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
- 	if (dev->active) {
--		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
- 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
- 			if (!ret)
- 				continue;
- 			res->port_resource[tmp].start = ret;
- 			res->port_resource[tmp].flags = IORESOURCE_IO;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
- 			ret =
- 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
-@@ -960,7 +969,7 @@
- 			res->mem_resource[tmp].start = ret;
- 			res->mem_resource[tmp].flags = IORESOURCE_MEM;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
- 			ret =
- 			    (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >>
- 			     8);
-@@ -970,7 +979,7 @@
- 			    res->irq_resource[tmp].end = ret;
- 			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
-@@ -1002,14 +1011,14 @@
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0;
--	     tmp < PNP_MAX_PORT
-+	     tmp < ISAPNP_MAX_PORT
- 	     && (res->port_resource[tmp].
- 		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
- 	     tmp++)
- 		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
- 				  res->port_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_IRQ
-+	     tmp < ISAPNP_MAX_IRQ
- 	     && (res->irq_resource[tmp].
- 		 flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ;
- 	     tmp++) {
-@@ -1019,14 +1028,14 @@
- 		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
- 	}
- 	for (tmp = 0;
--	     tmp < PNP_MAX_DMA
-+	     tmp < ISAPNP_MAX_DMA
- 	     && (res->dma_resource[tmp].
- 		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
- 	     tmp++)
- 		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
- 				  res->dma_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_MEM
-+	     tmp < ISAPNP_MAX_MEM
- 	     && (res->mem_resource[tmp].
- 		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
- 	     tmp++)
+> 
+> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> 
+> ---
+>  drivers/acpi/pci_slot.c |    9 ++++++---
+>  drivers/pci/probe.c     |    1 +
+>  drivers/pci/slot.c      |   17 ++++++-----------
+>  include/linux/pci.h     |    4 ++--
+>  4 files changed, 15 insertions(+), 16 deletions(-)
+> 
+> Index: linux-2.6.25-rc6/drivers/pci/probe.c
+> ===================================================================
+> --- linux-2.6.25-rc6.orig/drivers/pci/probe.c
+> +++ linux-2.6.25-rc6/drivers/pci/probe.c
+> @@ -384,6 +384,7 @@ static struct pci_bus * pci_alloc_bus(vo
+>  		INIT_LIST_HEAD(&b->node);
+>  		INIT_LIST_HEAD(&b->children);
+>  		INIT_LIST_HEAD(&b->devices);
+> +		INIT_LIST_HEAD(&b->slots);
+>  	}
+>  	return b;
+>  }
+> Index: linux-2.6.25-rc6/drivers/pci/slot.c
+> ===================================================================
+> --- linux-2.6.25-rc6.orig/drivers/pci/slot.c
+> +++ linux-2.6.25-rc6/drivers/pci/slot.c
+> @@ -69,18 +69,12 @@ static int create_sysfs_files(struct pci
+>  
+>  static void pci_slot_release(struct kobject *kobj)
+>  {
+> -	struct pci_slot **pprev;
+>  	struct pci_slot *slot = to_pci_slot(kobj);
+>  
+>  	dbg("%s: releasing pci_slot on %x:%d\n", __func__,
+>  		slot->bus->number, slot->number);
+>  
+> -	for (pprev = &slot->bus->slot; *pprev; pprev = &(*pprev)->next) {
+> -		if (*pprev == slot) {
+> -			*pprev = slot->next;
+> -			break;
+> -		}
+> -	}
+> +	list_del(&slot->list);
+>  
+>  	if (slot->release)
+>  		slot->release(slot);
+> @@ -107,11 +101,12 @@ int pci_slot_add_hotplug(struct pci_bus 
+>  	/* This slot should have already been created, so look for it. If
+>  	 * we can't find it, return -EEXIST.
+>  	 */
+> -	for (slot = parent->slot; slot; slot = slot->next)
+> +	list_for_each_entry(slot, &parent->slots, list) {
+>  		if (slot->number == slot_nr) {
+>  			found = 1;
+>  			break;
+>  		}
+> +	}
+>  
+>  	if (!found) {
+>  		dbg("%s: slot not found\n", __func__);
+> @@ -143,7 +138,7 @@ struct pci_slot *pci_create_slot(struct 
+>  	down_write(&pci_bus_sem);
+>  
+>  	/* If we've already created this slot, bump refcount and return. */
+> -	for (slot = parent->slot; slot; slot = slot->next) {
+> +	list_for_each_entry(slot, &parent->slots, list) {
+>  		if (slot->number == slot_nr) {
+>  			kobject_get(&slot->kobj);
+>  			dbg("%s: bumped refcount to %d on %x:%d\n",
+> @@ -175,8 +170,8 @@ struct pci_slot *pci_create_slot(struct 
+>  	if (err)
+>  		goto unregister;
+>  
+> -	slot->next = parent->slot;
+> -	parent->slot = slot;
+> +	INIT_LIST_HEAD(&slot->list);
+> +	list_add(&slot->list, &parent->slots);
+>  
+>  	dbg("%s: created pci_slot on %x:%d\n",
+>  		__func__, parent->number, slot_nr);
+> Index: linux-2.6.25-rc6/include/linux/pci.h
+> ===================================================================
+> --- linux-2.6.25-rc6.orig/include/linux/pci.h
+> +++ linux-2.6.25-rc6/include/linux/pci.h
+> @@ -131,7 +131,7 @@ struct pci_cap_saved_state {
+>  /* pci_slot represents a physical slot */
+>  struct pci_slot {
+>  	struct pci_bus *bus;		/* The bus this slot is on */
+> -	struct pci_slot *next;		/* Next slot on this bus */
+> +	struct list_head list;		/* node in list of slots on this bus */
+>  	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
+>  	unsigned char number;		/* PCI_SLOT(pci_dev->devfn) */
+>  	struct kobject kobj;
+> @@ -269,7 +269,7 @@ struct pci_bus {
+>  	struct list_head children;	/* list of child buses */
+>  	struct list_head devices;	/* list of devices on this bus */
+>  	struct pci_dev	*self;		/* bridge device as seen by parent */
+> -	struct pci_slot	*slot;		/* First physical slot on this bus */
+> +	struct list_head slots;		/* list of slots on this bus */
+>  	struct resource	*resource[PCI_BUS_NUM_RESOURCES];
+>  					/* address space routed to this bus */
+>  
+> Index: linux-2.6.25-rc6/drivers/acpi/pci_slot.c
+> ===================================================================
+> --- linux-2.6.25-rc6.orig/drivers/acpi/pci_slot.c
+> +++ linux-2.6.25-rc6/drivers/acpi/pci_slot.c
+> @@ -117,15 +117,18 @@ unregister_slot(acpi_handle handle, u32 
+>  {
+>  	int device;
+>  	unsigned long sun;
+> -	struct pci_slot *slot;
+> +	struct pci_slot *slot, *tmp;
+>  	struct pci_bus *pci_bus = context;
+>  
+>  	if (check_slot(handle, &device, &sun))
+>  		return AE_OK;
+>  
+> -	for (slot = pci_bus->slot; slot; slot = slot->next) {
+> -		if (slot->number == device)
+> +	/* FIXME - Need pci_bus_sem to be held */
+> +	list_for_each_entry_safe(slot, tmp, &pci_bus->slots, list) {
+> +		if (slot->number == device) {
+>  			pci_destroy_slot(slot);
+> +			break;
+> +		}
+>  	}
+>  
+>  	return AE_OK;
+> 
+> 
