@@ -1,82 +1,55 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.25-rc6 1/7] crosslink ACPI and "real" device nodes
-Date: Fri, 21 Mar 2008 02:04:15 -0700
-Message-ID: <200803210204.15843.david-b@pacbell.net>
-References: <200803201408.33466.david-b@pacbell.net> <200803210031.35174.david-b@pacbell.net> <1206088471.4109.56.camel@localhost.localdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Fri, 21 Mar 2008 14:17:38 +0100
+Message-ID: <20080321131737.GC5331@ucw.cz>
+References: <1205517802.12763.18.camel@nimitz.home.sr71.net> <1205525184.12763.32.camel@nimitz.home.sr71.net> <47DAE55C.3080506@tremplin-utc.net> <1205530551.8167.20.camel@nimitz.home.sr71.net> <47DB013D.3060102@tremplin-utc.net> <1205537395.8167.31.camel@nimitz.home.sr71.net> <47DBC578.7050101@imap.cc> <alpine.LFD.1.00.0803151212180.3020@woody.linux-foundation.org> <47DC26BC.7060502@tremplin-utc.net> <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:38233 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752007AbYCUJES (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Mar 2008 05:04:18 -0400
-In-Reply-To: <1206088471.4109.56.camel@localhost.localdomain>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1847 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753460AbYCUOFi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Mar 2008 10:05:38 -0400
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ?ric Piel <Eric.Piel@tremplin-utc.net>, Tilman Schmidt <tilman@imap.cc>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>
 
-On Friday 21 March 2008, Zhao Yakui wrote:
-> On Fri, 2008-03-21 at 00:31 -0700, David Brownell wrote:
-> > > > The PNP device gets a "firmware_node" link pointing to the ACPI=
- device.
-> > > > The ACPI device has a "physical_node" link pointing to the PNP =
-device.
-> > > > Linux drivers currently bind only to the "physical" device node=
-s.
-> > > =20
-> > > Very good idea.=20
-> > > But maybe there is a lot of ACPI devices on the laptops. And we t=
-ake a
-> > > little care about the association between the acpi device and "re=
-al"
-> > > device.
-> >=20
-> > Are you suggesting that the ACPI nodes shouldn't exist at all?
-> > Or that something is wrong with how they're set up or used?
->=20
-> No. The ACPI nodes should exist. What I said is whether it is necessa=
-ry
-> to create the link for all the ACPI devices between the ACPI device a=
-nd
-> "real" node device.  Of course it is also OK if link is created for t=
-he
-> ACPI device with the ability to wake the sleeping system.=20
+Hi!
 
-The confusion exists for all ACPI device nodes that
-mirror "real" device nodes (like PNP or PCI devices).
+> > It's a pity, I had just nearly finished a new approach. Instead of
+> > relying on populate_rootfs() and the filesystem infrastructure, the new
+> > approach directly finds the file in the initramfs.
+> 
+> So that avoids the VFS layer issues, but it's still strictly much worse 
+> than just having a run-time loading.
+> 
+> What's the problem with just loading a new DSDT later? Potentially as in 
+> *much* later: including when user-space is all up-and-running? 
+> 
+> For things like DVD install images, you'd quite possibly want to have a 
+> few known-workaround DSDT images with the installer, and just say "ok, we 
+> want to fix up this ACPI crap in order to get working suspend/resume" kind 
+> of thing.
+> 
+> So what's the reason for pushing for this insanely-early workaround in the 
+> first place, instead of letting user-space do something like
+> 
+> 	cat my-dsdt-image > /proc/sys/acpi/DSDT
+> 
+> or whatever at runtime?
 
-It's *not* limited to wake-capable devices.
+You have interpretted code runing (AML), and you want to replace it
+with different code?
 
+Akin to changing from one kernel to different during runtime?
 
-> > For now, there's some confusion. =A0Devices listed in ACPI tables
-> > have one or two extra sysfs device nodes. =A0I think *something*
-> > should help sort out the confusion ...
-
-(Minor correction:  *most* devices listed in ACPI tables have
-the problem of extra sysfs nodes.  A few don't; like buttons.)
-
-
-> Sorry. What I means is that the link(point to the ACPI device with th=
-e
-> ability to wake the sleeping system) is created in the /sys/power/.=20
-> After doing so, we can easily check which device has the ability to w=
-ake
-> the sleeping system.=20
-
-There's no need for symlinks to do that ... or ACPI.
-
-I've been meaning to repost my script that scans sysfs
-for the wakeup-capable devices ... I updated it a short
-while ago to work right without "legacy" sysfs nodes.
-
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, I guess it might work for very simple changes, but if you need to change
+data structures between origina and modified DSDT, you are in for a
+big trouble, right?
+							Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
