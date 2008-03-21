@@ -1,103 +1,80 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
-Date: Fri, 21 Mar 2008 01:15:03 -0700
-Message-ID: <200803210115.04210.david-b@pacbell.net>
-References: <Pine.LNX.4.44L0.0803202053270.11234-100000@netrider.rowland.org> <200803210247.18686.rjw@sisk.pl>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [patch 2.6.25-rc6 1/7] crosslink ACPI and "real" device nodes
+Date: Fri, 21 Mar 2008 16:34:31 +0800
+Message-ID: <1206088471.4109.56.camel@localhost.localdomain>
+References: <200803201408.33466.david-b@pacbell.net>
+	 <200803201409.28330.david-b@pacbell.net>
+	 <1206081808.4109.23.camel@localhost.localdomain>
+	 <200803210031.35174.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:20792 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752090AbYCUIP3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Mar 2008 04:15:29 -0400
-In-Reply-To: <200803210247.18686.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mga09.intel.com ([134.134.136.24]:17278 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750826AbYCUInw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Mar 2008 04:43:52 -0400
+In-Reply-To: <200803210031.35174.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-On Thursday 20 March 2008, Rafael J. Wysocki wrote:
-> Is there any reason why pci_choose_state() should try to figure out w=
-hat kind
-> of operation is being performed by the driver and tailor its output t=
-o that?
+On Fri, 2008-03-21 at 00:31 -0700, David Brownell wrote:
+> On Thursday 20 March 2008, Zhao Yakui wrote:
+> > On Thu, 2008-03-20 at 14:09 -0700, David Brownell wrote:
+> > > From: David Brownell <dbrownell@users.sourceforge.net>
+> > > 
+> > > Add cross-links between ACPI device and "real" devices in sysfs,
+> > > exposing otherwise-hidden interrelationships between the various
+> > > device nodes which ACPI creates.  As a representative example one
+> > > hardware device is exposed as two logical devices (PNP and ACPI):
+> > > 
+> > >   .../pnp0/00:06/
+> > >   .../LNXSYSTM:00/device:00/PNP0A03:00/device:15/PNP0B00:00/
+> > > 
+> > > The PNP device gets a "firmware_node" link pointing to the ACPI device.
+> > > The ACPI device has a "physical_node" link pointing to the PNP device.
+> > > Linux drivers currently bind only to the "physical" device nodes.
+> >  
+> > Very good idea. 
+> > But maybe there is a lot of ACPI devices on the laptops. And we take a
+> > little care about the association between the acpi device and "real"
+> > device.
+> 
+> Are you suggesting that the ACPI nodes shouldn't exist at all?
+> Or that something is wrong with how they're set up or used?
+No. The ACPI nodes should exist. What I said is whether it is necessary
+to create the link for all the ACPI devices between the ACPI device and
+"real" node device.  Of course it is also OK if link is created for the
+ACPI device with the ability to wake the sleeping system. 
+> For now, there's some confusion.  Devices listed in ACPI tables
+> have one or two extra sysfs device nodes.  I think *something*
+> should help sort out the confusion -- this patch (originally
+> from Zhang Rui, a co-worker of yours) is the only help for that
+> which I've seen so far.  Do you propose some other solution?
+> If so, what is it ... and what are its advantages?
+> > Maybe it is more useful if the link is set up for the acpi device with
+> > the _PRW object. Maybe the link that points to ACPI device with the _PRW
+> > object is created in the /sys/power/.
+> 
+> That's way too many "maybes" for my taste!  Maybe I don't see
+> how "_PRW" could be the only interesting thing, when most of
+> the ACPI nodes don't even *have* such records ... and when not
+> all power-manageable devices are even known to ACPI.
+Sorry. What I means is that the link(point to the ACPI device with the
+ability to wake the sleeping system) is created in the /sys/power/. 
+After doing so, we can easily check which device has the ability to wake
+the sleeping system. (The _PRW object indicates that the device have the
+ability to wake the sleeping system). 
+> 
+> The notion of adding ACPI-specific stuff to generic areas (like
+> /sys/power) really bothers me...
+> 
+> - Dave
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-It's always been specified to do that ... but it's always done
-that in a buggy way.  (Which is why USB never used it.)
-
-
-> I don't think so. =A0Rather, the driver should know what it's doing a=
-nd either
-> call pci_choose_state() or not. =A0If the state of the device is not =
-to be
-> changed, there's no reason to call pci_choose_state() at all.
-
-You seem to object to letting drivers offload this particular
-bit of work to infrastructure.  What's the dividing line between
-being OK to offload vs not eing OK?  Why not let the drivers make
-that choice?
-
-
-> 	[Note that with the new suspend/hibernation callbacks there
-> won't be the pm_message_t argument to pass to pci_choose_state().]
-
-The pm_message_t will necessarily linger until all drivers have
-been converted and re-tested.  Which can't be an overnight thing.
-
-
-> Now, we need to settle _what_ exactly pci_choose_state() is supposed
-> to return, because it's not clear right now.
-
-Kerneldoc says:
-
- * Returns PCI power state suitable for given device and given system
- * power state transition.
-
-Some comments added by $SUBJECT also clarify:
-
-                /* NOTE:  platform_pci_choose_state() should only retur=
-n
-                 * states where wakeup won't work if
-                 *   - !device_may_wakeup(&dev->dev), or
-                 *   - dev can't wake from the target system state
-                 */
-
-That happens to be what acpi_pm_device_sleep_state() computes;
-there may not be other implementations of that call, yet.  I can
-imagine a default that would look at PCI PM capabilities, to be
-used on non-ACPI platforms.
-
-
->	 Should that be the lowest power=20
-> state in which the device can be in given system state (that's what
-> platform_pci_choose_state() will return)?
-
-Actually the comment above is the *entirety* of the docs for
-that call:  it chooses a state.  You're asking a question of
-policy (how/why it chooses); that's outside the scope of PCI.
-
-
-> Or should that be the highest power=20
-> state in which the device can be in given system state?
-> Or anything else?=20
-
-It happens that the current Linux ACPI glue chooses the
-lowest power PCI state that's compatible with the target
-system state ... optimizing for power savings rather than
-for quick resumes.
-
-It might make sense to support a policy that optimizes for
-fast resumes from some states.  But I can't see that'd be
-worth much effort at this point, with bigger fish to fry!
-
-- Dave
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
