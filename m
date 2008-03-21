@@ -1,104 +1,42 @@
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: [PATCH 12/16] PCI slot: Use .default_attrs for address file (Not
+Subject: [PATCH 13/16] PCI slot: Fix return value of pci_create_slot() (Not
  for mainline!)
-Date: Fri, 21 Mar 2008 13:19:39 +0900
-Message-ID: <47E3375B.4020606@jp.fujitsu.com>
+Date: Fri, 21 Mar 2008 13:23:15 +0900
+Message-ID: <47E33833.9000408@jp.fujitsu.com>
 References: <20080318210539.GA30421@ldl.fc.hp.com> <47E33472.1000602@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:45254 "EHLO
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:45492 "EHLO
 	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262AbYCUEU5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 00:20:57 -0400
+	with ESMTP id S1751618AbYCUE0u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 00:26:50 -0400
 In-Reply-To: <47E33472.1000602@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alex Chiang <achiang@hp.com>, Greg KH <gregkh@suse.de>
 Cc: Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-Use .default_attrs for 'address' file. This can simplify the code.
+We can use the error code from kobject_init_and_add() as it is.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
 ---
- drivers/pci/slot.c |   36 +++++++++---------------------------
- 1 file changed, 9 insertions(+), 27 deletions(-)
+ drivers/pci/slot.c |    1 -
+ 1 file changed, 1 deletion(-)
 
 Index: linux-2.6.25-rc6/drivers/pci/slot.c
 ===================================================================
 --- linux-2.6.25-rc6.orig/drivers/pci/slot.c
 +++ linux-2.6.25-rc6/drivers/pci/slot.c
-@@ -39,25 +39,6 @@ static ssize_t address_read_file(struct 
- 					slot->bus->number, slot->number);
- }
- 
--static struct pci_slot_attribute pci_slot_attr_address = {
--	.attr = { .name = "address", .mode = S_IFREG | S_IRUGO },
--	.show = address_read_file,
--};
--
--static void remove_sysfs_files(struct pci_slot *slot)
--{
--	sysfs_remove_file(&slot->kobj, &pci_slot_attr_address.attr);
--}
--
--static int create_sysfs_files(struct pci_slot *slot)
--{
--	int result;
--
--	result = sysfs_create_file(&slot->kobj, &pci_slot_attr_address.attr);
--
--	return result;
--}
--
- static void pci_slot_release(struct kobject *kobj)
- {
- 	struct pci_slot *slot = to_pci_slot(kobj);
-@@ -67,13 +48,21 @@ static void pci_slot_release(struct kobj
- 
- 	list_del(&slot->list);
- 
--	remove_sysfs_files(slot);
- 	kfree(slot);
- }
- 
-+static struct pci_slot_attribute pci_slot_attr_address =
-+	__ATTR(address, (S_IFREG | S_IRUGO), address_read_file, NULL);
-+
-+static struct attribute *pci_slot_default_attrs[] = {
-+	&pci_slot_attr_address.attr,
-+	NULL,
-+};
-+
- static struct kobj_type pci_slot_ktype = {
- 	.sysfs_ops = &pci_slot_sysfs_ops,
- 	.release = &pci_slot_release,
-+	.default_attrs = pci_slot_default_attrs,
- };
- 
- struct pci_slot *pci_create_slot(struct pci_bus *parent, int slot_nr,
-@@ -114,10 +103,6 @@ struct pci_slot *pci_create_slot(struct 
+@@ -99,7 +99,6 @@ struct pci_slot *pci_create_slot(struct 
+ 				   "%s", name);
+ 	if (err) {
+ 		printk(KERN_ERR "Unable to register kobject %s\n", name);
+-		err = -EINVAL;
  		goto err;
  	}
  
--	err = create_sysfs_files(slot);
--	if (err)
--		goto unregister;
--
- 	INIT_LIST_HEAD(&slot->list);
- 	list_add(&slot->list, &parent->slots);
- 
-@@ -127,9 +112,6 @@ struct pci_slot *pci_create_slot(struct 
-  out:
- 	up_write(&pci_bus_sem);
- 	return slot;
--
-- unregister:
--	kobject_put(&slot->kobj);
-  err:
- 	kfree(slot);
- 	slot = ERR_PTR(err);
 
 
