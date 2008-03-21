@@ -1,82 +1,97 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 2)
-Date: Thu, 20 Mar 2008 22:53:34 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803202229060.16520-100000@netrider.rowland.org>
-References: <200803210314.55149.rjw@sisk.pl>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 0/3, v10] PCI, ACPI: Physical PCI slot objects
+Date: Fri, 21 Mar 2008 13:07:14 +0900
+Message-ID: <47E33472.1000602@jp.fujitsu.com>
+References: <20080318210539.GA30421@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:4819 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753038AbYCUCxf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2008 22:53:35 -0400
-In-Reply-To: <200803210314.55149.rjw@sisk.pl>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38679 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbYCUEJC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 00:09:02 -0400
+In-Reply-To: <20080318210539.GA30421@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Alex Chiang <achiang@hp.com>, Greg KH <gregkh@suse.de>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Fri, 21 Mar 2008, Rafael J. Wysocki wrote:
+Hi Alex-san, Greg-san,
 
-> > One trivial problem is that your dpm_prepare and dpm_complete routines 
-> > go through the list in the wrong order.
+I've reviewed and tested the latest version of Alex's "introduce
+pci_slot" series with DMI table entry for Fujitsu PRIMEQUEST added
+on our PRIMEQUEST server that has both SHPC and PCI-Ex based hotplug
+slots. And I confirmed invalid slot ('1023') problem was solved
+and slot names were overridden with hotplug drivers as we want.
+But on the other hand, I found some bugs and some codes need to
+be changed. So I would like Alex-san to fix those. I made patches
+for each of those. Could you consider adding or merging my patches
+to your patch series? My patches are as follows. Please see the
+header of each patch for details. Those are on top of your three
+patches.
+
+- [PATCH  1/16][BUG] Export kobject_rename for pci_hotplug_core (Not for mainline!)
+- [PATCH  2/16] ACPI pci_slot: Fix dmi table for Fujitsu PRIMEQUEST (Not for mainline!)
+- [PATCH  3/16][BUG] ACPI pci_slot: Fix _STA evaluation (Not for mainline!)
+- [PATCH  4/16][BUG] PCI slot: Add missing semaphore for slot release (Not for mainline!)
+- [PATCH  5/16] PCI slot: Use list_head for pci slot list (Not for mainline!)
+- [PATCH  6/16][BUG] ACPI pci_slot: Fix slot removal path (Not for mainline!)
+- [PATCH  7/16][BUG] PCI slot: Remove compiler warnings (Not for mainline!)
+- [PATCH  8/16][BUG] PCI slot: Fix invalid memory access (Not for mainline!)
+- [PATCH  9/16] PCI slot: Remove unused slot member from pci_dev (Not for mainline!)
+- [PATCH 10/16] PCI slot: Replace dbg with pr_debug (Not for mainline!)
+- [PATCH 11/16] PCI slot: Remove useless release handler (Not for mainline!)
+- [PATCH 12/16] PCI slot: Use .default_attrs for address file (Not for mainline!)
+- [PATCH 13/16] PCI slot: Fix return value of pci_create_slot() (Not for mainline!)
+- [PATCH 14/16] PCI slot: Change return value of pci_destroy_slot() (Not for mainline!)
+- [PATCH 15/16] PCI slot: Trivial cleanups for slot.c (Not for mainline!)
+- [PATCH 16/16][BUG] PCI hotplug core: add missing lock for hotplug slot list (Not for mainline!)
+
+BTW, I've posted other patches to fix the slot name of shpchp/pciehp
+to pcihpd-discuss mailing-list. Please see it also.
+
+Thanks,
+Kenji Kaneshige
+
+
+
+
+Alex Chiang wrote:
+> Hi Greg, Kenji-san,
 > 
-> I'm not all so sure that the order is actually wrong.  What would be the
-> advantage of the forward order over the current one?
-
-The advantage is that races no longer matter.
-
-Suppose you're going through the list backwards and a race occurs, so
-that a child is registered while the parent's prepare() is running.  
-That new child will of course be at the end of dpm_active, so the loop
-in dpm_prepare won't see it (assuming you adopt the approach of using
-only a single list).  But if you go through the list forwards and a new
-child is added, you will naturally see the child when you reach the end
-of the list.  You don't even have to go through the business about
-changing the parent's state back to DPM_ON.
-
-There are other ways of describing the situation, but they all come 
-down to the same thing.  For instance, this is the way Ben was talking 
-about doing things.
-
-> > Since dpm_prepare is supposed to go through the list in the forward
-> > direction, logically the "root" of the device tree should be the first
-> > thing "prepared".  This means you should not allow parentless devices
-> > to be registered any time after dpm_prepare has started.  Is that 
-> > liable to cause problems?
+> This is v10 of my "introduce pci_slot" series, to be considered
+> for inclusion in linux-next to get more test exposure and shake
+> out the bugs.
 > 
-> I'm still not seeing the advantage of the forward direction in the first place.
+> * Greg KH <gregkh@suse.de>:
+>> Can you work with Kenji to get his approval on this before I
+>> add this to the tree?  It sounds like there are still some
+>> outstanding issues getting this to work properly on his
+>> hardware.  It needs to work without relying on a module not
+>> being loaded, as the distros are never going to go for that
+>> kind of solution.
 > 
-> Although I don't see what particular problems that may cause, I think the
-> current approach (first, block registrations of new children for each
-> ->prepare()d device and finally block any registrations of new devices) is
-> more natural.
-
-I suppose for parentless devices it doesn't really matter.  You could
-safely allow them to be registered any time up until dpm_prepare()  
-finishes -- which is what your patch does.  Perhaps the "all_inactive"
-flag should be renamed to "all_prepared".
-
-> > There may be similar problems with complete().  A number of drivers
-> > check during their resume method for the presence of new children
-> > plugged in while the system was asleep.  All these drivers would have
-> > to be converted over to the new scheme if they weren't permitted to
-> > register the new children before complete() was called.  Of course,
-> > this is easily fixed by permitting new children starting from when
-> > resume() is called rather than when complete() is called.
+> New in v10 is the addition of a DMI list to do the right thing on
+> Fujitsu hardware, and does not rely on "don't load the module" to
+> get the correct behavior.
 > 
-> Well, the problem here was the protection of the correct ordering of the
-> various lists.  However, if the approach with changing 'status' is adopted
-> instead, which seems to be better, we'll be able to unblock the registering
-> of new children before ->resume().
+> Also, v10 should fix the "pci_slot module changes the sysfs name"
+> issue that Kenji-san was seeing.
+> 
+> * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
+>> Alex-san, could you send me the updated patches? I'll Ack the
+>> patch after adding Fujitsu firmware versions to the DMI list
+>> and testing it.
+> 
+> Thanks, I'd like to know if the naming issue is fixed for you as
+> well.
+> 
+> cheers,
+> 
+> /ac
+> 
+> 
+> 
 
-Yep.  The only thing to watch out for is in device_pm_remove(); it
-would be a disaster if somehow a device was removed while it was being
-prepared/suspended/resumed/completed/whatever.  I know that's not
-supposed to happen but there's nothing to prevent it, especially if
-the device in question doesn't have a driver.  No doubt you can invent
-a way to allow this to happen safely.
-
-Alan Stern
 
