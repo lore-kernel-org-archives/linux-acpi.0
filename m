@@ -1,75 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
-Date: Fri, 21 Mar 2008 17:23:16 +0100
-Message-ID: <200803211723.17685.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0803202053270.11234-100000@netrider.rowland.org> <200803210247.18686.rjw@sisk.pl> <200803210115.04210.david-b@pacbell.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPI: EC: Detect irq storm
+Date: Fri, 21 Mar 2008 19:36:02 +0300
+Message-ID: <20080321163602.31354.82578.stgit@thinkpad.local>
+References: <20080321140727.30578.54215.stgit@thinkpad.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41514 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754674AbYCUQXo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 12:23:44 -0400
-In-Reply-To: <200803210115.04210.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from charybdis-ext.suse.de ([195.135.221.2]:42561 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756384AbYCUQgZ (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 21 Mar 2008 12:36:25 -0400
+In-Reply-To: <20080321140727.30578.54215.stgit@thinkpad.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Friday, 21 of March 2008, David Brownell wrote:
-> On Thursday 20 March 2008, Rafael J. Wysocki wrote:
-> > Is there any reason why pci_choose_state() should try to figure out=
- what kind
-> > of operation is being performed by the driver and tailor its output=
- to that?
->=20
-> It's always been specified to do that ... but it's always done
-> that in a buggy way.  (Which is why USB never used it.)
+Problem seems to be that hw fails to clear GPE after we service it and write 1
+into corresponding bit. Thus, as soon as we get interrupts enabled again, we
+receive a new one. Google gives too many results for "acer interrupt storm" for
+this being one-broken-machine case.
 
-I hope you realize that your change will affect all drivers calling
-pci_choose_state() on ACPI systems on FREEZE/PRETHAW in a hard to predi=
-ct
-way?  Perhaps some of them actually rely on getting D3hot on FREEZE, fo=
-r
-example?
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=9998
 
-> > I don't think so. =A0Rather, the driver should know what it's doing=
- and either
-> > call pci_choose_state() or not. =A0If the state of the device is no=
-t to be
-> > changed, there's no reason to call pci_choose_state() at all.
->=20
-> You seem to object to letting drivers offload this particular
-> bit of work to infrastructure.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-No, I don't.  I just don't think it's a good idea to change the existin=
-g and
-widely used function for this purpose.  If I needed some specific funct=
-ionality
-at the infrastructure level, I'd add a new function for that with a new
-changelog etc.  Then, made drivers switch to that and remove the old on=
-e.
+ drivers/acpi/ec.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-> What's the dividing line between being OK to offload vs not eing OK? =
- Why not
-> let the drivers make that choice?
->=20
->=20
-> > 	[Note that with the new suspend/hibernation callbacks there
-> > won't be the pm_message_t argument to pass to pci_choose_state().]
->=20
-> The pm_message_t will necessarily linger until all drivers have
-> been converted and re-tested.  Which can't be an overnight thing.
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index da67d22..f0e8216 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -106,6 +106,7 @@ static struct acpi_ec {
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
+ 	struct delayed_work work;
++	atomic_t irq_count;
+ 	u8 handlers_installed;
+ } *boot_ec, *first_ec;
+ 
+@@ -171,6 +172,7 @@ static void ec_switch_to_poll_mode(struct acpi_ec *ec)
+ 
+ static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, int force_poll)
+ {
++	atomic_set(&ec->irq_count, 0);
+ 	if (likely(test_bit(EC_FLAGS_GPE_MODE, &ec->flags)) &&
+ 	    likely(!force_poll)) {
+ 		if (wait_event_timeout(ec->wait, acpi_ec_check_status(ec, event),
+@@ -489,6 +491,12 @@ static u32 acpi_ec_gpe_handler(void *data)
+ 	u8 state = acpi_ec_read_status(ec);
+ 
+ 	pr_debug(PREFIX "~~~> interrupt\n");
++	atomic_inc(&ec->irq_count);
++	if (atomic_read(&ec->irq_count) > 5) {
++		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
++		ec_switch_to_poll_mode(ec);
++		goto end;
++	}
+ 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+ 	if (test_bit(EC_FLAGS_GPE_MODE, &ec->flags))
+ 		wake_up(&ec->wait);
+@@ -507,6 +515,7 @@ static u32 acpi_ec_gpe_handler(void *data)
+ 		set_bit(EC_FLAGS_GPE_MODE, &ec->flags);
+ 		clear_bit(EC_FLAGS_RESCHEDULE_POLL, &ec->flags);
+ 	}
++end:
+ 	ec_schedule_ec_poll(ec);
+ 	return ACPI_SUCCESS(status) ?
+ 	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+@@ -515,6 +524,7 @@ static u32 acpi_ec_gpe_handler(void *data)
+ static void do_ec_poll(struct work_struct *work)
+ {
+ 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work.work);
++	atomic_set(&ec->irq_count, 0);
+ 	(void)acpi_ec_gpe_handler(ec);
+ }
+ 
+@@ -679,6 +689,7 @@ static struct acpi_ec *make_acpi_ec(void)
+ 	init_waitqueue_head(&ec->wait);
+ 	INIT_LIST_HEAD(&ec->list);
+ 	INIT_DELAYED_WORK_DEFERRABLE(&ec->work, do_ec_poll);
++	atomic_set(&ec->irq_count, 0);
+ 	return ec;
+ }
+ 
 
-No, it can't.  Still, suppose a driver is using the new callbacks.  How=
- is it
-supposed to use pci_choose_state()?
-
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
