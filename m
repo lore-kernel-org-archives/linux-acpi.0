@@ -1,127 +1,39 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 10/16] PCI slot: Replace dbg with pr_debug (Not for
-	mainline!)
-Date: Fri, 21 Mar 2008 14:02:11 -0600
-Message-ID: <20080321200211.GO17292@ldl.fc.hp.com>
-References: <20080318210539.GA30421@ldl.fc.hp.com> <47E33472.1000602@jp.fujitsu.com> <47E336BF.1010200@jp.fujitsu.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH, RFC] Create 'slot' sysfs attributein/sys/devices/system/cpu/cpuN/topology/
+Date: Fri, 21 Mar 2008 16:58:30 -0700
+Message-ID: <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com>
+References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761530AbYCUUCl@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <47E336BF.1010200@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-reply-to: <20080319233140.GD16237@ldl.fc.hp.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> The dbg() macro doesn't work because the 'pci_slot_debug' flag never
-> be set unless we manually modify drivers/pci/slots.c. So we should use
-> pr_debug() instead. This patch replaces dbg() with pr_debug().
++	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_SUN", &handle))) {
++		status = acpi_evaluate_object(pr->handle,
++						"_SUN", NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			object.integer.value = -1;
++	} else {
++		object.integer.value = -1;
++	}
++	arch_set_topology_slot(pr->id, object.integer.value);
++
+ 	if (!object.processor.pblk_address)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+ 	else if (object.processor.pblk_length != 6)
 
-Merged, thanks.
+I'm still seeing these messages:
 
-/ac
+ "ACPI: Invalid PBLK length [0]"
 
-> 
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-> 
-> ---
->  drivers/pci/slot.c |   38 +++++++++++++++-----------------------
->  1 file changed, 15 insertions(+), 23 deletions(-)
-> 
-> Index: linux-2.6.25-rc6/drivers/pci/slot.c
-> ===================================================================
-> --- linux-2.6.25-rc6.orig/drivers/pci/slot.c
-> +++ linux-2.6.25-rc6/drivers/pci/slot.c
-> @@ -9,15 +9,6 @@
->  #include <linux/pci.h>
->  #include "pci.h"
->  
-> -static int pci_slot_debug;
-> -#define MY_NAME "slot"
-> -#define dbg(format, arg...)					\
-> -	do {							\
-> -		if (pci_slot_debug)				\
-> -			printk(KERN_DEBUG "%s: " format,	\
-> -				MY_NAME , ## arg);		\
-> -	} while (0)
-> -
->  struct kset *pci_slots_kset;
->  EXPORT_SYMBOL_GPL(pci_slots_kset);
->  
-> @@ -71,8 +62,8 @@ static void pci_slot_release(struct kobj
->  {
->  	struct pci_slot *slot = to_pci_slot(kobj);
->  
-> -	dbg("%s: releasing pci_slot on %x:%d\n", __func__,
-> -		slot->bus->number, slot->number);
-> +	pr_debug("%s: releasing pci_slot on %x:%d\n", __func__,
-> +		 slot->bus->number, slot->number);
->  
->  	list_del(&slot->list);
->  
-> @@ -109,19 +100,19 @@ int pci_slot_add_hotplug(struct pci_bus 
->  	}
->  
->  	if (!found) {
-> -		dbg("%s: slot not found\n", __func__);
-> +		pr_debug("%s: slot not found\n", __func__);
->  		retval = -EEXIST;
->  		goto out;
->  	}
->  
->  	if (slot->release) {
-> -		dbg("%s: already claimed\n", __func__);
-> +		pr_debug("%s: already claimed\n", __func__);
->  		retval = -EBUSY;
->  		goto out;
->  	}
->  
-> -	dbg("%s: adding release function to %x:%d\n",
-> -		__func__, parent->number, slot_nr);
-> +	pr_debug("%s: adding release function to %x:%d\n",
-> +		 __func__, parent->number, slot_nr);
->  	slot->release = release;
->   out:
->  	up_write(&pci_bus_sem);
-> @@ -141,9 +132,10 @@ struct pci_slot *pci_create_slot(struct 
->  	list_for_each_entry(slot, &parent->slots, list) {
->  		if (slot->number == slot_nr) {
->  			kobject_get(&slot->kobj);
-> -			dbg("%s: bumped refcount to %d on %x:%d\n",
-> -			    __func__, atomic_read(&slot->kobj.kref.refcount),
-> -			    parent->number, slot_nr);
-> +			pr_debug("%s: bumped refcount to %d on %x:%d\n",
-> +				 __func__,
-> +				 atomic_read(&slot->kobj.kref.refcount),
-> +				 parent->number, slot_nr);
->  			goto out;
->  		}
->  	}
-> @@ -173,8 +165,8 @@ struct pci_slot *pci_create_slot(struct 
->  	INIT_LIST_HEAD(&slot->list);
->  	list_add(&slot->list, &parent->slots);
->  
-> -	dbg("%s: created pci_slot on %x:%d\n",
-> -		__func__, parent->number, slot_nr);
-> +	pr_debug("%s: created pci_slot on %x:%d\n",
-> +		 __func__, parent->number, slot_nr);
->  
->   out:
->  	up_write(&pci_bus_sem);
-> @@ -191,9 +183,9 @@ EXPORT_SYMBOL_GPL(pci_create_slot);
->  
->  int pci_destroy_slot(struct pci_slot *slot)
->  {
-> -	dbg("%s: decreased refcount to %d on %x:%d\n", __func__,
-> -	    atomic_read(&slot->kobj.kref.refcount) - 1, slot->bus->number,
-> -	    slot->number);
-> +	pr_debug("%s: decreased refcount to %d on %x:%d\n", __func__,
-> +		 atomic_read(&slot->kobj.kref.refcount) - 1, slot->bus->number,
-> +		 slot->number);
->  
->  	down_write(&pci_bus_sem);
->  	kobject_put(&slot->kobj);
-> 
-> 
+for every cpu.  Presumably because "object" is a union and when
+you did the "object.integer.value = -1;" you scribbled on some bits
+that were needed in the subsequent code.
+
+-Tony
