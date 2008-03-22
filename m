@@ -1,232 +1,199 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
-Date: Sat, 22 Mar 2008 19:34:33 +0100
-Message-ID: <200803221934.34139.rjw@sisk.pl>
-References: <200803201408.33466.david-b@pacbell.net> <200803211738.35867.rjw@sisk.pl> <200803221049.16696.david-b@pacbell.net>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 2)
+Date: Sat, 22 Mar 2008 23:17:57 +0100
+Message-ID: <200803222317.58206.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0803202229060.16520-100000@netrider.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47369 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:48215 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752335AbYCVSfH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Mar 2008 14:35:07 -0400
-In-Reply-To: <200803221049.16696.david-b@pacbell.net>
+	id S1752273AbYCVWSy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Mar 2008 18:18:54 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0803202229060.16520-100000@netrider.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: lenb@kernel.org, trenn@suse.de, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-On Saturday, 22 of March 2008, David Brownell wrote:
-> On Friday 21 March 2008, Rafael J. Wysocki wrote:
-> > On Friday, 21 of March 2008, David Brownell wrote:
-> > > All it does is implement the rules that have been defined for
-> > > ages now:  most of the pm_message_t transitions should not
-> > > change device power states.
+On Friday, 21 of March 2008, Alan Stern wrote:
+> On Fri, 21 Mar 2008, Rafael J. Wysocki wrote:
+> 
+> > > One trivial problem is that your dpm_prepare and dpm_complete routines 
+> > > go through the list in the wrong order.
 > > 
-> > But they do at the moment, so you're going to change how the code
-> > currently works on a quite large scale.
+> > I'm not all so sure that the order is actually wrong.  What would be the
+> > advantage of the forward order over the current one?
 > 
-> Are you arguing that this bug "should not be fixed"?
+> The advantage is that races no longer matter.
 > 
-> Or are you arguing that there's something wrong with
-> the rules, so that they "should not be followed"?
+> Suppose you're going through the list backwards and a race occurs, so
+> that a child is registered while the parent's prepare() is running.  
+> That new child will of course be at the end of dpm_active, so the loop
+> in dpm_prepare won't see it (assuming you adopt the approach of using
+> only a single list).  But if you go through the list forwards and a new
+> child is added, you will naturally see the child when you reach the end
+> of the list.  You don't even have to go through the business about
+> changing the parent's state back to DPM_ON.
 > 
-> Or something else?
-
-Something else.  As I said before somewhere, I'd introduce a new function
-imilar to pci_choose_state(), but with the semantics you want it to have.
-Then, I'd make drivers switch to it and remove the original pci_choose_state()
-when it's no longer used.  Clean and safe.
-
-> > > > I'd make it return PCI_D3hot if platform_pci_choose_state()
-> > > > is undefined or fails 
-> > > 
-> > > See above:  this implements the current rules, which say
-> > > that in most cases devices shoudn't change powerstates.
+> There are other ways of describing the situation, but they all come 
+> down to the same thing.  For instance, this is the way Ben was talking 
+> about doing things.
+> 
+> > > Since dpm_prepare is supposed to go through the list in the forward
+> > > direction, logically the "root" of the device tree should be the first
+> > > thing "prepared".  This means you should not allow parentless devices
+> > > to be registered any time after dpm_prepare has started.  Is that 
+> > > liable to cause problems?
 > > 
-> > Okay, say you're changing pci_choose_state() to follow the
-> > documentation. 
-> 
-> Not just documentation -- the current architecture of the
-> whole suspend process.  Surely it's essential not to have
-> bugs like those at the core of that process?
-> 
-> If that process is broken, but this PCI bug hides it, we'll
-> be having a boatload of unexpected trouble in a while...
-
-I'm not against fixing bugs, but let's do that without giving users and testers
-a hard time if possible.
-
-> > Are you sure, however, that it won't cause any regressions to appear?
-> 
-> No more than any other bugfix turning up other latent bugs.
-> That's why we have a process which lets fixes cook for a while
-> before they merge.
-
-In fact if a bugfix turns up any later bugs, then we should fix all of the
-later bugs along with that bugfix, preferably in one series of patches.
-
-> > > +	switch (mesg.event) {
-> > >  	case PM_EVENT_SUSPEND:
-> > >  	case PM_EVENT_HIBERNATE:
-> > > -		return PCI_D3hot;
-> > > +		/* NOTE:  platform_pci_choose_state() should only return
-> > > +		 * states where wakeup won't work if
-> > > +		 *   - !device_may_wakeup(&dev->dev), or
-> > > +		 *   - dev can't wake from the target system state
-> > > +		 */
-> > > +		if (platform_pci_choose_state) {
-> > > +			ret = platform_pci_choose_state(dev, mesg);
-> > > +			if (ret == PCI_POWER_ERROR)
-> > > +				ret = PCI_D3hot;
-> > > +			else if ((ret == PCI_D1 || ret == PCI_D2)
-> > > +					&& pci_no_d1d2(dev))
-> > > +				ret = PCI_D3hot;
-> > > +			break;
-> > > +		}
-> > > +		/* D3hot works, but may be suboptimal */
-> > > +		ret = PCI_D3hot;
-> > > +		break;
+> > I'm still not seeing the advantage of the forward direction in the first place.
 > > 
-> > I would do:
+> > Although I don't see what particular problems that may cause, I think the
+> > current approach (first, block registrations of new children for each
+> > ->prepare()d device and finally block any registrations of new devices) is
+> > more natural.
+> 
+> I suppose for parentless devices it doesn't really matter.  You could
+> safely allow them to be registered any time up until dpm_prepare()  
+> finishes -- which is what your patch does.  Perhaps the "all_inactive"
+> flag should be renamed to "all_prepared".
+> 
+> > > There may be similar problems with complete().  A number of drivers
+> > > check during their resume method for the presence of new children
+> > > plugged in while the system was asleep.  All these drivers would have
+> > > to be converted over to the new scheme if they weren't permitted to
+> > > register the new children before complete() was called.  Of course,
+> > > this is easily fixed by permitting new children starting from when
+> > > resume() is called rather than when complete() is called.
 > > 
-> > +		if (platform_pci_choose_state) {
-> > +			ret = platform_pci_choose_state(dev, mesg);
-> > +			if (ret == PCI_POWER_ERROR || (pci_no_d1d2(dev)
-> > +			    && (ret == PCI_D1 || ret == PCI_D2)))
+> > Well, the problem here was the protection of the correct ordering of the
+> > various lists.  However, if the approach with changing 'status' is adopted
+> > instead, which seems to be better, we'll be able to unblock the registering
+> > of new children before ->resume().
 > 
-> That's ... phenomenally ugly and incomprehensible! It hides 
-> almost the entire structure of the conditionals.
+> Yep.  The only thing to watch out for is in device_pm_remove(); it
+> would be a disaster if somehow a device was removed while it was being
+> prepared/suspended/resumed/completed/whatever.  I know that's not
+> supposed to happen but there's nothing to prevent it, especially if
+> the device in question doesn't have a driver.  No doubt you can invent
+> a way to allow this to happen safely.
 
-I obviously disagree with that.  What exactly is incomprehensible in it?
-"Return D3hot if an error has been returned or a state we can't use has been
-returned".  Quite simple, no?
+Well, that's a separate issue that IMO should be addressed in a separate patch.
+Something like the one below comes to mind.
 
-> > +				ret = PCI_D3hot;
-> > +		} else {
-> > +			/* D3hot works, but may be suboptimal */
-> > +			ret = PCI_D3hot;
-> > +		}
-> 
-> Extra/pointless brackets after "else" ...
-
-Please have a look at Chapter 3 in Documentation/CodingStyle (just before 3.1).
-
-> so you think the quickie fix should have removed that first "break"?  Simpler
-> to just have said so.
-> 
-> > +		break;
-> 
-> 
-> ======== CUT HERE
-> Clean up pci_choose_state():
-> 
->  - pci_choose_state() should only return PCI_D0, unless the system is
->    entering a suspend (or hibernate) system state.
-> 
->  - Only use platform_pci_choose_state() when entering a suspend
->    state ... and avoid PCI_D1 and PCI_D2 when appropriate.
-> 
->  - Corrrect kerneldoc.
-> 
-> Note that for now only ACPI provides platform_pci_choose_state(), so
-> this could be a minor change in behavior on some non-PC systems:  it
-> avoids D3 except in the final stage of hibernation.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/pci/pci.c |   53 ++++++++++++++++++++++++++++++-----------------------
->  1 file changed, 30 insertions(+), 23 deletions(-)
-> 
-> --- g26.orig/drivers/pci/pci.c	2008-03-22 10:25:48.000000000 -0700
-> +++ g26/drivers/pci/pci.c	2008-03-22 10:44:28.000000000 -0700
-> @@ -523,46 +523,53 @@ pci_set_power_state(struct pci_dev *dev,
->  }
->  
->  pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
-> - 
-> +
->  /**
->   * pci_choose_state - Choose the power state of a PCI device
->   * @dev: PCI device to be suspended
-> - * @state: target sleep state for the whole system. This is the value
-> - *	that is passed to suspend() function.
-> + * @mesg: value passed to suspend() function.
->   *
->   * Returns PCI power state suitable for given device and given system
-> - * message.
-> + * power state transition.
->   */
-> -
-> -pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
-> +pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t mesg)
->  {
->  	pci_power_t ret;
->  
-> +	/* PCI legacy PM? */
->  	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
->  		return PCI_D0;
->  
-> -	if (platform_pci_choose_state) {
-> -		ret = platform_pci_choose_state(dev, state);
-> -		if (ret != PCI_POWER_ERROR)
-> -			return ret;
-> -	}
-> -
-> -	switch (state.event) {
-> -	case PM_EVENT_ON:
-> -		return PCI_D0;
-> -	case PM_EVENT_FREEZE:
-> -	case PM_EVENT_PRETHAW:
-> -		/* REVISIT both freeze and pre-thaw "should" use D0 */
-> +	switch (mesg.event) {
->  	case PM_EVENT_SUSPEND:
->  	case PM_EVENT_HIBERNATE:
-> -		return PCI_D3hot;
-> +		/*
-> +		 * D3hot works on all devices, but may be suboptimal on
-> +		 * a given system.  Factors include wakeups, power use,
-> +		 * the optional D3hot->D0 reset, latency, and more.
-> +		 *
-> +		 * If there's a platform_pci_choose_state(), it could
-> +		 * provide better answers for this system.  It should
-> +		 * only return states where wakeup won't work if:
-> +		 *   - !device_may_wakeup(&dev->dev), or
-> +		 *   - dev can't wake from the target system state
-> +		 */
-> +		ret = PCI_D3hot;
-> +		if (platform_pci_choose_state) {
-> +			ret = platform_pci_choose_state(dev, mesg);
-> +			if (ret == PCI_POWER_ERROR)
-> +				ret = PCI_D3hot;
-> +			else if ((ret == PCI_D1 || ret == PCI_D2)
-> +					&& pci_no_d1d2(dev))
-> +				ret = PCI_D3hot;
-
-And so this reads "If an error is has been returned, return D3hot.  And by
-the way, if D1 or D2 has been returned and we can't use any of them,
-return D3hot".  I really don't see why it's better than just one condition, but
-whatever.
-
-> +		}
-> +		break;
->  	default:
-> -		printk("Unrecognized suspend event %d\n", state.event);
-> -		BUG();
-> +		ret = PCI_D0;
-> +		break;
->  	}
-> -	return PCI_D0;
-> +	return ret;
->  }
-> -
->  EXPORT_SYMBOL(pci_choose_state);
->  
->  static int pci_save_pcie_state(struct pci_dev *dev)
-> --
+The comment removed by the patch is wrong IMO, because it implies that
+device_add() may be called with the device semaphore held and that might
+deadlock in bus_attach_device().  Thus, I think we can acquire dev->sem
+in device_pm_add() and in device_pm_remove().
 
 Thanks,
 Rafael
+
+---
+ drivers/base/power/main.c |   21 ++++++++++++++-------
+ include/linux/pm.h        |    1 +
+ 2 files changed, 15 insertions(+), 7 deletions(-)
+
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -41,10 +41,6 @@
+  * from the bottom (i.e., end) up and resumed in the opposite order.
+  * That way no parent will be suspended while it still has an active
+  * child.
+- *
+- * Since device_pm_add() may be called with a device semaphore held,
+- * we must never try to acquire a device semaphore while holding
+- * dpm_list_mutex.
+  */
+ 
+ LIST_HEAD(dpm_active);
+@@ -68,6 +64,7 @@ int device_pm_add(struct device *dev)
+ 	pr_debug("PM: Adding info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
++	down(&dev->sem);
+ 	mutex_lock(&dpm_list_mtx);
+ 	if ((dev->parent && dev->parent->power.sleeping) || all_sleeping) {
+ 		if (dev->parent->power.sleeping)
+@@ -80,10 +77,13 @@ int device_pm_add(struct device *dev)
+ 		error = -EBUSY;
+ 	} else {
+ 		error = dpm_sysfs_add(dev);
+-		if (!error)
++		if (!error) {
++			dev->power.present = true;
+ 			list_add_tail(&dev->power.entry, &dpm_active);
++		}
+ 	}
+ 	mutex_unlock(&dpm_list_mtx);
++	up(&dev->sem);
+ 	return error;
+ }
+ 
+@@ -98,10 +98,13 @@ void device_pm_remove(struct device *dev
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
++	down(&dev->sem);
+ 	mutex_lock(&dpm_list_mtx);
+ 	dpm_sysfs_remove(dev);
++	dev->power.present = false;
+ 	list_del_init(&dev->power.entry);
+ 	mutex_unlock(&dpm_list_mtx);
++	up(&dev->sem);
+ }
+ 
+ /**
+@@ -196,6 +199,8 @@ static int resume_device(struct device *
+ 	TRACE_RESUME(0);
+ 
+ 	down(&dev->sem);
++	if (!dev->power.present)
++		goto End;
+ 
+ 	if (dev->bus && dev->bus->resume) {
+ 		dev_dbg(dev,"resuming\n");
+@@ -211,7 +216,7 @@ static int resume_device(struct device *
+ 		dev_dbg(dev,"class resume\n");
+ 		error = dev->class->resume(dev);
+ 	}
+-
++ End:
+ 	up(&dev->sem);
+ 
+ 	TRACE_RESUME(error);
+@@ -366,6 +371,8 @@ static int suspend_device(struct device 
+ 	int error = 0;
+ 
+ 	down(&dev->sem);
++	if (!dev->power.present)
++		goto End;
+ 
+ 	if (dev->power.power_state.event) {
+ 		dev_dbg(dev, "PM: suspend %d-->%d\n",
+@@ -389,7 +396,7 @@ static int suspend_device(struct device 
+ 		error = dev->bus->suspend(dev, state);
+ 		suspend_report_result(dev->bus->suspend, error);
+ 	}
+-
++ End:
+ 	up(&dev->sem);
+ 
+ 	return error;
+Index: linux-2.6/include/linux/pm.h
+===================================================================
+--- linux-2.6.orig/include/linux/pm.h
++++ linux-2.6/include/linux/pm.h
+@@ -185,6 +185,7 @@ struct dev_pm_info {
+ 	unsigned		can_wakeup:1;
+ 	unsigned		should_wakeup:1;
+ 	bool			sleeping:1;	/* Owned by the PM core */
++	bool			present:1;	/* Owned by the PM core */
+ #ifdef	CONFIG_PM_SLEEP
+ 	struct list_head	entry;
+ #endif
