@@ -1,74 +1,209 @@
-From: Tobias Oed <tobias.oed@octant-fr.com>
-Subject: Re: 2.6.25-rc6 compile error in drivers/acpi/osl.c
-Date: Sat, 22 Mar 2008 16:04:12 +0100
-Message-ID: <47E51FEC.8010501@octant-fr.com>
-References: <47E508B3.8070801@octant-fr.com> <47E51864.5000107@tremplin-utc.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.25-rc6 3/7] pci_choose_state() cleanup and fixes
+Date: Sat, 22 Mar 2008 10:49:15 -0700
+Message-ID: <200803221049.16696.david-b@pacbell.net>
+References: <200803201408.33466.david-b@pacbell.net> <200803210053.04330.david-b@pacbell.net> <200803211738.35867.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755408AbYCVPEt@vger.kernel.org>
-In-Reply-To: <47E51864.5000107@tremplin-utc.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, matthew@wil.cx, Randy Dunlap <randy.dunlap@oracle.com>, tobias.oed@octant-fr.com
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:45698 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754422AbYCVRtT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Mar 2008 13:49:19 -0400
+In-Reply-To: <200803211738.35867.rjw@sisk.pl>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, trenn@suse.de, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-Eric Piel wrote:
-> (added Randy as CC just in case it ends up being a problem with=20
-> 7ce9573e093891f5807e6e50f3bd2012f1e5d0fe)
-> Tobias Oed wrote:
->> Hello,
->> compiling 2.6.25-rc6 on my up to date fedora 8 system ends with
->>
->>   CC      drivers/acpi/osl.o
->> drivers/acpi/osl.c:60:38: error: n: No such file or directory
->> drivers/acpi/osl.c: In function =E2=80=98acpi_os_table_override=E2=80=
-=99:
->> drivers/acpi/osl.c:334: error: =E2=80=98AmlCode=E2=80=99 undeclared =
-(first use in this=20
->> function)
->> drivers/acpi/osl.c:334: error: (Each undeclared identifier is report=
-ed=20
->> only once
->> drivers/acpi/osl.c:334: error: for each function it appears in.)
->> make[2]: *** [drivers/acpi/osl.o] Error 1
->> make[1]: *** [drivers/acpi] Error 2
->> make: *** [drivers] Error 2
->>
->> Config attached
-> Hi Tobias,
-> First, you haven't sent the correct .config file (this one is dated "=
-=46ri=20
-> Mar 14 21:06:35 2008").
+On Friday 21 March 2008, Rafael J. Wysocki wrote:
+> On Friday, 21 of March 2008, David Brownell wrote:
+> > All it does is implement the rules that have been defined for
+> > ages now:  most of the pm_message_t transitions should not
+> > change device power states.
+> 
+> But they do at the moment, so you're going to change how the code
+> currently works on a quite large scale.
 
-Oups, I took it from the wrong dir.
+Are you arguing that this bug "should not be fixed"?
 
-> To fix your problem you just need to "make menuconfig" and change=20
-> ACPI_CUSTOM_DSDT_FILE from "n" to "".
->=20
-> Now the question is: how did you end up with this error? Is it just y=
-ou=20
-> who mistook while answering the questions of "make oldconfig" or did=20
-> this "n" appeared automatically because was not ACPI_CUSTOM_DSDT is s=
-et.=20
-> In which case this is a bug in the kernel.
->=20
-> Eric
+Or are you arguing that there's something wrong with
+the rules, so that they "should not be followed"?
 
-I ran make oldconfig on my config for 2.6.25-rc5, and I answered n to=20
-the question
-
-   Custom DSDT Table file to include (ACPI_CUSTOM_DSDT_FILE) [] (NEW)
-
-Somehow not putting anything didn't seem right at the time. I see my=20
-error now.
-Thanks for the quick answer and sorry for the noise.
-Tobias Oed
+Or something else?
 
 
---=20
-*Tobias Oed* - Octant Informatique <http://www.octant-fr.com>
-contact | tobias.oed@octant-fr.com <mailto:tobias.oed@octant-fr.com> -
-04 76 50 82 38
-image
+> > > I'd make it return PCI_D3hot if platform_pci_choose_state()
+> > > is undefined or fails 
+> > 
+> > See above:  this implements the current rules, which say
+> > that in most cases devices shoudn't change powerstates.
+> 
+> Okay, say you're changing pci_choose_state() to follow the
+> documentation. 
+
+Not just documentation -- the current architecture of the
+whole suspend process.  Surely it's essential not to have
+bugs like those at the core of that process?
+
+If that process is broken, but this PCI bug hides it, we'll
+be having a boatload of unexpected trouble in a while...
+
+
+> Are you sure, however, that it won't cause any regressions to appear?
+
+No more than any other bugfix turning up other latent bugs.
+That's why we have a process which lets fixes cook for a while
+before they merge.
+
+
+> > +	switch (mesg.event) {
+> >  	case PM_EVENT_SUSPEND:
+> >  	case PM_EVENT_HIBERNATE:
+> > -		return PCI_D3hot;
+> > +		/* NOTE:  platform_pci_choose_state() should only return
+> > +		 * states where wakeup won't work if
+> > +		 *   - !device_may_wakeup(&dev->dev), or
+> > +		 *   - dev can't wake from the target system state
+> > +		 */
+> > +		if (platform_pci_choose_state) {
+> > +			ret = platform_pci_choose_state(dev, mesg);
+> > +			if (ret == PCI_POWER_ERROR)
+> > +				ret = PCI_D3hot;
+> > +			else if ((ret == PCI_D1 || ret == PCI_D2)
+> > +					&& pci_no_d1d2(dev))
+> > +				ret = PCI_D3hot;
+> > +			break;
+> > +		}
+> > +		/* D3hot works, but may be suboptimal */
+> > +		ret = PCI_D3hot;
+> > +		break;
+> 
+> I would do:
+> 
+> +		if (platform_pci_choose_state) {
+> +			ret = platform_pci_choose_state(dev, mesg);
+> +			if (ret == PCI_POWER_ERROR || (pci_no_d1d2(dev)
+> +			    && (ret == PCI_D1 || ret == PCI_D2)))
+
+That's ... phenomenally ugly and incomprehensible!  It hides
+almost the entire structure of the conditionals.
+
+
+> +				ret = PCI_D3hot;
+> +		} else {
+> +			/* D3hot works, but may be suboptimal */
+> +			ret = PCI_D3hot;
+> +		}
+
+Extra/pointless brackets after "else" ... so you think the quickie
+fix should have removed that first "break"?  Simpler to just have
+said so.
+
+
+> +		break;
+
+
+======== CUT HERE
+Clean up pci_choose_state():
+
+ - pci_choose_state() should only return PCI_D0, unless the system is
+   entering a suspend (or hibernate) system state.
+
+ - Only use platform_pci_choose_state() when entering a suspend
+   state ... and avoid PCI_D1 and PCI_D2 when appropriate.
+
+ - Corrrect kerneldoc.
+
+Note that for now only ACPI provides platform_pci_choose_state(), so
+this could be a minor change in behavior on some non-PC systems:  it
+avoids D3 except in the final stage of hibernation.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/pci/pci.c |   53 ++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 30 insertions(+), 23 deletions(-)
+
+--- g26.orig/drivers/pci/pci.c	2008-03-22 10:25:48.000000000 -0700
++++ g26/drivers/pci/pci.c	2008-03-22 10:44:28.000000000 -0700
+@@ -523,46 +523,53 @@ pci_set_power_state(struct pci_dev *dev,
+ }
+ 
+ pci_power_t (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t state);
+- 
++
+ /**
+  * pci_choose_state - Choose the power state of a PCI device
+  * @dev: PCI device to be suspended
+- * @state: target sleep state for the whole system. This is the value
+- *	that is passed to suspend() function.
++ * @mesg: value passed to suspend() function.
+  *
+  * Returns PCI power state suitable for given device and given system
+- * message.
++ * power state transition.
+  */
+-
+-pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
++pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t mesg)
+ {
+ 	pci_power_t ret;
+ 
++	/* PCI legacy PM? */
+ 	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
+ 		return PCI_D0;
+ 
+-	if (platform_pci_choose_state) {
+-		ret = platform_pci_choose_state(dev, state);
+-		if (ret != PCI_POWER_ERROR)
+-			return ret;
+-	}
+-
+-	switch (state.event) {
+-	case PM_EVENT_ON:
+-		return PCI_D0;
+-	case PM_EVENT_FREEZE:
+-	case PM_EVENT_PRETHAW:
+-		/* REVISIT both freeze and pre-thaw "should" use D0 */
++	switch (mesg.event) {
+ 	case PM_EVENT_SUSPEND:
+ 	case PM_EVENT_HIBERNATE:
+-		return PCI_D3hot;
++		/*
++		 * D3hot works on all devices, but may be suboptimal on
++		 * a given system.  Factors include wakeups, power use,
++		 * the optional D3hot->D0 reset, latency, and more.
++		 *
++		 * If there's a platform_pci_choose_state(), it could
++		 * provide better answers for this system.  It should
++		 * only return states where wakeup won't work if:
++		 *   - !device_may_wakeup(&dev->dev), or
++		 *   - dev can't wake from the target system state
++		 */
++		ret = PCI_D3hot;
++		if (platform_pci_choose_state) {
++			ret = platform_pci_choose_state(dev, mesg);
++			if (ret == PCI_POWER_ERROR)
++				ret = PCI_D3hot;
++			else if ((ret == PCI_D1 || ret == PCI_D2)
++					&& pci_no_d1d2(dev))
++				ret = PCI_D3hot;
++		}
++		break;
+ 	default:
+-		printk("Unrecognized suspend event %d\n", state.event);
+-		BUG();
++		ret = PCI_D0;
++		break;
+ 	}
+-	return PCI_D0;
++	return ret;
+ }
+-
+ EXPORT_SYMBOL(pci_choose_state);
+ 
+ static int pci_save_pcie_state(struct pci_dev *dev)
