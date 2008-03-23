@@ -1,61 +1,56 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 2)
-Date: Sat, 22 Mar 2008 22:07:44 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803222157550.13906-100000@netrider.rowland.org>
-References: <200803230044.29132.rjw@sisk.pl>
+From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Sun, 23 Mar 2008 09:00:04 -0700
+Message-ID: <1206288004.30471.45.camel@nimitz.home.sr71.net>
+References: <1205517802.12763.18.camel@nimitz.home.sr71.net>
+	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
+	 <47DAE55C.3080506@tremplin-utc.net>
+	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
+	 <47DB013D.3060102@tremplin-utc.net>
+	 <1205537395.8167.31.camel@nimitz.home.sr71.net> <47DBC578.7050101@imap.cc>
+	 <alpine.LFD.1.00.0803151212180.3020@woody.linux-foundation.org>
+	 <47DC26BC.7060502@tremplin-utc.net>
+	 <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
+	 <20080321131737.GC5331@ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:4474 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750712AbYCWCHp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Mar 2008 22:07:45 -0400
-In-Reply-To: <200803230044.29132.rjw@sisk.pl>
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:36812 "EHLO e5.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752560AbYCWQAK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Mar 2008 12:00:10 -0400
+In-Reply-To: <20080321131737.GC5331@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ?ric Piel <Eric.Piel@tremplin-utc.net>, Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>, Eric Biederman <ebiederm@xmission.com>
 
-On Sun, 23 Mar 2008, Rafael J. Wysocki wrote:
-
-> On Sunday, 23 of March 2008, Alan Stern wrote:
-> > On Sat, 22 Mar 2008, Rafael J. Wysocki wrote:
+On Fri, 2008-03-21 at 14:17 +0100, Pavel Machek wrote:
+> > So what's the reason for pushing for this insanely-early workaround in the 
+> > first place, instead of letting user-space do something like
 > > 
-> [--snip--]
+> >       cat my-dsdt-image > /proc/sys/acpi/DSDT
 > > 
-> > No, you have missed the entire point.  The problem doesn't exist in the
-> > current code; it exists only if we switch over to using a single list.  
-> > Routines like dpm_suspend() won't be able to use list_for_each_entry()
-> > to traverse the list because entries may be removed by other threads
-> > during the traversal.  Even list_for_each_entry_safe() won't work
-> > correctly without careful attention to details.
+> > or whatever at runtime?
 > 
-> Ah, ok.  Thanks for the clarification.
+> You have interpretted code runing (AML), and you want to replace it
+> with different code?
 > 
-> Doesn't it help that we traverse the list under dpm_list_mtx?  Anyone who
-> removes an entry is required to take dpm_list_mtx that we're holding while
-> the list is traversed except when the callbacks are invoked.
+> Akin to changing from one kernel to different during runtime?
 
-It doesn't help.  What _does_ help is the fact that these traversals 
-are all serialized (since only one thread can carry out a system sleep 
-at any time).
+Heh.  That gave me an idea.
 
-> The only problem I see is when the device currently being handled is removed
-> from the list by a concurrent thread.  Is that you were referring to?
+Can we use kexec for this?  Let's say you get as far in boot as the
+initrd and realize that you're running on one of these screwed up
+systems.  Can you stick the new DSDT somewhere known (and safe) in
+memory, and kexec yourself back to the beginning of the kernel boot?
 
-Yes, that is the problem.  If you try to work around it by using
-list_for_each_entry_safe() then you run into a problem when a
-concurrent thread removes the device _following_ the one being handled
-(or when the device being handled is the last one on the list and a
-concurrent thread registers a new device, which can only happen in
-dpm_prepare()).
+When you boot up the second time, you have the new, shiny DSDT there
+which is, of course, used instead of the bogus BIOS one.
 
-It's not hard to fix.  Just something to be aware of.
+It costs you some bootup time, but we're talking about working around
+really busted hardware here.  
 
-Alan Stern
-
-P.S.: Oh yes, another related issue...  We should call get_device() and 
-put_device() while holding dpm_list_mtx.  Otherwise the device 
-structure might vanish when the callbacks are invoked.
+-- Dave
 
