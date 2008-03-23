@@ -1,56 +1,65 @@
-From: Dave Hansen <haveblue@us.ibm.com>
-Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
-Date: Sun, 23 Mar 2008 09:00:04 -0700
-Message-ID: <1206288004.30471.45.camel@nimitz.home.sr71.net>
-References: <1205517802.12763.18.camel@nimitz.home.sr71.net>
-	 <1205525184.12763.32.camel@nimitz.home.sr71.net>
-	 <47DAE55C.3080506@tremplin-utc.net>
-	 <1205530551.8167.20.camel@nimitz.home.sr71.net>
-	 <47DB013D.3060102@tremplin-utc.net>
-	 <1205537395.8167.31.camel@nimitz.home.sr71.net> <47DBC578.7050101@imap.cc>
-	 <alpine.LFD.1.00.0803151212180.3020@woody.linux-foundation.org>
-	 <47DC26BC.7060502@tremplin-utc.net>
-	 <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>
-	 <20080321131737.GC5331@ucw.cz>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
+Date: Sun, 23 Mar 2008 21:04:35 +0300
+Message-ID: <47E69BB3.3050508@gmail.com>
+References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080322173500.7b8b6751.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e5.ny.us.ibm.com ([32.97.182.145]:36812 "EHLO e5.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752560AbYCWQAK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Mar 2008 12:00:10 -0400
-In-Reply-To: <20080321131737.GC5331@ucw.cz>
+Received: from ug-out-1314.google.com ([66.249.92.171]:53197 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876AbYCWSEm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Mar 2008 14:04:42 -0400
+Received: by ug-out-1314.google.com with SMTP id z38so1964356ugc.16
+        for <linux-acpi@vger.kernel.org>; Sun, 23 Mar 2008 11:04:39 -0700 (PDT)
+In-Reply-To: <20080322173500.7b8b6751.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ?ric Piel <Eric.Piel@tremplin-utc.net>, Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>, Eric Biederman <ebiederm@xmission.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Brownell <david-b@pacbell.net>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Fri, 2008-03-21 at 14:17 +0100, Pavel Machek wrote:
-> > So what's the reason for pushing for this insanely-early workaround in the 
-> > first place, instead of letting user-space do something like
-> > 
-> >       cat my-dsdt-image > /proc/sys/acpi/DSDT
-> > 
-> > or whatever at runtime?
-> 
-> You have interpretted code runing (AML), and you want to replace it
-> with different code?
-> 
-> Akin to changing from one kernel to different during runtime?
-
-Heh.  That gave me an idea.
-
-Can we use kexec for this?  Let's say you get as far in boot as the
-initrd and realize that you're running on one of these screwed up
-systems.  Can you stick the new DSDT somewhere known (and safe) in
-memory, and kexec yourself back to the beginning of the kernel boot?
-
-When you boot up the second time, you have the new, shiny DSDT there
-which is, of course, used instead of the bogus BIOS one.
-
-It costs you some bootup time, but we're talking about working around
-really busted hardware here.  
-
--- Dave
+Andrew Morton wrote:
+> On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell <david-b@pacbell.net> wrote:
+>
+>   
+>> I noticed this with 2.6.25-rc2 (if not before), and the problem
+>> is still there with 2.6.25-rc6-git (as of this AM).
+>>
+>> System is an Athlon64 single CPU laptop, and instead of reading a
+>> few dozen wakeups per second, it says a many tens of thousands...
+>> clearly wrong.  In previous kernels it gave more plausible counts;
+>> unfortunately high because of various un-evolved desktop tools in
+>> this Ubuntu system (Feisty).
+>>
+>> Possibly more truthful, it says that the system never enters
+>> C1 or C2, and spends all its time in C0.  Though if I look at
+>> /sys/devices/system/cpu/cpu0/cpuidle/state[01]/usage, that
+>> seems to tell a different story ... it's C0 that's never used.
+>> In previous kernels it reported time in both C0 and C2.  ISTR
+>> some patch to avoid C2, which would explain part of this.
+>>
+>> Comments or fixes, anyone?
+>>     
+There are patches in #9998, which fix irq storm in ACPI EC GPE.
+It looks like this storm was already present at least in .22 kernel.
+I was able to trace it down to HW failure to clear status bit of
+corresponding GPE, so as soon as we return from serving one interrupt,
+we get another. It would be great if we find why we can't clear this bit.
+It does not seem to be IO access issue, as enable bit is in adjacent 8-bit
+register and write to it succeeds. I've seen patch for calling _PSW for all
+possible wake devices, as it might be constantly waking us even in runtime,
+but it seems to not help.
+>
+> This is likely to be an acpi regression, isn't it?
+>
+> A git-bisect would be nice, please.
+>   
+Might be long too, if it was present in .22...
+It would be nice if you can at least tell the latest good point.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
