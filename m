@@ -1,69 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 2)
-Date: Sun, 23 Mar 2008 19:41:39 +0100
-Message-ID: <200803231941.41079.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0803222157550.13906-100000@netrider.rowland.org>
+Date: Sun, 23 Mar 2008 22:16:43 +0100
+Message-ID: <200803232216.44627.rjw@sisk.pl>
+References: <200803210101.04706.rjw@sisk.pl> <20080321081536.GA25009@uranus.ravnborg.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51499 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:52040 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941AbYCWSmY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Mar 2008 14:42:24 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0803222157550.13906-100000@netrider.rowland.org>
+	id S1753780AbYCWVRG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Mar 2008 17:17:06 -0400
+In-Reply-To: <20080321081536.GA25009@uranus.ravnborg.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-On Sunday, 23 of March 2008, Alan Stern wrote:
-> On Sun, 23 Mar 2008, Rafael J. Wysocki wrote:
-> 
-> > On Sunday, 23 of March 2008, Alan Stern wrote:
-> > > On Sat, 22 Mar 2008, Rafael J. Wysocki wrote:
-> > > 
-> > [--snip--]
-> > > 
-> > > No, you have missed the entire point.  The problem doesn't exist in the
-> > > current code; it exists only if we switch over to using a single list.  
-> > > Routines like dpm_suspend() won't be able to use list_for_each_entry()
-> > > to traverse the list because entries may be removed by other threads
-> > > during the traversal.  Even list_for_each_entry_safe() won't work
-> > > correctly without careful attention to details.
-> > 
-> > Ah, ok.  Thanks for the clarification.
-> > 
-> > Doesn't it help that we traverse the list under dpm_list_mtx?  Anyone who
-> > removes an entry is required to take dpm_list_mtx that we're holding while
-> > the list is traversed except when the callbacks are invoked.
-> 
-> It doesn't help.  What _does_ help is the fact that these traversals 
-> are all serialized (since only one thread can carry out a system sleep 
-> at any time).
-> 
-> > The only problem I see is when the device currently being handled is removed
-> > from the list by a concurrent thread.  Is that you were referring to?
-> 
-> Yes, that is the problem.  If you try to work around it by using
-> list_for_each_entry_safe() then you run into a problem when a
-> concurrent thread removes the device _following_ the one being handled
-> (or when the device being handled is the last one on the list and a
-> concurrent thread registers a new device, which can only happen in
-> dpm_prepare()).
-> 
-> It's not hard to fix.  Just something to be aware of.
+On Friday, 21 of March 2008, Sam Ravnborg wrote:
+> Hi Rafael.
 
-Yes, I've almost finished a new patch taking that into account.  I'll send it
-soon in a separate thread.
- 
-> P.S.: Oh yes, another related issue...  We should call get_device() and 
-> put_device() while holding dpm_list_mtx.  Otherwise the device 
-> structure might vanish when the callbacks are invoked.
+Hi Sam,
 
-Good idea.
+> Is it possible to extend this in some way so we avoid the
+> #ifdef stuff in the drivers?
+
+Well, I'd love to do something like this.
+
+> We could introduce a few special sections that we discard if
+> PM is not in use.
+> We have a reliable build time infrastructure to detect
+> inconsistencies if needed.
+> 
+> Something like:
+> #define __suspend     __section(.suspend.text)
+> #define __suspenddata __section(.suspend.data)
+> 
+> #define __hibernate     __section(.hibernate.text)
+> #define __hibernatedata __section(.hibernate.data)
+> 
+> A few more tricks will be needed when we assign the functon pointers.
+> We have __devexit_p(*) and we may use something similar.
+
+Unfortunately, I have a little experience with linkers and I don't think I'll
+be able to do anything like this in a reasonable time without any help.
 
 Thanks,
 Rafael
