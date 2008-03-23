@@ -1,43 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 2)
-Date: Sun, 23 Mar 2008 00:44:27 +0100
-Message-ID: <200803230044.29132.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0803221920150.8044-100000@netrider.rowland.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
+Date: Sat, 22 Mar 2008 17:35:00 -0700
+Message-ID: <20080322173500.7b8b6751.akpm@linux-foundation.org>
+References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48464 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753497AbYCVXpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Mar 2008 19:45:10 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0803221920150.8044-100000@netrider.rowland.org>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53654 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753905AbYCWAfK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Mar 2008 20:35:10 -0400
+In-Reply-To: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Sunday, 23 of March 2008, Alan Stern wrote:
-> On Sat, 22 Mar 2008, Rafael J. Wysocki wrote:
+On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell <david-b@pacbell.net> wrote:
+
+> I noticed this with 2.6.25-rc2 (if not before), and the problem
+> is still there with 2.6.25-rc6-git (as of this AM).
 > 
-[--snip--]
+> System is an Athlon64 single CPU laptop, and instead of reading a
+> few dozen wakeups per second, it says a many tens of thousands...
+> clearly wrong.  In previous kernels it gave more plausible counts;
+> unfortunately high because of various un-evolved desktop tools in
+> this Ubuntu system (Feisty).
 > 
-> No, you have missed the entire point.  The problem doesn't exist in the
-> current code; it exists only if we switch over to using a single list.  
-> Routines like dpm_suspend() won't be able to use list_for_each_entry()
-> to traverse the list because entries may be removed by other threads
-> during the traversal.  Even list_for_each_entry_safe() won't work
-> correctly without careful attention to details.
+> Possibly more truthful, it says that the system never enters
+> C1 or C2, and spends all its time in C0.  Though if I look at
+> /sys/devices/system/cpu/cpu0/cpuidle/state[01]/usage, that
+> seems to tell a different story ... it's C0 that's never used.
+> In previous kernels it reported time in both C0 and C2.  ISTR
+> some patch to avoid C2, which would explain part of this.
+> 
+> Comments or fixes, anyone?
 
-Ah, ok.  Thanks for the clarification.
+This is likely to be an acpi regression, isn't it?
 
-Doesn't it help that we traverse the list under dpm_list_mtx?  Anyone who
-removes an entry is required to take dpm_list_mtx that we're holding while
-the list is traversed except when the callbacks are invoked.
-
-The only problem I see is when the device currently being handled is removed
-from the list by a concurrent thread.  Is that you were referring to?
-
-Rafael
+A git-bisect would be nice, please.
