@@ -1,65 +1,69 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
-Date: Sun, 23 Mar 2008 21:04:35 +0300
-Message-ID: <47E69BB3.3050508@gmail.com>
-References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080322173500.7b8b6751.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 2)
+Date: Sun, 23 Mar 2008 19:41:39 +0100
+Message-ID: <200803231941.41079.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0803222157550.13906-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:53197 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbYCWSEm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Mar 2008 14:04:42 -0400
-Received: by ug-out-1314.google.com with SMTP id z38so1964356ugc.16
-        for <linux-acpi@vger.kernel.org>; Sun, 23 Mar 2008 11:04:39 -0700 (PDT)
-In-Reply-To: <20080322173500.7b8b6751.akpm@linux-foundation.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51499 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751941AbYCWSmY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Mar 2008 14:42:24 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0803222157550.13906-100000@netrider.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Brownell <david-b@pacbell.net>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Andrew Morton wrote:
-> On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell <david-b@pacbell.net> wrote:
->
->   
->> I noticed this with 2.6.25-rc2 (if not before), and the problem
->> is still there with 2.6.25-rc6-git (as of this AM).
->>
->> System is an Athlon64 single CPU laptop, and instead of reading a
->> few dozen wakeups per second, it says a many tens of thousands...
->> clearly wrong.  In previous kernels it gave more plausible counts;
->> unfortunately high because of various un-evolved desktop tools in
->> this Ubuntu system (Feisty).
->>
->> Possibly more truthful, it says that the system never enters
->> C1 or C2, and spends all its time in C0.  Though if I look at
->> /sys/devices/system/cpu/cpu0/cpuidle/state[01]/usage, that
->> seems to tell a different story ... it's C0 that's never used.
->> In previous kernels it reported time in both C0 and C2.  ISTR
->> some patch to avoid C2, which would explain part of this.
->>
->> Comments or fixes, anyone?
->>     
-There are patches in #9998, which fix irq storm in ACPI EC GPE.
-It looks like this storm was already present at least in .22 kernel.
-I was able to trace it down to HW failure to clear status bit of
-corresponding GPE, so as soon as we return from serving one interrupt,
-we get another. It would be great if we find why we can't clear this bit.
-It does not seem to be IO access issue, as enable bit is in adjacent 8-bit
-register and write to it succeeds. I've seen patch for calling _PSW for all
-possible wake devices, as it might be constantly waking us even in runtime,
-but it seems to not help.
->
-> This is likely to be an acpi regression, isn't it?
->
-> A git-bisect would be nice, please.
->   
-Might be long too, if it was present in .22...
-It would be nice if you can at least tell the latest good point.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+On Sunday, 23 of March 2008, Alan Stern wrote:
+> On Sun, 23 Mar 2008, Rafael J. Wysocki wrote:
+> 
+> > On Sunday, 23 of March 2008, Alan Stern wrote:
+> > > On Sat, 22 Mar 2008, Rafael J. Wysocki wrote:
+> > > 
+> > [--snip--]
+> > > 
+> > > No, you have missed the entire point.  The problem doesn't exist in the
+> > > current code; it exists only if we switch over to using a single list.  
+> > > Routines like dpm_suspend() won't be able to use list_for_each_entry()
+> > > to traverse the list because entries may be removed by other threads
+> > > during the traversal.  Even list_for_each_entry_safe() won't work
+> > > correctly without careful attention to details.
+> > 
+> > Ah, ok.  Thanks for the clarification.
+> > 
+> > Doesn't it help that we traverse the list under dpm_list_mtx?  Anyone who
+> > removes an entry is required to take dpm_list_mtx that we're holding while
+> > the list is traversed except when the callbacks are invoked.
+> 
+> It doesn't help.  What _does_ help is the fact that these traversals 
+> are all serialized (since only one thread can carry out a system sleep 
+> at any time).
+> 
+> > The only problem I see is when the device currently being handled is removed
+> > from the list by a concurrent thread.  Is that you were referring to?
+> 
+> Yes, that is the problem.  If you try to work around it by using
+> list_for_each_entry_safe() then you run into a problem when a
+> concurrent thread removes the device _following_ the one being handled
+> (or when the device being handled is the last one on the list and a
+> concurrent thread registers a new device, which can only happen in
+> dpm_prepare()).
+> 
+> It's not hard to fix.  Just something to be aware of.
 
+Yes, I've almost finished a new patch taking that into account.  I'll send it
+soon in a separate thread.
+ 
+> P.S.: Oh yes, another related issue...  We should call get_device() and 
+> put_device() while holding dpm_list_mtx.  Otherwise the device 
+> structure might vanish when the callbacks are invoked.
+
+Good idea.
+
+Thanks,
+Rafael
