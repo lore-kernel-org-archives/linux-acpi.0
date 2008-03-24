@@ -1,56 +1,32 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level
- =?iso-8859-1?q?suspend=09and_hibernation_callbacks?= (rev. 2)
-Date: Tue, 25 Mar 2008 10:33:22 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803251030220.4838-100000@iolanthe.rowland.org>
-References: <200803251524.34147.oliver@neukum.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [patch 2.6.25-rc6 2/7] acpi_pm_device_sleep_state() cleanup
+Date: Mon, 24 Mar 2008 17:30:46 +0100
+Message-ID: <20080324163045.GB4206@ucw.cz>
+References: <200803201408.33466.david-b@pacbell.net> <200803201410.57801.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34888 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754002AbYCYOdX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 10:33:23 -0400
-In-Reply-To: <200803251524.34147.oliver@neukum.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3846 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754823AbYCYOmx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 10:42:53 -0400
+Content-Disposition: inline
+In-Reply-To: <200803201410.57801.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Tue, 25 Mar 2008, Oliver Neukum wrote:
+On Thu 2008-03-20 14:10:57, David Brownell wrote:
+> Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The
+> only legitimate value of that parameter must be derived from the first
+> parameter, which is what all the callers already do.  (However, this
+> does not address the fact that ACPI still doesn't set up those flags.)
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-> Am Dienstag, 25. M=E4rz 2008 15:19:45 schrieb Alan Stern:
+ACK, FWIW.
 
-> > It's not safe for the PM core to do such things unilaterally. =A0Th=
-e=20
-> > decision to unregister a device should be made by the driver or the=
-=20
-> > subsystem.
->=20
-> Why? You can trigger it from user space via sysfs
-
-How can you do that?
-
->  and in many cases
-> suspending to disk will disconnect all devices on a bus,
-
-But these disconnects aren't done by the PM core; they are done by=20
-individual drivers or subsystems.
-
-> so I'd say a
-> failure to resume is just a limited subcase of a device vanishing dur=
-ing
-> sleep.
-
-I'll go along with that.  If a device vanishes during sleep, the PM=20
-core isn't responsible for unregistering it -- the device's subsystem=20
-is.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
