@@ -1,98 +1,41 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 2/2] Don't delete boot ec
-Date: Mon, 24 Mar 2008 23:22:36 +0300
-Message-ID: <20080324202236.5055.10573.stgit@thinkpad.local>
-References: <20080324202228.5055.11326.stgit@thinkpad.local>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 9/16] PCI slot: Remove unused slot member from pci_dev
+	(Not for mainline!)
+Date: Mon, 24 Mar 2008 14:29:24 -0600
+Message-ID: <20080324202924.GC11575@ldl.fc.hp.com>
+References: <20080318210539.GA30421@ldl.fc.hp.com> <47E33472.1000602@jp.fujitsu.com> <47E33693.7080102@jp.fujitsu.com> <20080321193009.GI424@parisc-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:58213 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753312AbYCXUWz (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 24 Mar 2008 16:22:55 -0400
-In-Reply-To: <20080324202228.5055.11326.stgit@thinkpad.local>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:42896 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbYCXU3Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2008 16:29:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20080321193009.GI424@parisc-linux.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LenBrown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Hi willy,
 
- drivers/acpi/ec.c |   43 +++++++++++++++++++------------------------
- 1 files changed, 19 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 167af37..3d93621 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -708,9 +708,6 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- 	status = acpi_evaluate_integer(handle, "_GPE", NULL, &ec->gpe);
- 	if (ACPI_FAILURE(status))
- 		return status;
--	/* Find and register all query methods */
--	acpi_walk_namespace(ACPI_TYPE_METHOD, handle, 1,
--			    acpi_ec_register_query_methods, ec, NULL);
- 	/* Use the global lock for all EC transactions? */
- 	acpi_evaluate_integer(handle, "_GLK", NULL, &ec->global_lock);
- 	ec->handle = handle;
-@@ -745,31 +742,28 @@ static int acpi_ec_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
+* Matthew Wilcox <matthew@wil.cx>:
+> On Fri, Mar 21, 2008 at 01:16:19PM +0900, Kenji Kaneshige wrote:
+> > The 'slot' member in struct pci_dev is not used. Remove this unused
+> > member.
+> 
+> It *ought* to be used.  If it isn't yet, I guess that part of my patch
+> has been dropped, and it should be re-added.
  
- 	/* Check for boot EC */
--	if (boot_ec) {
--		if (boot_ec->handle == device->handle) {
--			/* Pre-loaded EC from DSDT, just move pointer */
--			ec = boot_ec;
--			boot_ec = NULL;
--			goto end;
--		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
--			/* ECDT-based EC, time to shut it down */
--			ec_remove_handlers(boot_ec);
--			kfree(boot_ec);
--			first_ec = boot_ec = NULL;
-+	if (boot_ec &&
-+	    (boot_ec->handle == device->handle ||
-+	     boot_ec->handle == ACPI_ROOT_OBJECT)) {
-+		ec = boot_ec;
-+		boot_ec = NULL;
-+	} else {
-+		ec = make_acpi_ec();
-+		if (!ec)
-+			return -ENOMEM;
-+		if (ec_parse_device(device->handle, 0, ec, NULL) !=
-+		    AE_CTRL_TERMINATE) {
-+			kfree(ec);
-+			return -EINVAL;
- 		}
- 	}
- 
--	ec = make_acpi_ec();
--	if (!ec)
--		return -ENOMEM;
--
--	if (ec_parse_device(device->handle, 0, ec, NULL) !=
--	    AE_CTRL_TERMINATE) {
--		kfree(ec);
--		return -EINVAL;
--	}
- 	ec->handle = device->handle;
--      end:
-+
-+	/* Find and register all query methods */
-+	acpi_walk_namespace(ACPI_TYPE_METHOD, ec->handle, 1,
-+			    acpi_ec_register_query_methods, ec, NULL);
-+
- 	if (!first_ec)
- 		first_ec = ec;
- 	acpi_driver_data(device) = ec;
-@@ -924,6 +918,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
-+		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
- 	} else {
- 		/* This workaround is needed only on some broken machines,
- 		 * which require early EC, but fail to provide ECDT */
+I checked through your original patch set:
+
+	http://www.parisc-linux.org/~willy/pci-slot-2b/
+
+And although I see a bunch of uses of pci_bus->slot, I don't see
+any uses of pci_dev->slot.
+
+Wanna enlighten me? :)
+
+/ac
 
