@@ -1,175 +1,58 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 3)
-Date: Mon, 24 Mar 2008 16:14:58 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803241519090.24400-100000@iolanthe.rowland.org>
-References: <200803241839.39469.rjw@sisk.pl>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH 1/2] ACPI: EC: Use default setup handler
+Date: Mon, 24 Mar 2008 23:22:29 +0300
+Message-ID: <20080324202228.5055.11326.stgit@thinkpad.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:48110 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751869AbYCXUO7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2008 16:14:59 -0400
-In-Reply-To: <200803241839.39469.rjw@sisk.pl>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:58211 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753344AbYCXUWz (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 24 Mar 2008 16:22:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: LenBrown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Mon, 24 Mar 2008, Rafael J. Wysocki wrote:
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-> Hi,
-> 
-> This is the 3rd revision of the patch introducing new callbacks for suspend
-> and hibernation.  It has been tested on x86-64.
-...
-> * The registrations of parentless devices are disabled before the first
->   ->prepare() method is called and enabled before the first ->resume() method
->   is called
+ drivers/acpi/ec.c |   16 +---------------
+ 1 files changed, 1 insertions(+), 15 deletions(-)
 
-It would be okay to wait until after the last prepare() method is
-called.  I don't know if it makes any difference in the end, however.
-
-> +enum dpm_state {
-> +	DPM_ON,
-> +	DPM_RESUMING,
-> +	DPM_SUSPENDING,
-> +	DPM_OFF,
-> +	DPM_OFF_IRQ,
-> +};
-
-Can we also have a DPM_PREPARING state, set when ->prepare() is about
-to be called?  The PM core wouldn't make use of it but some drivers
-would.  (I can't think of any use at all for the analogous
-DPM_COMPLETING state, however.)
-
-> @@ -68,22 +59,30 @@ int device_pm_add(struct device *dev)
-...
-> +	if (dev->parent) {
-> +		if (dev->parent->power.status > DPM_RESUMING) {
-
-Clearer to say: if (dev->parent->power.status >= DPM_SUSPENDING) {
-
-...
-> +	} else if (transition_started) {
-> +		/*
-> +		 * We refuse to register parentless devices while a PM
-> +		 * transition is in progress in order to avoid leaving them
-> +		 * unhandled down the road
-> +		 */
-
-Log a warning here?  If this ever happened, it would be the sort of 
-unexpected regression that people get all excited about.
-
-> +		goto Refuse;
->  	}
-...
-
-> +static void dpm_resume(pm_message_t state)
-> +{
-> +	struct list_head list;
-> +
-> +	INIT_LIST_HEAD(&list);
-> +	mutex_lock(&dpm_list_mtx);
-> +	transition_started = false;
-> +	while (!list_empty(&dpm_list)) {
-> +		struct device *dev = to_device(dpm_list.next);
-> +
-> +		if (dev->power.status > DPM_SUSPENDING) {
-
-Clearer to say: if (dev->power.status >= DPM_OFF) {
-
-Note that if dev->power.status is equal to DPM_SUSPENDING then you 
-don't want to call resume_device(), but you still do want to change 
-dev->power.status to DPM_RESUMING so that new children can be 
-registered.
-
-> +			dev->power.status = DPM_RESUMING;
-> +			get_device(dev);
-> +			mutex_unlock(&dpm_list_mtx);
-> +
-> +			resume_device(dev, state);
-> +
-> +			mutex_lock(&dpm_list_mtx);
-> +			put_device(dev);
-> +		}
-> +		if (!list_empty(&dev->power.entry))
-> +			list_move_tail(&dev->power.entry, &list);
-
-A little problem here: You refer to dev after calling put_device().
-
-> +	}
-> +	list_splice(&list, &dpm_list);
-
-This isn't the way I imagined doing it (your extra "list"), but it's 
-fine.
-
-...
-> +static void dpm_complete(pm_message_t state)
->  {
-...
-> +			complete_device(dev, state);
-> +
-> +			mutex_lock(&dpm_list_mtx);
-> +			put_device(dev);
-> +		}
-> +		if (!list_empty(&dev->power.entry))
-> +			list_move(&dev->power.entry, &list);
-
-Same problem with use-after-put.  Also present in dpm_prepare().
-
->  	}
-> +	list_splice(&list, &dpm_list);
->  	mutex_unlock(&dpm_list_mtx);
->  }
-
-...
->  static int dpm_suspend(pm_message_t state)
->  {
-...
->  		error = suspend_device(dev, state);
-> +
->  		mutex_lock(&dpm_list_mtx);
-> +		put_device(dev);
->  		if (error) {
->  			printk(KERN_ERR "Could not suspend device %s: "
-> -					"error %d%s\n",
-> -					kobject_name(&dev->kobj),
-> -					error,
-> -					(error == -EAGAIN ?
-> -					" (please convert to suspend_late)" :
-> -					""));
-> -			dev->power.sleeping = false;
-> +				"error %d\n", kobject_name(&dev->kobj), error);
-> +			list_splice_init(&dpm_list, &list);
->  			break;
->  		}
-> -		if (!list_empty(&dev->power.entry))
-> -			list_move(&dev->power.entry, &dpm_off);
-> +		if (!list_empty(&dev->power.entry)) {
-> +			dev->power.status = DPM_OFF;
-> +			list_move(&dev->power.entry, &list);
-> +		}
-
-Use-after-put again.
-
->  	}
-> -	if (!error)
-> -		all_sleeping = true;
-> +	list_splice(&list, &dpm_list);
-
-Instead you could eliminate the list_splice_init() above and put here:
-
-	list_splice(&list, dpm_list->prev);
-
-This will move the entries from list to the end of dpm_list.
-
->  	mutex_unlock(&dpm_list_mtx);
-> +	return error;
-> +}
-
-On the whole it looks quite good.
-
-Alan Stern
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f0e8216..167af37 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -533,20 +533,6 @@ static void do_ec_poll(struct work_struct *work)
+    -------------------------------------------------------------------------- */
+ 
+ static acpi_status
+-acpi_ec_space_setup(acpi_handle region_handle,
+-		    u32 function, void *handler_context, void **return_context)
+-{
+-	/*
+-	 * The EC object is in the handler context and is needed
+-	 * when calling the acpi_ec_space_handler.
+-	 */
+-	*return_context = (function != ACPI_REGION_DEACTIVATE) ?
+-	    handler_context : NULL;
+-
+-	return AE_OK;
+-}
+-
+-static acpi_status
+ acpi_ec_space_handler(u32 function, acpi_physical_address address,
+ 		      u32 bits, acpi_integer *value,
+ 		      void *handler_context, void *region_context)
+@@ -858,7 +844,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 	status = acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+-						    &acpi_ec_space_setup, ec);
++						    NULL, ec);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+ 		return -ENODEV;
 
