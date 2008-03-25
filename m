@@ -1,69 +1,80 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 3)
-Date: Tue, 25 Mar 2008 14:37:16 +0100
-Message-ID: <200803251437.17268.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0803241519090.24400-100000@iolanthe.rowland.org> <200803251255.31482.oliver@neukum.org> <200803251340.55210.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] =?utf-8?q?=5BRFC=5D=5BPATCH=5D_PM=3A_Introduce_new_top?=
+ =?utf-8?q?_level_suspend=09and_hibernation_callbacks_=28rev=2E_2?=
+ =?utf-8?q?=29?=
+Date: Tue, 25 Mar 2008 10:19:45 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0803251011110.4838-100000@iolanthe.rowland.org>
+References: <200803251415.09088.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755813AbYCYNhf@vger.kernel.org>
-In-Reply-To: <200803251340.55210.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44473 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752889AbYCYOTq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 10:19:46 -0400
+In-Reply-To: <200803251415.09088.oliver@neukum.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Oliver Neukum <oliver@neukum.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
 
-Am Dienstag, 25. M=E4rz 2008 13:40:53 schrieb Rafael J. Wysocki:
-> On Tuesday, 25 of March 2008, Oliver Neukum wrote:
-> > Am Montag 24 M=E4rz 2008 schrieb Rafael J. Wysocki:
+On Tue, 25 Mar 2008, Oliver Neukum wrote:
 
-> > > + *=A0=A0=A0=A0=A0after @prepare() returns. =A0If @prepare() dete=
-cts a situation it cannot
-> > > + *=A0=A0=A0=A0=A0handle (e.g. registration of a child already in=
- progress), it may return
-> > > + *=A0=A0=A0=A0=A0-EAGAIN, so that the PM core can execute it onc=
-e again (e.g. after the
-> > > + *=A0=A0=A0=A0=A0new child has been registered) to recover from =
-the race condition. This
-> > > + *=A0=A0=A0=A0=A0method is executed for all kinds of suspend tra=
-nsitions and is followed
-> > > + *=A0=A0=A0=A0=A0by one of the suspend callbacks: @suspend(), @f=
-reeze(), or @poweroff().
-> >=20
-> > This could be understood so that disconnect() cannot be called.
+> Am Dienstag, 25. M=C3=A4rz 2008 14:06:15 schrieb Rafael J. Wysocki:
+> > On Tuesday, 25 of March 2008, Oliver Neukum wrote:
 >=20
-> At what time exactly?
+> > > A device that cannot wake up is unusable. Shouldn't the pm core d=
+isconnect()
+> > > such a device?
 
-I see no locking that would would prevent disconnect() in the window be=
-tween
-prepare() and suspend()/...
- =20
-> > > + *=A0=A0=A0=A0=A0The PM core executes @prepare() for all devices=
- before starting to
-> > > + *=A0=A0=A0=A0=A0execute suspend callbacks for any of them, so d=
-rivers may assume all of
-> > > + *=A0=A0=A0=A0=A0the other devices to be present and functional =
-while @prepare() is being
-> > > + *=A0=A0=A0=A0=A0executed. =A0However, they may NOT assume anyth=
-ing about the availability
-> > > + *=A0=A0=A0=A0=A0of the user space at that time.
-> >=20
-> > Probably it should be mentioned that this is the time to allocate m=
-emory
-> > if you have to.
->=20
-> Well, not exactly.  Afterwards you cannot use GFP_KERNEL allocations,=
- but
-> GFP_NOIO should still work, although for hibernation it's quite possi=
-ble that
-> they'll fail if substantial amounts of memory are requested.
->=20
-> > And it is too late to request firmware.=20
->=20
-> Yes.
+It's not safe for the PM core to do such things unilaterally.  The=20
+decision to unregister a device should be made by the driver or the=20
+subsystem.
 
-This is better documented explicitly.
+(The only problem is that it's impossible to unregister a device from=20
+within its suspend or resume methods.  Perhaps there should be a way=20
+for the driver to tell the PM core that the core should unregister the=20
+device as soon as the method returns.  I don't know if such a facility=20
+would get used...)
 
-	Regards
-		Oliver
+> > Well, if ->resume() returns an error, the driver already knows ther=
+e's a
+> > problem and it can act upon that, at least in principle.
+>=20
+> Then why return an error? If a driver returns an error I would assume=
+ that
+> to indicate an irrecoverable error.
+
+The PM core prints a warning in the system log whenever an error is=20
+returned.  There isn't much more it can do.
+
+> > However, the PM core probably shouldn't try to resume the children =
+of a failing
+> > device.  Also, if ->resume_noirq() fails, it probably is not a good=
+ idea to
+> > call ->resume() and ->complete() for the same device and for it's c=
+hildren.
+>=20
+> Exactly. But we need to define what happens in these cases. If we sim=
+ply
+> ignore the errors, the drivers must be able to deal with IO to half s=
+uspended
+> devices.
+
+Just so -- it's up to the drivers to deal with this sort of thing.  The=
+=20
+PM core can't know the details of what should be done in each case.
+
+=46or example, if a USB hub can't be resumed then usbcore marks all of
+its descendants with USB_STATE_NOTATTACHED.  When the children's resume
+methods are called, they return without trying to do anything.  Later
+on khubd takes care of unregistering everything.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
