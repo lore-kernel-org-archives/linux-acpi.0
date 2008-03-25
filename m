@@ -1,52 +1,63 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level =?iso-8859-1?q?suspend=09and_hibernation_callbacks?= (rev. 2)
-Date: Tue, 25 Mar 2008 21:49:36 +0100
-Message-ID: <200803252149.37552.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0803251030220.4838-100000@iolanthe.rowland.org> <200803252048.43792.oliver@neukum.org> <200803252141.49049.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
+Date: Tue, 25 Mar 2008 21:50:20 +0100
+Message-ID: <200803252150.20609.rjw@sisk.pl>
+References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:54681 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816AbYCYUti convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 16:49:38 -0400
-In-Reply-To: <200803252141.49049.rjw@sisk.pl>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, Jeff Garzik <jgarzik@pobox.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
 
-Am Dienstag, 25. M=E4rz 2008 21:41:48 schrieb Rafael J. Wysocki:
-> On Tuesday, 25 of March 2008, Oliver Neukum wrote:
-> > Am Dienstag, 25. M=E4rz 2008 15:33:22 schrieb Alan Stern:
-> > > > so I'd say a
-> > > > failure to resume is just a limited subcase of a device vanishi=
-ng during
-> > > > sleep.
-> > >=20
-> > > I'll go along with that. =A0If a device vanishes during sleep, th=
-e PM=20
-> > > core isn't responsible for unregistering it -- the device's subsy=
-stem=20
-> > > is.
-> >=20
-> > Yes, that makes sense. You are right.
->=20
-> Still, if ->resume() returns an error, does it make sense, from the P=
-M core's
-> point of view, to execute ->complete() for that device, for example?
+On Tuesday, 25 of March 2008, Shaohua Li wrote:
+> I got below log after a S3 resume in a ASUS A6VC laptop. The system has
+> only one IDE drive. It appears there is no reason calling _GTF for
+> disabled drive.
+> 
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
+> ata2.00: _GTF evaluation failed (AE 0x3006)
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
+> ata2.01: _GTF evaluation failed (AE 0x3006)
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> 
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index bf98a56..7cbf023 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -839,7 +839,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
+>  		 */
+>  		ata_link_for_each_dev(dev, &ap->link) {
+>  			ata_acpi_clear_gtf(dev);
 
-IMO you must always keep the ordering invariant. If a parent returns an=
- error
-the PM core must not wake its children.
+Hmm.  What is the effect of calling ata_acpi_clear_gtf() on a disabled device? 
 
-	Regards
-		Oliver
+> -			if (ata_dev_get_GTF(dev, NULL) >= 0)
+> +			if (ata_dev_enabled(dev) &&
+> +			    ata_dev_get_GTF(dev, NULL) >= 0)
+>  				dev->flags |= ATA_DFLAG_ACPI_PENDING;
+>  		}
+>  	} else {
+> @@ -849,7 +850,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
+>  		 */
+>  		ata_link_for_each_dev(dev, &ap->link) {
+>  			ata_acpi_clear_gtf(dev);
+> -			dev->flags |= ATA_DFLAG_ACPI_PENDING;
+> +			if (ata_dev_enabled(dev))
+> +				dev->flags |= ATA_DFLAG_ACPI_PENDING;
+>  		}
+>  	}
+>  }
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
