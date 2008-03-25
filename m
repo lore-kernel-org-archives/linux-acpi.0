@@ -1,15 +1,15 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 1/4] Construct one fakephp slot per pci slot
-Date: Mon, 24 Mar 2008 22:15:19 -0600
-Message-ID: <20080325041519.GB29666@ldl.fc.hp.com>
+Subject: [PATCH 2/4] Export kobject_rename for pci_hotplug_core
+Date: Mon, 24 Mar 2008 22:16:30 -0600
+Message-ID: <20080325041630.GC29666@ldl.fc.hp.com>
 References: <20080325041314.GA29666@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:34410 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbYCYEPU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 00:15:20 -0400
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:12349 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947AbYCYEQb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 00:16:31 -0400
 Content-Disposition: inline
 In-Reply-To: <20080325041314.GA29666@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -17,162 +17,34 @@ List-Id: linux-acpi@vger.kernel.org
 To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Cc: Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Register one slot per slot, rather than one slot per function.
-Change the name of the slot to fake%d instead of the pci address.
+Export kobject_rename() to fix the following link error. This happens
+when pci_hotplug_core driver is compiled as a kernel module.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Acked-by: Alex Chiang <achiang@hp.com>
 ---
- drivers/pci/hotplug/fakephp.c |   85 ++++++++++++++--------------------------
- 1 files changed, 30 insertions(+), 55 deletions(-)
+ lib/kobject.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/hotplug/fakephp.c b/drivers/pci/hotplug/fakephp.c
-index 94b6401..6c14b4d 100644
---- a/drivers/pci/hotplug/fakephp.c
-+++ b/drivers/pci/hotplug/fakephp.c
-@@ -66,6 +66,7 @@ struct dummy_slot {
- 	struct pci_dev *dev;
- 	struct work_struct remove_work;
- 	unsigned long removed;
-+	char name[8];
- };
+diff --git a/lib/kobject.c b/lib/kobject.c
+index 0d03252..e2a9f65 100644
+--- a/lib/kobject.c
++++ b/lib/kobject.c
+@@ -456,6 +456,7 @@ out:
  
- static int debug;
-@@ -100,6 +101,7 @@ static int add_slot(struct pci_dev *dev)
- 	struct dummy_slot *dslot;
- 	struct hotplug_slot *slot;
- 	int retval = -ENOMEM;
-+	static int count = 1;
- 
- 	slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
- 	if (!slot)
-@@ -113,13 +115,14 @@ static int add_slot(struct pci_dev *dev)
- 	slot->info->max_bus_speed = PCI_SPEED_UNKNOWN;
- 	slot->info->cur_bus_speed = PCI_SPEED_UNKNOWN;
- 
--	slot->name = &dev->dev.bus_id[0];
--	dbg("slot->name = %s\n", slot->name);
--
- 	dslot = kzalloc(sizeof(struct dummy_slot), GFP_KERNEL);
- 	if (!dslot)
- 		goto error_info;
- 
-+	slot->name = dslot->name;
-+	snprintf(slot->name, sizeof(dslot->name), "fake%d", count++);
-+	dbg("slot->name = %s\n", slot->name);
-+
- 	slot->ops = &dummy_hotplug_slot_ops;
- 	slot->release = &dummy_release;
- 	slot->private = dslot;
-@@ -148,17 +151,17 @@ error:
- static int __init pci_scan_buses(void)
- {
- 	struct pci_dev *dev = NULL;
--	int retval = 0;
-+	int lastslot = 0;
- 
- 	while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
--		retval = add_slot(dev);
--		if (retval) {
--			pci_dev_put(dev);
--			break;
--		}
-+		if (PCI_FUNC(dev->devfn) > 0 &&
-+				lastslot == PCI_SLOT(dev->devfn))
-+			continue;
-+		lastslot = PCI_SLOT(dev->devfn);
-+		add_slot(dev);
- 	}
- 
--	return retval;
-+	return 0;
+ 	return error;
  }
++EXPORT_SYMBOL_GPL(kobject_rename);
  
- static void remove_slot(struct dummy_slot *dslot)
-@@ -296,23 +299,9 @@ static int enable_slot(struct hotplug_slot *hotplug_slot)
- 	return -ENODEV;
- }
- 
--/* find the hotplug_slot for the pci_dev */
--static struct hotplug_slot *get_slot_from_dev(struct pci_dev *dev)
--{
--	struct dummy_slot *dslot;
--
--	list_for_each_entry(dslot, &slot_list, node) {
--		if (dslot->dev == dev)
--			return dslot->slot;
--	}
--	return NULL;
--}
--
--
- static int disable_slot(struct hotplug_slot *slot)
- {
- 	struct dummy_slot *dslot;
--	struct hotplug_slot *hslot;
- 	struct pci_dev *dev;
- 	int func;
- 
-@@ -322,41 +311,27 @@ static int disable_slot(struct hotplug_slot *slot)
- 
- 	dbg("%s - physical_slot = %s\n", __FUNCTION__, slot->name);
- 
--	/* don't disable bridged devices just yet, we can't handle them easily... */
--	if (dslot->dev->subordinate) {
--		err("Can't remove PCI devices with other PCI devices behind it yet.\n");
--		return -ENODEV;
--	}
--	if (test_and_set_bit(0, &dslot->removed)) {
--		dbg("Slot already scheduled for removal\n");
--		return -ENODEV;
--	}
--	/* search for subfunctions and disable them first */
--	if (!(dslot->dev->devfn & 7)) {
--		for (func = 1; func < 8; func++) {
--			dev = pci_get_slot(dslot->dev->bus,
--					dslot->dev->devfn + func);
--			if (dev) {
--				hslot = get_slot_from_dev(dev);
--				if (hslot)
--					disable_slot(hslot);
--				else {
--					err("Hotplug slot not found for subfunction of PCI device\n");
--					return -ENODEV;
--				}
--				pci_dev_put(dev);
--			} else
--				dbg("No device in slot found\n");
-+	for (func = 7; func >= 0; func--) {
-+		dev = pci_get_slot(dslot->dev->bus, dslot->dev->devfn + func);
-+		if (!dev)
-+			continue;
-+
-+		if (test_and_set_bit(0, &dslot->removed)) {
-+			dbg("Slot already scheduled for removal\n");
-+			return -ENODEV;
- 		}
--	}
- 
--	/* remove the device from the pci core */
--	pci_remove_bus_device(dslot->dev);
-+		/* queue work item to blow away this sysfs entry and other
-+		 * parts.
-+		 */
-+		INIT_WORK(&dslot->remove_work, remove_slot_worker);
-+		queue_work(dummyphp_wq, &dslot->remove_work);
- 
--	/* queue work item to blow away this sysfs entry and other parts. */
--	INIT_WORK(&dslot->remove_work, remove_slot_worker);
--	queue_work(dummyphp_wq, &dslot->remove_work);
-+		/* blow away this sysfs entry and other parts. */
-+		remove_slot(dslot);
- 
-+		pci_dev_put(dev);
-+	}
- 	return 0;
- }
- 
+ /**
+  * kobject_move - move object to another parent
 -- 
 1.5.3.1.g1e61
 
