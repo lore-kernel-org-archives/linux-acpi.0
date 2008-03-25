@@ -1,45 +1,73 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level =?iso-8859-1?q?suspend=09and_hibernation_callbacks?= (rev. 2)
-Date: Tue, 25 Mar 2008 15:24:33 +0100
-Message-ID: <200803251524.34147.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0803251011110.4838-100000@iolanthe.rowland.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
+ callbacks (rev. 3)
+Date: Tue, 25 Mar 2008 10:29:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0803251024120.4838-100000@iolanthe.rowland.org>
+References: <200803251340.55210.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:44490 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754179AbYCYOYi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 10:24:38 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0803251011110.4838-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:34872 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752566AbYCYO3g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 10:29:36 -0400
+In-Reply-To: <200803251340.55210.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Neukum <oliver@neukum.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Am Dienstag, 25. M=E4rz 2008 15:19:45 schrieb Alan Stern:
-> On Tue, 25 Mar 2008, Oliver Neukum wrote:
->=20
-> > Am Dienstag, 25. M=C3=A4rz 2008 14:06:15 schrieb Rafael J. Wysocki:
-> > > On Tuesday, 25 of March 2008, Oliver Neukum wrote:
+On Tue, 25 Mar 2008, Rafael J. Wysocki wrote:
+
+> On Tuesday, 25 of March 2008, Oliver Neukum wrote:
+> > Am Montag 24 M=E4rz 2008 schrieb Rafael J. Wysocki:
+> > > -/*
+> > > +/**
+> > > + * struct pm_ops - device PM callbacks
+> > > + *
+> > > =A0 * Several driver power state transitions are externally visib=
+le, affecting
+> > > =A0 * the state of pending I/O queues and (for drivers that touch=
+ hardware)
+> > > =A0 * interrupts, wakeups, DMA, and other hardware state. =A0Ther=
+e may also be
+> > > @@ -122,6 +124,254 @@ typedef struct pm_message {
+> > > =A0 * to the rest of the driver stack (such as a driver that's ON=
+ gating off
+> > > =A0 * clocks which are not in active use).
+> > > =A0 *
+> > > + * The externally visible transitions are handled with the help =
+of the following
+> > > + * callbacks included in this structure:
+> > > + *
+> > > + * @prepare: Prepare the device for the upcoming transition, but=
+ do NOT change
+> > > + *=A0=A0=A0=A0=A0its hardware state. =A0Prevent new children of =
+the device from being
+> > > + *=A0=A0=A0=A0=A0registered and prevent new calls to the probe m=
+ethod from being made
 > >=20
-> > > > A device that cannot wake up is unusable. Shouldn't the pm core=
- disconnect()
-> > > > such a device?
+> > How is a driver supposed to prevent calls to probe()? You can block=
+ in probe()
+> > or you can fail it, but how do you prevent it from being called? Us=
+er space
+> > can trigger probe via sysfs.
 >=20
-> It's not safe for the PM core to do such things unilaterally. =A0The=20
-> decision to unregister a device should be made by the driver or the=20
-> subsystem.
+> I overlooked that.
 
-Why? You can trigger it from user space via sysfs and in many cases
-suspending to disk will disconnect all devices on a bus, so I'd say a
-failure to resume is just a limited subcase of a device vanishing durin=
-g
-sleep.
+The driver isn't supposed to prevent calls to its own probe().  The
+comment means that the subsystem -- or the rest of the kernel generally
+-- is supposed to avoid binding a driver to the device (thereby calling
+the probe routine), assuming the device isn't already bound.
 
-	Regards
-		Oliver
+I don't expect this sort of thing to be very common.  Mostly it happens
+when new kernel modules are loaded and new drivers are registered; we
+will have to block module loading during a sleep transition.  It also
+happens when the user writes to a driver's "bind" attribute in sysfs; =20
+the code there will have to block during a sleep transition.
+
+Alan Stern
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
