@@ -1,82 +1,30 @@
 From: Julia Lawall <julia@diku.dk>
 Subject: Re: [PATCH 4/5] drivers/acpi: elide a non-zero test on a result that
  is never 0
-Date: Tue, 25 Mar 2008 09:35:10 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0803250931440.22289@ask.diku.dk>
+Date: Tue, 25 Mar 2008 09:41:16 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0803250940270.22289@ask.diku.dk>
 References: <Pine.LNX.4.64.0803241909420.32740@ask.diku.dk>
  <1206431411.3047.45.camel@acpi-hp-zz.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:36086 "EHLO mgw2.diku.dk"
+Received: from mgw2.diku.dk ([130.225.96.92]:42709 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750947AbYCYIfP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 04:35:15 -0400
+	id S1751537AbYCYIlT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 04:41:19 -0400
 In-Reply-To: <1206431411.3047.45.camel@acpi-hp-zz.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Tue, 25 Mar 2008, Zhang, Rui wrote:
+> And the return value of thermal_zone_device_register is also misused.
 
-> 
-> On Tue, 2008-03-25 at 02:10 +0800, Julia Lawall wrote:
-> > From: Julia Lawall <julia@diku.dk>
-> > 
-> > The function thermal_cooling_device_register always returns either a
-> > valid
-> > pointer or a value made with ERR_PTR, so a test for non-zero on the
-> > result
-> > will always succeed.
-> >
-> > The problem was found using the following semantic match.
-> > (http://www.emn.fr/x-info/coccinelle/)
-> > //<smpl>
-> > @a@
-> > expression E, E1;
-> > statement S,S1;
-> > position p;
-> > @@
-> > 
-> > E = thermal_cooling_device_register(...)
-> > ... when != E = E1
-> > if@p (E) S else S1
-> > 
-> > @n@
-> > position a.p;
-> > expression E,E1;
-> > statement S,S1;
-> > @@
-> > 
-> > E = NULL
-> > ... when != E = E1
-> > if@p (E) S else S1
-> > 
-> > @depends on !n@
-> > expression E;
-> > statement S,S1;
-> > position a.p;
-> > @@
-> > 
-> > * if@p (E)
-> >   S else S1
-> > //</smpl>
-> > 
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> Patch looks correct. Thanks, Julia.
-> But it misses the same problem in driver/misc/intel_menlow.c.
-
-I did that one in a separate patch ([PATCH 5/5]), since it is in a 
-different directory.
-
-Your patch is certainly more concise, but perhaps it is a little strange 
-to put an "else" on an if where the "then" branch ends with a return or 
-goto?  That doesn't seem to be done very often anyway.
+Indeed, I missed that one.
 
 julia
 
-> And the return value of thermal_zone_device_register is also misused.
+
 > How about this refreshed patch? :)
 > 
 > 
