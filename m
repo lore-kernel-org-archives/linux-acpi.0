@@ -1,58 +1,41 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH] ata-acpi: don't call _GTF for disabled drive
-Date: Tue, 25 Mar 2008 16:50:45 +0800
-Message-ID: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
+From: "Carlos Corbacho" <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] Force acpi_new_pts_ordering for ASUS A6VC laptop
+Date: Tue, 25 Mar 2008 09:24:37 -0000 (UTC)
+Message-ID: <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
+References: <1206434857.23794.8.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:23965 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751720AbYCYI6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 04:58:54 -0400
+Received: from phoenix.slamd64.com ([217.10.145.2]:37646 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045AbYCYJZI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 05:25:08 -0400
+In-Reply-To: <1206434857.23794.8.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Garzik <jgarzik@pobox.com>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-I got below log after a S3 resume in a ASUS A6VC laptop. The system has
-only one IDE drive. It appears there is no reason calling _GTF for
-disabled drive.
+> +static int __init asus_suspend_order(const struct dmi_system_id *d)
+> +{
+> +	printk(KERN_WARNING PREFIX "%s detected, "
+> +		"acpi_new_pts_ordering is force enabled\n", d->ident);
+> +	new_pts_ordering = true;
+> +	return 0;
 
-ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
-ata2.00: _GTF evaluation failed (AE 0x3006)
-ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
-ata2.01: _GTF evaluation failed (AE 0x3006)
+Given all you're doing here is just changing the ordering,
+'asus_suspend_order' doesn't strike me as the right name for this function
+since:
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+1) This clearly isn't the case for all Asus boards.
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index bf98a56..7cbf023 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -839,7 +839,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
- 		 */
- 		ata_link_for_each_dev(dev, &ap->link) {
- 			ata_acpi_clear_gtf(dev);
--			if (ata_dev_get_GTF(dev, NULL) >= 0)
-+			if (ata_dev_enabled(dev) &&
-+			    ata_dev_get_GTF(dev, NULL) >= 0)
- 				dev->flags |= ATA_DFLAG_ACPI_PENDING;
- 		}
- 	} else {
-@@ -849,7 +850,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
- 		 */
- 		ata_link_for_each_dev(dev, &ap->link) {
- 			ata_acpi_clear_gtf(dev);
--			dev->flags |= ATA_DFLAG_ACPI_PENDING;
-+			if (ata_dev_enabled(dev))
-+				dev->flags |= ATA_DFLAG_ACPI_PENDING;
- 		}
- 	}
- }
+2) Perhaps something like 'new_suspend_order' would be a better name for
+this function (e.g. if others want to use DMI to do this for non-Asus
+boards).
 
-
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
