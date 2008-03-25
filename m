@@ -1,563 +1,583 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 4/4] ACPI PCI slot detection driver
-Date: Tue, 25 Mar 2008 13:50:05 +0900
-Message-ID: <47E8847D.3030906@jp.fujitsu.com>
-References: <20080325041314.GA29666@ldl.fc.hp.com> <20080325041739.GE29666@ldl.fc.hp.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: Platform driver to support App Hot Startup
+	(PNP0C32)
+Date: Tue, 25 Mar 2008 14:59:33 +0800
+Message-ID: <1206428373.3047.34.camel@acpi-hp-zz.sh.intel.com>
+References: <20080314151712.34836918.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:42767 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320AbYCYEwc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 00:52:32 -0400
-In-Reply-To: <20080325041739.GE29666@ldl.fc.hp.com>
+Received: from mga01.intel.com ([192.55.52.88]:16147 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750737AbYCYHXY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 03:23:24 -0400
+In-Reply-To: <20080314151712.34836918.miknix@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@i>
+To: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Acked-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Hi, Angelo,
 
-Thanks,
-Kenji Kaneshige
+On Fri, 2008-03-14 at 23:17 +0800, =C3=82ngelo Miguel Arrifano wrote:
+> Here is the patch made from the today linux-acpi tree.
+>=20
+> Thanks,
+> Angelo Arrifano
+we'd better add the change log here.
+Some introductions about PNP0C32 device would be great.
 
-
-Alex Chiang wrote:
-> Detect all physical PCI slots as described by ACPI, and create
-> entries in /sys/bus/pci/slots/.
-> 
-> Not all physical slots are hotpluggable, and the acpiphp module
-> does not detect them. Now we know the physical PCI geography of
-> our system, without caring about hotplug.
-> 
-> v10 -> v11:
-> 	Thanks to Kenji Kanishige for the following updates:
-> 	- Fix dmi table for Fujitsu PRIMEQUEST
-> 	- Fix _STA evaluation
-> 	- Use list_head for pci slot list
-> 	- Fix slot removal path
-> 
-> v9 -> v10:
-> 	Allow an hp driver to override the pci_slot kobject name.
-> 
-> v8 -> v9:
-> 	Add DMI quirk for Fujitsu machines; eval _STA before _SUN
-> 
-> v6 -> v8:
-> 	No change
-> 
-> v5 -> v6:
-> 	Add debugging information.
-> 
-> v4 -> v5:
-> 	Convert to a tristate module.
-> 
-> 	Remove #ifdef CONFIG_ACPI_PCI_SLOT, as struct pci_slot
-> 	objects are properly refcounted, and multiple calls to
-> 	pci_create/destroy_slot work just fine.
-> 
-> 	Remove prior -EBUSY changes, as they have been folded
-> 	into the Introduce pci_slot patch.
-> 
-> v3 -> v4:
-> 	Always attempt to call pci_create_slot from pcihp_core to
-> 	cover cases of
-> 		a) user did not say Y to Kconfig option ACPI_PCI_SLOT
-> 		b) native PCIe hotplug driver registering on a
-> 		non-ACPI system.
-> 
-> 	Return -EBUSY if an hp driver attempts to register a slot
-> 	that is already registered to another driver. Do not
-> 	consider that to be an error condition in acpiphp and pciehp.
-> 
-> v2 -> v3:
-> 	Add Kconfig option to driver, allowing users to [de]config
-> 	this driver. If configured, take slightly different code
-> 	paths in pci_hp_register and pci_hp_deregister.
-> 
-> v1 -> v2:
-> 	Now recursively discovering p2p bridges and slots
-> 	underneath them. Hopefully, this will prevent us
-> 	from trying to register the same slot multiple times.
-> 
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> ---
->  drivers/acpi/Kconfig                   |    9 +
->  drivers/acpi/Makefile                  |    1 +
->  drivers/acpi/pci_slot.c                |  370 ++++++++++++++++++++++++++++++++
->  drivers/pci/hotplug/pci_hotplug_core.c |   16 ++
->  drivers/pci/hotplug/pciehp_core.c      |    2 +-
->  drivers/pci/hotplug/sgi_hotplug.c      |    2 +-
->  6 files changed, 398 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/acpi/pci_slot.c
-> 
 > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b4f5e85..4ccb0e7 100644
+> index f688c21..fb096ee 100644
 > --- a/drivers/acpi/Kconfig
 > +++ b/drivers/acpi/Kconfig
-> @@ -335,6 +335,15 @@ config ACPI_EC
->  	  the battery and thermal drivers.  If you are compiling for a 
->  	  mobile system, say Y.
->  
-> +config ACPI_PCI_SLOT
-> +	tristate "PCI slot detection driver"
-> +	default n
-> +	help
-> +	  This driver will attempt to discover all PCI slots in your system,
-> +	  and creates entries in /sys/bus/pci/slots/. This feature can
-> +	  help you correlate PCI bus addresses with the physical geography
-> +	  of your slots. If you are unsure, say N.
+> @@ -196,6 +196,14 @@ config ACPI_THERMAL
+>           recommended that this option be enabled, as your
+> processor(s)
+>           may be damaged without it.
+>=20
+> +config ACPI_QUICKSTART
+> +       tristate "Quickstart"
+> +       default y
+> +       help
+> +         This driver add support for ACPI Direct Application Launch
+> +         also known as Hotstart(TM). Say yes here to have a entry in
+> +         sysfs telling which button was used to turn on the system.
 > +
->  config ACPI_POWER
->  	bool
->  	default y
+>  config ACPI_NUMA
+>         bool "NUMA support"
+>         depends on NUMA
 > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 40b0fca..579c29c 100644
+> index f29812a..badb0a6 100644
 > --- a/drivers/acpi/Makefile
 > +++ b/drivers/acpi/Makefile
-> @@ -48,6 +48,7 @@ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
->  obj-$(CONFIG_ACPI_BAY)		+= bay.o
->  obj-$(CONFIG_ACPI_VIDEO)	+= video.o
->  obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-> +obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
->  obj-$(CONFIG_ACPI_POWER)	+= power.o
->  obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
->  obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
-> diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+> @@ -62,3 +62,4 @@ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)     +=3D
+> acpi_memhotplug.o
+>  obj-$(CONFIG_ACPI_PROCFS_POWER)        +=3D cm_sbs.o
+>  obj-$(CONFIG_ACPI_SBS)         +=3D sbs.o
+>  obj-$(CONFIG_ACPI_SBS)         +=3D sbshc.o
+> +obj-$(CONFIG_ACPI_QUICKSTART)  +=3D quickstart.o
+> diff --git a/drivers/acpi/quickstart.c b/drivers/acpi/quickstart.c
 > new file mode 100644
-> index 0000000..2b48ea7
+> index 0000000..a4726f8
 > --- /dev/null
-> +++ b/drivers/acpi/pci_slot.c
-> @@ -0,0 +1,370 @@
+> +++ b/drivers/acpi/quickstart.c
+> @@ -0,0 +1,418 @@
 > +/*
-> + *  pci_slot.c - ACPI PCI Slot Driver
+> + *  quickstart.c - ACPI Direct App Launch driver
 > + *
-> + *  The code here is heavily leveraged from the acpiphp module.
-> + *  Thanks to Matthew Wilcox <matthew@wil.cx> for much guidance.
-> + *  Thanks to Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> for code
-> + *  review and fixes.
 > + *
-> + *  Copyright (C) 2007 Alex Chiang <achiang@hp.com>
-> + *  Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
+> + *  Copyright (C) 2007 Angelo Arrifano <miknix@gmail.com>
 > + *
-> + *  This program is free software; you can redistribute it and/or modify it
-> + *  under the terms and conditions of the GNU General Public License,
-> + *  version 2, as published by the Free Software Foundation.
+> + *  Information gathered from disassebled dsdt and from here:
+> + *  "http://download.microsoft.com/download/9/c/5/
+> + *  9c5b2167-8017-4bae-9fde-d599bac8184a/DirAppLaunch_Vista.doc"
 > + *
-> + *  This program is distributed in the hope that it will be useful, but
-> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + *  General Public License for more details.
+> + *  This program is free software; you can redistribute it and/or
+> modify
+> + *  it under the terms of the GNU General Public License as publishe=
+d
+> by
+> + *  the Free Software Foundation; either version 2 of the License, o=
+r
+> + *  (at your option) any later version.
 > + *
-> + *  You should have received a copy of the GNU General Public License along
-> + *  with this program; if not, write to the Free Software Foundation, Inc.,
-> + *  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public Licens=
+e
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+> 02111-1307  USA
+> + *
 > + */
+> +
+> +#define QUICKSTART_VERSION "1.00"
 > +
 > +#include <linux/kernel.h>
 > +#include <linux/module.h>
 > +#include <linux/init.h>
 > +#include <linux/types.h>
-> +#include <linux/pci.h>
-> +#include <linux/acpi.h>
-> +#include <acpi/acpi_bus.h>
 > +#include <acpi/acpi_drivers.h>
+> +#include <linux/platform_device.h>
 > +
-> +static int debug;
-> +static int check_sta_before_sun;
-> +
-> +#define DRIVER_VERSION 	"0.1"
-> +#define DRIVER_AUTHOR	"Alex Chiang <achiang@hp.com>"
-> +#define DRIVER_DESC	"ACPI PCI Slot Detection Driver"
-> +MODULE_AUTHOR(DRIVER_AUTHOR);
-> +MODULE_DESCRIPTION(DRIVER_DESC);
+> +MODULE_AUTHOR("Angelo Arrifano");
+> +MODULE_DESCRIPTION("ACPI Direct App Launch driver");
 > +MODULE_LICENSE("GPL");
-> +MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
-> +module_param(debug, bool, 0644);
 > +
-> +#define _COMPONENT		ACPI_PCI_COMPONENT
-> +ACPI_MODULE_NAME("pci_slot");
+> +static int enable_runtime_btns;
+> +module_param(enable_runtime_btns, int, 0);
+> +MODULE_PARM_DESC(enable_runtime_btns,
+> +                       "Enable reporting of runtime button presses
+> (hotkeys).\n");
+"enable_runtime_btns" is useless in this patch.
+
 > +
-> +#define MY_NAME "pci_slot"
-> +#define err(format, arg...) printk(KERN_ERR "%s: " format , MY_NAME , ## arg)
-> +#define info(format, arg...) printk(KERN_INFO "%s: " format , MY_NAME , ## arg)
-> +#define dbg(format, arg...)					\
-> +	do {							\
-> +		if (debug)					\
-> +			printk(KERN_DEBUG "%s: " format,	\
-> +				MY_NAME , ## arg);		\
-> +	} while (0)
+> +#define QUICKSTART_ACPI_DEVICE_NAME   "quickstart"
+> +#define QUICKSTART_ACPI_CLASS         "quickstart"
+> +#define QUICKSTART_ACPI_HID           "PNP0C32"
 > +
-> +struct acpi_pci_slot {
-> +	acpi_handle root_handle;	/* handle of the root bridge */
-> +	struct pci_slot *pci_slot;	/* corresponding pci_slot */
-> +	struct list_head list;		/* node in the list of slots */
+> +#define QUICKSTART_PF_DRIVER_NAME     "quickstart"
+> +#define QUICKSTART_PF_DEVICE_NAME     "quickstart"
+> +#define QUICKSTART_PF_DEVATTR_NAME    "pressed_button"
+> +
+> +#define QUICKSTART_MAX_BTN_NAME_LEN   16
+> +
+> +struct quickstart_btn_list {
+> +       char *name;
+> +       struct quickstart_btn_list *next;
 > +};
 > +
-> +static int acpi_pci_slot_add(acpi_handle handle);
-> +static void acpi_pci_slot_remove(acpi_handle handle);
-> +
-> +static LIST_HEAD(slot_list);
-> +static DEFINE_MUTEX(slot_list_lock);
-> +static struct acpi_pci_driver acpi_pci_slot_driver = {
-> +	.add = acpi_pci_slot_add,
-> +	.remove = acpi_pci_slot_remove,
-> +};
-> +
-> +static int
-> +check_slot(acpi_handle handle, int *device, unsigned long *sun)
-> +{
-> +	int retval = 0;
-> +	unsigned long adr, sta;
-> +	acpi_status status;
-> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> +
-> +	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> +	dbg("Checking slot on path: %s\n", (char *)buffer.pointer);
-> +
-> +	if (check_sta_before_sun) {
-> +		/* If SxFy doesn't have _STA, we just assume it's there */
-> +		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-> +		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT)) {
-> +			retval = -1;
-> +			goto out;
-> +		}
-> +	}
-> +
-> +	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-> +	if (ACPI_FAILURE(status)) {
-> +		dbg("_ADR returned %d on %s\n", status, (char *)buffer.pointer);
-> +		retval = -1;
-> +		goto out;
-> +	}
-> +
-> +	*device = (adr >> 16) & 0xffff;
-> +
-> +	/* No _SUN == not a slot == bail */
-> +	status = acpi_evaluate_integer(handle, "_SUN", NULL, sun);
-> +	if (ACPI_FAILURE(status)) {
-> +		dbg("_SUN returned %d on %s\n", status, (char *)buffer.pointer);
-> +		retval = -1;
-> +		goto out;
-> +	}
-> +
-> +out:
-> +	kfree(buffer.pointer);
-> +	return retval;
-> +}
-> +
-> +struct callback_args {
-> +	acpi_walk_callback	user_function;	/* only for walk_p2p_bridge */
-> +	struct pci_bus		*pci_bus;
-> +	acpi_handle		root_handle;
+> +static struct quickstart_driver_data {
+> +       struct quickstart_btn_list *btn_lst;
+> +       struct quickstart_btn_list *pressed;
+> +} quickstart_data =3D {
+> +       .btn_lst =3D NULL,
+> +       .pressed =3D NULL,
 > +};
 > +
 > +/*
-> + * register_slot
-> + *
-> + * Called once for each SxFy object in the namespace. Don't worry about
-> + * calling pci_create_slot multiple times for the same pci_bus:device,
-> + * since each subsequent call simply bumps the refcount on the pci_slot.
-> + *
-> + * The number of calls to pci_destroy_slot from unregister_slot is
-> + * symmetrical.
+> + * ACPI driver Structs
 > + */
-> +static acpi_status
-> +register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
-> +{
-> +	int device;
-> +	unsigned long sun;
-> +	char name[KOBJ_NAME_LEN];
-> +	struct acpi_pci_slot *slot;
-> +	struct pci_slot *pci_slot;
-> +	struct callback_args *parent_context = context;
-> +	struct pci_bus *pci_bus = parent_context->pci_bus;
 > +
-> +	if (check_slot(handle, &device, &sun))
-> +		return AE_OK;
-> +
-> +	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
-> +	if (!slot) {
-> +		err("%s: cannot allocate memory\n", __func__);
-> +		return AE_OK;
-> +	}
-> +
-> +	snprintf(name, sizeof(name), "%u", (u32)sun);
-> +	pci_slot = pci_create_slot(pci_bus, device, name);
-> +	if (IS_ERR(pci_slot)) {
-> +		err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
-> +		kfree(slot);
-> +	}
-> +
-> +	slot->root_handle = parent_context->root_handle;
-> +	slot->pci_slot = pci_slot;
-> +	INIT_LIST_HEAD(&slot->list);
-> +	mutex_lock(&slot_list_lock);
-> +	list_add(&slot->list, &slot_list);
-> +	mutex_unlock(&slot_list_lock);
-> +
-> +	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
-> +		(uint64_t)pci_slot, pci_bus->number, device, name);
-> +
-> +	return AE_OK;
-> +}
-> +
-> +/*
-> + * walk_p2p_bridge - discover and walk p2p bridges
-> + * @handle: points to an acpi_pci_root
-> + * @context: p2p_bridge_context pointer
-> + *
-> + * Note that when we call ourselves recursively, we pass a different
-> + * value of pci_bus in the child_context.
-> + */
-> +static acpi_status
-> +walk_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-> +{
-> +	int device, function;
-> +	unsigned long adr;
-> +	acpi_status status;
-> +	acpi_handle dummy_handle;
-> +	acpi_walk_callback user_function;
-> +
-> +	struct pci_dev *dev;
-> +	struct pci_bus *pci_bus;
-> +	struct callback_args child_context;
-> +	struct callback_args *parent_context = context;
-> +
-> +	pci_bus = parent_context->pci_bus;
-> +	user_function = parent_context->user_function;
-> +
-> +	status = acpi_get_handle(handle, "_ADR", &dummy_handle);
-> +	if (ACPI_FAILURE(status))
-> +		return AE_OK;
-> +
-> +	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-> +	if (ACPI_FAILURE(status))
-> +		return AE_OK;
-> +
-> +	device = (adr >> 16) & 0xffff;
-> +	function = adr & 0xffff;
-> +
-> +	dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
-> +	if (!dev || !dev->subordinate)
-> +		goto out;
-> +
-> +	child_context.pci_bus = dev->subordinate;
-> +	child_context.user_function = user_function;
-> +	child_context.root_handle = parent_context->root_handle;
-> +
-> +	dbg("p2p bridge walk, pci_bus = %x\n", dev->subordinate->number);
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-> +				     user_function, &child_context, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		goto out;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-> +				     walk_p2p_bridge, &child_context, NULL);
-> +out:
-> +	pci_dev_put(dev);
-> +	return AE_OK;
-> +}
-> +
-> +#define ACPI_STA_FUNCTIONING            (0x00000008)
-> +
-> +/*
-> + * walk_root_bridge - generic root bridge walker
-> + * @handle: points to an acpi_pci_root
-> + * @user_function: user callback for slot objects
-> + *
-> + * Call user_function for all objects underneath this root bridge.
-> + * Walk p2p bridges underneath us and call user_function on those too.
-> + */
-> +static int
-> +walk_root_bridge(acpi_handle handle, acpi_walk_callback user_function)
-> +{
-> +	int seg, bus;
-> +	unsigned long tmp;
-> +	acpi_status status;
-> +	acpi_handle dummy_handle;
-> +	struct pci_bus *pci_bus;
-> +	struct callback_args context;
-> +
-> +	/* If the bridge doesn't have _STA, we assume it is always there */
-> +	status = acpi_get_handle(handle, "_STA", &dummy_handle);
-> +	if (ACPI_SUCCESS(status)) {
-> +		status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
-> +		if (ACPI_FAILURE(status)) {
-> +			info("%s: _STA evaluation failure\n", __func__);
-> +			return 0;
-> +		}
-> +		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
-> +			/* don't register this object */
-> +			return 0;
-> +	}
-> +
-> +	status = acpi_evaluate_integer(handle, "_SEG", NULL, &tmp);
-> +	seg = ACPI_SUCCESS(status) ? tmp : 0;
-> +
-> +	status = acpi_evaluate_integer(handle, "_BBN", NULL, &tmp);
-> +	bus = ACPI_SUCCESS(status) ? tmp : 0;
-> +
-> +	pci_bus = pci_find_bus(seg, bus);
-> +	if (!pci_bus)
-> +		return 0;
-> +
-> +	context.pci_bus = pci_bus;
-> +	context.user_function = user_function;
-> +	context.root_handle = handle;
-> +
-> +	dbg("root bridge walk, pci_bus = %x\n", pci_bus->number);
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-> +				     user_function, &context, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-> +				     walk_p2p_bridge, &context, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		err("%s: walk_p2p_bridge failure - %d\n", __func__, status);
-> +
-> +	return status;
-> +}
-> +
-> +/*
-> + * acpi_pci_slot_add
-> + * @handle: points to an acpi_pci_root
-> + */
-> +static int
-> +acpi_pci_slot_add(acpi_handle handle)
-> +{
-> +	acpi_status status;
-> +
-> +	status = walk_root_bridge(handle, register_slot);
-> +	if (ACPI_FAILURE(status))
-> +		err("%s: register_slot failure - %d\n", __func__, status);
-> +
-> +	return status;
-> +}
-> +
-> +/*
-> + * acpi_pci_slot_remove
-> + * @handle: points to an acpi_pci_root
-> + */
-> +static void
-> +acpi_pci_slot_remove(acpi_handle handle)
-> +{
-> +	struct acpi_pci_slot *slot, *tmp;
-> +
-> +	mutex_lock(&slot_list_lock);
-> +	list_for_each_entry_safe(slot, tmp, &slot_list, list) {
-> +		if (slot->root_handle == handle) {
-> +			list_del(&slot->list);
-> +			pci_destroy_slot(slot->pci_slot);
-> +			kfree(slot);
-> +		}
-> +	}
-> +	mutex_unlock(&slot_list_lock);
-> +}
-> +
-> +#ifdef CONFIG_DMI
-> +static int do_sta_before_sun(const struct dmi_system_id *d)
-> +{
-> +	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
-> +	check_sta_before_sun = 1;
-> +	return 0;
-> +}
-> +
-> +static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
-> +	/*
-> +	 * Fujitsu Primequest machines will return 1023 to indicate an
-> +	 * error if the _SUN method is evaluated on SxFy objects that
-> +	 * are not present (as indicated by _STA), so for those machines,
-> +	 * we want to check _STA before evaluating _SUN.
-> +	 */
-> +	{
-> +	 .callback = do_sta_before_sun,
-> +	 .ident = "Fujitsu PRIMEQUEST",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-> +		DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
-> +		},
-> +	},
-> +	{}
+> +struct quickstart_acpi {
+> +       struct acpi_device *device;
+> +       struct quickstart_btn_list *btn;
 > +};
-> +#endif /* CONFIG_DMI */
+> +static int quickstart_acpi_add(struct acpi_device *device);
+> +static int quickstart_acpi_remove(struct acpi_device *device, int
+> type);
+> +static const struct acpi_device_id  quickstart_device_ids[] =3D {
+> +       {QUICKSTART_ACPI_HID, 0},
+> +       {"", 0},
+> +};
 > +
-> +static int __init
-> +acpi_pci_slot_init(void)
+> +static struct acpi_driver quickstart_acpi_driver =3D {
+> +       .name =3D "quickstart",
+> +       .class =3D QUICKSTART_ACPI_CLASS,
+> +       .ids =3D quickstart_device_ids,
+> +       .ops =3D {
+> +                       .add =3D quickstart_acpi_add,
+> +                       .remove =3D quickstart_acpi_remove,
+> +               },
+> +};
+> +
+> +/*
+> + * Platform driver structs
+> + */
+> +static ssize_t buttons_show(struct device *dev,
+> +                                       struct device_attribute *attr=
+,
+> +                                       char *buf);
+> +static ssize_t pressed_button_show(struct device *dev,
+> +                                       struct device_attribute *attr=
+,
+> +                                       char *buf);
+> +static ssize_t pressed_button_store(struct device *dev,
+> +                                       struct device_attribute *attr=
+,
+> +                                        const char *buf,
+> +                                        size_t count);
+> +static DEVICE_ATTR(pressed_button, 0666, pressed_button_show,
+> +                                        pressed_button_store);
+> +static DEVICE_ATTR(buttons, 0444, buttons_show, NULL);
+> +static struct platform_device *pf_device;
+> +static struct platform_driver pf_driver =3D {
+> +       .driver =3D {
+> +               .name =3D QUICKSTART_PF_DRIVER_NAME,
+> +               .owner =3D THIS_MODULE,
+> +       }
+> +};
+> +
+> +/*
+> + * Platform driver functions
+> + */
+> +static ssize_t buttons_show(struct device *dev,
+> +                                        struct device_attribute
+> *attr,
+> +                                        char *buf)
 > +{
-> +	dmi_check_system(acpi_pci_slot_dmi_table);
-> +	acpi_pci_register_driver(&acpi_pci_slot_driver);
-> +	return 0;
+> +       int count =3D 0;
+> +       char tmpbuf[QUICKSTART_MAX_BTN_NAME_LEN + 2];
+> +       struct quickstart_btn_list *ptr =3D quickstart_data.btn_lst;
+> +     =20
+> +       if(!ptr)
+> +               return snprintf(buf, PAGE_SIZE, "none");
+> +
+> +       while(ptr && (count < PAGE_SIZE)){
+> +               if(ptr->name){
+> +                       strncpy(tmpbuf, ptr->name,
+> QUICKSTART_MAX_BTN_NAME_LEN);
+> +                       strcat(tmpbuf, "\n");
+> +                       count +=3D snprintf(buf + count,
+> +                                       PAGE_SIZE - count,
+> +                                       tmpbuf);
+> +               }
+> +               ptr =3D ptr->next;
+> +       }
+> +     =20
+> +       return count;
 > +}
 > +
-> +static void __exit
-> +acpi_pci_slot_exit(void)
+> +static ssize_t pressed_button_show(struct device *dev,
+> +                                       struct device_attribute *attr=
+,
+> +                                       char *buf)
 > +{
-> +	acpi_pci_unregister_driver(&acpi_pci_slot_driver);
+> +       return snprintf(buf, PAGE_SIZE, "%s\n",
+> +
+> (quickstart_data.pressed?quickstart_data.pressed->name:"none"));
 > +}
 > +
-> +module_init(acpi_pci_slot_init);
-> +module_exit(acpi_pci_slot_exit);
-> diff --git a/drivers/pci/hotplug/pci_hotplug_core.c b/drivers/pci/hotplug/pci_hotplug_core.c
-> index 5208786..8181bf6 100644
-> --- a/drivers/pci/hotplug/pci_hotplug_core.c
-> +++ b/drivers/pci/hotplug/pci_hotplug_core.c
-> @@ -566,6 +566,11 @@ int pci_hp_register(struct hotplug_slot *slot, struct pci_bus *bus, int slot_nr)
->  		return -EINVAL;
->  	}
->  
-> +	/*
-> +	 * No problems if we call this interface from both ACPI_PCI_SLOT
-> +	 * driver and call it here again. If we've already created the
-> +	 * pci_slot, the interface will simply bump the refcount.
-> +	 */
->  	pci_slot = pci_create_slot(bus, slot_nr, slot->name);
->  	if (IS_ERR(pci_slot))
->  		return PTR_ERR(pci_slot);
-> @@ -579,6 +584,17 @@ int pci_hp_register(struct hotplug_slot *slot, struct pci_bus *bus, int slot_nr)
->  	slot->pci_slot = pci_slot;
->  	pci_slot->hotplug = slot;
->  
-> +	/*
-> +	 * Allow pcihp drivers to override the ACPI_PCI_SLOT name.
-> +	 */
-> +	if (strcmp(kobject_name(&pci_slot->kobj), slot->name)) {
-> +		result = kobject_rename(&pci_slot->kobj, slot->name);
-> +		if (result) {
-> +			pci_destroy_slot(pci_slot);
-> +			return result;
-> +		}
-> +	}
 > +
->  	spin_lock(&pci_hotplug_slot_list_lock);
->  	list_add(&slot->slot_list, &pci_hotplug_slot_list);
->  	spin_unlock(&pci_hotplug_slot_list_lock);
-> diff --git a/drivers/pci/hotplug/pciehp_core.c b/drivers/pci/hotplug/pciehp_core.c
-> index e6d3d4d..7561d17 100644
-> --- a/drivers/pci/hotplug/pciehp_core.c
-> +++ b/drivers/pci/hotplug/pciehp_core.c
-> @@ -249,7 +249,7 @@ static int init_slots(struct controller *ctrl)
->  		if (retval == -EBUSY)
->  			goto error_info;
->  		if (retval) {
-> -			err ("pci_hp_register failed with error %d\n", retval);
-> +			err("pci_hp_register failed with error %d\n", retval);
->  			goto error_info;
->  		}
->  		/* create additional sysfs entries */
-> diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
-> index 8908834..5fd6887 100644
-> --- a/drivers/pci/hotplug/sgi_hotplug.c
-> +++ b/drivers/pci/hotplug/sgi_hotplug.c
-> @@ -668,7 +668,7 @@ static int sn_hotplug_slot_register(struct pci_bus *pci_bus)
->  
->  register_err:
->  	dev_dbg(&pci_bus->self->dev, "bus failed to register with err = %d\n",
-> -	        rc);
-> +		rc);
->  
->  alloc_err:
->  	if (rc == -ENOMEM)
+> +static ssize_t pressed_button_store(struct device *dev,
+> +                                        struct device_attribute
+> *attr,
+> +                                        const char *buf, size_t
+> count)
+> +{
+> +       if(count < 2)
+> +               return -EINVAL;
+> +
+> +       if(strncasecmp(buf, "none", 4) !=3D 0)
+> +               return -EINVAL;
+> +
+> +       quickstart_data.pressed =3D NULL;
+> +       return count;
+> +}
+> +
+> +/* Hotstart Helper functions */
+> +static int quickstart_btnlst_add(struct quickstart_btn_list **data)
+> +{
+> +       struct quickstart_btn_list **ptr =3D &quickstart_data.btn_lst=
+;
+> +     =20
+> +       while(*ptr)
+> +               ptr =3D &((*ptr)->next);
+> +             =20
+> +       *ptr =3D kzalloc(sizeof(struct quickstart_btn_list),
+> GFP_KERNEL);
+> +       if(!*ptr){
+> +               *data =3D NULL;
+> +               return(-ENOMEM);
+> +       }
+> +       *data =3D *ptr;
+> +
+> +       return 0;
+> +}
+> +
+> +static void quickstart_btnlst_free(void)
+> +{
+> +       struct quickstart_btn_list *ptr =3D quickstart_data.btn_lst;
+> +       struct quickstart_btn_list *lptr =3D NULL;
+> +     =20
+> +       if(!ptr)
+> +               return;
+> +
+> +       while(ptr){
+> +               lptr =3D ptr;
+> +               ptr =3D ptr->next;
+> +               if(lptr->name)
+> +                       kfree(lptr->name);
+> +               kfree(lptr);
+> +       }
+> +     =20
+> +       return;
+> +}
+> +
+> +/* ACPI Driver functions */
+> +static void quickstart_acpi_notify(acpi_handle handle, u32 event,
+> void *data)
+> +{
+> +       struct quickstart_acpi *quickstart =3D data;
+> +
+> +       if (!quickstart)
+> +               return;
+> +
+> +       /* There will be two events:
+> +        * 0x02 - A quickstart button was pressed while device was
+> off/sleeping.
+> +        * 0x08 - A quickstart button was pressed while device was up=
+=2E
+> */
+> +       if((event|0x02) =3D=3D event){
+This is wrong.
+If only two events are supported, it should be either 0x02 or 0x08.
+Checking bit 1 doesn't make sense here.
+
+> +               quickstart_data.pressed =3D quickstart->btn;
+> +               printk("quickstart: Quickbutton %s pressed.\n",
+> +
+> acpi_device_bid(quickstart->device));
+> +       }
+> +
+> +       if(enable_runtime_btns && (event|0x08) =3D=3D event){
+=2E..
+
+> +               printk("quickstart: Hotkey %s pressed.\n",
+> +
+> acpi_device_bid(quickstart->device));
+> +       }
+> +
+>      =20
+> +       return;
+> +}
+> +
+at least we should export a notification to user space in the notify
+handler.
+
+> +static void quickstart_acpi_raise_notify(struct quickstart_acpi
+> *quickstart)
+> +{
+> +       acpi_status status;
+> +
+> +       /* TODO:
+> +        * We should receive a buffer telling the kind of button,
+> +        * eg: dvd, printer, www, ...
+> +        * but we dont care about it now. The important is to trigger
+> +        * pending notify events (The ones before booting). */
+> +       status =3D acpi_evaluate_object(quickstart->device->handle,
+> +                                       "GHID", NULL, NULL);
+It's wrong as GHID returns a buffer.
+
+> +       if(ACPI_FAILURE(status))
+> +               printk("quickstart: Warning: GHID method failed,
+> events of pressed buttons may have been lost.\n");
+> +
+> +       return;
+> +}
+> +
+> +static int quickstart_acpi_config(struct quickstart_acpi *quickstart=
+,
+> char *bid)
+> +{
+> +       int len =3D strlen(bid);
+> +       int ret;
+> +
+> +       /* Add button to list */
+> +       ret =3D quickstart_btnlst_add(&quickstart->btn);
+> +       if(ret)
+> +               return ret;
+> +     =20
+> +       quickstart->btn->name =3D kzalloc(len + 1, GFP_KERNEL);
+> +       if(!quickstart->btn->name){
+> +               quickstart_btnlst_free();
+> +               return -ENOMEM;
+> +       }
+> +       strcpy(quickstart->btn->name, bid);
+> +
+> +       return 0;
+> +}
+> +
+> +static int quickstart_acpi_add(struct acpi_device *device)
+> +{
+> +       int ret =3D 0;
+> +       acpi_status status =3D AE_OK;
+> +       struct quickstart_acpi *quickstart =3D NULL;    =20
+> +
+> +       if (!device)
+> +               return -EINVAL;
+> +
+> +       quickstart =3D kzalloc(sizeof(struct quickstart_acpi),
+> GFP_KERNEL);
+> +       if (!quickstart)
+> +               return -ENOMEM;
+> +
+> +       quickstart->device =3D device;
+> +       strcpy(acpi_device_name(device), QUICKSTART_ACPI_DEVICE_NAME)=
+;
+> +       strcpy(acpi_device_class(device), QUICKSTART_ACPI_CLASS);
+> +       acpi_driver_data(device) =3D quickstart;
+> +     =20
+> +       /* Add button to list and initialize some stuff */
+> +       ret =3D quickstart_acpi_config(quickstart,
+> acpi_device_bid(device));
+> +       if(ret)
+> +               goto fail_config;
+> +
+> +       status =3D acpi_install_notify_handler(device->handle,
+> +                                                ACPI_ALL_NOTIFY,
+> +
+> quickstart_acpi_notify, quickstart);
+> +       if(ACPI_FAILURE(status)){
+> +               printk("quickstart: Error installing notify handler
+> \n");
+> +               ret =3D -ENODEV;
+> +               goto fail_installnotify;
+> +       }     =20
+> +
+> +       /* Call device GHID method. This is a workaround to get a
+> notify
+> +        * event when hot button is pressed while laptop is powered
+> off.
+> +        * This works, even if the method fails. */
+> +       quickstart_acpi_raise_notify(quickstart);
+> +
+> +       return 0;
+> +
+> +fail_installnotify:
+> +fail_config:
+> +
+> +       kfree(quickstart);
+> +
+> +       return ret;
+> +}
+> +
+> +static int quickstart_acpi_remove(struct acpi_device *device, int
+> type)
+> +{
+> +       acpi_status status =3D 0;
+> +       struct quickstart_acpi *quickstart =3D NULL;
+> +
+> +       if (!device || !acpi_driver_data(device))
+> +               return -EINVAL;
+> +
+> +       quickstart =3D acpi_driver_data(device);
+> +
+> +       status =3D acpi_remove_notify_handler(device->handle,
+> +                                                ACPI_ALL_NOTIFY,
+> +                                           quickstart_acpi_notify);
+> +       if (ACPI_FAILURE(status))
+> +               printk("quickstart: Error removing notify handler\n")=
+;
+> +
+> +
+> +       kfree(quickstart);
+> +
+> +       return 0;
+> +}
+> +
+> +/* Module functions */
+> +
+> +static void quickstart_exit(void)
+> +{
+> +       device_remove_file(&pf_device->dev, &dev_attr_pressed_button)=
+;
+> +       device_remove_file(&pf_device->dev, &dev_attr_buttons);
+> +
+> +       platform_device_unregister(pf_device);
+> +
+> +       platform_driver_unregister(&pf_driver);
+> +
+> +       acpi_bus_unregister_driver(&quickstart_acpi_driver);
+> +     =20
+> +       quickstart_btnlst_free();
+> +
+> +       return;
+> +}
+> +
+> +static int __init quickstart_init(void)
+> +{
+> +       int ret;
+> +       acpi_status status =3D 0;
+> +
+> +       /* ACPI Check */
+> +       if(acpi_disabled)
+> +               return -ENODEV;
+> +
+> +       /* ACPI driver register */
+> +       status =3D acpi_bus_register_driver(&quickstart_acpi_driver);
+> +       if (!quickstart_data.btn_lst || status < 0)
+> +               return -ENODEV;
+> +
+we should not register platform devices and sys attributes if no PNP0C3=
+2
+device is available.
+A simple way is to set a flag in the acpi driver's .add method which
+means PNP0C32 device is found.
+And return -ENODEV if the flag is not set after
+acpi_bus_register_driver.
+
+> +       /* Platform driver register */
+> +       ret =3D platform_driver_register(&pf_driver);
+> +       if(ret)
+> +               goto fail_pfdrv_reg;
+> +=20
+> +       /* Platform device register */
+> +       pf_device =3D platform_device_alloc(QUICKSTART_PF_DEVICE_NAME=
+,
+> -1);
+> +       if(!pf_device){
+> +               ret =3D -ENOMEM;
+> +               goto fail_pfdev_alloc;
+> +       }
+> +
+> +       ret =3D platform_device_register(pf_device);
+kobject (f7808880): tried to init an initialized object, something is
+seriously wrong.
+Pid: 1, comm: swapper Not tainted 2.6.25-rc6 #1
+ [<c04dad4f>] kobject_init+0x29/0x53
+ [<c05475fc>] device_initialize+0x1b/0x8b
+ [<c054ab62>] platform_device_register+0xb/0x13
+ [<c073dd50>] quickstart_init+0x5d/0xff
+ [<c0725427>] kernel_init+0x12b/0x265
+ [<c041eb8d>] schedule_tail+0x16/0x43
+ [<c040481e>] ret_from_fork+0x6/0x1c
+ [<c07252fc>] kernel_init+0x0/0x265
+ [<c07252fc>] kernel_init+0x0/0x265
+ [<c0405523>] kernel_thread_helper+0x7/0x10
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+quickstart: ACPI Direct App Launch ver 1.00
+
+platform_device_add should be called here.
+I suspect the patch is not well tested.
+
+> +       if(ret)
+> +               goto fail_pfdev_reg;
+> +
+> +       /* Create device sysfs file */
+> +       ret =3D device_create_file(&pf_device->dev,
+> &dev_attr_pressed_button);
+> +       if(ret)
+> +               goto fail_dev_file;
+> +
+> +       ret =3D device_create_file(&pf_device->dev, &dev_attr_buttons=
+);
+> +       if(ret)
+> +               goto fail_dev_file2;
+> +
+> +       printk("quickstart: ACPI Direct App Launch ver %s\n",
+> QUICKSTART_VERSION);
+> +       if(enable_runtime_btns)
+> +               printk("quickstart: Runtime button reporting is
+> enabled.");
+> +     =20
+> +       return 0;
+> +
+> +fail_dev_file2:
+> +       device_remove_file(&pf_device->dev, &dev_attr_pressed_button)=
+;
+> +
+> +fail_dev_file:
+> +       platform_device_del(pf_device);
+> +
+> +fail_pfdev_reg:
+> +       platform_device_put(pf_device);
+> +
+> +fail_pfdev_alloc:
+> +       platform_driver_unregister(&pf_driver);
+> +
+> +fail_pfdrv_reg:
+> +       acpi_bus_unregister_driver(&quickstart_acpi_driver);
+> +
+> +       return ret;
+> +}
+> +
+> +module_init(quickstart_init);
+> +module_exit(quickstart_exit);
+There are some coding style problems.
+Please run checkpatch before submitting the patch.
+
+thanks,
+rui
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
