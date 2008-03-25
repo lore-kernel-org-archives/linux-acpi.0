@@ -1,49 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level =?utf-8?q?suspend=09and_hibernation_callbacks?= (rev. 2)
-Date: Tue, 25 Mar 2008 14:06:15 +0100
-Message-ID: <200803251406.16741.rjw@sisk.pl>
-References: <200803210101.04706.rjw@sisk.pl> <1206058863.16475.165.camel@johannes.berg> <200803251049.27696.oliver@neukum.org>
+Subject: Re: [PATCH] Force acpi_new_pts_ordering for ASUS A6VC laptop
+Date: Tue, 25 Mar 2008 14:10:12 +0100
+Message-ID: <200803251410.12816.rjw@sisk.pl>
+References: <1206434857.23794.8.camel@sli10-desk.sh.intel.com> <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754072AbYCYNHH@vger.kernel.org>
-In-Reply-To: <200803251049.27696.oliver@neukum.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60796 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750707AbYCYNKR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 09:10:17 -0400
+In-Reply-To: <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: linux-pm@lists.linux-foundation.org, Johannes Berg <johannes@sipsolutions.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, LKML <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tuesday, 25 of March 2008, Oliver Neukum wrote:
-> Am Freitag, 21. M=C3=A4rz 2008 01:21:03 schrieb Johannes Berg:
-> > > + * All of the above callbacks, except for @complete(), return er=
-ror codes.
-> > > + * However, the error codes returned by the resume operations, @=
-resume(),
-> > > + * @thaw(), and @restore(), are only printed in the system logs,=
- since the PM
-> > > + * core cannot do anything else about them.
-> >=20
-> > Why bother and not just make them return void, the error printing c=
-an
-> > most likely be done much much better in the callback since that pos=
-sibly
-> > has information on why it failed.
->=20
-> A device that cannot wake up is unusable. Shouldn't the pm core disco=
-nnect()
-> such a device?
+On Tuesday, 25 of March 2008, Carlos Corbacho wrote:
+> > +static int __init asus_suspend_order(const struct dmi_system_id *d)
+> > +{
+> > +	printk(KERN_WARNING PREFIX "%s detected, "
+> > +		"acpi_new_pts_ordering is force enabled\n", d->ident);
+> > +	new_pts_ordering = true;
+> > +	return 0;
+> 
+> Given all you're doing here is just changing the ordering,
+> 'asus_suspend_order' doesn't strike me as the right name for this function
+> since:
+> 
+> 1) This clearly isn't the case for all Asus boards.
+> 
+> 2) Perhaps something like 'new_suspend_order' would be a better name for
+> this function (e.g. if others want to use DMI to do this for non-Asus
+> boards).
 
-Well, if ->resume() returns an error, the driver already knows there's =
-a
-problem and it can act upon that, at least in principle.
-
-However, the PM core probably shouldn't try to resume the children of a=
- failing
-device.  Also, if ->resume_noirq() fails, it probably is not a good ide=
-a to
-call ->resume() and ->complete() for the same device and for it's child=
-ren.
+Agreed.
 
 Thanks,
 Rafael
