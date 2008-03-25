@@ -1,54 +1,42 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
-Date: Tue, 25 Mar 2008 11:21:11 -0600
-Message-ID: <200803251121.13050.bjorn.helgaas@hp.com>
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level =?iso-8859-1?q?suspend=09and_hibernation_callbacks?= (rev. 2)
+Date: Tue, 25 Mar 2008 20:48:42 +0100
+Message-ID: <200803252048.43792.oliver@neukum.org>
+References: <Pine.LNX.4.44L0.0803251030220.4838-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:11061 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754412AbYCYRRU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 13:17:20 -0400
+Received: from smtp-out002.kontent.com ([81.88.40.216]:36111 "EHLO
+	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484AbYCYTsr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 15:48:47 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0803251030220.4838-100000@iolanthe.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
 
-[It would be nice to have this in 2.6.25.  It only affects the
-builtin NIC on the Medion MD9580-F laptop, which is currently
-broken due to an IRQ routing problem, and Johann-Nikolaus has
-verified that this fixes the problem.]
+Am Dienstag, 25. M=E4rz 2008 15:33:22 schrieb Alan Stern:
+> > so I'd say a
+> > failure to resume is just a limited subcase of a device vanishing d=
+uring
+> > sleep.
+>=20
+> I'll go along with that. =A0If a device vanishes during sleep, the PM=
+=20
+> core isn't responsible for unregistering it -- the device's subsystem=
+=20
+> is.
 
-This fixes the builtin RTL8139 NIC on the Medion MD9580-F laptop.
-The BIOS reports the interrupt routing incorrectly.  I recently
-added a quirk to work around this, and this patch fixes a typo
-in the quirk.
+Yes, that makes sense. You are right.
 
-We pad every ACPI pathname component to four characters, so ".ISA."
-will never match anything.  We need ".ISA_." instead.
+	Regards
+		Oliver
 
-Thank you Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>
-for patiently testing this patch.
-
-See http://bugzilla.kernel.org/show_bug.cgi?id=4773
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: work7/drivers/acpi/pci_irq.c
-===================================================================
---- work7.orig/drivers/acpi/pci_irq.c	2008-03-25 08:51:42.000000000 -0600
-+++ work7/drivers/acpi/pci_irq.c	2008-03-25 08:52:03.000000000 -0600
-@@ -131,8 +131,8 @@
-  */
- static struct prt_quirk prt_quirks[] = {
- 	{ medion_md9580, 0, 0, 9, 'A',
--		"\\_SB_.PCI0.ISA.LNKA",
--		"\\_SB_.PCI0.ISA.LNKB"},
-+		"\\_SB_.PCI0.ISA_.LNKA",
-+		"\\_SB_.PCI0.ISA_.LNKB"},
- 	{ dell_optiplex, 0, 0, 0xd, 'A',
- 		"\\_SB_.LNKB",
- 		"\\_SB_.LNKA"},
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
