@@ -1,31 +1,32 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
- callbacks (rev. 3)
-Date: Tue, 25 Mar 2008 11:12:30 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0803251111260.4838-100000@iolanthe.rowland.org>
-References: <200803242318.21052.rjw@sisk.pl>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH 0/4, v12] PCI, ACPI: Physical PCI slot objects
+Date: Tue, 25 Mar 2008 11:09:51 -0600
+Message-ID: <20080325170951.GA3489@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:37782 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754670AbYCYPMa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 11:12:30 -0400
-In-Reply-To: <200803242318.21052.rjw@sisk.pl>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:7257 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753378AbYCYRJw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2008 13:09:52 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: gregkh@suse.de
+Cc: Gary Hade <garyhade@us.ibm.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
 
-On Mon, 24 Mar 2008, Rafael J. Wysocki wrote:
+Hi Greg,
 
-> The patch below should address all of your comments above.  It also seems to
-> work.
-> 
-> If it looks good to you, please let me know and I'll repost it in a new thread
-> along with the platform and PCI patches adapted to it.
+This is v12 of the physical pci_slot series.
 
-I don't see anything else to change.  ACK.
+I had to do one last respin because I misspelled Kenji-san's name
+in the changelog. I've also added his Acked-by.
 
-Alan Stern
+There are no code changes between v11 and v12.
+
+Sorry for the noise.
+
+Thanks.
+
+/ac
 
