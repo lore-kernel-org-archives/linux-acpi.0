@@ -1,87 +1,98 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 16/16][BUG] PCI hotplug core: add missing lock for
-	hotplug slot list (Not for mainline!)
-Date: Mon, 24 Mar 2008 21:31:45 -0600
-Message-ID: <20080325033145.GE26434@ldl.fc.hp.com>
-References: <20080318210539.GA30421@ldl.fc.hp.com> <47E33472.1000602@jp.fujitsu.com> <47E33937.5050205@jp.fujitsu.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RFC 4/8] x86_64: Parsing for ACPI "SAPIC" table
+Date: Tue, 25 Mar 2008 00:03:32 -0400
+Message-ID: <200803250003.32661.lenb@kernel.org>
+References: <20080324182114.GA28060@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:40489 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757470AbYCYDbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2008 23:31:46 -0400
+Received: from hera.kernel.org ([140.211.167.34]:46681 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750979AbYCYEEI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 00:04:08 -0400
+In-Reply-To: <20080324182114.GA28060@sgi.com>
 Content-Disposition: inline
-In-Reply-To: <47E33937.5050205@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+To: Jack Steiner <steiner@sgi.com>, asit.k.mallick@intel.com, linux-acpi@vger.kernel.org
+Cc: mingo@elte.hu, tglx@linutronix.de, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> Add missing lock for manipulating pci_hotplug_slot_list.
+IIR the x2apic scheme entails using the legacy entries for the
+first 256 entries, and extended entries for the processors above that, no?
 
-Nice work, thanks. I've merged it.
+Here we seem to be assuming all lapic or all sapic entries.
 
-/ac
+-Len
 
+
+On Monday 24 March 2008, Jack Steiner wrote:
 > 
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> Add kernel support for new ACPI "sapic" tables that contain 16-bit APICIDs.
+> This patch simply adds parsing of an optional SAPIC table if present.
+> Otherwise, the traditional local APIC table is used.
+> 
+> Note: the SAPIC table is not a new ACPI table - it exists on other architectures
+> but is not currently recognized by x86_64.
+> 
+> 
+> 	Signed-off-by: Jack Steiner <steiner@sgi.com>
+> 
 > 
 > ---
->  drivers/pci/hotplug/pci_hotplug_core.c |   13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
+>  arch/x86/kernel/acpi/boot.c |   26 ++++++++++++++++++++++++--
+>  1 file changed, 24 insertions(+), 2 deletions(-)
 > 
-> Index: linux-2.6.25-rc6/drivers/pci/hotplug/pci_hotplug_core.c
+> Index: linux/arch/x86/kernel/acpi/boot.c
 > ===================================================================
-> --- linux-2.6.25-rc6.orig/drivers/pci/hotplug/pci_hotplug_core.c
-> +++ linux-2.6.25-rc6/drivers/pci/hotplug/pci_hotplug_core.c
-> @@ -61,6 +61,7 @@ static int debug;
->  //////////////////////////////////////////////////////////////////
->  
->  static LIST_HEAD(pci_hotplug_slot_list);
-> +static DEFINE_SPINLOCK(pci_hotplug_slot_list_lock);
->  
->  /* these strings match up with the values in pci_bus_speed */
->  static char *pci_bus_speed_strings[] = {
-> @@ -529,12 +530,16 @@ static struct hotplug_slot *get_slot_fro
->  	struct hotplug_slot *slot;
->  	struct list_head *tmp;
->  
-> +	spin_lock(&pci_hotplug_slot_list_lock);
->  	list_for_each (tmp, &pci_hotplug_slot_list) {
->  		slot = list_entry (tmp, struct hotplug_slot, slot_list);
->  		if (strcmp(slot->name, name) == 0)
-> -			return slot;
-> +			goto out;
->  	}
-> -	return NULL;
-> +	slot = NULL;
-> +out:
-> +	spin_unlock(&pci_hotplug_slot_list_lock);
-> +	return slot;
+> --- linux.orig/arch/x86/kernel/acpi/boot.c	2008-03-21 15:37:05.000000000 -0500
+> +++ linux/arch/x86/kernel/acpi/boot.c	2008-03-21 15:40:46.000000000 -0500
+> @@ -261,6 +261,24 @@ acpi_parse_lapic(struct acpi_subtable_he
 >  }
 >  
->  /**
-> @@ -584,7 +589,9 @@ int pci_hp_register(struct hotplug_slot 
->  		}
->  	}
+>  static int __init
+> +acpi_parse_sapic(struct acpi_subtable_header *header, const unsigned long end)
+> +{
+> +	struct acpi_madt_local_sapic *processor = NULL;
+> +
+> +	processor = (struct acpi_madt_local_sapic *)header;
+> +
+> +	if (BAD_MADT_ENTRY(processor, end))
+> +		return -EINVAL;
+> +
+> +	acpi_table_print_madt_entry(header);
+> +
+> +	mp_register_lapic((processor->id << 8) | processor->eid,/* APIC ID */
+> +		processor->lapic_flags & ACPI_MADT_ENABLED);	/* Enabled? */
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init
+>  acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
+>  			  const unsigned long end)
+>  {
+> @@ -753,8 +771,12 @@ static int __init acpi_parse_madt_lapic_
 >  
-> +	spin_lock(&pci_hotplug_slot_list_lock);
->  	list_add(&slot->slot_list, &pci_hotplug_slot_list);
-> +	spin_unlock(&pci_hotplug_slot_list_lock);
+>  	mp_register_lapic_address(acpi_lapic_addr);
 >  
->  	result = fs_add_slot(pci_slot);
->  	kobject_uevent(&pci_slot->kobj, KOBJ_ADD);
-> @@ -613,7 +620,9 @@ int pci_hp_deregister(struct hotplug_slo
->  	if (temp != hotplug)
->  		return -ENODEV;
->  
-> +	spin_lock(&pci_hotplug_slot_list_lock);
->  	list_del(&hotplug->slot_list);
-> +	spin_unlock(&pci_hotplug_slot_list_lock);
->  
->  	slot = hotplug->pci_slot;
->  	fs_remove_slot(slot);
+> -	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC, acpi_parse_lapic,
+> -				      MAX_APICS);
+> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
+> +				      acpi_parse_sapic, MAX_APICS);
+> +
+> +	if (!count)
+> +		count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC,
+> +					      acpi_parse_lapic, MAX_APICS);
+>  	if (!count) {
+>  		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
+>  		/* TBD: Cleanup to allow fallback to MPS */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
-> 
+
+
