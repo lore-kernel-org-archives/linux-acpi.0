@@ -1,33 +1,84 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Linux does not use new ACPI 3.0 FADT Fixed Feature Flags
-Date: Tue, 25 Mar 2008 21:26:24 -0400
-Message-ID: <200803252126.24218.lenb@kernel.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH] Force acpi_new_pts_ordering for ASUS A6VC laptop
+Date: Wed, 26 Mar 2008 09:41:01 +0800
+Message-ID: <1206495661.14062.3.camel@sli10-desk.sh.intel.com>
+References: <1206434857.23794.8.camel@sli10-desk.sh.intel.com>
+	 <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:46806 "EHLO hera.kernel.org"
+Received: from mga11.intel.com ([192.55.52.93]:9761 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751873AbYCZB0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 21:26:36 -0400
-Received: from t61 (c-98-217-156-34.hsd1.ma.comcast.net [98.217.156.34])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m2Q1QTSB009013
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 26 Mar 2008 01:26:30 GMT
-Content-Disposition: inline
+	id S1761572AbYCZBkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 21:40:55 -0400
+In-Reply-To: <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hmmm,
-While ACPI defines these bits that are new with ACPI 3.0,
-Linux doesn't talk to them yet...
 
-#define ACPI_FADT_PCI_EXPRESS_WAKE  (1<<14)     /* 14: System supports PCIEXP_WAKE (STS/EN) bits (ACPI 3.0) */
-#define ACPI_FADT_PLATFORM_CLOCK    (1<<15)     /* 15: OSPM should use platform-provided timer (ACPI 3.0) */
-#define ACPI_FADT_S4_RTC_VALID      (1<<16)     /* 16: Contents of RTC_STS valid after S4 wake (ACPI 3.0) */
-#define ACPI_FADT_REMOTE_POWER_ON   (1<<17)     /* 17: System is compatible with remote power on (ACPI 3.0) */
-#define ACPI_FADT_APIC_CLUSTER      (1<<18)     /* 18: All local APICs must use cluster model (ACPI 3.0) */
-#define ACPI_FADT_APIC_PHYSICAL     (1<<19)     /* 19: All local x_aPICs must use physical dest mode (ACPI 3.0) */
+On Tue, 2008-03-25 at 09:24 +0000, Carlos Corbacho wrote:
+> > +static int __init asus_suspend_order(const struct dmi_system_id *d)
+> > +{
+> > +	printk(KERN_WARNING PREFIX "%s detected, "
+> > +		"acpi_new_pts_ordering is force enabled\n", d->ident);
+> > +	new_pts_ordering = true;
+> > +	return 0;
+> 
+> Given all you're doing here is just changing the ordering,
+> 'asus_suspend_order' doesn't strike me as the right name for this function
+> since:
+> 
+> 1) This clearly isn't the case for all Asus boards.
+> 
+> 2) Perhaps something like 'new_suspend_order' would be a better name for
+> this function (e.g. if others want to use DMI to do this for non-Asus
+> boards).
+Makes sense. I changed it.
+
+On Asus A6VC laptop, PCI config space read of slot 01:01.* after ACPI
+_PTS is exectued always returns 0xFFFFFFFF.  Force _PTS is executed
+after suspending devices
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+
+diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+index d2f71a5..4dded01 100644
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -272,12 +272,31 @@ static int __init init_ints_after_s1(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++/*
++ * Laptop needs _PTS is executed after suspending devices. 
++ * Asus A6VC - PCI config read of slot 01:01.* after _PTS returns 0xFFFFFFFF.
++ */
++static int __init new_suspend_order(const struct dmi_system_id *d)
++{
++	printk(KERN_WARNING PREFIX "%s detected, "
++		"acpi_new_pts_ordering is force enabled\n", d->ident);
++	new_pts_ordering = true;
++	return 0;
++}
++
+ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 	{
+ 	 .callback = init_ints_after_s1,
+ 	 .ident = "Toshiba Satellite 4030cdt",
+ 	 .matches = {DMI_MATCH(DMI_PRODUCT_NAME, "S4030CDT/4.3"),},
+ 	 },
++	{
++	 .callback = new_suspend_order,
++	 .ident = "Asus A6VC",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "A6VC"),},
++	 },
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
+
+
