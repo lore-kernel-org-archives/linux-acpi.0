@@ -1,94 +1,110 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 7/6] pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
-Date: Wed, 26 Mar 2008 14:05:11 -0400
-Message-ID: <200803261405.11876.lenb@kernel.org>
-References: <1206508420-2755-1-git-send-email-lenb@kernel.org>
+Subject: Re: [patch 00/37] PNP resource_table cleanups
+Date: Wed, 26 Mar 2008 18:42:10 -0400
+Message-ID: <200803261842.11023.lenb@kernel.org>
+References: <20080326171058.099442579@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57363 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:49292 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752821AbYCZWmc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Mar 2008 18:42:32 -0400
-Received: from t61 (c-98-217-156-34.hsd1.ma.comcast.net [98.217.156.34])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m2QMgGmB009660
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 26 Mar 2008 22:42:25 GMT
-In-Reply-To: <1206508420-2755-1-git-send-email-lenb@kernel.org>
+	id S1752824AbYCZWoA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Mar 2008 18:44:00 -0400
+In-Reply-To: <20080326171058.099442579@ldl.fc.hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-From: Len Brown <len.brown@intel.com>
+i386:
 
-We have been printing these messages at KERN_ERR since 2.6.24,
-per http://bugzilla.kernel.org/show_bug.cgi?id=9535
+#1 errs.ACPI.ACPI_DEBUG.ACPI_PROCFS.HIBERNATION.X86_LOCAL_APIC.X86_IO_APIC
+Cleaning...Building...
+ERROR: "pnp_get_resource" [sound/oss/sb.ko] undefined!
+ERROR: "pnp_get_resource" [sound/oss/ad1848.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/wavefront/snd-wavefront.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-sscape.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-opl3sa2.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-es18xx.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-dt019x.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-cmi8330.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-azt2320.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/snd-als100.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/sb/snd-sbawe.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/sb/snd-sb16.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/sb/snd-es968.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/opti9xx/snd-opti93x.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/opti9xx/snd-opti92x-cs4231.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/opti9xx/snd-opti92x-ad1848.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/gus/snd-interwave.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/gus/snd-interwave-stb.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/cs423x/snd-cs4236.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/cs423x/snd-cs4232.ko] undefined!
+ERROR: "pnp_get_resource" [sound/isa/ad1816a/snd-ad1816a.ko] undefined!
+ERROR: "pnp_get_resource" [sound/drivers/mpu401/snd-mpu401.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/watchdog/sc1200wdt.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/telephony/ixj.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/scsi/sym53c416.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/scsi/g_NCR5380_mmio.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/scsi/g_NCR5380.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/scsi/aha1542.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/scsi/aha152x.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/pcmcia/i82365.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/parport/parport_pc.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/smc-ultra.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/sb1000.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/ne.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/irda/smsc-ircc2.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/irda/nsc-ircc.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/3c515.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/3c509.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/mmc/host/wbsd.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/media/radio/radio-sf16fmi.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/media/radio/radio-cadet.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/isdn/hisax/hisax_fcpcipnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/isdn/hisax/hisax.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/input/gameport/ns558.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/ide/ide-pnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_tis.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_infineon.ko] undefined!
+Build FAILED
 
-But KERN_ERR pops up on a console booted with "quiet"
-and causes users to get alarmed and file bugs
-about the message itself:
-https://bugzilla.redhat.com/show_bug.cgi?id=436589
+x86_64:
 
-So reduce the severity of these messages to
-KERN_WARNING, which is not printed by "quiet".
+#33 errs.allmodconfig
+Cleaning...Building...
+ERROR: "pnp_get_resource" [sound/oss/sb.ko] undefined!
+ERROR: "pnp_get_resource" [sound/drivers/mpu401/snd-mpu401.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/watchdog/sc1200wdt.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/serial/8250_pnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/rtc/rtc-cmos.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/parport/parport_pc.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/sb1000.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/irda/smsc-ircc2.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/irda/nsc-ircc.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/mmc/host/wbsd.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/input/serio/i8042.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/input/gameport/ns558.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/ide/ide-pnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_tis.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_infineon.ko] undefined!
+Build FAILED
 
-This message will still be seen without "quiet",
-but a lot of messages are printed in that mode
-and it will be less likely to cause undue alarm.
 
-We could go all the way to KERN_DEBUG, but this
-is a real warning after all, so it seems prudent
-not to require "debug" to see it.
+ia64:
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 6aa231e..2dcd196 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -85,7 +85,7 @@ static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
- 	       i < PNP_MAX_IRQ)
- 		i++;
- 	if (i >= PNP_MAX_IRQ && !warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of IRQ "
- 				"resources: %d \n", PNP_MAX_IRQ);
- 		warned = 1;
- 		return;
-@@ -187,7 +187,7 @@ static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
- 		res->dma_resource[i].start = dma;
- 		res->dma_resource[i].end = dma;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of DMA "
- 				"resources: %d \n", PNP_MAX_DMA);
- 		warned = 1;
- 	}
-@@ -213,7 +213,7 @@ static void pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
- 		res->port_resource[i].start = io;
- 		res->port_resource[i].end = io + len - 1;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of IO "
- 				"resources: %d \n", PNP_MAX_PORT);
- 		warned = 1;
- 	}
-@@ -241,7 +241,7 @@ static void pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
- 		res->mem_resource[i].start = mem;
- 		res->mem_resource[i].end = mem + len - 1;
- 	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
-+		printk(KERN_WARNING "pnpacpi: exceeded the max number of mem "
- 				"resources: %d\n", PNP_MAX_MEM);
- 		warned = 1;
- 	}
--- 
-1.5.5.rc1.6.g5cc8f
-
+#9 errs.allmodconfig
+Cleaning...Building...
+ERROR: "pnp_get_resource" [sound/drivers/mpu401/snd-mpu401.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/serial/8250_pnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/parport/parport_pc.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/net/sb1000.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/input/serio/i8042.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/input/gameport/ns558.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/ide/ide-pnp.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_tis.ko] undefined!
+ERROR: "pnp_get_resource" [drivers/char/tpm/tpm_infineon.ko] undefined!
+Build FAILED
