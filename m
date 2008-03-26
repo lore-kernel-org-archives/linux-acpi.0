@@ -1,104 +1,84 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2.6.25-rc3] cpuidle: fix cpuidle time and
-	usage overflow
-Date: Wed, 26 Mar 2008 00:46:41 -0400
-Message-ID: <200803260046.41250.lenb@kernel.org>
-References: <1199441414.19185.9.camel@yangyi-dev.bj.intel.com>
-	<1203032921.3897.10.camel@yangyi-dev.bj.intel.com>
-	<1203900372.4954.8.camel@yangyi-dev.bj.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1203900372.4954.8.camel@yangyi-dev.bj.intel.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: yi.y.yang@intel.com
-Cc: cpufreq@lists.linux.org.uk, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-pm@lists.linux-foundation.org
+Subject: [PATCH 3/6] ACPI: fix a regression of ACPI device driver autoloading
+Date: Wed, 26 Mar 2008 01:13:37 -0400
+Message-ID: <5c9fcb5deef4d3a49798d76c48b726d2e3c7df72.1206508358.git.len.brown@intel.com>
+References: <1206508420-2755-1-git-send-email-lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.21]:44118 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751342AbYCZFVf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 01:21:35 -0400
+In-Reply-To: <1206508420-2755-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@intel.com>
+References: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-applied
+From: Zhang Rui <rui.zhang@intel.com>
 
-thanks,
--len
+commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 sets the cid of
+ACPI video/dock/bay device and leaves the hid empty.
+As a result, "modalias" should export the cid for
+devices which don't have a hid.
 
-On Sunday 24 February 2008, Yi Yang wrote:
-> cpuidle C-state sysfs node time and usage are very easy to overflow because
-> they are all of unsigned int type, time will overflow within about two hours,
-> usage will take longer time to overflow, but they are increasing for ever.
-> 
-> This patch will convert them to unsigned long long.
-> 
-> 
-> Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-> ---
->  drivers/cpuidle/cpuidle.c |    2 +-
->  drivers/cpuidle/sysfs.c   |   10 ++++++++--
->  include/linux/cpuidle.h   |    4 ++--
-> 
-> --- a/include/linux/cpuidle.h	2008-02-25 02:31:26.000000000 -0500
-> +++ b/include/linux/cpuidle.h	2008-02-25 04:30:24.000000000 -0500
-> @@ -38,8 +38,8 @@ struct cpuidle_state {
->  	unsigned int	power_usage; /* in mW */
->  	unsigned int	target_residency; /* in US */
->  
-> -	unsigned int	usage;
-> -	unsigned int	time; /* in US */
-> +	unsigned long long	usage;
-> +	unsigned long long	time; /* in US */
->  
->  	int (*enter)	(struct cpuidle_device *dev,
->  			 struct cpuidle_state *state);
-> --- a/drivers/cpuidle/cpuidle.c	2008-02-25 02:37:14.000000000 -0500
-> +++ b/drivers/cpuidle/cpuidle.c	2008-02-25 04:29:19.000000000 -0500
-> @@ -67,7 +67,7 @@ static void cpuidle_idle_call(void)
->  	/* enter the state and update stats */
->  	dev->last_residency = target_state->enter(dev, target_state);
->  	dev->last_state = target_state;
-> -	target_state->time += dev->last_residency;
-> +	target_state->time += (unsigned long long)dev->last_residency;
->  	target_state->usage++;
->  
->  	/* give the governor an opportunity to reflect on the outcome */
-> --- a/drivers/cpuidle/sysfs.c	2008-02-25 02:33:14.000000000 -0500
-> +++ b/drivers/cpuidle/sysfs.c	2008-02-25 03:10:50.000000000 -0500
-> @@ -218,6 +218,12 @@ static ssize_t show_state_##_name(struct
->  	return sprintf(buf, "%u\n", state->_name);\
->  }
->  
-> +#define define_show_state_ull_function(_name) \
-> +static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
-> +{ \
-> +	return sprintf(buf, "%llu\n", state->_name);\
-> +}
-> +
->  #define define_show_state_str_function(_name) \
->  static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
->  { \
-> @@ -228,8 +234,8 @@ static ssize_t show_state_##_name(struct
->  
->  define_show_state_function(exit_latency)
->  define_show_state_function(power_usage)
-> -define_show_state_function(usage)
-> -define_show_state_function(time)
-> +define_show_state_ull_function(usage)
-> +define_show_state_ull_function(time)
->  define_show_state_str_function(name)
->  define_show_state_str_function(desc)
->  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+ACPI Video driver is not autoloaded with
+commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 applied.
+"cat /sys/.../device:03(acpi video bus)/modalias" shows nothing.
+
+ACPI Video driver is autoloaded after revert that commit.
+"cat /sys/.../LNXVIDEO:0x/modalias" shows "acpi:LNXVIDEO:"
+
+ACPI Video driver is autoloaded with commit
+3620f2f2f39e7870cf1a4fb2e34063a142f28716 and this patch applied.
+"cat /sys/.../device:03(acpi video bus)/modalias"
+shows "acpi:LNXVIDEO:"
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Acked-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/scan.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 57570ac..e6ce262 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -39,20 +39,26 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+ 			   int size)
+ {
+ 	int len;
++	int count;
+ 
+-	if (!acpi_dev->flags.hardware_id)
++	if (!acpi_dev->flags.hardware_id && !acpi_dev->flags.compatible_ids)
+ 		return -ENODEV;
+ 
+-	len = snprintf(modalias, size, "acpi:%s:",
+-		       acpi_dev->pnp.hardware_id);
+-	if (len < 0 || len >= size)
+-		return -EINVAL;
++	len = snprintf(modalias, size, "acpi:");
+ 	size -= len;
+ 
++	if (acpi_dev->flags.hardware_id) {
++		count = snprintf(&modalias[len], size, "%s:",
++				 acpi_dev->pnp.hardware_id);
++		if (count < 0 || count >= size)
++			return -EINVAL;
++		len += count;
++		size -= count;
++	}
++
+ 	if (acpi_dev->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list;
+ 		int i;
+-		int count;
+ 
+ 		cid_list = acpi_dev->pnp.cid_list;
+ 		for (i = 0; i < cid_list->count; i++) {
+-- 
+1.5.5.rc1.6.g5cc8f
+
