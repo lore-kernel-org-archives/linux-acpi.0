@@ -1,241 +1,297 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 29/37] PNP: convert encoders to use pnp_get_resource(), not pnp_resource_table
-Date: Wed, 26 Mar 2008 11:11:27 -0600
-Message-ID: <20080326171229.165625297@ldl.fc.hp.com>
+Subject: [patch 24/37] PNP: use dev_printk when possible
+Date: Wed, 26 Mar 2008 11:11:22 -0600
+Message-ID: <20080326171228.140407163@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:22221 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761114AbYCZRJL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:09:11 -0400
-Content-Disposition: inline; filename=pnp-convert-encoders-to-pnp_get_resource
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:15703 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760931AbYCZRJD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:09:03 -0400
+Content-Disposition: inline; filename=pnp-dev_printk
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This removes more direct references to pnp_resource_table.  This
-path is used when setting the resources used by a device.
+Use dev_printk() when possible for more informative error messages.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+---
+ drivers/pnp/isapnp/core.c      |   38 ++++++++++++++++++--------------------
+ drivers/pnp/pnpacpi/rsparser.c |   20 ++++++++++++--------
+ drivers/pnp/pnpbios/rsparser.c |   36 ++++++++++++++----------------------
+ 3 files changed, 44 insertions(+), 50 deletions(-)
+
 Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-26 10:04:57.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-26 10:18:06.000000000 -0600
-@@ -982,42 +982,37 @@
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-26 10:00:00.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-26 10:04:57.000000000 -0600
+@@ -741,9 +741,8 @@
+ 				isapnp_skip_bytes(size);
+ 			return 1;
+ 		default:
+-			printk(KERN_ERR
+-			       "isapnp: unexpected or unknown tag type 0x%x for logical device %i (device %i), ignored\n",
+-			       type, dev->number, card->number);
++			dev_err(&dev->dev, "unknown tag 0x%x (card %i), "
++				"ignored\n", type, card->number);
+ 		}
+ __skip:
+ 		if (size > 0)
+@@ -796,9 +795,8 @@
+ 				isapnp_skip_bytes(size);
+ 			return;
+ 		default:
+-			printk(KERN_ERR
+-			       "isapnp: unexpected or unknown tag type 0x%x for device %i, ignored\n",
+-			       type, card->number);
++			dev_err(&card->dev, "unknown tag 0x%x, ignored\n",
++			       type);
+ 		}
+ __skip:
+ 		if (size > 0)
+@@ -844,19 +842,20 @@
+ 		isapnp_wake(csn);
+ 		isapnp_peek(header, 9);
+ 		checksum = isapnp_checksum(header);
+-#if 0
+-		printk(KERN_DEBUG
+-		       "vendor: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+-		       header[0], header[1], header[2], header[3], header[4],
+-		       header[5], header[6], header[7], header[8]);
+-		printk(KERN_DEBUG "checksum = 0x%x\n", checksum);
+-#endif
+ 		isapnp_to_pnpid((header[1] << 8) | header[0],
+ 				(header[3] << 8) | header[2], id);
+ 		card = pnp_alloc_card(&isapnp_protocol, csn, id);
+ 		if (!card)
+ 			continue;
  
- static int isapnp_set_resources(struct pnp_dev *dev)
- {
--	struct pnp_resource_table *res = &dev->res;
--	int tmp;
-+	int i, irq;
-+	struct resource *res;
++#if 0
++		dev_info(&card->dev,
++		       "vendor: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
++		       header[0], header[1], header[2], header[3], header[4],
++		       header[5], header[6], header[7], header[8]);
++		dev_info(&card->dev, "checksum = 0x%x\n", checksum);
++#endif
++
+ 		INIT_LIST_HEAD(&card->devices);
+ 		card->serial =
+ 		    (header[7] << 24) | (header[6] << 16) | (header[5] << 8) |
+@@ -864,9 +863,8 @@
+ 		isapnp_checksum_value = 0x00;
+ 		isapnp_parse_resource_map(card);
+ 		if (isapnp_checksum_value != 0x00)
+-			printk(KERN_ERR
+-			       "isapnp: checksum for device %i is not valid (0x%x)\n",
+-			       csn, isapnp_checksum_value);
++			dev_err(&card->dev, "invalid checksum 0x%x\n",
++				isapnp_checksum_value);
+ 		card->checksum = isapnp_checksum_value;
  
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
--	for (tmp = 0;
--	     tmp < ISAPNP_MAX_PORT
--	     && (res->port_resource[tmp].
--		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
--	     tmp++)
--		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
--				  res->port_resource[tmp].start);
--	for (tmp = 0;
--	     tmp < ISAPNP_MAX_IRQ
--	     && (res->irq_resource[tmp].
--		 flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ;
--	     tmp++) {
--		int irq = res->irq_resource[tmp].start;
--		if (irq == 2)
--			irq = 9;
--		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
--	}
--	for (tmp = 0;
--	     tmp < ISAPNP_MAX_DMA
--	     && (res->dma_resource[tmp].
--		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
--	     tmp++)
--		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
--				  res->dma_resource[tmp].start);
--	for (tmp = 0;
--	     tmp < ISAPNP_MAX_MEM
--	     && (res->mem_resource[tmp].
--		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
--	     tmp++)
--		isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
--				  (res->mem_resource[tmp].start >> 8) & 0xffff);
-+	for (i = 0; i < ISAPNP_MAX_PORT; i++) {
-+		res = pnp_get_resource(dev, IORESOURCE_IO, i);
-+		if (res && !(res->flags & IORESOURCE_UNSET))
-+			isapnp_write_word(ISAPNP_CFG_PORT + (i << 1),
-+					  res->start);
-+	}
-+	for (i = 0; i < ISAPNP_MAX_IRQ; i++) {
-+		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
-+		if (res && !(res->flags & IORESOURCE_UNSET)) {
-+			irq = res->start;
-+			if (irq == 2)
-+				irq = 9;
-+			isapnp_write_byte(ISAPNP_CFG_IRQ + (i << 1), irq);
-+		}
-+	}
-+	for (i = 0; i < ISAPNP_MAX_DMA; i++) {
-+		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
-+		if (res && !(res->flags & IORESOURCE_UNSET))
-+			isapnp_write_byte(ISAPNP_CFG_DMA + i, res->start);
-+	}
-+	for (i = 0; i < ISAPNP_MAX_MEM; i++) {
-+		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
-+		if (res && !(res->flags & IORESOURCE_UNSET))
-+			isapnp_write_word(ISAPNP_CFG_MEM + (i << 3),
-+					  (res->start >> 8) & 0xffff);
-+	}
- 	/* FIXME: We aren't handling 32bit mems properly here */
- 	isapnp_activate(dev->number);
- 	isapnp_cfg_end();
+ 		pnp_add_card(card);
+@@ -1117,13 +1115,13 @@
+ 	protocol_for_each_card(&isapnp_protocol, card) {
+ 		cards++;
+ 		if (isapnp_verbose) {
+-			printk(KERN_INFO "isapnp: Card '%s'\n",
+-			       card->name[0] ? card->name : "Unknown");
++			dev_info(&card->dev, "card '%s'\n",
++			       card->name[0] ? card->name : "unknown");
+ 			if (isapnp_verbose < 2)
+ 				continue;
+ 			card_for_each_dev(card, dev) {
+-				printk(KERN_INFO "isapnp:   Device '%s'\n",
+-				       dev->name[0] ? dev->name : "Unknown");
++				dev_info(&card->dev, "device '%s'\n",
++				       dev->name[0] ? dev->name : "unknown");
+ 			}
+ 		}
+ 	}
 Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-26 10:18:03.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-26 10:18:06.000000000 -0600
-@@ -852,7 +852,6 @@
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-26 10:00:00.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-26 10:01:25.000000000 -0600
+@@ -97,7 +97,7 @@
+ 		p = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
  
- int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
- {
--	struct pnp_resource_table *res_table = &dev->res;
- 	int i = 0;
- 	/* pnpacpi_build_resource_template allocates extra mem */
- 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
-@@ -863,45 +862,43 @@
- 		switch (resource->type) {
- 		case ACPI_RESOURCE_TYPE_IRQ:
- 			pnpacpi_encode_irq(resource,
--					   &res_table->irq_resource[irq]);
-+				pnp_get_resource(dev, IORESOURCE_IRQ, irq));
- 			irq++;
- 			break;
+ 		if (triggering != t || polarity != p) {
+-			pnp_warn("IRQ %d override to %s, %s",
++			dev_warn(&dev->dev, "IRQ %d override to %s, %s\n",
+ 				gsi, t ? "edge":"level", p ? "low":"high");
+ 			triggering = t;
+ 			polarity = p;
+@@ -161,7 +161,7 @@
  
- 		case ACPI_RESOURCE_TYPE_DMA:
- 			pnpacpi_encode_dma(resource,
--					   &res_table->dma_resource[dma]);
-+				pnp_get_resource(dev, IORESOURCE_DMA, dma));
- 			dma++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_IO:
- 			pnpacpi_encode_io(resource,
--					  &res_table->port_resource[port]);
-+				pnp_get_resource(dev, IORESOURCE_IO, port));
- 			port++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_FIXED_IO:
- 			pnpacpi_encode_fixed_io(resource,
--						&res_table->
--						port_resource[port]);
-+				pnp_get_resource(dev, IORESOURCE_IO, port));
- 			port++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_MEMORY24:
- 			pnpacpi_encode_mem24(resource,
--					     &res_table->mem_resource[mem]);
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_MEMORY32:
- 			pnpacpi_encode_mem32(resource,
--					     &res_table->mem_resource[mem]);
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 			pnpacpi_encode_fixed_mem32(resource,
--						   &res_table->
--						   mem_resource[mem]);
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
- 			pnpacpi_encode_ext_irq(resource,
--					       &res_table->irq_resource[irq]);
-+				pnp_get_resource(dev, IORESOURCE_IRQ, irq));
- 			irq++;
- 			break;
- 		case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+ 	status = acpi_resource_to_address64(res, p);
+ 	if (!ACPI_SUCCESS(status)) {
+-		pnp_warn("PnPACPI: failed to convert resource type %d",
++		dev_warn(&dev->dev, "failed to convert resource type %d\n",
+ 			 res->type);
+ 		return;
+ 	}
+@@ -294,7 +294,8 @@
+ 		break;
+ 
+ 	default:
+-		pnp_warn("PnPACPI: unknown resource type %d", res->type);
++		dev_warn(&dev->dev, "unknown resource type %d in _CRS\n",
++			 res->type);
+ 		return AE_ERROR;
+ 	}
+ 
+@@ -560,7 +561,8 @@
+ 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
+ 		/*only one EndDependentFn is allowed */
+ 		if (!parse_data->option_independent) {
+-			pnp_warn("PnPACPI: more than one EndDependentFn");
++			dev_warn(&dev->dev, "more than one EndDependentFn "
++				 "in _PRS\n");
+ 			return AE_ERROR;
+ 		}
+ 		parse_data->option = parse_data->option_independent;
+@@ -609,7 +611,8 @@
+ 		break;
+ 
+ 	default:
+-		pnp_warn("PnPACPI: unknown resource type %d", res->type);
++		dev_warn(&dev->dev, "unknown resource type %d in _PRS\n",
++			 res->type);
+ 		return AE_ERROR;
+ 	}
+ 
+@@ -689,7 +692,7 @@
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				     pnpacpi_count_resources, &res_cnt);
+ 	if (ACPI_FAILURE(status)) {
+-		pnp_err("Evaluate _CRS failed");
++		dev_err(&dev->dev, "can't evaluate _CRS\n");
+ 		return -EINVAL;
+ 	}
+ 	if (!res_cnt)
+@@ -704,7 +707,7 @@
+ 				     pnpacpi_type_resources, &resource);
+ 	if (ACPI_FAILURE(status)) {
+ 		kfree(buffer->pointer);
+-		pnp_err("Evaluate _CRS failed");
++		dev_err(&dev->dev, "can't evaluate _CRS\n");
+ 		return -EINVAL;
+ 	}
+ 	/* resource will pointer the end resource now */
+@@ -921,7 +924,8 @@
+ 		case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+ 		case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+ 		default:	/* other type */
+-			pnp_warn("unknown resource type %d", resource->type);
++			dev_warn(&dev->dev, "can't encode unknown resource "
++				 "type %d\n", resource->type);
+ 			return -EINVAL;
+ 		}
+ 		resource++;
 Index: work7/drivers/pnp/pnpbios/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-26 10:01:31.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-26 10:18:06.000000000 -0600
-@@ -592,7 +592,6 @@
- 							     unsigned char *p,
- 							     unsigned char *end)
- {
--	struct pnp_resource_table *res = &dev->res;
- 	unsigned int len, tag;
- 	int port = 0, irq = 0, dma = 0, mem = 0;
+--- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-26 10:00:00.000000000 -0600
++++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-26 10:01:31.000000000 -0600
+@@ -161,9 +161,8 @@
  
-@@ -615,42 +614,48 @@
- 		case LARGE_TAG_MEM:
- 			if (len != 9)
+ 		default:	/* an unkown tag */
+ len_err:
+-			printk(KERN_ERR
+-			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+-			       tag, len);
++			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
++				tag, len);
+ 			break;
+ 		}
+ 
+@@ -174,8 +173,7 @@
+ 			p += len + 1;
+ 	}
+ 
+-	printk(KERN_ERR
+-	       "PnPBIOS: Resource structure does not contain an end tag.\n");
++	dev_err(&dev->dev, "no end tag in resource structure\n");
+ 
+ 	return NULL;
+ }
+@@ -382,8 +380,8 @@
+ 			if (len != 0)
  				goto len_err;
--			pnpbios_encode_mem(p, &res->mem_resource[mem]);
-+			pnpbios_encode_mem(p,
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
+ 			if (option_independent == option)
+-				printk(KERN_WARNING
+-				       "PnPBIOS: Missing SMALL_TAG_STARTDEP tag\n");
++				dev_warn(&dev->dev, "missing "
++					 "SMALL_TAG_STARTDEP tag\n");
+ 			option = option_independent;
  			break;
  
- 		case LARGE_TAG_MEM32:
- 			if (len != 17)
- 				goto len_err;
--			pnpbios_encode_mem32(p, &res->mem_resource[mem]);
-+			pnpbios_encode_mem32(p,
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
- 			break;
+@@ -392,9 +390,8 @@
  
- 		case LARGE_TAG_FIXEDMEM32:
- 			if (len != 9)
- 				goto len_err;
--			pnpbios_encode_fixed_mem32(p, &res->mem_resource[mem]);
-+			pnpbios_encode_fixed_mem32(p,
-+				pnp_get_resource(dev, IORESOURCE_MEM, mem));
- 			mem++;
+ 		default:	/* an unkown tag */
+ len_err:
+-			printk(KERN_ERR
+-			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+-			       tag, len);
++			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
++				tag, len);
  			break;
+ 		}
  
- 		case SMALL_TAG_IRQ:
- 			if (len < 2 || len > 3)
- 				goto len_err;
--			pnpbios_encode_irq(p, &res->irq_resource[irq]);
-+			pnpbios_encode_irq(p,
-+				pnp_get_resource(dev, IORESOURCE_IRQ, irq));
- 			irq++;
+@@ -405,8 +402,7 @@
+ 			p += len + 1;
+ 	}
+ 
+-	printk(KERN_ERR
+-	       "PnPBIOS: Resource structure does not contain an end tag.\n");
++	dev_err(&dev->dev, "no end tag in resource structure\n");
+ 
+ 	return NULL;
+ }
+@@ -484,9 +480,8 @@
+ 
+ 		default:	/* an unkown tag */
+ len_err:
+-			printk(KERN_ERR
+-			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+-			       tag, len);
++			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
++				tag, len);
  			break;
+ 		}
  
- 		case SMALL_TAG_DMA:
- 			if (len != 2)
- 				goto len_err;
--			pnpbios_encode_dma(p, &res->dma_resource[dma]);
-+			pnpbios_encode_dma(p,
-+				pnp_get_resource(dev, IORESOURCE_DMA, dma));
- 			dma++;
+@@ -497,8 +492,7 @@
+ 			p += len + 1;
+ 	}
+ 
+-	printk(KERN_ERR
+-	       "PnPBIOS: Resource structure does not contain an end tag.\n");
++	dev_err(&dev->dev, "no end tag in resource structure\n");
+ 
+ 	return NULL;
+ }
+@@ -678,9 +672,8 @@
+ 
+ 		default:	/* an unkown tag */
+ len_err:
+-			printk(KERN_ERR
+-			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+-			       tag, len);
++			dev_err(&dev->dev, "unknown tag 0x%x length %d\n",
++				tag, len);
  			break;
+ 		}
  
- 		case SMALL_TAG_PORT:
- 			if (len != 7)
- 				goto len_err;
--			pnpbios_encode_port(p, &res->port_resource[port]);
-+			pnpbios_encode_port(p,
-+				pnp_get_resource(dev, IORESOURCE_IO, port));
- 			port++;
- 			break;
+@@ -691,8 +684,7 @@
+ 			p += len + 1;
+ 	}
  
-@@ -661,7 +666,8 @@
- 		case SMALL_TAG_FIXEDPORT:
- 			if (len != 3)
- 				goto len_err;
--			pnpbios_encode_fixed_port(p, &res->port_resource[port]);
-+			pnpbios_encode_fixed_port(p,
-+				pnp_get_resource(dev, IORESOURCE_IO, port));
- 			port++;
- 			break;
+-	printk(KERN_ERR
+-	       "PnPBIOS: Resource structure does not contain an end tag.\n");
++	dev_err(&dev->dev, "no end tag in resource structure\n");
  
+ 	return NULL;
+ }
 
 -- 
