@@ -1,94 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 5/6] cpuidle: fix cpuidle time and usage overflow
-Date: Wed, 26 Mar 2008 01:13:39 -0400
-Message-ID: <8b78cf602fd3bd97c0080edd22fe8fd5d0fa7832.1206508358.git.len.brown@intel.com>
-References: <1206508420-2755-1-git-send-email-lenb@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.25-rc6
+Date: Wed, 26 Mar 2008 09:16:53 +0100
+Message-ID: <20080326081653.GA8247@elte.hu>
+References: <200803180510.47670.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:19001 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753280AbYCZFXa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 01:23:30 -0400
-In-Reply-To: <1206508420-2755-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@intel.com>
-References: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@intel.com>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:47069 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717AbYCZIRT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Mar 2008 04:17:19 -0400
+Content-Disposition: inline
+In-Reply-To: <200803180510.47670.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Yi Yang <yi.y.yang@intel.com>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-From: Yi Yang <yi.y.yang@intel.com>
 
-cpuidle C-state sysfs node time and usage are very easy to overflow because
-they are all of unsigned int type, time will overflow within about two hours,
-usage will take longer time to overflow, but they are increasing for ever.
+* Len Brown <lenb@kernel.org> wrote:
 
-This patch will convert them to unsigned long long.
+> Hi Linus,
+> 
+> please pull from: 
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+> 
+> This will update the files shown below.
 
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+btw., saw this ACPI-ish commit in rc7:
+
+| commit b97d4803400a4442b0e4ae14d0bd8e83994b9004
+| Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+| Date:   Tue Mar 25 11:21:11 2008 -0600
+|
+|    ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
+
+a grep shows that we've got one other case of an "ISA" string in the 
+ACPI code - is the patch below needed too?
+
+	Ingo
+
+-------------------->
+Subject: acpi: fix asus isa
+From: Ingo Molnar <mingo@elte.hu>
+Date: Wed Mar 26 09:05:07 CET 2008
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 ---
- drivers/cpuidle/cpuidle.c |    2 +-
- drivers/cpuidle/sysfs.c   |   10 ++++++++--
- include/linux/cpuidle.h   |    4 ++--
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/acpi/asus_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index d73663a..d42deb3 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -67,7 +67,7 @@ static void cpuidle_idle_call(void)
- 	/* enter the state and update stats */
- 	dev->last_residency = target_state->enter(dev, target_state);
- 	dev->last_state = target_state;
--	target_state->time += dev->last_residency;
-+	target_state->time += (unsigned long long)dev->last_residency;
- 	target_state->usage++;
+Index: linux-x86.q/drivers/acpi/asus_acpi.c
+===================================================================
+--- linux-x86.q.orig/drivers/acpi/asus_acpi.c
++++ linux-x86.q/drivers/acpi/asus_acpi.c
+@@ -149,7 +149,7 @@ struct asus_hotk {
+ };
  
- 	/* give the governor an opportunity to reflect on the outcome */
-diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
-index 69102ca..e949618 100644
---- a/drivers/cpuidle/sysfs.c
-+++ b/drivers/cpuidle/sysfs.c
-@@ -218,6 +218,12 @@ static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
- 	return sprintf(buf, "%u\n", state->_name);\
- }
- 
-+#define define_show_state_ull_function(_name) \
-+static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
-+{ \
-+	return sprintf(buf, "%llu\n", state->_name);\
-+}
-+
- #define define_show_state_str_function(_name) \
- static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
- { \
-@@ -228,8 +234,8 @@ static ssize_t show_state_##_name(struct cpuidle_state *state, char *buf) \
- 
- define_show_state_function(exit_latency)
- define_show_state_function(power_usage)
--define_show_state_function(usage)
--define_show_state_function(time)
-+define_show_state_ull_function(usage)
-+define_show_state_ull_function(time)
- define_show_state_str_function(name)
- define_show_state_str_function(desc)
- 
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 6b72a45..51e6b1e 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -38,8 +38,8 @@ struct cpuidle_state {
- 	unsigned int	power_usage; /* in mW */
- 	unsigned int	target_residency; /* in US */
- 
--	unsigned int	usage;
--	unsigned int	time; /* in US */
-+	unsigned long long	usage;
-+	unsigned long long	time; /* in US */
- 
- 	int (*enter)	(struct cpuidle_device *dev,
- 			 struct cpuidle_state *state);
--- 
-1.5.5.rc1.6.g5cc8f
-
+ /* Here we go */
+-#define A1x_PREFIX "\\_SB.PCI0.ISA.EC0."
++#define A1x_PREFIX "\\_SB.PCI0.ISA_.EC0."
+ #define L3C_PREFIX "\\_SB.PCI0.PX40.ECD0."
+ #define M1A_PREFIX "\\_SB.PCI0.PX40.EC0."
+ #define P30_PREFIX "\\_SB.PCI0.LPCB.EC0."
