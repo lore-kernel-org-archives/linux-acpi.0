@@ -1,98 +1,234 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 14/37] PNPACPI: extend irq_flags() to set IORESOURCE_IRQ_SHAREABLE when appropriate
-Date: Wed, 26 Mar 2008 11:11:12 -0600
-Message-ID: <20080326171226.135507672@ldl.fc.hp.com>
+Subject: [patch 20/37] PNP: make generic pnp_add_irq_resource()
+Date: Wed, 26 Mar 2008 11:11:18 -0600
+Message-ID: <20080326171227.337776334@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:8926 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760723AbYCZRIs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:48 -0400
-Content-Disposition: inline; filename=pnpacpi-add-shareability-to-irq-flags
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:15626 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760820AbYCZRI4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:56 -0400
+Content-Disposition: inline; filename=pnp-common-add-irq-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This simplifies IRQ resource parsing slightly by computing all the
-IORESOURCE_IRQ_* flags at the same time.
-
-This also keeps track of shareability information when parsing options
-from _PRS.  Previously we ignored shareability in _PRS.
+Add a pnp_add_irq_resource() that can be used by all the PNP
+backends.  This consolidates a little more pnp_resource_table
+knowledge into one place.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+---
+ drivers/pnp/base.h             |    2 ++
+ drivers/pnp/interface.c        |   14 ++++----------
+ drivers/pnp/isapnp/core.c      |    4 +---
+ drivers/pnp/pnpacpi/rsparser.c |   28 +++++-----------------------
+ drivers/pnp/pnpbios/rsparser.c |   23 ++---------------------
+ drivers/pnp/resource.c         |   26 ++++++++++++++++++++++++++
+ 6 files changed, 40 insertions(+), 57 deletions(-)
+
+Index: work7/drivers/pnp/base.h
+===================================================================
+--- work7.orig/drivers/pnp/base.h	2008-03-25 14:48:35.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-03-25 14:48:51.000000000 -0600
+@@ -14,3 +14,5 @@
+ int pnp_check_mem(struct pnp_dev * dev, int idx);
+ int pnp_check_irq(struct pnp_dev * dev, int idx);
+ int pnp_check_dma(struct pnp_dev * dev, int idx);
++
++int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags);
+Index: work7/drivers/pnp/resource.c
+===================================================================
+--- work7.orig/drivers/pnp/resource.c	2008-03-25 14:48:20.000000000 -0600
++++ work7/drivers/pnp/resource.c	2008-03-25 14:48:51.000000000 -0600
+@@ -461,6 +461,32 @@
+ #endif
+ }
+ 
++#define set(flags)	((flags & IORESOURCE_UNSET) == 0)
++
++int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags)
++{
++	struct pnp_resource_table *res = &dev->res;
++	int i = 0;
++	static unsigned char warned;
++
++	while (set(res->irq_resource[i].flags) && i < PNP_MAX_IRQ)
++		i++;
++	if (i >= PNP_MAX_IRQ && !warned) {
++		dev_err(&dev->dev, "too many IRQs (max %d)\n", PNP_MAX_IRQ);
++		warned = 1;
++		return -ENOSPC;
++	}
++
++	res->irq_resource[i].flags = IORESOURCE_IRQ | flags;
++	if (irq < 0) {
++		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
++		return -EINVAL;
++	}
++	res->irq_resource[i].start = irq;
++	res->irq_resource[i].end = irq;
++	return 0;
++}
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
+ {
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-25 14:48:47.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-25 14:48:51.000000000 -0600
+@@ -962,9 +962,7 @@
+ 			     8);
+ 			if (!ret)
+ 				continue;
+-			res->irq_resource[tmp].start =
+-			    res->irq_resource[tmp].end = ret;
+-			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
++			pnp_add_irq_resource(dev, ret, 0);
+ 		}
+ 		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
+ 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
 Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:22.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:23.000000000 -0600
-@@ -32,19 +32,26 @@
- /*
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:47.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:51.000000000 -0600
+@@ -22,6 +22,7 @@
+ #include <linux/acpi.h>
+ #include <linux/pci.h>
+ #include "pnpacpi.h"
++#include "../base.h"
+ 
+ #ifdef CONFIG_IA64
+ #define valid_IRQ(i) (1)
+@@ -80,24 +81,12 @@
+ 						u32 gsi, int triggering,
+ 						int polarity, int shareable)
+ {
+-	struct pnp_resource_table *res = &dev->res;
+-	int i = 0;
+-	int irq;
++	int irq, flags;
+ 	int p, t;
+-	static unsigned char warned;
+ 
+ 	if (!valid_IRQ(gsi))
+ 		return;
+ 
+-	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+-	       i < PNP_MAX_IRQ)
+-		i++;
+-	if (i >= PNP_MAX_IRQ && !warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
+-				"resources: %d \n", PNP_MAX_IRQ);
+-		warned = 1;
+-		return;
+-	}
+ 	/*
+ 	 * in IO-APIC mode, use overrided attribute. Two reasons:
+ 	 * 1. BIOS bug in DSDT
+@@ -114,18 +103,11 @@
+ 			polarity = p;
+ 		}
+ 	}
++	flags = irq_flags(triggering, polarity, shareable);
+ 
+-	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
+-	res->irq_resource[i].flags |= irq_flags(triggering, polarity, shareable);
+ 	irq = acpi_register_gsi(gsi, triggering, polarity);
+-	if (irq < 0) {
+-		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+-		return;
+-	}
+-
+-	res->irq_resource[i].start = irq;
+-	res->irq_resource[i].end = irq;
+-	pcibios_penalize_isa_irq(irq, 1);
++	if (pnp_add_irq_resource(dev, irq, flags) == 0)
++		pcibios_penalize_isa_irq(irq, 1);
+ }
+ 
+ static int dma_flags(int type, int bus_master, int transfer)
+Index: work7/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:47.000000000 -0600
++++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:51.000000000 -0600
+@@ -54,26 +54,6 @@
   * Allocated Resources
   */
--static int irq_flags(int triggering, int polarity)
-+static int irq_flags(int triggering, int polarity, int shareable)
- {
-+	int flags;
-+
- 	if (triggering == ACPI_LEVEL_SENSITIVE) {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWLEVEL;
-+			flags = IORESOURCE_IRQ_LOWLEVEL;
- 		else
--			return IORESOURCE_IRQ_HIGHLEVEL;
-+			flags = IORESOURCE_IRQ_HIGHLEVEL;
- 	} else {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWEDGE;
-+			flags = IORESOURCE_IRQ_LOWEDGE;
- 		else
--			return IORESOURCE_IRQ_HIGHEDGE;
-+			flags = IORESOURCE_IRQ_HIGHEDGE;
- 	}
-+
-+	if (shareable)
-+		flags |= IORESOURCE_IRQ_SHAREABLE;
-+
-+	return flags;
- }
  
- static void decode_irq_flags(int flag, int *triggering, int *polarity)
-@@ -108,16 +115,13 @@
- 	}
- 
- 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
--	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
-+	res->irq_resource[i].flags |= irq_flags(triggering, polarity, shareable);
- 	irq = acpi_register_gsi(gsi, triggering, polarity);
- 	if (irq < 0) {
- 		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
- 		return;
- 	}
- 
--	if (shareable)
--		res->irq_resource[i].flags |= IORESOURCE_IRQ_SHAREABLE;
+-static void pnpbios_parse_allocated_irqresource(struct pnp_dev *dev, int irq)
+-{
+-	struct pnp_resource_table *res = &dev->res;
+-	int i = 0;
 -
- 	res->irq_resource[i].start = irq;
- 	res->irq_resource[i].end = irq;
- 	pcibios_penalize_isa_irq(irq, 1);
-@@ -439,7 +443,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
+-	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET)
+-	       && i < PNP_MAX_IRQ)
+-		i++;
+-	if (i < PNP_MAX_IRQ) {
+-		res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
+-		if (irq == -1) {
+-			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->irq_resource[i].start =
+-		    res->irq_resource[i].end = (unsigned long)irq;
+-		pcibios_penalize_isa_irq(irq, 1);
+-	}
+-}
+-
+ static void pnpbios_parse_allocated_dmaresource(struct pnp_dev *dev, int dma)
+ {
+ 	struct pnp_resource_table *res = &dev->res;
+@@ -198,7 +178,8 @@
+ 			for (i = 0; i < 16; i++, mask = mask >> 1)
+ 				if (mask & 0x01)
+ 					io = i;
+-			pnpbios_parse_allocated_irqresource(dev, io);
++			if (pnp_add_irq_resource(dev, io, 0) == 0)
++				pcibios_penalize_isa_irq(io, 1);
+ 			break;
  
- 	pnp_register_irq_resource(option, irq);
- }
-@@ -459,7 +463,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ 		case SMALL_TAG_DMA:
+Index: work7/drivers/pnp/interface.c
+===================================================================
+--- work7.orig/drivers/pnp/interface.c	2008-03-25 14:48:47.000000000 -0600
++++ work7/drivers/pnp/interface.c	2008-03-25 14:48:51.000000000 -0600
+@@ -325,6 +325,7 @@
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
++	resource_size_t start;
  
- 	pnp_register_irq_resource(option, irq);
- }
+ 	if (dev->status & PNP_ATTACHED) {
+ 		retval = -EBUSY;
+@@ -369,7 +370,7 @@
+ 		goto done;
+ 	}
+ 	if (!strnicmp(buf, "set", 3)) {
+-		int nport = 0, nmem = 0, nirq = 0, ndma = 0;
++		int nport = 0, nmem = 0, ndma = 0;
+ 		if (dev->active)
+ 			goto done;
+ 		buf += 3;
+@@ -430,14 +431,8 @@
+ 				buf += 3;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.irq_resource[nirq].start =
+-				    dev->res.irq_resource[nirq].end =
+-				    simple_strtoul(buf, &buf, 0);
+-				dev->res.irq_resource[nirq].flags =
+-				    IORESOURCE_IRQ;
+-				nirq++;
+-				if (nirq >= PNP_MAX_IRQ)
+-					break;
++				start = simple_strtoul(buf, &buf, 0);
++				pnp_add_irq_resource(dev, start, 0);
+ 				continue;
+ 			}
+ 			if (!strnicmp(buf, "dma", 3)) {
 
 -- 
