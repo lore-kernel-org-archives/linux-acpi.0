@@ -1,286 +1,560 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 23/37] PNP: make generic pnp_add_mem_resource()
-Date: Wed, 26 Mar 2008 11:11:21 -0600
-Message-ID: <20080326171227.941656065@ldl.fc.hp.com>
+Subject: [patch 17/37] PNP: remove more pnp_resource_table arguments
+Date: Wed, 26 Mar 2008 11:11:15 -0600
+Message-ID: <20080326171226.738281309@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:26115 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760892AbYCZRJA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:09:00 -0400
-Content-Disposition: inline; filename=pnp-common-add-mem-resource
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:22050 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760808AbYCZRIx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:53 -0400
+Content-Disposition: inline; filename=pnp-remove-more-pnp_resource_table-args
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Add a pnp_add_mem_resource() that can be used by all the PNP
-backends.  This consolidates a little more pnp_resource_table
-knowledge into one place.
+Stop passing around struct pnp_resource_table pointers.  In most cases,
+the caller doesn't need to know how the resources are stored inside
+the struct pnp_dev.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 ---
- drivers/pnp/base.h             |    1 
- drivers/pnp/interface.c        |   17 ++++---------
- drivers/pnp/isapnp/core.c      |    4 ---
- drivers/pnp/pnpacpi/rsparser.c |   50 +++++++++--------------------------------
- drivers/pnp/pnpbios/rsparser.c |   26 ++-------------------
- drivers/pnp/resource.c         |   24 +++++++++++++++++++
- 6 files changed, 46 insertions(+), 76 deletions(-)
+ drivers/pnp/isapnp/core.c      |    6 ++--
+ drivers/pnp/pnpacpi/core.c     |   11 ++-----
+ drivers/pnp/pnpacpi/pnpacpi.h  |    6 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   55 +++++++++++++++++++++-----------------
+ drivers/pnp/pnpbios/core.c     |    4 +-
+ drivers/pnp/pnpbios/pnpbios.h  |    4 +-
+ drivers/pnp/pnpbios/rsparser.c |   58 ++++++++++++++++++++---------------------
+ 7 files changed, 73 insertions(+), 71 deletions(-)
 
-Index: work7/drivers/pnp/base.h
-===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-25 14:48:59.000000000 -0600
-@@ -18,3 +18,4 @@
- int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags);
- int pnp_add_dma_resource(struct pnp_dev *dev, int dma, int flags);
- int pnp_add_io_resource(struct pnp_dev *dev, resource_size_t start, resource_size_t len, int flags);
-+int pnp_add_mem_resource(struct pnp_dev *dev, resource_size_t start, resource_size_t len, int flags);
-Index: work7/drivers/pnp/resource.c
-===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-25 14:48:59.000000000 -0600
-@@ -536,6 +536,30 @@
- 	return 0;
- }
- 
-+int pnp_add_mem_resource(struct pnp_dev *dev, resource_size_t start, resource_size_t len, int flags)
-+{
-+	struct pnp_resource_table *res = &dev->res;
-+	int i = 0;
-+	static unsigned char warned;
-+
-+	while (set(res->mem_resource[i].flags) && i < PNP_MAX_MEM)
-+		i++;
-+	if (i >= PNP_MAX_MEM && !warned) {
-+		dev_err(&dev->dev, "too many MEMs (max %d)\n", PNP_MAX_MEM);
-+		warned = 1;
-+		return -ENOSPC;
-+	}
-+
-+	res->mem_resource[i].flags = IORESOURCE_MEM | flags;
-+	if (len <= 0) {
-+		res->mem_resource[i].flags |= IORESOURCE_DISABLED;
-+		return -EINVAL;
-+	}
-+	res->mem_resource[i].start = start;
-+	res->mem_resource[i].end = start + len - 1;
-+	return 0;
-+}
-+
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
- {
 Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-25 14:48:59.000000000 -0600
-@@ -936,7 +936,6 @@
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-25 14:48:39.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-25 14:48:44.000000000 -0600
+@@ -934,9 +934,9 @@
+ EXPORT_SYMBOL(isapnp_cfg_end);
+ EXPORT_SYMBOL(isapnp_write_byte);
  
- static int isapnp_read_resources(struct pnp_dev *dev)
+-static int isapnp_read_resources(struct pnp_dev *dev,
+-				 struct pnp_resource_table *res)
++static int isapnp_read_resources(struct pnp_dev *dev)
  {
--	struct pnp_resource_table *res = &dev->res;
++	struct pnp_resource_table *res = &dev->res;
  	int tmp, ret;
  
  	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
-@@ -952,8 +951,7 @@
- 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
- 				continue;
--			res->mem_resource[tmp].start = ret;
--			res->mem_resource[tmp].flags = IORESOURCE_MEM;
-+			pnp_add_mem_resource(dev, ret, 1, 0);
- 		}
- 		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
- 			ret =
+@@ -984,7 +984,7 @@
+ 
+ 	pnp_init_resource_table(&dev->res);
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+-	ret = isapnp_read_resources(dev, &dev->res);
++	ret = isapnp_read_resources(dev);
+ 	isapnp_cfg_end();
+ 	return ret;
+ }
+Index: work7/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-25 14:48:39.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-03-25 14:48:44.000000000 -0600
+@@ -77,8 +77,7 @@
+ {
+ 	acpi_status status;
+ 
+-	status = pnpacpi_parse_allocated_resource((acpi_handle) dev->data,
+-						  &dev->res);
++	status = pnpacpi_parse_allocated_resource(dev);
+ 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ }
+ 
+@@ -92,7 +91,7 @@
+ 	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+-	ret = pnpacpi_encode_resources(&dev->res, &buffer);
++	ret = pnpacpi_encode_resources(dev, &buffer);
+ 	if (ret) {
+ 		kfree(buffer.pointer);
+ 		return ret;
+@@ -183,8 +182,7 @@
+ 
+ 	if (dev->active) {
+ 		/* parse allocated resource */
+-		status = pnpacpi_parse_allocated_resource(device->handle,
+-							  &dev->res);
++		status = pnpacpi_parse_allocated_resource(dev);
+ 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+ 			pnp_err("PnPACPI: METHOD_NAME__CRS failure for %s",
+ 				acpi_device_hid(device));
+@@ -192,8 +190,7 @@
+ 	}
+ 
+ 	if (dev->capabilities & PNP_CONFIGURABLE) {
+-		status = pnpacpi_parse_resource_option_data(device->handle,
+-							    dev);
++		status = pnpacpi_parse_resource_option_data(dev);
+ 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+ 			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s",
+ 				acpi_device_hid(device));
+Index: work7/drivers/pnp/pnpacpi/pnpacpi.h
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-25 14:48:38.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-25 14:48:44.000000000 -0600
+@@ -5,8 +5,8 @@
+ #include <linux/acpi.h>
+ #include <linux/pnp.h>
+ 
+-acpi_status pnpacpi_parse_allocated_resource(acpi_handle, struct pnp_resource_table*);
+-acpi_status pnpacpi_parse_resource_option_data(acpi_handle, struct pnp_dev*);
+-int pnpacpi_encode_resources(struct pnp_resource_table *, struct acpi_buffer *);
++acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *);
++acpi_status pnpacpi_parse_resource_option_data(struct pnp_dev *);
++int pnpacpi_encode_resources(struct pnp_dev *, struct acpi_buffer *);
+ int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
+ #endif
 Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:59.000000000 -0600
-@@ -153,35 +153,6 @@
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:38.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-25 14:48:44.000000000 -0600
+@@ -76,10 +76,11 @@
+ 	}
+ }
+ 
+-static void pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res,
++static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
+ 						u32 gsi, int triggering,
+ 						int polarity, int shareable)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 	int irq;
+ 	int p, t;
+@@ -170,9 +171,10 @@
  	return flags;
  }
  
--static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
--						u64 mem, u64 len,
--						int write_protect)
--{
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--	static unsigned char warned;
--
--	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
--	       (i < PNP_MAX_MEM))
--		i++;
--	if (i < PNP_MAX_MEM) {
--		res->mem_resource[i].flags = IORESOURCE_MEM;	// Also clears _UNSET flag
--		if (len <= 0) {
--			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		if (write_protect == ACPI_READ_WRITE_MEMORY)
--			res->mem_resource[i].flags |= IORESOURCE_MEM_WRITEABLE;
--
--		res->mem_resource[i].start = mem;
--		res->mem_resource[i].end = mem + len - 1;
--	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of mem "
--				"resources: %d\n", PNP_MAX_MEM);
--		warned = 1;
--	}
--}
--
- static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
+-static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
++static void pnpacpi_parse_allocated_dmaresource(struct pnp_dev *dev,
+ 						u32 dma, int flags)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 	static unsigned char warned;
+ 
+@@ -195,9 +197,10 @@
+ 	}
+ }
+ 
+-static void pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
++static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev,
+ 					       u64 io, u64 len, int io_decode)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 	static unsigned char warned;
+ 
+@@ -221,10 +224,11 @@
+ 	}
+ }
+ 
+-static void pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
++static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+ 						u64 mem, u64 len,
+ 						int write_protect)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 	static unsigned char warned;
+ 
+@@ -249,7 +253,7 @@
+ 	}
+ }
+ 
+-static void pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
++static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
  						  struct acpi_resource *res)
  {
-@@ -199,9 +170,9 @@
+ 	struct acpi_resource_address64 addr, *p = &addr;
+@@ -266,11 +270,11 @@
  		return;
  
  	if (p->resource_type == ACPI_MEMORY_RANGE)
--		pnpacpi_parse_allocated_memresource(dev,
--			p->minimum, p->address_length,
--			p->info.mem.write_protect);
-+		pnp_add_mem_resource(dev, p->minimum, p->address_length,
-+			p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY ?
-+			    IORESOURCE_MEM_WRITEABLE : 0);
+-		pnpacpi_parse_allocated_memresource(res_table,
++		pnpacpi_parse_allocated_memresource(dev,
+ 			p->minimum, p->address_length,
+ 			p->info.mem.write_protect);
  	else if (p->resource_type == ACPI_IO_RANGE)
- 		pnp_add_io_resource(dev, p->minimum, p->address_length,
- 			p->granularity == 0xfff ? 0 : PNP_PORT_FLAG_16BITADDR);
-@@ -272,24 +243,27 @@
+-		pnpacpi_parse_allocated_ioresource(res_table,
++		pnpacpi_parse_allocated_ioresource(dev,
+ 			p->minimum, p->address_length,
+ 			p->granularity == 0xfff ? ACPI_DECODE_10 :
+ 				ACPI_DECODE_16);
+@@ -279,7 +283,7 @@
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 					      void *data)
+ {
+-	struct pnp_resource_table *res_table = data;
++	struct pnp_dev *dev = data;
+ 	struct acpi_resource_irq *irq;
+ 	struct acpi_resource_dma *dma;
+ 	struct acpi_resource_io *io;
+@@ -298,7 +302,7 @@
+ 		 */
+ 		irq = &res->data.irq;
+ 		for (i = 0; i < irq->interrupt_count; i++) {
+-			pnpacpi_parse_allocated_irqresource(res_table,
++			pnpacpi_parse_allocated_irqresource(dev,
+ 				irq->interrupts[i],
+ 				irq->triggering,
+ 				irq->polarity,
+@@ -309,7 +313,7 @@
+ 	case ACPI_RESOURCE_TYPE_DMA:
+ 		dma = &res->data.dma;
+ 		if (dma->channel_count > 0)
+-			pnpacpi_parse_allocated_dmaresource(res_table,
++			pnpacpi_parse_allocated_dmaresource(dev,
+ 				dma->channels[0],
+ 				dma_flags(dma->type, dma->bus_master,
+ 					  dma->transfer));
+@@ -317,7 +321,7 @@
+ 
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		io = &res->data.io;
+-		pnpacpi_parse_allocated_ioresource(res_table,
++		pnpacpi_parse_allocated_ioresource(dev,
+ 			io->minimum,
+ 			io->address_length,
+ 			io->io_decode);
+@@ -329,7 +333,7 @@
+ 
+ 	case ACPI_RESOURCE_TYPE_FIXED_IO:
+ 		fixed_io = &res->data.fixed_io;
+-		pnpacpi_parse_allocated_ioresource(res_table,
++		pnpacpi_parse_allocated_ioresource(dev,
+ 			fixed_io->address,
+ 			fixed_io->address_length,
+ 			ACPI_DECODE_10);
+@@ -343,21 +347,21 @@
  
  	case ACPI_RESOURCE_TYPE_MEMORY24:
  		memory24 = &res->data.memory24;
--		pnpacpi_parse_allocated_memresource(dev,
-+		pnp_add_mem_resource(dev,
+-		pnpacpi_parse_allocated_memresource(res_table,
++		pnpacpi_parse_allocated_memresource(dev,
  			memory24->minimum,
  			memory24->address_length,
--			memory24->write_protect);
-+			memory24->write_protect == ACPI_READ_WRITE_MEMORY ?
-+			    IORESOURCE_MEM_WRITEABLE : 0);
+ 			memory24->write_protect);
  		break;
  	case ACPI_RESOURCE_TYPE_MEMORY32:
  		memory32 = &res->data.memory32;
--		pnpacpi_parse_allocated_memresource(dev,
-+		pnp_add_mem_resource(dev,
+-		pnpacpi_parse_allocated_memresource(res_table,
++		pnpacpi_parse_allocated_memresource(dev,
  			memory32->minimum,
  			memory32->address_length,
--			memory32->write_protect);
-+			memory32->write_protect == ACPI_READ_WRITE_MEMORY ?
-+			    IORESOURCE_MEM_WRITEABLE : 0);
+ 			memory32->write_protect);
  		break;
  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
  		fixed_memory32 = &res->data.fixed_memory32;
--		pnpacpi_parse_allocated_memresource(dev,
-+		pnp_add_mem_resource(dev,
+-		pnpacpi_parse_allocated_memresource(res_table,
++		pnpacpi_parse_allocated_memresource(dev,
  			fixed_memory32->address,
  			fixed_memory32->address_length,
--			fixed_memory32->write_protect);
-+			fixed_memory32->write_protect == ACPI_READ_WRITE_MEMORY ?
-+			    IORESOURCE_MEM_WRITEABLE : 0);
- 		break;
+ 			fixed_memory32->write_protect);
+@@ -365,7 +369,7 @@
  	case ACPI_RESOURCE_TYPE_ADDRESS16:
  	case ACPI_RESOURCE_TYPE_ADDRESS32:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		pnpacpi_parse_allocated_address_space(res_table, res);
++		pnpacpi_parse_allocated_address_space(dev, res);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+@@ -379,7 +383,7 @@
+ 			return AE_OK;
+ 
+ 		for (i = 0; i < extended_irq->interrupt_count; i++) {
+-			pnpacpi_parse_allocated_irqresource(res_table,
++			pnpacpi_parse_allocated_irqresource(dev,
+ 				extended_irq->interrupts[i],
+ 				extended_irq->triggering,
+ 				extended_irq->polarity,
+@@ -398,14 +402,15 @@
+ 	return AE_OK;
+ }
+ 
+-acpi_status pnpacpi_parse_allocated_resource(acpi_handle handle,
+-					     struct pnp_resource_table * res)
++acpi_status pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
+ {
++	acpi_handle handle = dev->data;
++
+ 	/* Blank the resource table values */
+-	pnp_init_resource_table(res);
++	pnp_init_resource_table(&dev->res);
+ 
+ 	return acpi_walk_resources(handle, METHOD_NAME__CRS,
+-				   pnpacpi_allocated_resource, res);
++				   pnpacpi_allocated_resource, dev);
+ }
+ 
+ static __init void pnpacpi_parse_dma_option(struct pnp_option *option,
+@@ -713,9 +718,9 @@
+ 	return AE_OK;
+ }
+ 
+-acpi_status __init pnpacpi_parse_resource_option_data(acpi_handle handle,
+-						      struct pnp_dev *dev)
++acpi_status __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
+ {
++	acpi_handle handle = dev->data;
+ 	acpi_status status;
+ 	struct acpipnp_parse_option_s parse_data;
+ 
+@@ -945,9 +950,9 @@
+ 	fixed_memory32->address_length = p->end - p->start + 1;
+ }
+ 
+-int pnpacpi_encode_resources(struct pnp_resource_table *res_table,
+-			     struct acpi_buffer *buffer)
++int pnpacpi_encode_resources(struct pnp_dev *dev, struct acpi_buffer *buffer)
+ {
++	struct pnp_resource_table *res_table = &dev->res;
+ 	int i = 0;
+ 	/* pnpacpi_build_resource_template allocates extra mem */
+ 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
+Index: work7/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-25 14:48:39.000000000 -0600
++++ work7/drivers/pnp/pnpbios/core.c	2008-03-25 14:48:44.000000000 -0600
+@@ -219,7 +219,7 @@
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+-	pnpbios_read_resources_from_node(&dev->res, node);
++	pnpbios_read_resources_from_node(dev, node);
+ 	dev->active = pnp_is_active(dev);
+ 	kfree(node);
+ 	return 0;
+@@ -241,7 +241,7 @@
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+-	if (pnpbios_write_resources_to_node(&dev->res, node) < 0) {
++	if (pnpbios_write_resources_to_node(dev, node) < 0) {
+ 		kfree(node);
+ 		return -1;
+ 	}
+Index: work7/drivers/pnp/pnpbios/pnpbios.h
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/pnpbios.h	2008-03-25 14:48:21.000000000 -0600
++++ work7/drivers/pnp/pnpbios/pnpbios.h	2008-03-25 14:48:44.000000000 -0600
+@@ -28,8 +28,8 @@
+ extern int  pnpbios_dont_use_current_config;
+ 
+ extern int pnpbios_parse_data_stream(struct pnp_dev *dev, struct pnp_bios_node * node);
+-extern int pnpbios_read_resources_from_node(struct pnp_resource_table *res, struct pnp_bios_node * node);
+-extern int pnpbios_write_resources_to_node(struct pnp_resource_table *res, struct pnp_bios_node * node);
++extern int pnpbios_read_resources_from_node(struct pnp_dev *dev, struct pnp_bios_node *node);
++extern int pnpbios_write_resources_to_node(struct pnp_dev *dev, struct pnp_bios_node *node);
+ extern void pnpid32_to_pnpid(u32 id, char *str);
+ 
+ extern void pnpbios_print_status(const char * module, u16 status);
 Index: work7/drivers/pnp/pnpbios/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:59.000000000 -0600
-@@ -54,26 +54,6 @@
+--- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:29.000000000 -0600
++++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-25 14:48:44.000000000 -0600
+@@ -54,9 +54,9 @@
   * Allocated Resources
   */
  
--static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
--						int mem, int len)
--{
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--
--	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET)
--	       && i < PNP_MAX_MEM)
--		i++;
--	if (i < PNP_MAX_MEM) {
--		res->mem_resource[i].flags = IORESOURCE_MEM;	// Also clears _UNSET flag
--		if (len <= 0) {
--			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->mem_resource[i].start = (unsigned long)mem;
--		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
--	}
--}
--
- static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
- 							    unsigned char *p,
- 							    unsigned char *end)
-@@ -104,7 +84,7 @@
+-static void pnpbios_parse_allocated_irqresource(struct pnp_resource_table *res,
+-						int irq)
++static void pnpbios_parse_allocated_irqresource(struct pnp_dev *dev, int irq)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET)
+@@ -74,9 +74,9 @@
+ 	}
+ }
+ 
+-static void pnpbios_parse_allocated_dmaresource(struct pnp_resource_table *res,
+-						int dma)
++static void pnpbios_parse_allocated_dmaresource(struct pnp_dev *dev, int dma)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 
+ 	while (i < PNP_MAX_DMA &&
+@@ -93,9 +93,10 @@
+ 	}
+ }
+ 
+-static void pnpbios_parse_allocated_ioresource(struct pnp_resource_table *res,
++static void pnpbios_parse_allocated_ioresource(struct pnp_dev *dev,
+ 					       int io, int len)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET)
+@@ -112,9 +113,10 @@
+ 	}
+ }
+ 
+-static void pnpbios_parse_allocated_memresource(struct pnp_resource_table *res,
++static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
+ 						int mem, int len)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int i = 0;
+ 
+ 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET)
+@@ -131,11 +133,9 @@
+ 	}
+ }
+ 
+-static unsigned char *pnpbios_parse_allocated_resource_data(unsigned char *p,
+-							    unsigned char *end,
+-							    struct
+-							    pnp_resource_table
+-							    *res)
++static unsigned char *pnpbios_parse_allocated_resource_data(struct pnp_dev *dev,
++							    unsigned char *p,
++							    unsigned char *end)
+ {
+ 	unsigned int len, tag;
+ 	int io, size, mask, i;
+@@ -144,7 +144,7 @@
+ 		return NULL;
+ 
+ 	/* Blank the resource table values */
+-	pnp_init_resource_table(res);
++	pnp_init_resource_table(&dev->res);
+ 
+ 	while ((char *)p < (char *)end) {
+ 
+@@ -164,7 +164,7 @@
  				goto len_err;
  			io = *(short *)&p[4];
  			size = *(short *)&p[10];
--			pnpbios_parse_allocated_memresource(dev, io, size);
-+			pnp_add_mem_resource(dev, io, size, 0);
+-			pnpbios_parse_allocated_memresource(res, io, size);
++			pnpbios_parse_allocated_memresource(dev, io, size);
  			break;
  
  		case LARGE_TAG_ANSISTR:
-@@ -120,7 +100,7 @@
+@@ -180,7 +180,7 @@
  				goto len_err;
  			io = *(int *)&p[4];
  			size = *(int *)&p[16];
--			pnpbios_parse_allocated_memresource(dev, io, size);
-+			pnp_add_mem_resource(dev, io, size, 0);
+-			pnpbios_parse_allocated_memresource(res, io, size);
++			pnpbios_parse_allocated_memresource(dev, io, size);
  			break;
  
  		case LARGE_TAG_FIXEDMEM32:
-@@ -128,7 +108,7 @@
+@@ -188,7 +188,7 @@
  				goto len_err;
  			io = *(int *)&p[4];
  			size = *(int *)&p[8];
--			pnpbios_parse_allocated_memresource(dev, io, size);
-+			pnp_add_mem_resource(dev, io, size, 0);
+-			pnpbios_parse_allocated_memresource(res, io, size);
++			pnpbios_parse_allocated_memresource(dev, io, size);
  			break;
  
  		case SMALL_TAG_IRQ:
-Index: work7/drivers/pnp/interface.c
-===================================================================
---- work7.orig/drivers/pnp/interface.c	2008-03-25 14:48:57.000000000 -0600
-+++ work7/drivers/pnp/interface.c	2008-03-25 14:48:59.000000000 -0600
-@@ -370,7 +370,6 @@
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
--		int nmem = 0;
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
-@@ -401,24 +400,18 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.mem_resource[nmem].start =
--				    simple_strtoul(buf, &buf, 0);
-+				start = simple_strtoul(buf, &buf, 0);
- 				while (isspace(*buf))
- 					++buf;
- 				if (*buf == '-') {
- 					buf += 1;
- 					while (isspace(*buf))
- 						++buf;
--					dev->res.mem_resource[nmem].end =
--					    simple_strtoul(buf, &buf, 0);
-+					end = simple_strtoul(buf, &buf, 0);
- 				} else
--					dev->res.mem_resource[nmem].end =
--					    dev->res.mem_resource[nmem].start;
--				dev->res.mem_resource[nmem].flags =
--				    IORESOURCE_MEM;
--				nmem++;
--				if (nmem >= PNP_MAX_MEM)
--					break;
-+					end = start;
-+				length = end - start + 1;
-+				pnp_add_mem_resource(dev, start, length, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "irq", 3)) {
+@@ -199,7 +199,7 @@
+ 			for (i = 0; i < 16; i++, mask = mask >> 1)
+ 				if (mask & 0x01)
+ 					io = i;
+-			pnpbios_parse_allocated_irqresource(res, io);
++			pnpbios_parse_allocated_irqresource(dev, io);
+ 			break;
+ 
+ 		case SMALL_TAG_DMA:
+@@ -210,7 +210,7 @@
+ 			for (i = 0; i < 8; i++, mask = mask >> 1)
+ 				if (mask & 0x01)
+ 					io = i;
+-			pnpbios_parse_allocated_dmaresource(res, io);
++			pnpbios_parse_allocated_dmaresource(dev, io);
+ 			break;
+ 
+ 		case SMALL_TAG_PORT:
+@@ -218,7 +218,7 @@
+ 				goto len_err;
+ 			io = p[2] + p[3] * 256;
+ 			size = p[7];
+-			pnpbios_parse_allocated_ioresource(res, io, size);
++			pnpbios_parse_allocated_ioresource(dev, io, size);
+ 			break;
+ 
+ 		case SMALL_TAG_VENDOR:
+@@ -230,7 +230,7 @@
+ 				goto len_err;
+ 			io = p[1] + p[2] * 256;
+ 			size = p[3];
+-			pnpbios_parse_allocated_ioresource(res, io, size);
++			pnpbios_parse_allocated_ioresource(dev, io, size);
+ 			break;
+ 
+ 		case SMALL_TAG_END:
+@@ -672,12 +672,12 @@
+ 	p[3] = len & 0xff;
+ }
+ 
+-static unsigned char *pnpbios_encode_allocated_resource_data(unsigned char *p,
+-							     unsigned char *end,
+-							     struct
+-							     pnp_resource_table
+-							     *res)
++static unsigned char *pnpbios_encode_allocated_resource_data(struct pnp_dev
++								*dev,
++							     unsigned char *p,
++							     unsigned char *end)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	unsigned int len, tag;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+@@ -786,7 +786,7 @@
+ 	unsigned char *p = (char *)node->data;
+ 	unsigned char *end = (char *)(node->data + node->size);
+ 
+-	p = pnpbios_parse_allocated_resource_data(p, end, &dev->res);
++	p = pnpbios_parse_allocated_resource_data(dev, p, end);
+ 	if (!p)
+ 		return -EIO;
+ 	p = pnpbios_parse_resource_option_data(p, end, dev);
+@@ -798,25 +798,25 @@
+ 	return 0;
+ }
+ 
+-int pnpbios_read_resources_from_node(struct pnp_resource_table *res,
++int pnpbios_read_resources_from_node(struct pnp_dev *dev,
+ 				     struct pnp_bios_node *node)
+ {
+ 	unsigned char *p = (char *)node->data;
+ 	unsigned char *end = (char *)(node->data + node->size);
+ 
+-	p = pnpbios_parse_allocated_resource_data(p, end, res);
++	p = pnpbios_parse_allocated_resource_data(dev, p, end);
+ 	if (!p)
+ 		return -EIO;
+ 	return 0;
+ }
+ 
+-int pnpbios_write_resources_to_node(struct pnp_resource_table *res,
++int pnpbios_write_resources_to_node(struct pnp_dev *dev,
+ 				    struct pnp_bios_node *node)
+ {
+ 	unsigned char *p = (char *)node->data;
+ 	unsigned char *end = (char *)(node->data + node->size);
+ 
+-	p = pnpbios_encode_allocated_resource_data(p, end, res);
++	p = pnpbios_encode_allocated_resource_data(dev, p, end);
+ 	if (!p)
+ 		return -EIO;
+ 	return 0;
 
 -- 
