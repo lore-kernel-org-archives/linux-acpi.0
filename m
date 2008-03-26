@@ -1,47 +1,33 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for
-	2.6.25-rc6)
-Date: Wed, 26 Mar 2008 13:33:56 -0300
-Message-ID: <20080326163356.GC3562@khazad-dum.debian.net>
-References: <200803180510.47670.lenb@kernel.org>
-	<20080326081653.GA8247@elte.hu>
-	<200803261132.21448.lenb@kernel.org>
-	<200803261645.01343.corentincj@iksaif.net>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [RFC][PATCH] PM: Introduce new top level
+ =?iso-8859-1?q?suspend=09and_hibernation_callbacks?= (rev. 2)
+Date: Wed, 26 Mar 2008 12:36:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0803261236080.7344-100000@iolanthe.rowland.org>
+References: <200803261642.29801.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <200803261645.01343.corentincj@iksaif.net>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Corentin CHARY <corentincj@iksaif.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760640AbYCZQgs@vger.kernel.org>
+In-Reply-To: <200803261642.29801.oliver@neukum.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Oliver Neukum <oliver@neukum.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Johannes Berg <johannes@sipsolutions.net>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 26 Mar 2008, Corentin CHARY wrote:
-> thinkpad_acpi.c:IBM_HANDLE(ec, root, "\\_SB.PCI0.ISA.EC0",      /* 240, 240x */
-> thinkpad_acpi.c:           "\\_SB.PCI.ISA.EC",  /* 570 */
-> thinkpad_acpi.c:           "\\_SB.PCI0.ISA0.EC0",       /* 600e/x, 770e, 770x */
-> thinkpad_acpi.c:           "\\_SB.PCI0.ISA.EC", /* A21e, A2xm/p, T20-22, X20-21 */
-> thinkpad_acpi.c:           "\\_SB.PCI.ISA.SLCE",        /* 570 */
-> 
-> So it seems to work for thinkpads.
+On Wed, 26 Mar 2008, Oliver Neukum wrote:
 
-ThinkPads use "ISA" as the node (not ISA_ or anything else like that),
-and the ACPICA node match routine works properly.
+> Am Mittwoch, 26. M=E4rz 2008 15:40:27 schrieb Alan Stern:
+> > Remember, the whole purpose of this is to let drivers know when the=
+=20
+> > system is going to sleep or waking up. =A0Proper handling of device=
+s is=20
+> > up to the drivers, not up to the core.
+>=20
+> Then declare these methods void. We cannot introduce methods that del=
+iberately
+> ignore errors. Reporting is also better done in the drivers.
 
-So please don't touch thinkpad-acpi's ".ISA." stuff.
+That decision is up to Rafael.  Changing the methods to return void is=20
+okay with me.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Alan Stern
