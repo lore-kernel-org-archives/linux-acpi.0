@@ -1,73 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 3)
-Date: Wed, 26 Mar 2008 21:54:01 +0100
-Message-ID: <200803262154.03129.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0803261633190.9881-100000@iolanthe.rowland.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: some minor issues with 2.6.25-rc6-git7-default
+Date: Wed, 26 Mar 2008 14:04:10 -0700
+Message-ID: <47EABA4A.6030705@oracle.com>
+References: <213384793@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41029 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752214AbYCZUyL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Mar 2008 16:54:11 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0803261633190.9881-100000@iolanthe.rowland.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <213384793@web.de>
+Sender: linux-ide-owner@vger.kernel.org
+To: devzero@web.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, alan@lxorguk.ukuu.org.uk, david-b@pacbell.net, greg@kroah.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-On Wednesday, 26 of March 2008, Alan Stern wrote:
-> On Wed, 26 Mar 2008, Rafael J. Wysocki wrote:
+devzero@web.de wrote:
+>> Can you post the full kernel log up to this BUG?
+>> It should show that causes the Taint.
 > 
-> > On Wednesday, 26 of March 2008, Alan Stern wrote:
-> > > On Tue, 25 Mar 2008, Rafael J. Wysocki wrote:
-> > > 
-> > > > > I just thought of another problem.  At the point where
-> > > > > local_irq_disable() is called, in between device_suspend() and
-> > > > > device_power_down(), it is possible in a preemptible kernel that
-> > > > > another task is holding dpm_list_mtx and is in the middle of updating
-> > > > > the list pointers.  This would mess up the traversal in
-> > > > > device_power_down().
-> > > > > 
-> > > > > I'm not sure about the best way to prevent this.  Is it legal to call
-> > > > > unlock_mutex() while interrupts or preemption are disabled?
-> > > > 
-> > > > Well, I think it is, but I'm not sure how that can help.
-> > > > 
-> > > > To prevent the race from happening, we can lock dpm_list_mtx before switching
-> > > > interrupts off in kernel/power/main.c:suspend_enter() and analogously in
-> > > > kernel/power/disk.c .
-> > > 
-> > > That's right.  And once interrupts are turned off you should unlock 
-> > > dpm_list_mtx again, in case a noirq method wants to unregister a 
-> > > device.
-> > 
-> > Why would a noirq method want to do that?  IMO, it's not a big deal if noirq
-> > methods are not allowed to unregister devices.
+> oh - yes:
 > 
-> Okay, that's fine.  It keeps things simple.
+> Mar 23 09:12:20 opensuse103 kernel: ac97_codec: module license 'unspecified' taints kernel.
 > 
-> > > Hence my question: Is it legal to call unlock_mutex() while interrupts are
-> > > disabled? 
-> > 
-> > Well, I suspect that will confuse lockdep quite a bit.  Otherwise, I don't see
-> > a problem with it (it's just changing the value of a shared variable after
-> > all).
+> modinfo ac97_codec
+> filename:       /lib/modules/2.6.25-rc6-git7-default/kernel/sound/oss/ac97_codec.ko
+> srcversion:     8665939D5E471F7E331BB3E
+> depends:
+> vermagic:       2.6.25-rc6-git7-default SMP mod_unload 586
 > 
-> Then you have your answer.  Perhaps have device_suspend() exit with the
-> mutex held and have device_resume() release it (with appropriate
-> handling for error situations, of course).
+> 
+> seems MODULE_LICENSE is missing in ./sound/oss/ac97_codec.c !?
 
-That wouldn't work, because enable_nonboot_cpus() is called before
-device_resume() and the notifiers in there may want to unregister devices
-if some CPUs fail to go online.
+It was recently removed for some reason.
 
-I added two accessor functions device_pm_lock() and device_pm_unlock()
-to be called just prior to disabling interrupts and right after enabling them,
-respectively, in the higher-level PM core (ie. kernel/power/main(disk).c).
+I get the impression that you (we) should be using ALSA drivers/codecs
+instead of the OSS ones that in the process of being removed.
 
-Thanks,
-Rafael
+
+>>>>> CCing Dave Brownell.
+>>>>>
+>>>>>> Mar 23 09:14:23 opensuse103 kernel: Generic RTC Driver v1.07
+>>>>>> Mar 23 09:14:23 opensuse103 kernel: proc_dir_entry 'rtc' already registered
+>>>>>> Mar 23 09:14:23 opensuse103 kernel: Pid: 3994, comm: modprobe Tainted: P         2.6.25-rc6-git7-default #1
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c019a602>] proc_register+0xf3/0x11f
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c019a719>] create_proc_entry+0x69/0x7b
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<e0c5f02d>] rtc_generic_init+0x2d/0x54 [genrtc]
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c013c1de>] sys_init_module+0x16b6/0x17c9
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c0108a6a>] sys_mmap2+0x62/0x77
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c01059c4>] sysenter_past_esp+0x6d/0xa9
+>>>>>> Mar 23 09:14:23 opensuse103 kernel:  =======================
+>>>> uh, "known problem": multiple rtc drivers are being run.
+>>>>
+>>>> I don't really understand why we haven't been able to fix this - there have
+>>>> been numerous reports..
+>>> i will take a closer look to determine how/when this happens.
+>> I thought that David B. sent a (Kconfig ?) patch for this...
+>>
+>> ---
+>> ~Randy
+> 
+> do you mean this one ?
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=55ff1aba940ff46d4f6d4fd790ea3e1a47aaa84f
+> 
+> ok, it may be sort of "dumb" to blindly load one module after the other but i would expect a more meaningful message.
+
+No, I meant something else, but I can't find it just now.
+
+-- 
+~Randy
