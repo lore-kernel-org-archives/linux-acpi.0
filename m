@@ -1,37 +1,197 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 00/37] PNP resource_table cleanups
-Date: Wed, 26 Mar 2008 11:10:58 -0600
-Message-ID: <20080326171058.099442579@ldl.fc.hp.com>
+Subject: [patch 34/37] PNP: remove unused interfaces using pnp_resource_table
+Date: Wed, 26 Mar 2008 11:11:32 -0600
+Message-ID: <20080326171230.175280161@ldl.fc.hp.com>
+References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:29079 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342AbYCZRI0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:26 -0400
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:42054 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761287AbYCZRJY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:09:24 -0400
+Content-Disposition: inline; filename=pnp-remove-unused-interfaces
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This series of patches does some PNP housecleaning and
-consolidation.
+Rene Herman <rene.herman@gmail.com> recently removed the only in-tree
+driver uses of:
 
-PNP currently uses a fixed-size table (pnp_resource_table)
-to track the IO, MMIO, IRQ, and DMA resources used by a
-device.  Some motherboard devices have many resources, so
-we've been plagued by table overflows and we've had to
-drastically increase the table size, which wastes a lot
-of memory.
+    pnp_init_resource_table()
+    pnp_manual_config_dev()
+    pnp_resource_change()
 
-The end goal is to replace that fixed-size table with something
-more dynamic.  These patches don't go that far, but they do make
-pnp_resource_table private to the PNP core and centralize all
-references to it in a small set of shared functions.
+in this change:
 
-In addition, this series contains a number of related
-cleanups, like centralized allocation of struct pnp_dev,
-conversion to dev_printk when possible, removing many
-PNP core internal functions from the public interface,
-and alignment of the ISAPNP, PNPBIOS, and PNPACPI backends.
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=109c53f840e551d6e99ecfd8b0131a968332c89f
 
-Bjorn
+These are no longer used in the PNP core either, so we can just remove
+them completely.
+
+It's possible that there are out-of-tree drivers that use these
+interfaces.  They should be changed to either (1) use PNP quirks
+to work around broken hardware or firmware, or (2) use the sysfs
+interfaces to control resource usage from userspace.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+
+---
+ drivers/pnp/manager.c |   78 +-------------------------------------------------
+ include/linux/pnp.h   |    9 -----
+ 2 files changed, 3 insertions(+), 84 deletions(-)
+
+Index: work7/include/linux/pnp.h
+===================================================================
+--- work7.orig/include/linux/pnp.h	2008-03-25 14:49:10.000000000 -0600
++++ work7/include/linux/pnp.h	2008-03-25 14:49:13.000000000 -0600
+@@ -429,18 +429,14 @@
+ int pnp_register_port_resource(struct pnp_option *option,
+ 			       struct pnp_port *data);
+ int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
+-void pnp_init_resource_table(struct pnp_resource_table *table);
+ void pnp_init_resources(struct pnp_dev *dev);
+-int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
+-			  int mode);
+ int pnp_auto_config_dev(struct pnp_dev *dev);
+ int pnp_validate_config(struct pnp_dev *dev);
+ int pnp_start_dev(struct pnp_dev *dev);
+ int pnp_stop_dev(struct pnp_dev *dev);
+ int pnp_activate_dev(struct pnp_dev *dev);
+ int pnp_disable_dev(struct pnp_dev *dev);
+-void pnp_resource_change(struct resource *resource, resource_size_t start,
+-			 resource_size_t size);
++
+ 
+ /* protocol helpers */
+ int pnp_is_active(struct pnp_dev *dev);
+@@ -477,16 +473,13 @@
+ static inline int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data) { return -ENODEV; }
+ static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
+ static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
+-static inline void pnp_init_resource_table(struct pnp_resource_table *table) { }
+ static inline void pnp_init_resources(struct pnp_dev *dev) { }
+-static inline int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
+ static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_activate_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_disable_dev(struct pnp_dev *dev) { return -ENODEV; }
+-static inline void pnp_resource_change(struct resource *resource, resource_size_t start, resource_size_t size) { }
+ 
+ /* protocol helpers */
+ static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
+Index: work7/drivers/pnp/manager.c
+===================================================================
+--- work7.orig/drivers/pnp/manager.c	2008-03-25 14:49:12.000000000 -0600
++++ work7/drivers/pnp/manager.c	2008-03-25 14:49:13.000000000 -0600
+@@ -216,8 +216,9 @@
+  * pnp_init_resources - Resets a resource table to default values.
+  * @table: pointer to the desired resource table
+  */
+-void pnp_init_resource_table(struct pnp_resource_table *table)
++void pnp_init_resources(struct pnp_dev *dev)
+ {
++	struct pnp_resource_table *table = &dev->res;
+ 	int idx;
+ 
+ 	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
+@@ -250,11 +251,6 @@
+ 	}
+ }
+ 
+-void pnp_init_resources(struct pnp_dev *dev)
+-{
+-	pnp_init_resource_table(&dev->res);
+-}
+-
+ /**
+  * pnp_clean_resources - clears resources that were not manually set
+  * @res: the resources to clean
+@@ -395,59 +391,6 @@
+ }
+ 
+ /**
+- * pnp_manual_config_dev - Disables Auto Config and Manually sets the resource table
+- * @dev: pointer to the desired device
+- * @res: pointer to the new resource config
+- * @mode: 0 or PNP_CONFIG_FORCE
+- *
+- * This function can be used by drivers that want to manually set thier resources.
+- */
+-int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
+-			  int mode)
+-{
+-	int i;
+-	struct pnp_resource_table *bak;
+-
+-	if (!pnp_can_configure(dev))
+-		return -ENODEV;
+-	bak = pnp_alloc(sizeof(struct pnp_resource_table));
+-	if (!bak)
+-		return -ENOMEM;
+-	*bak = dev->res;
+-
+-	mutex_lock(&pnp_res_mutex);
+-	dev->res = *res;
+-	if (!(mode & PNP_CONFIG_FORCE)) {
+-		for (i = 0; i < PNP_MAX_PORT; i++) {
+-			if (!pnp_check_port(dev, i))
+-				goto fail;
+-		}
+-		for (i = 0; i < PNP_MAX_MEM; i++) {
+-			if (!pnp_check_mem(dev, i))
+-				goto fail;
+-		}
+-		for (i = 0; i < PNP_MAX_IRQ; i++) {
+-			if (!pnp_check_irq(dev, i))
+-				goto fail;
+-		}
+-		for (i = 0; i < PNP_MAX_DMA; i++) {
+-			if (!pnp_check_dma(dev, i))
+-				goto fail;
+-		}
+-	}
+-	mutex_unlock(&pnp_res_mutex);
+-
+-	kfree(bak);
+-	return 0;
+-
+-fail:
+-	dev->res = *bak;
+-	mutex_unlock(&pnp_res_mutex);
+-	kfree(bak);
+-	return -EINVAL;
+-}
+-
+-/**
+  * pnp_auto_config_dev - automatically assigns resources to a device
+  * @dev: pointer to the desired device
+  */
+@@ -573,24 +516,7 @@
+ 	return 0;
+ }
+ 
+-/**
+- * pnp_resource_change - change one resource
+- * @resource: pointer to resource to be changed
+- * @start: start of region
+- * @size: size of region
+- */
+-void pnp_resource_change(struct resource *resource, resource_size_t start,
+-			 resource_size_t size)
+-{
+-	resource->flags &= ~(IORESOURCE_AUTO | IORESOURCE_UNSET);
+-	resource->start = start;
+-	resource->end = start + size - 1;
+-}
+-
+-EXPORT_SYMBOL(pnp_manual_config_dev);
+ EXPORT_SYMBOL(pnp_start_dev);
+ EXPORT_SYMBOL(pnp_stop_dev);
+ EXPORT_SYMBOL(pnp_activate_dev);
+ EXPORT_SYMBOL(pnp_disable_dev);
+-EXPORT_SYMBOL(pnp_resource_change);
+-EXPORT_SYMBOL(pnp_init_resource_table);
+
 -- 
