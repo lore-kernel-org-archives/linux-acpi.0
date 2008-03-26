@@ -1,12 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 3/6] ACPI: fix a regression of ACPI device driver autoloading
-Date: Wed, 26 Mar 2008 01:13:37 -0400
-Message-ID: <5c9fcb5deef4d3a49798d76c48b726d2e3c7df72.1206508358.git.len.brown@intel.com>
+Subject: [PATCH 4/6] ACPI: fix mis-merge -- invoke acpi_unlazy_tlb() only on C3 entry
+Date: Wed, 26 Mar 2008 01:13:38 -0400
+Message-ID: <996520c1fdd2948addb629be56c9febf2967e02b.1206508358.git.len.brown@intel.com>
 References: <1206508420-2755-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga06.intel.com ([134.134.136.21]:44118 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751342AbYCZFVf (ORCPT
+	with ESMTP id S1753018AbYCZFVf (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 01:21:35 -0400
 In-Reply-To: <1206508420-2755-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@intel.com>
@@ -14,71 +14,53 @@ References: <7642d2113098f1270e9f9f0120f44d0035091636.1206508358.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 sets the cid of
-ACPI video/dock/bay device and leaves the hid empty.
-As a result, "modalias" should export the cid for
-devices which don't have a hid.
+This original patch
+http://ussg.iu.edu/hypermail/linux/kernel/0712.2/1451.html
+was intending to add acpi_unlazy_tlb() to acpi_idle_enter_bm(),
+which is used for C3 entry.
 
-ACPI Video driver is not autoloaded with
-commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 applied.
-"cat /sys/.../device:03(acpi video bus)/modalias" shows nothing.
+But it was merged incorrectly as commmit
 
-ACPI Video driver is autoloaded after revert that commit.
-"cat /sys/.../LNXVIDEO:0x/modalias" shows "acpi:LNXVIDEO:"
+bde6f5f59c2b2b48a7a849c129d5b48838fe77ee
+'x86: voluntary leave_mm before entering ACPI C3'
 
-ACPI Video driver is autoloaded with commit
-3620f2f2f39e7870cf1a4fb2e34063a142f28716 and this patch applied.
-"cat /sys/.../device:03(acpi video bus)/modalias"
-shows "acpi:LNXVIDEO:"
+so the call was instead added to acpi_idle_enter_simple()
+(which is C2 entry routine), probably due to identical
+context in that function.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Thomas Renninger <trenn@suse.de>
+Move the call back to acpi_idle_enter_bm().
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/acpi/processor_idle.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 57570ac..e6ce262 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -39,20 +39,26 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
- 			   int size)
- {
- 	int len;
-+	int count;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e8e2d88..1468f1e 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1487,7 +1487,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 		return 0;
+ 	}
  
--	if (!acpi_dev->flags.hardware_id)
-+	if (!acpi_dev->flags.hardware_id && !acpi_dev->flags.compatible_ids)
- 		return -ENODEV;
+-	acpi_unlazy_tlb(smp_processor_id());
+ 	/*
+ 	 * Must be done before busmaster disable as we might need to
+ 	 * access HPET !
+@@ -1577,6 +1576,8 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		return 0;
+ 	}
  
--	len = snprintf(modalias, size, "acpi:%s:",
--		       acpi_dev->pnp.hardware_id);
--	if (len < 0 || len >= size)
--		return -EINVAL;
-+	len = snprintf(modalias, size, "acpi:");
- 	size -= len;
- 
-+	if (acpi_dev->flags.hardware_id) {
-+		count = snprintf(&modalias[len], size, "%s:",
-+				 acpi_dev->pnp.hardware_id);
-+		if (count < 0 || count >= size)
-+			return -EINVAL;
-+		len += count;
-+		size -= count;
-+	}
++	acpi_unlazy_tlb(smp_processor_id());
 +
- 	if (acpi_dev->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list;
- 		int i;
--		int count;
- 
- 		cid_list = acpi_dev->pnp.cid_list;
- 		for (i = 0; i < cid_list->count; i++) {
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	/*
 -- 
 1.5.5.rc1.6.g5cc8f
 
