@@ -1,59 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
-Date: Wed, 26 Mar 2008 02:23:15 +0100
-Message-ID: <200803260223.16847.rjw@sisk.pl>
-References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com> <200803252150.20609.rjw@sisk.pl> <1206493996.14062.0.camel@sli10-desk.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Linux does not use new ACPI 3.0 FADT Fixed Feature Flags
+Date: Tue, 25 Mar 2008 21:26:24 -0400
+Message-ID: <200803252126.24218.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35842 "EHLO ogre.sisk.pl"
+Received: from hera.kernel.org ([140.211.167.34]:46806 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750964AbYCZBXo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 21:23:44 -0400
-In-Reply-To: <1206493996.14062.0.camel@sli10-desk.sh.intel.com>
+	id S1751873AbYCZB0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Mar 2008 21:26:36 -0400
+Received: from t61 (c-98-217-156-34.hsd1.ma.comcast.net [98.217.156.34])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.8) with ESMTP id m2Q1QTSB009013
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 26 Mar 2008 01:26:30 GMT
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, Jeff Garzik <jgarzik@pobox.com>
+To: linux-acpi@vger.kernel.org
 
-On Wednesday, 26 of March 2008, Shaohua Li wrote:
-> 
-> On Tue, 2008-03-25 at 21:50 +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, 25 of March 2008, Shaohua Li wrote:
-> > > I got below log after a S3 resume in a ASUS A6VC laptop. The system has
-> > > only one IDE drive. It appears there is no reason calling _GTF for
-> > > disabled drive.
-> > > 
-> > > ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
-> > > ata2.00: _GTF evaluation failed (AE 0x3006)
-> > > ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
-> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
-> > > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
-> > > ata2.01: _GTF evaluation failed (AE 0x3006)
-> > > 
-> > > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > > 
-> > > diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> > > index bf98a56..7cbf023 100644
-> > > --- a/drivers/ata/libata-acpi.c
-> > > +++ b/drivers/ata/libata-acpi.c
-> > > @@ -839,7 +839,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
-> > >  		 */
-> > >  		ata_link_for_each_dev(dev, &ap->link) {
-> > >  			ata_acpi_clear_gtf(dev);
-> > 
-> > Hmm.  What is the effect of calling ata_acpi_clear_gtf() on a disabled device? 
-> No effect, just free some memory if there is.
+Hmmm,
+While ACPI defines these bits that are new with ACPI 3.0,
+Linux doesn't talk to them yet...
 
-Ah, ok.
-
-I just wondered why not to do "if (!ata_dev_enabled(dev)) continue" in both
-loops.
-
-Thanks,
-Rafael
+#define ACPI_FADT_PCI_EXPRESS_WAKE  (1<<14)     /* 14: System supports PCIEXP_WAKE (STS/EN) bits (ACPI 3.0) */
+#define ACPI_FADT_PLATFORM_CLOCK    (1<<15)     /* 15: OSPM should use platform-provided timer (ACPI 3.0) */
+#define ACPI_FADT_S4_RTC_VALID      (1<<16)     /* 16: Contents of RTC_STS valid after S4 wake (ACPI 3.0) */
+#define ACPI_FADT_REMOTE_POWER_ON   (1<<17)     /* 17: System is compatible with remote power on (ACPI 3.0) */
+#define ACPI_FADT_APIC_CLUSTER      (1<<18)     /* 18: All local APICs must use cluster model (ACPI 3.0) */
+#define ACPI_FADT_APIC_PHYSICAL     (1<<19)     /* 19: All local x_aPICs must use physical dest mode (ACPI 3.0) */
