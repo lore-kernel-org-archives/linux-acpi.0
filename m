@@ -1,78 +1,63 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 03/37] PNP: make pnp_add_id() internal to PNP core
-Date: Wed, 26 Mar 2008 11:11:01 -0600
-Message-ID: <20080326171223.895009251@ldl.fc.hp.com>
+Subject: [patch 01/37] ISAPNP: move config register addresses out of isapnp.h
+Date: Wed, 26 Mar 2008 11:10:59 -0600
+Message-ID: <20080326171223.416343087@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:41038 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758210AbYCZRIa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:30 -0400
-Content-Disposition: inline; filename=pnp-make-pnp_add_id-internal-to-core
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:29091 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756012AbYCZRI0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:26 -0400
+Content-Disposition: inline; filename=isapnp-remove-register-addrs-from-header
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-pnp_add_id() doesn't need to be exposed outside the PNP core, so
-move the declaration to an internal header file.
+These are used only in drivers/pnp/isapnp/core.c, so no need to
+expose them to the world.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work7/include/linux/pnp.h
+Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-21 13:31:06.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-21 13:31:08.000000000 -0600
-@@ -403,7 +403,6 @@
- /* protocol helpers */
- int pnp_is_active(struct pnp_dev *dev);
- int compare_pnp_id(struct pnp_id *pos, const char *id);
--int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
- int pnp_register_driver(struct pnp_driver *drv);
- void pnp_unregister_driver(struct pnp_driver *drv);
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-21 11:52:12.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-21 11:53:24.000000000 -0600
+@@ -88,6 +88,14 @@
+ #define _LTAG_MEM32RANGE	0x85
+ #define _LTAG_FIXEDMEM32RANGE	0x86
  
-@@ -450,7 +449,6 @@
- /* protocol helpers */
- static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
- static inline int compare_pnp_id(struct pnp_id *pos, const char *id) { return -ENODEV; }
--static inline int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_register_driver(struct pnp_driver *drv) { return -ENODEV; }
- static inline void pnp_unregister_driver(struct pnp_driver *drv) { }
- 
-Index: work7/drivers/pnp/base.h
++/* Logical device control and configuration registers */
++
++#define ISAPNP_CFG_ACTIVATE	0x30	/* byte */
++#define ISAPNP_CFG_MEM		0x40	/* 4 * dword */
++#define ISAPNP_CFG_PORT		0x60	/* 8 * word */
++#define ISAPNP_CFG_IRQ		0x70	/* 2 * word */
++#define ISAPNP_CFG_DMA		0x74	/* 2 * byte */
++
+ /*
+  * Sizes of ISAPNP logical device configuration register sets.
+  * See PNP-ISA-v1.0a.pdf, Appendix A.
+Index: work7/include/linux/isapnp.h
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-21 13:31:39.000000000 -0600
-@@ -1,5 +1,6 @@
- extern spinlock_t pnp_lock;
- void *pnp_alloc(long size);
-+int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work7/drivers/pnp/pnpacpi/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:08.000000000 -0600
-@@ -25,6 +25,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/actypes.h>
- 
-+#include "../base.h"
- #include "pnpacpi.h"
- 
- static int num = 0;
-Index: work7/drivers/pnp/pnpbios/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:08.000000000 -0600
-@@ -69,6 +69,7 @@
- #include <asm/system.h>
- #include <asm/byteorder.h>
- 
-+#include "../base.h"
- #include "pnpbios.h"
+--- work7.orig/include/linux/isapnp.h	2008-03-21 11:45:41.000000000 -0600
++++ work7/include/linux/isapnp.h	2008-03-21 11:52:39.000000000 -0600
+@@ -26,16 +26,6 @@
+ #include <linux/pnp.h>
  
  /*
+- *  Configuration registers (TODO: change by specification)
+- */ 
+-
+-#define ISAPNP_CFG_ACTIVATE		0x30	/* byte */
+-#define ISAPNP_CFG_MEM			0x40	/* 4 * dword */
+-#define ISAPNP_CFG_PORT			0x60	/* 8 * word */
+-#define ISAPNP_CFG_IRQ			0x70	/* 2 * word */
+-#define ISAPNP_CFG_DMA			0x74	/* 2 * byte */
+-
+-/*
+  *
+  */
+ 
 
 -- 
