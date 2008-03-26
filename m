@@ -1,70 +1,65 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: some minor issues with 2.6.25-rc6-git7-default
-Date: Wed, 26 Mar 2008 14:04:10 -0700
-Message-ID: <47EABA4A.6030705@oracle.com>
-References: <213384793@web.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/6] ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
+Date: Wed, 26 Mar 2008 22:20:23 +0100
+Message-ID: <200803262220.23533.rjw@sisk.pl>
+References: <1206508420-2755-1-git-send-email-lenb@kernel.org> <d8fcfa43c6f4d4371c17cdcae1770bef74899d73.1206508358.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <213384793@web.de>
-Sender: linux-ide-owner@vger.kernel.org
-To: devzero@web.de
-Cc: Andrew Morton <akpm@linux-foundation.org>, alan@lxorguk.ukuu.org.uk, david-b@pacbell.net, greg@kroah.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:41146 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757565AbYCZVUk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Mar 2008 17:20:40 -0400
+In-Reply-To: <d8fcfa43c6f4d4371c17cdcae1770bef74899d73.1206508358.git.len.brown@intel.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-devzero@web.de wrote:
->> Can you post the full kernel log up to this BUG?
->> It should show that causes the Taint.
+On Wednesday, 26 of March 2008, Len Brown wrote:
+> From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > 
-> oh - yes:
+> This fixes the builtin RTL8139 NIC on the Medion MD9580-F laptop.  The BIOS
+> reports the interrupt routing incorrectly.  I recently added a quirk to work
+> around this, and this patch fixes a typo in the quirk.
 > 
-> Mar 23 09:12:20 opensuse103 kernel: ac97_codec: module license 'unspecified' taints kernel.
+> We pad every ACPI pathname component to four characters, so ".ISA." will never
+> match anything.  We need ".ISA_." instead.
 > 
-> modinfo ac97_codec
-> filename:       /lib/modules/2.6.25-rc6-git7-default/kernel/sound/oss/ac97_codec.ko
-> srcversion:     8665939D5E471F7E331BB3E
-> depends:
-> vermagic:       2.6.25-rc6-git7-default SMP mod_unload 586
+> Thank you Johann-Nikolaus Andreae for patiently testing this patch.
 > 
-> 
-> seems MODULE_LICENSE is missing in ./sound/oss/ac97_codec.c !?
+> See http://bugzilla.kernel.org/show_bug.cgi?id=4773
 
-It was recently removed for some reason.
+This seems to have been applied already:
 
-I get the impression that you (we) should be using ALSA drivers/codecs
-instead of the OSS ones that in the process of being removed.
-
-
->>>>> CCing Dave Brownell.
->>>>>
->>>>>> Mar 23 09:14:23 opensuse103 kernel: Generic RTC Driver v1.07
->>>>>> Mar 23 09:14:23 opensuse103 kernel: proc_dir_entry 'rtc' already registered
->>>>>> Mar 23 09:14:23 opensuse103 kernel: Pid: 3994, comm: modprobe Tainted: P         2.6.25-rc6-git7-default #1
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c019a602>] proc_register+0xf3/0x11f
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c019a719>] create_proc_entry+0x69/0x7b
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<e0c5f02d>] rtc_generic_init+0x2d/0x54 [genrtc]
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c013c1de>] sys_init_module+0x16b6/0x17c9
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c0108a6a>] sys_mmap2+0x62/0x77
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  [<c01059c4>] sysenter_past_esp+0x6d/0xa9
->>>>>> Mar 23 09:14:23 opensuse103 kernel:  =======================
->>>> uh, "known problem": multiple rtc drivers are being run.
->>>>
->>>> I don't really understand why we haven't been able to fix this - there have
->>>> been numerous reports..
->>> i will take a closer look to determine how/when this happens.
->> I thought that David B. sent a (Kconfig ?) patch for this...
->>
->> ---
->> ~Randy
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b97d4803400a4442b0e4ae14d0bd8e83994b9004
+ 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Cc: Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/acpi/pci_irq.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> do you mean this one ?
-> 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=55ff1aba940ff46d4f6d4fd790ea3e1a47aaa84f
-> 
-> ok, it may be sort of "dumb" to blindly load one module after the other but i would expect a more meaningful message.
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index 7af414a..89022a7 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -131,8 +131,8 @@ struct prt_quirk {
+>   */
+>  static struct prt_quirk prt_quirks[] = {
+>  	{ medion_md9580, 0, 0, 9, 'A',
+> -		"\\_SB_.PCI0.ISA.LNKA",
+> -		"\\_SB_.PCI0.ISA.LNKB"},
+> +		"\\_SB_.PCI0.ISA_.LNKA",
+> +		"\\_SB_.PCI0.ISA_.LNKB"},
+>  	{ dell_optiplex, 0, 0, 0xd, 'A',
+>  		"\\_SB_.LNKB",
+>  		"\\_SB_.LNKA"},
 
-No, I meant something else, but I can't find it just now.
-
--- 
-~Randy
+Thanks,
+Rafael
