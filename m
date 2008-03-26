@@ -1,69 +1,49 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch] ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
-Date: Tue, 25 Mar 2008 20:30:06 -0400
-Message-ID: <200803252030.07141.lenb@kernel.org>
-References: <200803251121.13050.bjorn.helgaas@hp.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
+Date: Wed, 26 Mar 2008 09:13:16 +0800
+Message-ID: <1206493996.14062.0.camel@sli10-desk.sh.intel.com>
+References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
+	 <200803252150.20609.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:59908 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753985AbYCZAah (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 20:30:37 -0400
-In-Reply-To: <200803251121.13050.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200803252150.20609.rjw@sisk.pl>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, Jeff Garzik <jgarzik@pobox.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>, Linus Torvalds <torvalds@linux-foundation.org>
 
-applied.
 
-thanks,
--Len
+On Tue, 2008-03-25 at 21:50 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, 25 of March 2008, Shaohua Li wrote:
+> > I got below log after a S3 resume in a ASUS A6VC laptop. The system has
+> > only one IDE drive. It appears there is no reason calling _GTF for
+> > disabled drive.
+> > 
+> > ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
+> > ata2.00: _GTF evaluation failed (AE 0x3006)
+> > ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
+> > ata2.01: _GTF evaluation failed (AE 0x3006)
+> > 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > 
+> > diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> > index bf98a56..7cbf023 100644
+> > --- a/drivers/ata/libata-acpi.c
+> > +++ b/drivers/ata/libata-acpi.c
+> > @@ -839,7 +839,8 @@ void ata_acpi_on_resume(struct ata_port *ap)
+> >  		 */
+> >  		ata_link_for_each_dev(dev, &ap->link) {
+> >  			ata_acpi_clear_gtf(dev);
+> 
+> Hmm.  What is the effect of calling ata_acpi_clear_gtf() on a disabled device? 
+No effect, just free some memory if there is.
 
-On Tuesday 25 March 2008, Bjorn Helgaas wrote:
-> [It would be nice to have this in 2.6.25.  It only affects the
-> builtin NIC on the Medion MD9580-F laptop, which is currently
-> broken due to an IRQ routing problem, and Johann-Nikolaus has
-> verified that this fixes the problem.]
-> 
-> This fixes the builtin RTL8139 NIC on the Medion MD9580-F laptop.
-> The BIOS reports the interrupt routing incorrectly.  I recently
-> added a quirk to work around this, and this patch fixes a typo
-> in the quirk.
-> 
-> We pad every ACPI pathname component to four characters, so ".ISA."
-> will never match anything.  We need ".ISA_." instead.
-> 
-> Thank you Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>
-> for patiently testing this patch.
-> 
-> See http://bugzilla.kernel.org/show_bug.cgi?id=4773
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> Index: work7/drivers/acpi/pci_irq.c
-> ===================================================================
-> --- work7.orig/drivers/acpi/pci_irq.c	2008-03-25 08:51:42.000000000 -0600
-> +++ work7/drivers/acpi/pci_irq.c	2008-03-25 08:52:03.000000000 -0600
-> @@ -131,8 +131,8 @@
->   */
->  static struct prt_quirk prt_quirks[] = {
->  	{ medion_md9580, 0, 0, 9, 'A',
-> -		"\\_SB_.PCI0.ISA.LNKA",
-> -		"\\_SB_.PCI0.ISA.LNKB"},
-> +		"\\_SB_.PCI0.ISA_.LNKA",
-> +		"\\_SB_.PCI0.ISA_.LNKB"},
->  	{ dell_optiplex, 0, 0, 0xd, 'A',
->  		"\\_SB_.LNKB",
->  		"\\_SB_.LNKA"},
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Thanks,
+Shaohua
 
