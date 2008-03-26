@@ -1,53 +1,56 @@
-From: Corentin CHARY <corentincj@iksaif.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Subject: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for 2.6.25-rc6)
-Date: Wed, 26 Mar 2008 16:45:00 +0100
-Message-ID: <200803261645.01343.corentincj@iksaif.net>
+Date: Wed, 26 Mar 2008 09:56:53 -0600
+Message-ID: <200803260956.55804.bjorn.helgaas@hp.com>
 References: <200803180510.47670.lenb@kernel.org> <20080326081653.GA8247@elte.hu> <200803261132.21448.lenb@kernel.org>
-Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:55370 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753342AbYCZPqs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 11:46:48 -0400
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:24143 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757725AbYCZPw6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 11:52:58 -0400
 In-Reply-To: <200803261132.21448.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Cc: Ingo Molnar <mingo@elte.hu>, Corentin CHARY <corentincj@iksaif.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Wednesday 26 March 2008 16:32:20 Len Brown wrote:
+On Wednesday 26 March 2008 09:32:20 am Len Brown wrote:
+> >  /* Here we go */
+> > -#define A1x_PREFIX "\\_SB.PCI0.ISA.EC0."
+> > +#define A1x_PREFIX "\\_SB.PCI0.ISA_.EC0."
+> 
+> From an AML point of view, ISA is just as legal as "ISA_"
+> The NameString paramter to Device() can be 1 to 4 characters.
+> 
 > So if this is correct or not depends on what the BIOS programmer
-> for the Asus A1x choose to write. =A0Perhaps Corentin 'Iksaif' CHARY
+> for the Asus A1x choose to write.  Perhaps Corentin 'Iksaif' CHARY
 > can confirm if the driver is working properly on that system.
 
-Hi,
-Sorry I don't have an A1x to test that, and this was here a long time b=
-efore I start working on acpi4asus.
-But, see that grep :
+I'm curious about how this works.  I disassembled the DSDT from
+http://bugzilla.kernel.org/show_bug.cgi?id=4773 (I attached the disassembly
+at http://bugzilla.kernel.org/attachment.cgi?id=15448&action=view), and
+the _PRT contains "_SB" and "ISA" (no trailing underscores):
 
-chary_c@foo /usr/src/linux/drivers/misc $ grep ISA *
-asus-laptop.c:      "\\_SB.PCI0.ISA.EC0._Q10",  /* A1x */
-thinkpad_acpi.c:IBM_HANDLE(ec, root, "\\_SB.PCI0.ISA.EC0",      /* 240,=
- 240x */
-thinkpad_acpi.c:           "\\_SB.PCI.ISA.EC",  /* 570 */
-thinkpad_acpi.c:           "\\_SB.PCI0.ISA0.EC0",       /* 600e/x, 770e=
-, 770x */
-thinkpad_acpi.c:           "\\_SB.PCI0.ISA.EC", /* A21e, A2xm/p, T20-22=
-, X20-21 */
-thinkpad_acpi.c:           "\\_SB.PCI.ISA.SLCE",        /* 570 */
+                Package (0x04)
+                {
+                    0x000DFFFF, 
+                    0x00, 
+                    \_SB.PCI0.ISA.LNKA, 
+                    0x00
+                }
 
-So it seems to work for thinkpads.
-I think this patch isn't needed.
+But by the time we get to acpi_pci_irq_add_entry(), we've added the
+underscores somewhere (see
+http://bugzilla.kernel.org/attachment.cgi?id=15423&action=view):
 
---=20
-Corentin 'Iksaif' CHARY
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  0000:00:0d[A] -> \_SB_.PCI0.ISA_.LNKA
+
+I don't know where this happens, but it certainly confused me, and
+it seems like it could lead to other bugs.
+
+Bjorn
