@@ -1,197 +1,215 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 34/37] PNP: remove unused interfaces using pnp_resource_table
-Date: Wed, 26 Mar 2008 11:11:32 -0600
-Message-ID: <20080326171230.175280161@ldl.fc.hp.com>
+Subject: [patch 06/37] PNP: add pnp_alloc_dev()
+Date: Wed, 26 Mar 2008 11:11:04 -0600
+Message-ID: <20080326171224.533491378@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:42054 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761287AbYCZRJY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:09:24 -0400
-Content-Disposition: inline; filename=pnp-remove-unused-interfaces
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:8826 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758790AbYCZRIe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:34 -0400
+Content-Disposition: inline; filename=pnp-alloc-dev
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Rene Herman <rene.herman@gmail.com> recently removed the only in-tree
-driver uses of:
-
-    pnp_init_resource_table()
-    pnp_manual_config_dev()
-    pnp_resource_change()
-
-in this change:
-
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=109c53f840e551d6e99ecfd8b0131a968332c89f
-
-These are no longer used in the PNP core either, so we can just remove
-them completely.
-
-It's possible that there are out-of-tree drivers that use these
-interfaces.  They should be changed to either (1) use PNP quirks
-to work around broken hardware or firmware, or (2) use the sysfs
-interfaces to control resource usage from userspace.
+Add pnp_alloc_dev() to allocate a struct pnp_dev and fill in the
+protocol, instance number, and initial PNP ID.  Now it is always
+valid to use dev_printk() on any pnp_dev pointer.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 ---
- drivers/pnp/manager.c |   78 +-------------------------------------------------
- include/linux/pnp.h   |    9 -----
- 2 files changed, 3 insertions(+), 84 deletions(-)
+ drivers/pnp/base.h         |    1 +
+ drivers/pnp/core.c         |   28 +++++++++++++++++++++++++---
+ drivers/pnp/isapnp/core.c  |    9 ++++-----
+ drivers/pnp/pnpacpi/core.c |   19 +++----------------
+ drivers/pnp/pnpbios/core.c |   16 ++++------------
+ 5 files changed, 37 insertions(+), 36 deletions(-)
 
-Index: work7/include/linux/pnp.h
+Index: work7/drivers/pnp/base.h
 ===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-25 14:49:10.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-25 14:49:13.000000000 -0600
-@@ -429,18 +429,14 @@
- int pnp_register_port_resource(struct pnp_option *option,
- 			       struct pnp_port *data);
- int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
--void pnp_init_resource_table(struct pnp_resource_table *table);
- void pnp_init_resources(struct pnp_dev *dev);
--int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
--			  int mode);
- int pnp_auto_config_dev(struct pnp_dev *dev);
- int pnp_validate_config(struct pnp_dev *dev);
- int pnp_start_dev(struct pnp_dev *dev);
- int pnp_stop_dev(struct pnp_dev *dev);
- int pnp_activate_dev(struct pnp_dev *dev);
- int pnp_disable_dev(struct pnp_dev *dev);
--void pnp_resource_change(struct resource *resource, resource_size_t start,
--			 resource_size_t size);
+--- work7.orig/drivers/pnp/base.h	2008-03-26 10:50:28.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-03-26 10:50:36.000000000 -0600
+@@ -1,5 +1,6 @@
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
++struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
+ struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
+ void pnp_fixup_device(struct pnp_dev *dev);
+Index: work7/drivers/pnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/core.c	2008-03-26 10:50:24.000000000 -0600
++++ work7/drivers/pnp/core.c	2008-03-26 10:51:40.000000000 -0600
+@@ -109,6 +109,31 @@
+ 	kfree(dev);
+ }
+ 
++struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *protocol, int id, char *pnpid)
++{
++	struct pnp_dev *dev;
++	struct pnp_id *dev_id;
 +
- 
- /* protocol helpers */
- int pnp_is_active(struct pnp_dev *dev);
-@@ -477,16 +473,13 @@
- static inline int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data) { return -ENODEV; }
- static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
- static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
--static inline void pnp_init_resource_table(struct pnp_resource_table *table) { }
- static inline void pnp_init_resources(struct pnp_dev *dev) { }
--static inline int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
- static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_activate_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_disable_dev(struct pnp_dev *dev) { return -ENODEV; }
--static inline void pnp_resource_change(struct resource *resource, resource_size_t start, resource_size_t size) { }
- 
- /* protocol helpers */
- static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
-Index: work7/drivers/pnp/manager.c
-===================================================================
---- work7.orig/drivers/pnp/manager.c	2008-03-25 14:49:12.000000000 -0600
-+++ work7/drivers/pnp/manager.c	2008-03-25 14:49:13.000000000 -0600
-@@ -216,8 +216,9 @@
-  * pnp_init_resources - Resets a resource table to default values.
-  * @table: pointer to the desired resource table
-  */
--void pnp_init_resource_table(struct pnp_resource_table *table)
-+void pnp_init_resources(struct pnp_dev *dev)
++	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
++	if (!dev)
++		return NULL;
++
++	dev->protocol = protocol;
++	dev->number = id;
++
++	dev->dev.parent = &dev->protocol->dev;
++	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
++		dev->number);
++
++	dev_id = pnp_add_id(dev, pnpid);
++	if (!dev_id) {
++		kfree(dev);
++		return NULL;
++	}
++
++	return dev;
++}
++
+ int __pnp_add_device(struct pnp_dev *dev)
  {
-+	struct pnp_resource_table *table = &dev->res;
- 	int idx;
+ 	int ret;
+@@ -145,9 +170,6 @@
+ 	if (dev->card)
+ 		return -EINVAL;
  
- 	for (idx = 0; idx < PNP_MAX_IRQ; idx++) {
-@@ -250,11 +251,6 @@
- 	}
- }
+-	dev->dev.parent = &dev->protocol->dev;
+-	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
+-		dev->number);
+ 	ret = __pnp_add_device(dev);
+ 	if (ret)
+ 		return ret;
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-26 10:50:30.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-26 10:50:36.000000000 -0600
+@@ -424,17 +424,16 @@
+ 	struct pnp_dev *dev;
  
--void pnp_init_resources(struct pnp_dev *dev)
--{
--	pnp_init_resource_table(&dev->res);
--}
--
- /**
-  * pnp_clean_resources - clears resources that were not manually set
-  * @res: the resources to clean
-@@ -395,59 +391,6 @@
- }
+ 	isapnp_peek(tmp, size);
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
++	isapnp_to_pnpid((tmp[1] << 8) | tmp[0], (tmp[3] << 8) | tmp[2], id);
++
++	dev = pnp_alloc_dev(&isapnp_protocol, number, id);
+ 	if (!dev)
+ 		return NULL;
+-	dev->number = number;
+-	isapnp_to_pnpid((tmp[1] << 8) | tmp[0], (tmp[3] << 8) | tmp[2], id);
+-	pnp_add_id(dev, id);
++
+ 	dev->regs = tmp[4];
+ 	dev->card = card;
+ 	if (size > 5)
+ 		dev->regs |= tmp[5] << 8;
+-	dev->protocol = &isapnp_protocol;
+ 	dev->capabilities |= PNP_CONFIGURABLE;
+ 	dev->capabilities |= PNP_READ;
+ 	dev->capabilities |= PNP_WRITE;
+Index: work7/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-26 10:50:28.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-03-26 10:50:36.000000000 -0600
+@@ -152,7 +152,6 @@
+ {
+ 	acpi_handle temp = NULL;
+ 	acpi_status status;
+-	struct pnp_id *dev_id;
+ 	struct pnp_dev *dev;
  
- /**
-- * pnp_manual_config_dev - Disables Auto Config and Manually sets the resource table
-- * @dev: pointer to the desired device
-- * @res: pointer to the new resource config
-- * @mode: 0 or PNP_CONFIG_FORCE
-- *
-- * This function can be used by drivers that want to manually set thier resources.
-- */
--int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
--			  int mode)
--{
--	int i;
--	struct pnp_resource_table *bak;
--
--	if (!pnp_can_configure(dev))
--		return -ENODEV;
--	bak = pnp_alloc(sizeof(struct pnp_resource_table));
--	if (!bak)
--		return -ENOMEM;
--	*bak = dev->res;
--
--	mutex_lock(&pnp_res_mutex);
--	dev->res = *res;
--	if (!(mode & PNP_CONFIG_FORCE)) {
--		for (i = 0; i < PNP_MAX_PORT; i++) {
--			if (!pnp_check_port(dev, i))
--				goto fail;
--		}
--		for (i = 0; i < PNP_MAX_MEM; i++) {
--			if (!pnp_check_mem(dev, i))
--				goto fail;
--		}
--		for (i = 0; i < PNP_MAX_IRQ; i++) {
--			if (!pnp_check_irq(dev, i))
--				goto fail;
--		}
--		for (i = 0; i < PNP_MAX_DMA; i++) {
--			if (!pnp_check_dma(dev, i))
--				goto fail;
--		}
+ 	status = acpi_get_handle(device->handle, "_CRS", &temp);
+@@ -160,11 +159,10 @@
+ 	    is_exclusive_device(device))
+ 		return 0;
+ 
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-	if (!dev) {
+-		pnp_err("Out of memory");
++	dev = pnp_alloc_dev(&pnpacpi_protocol, num, acpi_device_hid(device));
++	if (!dev)
+ 		return -ENOMEM;
 -	}
--	mutex_unlock(&pnp_res_mutex);
++
+ 	dev->data = device->handle;
+ 	/* .enabled means the device can decode the resources */
+ 	dev->active = device->status.enabled;
+@@ -180,19 +178,11 @@
+ 	if (ACPI_SUCCESS(status))
+ 		dev->capabilities |= PNP_DISABLE;
+ 
+-	dev->protocol = &pnpacpi_protocol;
 -
--	kfree(bak);
--	return 0;
+ 	if (strlen(acpi_device_name(device)))
+ 		strncpy(dev->name, acpi_device_name(device), sizeof(dev->name));
+ 	else
+ 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+ 
+-	dev->number = num;
 -
--fail:
--	dev->res = *bak;
--	mutex_unlock(&pnp_res_mutex);
--	kfree(bak);
+-	dev_id = pnp_add_id(dev, acpi_device_hid(device));
+-	if (!dev_id)
+-		goto err;
+-
+ 	if (dev->active) {
+ 		/* parse allocated resource */
+ 		status = pnpacpi_parse_allocated_resource(device->handle,
+@@ -230,9 +220,6 @@
+ 	num++;
+ 
+ 	return AE_OK;
+-err:
+-	kfree(dev);
 -	return -EINVAL;
--}
--
--/**
-  * pnp_auto_config_dev - automatically assigns resources to a device
-  * @dev: pointer to the desired device
-  */
-@@ -573,24 +516,7 @@
- 	return 0;
  }
  
--/**
-- * pnp_resource_change - change one resource
-- * @resource: pointer to resource to be changed
-- * @start: start of region
-- * @size: size of region
-- */
--void pnp_resource_change(struct resource *resource, resource_size_t start,
--			 resource_size_t size)
--{
--	resource->flags &= ~(IORESOURCE_AUTO | IORESOURCE_UNSET);
--	resource->start = start;
--	resource->end = start + size - 1;
--}
+ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+Index: work7/drivers/pnp/pnpbios/core.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-26 10:50:28.000000000 -0600
++++ work7/drivers/pnp/pnpbios/core.c	2008-03-26 10:50:36.000000000 -0600
+@@ -318,7 +318,6 @@
+ {
+ 	struct list_head *pos;
+ 	struct pnp_dev *dev;
+-	struct pnp_id *dev_id;
+ 	char id[8];
+ 
+ 	/* check if the device is already added */
+@@ -328,18 +327,12 @@
+ 			return -1;
+ 	}
+ 
+-	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-	if (!dev)
+-		return -1;
 -
--EXPORT_SYMBOL(pnp_manual_config_dev);
- EXPORT_SYMBOL(pnp_start_dev);
- EXPORT_SYMBOL(pnp_stop_dev);
- EXPORT_SYMBOL(pnp_activate_dev);
- EXPORT_SYMBOL(pnp_disable_dev);
--EXPORT_SYMBOL(pnp_resource_change);
--EXPORT_SYMBOL(pnp_init_resource_table);
+ 	pnpid32_to_pnpid(node->eisa_id, id);
+-	dev_id = pnp_add_id(dev, id);
+-	if (!dev_id) {
+-		kfree(dev);
+-		return -1;
+-	}
+ 
+-	dev->number = node->handle;
++	dev = pnp_alloc_dev(&pnpbios_protocol, node->handle, id);
++	if (!dev)
++		return -ENOMEM;
++
+ 	pnpbios_parse_data_stream(dev, node);
+ 	dev->active = pnp_is_active(dev);
+ 	dev->flags = node->flags;
+@@ -352,7 +345,6 @@
+ 		dev->capabilities |= PNP_WRITE;
+ 	if (dev->flags & PNPBIOS_REMOVABLE)
+ 		dev->capabilities |= PNP_REMOVABLE;
+-	dev->protocol = &pnpbios_protocol;
+ 
+ 	/* clear out the damaged flags */
+ 	if (!dev->active)
 
 -- 
