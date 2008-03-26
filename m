@@ -1,55 +1,88 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 07/37] PNP: make pnp_add_card_id() internal to PNP core
-Date: Wed, 26 Mar 2008 11:11:05 -0600
-Message-ID: <20080326171224.735317134@ldl.fc.hp.com>
+Subject: [patch 05/37] ISAPNP: pull pnp_add_id() out of isapnp_parse_id()
+Date: Wed, 26 Mar 2008 11:11:03 -0600
+Message-ID: <20080326171224.311103555@ldl.fc.hp.com>
 References: <20080326171058.099442579@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:25995 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758887AbYCZRIf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:35 -0400
-Content-Disposition: inline; filename=pnp-make-pnp_add_card_id-internal-to-core
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:21887 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758413AbYCZRIc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 13:08:32 -0400
+Content-Disposition: inline; filename=isapnp-restructure-parse-id
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-pnp_add_card_id() doesn't need to be exposed outside the PNP core, so
-move the declaration to an internal header file.
+Split the pnp_add_id() part from the PNPID conversion part so we
+can move the initial add_id() into the pnp_dev allocation.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work7/drivers/pnp/base.h
+Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-25 14:16:35.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-25 14:18:52.000000000 -0600
-@@ -2,6 +2,7 @@
- void *pnp_alloc(long size);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
-+int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work7/include/linux/pnp.h
-===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-25 14:15:54.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-25 14:16:31.000000000 -0600
-@@ -371,7 +371,6 @@
- void pnp_remove_card(struct pnp_card *card);
- int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
- void pnp_remove_card_device(struct pnp_dev *dev);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
- struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
- 					const char *id, struct pnp_dev *from);
- void pnp_release_card_device(struct pnp_dev *dev);
-@@ -423,7 +422,6 @@
- static inline void pnp_remove_card(struct pnp_card *card) { }
- static inline int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev) { return -ENODEV; }
- static inline void pnp_remove_card_device(struct pnp_dev *dev) { }
--static inline int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card) { return -ENODEV; }
- static inline struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink, const char *id, struct pnp_dev *from) { return NULL; }
- static inline void pnp_release_card_device(struct pnp_dev *dev) { }
- static inline int pnp_register_card_driver(struct pnp_card_driver *drv) { return -ENODEV; }
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-21 15:31:25.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-21 15:32:15.000000000 -0600
+@@ -400,11 +400,9 @@
+ /*
+  *  Parse EISA id.
+  */
+-static void isapnp_parse_id(struct pnp_dev *dev, unsigned short vendor,
+-			    unsigned short device)
++static void isapnp_to_pnpid(unsigned short vendor, unsigned short device,
++			    char *id)
+ {
+-	char id[8];
+-
+ 	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
+ 	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
+ 	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
+@@ -413,8 +411,6 @@
+ 	id[5] = '0' + ((device >> 12) & 0x0f);
+ 	id[6] = '0' + ((device >> 8) & 0x0f);
+ 	id[7] = '\0';
+-
+-	pnp_add_id(dev, id);
+ }
+ 
+ /*
+@@ -424,6 +420,7 @@
+ 						  int size, int number)
+ {
+ 	unsigned char tmp[6];
++	char id[8];
+ 	struct pnp_dev *dev;
+ 
+ 	isapnp_peek(tmp, size);
+@@ -431,7 +428,8 @@
+ 	if (!dev)
+ 		return NULL;
+ 	dev->number = number;
+-	isapnp_parse_id(dev, (tmp[1] << 8) | tmp[0], (tmp[3] << 8) | tmp[2]);
++	isapnp_to_pnpid((tmp[1] << 8) | tmp[0], (tmp[3] << 8) | tmp[2], id);
++	pnp_add_id(dev, id);
+ 	dev->regs = tmp[4];
+ 	dev->card = card;
+ 	if (size > 5)
+@@ -621,6 +619,7 @@
+ 	unsigned char type, tmp[17];
+ 	struct pnp_option *option;
+ 	struct pnp_dev *dev;
++	char id[8];
+ 
+ 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
+ 		return 1;
+@@ -660,8 +659,9 @@
+ 		case _STAG_COMPATDEVID:
+ 			if (size == 4 && compat < DEVICE_COUNT_COMPATIBLE) {
+ 				isapnp_peek(tmp, 4);
+-				isapnp_parse_id(dev, (tmp[1] << 8) | tmp[0],
+-						(tmp[3] << 8) | tmp[2]);
++				isapnp_to_pnpid((tmp[1] << 8) | tmp[0],
++						(tmp[3] << 8) | tmp[2], id);
++				pnp_add_id(dev, id);
+ 				compat++;
+ 				size = 0;
+ 			}
 
 -- 
