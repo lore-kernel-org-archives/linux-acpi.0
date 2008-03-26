@@ -1,84 +1,115 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH] Force acpi_new_pts_ordering for ASUS A6VC laptop
-Date: Wed, 26 Mar 2008 09:41:01 +0800
-Message-ID: <1206495661.14062.3.camel@sli10-desk.sh.intel.com>
-References: <1206434857.23794.8.camel@sli10-desk.sh.intel.com>
-	 <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: fix a regression of ACPI device driver autoloading
+Date: Tue, 25 Mar 2008 22:49:01 -0400
+Message-ID: <200803252249.01693.lenb@kernel.org>
+References: <1206002432.3171.90.camel@acpi-hp-zz.sh.intel.com> <1206008865.21619.319.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9761 "EHLO mga11.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:41332 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761572AbYCZBkz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Mar 2008 21:40:55 -0400
-In-Reply-To: <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com>
+	id S1753495AbYCZEgM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Mar 2008 00:36:12 -0400
+In-Reply-To: <1206008865.21619.319.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: trenn@suse.de
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, kasievers@novell.com, fseidel@suse.de, "Brown, Len" <len.brown@intel.com>
 
+applied
 
-On Tue, 2008-03-25 at 09:24 +0000, Carlos Corbacho wrote:
-> > +static int __init asus_suspend_order(const struct dmi_system_id *d)
-> > +{
-> > +	printk(KERN_WARNING PREFIX "%s detected, "
-> > +		"acpi_new_pts_ordering is force enabled\n", d->ident);
-> > +	new_pts_ordering = true;
-> > +	return 0;
+thanks,
+-Len
+
+On Thursday 20 March 2008, Thomas Renninger wrote:
+> On Thu, 2008-03-20 at 16:40 +0800, Zhang, Rui wrote:
+> > From: Zhang Rui <rui.zhang@intel.com>
+> > 
+> > Fix a regression of ACPI driver autoloading.
+> Good catch.
+> Patch looks correct.
+> This should still be 2.6.25 material?
 > 
-> Given all you're doing here is just changing the ordering,
-> 'asus_suspend_order' doesn't strike me as the right name for this function
-> since:
+> > commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 sets the cid of
+> > ACPI video/dock/bay device and leaves the hid empty.
+> > As a result, "modalias" should export the cid for
+> > devices which don't have a hid.
+> > 
+> > ACPI Video driver is not autoloaded with
+> > commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 applied.
+> > "cat /sys/.../device:03(acpi video bus)/modalias" shows nothing.
+> > 
+> > ACPI Video driver is autoloaded after revert that commit.
+> > "cat /sys/.../LNXVIDEO:0x/modalias" shows "acpi:LNXVIDEO:"
+> > 
+> > ACPI Video driver is autoloaded with commit
+> > 3620f2f2f39e7870cf1a4fb2e34063a142f28716 and this patch applied.
+> > "cat /sys/.../device:03(acpi video bus)/modalias"
+> > shows "acpi:LNXVIDEO:"
+> > 
+> > CC: Thomas Renninger <trenn@novell.com>
+> > CC: Kay Sievers <kasievers@novell.com>
+> > CC: Frank Seidel <fseidel@suse.de>
+> > CC: Len Brown: <len.brown@intel.com>
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > 
-> 1) This clearly isn't the case for all Asus boards.
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
 > 
-> 2) Perhaps something like 'new_suspend_order' would be a better name for
-> this function (e.g. if others want to use DMI to do this for non-Asus
-> boards).
-Makes sense. I changed it.
-
-On Asus A6VC laptop, PCI config space read of slot 01:01.* after ACPI
-_PTS is exectued always returns 0xFFFFFFFF.  Force _PTS is executed
-after suspending devices
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index d2f71a5..4dded01 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -272,12 +272,31 @@ static int __init init_ints_after_s1(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+/*
-+ * Laptop needs _PTS is executed after suspending devices. 
-+ * Asus A6VC - PCI config read of slot 01:01.* after _PTS returns 0xFFFFFFFF.
-+ */
-+static int __init new_suspend_order(const struct dmi_system_id *d)
-+{
-+	printk(KERN_WARNING PREFIX "%s detected, "
-+		"acpi_new_pts_ordering is force enabled\n", d->ident);
-+	new_pts_ordering = true;
-+	return 0;
-+}
-+
- static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 	{
- 	 .callback = init_ints_after_s1,
- 	 .ident = "Toshiba Satellite 4030cdt",
- 	 .matches = {DMI_MATCH(DMI_PRODUCT_NAME, "S4030CDT/4.3"),},
- 	 },
-+	{
-+	 .callback = new_suspend_order,
-+	 .ident = "Asus A6VC",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "A6VC"),},
-+	 },
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+> Thanks,
+> 
+>     Thomas
+> > 
+> > ---
+> >  drivers/acpi/scan.c |   18 ++++++++++++------
+> >  1 file changed, 12 insertions(+), 6 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/scan.c
+> > +++ linux-2.6/drivers/acpi/scan.c
+> > @@ -39,20 +39,26 @@ static int create_modalias(struct acpi_d
+> >  			   int size)
+> >  {
+> >  	int len;
+> > +	int count;
+> >  
+> > -	if (!acpi_dev->flags.hardware_id)
+> > +	if (!acpi_dev->flags.hardware_id && !acpi_dev->flags.compatible_ids)
+> >  		return -ENODEV;
+> >  
+> > -	len = snprintf(modalias, size, "acpi:%s:",
+> > -		       acpi_dev->pnp.hardware_id);
+> > -	if (len < 0 || len >= size)
+> > -		return -EINVAL;
+> > +	len = snprintf(modalias, size, "acpi:");
+> >  	size -= len;
+> >  
+> > +	if (acpi_dev->flags.hardware_id) {
+> > +		count = snprintf(&modalias[len], size, "%s:",
+> > +				 acpi_dev->pnp.hardware_id);
+> > +		if (count < 0 || count >= size)
+> > +			return -EINVAL;
+> > +		len += count;
+> > +		size -= count;
+> > +	}
+> > +
+> >  	if (acpi_dev->flags.compatible_ids) {
+> >  		struct acpi_compatible_id_list *cid_list;
+> >  		int i;
+> > -		int count;
+> >  
+> >  		cid_list = acpi_dev->pnp.cid_list;
+> >  		for (i = 0; i < cid_list->count; i++) {
+> > 
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
