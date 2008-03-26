@@ -1,249 +1,57 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH, RFC] Create 'slot' sysfs
-	attributein/sys/devices/system/cpu/cpuN/topology/
-Date: Wed, 26 Mar 2008 12:59:12 -0600
-Message-ID: <20080326185912.GA30749@ldl.fc.hp.com>
-References: <20080310222735.GA22619@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECCBFA9D@orsmsx424.amr.corp.intel.com> <20080319233140.GD16237@ldl.fc.hp.com> <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for 2.6.25-rc6)
+Date: Wed, 26 Mar 2008 22:21:42 +0300
+Message-ID: <47EAA246.3050707@gmail.com>
+References: <200803180510.47670.lenb@kernel.org> <200803260956.55804.bjorn.helgaas@hp.com> <47EA86D9.7040404@gmail.com> <200803261247.31531.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1FE6DD409037234FAB833C420AA843ECE13C6E@orsmsx424.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: lenb@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fk-out-0910.google.com ([209.85.128.191]:23824 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753556AbYCZTVu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2008 15:21:50 -0400
+Received: by fk-out-0910.google.com with SMTP id 19so4894237fkr.5
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Mar 2008 12:21:47 -0700 (PDT)
+In-Reply-To: <200803261247.31531.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Corentin CHARY <corentincj@iksaif.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Hi Tony,
-
-* Luck, Tony <tony.luck@intel.com>:
-> +	if (ACPI_SUCCESS(acpi_get_handle(pr->handle, "_SUN", &handle))) {
-> +		status = acpi_evaluate_object(pr->handle,
-> +						"_SUN", NULL, &buffer);
-> +		if (ACPI_FAILURE(status))
-> +			object.integer.value = -1;
-> +	} else {
-> +		object.integer.value = -1;
-> +	}
-> +	arch_set_topology_slot(pr->id, object.integer.value);
-> +
->  	if (!object.processor.pblk_address)
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
->  	else if (object.processor.pblk_length != 6)
-> 
-> I'm still seeing these messages:
-> 
->  "ACPI: Invalid PBLK length [0]"
-> 
-> for every cpu.  Presumably because "object" is a union and when
-> you did the "object.integer.value = -1;" you scribbled on some bits
-> that were needed in the subsequent code.
-
-Yes, you're right. Sorry about the sloppy code.
-
-Here is v3. I've verified that:
-
-	- it's benign on tiger (does not create errors/console
-	  noise). You'll still see the -1 if you cat
-	  /sys/devices/system/cpu/cpuN/topology/slot, but you
-	  would also get the -1 if you cat physical_package_id
-
-	- it does the right thing on platforms that do supply
-	  _SUN for processor objects. On my rx2600,
-	  physical_package_id is -1, but I get valid values for
-	  'slot' now.
-
-Thanks.
-
-/ac
-
-Subject: [PATCH] Create 'slot' sysfs attribute in /sys/devices/system/cpu/cpuN/topology/
-From: Alex Chiang <achiang@hp.com>
-
-/sys/devices/system/cpu/cpuN/topology/physical_package_id exists,
-but may contain incorrect information, especially on older ia64
-platforms that do not have modern firmware.
-
-Create a 'slot' attribute and define an interface that may be
-populated via alternate sources, without breaking existing
-functionality.
-
-Implement this interface on ia64 by invoking the _SUN method on a
-per cpu basis.
-
-Leave other archs alone for now.
-
-v2 -> v3:
-	- Stop stomping on existing PBLK in the event of _SUN failure
-
-v1 -> v2:
-	- Check for _SUN object on CPU before blindly attempting
-	  to call it
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
- arch/ia64/kernel/setup.c      |    1 +
- arch/ia64/kernel/topology.c   |    6 ++++++
- drivers/acpi/processor_core.c |    8 ++++++++
- drivers/base/topology.c       |    9 +++++++++
- include/asm-ia64/cpu.h        |    1 +
- include/asm-ia64/processor.h  |    7 ++++++-
- include/asm-ia64/topology.h   |    3 +++
- include/asm-x86/topology.h    |    2 ++
- 8 files changed, 36 insertions(+), 1 deletions(-)
-
-diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
-index 4aa9eae..228d960 100644
---- a/arch/ia64/kernel/setup.c
-+++ b/arch/ia64/kernel/setup.c
-@@ -735,6 +735,7 @@ identify_cpu (struct cpuinfo_ia64 *c)
- 	 */
- 	c->threads_per_core = c->cores_per_socket = c->num_log = 1;
- 	c->socket_id = -1;
-+	c->slot = -1;
- 
- 	identify_siblings(c);
- 
-diff --git a/arch/ia64/kernel/topology.c b/arch/ia64/kernel/topology.c
-index a2484fc..512de14 100644
---- a/arch/ia64/kernel/topology.c
-+++ b/arch/ia64/kernel/topology.c
-@@ -27,6 +27,12 @@
- 
- static struct ia64_cpu *sysfs_cpus;
- 
-+void ia64_set_topology_slot(int num, u32 slot)
-+{
-+	cpu_data(num)->slot = slot;
-+}
-+EXPORT_SYMBOL_GPL(ia64_set_topology_slot);
-+
- int arch_register_cpu(int num)
- {
- #if defined (CONFIG_ACPI) && defined (CONFIG_HOTPLUG_CPU)
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 36a68fa..a3a740d 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -612,6 +612,14 @@ static int acpi_processor_get_info(struct acpi_processor *pr, unsigned has_uid)
- 		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
- 	}
- 
-+	/*
-+	 * If ACPI describes a slot number for this CPU, let's fill it in
-+	 */
-+	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
-+	if (ACPI_FAILURE(status))
-+		object.integer.value = -1;
-+	arch_set_topology_slot(pr->id, object.integer.value);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/base/topology.c b/drivers/base/topology.c
-index e1d3ad4..4fcffca 100644
---- a/drivers/base/topology.c
-+++ b/drivers/base/topology.c
-@@ -57,6 +57,14 @@ define_one_ro(physical_package_id);
- #define ref_physical_package_id_attr
- #endif
- 
-+#ifdef	topology_slot
-+define_id_show_func(slot);
-+define_one_ro(slot);
-+#define ref_slot_attr			&attr_slot.attr,
-+#else
-+#define ref_slot_attr
-+#endif
-+
- #ifdef topology_core_id
- define_id_show_func(core_id);
- define_one_ro(core_id);
-@@ -83,6 +91,7 @@ define_one_ro(core_siblings);
- 
- static struct attribute *default_attrs[] = {
- 	ref_physical_package_id_attr
-+	ref_slot_attr
- 	ref_core_id_attr
- 	ref_thread_siblings_attr
- 	ref_core_siblings_attr
-diff --git a/include/asm-ia64/cpu.h b/include/asm-ia64/cpu.h
-index e87fa32..393e545 100644
---- a/include/asm-ia64/cpu.h
-+++ b/include/asm-ia64/cpu.h
-@@ -14,6 +14,7 @@ DECLARE_PER_CPU(struct ia64_cpu, cpu_devices);
- 
- DECLARE_PER_CPU(int, cpu_state);
- 
-+extern void arch_set_topology_slot(int num, u32 slot);
- extern int arch_register_cpu(int num);
- #ifdef CONFIG_HOTPLUG_CPU
- extern void arch_unregister_cpu(int);
-diff --git a/include/asm-ia64/processor.h b/include/asm-ia64/processor.h
-index 741f7ec..066553c 100644
---- a/include/asm-ia64/processor.h
-+++ b/include/asm-ia64/processor.h
-@@ -125,6 +125,10 @@ struct ia64_psr {
-  */
- struct cpuinfo_ia64 {
- 	__u32 softirq_pending;
-+
-+#ifdef CONFIG_SMP
-+	int cpu;
-+#endif
- 	__u64 itm_delta;	/* # of clock cycles between clock ticks */
- 	__u64 itm_next;		/* interval timer mask value to use for next clock tick */
- 	__u64 nsec_per_cyc;	/* (1000000000<<IA64_NSEC_PER_CYC_SHIFT)/itc_freq */
-@@ -140,7 +144,6 @@ struct cpuinfo_ia64 {
- 
- #ifdef CONFIG_SMP
- 	__u64 loops_per_jiffy;
--	int cpu;
- 	__u32 socket_id;	/* physical processor socket id */
- 	__u16 core_id;		/* core id */
- 	__u16 thread_id;	/* thread id */
-@@ -150,6 +153,8 @@ struct cpuinfo_ia64 {
- 	__u8  threads_per_core;	/* Threads per core */
- #endif
- 
-+	__u32 slot;		/* physical slot; can differ from socket_id */
-+
- 	/* CPUID-derived information: */
- 	__u64 ppn;
- 	__u64 features;
-diff --git a/include/asm-ia64/topology.h b/include/asm-ia64/topology.h
-index 2d67b72..f986693 100644
---- a/include/asm-ia64/topology.h
-+++ b/include/asm-ia64/topology.h
-@@ -110,12 +110,15 @@ void build_cpu_to_node_map(void);
- 
- #ifdef CONFIG_SMP
- #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
-+#define topology_slot(cpu)			(cpu_data(cpu)->slot)
- #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
- #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
- #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #define smt_capable() 				(smp_num_siblings > 1)
- #endif
- 
-+#define arch_set_topology_slot(num, slot)	ia64_set_topology_slot(num,slot)
-+
- #include <asm-generic/topology.h>
- 
- #endif /* _ASM_IA64_TOPOLOGY_H */
-diff --git a/include/asm-x86/topology.h b/include/asm-x86/topology.h
-index 8af05a9..d4c922c 100644
---- a/include/asm-x86/topology.h
-+++ b/include/asm-x86/topology.h
-@@ -180,6 +180,8 @@ extern cpumask_t cpu_coregroup_map(int cpu);
- #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #endif
- 
-+#define arch_set_topology_slot(num, slot)
-+
- #ifdef CONFIG_SMP
- #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
- #define smt_capable()			(smp_num_siblings > 1)
--- 
-1.5.3.1.g1e61
-
+Bjorn Helgaas wrote:
+> On Wednesday 26 March 2008 11:24:41 am Alexey Starikovskiy wrote:
+>   
+>> Bjorn Helgaas wrote:
+>>     
+>>> I'm curious about how this works.  I disassembled the DSDT from
+>>> http://bugzilla.kernel.org/show_bug.cgi?id=4773 (I attached the disassembly
+>>> at http://bugzilla.kernel.org/attachment.cgi?id=15448&action=view), and
+>>> the _PRT contains "_SB" and "ISA" (no trailing underscores):
+>>>
+>>>                 Package (0x04)
+>>>                 {
+>>>                     0x000DFFFF, 
+>>>                     0x00, 
+>>>                     \_SB.PCI0.ISA.LNKA, 
+>>>                     0x00
+>>>                 }
+>>>
+>>> But by the time we get to acpi_pci_irq_add_entry(), we've added the
+>>> underscores somewhere (see
+>>> http://bugzilla.kernel.org/attachment.cgi?id=15423&action=view):
+>>>
+>>>   0000:00:0d[A] -> \_SB_.PCI0.ISA_.LNKA
+>>>
+>>> I don't know where this happens, but it certainly confused me, and
+>>> it seems like it could lead to other bugs.
+>>>   
+>>>       
+>> ACPI is supposed to add trailing underscore for pad all names to 4 bytes.
+>> So ISA will be padded to ISA_.
+>>     
+>
+> The questions are "where does this happen?" and "why does it not
+> apply to other things like asus_acpi.c?"
+>   
+1. drivers/acpi/namespace/nsutils.c:419
