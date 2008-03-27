@@ -1,41 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: acpi_ps_execute_method OOPS (Re: some minor issues with 2.6.25-rc6-git7-default)
-Date: Thu, 27 Mar 2008 22:08:52 +0100
-Message-ID: <200803272208.53274.rjw@sisk.pl>
-References: <215112960@web.de>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: some minor issues with 2.6.25-rc6-git7-default
+Date: Thu, 27 Mar 2008 14:18:44 -0700
+Message-ID: <200803271418.44944.david-b@pacbell.net>
+References: <212011377@web.de> <200803271222.41579.david-b@pacbell.net> <20080327134150.5f79dc0b.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47231 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752775AbYC0VJE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 17:09:04 -0400
-In-Reply-To: <215112960@web.de>
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:32547 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758984AbYC0VTO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Mar 2008 17:19:14 -0400
+In-Reply-To: <20080327134150.5f79dc0b.akpm@linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: devzero@web.de
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mtd@lists.infradead.org, rjw@sisk.pl, devzero@web.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, greg@kroah.com, linux-ide@vger.kernel.org, alan@lxorguk.ukuu.org.uk
 
-On Thursday, 27 of March 2008, devzero@web.de wrote:
-> > On Tuesday 25 March 2008, devzero@web.de wrote:
-> > ...
-> > > this one looks more serious (happened with modprobe -r ac),
-> > > because kernel has problems afterwards (cannot load/anload any other module afterwards) 
-> > 
-> > any idea when this started happening?
-> > Any chance you can snag the output from acpidump
-> > and attach it to a sighting here?:
-> > http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-> > 
-> > thanks,
-> > -Len
-> 
-> i searched into this and found that it only happens after modprobe netsc520 ;modprobe -r netsc520.
-> so maybe this is no acpi problem at all but corruption (sort of?) introduced by netsc520 module !?
+On Thursday 27 March 2008, Andrew Morton wrote:
+>=20
+> > And there's a regression in mtd/maps/phsymap.c which should
+> > be resolved before 2.6.25 ships ... on some platforms it
+> > newly likes to oops on reboot.
+>=20
+> I don't appear to have anything which touches physmap.c here.
+>=20
+> > I don't have a URL for that patch, but ISTR it's been
+> > posted both to LKML and to linux-MTD. =A0(That doesn't
+> > include less-good versions I've seen too.) =A0If needed,
+> > I can dig it up, but I've been thinking this should have
+> > a signoff from MTD folk.
+>=20
+> Yes, please dig it out and let's look at it.
 
-What CPU/chipset is this?
+Posted 13-March, but it wasn't quite new then:
 
-Rafael
+  http://marc.info/?l=3Dlinux-kernel&m=3D120542496625709&w=3D2
+
+I'll forward it again.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
