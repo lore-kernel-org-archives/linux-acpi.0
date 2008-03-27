@@ -1,149 +1,243 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for 2.6.25-rc6)
-Date: Thu, 27 Mar 2008 01:28:32 -0400
-Message-ID: <200803270128.33013.lenb@kernel.org>
-References: <200803261400.22662.lenb@kernel.org> <B28E9812BAF6E2498B7EC5C427F293A4048009DF@orsmsx415.amr.corp.intel.com>
+Subject: Re: + drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch added to -mm tree
+Date: Thu, 27 Mar 2008 01:49:49 -0400
+Message-ID: <200803270149.50021.lenb@kernel.org>
+References: <200803252244.m2PMiHgd017400@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56901 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36708 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508AbYC0F2y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 01:28:54 -0400
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4048009DF@orsmsx415.amr.corp.intel.com>
+	id S1752633AbYC0FuQ (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
+	Thu, 27 Mar 2008 01:50:16 -0400
+In-Reply-To: <200803252244.m2PMiHgd017400@imap1.linux-foundation.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, linux-acpi@vger.kernel.org
-Cc: aystarik@gmail.com, "Lin, Ming M" <ming.m.lin@intel.com>
+To: akpm@linux-foundation.org, Linux-acpi@vger.kernel.org
+Cc: mm-commits@vger.kernel.org, julia@diku.dk
 
-Bob,
-Wouldn't it be less confusing if the dis-assembler
-also adding the trailing underscores to match what
-is actually done by the interpreter?
+applied.
 
 thanks,
 -Len
 
-On Wednesday 26 March 2008, Moore, Robert wrote:
-> References, ACPI specification 3.0b:
+On Tuesday 25 March 2008, akpm@linux-foundation.org wrote:
 > 
+> The patch titled
+>      drivers/acpi: elide a non-zero test on a result that is never 0
+> has been added to the -mm tree.  Its filename is
+>      drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
 > 
-> 5.3  ACPI Namespace 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
 > 
-> By convention, when an ASL compiler pads a name shorter than 4
-> characters, it is done so with trailing underscores ('_'). See the
-> language definition for AML NameSeg in Section 16, "ACPI Source Language
-> Reference."
+> *** Remember to use Documentation/SubmitChecklist when testing your code ***
 > 
-> (Reference should point to section 18, AML reference)
+> See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+> out what to do about this
 > 
+> The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+> 
+> ------------------------------------------------------
+> Subject: drivers/acpi: elide a non-zero test on a result that is never 0
+> From: Julia Lawall <julia@diku.dk>
+> 
+> The function thermal_cooling_device_register always returns either a valid
+> pointer or a value made with ERR_PTR, so a test for non-zero on the result
+> will always succeed.
+> 
+> The problem was found using the following semantic match.
+> (http://www.emn.fr/x-info/coccinelle/)
+> 
+> //<smpl>
+> @a@
+> expression E, E1;
+> statement S,S1;
+> position p;
+> @@
+> 
+> E = thermal_cooling_device_register(...)
+> ... when != E = E1
+> if@p (E) S else S1
+> 
+> @n@
+> position a.p;
+> expression E,E1;
+> statement S,S1;
+> @@
+> 
+> E = NULL
+> ... when != E = E1
+> if@p (E) S else S1
+> 
+> @depends on !n@
+> expression E;
+> statement S,S1;
+> position a.p;
+> @@
+> 
+> * if@p (E)
+>   S else S1
+> //</smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/acpi/fan.c            |   34 +++++++++++++++-----------------
+>  drivers/acpi/processor_core.c |   30 +++++++++++++---------------
+>  drivers/acpi/video.c          |   28 ++++++++++++--------------
+>  3 files changed, 43 insertions(+), 49 deletions(-)
+> 
+> diff -puN drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/fan.c
+> --- a/drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
+> +++ a/drivers/acpi/fan.c
+> @@ -260,24 +260,22 @@ static int acpi_fan_add(struct acpi_devi
+>  		result = PTR_ERR(cdev);
+>  		goto end;
+>  	}
+> -	if (cdev) {
+> -		printk(KERN_INFO PREFIX
+> -			"%s is registered as cooling_device%d\n",
+> -			device->dev.bus_id, cdev->id);
+> -
+> -		acpi_driver_data(device) = cdev;
+> -		result = sysfs_create_link(&device->dev.kobj,
+> -					   &cdev->device.kobj,
+> -					   "thermal_cooling");
+> -		if (result)
+> -			return result;
+> -
+> -		result = sysfs_create_link(&cdev->device.kobj,
+> -					   &device->dev.kobj,
+> -					   "device");
+> -		if (result)
+> -			return result;
+> -	}
+> +	printk(KERN_INFO PREFIX
+> +		"%s is registered as cooling_device%d\n",
+> +		device->dev.bus_id, cdev->id);
+> +
+> +	acpi_driver_data(device) = cdev;
+> +	result = sysfs_create_link(&device->dev.kobj,
+> +				   &cdev->device.kobj,
+> +				   "thermal_cooling");
+> +	if (result)
+> +		return result;
+> +
+> +	result = sysfs_create_link(&cdev->device.kobj,
+> +				   &device->dev.kobj,
+> +				   "device");
+> +	if (result)
+> +		return result;
 >  
+>  	result = acpi_fan_add_fs(device);
+>  	if (result)
+> diff -puN drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/processor_core.c
+> --- a/drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
+> +++ a/drivers/acpi/processor_core.c
+> @@ -674,22 +674,20 @@ static int __cpuinit acpi_processor_star
+>  		result = PTR_ERR(pr->cdev);
+>  		goto end;
+>  	}
+> -	if (pr->cdev) {
+> -		printk(KERN_INFO PREFIX
+> -			"%s is registered as cooling_device%d\n",
+> -			device->dev.bus_id, pr->cdev->id);
+> -
+> -		result = sysfs_create_link(&device->dev.kobj,
+> -					   &pr->cdev->device.kobj,
+> -					   "thermal_cooling");
+> -		if (result)
+> -			return result;
+> -		result = sysfs_create_link(&pr->cdev->device.kobj,
+> -					   &device->dev.kobj,
+> -					   "device");
+> -		if (result)
+> -			return result;
+> -	}
+> +	printk(KERN_INFO PREFIX
+> +		"%s is registered as cooling_device%d\n",
+> +		device->dev.bus_id, pr->cdev->id);
+> +
+> +	result = sysfs_create_link(&device->dev.kobj,
+> +				   &pr->cdev->device.kobj,
+> +				   "thermal_cooling");
+> +	if (result)
+> +		return result;
+> +	result = sysfs_create_link(&pr->cdev->device.kobj,
+> +				   &device->dev.kobj,
+> +				   "device");
+> +	if (result)
+> +		return result;
+>  
+>  	if (pr->flags.throttling) {
+>  		printk(KERN_INFO PREFIX "%s [%s] (supports",
+> diff -puN drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/video.c
+> --- a/drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
+> +++ a/drivers/acpi/video.c
+> @@ -734,21 +734,19 @@ static void acpi_video_device_find_cap(s
+>  		if (IS_ERR(device->cdev))
+>  			return;
+>  
+> -		if (device->cdev) {
+> -			printk(KERN_INFO PREFIX
+> -				"%s is registered as cooling_device%d\n",
+> -				device->dev->dev.bus_id, device->cdev->id);
+> -			result = sysfs_create_link(&device->dev->dev.kobj,
+> -					  &device->cdev->device.kobj,
+> -					  "thermal_cooling");
+> -			if (result)
+> -				printk(KERN_ERR PREFIX "Create sysfs link\n");
+> -			result = sysfs_create_link(&device->cdev->device.kobj,
+> -					  &device->dev->dev.kobj,
+> -					  "device");
+> -                        if (result)
+> -				printk(KERN_ERR PREFIX "Create sysfs link\n");
+> -		}
+> +		printk(KERN_INFO PREFIX
+> +			"%s is registered as cooling_device%d\n",
+> +			device->dev->dev.bus_id, device->cdev->id);
+> +		result = sysfs_create_link(&device->dev->dev.kobj,
+> +				  &device->cdev->device.kobj,
+> +				  "thermal_cooling");
+> +		if (result)
+> +			printk(KERN_ERR PREFIX "Create sysfs link\n");
+> +		result = sysfs_create_link(&device->cdev->device.kobj,
+> +				  &device->dev->dev.kobj,
+> +				  "device");
+> +		if (result)
+> +			printk(KERN_ERR PREFIX "Create sysfs link\n");
+>  	}
+>  	if (device->cap._DCS && device->cap._DSS){
+>  		static int count = 0;
+> _
 > 
-> 18.2.2   Name Objects Encoding
+> Patches currently in -mm which might be from julia@diku.dk are
 > 
-> NameSeg            := <LeadNameChar NameChar NameChar NameChar>
-> // Notice that NameSegs shorter than 4 characters are filled with
-> // trailing underscores ('_'s).
-> 
-> 
-> 
-> 
-> 
-> -----Original Message-----
-> From: Moore, Robert 
-> Sent: Wednesday, March 26, 2008 6:59 PM
-> To: 'Len Brown'
-> Cc: 'aystarik@gmail.com'; Lin, Ming M
-> Subject: RE: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for
-> 2.6.25-rc6)
-> 
-> Whenever an ACPI namepath is parsed (each 4 character name within a
-> namepath is called a "nameseg"), each nameseg is padded out with
-> underscores if it is shorter than 4 characters. This happens whenever a
-> named object is created and whenever a reference to a name is
-> encountered.
-> 
-> Thus, internally, ALL namesegs are exactly 4 characters, no need to add
-> code to handle variable-length namesegs.
-> 
-> Thus, smaller code and fewer bugs. This is also mentioned in the ACPI
-> spec somewhere.
-> 
-> Bob
-> 
-> 
-> Example:
-> 
-> Name (I, 0x1234)
-> 
-> Will be entered into the namespace as
-> 
-> I___
-> 
-> A reference to I such as
-> 
-> Store (\DEV0\I, Local0)
-> 
-> Will convert "I" to "I___" during AML parsing.
-> 
-> 
-> 
-> -----Original Message-----
-> From: Len Brown [mailto:lenb@kernel.org] 
-> Sent: Wednesday, March 26, 2008 11:00 AM
-> To: Moore, Robert
-> Subject: Fwd: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for
-> 2.6.25-rc6)
-> 
-> Bob,
-> can you comment on this thread?
-> 
-> thanks,
-> -Len
-> 
-> ----------  Forwarded Message  ----------
-> 
-> Subject: Re: ISA -> ISA_ (Re: [GIT PATCH] ACPI patches for 2.6.25-rc6)
-> Date: Wednesday 26 March 2008
-> From: Alexey Starikovskiy < aystarik@gmail.com >
-> To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> Bjorn Helgaas wrote:
-> > I'm curious about how this works.  I disassembled the DSDT from
-> > http://bugzilla.kernel.org/show_bug.cgi?id=4773 (I attached the
-> disassembly
-> > at http://bugzilla.kernel.org/attachment.cgi?id=15448&action=view),
-> and
-> > the _PRT contains "_SB" and "ISA" (no trailing underscores):
-> >
-> >                 Package (0x04)
-> >                 {
-> >                     0x000DFFFF, 
-> >                     0x00, 
-> >                     \_SB.PCI0.ISA.LNKA, 
-> >                     0x00
-> >                 }
-> >
-> > But by the time we get to acpi_pci_irq_add_entry(), we've added the
-> > underscores somewhere (see
-> > http://bugzilla.kernel.org/attachment.cgi?id=15423&action=view):
-> >
-> >   0000:00:0d[A] -> \_SB_.PCI0.ISA_.LNKA
-> >
-> > I don't know where this happens, but it certainly confused me, and
-> > it seems like it could lead to other bugs.
-> >   
-> ACPI is supposed to add trailing underscore for pad all names to 4
-> bytes.
-> So ISA will be padded to ISA_.
-> 
-> Regards,
-> Alex.
-> 
-> -------------------------------------------------------
+> origin.patch
+> drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+> git-alsa-tiwai.patch
+> git-powerpc.patch
+> drivers-block-viodasdc-use-field_sizeof.patch
+> fs-gfs2-test-for-is_err-rather-than-0.patch
+> git-udf.patch
+> drivers-net-ixgb-ixgb_mainc-remove-unused-variable.patch
+> git-ocfs2.patch
+> fs-ocfs2-aopsc-test-for-is_err-rather-than-0.patch
+> fs-affs-filec-use-bug_on.patch
+> drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+> fbdev-use-div_round_up-or-roundup.patch
+> fs-ext2-use-bug_on.patch
+> fs-ext3-use-bug_on.patch
+> fs-ext4-use-bug_on.patch
 > 
 
 
