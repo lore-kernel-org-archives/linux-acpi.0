@@ -1,73 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 1/3] PM: Introduce new top level suspend and hibernation callbacks (rev. 4)
-Date: Thu, 27 Mar 2008 17:33:13 +0100
-Message-ID: <200803271733.14480.rjw@sisk.pl>
-References: <200803262353.30566.rjw@sisk.pl> <200803270223.06715.rjw@sisk.pl> <1206586358.6926.68.camel@pasglop>
+Subject: Re: suspend order - again
+Date: Thu, 27 Mar 2008 17:42:17 +0100
+Message-ID: <200803271742.17714.rjw@sisk.pl>
+References: <1205482960.23855.4.camel@sli10-desk.sh.intel.com> <200803141254.55597.rjw@sisk.pl> <200803271143.28972.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45987 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:46034 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758370AbYC0QdR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 12:33:17 -0400
-In-Reply-To: <1206586358.6926.68.camel@pasglop>
+	id S1756287AbYC0Qma (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Mar 2008 12:42:30 -0400
+In-Reply-To: <200803271143.28972.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: benh@kernel.crashing.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thursday, 27 of March 2008, Benjamin Herrenschmidt wrote:
-> 
-> On Thu, 2008-03-27 at 02:23 +0100, Rafael J. Wysocki wrote:
-> > On Thursday, 27 of March 2008, Benjamin Herrenschmidt wrote:
-> > > 
-> > > > > There is absolutely no point getting a second struct anymore.
-> > > > 
-> > > > I obviously disagree with that opinion, so please elaborate.
-> > > 
-> > > Well, what does it bring you ? Why can't it be one struct ? To save
-> > > space in the data area ?
+On Thursday, 27 of March 2008, Len Brown wrote:
+> On Friday 14 March 2008, Rafael J. Wysocki wrote:
+> > On Friday, 14 of March 2008, Shaohua Li wrote:
+> > > I just found a system (Asus A6B00VC) suffers a regression of suspend
+> > > order adjust. In the system, if _PTS is called before pci device
+> > > suspend, pci config read of slot 01:01.0 will always return 0xffffffff
+> > > (only this slot, not other devices). Adding acpi_new_pts_ordering fixes
+> > > this. I checked the log, _PTS itself doesn't generate any pci config
+> > > access, it appears _PTS call into SMBIOS and changes something. Note,
+> > > this is ACPI 1.0 table. Should we just blacklist the system or re-think
+> > > the suspend order?
 > > 
-> > Mostly, but not only that.
+> > I don't want to change the ordering of code.  It's been changed for many times
+> > and it always turned out that some systems didn't work.
 > > 
-> > There are users of 'struct pm_ops' that aren't even supposed to define the
-> > _noirq callbacks (device types and device classes), so I thought it would be
-> > better to introduce a separate _noirq struct after all.
+> > If we can implement the blacklisting in a reasonable fashion, I'd prefer to do
+> > just that.
 > 
-> Make sense... USB has no use of noirq for example.
+> It isn't obvious to me why this regression is exempt from the
+> normal response we have to regressions found during -rc.
+> Particullarly sinced it was root caused to show that
+> we did the right thing before and we do the wrong thing now.
 
-Well, FWIW, we can also do something like this:
+Hm, is it a post-2.6.24 one?  Ah, it is.
 
-struct pm_ops {
-	int (*prepare)(struct device *dev);
-	void (*complete)(struct device *dev);
-	int (*suspend)(struct device *dev);
-	int (*resume)(struct device *dev);
-	int (*freeze)(struct device *dev);
-	int (*thaw)(struct device *dev);
-	int (*poweroff)(struct device *dev);
-	int (*restore)(struct device *dev);
-};
+Well, ok.  In fact we have examples both ways now, but I really won't be
+comfortable with changing the default ordering once again.
 
-struct pm_ext_ops {
-	struct pm_ops base;
-	int (*suspend_noirq)(struct device *dev);
-	int (*resume_noirq)(struct device *dev);
-	int (*freeze_noirq)(struct device *dev);
-	int (*thaw_noirq)(struct device *dev);
-	int (*poweroff_noirq)(struct device *dev);
-	int (*restore_noirq)(struct device *dev);
-};
-
-and use 'struct pm_ext_ops' for the entities that may need to implement the
-_noirq callbacks.  This way we'll avoid the duplication of "_noirq" in the code
-pointed to by Alex and there will be one "pm" pointer per bus type, device
-type, device class, etc.
-
-Thoughts?
+OTOH, the "ACPI 2.0" ordering is more logical IMO ...
 
 Thanks,
 Rafael
