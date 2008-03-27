@@ -1,58 +1,55 @@
-From: Len Brown <lenb@kernel.org>
+From: "Carlos Corbacho" <carlos@strangeworlds.co.uk>
 Subject: Re: suspend order - again
-Date: Thu, 27 Mar 2008 13:06:57 -0400
-Message-ID: <200803271306.57184.lenb@kernel.org>
-References: <1205482960.23855.4.camel@sli10-desk.sh.intel.com> <200803271143.28972.lenb@kernel.org> <200803271742.17714.rjw@sisk.pl>
+Date: Thu, 27 Mar 2008 17:36:32 -0000 (UTC)
+Message-ID: <48099.194.201.210.214.1206639392.squirrel@phoenix.slamd64.com>
+References: <1205482960.23855.4.camel@sli10-desk.sh.intel.com>
+    <200803271143.28972.lenb@kernel.org> <200803271742.17714.rjw@sisk.pl>
+    <200803271306.57184.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51101 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757348AbYC0RQ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 13:16:26 -0400
-In-Reply-To: <200803271742.17714.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from phoenix.slamd64.com ([217.10.145.2]:34875 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755283AbYC0RhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Mar 2008 13:37:09 -0400
+In-Reply-To: <200803271306.57184.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thursday 27 March 2008, Rafael J. Wysocki wrote:
-> On Thursday, 27 of March 2008, Len Brown wrote:
-> > On Friday 14 March 2008, Rafael J. Wysocki wrote:
-> > > On Friday, 14 of March 2008, Shaohua Li wrote:
-> > > > I just found a system (Asus A6B00VC) suffers a regression of suspend
-> > > > order adjust. In the system, if _PTS is called before pci device
-> > > > suspend, pci config read of slot 01:01.0 will always return 0xffffffff
-> > > > (only this slot, not other devices). Adding acpi_new_pts_ordering fixes
-> > > > this. I checked the log, _PTS itself doesn't generate any pci config
-> > > > access, it appears _PTS call into SMBIOS and changes something. Note,
-> > > > this is ACPI 1.0 table. Should we just blacklist the system or re-think
-> > > > the suspend order?
-> > > 
-> > > I don't want to change the ordering of code.  It's been changed for many times
-> > > and it always turned out that some systems didn't work.
-> > > 
-> > > If we can implement the blacklisting in a reasonable fashion, I'd prefer to do
-> > > just that.
-> > 
-> > It isn't obvious to me why this regression is exempt from the
-> > normal response we have to regressions found during -rc.
-> > Particullarly sinced it was root caused to show that
-> > we did the right thing before and we do the wrong thing now.
-> 
-> Hm, is it a post-2.6.24 one?  Ah, it is.
-> 
-> Well, ok.  In fact we have examples both ways now, but I really won't be
-> comfortable with changing the default ordering once again.
-> 
-> OTOH, the "ACPI 2.0" ordering is more logical IMO ...
+> Unfortunately logic doesn't rule here -- compatibility
+> with the installed base is the only thing that matters.
+>
+> Of course when we've got examples and counter-examples,
+> it can be quite a puzzle figuring out what
+> hoops that installed base is asking us to jump through:-)
 
-Unfortunately logic doesn't rule here -- compatibility
-with the installed base is the only thing that matters.
+As one of the 'installed base', I say keep the 1.0 order for .25, because
+it fixes a real regression that has been around for three releases.
 
-Of course when we've got examples and counter-examples,
-it can be quite a puzzle figuring out what
-hoops that installed base is asking us to jump through:-)
+We currently have more examples of nVidia boards that were broken by the
+2.0 ordering, than we have concrete examples of boards broken by the 1.0
+ordering (3 to 1).
+
+We had the 1.0 ordering before, and we have a DMI quirk for the one system
+shown so far to actually be broken with the 1.0 ordering, and, IIUC, we
+also have the infrastructure now to be able to test either order on
+systems to gather more information. If we find more systems that break
+with the 1.0 ordering than 2.0, then yes, we can review this decision in
+.26.
+
+IMHO, we need more concrete data to decide which way we default to (i.e.
+are nVidia boards just an abberation here, or is this
+1.0-ordering-required problem more wide spread? We may be lucky, and we
+only need to switch to the 1.0 order if we detect an nVidia chipset, or
+start blacklisting the bad boards/ BIOS's, since I suspect Windows has
+some sort of nVidia chipset blacklist as well, although I don't know how
+fine grained).
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
