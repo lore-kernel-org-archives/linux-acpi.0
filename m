@@ -1,258 +1,57 @@
-From: Len Brown <lenb@kernel.org>
-Subject: ACPI patches for 2.6.25-rc7
-Date: Thu, 27 Mar 2008 02:51:14 -0400
-Message-ID: <200803270251.14446.lenb@kernel.org>
+From: Helge Hafting <helge.hafting@aitel.hist.no>
+Subject: Re: [2.6.25-rc5-mm1] BUG: spinlock bad magic early during boot
+Date: Thu, 27 Mar 2008 10:23:56 +0100
+Message-ID: <47EB67AC.4090309@aitel.hist.no>
+References: <1205517802.12763.18.camel@nimitz.home.sr71.net>	 <1205525184.12763.32.camel@nimitz.home.sr71.net>	 <47DAE55C.3080506@tremplin-utc.net>	 <1205530551.8167.20.camel@nimitz.home.sr71.net>	 <47DB013D.3060102@tremplin-utc.net>	 <1205537395.8167.31.camel@nimitz.home.sr71.net> <47DBC578.7050101@imap.cc>	 <alpine.LFD.1.00.0803151212180.3020@woody.linux-foundation.org>	 <47DC26BC.7060502@tremplin-utc.net>	 <alpine.LFD.1.00.0803151315250.3020@woody.linux-foundation.org>	 <20080321131737.GC5331@ucw.cz> <1206288004.30471.45.camel@nimitz.home.sr71.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39593 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753912AbYC0Gvo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 02:51:44 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758983AbYC0JUE@vger.kernel.org>
+In-Reply-To: <1206288004.30471.45.camel@nimitz.home.sr71.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Hansen <haveblue@us.ibm.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Linus Torvalds <torvalds@linux-foundation.org>, ?ric Piel <Eric.Piel@tremplin-utc.net>, Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, Christoph Hellwig <hch@infradead.org>, Markus Gaugusch <dsdt@gaugusch.at>, linux-acpi@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Arjan van de Ven <arjanv@redhat.com>, Eric Biederman <ebiederm@xmission.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Hi Linus,
+Dave Hansen wrote:
+> On Fri, 2008-03-21 at 14:17 +0100, Pavel Machek wrote:
+>   
+>>> So what's the reason for pushing for this insanely-early workaround in the 
+>>> first place, instead of letting user-space do something like
+>>>
+>>>       cat my-dsdt-image > /proc/sys/acpi/DSDT
+>>>
+>>> or whatever at runtime?
+>>>       
+>> You have interpretted code runing (AML), and you want to replace it
+>> with different code?
+>>
+>> Akin to changing from one kernel to different during runtime?
+>>     
+>
+> Heh.  That gave me an idea.
+>
+> Can we use kexec for this?  Let's say you get as far in boot as the
+> initrd and realize that you're running on one of these screwed up
+> systems.  Can you stick the new DSDT somewhere known (and safe) in
+> memory, and kexec yourself back to the beginning of the kernel boot?
+>
+> When you boot up the second time, you have the new, shiny DSDT there
+> which is, of course, used instead of the bogus BIOS one.
+>   
+I see a problem here. 
+This could work. And if it is successful, the "kexec reboot around 
+busted hw"-trick
+is used for other stuff as well.
 
-please pull from: 
+So your broken machine reboots with some fix, then it reboots with the
+custom DSDT. Is the previous fix preserved? Then a third problem is hit,
+another kexec reboot. Is the first fix _and_ the custom DSDT
+preserved on this reboot?  Or do we get an infinite sequence of reboots,
+alternating between a couple of completely unrelated fixes for bad 
+hw/bios...
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+Once there is more than one fix utilizing this trick, some "protocol" for
+managing a string of  kexec fixes might become necessary.
 
-Note that I generated the diffstat below with
-git diff -b -M --stat linus..release
-
-I've not used "-b" until now.  I added it because Julia's patch was simple,
-but since it changed indenting of a couple of blocks its diffstat was otherwise large.
-
-thanks!
-
--Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.25/acpi-release-20070126-2.6.25-rc7.diff.gz
-
- drivers/acpi/fan.c             |    2 --
- drivers/acpi/processor_core.c  |    2 --
- drivers/acpi/processor_idle.c  |    5 ++++-
- drivers/acpi/sbshc.c           |    1 -
- drivers/acpi/scan.c            |   16 +++++++++++-----
- drivers/acpi/video.c           |    2 --
- drivers/cpuidle/cpuidle.c      |    4 ++--
- drivers/cpuidle/sysfs.c        |   10 ++++++++--
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++----
- include/linux/cpuidle.h        |    4 ++--
- 10 files changed, 31 insertions(+), 23 deletions(-)
-
-through these commits:
-
-Alexey Starikovskiy (1):
-      ACPI: SBS: remove typo from sbchc.c
-
-Julia Lawall (1):
-      ACPI: drivers/acpi: elide a non-zero test on a result that is never 0
-
-Len Brown (1):
-      pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
-
-Venki Pallipadi (2):
-      ACPI: fix mis-merge -- invoke acpi_unlazy_tlb() only on C3 entry
-      cpuidle: fix 100% C0 statistics regression
-
-Yi Yang (1):
-      cpuidle: fix cpuidle time and usage overflow
-
-Zhang Rui (1):
-      ACPI: fix a regression of ACPI device driver autoloading
-
-with this log:
-
-commit 1192aeb957402b45f311895f124e4ca41206843c
-Author: Julia Lawall <julia@diku.dk>
-Date:   Thu Mar 27 01:48:22 2008 -0400
-
-    ACPI: drivers/acpi: elide a non-zero test on a result that is never 0
-    
-    The function thermal_cooling_device_register always returns either a valid
-    pointer or a value made with ERR_PTR, so a test for non-zero on the result
-    will always succeed.
-    
-    The problem was found using the following semantic match.
-    (http://www.emn.fr/x-info/coccinelle/)
-    
-    //<smpl>
-    @a@
-    expression E, E1;
-    statement S,S1;
-    position p;
-    @@
-    
-    E = thermal_cooling_device_register(...)
-    ... when != E = E1
-    if@p (E) S else S1
-    
-    @n@
-    position a.p;
-    expression E,E1;
-    statement S,S1;
-    @@
-    
-    E = NULL
-    ... when != E = E1
-    if@p (E) S else S1
-    
-    @depends on !n@
-    expression E;
-    statement S,S1;
-    position a.p;
-    @@
-    
-    * if@p (E)
-      S else S1
-    //</smpl>
-    
-    Signed-off-by: Julia Lawall <julia@diku.dk>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 86d9fc1293aa9456677eab94e9fd2d3a10920548
-Merge: 08dcf29... 8e92b66... 33fd7af... 7642d21... 5c9fcb5...
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Mar 26 22:50:09 2008 -0400
-
-    Merge branches 'release', 'idle', 'redhat-bugzilla-436589', 'sbs' and 'video' into release
-
-commit 33fd7afd66ffdc6addf1b085fe6403b6af532f8e
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Mar 26 13:29:32 2008 -0400
-
-    pnpacpi: reduce printk severity for "pnpacpi: exceeded the max number of ..."
-    
-    We have been printing these messages at KERN_ERR since 2.6.24,
-    per http://bugzilla.kernel.org/show_bug.cgi?id=9535
-    
-    But KERN_ERR pops up on a console booted with "quiet"
-    and causes users to get alarmed and file bugs
-    about the message itself:
-    https://bugzilla.redhat.com/show_bug.cgi?id=436589
-    
-    So reduce the severity of these messages to
-    KERN_WARNING, which is not printed by "quiet".
-    
-    This message will still be seen without "quiet",
-    but a lot of messages are printed in that mode
-    and it will be less likely to cause undue alarm.
-    
-    We could go all the way to KERN_DEBUG, but this
-    is a real warning after all, so it seems prudent
-    not to require "debug" to see it.
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 8e92b6605da989c0aa8ff7e33306f36f0efd957c
-Author: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Date:   Fri Feb 29 10:24:32 2008 -0800
-
-    cpuidle: fix 100% C0 statistics regression
-    
-    commit 9b12e18cdc1553de62d931e73443c806347cd974
-    'ACPI: cpuidle: Support C1 idle time accounting'
-    was implicated in a 100% C0 idle regression.
-    http://bugzilla.kernel.org/show_bug.cgi?id=10076
-    
-    It pointed out a potential problem where the menu governor
-    may get confused by the C-state residency time from poll
-    idle or C1 idle, where this timing info is not accurate.
-    This inaccuracy is due to interrupts being handled
-    before we account for C-state exit.
-    
-    Do not mark TIME_VALID for CO poll state.
-    Mark C1 time as valid only with the MWAIT (CSTATE_FFH) entry method.
-    
-    This makes governors use the timing information only when it is correct and
-    eliminates any wrong policy decisions that may result from invalid timing
-    information.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 8b78cf602fd3bd97c0080edd22fe8fd5d0fa7832
-Author: Yi Yang <yi.y.yang@intel.com>
-Date:   Mon Feb 25 08:46:12 2008 +0800
-
-    cpuidle: fix cpuidle time and usage overflow
-    
-    cpuidle C-state sysfs node time and usage are very easy to overflow because
-    they are all of unsigned int type, time will overflow within about two hours,
-    usage will take longer time to overflow, but they are increasing for ever.
-    
-    This patch will convert them to unsigned long long.
-    
-    Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-    Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 996520c1fdd2948addb629be56c9febf2967e02b
-Author: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Date:   Mon Mar 24 14:24:10 2008 -0700
-
-    ACPI: fix mis-merge -- invoke acpi_unlazy_tlb() only on C3 entry
-    
-    This original patch
-    http://ussg.iu.edu/hypermail/linux/kernel/0712.2/1451.html
-    was intending to add acpi_unlazy_tlb() to acpi_idle_enter_bm(),
-    which is used for C3 entry.
-    
-    But it was merged incorrectly as commmit
-    
-    bde6f5f59c2b2b48a7a849c129d5b48838fe77ee
-    'x86: voluntary leave_mm before entering ACPI C3'
-    
-    so the call was instead added to acpi_idle_enter_simple()
-    (which is C2 entry routine), probably due to identical
-    context in that function.
-    
-    Move the call back to acpi_idle_enter_bm().
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 5c9fcb5deef4d3a49798d76c48b726d2e3c7df72
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Thu Mar 20 16:40:32 2008 +0800
-
-    ACPI: fix a regression of ACPI device driver autoloading
-    
-    commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 sets the cid of
-    ACPI video/dock/bay device and leaves the hid empty.
-    As a result, "modalias" should export the cid for
-    devices which don't have a hid.
-    
-    ACPI Video driver is not autoloaded with
-    commit 3620f2f2f39e7870cf1a4fb2e34063a142f28716 applied.
-    "cat /sys/.../device:03(acpi video bus)/modalias" shows nothing.
-    
-    ACPI Video driver is autoloaded after revert that commit.
-    "cat /sys/.../LNXVIDEO:0x/modalias" shows "acpi:LNXVIDEO:"
-    
-    ACPI Video driver is autoloaded with commit
-    3620f2f2f39e7870cf1a4fb2e34063a142f28716 and this patch applied.
-    "cat /sys/.../device:03(acpi video bus)/modalias"
-    shows "acpi:LNXVIDEO:"
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Acked-by: Thomas Renninger <trenn@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 7642d2113098f1270e9f9f0120f44d0035091636
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Thu Feb 28 19:17:39 2008 +0300
-
-    ACPI: SBS: remove typo from sbchc.c
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+Helge Hafting
