@@ -1,78 +1,51 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: + git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch added to -mm tree
-Date: Thu, 27 Mar 2008 02:09:06 -0400
-Message-ID: <200803270209.06421.lenb@kernel.org>
-References: <200803190209.m2J29WW4026805@imap1.linux-foundation.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: acpi build breakage
+Date: Thu, 27 Mar 2008 17:21:30 +1100
+Message-ID: <20080327172130.a8e92106.sfr@canb.auug.org.au>
+References: <20080327142032.432ddb0b.sfr@canb.auug.org.au>
+	<200803270119.37051.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__27_Mar_2008_17_21_30_+1100_bg+RSys7+aG6zJn8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:40360 "EHLO hera.kernel.org"
+Received: from chilli.pcug.org.au ([203.10.76.44]:57392 "EHLO smtps.tip.net.au"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753399AbYC0GJz (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Thu, 27 Mar 2008 02:09:55 -0400
-In-Reply-To: <200803190209.m2J29WW4026805@imap1.linux-foundation.org>
-Content-Disposition: inline
+	id S1752041AbYC0GVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Mar 2008 02:21:36 -0400
+In-Reply-To: <200803270119.37051.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org, Linux-acpi@vger.kernel.org, Pavel Machek <pavel@suse.cz>
-Cc: mm-commits@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Ah, this was caused by "PM: Remove legacy PM"
+--Signature=_Thu__27_Mar_2008_17_21_30_+1100_bg+RSys7+aG6zJn8
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-folded onto that branch.
+On Thu, 27 Mar 2008 01:19:36 -0400 Len Brown <lenb@kernel.org> wrote:
+>
+> Thanks,
+> I've alreday pushed bjorn's updated patch,
+> so this should be gone on the next pull.
 
-this one points out a bug in my build system,
-since this warning message didn't make it into
-my summary file.
+Thanks.
 
-thanks,
--Len
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-On Tuesday 18 March 2008, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      git-acpi: arch/x86/kernel/apm_32.c: fix warning
-> has been added to the -mm tree.  Its filename is
->      git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/SubmitChecklist when testing your code ***
-> 
-> See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-> out what to do about this
-> 
-> The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-> 
-> ------------------------------------------------------
-> Subject: git-acpi: arch/x86/kernel/apm_32.c: fix warning
-> From: Andrew Morton <akpm@linux-foundation.org>
-> 
-> arch/x86/kernel/apm_32.c:1215: warning: label 'out' defined but not used
-> 
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/x86/kernel/apm_32.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff -puN arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning arch/x86/kernel/apm_32.c
-> --- a/arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning
-> +++ a/arch/x86/kernel/apm_32.c
-> @@ -1212,7 +1212,6 @@ static int suspend(int vetoable)
->  	local_irq_enable();
->  	device_resume();
->  	queue_event(APM_NORMAL_RESUME, NULL);
-> - out:
->  	spin_lock(&user_list_lock);
->  	for (as = user_list; as != NULL; as = as->next) {
->  		as->suspend_wait = 0;
-> _
-> 
+--Signature=_Thu__27_Mar_2008_17_21_30_+1100_bg+RSys7+aG6zJn8
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFH6zzuTgG2atn1QN8RAkEVAJ9S7T0jon1fQ42Pfg9iyDglqjay+gCfdfXP
+gCZ6VVJStgBNDNAKmjFYXrQ=
+=5U5I
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__27_Mar_2008_17_21_30_+1100_bg+RSys7+aG6zJn8--
