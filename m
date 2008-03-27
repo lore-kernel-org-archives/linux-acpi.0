@@ -1,55 +1,37 @@
-From: "Carlos Corbacho" <carlos@strangeworlds.co.uk>
-Subject: Re: suspend order - again
-Date: Thu, 27 Mar 2008 17:36:32 -0000 (UTC)
-Message-ID: <48099.194.201.210.214.1206639392.squirrel@phoenix.slamd64.com>
-References: <1205482960.23855.4.camel@sli10-desk.sh.intel.com>
-    <200803271143.28972.lenb@kernel.org> <200803271742.17714.rjw@sisk.pl>
-    <200803271306.57184.lenb@kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 00/37] PNP resource_table cleanups
+Date: Thu, 27 Mar 2008 11:50:28 -0600
+Message-ID: <200803271150.30512.bjorn.helgaas@hp.com>
+References: <20080326171058.099442579@ldl.fc.hp.com> <200803261713.03248.bjorn.helgaas@hp.com> <47EAEA98.7010500@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:34875 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755283AbYC0RhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Mar 2008 13:37:09 -0400
-In-Reply-To: <200803271306.57184.lenb@kernel.org>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:9921 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754717AbYC0Rry (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Mar 2008 13:47:54 -0400
+In-Reply-To: <47EAEA98.7010500@keyaccess.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-> Unfortunately logic doesn't rule here -- compatibility
-> with the installed base is the only thing that matters.
->
-> Of course when we've got examples and counter-examples,
-> it can be quite a puzzle figuring out what
-> hoops that installed base is asking us to jump through:-)
+On Wednesday 26 March 2008 06:30:16 pm Rene Herman wrote:
+> On 27-03-08 00:13, Bjorn Helgaas wrote:
+> 
+> > Oops, sorry, I forgot to export pnp_get_resource().  I'll post an updated
+> > patch as a response to the original.  Is that easy for you to handle,
+> > Len?  If not, let me know what you'd prefer.
+> 
+> Works for me at least. Only had time for a quick test. After applying these, 
+> my snd-cs4236 driver ISAPnP soundcard is no longer found.
 
-As one of the 'installed base', I say keep the 1.0 order for .25, because
-it fixes a real regression that has been around for three releases.
+Are any ISAPNP devices at all found?  It's possible I broke ISAPNP
+completely, because I don't have anything to test it with.  If you
+have a chance, maybe you could turn on CONFIG_PNP_DEBUG and send me
+a dmesg log.
 
-We currently have more examples of nVidia boards that were broken by the
-2.0 ordering, than we have concrete examples of boards broken by the 1.0
-ordering (3 to 1).
-
-We had the 1.0 ordering before, and we have a DMI quirk for the one system
-shown so far to actually be broken with the 1.0 ordering, and, IIUC, we
-also have the infrastructure now to be able to test either order on
-systems to gather more information. If we find more systems that break
-with the 1.0 ordering than 2.0, then yes, we can review this decision in
-.26.
-
-IMHO, we need more concrete data to decide which way we default to (i.e.
-are nVidia boards just an abberation here, or is this
-1.0-ordering-required problem more wide spread? We may be lucky, and we
-only need to switch to the 1.0 order if we detect an nVidia chipset, or
-start blacklisting the bad boards/ BIOS's, since I suspect Windows has
-some sort of nVidia chipset blacklist as well, although I don't know how
-fine grained).
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Bjorn
