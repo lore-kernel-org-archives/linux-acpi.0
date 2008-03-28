@@ -1,107 +1,86 @@
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
-Date: Fri, 28 Mar 2008 13:30:15 -0700
-Message-ID: <20080328203014.GA16105@linux-os.sc.intel.com>
-References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <200803281201.54380.david-b@pacbell.net> <924EFEDD5F540B4284297C4DC59F3DEEC83CDD@orsmsx423.amr.corp.intel.com> <200803281244.27012.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: akpm@linux-foundation.org
+Subject: [patch 1/1] acpi: enable C3 Power State on Dell Inspiron 8200
+Date: Fri, 28 Mar 2008 14:17:21 -0700
+Message-ID: <200803282117.m2SLHLI0010417@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21531 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754177AbYC1UbZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Mar 2008 16:31:25 -0400
-Content-Disposition: inline
-In-Reply-To: <200803281244.27012.david-b@pacbell.net>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35568 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751045AbYC1VSN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Mar 2008 17:18:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dag@bakke.com, arjan@infradead.org
 
-On Fri, Mar 28, 2008 at 12:44:26PM -0700, David Brownell wrote:
-> On Friday 28 March 2008, Pallipadi, Venkatesh wrote:
-> 
-> > >> > I noticed this with 2.6.25-rc2 (if not before), and the problem
-> > >> > is still there with 2.6.25-rc6-git (as of this AM).
-> > >
-> > >A 2.6.24 kernel I still had stashed away didn't act odd; the
-> > >problem joined us before 2.6.25-rc1 was tagged.
-> > >
-> > 
-> > There was a fix that went in recently (one or two days back) that should
-> > have fixed this.
-> > Commit 8e92b6605da989
-> > 
-> > Can you check with latest git to see whether this is still a problem?
-> 
-> The problem is still there in GIT as of this morning, which
-> includes 8e92b6605da989 ...
-> 
-> Comments on why bc71bec91f9875ef825d12104acf3bf4ca215fa4 seems
-> to be causing this?  I think it's just bad reports getting to
-> userspace, rather than an actual 120K wakeups/second.  (The
-> report is of course not always 120K, but it's usually in that
-> range.)
+From: Dag Bakke <dag@bakke.com>
 
-No. If powertop is reporting that many wakeups, there should be that many as
-powertop gets wakeups from usage in /proc/acpi/processor/CPU*/power
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
 
-Can you send me the output of
-# grep . /sys/devices/system/cpu/cpu*/cpuidle/*/*
-with upstream kernel.
-
-Below is a test patch which should effectively revert commit bc71bec91f987
-Can you check with this patch on latest git and see whether things come back
-to normal.
-
-Also, it will help if you can send the output of acpidump from this system.
-
-Thanks,
-Venki
-
-
+[akpm@linux-foundation.org: fix warning]
+Tested-by: Arjan van de Ven <arjan@infradead.org>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/acpi/processor_idle.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
 
-Index: linux-2.6/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_idle.c	2008-03-28 12:07:23.000000000 -0700
-+++ linux-2.6/drivers/acpi/processor_idle.c	2008-03-28 13:17:31.000000000 -0700
-@@ -943,16 +943,15 @@ static int acpi_processor_get_power_info
- 			if (acpi_processor_ffh_cstate_probe
- 					(pr->id, &cx, reg) == 0) {
- 				cx.entry_method = ACPI_CSTATE_FFH;
--			} else if (cx.type == ACPI_STATE_C1) {
-+			} else if (cx.type != ACPI_STATE_C1) {
- 				/*
- 				 * C1 is a special case where FIXED_HARDWARE
- 				 * can be handled in non-MWAIT way as well.
- 				 * In that case, save this _CST entry info.
-+				 * That is, we retain space_id of SYSTEM_IO for
-+				 * halt based C1.
- 				 * Otherwise, ignore this info and continue.
- 				 */
--				cx.entry_method = ACPI_CSTATE_HALT;
--				snprintf(cx.desc, ACPI_CX_DESC_LEN, "ACPI HLT");
--			} else {
- 				continue;
- 			}
- 		} else {
-@@ -1398,8 +1397,6 @@ static inline void acpi_idle_do_entry(st
- 	if (cx->entry_method == ACPI_CSTATE_FFH) {
- 		/* Call into architectural FFH based C-state */
- 		acpi_processor_ffh_cstate_enter(cx);
--	} else if (cx->entry_method == ACPI_CSTATE_HALT) {
--		acpi_safe_halt();
- 	} else {
- 		int unused;
- 		/* IO port based C-state */
-@@ -1443,7 +1440,7 @@ static int acpi_idle_enter_c1(struct cpu
- 		acpi_idle_update_bm_rld(pr, cx);
+ drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
++++ a/drivers/acpi/processor_idle.c
+@@ -103,6 +103,8 @@ static unsigned int latency_factor __rea
+ module_param(latency_factor, uint, 0644);
+ #endif
  
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--	acpi_idle_do_entry(cx);
-+	acpi_safe_halt();
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++static int forced_c3;
++
+ /*
+  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+  * For now disable this. Probably a bug somewhere else.
+@@ -123,6 +125,19 @@ static int set_max_cstate(const struct d
+ 	return 0;
+ }
  
- 	local_irq_enable();
++/*
++ * Some (Dell) machines set the C3 latency to a value which effectively says:
++ * "Don't use C3." Still, C3 works if we force it.
++ * This enables C3 on Dell Inspiron 8200 machines.
++ */
++static int dmi_force_c3(const struct dmi_system_id *id)
++{
++	forced_c3 = 1;
++	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
++			id->ident);
++	return 0;
++}
++
+ /* Actually this shouldn't be __cpuinitdata, would be better to fix the
+    callers to only run once -AK */
+ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+@@ -181,6 +196,9 @@ static struct dmi_system_id __cpuinitdat
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
+ 	 (void *)2},
++	{ dmi_force_c3, "Dell Inspiron 8200", {
++	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
+ 	{},
+ };
+ 
+@@ -1047,11 +1065,12 @@ static void acpi_processor_power_verify_
+ 	 * C3 latency must be less than or equal to 1000
+ 	 * microseconds.
+ 	 */
+-	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
++	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "latency too large [%d]\n", cx->latency));
+ 		return;
+-	}
++	} else if (forced_c3)
++		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+ 
+ 	/*
+ 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
+_
