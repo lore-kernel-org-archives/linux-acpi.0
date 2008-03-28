@@ -1,79 +1,48 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
-Date: Fri, 28 Mar 2008 12:01:53 -0700
-Message-ID: <200803281201.54380.david-b@pacbell.net>
-References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080322173500.7b8b6751.akpm@linux-foundation.org>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: 2.6.25 regression: powertop says 120K wakeups/sec
+Date: Fri, 28 Mar 2008 12:13:22 -0700
+Message-ID: <924EFEDD5F540B4284297C4DC59F3DEEC83CDD@orsmsx423.amr.corp.intel.com>
+References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080322173500.7b8b6751.akpm@linux-foundation.org> <200803281201.54380.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:28676 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752173AbYC1TB5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:01:57 -0400
-In-Reply-To: <20080322173500.7b8b6751.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from mga11.intel.com ([192.55.52.93]:25916 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753037AbYC1TTW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Mar 2008 15:19:22 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200803281201.54380.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, venkatesh.pallipadi@intel.com
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Saturday 22 March 2008, Andrew Morton wrote:
-> On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell <david-b@pacbell.net> wrote:
-> 
-> > I noticed this with 2.6.25-rc2 (if not before), and the problem
-> > is still there with 2.6.25-rc6-git (as of this AM).
+>-----Original Message-----
+>From: David Brownell [mailto:david-b@pacbell.net] 
+>Sent: Friday, March 28, 2008 12:02 PM
+>To: Andrew Morton; Pallipadi, Venkatesh
+>Cc: linux-kernel@vger.kernel.org; Rafael J. Wysocki; 
+>linux-acpi@vger.kernel.org
+>Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
+>
+>On Saturday 22 March 2008, Andrew Morton wrote:
+>> On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell 
+><david-b@pacbell.net> wrote:
+>> 
+>> > I noticed this with 2.6.25-rc2 (if not before), and the problem
+>> > is still there with 2.6.25-rc6-git (as of this AM).
+>
+>A 2.6.24 kernel I still had stashed away didn't act odd; the
+>problem joined us before 2.6.25-rc1 was tagged.
+>
 
-A 2.6.24 kernel I still had stashed away didn't act odd; the
-problem joined us before 2.6.25-rc1 was tagged.
+There was a fix that went in recently (one or two days back) that should
+have fixed this.
+Commit 8e92b6605da989
 
- 
-> > System is an Athlon64 single CPU laptop, and instead of reading a
-> > few dozen wakeups per second, it says a many tens of thousands...
-> > clearly wrong.  In previous kernels it gave more plausible counts;
-> > unfortunately high because of various un-evolved desktop tools in
-> > this Ubuntu system (Feisty).
-> > 
-> > Possibly more truthful, it says that the system never enters
-> > C1 or C2, and spends all its time in C0.  Though if I look at
-> > /sys/devices/system/cpu/cpu0/cpuidle/state[01]/usage, that
-> > seems to tell a different story ... it's C0 that's never used.
-> > In previous kernels it reported time in both C0 and C2.  ISTR
-> > some patch to avoid C2, which would explain part of this.
-> > 
-> > Comments or fixes, anyone?
-> 
-> This is likely to be an acpi regression, isn't it?
-> 
-> A git-bisect would be nice, please.
+Can you check with latest git to see whether this is still a problem?
 
-The git-bisect says the 120K wakeups/second comes from a patch
-which unfortunately can't be directly reverted, so I didn't
-verify that reverting it resolves that problem.  I've not tried
-to do anything with the other C0/C1/C2 stuff.
-
-
-$ git bisect good
-bc71bec91f9875ef825d12104acf3bf4ca215fa4 is first bad commit
-commit bc71bec91f9875ef825d12104acf3bf4ca215fa4
-Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
-Date:   Thu Jan 31 17:35:04 2008 -0800
-
-    ACPI: enable MWAIT for C1 idle
-    
-    Add MWAIT idle for C1 state instead of halt, on platforms that support
-    C1 state with MWAIT.
-    
-    Renames cx->space_id to something more appropriate.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-:040000 040000 88ebe48d024f7fb21237cd75dbc9c681c43252b1 8af87317facbd018b47e717ede6907d9a831f92c M	drivers
-:040000 040000 ecd73d87c1b7b7004e06ffa3a2b3e7260c045543 934c38290353186cbaaaf27094d5c1712e548fcc M	include
-$
-
-
-
+Thanks,
+Venki
