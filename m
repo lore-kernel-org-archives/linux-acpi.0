@@ -1,118 +1,167 @@
-From: devzero@web.de
-Subject: =?iso-8859-15?Q?Re:_acpi=5Fps=5Fexecute=5Fmethod_OOPS_(Re:_some_minor_?=
- =?iso-8859-15?Q?issues_with_2.6.25-rc6-git7-default)?=
-Date: Thu, 27 Mar 2008 22:43:52 +0100
-Message-ID: <215201015@web.de>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH] ACPI: Platform driver to support App Hot Startup
+	(PNP0C32)
+Date: Fri, 28 Mar 2008 09:36:55 +0800
+Message-ID: <1206668215.12574.8.camel@sli10-desk.sh.intel.com>
+References: <20080314151712.34836918.miknix@gmail.com>
+	 <1206428373.3047.34.camel@acpi-hp-zz.sh.intel.com>
+	 <20080326175139.d59ff46d.miknix@gmail.com>
+	 <1206585013.8282.17.camel@sli10-desk.sh.intel.com>
+	 <20080327160346.424052fe.miknix@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate09.web.de ([217.72.192.184]:49223 "EHLO
-	fmmailgate09.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756262AbYC0Vny convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Mar 2008 17:43:54 -0400
+Received: from mga02.intel.com ([134.134.136.20]:26633 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753330AbYC1BgM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Mar 2008 21:36:12 -0400
+In-Reply-To: <20080327160346.424052fe.miknix@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: akpm@linux-foundation.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-> What CPU/chipset is this?
-
-opensuse103:~ # cat /proc/cpuinfo
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 13
-model name      : Intel(R) Pentium(R) M processor 1.80GHz
-stepping        : 8
-cpu MHz         : 1798.691
-cache size      : 2048 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr mce cx8 apic sep mtrr pge mca =
-cmov pat clflush dts acpi mmx fxsr sse sse2 ss up pebs bts
-bogomips        : 3627.10
-clflush size    : 64
-
-opensuse103:~ # lspci
-00:00.0 Host bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX Host=
- bridge (rev 01)
-00:01.0 PCI bridge: Intel Corporation 440BX/ZX/DX - 82443BX/ZX/DX AGP b=
-ridge (rev 01)
-00:07.0 ISA bridge: Intel Corporation 82371AB/EB/MB PIIX4 ISA (rev 08)
-00:07.1 IDE interface: Intel Corporation 82371AB/EB/MB PIIX4 IDE (rev 0=
-1)
-00:07.2 USB Controller: Intel Corporation 82371AB/EB/MB PIIX4 USB
-00:07.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 08)
-00:0f.0 VGA compatible controller: VMware Inc Abstract SVGA II Adapter
-00:10.0 SCSI storage controller: LSI Logic / Symbios Logic 53c1030 PCI-=
-X Fusion-MPT Dual Ultra320 SCSI (rev 01)
-00:11.0 PCI bridge: VMware Inc Unknown device 0790 (rev 02)
-02:00.0 Ethernet controller: Advanced Micro Devices [AMD] 79c970 [PCnet=
-32 LANCE] (rev 10)
+To: =?ISO-8859-1?Q?=C2ngelo?= Miguel Arrifano <miknix@gmail.com>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
 
-to make sure that you didn`t miss my last post - i already found a poss=
-ible correlation:
-
->i searched into this and found that it only happens after modprobe net=
-sc520 ;modprobe -r netsc520.
->so maybe this is no acpi problem at all but corruption (sort of?) intr=
-oduced by netsc520 module !?
-
-regards
-roland
-
-
-
-> -----Urspr=FCngliche Nachricht-----
-> Von: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Gesendet: 27.03.08 22:09:28
-> An: devzero@web.de
-> CC: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, akpm@lin=
-ux-foundation.org, linux-kernel@vger.kernel.org
-> Betreff: Re: acpi_ps_execute_method OOPS (Re: some minor issues with =
-2.6.25-rc6-git7-default)
-
-
+On Thu, 2008-03-27 at 16:03 +0000, =C3=82ngelo Miguel Arrifano wrote:
+> On Thu, 27 Mar 2008 10:30:13 +0800
+> Shaohua Li <shaohua.li@intel.com> wrote:
 >=20
-> On Thursday, 27 of March 2008, devzero@web.de wrote:
-> > > On Tuesday 25 March 2008, devzero@web.de wrote:
-> > > ...
-> > > > this one looks more serious (happened with modprobe -r ac),
-> > > > because kernel has problems afterwards (cannot load/anload any =
-other module afterwards)=20
-> > >=20
-> > > any idea when this started happening?
-> > > Any chance you can snag the output from acpidump
-> > > and attach it to a sighting here?:
-> > > http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-> > >=20
-> > > thanks,
-> > > -Len
 > >=20
-> > i searched into this and found that it only happens after modprobe =
-netsc520 ;modprobe -r netsc520.
-> > so maybe this is no acpi problem at all but corruption (sort of?) i=
-ntroduced by netsc520 module !?
+> > On Thu, 2008-03-27 at 01:51 +0800, =C3=82ngelo Miguel Arrifano wrot=
+e:
+> > > PATCH
+> > > - ---------------------------------------------------------------=
+--
+> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > > index f688c21..fb096ee 100644
+> > > - --- a/drivers/acpi/Kconfig
+> > > +++ b/drivers/acpi/Kconfig
+> > > @@ -196,6 +196,14 @@ config ACPI_THERMAL
+> > >           recommended that this option be enabled, as your
+> > > processor(s)
+> > >           may be damaged without it.
+> > >=20
+> > > +config ACPI_QUICKSTART
+> > > +       tristate "Quickstart"
+> > > +       default y
+> > default m?
+> >=20
+> >=20
+> > > +
+> > > +static struct quickstart_driver_data {
+> > > +       struct quickstart_btn *btn_lst;
+> > > +       struct quickstart_btn *pressed;
+> > > +} quickstart_data =3D {
+> > > +       .btn_lst =3D NULL,
+> > > +       .pressed =3D NULL,
+> > > +};
+> > They are NULL, you don't need initialize them.
+> >=20
+> >=20
+> > > + * Platform driver structs
+> > > + */
+> > > +static ssize_t buttons_show(struct device *dev,
+> > > +                                       struct device_attribute *=
+attr,
+> > > +                                       char *buf);
+> > > +static ssize_t pressed_button_show(struct device *dev,
+> > > +                                       struct device_attribute *=
+attr,
+> > > +                                       char *buf);
+> > > +static ssize_t pressed_button_store(struct device *dev,
+> > > +                                       struct device_attribute *=
+attr,
+> > > +                                        const char *buf,
+> > > +                                        size_t count);
+> > > +static DEVICE_ATTR(pressed_button, 0666, pressed_button_show,
+> > > +                                        pressed_button_store);
+> > this file can be changed by non-root?
 >=20
-> What CPU/chipset is this?
->=20
-> Rafael
->=20
+> The only thing that writing to this file does is clearing the
+> pressed button.
+> Is it a bad idea that can be changed by non-root?
+Just abnormal, eg. non-root can clear it but root might not read it
+(though it doesn't happen in current case but possible if runtime event
+support).
 
+> > > +
+> > > +/* ACPI Driver functions */
+> > > +static void quickstart_acpi_notify(acpi_handle handle, u32 event=
+,
+> > > void *data)
+> > > +{
+> > > +       struct quickstart_acpi *quickstart =3D data;
+> > > +
+> > > +       if (!quickstart)
+> > > +               return;
+> > > +
+> > > +       if (event =3D=3D QUICKSTART_EVENT_WAKE) {
+> > > +               quickstart_data.pressed =3D quickstart->btn;
+> > > +               printk(KERN_ERR "quickstart: Quickbutton %s
+> > > pressed.\n",
+> > > +
+> > > acpi_device_bid(quickstart->device));
+> > > +       } else if (event =3D=3D QUICKSTART_EVENT_RUNTIME) {
+> > > +               printk(KERN_ERR "quickstart: Runtime button %s
+> > > pressed.\n\t"
+> > > +                      "please report on linux-acpi@vger.kernel.o=
+rg",
+> > > +
+> > > acpi_device_bid(quickstart->device));
+> > > +       }
+> > Please remove above printks. they are misleading, which isn't an er=
+ror.
+> > please send an ACPI event to userspace in the notify, we need it fo=
+r
+> > runtime.
+>=20
+> According to the Microsoft paper, runtime hot button reporting is opt=
+ional.
+> My laptop doesn't report them and on the SF.net project page there wa=
+s no
+> reports of people with hardware supporting this.
+> Sorry, I don't have a way to test this..
+Did you tried suspend/resume. From the doc, resume can send a
+notification too. Just calling acpi event eject routines, an event ejec=
+t
+model can be well integrated into existing acpi daemons.
 
-_______________________________________________________________________=
-__
-In 5 Schritten zur eigenen Homepage. Jetzt Domain sichern und gestalten=
-!=20
-Nur 3,99 EUR/Monat! http://www.maildomain.web.de/?mc=3D021114
+> > > +       }
+> > I'd suggest the GHID info should be exported to sysfs too. It's har=
+d to
+> > judge what a button is just per its name. You know it but an
+> > inexperienced user doesn't.
+>=20
+> I also would like to have a more descriptive information about the bu=
+tton but
+> the returned buffer is a BYTE/WORD/DWORD with a decimal number tellin=
+g the button
+> usage ID.
+>=20
+> Looking at my DSDT piece of code:
+>=20
+> Method (GHID, 0, NotSerialized)
+> {
+>    If (LEqual (HOTB, 0x05))
+>    {
+>       Notify (DBTN, 0x02)
+>       Store (0x00, HOTB)
+>    }
+>=20
+>    Return (Buffer (0x01)
+>    {
+>       /* 0000 */    0x04
+>    })
+> }
+>=20
+> IMHO, a value like 0x04 for button usageID is totally useless..
+Ok, I got it. Maybe we need tool to help user identify what purpose a
+button is, but sounds impossible till the button can trigger runtime
+event.
+
+Thanks,
+Shaohua
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
