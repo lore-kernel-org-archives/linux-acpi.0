@@ -1,64 +1,26 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: Re: cpu eject bug
-Date: Fri, 28 Mar 2008 15:30:51 +0800
-Message-ID: <1206689451.3047.65.camel@acpi-hp-zz.sh.intel.com>
-References: <D8D2AEA3575B364DAC5F27D00A5E0D1701DBDB33@PA-EXCH03.vmware.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [BUG] nvidia vga card is missed after S3
+Date: Fri, 28 Mar 2008 16:00:29 +0800
+Message-ID: <1206691229.1362.5.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11580 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30700 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751049AbYC1Hqw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Mar 2008 03:46:52 -0400
-In-Reply-To: <D8D2AEA3575B364DAC5F27D00A5E0D1701DBDB33@PA-EXCH03.vmware.com>
+	id S1752090AbYC1ICy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Mar 2008 04:02:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alok Kataria <akataria@vmware.com>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alexey Starikovskiy <aystarik@gmail.com>
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi, Alok,
+Still in ASUS A6VC laptop (linux is quite broken in the system). If
+'pm_restore_console()' is called the video card (03:00.0, Nevidia Go
+6200/6400, it hasn't a driver) pci config space read is messy (some are
+0xffffffff, others are 0). If I comment pm_restore_console(), then
+everything is fine. Anything I can provide to debug the issue?
 
-On Fri, 2008-03-28 at 02:02 +0800, Alok Kataria wrote:
-> Hi Zhang, Len,
-> 
-> This is with reference to the deadlock that we see when hot-ejecting a
-> cpu.
-> 
-> Please refer this link for reference.
-> http://bugzilla.kernel.org/show_bug.cgi?id=9772
-> 
-> Zhang had then provided a patchset which fixed this issue.
-> The battery-hotplug patches and the 3 patches from the above link.
-> 
-> I hand weaved all these patches to fit on top of the latest X86 git
-> tree and
-> this approach still works well.
-Yes, that's true.
-
-> In that discussion Zhang had also mentioned that Alex and Thomas are
-> working
-> on a simpler approach due to which this patchset was dropped.
-> I tried searching though the linux-acpi archives to look for
-> discussion on
-> that approach or patches on that, but didn't get any.
-Patches are not finished yet. :(
-
-> I would be interested in knowing the status of those patches or if
-> there were
-> any discussions may be I can help you guys with. Also, IMO, if the
-> simpler
-> approach is going to take some time would it be better to have these
-> patches
-> upstream (until those are ready) so that atleast the eject feature is
-> not
-> broken there ?
-Not all the first four patches attached in the bugzilla are needed.
-I'll try to cook up a simpler version which has no conflicts with the
-new approach.
-
-thanks,
-rui
-
-
+Thanks,
+Shaohua
 
