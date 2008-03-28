@@ -1,26 +1,79 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 3/4] Introduce pci_slot
-Date: Fri, 28 Mar 2008 10:56:49 -0700
-Message-ID: <20080328105649.dd716d06.akpm@linux-foundation.org>
-References: <20080325041314.GA29666@ldl.fc.hp.com>
-	<20080325041700.GD29666@ldl.fc.hp.com>
-	<20080328033939.5ef5ab7b.akpm@linux-foundation.org>
-	<20080328154139.GE17862@ldl.fc.hp.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
+Date: Fri, 28 Mar 2008 12:01:53 -0700
+Message-ID: <200803281201.54380.david-b@pacbell.net>
+References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <20080322173500.7b8b6751.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756410AbYC1SA2@vger.kernel.org>
-In-Reply-To: <20080328154139.GE17862@ldl.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Greg KH <gregkh@suse.de>, Gary Hade <garyhade@us.ibm.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Matthew Wilcox <matthew@wil.cx>, warthog19@eaglescrag.net, rick.jones2@hp.com, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:28676 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752173AbYC1TB5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Mar 2008 15:01:57 -0400
+In-Reply-To: <20080322173500.7b8b6751.akpm@linux-foundation.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, venkatesh.pallipadi@intel.com
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Fri, 28 Mar 2008 09:41:39 -0600 Alex Chiang <achiang@hp.com> wrote:
+On Saturday 22 March 2008, Andrew Morton wrote:
+> On Sat, 22 Mar 2008 13:24:54 -0700 David Brownell <david-b@pacbell.net> wrote:
+> 
+> > I noticed this with 2.6.25-rc2 (if not before), and the problem
+> > is still there with 2.6.25-rc6-git (as of this AM).
 
-> In the future, do you have a better suggestion on how to do large
-> sweeps on code for hardware that one might not own? Is there an
-> easier way other than setting up a cross-compiler environment?
+A 2.6.24 kernel I still had stashed away didn't act odd; the
+problem joined us before 2.6.25-rc1 was tagged.
 
-Setting up a cross-compile environment is easy -
-http://userweb.kernel.org/~akpm/cross-compilers/ has several.
+ 
+> > System is an Athlon64 single CPU laptop, and instead of reading a
+> > few dozen wakeups per second, it says a many tens of thousands...
+> > clearly wrong.  In previous kernels it gave more plausible counts;
+> > unfortunately high because of various un-evolved desktop tools in
+> > this Ubuntu system (Feisty).
+> > 
+> > Possibly more truthful, it says that the system never enters
+> > C1 or C2, and spends all its time in C0.  Though if I look at
+> > /sys/devices/system/cpu/cpu0/cpuidle/state[01]/usage, that
+> > seems to tell a different story ... it's C0 that's never used.
+> > In previous kernels it reported time in both C0 and C2.  ISTR
+> > some patch to avoid C2, which would explain part of this.
+> > 
+> > Comments or fixes, anyone?
+> 
+> This is likely to be an acpi regression, isn't it?
+> 
+> A git-bisect would be nice, please.
+
+The git-bisect says the 120K wakeups/second comes from a patch
+which unfortunately can't be directly reverted, so I didn't
+verify that reverting it resolves that problem.  I've not tried
+to do anything with the other C0/C1/C2 stuff.
+
+
+$ git bisect good
+bc71bec91f9875ef825d12104acf3bf4ca215fa4 is first bad commit
+commit bc71bec91f9875ef825d12104acf3bf4ca215fa4
+Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
+Date:   Thu Jan 31 17:35:04 2008 -0800
+
+    ACPI: enable MWAIT for C1 idle
+    
+    Add MWAIT idle for C1 state instead of halt, on platforms that support
+    C1 state with MWAIT.
+    
+    Renames cx->space_id to something more appropriate.
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+:040000 040000 88ebe48d024f7fb21237cd75dbc9c681c43252b1 8af87317facbd018b47e717ede6907d9a831f92c M	drivers
+:040000 040000 ecd73d87c1b7b7004e06ffa3a2b3e7260c045543 934c38290353186cbaaaf27094d5c1712e548fcc M	include
+$
+
+
+
