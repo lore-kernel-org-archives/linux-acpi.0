@@ -1,258 +1,64 @@
 From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: Re: +
-	drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch added
-	to -mm tree
-Date: Fri, 28 Mar 2008 14:59:08 +0800
-Message-ID: <1206687548.3047.57.camel@acpi-hp-zz.sh.intel.com>
-References: <200803252244.m2PMiHgd017400@imap1.linux-foundation.org>
-	 <200803270149.50021.lenb@kernel.org>
+Subject: Re: cpu eject bug
+Date: Fri, 28 Mar 2008 15:30:51 +0800
+Message-ID: <1206689451.3047.65.camel@acpi-hp-zz.sh.intel.com>
+References: <D8D2AEA3575B364DAC5F27D00A5E0D1701DBDB33@PA-EXCH03.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56327 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:11580 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750810AbYC1HUZ (ORCPT <rfc822;Linux-acpi@vger.kernel.org>);
-	Fri, 28 Mar 2008 03:20:25 -0400
-In-Reply-To: <200803270149.50021.lenb@kernel.org>
+	id S1751049AbYC1Hqw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Mar 2008 03:46:52 -0400
+In-Reply-To: <D8D2AEA3575B364DAC5F27D00A5E0D1701DBDB33@PA-EXCH03.vmware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, Linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org, julia@diku.dk
+To: Alok Kataria <akataria@vmware.com>
+Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Alexey Starikovskiy <aystarik@gmail.com>
 
-Hi, Julia,
+Hi, Alok,
 
-what if CONFIG_THERMAL is cleared?
-hwmon_cooling_device_register may return NULL in this case.
+On Fri, 2008-03-28 at 02:02 +0800, Alok Kataria wrote:
+> Hi Zhang, Len,
+> 
+> This is with reference to the deadlock that we see when hot-ejecting a
+> cpu.
+> 
+> Please refer this link for reference.
+> http://bugzilla.kernel.org/show_bug.cgi?id=9772
+> 
+> Zhang had then provided a patchset which fixed this issue.
+> The battery-hotplug patches and the 3 patches from the above link.
+> 
+> I hand weaved all these patches to fit on top of the latest X86 git
+> tree and
+> this approach still works well.
+Yes, that's true.
+
+> In that discussion Zhang had also mentioned that Alex and Thomas are
+> working
+> on a simpler approach due to which this patchset was dropped.
+> I tried searching though the linux-acpi archives to look for
+> discussion on
+> that approach or patches on that, but didn't get any.
+Patches are not finished yet. :(
+
+> I would be interested in knowing the status of those patches or if
+> there were
+> any discussions may be I can help you guys with. Also, IMO, if the
+> simpler
+> approach is going to take some time would it be better to have these
+> patches
+> upstream (until those are ready) so that atleast the eject feature is
+> not
+> broken there ?
+Not all the first four patches attached in the bugzilla are needed.
+I'll try to cook up a simpler version which has no conflicts with the
+new approach.
 
 thanks,
 rui
 
-On Thu, 2008-03-27 at 01:49 -0400, Len Brown wrote:
-> applied.
-> 
-> thanks
-> -Len
-> 
-> On Tuesday 25 March 2008, akpm@linux-foundation.org wrote:
-> > 
-> > The patch titled
-> >      drivers/acpi: elide a non-zero test on a result that is never 0
-> > has been added to the -mm tree.  Its filename is
-> >      drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
-> > 
-> > Before you just go and hit "reply", please:
-> >    a) Consider who else should be cc'ed
-> >    b) Prefer to cc a suitable mailing list as well
-> >    c) Ideally: find the original patch on the mailing list and do a
-> >       reply-to-all to that, adding suitable additional cc's
-> > 
-> > *** Remember to use Documentation/SubmitChecklist when testing your code ***
-> > 
-> > See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-> > out what to do about this
-> > 
-> > The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-> > 
-> > ------------------------------------------------------
-> > Subject: drivers/acpi: elide a non-zero test on a result that is never 0
-> > From: Julia Lawall <julia@diku.dk>
-> > 
-> > The function thermal_cooling_device_register always returns either a valid
-> > pointer or a value made with ERR_PTR, so a test for non-zero on the result
-> > will always succeed.
-> > 
-> > The problem was found using the following semantic match.
-> > (http://www.emn.fr/x-info/coccinelle/)
-> > 
-> > //<smpl>
-> > @a@
-> > expression E, E1;
-> > statement S,S1;
-> > position p;
-> > @@
-> > 
-> > E = thermal_cooling_device_register(...)
-> > ... when != E = E1
-> > if@p (E) S else S1
-> > 
-> > @n@
-> > position a.p;
-> > expression E,E1;
-> > statement S,S1;
-> > @@
-> > 
-> > E = NULL
-> > ... when != E = E1
-> > if@p (E) S else S1
-> > 
-> > @depends on !n@
-> > expression E;
-> > statement S,S1;
-> > position a.p;
-> > @@
-> > 
-> > * if@p (E)
-> >   S else S1
-> > //</smpl>
-> > 
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> > 
-> >  drivers/acpi/fan.c            |   34 +++++++++++++++-----------------
-> >  drivers/acpi/processor_core.c |   30 +++++++++++++---------------
-> >  drivers/acpi/video.c          |   28 ++++++++++++--------------
-> >  3 files changed, 43 insertions(+), 49 deletions(-)
-> > 
-> > diff -puN drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/fan.c
-> > --- a/drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-> > +++ a/drivers/acpi/fan.c
-> > @@ -260,24 +260,22 @@ static int acpi_fan_add(struct acpi_devi
-> >  		result = PTR_ERR(cdev);
-> >  		goto end;
-> >  	}
-> > -	if (cdev) {
-> > -		printk(KERN_INFO PREFIX
-> > -			"%s is registered as cooling_device%d\n",
-> > -			device->dev.bus_id, cdev->id);
-> > -
-> > -		acpi_driver_data(device) = cdev;
-> > -		result = sysfs_create_link(&device->dev.kobj,
-> > -					   &cdev->device.kobj,
-> > -					   "thermal_cooling");
-> > -		if (result)
-> > -			return result;
-> > -
-> > -		result = sysfs_create_link(&cdev->device.kobj,
-> > -					   &device->dev.kobj,
-> > -					   "device");
-> > -		if (result)
-> > -			return result;
-> > -	}
-> > +	printk(KERN_INFO PREFIX
-> > +		"%s is registered as cooling_device%d\n",
-> > +		device->dev.bus_id, cdev->id);
-> > +
-> > +	acpi_driver_data(device) = cdev;
-> > +	result = sysfs_create_link(&device->dev.kobj,
-> > +				   &cdev->device.kobj,
-> > +				   "thermal_cooling");
-> > +	if (result)
-> > +		return result;
-> > +
-> > +	result = sysfs_create_link(&cdev->device.kobj,
-> > +				   &device->dev.kobj,
-> > +				   "device");
-> > +	if (result)
-> > +		return result;
-> >  
-> >  	result = acpi_fan_add_fs(device);
-> >  	if (result)
-> > diff -puN drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/processor_core.c
-> > --- a/drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-> > +++ a/drivers/acpi/processor_core.c
-> > @@ -674,22 +674,20 @@ static int __cpuinit acpi_processor_star
-> >  		result = PTR_ERR(pr->cdev);
-> >  		goto end;
-> >  	}
-> > -	if (pr->cdev) {
-> > -		printk(KERN_INFO PREFIX
-> > -			"%s is registered as cooling_device%d\n",
-> > -			device->dev.bus_id, pr->cdev->id);
-> > -
-> > -		result = sysfs_create_link(&device->dev.kobj,
-> > -					   &pr->cdev->device.kobj,
-> > -					   "thermal_cooling");
-> > -		if (result)
-> > -			return result;
-> > -		result = sysfs_create_link(&pr->cdev->device.kobj,
-> > -					   &device->dev.kobj,
-> > -					   "device");
-> > -		if (result)
-> > -			return result;
-> > -	}
-> > +	printk(KERN_INFO PREFIX
-> > +		"%s is registered as cooling_device%d\n",
-> > +		device->dev.bus_id, pr->cdev->id);
-> > +
-> > +	result = sysfs_create_link(&device->dev.kobj,
-> > +				   &pr->cdev->device.kobj,
-> > +				   "thermal_cooling");
-> > +	if (result)
-> > +		return result;
-> > +	result = sysfs_create_link(&pr->cdev->device.kobj,
-> > +				   &device->dev.kobj,
-> > +				   "device");
-> > +	if (result)
-> > +		return result;
-> >  
-> >  	if (pr->flags.throttling) {
-> >  		printk(KERN_INFO PREFIX "%s [%s] (supports",
-> > diff -puN drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/video.c
-> > --- a/drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-> > +++ a/drivers/acpi/video.c
-> > @@ -734,21 +734,19 @@ static void acpi_video_device_find_cap(s
-> >  		if (IS_ERR(device->cdev))
-> >  			return;
-> >  
-> > -		if (device->cdev) {
-> > -			printk(KERN_INFO PREFIX
-> > -				"%s is registered as cooling_device%d\n",
-> > -				device->dev->dev.bus_id, device->cdev->id);
-> > -			result = sysfs_create_link(&device->dev->dev.kobj,
-> > -					  &device->cdev->device.kobj,
-> > -					  "thermal_cooling");
-> > -			if (result)
-> > -				printk(KERN_ERR PREFIX "Create sysfs link\n");
-> > -			result = sysfs_create_link(&device->cdev->device.kobj,
-> > -					  &device->dev->dev.kobj,
-> > -					  "device");
-> > -                        if (result)
-> > -				printk(KERN_ERR PREFIX "Create sysfs link\n");
-> > -		}
-> > +		printk(KERN_INFO PREFIX
-> > +			"%s is registered as cooling_device%d\n",
-> > +			device->dev->dev.bus_id, device->cdev->id);
-> > +		result = sysfs_create_link(&device->dev->dev.kobj,
-> > +				  &device->cdev->device.kobj,
-> > +				  "thermal_cooling");
-> > +		if (result)
-> > +			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> > +		result = sysfs_create_link(&device->cdev->device.kobj,
-> > +				  &device->dev->dev.kobj,
-> > +				  "device");
-> > +		if (result)
-> > +			printk(KERN_ERR PREFIX "Create sysfs link\n");
-> >  	}
-> >  	if (device->cap._DCS && device->cap._DSS){
-> >  		static int count = 0;
-> > _
-> > 
-> > Patches currently in -mm which might be from julia@diku.dk are
-> > 
-> > origin.patch
-> > drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
-> > git-alsa-tiwai.patch
-> > git-powerpc.patch
-> > drivers-block-viodasdc-use-field_sizeof.patch
-> > fs-gfs2-test-for-is_err-rather-than-0.patch
-> > git-udf.patch
-> > drivers-net-ixgb-ixgb_mainc-remove-unused-variable.patch
-> > git-ocfs2.patch
-> > fs-ocfs2-aopsc-test-for-is_err-rather-than-0.patch
-> > fs-affs-filec-use-bug_on.patch
-> > drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
-> > fbdev-use-div_round_up-or-roundup.patch
-> > fs-ext2-use-bug_on.patch
-> > fs-ext3-use-bug_on.patch
-> > fs-ext4-use-bug_on.patch
-> > 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
