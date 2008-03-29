@@ -1,35 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
-Date: Fri, 28 Mar 2008 17:15:19 -0700
-Message-ID: <200803281715.19973.david-b@pacbell.net>
-References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <200803281636.04029.david-b@pacbell.net> <924EFEDD5F540B4284297C4DC59F3DEEC83EF5@orsmsx423.amr.corp.intel.com>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [PATCH] ata-acpi: don't call _GTF for disabled drive
+Date: Sat, 29 Mar 2008 22:30:35 +0900
+Message-ID: <47EE447B.3090800@gmail.com>
+References: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:44296 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759451AbYC2APW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Mar 2008 20:15:22 -0400
-In-Reply-To: <924EFEDD5F540B4284297C4DC59F3DEEC83EF5@orsmsx423.amr.corp.intel.com>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.173]:16719 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbYC2Nar (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Mar 2008 09:30:47 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so638477wff.4
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Mar 2008 06:30:47 -0700 (PDT)
+In-Reply-To: <1206435045.23794.13.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Garzik <jgarzik@pobox.com>
 
-On Friday 28 March 2008, Pallipadi, Venkatesh wrote:
-> 100% C0 is not real reading. The problem behind that is there is no wat
-> to measure exact C1 idle time with halt based C1s. So, we always used to
-> report 0 time in acpi and that's what is reported by powertop.
-> This should be fixed in future, as we now export approx time (even
-> though not exact) in cpuidle and powertop is about to start using it.
+Shaohua Li wrote:
+> I got below log after a S3 resume in a ASUS A6VC laptop. The system has
+> only one IDE drive. It appears there is no reason calling _GTF for
+> disabled drive.
+> 
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node df822bd0), AE_AML_OPERAND_VALUE
+> ata2.00: _GTF evaluation failed (AE 0x3006)
+> ACPI Error (dsopcode-0483): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node df822a7c), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV1._GTF] (Node df822b94), AE_AML_OPERAND_VALUE
+> ata2.01: _GTF evaluation failed (AE 0x3006)
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-I just pulled the latest powertop SVN and see it's smarter now.
-It says over 90% in C1 (doing normal desktop stuff), with nasty
-IRQ rates but that's the fault of silly desktop code.  ;)
+Acked-by: Tejun Heo <htejun@gmail.com>
 
-- Dave
+Thanks for catching this.
 
+-- 
+tejun
