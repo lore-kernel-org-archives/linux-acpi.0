@@ -1,105 +1,115 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI PM: Restore the 2.6.24 suspend ordering
-Date: Sun, 30 Mar 2008 15:15:32 +0200
-Message-ID: <200803301515.33922.rjw@sisk.pl>
-References: <200803300319.08398.rjw@sisk.pl> <200803301358.39831.rjw@sisk.pl> <20080330122838.GA7093@elf.ucw.cz>
+Subject: [PATCH] ACPI: Be more careful about returning errors from acpi_power_resume()
+Date: Sun, 30 Mar 2008 16:15:06 +0200
+Message-ID: <200803301615.06972.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753394AbYC3NQa@vger.kernel.org>
-In-Reply-To: <20080330122838.GA7093@elf.ucw.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:34683 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752262AbYC3OPN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Mar 2008 10:15:13 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Felix =?iso-8859-1?q?M=F6ller?= <fm@opensuse.org>, Arthur Erhardt <erhardt@pit.physik.uni-tuebingen.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Sunday, 30 of March 2008, Pavel Machek wrote:
-> Hi!
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
 Hi,
 
-> > > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > 
-> > > > Some time ago it turned out that our suspend code ordering broke
-> > > > some NVidia-based systems that hung if _PTS was executed with one of
-> > > > the PCI devices, specifically a USB controller, in a low power state.
-> > > > Then, it was noticed that the suspend code ordering was not compliant
-> > > > with ACPI 1.0, although it was compliant with ACPI 2.0 (and later),
-> > > > and it was argued that the code had to be changed for that reason
-> > > > (ref. http://bugzilla.kernel.org/show_bug.cgi?id=9528).  So we did,
-> > > > but evidently we did wrong, because it's now turning out that some
-> > > > systems have been broken by this change (refs.
-> > > > http://bugzilla.kernel.org/show_bug.cgi?id=10340 ,
-> > > > https://bugzilla.novell.com/show_bug.cgi?id=374217#c16).  [I said
-> > > > at that time that something like this might happend, but the majority
-> > > > of people involved thought that it was improbable due to the
-> > > > necessity to preserve the compliance of hardware with ACPI 1.0.]
-> > > > This actually is a quite serious regression from 2.6.24.
-> > > > 
-> > > > Moreover, the ACPI 1.0 ordering of suspend code introduced another
-> > > > issue that I have only noticed recently.  Namely, if the suspend of
-> > > > one of devices fails, the already suspended devices will be resumed
-> > > > without executing _WAK before, which leads to problems on some
-> > > > systems (for example, in such situations thermal management is
-> > > > broken on my HP nx6325).  Consequently, it also breaks suspend
-> > > > debugging on the affected systems.
-> > > > 
-> > > > Note also, that the requirement to execute _PTS before suspending
-> > > > devices does not really make sense, because the device in question
-> > > > may be put into a low power state at run time for a reason unrelated
-> > > > to a system-wide suspend.
-> 
-> Yes, but if we are putting them into lowpower state ourselves, we
-> should probably be doing that "by hand", without calling acpi
-> methods. _PTS may prepare something for acpi methods (which tell us
-> which PCI Dx state to put the device in at the very least).
+I have a problem with acpi_power_resume() and the patch introducing the new
+callbacks for suspend/hibernation:
 
-I meant "the requirement to execute _PTS before suspending devices, because
-it would hang otherwise".
+http://marc.info/?l=linux-kernel&m=120684588424639&w=4
 
-> > > > For the reasons outlined above, the change of the suspend ordering
-> > > > should be reverted, which is done by the patch below.
-> > > 
-> > > But this will break those few nvidia-based systems, no?
-> > > 
-> > > this may have been a good idea in -rc1 days, but we are in -rc7
-> > > now... and the patch is slightly big.
-> > 
-> > It's quite obvious, though.
-> 
-> Yes, but breaking systems between -rc7 and final is _very_ unnice.
+Namely, this patch also changes the behavior of the PM core wrt errors returned
+by drivers' ->resume() callbacks in such a way that if an error is returned by
+one of them, the devices is regarded as "invalid" by the PM core and won't be
+suspended etc.
 
-Breaking systems between 2.6.24 and 2.6.25 is even worse, which is why
-I've posted this patch.
+OTOH, acpi_power_resume() apparently returns errors in situations which are
+perfectly recoverable.  Namely, it may return an error if it attempts to turn a
+power resource on, which appears to be successful (ie.
+acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL) returns 0),
+but the state of the resource returned by acpi_power_get_state() called
+subsequently is not ACPI_POWER_RESOURCE_STATE_ON.  However, on
+my nx6325 this only means that the platform firmware's idea about the state
+the power resource should be in is different than ours.  Thus, apparently,
+acpi_power_resume() shouldn't return errors in such cases.
 
-IOW, we tried to fix systems that were broken with 2.6.24, but it didn't work,
-because our "fix" broke systems that were OK with 2.6.24.  Solution: revert
-the "fix" and go back to the design board.  That's all we can do so late in
-the release cycle, IMO.
-
-> > > What about something like: (hand-edited patch, sorry)
-> > 
-> > Well, I think that would be confusing.
-> > 
-> > The NVidia systems are broken anyway on 2.6.24.x, so we just don't fix them
-> > rather than break them and there are more reasons to do what the patch does
-> > (as pointed out in the changelog).  For example, your suggested patch doesn't
-> >  fix the error paths/debugging breakage described in the changelog.
-> 
-> But that should not be impossible to fix, right?
-
-No, it shouldn't, but it would be more complicated than it seemed to be.
-
-> > I think we _can_ do something about the failing NVidia systems in the 2.6.26
-> > time frame, but that will require some more consideration.
-> 
-> We could simply blacklist them, no?
-
-Yes, but for this purpose we'll have to redesign the core so that everything
-(including debugging and the error paths) works if _PTS is executed before
-suspending devices.  _That_, however, is not a 2.6.25 thing.
+Moreover, having looked at acpi_power_resume() I understand that it's supposed
+to try to turn the power resource on, if it references any device.  If that is
+correct, acpi_power_resume() doesn't really need to call acpi_power_on()
+and it may use acpi_evaluate_object() on a power resource directly if that
+resource references at least one device.  This makes it possible to handle
+errors in acpi_power_resume() more carefully, which is implemented by the
+appended patch.
 
 Thanks,
 Rafael
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+Modify acpi_power_resume() so that it doesn't return errors unnecessarily.
+
+This doesn't make a real difference with the current PM core code (the errors
+returned by acpi_power_resume() are ignored anyway), but in the future it may
+cause problems if acpi_power_resume() returns an error code that it shouldn't
+return.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/power.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
+
+Index: linux-2.6/drivers/acpi/power.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/power.c
++++ linux-2.6/drivers/acpi/power.c
+@@ -665,7 +665,7 @@ static int acpi_power_resume(struct acpi
+ {
+ 	int result = 0, state;
+ 	struct acpi_power_resource *resource = NULL;
+-	struct acpi_power_reference *ref;
++	acpi_status status = AE_UNKNOWN_STATUS;
+ 
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+@@ -679,13 +679,28 @@ static int acpi_power_resume(struct acpi
+ 	mutex_lock(&resource->resource_lock);
+ 	if (state == ACPI_POWER_RESOURCE_STATE_OFF &&
+ 	    !list_empty(&resource->reference)) {
+-		ref = container_of(resource->reference.next, struct acpi_power_reference, node);
+-		mutex_unlock(&resource->resource_lock);
+-		result = acpi_power_on(device->handle, ref->device);
+-		return result;
++		/* Try to turn the power resource on. */
++		status = acpi_evaluate_object(resource->device->handle,
++						"_ON", NULL, NULL);
++		if (ACPI_FAILURE(status))
++			printk(KERN_WARNING PREFIX
++				"Failed to turn power resource %s [%s] on\n",
++				acpi_device_name(device),
++				acpi_device_bid(device));
+ 	}
+-
+ 	mutex_unlock(&resource->resource_lock);
++	if (ACPI_SUCCESS(status)) {
++		result = acpi_power_get_state(resource, &state);
++		if (!result && state == ACPI_POWER_RESOURCE_STATE_ON) {
++			/* Update the power resource's _device_ power state */
++			resource->device->power.state = ACPI_STATE_D0;
++
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"Resource [%s] turned on\n",
++					resource->name));
++		}
++	}
++
+ 	return 0;
+ }
+ 
+
