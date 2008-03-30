@@ -1,124 +1,98 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] ACPI PM: Restore the 2.6.24 suspend ordering
-Date: Sun, 30 Mar 2008 13:18:44 +0200
-Message-ID: <20080330111844.GA6247@elf.ucw.cz>
-References: <200803300319.08398.rjw@sisk.pl>
+Subject: Re: [PATCH] Force acpi_new_pts_ordering for ASUS A6VC laptop
+Date: Sun, 30 Mar 2008 13:20:00 +0200
+Message-ID: <20080330112000.GB6247@elf.ucw.cz>
+References: <1206434857.23794.8.camel@sli10-desk.sh.intel.com> <9985.194.201.210.214.1206437077.squirrel@phoenix.slamd64.com> <1206495661.14062.3.camel@sli10-desk.sh.intel.com> <200803262229.38167.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39431 "EHLO
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39440 "EHLO
 	gprs189-60.eurotel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbYC3LSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Mar 2008 07:18:06 -0400
+	with ESMTP id S1751399AbYC3LTS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Mar 2008 07:19:18 -0400
 Content-Disposition: inline
-In-Reply-To: <200803300319.08398.rjw@sisk.pl>
+In-Reply-To: <200803262229.38167.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Felix =?iso-8859-1?Q?M=F6ller?= <fm@opensuse.org>, Arthur Erhardt <erhardt@pit.physik.uni-tuebingen.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Hi!
-
-> Please consider pushing the appended patch for 2.6.25.
+On Wed 2008-03-26 22:29:37, Rafael J. Wysocki wrote:
+> On Wednesday, 26 of March 2008, Shaohua Li wrote:
+> > 
+> > On Tue, 2008-03-25 at 09:24 +0000, Carlos Corbacho wrote:
+> > > > +static int __init asus_suspend_order(const struct dmi_system_id *d)
+> > > > +{
+> > > > +	printk(KERN_WARNING PREFIX "%s detected, "
+> > > > +		"acpi_new_pts_ordering is force enabled\n", d->ident);
+> > > > +	new_pts_ordering = true;
+> > > > +	return 0;
+> > > 
+> > > Given all you're doing here is just changing the ordering,
+> > > 'asus_suspend_order' doesn't strike me as the right name for this function
+> > > since:
+> > > 
+> > > 1) This clearly isn't the case for all Asus boards.
+> > > 
+> > > 2) Perhaps something like 'new_suspend_order' would be a better name for
+> > > this function (e.g. if others want to use DMI to do this for non-Asus
+> > > boards).
+> > Makes sense. I changed it.
+> > 
+> > On Asus A6VC laptop, PCI config space read of slot 01:01.* after ACPI
+> > _PTS is exectued always returns 0xFFFFFFFF.  Force _PTS is executed
+> > after suspending devices
+> > 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 > 
-> It fixed the regression described at:
-> https://bugzilla.novell.com/show_bug.cgi?id=374217
-> http://bugzilla.kernel.org/show_bug.cgi?id=10340
+> I don't think we can do anything smarter about it.
 > 
-> details in the changelog.
+> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
+This will clash with your patch to remove the option...
+
+> > index d2f71a5..4dded01 100644
+> > --- a/drivers/acpi/sleep/main.c
+> > +++ b/drivers/acpi/sleep/main.c
+> > @@ -272,12 +272,31 @@ static int __init init_ints_after_s1(const struct dmi_system_id *d)
+> >  	return 0;
+> >  }
+> >  
+> > +/*
+> > + * Laptop needs _PTS is executed after suspending devices. 
+> > + * Asus A6VC - PCI config read of slot 01:01.* after _PTS returns 0xFFFFFFFF.
+> > + */
+> > +static int __init new_suspend_order(const struct dmi_system_id *d)
+> > +{
+> > +	printk(KERN_WARNING PREFIX "%s detected, "
+> > +		"acpi_new_pts_ordering is force enabled\n", d->ident);
+> > +	new_pts_ordering = true;
+> > +	return 0;
+> > +}
+> > +
+> >  static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+> >  	{
+> >  	 .callback = init_ints_after_s1,
+> >  	 .ident = "Toshiba Satellite 4030cdt",
+> >  	 .matches = {DMI_MATCH(DMI_PRODUCT_NAME, "S4030CDT/4.3"),},
+> >  	 },
+> > +	{
+> > +	 .callback = new_suspend_order,
+> > +	 .ident = "Asus A6VC",
+> > +	 .matches = {
+> > +		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+> > +		DMI_MATCH(DMI_PRODUCT_NAME, "A6VC"),},
+> > +	 },
+> >  	{},
+> >  };
+> >  #endif /* CONFIG_SUSPEND */
+> > 
+> > 
+> > 
+> > 
 > 
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Some time ago it turned out that our suspend code ordering broke
-> some NVidia-based systems that hung if _PTS was executed with one of
-> the PCI devices, specifically a USB controller, in a low power state.
-> Then, it was noticed that the suspend code ordering was not compliant
-> with ACPI 1.0, although it was compliant with ACPI 2.0 (and later),
-> and it was argued that the code had to be changed for that reason
-> (ref. http://bugzilla.kernel.org/show_bug.cgi?id=9528).  So we did,
-> but evidently we did wrong, because it's now turning out that some
-> systems have been broken by this change (refs.
-> http://bugzilla.kernel.org/show_bug.cgi?id=10340 ,
-> https://bugzilla.novell.com/show_bug.cgi?id=374217#c16).  [I said
-> at that time that something like this might happend, but the majority
-> of people involved thought that it was improbable due to the
-> necessity to preserve the compliance of hardware with ACPI 1.0.]
-> This actually is a quite serious regression from 2.6.24.
 > 
-> Moreover, the ACPI 1.0 ordering of suspend code introduced another
-> issue that I have only noticed recently.  Namely, if the suspend of
-> one of devices fails, the already suspended devices will be resumed
-> without executing _WAK before, which leads to problems on some
-> systems (for example, in such situations thermal management is
-> broken on my HP nx6325).  Consequently, it also breaks suspend
-> debugging on the affected systems.
-> 
-> Note also, that the requirement to execute _PTS before suspending
-> devices does not really make sense, because the device in question
-> may be put into a low power state at run time for a reason unrelated
-> to a system-wide suspend.
-> 
-> For the reasons outlined above, the change of the suspend ordering
-> should be reverted, which is done by the patch below.
-
-But this will break those few nvidia-based systems, no?
-
-this may have been a good idea in -rc1 days, but we are in -rc7
-now... and the patch is slightly big.
-
-What about something like: (hand-edited patch, sorry)
-
-
-
- Index: linux-2.6/drivers/acpi/sleep/main.c
- ===================================================================
- --- linux-2.6.orig/drivers/acpi/sleep/main.c
- +++ linux-2.6/drivers/acpi/sleep/main.c
- @@ -26,21 +26,6 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
-  
-  #ifdef CONFIG_PM_SLEEP
-  static u32 acpi_target_sleep_state = ACPI_STATE_S0;
- static bool acpi_sleep_finish_wake_up;
- 
-- /*
--  * ACPI 2.0 and later want us to execute _PTS after suspending devices, so we
--  * allow the user to request that behavior by using the 'acpi_new_pts_ordering'
--  * kernel command line option that causes the following variable to be set.
--  */
- static bool new_pts_ordering = true;
- 
- -static int __init acpi_new_pts_ordering(char *str)
- +static int __init acpi_old_pts_ordering(char *str)
- {
- 	new_pts_ordering = false;
- 	return 1;
- }
- -__setup("acpi_old_pts_ordering", acpi_old_pts_ordering);
- +__setup("acpi_new_pts_ordering", acpi_new_pts_ordering);
-  #endif
- 
-  static int acpi_sleep_prepare(u32 acpi_state)
- Index: linux-2.6/Documentation/kernel-parameters.txt
- ===================================================================
- --- linux-2.6.orig/Documentation/kernel-parameters.txt
- +++ linux-2.6/Documentation/kernel-parameters.txt
- @@ -170,11 +170,6 @@ and is between 256 and 4096 characters. 
-  	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
-  			Format: <irq>,<irq>...
-  
- -	acpi_new_pts_ordering [HW,ACPI]
- +	acpi_old_pts_ordering [HW,ACPI]
- -			Enforce the ACPI 2.0 ordering of the _PTS control
- +			Enforce the ACPI 1.0 ordering of the _PTS control
- 			method wrt putting devices into low power states
- -			default: pre ACPI 2.0 ordering of _PTS
- +			default: ACPI 2.0 ordering of _PTS
- 
-  	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
-  
-  	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
