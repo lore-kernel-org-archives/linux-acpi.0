@@ -1,70 +1,230 @@
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Subject: Re: [PATCH 3/3] [2.6.25-rc5] Warn user about a BIOS bug in recent asus boards
-Date: Sat, 29 Mar 2008 17:43:35 -0700
-Message-ID: <86802c440803291743i596678cem4f8ff727f208d2d3@mail.gmail.com>
-References: <1205280392.8194.46.camel@linux-2bdv.site>
-	 <200803120010.41373.lenb@kernel.org>
-	 <200803120140.14243.lenb@kernel.org>
-	 <1205300688.2240.47.camel@acpi-hp-zz.sh.intel.com>
-	 <1205305945.2240.56.camel@acpi-hp-zz.sh.intel.com>
-	 <1205391787.2240.71.camel@acpi-hp-zz.sh.intel.com>
-	 <47D99970.4010906@freemail.hu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI PM: Restore the 2.6.24 suspend ordering
+Date: Sun, 30 Mar 2008 02:19:07 +0100
+Message-ID: <200803300319.08398.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0910.google.com ([209.85.198.190]:36376 "EHLO
-	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937AbYC3Anh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Mar 2008 20:43:37 -0400
-Received: by rv-out-0910.google.com with SMTP id k20so519400rvb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 29 Mar 2008 17:43:35 -0700 (PDT)
-In-Reply-To: <47D99970.4010906@freemail.hu>
+Received: from ogre.sisk.pl ([217.79.144.158]:32822 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750983AbYC3BTd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Mar 2008 21:19:33 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Felix =?iso-8859-2?q?M=F6ller?= <fm@opensuse.org>, Arthur Erhardt <erhardt@pit.physik.uni-tuebingen.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-2008/3/13 N=E9meth M=E1rton <nm127@freemail.hu>:
->
->  [    0.715787] ACPI: PCI Interrupt 0000:00:0c.0[A] -> GSI 16 (level,=
- low) -> IRQ 16
-=2E..
->  [   25.037202] ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level,=
- low) -> IRQ 16
-=2E..
->  [   86.320860] irq 16: nobody cared (try booting with the "irqpoll" =
-option)
->  [   86.320860] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #1
->  [   86.320860]  [<c01578f7>] __report_bad_irq+0x27/0x90
->  [   86.320860]  [<c0157b96>] note_interrupt+0x236/0x270
->  [   86.320860]  [<c0156fa3>] ? handle_IRQ_event+0x53/0x60
->  [   86.320860]  [<c015823a>] handle_fasteoi_irq+0x7a/0xd0
->  [   86.320860]  [<c0106174>] do_IRQ+0x44/0xa0
->  [   86.320860]  [<c0104c66>] common_interrupt+0x2e/0x34
->  [   86.320860]  [<c0119039>] ? finish_task_switch+0x59/0xc0
->  [   86.320860]  [<c0118fe0>] ? finish_task_switch+0x0/0xc0
->  [   86.320860]  [<c03080d6>] schedule+0x2b6/0x470
->  [   86.320860]  [<f892fdae>] ? acpi_processor_idle+0x0/0x436 [proces=
-sor]
->  [   86.320860]  [<c0102b65>] cpu_idle+0xb5/0xd0
->  [   86.320860]  [<c030343c>] rest_init+0x5c/0x60
->  [   86.320860]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
->  [   86.320860] handlers:
->  [   86.320860] [<f8915830>] (yenta_interrupt+0x0/0xe0 [yenta_socket]=
-)
->  [   86.320860] [<f8afd3f0>] (via_driver_irq_handler+0x0/0x1c0 [via])
->  [   86.320860] Disabling IRQ #16
+Hi Len,
 
-wonder if other device is using IRQ #16 too.
+Please consider pushing the appended patch for 2.6.25.
 
-can you boot with pci=3Drouteirq to check that?
+It fixed the regression described at:
+https://bugzilla.novell.com/show_bug.cgi?id=374217
+http://bugzilla.kernel.org/show_bug.cgi?id=10340
 
-YH
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+details in the changelog.
+
+Thanks,
+Rafael
+
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+
+Some time ago it turned out that our suspend code ordering broke
+some NVidia-based systems that hung if _PTS was executed with one of
+the PCI devices, specifically a USB controller, in a low power state.
+Then, it was noticed that the suspend code ordering was not compliant
+with ACPI 1.0, although it was compliant with ACPI 2.0 (and later),
+and it was argued that the code had to be changed for that reason
+(ref. http://bugzilla.kernel.org/show_bug.cgi?id=9528).  So we did,
+but evidently we did wrong, because it's now turning out that some
+systems have been broken by this change (refs.
+http://bugzilla.kernel.org/show_bug.cgi?id=10340 ,
+https://bugzilla.novell.com/show_bug.cgi?id=374217#c16).  [I said
+at that time that something like this might happend, but the majority
+of people involved thought that it was improbable due to the
+necessity to preserve the compliance of hardware with ACPI 1.0.]
+This actually is a quite serious regression from 2.6.24.
+
+Moreover, the ACPI 1.0 ordering of suspend code introduced another
+issue that I have only noticed recently.  Namely, if the suspend of
+one of devices fails, the already suspended devices will be resumed
+without executing _WAK before, which leads to problems on some
+systems (for example, in such situations thermal management is
+broken on my HP nx6325).  Consequently, it also breaks suspend
+debugging on the affected systems.
+
+Note also, that the requirement to execute _PTS before suspending
+devices does not really make sense, because the device in question
+may be put into a low power state at run time for a reason unrelated
+to a system-wide suspend.
+
+For the reasons outlined above, the change of the suspend ordering
+should be reverted, which is done by the patch below.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ Documentation/kernel-parameters.txt |    5 --
+ drivers/acpi/sleep/main.c           |   71 +++++++-----------------------------
+ 2 files changed, 14 insertions(+), 62 deletions(-)
+
+Index: linux-2.6/drivers/acpi/sleep/main.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/main.c
++++ linux-2.6/drivers/acpi/sleep/main.c
+@@ -26,21 +26,6 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
+ #ifdef CONFIG_PM_SLEEP
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
+-static bool acpi_sleep_finish_wake_up;
+-
+-/*
+- * ACPI 2.0 and later want us to execute _PTS after suspending devices, so we
+- * allow the user to request that behavior by using the 'acpi_new_pts_ordering'
+- * kernel command line option that causes the following variable to be set.
+- */
+-static bool new_pts_ordering;
+-
+-static int __init acpi_new_pts_ordering(char *str)
+-{
+-	new_pts_ordering = true;
+-	return 1;
+-}
+-__setup("acpi_new_pts_ordering", acpi_new_pts_ordering);
+ #endif
+ 
+ static int acpi_sleep_prepare(u32 acpi_state)
+@@ -91,14 +76,6 @@ static int acpi_pm_begin(suspend_state_t
+ 
+ 	if (sleep_states[acpi_state]) {
+ 		acpi_target_sleep_state = acpi_state;
+-		if (new_pts_ordering)
+-			return 0;
+-
+-		error = acpi_sleep_prepare(acpi_state);
+-		if (error)
+-			acpi_target_sleep_state = ACPI_STATE_S0;
+-		else
+-			acpi_sleep_finish_wake_up = true;
+ 	} else {
+ 		printk(KERN_ERR "ACPI does not support this state: %d\n",
+ 			pm_state);
+@@ -116,14 +93,11 @@ static int acpi_pm_begin(suspend_state_t
+ 
+ static int acpi_pm_prepare(void)
+ {
+-	if (new_pts_ordering) {
+-		int error = acpi_sleep_prepare(acpi_target_sleep_state);
++	int error = acpi_sleep_prepare(acpi_target_sleep_state);
+ 
+-		if (error) {
+-			acpi_target_sleep_state = ACPI_STATE_S0;
+-			return error;
+-		}
+-		acpi_sleep_finish_wake_up = true;
++	if (error) {
++		acpi_target_sleep_state = ACPI_STATE_S0;
++		return error;
+ 	}
+ 
+ 	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+@@ -212,7 +186,6 @@ static void acpi_pm_finish(void)
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+-	acpi_sleep_finish_wake_up = false;
+ 
+ #ifdef CONFIG_X86
+ 	if (init_8259A_after_S1) {
+@@ -229,11 +202,10 @@ static void acpi_pm_finish(void)
+ static void acpi_pm_end(void)
+ {
+ 	/*
+-	 * This is necessary in case acpi_pm_finish() is not called directly
+-	 * during a failing transition to a sleep state.
++	 * This is necessary in case acpi_pm_finish() is not called during a
++	 * failing transition to a sleep state.
+ 	 */
+-	if (acpi_sleep_finish_wake_up)
+-		acpi_pm_finish();
++	acpi_target_sleep_state = ACPI_STATE_S0;
+ }
+ 
+ static int acpi_pm_state_valid(suspend_state_t pm_state)
+@@ -296,31 +268,18 @@ __setup("acpi_s4_nosigcheck", acpi_s4_no
+ 
+ static int acpi_hibernation_begin(void)
+ {
+-	int error;
+-
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+-	if (new_pts_ordering)
+-		return 0;
+ 
+-	error = acpi_sleep_prepare(ACPI_STATE_S4);
+-	if (error)
+-		acpi_target_sleep_state = ACPI_STATE_S0;
+-	else
+-		acpi_sleep_finish_wake_up = true;
+-
+-	return error;
++	return 0;
+ }
+ 
+ static int acpi_hibernation_prepare(void)
+ {
+-	if (new_pts_ordering) {
+-		int error = acpi_sleep_prepare(ACPI_STATE_S4);
++	int error = acpi_sleep_prepare(ACPI_STATE_S4);
+ 
+-		if (error) {
+-			acpi_target_sleep_state = ACPI_STATE_S0;
+-			return error;
+-		}
+-		acpi_sleep_finish_wake_up = true;
++	if (error) {
++		acpi_target_sleep_state = ACPI_STATE_S0;
++		return error;
+ 	}
+ 
+ 	return ACPI_SUCCESS(acpi_hw_disable_all_gpes()) ? 0 : -EFAULT;
+@@ -370,17 +329,15 @@ static void acpi_hibernation_finish(void
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+-	acpi_sleep_finish_wake_up = false;
+ }
+ 
+ static void acpi_hibernation_end(void)
+ {
+ 	/*
+ 	 * This is necessary in case acpi_hibernation_finish() is not called
+-	 * directly during a failing transition to the sleep state.
++	 * during a failing transition to the sleep state.
+ 	 */
+-	if (acpi_sleep_finish_wake_up)
+-		acpi_hibernation_finish();
++	acpi_target_sleep_state = ACPI_STATE_S0;
+ }
+ 
+ static int acpi_hibernation_pre_restore(void)
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -170,11 +170,6 @@ and is between 256 and 4096 characters. 
+ 	acpi_irq_isa=	[HW,ACPI] If irq_balance, mark listed IRQs used by ISA
+ 			Format: <irq>,<irq>...
+ 
+-	acpi_new_pts_ordering [HW,ACPI]
+-			Enforce the ACPI 2.0 ordering of the _PTS control
+-			method wrt putting devices into low power states
+-			default: pre ACPI 2.0 ordering of _PTS
+-
+ 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
+ 
+ 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
