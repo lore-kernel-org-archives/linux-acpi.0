@@ -1,391 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 2/3] PM: New suspend and hibernation callbacks for platform bus type (rev. 3)
-Date: Sat, 29 Mar 2008 23:22:04 +0100
-Message-ID: <200803292322.05051.rjw@sisk.pl>
-References: <200803292317.50218.rjw@sisk.pl>
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH 3/3] [2.6.25-rc5] Warn user about a BIOS bug in recent asus boards
+Date: Sat, 29 Mar 2008 17:43:35 -0700
+Message-ID: <86802c440803291743i596678cem4f8ff727f208d2d3@mail.gmail.com>
+References: <1205280392.8194.46.camel@linux-2bdv.site>
+	 <200803120010.41373.lenb@kernel.org>
+	 <200803120140.14243.lenb@kernel.org>
+	 <1205300688.2240.47.camel@acpi-hp-zz.sh.intel.com>
+	 <1205305945.2240.56.camel@acpi-hp-zz.sh.intel.com>
+	 <1205391787.2240.71.camel@acpi-hp-zz.sh.intel.com>
+	 <47D99970.4010906@freemail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60570 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754178AbYC2W1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 Mar 2008 18:27:45 -0400
-In-Reply-To: <200803292317.50218.rjw@sisk.pl>
+Received: from rv-out-0910.google.com ([209.85.198.190]:36376 "EHLO
+	rv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750937AbYC3Anh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Mar 2008 20:43:37 -0400
+Received: by rv-out-0910.google.com with SMTP id k20so519400rvb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Mar 2008 17:43:35 -0700 (PDT)
+In-Reply-To: <47D99970.4010906@freemail.hu>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+2008/3/13 N=E9meth M=E1rton <nm127@freemail.hu>:
+>
+>  [    0.715787] ACPI: PCI Interrupt 0000:00:0c.0[A] -> GSI 16 (level,=
+ low) -> IRQ 16
+=2E..
+>  [   25.037202] ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level,=
+ low) -> IRQ 16
+=2E..
+>  [   86.320860] irq 16: nobody cared (try booting with the "irqpoll" =
+option)
+>  [   86.320860] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #1
+>  [   86.320860]  [<c01578f7>] __report_bad_irq+0x27/0x90
+>  [   86.320860]  [<c0157b96>] note_interrupt+0x236/0x270
+>  [   86.320860]  [<c0156fa3>] ? handle_IRQ_event+0x53/0x60
+>  [   86.320860]  [<c015823a>] handle_fasteoi_irq+0x7a/0xd0
+>  [   86.320860]  [<c0106174>] do_IRQ+0x44/0xa0
+>  [   86.320860]  [<c0104c66>] common_interrupt+0x2e/0x34
+>  [   86.320860]  [<c0119039>] ? finish_task_switch+0x59/0xc0
+>  [   86.320860]  [<c0118fe0>] ? finish_task_switch+0x0/0xc0
+>  [   86.320860]  [<c03080d6>] schedule+0x2b6/0x470
+>  [   86.320860]  [<f892fdae>] ? acpi_processor_idle+0x0/0x436 [proces=
+sor]
+>  [   86.320860]  [<c0102b65>] cpu_idle+0xb5/0xd0
+>  [   86.320860]  [<c030343c>] rest_init+0x5c/0x60
+>  [   86.320860]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+>  [   86.320860] handlers:
+>  [   86.320860] [<f8915830>] (yenta_interrupt+0x0/0xe0 [yenta_socket]=
+)
+>  [   86.320860] [<f8afd3f0>] (via_driver_irq_handler+0x0/0x1c0 [via])
+>  [   86.320860] Disabling IRQ #16
 
-Implement new suspend and hibernation callbacks for the platform bus
-type.
+wonder if other device is using IRQ #16 too.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/base/platform.c         |  296 ++++++++++++++++++++++++++++++++++++++--
- include/linux/platform_device.h |    1 
- 2 files changed, 289 insertions(+), 8 deletions(-)
+can you boot with pci=3Drouteirq to check that?
 
-Index: linux-2.6/include/linux/platform_device.h
-===================================================================
---- linux-2.6.orig/include/linux/platform_device.h
-+++ linux-2.6/include/linux/platform_device.h
-@@ -53,6 +53,7 @@ struct platform_driver {
- 	int (*suspend_late)(struct platform_device *, pm_message_t state);
- 	int (*resume_early)(struct platform_device *);
- 	int (*resume)(struct platform_device *);
-+	struct pm_ext_ops *pm;
- 	struct device_driver driver;
- };
- 
-Index: linux-2.6/drivers/base/platform.c
-===================================================================
---- linux-2.6.orig/drivers/base/platform.c
-+++ linux-2.6/drivers/base/platform.c
-@@ -453,6 +453,8 @@ int platform_driver_register(struct plat
- 		drv->driver.suspend = platform_drv_suspend;
- 	if (drv->resume)
- 		drv->driver.resume = platform_drv_resume;
-+	if (drv->pm)
-+		drv->driver.pm = &drv->pm->base;
- 	return driver_register(&drv->driver);
- }
- EXPORT_SYMBOL_GPL(platform_driver_register);
-@@ -560,7 +562,9 @@ static int platform_match(struct device 
- 	return (strncmp(pdev->name, drv->name, BUS_ID_SIZE) == 0);
- }
- 
--static int platform_suspend(struct device *dev, pm_message_t mesg)
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int platform_legacy_suspend(struct device *dev, pm_message_t mesg)
- {
- 	int ret = 0;
- 
-@@ -570,7 +574,7 @@ static int platform_suspend(struct devic
- 	return ret;
- }
- 
--static int platform_suspend_late(struct device *dev, pm_message_t mesg)
-+static int platform_legacy_suspend_late(struct device *dev, pm_message_t mesg)
- {
- 	struct platform_driver *drv = to_platform_driver(dev->driver);
- 	struct platform_device *pdev;
-@@ -583,7 +587,7 @@ static int platform_suspend_late(struct 
- 	return ret;
- }
- 
--static int platform_resume_early(struct device *dev)
-+static int platform_legacy_resume_early(struct device *dev)
- {
- 	struct platform_driver *drv = to_platform_driver(dev->driver);
- 	struct platform_device *pdev;
-@@ -596,7 +600,7 @@ static int platform_resume_early(struct 
- 	return ret;
- }
- 
--static int platform_resume(struct device *dev)
-+static int platform_legacy_resume(struct device *dev)
- {
- 	int ret = 0;
- 
-@@ -606,15 +610,291 @@ static int platform_resume(struct device
- 	return ret;
- }
- 
-+static int platform_pm_prepare(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm && drv->pm->prepare)
-+		ret = drv->pm->prepare(dev);
-+
-+	return ret;
-+}
-+
-+static void platform_pm_complete(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+
-+	if (drv && drv->pm && drv->pm->complete)
-+		drv->pm->complete(dev);
-+}
-+
-+#ifdef CONFIG_SUSPEND
-+
-+static int platform_pm_suspend(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->suspend)
-+			ret = drv->pm->suspend(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_SUSPEND);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_suspend_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->suspend_noirq)
-+			ret = pdrv->pm->suspend_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_SUSPEND);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_resume(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->resume)
-+			ret = drv->pm->resume(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_resume_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->resume_noirq)
-+			ret = pdrv->pm->resume_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+#else /* !CONFIG_SUSPEND */
-+
-+#define platform_pm_suspend		NULL
-+#define platform_pm_resume		NULL
-+#define platform_pm_suspend_noirq	NULL
-+#define platform_pm_resume_noirq	NULL
-+
-+#endif /* !CONFIG_SUSPEND */
-+
-+#ifdef CONFIG_HIBERNATION
-+
-+static int platform_pm_freeze(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (!drv)
-+		return 0;
-+
-+	if (drv->pm) {
-+		if (drv->pm->freeze)
-+			ret = drv->pm->freeze(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_FREEZE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_freeze_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->freeze_noirq)
-+			ret = pdrv->pm->freeze_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_FREEZE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_thaw(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->thaw)
-+			ret = drv->pm->thaw(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_thaw_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->thaw_noirq)
-+			ret = pdrv->pm->thaw_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_poweroff(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->poweroff)
-+			ret = drv->pm->poweroff(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_poweroff_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->poweroff_noirq)
-+			ret = pdrv->pm->poweroff_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_restore(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->restore)
-+			ret = drv->pm->restore(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_restore_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->restore_noirq)
-+			ret = pdrv->pm->restore_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+#else /* !CONFIG_HIBERNATION */
-+
-+#define platform_pm_freeze		NULL
-+#define platform_pm_thaw		NULL
-+#define platform_pm_poweroff		NULL
-+#define platform_pm_restore		NULL
-+#define platform_pm_freeze_noirq	NULL
-+#define platform_pm_thaw_noirq		NULL
-+#define platform_pm_poweroff_noirq	NULL
-+#define platform_pm_restore_noirq	NULL
-+
-+#endif /* !CONFIG_HIBERNATION */
-+
-+struct pm_ext_ops platform_pm_ops = {
-+	.base = {
-+		.prepare = platform_pm_prepare,
-+		.complete = platform_pm_complete,
-+		.suspend = platform_pm_suspend,
-+		.resume = platform_pm_resume,
-+		.freeze = platform_pm_freeze,
-+		.thaw = platform_pm_thaw,
-+		.poweroff = platform_pm_poweroff,
-+		.restore = platform_pm_restore,
-+	},
-+	.suspend_noirq = platform_pm_suspend_noirq,
-+	.resume_noirq = platform_pm_resume_noirq,
-+	.freeze_noirq = platform_pm_freeze_noirq,
-+	.thaw_noirq = platform_pm_thaw_noirq,
-+	.poweroff_noirq = platform_pm_poweroff_noirq,
-+	.restore_noirq = platform_pm_restore_noirq,
-+};
-+
-+#define PLATFORM_PM_OPS_PTR	&platform_pm_ops
-+
-+#else /* !CONFIG_PM_SLEEP */
-+
-+#define PLATFORM_PM_OPS_PTR	NULL
-+
-+#endif /* !CONFIG_PM_SLEEP */
-+
- struct bus_type platform_bus_type = {
- 	.name		= "platform",
- 	.dev_attrs	= platform_dev_attrs,
- 	.match		= platform_match,
- 	.uevent		= platform_uevent,
--	.suspend	= platform_suspend,
--	.suspend_late	= platform_suspend_late,
--	.resume_early	= platform_resume_early,
--	.resume		= platform_resume,
-+	.pm		= PLATFORM_PM_OPS_PTR,
- };
- EXPORT_SYMBOL_GPL(platform_bus_type);
- 
+YH
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
