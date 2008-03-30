@@ -1,67 +1,51 @@
 From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6.25 patch] sound/oss/ac97_codec.c: restore MODULE_LICENSE
-Date: Sun, 30 Mar 2008 19:53:23 +0300
-Message-ID: <20080330165323.GA1575@cs181133002.pp.htv.fi>
-References: <213384793@web.de>
+Subject: [2.6 patch] #if 0 acpi/bay.c:eject_removable_drive()
+Date: Mon, 31 Mar 2008 02:05:40 +0300
+Message-ID: <20080330230540.GQ28445@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.pp.htv.fi ([213.243.153.39]:36567 "EHLO smtp5.pp.htv.fi"
+Received: from smtp6.pp.htv.fi ([213.243.153.40]:58497 "EHLO smtp6.pp.htv.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904AbYC3Qxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Mar 2008 12:53:35 -0400
+	id S1756047AbYC3XFx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Mar 2008 19:05:53 -0400
 Content-Disposition: inline
-In-Reply-To: <213384793@web.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: devzero@web.de, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, alan@lxorguk.ukuu.org.uk, david-b@pacbell.net, greg@kroah.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Mar 26, 2008 at 09:51:34PM +0100, devzero@web.de wrote:
-> > Can you post the full kernel log up to this BUG?
-> > It should show that causes the Taint.
-> 
-> oh - yes:
-> 
-> Mar 23 09:12:20 opensuse103 kernel: ac97_codec: module license 'unspecified' taints kernel.
-> 
-> modinfo ac97_codec
-> filename:       /lib/modules/2.6.25-rc6-git7-default/kernel/sound/oss/ac97_codec.ko
-> srcversion:     8665939D5E471F7E331BB3E
-> depends:
-> vermagic:       2.6.25-rc6-git7-default SMP mod_unload 586
-> 
-> 
-> seems MODULE_LICENSE is missing in ./sound/oss/ac97_codec.c !?
->...
-
-My fault, fix below.
-
-> regards
-> roland
-
-cu
-Adrian
-
-
-<--  snip  -->
-
-
-I accidentally removed the MODULE_LICENSE("GPL") from sound/oss/ac97_codec.c
-
-Spotted by Roland <devzero@web.de>.
+This patch #if 0's the unused eject_removable_drive().
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
 ---
-c4f4fee537525836680163622dc15b045f551d40 diff --git a/sound/oss/ac97_codec.c b/sound/oss/ac97_codec.c
-index 87a6726..b63839e 100644
---- a/sound/oss/ac97_codec.c
-+++ b/sound/oss/ac97_codec.c
-@@ -1202,3 +1202,5 @@ static int pt101_init(struct ac97_codec * codec)
+
+This patch has been sent on:
+- 1 Mar 2008
+
+ drivers/acpi/bay.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+de6f6fda54c9a51719c8e5a5b8d303fb958cfe36 foobar
+diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
+index 1fa8681..d2fc941 100644
+--- a/drivers/acpi/bay.c
++++ b/drivers/acpi/bay.c
+@@ -201,6 +201,7 @@ static int is_ejectable_bay(acpi_handle handle)
+ 	return 0;
+ }
  
- EXPORT_SYMBOL(ac97_probe_codec);
++#if 0
+ /**
+  * eject_removable_drive - try to eject this drive
+  * @dev : the device structure of the drive
+@@ -225,6 +226,7 @@ int eject_removable_drive(struct device *dev)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(eject_removable_drive);
++#endif  /*  0  */
  
-+MODULE_LICENSE("GPL");
-+
+ static int acpi_bay_add_fs(struct bay *bay)
+ {
 
