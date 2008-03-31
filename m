@@ -1,294 +1,96 @@
-From: Franck Gille' <franck.gille@ac-rouen.fr>
-Subject: dmidecode on my vaio
-Date: Mon, 31 Mar 2008 14:33:23 +0200
-Message-ID: <47F0DA13.70409@ac-rouen.fr>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: 2.6.25 regression: powertop says 120K wakeups/sec
+Date: Mon, 31 Mar 2008 13:42:33 -0400
+Message-ID: <47F12289.4030300@rtr.ca>
+References: <20080322202454.9D69DCC0EF@adsl-69-226-248-13.dsl.pltn13.pacbell.net> <200803281509.23107.david-b@pacbell.net> <20080328225604.GA7136@linux-os.sc.intel.com> <200803290001.18912.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080801020901020409000600"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.ac-rouen.fr ([194.167.196.131]:39007 "EHLO
-	dallas.ac-rouen.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751986AbYCaMwQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Mar 2008 08:52:16 -0400
-Received: from dallas.ac-rouen.fr (localhost.localdomain [127.0.0.1])
-	by postfix.imss70 (Postfix) with ESMTP id 59110700D6
-	for <linux-acpi@vger.kernel.org>; Mon, 31 Mar 2008 14:33:24 +0200 (CEST)
-Received: from [172.30.207.3] (unknown [172.30.207.3])
-	by dallas.ac-rouen.fr (Postfix) with ESMTP id 38DA8700C5
-	for <linux-acpi@vger.kernel.org>; Mon, 31 Mar 2008 14:33:24 +0200 (CEST)
+Received: from rtr.ca ([76.10.145.34]:2581 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753144AbYCaRme (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Mar 2008 13:42:34 -0400
+In-Reply-To: <200803290001.18912.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>, David Brownell <david-b@pacbell.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-This is a multi-part message in MIME format.
---------------080801020901020409000600
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Rafael J. Wysocki wrote:
+> On Friday, 28 of March 2008, Venki Pallipadi wrote:
+>> On Fri, Mar 28, 2008 at 03:09:22PM -0700, David Brownell wrote:
+>>> On Friday 28 March 2008, Pallipadi, Venkatesh wrote:
+>>>> You should have a dmesg line which looks like
+>>>> ACPI: CPU0 (power states: C1[C1] C2[C2]
+>>>> Do you see C2 in such line?
+>>> Yes:
+>>>
+>>> ACPI: CPU0 (power states: C1[C1] C2[C2])
+>>
+>> David,
+>>
+>> I think I figured out the bug...
+>>
+>> Can you try the below patch and confirm that it works (over upstream - ignore
+>> the earlier revert patch I sent to you).
+>>
+>> Thanks,
+>> Venki
+>>
+>> ----
+>>
+>>
+>> Patch to fix huge number of wakeups reported due to recent changes in
+>> processor_idle.c. The problem was that the entry_method determination was
+>> broken due to one of the recent commits (bc71bec91f987) causing
+>> C1 entry to not to go to halt. This should also fix the hang reported here.
+>> http://bugzilla.kernel.org/show_bug.cgi?id=10093
+> 
+> Ah, thanks for figuring that out.  As a regression fix, it should go upstream
+> ASAP, I think.
+..
 
-Hi
-I'm running on Linux gillef-laptop 2.6.22-14-generic #1 SMP Tue Feb 12 
-07:42:25 UTC 2008 i686 GNU/Linux
-Hardware is sony vaio vgn-AR51M,
-i can't adjust brightness, can't use webcam, dans function key don't 
-work, i try with kernel 2.6.24 and it don't work better.
-Can you help me or do i work with vista :-( ?
+Would this have any applicability to 2.6.24 as well?
 
-Best Regards
-Franck
-
--- 
-Franck Gillé
-Equipe Réseaux-Sécurité
-Division Informatique
-Rectorat de ROUEN
-Tél: 02.32.08.94.17
-Fax: 02.32.08.94.12
-
-
---------------080801020901020409000600
-Content-Type: text/plain;
- name="dmidecode.VGNAR-51M"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dmidecode.VGNAR-51M"
-
-# dmidecode 2.9
-SMBIOS 2.4 present.
-18 structures occupying 731 bytes.
-Table at 0x000DC010.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: Phoenix Technologies LTD
-	Version: R1050J8
-	Release Date: 07/18/2007
-	Address: 0xE7000
-	Runtime Size: 100 kB
-	ROM Size: 1024 kB
-	Characteristics:
-		PCI is supported
-		PC Card (PCMCIA) is supported
-		PNP is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		EDD is supported
-		8042 keyboard services are supported (int 9h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		AGP is supported
-		Smart battery is supported
-		BIOS boot specification is supported
-		Function key-initiated network boot is supported
-		Targeted content distribution is supported
-	BIOS Revision: 5.0
-	Firmware Revision: 5.0
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: Sony Corporation
-	Product Name: VGN-AR51M
-	Version: C3LQ2JWQ
-	Serial Number: 28270261-5000552
-	UUID: B6F64800-7219-11DC-80E7-001A801B7569
-	Wake-up Type: Power Switch
-	SKU Number: N/A
-	Family: N/A
-
-Handle 0x0002, DMI type 2, 10 bytes
-Base Board Information
-	Manufacturer: Sony Corporation
-	Product Name: VAIO
-	Version: N/A
-	Serial Number: N/A
-
-Handle 0x0003, DMI type 3, 17 bytes
-Chassis Information
-	Manufacturer: Sony Corporation
-	Type: Notebook
-	Lock: Not Present
-	Version: N/A
-	Serial Number: N/A
-	Asset Tag: N/A
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00000000
-
-Handle 0x0004, DMI type 4, 35 bytes
-Processor Information
-	Socket Designation: N/A
-	Type: Central Processor
-	Family: Other
-	Manufacturer: GenuineIntel
-	ID: FD 06 00 00 FF FB EB BF
-	Version: Intel(R) Core(TM)2 Duo CPU     T7250  @ 2.00GHz
-	Voltage: 1.2 V
-	External Clock: 200 MHz
-	Max Speed: 2000 MHz
-	Current Speed: 2000 MHz
-	Status: Populated, Enabled
-	Upgrade: None
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: 0x0007
-	Serial Number: N/A
-	Asset Tag: N/A
-	Part Number: N/A
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1 Cache
-	Configuration: Enabled, Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 64 KB
-	Maximum Size: 64 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Other
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Data
-	Associativity: 8-way Set-associative
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2 Cache
-	Configuration: Enabled, Socketed, Level 2
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 2048 KB
-	Maximum Size: 2048 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Other
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Unified
-	Associativity: 8-way Set-associative
-
-Handle 0x0007, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L3 Cache
-	Configuration: Disabled, Not Socketed, Level 3
-	Operational Mode: Unknown
-	Location: Unknown
-	Installed Size: 0 KB
-	Maximum Size: 0 KB
-	Supported SRAM Types:
-		Burst
-		Pipeline Burst
-		Asynchronous
-	Installed SRAM Type: Unknown
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x0008, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCCARD1
-	Type: 32-bit PC Card (PCMCIA)
-	Current Usage: Available
-	Length: Other
-	ID: Adapter 0, Socket 1
-	Characteristics:
-		5.0 V is provided
-		3.3 V is provided
-		PC Card-16 is supported
-		Cardbus is supported
-		Hot-plug devices are supported
-
-Handle 0x0009, DMI type 11, 5 bytes
-OEM Strings
-	String 1: 0000017631
-	String 2: FNC-CCIA0gdbEXTB
-	String 3: 058D000000008D8C073792BAC034
-	String 4: Reserved
-	String 5: Reserved
-
-Handle 0x000A, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 2048 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 2
-
-Handle 0x000B, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: None
-	Locator: SODIMM1
-	Bank Locator: Bank 0
-	Type: DDR2
-	Type Detail: Unknown
-
-Handle 0x000C, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x000A
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 1024 MB
-	Form Factor: SODIMM
-	Set: None
-	Locator: SODIMM2
-	Bank Locator: Bank 1
-	Type: DDR2
-	Type Detail: Unknown
-
-Handle 0x000D, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Array Handle: 0x000A
-	Partition Width: 0
-
-Handle 0x000E, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0003FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000B
-	Memory Array Mapped Address Handle: 0x000D
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x000F, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00040000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 1 GB
-	Physical Device Handle: 0x000C
-	Memory Array Mapped Address Handle: 0x000D
-	Partition Row Position: Unknown
-	Interleave Position: Unknown
-	Interleaved Data Depth: Unknown
-
-Handle 0x0010, DMI type 32, 20 bytes
-System Boot Information
-	Status: No errors detected
-
-Handle 0x0011, DMI type 127, 4 bytes
-End Of Table
+I have seen/reported a similar bug there many times in the past,
+with no resolution.  There's even a bugzilla entry for it somewhere.
+???
 
 
---------------080801020901020409000600--
+>> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+>>
+>> ---
+>>  drivers/acpi/processor_idle.c |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> Index: linux-2.6/drivers/acpi/processor_idle.c
+>> ===================================================================
+>> --- linux-2.6.orig/drivers/acpi/processor_idle.c	2008-03-28 15:31:13.000000000 -0700
+>> +++ linux-2.6/drivers/acpi/processor_idle.c	2008-03-28 15:40:50.000000000 -0700
+>> @@ -848,6 +848,7 @@ static int acpi_processor_get_power_info
+>>  		/* all processors need to support C1 */
+>>  		pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+>>  		pr->power.states[ACPI_STATE_C1].valid = 1;
+>> +		pr->power.states[ACPI_STATE_C1].entry_method = ACPI_CSTATE_HALT;
+>>  	}
+>>  	/* the C0 state only exists as a filler in our array */
+>>  	pr->power.states[ACPI_STATE_C0].valid = 1;
+>> @@ -960,6 +961,9 @@ static int acpi_processor_get_power_info
+>>  				 cx.address);
+>>  		}
+>>  
+>> +		if (cx.type == ACPI_STATE_C1) {
+>> +			cx.valid = 1;
+>> +		}
+>>  
+>>  		obj = &(element->package.elements[2]);
+>>  		if (obj->type != ACPI_TYPE_INTEGER)
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
