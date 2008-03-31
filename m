@@ -1,58 +1,77 @@
-From: Adrian Bunk <bunk@kernel.org>
-Subject: [2.6 patch] proper prototype for
-	acpi_processor_tstate_has_changed()
-Date: Mon, 31 Mar 2008 02:05:43 +0300
-Message-ID: <20080330230543.GR28445@cs181133002.pp.htv.fi>
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH 3/3] [2.6.25-rc5] Warn user about a BIOS bug in recent
+ asus boards
+Date: Mon, 31 Mar 2008 07:55:10 +0200
+Message-ID: <47F07CBE.5000900@freemail.hu>
+References: <1205280392.8194.46.camel@linux-2bdv.site>	 <200803120010.41373.lenb@kernel.org>	 <200803120140.14243.lenb@kernel.org>	 <1205300688.2240.47.camel@acpi-hp-zz.sh.intel.com>	 <1205305945.2240.56.camel@acpi-hp-zz.sh.intel.com>	 <1205391787.2240.71.camel@acpi-hp-zz.sh.intel.com>	 <47D99970.4010906@freemail.hu> <86802c440803291743i596678cem4f8ff727f208d2d3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.pp.htv.fi ([213.243.153.39]:53713 "EHLO smtp5.pp.htv.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756121AbYC3XFz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Mar 2008 19:05:55 -0400
-Content-Disposition: inline
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:58610 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070AbYCaFzP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Mar 2008 01:55:15 -0400
+In-Reply-To: <86802c440803291743i596678cem4f8ff727f208d2d3@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, trenn@suse.de, linux-acpi <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-This patch adds a proper prototype for acpi_processor_tstate_has_changed()
-in include/acpi/processor.h
+Yinghai Lu wrote:
+> 2008/3/13 N=E9meth M=E1rton <nm127@freemail.hu>:
+>>  [    0.715787] ACPI: PCI Interrupt 0000:00:0c.0[A] -> GSI 16 (level=
+, low) -> IRQ 16
+> ...
+>>  [   25.037202] ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level=
+, low) -> IRQ 16
+> ...
+>>  [   86.320860] irq 16: nobody cared (try booting with the "irqpoll"=
+ option)
+>>  [   86.320860] Pid: 0, comm: swapper Not tainted 2.6.25-rc5 #1
+>>  [   86.320860]  [<c01578f7>] __report_bad_irq+0x27/0x90
+>>  [   86.320860]  [<c0157b96>] note_interrupt+0x236/0x270
+>>  [   86.320860]  [<c0156fa3>] ? handle_IRQ_event+0x53/0x60
+>>  [   86.320860]  [<c015823a>] handle_fasteoi_irq+0x7a/0xd0
+>>  [   86.320860]  [<c0106174>] do_IRQ+0x44/0xa0
+>>  [   86.320860]  [<c0104c66>] common_interrupt+0x2e/0x34
+>>  [   86.320860]  [<c0119039>] ? finish_task_switch+0x59/0xc0
+>>  [   86.320860]  [<c0118fe0>] ? finish_task_switch+0x0/0xc0
+>>  [   86.320860]  [<c03080d6>] schedule+0x2b6/0x470
+>>  [   86.320860]  [<f892fdae>] ? acpi_processor_idle+0x0/0x436 [proce=
+ssor]
+>>  [   86.320860]  [<c0102b65>] cpu_idle+0xb5/0xd0
+>>  [   86.320860]  [<c030343c>] rest_init+0x5c/0x60
+>>  [   86.320860]  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+>>  [   86.320860] handlers:
+>>  [   86.320860] [<f8915830>] (yenta_interrupt+0x0/0xe0 [yenta_socket=
+])
+>>  [   86.320860] [<f8afd3f0>] (via_driver_irq_handler+0x0/0x1c0 [via]=
+)
+>>  [   86.320860] Disabling IRQ #16
+>=20
+> wonder if other device is using IRQ #16 too.
+>=20
+> can you boot with pci=3Drouteirq to check that?
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Yes, in my system the yenta module uses the IRQ #16 also:
 
----
+Yenta: ISA IRQ mask 0x0aa8, PCI irq 16
 
-This patch has been sent on:
-- 1 Mar 2008
+However, the "nobody cared" message is triggered by the "via" X11 drive=
+r.
+There is a workaround to get rid of it: I switched to "openChrome" X11
+driver ( http://www.openchrome.org/ ).
 
- drivers/acpi/processor_core.c |    1 -
- include/acpi/processor.h      |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+See also http://lkml.org/lkml/2008/3/16/10 and
+http://bugzilla.kernel.org/show_bug.cgi?id=3D6790 .
 
-fcdb74ac24c943bc290e85e2d757f82dbb065955 foobar
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index a3cc8a9..d88f21e 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -86,7 +86,6 @@ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
- static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
--extern int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- 
- 
- static const struct acpi_device_id processor_device_ids[] = {
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 06480bc..06ebb6e 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -319,6 +319,7 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
- #endif				/* CONFIG_CPU_FREQ */
- 
- /* in processor_throttling.c */
-+int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
- int acpi_processor_get_throttling_info(struct acpi_processor *pr);
- extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
- extern struct file_operations acpi_processor_throttling_fops;
+Regards,
 
+	M=E1rton N=E9meth
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
