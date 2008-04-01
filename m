@@ -1,241 +1,60 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 04/37] PNP: change pnp_add_id() to allocate its own pnp_id structures
-Date: Tue, 01 Apr 2008 09:16:38 -0600
-Message-ID: <20080401151736.407143104@ldl.fc.hp.com>
+Subject: [patch 13/37] PNPACPI: hoist dma_flags() out of pnpacpi_parse_allocated_dmaresource()
+Date: Tue, 01 Apr 2008 09:16:47 -0600
+Message-ID: <20080401151738.255603896@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:4342 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758779AbYDAPRo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:17:44 -0400
-Content-Disposition: inline; filename=pnp-move-allocation-into-pnp_add_id
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:27004 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759280AbYDAPSA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:00 -0400
+Content-Disposition: inline; filename=pnpacpi-hoist-dma-flags
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This moves some of the pnp_id knowledge out of the backends and into
-the PNP core.
+Hoist dma_flags() out of pnpacpi_parse_allocated_dmaresource() into its
+caller.  This makes pnpacpi_parse_allocated_dmaresource() more similar
+to pnpbios_parse_allocated_dmaresource().
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- drivers/pnp/base.h             |    2 +-
- drivers/pnp/driver.c           |   28 +++++++++++++++++++++-------
- drivers/pnp/isapnp/core.c      |   24 +++++++++++-------------
- drivers/pnp/pnpacpi/core.c     |   27 +++------------------------
- drivers/pnp/pnpbios/core.c     |   10 +---------
- drivers/pnp/pnpbios/rsparser.c |    7 +------
- 6 files changed, 38 insertions(+), 60 deletions(-)
-
-Index: work7/drivers/pnp/base.h
+Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-26 10:50:27.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-31 15:42:26.000000000 -0600
-@@ -1,6 +1,6 @@
- extern spinlock_t pnp_lock;
- void *pnp_alloc(long size);
--int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
-+struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work7/drivers/pnp/driver.c
-===================================================================
---- work7.orig/drivers/pnp/driver.c	2008-03-26 10:50:24.000000000 -0600
-+++ work7/drivers/pnp/driver.c	2008-03-26 10:50:28.000000000 -0600
-@@ -226,22 +226,36 @@
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:08:36.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:22.000000000 -0600
+@@ -167,8 +167,7 @@
+ }
  
- /**
-  * pnp_add_id - adds an EISA id to the specified device
-- * @id: pointer to a pnp_id structure
-  * @dev: pointer to the desired device
-+ * @id: pointer to an EISA id string
-  */
--int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev)
-+struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id)
+ static void pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res,
+-						u32 dma, int type,
+-						int bus_master, int transfer)
++						u32 dma, int flags)
  {
--	struct pnp_id *ptr;
-+	struct pnp_id *dev_id, *ptr;
+ 	int i = 0;
+ 	static unsigned char warned;
+@@ -178,8 +177,7 @@
+ 		i++;
+ 	if (i < PNP_MAX_DMA) {
+ 		res->dma_resource[i].flags = IORESOURCE_DMA;	// Also clears _UNSET flag
+-		res->dma_resource[i].flags |=
+-		    dma_flags(type, bus_master, transfer);
++		res->dma_resource[i].flags |= flags;
+ 		if (dma == -1) {
+ 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+@@ -309,9 +307,8 @@
+ 		if (dma->channel_count > 0)
+ 			pnpacpi_parse_allocated_dmaresource(res_table,
+ 				dma->channels[0],
+-				dma->type,
+-				dma->bus_master,
+-				dma->transfer);
++				dma_flags(dma->type, dma->bus_master,
++					  dma->transfer));
+ 		break;
  
--	id->next = NULL;
-+	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	if (!dev_id)
-+		return NULL;
-+
-+	dev_id->id[0] = id[0];
-+	dev_id->id[1] = id[1];
-+	dev_id->id[2] = id[2];
-+	dev_id->id[3] = tolower(id[3]);
-+	dev_id->id[4] = tolower(id[4]);
-+	dev_id->id[5] = tolower(id[5]);
-+	dev_id->id[6] = tolower(id[6]);
-+	dev_id->id[7] = '\0';
-+
-+	dev_id->next = NULL;
- 	ptr = dev->id;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
- 	if (ptr)
--		ptr->next = id;
-+		ptr->next = dev_id;
- 	else
--		dev->id = id;
--	return 0;
-+		dev->id = dev_id;
-+
-+	return dev_id;
- }
- 
- EXPORT_SYMBOL(pnp_register_driver);
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-26 10:50:25.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 15:46:38.000000000 -0600
-@@ -44,6 +44,8 @@
- #include <linux/mutex.h>
- #include <asm/io.h>
- 
-+#include "../base.h"
-+
- #if 0
- #define ISAPNP_REGION_OK
- #endif
-@@ -401,20 +403,16 @@
- static void isapnp_parse_id(struct pnp_dev *dev, unsigned short vendor,
- 			    unsigned short device)
- {
--	struct pnp_id *id;
-+	char id[8];
- 
--	if (!dev)
--		return;
--	id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
--	if (!id)
--		return;
--	sprintf(id->id, "%c%c%c%x%x%x%x",
-+	sprintf(id, "%c%c%c%x%x%x%x",
- 		'A' + ((vendor >> 2) & 0x3f) - 1,
- 		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
- 		'A' + ((vendor >> 8) & 0x1f) - 1,
- 		(device >> 4) & 0x0f,
- 		device & 0x0f, (device >> 12) & 0x0f, (device >> 8) & 0x0f);
--	pnp_add_id(id, dev);
-+
-+	pnp_add_id(dev, id);
- }
- 
- /*
-Index: work7/drivers/pnp/pnpacpi/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-26 10:50:27.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-31 15:42:26.000000000 -0600
-@@ -73,18 +73,6 @@
- 	return 1;
- }
- 
--static void __init pnpidacpi_to_pnpid(char *id, char *str)
--{
--	str[0] = id[0];
--	str[1] = id[1];
--	str[2] = id[2];
--	str[3] = tolower(id[3]);
--	str[4] = tolower(id[4]);
--	str[5] = tolower(id[5]);
--	str[6] = tolower(id[6]);
--	str[7] = '\0';
--}
--
- static int pnpacpi_get_resources(struct pnp_dev *dev,
- 				 struct pnp_resource_table *res)
- {
-@@ -201,12 +189,9 @@
- 
- 	dev->number = num;
- 
--	/* set the initial values for the PnP device */
--	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	dev_id = pnp_add_id(dev, acpi_device_hid(device));
- 	if (!dev_id)
- 		goto err;
--	pnpidacpi_to_pnpid(acpi_device_hid(device), dev_id->id);
--	pnp_add_id(dev_id, dev);
- 
- 	if (dev->active) {
- 		/* parse allocated resource */
-@@ -227,7 +212,6 @@
- 		}
- 	}
- 
--	/* parse compatible ids */
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
- 		int i;
-@@ -235,12 +219,7 @@
- 		for (i = 0; i < cid_list->count; i++) {
- 			if (!ispnpidacpi(cid_list->id[i].value))
- 				continue;
--			dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
--			if (!dev_id)
--				continue;
--
--			pnpidacpi_to_pnpid(cid_list->id[i].value, dev_id->id);
--			pnp_add_id(dev_id, dev);
-+			pnp_add_id(dev, cid_list->id[i].value);
- 		}
- 	}
- 
-Index: work7/drivers/pnp/pnpbios/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-26 10:50:27.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-03-31 15:42:26.000000000 -0600
-@@ -332,16 +332,14 @@
- 	if (!dev)
- 		return -1;
- 
--	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	pnpid32_to_pnpid(node->eisa_id, id);
-+	dev_id = pnp_add_id(dev, id);
- 	if (!dev_id) {
- 		kfree(dev);
- 		return -1;
- 	}
- 
- 	dev->number = node->handle;
--	pnpid32_to_pnpid(node->eisa_id, id);
--	memcpy(dev_id->id, id, 7);
--	pnp_add_id(dev_id, dev);
- 	pnpbios_parse_data_stream(dev, node);
- 	dev->active = pnp_is_active(dev);
- 	dev->flags = node->flags;
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-26 10:50:24.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-31 15:42:25.000000000 -0600
-@@ -16,6 +16,7 @@
- }
- #endif				/* CONFIG_PCI */
- 
-+#include "../base.h"
- #include "pnpbios.h"
- 
- /* standard resource tags */
-@@ -548,13 +549,11 @@
- 		case SMALL_TAG_COMPATDEVID:	/* compatible ID */
- 			if (len != 4)
- 				goto len_err;
--			dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
--			if (!dev_id)
--				return NULL;
- 			pnpid32_to_pnpid(p[1] | p[2] << 8 | p[3] << 16 | p[4] <<
- 					 24, id);
--			memcpy(&dev_id->id, id, 7);
--			pnp_add_id(dev_id, dev);
-+			dev_id = pnp_add_id(dev, id);
-+			if (!dev_id)
-+				return NULL;
- 			break;
- 
- 		case SMALL_TAG_END:
+ 	case ACPI_RESOURCE_TYPE_IO:
 
 -- 
