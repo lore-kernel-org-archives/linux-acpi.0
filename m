@@ -1,74 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 6)
-Date: Tue, 1 Apr 2008 23:50:00 +0200
-Message-ID: <200804012350.01407.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0804011653140.9362-100000@netrider.rowland.org>
+Date: Tue, 1 Apr 2008 23:57:29 +0200
+Message-ID: <200804012357.30529.rjw@sisk.pl>
+References: <200803292317.50218.rjw@sisk.pl> <200804012212.48609.rjw@sisk.pl> <1207085713.23143.111.camel@nigel-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48723 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:48771 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753976AbYDAVuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Apr 2008 17:50:24 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0804011653140.9362-100000@netrider.rowland.org>
+	id S1751886AbYDAV5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Apr 2008 17:57:23 -0400
+In-Reply-To: <1207085713.23143.111.camel@nigel-laptop>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
+To: Nigel Cunningham <ncunningham@crca.org.au>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
 
-On Tuesday, 1 of April 2008, Alan Stern wrote:
-> On Tue, 1 Apr 2008, Rafael J. Wysocki wrote:
+On Tuesday, 1 of April 2008, Nigel Cunningham wrote:
+> Hi Rafael etc.
 > 
-> > > Does ..._ext_... mean extended? (external?) If 'extended' (or if not),
-> > > does that imply that they're mutually exclusive alternatives for drivers
-> > > to use?
-> > 
+> On Tue, 2008-04-01 at 22:12 +0200, Rafael J. Wysocki wrote:
 > > 'ext' means 'extended'.  The idea is that the 'extended' version will be used
 > > by bus types / driver types that don't need to implement the _noirq callbacks.
+> > Both the platform and PCI bus types generally allow drivers to use _noirq
+> > callbacks, so they use 'struct pm_ext_ops', as well as their corresponding
+> > driver types.
 > 
-> Something's wrong here.  This seems to say that the "extended" version
-> has _fewer_ method pointers -- in which case it should be called 
-> "restricted" instead.
+> Do you mean to say in the first sentence "...that _do_ need to implement..."?
 
-No, it has more pointers.  Specifically, it is like
+Yes, sorry.
 
-struct pm_ext_ops {
-	struct pm_ops base;
-	--additional pointers go here--
-}
+> If not, then extended sounds like a misnomer and the two 
+> sentences seem to contradict one another.
+> 
+> [...]
+> 
+> > > > + *	However, drivers may NOT assume anything about the availability of the
+> > > > + *	user space at that time and it is not correct to request firmware from
+> > > > + *	within @prepare() (it's too late to do that).
+> > > 
+> > > That doesn't sound good. It would be good to be able to get drivers to
+> > > request firmware early in the process.
+> > 
+> > That will be possible when we drop the freezer.
+> 
+> Yeah, but right now, it seems to me to be a bogus limitation for drivers
+> to have no way of automatically loading firmware when you're about to
+> hibernate. (Of course I've since been reminded of the notifier chain -
+> that should probably be mentioned here as the way of achieving this).
+
+This is a tricky stuff, though, because the notifier is used for disabling the
+user mode helpers too ...
  
-> > > So drivers can never validly fail to resume. That sounds fair enough. If
-> > > the hardware has gone away while in lower power mode (USB, say), should
-> > > the driver then just printk an error and return success?
-> > 
-> > I think so.
-> > 
-> > IMO, an error code returned by a driver's ->resume() should mean "the device
-> > hasn't resumed and is presumably dead".  Otherwise, ->resume() should return
-> > success.
-> 
-> If the device is gone, it doesn't much matter what resume() returns.
+> By the way, I'm going to go on record now as saying I think dropping the
+> freezer is a silly idea. I'm therefore currently considering including
+> the freezer in TuxOnice from the time it gets dropped from mainline. I
+> know that will only make it less likely that TuxOnIce gets merged, but
+> I've given up caring about that anyway - caring about merging is
+> pointless when the people who decide if it gets merged don't care.
 
-Yes, it does.  In that cases, the error code would tell the PM core not to attempt
-to resume the device's children etc.  Otherwise, it's quite meaningless to the
-PM core, because it really can mean anything and how's the PM core supposed
-to handle _that_?
+Well, I'm just not sure if dropping the freezer entirely will actually work,
+but we won't know that if we don't try.
 
-Either we decide that the error codes returned by ->resume() mean critical
-errors or there's no point in returning error codes from ->resume() at all
-(other than logging the errors by the core).
-
-Well, that's getting confused.  I think I'll have to rework the patch not to
-really handle the errors returned by ->resume() and friends, after all, but
-I'll keep the reporting of them.
-
-However, I'd like to add a recommendation that the _new_ "resume" callbacks
-should only return errors in critical situations as the indication to the PM
-core that something went _really_ wrong and the device in question is quite
-surely unusable.
+There's been a lot of pressure on going into this direction recently and
+in principle it seems to be doable at least for suspend.  Hibernation is
+another issue, but IMO it's better to focus on suspend first.
 
 Thanks,
 Rafael
