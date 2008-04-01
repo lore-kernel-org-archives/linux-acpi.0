@@ -1,65 +1,72 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI PM: Restore the 2.6.24 suspend ordering
-Date: Tue, 1 Apr 2008 10:45:23 +0200
-Message-ID: <20080401084523.GA25278@atrey.karlin.mff.cuni.cz>
-References: <200803300319.08398.rjw@sisk.pl> <200803301358.39831.rjw@sisk.pl> <20080330122838.GA7093@elf.ucw.cz> <200803301515.33922.rjw@sisk.pl>
+From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: Re: [patch 00/37] PNP resource_table cleanups
+Date: Tue, 01 Apr 2008 12:16:10 +0200
+Message-ID: <47F20B6A.1000609@keyaccess.nl>
+References: <20080326171058.099442579@ldl.fc.hp.com> <200803271150.30512.bjorn.helgaas@hp.com> <47F13E13.7090608@keyaccess.nl> <200803311451.54499.bjorn.helgaas@hp.com> <47F159BE.7050201@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:54092 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755897AbYDAIpY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 04:45:24 -0400
-Content-Disposition: inline
-In-Reply-To: <200803301515.33922.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080600080009020902050601"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757471AbYDAKOm@vger.kernel.org>
+In-Reply-To: <47F159BE.7050201@keyaccess.nl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Shaohua Li <shaohua.li@intel.com>, Felix M?ller <fm@opensuse.org>, Arthur Erhardt <erhardt@pit.physik.uni-tuebingen.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi!
+This is a multi-part message in MIME format.
+--------------080600080009020902050601
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> > > > > For the reasons outlined above, the change of the suspend ordering
-> > > > > should be reverted, which is done by the patch below.
-> > > > 
-> > > > But this will break those few nvidia-based systems, no?
-> > > > 
-> > > > this may have been a good idea in -rc1 days, but we are in -rc7
-> > > > now... and the patch is slightly big.
-> > > 
-> > > It's quite obvious, though.
-> > 
-> > Yes, but breaking systems between -rc7 and final is _very_ unnice.
+On 31-03-08 23:38, Rene Herman wrote:
+> On 31-03-08 22:51, Bjorn Helgaas wrote:
 > 
-> Breaking systems between 2.6.24 and 2.6.25 is even worse, which is why
-> I've posted this patch.
+>> Ah, right.  Thanks for tracking that down.  I forgot to factor out
+>> isapnp_to_pnpid() and pnpid32_to_pnpid() (and acpi_ex_eisa_id_to_string()
+>> for that matter, though that's buried in the ACPI CA)-- they're really
+>> doing the same thing and we should only need one copy (plus the CA
+>> one).
 > 
-> IOW, we tried to fix systems that were broken with 2.6.24, but it didn't work,
-> because our "fix" broke systems that were OK with 2.6.24.  Solution: revert
-> the "fix" and go back to the design board.  That's all we can do so late in
-> the release cycle, IMO.
+> I'll wait for another round then, before reviewing this further.
 
-Well, I agree that regression from 2.6.24 is worse, but it is
-_slightly_ worse... -rcs are really expected to improve...
+There's actually a hex_asc() helper in kernel.h, so before you overlook it 
+as well, this is a somewhat nicer ID fix.
 
-...plus it no longer looks like macbook regression is caused by _PTS
-ordering?
+Rene.
 
-> > > I think we _can_ do something about the failing NVidia systems in the 2.6.26
-> > > time frame, but that will require some more consideration.
-> > 
-> > We could simply blacklist them, no?
-> 
-> Yes, but for this purpose we'll have to redesign the core so that everything
-> (including debugging and the error paths) works if _PTS is executed before
-> suspending devices.  _That_, however, is not a 2.6.25 thing.
+--------------080600080009020902050601
+Content-Type: text/plain;
+ name="isapnp_to_pnpid2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="isapnp_to_pnpid2.diff"
 
-So we have solution that fixes 2.6.24 systems, makes system that
-worked in 2.6.25-rc5 work with command line option, but gets error
-handling wrong.
+commit cfed76bc2a76f2094338bc43dae55aa814017b5f
+Author: Rene Herman <rene.herman@gmail.com>
+Date:   Tue Apr 1 12:03:15 2008 +0200
 
-I guess we could use that?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+    [ISAPNP] fix isapnp_to_pnpid
+
+diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
+index c4b95b5..9727050 100644
+--- a/drivers/pnp/isapnp/core.c
++++ b/drivers/pnp/isapnp/core.c
+@@ -406,11 +406,11 @@ static void isapnp_to_pnpid(unsigned short vendor, unsigned short device,
+ 	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
+ 	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
+ 	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
+-	id[3] = '0' + ((device >> 4) & 0x0f);
+-	id[4] = '0' + (device & 0x0f);
+-	id[5] = '0' + ((device >> 12) & 0x0f);
+-	id[6] = '0' + ((device >> 8) & 0x0f);
+-	id[7] = '\0';
++	id[3] = hex_asc((device >> 4) & 0x0f);
++	id[4] = hex_asc(device & 0x0f);
++	id[5] = hex_asc((device >> 12) & 0x0f);
++	id[6] = hex_asc((device >> 8) & 0x0f);
++	id[7] = 0;
+ }
+ 
+ /*
+
+--------------080600080009020902050601--
