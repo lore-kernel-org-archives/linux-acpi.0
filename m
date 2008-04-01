@@ -1,183 +1,339 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 18/37] PNP: add pnp_init_resources(struct pnp_dev *) interface
-Date: Tue, 01 Apr 2008 09:16:52 -0600
-Message-ID: <20080401151739.236383497@ldl.fc.hp.com>
+Subject: [patch 12/37] PNPACPI: use temporaries to reduce repetition
+Date: Tue, 01 Apr 2008 09:16:46 -0600
+Message-ID: <20080401151738.051455892@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:35106 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759433AbYDAPSX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:23 -0400
-Content-Disposition: inline; filename=pnp-remove-pnp_resource_table-from-init
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:11865 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759320AbYDAPSE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:04 -0400
+Content-Disposition: inline; filename=pnpacpi-use-acpi-resource-temporaries
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Add pnp_init_resources(struct pnp_dev *), which will replace
-pnp_init_resource_table(), which takes a pointer to the
-pnp_resource_table itself.  Passing only the pnp_dev * reduces
-the possibility for error in the caller and removes the
-pnp_resource_table implementation detail from the interface.
-
-Even though pnp_init_resource_table() is exported, I did not
-export pnp_init_resources() because it is used only by the PNP
-core.
+No functional change, just fewer words and fewer chances for
+transcription errors.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- drivers/pnp/interface.c        |    6 +++---
- drivers/pnp/isapnp/core.c      |    4 ++--
- drivers/pnp/manager.c          |    5 +++++
- drivers/pnp/pnpacpi/core.c     |    2 +-
- drivers/pnp/pnpacpi/rsparser.c |    3 +--
- drivers/pnp/pnpbios/core.c     |    2 +-
- drivers/pnp/pnpbios/rsparser.c |    3 +--
- include/linux/pnp.h            |    2 ++
- 8 files changed, 16 insertions(+), 11 deletions(-)
-
-Index: work7/include/linux/pnp.h
-===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-31 17:10:39.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-31 17:10:48.000000000 -0600
-@@ -388,6 +388,7 @@
- 			       struct pnp_port *data);
- int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
- void pnp_init_resource_table(struct pnp_resource_table *table);
-+void pnp_init_resources(struct pnp_dev *dev);
- int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res,
- 			  int mode);
- int pnp_auto_config_dev(struct pnp_dev *dev);
-@@ -435,6 +436,7 @@
- static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
- static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
- static inline void pnp_init_resource_table(struct pnp_resource_table *table) { }
-+static inline void pnp_init_resources(struct pnp_dev *dev) { }
- static inline int pnp_manual_config_dev(struct pnp_dev *dev, struct pnp_resource_table *res, int mode) { return -ENODEV; }
- static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
-Index: work7/drivers/pnp/manager.c
-===================================================================
---- work7.orig/drivers/pnp/manager.c	2008-03-31 17:10:39.000000000 -0600
-+++ work7/drivers/pnp/manager.c	2008-03-31 17:10:48.000000000 -0600
-@@ -238,6 +238,11 @@
- 	}
- }
- 
-+void pnp_init_resources(struct pnp_dev *dev)
-+{
-+	pnp_init_resource_table(&dev->res);
-+}
-+
- /**
-  * pnp_clean_resources - clears resources that were not manually set
-  * @res: the resources to clean
-Index: work7/drivers/pnp/interface.c
-===================================================================
---- work7.orig/drivers/pnp/interface.c	2008-03-31 17:10:39.000000000 -0600
-+++ work7/drivers/pnp/interface.c	2008-03-31 17:10:48.000000000 -0600
-@@ -351,14 +351,14 @@
- 	if (!strnicmp(buf, "auto", 4)) {
- 		if (dev->active)
- 			goto done;
--		pnp_init_resource_table(&dev->res);
-+		pnp_init_resources(dev);
- 		retval = pnp_auto_config_dev(dev);
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "clear", 5)) {
- 		if (dev->active)
- 			goto done;
--		pnp_init_resource_table(&dev->res);
-+		pnp_init_resources(dev);
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "get", 3)) {
-@@ -373,7 +373,7 @@
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
--		pnp_init_resource_table(&dev->res);
-+		pnp_init_resources(dev);
- 		mutex_lock(&pnp_res_mutex);
- 		while (1) {
- 			while (isspace(*buf))
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:45.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:48.000000000 -0600
-@@ -424,7 +424,7 @@
- 	dev->capabilities |= PNP_READ;
- 	dev->capabilities |= PNP_WRITE;
- 	dev->capabilities |= PNP_DISABLE;
--	pnp_init_resource_table(&dev->res);
-+	pnp_init_resources(dev);
- 	return dev;
- }
- 
-@@ -972,7 +972,7 @@
- {
- 	int ret;
- 
--	pnp_init_resource_table(&dev->res);
-+	pnp_init_resources(dev);
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	ret = isapnp_read_resources(dev);
- 	isapnp_cfg_end();
-Index: work7/drivers/pnp/pnpacpi/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:45.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:48.000000000 -0600
-@@ -210,7 +210,7 @@
- 
- 	/* clear out the damaged flags */
- 	if (!dev->active)
--		pnp_init_resource_table(&dev->res);
-+		pnp_init_resources(dev);
- 	pnp_add_device(dev);
- 	num++;
- 
-Index: work7/drivers/pnp/pnpbios/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-31 17:10:45.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-03-31 17:10:48.000000000 -0600
-@@ -345,7 +345,7 @@
- 
- 	/* clear out the damaged flags */
- 	if (!dev->active)
--		pnp_init_resource_table(&dev->res);
-+		pnp_init_resources(dev);
- 
- 	pnp_add_device(dev);
- 	pnpbios_interface_attach_device(node);
 Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:45.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:48.000000000 -0600
-@@ -406,8 +406,7 @@
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 12:07:31.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 12:14:54.000000000 -0600
+@@ -278,6 +278,14 @@
+ 					      void *data)
  {
- 	acpi_handle handle = dev->data;
+ 	struct pnp_resource_table *res_table = data;
++	struct acpi_resource_irq *irq;
++	struct acpi_resource_dma *dma;
++	struct acpi_resource_io *io;
++	struct acpi_resource_fixed_io *fixed_io;
++	struct acpi_resource_memory24 *memory24;
++	struct acpi_resource_memory32 *memory32;
++	struct acpi_resource_fixed_memory32 *fixed_memory32;
++	struct acpi_resource_extended_irq *extended_irq;
+ 	int i;
  
--	/* Blank the resource table values */
--	pnp_init_resource_table(&dev->res);
-+	pnp_init_resources(dev);
+ 	switch (res->type) {
+@@ -286,29 +294,32 @@
+ 		 * Per spec, only one interrupt per descriptor is allowed in
+ 		 * _CRS, but some firmware violates this, so parse them all.
+ 		 */
+-		for (i = 0; i < res->data.irq.interrupt_count; i++) {
++		irq = &res->data.irq;
++		for (i = 0; i < irq->interrupt_count; i++) {
+ 			pnpacpi_parse_allocated_irqresource(res_table,
+-				res->data.irq.interrupts[i],
+-				res->data.irq.triggering,
+-				res->data.irq.polarity,
+-				res->data.irq.sharable);
++				irq->interrupts[i],
++				irq->triggering,
++				irq->polarity,
++				irq->sharable);
+ 		}
+ 		break;
  
- 	return acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				   pnpacpi_allocated_resource, dev);
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:45.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:48.000000000 -0600
-@@ -143,8 +143,7 @@
- 	if (!p)
- 		return NULL;
+ 	case ACPI_RESOURCE_TYPE_DMA:
+-		if (res->data.dma.channel_count > 0)
++		dma = &res->data.dma;
++		if (dma->channel_count > 0)
+ 			pnpacpi_parse_allocated_dmaresource(res_table,
+-				res->data.dma.channels[0],
+-				res->data.dma.type,
+-				res->data.dma.bus_master,
+-				res->data.dma.transfer);
++				dma->channels[0],
++				dma->type,
++				dma->bus_master,
++				dma->transfer);
+ 		break;
  
--	/* Blank the resource table values */
--	pnp_init_resource_table(&dev->res);
-+	pnp_init_resources(dev);
+ 	case ACPI_RESOURCE_TYPE_IO:
++		io = &res->data.io;
+ 		pnpacpi_parse_allocated_ioresource(res_table,
+-			res->data.io.minimum,
+-			res->data.io.address_length,
+-			res->data.io.io_decode);
++			io->minimum,
++			io->address_length,
++			io->io_decode);
+ 		break;
  
- 	while ((char *)p < (char *)end) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+@@ -316,9 +327,10 @@
+ 		break;
  
+ 	case ACPI_RESOURCE_TYPE_FIXED_IO:
++		fixed_io = &res->data.fixed_io;
+ 		pnpacpi_parse_allocated_ioresource(res_table,
+-			res->data.fixed_io.address,
+-			res->data.fixed_io.address_length,
++			fixed_io->address,
++			fixed_io->address_length,
+ 			ACPI_DECODE_10);
+ 		break;
+ 
+@@ -329,22 +341,25 @@
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_MEMORY24:
++		memory24 = &res->data.memory24;
+ 		pnpacpi_parse_allocated_memresource(res_table,
+-			res->data.memory24.minimum,
+-			res->data.memory24.address_length,
+-			res->data.memory24.write_protect);
++			memory24->minimum,
++			memory24->address_length,
++			memory24->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
++		memory32 = &res->data.memory32;
+ 		pnpacpi_parse_allocated_memresource(res_table,
+-			res->data.memory32.minimum,
+-			res->data.memory32.address_length,
+-			res->data.memory32.write_protect);
++			memory32->minimum,
++			memory32->address_length,
++			memory32->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
++		fixed_memory32 = &res->data.fixed_memory32;
+ 		pnpacpi_parse_allocated_memresource(res_table,
+-			res->data.fixed_memory32.address,
+-			res->data.fixed_memory32.address_length,
+-			res->data.fixed_memory32.write_protect);
++			fixed_memory32->address,
++			fixed_memory32->address_length,
++			fixed_memory32->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+@@ -358,15 +373,16 @@
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+-		if (res->data.extended_irq.producer_consumer == ACPI_PRODUCER)
++		extended_irq = &res->data.extended_irq;
++		if (extended_irq->producer_consumer == ACPI_PRODUCER)
+ 			return AE_OK;
+ 
+-		for (i = 0; i < res->data.extended_irq.interrupt_count; i++) {
++		for (i = 0; i < extended_irq->interrupt_count; i++) {
+ 			pnpacpi_parse_allocated_irqresource(res_table,
+-				res->data.extended_irq.interrupts[i],
+-				res->data.extended_irq.triggering,
+-				res->data.extended_irq.polarity,
+-				res->data.extended_irq.sharable);
++				extended_irq->interrupts[i],
++				extended_irq->triggering,
++				extended_irq->polarity,
++				extended_irq->sharable);
+ 		}
+ 		break;
+ 
+@@ -795,122 +811,136 @@
+ static void pnpacpi_encode_irq(struct acpi_resource *resource,
+ 			       struct resource *p)
+ {
++	struct acpi_resource_irq *irq = &resource->data.irq;
+ 	int triggering, polarity;
+ 
+ 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
+-	resource->data.irq.triggering = triggering;
+-	resource->data.irq.polarity = polarity;
++	irq->triggering = triggering;
++	irq->polarity = polarity;
+ 	if (triggering == ACPI_EDGE_SENSITIVE)
+-		resource->data.irq.sharable = ACPI_EXCLUSIVE;
++		irq->sharable = ACPI_EXCLUSIVE;
+ 	else
+-		resource->data.irq.sharable = ACPI_SHARED;
+-	resource->data.irq.interrupt_count = 1;
+-	resource->data.irq.interrupts[0] = p->start;
++		irq->sharable = ACPI_SHARED;
++	irq->interrupt_count = 1;
++	irq->interrupts[0] = p->start;
+ }
+ 
+ static void pnpacpi_encode_ext_irq(struct acpi_resource *resource,
+ 				   struct resource *p)
+ {
++	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
+ 	int triggering, polarity;
+ 
+ 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
+-	resource->data.extended_irq.producer_consumer = ACPI_CONSUMER;
+-	resource->data.extended_irq.triggering = triggering;
+-	resource->data.extended_irq.polarity = polarity;
++	extended_irq->producer_consumer = ACPI_CONSUMER;
++	extended_irq->triggering = triggering;
++	extended_irq->polarity = polarity;
+ 	if (triggering == ACPI_EDGE_SENSITIVE)
+-		resource->data.extended_irq.sharable = ACPI_EXCLUSIVE;
++		extended_irq->sharable = ACPI_EXCLUSIVE;
+ 	else
+-		resource->data.extended_irq.sharable = ACPI_SHARED;
+-	resource->data.extended_irq.interrupt_count = 1;
+-	resource->data.extended_irq.interrupts[0] = p->start;
++		extended_irq->sharable = ACPI_SHARED;
++	extended_irq->interrupt_count = 1;
++	extended_irq->interrupts[0] = p->start;
+ }
+ 
+ static void pnpacpi_encode_dma(struct acpi_resource *resource,
+ 			       struct resource *p)
+ {
++	struct acpi_resource_dma *dma = &resource->data.dma;
++
+ 	/* Note: pnp_assign_dma will copy pnp_dma->flags into p->flags */
+ 	switch (p->flags & IORESOURCE_DMA_SPEED_MASK) {
+ 	case IORESOURCE_DMA_TYPEA:
+-		resource->data.dma.type = ACPI_TYPE_A;
++		dma->type = ACPI_TYPE_A;
+ 		break;
+ 	case IORESOURCE_DMA_TYPEB:
+-		resource->data.dma.type = ACPI_TYPE_B;
++		dma->type = ACPI_TYPE_B;
+ 		break;
+ 	case IORESOURCE_DMA_TYPEF:
+-		resource->data.dma.type = ACPI_TYPE_F;
++		dma->type = ACPI_TYPE_F;
+ 		break;
+ 	default:
+-		resource->data.dma.type = ACPI_COMPATIBILITY;
++		dma->type = ACPI_COMPATIBILITY;
+ 	}
+ 
+ 	switch (p->flags & IORESOURCE_DMA_TYPE_MASK) {
+ 	case IORESOURCE_DMA_8BIT:
+-		resource->data.dma.transfer = ACPI_TRANSFER_8;
++		dma->transfer = ACPI_TRANSFER_8;
+ 		break;
+ 	case IORESOURCE_DMA_8AND16BIT:
+-		resource->data.dma.transfer = ACPI_TRANSFER_8_16;
++		dma->transfer = ACPI_TRANSFER_8_16;
+ 		break;
+ 	default:
+-		resource->data.dma.transfer = ACPI_TRANSFER_16;
++		dma->transfer = ACPI_TRANSFER_16;
+ 	}
+ 
+-	resource->data.dma.bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
+-	resource->data.dma.channel_count = 1;
+-	resource->data.dma.channels[0] = p->start;
++	dma->bus_master = !!(p->flags & IORESOURCE_DMA_MASTER);
++	dma->channel_count = 1;
++	dma->channels[0] = p->start;
+ }
+ 
+ static void pnpacpi_encode_io(struct acpi_resource *resource,
+ 			      struct resource *p)
+ {
++	struct acpi_resource_io *io = &resource->data.io;
++
+ 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
+-	resource->data.io.io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
++	io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
+ 	    ACPI_DECODE_16 : ACPI_DECODE_10;
+-	resource->data.io.minimum = p->start;
+-	resource->data.io.maximum = p->end;
+-	resource->data.io.alignment = 0;	/* Correct? */
+-	resource->data.io.address_length = p->end - p->start + 1;
++	io->minimum = p->start;
++	io->maximum = p->end;
++	io->alignment = 0;	/* Correct? */
++	io->address_length = p->end - p->start + 1;
+ }
+ 
+ static void pnpacpi_encode_fixed_io(struct acpi_resource *resource,
+ 				    struct resource *p)
+ {
+-	resource->data.fixed_io.address = p->start;
+-	resource->data.fixed_io.address_length = p->end - p->start + 1;
++	struct acpi_resource_fixed_io *fixed_io = &resource->data.fixed_io;
++
++	fixed_io->address = p->start;
++	fixed_io->address_length = p->end - p->start + 1;
+ }
+ 
+ static void pnpacpi_encode_mem24(struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
++	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
++
+ 	/* Note: pnp_assign_mem will copy pnp_mem->flags into p->flags */
+-	resource->data.memory24.write_protect =
++	memory24->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+-	resource->data.memory24.minimum = p->start;
+-	resource->data.memory24.maximum = p->end;
+-	resource->data.memory24.alignment = 0;
+-	resource->data.memory24.address_length = p->end - p->start + 1;
++	memory24->minimum = p->start;
++	memory24->maximum = p->end;
++	memory24->alignment = 0;
++	memory24->address_length = p->end - p->start + 1;
+ }
+ 
+ static void pnpacpi_encode_mem32(struct acpi_resource *resource,
+ 				 struct resource *p)
+ {
+-	resource->data.memory32.write_protect =
++	struct acpi_resource_memory32 *memory32 = &resource->data.memory32;
++
++	memory32->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+-	resource->data.memory32.minimum = p->start;
+-	resource->data.memory32.maximum = p->end;
+-	resource->data.memory32.alignment = 0;
+-	resource->data.memory32.address_length = p->end - p->start + 1;
++	memory32->minimum = p->start;
++	memory32->maximum = p->end;
++	memory32->alignment = 0;
++	memory32->address_length = p->end - p->start + 1;
+ }
+ 
+ static void pnpacpi_encode_fixed_mem32(struct acpi_resource *resource,
+ 				       struct resource *p)
+ {
+-	resource->data.fixed_memory32.write_protect =
++	struct acpi_resource_fixed_memory32 *fixed_memory32 = &resource->data.fixed_memory32;
++
++	fixed_memory32->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+-	resource->data.fixed_memory32.address = p->start;
+-	resource->data.fixed_memory32.address_length = p->end - p->start + 1;
++	fixed_memory32->address = p->start;
++	fixed_memory32->address_length = p->end - p->start + 1;
+ }
+ 
+ int pnpacpi_encode_resources(struct pnp_resource_table *res_table,
 
 -- 
