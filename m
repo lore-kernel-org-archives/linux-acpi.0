@@ -1,80 +1,52 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 28/37] PNP: add pnp_get_resource() interface
-Date: Tue, 01 Apr 2008 09:17:02 -0600
-Message-ID: <20080401151741.262234117@ldl.fc.hp.com>
-References: <20080401151634.730901933@ldl.fc.hp.com>
+From: Nigel Cunningham <ncunningham@crca.org.au>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and
+	hibernation callbacks (rev. 6)
+Date: Wed, 02 Apr 2008 06:34:27 +1100
+Message-ID: <1207078467.23143.96.camel@nigel-laptop>
+References: <Pine.LNX.4.44L0.0804011029010.3993-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:12021 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759482AbYDAPSh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:37 -0400
-Content-Disposition: inline; filename=pnp-add-get-resource
+Received: from mail.crca.org.au ([67.207.131.56]:49013 "EHLO crca.org.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758648AbYDATeD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Apr 2008 15:34:03 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0804011029010.3993-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Oliver Neukum <oliver@neukum.org>
 
-This adds a pnp_get_resource() that works the same way as
-platform_get_resource().  This will enable us to consolidate
-many pnp_resource_table references in one place, which will
-make it easier to make the table dynamic.
+Hi.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+On Tue, 2008-04-01 at 10:31 -0400, Alan Stern wrote:
+> On Tue, 1 Apr 2008, Benjamin Herrenschmidt wrote:
+> 
+> > On Tue, 2008-04-01 at 19:15 +1100, Nigel Cunningham wrote:
+> > > > + *   However, drivers may NOT assume anything about the availability of the
+> > > > + *   user space at that time and it is not correct to request firmware from
+> > > > + *   within @prepare() (it's too late to do that).
+> > > 
+> > > That doesn't sound good. It would be good to be able to get drivers to
+> > > request firmware early in the process.
+> > 
+> > Agreed. Prepare() should still allow request_firmware and full userspace
+> > communication / helper usage.
+> 
+> Pepare() is called after userspace has been frozen.  (Of course, once 
+> the freezer goes away this won't matter any more.)
+> 
+> There is a separate notifier chain which drivers can subscribe to;
+> notifications about impending sleeps are sent out while userspace is
+> still alive.  Drivers can use that for request_firmware, memory
+> allocation, and other things.
 
----
- drivers/pnp/resource.c |   27 +++++++++++++++++++++++++++
- include/linux/pnp.h    |    1 +
- 2 files changed, 28 insertions(+)
+Then that should be mentioned here so that drivers authors can know that
+it is possible to request firmware, allocate memory and so on at a stage
+when you can still rely on userspace being alive.
 
-Index: work7/include/linux/pnp.h
-===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-26 11:10:22.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-26 16:50:05.000000000 -0600
-@@ -25,6 +25,7 @@
- /*
-  * Resource Management
-  */
-+struct resource *pnp_get_resource(struct pnp_dev *, unsigned int, unsigned int);
- 
- /* Use these instead of directly reading pnp_dev to get resource information */
- #define pnp_port_start(dev,bar)   ((dev)->res.port_resource[(bar)].start)
-Index: work7/drivers/pnp/resource.c
-===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-26 11:10:29.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-26 16:50:42.000000000 -0600
-@@ -560,6 +560,33 @@
- 	return 0;
- }
- 
-+struct resource *pnp_get_resource(struct pnp_dev *dev,
-+				  unsigned int type, unsigned int num)
-+{
-+	struct pnp_resource_table *res = &dev->res;
-+
-+	switch (type) {
-+	case IORESOURCE_IO:
-+		if (num >= PNP_MAX_PORT)
-+			return NULL;
-+		return &res->port_resource[num];
-+	case IORESOURCE_MEM:
-+		if (num >= PNP_MAX_MEM)
-+			return NULL;
-+		return &res->mem_resource[num];
-+	case IORESOURCE_IRQ:
-+		if (num >= PNP_MAX_IRQ)
-+			return NULL;
-+		return &res->irq_resource[num];
-+	case IORESOURCE_DMA:
-+		if (num >= PNP_MAX_DMA)
-+			return NULL;
-+		return &res->dma_resource[num];
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL(pnp_get_resource);
-+
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
- {
+Regards,
 
--- 
+Nigel
+
