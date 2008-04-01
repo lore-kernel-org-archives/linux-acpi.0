@@ -1,26 +1,25 @@
-From: Nigel Cunningham <ncunningham@crca.org.au>
-Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and
-	hibernation callbacks (rev. 6)
-Date: Wed, 02 Apr 2008 08:38:06 +1100
-Message-ID: <1207085886.23143.114.camel@nigel-laptop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation callbacks (rev. 6)
+Date: Tue, 1 Apr 2008 23:50:00 +0200
+Message-ID: <200804012350.01407.rjw@sisk.pl>
 References: <Pine.LNX.4.44L0.0804011653140.9362-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.crca.org.au ([67.207.131.56]:37792 "EHLO crca.org.au"
+Received: from ogre.sisk.pl ([217.79.144.158]:48723 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760241AbYDAVhl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Apr 2008 17:37:41 -0400
+	id S1753976AbYDAVuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Apr 2008 17:50:24 -0400
 In-Reply-To: <Pine.LNX.4.44L0.0804011653140.9362-100000@netrider.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
+Cc: Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
 
-Hi.
-
-On Tue, 2008-04-01 at 16:56 -0400, Alan Stern wrote:
+On Tuesday, 1 of April 2008, Alan Stern wrote:
 > On Tue, 1 Apr 2008, Rafael J. Wysocki wrote:
 > 
 > > > Does ..._ext_... mean extended? (external?) If 'extended' (or if not),
@@ -34,8 +33,13 @@ On Tue, 2008-04-01 at 16:56 -0400, Alan Stern wrote:
 > has _fewer_ method pointers -- in which case it should be called 
 > "restricted" instead.
 
-Agreed.
+No, it has more pointers.  Specifically, it is like
 
+struct pm_ext_ops {
+	struct pm_ops base;
+	--additional pointers go here--
+}
+ 
 > > > So drivers can never validly fail to resume. That sounds fair enough. If
 > > > the hardware has gone away while in lower power mode (USB, say), should
 > > > the driver then just printk an error and return success?
@@ -48,10 +52,23 @@ Agreed.
 > 
 > If the device is gone, it doesn't much matter what resume() returns.
 
-What if the same driver is handling multiple instances and only some of
-them fail to resume?
+Yes, it does.  In that cases, the error code would tell the PM core not to attempt
+to resume the device's children etc.  Otherwise, it's quite meaningless to the
+PM core, because it really can mean anything and how's the PM core supposed
+to handle _that_?
 
-Regards,
+Either we decide that the error codes returned by ->resume() mean critical
+errors or there's no point in returning error codes from ->resume() at all
+(other than logging the errors by the core).
 
-Nigel
+Well, that's getting confused.  I think I'll have to rework the patch not to
+really handle the errors returned by ->resume() and friends, after all, but
+I'll keep the reporting of them.
 
+However, I'd like to add a recommendation that the _new_ "resume" callbacks
+should only return errors in critical situations as the indication to the PM
+core that something went _really_ wrong and the device in question is quite
+surely unusable.
+
+Thanks,
+Rafael
