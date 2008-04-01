@@ -1,64 +1,37 @@
-From: =?ISO-8859-1?Q?Felix_M=F6ller?= <felix@derklecks.de>
-Subject: Re: [PATCH] ACPI PM: Restore the 2.6.24 suspend ordering
-Date: Tue, 01 Apr 2008 16:38:34 +0200
-Message-ID: <47F248EA.6070705@derklecks.de>
-References: <200803300319.08398.rjw@sisk.pl> <200803301358.39831.rjw@sisk.pl>
-	<20080330122838.GA7093@elf.ucw.cz> <200803301515.33922.rjw@sisk.pl>
-	<20080401084523.GA25278@atrey.karlin.mff.cuni.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 00/37] PNP resource_table cleanups
+Date: Tue, 1 Apr 2008 08:52:22 -0600
+Message-ID: <200804010852.22785.bjorn.helgaas@hp.com>
+References: <20080326171058.099442579@ldl.fc.hp.com> <47F159BE.7050201@keyaccess.nl> <47F20B6A.1000609@keyaccess.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20080401084523.GA25278@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, LKML <linux-kernel@vger.kernel.org>, Arthur Erhardt <erhardt@pit.physik.uni-tuebingen.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, Felix M?ller <fm@opensuse.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758988AbYDAOwj@vger.kernel.org>
+In-Reply-To: <47F20B6A.1000609@keyaccess.nl>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->>>>>> For the reasons outlined above, the change of the suspend ordering
->>>>>> should be reverted, which is done by the patch below.
->>>>> But this will break those few nvidia-based systems, no?
->>>>>
->>>>> this may have been a good idea in -rc1 days, but we are in -rc7
->>>>> now... and the patch is slightly big.
->>>> It's quite obvious, though.
->>> Yes, but breaking systems between -rc7 and final is _very_ unnice.
->> Breaking systems between 2.6.24 and 2.6.25 is even worse, which is why
->> I've posted this patch.
->>
->> IOW, we tried to fix systems that were broken with 2.6.24, but it didn't=
- work,
->> because our "fix" broke systems that were OK with 2.6.24.  Solution: rev=
-ert
->> the "fix" and go back to the design board.  That's all we can do so late=
- in
->> the release cycle, IMO.
-> =
+On Tuesday 01 April 2008 04:16:10 am Rene Herman wrote:
+> On 31-03-08 23:38, Rene Herman wrote:
+> > On 31-03-08 22:51, Bjorn Helgaas wrote:
+> > 
+> >> Ah, right.  Thanks for tracking that down.  I forgot to factor out
+> >> isapnp_to_pnpid() and pnpid32_to_pnpid() (and acpi_ex_eisa_id_to_string()
+> >> for that matter, though that's buried in the ACPI CA)-- they're really
+> >> doing the same thing and we should only need one copy (plus the CA
+> >> one).
+> > 
+> > I'll wait for another round then, before reviewing this further.
+> 
+> There's actually a hex_asc() helper in kernel.h, so before you overlook it 
+> as well, this is a somewhat nicer ID fix.
 
-> Well, I agree that regression from 2.6.24 is worse, but it is
-> _slightly_ worse... -rcs are really expected to improve...
-> =
+Thanks, I didn't know about hex_asc()!  I'll post v2 of the series today.
+And thanks a lot for finding those typos in resource.c.  I never would
+have found those...
 
-> ...plus it no longer looks like macbook regression is caused by _PTS
-> ordering?
-I am the reporter from the original Novell Bug: =
-
-https://bugzilla.novell.com/show_bug.cgi?id=3D374217
-
-I just tried current git head (two hours ago) with the patch (the one =
-
-from the beginning of this thread) from Rafael and without it. With the =
-
-patch my MacBook does suspend without it does not.
-
-HTH
-Felix M=F6ller
+Bjorn
