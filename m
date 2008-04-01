@@ -1,182 +1,79 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 16/37] PNP: remove pnp_resource_table from internal get/set interfaces
-Date: Tue, 01 Apr 2008 09:16:50 -0600
-Message-ID: <20080401151738.838525355@ldl.fc.hp.com>
+Subject: [patch 09/37] ISAPNP: pull pnp_add_card_id() out of isapnp_parse_card_id()
+Date: Tue, 01 Apr 2008 09:16:43 -0600
+Message-ID: <20080401151737.444994893@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:34915 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759330AbYDAPSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:06 -0400
-Content-Disposition: inline; filename=pnp-remove-pnp_resource_table-args-from-get-set
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:26940 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758860AbYDAPR4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:17:56 -0400
+Content-Disposition: inline; filename=isapnp-restructure-parse-card-id
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-When we call protocol->get() and protocol->set() methods, we currently
-supply pointers to both the pnp_dev and the pnp_resource_table even
-though the pnp_resource_table should always be the one associated with
-the pnp_dev.
+Split the pnp_add_card_id() part from the PNPID conversion part so we
+can move the initial add_id() into the pnp_card allocation.
 
-This removes the pnp_resource_table arguments to make it clear that
-these methods only operate on the specified pnp_dev.
+This makes the PNPID conversion generic so we can use the same
+one for both devices and cards.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- include/linux/pnp.h        |    4 ++--
- drivers/pnp/interface.c    |    2 +-
- drivers/pnp/manager.c      |    2 +-
- drivers/pnp/isapnp/core.c  |   11 +++++------
- drivers/pnp/pnpacpi/core.c |    8 +++-----
- drivers/pnp/pnpbios/core.c |   10 ++++------
- 6 files changed, 16 insertions(+), 21 deletions(-)
-
-Index: work7/include/linux/pnp.h
-===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-31 17:07:19.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-31 17:10:39.000000000 -0600
-@@ -328,8 +328,8 @@
- 	char *name;
- 
- 	/* resource control functions */
--	int (*get) (struct pnp_dev *dev, struct pnp_resource_table *res);
--	int (*set) (struct pnp_dev *dev, struct pnp_resource_table *res);
-+	int (*get) (struct pnp_dev *dev);
-+	int (*set) (struct pnp_dev *dev);
- 	int (*disable) (struct pnp_dev *dev);
- 
- 	/* protocol specific suspend/resume */
-Index: work7/drivers/pnp/interface.c
-===================================================================
---- work7.orig/drivers/pnp/interface.c	2008-03-31 16:59:07.000000000 -0600
-+++ work7/drivers/pnp/interface.c	2008-03-31 17:10:39.000000000 -0600
-@@ -364,7 +364,7 @@
- 	if (!strnicmp(buf, "get", 3)) {
- 		mutex_lock(&pnp_res_mutex);
- 		if (pnp_can_read(dev))
--			dev->protocol->get(dev, &dev->res);
-+			dev->protocol->get(dev);
- 		mutex_unlock(&pnp_res_mutex);
- 		goto done;
- 	}
-Index: work7/drivers/pnp/manager.c
-===================================================================
---- work7.orig/drivers/pnp/manager.c	2008-03-31 16:59:07.000000000 -0600
-+++ work7/drivers/pnp/manager.c	2008-03-31 17:10:39.000000000 -0600
-@@ -473,7 +473,7 @@
- 		return -EINVAL;
- 	}
- 
--	if (dev->protocol->set(dev, &dev->res) < 0) {
-+	if (dev->protocol->set(dev) < 0) {
- 		dev_err(&dev->dev, "activation failed\n");
- 		return -EIO;
- 	}
 Index: work7/drivers/pnp/isapnp/core.c
 ===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:26.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:39.000000000 -0600
-@@ -968,21 +968,20 @@
- 	return 0;
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 16:59:11.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:01:37.000000000 -0600
+@@ -817,26 +817,6 @@
  }
  
--static int isapnp_get_resources(struct pnp_dev *dev,
--				struct pnp_resource_table *res)
-+static int isapnp_get_resources(struct pnp_dev *dev)
- {
- 	int ret;
+ /*
+- *  Parse EISA id for ISA PnP card.
+- */
+-static void isapnp_parse_card_id(struct pnp_card *card, unsigned short vendor,
+-				 unsigned short device)
+-{
+-	char id[8];
+-
+-	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
+-	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
+-	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
+-	id[3] = '0' + ((device >> 4) & 0x0f);
+-	id[4] = '0' + (device & 0x0f);
+-	id[5] = '0' + ((device >> 12) & 0x0f);
+-	id[6] = '0' + ((device >> 8) & 0x0f);
+-	id[7] = '\0';
+-
+-	pnp_add_card_id(card, id);
+-}
+-
+-/*
+  *  Build device list for all present ISA PnP devices.
+  */
+ static int __init isapnp_build_device_list(void)
+@@ -844,6 +824,8 @@
+ 	int csn;
+ 	unsigned char header[9], checksum;
+ 	struct pnp_card *card;
++	u32 eisa_id;
++	char id[8];
  
--	pnp_init_resource_table(res);
-+	pnp_init_resource_table(&dev->res);
- 	isapnp_cfg_begin(dev->card->number, dev->number);
--	ret = isapnp_read_resources(dev, res);
-+	ret = isapnp_read_resources(dev, &dev->res);
- 	isapnp_cfg_end();
- 	return ret;
- }
+ 	isapnp_wait();
+ 	isapnp_key();
+@@ -864,8 +846,10 @@
  
--static int isapnp_set_resources(struct pnp_dev *dev,
--				struct pnp_resource_table *res)
-+static int isapnp_set_resources(struct pnp_dev *dev)
- {
-+	struct pnp_resource_table *res = &dev->res;
- 	int tmp;
- 
- 	isapnp_cfg_begin(dev->card->number, dev->number);
-Index: work7/drivers/pnp/pnpacpi/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:38.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:39.000000000 -0600
-@@ -73,8 +73,7 @@
- 	return 1;
- }
- 
--static int pnpacpi_get_resources(struct pnp_dev *dev,
--				 struct pnp_resource_table *res)
-+static int pnpacpi_get_resources(struct pnp_dev *dev)
- {
- 	acpi_status status;
- 
-@@ -83,8 +82,7 @@
- 	return ACPI_FAILURE(status) ? -ENODEV : 0;
- }
- 
--static int pnpacpi_set_resources(struct pnp_dev *dev,
--				 struct pnp_resource_table *res)
-+static int pnpacpi_set_resources(struct pnp_dev *dev)
- {
- 	acpi_handle handle = dev->data;
- 	struct acpi_buffer buffer;
-@@ -94,7 +92,7 @@
- 	ret = pnpacpi_build_resource_template(dev, &buffer);
- 	if (ret)
- 		return ret;
--	ret = pnpacpi_encode_resources(res, &buffer);
-+	ret = pnpacpi_encode_resources(&dev->res, &buffer);
- 	if (ret) {
- 		kfree(buffer.pointer);
- 		return ret;
-Index: work7/drivers/pnp/pnpbios/core.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-31 17:05:32.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-03-31 17:10:39.000000000 -0600
-@@ -204,8 +204,7 @@
- 
- #endif				/* CONFIG_HOTPLUG */
- 
--static int pnpbios_get_resources(struct pnp_dev *dev,
--				 struct pnp_resource_table *res)
-+static int pnpbios_get_resources(struct pnp_dev *dev)
- {
- 	u8 nodenum = dev->number;
- 	struct pnp_bios_node *node;
-@@ -220,14 +219,13 @@
- 		kfree(node);
- 		return -ENODEV;
- 	}
--	pnpbios_read_resources_from_node(res, node);
-+	pnpbios_read_resources_from_node(&dev->res, node);
- 	dev->active = pnp_is_active(dev);
- 	kfree(node);
- 	return 0;
- }
- 
--static int pnpbios_set_resources(struct pnp_dev *dev,
--				 struct pnp_resource_table *res)
-+static int pnpbios_set_resources(struct pnp_dev *dev)
- {
- 	u8 nodenum = dev->number;
- 	struct pnp_bios_node *node;
-@@ -243,7 +241,7 @@
- 		kfree(node);
- 		return -ENODEV;
- 	}
--	if (pnpbios_write_resources_to_node(res, node) < 0) {
-+	if (pnpbios_write_resources_to_node(&dev->res, node) < 0) {
- 		kfree(node);
- 		return -1;
- 	}
+ 		card->number = csn;
+ 		INIT_LIST_HEAD(&card->devices);
+-		isapnp_parse_card_id(card, (header[1] << 8) | header[0],
+-				     (header[3] << 8) | header[2]);
++		eisa_id = header[0] | header[1] << 8 |
++			  header[2] << 16 | header[3] << 24;
++		pnp_eisa_id_to_string(eisa_id, id);
++		pnp_add_card_id(card, id);
+ 		card->serial =
+ 		    (header[7] << 24) | (header[6] << 16) | (header[5] << 8) |
+ 		    header[4];
 
 -- 
