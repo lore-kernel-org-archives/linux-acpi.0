@@ -1,212 +1,228 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 21/37] PNP: make generic pnp_add_dma_resource()
-Date: Tue, 01 Apr 2008 09:16:55 -0600
-Message-ID: <20080401151739.823341032@ldl.fc.hp.com>
+Subject: [patch 27/37] PNP: use conventional "i" for loop indices
+Date: Tue, 01 Apr 2008 09:17:01 -0600
+Message-ID: <20080401151741.045342036@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:27096 "EHLO
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:27397 "EHLO
 	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759440AbYDAPS0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:26 -0400
-Content-Disposition: inline; filename=pnp-common-add-dma-resource
+	with ESMTP id S1759490AbYDAPSk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:40 -0400
+Content-Disposition: inline; filename=pnp-rename-temps
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Add a pnp_add_dma_resource() that can be used by all the PNP
-backends.  This consolidates a little more pnp_resource_table
-knowledge into one place.
+Cosmetic only: just use "i" instead of "tmp".
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
----
- drivers/pnp/base.h             |    1 +
- drivers/pnp/isapnp/core.c      |    4 +---
- drivers/pnp/pnpacpi/rsparser.c |   34 ++++------------------------------
- drivers/pnp/pnpbios/rsparser.c |   21 +--------------------
- drivers/pnp/resource.c         |   24 ++++++++++++++++++++++++
- 5 files changed, 31 insertions(+), 53 deletions(-)
-
-Index: work7/drivers/pnp/base.h
-===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-31 17:10:54.000000000 -0600
-@@ -17,3 +17,4 @@
- int pnp_check_dma(struct pnp_dev * dev, int idx);
- 
- int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags);
-+int pnp_add_dma_resource(struct pnp_dev *dev, int dma, int flags);
 Index: work7/drivers/pnp/resource.c
 ===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-31 17:10:54.000000000 -0600
-@@ -487,6 +487,30 @@
- 	return 0;
- }
+--- work7.orig/drivers/pnp/resource.c	2008-03-24 16:32:00.000000000 -0600
++++ work7/drivers/pnp/resource.c	2008-03-24 16:33:17.000000000 -0600
+@@ -215,7 +215,7 @@
  
-+int pnp_add_dma_resource(struct pnp_dev *dev, int dma, int flags)
-+{
-+	struct pnp_resource_table *res = &dev->res;
-+	int i = 0;
-+	static unsigned char warned;
-+
-+	while (set(res->dma_resource[i].flags) && i < PNP_MAX_DMA)
-+		i++;
-+	if (i >= PNP_MAX_DMA && !warned) {
-+		dev_err(&dev->dev, "too many DMAs (max %d)\n", PNP_MAX_DMA);
-+		warned = 1;
-+		return -ENOSPC;
-+	}
-+
-+	res->dma_resource[i].flags = IORESOURCE_DMA | flags;
-+	if (dma < 0) {
-+		res->dma_resource[i].flags |= IORESOURCE_DISABLED;
-+		return -EINVAL;
-+	}
-+	res->dma_resource[i].start = dma;
-+	res->dma_resource[i].end = dma;
-+	return 0;
-+}
-+
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
+ int pnp_check_port(struct pnp_dev *dev, int idx)
  {
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:54.000000000 -0600
-@@ -958,9 +958,7 @@
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
--			res->dma_resource[tmp].start =
--			    res->dma_resource[tmp].end = ret;
--			res->dma_resource[tmp].flags = IORESOURCE_DMA;
-+			pnp_add_dma_resource(dev, ret, 0);
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *port, *end, *tport, *tend;
+ 
+@@ -234,18 +234,18 @@
+ 	}
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		int rport = pnp_reserve_io[tmp << 1];
+-		int rend = pnp_reserve_io[(tmp << 1) + 1] + rport - 1;
++	for (i = 0; i < 8; i++) {
++		int rport = pnp_reserve_io[i << 1];
++		int rend = pnp_reserve_io[(i << 1) + 1] + rport - 1;
+ 		if (ranged_conflict(port, end, &rport, &rend))
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_PORT && tmp != idx; tmp++) {
+-		if (dev->res.port_resource[tmp].flags & IORESOURCE_IO) {
+-			tport = &dev->res.port_resource[tmp].start;
+-			tend = &dev->res.port_resource[tmp].end;
++	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
++		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
++			tport = &dev->res.port_resource[i].start;
++			tend = &dev->res.port_resource[i].end;
+ 			if (ranged_conflict(port, end, tport, tend))
+ 				return 0;
+ 		}
+@@ -255,13 +255,13 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
+-			if (tdev->res.port_resource[tmp].flags & IORESOURCE_IO) {
++		for (i = 0; i < PNP_MAX_PORT; i++) {
++			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
+ 				if (cannot_compare
+-				    (tdev->res.port_resource[tmp].flags))
++				    (tdev->res.port_resource[i].flags))
+ 					continue;
+-				tport = &tdev->res.port_resource[tmp].start;
+-				tend = &tdev->res.port_resource[tmp].end;
++				tport = &tdev->res.port_resource[i].start;
++				tend = &tdev->res.port_resource[i].end;
+ 				if (ranged_conflict(port, end, tport, tend))
+ 					return 0;
+ 			}
+@@ -273,7 +273,7 @@
+ 
+ int pnp_check_mem(struct pnp_dev *dev, int idx)
+ {
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *addr, *end, *taddr, *tend;
+ 
+@@ -292,18 +292,18 @@
+ 	}
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		int raddr = pnp_reserve_mem[tmp << 1];
+-		int rend = pnp_reserve_mem[(tmp << 1) + 1] + raddr - 1;
++	for (i = 0; i < 8; i++) {
++		int raddr = pnp_reserve_mem[i << 1];
++		int rend = pnp_reserve_mem[(i << 1) + 1] + raddr - 1;
+ 		if (ranged_conflict(addr, end, &raddr, &rend))
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_MEM && tmp != idx; tmp++) {
+-		if (dev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
+-			taddr = &dev->res.mem_resource[tmp].start;
+-			tend = &dev->res.mem_resource[tmp].end;
++	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
++		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
++			taddr = &dev->res.mem_resource[i].start;
++			tend = &dev->res.mem_resource[i].end;
+ 			if (ranged_conflict(addr, end, taddr, tend))
+ 				return 0;
+ 		}
+@@ -313,13 +313,13 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
+-			if (tdev->res.mem_resource[tmp].flags & IORESOURCE_MEM) {
++		for (i = 0; i < PNP_MAX_MEM; i++) {
++			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
+ 				if (cannot_compare
+-				    (tdev->res.mem_resource[tmp].flags))
++				    (tdev->res.mem_resource[i].flags))
+ 					continue;
+-				taddr = &tdev->res.mem_resource[tmp].start;
+-				tend = &tdev->res.mem_resource[tmp].end;
++				taddr = &tdev->res.mem_resource[i].start;
++				tend = &tdev->res.mem_resource[i].end;
+ 				if (ranged_conflict(addr, end, taddr, tend))
+ 					return 0;
+ 			}
+@@ -336,7 +336,7 @@
+ 
+ int pnp_check_irq(struct pnp_dev *dev, int idx)
+ {
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *irq = &dev->res.irq_resource[idx].start;
+ 
+@@ -349,15 +349,15 @@
+ 		return 0;
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 16; tmp++) {
+-		if (pnp_reserve_irq[tmp] == *irq)
++	for (i = 0; i < 16; i++) {
++		if (pnp_reserve_irq[i] == *irq)
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_IRQ && tmp != idx; tmp++) {
+-		if (dev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
+-			if (dev->res.irq_resource[tmp].start == *irq)
++	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
++		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
++			if (dev->res.irq_resource[i].start == *irq)
+ 				return 0;
  		}
  	}
- 	return 0;
-Index: work7/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:54.000000000 -0600
-@@ -153,32 +153,6 @@
- 	return flags;
- }
- 
--static void pnpacpi_parse_allocated_dmaresource(struct pnp_dev *dev,
--						u32 dma, int flags)
--{
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--	static unsigned char warned;
--
--	while (i < PNP_MAX_DMA &&
--	       !(res->dma_resource[i].flags & IORESOURCE_UNSET))
--		i++;
--	if (i < PNP_MAX_DMA) {
--		res->dma_resource[i].flags = IORESOURCE_DMA;	// Also clears _UNSET flag
--		res->dma_resource[i].flags |= flags;
--		if (dma == -1) {
--			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->dma_resource[i].start = dma;
--		res->dma_resource[i].end = dma;
--	} else if (!warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of DMA "
--				"resources: %d \n", PNP_MAX_DMA);
--		warned = 1;
--	}
--}
--
- static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev,
- 					       u64 io, u64 len, int io_decode)
- {
-@@ -295,10 +269,10 @@
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		dma = &res->data.dma;
- 		if (dma->channel_count > 0)
--			pnpacpi_parse_allocated_dmaresource(dev,
--				dma->channels[0],
--				dma_flags(dma->type, dma->bus_master,
--					  dma->transfer));
-+			pnp_add_dma_resource(dev, dma->channels[0],
-+					     dma_flags(dma->type,
-+						       dma->bus_master,
-+						       dma->transfer));
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_IO:
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:54.000000000 -0600
-@@ -54,25 +54,6 @@
-  * Allocated Resources
-  */
- 
--static void pnpbios_parse_allocated_dmaresource(struct pnp_dev *dev, int dma)
--{
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--
--	while (i < PNP_MAX_DMA &&
--	       !(res->dma_resource[i].flags & IORESOURCE_UNSET))
--		i++;
--	if (i < PNP_MAX_DMA) {
--		res->dma_resource[i].flags = IORESOURCE_DMA;	// Also clears _UNSET flag
--		if (dma == -1) {
--			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->dma_resource[i].start =
--		    res->dma_resource[i].end = (unsigned long)dma;
--	}
--}
--
- static void pnpbios_parse_allocated_ioresource(struct pnp_dev *dev,
- 					       int io, int len)
- {
-@@ -190,7 +171,7 @@
- 			for (i = 0; i < 8; i++, mask = mask >> 1)
- 				if (mask & 0x01)
- 					io = i;
--			pnpbios_parse_allocated_dmaresource(dev, io);
-+			pnp_add_dma_resource(dev, io, 0);
- 			break;
- 
- 		case SMALL_TAG_PORT:
-Index: work7/drivers/pnp/interface.c
-===================================================================
---- work7.orig/drivers/pnp/interface.c	2008-03-31 17:10:52.000000000 -0600
-+++ work7/drivers/pnp/interface.c	2008-03-31 17:10:54.000000000 -0600
-@@ -370,7 +370,7 @@
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
--		int nport = 0, nmem = 0, ndma = 0;
-+		int nport = 0, nmem = 0;
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
-@@ -439,14 +439,8 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.dma_resource[ndma].start =
--				    dev->res.dma_resource[ndma].end =
--				    simple_strtoul(buf, &buf, 0);
--				dev->res.dma_resource[ndma].flags =
--				    IORESOURCE_DMA;
--				ndma++;
--				if (ndma >= PNP_MAX_DMA)
--					break;
-+				start = simple_strtoul(buf, &buf, 0);
-+				pnp_add_dma_resource(dev, start, 0);
- 				continue;
+@@ -388,12 +388,12 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
+-			if (tdev->res.irq_resource[tmp].flags & IORESOURCE_IRQ) {
++		for (i = 0; i < PNP_MAX_IRQ; i++) {
++			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
+ 				if (cannot_compare
+-				    (tdev->res.irq_resource[tmp].flags))
++				    (tdev->res.irq_resource[i].flags))
+ 					continue;
+-				if ((tdev->res.irq_resource[tmp].start == *irq))
++				if ((tdev->res.irq_resource[i].start == *irq))
+ 					return 0;
  			}
- 			break;
+ 		}
+@@ -405,7 +405,7 @@
+ int pnp_check_dma(struct pnp_dev *dev, int idx)
+ {
+ #ifndef CONFIG_IA64
+-	int tmp;
++	int i;
+ 	struct pnp_dev *tdev;
+ 	resource_size_t *dma = &dev->res.dma_resource[idx].start;
+ 
+@@ -418,15 +418,15 @@
+ 		return 0;
+ 
+ 	/* check if the resource is reserved */
+-	for (tmp = 0; tmp < 8; tmp++) {
+-		if (pnp_reserve_dma[tmp] == *dma)
++	for (i = 0; i < 8; i++) {
++		if (pnp_reserve_dma[i] == *dma)
+ 			return 0;
+ 	}
+ 
+ 	/* check for internal conflicts */
+-	for (tmp = 0; tmp < PNP_MAX_DMA && tmp != idx; tmp++) {
+-		if (dev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
+-			if (dev->res.dma_resource[tmp].start == *dma)
++	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
++		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
++			if (dev->res.dma_resource[i].start == *dma)
+ 				return 0;
+ 		}
+ 	}
+@@ -443,12 +443,12 @@
+ 	pnp_for_each_dev(tdev) {
+ 		if (tdev == dev)
+ 			continue;
+-		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
+-			if (tdev->res.dma_resource[tmp].flags & IORESOURCE_DMA) {
++		for (i = 0; i < PNP_MAX_DMA; i++) {
++			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
+ 				if (cannot_compare
+-				    (tdev->res.dma_resource[tmp].flags))
++				    (tdev->res.dma_resource[i].flags))
+ 					continue;
+-				if ((tdev->res.dma_resource[tmp].start == *dma))
++				if ((tdev->res.dma_resource[i].start == *dma))
+ 					return 0;
+ 			}
+ 		}
 
 -- 
