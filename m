@@ -1,226 +1,271 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 31/37] PNP: convert resource checks to use pnp_get_resource(), not pnp_resource_table
-Date: Tue, 01 Apr 2008 09:17:05 -0600
-Message-ID: <20080401151741.862705956@ldl.fc.hp.com>
+Subject: [patch 22/37] PNP: make generic pnp_add_io_resource()
+Date: Tue, 01 Apr 2008 09:16:56 -0600
+Message-ID: <20080401151740.019324412@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:27528 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753609AbYDAPSx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:53 -0400
-Content-Disposition: inline; filename=pnp-convert-checks-to-pnp_get_resource
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:11905 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922AbYDAPSS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:18 -0400
+Content-Disposition: inline; filename=pnp-common-add-io-resource
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This removes more direct references to pnp_resource_table.
+Add a pnp_add_io_resource() that can be used by all the PNP
+backends.  This consolidates a little more pnp_resource_table
+knowledge into one place.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+---
+ drivers/pnp/base.h             |    1 
+ drivers/pnp/interface.c        |   20 ++++++------------
+ drivers/pnp/isapnp/core.c      |    3 --
+ drivers/pnp/pnpacpi/rsparser.c |   45 ++++++-----------------------------------
+ drivers/pnp/pnpbios/rsparser.c |   24 +--------------------
+ drivers/pnp/resource.c         |   24 +++++++++++++++++++++
+ 6 files changed, 42 insertions(+), 75 deletions(-)
+
+Index: work7/drivers/pnp/base.h
+===================================================================
+--- work7.orig/drivers/pnp/base.h	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-03-31 17:10:57.000000000 -0600
+@@ -18,3 +18,4 @@
+ 
+ int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags);
+ int pnp_add_dma_resource(struct pnp_dev *dev, int dma, int flags);
++int pnp_add_io_resource(struct pnp_dev *dev, resource_size_t start, resource_size_t len, int flags);
 Index: work7/drivers/pnp/resource.c
 ===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-31 17:12:25.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-31 17:15:31.000000000 -0600
-@@ -216,14 +216,17 @@
- int pnp_check_port(struct pnp_dev *dev, int idx)
+--- work7.orig/drivers/pnp/resource.c	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/resource.c	2008-03-31 17:10:57.000000000 -0600
+@@ -511,6 +511,31 @@
+ 	return 0;
+ }
+ 
++int pnp_add_io_resource(struct pnp_dev *dev, resource_size_t start, resource_size_t len, int flags)
++{
++	struct pnp_resource_table *res = &dev->res;
++	resource_size_t end = start + len - 1;
++	int i = 0;
++	static unsigned char warned;
++
++	while (set(res->port_resource[i].flags) && i < PNP_MAX_PORT)
++		i++;
++	if (i >= PNP_MAX_PORT && !warned) {
++		dev_err(&dev->dev, "too many PORTs (max %d)\n", PNP_MAX_PORT);
++		warned = 1;
++		return -ENOSPC;
++	}
++
++	res->port_resource[i].flags = IORESOURCE_IO | flags;
++	if (len <= 0 || end >= 0x10003) {
++		res->port_resource[i].flags |= IORESOURCE_DISABLED;
++		return -EINVAL;
++	}
++	res->port_resource[i].start = start;
++	res->port_resource[i].end = end;
++	return 0;
++}
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
  {
- 	int i;
-+	struct resource *res, *tres;
- 	struct pnp_dev *tdev;
- 	resource_size_t *port, *end, *tport, *tend;
- 
--	port = &dev->res.port_resource[idx].start;
--	end = &dev->res.port_resource[idx].end;
-+	res = pnp_get_resource(dev, IORESOURCE_IO, idx);
-+
-+	port = &res->start;
-+	end = &res->end;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.port_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is already in use, skip if the
-@@ -243,9 +246,10 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_PORT && i != idx; i++) {
--		if (dev->res.port_resource[i].flags & IORESOURCE_IO) {
--			tport = &dev->res.port_resource[i].start;
--			tend = &dev->res.port_resource[i].end;
-+		tres = pnp_get_resource(dev, IORESOURCE_IO, i);
-+		if (tres->flags & IORESOURCE_IO) {
-+			tport = &tres->start;
-+			tend = &tres->end;
- 			if (ranged_conflict(port, end, tport, tend))
- 				return 0;
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:57.000000000 -0600
+@@ -935,8 +935,7 @@
+ 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
+ 			if (!ret)
+ 				continue;
+-			res->port_resource[tmp].start = ret;
+-			res->port_resource[tmp].flags = IORESOURCE_IO;
++			pnp_add_io_resource(dev, ret, 1, 0);
  		}
-@@ -256,12 +260,12 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_PORT; i++) {
--			if (tdev->res.port_resource[i].flags & IORESOURCE_IO) {
--				if (cannot_compare
--				    (tdev->res.port_resource[i].flags))
-+			tres = pnp_get_resource(tdev, IORESOURCE_IO, i);
-+			if (tres->flags & IORESOURCE_IO) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				tport = &tdev->res.port_resource[i].start;
--				tend = &tdev->res.port_resource[i].end;
-+				tport = &tres->start;
-+				tend = &tres->end;
- 				if (ranged_conflict(port, end, tport, tend))
- 					return 0;
- 			}
-@@ -274,14 +278,17 @@
- int pnp_check_mem(struct pnp_dev *dev, int idx)
+ 		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
+ 			ret =
+Index: work7/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:57.000000000 -0600
+@@ -153,33 +153,6 @@
+ 	return flags;
+ }
+ 
+-static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev,
+-					       u64 io, u64 len, int io_decode)
+-{
+-	struct pnp_resource_table *res = &dev->res;
+-	int i = 0;
+-	static unsigned char warned;
+-
+-	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+-	       i < PNP_MAX_PORT)
+-		i++;
+-	if (i < PNP_MAX_PORT) {
+-		res->port_resource[i].flags = IORESOURCE_IO;	// Also clears _UNSET flag
+-		if (io_decode == ACPI_DECODE_16)
+-			res->port_resource[i].flags |= PNP_PORT_FLAG_16BITADDR;
+-		if (len <= 0 || (io + len - 1) >= 0x10003) {
+-			res->port_resource[i].flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->port_resource[i].start = io;
+-		res->port_resource[i].end = io + len - 1;
+-	} else if (!warned) {
+-		printk(KERN_ERR "pnpacpi: exceeded the max number of IO "
+-				"resources: %d \n", PNP_MAX_PORT);
+-		warned = 1;
+-	}
+-}
+-
+ static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
+ 						u64 mem, u64 len,
+ 						int write_protect)
+@@ -230,10 +203,8 @@
+ 			p->minimum, p->address_length,
+ 			p->info.mem.write_protect);
+ 	else if (p->resource_type == ACPI_IO_RANGE)
+-		pnpacpi_parse_allocated_ioresource(dev,
+-			p->minimum, p->address_length,
+-			p->granularity == 0xfff ? ACPI_DECODE_10 :
+-				ACPI_DECODE_16);
++		pnp_add_io_resource(dev, p->minimum, p->address_length,
++			p->granularity == 0xfff ? 0 : PNP_PORT_FLAG_16BITADDR);
+ }
+ 
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+@@ -277,10 +248,9 @@
+ 
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		io = &res->data.io;
+-		pnpacpi_parse_allocated_ioresource(dev,
+-			io->minimum,
+-			io->address_length,
+-			io->io_decode);
++		pnp_add_io_resource(dev, io->minimum, io->address_length,
++			io->io_decode == ACPI_DECODE_16 ?
++			    PNP_PORT_FLAG_16BITADDR : 0);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+@@ -289,10 +259,9 @@
+ 
+ 	case ACPI_RESOURCE_TYPE_FIXED_IO:
+ 		fixed_io = &res->data.fixed_io;
+-		pnpacpi_parse_allocated_ioresource(dev,
++		pnp_add_io_resource(dev,
+ 			fixed_io->address,
+-			fixed_io->address_length,
+-			ACPI_DECODE_10);
++			fixed_io->address_length, 0);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_VENDOR:
+Index: work7/drivers/pnp/pnpbios/rsparser.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:57.000000000 -0600
+@@ -54,26 +54,6 @@
+  * Allocated Resources
+  */
+ 
+-static void pnpbios_parse_allocated_ioresource(struct pnp_dev *dev,
+-					       int io, int len)
+-{
+-	struct pnp_resource_table *res = &dev->res;
+-	int i = 0;
+-
+-	while (!(res->port_resource[i].flags & IORESOURCE_UNSET)
+-	       && i < PNP_MAX_PORT)
+-		i++;
+-	if (i < PNP_MAX_PORT) {
+-		res->port_resource[i].flags = IORESOURCE_IO;	// Also clears _UNSET flag
+-		if (len <= 0 || (io + len - 1) >= 0x10003) {
+-			res->port_resource[i].flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->port_resource[i].start = (unsigned long)io;
+-		res->port_resource[i].end = (unsigned long)(io + len - 1);
+-	}
+-}
+-
+ static void pnpbios_parse_allocated_memresource(struct pnp_dev *dev,
+ 						int mem, int len)
  {
- 	int i;
-+	struct resource *res, *tres;
- 	struct pnp_dev *tdev;
- 	resource_size_t *addr, *end, *taddr, *tend;
+@@ -179,7 +159,7 @@
+ 				goto len_err;
+ 			io = p[2] + p[3] * 256;
+ 			size = p[7];
+-			pnpbios_parse_allocated_ioresource(dev, io, size);
++			pnp_add_io_resource(dev, io, size, 0);
+ 			break;
  
--	addr = &dev->res.mem_resource[idx].start;
--	end = &dev->res.mem_resource[idx].end;
-+	res = pnp_get_resource(dev, IORESOURCE_MEM, idx);
-+
-+	addr = &res->start;
-+	end = &res->end;
+ 		case SMALL_TAG_VENDOR:
+@@ -191,7 +171,7 @@
+ 				goto len_err;
+ 			io = p[1] + p[2] * 256;
+ 			size = p[3];
+-			pnpbios_parse_allocated_ioresource(dev, io, size);
++			pnp_add_io_resource(dev, io, size, 0);
+ 			break;
  
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.mem_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
+ 		case SMALL_TAG_END:
+Index: work7/drivers/pnp/interface.c
+===================================================================
+--- work7.orig/drivers/pnp/interface.c	2008-03-31 17:10:54.000000000 -0600
++++ work7/drivers/pnp/interface.c	2008-03-31 17:10:57.000000000 -0600
+@@ -325,7 +325,7 @@
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
+-	resource_size_t start;
++	resource_size_t start, end, length;
  
- 	/* check if the resource is already in use, skip if the
-@@ -301,9 +308,10 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_MEM && i != idx; i++) {
--		if (dev->res.mem_resource[i].flags & IORESOURCE_MEM) {
--			taddr = &dev->res.mem_resource[i].start;
--			tend = &dev->res.mem_resource[i].end;
-+		tres = pnp_get_resource(dev, IORESOURCE_MEM, i);
-+		if (tres->flags & IORESOURCE_MEM) {
-+			taddr = &tres->start;
-+			tend = &tres->end;
- 			if (ranged_conflict(addr, end, taddr, tend))
- 				return 0;
- 		}
-@@ -314,12 +322,12 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_MEM; i++) {
--			if (tdev->res.mem_resource[i].flags & IORESOURCE_MEM) {
--				if (cannot_compare
--				    (tdev->res.mem_resource[i].flags))
-+			tres = pnp_get_resource(tdev, IORESOURCE_MEM, i);
-+			if (tres->flags & IORESOURCE_MEM) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				taddr = &tdev->res.mem_resource[i].start;
--				tend = &tdev->res.mem_resource[i].end;
-+				taddr = &tres->start;
-+				tend = &tres->end;
- 				if (ranged_conflict(addr, end, taddr, tend))
- 					return 0;
- 			}
-@@ -337,11 +345,16 @@
- int pnp_check_irq(struct pnp_dev *dev, int idx)
- {
- 	int i;
-+	struct resource *res, *tres;
- 	struct pnp_dev *tdev;
--	resource_size_t *irq = &dev->res.irq_resource[idx].start;
-+	resource_size_t *irq;
-+
-+	res = pnp_get_resource(dev, IORESOURCE_IRQ, idx);
-+
-+	irq = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.irq_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is valid */
-@@ -356,8 +369,9 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_IRQ && i != idx; i++) {
--		if (dev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
--			if (dev->res.irq_resource[i].start == *irq)
-+		tres = pnp_get_resource(dev, IORESOURCE_IRQ, i);
-+		if (tres->flags & IORESOURCE_IRQ) {
-+			if (tres->start == *irq)
- 				return 0;
- 		}
+ 	if (dev->status & PNP_ATTACHED) {
+ 		retval = -EBUSY;
+@@ -370,7 +370,7 @@
+ 		goto done;
  	}
-@@ -389,11 +403,11 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_IRQ; i++) {
--			if (tdev->res.irq_resource[i].flags & IORESOURCE_IRQ) {
--				if (cannot_compare
--				    (tdev->res.irq_resource[i].flags))
-+			tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i);
-+			if (tres->flags & IORESOURCE_IRQ) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				if ((tdev->res.irq_resource[i].start == *irq))
-+				if (tres->start == *irq)
- 					return 0;
+ 	if (!strnicmp(buf, "set", 3)) {
+-		int nport = 0, nmem = 0;
++		int nmem = 0;
+ 		if (dev->active)
+ 			goto done;
+ 		buf += 3;
+@@ -383,24 +383,18 @@
+ 				buf += 2;
+ 				while (isspace(*buf))
+ 					++buf;
+-				dev->res.port_resource[nport].start =
+-				    simple_strtoul(buf, &buf, 0);
++				start = simple_strtoul(buf, &buf, 0);
+ 				while (isspace(*buf))
+ 					++buf;
+ 				if (*buf == '-') {
+ 					buf += 1;
+ 					while (isspace(*buf))
+ 						++buf;
+-					dev->res.port_resource[nport].end =
+-					    simple_strtoul(buf, &buf, 0);
++					end = simple_strtoul(buf, &buf, 0);
+ 				} else
+-					dev->res.port_resource[nport].end =
+-					    dev->res.port_resource[nport].start;
+-				dev->res.port_resource[nport].flags =
+-				    IORESOURCE_IO;
+-				nport++;
+-				if (nport >= PNP_MAX_PORT)
+-					break;
++					end = start;
++				length = end - start + 1;
++				pnp_add_io_resource(dev, start, length, 0);
+ 				continue;
  			}
- 		}
-@@ -406,11 +420,16 @@
- {
- #ifndef CONFIG_IA64
- 	int i;
-+	struct resource *res, *tres;
- 	struct pnp_dev *tdev;
--	resource_size_t *dma = &dev->res.dma_resource[idx].start;
-+	resource_size_t *dma;
-+
-+	res = pnp_get_resource(dev, IORESOURCE_DMA, idx);
-+
-+	dma = &res->start;
- 
- 	/* if the resource doesn't exist, don't complain about it */
--	if (cannot_compare(dev->res.dma_resource[idx].flags))
-+	if (cannot_compare(res->flags))
- 		return 1;
- 
- 	/* check if the resource is valid */
-@@ -425,8 +444,9 @@
- 
- 	/* check for internal conflicts */
- 	for (i = 0; i < PNP_MAX_DMA && i != idx; i++) {
--		if (dev->res.dma_resource[i].flags & IORESOURCE_DMA) {
--			if (dev->res.dma_resource[i].start == *dma)
-+		tres = pnp_get_resource(dev, IORESOURCE_DMA, i);
-+		if (tres->flags & IORESOURCE_DMA) {
-+			if (tres->start == *dma)
- 				return 0;
- 		}
- 	}
-@@ -444,11 +464,11 @@
- 		if (tdev == dev)
- 			continue;
- 		for (i = 0; i < PNP_MAX_DMA; i++) {
--			if (tdev->res.dma_resource[i].flags & IORESOURCE_DMA) {
--				if (cannot_compare
--				    (tdev->res.dma_resource[i].flags))
-+			tres = pnp_get_resource(tdev, IORESOURCE_DMA, i);
-+			if (tres->flags & IORESOURCE_DMA) {
-+				if (cannot_compare(tres->flags))
- 					continue;
--				if ((tdev->res.dma_resource[i].start == *dma))
-+				if (tres->start == *dma)
- 					return 0;
- 			}
- 		}
+ 			if (!strnicmp(buf, "mem", 3)) {
 
 -- 
