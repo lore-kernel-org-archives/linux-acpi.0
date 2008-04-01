@@ -1,98 +1,39 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 14/37] PNPACPI: extend irq_flags() to set IORESOURCE_IRQ_SHAREABLE when appropriate
-Date: Tue, 01 Apr 2008 09:16:48 -0600
-Message-ID: <20080401151738.446677327@ldl.fc.hp.com>
+Subject: [patch 11/37] PNPACPI: pnpacpi_encode_ext_irq() wrongly set "irq" instead of "extended_irq"
+Date: Tue, 01 Apr 2008 09:16:45 -0600
+Message-ID: <20080401151737.850030639@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:17239 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759334AbYDAPSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:06 -0400
-Content-Disposition: inline; filename=pnpacpi-add-shareability-to-irq-flags
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:11805 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891AbYDAPSA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:00 -0400
+Content-Disposition: inline; filename=pnpacpi-fix-encode-extended-irq
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This simplifies IRQ resource parsing slightly by computing all the
-IORESOURCE_IRQ_* flags at the same time.
-
-This also keeps track of shareability information when parsing options
-from _PRS.  Previously we ignored shareability in _PRS.
+This has been wrong since at least 2.6.12.  I haven't seen any bug
+reports, but it's clearly incorrect.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Index: work7/drivers/pnp/pnpacpi/rsparser.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:22.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:10:23.000000000 -0600
-@@ -32,19 +32,26 @@
- /*
-  * Allocated Resources
-  */
--static int irq_flags(int triggering, int polarity)
-+static int irq_flags(int triggering, int polarity, int shareable)
- {
-+	int flags;
-+
- 	if (triggering == ACPI_LEVEL_SENSITIVE) {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWLEVEL;
-+			flags = IORESOURCE_IRQ_LOWLEVEL;
- 		else
--			return IORESOURCE_IRQ_HIGHLEVEL;
-+			flags = IORESOURCE_IRQ_HIGHLEVEL;
- 	} else {
- 		if (polarity == ACPI_ACTIVE_LOW)
--			return IORESOURCE_IRQ_LOWEDGE;
-+			flags = IORESOURCE_IRQ_LOWEDGE;
- 		else
--			return IORESOURCE_IRQ_HIGHEDGE;
-+			flags = IORESOURCE_IRQ_HIGHEDGE;
- 	}
-+
-+	if (shareable)
-+		flags |= IORESOURCE_IRQ_SHAREABLE;
-+
-+	return flags;
- }
- 
- static void decode_irq_flags(int flag, int *triggering, int *polarity)
-@@ -108,16 +115,13 @@
- 	}
- 
- 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
--	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
-+	res->irq_resource[i].flags |= irq_flags(triggering, polarity, shareable);
- 	irq = acpi_register_gsi(gsi, triggering, polarity);
- 	if (irq < 0) {
- 		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
- 		return;
- 	}
- 
--	if (shareable)
--		res->irq_resource[i].flags |= IORESOURCE_IRQ_SHAREABLE;
--
- 	res->irq_resource[i].start = irq;
- 	res->irq_resource[i].end = irq;
- 	pcibios_penalize_isa_irq(irq, 1);
-@@ -439,7 +443,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 
- 	pnp_register_irq_resource(option, irq);
- }
-@@ -459,7 +463,7 @@
- 	for (i = 0; i < p->interrupt_count; i++)
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], irq->map);
--	irq->flags = irq_flags(p->triggering, p->polarity);
-+	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 
- 	pnp_register_irq_resource(option, irq);
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 11:50:19.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-20 12:02:18.000000000 -0600
+@@ -818,9 +818,9 @@
+ 	resource->data.extended_irq.triggering = triggering;
+ 	resource->data.extended_irq.polarity = polarity;
+ 	if (triggering == ACPI_EDGE_SENSITIVE)
+-		resource->data.irq.sharable = ACPI_EXCLUSIVE;
++		resource->data.extended_irq.sharable = ACPI_EXCLUSIVE;
+ 	else
+-		resource->data.irq.sharable = ACPI_SHARED;
++		resource->data.extended_irq.sharable = ACPI_SHARED;
+ 	resource->data.extended_irq.interrupt_count = 1;
+ 	resource->data.extended_irq.interrupts[0] = p->start;
  }
 
 -- 
