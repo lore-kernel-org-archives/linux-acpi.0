@@ -1,121 +1,68 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 08/37] PNP: change pnp_add_card_id() to allocate its own pnp_id structures
-Date: Tue, 01 Apr 2008 09:16:42 -0600
-Message-ID: <20080401151737.215839812@ldl.fc.hp.com>
+Subject: [patch 15/37] PNPACPI: pass pnp_dev instead of acpi_handle
+Date: Tue, 01 Apr 2008 09:16:49 -0600
+Message-ID: <20080401151738.642616008@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:17152 "EHLO
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:17191 "EHLO
 	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759213AbYDAPR4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:17:56 -0400
-Content-Disposition: inline; filename=pnp-move-allocation-into-pnp_add_card_id
+	with ESMTP id S1759307AbYDAPSB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:01 -0400
+Content-Disposition: inline; filename=pnpacpi-use-pnp_dev
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-This moves some of the pnp_id knowledge out of the backends and into
-the PNP core.
+Pass the pnp_dev pointer when possible instead of the acpi_handle.
+This allows better error messages and reduces the chance of error
+in the caller.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work7/drivers/pnp/base.h
+Index: work7/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-31 16:50:18.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-31 16:50:20.000000000 -0600
-@@ -3,7 +3,7 @@
- void pnp_eisa_id_to_string(u32 id, char *str);
- struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
- struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card);
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
-Index: work7/drivers/pnp/card.c
-===================================================================
---- work7.orig/drivers/pnp/card.c	2008-03-31 15:42:25.000000000 -0600
-+++ work7/drivers/pnp/card.c	2008-03-31 16:50:20.000000000 -0600
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
- #include "base.h"
-@@ -100,19 +101,33 @@
-  * @id: pointer to a pnp_id structure
-  * @card: pointer to the desired card
-  */
--int pnp_add_card_id(struct pnp_id *id, struct pnp_card *card)
-+struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id)
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-21 15:35:05.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-03-21 15:36:00.000000000 -0600
+@@ -88,10 +88,10 @@
  {
--	struct pnp_id *ptr;
-+	struct pnp_id *dev_id, *ptr;
+ 	acpi_handle handle = dev->data;
+ 	struct acpi_buffer buffer;
+-	int ret = 0;
++	int ret;
+ 	acpi_status status;
  
--	id->next = NULL;
-+	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	if (!dev_id)
-+		return NULL;
-+
-+	dev_id->id[0] = id[0];
-+	dev_id->id[1] = id[1];
-+	dev_id->id[2] = id[2];
-+	dev_id->id[3] = tolower(id[3]);
-+	dev_id->id[4] = tolower(id[4]);
-+	dev_id->id[5] = tolower(id[5]);
-+	dev_id->id[6] = tolower(id[6]);
-+	dev_id->id[7] = '\0';
-+
-+	dev_id->next = NULL;
- 	ptr = card->id;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
- 	if (ptr)
--		ptr->next = id;
-+		ptr->next = dev_id;
- 	else
--		card->id = id;
--	return 0;
-+		card->id = dev_id;
-+
-+	return dev_id;
+-	ret = pnpacpi_build_resource_template(handle, &buffer);
++	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+ 	ret = pnpacpi_encode_resources(res, &buffer);
+Index: work7/drivers/pnp/pnpacpi/pnpacpi.h
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-21 15:28:07.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/pnpacpi.h	2008-03-21 15:36:00.000000000 -0600
+@@ -8,5 +8,5 @@
+ acpi_status pnpacpi_parse_allocated_resource(acpi_handle, struct pnp_resource_table*);
+ acpi_status pnpacpi_parse_resource_option_data(acpi_handle, struct pnp_dev*);
+ int pnpacpi_encode_resources(struct pnp_resource_table *, struct acpi_buffer *);
+-int pnpacpi_build_resource_template(acpi_handle, struct acpi_buffer*);
++int pnpacpi_build_resource_template(struct pnp_dev *, struct acpi_buffer *);
+ #endif
+Index: work7/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:35:59.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-21 15:36:00.000000000 -0600
+@@ -775,9 +775,10 @@
+ 	return AE_OK;
  }
  
- static void pnp_free_card_ids(struct pnp_card *card)
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 16:48:26.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 16:50:20.000000000 -0600
-@@ -822,17 +822,18 @@
- static void isapnp_parse_card_id(struct pnp_card *card, unsigned short vendor,
- 				 unsigned short device)
+-int pnpacpi_build_resource_template(acpi_handle handle,
++int pnpacpi_build_resource_template(struct pnp_dev *dev,
+ 				    struct acpi_buffer *buffer)
  {
--	struct pnp_id *id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
-+	char id[8];
- 
--	if (!id)
--		return;
--	sprintf(id->id, "%c%c%c%x%x%x%x",
--		'A' + ((vendor >> 2) & 0x3f) - 1,
--		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
--		'A' + ((vendor >> 8) & 0x1f) - 1,
--		(device >> 4) & 0x0f,
--		device & 0x0f, (device >> 12) & 0x0f, (device >> 8) & 0x0f);
--	pnp_add_card_id(id, card);
-+	id[0] = 'A' + ((vendor >> 2) & 0x3f) - 1;
-+	id[1] = 'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1;
-+	id[2] = 'A' + ((vendor >> 8) & 0x1f) - 1;
-+	id[3] = '0' + ((device >> 4) & 0x0f);
-+	id[4] = '0' + (device & 0x0f);
-+	id[5] = '0' + ((device >> 12) & 0x0f);
-+	id[6] = '0' + ((device >> 8) & 0x0f);
-+	id[7] = '\0';
-+
-+	pnp_add_card_id(card, id);
- }
- 
- /*
++	acpi_handle handle = dev->data;
+ 	struct acpi_resource *resource;
+ 	int res_cnt = 0;
+ 	acpi_status status;
 
 -- 
