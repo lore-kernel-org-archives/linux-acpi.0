@@ -1,78 +1,182 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 03/37] PNP: make pnp_add_id() internal to PNP core
-Date: Tue, 01 Apr 2008 09:16:37 -0600
-Message-ID: <20080401151736.204623555@ldl.fc.hp.com>
+Subject: [patch 16/37] PNP: remove pnp_resource_table from internal get/set interfaces
+Date: Tue, 01 Apr 2008 09:16:50 -0600
+Message-ID: <20080401151738.838525355@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:5348 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758804AbYDAPRt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:17:49 -0400
-Content-Disposition: inline; filename=pnp-make-pnp_add_id-internal-to-core
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:34915 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759330AbYDAPSG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:06 -0400
+Content-Disposition: inline; filename=pnp-remove-pnp_resource_table-args-from-get-set
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-pnp_add_id() doesn't need to be exposed outside the PNP core, so
-move the declaration to an internal header file.
+When we call protocol->get() and protocol->set() methods, we currently
+supply pointers to both the pnp_dev and the pnp_resource_table even
+though the pnp_resource_table should always be the one associated with
+the pnp_dev.
+
+This removes the pnp_resource_table arguments to make it clear that
+these methods only operate on the specified pnp_dev.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+---
+ include/linux/pnp.h        |    4 ++--
+ drivers/pnp/interface.c    |    2 +-
+ drivers/pnp/manager.c      |    2 +-
+ drivers/pnp/isapnp/core.c  |   11 +++++------
+ drivers/pnp/pnpacpi/core.c |    8 +++-----
+ drivers/pnp/pnpbios/core.c |   10 ++++------
+ 6 files changed, 16 insertions(+), 21 deletions(-)
+
 Index: work7/include/linux/pnp.h
 ===================================================================
---- work7.orig/include/linux/pnp.h	2008-03-21 13:31:06.000000000 -0600
-+++ work7/include/linux/pnp.h	2008-03-21 13:31:08.000000000 -0600
-@@ -403,7 +403,6 @@
- /* protocol helpers */
- int pnp_is_active(struct pnp_dev *dev);
- int compare_pnp_id(struct pnp_id *pos, const char *id);
--int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
- int pnp_register_driver(struct pnp_driver *drv);
- void pnp_unregister_driver(struct pnp_driver *drv);
+--- work7.orig/include/linux/pnp.h	2008-03-31 17:07:19.000000000 -0600
++++ work7/include/linux/pnp.h	2008-03-31 17:10:39.000000000 -0600
+@@ -328,8 +328,8 @@
+ 	char *name;
  
-@@ -450,7 +449,6 @@
- /* protocol helpers */
- static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
- static inline int compare_pnp_id(struct pnp_id *pos, const char *id) { return -ENODEV; }
--static inline int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_register_driver(struct pnp_driver *drv) { return -ENODEV; }
- static inline void pnp_unregister_driver(struct pnp_driver *drv) { }
+ 	/* resource control functions */
+-	int (*get) (struct pnp_dev *dev, struct pnp_resource_table *res);
+-	int (*set) (struct pnp_dev *dev, struct pnp_resource_table *res);
++	int (*get) (struct pnp_dev *dev);
++	int (*set) (struct pnp_dev *dev);
+ 	int (*disable) (struct pnp_dev *dev);
  
-Index: work7/drivers/pnp/base.h
+ 	/* protocol specific suspend/resume */
+Index: work7/drivers/pnp/interface.c
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-21 13:31:39.000000000 -0600
-@@ -1,5 +1,6 @@
- extern spinlock_t pnp_lock;
- void *pnp_alloc(long size);
-+int pnp_add_id(struct pnp_id *id, struct pnp_dev *dev);
- int pnp_interface_attach_device(struct pnp_dev *dev);
- void pnp_fixup_device(struct pnp_dev *dev);
- void pnp_free_option(struct pnp_option *option);
+--- work7.orig/drivers/pnp/interface.c	2008-03-31 16:59:07.000000000 -0600
++++ work7/drivers/pnp/interface.c	2008-03-31 17:10:39.000000000 -0600
+@@ -364,7 +364,7 @@
+ 	if (!strnicmp(buf, "get", 3)) {
+ 		mutex_lock(&pnp_res_mutex);
+ 		if (pnp_can_read(dev))
+-			dev->protocol->get(dev, &dev->res);
++			dev->protocol->get(dev);
+ 		mutex_unlock(&pnp_res_mutex);
+ 		goto done;
+ 	}
+Index: work7/drivers/pnp/manager.c
+===================================================================
+--- work7.orig/drivers/pnp/manager.c	2008-03-31 16:59:07.000000000 -0600
++++ work7/drivers/pnp/manager.c	2008-03-31 17:10:39.000000000 -0600
+@@ -473,7 +473,7 @@
+ 		return -EINVAL;
+ 	}
+ 
+-	if (dev->protocol->set(dev, &dev->res) < 0) {
++	if (dev->protocol->set(dev) < 0) {
+ 		dev_err(&dev->dev, "activation failed\n");
+ 		return -EIO;
+ 	}
+Index: work7/drivers/pnp/isapnp/core.c
+===================================================================
+--- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:26.000000000 -0600
++++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:39.000000000 -0600
+@@ -968,21 +968,20 @@
+ 	return 0;
+ }
+ 
+-static int isapnp_get_resources(struct pnp_dev *dev,
+-				struct pnp_resource_table *res)
++static int isapnp_get_resources(struct pnp_dev *dev)
+ {
+ 	int ret;
+ 
+-	pnp_init_resource_table(res);
++	pnp_init_resource_table(&dev->res);
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
+-	ret = isapnp_read_resources(dev, res);
++	ret = isapnp_read_resources(dev, &dev->res);
+ 	isapnp_cfg_end();
+ 	return ret;
+ }
+ 
+-static int isapnp_set_resources(struct pnp_dev *dev,
+-				struct pnp_resource_table *res)
++static int isapnp_set_resources(struct pnp_dev *dev)
+ {
++	struct pnp_resource_table *res = &dev->res;
+ 	int tmp;
+ 
+ 	isapnp_cfg_begin(dev->card->number, dev->number);
 Index: work7/drivers/pnp/pnpacpi/core.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/core.c	2008-03-21 13:31:08.000000000 -0600
-@@ -25,6 +25,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/actypes.h>
+--- work7.orig/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:38.000000000 -0600
++++ work7/drivers/pnp/pnpacpi/core.c	2008-03-31 17:10:39.000000000 -0600
+@@ -73,8 +73,7 @@
+ 	return 1;
+ }
  
-+#include "../base.h"
- #include "pnpacpi.h"
+-static int pnpacpi_get_resources(struct pnp_dev *dev,
+-				 struct pnp_resource_table *res)
++static int pnpacpi_get_resources(struct pnp_dev *dev)
+ {
+ 	acpi_status status;
  
- static int num = 0;
+@@ -83,8 +82,7 @@
+ 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ }
+ 
+-static int pnpacpi_set_resources(struct pnp_dev *dev,
+-				 struct pnp_resource_table *res)
++static int pnpacpi_set_resources(struct pnp_dev *dev)
+ {
+ 	acpi_handle handle = dev->data;
+ 	struct acpi_buffer buffer;
+@@ -94,7 +92,7 @@
+ 	ret = pnpacpi_build_resource_template(dev, &buffer);
+ 	if (ret)
+ 		return ret;
+-	ret = pnpacpi_encode_resources(res, &buffer);
++	ret = pnpacpi_encode_resources(&dev->res, &buffer);
+ 	if (ret) {
+ 		kfree(buffer.pointer);
+ 		return ret;
 Index: work7/drivers/pnp/pnpbios/core.c
 ===================================================================
---- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:06.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/core.c	2008-03-21 13:31:08.000000000 -0600
-@@ -69,6 +69,7 @@
- #include <asm/system.h>
- #include <asm/byteorder.h>
+--- work7.orig/drivers/pnp/pnpbios/core.c	2008-03-31 17:05:32.000000000 -0600
++++ work7/drivers/pnp/pnpbios/core.c	2008-03-31 17:10:39.000000000 -0600
+@@ -204,8 +204,7 @@
  
-+#include "../base.h"
- #include "pnpbios.h"
+ #endif				/* CONFIG_HOTPLUG */
  
- /*
+-static int pnpbios_get_resources(struct pnp_dev *dev,
+-				 struct pnp_resource_table *res)
++static int pnpbios_get_resources(struct pnp_dev *dev)
+ {
+ 	u8 nodenum = dev->number;
+ 	struct pnp_bios_node *node;
+@@ -220,14 +219,13 @@
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+-	pnpbios_read_resources_from_node(res, node);
++	pnpbios_read_resources_from_node(&dev->res, node);
+ 	dev->active = pnp_is_active(dev);
+ 	kfree(node);
+ 	return 0;
+ }
+ 
+-static int pnpbios_set_resources(struct pnp_dev *dev,
+-				 struct pnp_resource_table *res)
++static int pnpbios_set_resources(struct pnp_dev *dev)
+ {
+ 	u8 nodenum = dev->number;
+ 	struct pnp_bios_node *node;
+@@ -243,7 +241,7 @@
+ 		kfree(node);
+ 		return -ENODEV;
+ 	}
+-	if (pnpbios_write_resources_to_node(res, node) < 0) {
++	if (pnpbios_write_resources_to_node(&dev->res, node) < 0) {
+ 		kfree(node);
+ 		return -1;
+ 	}
 
 -- 
