@@ -1,40 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [BUG] nvidia vga card is missed after S3
-Date: Tue, 1 Apr 2008 22:24:18 +0200
-Message-ID: <200804012224.19168.rjw@sisk.pl>
-References: <1206691229.1362.5.camel@sli10-desk.sh.intel.com> <200804010102.59665.rjw@sisk.pl> <1207011521.25182.0.camel@sli10-desk.sh.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH] PM: Introduce new top level suspend and hibernation
+ callbacks (rev. 6)
+Date: Tue, 1 Apr 2008 16:56:55 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0804011653140.9362-100000@netrider.rowland.org>
+References: <200804012212.48609.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48232 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758483AbYDAUYM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Apr 2008 16:24:12 -0400
-In-Reply-To: <1207011521.25182.0.camel@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:3853 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752288AbYDAU44 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 16:56:56 -0400
+In-Reply-To: <200804012212.48609.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Nigel Cunningham <ncunningham@crca.org.au>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, David Brownell <david-b@pacbell.net>, Pavel Machek <pavel@ucw.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver Neukum <oliver@neukum.org>
 
-On Tuesday, 1 of April 2008, Shaohua Li wrote:
+On Tue, 1 Apr 2008, Rafael J. Wysocki wrote:
+
+> > Does ..._ext_... mean extended? (external?) If 'extended' (or if not),
+> > does that imply that they're mutually exclusive alternatives for drivers
+> > to use?
 > 
-> On Tue, 2008-04-01 at 01:02 +0200, Rafael J. Wysocki wrote:
-> > On Friday, 28 of March 2008, Shaohua Li wrote:
-> > > Still in ASUS A6VC laptop (linux is quite broken in the system). If
-> > > 'pm_restore_console()' is called the video card (03:00.0, Nevidia Go
-> > > 6200/6400, it hasn't a driver) pci config space read is messy (some are
-> > > 0xffffffff, others are 0). If I comment pm_restore_console(), then
-> > > everything is fine. Anything I can provide to debug the issue?
-> > 
-> > Hmm.  Do you suspend the box from under X or crom the console?
-> from console.
+> 'ext' means 'extended'.  The idea is that the 'extended' version will be used
+> by bus types / driver types that don't need to implement the _noirq callbacks.
 
-Framebuffer or plain VGA?
+Something's wrong here.  This seems to say that the "extended" version
+has _fewer_ method pointers -- in which case it should be called 
+"restricted" instead.
 
-Anyway, it looks like 's2ram -f -p' might help.
+> > So drivers can never validly fail to resume. That sounds fair enough. If
+> > the hardware has gone away while in lower power mode (USB, say), should
+> > the driver then just printk an error and return success?
+> 
+> I think so.
+> 
+> IMO, an error code returned by a driver's ->resume() should mean "the device
+> hasn't resumed and is presumably dead".  Otherwise, ->resume() should return
+> success.
 
-Thanks,
-Rafael
+If the device is gone, it doesn't much matter what resume() returns.
+
+Alan Stern
+
