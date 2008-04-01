@@ -1,234 +1,151 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 20/37] PNP: make generic pnp_add_irq_resource()
-Date: Tue, 01 Apr 2008 09:16:54 -0600
-Message-ID: <20080401151739.626854225@ldl.fc.hp.com>
+Subject: [patch 37/37] PNP: make interfaces private to the PNP core
+Date: Tue, 01 Apr 2008 09:17:11 -0600
+Message-ID: <20080401151743.051845641@ldl.fc.hp.com>
 References: <20080401151634.730901933@ldl.fc.hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:27374 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759475AbYDAPSi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:38 -0400
-Content-Disposition: inline; filename=pnp-common-add-irq-resource
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:17665 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759486AbYDAPSq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2008 11:18:46 -0400
+Content-Disposition: inline; filename=pnp-make-interfaces-private
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Thomas Renninger <trenn@suse.de>, Rene Herman <rene.herman@keyaccess.nl>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@linux-foundation.org>
 
-Add a pnp_add_irq_resource() that can be used by all the PNP
-backends.  This consolidates a little more pnp_resource_table
-knowledge into one place.
+The interfaces for registering protocols, devices, cards,
+and resource options should only be used inside the PNP core.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 ---
- drivers/pnp/base.h             |    2 ++
- drivers/pnp/interface.c        |   14 ++++----------
- drivers/pnp/isapnp/core.c      |    4 +---
- drivers/pnp/pnpacpi/rsparser.c |   28 +++++-----------------------
- drivers/pnp/pnpbios/rsparser.c |   23 ++---------------------
- drivers/pnp/resource.c         |   26 ++++++++++++++++++++++++++
- 6 files changed, 40 insertions(+), 57 deletions(-)
+ drivers/pnp/base.h  |   24 +++++++++++++++++++++++-
+ include/linux/pnp.h |   34 ----------------------------------
+ 2 files changed, 23 insertions(+), 35 deletions(-)
 
+Index: work7/include/linux/pnp.h
+===================================================================
+--- work7.orig/include/linux/pnp.h	2008-03-31 16:51:21.000000000 -0600
++++ work7/include/linux/pnp.h	2008-03-31 16:52:02.000000000 -0600
+@@ -390,19 +390,12 @@
+ #if defined(CONFIG_PNP)
+ 
+ /* device management */
+-int pnp_register_protocol(struct pnp_protocol *protocol);
+-void pnp_unregister_protocol(struct pnp_protocol *protocol);
+-int pnp_add_device(struct pnp_dev *dev);
+ int pnp_device_attach(struct pnp_dev *pnp_dev);
+ void pnp_device_detach(struct pnp_dev *pnp_dev);
+ extern struct list_head pnp_global;
+ extern int pnp_platform_devices;
+ 
+ /* multidevice card support */
+-int pnp_add_card(struct pnp_card *card);
+-void pnp_remove_card(struct pnp_card *card);
+-int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+-void pnp_remove_card_device(struct pnp_dev *dev);
+ struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink,
+ 					const char *id, struct pnp_dev *from);
+ void pnp_release_card_device(struct pnp_dev *dev);
+@@ -411,23 +404,12 @@
+ extern struct list_head pnp_cards;
+ 
+ /* resource management */
+-struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+-struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+-						 int priority);
+-int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data);
+-int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data);
+-int pnp_register_port_resource(struct pnp_option *option,
+-			       struct pnp_port *data);
+-int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
+-void pnp_init_resources(struct pnp_dev *dev);
+ int pnp_auto_config_dev(struct pnp_dev *dev);
+-int pnp_validate_config(struct pnp_dev *dev);
+ int pnp_start_dev(struct pnp_dev *dev);
+ int pnp_stop_dev(struct pnp_dev *dev);
+ int pnp_activate_dev(struct pnp_dev *dev);
+ int pnp_disable_dev(struct pnp_dev *dev);
+ 
+-
+ /* protocol helpers */
+ int pnp_is_active(struct pnp_dev *dev);
+ int compare_pnp_id(struct pnp_id *pos, const char *id);
+@@ -437,35 +419,19 @@
+ #else
+ 
+ /* device management */
+-static inline int pnp_register_protocol(struct pnp_protocol *protocol) { return -ENODEV; }
+-static inline void pnp_unregister_protocol(struct pnp_protocol *protocol) { }
+-static inline int pnp_init_device(struct pnp_dev *dev) { return -ENODEV; }
+-static inline int pnp_add_device(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_device_attach(struct pnp_dev *pnp_dev) { return -ENODEV; }
+ static inline void pnp_device_detach(struct pnp_dev *pnp_dev) { }
+ 
+ #define pnp_platform_devices 0
+ 
+ /* multidevice card support */
+-static inline int pnp_add_card(struct pnp_card *card) { return -ENODEV; }
+-static inline void pnp_remove_card(struct pnp_card *card) { }
+-static inline int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev) { return -ENODEV; }
+-static inline void pnp_remove_card_device(struct pnp_dev *dev) { }
+ static inline struct pnp_dev *pnp_request_card_device(struct pnp_card_link *clink, const char *id, struct pnp_dev *from) { return NULL; }
+ static inline void pnp_release_card_device(struct pnp_dev *dev) { }
+ static inline int pnp_register_card_driver(struct pnp_card_driver *drv) { return -ENODEV; }
+ static inline void pnp_unregister_card_driver(struct pnp_card_driver *drv) { }
+ 
+ /* resource management */
+-static inline struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev) { return NULL; }
+-static inline struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev, int priority) { return NULL; }
+-static inline int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data) { return -ENODEV; }
+-static inline int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data) { return -ENODEV; }
+-static inline int pnp_register_port_resource(struct pnp_option *option, struct pnp_port *data) { return -ENODEV; }
+-static inline int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data) { return -ENODEV; }
+-static inline void pnp_init_resources(struct pnp_dev *dev) { }
+ static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
+-static inline int pnp_validate_config(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_activate_dev(struct pnp_dev *dev) { return -ENODEV; }
 Index: work7/drivers/pnp/base.h
 ===================================================================
---- work7.orig/drivers/pnp/base.h	2008-03-31 17:07:34.000000000 -0600
-+++ work7/drivers/pnp/base.h	2008-03-31 17:10:52.000000000 -0600
-@@ -15,3 +15,5 @@
- int pnp_check_mem(struct pnp_dev * dev, int idx);
- int pnp_check_irq(struct pnp_dev * dev, int idx);
- int pnp_check_dma(struct pnp_dev * dev, int idx);
+--- work7.orig/drivers/pnp/base.h	2008-03-31 16:51:21.000000000 -0600
++++ work7/drivers/pnp/base.h	2008-03-31 16:55:28.000000000 -0600
+@@ -1,11 +1,33 @@
+ extern spinlock_t pnp_lock;
+ void *pnp_alloc(long size);
 +
-+int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags);
-Index: work7/drivers/pnp/resource.c
-===================================================================
---- work7.orig/drivers/pnp/resource.c	2008-03-31 16:59:07.000000000 -0600
-+++ work7/drivers/pnp/resource.c	2008-03-31 17:10:52.000000000 -0600
-@@ -461,6 +461,32 @@
- #endif
- }
- 
-+#define set(flags)	((flags & IORESOURCE_UNSET) == 0)
++int pnp_register_protocol(struct pnp_protocol *protocol);
++void pnp_unregister_protocol(struct pnp_protocol *protocol);
 +
-+int pnp_add_irq_resource(struct pnp_dev *dev, int irq, int flags)
-+{
-+	struct pnp_resource_table *res = &dev->res;
-+	int i = 0;
-+	static unsigned char warned;
+ void pnp_eisa_id_to_string(u32 id, char *str);
+ struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id, char *pnpid);
+ struct pnp_card *pnp_alloc_card(struct pnp_protocol *, int id, char *pnpid);
 +
-+	while (set(res->irq_resource[i].flags) && i < PNP_MAX_IRQ)
-+		i++;
-+	if (i >= PNP_MAX_IRQ && !warned) {
-+		dev_err(&dev->dev, "too many IRQs (max %d)\n", PNP_MAX_IRQ);
-+		warned = 1;
-+		return -ENOSPC;
-+	}
++int pnp_add_device(struct pnp_dev *dev);
+ struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
+-struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
+ int pnp_interface_attach_device(struct pnp_dev *dev);
 +
-+	res->irq_resource[i].flags = IORESOURCE_IRQ | flags;
-+	if (irq < 0) {
-+		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
-+		return -EINVAL;
-+	}
-+	res->irq_resource[i].start = irq;
-+	res->irq_resource[i].end = irq;
-+	return 0;
-+}
++int pnp_add_card(struct pnp_card *card);
++struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
++void pnp_remove_card(struct pnp_card *card);
++int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
++void pnp_remove_card_device(struct pnp_dev *dev);
 +
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
- {
-Index: work7/drivers/pnp/isapnp/core.c
-===================================================================
---- work7.orig/drivers/pnp/isapnp/core.c	2008-03-31 17:10:48.000000000 -0600
-+++ work7/drivers/pnp/isapnp/core.c	2008-03-31 17:10:52.000000000 -0600
-@@ -952,9 +952,7 @@
- 			     8);
- 			if (!ret)
- 				continue;
--			res->irq_resource[tmp].start =
--			    res->irq_resource[tmp].end = ret;
--			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
-+			pnp_add_irq_resource(dev, ret, 0);
- 		}
- 		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
-Index: work7/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:48.000000000 -0600
-+++ work7/drivers/pnp/pnpacpi/rsparser.c	2008-03-31 17:10:52.000000000 -0600
-@@ -22,6 +22,7 @@
- #include <linux/acpi.h>
- #include <linux/pci.h>
- #include "pnpacpi.h"
-+#include "../base.h"
- 
- #ifdef CONFIG_IA64
- #define valid_IRQ(i) (1)
-@@ -80,24 +81,12 @@
- 						u32 gsi, int triggering,
- 						int polarity, int shareable)
- {
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--	int irq;
-+	int irq, flags;
- 	int p, t;
--	static unsigned char warned;
- 
- 	if (!valid_IRQ(gsi))
- 		return;
- 
--	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
--	       i < PNP_MAX_IRQ)
--		i++;
--	if (i >= PNP_MAX_IRQ && !warned) {
--		printk(KERN_ERR "pnpacpi: exceeded the max number of IRQ "
--				"resources: %d \n", PNP_MAX_IRQ);
--		warned = 1;
--		return;
--	}
- 	/*
- 	 * in IO-APIC mode, use overrided attribute. Two reasons:
- 	 * 1. BIOS bug in DSDT
-@@ -114,18 +103,11 @@
- 			polarity = p;
- 		}
- 	}
-+	flags = irq_flags(triggering, polarity, shareable);
- 
--	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
--	res->irq_resource[i].flags |= irq_flags(triggering, polarity, shareable);
- 	irq = acpi_register_gsi(gsi, triggering, polarity);
--	if (irq < 0) {
--		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
--		return;
--	}
--
--	res->irq_resource[i].start = irq;
--	res->irq_resource[i].end = irq;
--	pcibios_penalize_isa_irq(irq, 1);
-+	if (pnp_add_irq_resource(dev, irq, flags) == 0)
-+		pcibios_penalize_isa_irq(irq, 1);
- }
- 
- static int dma_flags(int type, int bus_master, int transfer)
-Index: work7/drivers/pnp/pnpbios/rsparser.c
-===================================================================
---- work7.orig/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:48.000000000 -0600
-+++ work7/drivers/pnp/pnpbios/rsparser.c	2008-03-31 17:10:52.000000000 -0600
-@@ -54,26 +54,6 @@
-  * Allocated Resources
-  */
- 
--static void pnpbios_parse_allocated_irqresource(struct pnp_dev *dev, int irq)
--{
--	struct pnp_resource_table *res = &dev->res;
--	int i = 0;
--
--	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET)
--	       && i < PNP_MAX_IRQ)
--		i++;
--	if (i < PNP_MAX_IRQ) {
--		res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
--		if (irq == -1) {
--			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->irq_resource[i].start =
--		    res->irq_resource[i].end = (unsigned long)irq;
--		pcibios_penalize_isa_irq(irq, 1);
--	}
--}
--
- static void pnpbios_parse_allocated_dmaresource(struct pnp_dev *dev, int dma)
- {
- 	struct pnp_resource_table *res = &dev->res;
-@@ -198,7 +178,8 @@
- 			for (i = 0; i < 16; i++, mask = mask >> 1)
- 				if (mask & 0x01)
- 					io = i;
--			pnpbios_parse_allocated_irqresource(dev, io);
-+			if (pnp_add_irq_resource(dev, io, 0) == 0)
-+				pcibios_penalize_isa_irq(io, 1);
- 			break;
- 
- 		case SMALL_TAG_DMA:
-Index: work7/drivers/pnp/interface.c
-===================================================================
---- work7.orig/drivers/pnp/interface.c	2008-03-31 17:10:48.000000000 -0600
-+++ work7/drivers/pnp/interface.c	2008-03-31 17:10:52.000000000 -0600
-@@ -325,6 +325,7 @@
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
- 	char *buf = (void *)ubuf;
- 	int retval = 0;
-+	resource_size_t start;
- 
- 	if (dev->status & PNP_ATTACHED) {
- 		retval = -EBUSY;
-@@ -369,7 +370,7 @@
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
--		int nport = 0, nmem = 0, nirq = 0, ndma = 0;
-+		int nport = 0, nmem = 0, ndma = 0;
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
-@@ -430,14 +431,8 @@
- 				buf += 3;
- 				while (isspace(*buf))
- 					++buf;
--				dev->res.irq_resource[nirq].start =
--				    dev->res.irq_resource[nirq].end =
--				    simple_strtoul(buf, &buf, 0);
--				dev->res.irq_resource[nirq].flags =
--				    IORESOURCE_IRQ;
--				nirq++;
--				if (nirq >= PNP_MAX_IRQ)
--					break;
-+				start = simple_strtoul(buf, &buf, 0);
-+				pnp_add_irq_resource(dev, start, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "dma", 3)) {
++struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
++struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
++						 int priority);
++int pnp_register_irq_resource(struct pnp_option *option, struct pnp_irq *data);
++int pnp_register_dma_resource(struct pnp_option *option, struct pnp_dma *data);
++int pnp_register_port_resource(struct pnp_option *option,
++			       struct pnp_port *data);
++int pnp_register_mem_resource(struct pnp_option *option, struct pnp_mem *data);
++void pnp_init_resources(struct pnp_dev *dev);
++
+ void pnp_fixup_device(struct pnp_dev *dev);
+ void pnp_free_option(struct pnp_option *option);
+ int __pnp_add_device(struct pnp_dev *dev);
 
 -- 
